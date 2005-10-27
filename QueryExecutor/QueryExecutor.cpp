@@ -9,7 +9,7 @@
    
 #include "QueryResult.h"   
 #include "TransactionManager.h"
-#include "Store.h"
+#include "Store/Store.h"
 #include "QueryTree.h"
 #include "Proxy.h"
 
