@@ -8,7 +8,7 @@
    Maja Perycz */
    
 #include "QueryResult.h"   
-#include "TransactionManager.h"
+#include "TransactionManager/transaction.h"
 #include "Store/Store.h"
 #include "QueryTree.h"
 #include "Proxy.h"
