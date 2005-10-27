@@ -1,0 +1,4 @@
+AR=ar
+CC=gcc
+CPP=g++
+CXXFLAGS=-I./ -I./../ -Wall -fno-exceptions
