@@ -4,6 +4,7 @@ SUBDIRS	=	Backup \
 		Lock \
 		Log \
 		QueryExecutor \
+		QueryParser \
 		Store \
 		TransactionManager \
 		Driver \
