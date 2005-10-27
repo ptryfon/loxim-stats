@@ -1,7 +1,4 @@
-AR=ar
-CC=gcc
-CPP=g++
-CXXFLAGS=-I../ -Wall -fno-exceptions
+include ../make.defs
 
 OBJECTS	=	QueryExecutor.o
 
