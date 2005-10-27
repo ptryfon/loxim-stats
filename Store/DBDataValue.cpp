@@ -6,7 +6,7 @@ namespace Store
 {
 	DataValue::DataType DBDataValue::getType()
 	{
-		return DataType::Integer;
+		return DataValue::Integer;
 	};
 
 	void DBDataValue::toByteArray(unsigned char** lid, int* length)
