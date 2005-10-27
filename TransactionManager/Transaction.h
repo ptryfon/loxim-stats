@@ -21,7 +21,7 @@ class Transaction
 		TransactionID* tid;
 
       public:
-                Transaction(TransactionID* tId);
+                Transaction(TransactionID* tId)
                 {
 					printf("Transaction");
 					this->tid = tId;
