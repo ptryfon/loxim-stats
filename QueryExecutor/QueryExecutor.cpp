@@ -12,7 +12,7 @@
 #include "QueryResult.h"   
 #include "TransactionManager/transaction.h"
 #include "Store/Store.h"
-#include "Parser/QueryTree.h"
+#include "QueryParser/QueryTree.h"
 
 class QueryExecutor {
   
