@@ -22,7 +22,7 @@ class QueryExecutor {
   public:
     QueryExecutor();
     ~QueryExecutor() {};
-    int queryResult(QueryTree *tree, QuerryResult *result);
+    int queryResult(QueryTree *tree, QueryResult *result);
     int init(TransactionManager *t);
     // jakies operatory?
 };
