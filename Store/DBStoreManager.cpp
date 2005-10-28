@@ -7,7 +7,7 @@ namespace Store
 	{
 	};
 
-	ObjectPointer* DBStoreManager::getObject(TransactionID* tid, LogicalID* lid, ObjectPointer::AccessMode mode)
+	ObjectPointer* DBStoreManager::getObject(TransactionID* tid, LogicalID* lid, Store::AccessMode mode)
 	{
 		return new DBObjectPointer();
 	};

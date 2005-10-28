@@ -8,6 +8,24 @@ namespace Store
 	class DataValue;
 	class ObjectPointer;
 	class StoreManager;
+
+	enum DataType
+	{
+		// Simple types
+		Integer		= 0x01,
+		Double		= 0x02,
+		String		= 0x03,
+
+		// Complex types
+		Pointer		= 0xE0,
+		Vector		= 0xF0,
+	};
+
+	enum AccessMode
+	{
+		Read	= 0x01,
+		Write	= 0x02,
+	};
 };
 
 #include <string>
@@ -48,17 +66,6 @@ namespace Store
 		virtual ~LogicalID() {};
 	};
 
-	enum DataType
-	{
-		// Simple types
-		Integer		= 0x01,
-		Double		= 0x02,
-		String		= 0x03,
-
-		// Complex types
-		Pointer		= 0xE0,
-		Vector		= 0xF0,
-	};
 
 	class DataValue
 	{
@@ -86,11 +93,6 @@ namespace Store
 		virtual ~DataValue() {};
 	};
 
-	enum AccessMode
-	{
-		Read	= 0x01,
-		Write	= 0x02,
-	};
 
 	class ObjectPointer
 	{

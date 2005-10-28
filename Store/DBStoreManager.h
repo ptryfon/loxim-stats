@@ -16,7 +16,7 @@ namespace Store
 		DBStoreManager() {};
 		void init(SBQLConfig* config, LogManager* log);
 
-		virtual ObjectPointer* getObject(TransactionID* tid, LogicalID* lid, ObjectPointer::AccessMode mode);
+		virtual ObjectPointer* getObject(TransactionID* tid, LogicalID* lid, Store::AccessMode mode);
 		virtual ObjectPointer* createObject(TransactionID* tid, string name, DataValue* value);
 		virtual void deleteObject(TransactionID* tid, ObjectPointer* object);
 
