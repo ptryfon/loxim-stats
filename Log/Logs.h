@@ -1,6 +1,11 @@
 #ifndef __LOGS_H__
 #define __LOGS_H__
 
+namespace Logs
+{
+  class LogManager;
+}
+
 #include <string>
 #include <stdio.h>
 #include "../Store/Store.h"
