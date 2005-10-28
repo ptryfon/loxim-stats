@@ -34,7 +34,7 @@ int main() {
     prsr.parseIt("JestemZapytanieStringowe", costam);
 //    cout<<"juz cos zrobilem\n";
     delete [] costam;
-    
+    // jakis wpis do wcommitowania js209298    
 }
 
 
