@@ -25,34 +25,35 @@ namespace Logs
 
     LogManager() {}
     
-    int init( string logPath ) { printf( "LogManager: initialize( logPath=%s )\n", logPath.c_str() ); return 0; }
+    int init() { printf( "LogManager: initialize()\n" ); return 0; }
     
     /**
      * Zapisuje do dziennika <BEGIN tid>.
      */
-    int beginTransaction( TransactionID tid ) { printf( "LogManager: beginTransaction\n"); return 0; }
+    int beginTransaction( const TransactionID &tid ) { printf( "LogManager: beginTransaction\n"); return 0; }
 
     /**
      * Nakazuje zapisac w logach informacje o starej i nowej wartosci
      * zmodyfikowanego atrybutu.
      */
-    int write( TransactionID tid, LogicalID lid, DataValue oldVal, DataValue newVal ) { printf( "LogManager: write\n" ); return 0; }
+    int write( const TransactionID &tid, const LogicalID &lid, const DataValue &oldVal, const DataValue &newVal )
+    { printf( "LogManager: write\n" ); return 0; }
 
     /**
      * Rozpoczyna tworzenie bezkonfliktowego punktu kontrolnego.
      */
-    int checkpoint( TransactionID tid ) { printf( "LogManager: checkpoint\n"); return 0; }
+    int checkpoint( const TransactionID &tid ) { printf( "LogManager: checkpoint\n"); return 0; }
 
     /**
      * Konczy sie w chwili gdy wszystkie logi transakcji tid znajda sie na dysku;
      * wtedy dopiero mozna zaczac zrzucac brudnych stron do bazy na dysku.
      */
-    int commitTransaction( TransactionID tid ) { printf( "LogManager: commitTransaction\n" ); return 0; }
+    int commitTransaction( const TransactionID &tid ) { printf( "LogManager: commitTransaction\n" ); return 0; }
 
     /**
      * Zapisuje do dziennika <ABORT tid>.
      */
-    int rollbackTransaction( TransactionID tid ) { printf( "LogManager: rollbackTransaction\n" ); return 0; }
+    int rollbackTransaction( const TransactionID &tid ) { printf( "LogManager: rollbackTransaction\n" ); return 0; }
 
     int destroy() { printf( "LogManager: destroy()\n" ); return 0; }
   };
