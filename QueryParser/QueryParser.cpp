@@ -6,26 +6,8 @@
 using namespace std;
 
 
-/*
-class Parser {
 
-    protected:
-    int myNr;
-    public:
-    Parser() {};
-    virtual ~Parser(){};
-    virtual int parseIt (string s, QueryTree *qTrees) {
-	printf("Ja, PARSER, wczytalem takie cos...:\n\n %s \n\n",s.c_str());
-//	printf("Jestem Parser i parsuje %s stringa!\n", s);
-	return 0;    
-
-    };
-    //virtual int funkcja_a (int a) = 0;
-
-};
-*/
-
-    int QueryParser::parseIt (string s, QueryTree &qTrees) {
+    int QueryParser::parseIt (string s, QueryTree * &qTree) {
 	printf("Ja, PARSER, wczytalem takie cos...:\n\n %s \n\n",s.c_str());
 //	printf("Jestem Parser i parsuje %s stringa!\n", s);
 	return 0;    
@@ -36,9 +18,9 @@ class Parser {
 int main() {
 
     QueryParser prsr = QueryParser();
-    QueryTree *costam = new QueryTree[10];
+    QueryTree *costam;
     cout<<"zaraz sparsuje stringa\n";
-//    prsr.parseIt("JestemZapytanieStringowe", costam);
+    prsr.parseIt("JestemZapytanieStringowe", costam);
 //    cout<<"juz cos zrobilem\n";
     delete [] costam;
     // jakis wpis do wcommitowania js209298    
