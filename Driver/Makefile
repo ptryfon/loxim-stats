@@ -2,7 +2,7 @@
 CC=g++
 #endif
 
-all: Connection.o ResultSet.o DriverManager.o
+all: #Connection.o ResultSet.o DriverManager.o
 
 Connection.o: Connection.cpp Connection.h
 	$(CC) -c Connection.cpp

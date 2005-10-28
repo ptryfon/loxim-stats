@@ -2,7 +2,7 @@
 CC=g++
 #endif
 
-all: Server
+all: #Server
 
 Server: Server.o ConnectionThread.o
 	$(CC) Server.o ConnectionThread.o -o Server
