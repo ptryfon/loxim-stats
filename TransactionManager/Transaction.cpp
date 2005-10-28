@@ -3,36 +3,44 @@
 /**
  *	TransactionID - obiekt jednoznacznie identyfikujacy transakcje
  */
-                TransactionID::TransactionID(int id)
-                {
-					printf("TransactionID");
-                };
+    TransactionID::TransactionID(int id)
+    {
+	printf("TransactionID");
+    };
 
 /**
  *   Transaction - obiekt w ramach ktorego dziala Executor
  */
-                Transaction::Transaction(TransactionID* tId)
-                {
-		    printf("Transaction");
-		    tid = tId;
-                };
+    Transaction::Transaction(TransactionID* tId)
+    {
+        printf("Transaction");
+        tid = tId;
+    };
                 
-                ObjectPointer* Transaction::getObjectPointer(ObjectPointer& p,LogicalID& lid, AccessMode mode)
-				{
-					printf("Transaction: getProxy");
-					LockManager::lock(lid, tid, mode);
-					return 0; // StoreManager::getObject( &tid, &lid, mode );
-				};
+    ObjectPointer* Transaction::getObjectPointer(ObjectPointer& p,LogicalID& lid, AccessMode mode)
+    {
+	printf("Transaction: getProxy");
+	LockManager::lock(lid, tid, mode);
+	return 0; // StoreManager::getObject( &tid, &lid, mode );
+    };
+
 
 /**
  *	TransactionManager - fabryka obiektow Transaction, kazdy z Executor'ow prosi go o nowa transakcje
  */
-      int TransactionManager::createTransaction(Transaction& tr)
-             {
-		 printf("TransactionManager");
-		 //tr = new Transaction( new TransactionID(1));
-                 return 0;           
-             }              
+    int TransactionManager::createTransaction(Transaction& tr)
+    {
+	 printf("TransactionManager");
+	 //tr = new Transaction( new TransactionID(1));
+         return 0;           
+    }              
+
+    TransactionManager::TransactionManager(StoreManager *strMgr)
+    {
+	printf("TransactionManager - stworzony");
+	storeMgr = strMgr;
+    }
+    
 
 /**
  *	LockManager - implementuje tablice zamkow, wywolywany przez dana Transakcje 

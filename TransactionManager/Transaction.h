@@ -33,8 +33,10 @@ class Transaction
  */
 class TransactionManager
 {
+    StoreManager* storeMgr;
       public:
       static int createTransaction(Transaction& tr);
+      TransactionManager(StoreManager *strMgr);
 };
 
 /**
