@@ -112,7 +112,7 @@ namespace Store
 	{
 	public:
 		// Object
-		virtual ObjectPointer* getObject(TransactionID* tid, LogicalID* lid, ObjectPointer::AccessMode mode) = 0;
+		virtual ObjectPointer* getObject(TransactionID* tid, LogicalID* lid, AccessMode mode) = 0;
 		virtual ObjectPointer* createObject(TransactionID* tid, string name, DataValue* value) = 0;
 		virtual void deleteObject(TransactionID* tid, ObjectPointer* object) = 0;
 
