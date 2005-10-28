@@ -48,21 +48,21 @@ namespace Store
 		virtual ~LogicalID() {};
 	};
 
+	enum DataType
+	{
+		// Simple types
+		Integer		= 0x01,
+		Double		= 0x02,
+		String		= 0x03,
+
+		// Complex types
+		Pointer		= 0xE0,
+		Vector		= 0xF0,
+	};
+
 	class DataValue
 	{
 	public:
-		enum DataType
-		{
-			// Simple types
-			Integer		= 0x01,
-			Double		= 0x02,
-			String		= 0x03,
-
-			// Complex types
-			Pointer		= 0xE0,
-			Vector		= 0xF0,
-		};
-
 		// Class functions
 		virtual DataType getType() = 0;
 		virtual void toByteArray(unsigned char** lid, int* length) = 0;
@@ -95,12 +95,6 @@ namespace Store
 	class ObjectPointer
 	{
 	public:
-		enum AccessMode
-		{
-			Read	= 0x01,
-			Write	= 0x02,
-		};
-
 		// Class functions
 		virtual LogicalID* getLogicalID() = 0;
 		virtual string getName() = 0;
