@@ -17,7 +17,7 @@
 		    tid = tId;
                 };
                 
-                ObjectPointer* Transaction::getObjectPointer(ObjectPointer& p,LogicalID& lid, ObjectPointer::AccessMode mode)
+                ObjectPointer* Transaction::getObjectPointer(ObjectPointer& p,LogicalID& lid, AccessMode mode)
 				{
 					printf("Transaction: getProxy");
 					LockManager::lock(lid, tid, mode);
@@ -37,7 +37,7 @@
 /**
  *	LockManager - implementuje tablice zamkow, wywolywany przez dana Transakcje 
  */
-      int LockManager::lock(LogicalID& lid, TransactionID* tid, ObjectPointer::AccessMode mode)
+      int LockManager::lock(LogicalID& lid, TransactionID* tid, AccessMode mode)
       {
 			 printf("LockManager");
              return 0;

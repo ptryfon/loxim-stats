@@ -3,7 +3,6 @@
 
 class TransactionID;
 
-
 #include<stdio.h>
 #include "../Store/Store.h"
 using namespace Store;
@@ -26,7 +25,7 @@ class Transaction
 
       public:
             Transaction(TransactionID* tId);
-            ObjectPointer* getObjectPointer(ObjectPointer& p, LogicalID& lid, ObjectPointer::AccessMode mode);
+            ObjectPointer* getObjectPointer(ObjectPointer& p, LogicalID& lid, AccessMode mode);
 }; 
 
 /**
@@ -44,6 +43,6 @@ class TransactionManager
 class LockManager
 { 
       public:      
-      static int lock(LogicalID& lid, TransactionID* tid, ObjectPointer::AccessMode mode);
+      static int lock(LogicalID& lid, TransactionID* tid, AccessMode mode);
 };
 #endif
