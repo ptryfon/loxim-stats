@@ -1,8 +1,6 @@
 #include "DBStoreManager.h"
 #include "DBObjectPointer.h"
 
-using namespace std;
-
 namespace Store
 {
 	void init(SBQLConfig* config, LogManager* log)

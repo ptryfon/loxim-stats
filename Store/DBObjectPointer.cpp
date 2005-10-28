@@ -13,7 +13,7 @@ namespace Store
 
 	string DBObjectPointer::getName()
 	{
-		return "empty";
+		return "generic";
 	};
 
 	ObjectPointer::AccessMode DBObjectPointer::getMode()
@@ -32,7 +32,7 @@ namespace Store
 
 	string DBObjectPointer::toString()
 	{
-		return this->getLogicalID()->toString() + " " + this->getValue()->toString();
+		return "<" + this->getLogicalID()->toString() + ", " + this->getName() + ", " + this->getValue()->toString() + ">";
 	};
 
 	bool DBObjectPointer::operator==(ObjectPointer& dv)

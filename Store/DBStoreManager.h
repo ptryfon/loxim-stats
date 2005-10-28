@@ -6,6 +6,7 @@
 #include "../Log/logs.h"
 
 using namespace std;
+using namespace Config;
 
 namespace Store
 {
