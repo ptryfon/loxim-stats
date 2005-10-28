@@ -27,10 +27,12 @@ void Transaction::setSM(StoreManager* stmg)
                 
 int Transaction::getObjectPointer(LogicalID& lid, AccessMode mode, ObjectPointer& p)
 {
+    ObjectPointer *tmp;
 
     printf("Transaction: getProxy");
     LockManager::lock(lid, tid, mode);
-    //sm->getObject( tid, lid, mode );
+    //wywolanie Store'a
+    tmp = sm->getObject( tid, &lid, mode );
     return 0; 
 };
 
