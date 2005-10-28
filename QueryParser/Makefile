@@ -2,7 +2,7 @@ include ../make.defs
 
 OBJECTS	=	QueryParser.o
 
-EADERS	=	QueryParser.h
+HEADERS	=	QueryParser.h
 
 MODULE	=	QueryParser.a
 PROGRAM	=	
