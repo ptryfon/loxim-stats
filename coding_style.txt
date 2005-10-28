@@ -12,6 +12,9 @@ Rozszerzenia plików:
 .h   - nag³ówki
 -------------------------------------------------------
 
+Ka¿dy cvs commit musi byæ opisany
+-------------------------------------------------------
+
 Ka¿dy modu³ powinien u¿ywaæ swojego namespace
 -------------------------------------------------------
 
