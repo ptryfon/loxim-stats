@@ -17,7 +17,7 @@ Transaction::Transaction(TransactionID* tId)
     tid = tId;
 };
                 
-int Transaction::getObjectPointer(ObjectPointer& p,LogicalID& lid, AccessMode mode)
+int Transaction::getObjectPointer(LogicalID& lid, AccessMode mode, ObjectPointer& p)
 {
     printf("Transaction: getProxy");
     LockManager::lock(lid, tid, mode);

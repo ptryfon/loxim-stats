@@ -26,7 +26,7 @@ class Transaction
 
       public:
             Transaction(TransactionID* tId);
-            int getObjectPointer(ObjectPointer& p, LogicalID& lid, AccessMode mode);
+            int getObjectPointer(LogicalID& lid, AccessMode mode, ObjectPointer& p);
       private:
 	    void setSM(StoreManager*);
 	    void setID(int);
