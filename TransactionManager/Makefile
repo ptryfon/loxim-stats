@@ -1,6 +1,6 @@
 include ../make.defs
 
-OBJECTS	=	
+OBJECTS	=	transaction.o
 
 HEADERS	=	transaction.h
 
