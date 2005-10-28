@@ -9,9 +9,11 @@ namespace Logs
 #include <string>
 #include <stdio.h>
 #include "../Store/Store.h"
-#include "../TransactionManager/transaction.h"
+//#include "../TransactionManager/transaction.h"
 
 using namespace Store;
+
+class TransactionID;
 
 
 namespace Logs
