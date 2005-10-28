@@ -16,9 +16,6 @@
 
 class QueryExecutor {
   
-  TransactionManager tm;
-  Store store;
-  
   public:
     QueryExecutor();
     ~QueryExecutor() {};
