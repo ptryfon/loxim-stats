@@ -5,49 +5,50 @@
 #include <string>
 #include "../Config/SBQLConfig.h"
 #include "../Log/logs.h"
+#include "../QueryParser/QueryParser.h"
+#include "../QueryExecutor/QueryResult.h"
 #include "../QueryExecutor/QueryExecutor.h"
-#include "../QueryParser/QueryTree.h"
 #include "../Store/DBStoreManager.h"
-
+#include "../TransactionManager/transaction.h"
 
 
 using namespace std;
+using namespace Config;
+using namespace Logs;
+using namespace Store;
+using namespace QueryExecutor;
 
 int main(int argc, char *argv[]) {
 	
-	char input[50];
-	cout << "SBQLCli ver 0.0.0.0.0.1 \n";
+	string input;
+	cout << "SBQLCli ver 0.0.0.0.0.1:) \n";
 	cout << "> ";
 	
 	SBQLConfig* config = new SBQLConfig();
 	config->init();
 	
 	LogManager* logManager = new LogManager();
-	logManager->init("dupa.log");
+	logManager->init();
 	
 	DBStoreManager* storeManager = new DBStoreManager();
-	storeManager-> init(config, logManager);
+	storeManager->init(config, logManager);
 	
+	TransactionManager* transactionManager = new TransactionManager();
+	transactionManager->init(storeManager);
 	
+	while (getline(cin, input, '\n')) {
 		
-	
-	while (cin.getline(input,50)) {
-		//parser(input);
 		QueryTree* queryTree;
-		Parser* parser = new Parser();
-		//parser->init();
-		parser->parseIt(new String(input), queryTree);
-		
-		
+		QueryParser* parser = new QueryParser();
+		parser->parseIt(input, queryTree);
+
 		QueryResult* queryResult;
 		QueryExecutor* executor = new QueryExecutor();
-		//executor->init();
+		executor->init(transactionManager);
 		executor->queryResult(queryTree, queryResult);
-		
-//		ResultSet* result = con->execute(input);
-//		cout << result->toString();
+
 		cout << endl << "> ";
-	 	cout << input << "\n";
 	};
+	
 	return 0;	
 }
