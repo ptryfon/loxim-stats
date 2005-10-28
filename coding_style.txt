@@ -1,0 +1,37 @@
+Tak powinny wygl±daæ pliki nag³ówkowe:
+
+#ifndef _NAZWA_H
+#define _NAZWA_H
+zawarto¶æ pliku nag³ówkowego
+#endif
+-------------------------------------------------------
+
+Rozszerzenia plików:
+
+.cpp - ¼ród³a
+.h   - nag³ówki
+-------------------------------------------------------
+
+Ka¿dy modu³ powinien u¿ywaæ swojego namespace
+-------------------------------------------------------
+
+Formatowanie kodu:
+
+- wciêcia robiæ Tab'ami
+- nazwa pliku z du¿ej litery
+- nazwy klas z du¿ej litery 
+- nazwy funkcji z ma³ej litery
+
+Przyk³adowy kod:
+
+namespace Store
+{
+	DataValue::DataType DBDataValue::getType()
+	{
+		return DataValue::Integer;
+	};
+
+	void DBDataValue::toByteArray(unsigned char** lid, int* length)
+	{
+	};
+}
