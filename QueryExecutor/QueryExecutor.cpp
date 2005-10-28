@@ -10,10 +10,9 @@
 #include <stdio.h>
    
 #include "QueryResult.h"   
-#include "transaction.h"
-#include "Store.h"
-#include "QueryTree.h"
-#include "Proxy.h"
+#include "TransactionManager/transaction.h"
+#include "Store/Store.h"
+#include "Parser/QueryTree.h"
 
 class QueryExecutor {
   
@@ -37,12 +36,9 @@ int QueryExecutor::init(TransactionManager *t) {
 
 int QueryExecutor::queryResult(QueryTree *tree, QueryResult *result) {
   Transaction tr;
-  Proxy res;
   LogicalID lID;
   AccessMode mode;
   
-  
-  // i byc moze jeszcze ta zmienna mowiaca o id_klienta powinna w nag³owku byæ ale póki co zostawiam tak...
   fprintf(stderr, %s, "QueryExecutor method: queryResult\n");
   fprintf(stderr, %s, "QueryExecutor asking TransactionManager for a new transaction\n");
   new tr;
@@ -52,8 +48,8 @@ int QueryExecutor::queryResult(QueryTree *tree, QueryResult *result) {
   fprintf(stderr, %s, "QueryExecutor asking Store for proxy object to calculate Query\n");
   new lID;
   new mode;
-  if (tm.getProxy(lID, mode, res) != 0) {
-    fprintf(stderr, %s, "Error in getProxy\n");
+  if (tm.getObject(lID, mode, res) != 0) {
+    fprintf(stderr, %s, "Error in getObject\n");
   }
   //tutaj przerabiamy to, co dostalismy od Store na QueryResult
   result = new QueryResult;
