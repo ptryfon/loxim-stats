@@ -1,5 +1,4 @@
 #include <iostream>
-
 #include "Store.h"
 #include "DBStoreManager.h"
 
