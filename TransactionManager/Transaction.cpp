@@ -11,17 +11,27 @@ TransactionID::TransactionID(int id)
 /**
  *   Transaction - obiekt w ramach ktorego dziala Executor
  */
+Transaction::Transaction() {};
+
 Transaction::Transaction(TransactionID* tId)
 {
     printf("Transaction");
     tid = tId;
 };
+
+void Transaction::setSM(StoreManager* stmg)
+{
+    sm = stmg;
+}
+
                 
 int Transaction::getObjectPointer(LogicalID& lid, AccessMode mode, ObjectPointer& p)
 {
+
     printf("Transaction: getProxy");
     LockManager::lock(lid, tid, mode);
-    return 0; // StoreManager::getObject( &tid, &lid, mode );
+    //sm->getObject( tid, lid, mode );
+    return 0; 
 };
 
 
