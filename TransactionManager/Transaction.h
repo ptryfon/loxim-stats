@@ -22,10 +22,14 @@ class TransactionID
 class Transaction
 {
     TransactionID *tid;
+    StoreManager* sm;
 
       public:
             Transaction(TransactionID* tId);
-            ObjectPointer* getObjectPointer(ObjectPointer& p, LogicalID& lid, AccessMode mode);
+            int getObjectPointer(ObjectPointer& p, LogicalID& lid, AccessMode mode);
+      private:
+	    void setSM(StoreManager*);
+	    void setID(int);
 }; 
 
 /**
@@ -36,7 +40,7 @@ class TransactionManager
     StoreManager* storeMgr;
       public:
       static int createTransaction(Transaction& tr);
-      TransactionManager(StoreManager *strMgr);
+      int init(StoreManager *strMgr);
 };
 
 /**
