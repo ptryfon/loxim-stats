@@ -12,6 +12,7 @@ namespace Config {
 			SBQLConfig();
 			SBQLConfig(char *module);
 
+			virtual int init();
 			virtual int getBool(char* param, int& value);
 			virtual int getInt(char* param, int& value);
 			virtual int getDouble(char* param, double& value);
