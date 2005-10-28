@@ -1,5 +1,9 @@
 #ifndef _TRANSACTION_
   #define _TRANSACTION_
+
+class TransactionID;
+
+
 #include<stdio.h>
 #include "../Store/Store.h"
 using namespace Store;
