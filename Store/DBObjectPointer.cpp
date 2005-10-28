@@ -16,9 +16,9 @@ namespace Store
 		return "generic";
 	};
 
-	ObjectPointer::AccessMode DBObjectPointer::getMode()
+	AccessMode DBObjectPointer::getMode()
 	{
-		return ObjectPointer::Read;
+		return AccessMode::Read;
 	};
 
 	DataValue* DBObjectPointer::getValue()

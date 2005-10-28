@@ -86,6 +86,12 @@ namespace Store
 		virtual ~DataValue() {};
 	};
 
+	enum AccessMode
+	{
+		Read	= 0x01,
+		Write	= 0x02,
+	};
+
 	class ObjectPointer
 	{
 	public:
