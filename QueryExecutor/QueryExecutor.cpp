@@ -36,20 +36,21 @@ int QueryExecutor::init(TransactionManager *t) {
 
 int QueryExecutor::queryResult(QueryTree *tree, QueryResult *result) {
   Transaction tr;
-  LogicalID lID;
+  LogicalID lid;
   AccessMode mode;
+  ObjectPointer optr;
   
-  fprintf(stderr, %s, "QueryExecutor method: queryResult\n");
-  fprintf(stderr, %s, "QueryExecutor asking TransactionManager for a new transaction\n");
-  new tr;
+  fprintf(stderr, "QueryExecutor method: queryResult\n");
+  fprintf(stderr, "QueryExecutor asking TransactionManager for a new transaction\n");
+  tr = new Transaction;
   if (tm.createTransaction(&tr) != 0) {
-    fprintf(stderr, %s, "Error in createTransaction\n");
+    fprintf(stderr, "Error in createTransaction\n");
   }
-  fprintf(stderr, %s, "QueryExecutor asking Store for proxy object to calculate Query\n");
-  new lID;
-  new mode;
-  if (tm.getObject(lID, mode, res) != 0) {
-    fprintf(stderr, %s, "Error in getObject\n");
+  fprintf(stderr, "QueryExecutor asking Store for proxy object to calculate Query\n");
+  lid = new LogicalID;
+  mode = new AccessMode;
+  if (tm.getObjectPointer(lid, mode, optr) != 0) {
+    fprintf(stderr, "Error in getObject\n");
   }
   //tutaj przerabiamy to, co dostalismy od Store na QueryResult
   result = new QueryResult;
