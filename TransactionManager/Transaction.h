@@ -1,15 +1,16 @@
+#ifndef _TRANSACTION_
+  #define _TRANSACTION_
 #include<stdio.h>
+#include "../Store/Store.h"
+using namespace Store;
 
 /**
  *	TransactionID - obiekt jednoznacznie identyfikujacy transakcje
  */
-class TransactionID
+class TransactionID 
 {      
       public:
-                TransactionID(int id)
-                {
-					printf("TransactionID");
-                };
+      TransactionID(int n);
 };
 
 /**
@@ -17,22 +18,11 @@ class TransactionID
  */
 class Transaction
 {
-	  private:
-		TransactionID* tid;
+    TransactionID *tid;
 
       public:
-                Transaction(TransactionID* tId)
-                {
-					printf("Transaction");
-					this->tid = tId;
-                };
-                
-                Proxy* getProxy(LogicalID lid, AccessMode mode)
-				{
-					printf("Transaction: getProxy");
-					LockManager::lock(lid, *(tid), mode);
-					return ObjectStore::getProxy( tid, lid, mode );
-				};
+            Transaction(TransactionID* tId);
+            ObjectPointer* getObjectPointer(ObjectPointer& p, LogicalID& lid, ObjectPointer::AccessMode mode);
 }; 
 
 /**
@@ -41,11 +31,7 @@ class Transaction
 class TransactionManager
 {
       public:
-      static Transaction* createTransaction()
-             {
-				 printf("TransactionManager");
-                 return new Transaction( new TransactionID(1) );            
-             }              
+      static int createTransaction(Transaction& tr);
 };
 
 /**
@@ -54,9 +40,6 @@ class TransactionManager
 class LockManager
 { 
       public:      
-      static int lock(LogicalID lid, TransactionID tid, AccessMode mode)
-      {
-			 printf("LockManager");
-             return 0;
-      };
+      static int lock(LogicalID& lid, TransactionID* tid, ObjectPointer::AccessMode mode);
 };
+#endif
