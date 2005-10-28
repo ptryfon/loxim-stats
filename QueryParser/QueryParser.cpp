@@ -14,7 +14,7 @@ using namespace std;
 
     };
 
-
+/*
 int main() {
 
     QueryParser prsr = QueryParser();
@@ -26,7 +26,7 @@ int main() {
     // jakis wpis do wcommitowania js209298    
 }
 
-
+*/
 
 
 
