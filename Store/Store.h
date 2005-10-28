@@ -3,10 +3,11 @@
 
 #include <string>
 #include <vector>
+#include "../Config/SBQLConfig.h"
+#include "../Log/logs.h"
+#include "../TransactionManager/transaction.h"
 
 using namespace std;
-
-class TransactionID;
 
 namespace Store
 {

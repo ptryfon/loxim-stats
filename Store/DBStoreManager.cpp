@@ -5,6 +5,10 @@ using namespace std;
 
 namespace Store
 {
+	void init(SBQLConfig* config, LogManager* log)
+	{
+	};
+
 	ObjectPointer* DBStoreManager::getObject(TransactionID* tid, LogicalID* lid, ObjectPointer::AccessMode mode)
 	{
 		return new DBObjectPointer();

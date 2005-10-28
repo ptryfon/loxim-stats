@@ -2,6 +2,8 @@
 #define __DBPHYSICALID_H__
 
 #include "Store.h"
+#include "../Config/SBQLConfig.h"
+#include "../Log/logs.h"
 
 using namespace std;
 
@@ -10,6 +12,9 @@ namespace Store
 	class DBStoreManager : public StoreManager
 	{
 	public:
+		DBStoreManager() {};
+		void init(SBQLConfig* config, LogManager* log);
+
 		virtual ObjectPointer* getObject(TransactionID* tid, LogicalID* lid, ObjectPointer::AccessMode mode);
 		virtual ObjectPointer* createObject(TransactionID* tid, string name, DataValue* value);
 		virtual void deleteObject(TransactionID* tid, ObjectPointer* object);
@@ -34,4 +39,3 @@ namespace Store
 }
 
 #endif
-
