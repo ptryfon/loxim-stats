@@ -1,3 +1,6 @@
+#ifndef _SBQLCONFIG_H
+#define _SBQLCONFIG_H
+
 #include <string>
 #include <fstream>
 
@@ -20,3 +23,4 @@ namespace Config {
 			virtual ~SBQLConfig();
 	};
 }
+#endif

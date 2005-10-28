@@ -1,3 +1,6 @@
+#ifndef _ERRORCONSOLE_H
+#define _ERRORCONSOLE_H
+
 #include <fstream>
 #include <string>
 
@@ -17,3 +20,4 @@ namespace Errors {
 			virtual ~ErrorConsole();
 	};
 }
+#endif
