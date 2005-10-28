@@ -14,12 +14,12 @@ namespace Store
 #include <vector>
 #include "Config/SBQLConfig.h"
 #include "Log/logs.h"
-// #include "TransactionManager/transaction.h"
+#include "TransactionManager/transaction.h"
 
 using namespace std;
 using namespace Logs;
 
-class TransactionID;
+// class TransactionID;
 
 namespace Store
 {
