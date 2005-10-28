@@ -1,19 +1,28 @@
 #ifndef __STORE_H__
 #define __STORE_H__
 
+namespace Store
+{
+	class PhysicalID;
+	class LogicalID;
+	class DataValue;
+	class ObjectPointer;
+	class StoreManager;
+};
+
 #include <string>
 #include <vector>
 #include "../Config/SBQLConfig.h"
 #include "../Log/logs.h"
 // #include "../TransactionManager/transaction.h"
 
+using namespace std;
+using namespace Logs;
+
 class TransactionID;
 
 namespace Store
 {
-	using namespace std;
-	using namespace Logs;
-
 	class PhysicalID
 	{
 	public:
@@ -38,8 +47,6 @@ namespace Store
 		virtual bool operator==(LogicalID& lid) = 0;
 		virtual ~LogicalID() {};
 	};
-
-	class ObjectPointer;
 
 	class DataValue
 	{
