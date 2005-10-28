@@ -2,8 +2,8 @@
 #define __DBPHYSICALID_H__
 
 #include "Store.h"
-#include "../Config/SBQLConfig.h"
-#include "../Log/logs.h"
+#include "Config/SBQLConfig.h"
+#include "Log/logs.h"
 
 using namespace std;
 using namespace Config;
