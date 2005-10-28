@@ -7,6 +7,8 @@
 
 using namespace Store;
 
+class TransactionID;
+
 namespace Logs
 {
 
