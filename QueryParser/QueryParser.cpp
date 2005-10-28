@@ -10,6 +10,7 @@ using namespace std;
     int QueryParser::parseIt (string s, QueryTree * &qTree) {
 	printf("Ja, PARSER, wczytalem takie cos...:\n\n %s \n\n",s.c_str());
 //	printf("Jestem Parser i parsuje %s stringa!\n", s);
+	qTree = (QueryTree *) 4;
 	return 0;    
 
     };

@@ -31,7 +31,7 @@ class QueryParser
     public:
     QueryParser() {};
     virtual ~QueryParser() {};
-    int parseIt (string s, QueryTree &qTrees);
+    int parseIt (string s, QueryTree *&qTrees);
 
 };
 
