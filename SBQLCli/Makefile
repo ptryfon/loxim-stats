@@ -1,7 +1,13 @@
-#ifndef CC
-CC=g++
-#endif
+include ../make.defs
 
+LIBS= ../Config/Config.a \
+	  ../Errors/Errors.a \
+	  ../Log/Logs.a \
+	  ../QueryParser/QueryParser.a \
+	  ../Store/Store.a \
+	  ../TransactionManager/TransactionManager.a \
+	  ../QueryExecutor/QueryExecutor.a \
+	  
 #SBQLCli: SBQLCli.o ResultSet.o DriverManager.o Connection.o
 #	$(CC) SBQLCli.o ResultSet.o DriverManager.o Connection.o -o SBQLCli
 
@@ -12,10 +18,10 @@ CC=g++
 #$(CPP) -c client.cpp -o client.o $(CXXFLAGS)
 
 client: client.o
-	$(CC) client.o -o client
+	$(CPP) client.o $(LIBS)  -o client 
 	
 client.o: client.cpp
-	$(CC) -c client.cpp
+	$(CPP) -c $(CXXFLAGS) client.cpp
 	
 clean:
 	rm -rf *.o a.out
