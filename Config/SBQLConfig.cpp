@@ -6,6 +6,11 @@ namespace Config {
 	ifstream* SBQLConfig::configFile = NULL;
 	int SBQLConfig::nObjects = 0;
 
+	int SBQLConfig::init()
+	{
+		return 0;
+	};
+
 	SBQLConfig::SBQLConfig()
        	{
 		if (configFile == NULL)
