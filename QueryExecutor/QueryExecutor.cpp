@@ -38,4 +38,8 @@ int QueryExecutor::queryResult(QueryTree *tree, QueryResult *result) {
   return 0;
 }
 
+int QueryExecutor::init(TransactionManager *t) { return 0; }
+
+QueryExecutor::~QueryExecutor() {}
+
 }

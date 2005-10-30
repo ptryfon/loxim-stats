@@ -7,9 +7,9 @@ namespace QueryExecutor
 	{
 	public:
 		QueryExecutor() {};
-		virtual ~QueryExecutor() = 0;
-		virtual int queryResult(QueryTree *tree, QueryResult *result) = 0;
-		virtual int init(TransactionManager *t) = 0;
+		~QueryExecutor();
+		int queryResult(QueryTree *tree, QueryResult *result);
+		int init(TransactionManager *t);
 	};
 }
 
