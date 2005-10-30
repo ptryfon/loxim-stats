@@ -16,7 +16,7 @@ using namespace std;
 using namespace Config;
 using namespace Logs;
 using namespace Store;
-using namespace QueryExecutor;
+using namespace QExecutor;
 
 int main(int argc, char *argv[]) {
 	

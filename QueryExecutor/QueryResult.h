@@ -1,7 +1,7 @@
 #ifndef _QUERYRESULT_H_
 #define _QUERYRESULT_H_
 
-namespace QueryExecutor {
+namespace QExecutor {
 
 	class QueryResult
 	{

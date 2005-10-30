@@ -1,7 +1,7 @@
 #ifndef _QUERYEXECUTOR_H
 #define _QUERYEXECUTOR_H
 
-namespace QueryExecutor
+namespace QExecutor
 {
 	class QueryExecutor
 	{

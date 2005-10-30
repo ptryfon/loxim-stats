@@ -15,7 +15,7 @@
 #include "QueryParser/QueryParser.h"
 #include "QueryExecutor.h"
 
-namespace QueryExecutor {
+namespace QExecutor {
 
 int QueryExecutor::queryResult(QueryTree *tree, QueryResult *result) {
   Transaction tr;
