@@ -3,7 +3,7 @@
 
 namespace Store
 {
-	void init(SBQLConfig* config, LogManager* log)
+	void DBStoreManager::init(SBQLConfig* config, LogManager* log)
 	{
 	};
 
