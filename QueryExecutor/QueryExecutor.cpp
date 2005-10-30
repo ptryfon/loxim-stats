@@ -13,18 +13,9 @@
 #include "TransactionManager/transaction.h"
 #include "Store/Store.h"
 #include "QueryParser/QueryParser.h"
+#include "QueryExecutor.h"
 
-class QueryExecutor {
-  
-  public:
-    QueryExecutor();
-    ~QueryExecutor() {};
-    int queryResult(QueryTree *tree, QueryResult *result);
-    int init(TransactionManager *t);
-    // jakies operatory?
-};
-
-QueryExecutor::QueryExecutor() {}
+namespace QueryExecutor {
 
 int QueryExecutor::queryResult(QueryTree *tree, QueryResult *result) {
   Transaction tr;
@@ -45,4 +36,6 @@ int QueryExecutor::queryResult(QueryTree *tree, QueryResult *result) {
   //tutaj przerabiamy to, co dostalismy od Store na QueryResult
   result = new QueryResult;
   return 0;
+}
+
 }
