@@ -7,11 +7,11 @@ SUBDIRS	=	Backup \
 		QueryParser \
 		Store \
 		TransactionManager \
-		Driver \
-		SBQLCli \
-		Server \
 		Errors \
-		Config
+		Config \
+		Driver \
+		Server \
+		SBQLCli \
 
 PROGRAM	=	main
 
