@@ -15,12 +15,12 @@ namespace Config {
 			SBQLConfig();
 			SBQLConfig(char *module);
 
-			virtual int init();
-			virtual int getBool(char* param, int& value);
-			virtual int getInt(char* param, int& value);
-			virtual int getDouble(char* param, double& value);
-			virtual int getString(char* param, string& value);
-			virtual ~SBQLConfig();
+			int init();
+			int getBool(char* param, int& value);
+			int getInt(char* param, int& value);
+			int getDouble(char* param, double& value);
+			int getString(char* param, string& value);
+			~SBQLConfig();
 	};
 }
 #endif
