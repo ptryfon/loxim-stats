@@ -27,7 +27,7 @@ class Transaction
       public:
             Transaction();
             Transaction(TransactionID* tId);
-            int getObjectPointer(LogicalID& lid, AccessMode mode, ObjectPointer& p);
+            int getObjectPointer(LogicalID* lid, AccessMode mode, ObjectPointer* &p);
       private:
 	    void setSM(StoreManager*);
 	    void setID(int);
@@ -40,7 +40,7 @@ class TransactionManager
 {
     StoreManager* storeMgr;
       public:
-      static int createTransaction(Transaction& tr);
+      static int createTransaction(Transaction* &tr);
       int init(StoreManager *strMgr);
 };
 
@@ -50,6 +50,6 @@ class TransactionManager
 class LockManager
 { 
       public:      
-      static int lock(LogicalID& lid, TransactionID* tid, AccessMode mode);
+      static int lock(LogicalID* lid, TransactionID* tid, AccessMode mode);
 };
 #endif

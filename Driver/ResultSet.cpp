@@ -8,6 +8,6 @@ ResultSet::~ResultSet()
 {
 }
 
-char* ResultSet::toString() {
+string ResultSet::toString() {
 	return "This is same result \n";
 }

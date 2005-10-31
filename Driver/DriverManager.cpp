@@ -11,7 +11,7 @@ DriverManager::~DriverManager()
 {
 }
 
-static DriverManager::getConnection(char* url, int port)
+static DriverManager::getConnection(string url, int port)
 {
 	//TODO throw some exception    
     int port;

@@ -18,30 +18,30 @@ namespace Config {
 		nObjects++;
 	};
 
-	SBQLConfig::SBQLConfig(char *module)
+	SBQLConfig::SBQLConfig(string module)
 	{
 		nObjects++;
 	};
 
-	int SBQLConfig::getBool(char* param, int& value)
+	int SBQLConfig::getBool(string param, int& value)
 	{
 		value = 1;
 		return 0;
 	};
 	
-	int SBQLConfig::getInt(char* param, int& value)
+	int SBQLConfig::getInt(string param, int& value)
 	{
 		value = 666;
 		return 0;
 	};
 	
-	int SBQLConfig::getDouble(char* param, double& value)
+	int SBQLConfig::getDouble(string param, double& value)
 	{
 		value = 6.66;
 		return 0;
 	};
 	
-	int SBQLConfig::getString(char* param, string& value)
+	int SBQLConfig::getString(string param, string& value)
 	{
 		value = "666";
 		return 0;

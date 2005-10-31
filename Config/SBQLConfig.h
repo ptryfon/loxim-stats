@@ -13,13 +13,13 @@ namespace Config {
 			static int nObjects;
 		public:
 			SBQLConfig();
-			SBQLConfig(char *module);
+			SBQLConfig(string module);
 
 			int init();
-			int getBool(char* param, int& value);
-			int getInt(char* param, int& value);
-			int getDouble(char* param, double& value);
-			int getString(char* param, string& value);
+			int getBool(string param, int& value);
+			int getInt(string param, int& value);
+			int getDouble(string param, double& value);
+			int getString(string param, string& value);
 			~SBQLConfig();
 	};
 }

@@ -13,7 +13,7 @@ namespace Errors {
 			static int nObjects;
 		public:
 			ErrorConsole();
-			ErrorConsole(char *module);
+			ErrorConsole(string module);
 
 			virtual void operator<<(int error);
 			virtual void operator<<(string errorMsg);

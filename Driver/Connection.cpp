@@ -6,7 +6,7 @@ Connection::Connection(SOCKET sock){
 Connection::~Connection(){
 }
 
-ResultSet* Connection::execute(char* query) {
+ResultSet* Connection::execute(string query) {
 	return NULL;
 }
 

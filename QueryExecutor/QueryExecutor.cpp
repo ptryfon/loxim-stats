@@ -18,7 +18,7 @@
 namespace QExecutor {
 
 int QueryExecutor::queryResult(QueryTree *tree, QueryResult *result) {
-  Transaction tr;
+  Transaction *tr;
   LogicalID *lid;
   AccessMode *mode;
   ObjectPointer *optr;
@@ -30,7 +30,7 @@ int QueryExecutor::queryResult(QueryTree *tree, QueryResult *result) {
   }
   fprintf(stderr, "QueryExecutor asking Store for proxy object to calculate Query\n");
   mode = new AccessMode;
-  if (tr.getObjectPointer(*lid, *mode, *optr) != 0) {
+  if (tr->getObjectPointer(lid, *mode, optr) != 0) {
     fprintf(stderr, "Error in getObject\n");
   }
   //tutaj przerabiamy to, co dostalismy od Store na QueryResult
