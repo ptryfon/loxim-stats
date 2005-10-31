@@ -38,3 +38,17 @@ namespace Store
 	{
 	};
 }
+
+-------------------------------------------------------
+1. Obiekty przekazujemy do funkcji przez wskaznik. 
+2. Referencji uzywamy tylko w dwoch przypadkach:
+  a) przy zwracaniu wartosci atomowej: int&, char& etc.
+  b) przy zwracaniu wskaznika do obiektu tworzonego wewnatrz procedury,
+      przyklad (z QueryParser):
+
+       int parseIt (string s, QueryTree *&qTrees);
+
+     Ta metoda tworzy obiekt QueryTree i przekazuje do niego wskaznik.
+
+3. Nie uzywamy char*, ale string.
+-------------------------------------------------------
