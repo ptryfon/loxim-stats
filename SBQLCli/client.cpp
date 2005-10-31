@@ -21,8 +21,7 @@ using namespace QExecutor;
 int main(int argc, char *argv[]) {
 	
 	string input;
-	cout << "SBQLCli ver 0.0.0.0.0.1:) \n";
-	cout << "> ";
+	cout << "\nSBQLCli ver 0.0.0.0.0.1:) \n\n";
 	
 	SBQLConfig* config = new SBQLConfig();
 	config->init();
@@ -35,7 +34,8 @@ int main(int argc, char *argv[]) {
 	
 	TransactionManager* transactionManager = new TransactionManager();
 	transactionManager->init(storeManager);
-	
+
+	cout << "\n\n> ";
 	while (getline(cin, input, '\n')) {
 		
 		QueryTree* queryTree;
@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
 		executor->init(transactionManager);
 		executor->queryResult(queryTree, queryResult);
 
-		cout << endl << "> ";
+		cout << endl << "\n> ";
 	};
 	
 	return 0;	
