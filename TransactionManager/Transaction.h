@@ -1,5 +1,5 @@
 #ifndef _TRANSACTION_
-  #define _TRANSACTION_
+#define _TRANSACTION_
 
 class TransactionID;
 
@@ -21,6 +21,7 @@ class TransactionID
  */
 class Transaction
 {
+    friend class TransactionManager;
     TransactionID *tid;
     StoreManager* sm;
 
@@ -35,11 +36,14 @@ class Transaction
 
 /**
  *	TransactionManager - fabryka obiektow Transaction, kazdy z Executor'ow prosi go o nowa transakcje
+ *      Sigleton Design Pattern
  */
 class TransactionManager
 {
-    StoreManager* storeMgr;
-      public:
+   StoreManager* storeMgr;
+   static TransactionManager *tranMgr;   
+   public:
+      TransactionManager();
       static int createTransaction(Transaction* &tr);
       int init(StoreManager *strMgr);
 };

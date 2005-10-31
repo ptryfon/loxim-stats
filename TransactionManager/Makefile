@@ -9,13 +9,13 @@ PROGRAM	=
 
 all: $(MODULE)
 
-$(MODULE): $(OBJECTS) $(HEADERS)
+$(MODULE): $(OBJECTS) 
 	$(AR) r $(MODULE) $(OBJECTS)
 
 #$(PROGRAM): $(MODULE)
 #	$(CPP) $(CXXFLAGS) $@.cpp $< -o $@
 
-%.o: %.cpp
+%.o: %.cpp  $(HEADERS)
 	$(CPP) -c $(CXXFLAGS) $< -o $@
 
 clean:

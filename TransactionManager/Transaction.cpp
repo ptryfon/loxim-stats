@@ -29,7 +29,7 @@ int Transaction::getObjectPointer(LogicalID*  lid, AccessMode mode, ObjectPointe
 {
     ObjectPointer *tmp;
 
-    printf("Transaction: getProxy");
+    printf("Transaction: getProxy\n");fflush(stdout);
     LockManager::lock(lid, tid, mode);
     //wywolanie Store'a
     tmp = sm->getObject( tid, lid, mode );
@@ -40,26 +40,37 @@ int Transaction::getObjectPointer(LogicalID*  lid, AccessMode mode, ObjectPointe
 /**
  *	TransactionManager - fabryka obiektow Transaction, kazdy z Executor'ow prosi go o nowa transakcje
  */
+
+TransactionManager::TransactionManager() {
+  if (tranMgr != NULL) {
+    fprintf(stderr, "Only one instance of TransactionManager allowed");
+    exit(1);
+  }
+}
+
 int TransactionManager::createTransaction(Transaction* &tr)
 {
-    printf("TransactionManager");
-    //tr = new Transaction( new TransactionID(1));
-     return 0;           
+    printf("TransactionManager::createTransaction 0\n");fflush(stdout);
+    tr = new Transaction( new TransactionID(1));
+    tr->setSM(tranMgr->storeMgr);
+    return 0;           
 }              
 
 int TransactionManager::init(StoreManager *strMgr)
 {
     printf("TransactionManager - stworzony");
     storeMgr = strMgr;
+    tranMgr = this;
     return 0;
 }
     
+TransactionManager* TransactionManager::tranMgr = NULL;
 
 /**
  *	LockManager - implementuje tablice zamkow, wywolywany przez dana Transakcje 
  */
 int LockManager::lock(LogicalID* lid, TransactionID* tid, AccessMode mode)
 {
-    printf("LockManager");
+    printf("LockManager\n");fflush(stdout);
     return 0;
 };
