@@ -11,3 +11,20 @@ SBQLCli			Piotr Turski <pt209301-students.mimuw.edu.pl>
 Server			Piotr Turski <pt209301-students.mimuw.edu.pl>
 Store			Maciej Olesinski <mo201077-students.mimuw.edu.pl>
 TransactionManager	Dominik Klimczak <dk189404-students.mimuw.edu.pl>
+
+Nasze maile:
+
+dk189404@students.mimuw.edu.pl, mk189406@students.mimuw.edu.pl,
+jr243017@students.mimuw.edu.pl, pk167277@students.mimuw.edu.pl,
+ad197852@students.mimuw.edu.pl, mo201077@students.mimuw.edu.pl,
+tr201089@students.mimuw.edu.pl, kr243040@students.mimuw.edu.pl,
+ct201224@students.mimuw.edu.pl, dg203087@students.mimuw.edu.pl,
+sk153407@students.mimuw.edu.pl, md243003@students.mimuw.edu.pl,
+mh209206@students.mimuw.edu.pl, tr209287@students.mimuw.edu.pl,
+js209298@students.mimuw.edu.pl, pt209301@students.mimuw.edu.pl,
+bg209463@students.mimuw.edu.pl, am209482@students.mimuw.edu.pl,
+mp209490@students.mimuw.edu.pl, baggins@mimuw.edu.pl
+
+stencel@mimuw.edu.pl, kuchar@mimuw.edu.pl
+
+hanka@ipipan.waw.pl
