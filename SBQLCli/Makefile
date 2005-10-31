@@ -17,7 +17,7 @@ LIBS= ../Config/Config.a \
 #lib/libws2_32.a
 #$(CPP) -c client.cpp -o client.o $(CXXFLAGS)
 
-client: client.o
+client: client.o $(LIBS)
 	$(CPP) client.o $(LIBS)  -o client 
 	
 client.o: client.cpp
