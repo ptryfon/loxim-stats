@@ -28,9 +28,9 @@ $(STATIC_LIB): $(OBJECTS)
 	$(CXX) -c $(CXXFLAGS) $< -o $@
 
 %.d: %.cpp
-	@echo "Creating dependencies..."
+	@echo "Creating dependencies for $< ..."
 	@$(CC) -M -MM -I../ $(CPPFLAGS) $< > $@.$$$$; \
 	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 
-include $(DEPFILES)
+-include $(DEPFILES)
