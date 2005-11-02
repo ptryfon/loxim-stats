@@ -31,8 +31,8 @@ namespace Store
 #include <string>
 #include <vector>
 #include "Config/SBQLConfig.h"
-#include "Log/logs.h"
-#include "TransactionManager/transaction.h"
+#include "Log/Logs.h"
+#include "TransactionManager/Transaction.h"
 
 using namespace std;
 using namespace Logs;

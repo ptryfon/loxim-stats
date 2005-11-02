@@ -3,7 +3,7 @@
 
 #include "Store.h"
 #include "Config/SBQLConfig.h"
-#include "Log/logs.h"
+#include "Log/Logs.h"
 
 using namespace std;
 using namespace Config;

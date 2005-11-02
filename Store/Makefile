@@ -14,7 +14,7 @@ HEADERS	=	DBDataValue.h \
 		Store.h
 
 MODULE	=	Store.a
-PROGRAM	=	Main
+PROGRAM	=	TestStore
 
 all: $(MODULE) $(PROGRAM)
 

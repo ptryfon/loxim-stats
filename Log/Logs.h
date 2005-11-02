@@ -9,7 +9,7 @@ namespace Logs
 #include <string>
 #include <stdio.h>
 #include "../Store/Store.h"
-#include "../TransactionManager/transaction.h"
+#include "../TransactionManager/Transaction.h"
 
 using namespace Store;
 using namespace TManager;

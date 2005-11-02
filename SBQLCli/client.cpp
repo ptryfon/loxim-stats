@@ -4,12 +4,12 @@
 #include <iostream>
 #include <string>
 #include "../Config/SBQLConfig.h"
-#include "../Log/logs.h"
+#include "../Log/Logs.h"
 #include "../QueryParser/QueryParser.h"
 #include "../QueryExecutor/QueryResult.h"
 #include "../QueryExecutor/QueryExecutor.h"
 #include "../Store/DBStoreManager.h"
-#include "../TransactionManager/transaction.h"
+#include "../TransactionManager/Transaction.h"
 
 
 using namespace std;

@@ -10,7 +10,7 @@
 #include <stdio.h>
    
 #include "QueryResult.h"   
-#include "TransactionManager/transaction.h"
+#include "TransactionManager/Transaction.h"
 #include "Store/Store.h"
 #include "QueryParser/QueryParser.h"
 #include "QueryExecutor.h"

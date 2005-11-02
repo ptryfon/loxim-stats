@@ -1,8 +1,8 @@
 include ../make.defs
 
-OBJECTS	=	logs.o
+OBJECTS	=	Logs.o
 
-HEADERS	=	logs.h
+HEADERS	=	Logs.h
 
 MODULE	=	Logs.a
 PROGRAM	=	

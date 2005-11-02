@@ -1,8 +1,8 @@
 include ../make.defs
 
-OBJECTS	=	transaction.o
+OBJECTS	=	Transaction.o
 
-HEADERS	=	transaction.h
+HEADERS	=	Transaction.h
 
 MODULE	=	TransactionManager.a
 PROGRAM	=	
