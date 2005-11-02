@@ -12,6 +12,7 @@ namespace Logs
 #include "../TransactionManager/transaction.h"
 
 using namespace Store;
+using namespace TManager;
 
 
 namespace Logs

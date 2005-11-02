@@ -36,6 +36,7 @@ namespace Store
 
 using namespace std;
 using namespace Logs;
+using namespace TManager;
 
 // class TransactionID;
 
