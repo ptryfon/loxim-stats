@@ -17,6 +17,7 @@ using namespace Config;
 using namespace Logs;
 using namespace Store;
 using namespace QExecutor;
+using namespace TManager;
 
 int main(int argc, char *argv[]) {
 	
