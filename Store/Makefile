@@ -1,10 +1,10 @@
 include ../make.defs
 
-OBJECTS	=	DBDataValue.o \
-		DBLogicalID.o \
-		DBObjectPointer.o \
-		DBPhysicalID.o \
-		DBStoreManager.o
+SOURCES	=	DBDataValue.cpp \
+		DBLogicalID.cpp \
+		DBObjectPointer.cpp \
+		DBPhysicalID.cpp \
+		DBStoreManager.cpp
 
 HEADERS	=	DBDataValue.h \
 		DBLogicalID.h \
@@ -13,19 +13,31 @@ HEADERS	=	DBDataValue.h \
 		DBStoreManager.h \
 		Store.h
 
-MODULE	=	Store.a
-PROGRAM	=	TestStore
+STATIC_LIB =	Store.a
+PROGRAM =	TestStore
 
-all: $(MODULE) $(PROGRAM)
+OBJECTS	=	$(SOURCES:.cpp=.o)
+DEPFILES =	$(OBJECTS:.o=.d)
 
-$(MODULE): $(OBJECTS) $(HEADERS)
-	$(AR) r $(MODULE) $(OBJECTS)
+all: $(STATIC_LIB) $(PROGRAM)
 
-$(PROGRAM): $(MODULE)
-	$(CPP) $(CXXFLAGS) $@.cpp $< -o $@
-
-%.o: %.cpp
-	$(CPP) -c $(CXXFLAGS) $< -o $@
+$(PROGRAM): $(STATIC_LIB)
+	$(CXX) $(CXXFLAGS) $@.cpp $< -o $@
 
 clean:
-	rm -f $(OBJECTS) $(MODULE) $(PROGRAM)
+	rm -f $(OBJECTS) $(DEPFILES) $(STATIC_LIB) $(PROGRAM)
+
+$(STATIC_LIB): $(OBJECTS)
+	$(AR) r $(STATIC_LIB) $(OBJECTS)
+	$(RANLIB) $(STATIC_LIB)
+
+%.o: %.cpp
+	$(CXX) -c $(CXXFLAGS) $< -o $@
+
+%.d: %.cpp
+	@echo "Creating dependencies..."
+	@$(CC) -M -MM -I../ $(CPPFLAGS) $< > $@.$$$$; \
+	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
+	rm -f $@.$$$$
+
+include $(DEPFILES)

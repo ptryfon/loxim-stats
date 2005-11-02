@@ -1,29 +1,41 @@
 include ../make.defs
 
-LIBS= ../Config/Config.a \
-	  ../Errors/Errors.a \
-	  ../Log/Logs.a \
-	  ../QueryParser/QueryParser.a \
-	  ../Store/Store.a \
-	  ../TransactionManager/TransactionManager.a \
-	  ../QueryExecutor/QueryExecutor.a \
-	  
-#SBQLCli: SBQLCli.o ResultSet.o DriverManager.o Connection.o
-#	$(CC) SBQLCli.o ResultSet.o DriverManager.o Connection.o -o SBQLCli
+SOURCES	=	SBQLCli.cpp
+HEADERS	=	
 
-#SBQLCli.o: SBQLCli.cpp
-#	$(CC) -c SBQLCli.cpp
-	
-#lib/libws2_32.a
-#$(CPP) -c client.cpp -o client.o $(CXXFLAGS)
+#STATIC_LIB =	SBQLCli.a
+PROGRAM	=	client
 
-client: client.o $(LIBS)
-	$(CPP) client.o $(LIBS)  -o client 
-	
-client.o: client.cpp
-	$(CPP) -c $(CXXFLAGS) client.cpp
-	
+OBJECTS	=	$(SOURCES:.cpp=.o)
+DEPFILES =	$(SOURCES:.cpp=.d) $(PROGRAM).d
+
+LIBS	=	../Config/Config.a \
+		../Errors/Errors.a \
+		../Log/Logs.a \
+		../QueryParser/QueryParser.a \
+		../Store/Store.a \
+		../TransactionManager/TransactionManager.a \
+		../QueryExecutor/QueryExecutor.a
+
+all: $(STATIC_LIB) $(PROGRAM)
+
+$(PROGRAM): $(PROGRAM).o $(LIBS) $(STATIC_LIB)
+	$(CXX) $^ -o $@
+
 clean:
-	rm -rf *.o a.out
+	rm -f $(OBJECTS) $(DEPFILES) $(STATIC_LIB) $(PROGRAM) $(PROGRAM).o
 
-	
+$(STATIC_LIB): $(OBJECTS)
+	$(AR) r $(STATIC_LIB) $(OBJECTS)
+	$(RANLIB) $(STATIC_LIB)
+
+%.o: %.cpp
+	$(CXX) -c $(CXXFLAGS) $< -o $@
+
+%.d: %.cpp
+	@echo "Creating dependencies..."
+	@$(CC) -M -MM -I../ $(CPPFLAGS) $< > $@.$$$$; \
+	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
+	rm -f $@.$$$$
+
+include $(DEPFILES)

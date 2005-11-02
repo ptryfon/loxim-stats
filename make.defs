@@ -1,4 +1,5 @@
 AR=ar
+RANLIB=ranlib
 CC=gcc
-CPP=g++
+CXX=g++
 CXXFLAGS=-I./ -I./../ -Wall -fno-exceptions

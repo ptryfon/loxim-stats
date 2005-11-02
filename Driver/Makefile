@@ -1,23 +1,38 @@
-#ifndef CC
-CC=g++
-#endif
+include ../make.defs
 
-all: #Connection.o ResultSet.o DriverManager.o
+SOURCES	=	Connection.cpp \
+		DriverManager.cpp \
+		ResultSet.cpp
 
-Connection.o: Connection.cpp Connection.h
-	$(CC) -c Connection.cpp
-	
-ResultSet.o: ResultSet.cpp ResultSet.h
-	$(CC) -c ResultSet.cpp
-	
-DriverManager.o: DriverManager.cpp DriverManager.h
-	$(CC) -c DriverManager.cpp
-		
-#lib/libws2_32.a
-#$(CPP) -c client.cpp -o client.o $(CXXFLAGS)
+HEADERS	=	Connection.h \
+		DriverManager.h \
+		ResultSet.h
+
+#STATIC_LIB =	Driver.a
+PROGRAM =	
+
+OBJECTS	=	$(SOURCES:.cpp=.o)
+DEPFILES =	$(OBJECTS:.o=.d)
+
+all: $(STATIC_LIB) $(PROGRAM)
+
+#$(PROGRAM): $(STATIC_LIB)
+#	$(CXX) $(CXXFLAGS) $@.cpp $< -o $@
 
 clean:
-	rm -rf *.o a.out
+	rm -f $(OBJECTS) $(DEPFILES) $(STATIC_LIB) $(PROGRAM)
 
-	
-	
+$(STATIC_LIB): $(OBJECTS)
+	$(AR) r $(STATIC_LIB) $(OBJECTS)
+	$(RANLIB) $(STATIC_LIB)
+
+%.o: %.cpp
+	$(CXX) -c $(CXXFLAGS) $< -o $@
+
+%.d: %.cpp
+	@echo "Creating dependencies..."
+	@$(CC) -M -MM -I../ $(CPPFLAGS) $< > $@.$$$$; \
+	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
+	rm -f $@.$$$$
+
+include $(DEPFILES)

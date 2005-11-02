@@ -1,20 +1,36 @@
-#ifndef CC
-CC=g++
-#endif
+include ../make.defs
 
-all: #Server
+SOURCES	=	ConnectionThread.cpp \
+		Server.cpp
 
-Server: Server.o ConnectionThread.o
-	$(CC) Server.o ConnectionThread.o -o Server
-	
-Server.o: Server.cpp Server.h
-	$(CC) -c Server.cpp
-	
-ConnectionThread.o: ConnectionThread.cpp ConnectionThread.h
-	$(CC) -c ConnectionThread.cpp
+HEADERS	=	ConnectionThread.h \
+		Server.h
+
+#STATIC_LIB =	Server.a
+PROGRAM =	
+
+OBJECTS	=	$(SOURCES:.cpp=.o)
+DEPFILES =	$(OBJECTS:.o=.d)
+
+all: $(STATIC_LIB) $(PROGRAM)
+
+$(PROGRAM): $(STATIC_LIB)
+	$(CXX) $(CXXFLAGS) $@.cpp $< -o $@
 
 clean:
-	rm -rf *.o a.out
+	rm -f $(OBJECTS) $(DEPFILES) $(STATIC_LIB) $(PROGRAM)
 
-	
-	
+$(STATIC_LIB): $(OBJECTS)
+	$(AR) r $(STATIC_LIB) $(OBJECTS)
+	$(RANLIB) $(STATIC_LIB)
+
+%.o: %.cpp
+	$(CXX) -c $(CXXFLAGS) $< -o $@
+
+%.d: %.cpp
+	@echo "Creating dependencies..."
+	@$(CC) -M -MM -I../ $(CPPFLAGS) $< > $@.$$$$; \
+	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
+	rm -f $@.$$$$
+
+include $(DEPFILES)

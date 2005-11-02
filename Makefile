@@ -1,7 +1,6 @@
 include make.defs
 
 SUBDIRS	=	Backup \
-		Lock \
 		Log \
 		QueryExecutor \
 		QueryParser \
@@ -11,22 +10,17 @@ SUBDIRS	=	Backup \
 		Config \
 		Driver \
 		Server \
-		SBQLCli \
+		SBQLCli
+#		Lock \
 
-PROGRAM	=	main
-
-all: subdirs $(PROGRAM)
+all: subdirs
 
 subdirs:
 	@for i in $(SUBDIRS); do \
-		make -C $$i ; \
+		make -C $$i || exit 1; \
 	done
 
-#$(PROGRAM): $(MODULE)
-#	$(CPP) $(CXXFLAGS) $@.cpp $< -o $@
-
-%.o: %.cpp
-	$(CPP) -c $(CXXFLAGS) $< -o $@
-
 clean:
-	rm -f $(PROGRAM)
+	@for i in $(SUBDIRS); do \
+		make -C $$i clean || exit 1; \
+	done
