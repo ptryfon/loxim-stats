@@ -20,7 +20,7 @@ Ka¿dy modu³ powinien u¿ywaæ swojego namespace
 
 Formatowanie kodu:
 
-- wciêcia robiæ Tab'ami
+- wciêcia robiæ pojedynczym Tab'em
 - nazwa pliku z du¿ej litery
 - nazwy klas z du¿ej litery 
 - nazwy funkcji z ma³ej litery
