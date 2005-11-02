@@ -3,3 +3,4 @@
 *.a
 y.tab.c
 lex.yy.cc
+*.d
