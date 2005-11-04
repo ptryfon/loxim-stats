@@ -25,7 +25,7 @@ int QueryExecutor::queryResult(QueryTree *tree, QueryResult *result) {
   
 	fprintf(stderr, "QueryExecutor method: queryResult\n");
 	fprintf(stderr, "QueryExecutor asking TransactionManager for a new transaction\n");
-	if (TransactionManager::createTransaction(tr) != 0) {
+	if (TransactionManager::getHandle()->createTransaction(tr) != 0) {
 		fprintf(stderr, "Error in createTransaction\n");
 	}
 	fprintf(stderr, "QueryExecutor asking Store for proxy object to calculate query\n");
@@ -37,8 +37,6 @@ int QueryExecutor::queryResult(QueryTree *tree, QueryResult *result) {
 	result = new QueryResult;
 	return 0;
 }
-
-int QueryExecutor::init(TransactionManager *t) { return 0; }
 
 QueryExecutor::~QueryExecutor() {}
 }

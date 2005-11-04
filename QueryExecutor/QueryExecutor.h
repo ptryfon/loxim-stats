@@ -9,7 +9,6 @@ namespace QExecutor
 		QueryExecutor() {};
 		~QueryExecutor();
 		int queryResult(QueryTree *tree, QueryResult *result);
-		int init(TransactionManager *t);
 	};
 }
 
