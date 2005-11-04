@@ -18,28 +18,27 @@
 namespace QExecutor {
 
 int QueryExecutor::queryResult(QueryTree *tree, QueryResult *result) {
-  Transaction *tr;
-  LogicalID *lid;
-  AccessMode *mode;
-  ObjectPointer *optr;
+	Transaction *tr;
+	LogicalID *lid;
+	AccessMode *mode;
+	ObjectPointer *optr;
   
-  fprintf(stderr, "QueryExecutor method: queryResult\n");
-  fprintf(stderr, "QueryExecutor asking TransactionManager for a new transaction\n");
-  if (TransactionManager::createTransaction(tr) != 0) {
-    fprintf(stderr, "Error in createTransaction\n");
-  }
-  fprintf(stderr, "QueryExecutor asking Store for proxy object to calculate Query\n");
-  mode = new AccessMode;
-  if (tr->getObjectPointer(lid, *mode, optr) != 0) {
-    fprintf(stderr, "Error in getObject\n");
-  }
-  //tutaj przerabiamy to, co dostalismy od Store na QueryResult
-  result = new QueryResult;
-  return 0;
+	fprintf(stderr, "QueryExecutor method: queryResult\n");
+	fprintf(stderr, "QueryExecutor asking TransactionManager for a new transaction\n");
+	if (TransactionManager::createTransaction(tr) != 0) {
+		fprintf(stderr, "Error in createTransaction\n");
+	}
+	fprintf(stderr, "QueryExecutor asking Store for proxy object to calculate query\n");
+	mode = new AccessMode;
+	if (tr->getObjectPointer(lid, *mode, optr) != 0) {
+		fprintf(stderr, "Error in getObjectPointer\n");
+	}
+	//tutaj przerabiamy to, co dostalismy od Store na QueryResult
+	result = new QueryResult;
+	return 0;
 }
 
 int QueryExecutor::init(TransactionManager *t) { return 0; }
 
 QueryExecutor::~QueryExecutor() {}
-
 }
