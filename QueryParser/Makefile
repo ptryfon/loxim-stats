@@ -22,6 +22,12 @@ $(STATIC_LIB): $(OBJECTS)
 	$(AR) r $(STATIC_LIB) $(OBJECTS)
 	$(RANLIB) $(STATIC_LIB)
 
+SBQL.tab.c: parser.y
+	$(YACC) -b SBQL -p SBQL -v parser.y
+
+lex.SBQL.cc: scanner.l
+	$(LEX) --yyclass=SBQLParser --8bit --prefix=SBQL scanner.l
+
 %.o: %.cpp
 	$(CXX) -c $(CXXFLAGS) $< -o $@
 
