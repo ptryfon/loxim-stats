@@ -33,8 +33,7 @@ int main(int argc, char *argv[]) {
 	DBStoreManager* storeManager = new DBStoreManager();
 	storeManager->init(config, logManager);
 	
-	TransactionManager* transactionManager = new TransactionManager();
-	transactionManager->init(storeManager);
+	TransactionManager::getHandle()->init(storeManager);
 
 	cout << "\n\n> ";
 	while (getline(cin, input, '\n')) {
@@ -45,7 +44,6 @@ int main(int argc, char *argv[]) {
 
 		QueryResult* queryResult;
 		QueryExecutor* executor = new QueryExecutor();
-		executor->init(transactionManager);
 		executor->queryResult(queryTree, queryResult);
 
 		cout << endl << "\n> ";

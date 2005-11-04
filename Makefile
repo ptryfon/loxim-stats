@@ -10,8 +10,8 @@ SUBDIRS	=	Backup \
 		Config \
 		Driver \
 		Server \
+		Lock \
 		SBQLCli
-#		Lock \
 
 all: subdirs
 

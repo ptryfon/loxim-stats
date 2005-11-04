@@ -15,7 +15,8 @@ LIBS	=	../Config/Config.a \
 		../QueryParser/QueryParser.a \
 		../Store/Store.a \
 		../TransactionManager/TransactionManager.a \
-		../QueryExecutor/QueryExecutor.a
+		../QueryExecutor/QueryExecutor.a \
+		../Lock/Lock.a 
 
 all: $(STATIC_LIB) $(PROGRAM)
 
