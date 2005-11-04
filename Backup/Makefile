@@ -5,15 +5,15 @@ SOURCES	=	Backup.cpp
 HEADERS	=	Backup.h
 
 STATIC_LIB =	Backup.a
-PROGRAM =	
+PROGRAM =	Backup
 
 OBJECTS	=	$(SOURCES:.cpp=.o)
 DEPFILES =	$(OBJECTS:.o=.d)
 
-all: $(STATIC_LIB)
+all: $(PROGRAM)
 
-#$(PROGRAM): $(STATIC_LIB)
-#	$(CXX) $(CXXFLAGS) $@.cpp $< -o $@
+$(PROGRAM): $(STATIC_LIB)
+	$(CXX) $(CXXFLAGS) $@.cpp $< -o $@
 
 clean:
 	rm -f $(OBJECTS) $(DEPFILES) $(STATIC_LIB) $(PROGRAM)
