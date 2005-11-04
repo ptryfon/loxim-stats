@@ -5,11 +5,11 @@
 
 %start statement
 
-%nonassoc DELETE CREATE
+%nonassoc DELETE CREATE INTO
 %left COMMA
 %right EXISTS FOR_ALL
 %left GROUP_AS AS
-%nonassoc ASSIGN
+%right ASSIGN
 %left UNION EXCEPT
 %left INTERSECT
 %left WHERE JOIN CLOSE_BY CLOSE_UNIQUE LEAVES_BY LEAVES_UNIQUE ORDER_BY
@@ -71,7 +71,9 @@ query	  : NAME
 	  | query 	ORDER_BY	query
 	  | query 	EXISTS		query
 	  | query 	FOR_ALL		query
+	  | query	ASSIGN		query
 	  | CREATE NAME LEFTPAR query RIGHTPAR
 	  | CREATE NAME 
+	  | INSERT query INTO query
 	  | DELETE query 
  	  ;
