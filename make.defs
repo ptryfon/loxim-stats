@@ -3,3 +3,5 @@ RANLIB=ranlib
 CC=gcc
 CXX=g++
 CXXFLAGS=-I./ -I./../ -Wall -fno-exceptions
+LEX=flex
+YACC=yacc
