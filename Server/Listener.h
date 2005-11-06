@@ -4,7 +4,7 @@
 //namespace Listener 
 //{
 
-	typedef enum ListenerStatus
+	typedef enum LISTENER_STATUS
 	{
 		ERROR = -1,
 		SUCCESS 
@@ -25,12 +25,14 @@
 		
 	// Run Listener - start listening and do stuff
 		int Start(int port);
+	// Made public for testing	
+		int CreateSocket(int port, int* created_socket);
 				
 	private:
 	// TCP methods
 		int ListenOnSocket(int sock, int* newSocket);
-		int CreateSocket(int port, int* created_socket);
 		int CloseSocket(int sock);
+		
 	
 	// Creates Server class object for given connection
 		int CreateServer(int sock);

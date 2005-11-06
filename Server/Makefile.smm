@@ -1,0 +1,18 @@
+#Sender: Server.o Listener.o Sender.o ServerTcp.o ListenerTcp.o
+#	g++ Server.o Listener.o Sender.o ServerTcp.o ListenerTcp.o -o Sender
+
+Listener: Server.o Listener.o ListenerTcp.o ServerTcp.o
+	g++ Listener.o Server.o ListenerTcp.o ServerTcp.o -o Listener
+ServerTcp.o: ServerTcp.cpp Server.h
+	g++ -c ServerTcp.cpp	
+ListenerTcp.o: ListenerTcp.cpp Listener.h
+	g++ -c ListenerTcp.cpp	
+Server.o: Server.h Server.cpp
+	g++ -c Server.cpp
+Listener.o: Listener.h Listener.cpp
+	g++ -c Listener.cpp
+Sender.o: Sender.cpp Server.h Listener.h
+	g++ -c Sender.cpp
+	
+clean: 
+	rm -f Listener *.o *.d *.a
