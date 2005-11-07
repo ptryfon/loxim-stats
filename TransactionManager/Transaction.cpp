@@ -15,6 +15,8 @@ namespace TManager
 	    printf("TransactionID");
 	};
 
+
+
 	/**
 	 *   Transaction - obiekt w ramach ktorego dziala Executor
 	 */
@@ -36,18 +38,44 @@ namespace TManager
 	{
 	    ObjectPointer *tmp;
 
-	    printf("Transaction: getProxy\n");fflush(stdout);
+	    printf("Transaction: getProxy\n"); fflush(stdout);
 	    LockManager::getHandle()->lock(lid, tid, mode);
 	    //wywolanie Store'a
 	    tmp = sm->getObject( tid, lid, mode );
+	    //p = tmp;
 	    return 0; 
 	};
+
+	int Transaction::createObject(string name, DataValue* value, ObjectPointer* &p)
+	{
+	    ObjectPointer *tmp;
+
+	    printf("Transaction: create\n"); fflush(stdout);
+	    tmp = sm->createObject( tid, name, value );
+	    // rozszerzenie zamkow
+	    //LockManager::getHandle()->createLock(tmp->getLogicalID());
+	    return 0; 
+	}
+
+	int Transaction::deleteObject(ObjectPointer* object)
+	{
+	    printf("Transaction: delete\n"); fflush(stdout);
+	    // zablokowanie obiektu na wylacznosc
+	    LockManager::getHandle()->lock(object->getLogicalID(), tid, Write);
+	    sm->deleteObject(tid, object);
+	    // skasowanie zamka
+	    //LockManager::getHandle()->deleteLock(tmp->getLogicalID());
+	    return 0; 
+	}
 
 	int Transaction::commit()
 	{
 	    printf("Transaction commited\n"); fflush(stdout);
 	    return 0;
 	}
+
+
+
 	    
 	/**
 	 *	TransactionManager - fabryka obiektow Transaction, kazdy z Executor'ow prosi go o nowa transakcje

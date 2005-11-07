@@ -35,7 +35,11 @@ namespace TManager
 	      public:
 		    Transaction();
 		    Transaction(TransactionID* tId);
+		// Object
 		    int getObjectPointer(LogicalID* lid, AccessMode mode, ObjectPointer* &p);
+		    int createObject(string name, DataValue* value, ObjectPointer* &p);
+		    int deleteObject(ObjectPointer* object);
+
 		    int commit();
 	      private:
 		    void setSM(StoreManager*);
