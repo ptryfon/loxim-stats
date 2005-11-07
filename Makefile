@@ -9,9 +9,9 @@ SUBDIRS	=	Backup \
 		Errors \
 		Config \
 		Driver \
-		Server \
 		Lock \
-		SBQLCli
+		SBQLCli \
+		Server 		
 
 all: subdirs
 
