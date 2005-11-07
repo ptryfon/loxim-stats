@@ -4,6 +4,7 @@
 #include <sys/types.h>
 #include <netinet/in.h> 
 #include <netdb.h> 
+#include <arpa/inet.h>
 
 #include "Listener.h"
 
@@ -48,6 +49,16 @@ int Listener::CreateSocket(int port, int* created_socket) {
    //string s(Addr.sin_addr);
    
    //zeby wiedziec jaki adres ma server
+   struct hostent *hp;
+   
+   hp = gethostbyname (nazwa);
+  if (hp == 0)
+    {
+      fprintf (stderr, "%s : unknown host\n", nazwa);
+      exit (2);
+    }
+  memcpy ((char *) &Addr.sin_addr, (char *) hp->h_addr, hp->h_length); 
+   
    printf ("%s \n", inet_ntoa(Addr.sin_addr));
  
 	*created_socket = sock;
