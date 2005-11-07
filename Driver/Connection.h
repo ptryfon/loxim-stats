@@ -1,16 +1,17 @@
-#ifndef CONNECTION_H_
-#define CONNECTION_H_
+#ifndef _CONNECTION_H_
+#define _CONNECTION_H_
 
 #include "ResultSet.h"
-#include <winsock2.h>
-#include <string>
 
-class Connection {
+class Connection
+{
 public:
-	Connection(SOCKET sock);
+	Connection(int socket);
+	int disconnect();
 	virtual ~Connection();
-	ResultSet* execute(string query);
-	void disconnect();
+	ResultSet* execute(char* query);
+private:
+	int sock; 
 };
 
-#endif /*CONNECTION_H_*/
+#endif //_CONNECTION_H_

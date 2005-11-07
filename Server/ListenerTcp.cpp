@@ -47,6 +47,9 @@ int Listener::CreateSocket(int port, int* created_socket) {
     
    //string s(Addr.sin_addr);
    
+   //zeby wiedziec jaki adres ma server
+   printf ("%s \n", inet_ntoa(Addr.sin_addr));
+ 
 	*created_socket = sock;
 
 	cerr << "End CreateSocket" << endl;

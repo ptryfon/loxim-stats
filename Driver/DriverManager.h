@@ -1,15 +1,14 @@
-#ifndef DRIVERMANAGER_H_
-#define DRIVERMANAGER_H_
+#ifndef _DRIVERMANAGER_H_
+#define _DRIVERMANAGER_H_
 
 #include "Connection.h"
-#include <string>
 
 class DriverManager
 {
 public:
 	DriverManager();
+	Connection* getConnection(char* url, int port);
 	virtual ~DriverManager();
-	static Connection*	getConnection(string url, int port);
 };
 
-#endif /*DRIVERMANAGER_H_*/
+#endif //_DRIVERMANAGER_H_
