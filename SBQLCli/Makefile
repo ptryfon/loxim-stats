@@ -1,26 +1,20 @@
 include ../make.defs
 
-SOURCES	=	SBQLCli.cpp
-HEADERS	=	
+PROGRAM	=	SBQLCli
 
-#STATIC_LIB =	SBQLCli.a
-PROGRAM	=	client
+SOURCES	=	SBQLCli.cpp
+
+
+HEADERS	=
 
 OBJECTS	=	$(SOURCES:.cpp=.o)
 DEPFILES =	$(SOURCES:.cpp=.d) $(PROGRAM).d
 
-LIBS	=	../Config/Config.a \
-		../Errors/Errors.a \
-		../Log/Logs.a \
-		../QueryParser/QueryParser.a \
-		../Store/Store.a \
-		../TransactionManager/TransactionManager.a \
-		../QueryExecutor/QueryExecutor.a \
-		../Lock/Lock.a 
+LIBS	=	../Driver/Driver.a
 
 all: $(STATIC_LIB) $(PROGRAM)
 
-$(PROGRAM): $(PROGRAM).o $(LIBS) $(STATIC_LIB)
+$(PROGRAM): $(OBJECTS) $(LIBS) $(STATIC_LIB)
 	$(CXX) $^ -o $@
 
 clean:
@@ -40,3 +34,4 @@ $(STATIC_LIB): $(OBJECTS)
 	rm -f $@.$$$$
 
 -include $(DEPFILES)
+

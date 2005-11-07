@@ -1,3 +1,5 @@
+include ../make.defs
+
 PROGRAM	=	Listener
 
 SOURCES	=	Listener.cpp \
