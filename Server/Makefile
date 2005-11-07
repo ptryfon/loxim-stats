@@ -26,7 +26,7 @@ LIBS	=	../Config/Config.a \
 all: $(STATIC_LIB) $(PROGRAM)
 
 $(PROGRAM): $(OBJECTS) $(LIBS) $(STATIC_LIB)
-	$(CXX) $^ -o $@
+	$(CXX) $(CXXFLAGS) $^ -o $@
 
 clean:
 	rm -f $(OBJECTS) $(DEPFILES) $(STATIC_LIB) $(PROGRAM) $(PROGRAM).o
