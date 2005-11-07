@@ -8,7 +8,7 @@ HEADERS	=	Connection.h \
 		DriverManager.h \
 		ResultSet.h
 
-#STATIC_LIB =	Driver.a
+STATIC_LIB =	Driver.a
 PROGRAM =	
 
 OBJECTS	=	$(SOURCES:.cpp=.o)
