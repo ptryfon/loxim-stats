@@ -27,8 +27,8 @@ int Listener::Start(int port) {
 	int newSock;
 	
 	CreateSocket(port, &sock);
-	ListenOnSocket(sock, &sock);
-	CreateServer(sock);
+	ListenOnSocket(sock, &newSock);
+	CreateServer(newSock);
 	//CloseSocket(sock);
 	
 	return 0;

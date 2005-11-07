@@ -74,6 +74,8 @@ int Listener::CreateSocket(int port, int* created_socket) {
 
 int Listener::ListenOnSocket(int sock, int* newSocket) 
 {
+
+	printf("ListenerTcp: Listening on socket number %d \n", sock);
     if (0 != listen( sock, 1 )) {
        cerr << "blad w listen" << endl;
        return 1;
@@ -81,12 +83,13 @@ int Listener::ListenOnSocket(int sock, int* newSocket)
     
     int nowy;
 
-    	if ((nowy = accept( sock, (sockaddr*) 0, (int *)0 )) == -1)
+    	if ((nowy = accept( sock, (sockaddr*) 0, 0 )) == -1)
         {
         	cerr << "blad w accept " << endl;	
         	return 1;
         } else
         { 
+		printf("ListenerTcp: accepted \n");
 			*newSocket = nowy;
 			    return 0;
 	}

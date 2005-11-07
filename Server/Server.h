@@ -2,6 +2,8 @@
 #define SERVER_H_
 #include <sys/socket.h>
 
+#define MESSGBUF_SIZE 128
+
 //namespace Server {
 	class Server
 	{
@@ -17,7 +19,7 @@
 		
 	private:
 		int Sock;
-		char messgBuff[60];
+		char messgBuff[MESSGBUF_SIZE];
 
 	//TCP methods
 		int Receive(int* receiveDataSize);

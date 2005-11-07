@@ -1,9 +1,42 @@
 #include <cstdlib>
 #include <iostream>
 #include <sys/socket.h>
+#include <stdio.h>
+//#include <stdlib.h>
+#include <iostream>
+#include <string>
+#include "../Config/SBQLConfig.h"
+#include "../Log/Logs.h"
+#include "../QueryParser/QueryParser.h"
+#include "../QueryExecutor/QueryResult.h"
+#include "../QueryExecutor/QueryExecutor.h"
+#include "../Store/DBStoreManager.h"
+#include "../TransactionManager/Transaction.h"
+
 #include "Server.h"
 
+/*
+#include "../QueryParser/QueryParser.h"
+
+//Co za shit ;)
+#include "../QueryExecutor/QueryResult.h"
+
+#include "../QueryExecutor/QueryExecutor.h"
+
+#include "../Config/SBQLConfig.h"
+#include "../Log/Logs.h"
+
+#include "../Store/DBStoreManager.h"
+#include "../TransactionManager/Transaction.h"
+*/
+
 using namespace std;
+using namespace Config;
+using namespace Logs;
+using namespace Store;
+using namespace QExecutor;
+using namespace TManager;
+
 
 Server::Server(int newSock)
 {
@@ -25,33 +58,37 @@ int Server::initializeAll()
 // Stary kod z CT.cpp - nie wglebialem sie
 int Server::Run()
 {
-	char buf[4];
-	int ile = 1;
-
-	while (ile > 0)
-   { 
-		ile = recv (Sock, buf, 3, 0);
-		if (ile > 0) {
-                 //obsluzyc parser i query executor
-                 
-                 
-                    if (1 > send (Sock, "", 1, 0)) {
-                       cerr << "blad przy wysylaniu wyniku do klienta: " 
-                       << endl;
-                       ile = -1;
-                       }
-                    else
-                       cerr << "wyslalem wynik do clienta" << endl;
-
-                 
-         }
-         if (ile == 0) {
-                 cerr << "klient sie rozlaczyl" << endl;
-                 //rozlaczenie czy zerwanie                 
-         }
-         if (ile < 0) cerr << "blad przy odbiorze" << endl;
-    }
-
+	int size=128;
+	
+	SBQLConfig* config = new SBQLConfig();
+	config->init();
+	
+	LogManager* logManager = new LogManager();
+	logManager->init();
+	
+	DBStoreManager* storeManager = new DBStoreManager();
+	storeManager->init(config, logManager);
+	
+	TransactionManager::getHandle()->init(storeManager);
+	
+	QueryParser *qPa = new QueryParser();
+	QueryExecutor *qEx = new QueryExecutor();
+		
+	QueryTree *qTree = new QueryTree();
+	QueryResult *qResult = new QueryResult();
+	
+	//Get string from client
+	Receive(&size);
+		
+	qPa->parseIt ((string) messgBuff, qTree);
+	qEx->queryResult(qTree, qResult);
+		
+	//memcpy(messgBuff, qResult, sizeof(qResult)); 
+	//Send results to client
+	Send(messgBuff, MESSGBUF_SIZE);
+	
+	//That's it, we no longer need this one..
+	Disconnect();
 	return 0;	
 }		
 
