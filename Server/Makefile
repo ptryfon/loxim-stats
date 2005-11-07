@@ -1,24 +1,33 @@
-include ../make.defs
+PROGRAM	=	Listener
 
-SOURCES	=	ConnectionThread.cpp \
-		Server.cpp
+SOURCES	=	Listener.cpp \
+		Server.cpp \
+		ServerTcp.cpp \
+		ListenerTcp.cpp
 
-HEADERS	=	ConnectionThread.h \
+
+HEADERS	=	Listener.h \
 		Server.h
 
-#STATIC_LIB =	Server.a
-PROGRAM =	
-
 OBJECTS	=	$(SOURCES:.cpp=.o)
-DEPFILES =	$(OBJECTS:.o=.d)
+DEPFILES =	$(SOURCES:.cpp=.d) $(PROGRAM).d
+
+LIBS	=	../Config/Config.a \
+		../Errors/Errors.a \
+		../Log/Logs.a \
+		../QueryParser/QueryParser.a \
+		../Store/Store.a \
+		../TransactionManager/TransactionManager.a \
+		../QueryExecutor/QueryExecutor.a \
+		../Lock/Lock.a
 
 all: $(STATIC_LIB) $(PROGRAM)
 
-$(PROGRAM): $(STATIC_LIB)
-	$(CXX) $(CXXFLAGS) $@.cpp $< -o $@
+$(PROGRAM): $(OBJECTS) $(LIBS) $(STATIC_LIB)
+	$(CXX) $^ -o $@
 
 clean:
-	rm -f $(OBJECTS) $(DEPFILES) $(STATIC_LIB) $(PROGRAM)
+	rm -f $(OBJECTS) $(DEPFILES) $(STATIC_LIB) $(PROGRAM) $(PROGRAM).o
 
 $(STATIC_LIB): $(OBJECTS)
 	$(AR) r $(STATIC_LIB) $(OBJECTS)
