@@ -40,6 +40,7 @@ namespace TManager
 		    int createObject(string name, DataValue* value, ObjectPointer* &p);
 		    int deleteObject(ObjectPointer* object);
 
+		    int abort();
 		    int commit();
 	      private:
 		    void setSM(StoreManager*);

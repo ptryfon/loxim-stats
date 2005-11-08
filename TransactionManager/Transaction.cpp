@@ -74,6 +74,12 @@ namespace TManager
 	    return 0;
 	}
 
+	int Transaction::abort()
+	{
+	    printf("Transaction aborted\n"); fflush(stdout);
+	    return 0;
+	}
+
 
 
 	    
