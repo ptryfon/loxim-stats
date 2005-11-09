@@ -20,8 +20,10 @@ namespace QExecutor {
 int QueryExecutor::queryResult(QueryTree *tree, QueryResult *result) {
 	Transaction *tr;
 	LogicalID *lid;
-	AccessMode *mode;
+	AccessMode mode;
 	ObjectPointer *optr;
+	string name;
+	DataValue* value;
   
 	fprintf(stderr, "QueryExecutor method: queryResult\n");
 	fprintf(stderr, "QueryExecutor asking TransactionManager for a new transaction\n");
@@ -29,11 +31,25 @@ int QueryExecutor::queryResult(QueryTree *tree, QueryResult *result) {
 		fprintf(stderr, "Error in createTransaction\n");
 	}
 	fprintf(stderr, "QueryExecutor asking Store for proxy object to calculate query\n");
-	mode = new AccessMode;
-	if (tr->getObjectPointer(lid, *mode, optr) != 0) {
+	//UWAGA! PONIZSZE INSTRUKCJE SA TU TYLKO TYMCZASOWO - TRZEBA JE WKLEIC NA SWITCHA SKLADNIOWEGO...
+	//---- tego jeszcze nie jestem pewien - nie do konca zrozumialem TMa
+	if (tr->getObjectPointer(lid, mode, optr) != 0) {
 		fprintf(stderr, "Error in getObjectPointer\n");
 	}
-	//tutaj przerabiamy to, co dostalismy od Store na QueryResult
+	//---- odpowiednik wywolania CREATE name(value);
+	//---- optr jest *wynikiem* tej metody!
+	if (tr->createObject(name, value, optr) != 0) {
+		fprintf(stderr, "Error in createObject\n");
+	}
+	//---- odpowiednik wywolania CREATE name; (z pusta wartoscia)
+	//---- optr jest *wynikiem* tej metody!
+	if (tr->createObject(name, NULL, optr) != 0) {
+		fprintf(stderr, "Error in createObject\n");
+	}
+	//KONIEC
+	// !!!!! optr - tu jest wynik naszego zapytania (musimy zwrocic jego LogicalID* - funkcja optr.getLogicalID() )
+	
+	//tutaj ladnie ukladamy QueryResult
 	result = new QueryResult;
 	return 0;
 }
