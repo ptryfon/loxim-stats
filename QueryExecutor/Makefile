@@ -1,6 +1,6 @@
 include ../make.defs
 
-SOURCES	=	QueryExecutor.cpp
+SOURCES	=	QueryExecutor.cpp QueryResult.cpp
 
 HEADERS	=	QueryResult.h
 
