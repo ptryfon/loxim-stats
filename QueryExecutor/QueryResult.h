@@ -17,7 +17,7 @@ namespace QExecutor {
 		public:    
 			QueryResult();
 			~QueryResult();
-			int getNext(LogicalID *lid); //returns next result (LogicalID*)
+			int getNext(LogicalID *lid); //returns in lid next result (LogicalID*); -1 when there is no next result
 	};
 
 }
