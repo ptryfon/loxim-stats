@@ -1,9 +1,11 @@
 include ../make.defs
 
-SOURCES	=	Transaction.cpp
+SOURCES	=	Transaction.cpp \
+		Semlib.cpp
 
-HEADERS	=	Transaction.h
-
+HEADERS	=	Transaction.h \
+		Semlib.h
+		
 STATIC_LIB =	TransactionManager.a
 PROGRAM	=	
 
