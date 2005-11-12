@@ -10,63 +10,75 @@ namespace TManager
 #include "../Store/Store.h"
 #include "../Lock/Lock.h"
 using namespace Store;
+using namespace LockMgr;
 
 namespace TManager
 {
 
 	/**
-	 *	TransactionID - obiekt jednoznacznie identyfikujacy transakcje
+	 *	TransactionID - unique object for transaction
 	 */
 	class TransactionID 
 	{      
+	      private:
+	        int id;
+		
 	      public:
-	      TransactionID(int n);
+	        TransactionID(int n);
 	};
 
 	/**
-	 *   Transaction - obiekt w ramach ktorego dziala Executor
+	 *   Transaction - handles Executor's calls
 	 */
 	class Transaction
 	{
-	    friend class TransactionManager;
-	    TransactionID *tid;
-	    StoreManager* sm;
-
+	      private:
+		friend class TransactionManager;
+		TransactionID *tid;
+		StoreManager* sm;
+		TransactionManager* tm;
+		LockManager* lm;
+		
 	      public:
 		    Transaction();
 		    Transaction(TransactionID* tId);
-		// Object
+	      /* Executor calls: */
 		    int getObjectPointer(LogicalID* lid, AccessMode mode, ObjectPointer* &p);
 		    int createObject(string name, DataValue* value, ObjectPointer* &p);
 		    int deleteObject(ObjectPointer* object);
 
 		    int abort();
 		    int commit();
+
 	      private:
 		    void setSM(StoreManager*);
-		    void setID(int);
 	}; 
 
 	/**
-	 *	TransactionManager - fabryka obiektow Transaction, kazdy z Executor'ow prosi go o nowa transakcje
+	 *	TransactionManager - factory of Transactions
 	 *      Sigleton Design Pattern
 	 */
 	class TransactionManager
 	{ 
 	   private:
+	      int mutex;	    /* critical section */
+	      int transactionId;    /* counter of TransactionID objects */	
 	      static TransactionManager *tranMgr;   	   
 	      StoreManager* storeMgr;	   
 	      TransactionManager();
+    	      void addActiveTransaction(TransactionID*);
 	      
 	   public:	   	      
 	      static TransactionManager* getHandle();
-	      int createTransaction(Transaction* &tr);
+	   /* called at server startup: */
 	      int init(StoreManager *strMgr);
+	   /* executor calling: */
+	      int createTransaction(Transaction* &tr);
+	      int commit(Transaction*);
+	      int abort(Transaction*);
+	   /* log calling: */
+	      vector<int>* getActiveTransactions();
 	};
-
-
- 
-
 };
 
 #endif
