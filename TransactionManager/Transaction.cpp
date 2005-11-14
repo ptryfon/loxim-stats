@@ -43,7 +43,7 @@ namespace TManager
 	    printf("Transaction: getProxy\n"); fflush(stdout);
 	    lm->lock(lid, tid, mode);
 	    tmp = sm->getObject( tid, lid, mode );
-	    //p = tmp;
+	    p = tmp;
 	    return 0; 
 	};
 
@@ -53,6 +53,7 @@ namespace TManager
 
 	    printf("Transaction: create\n"); fflush(stdout);
 	    tmp = sm->createObject( tid, name, value );
+	    p = tmp;
 	    // locking object
 	    return 0; 
 	}
