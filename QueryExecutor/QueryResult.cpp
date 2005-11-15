@@ -21,10 +21,10 @@ namespace QExecutor {
 		res.push_front(lid);
 		return 0;
 	}
-	
+
 	int QueryResult::getNext(LogicalID *lid) {
-		if (res.begin() != NULL) {
-			lid = *(res.begin());
+		if (res.size() != 0) {
+			lid = res.front();
 			res.pop_front();
 			return 0;
 		}
