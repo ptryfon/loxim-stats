@@ -64,9 +64,43 @@ namespace TManager
 	    /* exclusive lock for this object */
 	    lm->lock(object->getLogicalID(), tid, Write);
 	    sm->deleteObject(tid, object);
-	    
+
 	    return 0; 
 	}
+
+
+        int Transaction::getRoots(vector<ObjectPointer*>* &p)
+	{
+	    //vector<ObjectPointer*>* tmp;
+
+	    p = sm->getRoots(tid);
+	    //lock?
+	    return 0;
+	}
+
+	int Transaction::getRoots(string name, vector<ObjectPointer*>* &p)
+	{
+	    p = sm->getRoots(tid, name);
+	    //lock?
+	    return 0;
+	}
+
+	int Transaction::addRoot(ObjectPointer* &p)
+	{
+	    //int blad;
+	     sm->addRoot(tid, p);
+	    //lock?
+	    return 0;
+	}
+
+	int Transaction::removeRoot(ObjectPointer* &p)
+	{
+	    //int blad;
+	    sm->addRoot(tid, p);
+	    //lock?
+	    return 0;
+	}
+
 
 	int Transaction::commit()
 	{

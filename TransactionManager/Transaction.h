@@ -46,6 +46,11 @@ namespace TManager
 		    int getObjectPointer(LogicalID* lid, AccessMode mode, ObjectPointer* &p);
 		    int createObject(string name, DataValue* value, ObjectPointer* &p);
 		    int deleteObject(ObjectPointer* object);
+		    
+		    int getRoots(vector<ObjectPointer*>* &p);
+		    int getRoots(string name, vector<ObjectPointer*>* &p);
+		    int addRoot(ObjectPointer* &p);
+		    int removeRoot(ObjectPointer* &p);
 
 		    int abort();
 		    int commit();
