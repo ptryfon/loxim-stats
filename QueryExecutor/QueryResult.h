@@ -13,10 +13,11 @@ namespace QExecutor {
 	{
 		private:
 			list <LogicalID *> res;
-			int addNext(LogicalID *lid); //adds next LogicalID* to result
+
 		public:    
 			QueryResult();
 			~QueryResult();
+			int addNext(LogicalID *lid); //adds next LogicalID* to result
 			int getNext(LogicalID *lid); //returns in lid next result (LogicalID*); -1 when there is no next result
 	};
 
