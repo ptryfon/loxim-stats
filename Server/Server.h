@@ -22,7 +22,7 @@
 		char messgBuff[MESSGBUF_SIZE];
 
 	//TCP methods
-		int Receive(int* receiveDataSize);
+		int Receive(char** buffer, int* receiveDataSize);
 		int Disconnect();
 	};
 //}
