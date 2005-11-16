@@ -5,7 +5,33 @@
 %x yystring
 %option c++
 %option noyywrap
+%{
+#include <iostream>
+#include "TreeNode.h"
+#include "parser.tab.h"
+#include <string>
+#  ifndef YYERRCODE
+#    define YYERRCODE 256
+#  endif  
 
+using namespace std;
+
+extern yyFlexLexer* lexer;
+extern int szbderrno;
+
+ int yyerror(char *s)
+ {
+   //cerr << "Error at line " << lexer->lineno() << ':' << s << endl;
+   return 1;
+ }
+
+
+ int yylex()
+ {
+   return lexer->yylex();
+ }
+
+%}
 %%
 "("			return LEFTPAR;
 ")"			return RIGHTPAR;
@@ -50,13 +76,13 @@
 "delete"		return DELETE;
 ":="			return ASSIGN;
 "deref"			return DEREF;
-"begin"			return BEGIN;
+"begin"			return BEGINTR;
 "end"			return END;
 "abort"			return ABORT;
 
 
 [_a-zA-Z][_a-zA-Z0-9]* 	yylval.str = new char[strlen(yytext) + 1]; yylval.str = strcpy(yylval.str,yytext); return NAME;
-[0-9]+ 			yylval.licz = atoi(yytext); return INTEGER;
+[0-9]+ 			yylval.num = atoi(yytext); return INTEGER;
 [0-9]+"."[0-9]+		yylval.dbl = atof(yytext); return DOUBLE;
 
 "{"	BEGIN(comment);

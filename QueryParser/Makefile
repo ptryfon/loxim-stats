@@ -12,7 +12,7 @@ parser.tab.o: parser.tab.c TreeNode.h
 	g++ -c parser.tab.c
 parser.tab.c: parser.y
 	bison -d -v parser.y
-lex.yy.cc: skaner.l
-	lex -+ skaner.l
+lex.yy.cc: scanner.l
+	lex -+ scanner.l
 clean:
 	-rm -f *.o *.a *~ sample parser.tab.* lex.yy.* parser.output
