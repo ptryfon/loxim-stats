@@ -1,7 +1,24 @@
-%token	INTEGER
-%token	DOUBLE 
-%token	NAME STRING SEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN
-%token	MAX DISTINCT INSERT INTO  DEREF BEGIN END ABORT CREATE
+%{
+#include <string>
+#include <vector>
+#include "TreeNode.h"
+  using namespace QParser;
+  int yylex();
+  int yyerror(char* s);
+  TreeNode *d;
+%}
+
+%union {
+  char* str;
+  int num;
+  double dbl;
+  QParser::TreeNode* tree;
+  QParser::QueryNode* qtree;
+}
+
+%token	<num> INTEGER
+%token	<dbl> DOUBLE 
+%token	<str> NAME STRING SEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT INSERT INTO  DEREF BEGINTR END ABORT CREATE
 
 %start statement
 
@@ -22,58 +39,61 @@
 %nonassoc UMINUS
 %left DOT
 
+%type <tree> statement
+%type <qtree> query
+
 %%
 
-statement : query SEMICOLON
-	  | BEGIN SEMICOLON
-	  | ABORT SEMICOLON
-	  | END   SEMICOLON;
+statement   : query   SEMICOLON { d=$1; }
+	    | BEGINTR SEMICOLON { d=new TransactNode(TransactNode::begin); }
+	    | ABORT   SEMICOLON { d=new TransactNode(TransactNode::abort); }
+	    | END     SEMICOLON { d=new TransactNode(TransactNode::end); }
+            ;
 
-query	  : NAME 
-          | INTEGER
-          | STRING
-	  | DOUBLE
-          | LEFTPAR query RIGHTPAR
-          | query AS       NAME 
-	  | query GROUP_AS NAME 
-          | COUNT    LEFTPAR query RIGHTPAR 
-	  | SUM      LEFTPAR query RIGHTPAR
-	  | AVG      LEFTPAR query RIGHTPAR
-	  | MIN      LEFTPAR query RIGHTPAR 
-	  | MAX      LEFTPAR query RIGHTPAR
-	  | DEREF    LEFTPAR query RIGHTPAR
-	  | DISTINCT LEFTPAR query RIGHTPAR 
-	  | MINUS query 			%prec UMINUS
-	  | NOT   query
-          | query	UNION		query
-          | query	INTERSECT	query
-          | query	EXCEPT		query 
-	  | query	COMMA		query 
-	  | query	PLUS		query 
-          | query	MINUS		query 
-	  | query	TIMES		query 
-	  | query	DIVIDE_BY	query 
-	  | query	EQUAL		query 
-	  | query	NOT_EQUAL	query 
-	  | query	GREATER_THAN	query 
-	  | query	LESS_THAN	query 
-	  | query	GREATER_EQ	query 
-	  | query	LESS_EQ		query 
-	  | query	AND		query
-	  | query	OR		query
-	  | query 	DOT		query
-	  | query 	JOIN		query
-	  | query 	WHERE		query
-	  | query 	CLOSE_BY	query 
-	  | query 	CLOSE_UNIQUE	query 
-	  | query 	LEAVES_BY	query 
-	  | query 	LEAVES_UNIQUE	query 
-	  | query 	ORDER_BY	query
-	  | query 	EXISTS		query
-	  | query 	FOR_ALL		query
-	  | query	ASSIGN		query
-	  | CREATE NAME LEFTPAR query RIGHTPAR
-	  | CREATE NAME 
-	  | INSERT query INTO query
-	  | DELETE query 
- 	  ;
+query	    : NAME { char *s = $1; $$ = new NameNode(s); delete s; }
+            | INTEGER { $$ = new IntNode($1); }
+            | STRING { char *s = $1; $$ = new StringNode(s); delete s; }
+	    | DOUBLE { $$ = new DoubleNode($1); }
+            | LEFTPAR query RIGHTPAR { $$ = $2; }
+            | query AS NAME { $$ = new NameAsNode($1,$3,false); }
+	    | query GROUP_AS NAME { $$ = new NameAsNode($1,$3,true); }
+            | COUNT LEFTPAR  query RIGHTPAR { $$ = new UnOpNode($3,UnOpNode::count); }
+	    | SUM LEFTPAR  query RIGHTPAR { $$ = new UnOpNode($3,UnOpNode::sum); }
+	    | AVG LEFTPAR  query RIGHTPAR { $$ = new UnOpNode($3,UnOpNode::avg); }
+	    | MIN LEFTPAR  query RIGHTPAR { $$ = new UnOpNode($3,UnOpNode::min); }
+	    | MAX LEFTPAR  query RIGHTPAR { $$ = new UnOpNode($3,UnOpNode::max); }
+	    | DEREF LEFTPAR  query RIGHTPAR  { $$ = new UnOpNode($3,UnOpNode::deref); }
+	    | DISTINCT LEFTPAR  query RIGHTPAR { $$ = new UnOpNode($3,UnOpNode::distinct); }
+	    | MINUS query 				%prec UMINUS  { $$ = new UnOpNode($2,UnOpNode::unMinus); }
+	    | NOT query { $$ = new UnOpNode($2,UnOpNode::boolNot); }
+            | query UNION query { $$ = new AlgOpNode($1,$3,AlgOpNode::bagUnion); }
+            | query INTERSECT query { $$ = new AlgOpNode($1,$3,AlgOpNode::bagIntersect); }
+            | query EXCEPT query  { $$ = new AlgOpNode($1,$3,AlgOpNode::bagMinus); }
+	    | query COMMA query { $$ = new AlgOpNode($1,$3,AlgOpNode::comma); } 
+	    | query PLUS query { $$ = new AlgOpNode($1,$3,AlgOpNode::plus); }
+            | query MINUS query { $$ = new AlgOpNode($1,$3,AlgOpNode::minus); }
+	    | query TIMES query { $$ = new AlgOpNode($1,$3,AlgOpNode::times); }
+	    | query DIVIDE_BY query { $$ = new AlgOpNode($1,$3,AlgOpNode::divide); }
+	    | query EQUAL query { $$ = new AlgOpNode($1,$3,AlgOpNode::eq); }
+	    | query NOT_EQUAL query { $$ = new AlgOpNode($1,$3,AlgOpNode::neq); }
+	    | query GREATER_THAN query { $$ = new AlgOpNode($1,$3,AlgOpNode::gt); }
+	    | query LESS_THAN query { $$ = new AlgOpNode($1,$3,AlgOpNode::lt); }
+	    | query GREATER_EQ query { $$ = new AlgOpNode($1,$3,AlgOpNode::ge); }
+	    | query LESS_EQ query { $$ = new AlgOpNode($1,$3,AlgOpNode::le); }
+	    | query AND query { $$ = new AlgOpNode($1,$3,AlgOpNode::boolAnd); }
+	    | query OR query { $$ = new AlgOpNode($1,$3,AlgOpNode::boolOr); }
+	    | query DOT query { $$ = new NonAlgOpNode($1,$3,NonAlgOpNode::dot); }
+	    | query JOIN query { $$ = new NonAlgOpNode($1,$3,NonAlgOpNode::join); }
+	    | query WHERE query { $$ = new NonAlgOpNode($1,$3,NonAlgOpNode::where); }
+	    | query CLOSE_BY      query { $$ = new NonAlgOpNode($1,$3,NonAlgOpNode::closeBy); }
+	    | query CLOSE_UNIQUE  query { $$ = new NonAlgOpNode($1,$3,NonAlgOpNode::closeUniqueBy); }
+	    | query LEAVES_BY	  query { $$ = new NonAlgOpNode($1,$3,NonAlgOpNode::leavesBy); }
+	    | query LEAVES_UNIQUE query { $$ = new NonAlgOpNode($1,$3,NonAlgOpNode::leavesUniqueBy); }
+	    | query ORDER_BY query { $$ = new NonAlgOpNode($1,$3,NonAlgOpNode::orderBy); }
+	    | query EXISTS query { $$ = new NonAlgOpNode($1,$3,NonAlgOpNode::exists); }
+	    | query FOR_ALL query { $$ = new NonAlgOpNode($1,$3,NonAlgOpNode::forAll); }
+	    | CREATE NAME LEFTPAR query RIGHTPAR { $$ = new CreateNode($2,$4); }
+	    | CREATE NAME  { $$ = new CreateNode($2); }
+	    | INSERT query INTO query { $$ = new AlgOpNode($2,$4,AlgOpNode::insert); }
+	    | DELETE query  { $$ = new UnOpNode($2,UnOpNode::deleteOp); }
+	    ;

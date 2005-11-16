@@ -1,38 +1,19 @@
-#ifndef _QPARSER
-#define _QPARSER
+#ifndef _QUERY_PARSER_H_
+#define _QUERY_PARSER_H_
+
 #include <string>
-#include <stdio.h>
-#include <stdlib.h>
+#include "TreeNode.h"
 
 using namespace std;
 
-class QueryTree
-{
+namespace QParser {
 
-private:
-    int nodesNum;
-    QueryTree *lSon;
-    QueryTree *rSon;
-    
-public:
-    QueryTree() {};
-    virtual ~QueryTree(){};
-    int toString(){
-	return 0;
-    };
-
+class QueryParser {
+ public:
+  virtual TreeNode* parse(string query);
+  virtual ~QueryParser() {}
 };
 
-class QueryParser 
-{
-
-    protected:
-    string myName;
-    public:
-    QueryParser() {};
-    virtual ~QueryParser() {};
-    int parseIt (string s, QueryTree *&qTrees);
-
-};
+}
 
 #endif
