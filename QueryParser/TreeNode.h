@@ -20,9 +20,10 @@ class TreeNode {
   virtual string type()=0;
   virtual ~TreeNode() {}
   
-  virtual string getName() = 0;
-  virtual QueryNode* getArg() = 0;
-  
+  // cos takiego chce Executor::
+  virtual string getName() {return (string) NULL;}
+  // virtual QueryNode* getArg() {return NULL;}; // to nie dziala
+  // virtual ????? getValue(){ return 0;};     
 };
 
 // statement := query
