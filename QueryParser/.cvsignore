@@ -2,5 +2,6 @@
 *.o
 *.a
 parser.tab.*
+parser.output
 lex.yy.*
 *.d
