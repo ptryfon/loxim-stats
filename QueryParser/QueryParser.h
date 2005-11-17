@@ -9,9 +9,12 @@ using namespace std;
 namespace QParser {
 
 class QueryParser {
- public:
-  virtual TreeNode* parse(string query);
-  virtual ~QueryParser() {}
+	public:
+/*	
+	virtual TreeNode* parse(string query);
+*/
+	virtual int parseIt (string s, TreeNode *&aTree);
+	virtual ~QueryParser() {}
 };
 
 }

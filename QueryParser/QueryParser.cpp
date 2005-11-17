@@ -13,14 +13,19 @@ using namespace std;
 
 namespace QParser {
 
-  TreeNode* QueryParser::parse(string query)
-  {
-    stringstream ss (stringstream::in | stringstream::out);
-    ss << query;
-    lexer = new yyFlexLexer(&ss); 
-    yyparse();
-    delete lexer;
-    return d;
-  }
-  
+/*	(MH: replaced this old header...)
+	TreeNode* QueryParser::parse(string query)
+*/
+	int QueryParser::parseIt(string query, TreeNode *&qTree)
+	{
+		stringstream ss (stringstream::in | stringstream::out);
+		ss << query;
+		lexer = new yyFlexLexer(&ss); 
+		yyparse();
+		delete lexer;
+		qTree = d;
+		return 0;
+/*		return d;
+*/
+	}  
 }
