@@ -1,6 +1,6 @@
 *~
 *.o
 *.a
-y.tab.c
-lex.yy.cc
+parser.tab.*
+lex.yy.*
 *.d
