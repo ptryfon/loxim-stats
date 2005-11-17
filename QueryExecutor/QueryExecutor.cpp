@@ -47,28 +47,31 @@ int QueryExecutor::queryResult(TreeNode *tree, QueryResult *result) {
 	if (treeNodeType == "name") {
 		name = tree->getName();
 		if (tr->getRoots(name, vec) != 0) {
-		fprintf(stderr, "Error in getRoots\n");
-		};
-		result = new QueryResult;
+		    fprintf(stderr, "Error in getRoots\n");
+		    return -1;
+		}
+//		result = new QueryResult;
 		vecSize = vec->size();
-		for(int i = 0; i < vecSize; i++ ) {
+		for (int i = 0; i < vecSize; i++ ) {
    			optr = vec->at(i);
 			lid = optr->getLogicalID();
 			result->addNext(lid);	
- 		};	
-		
+ 		}
 		return 0;
 	}
 	else if (treeNodeType == "create") {
 			name = tree->getName();
 			value = ((tree->getArg())->getValue());
 			if (tr->createObject(name, value, optr) != 0) {
-			fprintf(stderr, "Error in createObject\n");
-			};
+			    fprintf(stderr, "Error in createObject\n");
+			    return -1;
+			}
 			if (tr->addRoot(optr) != 0) {
-			fprintf(stderr, "Error in addRoot\n");
-			};
-			result = new QueryResult;
+			    fprintf(stderr, "Error in addRoot\n");
+			    return -1;
+			}
+//			result = new QueryResult;
+			result->addNext(optr->getLogicalID());
 			return 0;
 		}
 		else {
