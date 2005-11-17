@@ -1,6 +1,9 @@
 #ifndef _QUERYEXECUTOR_H
 #define _QUERYEXECUTOR_H
 
+using namespace QParser;
+using namespace TManager;
+
 namespace QExecutor
 {
 	class QueryExecutor
@@ -8,7 +11,7 @@ namespace QExecutor
 	public:
 		QueryExecutor() {};
 		~QueryExecutor();
-		int queryResult(QueryTree *tree, QueryResult *result);
+		int queryResult(TreeNode *tree, QueryResult *result);
 	};
 }
 

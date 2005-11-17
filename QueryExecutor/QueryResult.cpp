@@ -8,6 +8,7 @@
    Maja Perycz */
    
 #include <stdio.h>
+#include <vector>
 
 #include "QueryResult.h"
 #include "Store/Store.h"

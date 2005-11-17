@@ -2,6 +2,7 @@
 #define _QUERYRESULT_H_
 
 #include <list>
+#include <vector>
 
 #include "Store/Store.h"
 
@@ -11,7 +12,7 @@ namespace QExecutor {
 
 	class QueryResult
 	{
-		private:
+		protected:
 			list <LogicalID *> res;
 
 		public:    
