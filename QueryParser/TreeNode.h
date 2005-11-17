@@ -22,6 +22,8 @@ class TreeNode {
   
   // cos takiego chce Executor::
   virtual string getName() {return (string) NULL;}
+  virtual TreeNode* getArg() {return (TreeNode *) NULL;}
+    virtual TreeNode* getArg() {return (TreeNode *) NULL;}
   // virtual QueryNode* getArg() {return (QueryNode *)NULL;}; // to nie dziala
   // virtual ????? getValue(){ return 0;};     
 };
@@ -92,7 +94,8 @@ class NameAsNode : public QueryNode {
   virtual TreeNode* clone();
   virtual string type() { return "as"; }
   string getName() { return name; }
-  QueryNode* getArg() { return arg; }
+  //QueryNode* getArg() { return arg; }
+  TreeNode* getArg() { return arg; }
   virtual void setArg(QueryNode* _arg) { arg = _arg; arg->setParent(this); }    
   bool isGrouped() { return group; }
   virtual ~NameAsNode() { if (arg != NULL) delete arg; }
@@ -111,7 +114,8 @@ class UnOpNode : public QueryNode {
                                         { arg->setParent(this); }
   virtual TreeNode* clone();
   virtual string type() { return "unop"; }
-  QueryNode* getArg() { return arg; }
+  //QueryNode* getArg() { return arg; }
+  TreeNode* getArg() { return arg; }
   unOp getOp() { return op; }
   virtual void setArg(QueryNode* _arg) { arg = _arg; arg->setParent(this); }
   virtual void setOp(unOp _op) { op = _op; }
@@ -194,7 +198,8 @@ class CreateNode : public QueryNode {
   virtual TreeNode* clone();
   virtual string type() { return "create"; }
   string getName() { return name; }
-  QueryNode* getArg() { return arg; }
+//  QueryNode* getArg() { return arg; }
+    TreeNode* getArg() { return arg; }
   virtual void setArg(QueryNode* _arg) { arg = _arg; arg->setParent(this); }    
   virtual ~CreateNode() { if (arg != NULL) delete arg; }
 };  
