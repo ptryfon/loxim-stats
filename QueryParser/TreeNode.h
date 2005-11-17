@@ -19,6 +19,10 @@ class TreeNode {
   virtual TreeNode* clone()=0;
   virtual string type()=0;
   virtual ~TreeNode() {}
+  
+  virtual string getName() = 0;
+  virtual QueryNode* getArg() = 0;
+  
 };
 
 // statement := query
