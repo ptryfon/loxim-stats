@@ -2,7 +2,8 @@
 #define SERVER_H_
 #include <sys/socket.h>
 
-#define MESSGBUF_SIZE 128
+#define MAX_MESSG 4096
+#define MAX_MESSG_HEADER_LEN 1
 
 //namespace Server {
 	class Server
@@ -19,7 +20,6 @@
 		
 	private:
 		int Sock;
-		char messgBuff[MESSGBUF_SIZE];
 
 	//TCP methods
 		int Receive(char** buffer, int* receiveDataSize);
