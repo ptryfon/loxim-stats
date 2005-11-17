@@ -1,7 +1,7 @@
 #ifndef _CONNECTION_H_
 #define _CONNECTION_H_
 
-#include "ResultSet.h"
+#include "Result.h"
 
 class Connection
 {
@@ -9,9 +9,13 @@ public:
 	Connection(int socket);
 	int disconnect();
 	virtual ~Connection();
-	ResultSet* execute(char* query);
+	Result* execute(char* query);
 private:
-	int sock; 
+	int sock;
+	char* bufferBegin;
+	char* bufferEnd;
+	
+	int Connection::deserialize(Result** rs);
 };
 
 #endif //_CONNECTION_H_

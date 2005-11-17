@@ -8,8 +8,15 @@
 using namespace std;
 
 #include "Connection.h"
-#include "ResultSet.h"
+#include "Result.h"
+#include "ResultBag.h"
+#include "ResultReference.h"
+#include "ResultVoid.h"
+#include "ResultCollection.h"
 
+#define BAG			1
+#define NORESULT	2
+#define OBJECTID	3
 
 int bufferReceive (char** buffer, int* receiveDataSize, int sock) {
 	//printf("ServerTcp: receiving on socket %d... \n", sock);
@@ -116,13 +123,61 @@ Connection::~Connection()
 {
 }
 
-ResultSet* Connection::execute(char* query){
+int Connection::deserialize(Result** rs) {
+	int error;
+//	bufferBegin++;
+	switch (*bufferBegin) {
+		case BAG:
+			bufferBegin++; //skip first byte
+			unsigned long number = ntohl(*((unsigned long*) bufferBegin));
+			bufferBegin += sizeof(long); //skip the number of elements (long)
+
+			ResultBag *brs = new ResultBag(number);
+			Result* result;
+			for (unsigned int i = 1; i <= number; i++) {
+				if(0 != (error = deserialize(&result))) {
+					*rs = NULL;
+					return error; //TODO poprawic sprawdzanie bledu
+				}
+				brs->add(result);
+			}
+			*rs = brs;
+			return 0;
+		
+		case OBJECTID:
+			bufferBegin++;
+			//TODO dodac sprawdzanie zakresu, przepelnienia bufora!!!
+			char* id = (char*)malloc (strlen(bufferBegin)+1);
+			strcpy (id, bufferBegin);
+			*rs = (Result*) new ResultReference(id);
+			return 0;
+		
+		case NORESULT:
+			bufferBegin++;
+			*rs = new ResultVoid();
+			return 0; 
+		
+		default:
+			//obiekt nieznany lub jeszcze niezaimplementowany
+			*rs = NULL;
+			return 1;//w przyszlosci bedzie tu nr bledu
+	}
+}
+
+Result* Connection::execute(char* query){
 
       bufferSend(query, strlen(query)+1, sock);
       char* ptr;
       int ile;
-      bufferReceive(&ptr, &ile, sock);
-         return new ResultSet();
+      bufferReceive(&ptr, &ile, sock); //create buffer and set ptr to point at it
+      bufferBegin = ptr;
+      bufferEnd = ptr+ile;
+      
+      Result* rs;
+      int error = deserialize(&rs);
+      free(ptr); //free buffer created by bufferReceive()
+      if (0 != error) return NULL;
+      return rs;
 }
 
 int Connection::disconnect() {
