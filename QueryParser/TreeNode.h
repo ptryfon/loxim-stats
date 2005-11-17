@@ -22,7 +22,7 @@ class TreeNode {
   
   // cos takiego chce Executor::
   virtual string getName() {return (string) NULL;}
-  // virtual QueryNode* getArg() {return NULL;}; // to nie dziala
+  // virtual QueryNode* getArg() {return (QueryNode *)NULL;}; // to nie dziala
   // virtual ????? getValue(){ return 0;};     
 };
 
