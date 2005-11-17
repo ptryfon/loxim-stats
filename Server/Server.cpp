@@ -62,7 +62,7 @@ int Server::initializeAll()
 // Stary kod z CT.cpp - nie wglebialem sie
 int Server::Run()
 {
-	int size=128;
+	int size=MAX_MESSG;
 	//TODO - headers
 	TREE_NODE_TYPE type;
 	type=1;
@@ -116,7 +116,6 @@ int Server::Run()
 	printf("[Server.Run]--> Sending results to client \n");		
 	Send(serializedMessg, MAX_MESSG);
 	
-	//That's it, we no longer need this one..
 	printf("[Server.Run]--> Releasing message buffers \n");
 	free(messgBuff);
 	free(serializedMessg);
