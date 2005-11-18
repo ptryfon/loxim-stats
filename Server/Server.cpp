@@ -97,7 +97,7 @@ int Server::Run()
 	Receive((char **)messgBuff, &size);
 		
 	printf("[Server.Run]--> Request parse \n");
-	tNode=qPa->parse((string) messgBuff);
+	qPa->parseIt((string) messgBuff, tNode);
 	
 	printf("[Server.Run]--> Request query result \n");
 	qEx->queryResult(tNode, qResult);
