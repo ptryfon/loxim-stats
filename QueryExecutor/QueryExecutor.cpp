@@ -22,7 +22,7 @@ using namespace TManager;
 
 namespace QExecutor {
 
-int QueryExecutor::queryResult(TreeNode *tree, QueryResult *result) {
+int QueryExecutor::executeQuery(TreeNode *tree, QueryResult *result) {
 	Transaction *tr;
 	LogicalID *lid;
 	//AccessMode mode;
@@ -51,7 +51,7 @@ int QueryExecutor::queryResult(TreeNode *tree, QueryResult *result) {
 		for (int i = 0; i < vecSize; i++ ) {
    			optr = vec->at(i);
 			lid = optr->getLogicalID();
-			result->addNext(lid);	
+		//	result->addNext(lid);	
 		}
 		return 0;
 	}
@@ -66,7 +66,7 @@ int QueryExecutor::queryResult(TreeNode *tree, QueryResult *result) {
 				fprintf(stderr, "Error in addRoot\n");
 				return -1;
 			}
-			result->addNext(optr->getLogicalID());
+		//	result->addNext(optr->getLogicalID());
 			return 0;
 		}
 		else {
