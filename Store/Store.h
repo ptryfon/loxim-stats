@@ -30,23 +30,23 @@ namespace Store
 
 #include <string>
 #include <vector>
-//#include "Config/SBQLConfig.h"
-//#include "Log/Logs.h"
-//#include "TransactionManager/Transaction.h"
+#include "Config/SBQLConfig.h"
+#include "Log/Logs.h"
+#include "TransactionManager/Transaction.h"
 
 /////////////////////////// WORDAROUND ///////////////////////////
-namespace Logs
-{
-	class LogManager {};
-};
-namespace TManager
-{
-	class TransactionID {};
-};
-namespace Config
-{
-	class SBQLConfig {};
-};
+//namespace Logs
+//{
+//	class LogManager {};
+//};
+//namespace TManager
+//{
+//	class TransactionID {};
+//};
+//namespace Config
+//{
+//	class SBQLConfig {};
+//};
 /////////////////////////// WORDAROUND ///////////////////////////
 
 using namespace std;
