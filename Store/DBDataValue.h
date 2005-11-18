@@ -12,7 +12,7 @@ namespace Store
 	public:
 		DBDataValue() {};
 
-		virtual int getType();
+		virtual DataType getType();
 		virtual void toByteArray(unsigned char** lid, int* length);
 		virtual string toString();
 

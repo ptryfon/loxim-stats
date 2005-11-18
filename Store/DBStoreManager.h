@@ -38,7 +38,7 @@ namespace Store
 		Buffer* getBuffer();
 		Map* getMap();
 
-		virtual int getObject(TransactionID* tid, LogicalID* lid, int mode, ObjectPointer** object);
+		virtual int getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer** object);
 		virtual int createObject(TransactionID* tid, string name, DataValue* value, ObjectPointer** object);
 		virtual int deleteObject(TransactionID* tid, ObjectPointer* object);
 

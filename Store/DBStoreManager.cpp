@@ -72,7 +72,7 @@ namespace Store
 		return map;
 	};
 
-	int DBStoreManager::getObject(TransactionID* tid, LogicalID* lid, int mode, ObjectPointer** object)
+	int DBStoreManager::getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer** object)
 	{
 		*object = new DBObjectPointer();
 

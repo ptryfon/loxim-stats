@@ -4,9 +4,9 @@ using namespace std;
 
 namespace Store
 {
-	int DBDataValue::getType()
+	DataType DBDataValue::getType()
 	{
-		return STORE_TYPE_INTEGER;
+		return Store::Integer;
 	};
 
 	void DBDataValue::toByteArray(unsigned char** lid, int* length)

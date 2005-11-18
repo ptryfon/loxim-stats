@@ -30,15 +30,28 @@ namespace Store
 
 #include <string>
 #include <vector>
-#include "Config/SBQLConfig.h"
-#include "Log/Logs.h"
-#include "TransactionManager/Transaction.h"
+//#include "Config/SBQLConfig.h"
+//#include "Log/Logs.h"
+//#include "TransactionManager/Transaction.h"
+
+/////////////////////////// WORDAROUND ///////////////////////////
+namespace Logs
+{
+	class LogManager {};
+};
+namespace TManager
+{
+	class TransactionID {};
+};
+namespace Config
+{
+	class SBQLConfig {};
+};
+/////////////////////////// WORDAROUND ///////////////////////////
 
 using namespace std;
 using namespace Logs;
 using namespace TManager;
-
-// class TransactionID;
 
 namespace Store
 {
@@ -115,19 +128,19 @@ namespace Store
 	{
 	public:
 		// Object
-		virtual ObjectPointer* getObject(TransactionID* tid, LogicalID* lid, AccessMode mode) = 0;
-		virtual ObjectPointer* createObject(TransactionID* tid, string name, DataValue* value) = 0;
-		virtual void deleteObject(TransactionID* tid, ObjectPointer* object) = 0;
+		virtual int getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer** object) = 0;
+		virtual int createObject(TransactionID* tid, string name, DataValue* value, ObjectPointer** object) = 0;
+		virtual int deleteObject(TransactionID* tid, ObjectPointer* object) = 0;
 
 		// Roots
-		virtual vector<ObjectPointer*>* getRoots(TransactionID* tid) = 0;
-		virtual vector<ObjectPointer*>* getRoots(TransactionID* tid, string name) = 0;
-		virtual void addRoot(TransactionID* tid, ObjectPointer* object) = 0;
-		virtual void removeRoot(TransactionID* tid, ObjectPointer* object) = 0;
+		virtual int getRoots(TransactionID* tid, vector<ObjectPointer*>** roots) = 0;
+		virtual int getRoots(TransactionID* tid, string name, vector<ObjectPointer*>** roots) = 0;
+		virtual int addRoot(TransactionID* tid, ObjectPointer* object) = 0;
+		virtual int removeRoot(TransactionID* tid, ObjectPointer* object) = 0;
 
 		// Transactions
-		virtual void abortTransaction(TransactionID* tid) = 0;
-		virtual void commitTransaction(TransactionID* tid) = 0;
+		virtual int abortTransaction(TransactionID* tid) = 0;
+		virtual int commitTransaction(TransactionID* tid) = 0;
 
 		// Data creation
 		virtual DataValue* createIntValue(int value) = 0;
@@ -137,8 +150,8 @@ namespace Store
 		virtual DataValue* createPointerValue(ObjectPointer* value) = 0;
 
 		// Deserialization
-		virtual LogicalID* logicalIDFromByteArray(unsigned char* lid, int length) = 0;
-		virtual DataValue* dataValueFromByteArray(unsigned char* value, int length) = 0;
+		virtual int logicalIDFromByteArray(unsigned char* buffer, int length, LogicalID** lid) = 0;
+		virtual int dataValueFromByteArray(unsigned char* buffer, int length, DataValue** value) = 0;
 
 		// Operators
 		virtual ~StoreManager() {};
@@ -146,4 +159,6 @@ namespace Store
 };
 
 #endif
+
+
 

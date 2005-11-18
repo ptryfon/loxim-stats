@@ -14,7 +14,7 @@ namespace Store
 
 		virtual LogicalID* getLogicalID();
 		virtual string getName();
-		virtual int getMode();
+		virtual AccessMode getMode();
 		virtual DataValue* getValue();
 		virtual void setValue(DataValue* val);
 		virtual string toString();
