@@ -19,7 +19,7 @@ DEPFILES =	$(OBJECTS:.o=.d)
 all: $(STATIC_LIB) $(PROGRAM)
 
 $(PROGRAM): $(STATIC_LIB)
-	$(CXX) $(CXXFLAGS) $@.cpp $< ../TransactionManager/TransactionManager.a ../Lock/Lock.a -o $@
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $@.cpp $< ../TransactionManager/TransactionManager.a ../Lock/Lock.a -o $@
 
 clean:
 	rm -f $(OBJECTS) $(DEPFILES) $(STATIC_LIB) $(PROGRAM)
