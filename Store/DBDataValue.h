@@ -1,5 +1,5 @@
-#ifndef __DBDATAVALUE_H__
-#define __DBDATAVALUE_H__
+#ifndef __STORE_DBDATAVALUE_H__
+#define __STORE_DBDATAVALUE_H__
 
 #include "Store.h"
 
@@ -12,7 +12,7 @@ namespace Store
 	public:
 		DBDataValue() {};
 
-		virtual DataType getType();
+		virtual int getType();
 		virtual void toByteArray(unsigned char** lid, int* length);
 		virtual string toString();
 

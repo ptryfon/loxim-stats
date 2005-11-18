@@ -1,5 +1,5 @@
-#ifndef __DBOBJECTPOINTER_H__
-#define __DBOBJECTPOINTER_H__
+#ifndef __STORE_DBOBJECTPOINTER_H__
+#define __STORE_DBOBJECTPOINTER_H__
 
 #include "Store.h"
 
@@ -14,7 +14,7 @@ namespace Store
 
 		virtual LogicalID* getLogicalID();
 		virtual string getName();
-		virtual AccessMode getMode();
+		virtual int getMode();
 		virtual DataValue* getValue();
 		virtual void setValue(DataValue* val);
 		virtual string toString();

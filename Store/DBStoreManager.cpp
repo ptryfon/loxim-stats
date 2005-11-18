@@ -1,60 +1,134 @@
 #include "DBStoreManager.h"
-#include "DBObjectPointer.h"
 
 namespace Store
 {
-	void DBStoreManager::init(SBQLConfig* config, LogManager* log)
+	DBStoreManager::DBStoreManager()
 	{
 	};
 
-	ObjectPointer* DBStoreManager::getObject(TransactionID* tid, LogicalID* lid, Store::AccessMode mode)
+	DBStoreManager::~DBStoreManager()
 	{
-		return new DBObjectPointer();
+		if (buffer)
+		{
+			buffer->stop();
+			delete buffer;
+			buffer = 0;
+		}
+
+		if (map)
+		{
+			delete map;
+			map = 0;
+		}
 	};
 
-	ObjectPointer* DBStoreManager::createObject(TransactionID* tid, string name, DataValue* value)
+	int DBStoreManager::init(SBQLConfig* config, LogManager* log)
+	{
+		this->config = config;
+		this->log = log;
+		this->buffer = new Buffer(this);
+		this->map = new Map(this);
+
+		return 0;
+	};
+
+	int DBStoreManager::start()
+	{
+		int retval = 0;
+
+		if ((retval = buffer->start()) != STORE_ERR_SUCCESS)
+			return retval;
+
+		return STORE_ERR_SUCCESS;
+	};
+
+	int DBStoreManager::stop()
+	{
+		int retval = 0;
+
+		if ((retval = buffer->stop()) != STORE_ERR_SUCCESS)
+			return retval;
+
+		return STORE_ERR_SUCCESS;
+	};
+
+	SBQLConfig* DBStoreManager::getConfig()
+	{
+		return config;
+	};
+
+	LogManager* DBStoreManager::getLogManager()
+	{
+		return log;
+	};
+
+	Buffer* DBStoreManager::getBuffer()
+	{
+		return buffer;
+	}
+
+	Map* DBStoreManager::getMap()
+	{
+		return map;
+	};
+
+	int DBStoreManager::getObject(TransactionID* tid, LogicalID* lid, int mode, ObjectPointer** object)
+	{
+		*object = new DBObjectPointer();
+
+		return 0;
+	};
+
+	int DBStoreManager::createObject(TransactionID* tid, string name, DataValue* value, ObjectPointer** object)
+	{
+		*object = 0;
+
+		return 0;
+	};
+
+	int DBStoreManager::deleteObject(TransactionID* tid, ObjectPointer* object)
 	{
 		return 0;
 	};
 
-	void DBStoreManager::deleteObject(TransactionID* tid, ObjectPointer* object)
+	int DBStoreManager::getRoots(TransactionID* tid, vector<ObjectPointer*>** roots)
 	{
+		*roots = new vector<ObjectPointer*>(0);
+
+		(*roots)->push_back(new DBObjectPointer());
+		(*roots)->push_back(new DBObjectPointer());
+		(*roots)->push_back(new DBObjectPointer());
+
+		return 0;
 	};
 
-	vector<ObjectPointer*>* DBStoreManager::getRoots(TransactionID* tid)
+	int DBStoreManager::getRoots(TransactionID* tid, string name, vector<ObjectPointer*>** roots)
 	{
-		vector<ObjectPointer*>* v = new vector<ObjectPointer*>(0);
+		*roots = new vector<ObjectPointer*>(0);
 
-		v->push_back(new DBObjectPointer());
-		v->push_back(new DBObjectPointer());
-		v->push_back(new DBObjectPointer());
+		(*roots)->push_back(new DBObjectPointer());
 
-		return v;
+		return 0;
 	};
 
-	vector<ObjectPointer*>* DBStoreManager::getRoots(TransactionID* tid, string name)
+	int DBStoreManager::addRoot(TransactionID* tid, ObjectPointer* object)
 	{
-		vector<ObjectPointer*>* v = new vector<ObjectPointer*>(0);
-
-		v->push_back(new DBObjectPointer());
-
-		return v;
+		return 0;
 	};
 
-	void DBStoreManager::addRoot(TransactionID* tid, ObjectPointer* object)
+	int DBStoreManager::removeRoot(TransactionID* tid, ObjectPointer* object)
 	{
+		return 0;
 	};
 
-	void DBStoreManager::removeRoot(TransactionID* tid, ObjectPointer* object)
+	int DBStoreManager::abortTransaction(TransactionID* tid)
 	{
+		return 0;
 	};
 
-	void DBStoreManager::abortTransaction(TransactionID* tid)
+	int DBStoreManager::commitTransaction(TransactionID* tid)
 	{
-	};
-
-	void DBStoreManager::commitTransaction(TransactionID* tid)
-	{
+		return 0;
 	};
 
 	DataValue* DBStoreManager::createIntValue(int value)
@@ -82,12 +156,12 @@ namespace Store
 		return 0;
 	};
 
-	LogicalID* DBStoreManager::logicalIDFromByteArray(unsigned char* lid, int length)
+	int DBStoreManager::logicalIDFromByteArray(unsigned char* buffer, int length, LogicalID** lid)
 	{
 		return 0;
 	};
 
-	DataValue* DBStoreManager::dataValueFromByteArray(unsigned char* value, int length)
+	int DBStoreManager::dataValueFromByteArray(unsigned char* buffer, int length, DataValue** value)
 	{
 		return 0;
 	};

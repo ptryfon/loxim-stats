@@ -1,5 +1,5 @@
-#ifndef __DBLOGICALID_H__
-#define __DBLOGICALID_H__
+#ifndef __STORE_DBLOGICALID_H__
+#define __STORE_DBLOGICALID_H__
 
 #include "Store.h"
 

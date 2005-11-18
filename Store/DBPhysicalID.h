@@ -1,5 +1,5 @@
-#ifndef __DBPHYSICALID_H__
-#define __DBPHYSICALID_H__
+#ifndef __STORE_DBPHYSICALID_H__
+#define __STORE_DBPHYSICALID_H__
 
 #include "Store.h"
 

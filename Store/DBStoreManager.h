@@ -1,32 +1,54 @@
-#ifndef __DBPHYSICALID_H__
-#define __DBPHYSICALID_H__
+#ifndef __STORE_DBPHYSICALID_H__
+#define __STORE_DBPHYSICALID_H__
+
+namespace Store
+{
+	class DBStoreManager;
+}
 
 #include "Store.h"
-#include "Config/SBQLConfig.h"
-#include "Log/Logs.h"
+#include "Buffer.h"
+#include "Map.h"
+#include "DBObjectPointer.h"
 
 using namespace std;
 using namespace Config;
+using namespace Logs;
 
 namespace Store
 {
 	class DBStoreManager : public StoreManager
 	{
+	private:
+		SBQLConfig* config;
+		LogManager* log;
+		Buffer* buffer;
+		Map* map;
+
 	public:
-		DBStoreManager() {};
-		void init(SBQLConfig* config, LogManager* log);
+		DBStoreManager();
+		~DBStoreManager();
 
-		virtual ObjectPointer* getObject(TransactionID* tid, LogicalID* lid, Store::AccessMode mode);
-		virtual ObjectPointer* createObject(TransactionID* tid, string name, DataValue* value);
-		virtual void deleteObject(TransactionID* tid, ObjectPointer* object);
+		int init(SBQLConfig* config, LogManager* log);
+		int start();
+		int stop();
 
-		virtual vector<ObjectPointer*>* getRoots(TransactionID* tid);
-		virtual vector<ObjectPointer*>* getRoots(TransactionID* tid, string name);
-		virtual void addRoot(TransactionID* tid, ObjectPointer* object);
-		virtual void removeRoot(TransactionID* tid, ObjectPointer* object);
+		SBQLConfig* getConfig();
+		LogManager* getLogManager();
+		Buffer* getBuffer();
+		Map* getMap();
 
-		virtual void abortTransaction(TransactionID* tid);
-		virtual void commitTransaction(TransactionID* tid);
+		virtual int getObject(TransactionID* tid, LogicalID* lid, int mode, ObjectPointer** object);
+		virtual int createObject(TransactionID* tid, string name, DataValue* value, ObjectPointer** object);
+		virtual int deleteObject(TransactionID* tid, ObjectPointer* object);
+
+		virtual int getRoots(TransactionID* tid, vector<ObjectPointer*>** roots);
+		virtual int getRoots(TransactionID* tid, string name, vector<ObjectPointer*>** roots);
+		virtual int addRoot(TransactionID* tid, ObjectPointer* object);
+		virtual int removeRoot(TransactionID* tid, ObjectPointer* object);
+
+		virtual int abortTransaction(TransactionID* tid);
+		virtual int commitTransaction(TransactionID* tid);
 
 		virtual DataValue* createIntValue(int value);
 		virtual DataValue* createDoubleValue(double value);
@@ -34,9 +56,9 @@ namespace Store
 		virtual DataValue* createVectorValue(vector<ObjectPointer*>* value);
 		virtual DataValue* createPointerValue(ObjectPointer* value);
 
-		virtual LogicalID* logicalIDFromByteArray(unsigned char* lid, int length);
-		virtual DataValue* dataValueFromByteArray(unsigned char* value, int length);
+		virtual int logicalIDFromByteArray(unsigned char* buffer, int length, LogicalID** lid);
+		virtual int dataValueFromByteArray(unsigned char* buffer, int length, DataValue** value);
 	};
 }
 
-#endif
+#endif // __STORE_DBPHYSICALID_H__
