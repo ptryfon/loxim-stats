@@ -1,19 +1,25 @@
 include ../make.defs
 
-SOURCES	=	Logs.cpp
+SOURCES	=	Logs.cpp \
+		LogRecord.cpp \
+		LogIO.cpp \
+		LogThread.cpp
 
-HEADERS	=	Logs.h
+HEADERS	=	Logs.h \
+		LogRecord.h \
+		LogIO.h \
+		LogThread.h
 
 STATIC_LIB =	Logs.a
-PROGRAM	=	
+PROGRAM	=	TestLogs
 
 OBJECTS	=	$(SOURCES:.cpp=.o)
 DEPFILES =	$(OBJECTS:.o=.d)
 
-all: $(STATIC_LIB)
+all: $(STATIC_LIB) $(PROGRAM)
 
-#$(PROGRAM): $(STATIC_LIB)
-#	$(CXX) $(CXXFLAGS) $@.cpp $< -o $@
+$(PROGRAM): $(STATIC_LIB)
+	$(CXX) $(CXXFLAGS) $@.cpp $< ../TransactionManager/TransactionManager.a ../Lock/Lock.a -o $@
 
 clean:
 	rm -f $(OBJECTS) $(DEPFILES) $(STATIC_LIB) $(PROGRAM)
