@@ -5,4 +5,4 @@ CXX=g++
 CXXFLAGS=-I./ -I./../ -Wall -fno-exceptions
 LDFLAGS=-lpthread
 LEX=flex
-YACC=yacc
+YACC=bison
