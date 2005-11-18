@@ -15,7 +15,7 @@ LIBS	=	../Driver/Driver.a
 all: $(STATIC_LIB) $(PROGRAM)
 
 $(PROGRAM): $(OBJECTS) $(LIBS) $(STATIC_LIB)
-	$(CXX) $^ -o $@
+	$(CXX) $(LDFLAGS) $^ -o $@
 
 clean:
 	rm -f $(OBJECTS) $(DEPFILES) $(STATIC_LIB) $(PROGRAM) $(PROGRAM).o

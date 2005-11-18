@@ -13,7 +13,7 @@ DEPFILES =	$(OBJECTS:.o=.d)
 all: $(PROGRAM)
 
 $(PROGRAM): $(STATIC_LIB)
-	$(CXX) $(CXXFLAGS) $@.cpp $< -o $@
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $@.cpp $< -o $@
 
 clean:
 	rm -f $(OBJECTS) $(DEPFILES) $(STATIC_LIB) $(PROGRAM)
