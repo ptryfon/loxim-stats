@@ -1,6 +1,7 @@
 #include <fstream>
 #include <iostream>
 #include "ErrorConsole.h"
+#include "Errors.h"
 
 using namespace std;
 
