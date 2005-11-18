@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <iterator>
+#include <vector>
 
 using namespace std;
 
@@ -17,7 +18,7 @@ public:
 };//class Result
 
 
-class ResultCollection : Result 
+class ResultCollection : public Result 
 {
 public:
 	ResultCollection() {};
@@ -31,22 +32,22 @@ public:
 };//class ResultCollection : Result 
 
 
-class ResultBag : ResultCollection
+class ResultBag : public ResultCollection
 {
 private:	
-	vector<int*> bag;
+	vector<Result*> bag;
 public:
 	ResultBag(unsigned long size) {        }
 	int     count()           { return bag.size();      }
 	void    add(Result* val)  { bag.push_back(val);     }
 	void    replace(int i, Result* val) { bag[i] = val; }
-	Result* get(int i)        { return bag[i]           }	
+	Result* get(int i)        { return bag[i];          }	
 	//void    remove(int i)     {                         }
-	virtual ~ResultBag();
+	virtual ~ResultBag() {};
 };//class ResultBag : ResultCollection
 
 
-class ResultSequence : ResultCollection
+class ResultSequence : public ResultCollection
 {
 public:
 	ResultSequence() {};
@@ -54,7 +55,7 @@ public:
 };//class ResultSequence : ResultCollection
 
 
-class ResultSingle
+class ResultSingle : public Result
 {
 public:
 	ResultSingle() {}
@@ -62,7 +63,7 @@ public:
 };//class ResultSingle
 
 
-class ResultReference : ResultSingle
+class ResultReference : public ResultSingle
 {
 private:
 	int   value;
@@ -80,7 +81,7 @@ public:
 };//class ResultReference : ResultSingle
 
 
-class ResultVoid : Result
+class ResultVoid : public Result
 {
 public:
 	ResultVoid() {};

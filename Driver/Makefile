@@ -2,11 +2,11 @@ include ../make.defs
 
 SOURCES	=	Connection.cpp \
 		DriverManager.cpp \
-		ResultSet.cpp
+		Result.cpp
 
 HEADERS	=	Connection.h \
 		DriverManager.h \
-		ResultSet.h
+		Result.h
 
 STATIC_LIB =	Driver.a
 PROGRAM =	

@@ -9,10 +9,6 @@ using namespace std;
 
 #include "Connection.h"
 #include "Result.h"
-#include "ResultBag.h"
-#include "ResultReference.h"
-#include "ResultVoid.h"
-#include "ResultCollection.h"
 
 #define BAG			1
 #define NORESULT	2
@@ -126,15 +122,20 @@ Connection::~Connection()
 int Connection::deserialize(Result** rs) {
 	int error;
 //	bufferBegin++;
+	ResultBag *brs;
+	Result* result;	
+	char* id;
+	unsigned long number;
+	unsigned long i;
 	switch (*bufferBegin) {
 		case BAG:
 			bufferBegin++; //skip first byte
-			unsigned long number = ntohl(*((unsigned long*) bufferBegin));
+			number = ntohl(*((unsigned long*) bufferBegin));
 			bufferBegin += sizeof(long); //skip the number of elements (long)
 
-			ResultBag *brs = new ResultBag(number);
-			Result* result;
-			for (unsigned int i = 1; i <= number; i++) {
+			brs = new ResultBag(number);
+			
+			for (i = 1; i <= number; i++) {
 				if(0 != (error = deserialize(&result))) {
 					*rs = NULL;
 					return error; //TODO poprawic sprawdzanie bledu
@@ -147,7 +148,7 @@ int Connection::deserialize(Result** rs) {
 		case OBJECTID:
 			bufferBegin++;
 			//TODO dodac sprawdzanie zakresu, przepelnienia bufora!!!
-			char* id = (char*)malloc (strlen(bufferBegin)+1);
+			id = (char*)malloc (strlen(bufferBegin)+1);
 			strcpy (id, bufferBegin);
 			*rs = (Result*) new ResultReference(id);
 			return 0;

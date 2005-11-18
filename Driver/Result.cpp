@@ -20,13 +20,6 @@ ostream& operator<<(ostream& os, Result& result) {
 /**
  * ResultBag
  */
-ResultBag::ResultBag(unsigned long size)
-{
-}
-
-ResultBag::~ResultBag()
-{
-}
 
 
 /**
