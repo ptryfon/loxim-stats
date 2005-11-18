@@ -16,6 +16,8 @@ class QueryResult {
                          QREFERENCE, QNOTHING };
   virtual bool operator==(QueryResult& r)=0;
   virtual int type()=0;
+  virtual QueryResult getObject()=0;
+  virtual QueryResult addObject()=0;
   virtual QueryResult* clone()=0;
   virtual ~QueryResult() {}
 };
