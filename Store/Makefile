@@ -1,17 +1,27 @@
 include ../make.defs
 
-SOURCES	=	DBDataValue.cpp \
+SOURCES	=	Buffer.cpp \
+		DBDataValue.cpp \
 		DBLogicalID.cpp \
 		DBObjectPointer.cpp \
 		DBPhysicalID.cpp \
-		DBStoreManager.cpp
+		DBStoreManager.cpp \
+		File.cpp \
+		Map.cpp \
+		PagePointer.cpp
 
-HEADERS	=	DBDataValue.h \
+HEADERS	=	Buffer.h \
+		DBDataValue.h \
 		DBLogicalID.h \
 		DBObjectPointer.h \
 		DBPhysicalID.h \
 		DBStoreManager.h \
-		Store.h
+		ErrorCodes.h \
+		File.h \
+		Map.h \
+		PagePointer.h \
+		Store.h \
+		Struct.h
 
 STATIC_LIB =	Store.a
 PROGRAM =	TestStore
