@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <string>
-
+//#include "../Store/Store.h"
 using namespace std;
 
 namespace QParser {
@@ -25,7 +25,8 @@ class TreeNode {
     virtual TreeNode* getArg() {return (TreeNode *) NULL;}
   // virtual QueryNode* getArg() {return (QueryNode *)NULL;}; // to nie dziala
   // virtual ????? getValue(){ return 0;};     
-  virtual void *getValue() {return (void *)NULL;}
+//  virtual void *getValue() {return (void *)NULL;}
+
 };
 
 // statement := query
@@ -55,8 +56,8 @@ class IntNode : public QueryNode {
   IntNode(int _value) : value(_value) {}
   virtual TreeNode* clone();
   virtual string type() { return "int"; }
-  //int getValue() {return value;}
-  void *getValue() { return (void *) &value; }
+  int getValue() {return value;}
+
 };  
 
 // query := string
@@ -67,8 +68,8 @@ class StringNode : public QueryNode {
   StringNode(string _value) : value(_value) {}
   virtual TreeNode* clone();
   virtual string type() { return "string"; }
-//  string getValue() { return value; }
-  void *getValue() { return (void *) &value; }
+  string getValue() { return value; }
+  
   virtual ~StringNode() {}
 };  
 
@@ -80,8 +81,8 @@ class DoubleNode : public QueryNode {
   DoubleNode(double _value) : value(_value) {}
   virtual TreeNode* clone();
   virtual string type() { return "double"; }
-//  double getValue() { return value; }
-  void *getValue() { return (void *) &value; }
+  double getValue() { return value; }
+        
 };  
 
 // query := query "as" name
