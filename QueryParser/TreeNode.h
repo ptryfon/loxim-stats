@@ -13,27 +13,27 @@ class TreeNode {
  protected:
   TreeNode* parent;
  public:
+  enum TreeNodeType { TNINT, TNSTRING, TNDOUBLE, TNVECTOR, TNNAME, 
+TNAS, TNUNOP, TNALGOP, TNNONALGOP, TNTRANS, TNCREATE};
   TreeNode() : parent(NULL) {}
   TreeNode* getParent() { return parent; }
   void setParent(TreeNode* _parent) { parent = _parent; }
   virtual TreeNode* clone()=0;
-  virtual string type()=0;
+  virtual int type()=0;
   virtual ~TreeNode() {}
   
   // cos takiego chce Executor::
   virtual string getName() {return (string) NULL;}
     virtual TreeNode* getArg() {return (TreeNode *) NULL;}
   // virtual QueryNode* getArg() {return (QueryNode *)NULL;}; // to nie dziala
-  // virtual ????? getValue(){ return 0;};     
 //  virtual void *getValue() {return (void *)NULL;}
 
 };
-
 // statement := query
 class QueryNode : public TreeNode {
  public:
   virtual TreeNode* clone()=0;
-  virtual string type()=0;
+  virtual int type()=0;
 };
 
 // query := name
@@ -43,7 +43,7 @@ class NameNode : public QueryNode {
  public:
   NameNode(string _name) : name(_name) {}
   virtual TreeNode* clone();
-  virtual string type() { return "name"; }
+  virtual int type() { return TreeNode::TNNAME; }
   string getName() { return name; }
   virtual ~NameNode() {}
 };  
@@ -55,7 +55,7 @@ class IntNode : public QueryNode {
  public:
   IntNode(int _value) : value(_value) {}
   virtual TreeNode* clone();
-  virtual string type() { return "int"; }
+  virtual int type() { return TreeNode::TNINT; }
   int getValue() {return value;}
 
 };  
@@ -67,7 +67,7 @@ class StringNode : public QueryNode {
  public:
   StringNode(string _value) : value(_value) {}
   virtual TreeNode* clone();
-  virtual string type() { return "string"; }
+  virtual int type() { return TreeNode::TNSTRING; }
   string getValue() { return value; }
   
   virtual ~StringNode() {}
@@ -80,7 +80,8 @@ class DoubleNode : public QueryNode {
  public:
   DoubleNode(double _value) : value(_value) {}
   virtual TreeNode* clone();
-  virtual string type() { return "double"; }
+//virtual string type() { return "double"; }
+  virtual int type() { return TreeNode::TNDOUBLE; }
   double getValue() { return value; }
         
 };  
@@ -96,7 +97,8 @@ class NameAsNode : public QueryNode {
   NameAsNode(QueryNode* _arg, string _name, bool _group)
             : arg(_arg), name(_name), group(_group) { arg->setParent(this); }
   virtual TreeNode* clone();
-  virtual string type() { return "as"; }
+//virtual string type() { return "as"; }
+  virtual int type() { return TreeNode::TNAS; }
   string getName() { return name; }
   //QueryNode* getArg() { return arg; }
   TreeNode* getArg() { return arg; }
@@ -117,7 +119,8 @@ class UnOpNode : public QueryNode {
   UnOpNode(QueryNode* _arg, unOp _op) : arg(_arg), op(_op)
                                         { arg->setParent(this); }
   virtual TreeNode* clone();
-  virtual string type() { return "unop"; }
+//  virtual string type() { return "unop"; }
+  virtual int type() { return TreeNode::TNUNOP; }
   //QueryNode* getArg() { return arg; }
   TreeNode* getArg() { return arg; }
   unOp getOp() { return op; }
@@ -140,7 +143,8 @@ class AlgOpNode : public QueryNode {
 		: larg(_larg), rarg(_rarg), op(_op) 
                 { larg->setParent(this); rarg->setParent(this); }
   virtual TreeNode* clone();
-  virtual string type() { return "algop"; }
+//  virtual string type() { return "algop"; }
+  virtual int type() { return TreeNode::TNALGOP; }
   QueryNode* getLArg() { return larg; }
   QueryNode* getRArg() { return rarg; }
   algOp getOp() { return op; }
@@ -165,7 +169,8 @@ class NonAlgOpNode : public QueryNode {
                 : larg(_larg), rarg(_rarg), op(_op)
                 { larg->setParent(this); rarg->setParent(this); } 
   virtual TreeNode* clone();
-  virtual string type() { return "nonalgop"; }
+//  virtual string type() { return "nonalgop"; }
+  virtual int type() { return TreeNode::TNNONALGOP; }
   QueryNode* getLArg() { return larg; }
   QueryNode* getRArg() { return rarg; }
   nonAlgOp getOp() { return op; }
@@ -184,7 +189,8 @@ class TransactNode : public TreeNode {
  public:
   TransactNode (transactionOp _op) : op(_op) {}
   virtual TreeNode* clone();
-  virtual string type() { return "transaction"; }
+//  virtual string type() { return "transaction"; }
+  virtual int type() { return TreeNode::TNTRANS; }
   transactionOp getOp() { return op; }
   virtual void setOp(transactionOp _op) { op = _op; }
   virtual ~TransactNode() {}
@@ -200,7 +206,8 @@ class CreateNode : public QueryNode {
   CreateNode(string _name, QueryNode* _arg = NULL)
             : arg(_arg), name(_name)  {}
   virtual TreeNode* clone();
-  virtual string type() { return "create"; }
+//  virtual string type() { return "create"; }
+  virtual int type() { return TreeNode::TNCREATE; }
   string getName() { return name; }
 //  QueryNode* getArg() { return arg; }
     TreeNode* getArg() { return arg; }
@@ -211,3 +218,4 @@ class CreateNode : public QueryNode {
 }
 
 #endif
+
