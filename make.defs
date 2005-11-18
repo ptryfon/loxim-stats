@@ -2,6 +2,6 @@ AR=ar
 RANLIB=ranlib
 CC=gcc
 CXX=g++
-CXXFLAGS=-I./ -I./../ -Wall -fno-exceptions
+CXXFLAGS=-I./ -I./../ -Wall -fno-exceptions -lpthread
 LEX=flex
 YACC=yacc
