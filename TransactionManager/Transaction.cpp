@@ -38,22 +38,21 @@ namespace TManager
 			
 	int Transaction::getObjectPointer(LogicalID* lid, AccessMode mode, ObjectPointer* &p)
 	{
-	    ObjectPointer *tmp;
-
+	    //ObjectPointer *tmp;
 	    printf("Transaction: getProxy\n"); fflush(stdout);
 	    lm->lock(lid, tid, mode);
-	    tmp = sm->getObject( tid, lid, mode );
-	    p = tmp;
+	    sm->getObject( tid, lid, mode, p);
+	    //p = tmp;
 	    return 0; 
 	};
 
 	int Transaction::createObject(string name, DataValue* value, ObjectPointer* &p)
 	{
-	    ObjectPointer *tmp;
+	    //ObjectPointer *tmp;
 
 	    printf("Transaction: create\n"); fflush(stdout);
-	    tmp = sm->createObject( tid, name, value );
-	    p = tmp;
+	    sm->createObject( tid, name, value, p);
+	    //p = tmp;
 	    // locking object
 	    return 0; 
 	}
@@ -73,14 +72,14 @@ namespace TManager
 	{
 	    //vector<ObjectPointer*>* tmp;
 
-	    p = sm->getRoots(tid);
+	    sm->getRoots(tid, p);
 	    //lock?
 	    return 0;
 	}
 
 	int Transaction::getRoots(string name, vector<ObjectPointer*>* &p)
 	{
-	    p = sm->getRoots(tid, name);
+	    sm->getRoots(tid, name, p);
 	    //lock?
 	    return 0;
 	}
