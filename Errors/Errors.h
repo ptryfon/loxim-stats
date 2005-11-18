@@ -22,7 +22,7 @@ namespace Errors {
 #define	ErrStore		0x24000
 #define	ErrTManager		0x28000
 
-#define ENoFile			1
+#define ENoFile			    0x1
 }
 
 #endif
