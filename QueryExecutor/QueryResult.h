@@ -8,11 +8,12 @@
 
 namespace QExecutor {
 
-
-
 class QueryResult {
  public:
-  enum QueryResultType {QRESULT, QSEQUENCE, QBAG, QSTRUCT, QBINDER, QSTRING, QINT, QDOUBLE, QBOOL, QREFERENCE, QNOTHING};
+  enum QueryResultType { QRESULT, QSEQUENCE, QBAG, 
+                         QSTRUCT, QBINDER,  QSTRING, 
+                         QINT, QDOUBLE, QBOOL, 
+                         QREFERENCE, QNOTHING };
   virtual bool operator==(QueryResult& r)=0;
   virtual int type()=0;
   virtual QueryResult* clone()=0;
