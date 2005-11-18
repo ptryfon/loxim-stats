@@ -5,7 +5,7 @@ PROGRAM	=	SBQLCli
 SOURCES	=	SBQLCli.cpp
 
 
-HEADERS	=
+HEADERS	= ../Driver/Result.h
 
 OBJECTS	=	$(SOURCES:.cpp=.o)
 DEPFILES =	$(SOURCES:.cpp=.d) $(PROGRAM).d

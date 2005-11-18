@@ -4,7 +4,7 @@
 #include <iostream>
 #include <string>
 #include "../Driver/DriverManager.h"
-
+#include "../Driver/Result.h"
 
 using namespace std;
 
@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
 	cout << "SBQLCli ver 0.0.0.0.0.1 \n";
 	cout << " > ";
 	while (cin.getline(input,50)) {
-		ResultSet* result = con->execute(input);
+	  //Result* result = con->execute(input);
 		//cout << result->toString();
 		cout << "Dostalem wynik \n";
 		cout << endl << " > ";

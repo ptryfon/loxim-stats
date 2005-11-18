@@ -71,10 +71,10 @@ private:
 	
 public:
 	ResultReference(int val);
-	ResultReference(char* val);
-	void   setValue(int val)     { value = val;  }
+	ResultReference(char* val)   { ch_value = val;  }
+	void   setValue(int val)     { value = val;     }
 	int    getValue()		     { return value; }
-	void   setChValue(char* val) { ch_value = val; }
+	void   setChValue(char* val) { ch_value = val;  }
 	char*  getChValue()          { return ch_value; }
 	string toString();
 	virtual ~ResultReference()   { if (ch_value!=NULL) delete[] ch_value; }
