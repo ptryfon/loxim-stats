@@ -1,7 +1,6 @@
 include make.defs
 
 SUBDIRS	=	Backup \
-		Log \
 		QueryExecutor \
 		QueryParser \
 		Store \
@@ -10,6 +9,7 @@ SUBDIRS	=	Backup \
 		Config \
 		Driver \
 		Lock \
+		Log \
 		SBQLCli \
 		Server 		
 
