@@ -5,6 +5,11 @@
 
 //using namespace std;
 
-//namespace Errors {
-//}
+namespace Errors {
+	// Nazwy bledow:
+	// <Namespace z ktorego blad pochodzi><Krotka nazwa>
+	// np
+	// StoreNoSpace		-ENOSPC
+}
+
 #endif
