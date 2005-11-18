@@ -52,7 +52,7 @@ int QueryExecutor::queryResult(TreeNode *tree, QueryResult *result) {
    			optr = vec->at(i);
 			lid = optr->getLogicalID();
 			result->addNext(lid);	
- 		}
+		}
 		return 0;
 	}
 	else if (treeNodeType == "create") {
