@@ -38,66 +38,75 @@ namespace TManager
 			
 	int Transaction::getObjectPointer(LogicalID* lid, AccessMode mode, ObjectPointer* &p)
 	{
-	    //ObjectPointer *tmp;
+	    int errorNumber;
+
 	    printf("Transaction: getProxy\n"); fflush(stdout);
-	    lm->lock(lid, tid, mode);
-	    sm->getObject( tid, lid, mode, p);
-	    //p = tmp;
-	    return 0; 
+	    errorNumber = lm->lock(lid, tid, mode);
+	    if (errorNumber == 0)
+    		errorNumber = sm->getObject( tid, lid, mode, p);
+
+	    return errorNumber; 
 	};
 
 	int Transaction::createObject(string name, DataValue* value, ObjectPointer* &p)
 	{
-	    //ObjectPointer *tmp;
+	    int errorNumber;
 
 	    printf("Transaction: create\n"); fflush(stdout);
-	    sm->createObject( tid, name, value, p);
+	    errorNumber = sm->createObject( tid, name, value, p);
 	    //p = tmp;
 	    // locking object
-	    return 0; 
+	    return errorNumber;
 	}
 
 	int Transaction::deleteObject(ObjectPointer* object)
 	{
+	    int errorNumber;
+
 	    printf("Transaction: delete\n"); fflush(stdout);
 	    /* exclusive lock for this object */
-	    lm->lock(object->getLogicalID(), tid, Write);
-	    sm->deleteObject(tid, object);
+	    errorNumber = lm->lock(object->getLogicalID(), tid, Write);
+	    if (errorNumber == 0)
+		errorNumber = sm->deleteObject(tid, object);
 
-	    return 0; 
+	    return errorNumber;
 	}
 
 
         int Transaction::getRoots(vector<ObjectPointer*>* &p)
 	{
-	    //vector<ObjectPointer*>* tmp;
+	    int errorNumber;
 
-	    sm->getRoots(tid, p);
+	    errorNumber = sm->getRoots(tid, p);
 	    //lock?
-	    return 0;
+	    return errorNumber;
 	}
 
 	int Transaction::getRoots(string name, vector<ObjectPointer*>* &p)
 	{
-	    sm->getRoots(tid, name, p);
+	    int errorNumber;
+
+	    errorNumber = sm->getRoots(tid, name, p);
 	    //lock?
-	    return 0;
+	    return errorNumber;
 	}
 
 	int Transaction::addRoot(ObjectPointer* &p)
 	{
-	    //int blad;
-	     sm->addRoot(tid, p);
+	    int errorNumber;
+
+	     errorNumber = sm->addRoot(tid, p);
 	    //lock?
-	    return 0;
+	    return errorNumber;
 	}
 
 	int Transaction::removeRoot(ObjectPointer* &p)
 	{
-	    //int blad;
-	    sm->addRoot(tid, p);
+	    int errorNumber;
+
+	    errorNumber = sm->addRoot(tid, p);
 	    //lock?
-	    return 0;
+	    return errorNumber;
 	}
 
 
