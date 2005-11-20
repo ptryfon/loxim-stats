@@ -13,6 +13,7 @@
 #include "QueryResult.h"   
 #include "TransactionManager/Transaction.h"
 #include "Store/Store.h"
+#include "Store/DBDataValue.h"
 #include "QueryParser/QueryParser.h"
 #include "QueryParser/TreeNode.h"
 #include "QueryExecutor.h"
@@ -29,7 +30,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult *result) {
 	ObjectPointer *optr;
 	string name;
 	DataValue* value;
-	string treeNodeType; //to tylko tymczasowo.
+	int nodeType; //to tylko tymczasowo.
 	vector<ObjectPointer*>* vec;
 	int vecSize;
 	  
@@ -40,60 +41,123 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult *result) {
 		fprintf(stderr, "Error in createTransaction\n");
 	}
 	
-	treeNodeType = tree->type();
-	if (treeNodeType == "name") {
+	nodeType = tree->type();
+
+	switch (nodeType) 
+	
+	{
+	
+	
+	
+	case TreeNode::TNNAME:
+	
+		{
 		name = tree->getName();
-		if (tr->getRoots(name, vec) != 0) {
+		if (tr->getRoots(name, vec) != 0)
+			{
 			fprintf(stderr, "Error in getRoots\n");
 			return -1;
-		}
+			}
 		vecSize = vec->size();
-		for (int i = 0; i < vecSize; i++ ) {
+		for (int i = 0; i < vecSize; i++ )
+			{
    			optr = vec->at(i);
 			lid = optr->getLogicalID();
-		//	result->addNext(lid);	
-		}
+			}
 		return 0;
-	}
-	else if (treeNodeType == "create") {
-			name = tree->getName();
-			value = (DataValue *) ((tree->getArg())->getValue());
-			if (tr->createObject(name, value, optr) != 0) {
-				fprintf(stderr, "Error in createObject\n");
-				return -1;
-			}
-			if (tr->addRoot(optr) != 0) {
-				fprintf(stderr, "Error in addRoot\n");
-				return -1;
-			}
-		//	result->addNext(optr->getLogicalID());
-			return 0;
 		}
-		else {
-			fprintf(stderr, "QueryExecutor method: TreeNode type unknown\n");
+
+	case TreeNode::TNCREATE: 
+		    
+		{
+		name = tree->getName();
+		tree = tree->getArg();
+		if (tree != NULL)
+			{
+			nodeType = tree->type();
+			DBDataValue *dbValue;
+			//dbValue = DBDataValue::new;			
+			
+			switch (nodeType) 
+			{
+			case TreeNode::TNINT: 
+				{
+				int intValue = ((IntNode *) tree)->getValue();
+				dbValue->setInt(intValue);
+				break;
+				}
+			
+			case TreeNode::TNSTRING: 
+				{
+				string stringValue = ((StringNode *) tree)->getValue();
+				dbValue->setString(stringValue);
+				break;
+				}
+
+			case TreeNode::TNDOUBLE: 
+				{
+				double doubleValue = ((DoubleNode *) tree)->getValue();
+				dbValue->setDouble(doubleValue);
+				break;
+				} 
+		
+			default: 
+				{
+				fprintf(stderr, "Incorrect type\n");
+				return -1;
+				}
+			
+			}
+			
+			value = dbValue;
+			
+			
+			}
+		else 	
+			{
+			value=NULL;
+			}
+		
+		if (tr->createObject(name, value, optr) != 0)
+			{
+			fprintf(stderr, "Error in createObject\n");
 			return -1;
+			}
+		if (tr->addRoot(optr) != 0)
+			{
+			fprintf(stderr, "Error in addRoot\n");
+			return -1;
+			}
+		return 0;
+		}
+		
+	
+	case TreeNode::TNINT: {break;}
+	case TreeNode::TNSTRING: {break;}
+	case TreeNode::TNDOUBLE: {break;} 
+	case TreeNode::TNVECTOR: {break;}
+	case TreeNode::TNAS: {break;}
+	case TreeNode::TNUNOP: {break;}
+	case TreeNode::TNALGOP: {break;}
+	case TreeNode::TNNONALGOP: {break;}
+	case TreeNode::TNTRANS: {break;}
+	
+	default:
+		{
+		fprintf(stderr, "QueryExecutor method: TreeNode type unknown\n");
+		return -1;
 		}
 	
-	/*switch (cosOdParsera) {
-	    case 0: { //create object 
-		if (tr->createObject(name, value, optr) != 0) {
-		fprintf(stderr, "Error in createObject\n");}
-		break;}
-	    case 1: { //create object bez wartosci
-		if (tr->createObject(name, NULL, optr) != 0) {
-		fprintf(stderr, "Error in createObject\n");
-		}
-		break;}
-	    case 2: { //select costam
-	    	if (tr->getObjectPointer(lid, mode, optr) != 0) {
-		fprintf(stderr, "Error in getObjectPointer\n");
-		}
+	} // end of switch
+	
+	
+	
+	
+	return 0;
+    }
 
-	    break;}
-	    default: { break;}
-	    }
-	*/
-}
 
-QueryExecutor::~QueryExecutor() {}
+QueryExecutor::~QueryExecutor() {}; // pomocy!!!! 
+		// nie umiemy rozwiazac problemow z destruktorem!!!!!!!
+		// reszta jest ready...
 }
