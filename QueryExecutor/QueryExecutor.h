@@ -11,7 +11,7 @@ namespace QExecutor
 	public:
 		QueryExecutor() {};
 		~QueryExecutor();
-		int queryResult(TreeNode *tree, QueryResult *result);
+		int executeQuery(TreeNode *tree, QueryResult *result);
 	};
 }
 
