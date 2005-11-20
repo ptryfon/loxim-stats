@@ -13,14 +13,14 @@ int main(int argc, char* argv[])
 
 	DataValue* value = store->createIntValue(7);
 	ObjectPointer* object = 0;
-	store->createObject(0, "nowyObiekt", value, &object);
+	store->createObject(0, "nowyObiekt", value, object);
 	if (object)
 		cout << object->toString() << "\n";
 	else
 		cout << "Obiektu nie utworzono\n";
 
 	vector<ObjectPointer*>* objects = 0;
-	store->getRoots(0, &objects);
+	store->getRoots(0, objects);
 	vector<ObjectPointer*>::iterator iterator;
 
 	for (iterator = objects->begin(); iterator != objects->end(); iterator++)
