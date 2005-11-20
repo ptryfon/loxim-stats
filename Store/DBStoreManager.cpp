@@ -72,16 +72,16 @@ namespace Store
 		return map;
 	};
 
-	int DBStoreManager::getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer** object)
+	int DBStoreManager::getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object)
 	{
-		*object = new DBObjectPointer();
+		object = new DBObjectPointer();
 
 		return 0;
 	};
 
-	int DBStoreManager::createObject(TransactionID* tid, string name, DataValue* value, ObjectPointer** object)
+	int DBStoreManager::createObject(TransactionID* tid, string name, DataValue* value, ObjectPointer*& object)
 	{
-		*object = 0;
+		object = 0;
 
 		return 0;
 	};
@@ -91,22 +91,22 @@ namespace Store
 		return 0;
 	};
 
-	int DBStoreManager::getRoots(TransactionID* tid, vector<ObjectPointer*>** roots)
+	int DBStoreManager::getRoots(TransactionID* tid, vector<ObjectPointer*>*& roots)
 	{
-		*roots = new vector<ObjectPointer*>(0);
+		roots = new vector<ObjectPointer*>(0);
 
-		(*roots)->push_back(new DBObjectPointer());
-		(*roots)->push_back(new DBObjectPointer());
-		(*roots)->push_back(new DBObjectPointer());
+		(roots)->push_back(new DBObjectPointer());
+		(roots)->push_back(new DBObjectPointer());
+		(roots)->push_back(new DBObjectPointer());
 
 		return 0;
 	};
 
-	int DBStoreManager::getRoots(TransactionID* tid, string name, vector<ObjectPointer*>** roots)
+	int DBStoreManager::getRoots(TransactionID* tid, string name, vector<ObjectPointer*>*& roots)
 	{
-		*roots = new vector<ObjectPointer*>(0);
+		roots = new vector<ObjectPointer*>(0);
 
-		(*roots)->push_back(new DBObjectPointer());
+		(roots)->push_back(new DBObjectPointer());
 
 		return 0;
 	};

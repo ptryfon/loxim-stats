@@ -38,12 +38,12 @@ namespace Store
 		Buffer* getBuffer();
 		Map* getMap();
 
-		virtual int getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer** object);
-		virtual int createObject(TransactionID* tid, string name, DataValue* value, ObjectPointer** object);
+		virtual int getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object);
+		virtual int createObject(TransactionID* tid, string name, DataValue* value, ObjectPointer*& object);
 		virtual int deleteObject(TransactionID* tid, ObjectPointer* object);
 
-		virtual int getRoots(TransactionID* tid, vector<ObjectPointer*>** roots);
-		virtual int getRoots(TransactionID* tid, string name, vector<ObjectPointer*>** roots);
+		virtual int getRoots(TransactionID* tid, vector<ObjectPointer*>*& roots);
+		virtual int getRoots(TransactionID* tid, string name, vector<ObjectPointer*>*& roots);
 		virtual int addRoot(TransactionID* tid, ObjectPointer* object);
 		virtual int removeRoot(TransactionID* tid, ObjectPointer* object);
 
