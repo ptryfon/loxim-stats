@@ -157,7 +157,5 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult *result) {
     }
 
 
-QueryExecutor::~QueryExecutor() {}; // pomocy!!!! 
-		// nie umiemy rozwiazac problemow z destruktorem!!!!!!!
-		// reszta jest ready...
+QueryExecutor::~QueryExecutor() {};
 }
