@@ -83,7 +83,8 @@ int Server::Run()
 	QueryExecutor *qEx = new QueryExecutor();
 		
 	TreeNode *tNode;
-	QueryResult *qResult = new QueryResult();
+	//PIOTREK: nie tworze obiektu
+	QueryResult *qResult;// = new QueryResult();
 	
 	printf("[Server.Run]--> Creating message buffers \n");
 	char messgBuff[MAX_MESSG];
@@ -100,7 +101,8 @@ int Server::Run()
 	qPa->parseIt((string) messgBuff, tNode);
 	
 	printf("[Server.Run]--> Request query result \n");
-	qEx->queryResult(tNode, qResult);
+	//PIOTREK: zmiana nazy metody
+	qEx->executeQuery(tNode, qResult);
 	
 	printf("[Server.Run]--> Serializing data \n");
 	
