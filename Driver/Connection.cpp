@@ -10,7 +10,6 @@ using namespace std;
 #include "Connection.h"
 #include "Result.h"
 
-#define BAG			1
 #define NORESULT	2
 #define OBJECTID	3
 
@@ -128,7 +127,7 @@ int Connection::deserialize(Result** rs) {
 	unsigned long number;
 	unsigned long i;
 	switch (*bufferBegin) {
-		case BAG:
+		case Result::BAG:
 			bufferBegin++; //skip first byte
 			number = ntohl(*((unsigned long*) bufferBegin));
 			bufferBegin += sizeof(long); //skip the number of elements (long)
@@ -145,7 +144,7 @@ int Connection::deserialize(Result** rs) {
 			*rs = brs;
 			return 0;
 		
-		case OBJECTID:
+		case Result::REFERENCE:
 			bufferBegin++;
 			//TODO dodac sprawdzanie zakresu, przepelnienia bufora!!!
 			id = (char*)malloc (strlen(bufferBegin)+1);
@@ -153,7 +152,7 @@ int Connection::deserialize(Result** rs) {
 			*rs = (Result*) new ResultReference(id);
 			return 0;
 		
-		case NORESULT:
+		case Result::VOID:
 			bufferBegin++;
 			*rs = new ResultVoid();
 			return 0; 
