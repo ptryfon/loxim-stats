@@ -24,6 +24,7 @@ mh209206@students.mimuw.edu.pl, tr209287@students.mimuw.edu.pl,
 js209298@students.mimuw.edu.pl, pt209301@students.mimuw.edu.pl,
 bg209463@students.mimuw.edu.pl, am209482@students.mimuw.edu.pl,
 mp209490@students.mimuw.edu.pl, baggins@mimuw.edu.pl
+jk209476@students.mimuw.edu.pl
 
 stencel@mimuw.edu.pl, kuchar@mimuw.edu.pl
 
