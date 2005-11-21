@@ -10,6 +10,12 @@ using namespace std;
 class Result
 {
 public:
+	enum ResultType { RESULT=0, SEQUENCE=1, BAG=2, 
+                      STRUCT=3, BINDER=4,   STRING=5, 
+                      INT=6,    DOUBLE=7,   BOOL=8, 
+                      REFERENCE=9, VOID=10 };
+	
+
 	Result() {};
 	virtual void toStream(ostream&) const;
 	virtual ~Result() {};
