@@ -3,7 +3,8 @@ include ../make.defs
 SOURCES	=	Logs.cpp \
 		LogRecord.cpp \
 		LogIO.cpp \
-		LogThread.cpp
+		LogThread.cpp \
+		LogsGlobals.cpp
 
 HEADERS	=	Logs.h \
 		LogRecord.h \
