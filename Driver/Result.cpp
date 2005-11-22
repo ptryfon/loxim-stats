@@ -2,38 +2,52 @@
 #include <sstream>
 #include "Result.h"
 
-/** 
- * Result
- */
-void Result::toStream(ostream& os) const
-{
-	os << "Result";
-}
 
 ostream& operator<<(ostream& os, Result& result) {
-	//result.toStream(os);
-	os << "operator";
+	result.toStream(os);
 	return os;
 }
 
 
-/**
- * ResultBag
- */
+void   ResultBag::toStream(ostream& os) const 
+{
+	os << "{ ";  
+	for(unsigned int i=0; i<bag.size(); i++) 
+	{
+		os << *(bag.at(i)) << " ";
+	} 
+	os << "} ";
+}		
 
+void   ResultStruct::toStream(ostream& os) const 
+{
+	os << "{ ";  
+	for(unsigned int i=0; i<str.size(); i++) 
+	{
+		os << *(str.at(i)) << " ";
+	} 
+	os << "} ";
+}		
+
+
+void   ResultSequence::toStream(ostream& os) const 
+{
+	os << "{ ";  
+	for(unsigned int i=0; i<seq.size(); i++) 
+	{
+		os << *(seq.at(i)) << " ";
+	} 
+	os << "} ";
+}		
 
 /**
  * ResultReference
  */
-ResultReference::ResultReference(int val)
-{
-	value = val;
-}
 
-string ResultReference::toString()
+/*string ResultReference::toString()
 {
 	ostringstream stream;
 	stream << value;
 	return stream.str();
 }
-
+*/

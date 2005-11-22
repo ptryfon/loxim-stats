@@ -14,84 +14,168 @@ public:
                       STRUCT=3, BINDER=4,   STRING=5, 
                       INT=6,    DOUBLE=7,   BOOL=8, 
                       REFERENCE=9, VOID=10 };
-	
-
 	Result() {};
-	virtual void toStream(ostream&) const;
-	virtual ~Result() {};
+	virtual bool    operator==(Result& r)    =0;
+  	virtual Result* clone()			         =0;
+	virtual int     getType() { return RESULT; }
+	virtual ~Result() { }
 	
+	//Maybe remove that:
+	virtual void    toStream(ostream& os) const { os << "no type"; }			
 	friend ostream& operator<<(ostream&, Result&);	
 };//class Result
 
 
-class ResultCollection : public Result 
-{
-public:
-	ResultCollection() {};
-	virtual int     count()          = 0;
-	virtual void    add(Result* val) = 0;
-	virtual void    replace(int i, Result* val) = 0;
-	virtual Result* get(int i)       = 0;
-	//virtual void    remove(int i)    = 0;
-	//Container::iterator getIterator();
-	//Any idea how to say simply "iterator" here. That doesn't work.
-};//class ResultCollection : Result 
 
-
-class ResultBag : public ResultCollection
+class ResultBag : public Result
 {
 private:	
 	vector<Result*> bag;
+
 public:
-	ResultBag(unsigned long size) {        }
-	int     count()           { return bag.size();      }
-	void    add(Result* val)  { bag.push_back(val);     }
-	void    replace(int i, Result* val) { bag[i] = val; }
-	Result* get(int i)        { return bag[i];          }	
-	//void    remove(int i)     {                         }
-	virtual ~ResultBag() {};
+	ResultBag(unsigned long size) : bag(0){} 
+
+	bool    operator==(Result& r){ return false;       }
+  	Result* clone()              { return NULL;        }
+  	int 	getType()			 { return Result::BAG; }      
+	int     size()				 { return bag.size();  }
+	void    add(Result* val)  	 { bag.push_back(val); }
+	Result* get(int i)		  	 { return bag.at(i);   }
+	void   toStream(ostream& os) const ;
+	
+	virtual ~ResultBag() {} 
+// don't know the class of bat.at(i), so can't delete! hmm...
+//		{ for(unsigned int i=0; i<bag.size(); i++) delete bag.at(i); }
 };//class ResultBag : ResultCollection
 
 
-class ResultSequence : public ResultCollection
+class ResultStruct : public Result
 {
+private:	
+	vector<Result*> str;
+	
 public:
-	ResultSequence() {};
-	virtual ~ResultSequence() {};
-};//class ResultSequence : ResultCollection
+	ResultStruct(unsigned long size)  : str(0){      }
+
+	bool    operator==(Result& r){ return false;          }
+  	Result* clone()              { return NULL;           }
+  	int 	getType()         { return Result::STRUCT;    }      
+	int     size()            { return str.size();        }
+	void    add(Result* val)  { str.push_back(val);       }
+	Result* get(int i)		  { return str.at(i);		  }
+	void   toStream(ostream& os) const ;
+		
+	virtual ~ResultStruct()   {}
+// don't know the class of bat.at(i), so can't delete! hmm...	
+//		{ for(unsigned int i=0; i<str.size(); i++) delete str.at(i); }
+};//class ResultStruct
 
 
-class ResultSingle : public Result
+class ResultSequence : public Result
 {
+private:	
+	vector<Result*> seq;
+	
 public:
-	ResultSingle() {}
-	virtual ~ResultSingle() {};
-};//class ResultSingle
+	ResultSequence(unsigned long size)  : seq(0){ }
+
+	bool    operator==(Result& r){ return false;          }
+  	Result* clone()              { return NULL;           }
+  	int 	getType()         { return Result::SEQUENCE;  }      
+	int     size()            { return seq.size();        }
+	void    add(Result* val)  { seq.push_back(val);       }
+	Result* get(int i)		  { return seq.at(i);		  }
+	void   toStream(ostream& os) const ;
+
+	virtual ~ResultSequence() {}
+// don't know the class of seq.at(i), so can't delete! hmm...	
+//		{ for(unsigned int i=0; i<seq.size(); i++) delete seq.at(i); }
+};//class ResultSequence
 
 
-class ResultReference : public ResultSingle
+class ResultReference : public Result
 {
 private:
 	int   value;
 	char* ch_value;
 	
 public:
-	ResultReference(int val);
+	ResultReference(int val)     { value = val;     }
 	ResultReference(char* val)   { ch_value = val;  }
+	
+	bool   operator==(Result& r) { return false;    }
+//  	ResultReference* clone()   { return (new ResultReference(value)); }
+	ResultReference* clone()     { return NULL;     }
+	int    getType() 			 { return Result::REFERENCE; }
+	
 	void   setValue(int val)     { value = val;     }
-	int    getValue()		     { return value; }
+	int    getValue()		     { return value;    }
 	void   setChValue(char* val) { ch_value = val;  }
 	char*  getChValue()          { return ch_value; }
-	string toString();
+//	string toString();
+	void   toStream(ostream& os) const {os << value;}		
 	virtual ~ResultReference()   { if (ch_value!=NULL) delete[] ch_value; }
-};//class ResultReference : ResultSingle
+};//class ResultReference 
+
+
+class ResultInt  : public Result
+{
+private:	
+	int value;
+public:
+	ResultInt(int val) : value(val) { }
+	bool   operator==(Result& r) { return false;         }
+	ResultReference* clone()     { return NULL;          }
+	int    getType() 			 { return Result::INT;   }
+	void   setValue(int value)   { this->value = value;  }
+	int    getValue()			 { return value;		 }
+	void   toStream(ostream& os) const { os << value;    }		
+	~ResultInt() {}
+};//class ResultInt
+
+
+class ResultString  : public Result
+{
+private:	
+	string value;
+public:
+	ResultString(string val) : value(val) { }
+	bool   operator==(Result& r) { return false;         }
+	ResultReference* clone()     { return NULL;          }
+	int    getType() 			 { return Result::STRING;}
+	void   setValue(string value){ this->value = value;  }
+	string getValue()		     { return value;		 }
+	void   toStream(ostream& os) const { os << value;	 }	
+	~ResultString() {}
+};//class ResultString
+
+
+class ResultBool  : public Result
+{
+private:	
+	bool value;
+public:
+	ResultBool(bool val) : value(val) { }
+	bool   operator==(Result& r) { return false;         }
+	ResultReference* clone()     { return NULL;          }
+	int    getType() 			 { return Result::BOOL;  }
+	void   setValue(bool value)  { this->value = value;  }
+	bool   getValue()		     { return value;		 }
+	void   toStream(ostream& os) const { os << value;	 }
+	~ResultBool() {}
+};//class ResultString
+
 
 
 class ResultVoid : public Result
 {
 public:
 	ResultVoid() {};
+	bool   operator==(Result& r) { return false;         }
+	ResultReference* clone()     { return NULL;          }
+	int    getType() 			 { return Result::VOID;  }
+	void     toStream(ostream& os) const { os << "void"; }
 	virtual ~ResultVoid() {};
-};//class ResultVoid : Result
+};//class ResultVoid 
 
 #endif /*RESULT_H_*/
