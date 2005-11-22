@@ -7,6 +7,8 @@ namespace TManager
 };
 
 #include<stdio.h>
+#include <list>
+#include <iterator>
 #include "../Store/Store.h"
 #include "../Lock/Lock.h"
 using namespace Store;
@@ -21,8 +23,9 @@ namespace TManager
 	class TransactionID 
 	{      
 	      private:
-	        int id;
-		
+		friend class Transaction;
+	        int id;	
+		int getId();
 	      public:
 	        TransactionID(int n);
 	};
@@ -38,7 +41,7 @@ namespace TManager
 		StoreManager* sm;
 		TransactionManager* tm;
 		LockManager* lm;
-		
+		int getId();
 	      public:
 		    Transaction();
 		    Transaction(TransactionID* tId);
@@ -71,8 +74,10 @@ namespace TManager
 	      static TransactionManager *tranMgr;   	   
 	      StoreManager* storeMgr;	   
 	      TransactionManager();
-    	      void addActiveTransaction(TransactionID*);
-	      
+    	      void addTransaction(int);
+	      list<int>* transactions;
+	      int remove_from_list(int);
+
 	   public:	   	      
 	      static TransactionManager* getHandle();
 	   /* called at server startup: */
@@ -82,7 +87,7 @@ namespace TManager
 	      int commit(Transaction*);
 	      int abort(Transaction*);
 	   /* log calling: */
-	      vector<int>* getActiveTransactions();
+	      list<int>* getTransactions();
 	};
 };
 

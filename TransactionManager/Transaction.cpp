@@ -19,6 +19,7 @@ namespace TManager
 	    printf("TransactionID");
 	    this->id = id;
 	};
+	int TransactionID::getId() { return id; }
 
 /*______Transaction_________________________________________*/
 	Transaction::Transaction() {};
@@ -30,6 +31,8 @@ namespace TManager
 	    tm = TransactionManager::getHandle();
 	    lm = LockManager::getHandle();
 	};
+
+	int Transaction::getId() { return tid->getId(); };
 
 	void Transaction::setSM(StoreManager* stmg)
 	{
@@ -129,6 +132,7 @@ namespace TManager
 	{
 	    if ((mutex = semget(SEMKEY1, 1, 0666 | IPC_CREAT | IPC_EXCL)) < 0)	    
 		 printf("Error in semget\n"); //exit(1); }	     
+	    transactions = new list<int>;
 	};
         
 	TransactionManager* TransactionManager::tranMgr = new TransactionManager();
@@ -142,10 +146,10 @@ namespace TManager
 	    P(mutex);
 		int currentId = transactionId;
 		transactionId++;
+		addTransaction(currentId);
 	    V(mutex);
 	    
-	    TransactionID* tid = new TransactionID(currentId);
-	    addActiveTransaction(tid);
+	    TransactionID* tid = new TransactionID(currentId);	    
 	    tr = new Transaction(tid);
 	    tr->setSM(tranMgr->storeMgr);
 	    return 0;           
@@ -158,30 +162,42 @@ namespace TManager
 	    return 0;
 	}
 
-	void TransactionManager::addActiveTransaction(TransactionID* tid)
+	void TransactionManager::addTransaction(int id)
 	{
-	    // adding new Transaction to internal data structure - hashmap 
+	    transactions->push_back(id); 
 	}
 	
-	vector<int>* TransactionManager::getActiveTransactions()
+	list<int>* TransactionManager::getTransactions()
 	{
-	    vector<int>* v = new vector<int>(0);
 	    /* block creating new transactions */
 	    P(mutex);
-		// get active transactions from internal data structure
+		list<int>* copy_of_transactions = new list<int>;
+		for (list<int>::iterator i = transactions->begin();
+			i != transactions->end(); i++)
+		copy_of_transactions->push_back(*i);
 	    V(mutex);
-	    return v;  
+	    return copy_of_transactions;  
 	}
 	
 	int TransactionManager::commit(Transaction* tr)
 	{
+	    remove_from_list(tr->getId());
 	    delete tr;
 	    return 0;
 	}
 	
 	int TransactionManager::abort(Transaction* tr)
 	{
+	    remove_from_list(tr->getId());	
 	    delete tr;
+	    return 0;
+	}
+
+	int TransactionManager::remove_from_list(int id)
+	{
+	    P(mutex);
+		transactions->remove(id);
+	    V(mutex);
 	    return 0;
 	}
 }
