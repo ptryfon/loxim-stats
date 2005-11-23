@@ -7,7 +7,7 @@ using namespace std;
 
 namespace Store
 {
-	class DBPhysicalID : public PhysicalID
+	class DBPhysicalID //: PhysicalID
 	{
 	public:
 		virtual unsigned short getFile();
