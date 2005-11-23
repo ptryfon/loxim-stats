@@ -23,6 +23,17 @@ namespace Errors {
 #define	ErrTManager		0x28000
 
 #define ENoFile			    0x1
+//- Nieobslugiwany/niewlasciwy typ wartosci w CREATE
+#define	EBadType		    0x2
+//- Blad podczas tworzenia obiektu
+#define	EObjCreate		    0x3
+//- Blad podczas dodawania korzenia
+#define	ERootAdd		    0x4
+//- Nieznany typ wezla drzewa zapytan
+#define	ENoType			    0x5
+//- Proba pobrania (getResult) QueryResultu z pustego zbioru
+#define EEmptySet		    0x6
+
 }
 
 #endif
