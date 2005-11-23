@@ -1,5 +1,5 @@
-#ifndef __STORE_DBPHYSICALID_H__
-#define __STORE_DBPHYSICALID_H__
+#ifndef __STORE_DBSTOREMANAGER_H__
+#define __STORE_DBSTOREMANAGER_H__
 
 namespace Store
 {
