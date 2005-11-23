@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include "Store/Store.h"
+#include "Errors/Errors.h"
 
 using namespace std;
 
@@ -125,8 +126,9 @@ void QueryReferenceResult::setValue(LogicalID* v)	{ value = v; }
 }
 
 /* TODO 
-- zglosic blad w funkcji getResult pojawiajacy sie gdy ktos sprubuje pobrac cos z pustej kolekcji
+- zglosic blad w funkcji getResult pojawiajacy sie gdy ktos sprobuje pobrac cos z pustej kolekcji
 - po przydzieleniu errno poprawic return -1 na return errno w tej funkcji
+-------> czekamy na przydzial Errno
 
 - zastanowic sie jak naprawde powinny wygladac i zachowywac sie bag, sequence i struct
 - zmienic ich implementacje

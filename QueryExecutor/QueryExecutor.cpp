@@ -17,6 +17,7 @@
 #include "QueryParser/QueryParser.h"
 #include "QueryParser/TreeNode.h"
 #include "QueryExecutor.h"
+#include "Errors/Errors.h"
 
 using namespace QParser;
 using namespace TManager;
