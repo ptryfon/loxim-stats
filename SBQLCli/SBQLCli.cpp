@@ -21,14 +21,12 @@ int main(int argc, char *argv[]) {
 
 	
 	char input[50];
-	cout << "SBQLCli ver 0.0.0.0.0.1 \n";
+	cout << "SBQLCli ver 0.0.0.0.1 \n";
 	cout << " > ";
 	while (cin.getline(input,50)) {
-	  //Result* result = con->execute(input);
-		//cout << result->toString();
-		cout << "Dostalem wynik \n";
+		Result* result = con->execute(input);
+		cout << *result;
 		cout << endl << " > ";
-		//cout << input << "\n";
 	};
 	return 0;		
 }
