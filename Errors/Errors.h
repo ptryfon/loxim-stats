@@ -22,6 +22,10 @@ namespace Errors {
 #define	ErrStore		0x24000
 #define	ErrTManager		0x28000
 
+// Special case for those who really want to have
+// error code that tells there is no error ;)
+#define ESuccess		    0x0
+	
 #define ENoFile			    0x1
 //- Nieobslugiwany/niewlasciwy typ wartosci w CREATE
 #define	EBadType		    0x2
@@ -34,6 +38,10 @@ namespace Errors {
 //- Proba pobrania (getResult) QueryResultu z pustego zbioru
 #define EEmptySet		    0x6
 
+// Store
+#define EBadFile		    0x7
+#define EPageNotValid		    0x8
+#define EPageNotAquired		    0x9
 }
 
 #endif
