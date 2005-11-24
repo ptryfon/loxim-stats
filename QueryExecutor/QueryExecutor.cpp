@@ -105,7 +105,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult *result) {
 			default: 
 				{
 				fprintf(stderr, "Incorrect type\n");
-				return -1;
+				return EBadType | ErrQExecutor;
 				}
 			
 			}
@@ -122,12 +122,12 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult *result) {
 		if (tr->createObject(name, value, optr) != 0)
 			{
 			fprintf(stderr, "Error in createObject\n");
-			return -1;
+			return EObjCreate | ErrQExecutor;
 			}
 		if (tr->addRoot(optr) != 0)
 			{
 			fprintf(stderr, "Error in addRoot\n");
-			return -1;
+			return ERootAdd | ErrQExecutor;
 			}
 		return 0;
 		}
@@ -146,7 +146,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult *result) {
 	default:
 		{
 		fprintf(stderr, "QueryExecutor method: TreeNode type unknown\n");
-		return -1;
+		return ENoType | ErrQExecutor;
 		}
 	
 	} // end of switch

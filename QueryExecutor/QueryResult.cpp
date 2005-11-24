@@ -91,15 +91,15 @@ int QueryNothingResult::size()		{ return 0; }
 
 //accesors for collection result classes - sequence, bag, sruct
 void QuerySequenceResult::addResult(QueryResult *r)	{ seq.push_back(r); }
-int QuerySequenceResult::getResult(QueryResult *r)	{ if (seq.empty()) { return -1; } 
+int QuerySequenceResult::getResult(QueryResult *r)	{ if (seq.empty()) { return EEmptySet | ErrQExecutor; } 
 							else { r=(seq.front()); it=(seq.begin()); seq.erase(it);}; return 0; }
 
 void QueryBagResult::addResult(QueryResult *r)		{ bag.push_back(r); }
-int QueryBagResult::getResult(QueryResult *r)		{ if (bag.empty()) { return -1; } 
+int QueryBagResult::getResult(QueryResult *r)		{ if (bag.empty()) { return EEmptySet | ErrQExecutor; } 
 							else { r=(bag.front()); it=(bag.begin()); bag.erase(it);}; return 0; }
 
 void QueryStructResult::addResult(QueryResult *r)	{ str.push_back(r); }
-int QueryStructResult::getResult(QueryResult *r)	{ if (str.empty()) { return -1; } 
+int QueryStructResult::getResult(QueryResult *r)	{ if (str.empty()) { return EEmptySet | ErrQExecutor; } 
 							else { r=(str.front()); it=(str.begin()); str.erase(it);}; return 0; }
 
 //accesors for single value type result classes - binder, string, int, double, bool, reference
@@ -126,9 +126,7 @@ void QueryReferenceResult::setValue(LogicalID* v)	{ value = v; }
 }
 
 /* TODO 
-- zglosic blad w funkcji getResult pojawiajacy sie gdy ktos sprobuje pobrac cos z pustej kolekcji
-- po przydzieleniu errno poprawic return -1 na return errno w tej funkcji
--------> czekamy na przydzial Errno
+-pisac err na konsole bagginsa
 
 - zastanowic sie jak naprawde powinny wygladac i zachowywac sie bag, sequence i struct
 - zmienic ich implementacje
