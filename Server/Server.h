@@ -4,6 +4,10 @@
 
 #define MAX_MESSG 4096
 #define MAX_MESSG_HEADER_LEN 1
+#define SERIALIZE_DEPTH 1
+
+#include "../QueryExecutor/QueryResult.h"
+using namespace QExecutor;
 
 //namespace Server {
 	class Server
@@ -15,8 +19,9 @@
 		int Run();
 	// Made public for testing
 		int Send(char* buf, int buf_size);
+		int Serialize(QueryResult *qr, char *buffer);
 
-		int initializeAll();
+		int InitializeAll();
 		
 	private:
 		int Sock;
