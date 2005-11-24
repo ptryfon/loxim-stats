@@ -1,5 +1,5 @@
 /**
- * $Id: Buffer.cpp,v 1.4 2005-11-24 22:21:53 mk189406 Exp $
+ * $Id: Buffer.cpp,v 1.5 2005-11-24 22:22:29 mk189406 Exp $
  *
  */
 #include "Buffer.h"
@@ -58,7 +58,7 @@ namespace Store
 
 		buffer_hash_t::iterator it = buffer_hash.find(buffer_addr);
 		if (it != buffer_hash.end() && (*it).second.haspage)
-      return new PagePointer(fileID, pageID, (*it).second.page);
+			return new PagePointer(fileID, pageID, (*it).second.page);
 
 		buffer_page n_page;
 		n_page.page = new char[STORE_PAGESIZE];
