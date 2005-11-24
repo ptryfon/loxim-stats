@@ -1,4 +1,12 @@
+/**
+ * $Id: Buffer.cpp,v 1.3 2005-11-24 22:20:18 mk189406 Exp $
+ *
+ * $Log: not supported by cvs2svn $
+ *
+ */
 #include "Buffer.h"
+
+using namespace std;
 
 namespace Store
 {
@@ -28,10 +36,6 @@ namespace Store
 
 		file->start();
 
-		buffer_count = 64;
-		buffer_table = (buffer_page*) new char[sizeof(buffer_page) * buffer_count];
-		memset(buffer_table, 0, sizeof(buffer_page) * buffer_count);
-
 		started = 1;
 		return STORE_ERR_SUCCESS;
 	};
@@ -40,8 +44,6 @@ namespace Store
 	{
 		if (!started)
 			return STORE_ERR_SUCCESS;
-
-		delete buffer_table;
 
 		file->stop();
 
@@ -53,29 +55,23 @@ namespace Store
 	{
 		if (!started)
 			return 0;
+		
+		buffer_addr_t buffer_addr = make_pair(fileID, pageID);
 
-		for (int i = 0; i < buffer_count; i++)
-			if (buffer_table[i].haspage
-				&& ((page_header* )buffer_table[i].page)->file_id == fileID
-				&& ((page_header* )buffer_table[i].page)->page_id == pageID
-			)
-				return new PagePointer(fileID, pageID, buffer_table[i].page);
+		buffer_hash_t::iterator it = buffer_hash.find(buffer_addr);
+		if (it != buffer_hash.end() && (*it).second.haspage)
+      return new PagePointer(fileID, pageID, (*it).second.page);
 
-		for (int i = 0; i < buffer_count; i++)
-			if (!buffer_table[i].haspage)
-			{
-				int err;
+		buffer_page n_page;
+		n_page.page = new char[STORE_PAGESIZE];
 
-				if (!buffer_table[i].page)
-					buffer_table[i].page = new char[STORE_PAGESIZE];
+		if (file->readPage(fileID, pageID, n_page.page) != STORE_ERR_SUCCESS) {
+			delete n_page.page;
+			return 0;
+		}
 
-				if ((err = file->readPage(fileID, pageID, buffer_table[i].page)) != STORE_ERR_SUCCESS)
-					return 0;
-
-				buffer_table[i].haspage = 1;
-				return new PagePointer(fileID, pageID, buffer_table[i].page);
-			}
-
-		return 0;
+		n_page.haspage = 1;
+		buffer_hash.insert(make_pair (make_pair (fileID, pageID), n_page));
+		return new PagePointer(fileID, pageID, n_page.page);
 	};
 };

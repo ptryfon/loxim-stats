@@ -11,6 +11,10 @@ namespace Store
 #include "PagePointer.h"
 #include "Struct.h"
 
+#include <map>
+
+using namespace std;
+
 namespace Store
 {
 	class Buffer
@@ -24,11 +28,13 @@ namespace Store
 			char* page;
 		} buffer_page;
 
+    typedef pair<unsigned short, unsigned short> buffer_addr_t;
+    typedef map<buffer_addr_t, buffer_page> buffer_hash_t;
+    buffer_hash_t buffer_hash;
+
 		DBStoreManager* store;
 		File* file;
 		int started;
-		int buffer_count;
-		buffer_page* buffer_table;
 
 	public:
 		Buffer(DBStoreManager* store);

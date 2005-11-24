@@ -59,6 +59,6 @@ namespace Store
 		virtual int logicalIDFromByteArray(unsigned char* buffer, int length, LogicalID** lid);
 		virtual int dataValueFromByteArray(unsigned char* buffer, int length, DataValue** value);
 	};
-}
+};
 
 #endif 
