@@ -1,4 +1,5 @@
 #include "Map.h"
+#include "Errors/Errors.h"
 
 namespace Store
 {
@@ -38,6 +39,6 @@ namespace Store
 
 		delete buf;
 
-		return STORE_ERR_SUCCESS;
+		return 0;
 	};
 }

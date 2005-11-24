@@ -61,4 +61,4 @@ namespace Store
 	};
 };
 
-#endif 
+#endif

@@ -9,7 +9,6 @@ namespace Store
 #include <fstream>
 #include "Store.h"
 #include "Struct.h"
-#include "ErrorCodes.h"
 #include "DBStoreManager.h"
 
 using namespace std;

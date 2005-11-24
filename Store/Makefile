@@ -16,7 +16,6 @@ HEADERS	=	Buffer.h \
 		DBObjectPointer.h \
 		DBPhysicalID.h \
 		DBStoreManager.h \
-		ErrorCodes.h \
 		File.h \
 		Map.h \
 		PagePointer.h \

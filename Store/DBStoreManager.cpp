@@ -36,20 +36,20 @@ namespace Store
 	{
 		int retval = 0;
 
-		if ((retval = buffer->start()) != STORE_ERR_SUCCESS)
+		if ((retval = buffer->start()) != 0)
 			return retval;
 
-		return STORE_ERR_SUCCESS;
+		return 0;
 	};
 
 	int DBStoreManager::stop()
 	{
 		int retval = 0;
 
-		if ((retval = buffer->stop()) != STORE_ERR_SUCCESS)
+		if ((retval = buffer->stop()) != 0)
 			return retval;
 
-		return STORE_ERR_SUCCESS;
+		return 0;
 	};
 
 	SBQLConfig* DBStoreManager::getConfig()

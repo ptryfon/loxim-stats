@@ -8,7 +8,6 @@ namespace Store
 
 #include "Store.h"
 #include "Struct.h"
-#include "ErrorCodes.h"
 #include "DBStoreManager.h"
 #include "File.h"
 

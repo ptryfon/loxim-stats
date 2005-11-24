@@ -1,4 +1,5 @@
 #include "PagePointer.h"
+#include "Errors/Errors.h"
 
 namespace Store
 {
@@ -11,12 +12,12 @@ namespace Store
 
 	int PagePointer::aquire()
 	{
-		return STORE_ERR_SUCCESS;
+		return 0;
 	};
 
 	int PagePointer::release()
 	{
-		return STORE_ERR_SUCCESS;
+		return 0;
 	};
 
 	char* PagePointer::getPage()

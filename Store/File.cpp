@@ -1,4 +1,5 @@
 #include "File.h"
+#include "Errors/Errors.h"
 
 namespace Store
 {
@@ -27,16 +28,16 @@ namespace Store
 		else
 		{
 			*file = 0;
-			return STORE_ERR_FILE_UNKNOWNFILE;
+			return EBadFile | ErrStore;
 		}
 
-		return STORE_ERR_SUCCESS;
+		return 0;
 	};
 
 	int File::start()
 	{
 		if (started)
-			return STORE_ERR_SUCCESS;
+			return 0;
 
 		fmap = new fstream();
 		froots = new fstream();
@@ -60,13 +61,13 @@ namespace Store
 		}
 
 		started = 1;
-		return STORE_ERR_SUCCESS;
+		return 0;
 	};
 
 	int File::stop()
 	{
 		if (!started)
-			return STORE_ERR_SUCCESS;
+			return 0;
 
 		if (fdefault && fdefault->is_open()) { fdefault->flush(); fdefault->close(); }
 		if (fmap && fmap->is_open()) { fmap->flush(); fmap->close(); }
@@ -77,7 +78,7 @@ namespace Store
 		if (froots) { delete froots; froots = 0; }
 
 		started = 0;
-		return STORE_ERR_SUCCESS;
+		return 0;
 	};
 
 	int File::read(unsigned short fileID, unsigned int offset, int length, char* buffer)
@@ -85,13 +86,13 @@ namespace Store
 		fstream* file = 0;
 		int err = 0;
 
-		if ((err = getStream(fileID, &file)) != STORE_ERR_SUCCESS)
+		if ((err = getStream(fileID, &file)) != 0)
 			return err;
 
 		file->seekg(offset, ios::beg);
 		file->read(buffer, length);
 
-		return STORE_ERR_SUCCESS;
+		return 0;
 	};
 
 	int File::readPage(unsigned short fileID, unsigned int pageOffset, char* buffer)
@@ -104,13 +105,13 @@ namespace Store
 		fstream* file = 0;
 		int err = 0;
 
-		if ((err = getStream(fileID, &file)) != STORE_ERR_SUCCESS)
+		if ((err = getStream(fileID, &file)) != 0)
 			return err;
 
 		file->seekp(offset, ios::beg);
 		file->write(buffer, length);
 
-		return STORE_ERR_SUCCESS;
+		return 0;
 	};
 
 	int File::writePage(unsigned short fileID, unsigned int pageOffset, char* buffer)

@@ -1,5 +1,5 @@
 /**
- * $Id: Buffer.cpp,v 1.5 2005-11-24 22:22:29 mk189406 Exp $
+ * $Id: Buffer.cpp,v 1.6 2005-11-24 22:40:37 jr243017 Exp $
  *
  */
 #include "Buffer.h"
@@ -30,23 +30,23 @@ namespace Store
 	int Buffer::start()
 	{
 		if (started)
-			return STORE_ERR_SUCCESS;
+			return 0;
 
 		file->start();
 
 		started = 1;
-		return STORE_ERR_SUCCESS;
+		return 0;
 	};
 
 	int Buffer::stop()
 	{
 		if (!started)
-			return STORE_ERR_SUCCESS;
+			return 0;
 
 		file->stop();
 
 		started = 0;
-		return STORE_ERR_SUCCESS;
+		return 0;
 	};
 
 	PagePointer* Buffer::getPagePointer(unsigned short fileID, unsigned int pageID)
@@ -63,7 +63,7 @@ namespace Store
 		buffer_page n_page;
 		n_page.page = new char[STORE_PAGESIZE];
 
-		if (file->readPage(fileID, pageID, n_page.page) != STORE_ERR_SUCCESS) {
+		if (file->readPage(fileID, pageID, n_page.page) != 0) {
 			delete n_page.page;
 			return 0;
 		}

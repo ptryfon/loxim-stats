@@ -1,8 +1,6 @@
 #ifndef __STORE_PAGEPOINTER_H__
 #define __STORE_PAGEPOINTER_H__
 
-#include "ErrorCodes.h"
-
 namespace Store
 {
 	class PagePointer
