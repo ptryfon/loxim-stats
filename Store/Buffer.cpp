@@ -1,7 +1,5 @@
 /**
- * $Id: Buffer.cpp,v 1.3 2005-11-24 22:20:18 mk189406 Exp $
- *
- * $Log: not supported by cvs2svn $
+ * $Id: Buffer.cpp,v 1.4 2005-11-24 22:21:53 mk189406 Exp $
  *
  */
 #include "Buffer.h"
