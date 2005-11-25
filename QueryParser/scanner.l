@@ -81,14 +81,14 @@ extern int szbderrno;
 "abort"			return ABORT;
 
 
-[_a-zA-Z][_a-zA-Z0-9]* 	yylval.str = new char[strlen(yytext) + 1]; yylval.str = strcpy(yylval.str,yytext); return NAME;
-[0-9]+ 			yylval.num = atoi(yytext); return INTEGER;
-[0-9]+"."[0-9]+		yylval.dbl = atof(yytext); return DOUBLE;
+[_a-zA-Z][_a-zA-Z0-9]* 	{ yylval.str = new string(yytext); return NAME; } 
+[0-9]+ 			{ yylval.num = atoi(yytext); return INTEGER; }
+[0-9]+"."[0-9]+		{ yylval.dbl = atof(yytext); return DOUBLE; }
 
 "{"	BEGIN(comment);
 <comment>"}" BEGIN(INITIAL);
 <comment>.|\n
 
-\"[^\"]*\"		yylval.str = new char[strlen(yytext)]; yylval.str = strncpy(yylval.str, &yytext[1], strlen(yytext)-2); yylval.str[strlen(yytext)-2]=0; return STRING;
+\"[^\"]*\"		{ yylval.str = new string(yytext+1, yyleng-2); return STRING; }
 
 [ \t\r\n]+		/* ignore whitespace */;
