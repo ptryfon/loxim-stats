@@ -22,10 +22,6 @@ namespace Errors {
 #define	ErrStore		0x24000
 #define	ErrTManager		0x28000
 
-// Special case for those who really want to have
-// error code that tells there is no error ;)
-#define ESuccess		    0x0
-	
 #define ENoFile			    0x1
 //- Nieobslugiwany/niewlasciwy typ wartosci w CREATE
 #define	EBadType		    0x2
