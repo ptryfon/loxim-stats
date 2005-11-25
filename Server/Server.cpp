@@ -21,6 +21,13 @@
 
 typedef char TREE_NODE_TYPE;
 
+
+// TODO 
+// 1-Inicjalizacja do Listenera
+// 2-Watki
+// 3-Obsluga bledow
+// 4-Lepsza diagnostyka
+
 /*
 #include "../QueryParser/QueryParser.h"
 
@@ -63,7 +70,7 @@ int Server::InitializeAll()
 }
 
 //TODO - rekurencja, support innych typow
-int  Server::Serialize(QueryResult *qr, char *buffer) 
+int  Server::Serialize(QueryResult *qr, char **buffer) 
 {
 	//int depth=SERIALIZE_DEPTH;
 	QueryResult *collItem;
@@ -75,9 +82,18 @@ int  Server::Serialize(QueryResult *qr, char *buffer)
 	int bagSize;
 	string strVal;
 	unsigned long bufBagLen;
+	char *bufferP;
+	
+	char *dupaTest="dupa";
+	
+	bufferP=(char*) malloc(MAX_MESSG);
+	memset(bufferP, '\0', MAX_MESSG); 
+	printf("[Server.Serialize]--> Starting 1\n");
+	
 	//int i;
 	printf("[Server.Serialize]--> Starting \n");
-	printf("[Server.Serialize]-->Sizeof char %d, sizeof ResultType %d \n", sizeof(char), sizeof(Result::ResultType));
+	printf("[Server.Serialize]--> Serializing object of type: %d \n", resType);
+	//printf("[Server.Serialize]-->Sizeof char %d, sizeof ResultType %d \n", sizeof(char), sizeof(Result::ResultType));
 	
 	switch (resType) {
 		case Result::BAG:
@@ -93,9 +109,9 @@ int  Server::Serialize(QueryResult *qr, char *buffer)
 			bagRes = (QueryBagResult *)qr->clone();
 			
 			printf("[Server.Serialize]--> Adding bag header \n");
-			memcpy(buffer, (void *)resType, 1);
-			buffer=buffer+1;
-			memcpy(buffer, (void *)bufBagLen, sizeof(unsigned long));
+			memcpy(bufferP, (void *)resType, 1);
+			bufferP=bufferP+1;
+			memcpy(bufferP, (void *)bufBagLen, sizeof(unsigned long));
 			printf("[Server.Serialize]--> Bag header complete \n");
 												
 			//TODO depth handling
@@ -110,11 +126,11 @@ int  Server::Serialize(QueryResult *qr, char *buffer)
 							strVal=stringRes->getValue();
 							valSize=stringRes->size();
 							printf("[Server.Serialize]--> Adding string header \n");
-							memcpy(buffer, (void *)resType, 1);
-							buffer=buffer+1;
+							memcpy(bufferP, (void *)resType, 1);
+							bufferP=bufferP+1;
 							printf("[Server.Serialize]--> String header complete \n");
-							strVal.copy(buffer, valSize);
-							buffer=buffer + valSize;
+							strVal.copy(bufferP, valSize);
+							bufferP=bufferP + valSize;
 							break;
 						default:
 							printf("[Server.Serialize]--> Getting something else(!) \n");
@@ -134,18 +150,31 @@ int  Server::Serialize(QueryResult *qr, char *buffer)
 			strVal=stringRes->getValue();
 			valSize=stringRes->size();
 			printf("[Server.Serialize]--> Adding string header \n");
-			memcpy(buffer, (void *)resType, 1);
-			buffer=buffer+1;
+			memcpy(bufferP, (void *)resType, 1);
+			bufferP=bufferP+1;
 			printf("[Server.Serialize]--> String header complete \n");
-			strVal.copy(buffer, valSize);
-			buffer=buffer + valSize;
+			strVal.copy(bufferP, valSize);
+			bufferP=bufferP + valSize;
 			break;
+		case Result::RESULT:
+			printf("\n[Server.Serialize]--> BAD TYPE RECEIVED FROM EXECUTOR -- RESULT \n \n");
+		    printf("[Server.Serialize]--> Getting RESULT (Getting WHAT?) \n");
+		    printf("[Server.Serialize]--> Sending sth for testing instead.. \n");
+		    //printf("[Server.Serialize]--> Adding some header \n");
+		   // memcpy(buffer, (char *)resType, 4);
+		   // printf("[Server.Serialize]--> in progress.. \n");
+		   // printf("[Server.Serialize]--> Some header added \n"); 
+		    memcpy(&bufferP, dupaTest, strlen(dupaTest));
+		   // memcpy(&buffer, '\0', 1);
+		    break;    
 		default:
 			printf("[Server.Serialize]--> object type not handled yet(!) \n");
 			return -1;
 			break;
 	}
-	printf("[Server.Serialize]--> Done! \n");			
+	printf("[Server.Serialize]--> Done! \n");
+	*buffer = bufferP;
+	printf("[Server.Serialize]--> I've got a nice buffer containing:  \n--->\n%s\n<---\n", (char *)buffer);
 	return 0;
 }
 
@@ -154,8 +183,8 @@ int Server::Run()
 {
 	int size=MAX_MESSG;
 	//TODO - headers
-	TREE_NODE_TYPE type;
-	type=1;
+	//TREE_NODE_TYPE type;
+	//type=1;
 	
 	printf("[Server.Run]--> Starts \n");
 	SBQLConfig* config = new SBQLConfig();
@@ -176,39 +205,41 @@ int Server::Run()
 	QueryResult *qResult;
 	
 	printf("[Server.Run]--> Creating message buffers \n");
-	char *messgBuff; //Piotrek
-	char serializedMessg[MAX_MESSG+MAX_MESSG_HEADER_LEN];
-//	memset(messgBuff, '\0', MAX_MESSG); //Piotrek
-//	memset(serializedMessg, 0, MAX_MESSG+MAX_MESSG_HEADER_LEN); //Piotrek
+	char *messgBuff;
+	char *serializedMessg;
+	messgBuff=(char*) malloc(MAX_MESSG);
 	
+	serializedMessg=(char*) malloc(MAX_MESSG);
+	memset(serializedMessg, '\0', MAX_MESSG); 
 	
 	//Get string from client
 	printf("[Server.Run]--> Receiving query from client \n");
-	Receive(&messgBuff, &size); //Piotrek
+	Receive(&messgBuff, &size);
 		
 	printf("[Server.Run]--> Request parse \n");
 	printf("string do parsera: %s\n", messgBuff);
-	cout << (string) messgBuff << endl; //Piotrek
-	qPa->parseIt((string) messgBuff, tNode); //by reference //Piotrek
+	cout << (string) messgBuff << endl;
+	qPa->parseIt((string) messgBuff, tNode); 
 	
-	printf("tree node%d\n", (int) tNode); //Piotrek
+	printf("tree node%d\n", (int) tNode); 
 	printf("[Server.Run]--> Request query result \n");
 	qEx->executeQuery(tNode, &qResult); 
 	 
 	printf("[Server.Run]--> Serializing data \n");
-	printf ("%d", (int)qResult);
+	printf ("[Server.Run]-->qResult=%d \n", (int)qResult);
 	
 	if (qResult == 0) {printf ("brak wyniku\n"); return 0;} //Piotrek
 	
-	Serialize(qResult, (char *)serializedMessg); 
+	Serialize(qResult, (char **)serializedMessg); 
+	
 	
 	//Send results to client
 	printf("[Server.Run]--> Sending results to client \n");		
+	printf("[Server.Run]--> Sending.. (%s) \n", (char *)serializedMessg); 
 	Send(serializedMessg, MAX_MESSG);
 	
 	printf("[Server.Run]--> Releasing message buffers \n");
-	free(messgBuff);
-	free(serializedMessg);
+	//TODO
 	
 	printf("[Server.Run]--> Disconnecting \n");
 	Disconnect();
