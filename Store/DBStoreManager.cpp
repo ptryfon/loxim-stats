@@ -82,7 +82,7 @@ namespace Store
 	int DBStoreManager::getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object)
 	{
 		LogicalID* l;
-		for(int i=0; i<misc->vect.size(); i++)
+		for(unsigned int i=0; i<misc->vect.size(); i++)
 		{
 			l = (misc->vect[i])->getLogicalID();
 		}

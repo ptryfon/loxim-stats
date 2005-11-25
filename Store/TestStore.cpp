@@ -1,6 +1,7 @@
 #include <iostream>
 #include "Store.h"
 #include "DBStoreManager.h"
+#include "DBLogicalID.h"
 
 using namespace std;
 using namespace Store;
@@ -10,6 +11,10 @@ int main(int argc, char* argv[])
 	DBStoreManager* store = new DBStoreManager();
 	store->init(0, 0);
 	store->start();
+	
+	LogicalID* lid = new DBLogicalID(175);
+	cout << lid->toString() << endl;
+	return 0;
 
 	DataValue* value = store->createIntValue(7);
 	ObjectPointer* object = 0;

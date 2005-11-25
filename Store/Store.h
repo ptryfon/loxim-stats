@@ -73,7 +73,7 @@ namespace Store
 		// Class functions
 		virtual PhysicalID* getPhysicalID() = 0;
 		virtual void toByteArray(unsigned char** lid, int* length) = 0;
-		virtual string toString() = 0;
+		virtual string toString() const = 0;
 
 		// Operators
 		virtual bool operator==(LogicalID& lid) = 0;

@@ -11,10 +11,11 @@ namespace Store
 	{
 	public:
 		DBLogicalID() {};
+		DBLogicalID(int value);
 
 		virtual PhysicalID* getPhysicalID();
 		virtual void toByteArray(unsigned char** lid, int* length);
-		virtual string toString();
+		virtual string toString() const;
 
 		virtual bool operator==(LogicalID& lid);
 	private:

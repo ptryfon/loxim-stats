@@ -4,6 +4,11 @@ using namespace std;
 
 namespace Store
 {
+	DBLogicalID::DBLogicalID(int v)
+	{
+		value = v;
+	};
+	
 	PhysicalID* DBLogicalID::getPhysicalID()
 	{
 		return 0;
@@ -13,10 +18,10 @@ namespace Store
 	{
 	};
 
-	string DBLogicalID::toString()
+	string DBLogicalID::toString() const
 	{
 	   char cs[100];
-		sprintf(cs, "%ld", value);
+		sprintf(cs, "%i", value);
 		string s(cs);
 		return s;
 	};
