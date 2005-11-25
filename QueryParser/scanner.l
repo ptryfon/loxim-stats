@@ -79,7 +79,7 @@ extern int szbderrno;
 "begin"			return BEGINTR;
 "end"			return END;
 "abort"			return ABORT;
-
+"create"		return CREATE;
 
 [_a-zA-Z][_a-zA-Z0-9]* 	yylval.str = new char[strlen(yytext) + 1]; yylval.str = strcpy(yylval.str,yytext); return NAME;
 [0-9]+ 			yylval.num = atoi(yytext); return INTEGER;
