@@ -15,7 +15,7 @@ namespace Store
 
 	string DBDataValue::toString()
 	{
-		return 0;
+		return "xx";
 	};
 
 	int DBDataValue::getInt()
