@@ -9,6 +9,20 @@ namespace Store
 {
 	class DBDataValue : public DataValue
 	{
+	private:
+		typedef struct complex_value {
+		    
+		    DataType type;
+		    union {
+			int int_value;
+			double double_value;
+			char* char_value;
+			LogicalID* pointer_value;
+			vector<ObjectPointer*>* vector_value;
+		    } v;
+		} complex_value;    	
+
+
 	public:
 		DBDataValue() {};
 
@@ -32,7 +46,7 @@ namespace Store
 		
 	private:
 		DataType type;
-		string value;	
+		complex_value value;
 	};
 }
 

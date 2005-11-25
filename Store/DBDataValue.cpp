@@ -15,124 +15,44 @@ namespace Store
 
 	string DBDataValue::toString()
 	{
-		return this->value;
+		return 0;
 	};
 
 	int DBDataValue::getInt()
 	{
-	    if (this->type == Store::Integer) {	
-		
-		int length=0, i, value=0;
+	    if (this->type == Store::Integer) 
 	
-		while(this->value[length] != '\0')
-		    length++;
-		
-		for(i=0; i<length; i++) {
-		    switch (this->value[i]) {
-			case '0':
-			    value = 10*value;
-			    break;;
-			case '1':
-			    value = 10*value + 1;
-			    break;;  
-			case '2':
-			    value = 10*value + 2;
-			    break;;      
-			case '3':
-			    value = 10*value + 3;
-			    break;;
-			case '4':
-			    value = 10*value + 4;
-			    break;;
-			case '5':
-			    value = 10*value+1 + 5;
-			    break;;  
-			case '6':
-			    value = 10*value + 6;
-			    break;;        
-			case '7':
-			    value = 10*value + 7;
-			    break;;
-			case '8':
-			    value = 10*value + 8;
-			    break;;  
-			case '9':
-			    value = 10*value + 9;
-			    break;;    
-			default:
-			    break;;    
-		    }	    
-		};    		    
-		
-		return value;
-	    }	
+		return this->value.v.int_value;
+	    return 0;		
+	    	
 	};
 
 	double DBDataValue::getDouble()
 	{
 	
-	    if ( this->type == Store::Double ) {
+	    if ( this->type == Store::Double ) 
+		return this->value.v.double_value;
+	    return 0;	
 		
-		int length=0, i, value=0;
-	
-		while(this->value[length] != '\0')
-		    length++;
-		
-		for(i=0; i<length; i++) {
-		    switch (this->value[i]) {
-			case '0':
-			    value = 10*value;
-			    break;;
-			case '1':
-			    value = 10*value + 1;
-			    break;;  
-			case '2':
-			    value = 10*value + 2;
-			    break;;      
-			case '3':
-			    value = 10*value + 3;
-			    break;;
-			case '4':
-			    value = 10*value + 4;
-			    break;;
-			case '5':
-			    value = 10*value+1 + 5;
-			    break;;  
-			case '6':
-			    value = 10*value + 6;
-			    break;;        
-			case '7':
-			    value = 10*value + 7;
-			    break;;
-			case '8':
-			    value = 10*value + 8;
-			    break;;  
-			case '9':
-			    value = 10*value + 9;
-			    break;;    
-			default:
-			    break;;    
-		    }	    
-		};
-		
-		return (double)value;
-	    }    
 	};
 
 	string DBDataValue::getString()
 	{
-		if ( this->type == Store::String )
-		    return this->value;    
+		return 0;    
 	};
 
 	LogicalID* DBDataValue::getPointer()
 	{
-		return 0;
+	    if ( this->type == Store::Pointer ) 
+		return this->value.v.pointer_value;
+	    return 0;	
 	};
 
 	vector<ObjectPointer*>* DBDataValue::getVector()
 	{
-		return new vector<ObjectPointer*>(0);
+	    if ( this->type == Store::Vector ) 
+		return this->value.v.vector_value;
+	    return 0;	
 	};
 
 	void DBDataValue::setInt(int value)
