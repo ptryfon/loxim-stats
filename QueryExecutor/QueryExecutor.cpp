@@ -18,9 +18,11 @@
 #include "QueryParser/TreeNode.h"
 #include "QueryExecutor.h"
 #include "Errors/Errors.h"
+#include "Errors/ErrorConsole.h"
 
 using namespace QParser;
 using namespace TManager;
+using namespace Errors;
 
 namespace QExecutor {
 
@@ -34,6 +36,8 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 	int nodeType; //to tylko tymczasowo.
 	vector<ObjectPointer*>* vec;
 	int vecSize;
+	ErrorConsole ec;
+	int errcode;
 	  
 	fprintf(stderr, "QueryExecutor method: queryResult\n");
 	fprintf(stderr, "QueryExecutor asking TransactionManager for a new transaction\n");
@@ -43,32 +47,35 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 	}
 	
 	nodeType = tree->type();
-
+fprintf(stderr, "Otwarta transakcja, wzialem typ.\n");
 	switch (nodeType) 
 	
 	{
-	
-	
 	
 	case TreeNode::TNNAME:
 	
 		{
 		name = tree->getName();
-		if (tr->getRoots(name, vec) != 0)
+		fprintf(stderr, "Typ: TNNAME\n");
+		if ((errcode = tr->getRoots(name, vec)) != 0)
 			{
-			fprintf(stderr, "Error in getRoots\n");
-			return -1;
+			ec << (errcode);
+			return -1; //EGetRoots | ErrQExecutor;
 			}
 		vecSize = vec->size();
+		fprintf(stderr, "Wziete rootsy\n");
 		QueryBagResult *resbag = new QueryBagResult;
+		fprintf(stderr, "Jest worek\n");
 		for (int i = 0; i < vecSize; i++ )
 			{
    			optr = vec->at(i);
 			lid = optr->getLogicalID();
 			QueryReferenceResult *lidres = new QueryReferenceResult(lid);
 			resbag->addResult(lidres);
+			fprintf(stderr, "Dolozylem obiekt\n");
 			}
 		*result = (QueryResult *) resbag;
+		fprintf(stderr, "Koncze\n");
 		return 0;
 		}
 
@@ -108,7 +115,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 		
 			default: 
 				{
-				fprintf(stderr, "Incorrect type\n");
+				ec << (EBadType | ErrQExecutor);
 				return EBadType | ErrQExecutor;
 				}
 			
@@ -123,14 +130,14 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			value=NULL;
 			}
 		
-		if (tr->createObject(name, value, optr) != 0)
+		if ((errcode = tr->createObject(name, value, optr)) != 0)
 			{
-			fprintf(stderr, "Error in createObject\n");
+			ec << (errcode);
 			return EObjCreate | ErrQExecutor;
 			}
 		if (tr->addRoot(optr) != 0)
 			{
-			fprintf(stderr, "Error in addRoot\n");
+			ec << (ERootAdd | ErrQExecutor);
 			return ERootAdd | ErrQExecutor;
 			}
 		*result = (QueryResult *) (new QueryNothingResult);
@@ -150,15 +157,11 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 	
 	default:
 		{
-		fprintf(stderr, "QueryExecutor method: TreeNode type unknown\n");
+		ec << (ENoType | ErrQExecutor);
 		return ENoType | ErrQExecutor;
 		}
 	
 	} // end of switch
-	
-	
-	
-	
 	return 0;
     }
 
