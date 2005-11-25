@@ -33,6 +33,8 @@ namespace Errors {
 #define	ENoType			    0x5
 //- Proba pobrania (getResult) QueryResultu z pustego zbioru
 #define EEmptySet		    0x6
+// blad pobierania korzenia
+#define EGetRoot		   0x10
 
 // Store
 #define EBadFile		    0x7
