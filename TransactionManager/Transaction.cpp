@@ -132,6 +132,7 @@ namespace TManager
 	{
 	    if ((mutex = semget(SEMKEY1, 1, 0666 | IPC_CREAT | IPC_EXCL)) < 0)	    
 		 printf("Error in semget\n"); //exit(1); }	     
+		 V(mutex);
 	    transactions = new list<int>;
 	};
         
@@ -139,6 +140,11 @@ namespace TManager
 	
 	TransactionManager* TransactionManager::getHandle() { return tranMgr; };
 	
+	TransactionManager::~TransactionManager()
+	{
+	      semctl (mutex, 0, IPC_RMID,0);
+              	    
+	}
 	int TransactionManager::createTransaction(Transaction* &tr)
 	{
 	    printf("TransactionManager::createTransaction 0\n");fflush(stdout);

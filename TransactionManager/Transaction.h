@@ -79,6 +79,7 @@ namespace TManager
 	      int remove_from_list(int);
 
 	   public:	   	      
+	      ~TransactionManager();
 	      static TransactionManager* getHandle();
 	   /* called at server startup: */
 	      int init(StoreManager *strMgr);
