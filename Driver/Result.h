@@ -13,7 +13,7 @@ public:
 	enum ResultType { RESULT=0,    SEQUENCE=1, BAG=2, 
 			  STRUCT=3,    BINDER=4,   STRING=5, 
 			  INT=6,       DOUBLE=7,   BOOL=8, 
-			  REFERENCE=9, VOID=10 };
+			  REFERENCE=9, VOID=10,    ERROR=11 };
 	Result() {};
 	virtual bool    operator==(Result& r)    =0;
   	virtual Result* clone()			 =0;
@@ -177,5 +177,26 @@ public:
 	void     toStream(ostream& os) const { os << "void"; }
 	virtual ~ResultVoid() {};
 };//class ResultVoid 
+
+
+class ResultError : public Result
+{
+private:
+	int     code;
+	string  message;
+public:
+	ResultError() : code(0), message("error"){}
+	ResultError(int    err) : code(err)      {}
+	ResultError(string err) : message(err)   {}
+
+	bool   operator==(Result& r) { return false;         }
+	ResultReference* clone()     { return NULL;          }
+	int    getType()             { return Result::ERROR; }
+	int    getCode()             { return code;          }
+	string getMessage()          { return message;       }
+	void   toStream(ostream& os) const { os << message;  }
+	virtual ~ResultError() {}
+};//class ResultError
+
 
 #endif /*RESULT_H_*/
