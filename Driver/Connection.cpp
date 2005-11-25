@@ -4,14 +4,12 @@
 #include <sys/types.h>
 #include <netinet/in.h> 
 #include <netdb.h> 
+#include <string.h>
 
 using namespace std;
 
 #include "Connection.h"
 #include "Result.h"
-
-#define NORESULT	2
-#define OBJECTID	3
 
 int bufferReceive (char** buffer, int* receiveDataSize, int sock) {
 	//printf("ServerTcp: receiving on socket %d... \n", sock);
@@ -69,7 +67,6 @@ int bufferReceive (char** buffer, int* receiveDataSize, int sock) {
 	 //	printf("ServerTcp: received some data --> size = %d \n", ile);
          	 *receiveDataSize = msgSize;
                  return 0;               
-
 }
 
 
@@ -108,7 +105,6 @@ int bufferSend(char* buf, int buf_size, int sock) {
 	return 0;
 }
 
-
 Connection::Connection(int socket)
 {
 	sock = socket;
@@ -116,6 +112,15 @@ Connection::Connection(int socket)
 
 Connection::~Connection()
 {
+}
+
+int Connection::stringCopy(char* &newBuffer) { // od bufferBegin
+		//TODO dodac sprawdzanie zakresu, przepelnienia bufora!!!
+		int len = strlen(bufferBegin)+1; //including NULL
+		newBuffer = (char*)malloc (len);
+		strcpy (newBuffer, bufferBegin);
+		bufferBegin += len;
+		return 0;
 }
 
 int Connection::deserialize(Result** rs) {
@@ -126,9 +131,10 @@ int Connection::deserialize(Result** rs) {
 	char* id;
 	unsigned long number;
 	unsigned long i;
-	switch (*bufferBegin) {
+		
+	switch (*(bufferBegin++)) {
 		case Result::BAG:
-			bufferBegin++; //skip first byte
+//			bufferBegin++; //skip first byte
 			number = ntohl(*((unsigned long*) bufferBegin));
 			bufferBegin += sizeof(long); //skip the number of elements (long)
 
@@ -145,17 +151,35 @@ int Connection::deserialize(Result** rs) {
 			return 0;
 		
 		case Result::REFERENCE:
-			bufferBegin++;
-			//TODO dodac sprawdzanie zakresu, przepelnienia bufora!!!
-			id = (char*)malloc (strlen(bufferBegin)+1);
-			strcpy (id, bufferBegin);
+	//		bufferBegin++;
+			stringCopy(id); //by reference
 			*rs = (Result*) new ResultReference(id);
+			//TODO poprawic przesuniecie wskaznika
 			return 0;
 		
 		case Result::VOID:
-			bufferBegin++;
+		//	bufferBegin++;
 			*rs = new ResultVoid();
 			return 0; 
+		
+		case Result::STRING:
+//			bufferBegin++;
+			stringCopy(id); // by reference
+			*rs = (Result*) new ResultString(string (id));
+			//co z id czy string je zabiera czy niszczy
+			return 0;
+		
+		case Result::SEQUENCE:
+		
+		case Result::STRUCT:
+		
+		case Result::INT:
+		
+		case Result::BOOL:
+		
+		case Result::DOUBLE:
+		
+		case Result::BINDER:
 		
 		default:
 			//obiekt nieznany lub jeszcze niezaimplementowany

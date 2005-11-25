@@ -15,7 +15,8 @@ private:
 	char* bufferBegin;
 	char* bufferEnd;
 	
-	int Connection::deserialize(Result** rs);
+	int stringCopy(char* &newBuffer);
+	int deserialize(Result** rs);
 };
 
 #endif //_CONNECTION_H_
