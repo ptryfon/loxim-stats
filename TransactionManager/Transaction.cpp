@@ -134,7 +134,7 @@ namespace TManager
 	//	 printf("Error in semget\n"); 
 	//    printf("Mutex created\n");
 	//	 V(mutex);
-	//    printf("V mutex\n");
+	    printf("Create Transaction\n");fflush(stdout);
 	    transactions = new list<int>;
 	};
         
@@ -159,8 +159,11 @@ namespace TManager
 	//    V(mutex);
 	    
 	    TransactionID* tid = new TransactionID(currentId);	    
+	    printf("step 1\n");
 	    tr = new Transaction(tid);
+	    printf("step 2\n");
 	    tr->setSM(tranMgr->storeMgr);
+	    printf("step 3\n");
 	    return 0;           
 	}              
 
