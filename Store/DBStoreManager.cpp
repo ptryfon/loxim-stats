@@ -28,6 +28,7 @@ namespace Store
 		this->log = log;
 		this->buffer = new Buffer(this);
 		this->map = new Map(this);
+		this->roots = new Roots(this);
 
 		return 0;
 	};
@@ -70,6 +71,11 @@ namespace Store
 	Map* DBStoreManager::getMap()
 	{
 		return map;
+	};
+	
+	Roots* DBStoreManager::getRoots()
+	{
+		return roots;
 	};
 
 	int DBStoreManager::getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object)

@@ -8,6 +8,7 @@ SOURCES	=	Buffer.cpp \
 		DBStoreManager.cpp \
 		File.cpp \
 		Map.cpp \
+		Roots.cpp \
 		PagePointer.cpp
 
 HEADERS	=	Buffer.h \
@@ -18,6 +19,7 @@ HEADERS	=	Buffer.h \
 		DBStoreManager.h \
 		File.h \
 		Map.h \
+		Roots.h \
 		PagePointer.h \
 		Store.h \
 		Struct.h

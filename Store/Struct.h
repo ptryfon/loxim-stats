@@ -13,14 +13,21 @@
 #define STORE_PAGE_MAPHEADER			0x1001
 #define STORE_PAGE_MAPPAGE				0x1002
 #define STORE_PAGE_ROOTSHEADER			0x2001
-#define STORE_PAGE_ROOTPAGE				0x2002
+#define STORE_PAGE_ROOTSPAGE			0x2002
 
 namespace Store
 {
+	typedef struct physical_id
+	{
+		unsigned int page_id;
+		unsigned short file_id;
+		unsigned short offset;
+	} physical_id;
+
 	typedef struct page_header
 	{
-		unsigned short file_id;
 		unsigned int page_id;
+		unsigned short file_id;
 		unsigned short page_type;
 		unsigned int timestamp;
 	} page_header;
@@ -29,7 +36,7 @@ namespace Store
 	{
 		page_header page_hdr;
 		unsigned int page_count;
-		unsigned int next_id;
+		unsigned int last_assigned;
 	} map_header;
 
 	typedef struct map_page
@@ -40,8 +47,14 @@ namespace Store
 	typedef struct roots_header
 	{
 		page_header page_hdr;
+		unsigned int last_assigned;
 		unsigned int page_count;
 	} roots_header;
+
+	typedef struct roots_page
+	{
+		page_header page_hdr;
+	} roots_page;
 
 	typedef struct data_header
 	{

@@ -13,6 +13,8 @@ namespace Store
 	public:
 		PagePointer(unsigned short fileID, unsigned int pageID, char* pagePointer);
 
+		unsigned short getFileID();
+		unsigned int getPageID();
 		int aquire();
 		int release();
 		char* getPage();

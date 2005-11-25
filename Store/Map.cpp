@@ -1,5 +1,4 @@
 #include "Map.h"
-#include "Errors/Errors.h"
 
 namespace Store
 {
@@ -10,9 +9,11 @@ namespace Store
 
 	Map::~Map()
 	{
+		if (header)
+			delete header;
 	}
 
-	int Map::initializeMap(File* file)
+	int Map::initializeFile(File* file)
 	{
 		char* buf = new char[STORE_PAGESIZE];
 		map_header* header = (map_header*) buf;
@@ -24,7 +25,7 @@ namespace Store
 		header->page_hdr.page_type = STORE_PAGE_MAPHEADER;
 		header->page_hdr.timestamp = 0;
 		header->page_count = 16;
-		header->next_id = 0;
+		header->last_assigned = 0;
 		file->writePage(STORE_FILE_MAP, 0, buf);
 
 		memset(buf, 0, STORE_PAGESIZE);
@@ -38,6 +39,93 @@ namespace Store
 		}
 
 		delete buf;
+
+		return 0;
+	};
+
+	unsigned int Map::getLastAssigned()
+	{
+		unsigned int last;
+
+		if (!header)
+			store->getBuffer()->getPagePointer(STORE_FILE_MAP, 0);
+
+		header->aquire();
+		last = ((map_header*) header->getPage())->last_assigned;
+		header->release();
+
+		return last;
+	};
+
+	void Map::setLastAssigned(unsigned int last)
+	{
+		if (!header)
+			store->getBuffer()->getPagePointer(STORE_FILE_MAP, 0);
+
+		header->aquire();
+		((map_header*) header->getPage())->last_assigned = last;
+		header->release();
+	};
+
+	unsigned int Map::createLogicalID()
+	{
+		unsigned int last = getLastAssigned();
+		PagePointer* page = store->getBuffer()->getPagePointer(STORE_FILE_ROOTS, STORE_ROOTS_ROOTPAGE(last + 1));
+
+		page->aquire();
+
+		memset(page->getPage() + STORE_MAP_MAPOFFSET(last + 1), 0xFF, sizeof(physical_id));
+
+		page->release();
+
+		setLastAssigned(last + 1);
+		delete page;
+
+		return last + 1;
+	};
+
+	int Map::getPhysicalID(unsigned int logicalID, physical_id** physicalID)
+	{
+		*physicalID = 0;
+
+		if (!logicalID)
+			return 1;
+
+		unsigned int last = getLastAssigned();
+
+		if (last > logicalID)
+			return 2;
+
+		PagePointer* page = store->getBuffer()->getPagePointer(STORE_FILE_MAP, STORE_MAP_MAPPAGE(logicalID));
+
+		page->aquire();
+
+		*physicalID = (physical_id*) new char[sizeof(physical_id)];
+		memcpy(*physicalID, page->getPage() + STORE_MAP_MAPOFFSET(logicalID), sizeof(physical_id));
+
+		page->release();
+		delete page;
+
+		return 0;
+	};
+
+	int Map::setPhysicalID(unsigned int logicalID, physical_id* physicalID)
+	{
+		if (!logicalID || !physicalID)
+			return 1;
+
+		unsigned int last = getLastAssigned();
+
+		if (last > logicalID)
+			return 2;
+
+		PagePointer* page = store->getBuffer()->getPagePointer(STORE_FILE_MAP, STORE_MAP_MAPPAGE(logicalID));
+		page->aquire();
+
+		memcpy(page->getPage() + STORE_MAP_MAPOFFSET(logicalID), physicalID, sizeof(physical_id));
+
+		page->release();
+		delete page;
 
 		return 0;
 	};

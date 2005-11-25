@@ -9,6 +9,7 @@ namespace Store
 #include "Store.h"
 #include "Buffer.h"
 #include "Map.h"
+#include "Roots.h"
 #include "DBObjectPointer.h"
 
 using namespace std;
@@ -24,6 +25,7 @@ namespace Store
 		LogManager* log;
 		Buffer* buffer;
 		Map* map;
+		Roots* roots;
 
 	public:
 		DBStoreManager();
@@ -37,6 +39,7 @@ namespace Store
 		LogManager* getLogManager();
 		Buffer* getBuffer();
 		Map* getMap();
+		Roots* getRoots();
 
 		virtual int getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object);
 		virtual int createObject(TransactionID* tid, string name, DataValue* value, ObjectPointer*& object);

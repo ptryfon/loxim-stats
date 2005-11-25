@@ -1,5 +1,4 @@
 #include "PagePointer.h"
-#include "Errors/Errors.h"
 
 namespace Store
 {
@@ -8,6 +7,16 @@ namespace Store
 		this->fileID = fileID;
 		this->pageID = pageID;
 		this->pagePointer = pagePointer;
+	};
+
+	unsigned short PagePointer::getFileID()
+	{
+		return fileID;
+	};
+
+	unsigned int PagePointer::getPageID()
+	{
+		return pageID;
 	};
 
 	int PagePointer::aquire()
