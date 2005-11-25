@@ -96,7 +96,7 @@ namespace Store
 
 		for (unsigned int i = 0; i < last && !found; i++)
 		{
-			int pageid = STORE_ROOTS_ROOTPAGE(i);
+			unsigned int pageid = STORE_ROOTS_ROOTPAGE(i);
 
 			if (!page)
 				page = store->getBuffer()->getPagePointer(STORE_FILE_ROOTS, pageid);

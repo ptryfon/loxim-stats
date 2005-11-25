@@ -28,7 +28,7 @@ namespace Store
 		else
 		{
 			*file = 0;
-			return EBadFile | ErrStore;
+			return 1;
 		}
 
 		return 0;
