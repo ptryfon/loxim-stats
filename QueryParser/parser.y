@@ -1,8 +1,4 @@
 %{
-#include <stdlib.h>
-#include <stdio.h>
-#include <iostream>
-
 #include <string>
 #include <vector>
 #include "TreeNode.h"
@@ -13,7 +9,7 @@
 %}
 
 %union {
-  std::string *str;
+  char* str;
   int num;
   double dbl;
   QParser::TreeNode* tree;
@@ -54,13 +50,13 @@ statement   : query   SEMICOLON { d=$1; }
 	    | END     SEMICOLON { d=new TransactNode(TransactNode::end); }
             ;
 
-query	    : NAME { $$ = new NameNode(*$1); }
+query	    : NAME { char *s = $1; $$ = new NameNode(s); delete s; }
             | INTEGER { $$ = new IntNode($1); }
-            | STRING { $$ = new StringNode(*$1); }
+            | STRING { char *s = $1; $$ = new StringNode(s); delete s; }
 	    | DOUBLE { $$ = new DoubleNode($1); }
             | LEFTPAR query RIGHTPAR { $$ = $2; }
-            | query AS NAME { $$ = new NameAsNode($1,*$3,false); }
-	    | query GROUP_AS NAME { $$ = new NameAsNode($1,*$3,true); }
+            | query AS NAME { $$ = new NameAsNode($1,$3,false); }
+	    | query GROUP_AS NAME { $$ = new NameAsNode($1,$3,true); }
             | COUNT LEFTPAR  query RIGHTPAR { $$ = new UnOpNode($3,UnOpNode::count); }
 	    | SUM LEFTPAR  query RIGHTPAR { $$ = new UnOpNode($3,UnOpNode::sum); }
 	    | AVG LEFTPAR  query RIGHTPAR { $$ = new UnOpNode($3,UnOpNode::avg); }
@@ -96,8 +92,8 @@ query	    : NAME { $$ = new NameNode(*$1); }
 	    | query ORDER_BY query { $$ = new NonAlgOpNode($1,$3,NonAlgOpNode::orderBy); }
 	    | query EXISTS query { $$ = new NonAlgOpNode($1,$3,NonAlgOpNode::exists); }
 	    | query FOR_ALL query { $$ = new NonAlgOpNode($1,$3,NonAlgOpNode::forAll); }
-	    | CREATE NAME LEFTPAR query RIGHTPAR { $$ = new CreateNode(*$2,$4); }
-	    | CREATE NAME  { $$ = new CreateNode(*$2); }
+	    | CREATE NAME LEFTPAR query RIGHTPAR { $$ = new CreateNode($2,$4); }
+	    | CREATE NAME  { $$ = new CreateNode($2); }
 	    | INSERT query INTO query { $$ = new AlgOpNode($2,$4,AlgOpNode::insert); }
 	    | DELETE query  { $$ = new UnOpNode($2,UnOpNode::deleteOp); }
 	    ;
