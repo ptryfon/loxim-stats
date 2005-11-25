@@ -187,12 +187,16 @@ int Server::Run()
 	Receive((char **)messgBuff, &size);
 		
 	printf("[Server.Run]--> Request parse \n");
-	qPa->parseIt((string) messgBuff, tNode);
+	qPa->parseIt((string) messgBuff, &tNode);
 	
 	printf("[Server.Run]--> Request query result \n");
 	qEx->executeQuery(tNode, &qResult);
-	
+	 
 	printf("[Server.Run]--> Serializing data \n");
+	printf ("%d", (int)qResult);
+	
+	if (qResult == 0) {printf ("brak wyniku\n"); return 0;}
+	
 	Serialize(qResult, (char *)serializedMessg);
 	
 	//Send results to client
