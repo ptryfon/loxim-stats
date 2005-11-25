@@ -31,6 +31,7 @@ namespace Store
 		DBStoreManager();
 		~DBStoreManager();
 
+		Misc* misc;
 		int init(SBQLConfig* config, LogManager* log);
 		int start();
 		int stop();

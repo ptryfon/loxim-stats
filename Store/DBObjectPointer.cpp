@@ -6,6 +6,12 @@ using namespace std;
 
 namespace Store
 {
+	DBObjectPointer::DBObjectPointer(string nam, DataValue* dv)
+	{
+		name = nam;
+		value = dv;
+	};
+	
 	LogicalID* DBObjectPointer::getLogicalID()
 	{
 		return this->lid;

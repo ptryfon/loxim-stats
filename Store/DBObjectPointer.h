@@ -11,6 +11,7 @@ namespace Store
 	{
 	public:
 		DBObjectPointer() {};
+		DBObjectPointer(string, DataValue*);
 
 		virtual LogicalID* getLogicalID();
 		virtual string getName();

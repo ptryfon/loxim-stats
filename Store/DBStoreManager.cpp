@@ -4,6 +4,7 @@ namespace Store
 {
 	DBStoreManager::DBStoreManager()
 	{
+		misc = new Misc();
 	};
 
 	DBStoreManager::~DBStoreManager()
@@ -80,6 +81,7 @@ namespace Store
 
 	int DBStoreManager::getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object)
 	{
+//		for(int
 		object = new DBObjectPointer();
 
 		return 0;
@@ -87,8 +89,11 @@ namespace Store
 
 	int DBStoreManager::createObject(TransactionID* tid, string name, DataValue* value, ObjectPointer*& object)
 	{
-		object = 0;
-
+		
+		object = new DBObjectPointer(name, value);
+		
+		misc->vect.push_back(object);
+		
 		return 0;
 	};
 

@@ -156,6 +156,14 @@ namespace Store
 		// Operators
 		virtual ~StoreManager() {};
 	};
+	
+	class Misc
+	{
+	public:
+		Misc(){};
+	   vector <ObjectPointer*> vect;
+	};
+	
 };
 
 #endif
