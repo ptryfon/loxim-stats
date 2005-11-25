@@ -182,7 +182,7 @@ int Connection::deserialize(Result** rs) {
 		case Result::BINDER:
 		
 		default:
-			//obiekt nieznany lub jeszcze niezaimplementowany
+			cout << "deserialize: obiekt nieznany lub jeszcze niezaimplementowany" << endl;
 			*rs = NULL;
 			return 1;//w przyszlosci bedzie tu nr bledu
 	}
@@ -194,13 +194,17 @@ Result* Connection::execute(char* query){
       char* ptr;
       int ile;
       bufferReceive(&ptr, &ile, sock); //create buffer and set ptr to point at it
+      cout << "driver przyszlo bajtow: " << ile << " a tresc to: " << ptr << endl;
+      cout << "driver odebral" << endl;
       bufferBegin = ptr;
       bufferEnd = ptr+ile;
       
       Result* rs;
       int error = deserialize(&rs);
+      cout << "wynik deserializacji: " << error << endl;
       free(ptr); //free buffer created by bufferReceive()
       if (0 != error) return NULL;
+      cout << "Connection execute - zakonczone sukcesem" << endl;
       return rs;
 }
 
