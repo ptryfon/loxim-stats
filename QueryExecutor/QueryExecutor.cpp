@@ -45,9 +45,9 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 	if (TransactionManager::getHandle()->createTransaction(tr) != 0) {
 		fprintf(stderr, "Error in createTransaction\n");
 	}
-	
+fprintf(stderr, "otwarta transakcja\n");
 	nodeType = tree->type();
-fprintf(stderr, "Otwarta transakcja, wzialem typ.\n");
+fprintf(stderr, "Wzialem typ.\n");
 	switch (nodeType) 
 	
 	{
