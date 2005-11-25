@@ -15,18 +15,18 @@ OBJECTS	=	$(SOURCES:.cpp=.o)
 DEPFILES =	$(SOURCES:.cpp=.d) $(PROGRAM).d
 
 LIBS	=	../Config/Config.a \
+		../Errors/Errors.a \
 		../Log/Logs.a \
 		../QueryParser/QueryParser.a \
 		../Store/Store.a \
 		../TransactionManager/TransactionManager.a \
 		../QueryExecutor/QueryExecutor.a \
-		../Errors/Errors.a \
 		../Lock/Lock.a
 
 all: $(STATIC_LIB) $(PROGRAM)
 
 $(PROGRAM): $(OBJECTS) $(LIBS) $(STATIC_LIB)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $^ -o $@
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -Wl,--start-group $^ -Wl,--end-group -o $@
 
 clean:
 	rm -f $(OBJECTS) $(DEPFILES) $(STATIC_LIB) $(PROGRAM) $(PROGRAM).o
