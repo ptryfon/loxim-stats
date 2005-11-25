@@ -230,7 +230,7 @@ Result* Connection::execute(char* query){
       bufferEnd = ptr+ile;
       
       Result* rs;
-      int error = deserialize(&rs);
+      error = deserialize(&rs);
       cout << "<Connection::execute> wynik deserializacji: " << error << endl;
       free(ptr); //free buffer created by bufferReceive()
       if (0 != error)
