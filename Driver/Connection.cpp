@@ -42,7 +42,7 @@ int bufferReceive (char** buffer, int* receiveDataSize, int sock) {
          
          messgBuffBeg = messgBuff = (char*) malloc(msgSize);
          
-         if (messgBuff < 0) return 1; //TODO sprawdz czy blad
+         if (messgBuff == 0) return 1; //TODO sprawdz czy blad
          
          // parameterPtr = messgBuff;
          
@@ -123,6 +123,17 @@ int Connection::stringCopy(char* &newBuffer) { // od bufferBegin
 		return 0;
 }
 
+int Connection::getULong(unsigned long &val) {
+	if ((bufferBegin + sizeof (long)) <= bufferEnd) {
+		val = ntohl(*((unsigned long*) bufferBegin));
+		bufferBegin += sizeof (long); //skip the number of elements (long)
+		return 0;
+	} else {
+		cout << "<Connetion::getULong> proba czytania poza odebranym buforem" << endl;
+		return 1;
+	}
+}
+
 int Connection::deserialize(Result** rs) {
 	int error;
 //	bufferBegin++;
@@ -134,14 +145,15 @@ int Connection::deserialize(Result** rs) {
 		
 	switch (*(bufferBegin++)) {
 		case Result::BAG:
+			cout << "<Connection::deserialize> tworze obiekt BAG\n";
 //			bufferBegin++; //skip first byte
-			number = ntohl(*((unsigned long*) bufferBegin));
-			bufferBegin += sizeof(long); //skip the number of elements (long)
+			if (0 != getULong(number)) return 1; //by reference 
 
 			brs = new ResultBag(number);
 			
 			for (i = 1; i <= number; i++) {
 				if(0 != (error = deserialize(&result))) {
+					//TODO w razie bledu zniszczyc brs jak juz destruktor bedzie dzialac
 					*rs = NULL;
 					return error; //TODO poprawic sprawdzanie bledu
 				}
@@ -151,6 +163,7 @@ int Connection::deserialize(Result** rs) {
 			return 0;
 		
 		case Result::REFERENCE:
+			cout << "<Connection::deserialize> tworze obiekt REFERENCE\n";
 	//		bufferBegin++;
 			stringCopy(id); //by reference
 			*rs = (Result*) new ResultReference(id);
@@ -158,17 +171,25 @@ int Connection::deserialize(Result** rs) {
 			return 0;
 		
 		case Result::VOID:
+		cout << "<Connection::deserialize> tworze obiekt VOID\n";
 		//	bufferBegin++;
 			*rs = new ResultVoid();
 			return 0; 
 		
 		case Result::STRING:
+			cout << "<Connection::deserialize> tworze obiekt STRING\n";
 //			bufferBegin++;
 			stringCopy(id); // by reference
 			*rs = (Result*) new ResultString(string (id));
 			//co z id czy string je zabiera czy niszczy
 			return 0;
 		
+		case Result::ERROR:
+			cout << "<Connection::deserialize> tworze obiekt ERROR\n";
+			if (0 != getULong(number)) return 1; //by reference 
+			*rs = new ResultError(number);
+			return 0;
+			
 		case Result::SEQUENCE:
 		
 		case Result::STRUCT:
@@ -182,29 +203,39 @@ int Connection::deserialize(Result** rs) {
 		case Result::BINDER:
 		
 		default:
-			cout << "deserialize: obiekt nieznany lub jeszcze niezaimplementowany" << endl;
+			cout << "<Connection::deserialize> obiekt nieznany lub jeszcze niezaimplementowany" << endl;
 			*rs = NULL;
 			return 1;//w przyszlosci bedzie tu nr bledu
 	}
 }
 
 Result* Connection::execute(char* query){
+	
+	int error;
 
-      bufferSend(query, strlen(query)+1, sock);
+      error = bufferSend(query, strlen(query)+1, sock);
+      if (0 != error) {
+      	return new ResultError("sending error");
+      }
       char* ptr;
       int ile;
-      bufferReceive(&ptr, &ile, sock); //create buffer and set ptr to point at it
-      cout << "driver przyszlo bajtow: " << ile << " a tresc to: " << ptr << endl;
-      cout << "driver odebral" << endl;
+      error = bufferReceive(&ptr, &ile, sock); //create buffer and set ptr to point at it
+      if (error != 0) {
+      	if (ptr != NULL) free(ptr);
+      	return new ResultError("receiving error");
+      }
+      cout << "<Connection::execute> driver przyszlo bajtow: " << ile << " a tresc to: " << ptr << endl;
+      cout << "<Connection::execute> driver odebral" << endl;
       bufferBegin = ptr;
       bufferEnd = ptr+ile;
       
       Result* rs;
       int error = deserialize(&rs);
-      cout << "wynik deserializacji: " << error << endl;
+      cout << "<Connection::execute> wynik deserializacji: " << error << endl;
       free(ptr); //free buffer created by bufferReceive()
-      if (0 != error) return NULL;
-      cout << "Connection execute - zakonczone sukcesem" << endl;
+      if (0 != error)
+      	return new ResultError("blad protokolu");
+      cout << "<Connection::execute> obiekt Result stworzony -> procedura zakonczona sukcesem" << endl;
       return rs;
 }
 

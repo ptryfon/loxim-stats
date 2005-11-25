@@ -15,6 +15,7 @@ private:
 	char* bufferBegin;
 	char* bufferEnd;
 	
+	int getULong(unsigned long &val);
 	int stringCopy(char* &newBuffer);
 	int deserialize(Result** rs);
 };
