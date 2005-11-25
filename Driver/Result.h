@@ -10,18 +10,18 @@ using namespace std;
 class Result
 {
 public:
-	enum ResultType { RESULT=0, SEQUENCE=1, BAG=2, 
-                      STRUCT=3, BINDER=4,   STRING=5, 
-                      INT=6,    DOUBLE=7,   BOOL=8, 
-                      REFERENCE=9, VOID=10 };
+	enum ResultType { RESULT=0,    SEQUENCE=1, BAG=2, 
+			  STRUCT=3,    BINDER=4,   STRING=5, 
+			  INT=6,       DOUBLE=7,   BOOL=8, 
+			  REFERENCE=9, VOID=10 };
 	Result() {};
 	virtual bool    operator==(Result& r)    =0;
-  	virtual Result* clone()			         =0;
+  	virtual Result* clone()			 =0;
 	virtual int     getType() { return RESULT; }
 	virtual ~Result() { }
 	
 	//Maybe remove that:
-	virtual void    toStream(ostream& os) const { os << "no type"; }			
+	virtual void    toStream(ostream& os) const { os << "no type"; }
 	friend ostream& operator<<(ostream&, Result&);	
 };//class Result
 
@@ -37,10 +37,10 @@ public:
 
 	bool    operator==(Result& r){ return false;       }
   	Result* clone()              { return NULL;        }
-  	int 	getType()			 { return Result::BAG; }      
-	int     size()				 { return bag.size();  }
-	void    add(Result* val)  	 { bag.push_back(val); }
-	Result* get(int i)		  	 { return bag.at(i);   }
+  	int 	getType()	     { return Result::BAG; }      
+	int     size()		     { return bag.size();  }
+	void    add(Result* val)     { bag.push_back(val); }
+	Result* get(int i)	     { return bag.at(i);   }
 	void   toStream(ostream& os) const ;
 	
 	virtual ~ResultBag() {} 
@@ -62,7 +62,7 @@ public:
   	int 	getType()         { return Result::STRUCT;    }      
 	int     size()            { return str.size();        }
 	void    add(Result* val)  { str.push_back(val);       }
-	Result* get(int i)		  { return str.at(i);		  }
+	Result* get(int i)	  { return str.at(i);	      }
 	void   toStream(ostream& os) const ;
 		
 	virtual ~ResultStruct()   {}
@@ -84,7 +84,7 @@ public:
   	int 	getType()         { return Result::SEQUENCE;  }      
 	int     size()            { return seq.size();        }
 	void    add(Result* val)  { seq.push_back(val);       }
-	Result* get(int i)		  { return seq.at(i);		  }
+	Result* get(int i)	  { return seq.at(i);	      }
 	void   toStream(ostream& os) const ;
 
 	virtual ~ResultSequence() {}
@@ -106,10 +106,10 @@ public:
 	bool   operator==(Result& r) { return false;    }
 //  	ResultReference* clone()   { return (new ResultReference(value)); }
 	ResultReference* clone()     { return NULL;     }
-	int    getType() 			 { return Result::REFERENCE; }
+	int    getType() 	     { return Result::REFERENCE; }
 	
 	void   setValue(int val)     { value = val;     }
-	int    getValue()		     { return value;    }
+	int    getValue()	     { return value;    }
 	void   setChValue(char* val) { ch_value = val;  }
 	char*  getChValue()          { return ch_value; }
 //	string toString();
@@ -126,9 +126,9 @@ public:
 	ResultInt(int val) : value(val) { }
 	bool   operator==(Result& r) { return false;         }
 	ResultReference* clone()     { return NULL;          }
-	int    getType() 			 { return Result::INT;   }
+	int    getType() 	     { return Result::INT;   }
 	void   setValue(int value)   { this->value = value;  }
-	int    getValue()			 { return value;		 }
+	int    getValue()	     { return value;	     }
 	void   toStream(ostream& os) const { os << value;    }		
 	~ResultInt() {}
 };//class ResultInt
@@ -142,10 +142,10 @@ public:
 	ResultString(string val) : value(val) { }
 	bool   operator==(Result& r) { return false;         }
 	ResultReference* clone()     { return NULL;          }
-	int    getType() 			 { return Result::STRING;}
+	int    getType() 	     { return Result::STRING;}
 	void   setValue(string value){ this->value = value;  }
-	string getValue()		     { return value;		 }
-	void   toStream(ostream& os) const { os << value;	 }	
+	string getValue()	     { return value;         }
+	void   toStream(ostream& os) const { os << value;    }	
 	~ResultString() {}
 };//class ResultString
 
@@ -158,10 +158,10 @@ public:
 	ResultBool(bool val) : value(val) { }
 	bool   operator==(Result& r) { return false;         }
 	ResultReference* clone()     { return NULL;          }
-	int    getType() 			 { return Result::BOOL;  }
+	int    getType() 	     { return Result::BOOL;  }
 	void   setValue(bool value)  { this->value = value;  }
-	bool   getValue()		     { return value;		 }
-	void   toStream(ostream& os) const { os << value;	 }
+	bool   getValue()	     { return value;	     }
+	void   toStream(ostream& os) const { os << value;    }
 	~ResultBool() {}
 };//class ResultString
 
@@ -173,7 +173,7 @@ public:
 	ResultVoid() {};
 	bool   operator==(Result& r) { return false;         }
 	ResultReference* clone()     { return NULL;          }
-	int    getType() 			 { return Result::VOID;  }
+	int    getType() 	     { return Result::VOID;  }
 	void     toStream(ostream& os) const { os << "void"; }
 	virtual ~ResultVoid() {};
 };//class ResultVoid 
