@@ -1,5 +1,7 @@
 include ../make.defs
 
+CXXFLAGS=-I./ -I./../ -Wall
+
 PROGRAM	=	SBQLCli
 
 SOURCES	=	SBQLCli.cpp
