@@ -18,7 +18,7 @@
 #include "QueryParser/TreeNode.h"
 #include "QueryExecutor.h"
 #include "Errors/Errors.h"
-#include "Errors/ErrorConsole.h"
+//#include "Errors/ErrorConsole.h"
 
 using namespace QParser;
 using namespace TManager;
@@ -36,8 +36,8 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 	int nodeType; //to tylko tymczasowo.
 	vector<ObjectPointer*>* vec;
 	int vecSize;
-	ErrorConsole ec;
-	int errcode;
+	//ErrorConsole ec;
+	//int errcode;
 	  
 	fprintf(stderr, "QueryExecutor method: queryResult\n");
 	fprintf(stderr, "QueryExecutor asking TransactionManager for a new transaction\n");
@@ -57,10 +57,10 @@ fprintf(stderr, "Otwarta transakcja, wzialem typ.\n");
 		{
 		name = tree->getName();
 		fprintf(stderr, "Typ: TNNAME\n");
-		if ((errcode = tr->getRoots(name, vec)) != 0)
+		if (tr->getRoots(name, vec) != 0)
 			{
-			ec << (errcode);
-			return -1; //EGetRoots | ErrQExecutor;
+			//ec << (errcode);
+			return EGetRoot | ErrQExecutor;
 			}
 		vecSize = vec->size();
 		fprintf(stderr, "Wziete rootsy\n");
@@ -115,7 +115,7 @@ fprintf(stderr, "Otwarta transakcja, wzialem typ.\n");
 		
 			default: 
 				{
-				ec << (EBadType | ErrQExecutor);
+				//ec << (EBadType | ErrQExecutor);
 				return EBadType | ErrQExecutor;
 				}
 			
@@ -130,14 +130,14 @@ fprintf(stderr, "Otwarta transakcja, wzialem typ.\n");
 			value=NULL;
 			}
 		
-		if ((errcode = tr->createObject(name, value, optr)) != 0)
+		if (tr->createObject(name, value, optr) != 0)
 			{
-			ec << (errcode);
+			//ec << (errcode);
 			return EObjCreate | ErrQExecutor;
 			}
 		if (tr->addRoot(optr) != 0)
 			{
-			ec << (ERootAdd | ErrQExecutor);
+			//ec << (ERootAdd | ErrQExecutor);
 			return ERootAdd | ErrQExecutor;
 			}
 		*result = (QueryResult *) (new QueryNothingResult);
@@ -157,7 +157,7 @@ fprintf(stderr, "Otwarta transakcja, wzialem typ.\n");
 	
 	default:
 		{
-		ec << (ENoType | ErrQExecutor);
+		//ec << (ENoType | ErrQExecutor);
 		return ENoType | ErrQExecutor;
 		}
 	
