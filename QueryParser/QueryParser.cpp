@@ -13,9 +13,6 @@ using namespace std;
 
 namespace QParser {
 
-/*	(MH: replaced this old header...)
-	TreeNode* QueryParser::parse(string query)
-*/
 	int QueryParser::parseIt(string query, TreeNode *&qTree)
 	{
 		stringstream ss (stringstream::in | stringstream::out);
@@ -25,7 +22,5 @@ namespace QParser {
 		delete lexer;
 		qTree = d;
 		return 0;
-/*		return d;
-*/
 	}  
 }
