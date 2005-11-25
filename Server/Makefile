@@ -15,12 +15,12 @@ OBJECTS	=	$(SOURCES:.cpp=.o)
 DEPFILES =	$(SOURCES:.cpp=.d) $(PROGRAM).d
 
 LIBS	=	../Config/Config.a \
-		../Errors/Errors.a \
 		../Log/Logs.a \
 		../QueryParser/QueryParser.a \
 		../Store/Store.a \
 		../TransactionManager/TransactionManager.a \
 		../QueryExecutor/QueryExecutor.a \
+		../Errors/Errors.a \
 		../Lock/Lock.a
 
 all: $(STATIC_LIB) $(PROGRAM)

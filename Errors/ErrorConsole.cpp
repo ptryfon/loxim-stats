@@ -19,7 +19,7 @@ namespace Errors {
 	};
 
 	ErrorConsole::ErrorConsole(string module)
-       	{
+	{
 		if (consoleFile == NULL)
 			consoleFile = new ofstream("sbqlerror.log", ios::app);
 		nObjects++;
