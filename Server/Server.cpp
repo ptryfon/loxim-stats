@@ -187,7 +187,7 @@ int Server::Run()
 	Receive((char **)messgBuff, &size);
 		
 	printf("[Server.Run]--> Request parse \n");
-	qPa->parseIt((string) messgBuff, &tNode);
+	qPa->parseIt((string) messgBuff, tNode); //by reference
 	
 	printf("[Server.Run]--> Request query result \n");
 	qEx->executeQuery(tNode, &qResult);
