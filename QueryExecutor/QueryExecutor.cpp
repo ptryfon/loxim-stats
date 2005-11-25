@@ -60,11 +60,15 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult *result) {
 			return -1;
 			}
 		vecSize = vec->size();
+		QueryBagResult *resbag = new QueryBagResult;
 		for (int i = 0; i < vecSize; i++ )
 			{
    			optr = vec->at(i);
 			lid = optr->getLogicalID();
+			QueryReferenceResult *lidres = new QueryReferenceResult(lid);
+			resbag->addResult(lidres);
 			}
+		result = (QueryResult *) resbag;
 		return 0;
 		}
 
@@ -129,6 +133,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult *result) {
 			fprintf(stderr, "Error in addRoot\n");
 			return ERootAdd | ErrQExecutor;
 			}
+		result = (QueryResult *) (new QueryNothingResult);
 		return 0;
 		}
 		
