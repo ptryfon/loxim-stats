@@ -24,7 +24,7 @@ using namespace TManager;
 
 namespace QExecutor {
 
-int QueryExecutor::executeQuery(TreeNode *tree, QueryResult *result) {
+int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 	Transaction *tr;
 	LogicalID *lid;
 	//AccessMode mode;
@@ -68,7 +68,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult *result) {
 			QueryReferenceResult *lidres = new QueryReferenceResult(lid);
 			resbag->addResult(lidres);
 			}
-		result = (QueryResult *) resbag;
+		*result = (QueryResult *) resbag;
 		return 0;
 		}
 
@@ -133,7 +133,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult *result) {
 			fprintf(stderr, "Error in addRoot\n");
 			return ERootAdd | ErrQExecutor;
 			}
-		result = (QueryResult *) (new QueryNothingResult);
+		*result = (QueryResult *) (new QueryNothingResult);
 		return 0;
 		}
 		
