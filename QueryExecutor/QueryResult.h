@@ -13,17 +13,17 @@ class QueryResult
 {
 public:
 	enum QueryResultType {
-		QRESULT,
-		QSEQUENCE,
-		QBAG,
-		QSTRUCT,
-		QBINDER,
-		QSTRING,
-		QINT,
-		QDOUBLE,
-		QBOOL,
-		QREFERENCE,
-		QNOTHING
+		QRESULT   = 0,
+		QSEQUENCE = 1,
+		QBAG      = 2,
+		QSTRUCT   = 3,
+		QBINDER   = 4,
+		QSTRING   = 5,
+		QINT      = 6,
+		QDOUBLE   = 7,
+		QBOOL     = 8,
+		QREFERENCE= 9,
+		QNOTHING  =10
 		};
 		
 	//virtual bool operator==(QueryResult& r)=0;
