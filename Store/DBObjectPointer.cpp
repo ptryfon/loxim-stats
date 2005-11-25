@@ -8,22 +8,22 @@ namespace Store
 {
 	LogicalID* DBObjectPointer::getLogicalID()
 	{
-		return new DBLogicalID();
+		return this->lid;
 	};
 
 	string DBObjectPointer::getName()
 	{
-		return "generic";
+		return this->name;
 	};
 
 	AccessMode DBObjectPointer::getMode()
 	{
-		return Store::Read;
+		return this->mode;
 	};
 
 	DataValue* DBObjectPointer::getValue()
 	{
-		return new DBDataValue();
+		return this->value;
 	};
 
 	void DBObjectPointer::setValue(DataValue* val)

@@ -29,6 +29,10 @@ namespace Store
 		virtual void setVector(vector<ObjectPointer*>* value);
 
 		virtual bool operator==(DataValue& dv);
+		
+	private:
+		DataType type;
+		string value;	
 	};
 }
 

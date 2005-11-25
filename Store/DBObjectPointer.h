@@ -20,6 +20,12 @@ namespace Store
 		virtual string toString();
 
 		virtual bool operator==(ObjectPointer& dv);
+	
+	private:
+		AccessMode mode;
+		string name;
+		DataValue* value;	
+		LogicalID* lid;
 	};
 }
 
