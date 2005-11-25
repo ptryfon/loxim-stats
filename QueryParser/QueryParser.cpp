@@ -16,13 +16,16 @@ namespace QParser {
 	int QueryParser::parseIt(string query, TreeNode *&qTree)
 	{
 		stringstream ss (stringstream::in | stringstream::out);
-//		string querytest = "pracownik ;";
 		ss << query;
 		lexer = new yyFlexLexer(&ss); 
-		yyparse();
-		printf( "po tescie d: %d. \n", d);
+	        int res = yyparse();
+		if (res != 0)
+		    cout << "zapytanie nie sparsowane..." << endl;
+		else
+		    cout << "zapytanie sparsowane chyba ok" << endl;
 		delete lexer;
 		qTree = d;
+		printf( "po parsowaniu treeNode: %d. \n", qTree);
 		return 0;
 	}  
 }
@@ -36,3 +39,4 @@ int main () {
 
 }
 */
+
