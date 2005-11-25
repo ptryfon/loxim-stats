@@ -27,7 +27,50 @@ namespace Errors {
 
 	void ErrorConsole::operator<<(int error)
        	{
-		*consoleFile << error;
+		switch(error & ErrAllModules) {
+			case ErrBackup:
+				*consoleFile << "Backup: ";
+				break;
+			case ErrConfig:
+				*consoleFile << "Config: ";
+				break;
+			case ErrDriver:
+				*consoleFile << "Driver: ";
+				break;
+			case ErrErrors:
+				*consoleFile << "Errors: ";
+				break;
+			case ErrLockMgr:
+				*consoleFile << "LockMgr: ";
+				break;
+			case ErrLogs:
+				*consoleFile << "Logs: ";
+				break;
+			case ErrQExecutor:
+				*consoleFile << "QExecutor: ";
+				break;
+			case ErrQParser:
+				*consoleFile << "QParser: ";
+				break;
+			case ErrSBQLCli:
+				*consoleFile << "SBQLCli: ";
+				break;
+			case ErrServer:
+				*consoleFile << "Server: ";
+				break;
+			case ErrStore:
+				*consoleFile << "Store: ";
+				break;
+			case ErrTManager:
+				*consoleFile << "TManager: ";
+				break;
+			default:
+				*consoleFile << "Aieeeee! \"Unknown\" returned: ";
+				break;
+		}
+		*consoleFile << "errno: ";
+		*consoleFile << (error & ~ErrAllModules);
+		*consoleFile << endl;
 	};
 
 	void ErrorConsole::operator<<(string errorMsg)
