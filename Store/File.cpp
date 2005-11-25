@@ -57,7 +57,7 @@ namespace Store
 			froots->open("sbroots", ios::in | ios::out | ios::binary | ios::trunc);
 			fdefault->open("sbdefault", ios::in | ios::out | ios::binary | ios::trunc);
 
-			store->getMap()->initializeMap(this);
+			store->getMap()->initializeFile(this);
 		}
 
 		started = 1;
