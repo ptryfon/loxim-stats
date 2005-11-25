@@ -176,29 +176,31 @@ int Server::Run()
 	QueryResult *qResult;
 	
 	printf("[Server.Run]--> Creating message buffers \n");
-	char messgBuff[MAX_MESSG];
+	char *messgBuff; //Piotrek
 	char serializedMessg[MAX_MESSG+MAX_MESSG_HEADER_LEN];
-	memset(messgBuff, '\0', MAX_MESSG);
-	memset(serializedMessg, 0, MAX_MESSG+MAX_MESSG_HEADER_LEN);
+//	memset(messgBuff, '\0', MAX_MESSG); //Piotrek
+//	memset(serializedMessg, 0, MAX_MESSG+MAX_MESSG_HEADER_LEN); //Piotrek
 	
 	
 	//Get string from client
 	printf("[Server.Run]--> Receiving query from client \n");
-	Receive((char **)messgBuff, &size);
+	Receive(&messgBuff, &size); //Piotrek
 		
 	printf("[Server.Run]--> Request parse \n");
-	qPa->parseIt((string) messgBuff, tNode); //by reference
+	printf("string do parsera: %s\n", messgBuff);
+	cout << (string) messgBuff << endl; //Piotrek
+	qPa->parseIt((string) messgBuff, tNode); //by reference //Piotrek
 	
-	printf("tree node%d", (int) tNode);
+	printf("tree node%d\n", (int) tNode); //Piotrek
 	printf("[Server.Run]--> Request query result \n");
-	qEx->executeQuery(tNode, &qResult);
+	qEx->executeQuery(tNode, &qResult); 
 	 
 	printf("[Server.Run]--> Serializing data \n");
 	printf ("%d", (int)qResult);
 	
-	if (qResult == 0) {printf ("brak wyniku\n"); return 0;}
+	if (qResult == 0) {printf ("brak wyniku\n"); return 0;} //Piotrek
 	
-	Serialize(qResult, (char *)serializedMessg);
+	Serialize(qResult, (char *)serializedMessg); 
 	
 	//Send results to client
 	printf("[Server.Run]--> Sending results to client \n");		
