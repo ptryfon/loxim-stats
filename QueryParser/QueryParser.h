@@ -6,17 +6,16 @@
 
 using namespace std;
 
-namespace QParser {
+namespace QParser 
+{
 
-class QueryParser {
+    class QueryParser 
+    {
 	public:
-/*	
-	virtual TreeNode* parse(string query);
-*/
+
 	virtual int parseIt (string s, TreeNode *&aTree);
 	virtual ~QueryParser() {}
-};
-
+    };
 }
 
 #endif
