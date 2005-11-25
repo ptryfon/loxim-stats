@@ -36,7 +36,9 @@ int main(int argc, char *argv[]) {
   cout << " > ";
   while (cin.getline(input,50)) {
     Result* result = con->execute(input);
-    cout << *result;
+    if (result != 0) { //Piotrek - mam nadzieje ze sie nie obrazisz :)
+    	cout << *result;
+    } else {cout << "zapytanie nie powiodlo sie" << endl;}
     cout << endl << " > ";
   };
 
