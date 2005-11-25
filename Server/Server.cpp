@@ -189,6 +189,7 @@ int Server::Run()
 	printf("[Server.Run]--> Request parse \n");
 	qPa->parseIt((string) messgBuff, tNode); //by reference
 	
+	printf("tree node%d", (int) tNode);
 	printf("[Server.Run]--> Request query result \n");
 	qEx->executeQuery(tNode, &qResult);
 	 
