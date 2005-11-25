@@ -130,9 +130,11 @@ namespace TManager
 
 	TransactionManager::TransactionManager() 
 	{
-	    if ((mutex = semget(SEMKEY1, 1, 0666 | IPC_CREAT | IPC_EXCL)) < 0)	    
-		 printf("Error in semget\n"); //exit(1); }	     
-		 V(mutex);
+	    //if ((mutex = semget(SEMKEY1, 1, 0666 | IPC_CREAT | IPC_EXCL)) < 0)	    
+	//	 printf("Error in semget\n"); 
+	//    printf("Mutex created\n");
+	//	 V(mutex);
+	//    printf("V mutex\n");
 	    transactions = new list<int>;
 	};
         
@@ -142,18 +144,19 @@ namespace TManager
 	
 	TransactionManager::~TransactionManager()
 	{
-	      semctl (mutex, 0, IPC_RMID,0);
+	//      semctl (mutex, 0, IPC_RMID,0);
               	    
 	}
 	int TransactionManager::createTransaction(Transaction* &tr)
 	{
-	    printf("TransactionManager::createTransaction 0\n");fflush(stdout);
+	    printf("TransactionManager::createTransaction\n");fflush(stdout);
 	    
-	    P(mutex);
+	//    P(mutex);
+	        printf("Sekcja krytyczna \n");
 		int currentId = transactionId;
 		transactionId++;
 		addTransaction(currentId);
-	    V(mutex);
+	//    V(mutex);
 	    
 	    TransactionID* tid = new TransactionID(currentId);	    
 	    tr = new Transaction(tid);
@@ -176,12 +179,12 @@ namespace TManager
 	list<int>* TransactionManager::getTransactions()
 	{
 	    /* block creating new transactions */
-	    P(mutex);
+	//    P(mutex);
 		list<int>* copy_of_transactions = new list<int>;
 		for (list<int>::iterator i = transactions->begin();
 			i != transactions->end(); i++)
 		copy_of_transactions->push_back(*i);
-	    V(mutex);
+	//    V(mutex);
 	    return copy_of_transactions;  
 	}
 	
@@ -201,9 +204,9 @@ namespace TManager
 
 	int TransactionManager::remove_from_list(int id)
 	{
-	    P(mutex);
+	//    P(mutex);
 		transactions->remove(id);
-	    V(mutex);
+	//    V(mutex);
 	    return 0;
 	}
 }
