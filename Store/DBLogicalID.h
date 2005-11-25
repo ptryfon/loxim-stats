@@ -17,6 +17,8 @@ namespace Store
 		virtual string toString();
 
 		virtual bool operator==(LogicalID& lid);
+	private:
+		int value;
 	};
 }
 

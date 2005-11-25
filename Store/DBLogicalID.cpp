@@ -15,7 +15,10 @@ namespace Store
 
 	string DBLogicalID::toString()
 	{
-		return "123456789";
+	   char cs[100];
+		sprintf(cs, "%ld", value);
+		string s(cs);
+		return s;
 	};
 
 	bool DBLogicalID::operator==(LogicalID& lid)
