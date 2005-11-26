@@ -4,7 +4,7 @@ using namespace std;
 
 namespace Store
 {
-	DBLogicalID::DBLogicalID(int v)
+	DBLogicalID::DBLogicalID(unsigned int v)
 	{
 		value = v;
 	};
@@ -25,14 +25,20 @@ namespace Store
 		return str.str();
 	};
 	
-	long long DBLogicalID::toLongLong() const
+	unsigned int DBLogicalID::toInteger() const
 	{
-		return static_cast<long long>(value);
+		return static_cast<unsigned int>(value);
 	};
 
 	bool DBLogicalID::operator==(LogicalID& lid)
 	{
-		return (this->toLongLong() == lid.toLongLong());
+		return (this->toInteger() == lid.toInteger());
+	};
+
+	DBLogicalID& DBLogicalID::operator=(const LogicalID& lid)
+	{
+		value = lid.toInteger();;
+		return *this;
 	};
 }
 

@@ -2,6 +2,7 @@
 #define __STORE_DBDATAVALUE_H__
 
 #include "Store.h"
+#include "DBLogicalID.h"
 
 using namespace std;
 
@@ -10,19 +11,21 @@ namespace Store
 	class DBDataValue : public DataValue
 	{
 	private:
-		typedef struct complex_value {
-			DataType type;
+		typedef //struct complex_value {
+			//DataType type;
 			union {
-				int int_value;
-				double double_value;
-				char* char_value;
+				int* int_value;
+				double* double_value;
+				string* string_value;
 				LogicalID* pointer_value;
 				vector<ObjectPointer*>* vector_value;
-			} v;
+//			} v;
 		} complex_value;
 
 	public:
-		DBDataValue() {};
+		DBDataValue();
+		DBDataValue(int value);
+		~DBDataValue();
 
 		virtual DataType getType();
 		virtual void toByteArray(unsigned char** lid, int* length);
@@ -45,6 +48,9 @@ namespace Store
 	private:
 		DataType type;
 		complex_value value;
+
+		void p_clearPtr();
+		void p_destroyVal();
 	};
 }
 
