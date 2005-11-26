@@ -76,6 +76,7 @@ int  Server::Serialize(QueryResult *qr, char **buffer)
 	QueryResult *collItem;
 	QueryStringResult *stringRes;
 	QueryBagResult *bagRes;
+	//cenzura
 	Result::ResultType resType;
 	resType=(Result::ResultType)qr->type();
 	int valSize;
@@ -83,6 +84,7 @@ int  Server::Serialize(QueryResult *qr, char **buffer)
 	string strVal;
 	unsigned long bufBagLen;
 	char *bufferP;
+	char sentType;
 	
 	char *dupaTest="dupa";
 	
@@ -167,6 +169,12 @@ int  Server::Serialize(QueryResult *qr, char **buffer)
 		    memcpy(&bufferP, dupaTest, strlen(dupaTest));
 		   // memcpy(&buffer, '\0', 1);
 		    break;    
+		 case Result::VOID:
+			printf("[Server.Serialize]--> VOID type, sending type indicator only \n");
+			sentType=(char)resType;
+			memcpy(bufferP, (void *)sentType, 1);
+			printf("[Server.Serialize]--> VOID type written \n");
+			break;
 		default:
 			printf("[Server.Serialize]--> object type not handled yet(!) \n");
 			return -1;
