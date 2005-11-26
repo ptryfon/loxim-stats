@@ -11,17 +11,15 @@ namespace Store
 	{
 	private:
 		typedef struct complex_value {
-		    
-		    DataType type;
-		    union {
-			int int_value;
-			double double_value;
-			char* char_value;
-			LogicalID* pointer_value;
-			vector<ObjectPointer*>* vector_value;
-		    } v;
-		} complex_value;    	
-
+			DataType type;
+			union {
+				int int_value;
+				double double_value;
+				char* char_value;
+				LogicalID* pointer_value;
+				vector<ObjectPointer*>* vector_value;
+			} v;
+		} complex_value;
 
 	public:
 		DBDataValue() {};
