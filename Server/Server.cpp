@@ -83,14 +83,16 @@ int  Server::Serialize(QueryResult *qr, char **buffer)
 	int bagSize;
 	string strVal;
 	unsigned long bufBagLen;
-	char *bufferP;
-	char sentType;
+	char bufferP[MAX_MESSG];
+	char sentType[1];
+	sentType[0]='\0';
+	char *finalBuf;
 	
 	char *dupaTest="dupa";
 	
-	bufferP=(char*) malloc(MAX_MESSG);
+	finalBuf = (char *)malloc(MAX_MESSG);
 	memset(bufferP, '\0', MAX_MESSG); 
-	printf("[Server.Serialize]--> Starting 1\n");
+	//printf("[Server.Serialize]--> Starting 1\n");
 	
 	//int i;
 	printf("[Server.Serialize]--> Starting \n");
@@ -112,7 +114,7 @@ int  Server::Serialize(QueryResult *qr, char **buffer)
 			
 			printf("[Server.Serialize]--> Adding bag header \n");
 			memcpy(bufferP, (void *)resType, 1);
-			bufferP=bufferP+1;
+			//bufferP=bufferP+1;
 			memcpy(bufferP, (void *)bufBagLen, sizeof(unsigned long));
 			printf("[Server.Serialize]--> Bag header complete \n");
 												
@@ -129,10 +131,10 @@ int  Server::Serialize(QueryResult *qr, char **buffer)
 							valSize=stringRes->size();
 							printf("[Server.Serialize]--> Adding string header \n");
 							memcpy(bufferP, (void *)resType, 1);
-							bufferP=bufferP+1;
+			//				bufferP=bufferP+1;
 							printf("[Server.Serialize]--> String header complete \n");
 							strVal.copy(bufferP, valSize);
-							bufferP=bufferP + valSize;
+			//				bufferP=bufferP + valSize;
 							break;
 						default:
 							printf("[Server.Serialize]--> Getting something else(!) \n");
@@ -153,10 +155,10 @@ int  Server::Serialize(QueryResult *qr, char **buffer)
 			valSize=stringRes->size();
 			printf("[Server.Serialize]--> Adding string header \n");
 			memcpy(bufferP, (void *)resType, 1);
-			bufferP=bufferP+1;
+			//bufferP=bufferP+1;
 			printf("[Server.Serialize]--> String header complete \n");
 			strVal.copy(bufferP, valSize);
-			bufferP=bufferP + valSize;
+			//bufferP=bufferP + valSize;
 			break;
 		case Result::RESULT:
 			printf("\n[Server.Serialize]--> BAD TYPE RECEIVED FROM EXECUTOR -- RESULT \n \n");
@@ -166,13 +168,13 @@ int  Server::Serialize(QueryResult *qr, char **buffer)
 		   // memcpy(buffer, (char *)resType, 4);
 		   // printf("[Server.Serialize]--> in progress.. \n");
 		   // printf("[Server.Serialize]--> Some header added \n"); 
-		    memcpy(&bufferP, dupaTest, strlen(dupaTest));
+		    memcpy(bufferP, dupaTest, strlen(dupaTest));
 		   // memcpy(&buffer, '\0', 1);
 		    break;    
 		 case Result::VOID:
-			printf("[Server.Serialize]--> VOID type, sending type indicator only \n");
-			sentType=(char)resType;
-			memcpy(bufferP, (void *)sentType, 1);
+			printf("[Server.Serialize]--> VOID type, sending type indicator and C(orrect) (what should I?)\n");
+			sprintf(bufferP, "%dC", (int)resType);
+			//printf("%s\n", bufferP);
 			printf("[Server.Serialize]--> VOID type written \n");
 			break;
 		default:
@@ -181,8 +183,9 @@ int  Server::Serialize(QueryResult *qr, char **buffer)
 			break;
 	}
 	printf("[Server.Serialize]--> Done! \n");
-	*buffer = bufferP;
-	printf("[Server.Serialize]--> I've got a nice buffer containing:  \n--->\n%s\n<---\n", (char *)buffer);
+	memcpy(&finalBuf, &bufferP, MAX_MESSG);
+	*buffer = finalBuf;
+	printf("[Server.Serialize]--> I've got a nice buffer containing:  \n--->\n%s\n<---\n", buffer);
 	return 0;
 }
 
@@ -243,7 +246,7 @@ int Server::Run()
 	
 	//Send results to client
 	printf("[Server.Run]--> Sending results to client \n");		
-	printf("[Server.Run]--> Sending.. (%s) \n", (char *)serializedMessg); 
+	printf("[Server.Run]--> Sending.. (%s)\n", serializedMessg); 
 	Send(serializedMessg, MAX_MESSG);
 	
 	printf("[Server.Run]--> Releasing message buffers \n");
