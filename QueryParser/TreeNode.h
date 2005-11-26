@@ -1,6 +1,8 @@
 #ifndef _TREE_NODE_H_
 #define _TREE_NODE_H_
 
+#include <iostream>
+
 #include <vector>
 #include <string>
 using namespace std;
@@ -21,7 +23,7 @@ namespace QParser {
 	virtual TreeNode* clone()=0;
 	virtual int type()=0;
 	virtual ~TreeNode() {}
-  
+	virtual int putToString()=0;
     // na wniosek Executora:
 	virtual string getName() {return (string) NULL;}
 	virtual TreeNode* getArg() {return (TreeNode *) NULL;}
@@ -33,6 +35,7 @@ namespace QParser {
     public:
 	virtual TreeNode* clone()=0;
 	virtual int type()=0;
+	virtual int putToString()=0;
     };
 
 // query := name
@@ -45,6 +48,10 @@ namespace QParser {
 	virtual TreeNode* clone();
 	virtual int type() { return TreeNode::TNNAME; }
 	string getName() { return name; }
+	virtual int putToString() {
+	    cout << "("<< this->getName() <<")";    
+	    return 0;
+	}
 	virtual ~NameNode() {}
     };  
 
@@ -58,6 +65,13 @@ namespace QParser {
 	virtual TreeNode* clone();
 	virtual int type() { return TreeNode::TNINT; }
 	int getValue() {return value;}
+
+	virtual int putToString() {
+	    cout << "("<< this->getValue() <<")";    
+	    return 0;
+	}
+
+
     };  
 
 // query := string
@@ -70,8 +84,11 @@ namespace QParser {
 	virtual TreeNode* clone();
 	virtual int type() { return TreeNode::TNSTRING; }
 	string getValue() { return value; }
-  
-	virtual ~StringNode() {}
+	virtual int putToString() {
+	    cout << "("<< this->getValue() <<")";    
+	    return 0;
+	}
+  	virtual ~StringNode() {}
     };  
 
 // query := double
@@ -84,6 +101,11 @@ namespace QParser {
 	virtual TreeNode* clone();
 	virtual int type() { return TreeNode::TNDOUBLE; }
 	double getValue() { return value; }        
+	virtual int putToString() {
+	    cout << "("<< this->getValue() <<")";    
+	    return 0;
+	}
+
     };  
 
 // query := query "as" name | query "group as" name
@@ -102,6 +124,17 @@ namespace QParser {
 	TreeNode* getArg() { return arg; }
 	virtual void setArg(QueryNode* _arg) { arg = _arg; arg->setParent(this); }    
 	bool isGrouped() { return group; }
+	virtual int putToString() {
+	    cout << "(";
+	    if (arg!= NULL) arg->putToString();
+	    else cout << "___";
+	    if (this->isGrouped()) cout <<" group as ";
+	    else cout << " as ";
+	    
+	    cout << this->getName() <<")";    
+	    return 0;
+	}
+
 	virtual ~NameAsNode() { if (arg != NULL) delete arg; }
     };  
 
@@ -122,6 +155,17 @@ namespace QParser {
 	unOp getOp() { return op; }
 	virtual void setArg(QueryNode* _arg) { arg = _arg; arg->setParent(this); }
 	virtual void setOp(unOp _op) { op = _op; }
+
+	virtual int putToString() {
+	    cout << "(UNOP ";
+
+	    if (arg!= NULL) arg->putToString();
+	    else cout << "___";
+	    
+	    cout << ")";    
+	    return 0;
+	}
+	
 	virtual ~UnOpNode() { if (arg != NULL) delete arg; }
     };  
 
@@ -147,6 +191,20 @@ namespace QParser {
 	virtual void setLArg(QueryNode* _larg) {larg = _larg;larg->setParent(this);}
 	virtual void setRArg(QueryNode* _rarg) {rarg = _rarg;rarg->setParent(this);}
 	virtual void setOp(algOp _op) { op = _op; }
+
+	virtual int putToString() {
+	    cout << "(";
+	    if (larg!= NULL) larg->putToString();
+	    else cout << "___";
+	    cout << "ALGOP ";
+	    if (rarg!= NULL) rarg->putToString();
+	    else cout << "___";
+	    
+	    cout << ")";    
+	    return 0;
+	}
+
+
 	virtual ~AlgOpNode() { if (larg != NULL) delete larg;
                          if (rarg != NULL) delete rarg; }
     };  
@@ -173,6 +231,21 @@ namespace QParser {
 	virtual void setLArg(QueryNode* _larg) {larg = _larg;larg->setParent(this);}
 	virtual void setRArg(QueryNode* _rarg) {rarg = _rarg;rarg->setParent(this);}
 	virtual void setOp(nonAlgOp _op) { op = _op; }
+
+	virtual int putToString() {
+	    cout << "(";
+	    if (larg!= NULL) larg->putToString();
+	    else cout << "___";
+	    cout << "NONALGOP ";
+	    if (rarg!= NULL) rarg->putToString();
+	    else cout << "___";
+	    
+	    cout << ")";    
+	    return 0;
+	}
+
+
+
 	virtual ~NonAlgOpNode() { if (larg != NULL) delete larg;
                             if (rarg != NULL) delete rarg; }
     };  
@@ -189,6 +262,11 @@ namespace QParser {
 	virtual int type() { return TreeNode::TNTRANS; }
 	transactionOp getOp() { return op; }
 	virtual void setOp(transactionOp _op) { op = _op; }
+
+        virtual int putToString() {
+    	    cout << "(begin/end/abort)";
+    	    return 0;
+	}
 	virtual ~TransactNode() {}
     };  
 
@@ -206,10 +284,21 @@ namespace QParser {
 	string getName() { return name; }
 	TreeNode* getArg() { return arg; }
 	virtual void setArg(QueryNode* _arg) { arg = _arg; arg->setParent(this); }    
+	virtual int putToString() {
+	    cout << "(create " << this->getName();
+	    if (arg != NULL) arg->putToString();
+	    
+	    cout << ")";
+	    return 0;
+	    
+	}
+	
+	
         virtual ~CreateNode() { if (arg != NULL) delete arg; }
     };  
 
 }
+    
 
 #endif
 

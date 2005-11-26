@@ -26,6 +26,10 @@ namespace QParser {
 		delete lexer;
 		qTree = d;
 		printf( "po parsowaniu treeNode: %d. \n", qTree);
+		cout << "Odczyt z drzewka, ktore przekazuje:" << endl;
+		cout << "--------------------------------------" << endl;
+		qTree->putToString();
+		cout << "\n--------------------------------------" << endl;
 		return 0;
 	}  
 }
