@@ -45,7 +45,12 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 	if (TransactionManager::getHandle()->createTransaction(tr) != 0) {
 		fprintf(stderr, "Error in createTransaction\n");
 	}
-fprintf(stderr, "otwarta transakcja\n");
+fprintf(stderr, "Otwarta transakcja\n");
+fprintf(stderr, "Typ QR 1: %d\n", (*result)->type());//
+*result = new QueryBagResult;//
+fprintf(stderr,"Zrobilem Baga\n");//
+fprintf(stderr, "Typ QR 2: %d\n", (*result)->type());//
+return 0;
 	nodeType = tree->type();
 fprintf(stderr, "Wzialem typ.\n");
 	switch (nodeType) 
@@ -65,6 +70,7 @@ fprintf(stderr, "Wzialem typ.\n");
 		vecSize = vec->size();
 		fprintf(stderr, "Wziete rootsy\n");
 		QueryBagResult *resbag = new QueryBagResult;
+		//*result = new QueryBagResult;
 		fprintf(stderr, "Jest worek\n");
 		for (int i = 0; i < vecSize; i++ )
 			{
@@ -72,9 +78,10 @@ fprintf(stderr, "Wzialem typ.\n");
 			lid = optr->getLogicalID();
 			QueryReferenceResult *lidres = new QueryReferenceResult(lid);
 			resbag->addResult(lidres);
+			//(*result)->addResult(lidres);			
 			fprintf(stderr, "Dolozylem obiekt\n");
 			}
-		*result = (QueryResult *) resbag;
+		*result = resbag;
 		fprintf(stderr, "Koncze\n");
 		return 0;
 		}
