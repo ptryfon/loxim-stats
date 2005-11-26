@@ -29,10 +29,11 @@ public:
 	//virtual bool operator==(QueryResult& r)=0;
 	virtual QueryResult* clone()=0;
 	
-	int type();
+	virtual int type();
 	virtual bool collection()=0;
 	virtual bool isEmpty()=0;
 	virtual int size()=0;
+	virtual void addResult(QueryResult *r) {};
 };
 
 
