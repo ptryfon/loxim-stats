@@ -86,9 +86,8 @@ fprintf(stderr, "Wzialem typ.\n");
 		if (tree != NULL)
 			{
 			nodeType = tree->type();
-			DBDataValue *dbValue;
-			//dbValue = DBDataValue::new;			
-			
+			DBDataValue *dbValue = new DBDataValue;
+
 			switch (nodeType) 
 			{
 			case TreeNode::TNINT: 
