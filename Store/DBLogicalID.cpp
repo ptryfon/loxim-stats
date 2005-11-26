@@ -20,15 +20,19 @@ namespace Store
 
 	string DBLogicalID::toString() const
 	{
-	   char cs[100];
-		sprintf(cs, "%i", value);
-		string s(cs);
-		return s;
+		ostringstream str;
+		str << value;
+		return str.str();
+	};
+	
+	long long DBLogicalID::toLongLong() const
+	{
+		return static_cast<long long>(value);
 	};
 
 	bool DBLogicalID::operator==(LogicalID& lid)
 	{
-		return false;
+		return (this->toLongLong() == lid.toLongLong());
 	};
 }
 

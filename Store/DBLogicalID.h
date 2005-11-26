@@ -2,6 +2,7 @@
 #define __STORE_DBLOGICALID_H__
 
 #include "Store.h"
+#include <sstream>
 
 using namespace std;
 
@@ -16,6 +17,7 @@ namespace Store
 		virtual PhysicalID* getPhysicalID();
 		virtual void toByteArray(unsigned char** lid, int* length);
 		virtual string toString() const;
+		virtual long long toLongLong() const;
 
 		virtual bool operator==(LogicalID& lid);
 	private:
