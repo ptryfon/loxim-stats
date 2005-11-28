@@ -147,10 +147,8 @@ namespace TManager
 	}
 	int TransactionManager::createTransaction(Transaction* &tr)
 	{
-	    printf("TransactionManager::createTransaction\n");fflush(stdout);
-	    
+
 	    P(mutex);
-	        printf("Sekcja krytyczna \n");
 		int currentId = transactionId;
 		transactionId++;
 		addTransaction(currentId);
