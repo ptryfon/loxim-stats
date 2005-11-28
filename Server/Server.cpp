@@ -79,6 +79,7 @@ int  Server::Serialize(QueryResult *qr, char **buffer)
 	//cenzura
 	Result::ResultType resType;
 	resType=(Result::ResultType)qr->type();
+	Result::ResultType resTypeIns;
 	int valSize;
 	int bagSize;
 	string strVal;
@@ -87,6 +88,7 @@ int  Server::Serialize(QueryResult *qr, char **buffer)
 	char sentType[1];
 	sentType[0]='\0';
 	char *finalBuf;
+	int retVal;
 	
 	char *dupaTest="dupa";
 	
@@ -113,40 +115,42 @@ int  Server::Serialize(QueryResult *qr, char **buffer)
 			bagRes = (QueryBagResult *)qr->clone();
 			
 			printf("[Server.Serialize]--> Adding bag header \n");
-			memcpy(bufferP, (void *)resType, 1);
-			//bufferP=bufferP+1;
-			memcpy(bufferP, (void *)bufBagLen, sizeof(unsigned long));
+			bufferP[0]=(char)resType;
+			*bufferP=*bufferP+1;
+			//memcpy(bufferP, bufBagLen, sizeof(unsigned long));
+			sprintf(bufferP, "%lu", bufBagLen);
 			printf("[Server.Serialize]--> Bag header complete \n");
 												
 			//TODO depth handling
 			printf("[Server.Serialize]--> Getting collection items \n");
-			while (bagRes->getResult(collItem)!=-1) {
-				if (collItem->isEmpty()==true) {
-					//contains no more results
-					switch (collItem->type()) {
-						case Result::STRING:
+			//while (bagRes->getResult(collItem)!=-1) {
+				retVal=bagRes->getResult(collItem);
+				printf("[Server.Serialize]-->  getResult returned %d \n", retVal);
+				printf("[Server.Serialize]--> Item size is |%d| ,type is |%d| \n", collItem->size(), collItem->type());
+				//contains no more results
+				resTypeIns=(Result::ResultType)collItem->type();
+				printf("Result %d \n", resType);
+				//switch (resTypeIns)
+				//{
+					//	case Result::STRING:
 							printf("[Server.Serialize]--> Getting string \n");
-							stringRes=(QueryStringResult *)collItem->clone();
-							strVal=stringRes->getValue();
-							valSize=stringRes->size();
+							//stringRes=(QueryStringResult *)collItem->clone();
+							//strVal=stringRes->getValue();
+							//valSize=stringRes->size();
 							printf("[Server.Serialize]--> Adding string header \n");
-							memcpy(bufferP, (void *)resType, 1);
-			//				bufferP=bufferP+1;
+							//bufferP[0]=(char)resType;
+							//*bufferP=*bufferP+1;
 							printf("[Server.Serialize]--> String header complete \n");
-							strVal.copy(bufferP, valSize);
+							//strVal.copy(bufferP, valSize);
 			//				bufferP=bufferP + valSize;
-							break;
-						default:
+						//	break;
+					//	default:
 							printf("[Server.Serialize]--> Getting something else(!) \n");
-							return -1;
-							break;
-					}
-				}
-				else {
-					printf("[Server.Serialize]--> Deep collections not handled yet(!) \n");
-					return -1;
-				}
-			}
+					//		return -1;
+					//		break;
+					
+				//}
+			//}
 			break;
 		case Result::STRING:
 			printf("[Server.Serialize]--> Getting string \n");
@@ -173,7 +177,8 @@ int  Server::Serialize(QueryResult *qr, char **buffer)
 		    break;    
 		 case Result::VOID:
 			printf("[Server.Serialize]--> VOID type, sending type indicator and C(orrect) (what should I?)\n");
-			sprintf(bufferP, "%dC", (int)resType);
+			bufferP[0]=(char)resType;
+			//sprintf(bufferP, "%dC", (char)resType);
 			//printf("%s\n", bufferP);
 			printf("[Server.Serialize]--> VOID type written \n");
 			break;
@@ -185,7 +190,8 @@ int  Server::Serialize(QueryResult *qr, char **buffer)
 	printf("[Server.Serialize]--> Done! \n");
 	memcpy(&finalBuf, &bufferP, MAX_MESSG);
 	*buffer = finalBuf;
-	printf("[Server.Serialize]--> I've got a nice buffer containing:  \n--->\n%s\n<---\n", buffer);
+	printf("[Server.Serialize]--> I've got a nice buffer containing:  \n--->%s<---\n", buffer);
+	printf("...ok, it's not so nice, but first char is --->%d<---\n", (int)buffer[0]); 
 	return 0;
 }
 
