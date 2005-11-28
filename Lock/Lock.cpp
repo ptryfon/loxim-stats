@@ -8,11 +8,10 @@ namespace LockMgr{
     LockManager* LockManager::lockMgr = new LockManager();
 
     int LockManager::lock(LogicalID* lid, TransactionID* tid, AccessMode mode)
-    {	
-        
+    {        
 	return 0;
     }
-    int LockManager::unlockAll(int transaction_id)
+    int LockManager::unlockAll(TransactionID* transaction_id)
     {
 	set<DBPhysicalID*>* locks = (*transaction_locks)[transaction_id];
 	for (set<DBPhysicalID*>::iterator iter = locks->begin();
@@ -30,50 +29,43 @@ namespace LockMgr{
     
     LockManager::LockManager() 
     {
-	transaction_locks = new map<int , set<DBPhysicalID*>*>;
-	array_of_locks    = new map<DBPhysicalID*, SingleLock*>;
+	transaction_locks = new map<TransactionID* , set<DBPhysicalID*>*>;
+	map_of_locks      = new map<DBPhysicalID*, SingleLock*>;
     }
 
 
 /*_____SingleLock___________________________________________________*/    
     SingleLock::SingleLock(int current, AccessMode mode)
     {
-	this->current = current;
+	if ( mode == Read)
+	{
+	    count_wait_writers = 0;
+	    count_wait_readers = 1;
+	}
+	else
+	{
+	    count_wait_readers = 0;
+	    count_wait_writers = 1;
+	}
 	this->current_mode = mode;
-	wait_readers = new deque<int>(0);
-	wait_writers = new deque<int>(0);
+	wait_readers = create_sem(SEMKEY2);
+	wait_writers = create_sem(SEMKEY3);
     }
-    void SingleLock::addReader(int reader_id)
+    int SingleLock::is_reader_waiting()
     {
-	wait_readers->push_back(reader_id);
+	return count_wait_readers > 0;
     }
-    void SingleLock::addWriter(int writer_id)
+    int SingleLock::is_writer_waiting()
     {
-	wait_writers->push_back(writer_id);
+	return count_wait_writers > 0;
     }
-    int SingleLock::getReader() 
-    { 
-	int reader = wait_readers->front();
-	wait_readers->pop_front();
-	return reader;
-    }
-    int SingleLock::getWriter()
+    void SingleLock::setCurrent(TransactionID* current, AccessMode mode)
     {
-	int writer = wait_writers->front();
-	wait_writers->pop_front();
-	return writer;
-    }
-    int SingleLock::is_reader()
-    {
-	return !wait_readers->empty();
-    }
-    int SingleLock::is_writer()
-    {
-	return !wait_writers->empty();
-    }
-    void SingleLock::setCurrent(int current, AccessMode mode)
-    {
-	this->current = current;
 	this->current_mode = mode;
+    }
+    SingleLock::~SingleLock()
+    {
+	release_sem(SEMKEY2);
+	release_sem(SEMKEY2);
     }
 }
