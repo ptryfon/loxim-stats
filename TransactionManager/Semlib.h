@@ -2,6 +2,8 @@
 #define _SEMLIB_
 
 #define SEMKEY1	((key_t) 7892)	/* mutex for creating transactions */
+#define SEMKEY2	((key_t) 7894)	/* mutex for creating transactions */
+#define SEMKEY3	((key_t) 7896)	/* mutex for creating transactions */
 
 int release_sem(int sem_id);
 int create_sem(int sem_id);
