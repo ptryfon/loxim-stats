@@ -9,6 +9,7 @@
 #include "../Lock/Lock.h"
 
 using namespace LockMgr;
+using namespace Logs;
 
 namespace TManager
 {
@@ -164,6 +165,13 @@ namespace TManager
 	int TransactionManager::init(StoreManager *strMgr)
 	{
 	    storeMgr = strMgr;
+	    return 0;
+	}
+
+	int TransactionManager::init(StoreManager *strMgr, LogManager *logsMgr)
+	{
+	    storeMgr = strMgr;
+	    logMgr = logsMgr;
 	    return 0;
 	}
 

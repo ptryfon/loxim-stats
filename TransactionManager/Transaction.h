@@ -11,8 +11,10 @@ namespace TManager
 #include <iterator>
 #include "../Store/Store.h"
 #include "../Lock/Lock.h"
+#include "../Log/Logs.h"
 using namespace Store;
 using namespace LockMgr;
+using namespace Logs;
 
 namespace TManager
 {
@@ -72,7 +74,8 @@ namespace TManager
 	      int mutex;	    /* critical section */
 	      int transactionId;    /* counter of TransactionID objects */	
 	      static TransactionManager *tranMgr;   	   
-	      StoreManager* storeMgr;	   
+	      StoreManager* storeMgr;
+	      LogManager* logMgr;
 	      TransactionManager();
     	      void addTransaction(int);
 	      list<int>* transactions;
@@ -82,7 +85,8 @@ namespace TManager
 	      ~TransactionManager();
 	      static TransactionManager* getHandle();
 	   /* called at server startup: */
-	      int init(StoreManager *strMgr);
+	      int init(StoreManager*);
+	      int init(StoreManager*, LogManager*);
 	   /* executor calling: */
 	      int createTransaction(Transaction* &tr);
 	      int commit(Transaction*);
