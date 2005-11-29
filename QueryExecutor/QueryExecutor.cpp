@@ -69,10 +69,7 @@ fprintf(stderr, "Wzialem typ.\n");
 		for (int i = 0; i < vecSize; i++ )
 			{
    			optr = vec->at(i);
-			if ((errcode = (lid = optr->getLogicalID())) != 0) {
-			    //ec << errcode;
-			    return errcode;
-			}
+			lid = optr->getLogicalID();
 			fprintf(stderr, "Wzialem LogicalID\n");
 			QueryReferenceResult *lidres = new QueryReferenceResult(lid);
 			(*result)->addResult(lidres);
