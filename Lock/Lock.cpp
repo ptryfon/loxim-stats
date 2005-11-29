@@ -17,11 +17,11 @@ namespace LockMgr{
 	for (set<DBPhysicalID*>::iterator iter = locks->begin();
 	     iter != locks->end(); iter++)
 	{
-	    unlock(*iter);
+	    unlock(*iter, transaction_id);
 	}
 	return 0;
     }
-    int LockManager::unlock(DBPhysicalID* pid)
+    int LockManager::unlock(DBPhysicalID* pid, TransactionID* tid)
     {
 	return 0;
     }
@@ -31,6 +31,7 @@ namespace LockMgr{
     {
 	transaction_locks = new map<TransactionID* , set<DBPhysicalID*>*>;
 	map_of_locks      = new map<DBPhysicalID*, SingleLock*>;
+	current_sem_key	  = 2000;
     }
 
 
