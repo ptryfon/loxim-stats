@@ -89,14 +89,22 @@ int QueryBoolResult::size()		{ return 0; }
 int QueryReferenceResult::size()	{ return 0; }
 int QueryNothingResult::size()		{ return 0; }
 
-//accesors for collection result classes - sequence, bag, sruct
+//accesors for collection result classes - sequence, bag, struct
 void QuerySequenceResult::addResult(QueryResult *r)	{ seq.push_back(r); }
 int QuerySequenceResult::getResult(QueryResult *r)	{ if (seq.empty()) { return EEmptySet | ErrQExecutor; } 
 							else { r=(seq.front()); it=(seq.begin()); seq.erase(it);}; return 0; }
 
 void QueryBagResult::addResult(QueryResult *r)		{ bag.push_back(r); }
-int QueryBagResult::getResult(QueryResult *r)		{ if (bag.empty()) { return EEmptySet | ErrQExecutor; } 
-							else { r=(bag.front()); it=(bag.begin()); bag.erase(it);}; return 0; }
+int QueryBagResult::getResult(QueryResult *r) {
+    if (bag.empty())
+	{ return EEmptySet | ErrQExecutor; }
+    else {
+	r=(bag.front());
+	it=(bag.begin());
+	bag.erase(it);
+    };
+    return 0;
+}
 
 void QueryStructResult::addResult(QueryResult *r)	{ str.push_back(r); }
 int QueryStructResult::getResult(QueryResult *r)	{ if (str.empty()) { return EEmptySet | ErrQExecutor; } 

@@ -37,7 +37,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 	vector<ObjectPointer*>* vec;
 	int vecSize;
 	//ErrorConsole ec;
-	//int errcode;
+	int errcode;
 	  
 	fprintf(stderr, "QueryExecutor method: queryResult\n");
 	fprintf(stderr, "QueryExecutor asking TransactionManager for a new transaction\n");
@@ -57,10 +57,10 @@ fprintf(stderr, "Wzialem typ.\n");
 		{
 		name = tree->getName();
 		fprintf(stderr, "Typ: TNNAME\n");
-		if (tr->getRoots(name, vec) != 0)
+		if ((errcode = tr->getRoots(name, vec)) != 0)
 			{
 			//ec << (errcode);
-			return EGetRoot | ErrQExecutor;
+			return errcode;
 			}
 		vecSize = vec->size();
 		fprintf(stderr, "Wziete rootsy\n");
@@ -69,7 +69,11 @@ fprintf(stderr, "Wzialem typ.\n");
 		for (int i = 0; i < vecSize; i++ )
 			{
    			optr = vec->at(i);
-			lid = optr->getLogicalID();
+			if ((errcode = (lid = optr->getLogicalID())) != 0) {
+			    //ec << errcode;
+			    return errcode;
+			}
+			fprintf(stderr, "Wzialem LogicalID\n");
 			QueryReferenceResult *lidres = new QueryReferenceResult(lid);
 			(*result)->addResult(lidres);
 			fprintf(stderr, "Dolozylem obiekt\n");
@@ -110,8 +114,7 @@ fprintf(stderr, "Wzialem typ.\n");
 				dbValue->setDouble(doubleValue);
 				break;
 				} 
-		
-			default: 
+			default:
 				{
 				//ec << (EBadType | ErrQExecutor);
 				return EBadType | ErrQExecutor;
@@ -123,11 +126,11 @@ fprintf(stderr, "Wzialem typ.\n");
 			
 			
 			}
-		else 	
+		else
 			{
 			value=NULL;
 			}
-		
+
 		if (tr->createObject(name, value, optr) != 0)
 			{
 			//ec << (errcode);
