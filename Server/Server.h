@@ -19,7 +19,7 @@ using namespace QExecutor;
 		int Run();
 	// Made public for testing
 		int Send(char* buf, int buf_size);
-		int Serialize(QueryResult *qr, char **buffer);
+		int Serialize(QueryResult *qr, char **buffer, char **bufferStart);
 
 		int InitializeAll();
 		

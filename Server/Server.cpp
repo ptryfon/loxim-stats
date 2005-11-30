@@ -70,7 +70,7 @@ int Server::InitializeAll()
 }
 
 //TODO - rekurencja, support innych typow
-int  Server::Serialize(QueryResult *qr, char **buffer) 
+int  Server::Serialize(QueryResult *qr, char **buffer, char **bufStart) 
 {
 	//int depth=SERIALIZE_DEPTH;
 	QueryResult *collItem;
@@ -83,18 +83,21 @@ int  Server::Serialize(QueryResult *qr, char **buffer)
 	int valSize;
 	int bagSize;
 	string strVal;
+	unsigned int intVal;
 	unsigned long bufBagLen;
 	char bufferP[MAX_MESSG];
 	char sentType[1];
 	sentType[0]='\0';
 	char *finalBuf;
 	int retVal;
+	char * dupaTest="dupa";
+	QueryReferenceResult *refRes;
+	char *bufBeg;
 	
-	char *dupaTest="dupa";
 	
 	finalBuf = (char *)malloc(MAX_MESSG);
 	memset(bufferP, '\0', MAX_MESSG); 
-	//printf("[Server.Serialize]--> Starting 1\n");
+	//printf("[Server.Serialize]--> Starting 1\n")
 	
 	//int i;
 	printf("[Server.Serialize]--> Starting \n");
@@ -111,55 +114,68 @@ int  Server::Serialize(QueryResult *qr, char **buffer)
 			if (qr->collection() != true) {
 				printf("[Server.Serialize]-->QueryResult shows type of BAG and says it is no collection\n");
 				return -1;
-			}
+			} //TODO errorcode
 			bagRes = (QueryBagResult *)qr->clone();
 			
 			printf("[Server.Serialize]--> Adding bag header \n");
 			bufferP[0]=(char)resType;
 			*bufferP=*bufferP+1;
-			//memcpy(bufferP, bufBagLen, sizeof(unsigned long));
-			sprintf(bufferP, "%lu", bufBagLen);
+			memcpy((void *)&bufferP, (const void *)&bufBagLen, sizeof(bufBagLen));
 			printf("[Server.Serialize]--> Bag header complete \n");
+			printf("[Server.Serialize]--> Bag size as passed is |(size)=%lu|\n",			ntohl(*(unsigned long *)bufferP));
+			*bufferP=*bufferP+sizeof(bufBagLen);
 												
-			//TODO depth handling
+			//TODO depth handling - rekurencja pewnie bedzie
 			printf("[Server.Serialize]--> Getting collection items \n");
 			//while (bagRes->getResult(collItem)!=-1) {
 				retVal=bagRes->getResult(collItem);
 				printf("[Server.Serialize]-->  getResult returned %d \n", retVal);
-				printf("[Server.Serialize]--> Item size is |%d| ,type is |%d| \n", collItem->size(), collItem->type());
+				printf("[Server.Serialize]--> Item type is |%d| \n", collItem->type());
 				//contains no more results
 				resTypeIns=(Result::ResultType)collItem->type();
-				printf("Result %d \n", resType);
+				printf("[Server.Serialize]-->Result type %d \n", resTypeIns);
+				if (resTypeIns==Result::REFERENCE) {
+					bufferP[0]=(char)resTypeIns;
+					refRes = (QueryReferenceResult *)collItem;
+					intVal=(refRes->getValue())->toInteger();
+					*bufferP=*bufferP+1;
+					memcpy((void *)&bufferP, (const void *)&intVal, sizeof(intVal));
+				}
+				
+				
 				//switch (resTypeIns)
 				//{
 					//	case Result::STRING:
-							printf("[Server.Serialize]--> Getting string \n");
+							//printf("[Server.Serialize]--> Getting string \n");
 							//stringRes=(QueryStringResult *)collItem->clone();
 							//strVal=stringRes->getValue();
 							//valSize=stringRes->size();
-							printf("[Server.Serialize]--> Adding string header \n");
+							//printf("[Server.Serialize]--> Adding string header \n");
 							//bufferP[0]=(char)resType;
 							//*bufferP=*bufferP+1;
-							printf("[Server.Serialize]--> String header complete \n");
+							//printf("[Server.Serialize]--> String header complete \n");
 							//strVal.copy(bufferP, valSize);
 			//				bufferP=bufferP + valSize;
 						//	break;
 					//	default:
-							printf("[Server.Serialize]--> Getting something else(!) \n");
+							//printf("[Server.Serialize]--> Getting something else(!) \n");
 					//		return -1;
 					//		break;
 					
 				//}
 			//}
 			break;
+		case Result::REFERENCE:
+			printf("[Server.Serialize]--> Getting reference \n");
+			break;	
 		case Result::STRING:
 			printf("[Server.Serialize]--> Getting string \n");
 			stringRes=(QueryStringResult *)collItem->clone();
 			strVal=stringRes->getValue();
 			valSize=stringRes->size();
 			printf("[Server.Serialize]--> Adding string header \n");
-			memcpy(bufferP, (void *)resType, 1);
-			//bufferP=bufferP+1;
+			bufferP[0]=(char)resType;
+			*bufferP=*bufferP+1;
 			printf("[Server.Serialize]--> String header complete \n");
 			strVal.copy(bufferP, valSize);
 			//bufferP=bufferP + valSize;
@@ -190,8 +206,8 @@ int  Server::Serialize(QueryResult *qr, char **buffer)
 	printf("[Server.Serialize]--> Done! \n");
 	memcpy(&finalBuf, &bufferP, MAX_MESSG);
 	*buffer = finalBuf;
-	printf("[Server.Serialize]--> I've got a nice buffer containing:  \n--->%s<---\n", buffer);
-	printf("...ok, it's not so nice, but first char is --->%d<---\n", (int)buffer[0]); 
+	//printf("[Server.Serialize]--> I've got a nice buffer containing:  \n--->%s<---\n", buffer);
+	//printf("...ok, it's not so nice, but first char is --->%d<---\n", (int)buffer[0]); 
 	return 0;
 }
 
@@ -203,6 +219,7 @@ int Server::Run()
 	//TREE_NODE_TYPE type;
 	//type=1;
 	
+	
 	printf("[Server.Run]--> Starts \n");
 	SBQLConfig* config = new SBQLConfig();
 	config->init();
@@ -213,7 +230,7 @@ int Server::Run()
 	DBStoreManager* storeManager = new DBStoreManager();
 	storeManager->init(config, logManager);
 	
-	TransactionManager::getHandle()->init(storeManager);
+	TransactionManager::getHandle()->init(storeManager, logManager);
 	
 	QueryParser *qPa = new QueryParser();
 	QueryExecutor *qEx = new QueryExecutor();
@@ -224,10 +241,12 @@ int Server::Run()
 	printf("[Server.Run]--> Creating message buffers \n");
 	char *messgBuff;
 	char *serializedMessg;
+	char **sPoint;
 	messgBuff=(char*) malloc(MAX_MESSG);
 	
 	serializedMessg=(char*) malloc(MAX_MESSG);
 	memset(serializedMessg, '\0', MAX_MESSG); 
+	*sPoint=serializedMessg;
 	
 	//Get string from client
 	printf("[Server.Run]--> Receiving query from client \n");
@@ -247,7 +266,7 @@ int Server::Run()
 	
 	if (qResult == 0) {printf ("brak wyniku\n"); return 0;} //Piotrek
 	
-	Serialize(qResult, (char **)serializedMessg); 
+	Serialize(qResult, (char **)serializedMessg, sPoint); 
 	
 	
 	//Send results to client
@@ -257,6 +276,9 @@ int Server::Run()
 	
 	printf("[Server.Run]--> Releasing message buffers \n");
 	//TODO
+	
+	printf("[Server.Run]--> destroying TransactionManager \n");
+	TransactionManager::getHandle()->~TransactionManager();
 	
 	printf("[Server.Run]--> Disconnecting \n");
 	Disconnect();
