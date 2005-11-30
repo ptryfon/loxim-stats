@@ -217,11 +217,17 @@ Result* Connection::execute(char* query){
       if (0 != error) {
       	return new ResultError("sending error");
       }
-      char* ptr;
+    //  cout << "<Connection::execute> wysylanie zakonczone" << endl;
+      char* ptr = NULL;
       int ile;
       error = bufferReceive(&ptr, &ile, sock); //create buffer and set ptr to point at it
+    //  cout << "<Connection::execute> odbieranie zakonczone" << endl;
       if (error != 0) {
-      	if (ptr != NULL) free(ptr);
+    //  	if (ptr != NULL) {
+    //  		cout << "<Connection::execute> zwalnianie wskaznika" << endl;
+      		free(ptr); // if ptr == NULL nothing happens
+     // 		cout << "<Connection::execute> wskaznik zwolniony" << endl;
+     // 	}
       	return new ResultError("receiving error");
       }
       cout << "<Connection::execute> driver przyszlo bajtow: " << ile << " a tresc to: " << ptr << endl;
