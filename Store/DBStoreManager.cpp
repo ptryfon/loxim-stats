@@ -98,9 +98,9 @@ namespace Store
 
 	int DBStoreManager::createObject(TransactionID* tid, string name, DataValue* value, ObjectPointer*& object)
 	{
-		// przydziel LogicalID ?
+		LogicalID* lid = new DBLogicalID(misc->lastlid++);
 		
-		object = new DBObjectPointer(name, value, NULL);
+		object = new DBObjectPointer(name, value, lid);
 		
 		misc->vect.push_back(object);
 		
@@ -114,26 +114,38 @@ namespace Store
 
 	int DBStoreManager::getRoots(TransactionID* tid, vector<ObjectPointer*>*& roots)
 	{
-		roots = new vector<ObjectPointer*>(0);
+		//roots = new vector<ObjectPointer*>(0);
 
-		(roots)->push_back(new DBObjectPointer());
-		(roots)->push_back(new DBObjectPointer());
-		(roots)->push_back(new DBObjectPointer());
+		//(roots)->push_back(new DBObjectPointer());
+		//(roots)->push_back(new DBObjectPointer());
+		//(roots)->push_back(new DBObjectPointer());
+
+		roots = &(misc->roots);
 
 		return 0;
 	};
 
-	int DBStoreManager::getRoots(TransactionID* tid, string name, vector<ObjectPointer*>*& roots)
+	int DBStoreManager::getRoots(TransactionID* tid, string p_name, vector<ObjectPointer*>*& roots)
 	{
 		roots = new vector<ObjectPointer*>(0);
 
-		(roots)->push_back(new DBObjectPointer());
+		for(unsigned int i=0; i<misc->vect.size(); i++){
+			if(misc->vect[i]->getName() == p_name)
+				roots->push_back(misc->vect[i]);
+		}
 
 		return 0;
 	};
 
 	int DBStoreManager::addRoot(TransactionID* tid, ObjectPointer* object)
 	{
+		for(unsigned int i=0; i<misc->roots.size(); i++){
+			if(misc->vect[i]->getName() == object->getName())
+			  return 1;
+		}
+		
+		misc->roots.push_back(object);
+		
 		return 0;
 	};
 

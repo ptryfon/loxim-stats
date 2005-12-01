@@ -161,8 +161,10 @@ namespace Store
 	class Misc
 	{
 	public:
-		Misc(){};
+		Misc(){lastlid = 0;};
 	   vector <ObjectPointer*> vect;
+		vector <ObjectPointer*> roots;
+		int lastlid;
 	};
 	
 };

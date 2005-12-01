@@ -33,5 +33,37 @@ int main(int argc, char* argv[])
 
 	store->stop();
 
+/*
+	DataValue* value = store->createIntValue(7);
+	ObjectPointer* object = NULL;
+	store->createObject(0, "kilof", value, object);
+	store->addRoot(0, object);
+
+	vector<ObjectPointer*>* objects = NULL;
+	store->getRoots(0, objects);
+	vector<ObjectPointer*>::iterator iterator;
+
+	for (iterator = objects->begin(); iterator != objects->end(); iterator++)
+	{
+		ObjectPointer* o = (ObjectPointer*) *iterator;
+
+		if (o->getName() == "kilof")
+			cout << o->toString() << "\n";
+	}
+
+////////////////////////////////////////
+
+	vector<ObjectPointer*>* objects = NULL;
+	store->getRoots(0, "kilof", objects);
+	vector<ObjectPointer*>::iterator iterator;
+
+	for (iterator = objects->begin(); iterator != objects->end(); iterator++)
+	{
+		ObjectPointer* o = (ObjectPointer*) *iterator;
+		cout << o->toString() << "\n";
+	}
+
+*/
+
 	return 0;
 }

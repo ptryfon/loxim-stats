@@ -48,7 +48,18 @@ namespace Store
 
 	string DBDataValue::toString()
 	{
-		return "xx";
+		ostringstream str;
+		switch(type) {
+			case Store::Integer:
+				str << *(value.int_value); break;
+			case Store::Double:
+				str << *(value.double_value); break;
+			case Store::String:
+				str << *(value.string_value); break;
+			default:
+				str << "ptr_or_vect"; break;
+		}
+		return str.str();
 	};
 
 	int DBDataValue::getInt()
