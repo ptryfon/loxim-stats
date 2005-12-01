@@ -79,6 +79,7 @@ fprintf(stderr, "[QE] Wzialem typ.\n");
 		// Kod probny
 		lid = new DBLogicalID(7);
 		QueryReferenceResult *lidres = new QueryReferenceResult(lid);
+		fprintf(stderr, "[QE] Utworzylem tymczasowo QueryReferenceResult o typie %d\n", lidres->type());
 		(*result)->addResult(lidres);
 		fprintf(stderr, "[QE] Dolozylem obiekt\n");
 		fprintf(stderr, "[QE] Zwracam Result\n");

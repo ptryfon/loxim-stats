@@ -146,4 +146,4 @@ void QueryReferenceResult::setValue(LogicalID* v)	{ value = v; }
 - do rozwazenia, czy zrobimy osobna klase na stos czy wykorzystamy ktoryz z typow result,
 - do rozwazenie czy operacje typu suma zbiorów, przeciecie, i inne podobne jakie bedziemy wykonywac na wynikach maja byc zdefiniowane
   w QueryExecutorze czy tez moga to byc wbudowane metody poszczególnych resultów */
-   
+
