@@ -41,6 +41,7 @@ namespace TManager
 		friend class TransactionManager;
 		TransactionID *tid;
 		StoreManager* sm;
+		LogManager* logm;
 		TransactionManager* tm;
 		LockManager* lm;
 		int getId();
@@ -61,7 +62,8 @@ namespace TManager
 		    int commit();
 
 	      private:
-		    void setSM(StoreManager*);
+	    	    int init(StoreManager*, LogManager*);
+//		    void setSM(StoreManager*);
 	}; 
 
 	/**
@@ -76,6 +78,7 @@ namespace TManager
 	      static TransactionManager *tranMgr;   	   
 	      StoreManager* storeMgr;
 	      LogManager* logMgr;
+
 	      TransactionManager();
     	      void addTransaction(int);
 	      list<int>* transactions;
@@ -85,7 +88,7 @@ namespace TManager
 	      ~TransactionManager();
 	      static TransactionManager* getHandle();
 	   /* called at server startup: */
-	      int init(StoreManager*);
+//	      int init(StoreManager*);
 	      int init(StoreManager*, LogManager*);
 	   /* executor calling: */
 	      int createTransaction(Transaction* &tr);

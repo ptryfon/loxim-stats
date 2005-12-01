@@ -35,11 +35,21 @@ namespace TManager
 
 	int Transaction::getId() { return tid->getId(); };
 
-	void Transaction::setSM(StoreManager* stmg)
+/*	void Transaction::setSM(StoreManager* stmg)
 	{
 	    sm = stmg;
 	};
-			
+*/
+	int Transaction::init(StoreManager *stmg, LogManager *lgmg)
+	{
+	    unsigned id;
+
+	    sm = stmg;
+	    logm = lgmg;
+	    //message to Logs
+	    return logm->beginTransaction(tid, id);
+	}
+				
 	int Transaction::getObjectPointer(LogicalID* lid, AccessMode mode, ObjectPointer* &p)
 	{
 	    int errorNumber;
@@ -116,13 +126,21 @@ namespace TManager
 
 	int Transaction::commit()
 	{
+	    int errorNumber;
+	    unsigned id;
+	    
 	    printf("Transaction commited\n"); fflush(stdout);
+	    errorNumber = logm->commitTransaction(tid, id);  //need to process error
 	    return tm->commit(this);
 	}
 
 	int Transaction::abort()
 	{
+	    int errorNumber;
+	    unsigned id;
+	    
 	    printf("Transaction aborted\n"); fflush(stdout);
+	    errorNumber = logm->rollbackTransaction(tid, id);  //need to process error
 	    return tm->abort(this);
 	}
 
@@ -137,7 +155,7 @@ namespace TManager
 	     V(mutex);	     
 	     transactions = new list<int>;
 	};
-        
+	
 	TransactionManager* TransactionManager::tranMgr = new TransactionManager();
 	
 	TransactionManager* TransactionManager::getHandle() { return tranMgr; };
@@ -157,17 +175,15 @@ namespace TManager
 	    
 	    TransactionID* tid = new TransactionID(currentId);	    	
 	    tr = new Transaction(tid);	
-	    tr->setSM(tranMgr->storeMgr);
-	
-	    return 0;           
+	    return tr->init(tranMgr->storeMgr, tranMgr->logMgr);
 	}              
 
-	int TransactionManager::init(StoreManager *strMgr)
+/*	int TransactionManager::init(StoreManager *strMgr)
 	{
 	    storeMgr = strMgr;
 	    return 0;
 	}
-
+*/
 	int TransactionManager::init(StoreManager *strMgr, LogManager *logsMgr)
 	{
 	    storeMgr = strMgr;
