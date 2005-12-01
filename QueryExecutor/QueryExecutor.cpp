@@ -10,10 +10,11 @@
 #include <stdio.h>
 #include <vector>
    
-#include "QueryResult.h"   
+#include "QueryResult.h"
 #include "TransactionManager/Transaction.h"
-#include "Store/Store.h"
+//#include "Store/Store.h"
 #include "Store/DBDataValue.h"
+#include "Store/DBLogicalID.h"
 #include "QueryParser/QueryParser.h"
 #include "QueryParser/TreeNode.h"
 #include "QueryExecutor.h"
@@ -23,6 +24,7 @@
 using namespace QParser;
 using namespace TManager;
 using namespace Errors;
+using namespace Store;
 
 namespace QExecutor {
 
@@ -39,34 +41,32 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 	//ErrorConsole ec;
 	int errcode;
 	  
-	fprintf(stderr, "QueryExecutor method: queryResult\n");
-	fprintf(stderr, "QueryExecutor asking TransactionManager for a new transaction\n");
+	fprintf(stderr, "[QE] queryResult()\n");
+	fprintf(stderr, "[QE] asking TransactionManager for a new transaction\n");
 	
 	if (TransactionManager::getHandle()->createTransaction(tr) != 0) {
-		fprintf(stderr, "Error in createTransaction\n");
+		fprintf(stderr, "[QE] Error in createTransaction\n");
 	}
-fprintf(stderr, "Otwarta transakcja\n");
+fprintf(stderr, "[QE] Otwarta transakcja\n");
 nodeType = tree->type();
-fprintf(stderr, "Wzialem typ.\n");
-	switch (nodeType) 
-	
+fprintf(stderr, "[QE] Wzialem typ.\n");
+	switch (nodeType)
 	{
-	
 	case TreeNode::TNNAME:
-	
 		{
 		name = tree->getName();
-		fprintf(stderr, "Typ: TNNAME\n");
+		fprintf(stderr, "[QE] Typ: TNNAME\n");
 		if ((errcode = tr->getRoots(name, vec)) != 0)
 			{
 			//ec << (errcode);
 			return errcode;
 			}
 		vecSize = vec->size();
-		fprintf(stderr, "Wziete rootsy\n");
+		fprintf(stderr, "[QE] Wziete rootsy\n");
 		*result = new QueryBagResult;
-		fprintf(stderr, "Jest worek\n");
-		for (int i = 0; i < vecSize; i++ )
+		fprintf(stderr, "[QE] Jest worek\n");
+		// Chwilowo wykomentowane - do czasu az Store bedzie zwracal cos sensownego
+		/* for (int i = 0; i < vecSize; i++ )
 			{
    			optr = vec->at(i);
 			lid = optr->getLogicalID();
@@ -74,8 +74,17 @@ fprintf(stderr, "Wzialem typ.\n");
 			QueryReferenceResult *lidres = new QueryReferenceResult(lid);
 			(*result)->addResult(lidres);
 			fprintf(stderr, "Dolozylem obiekt\n");
-			}
-		fprintf(stderr, "Koncze\n");
+			} */
+		fprintf(stderr, "[QE] Tymczasowo - w celach testowych - zawsze zwracamy to samo\n");
+		// Kod probny
+		lid = new DBLogicalID(7);
+		QueryReferenceResult *lidres = new QueryReferenceResult(lid);
+		(*result)->addResult(lidres);
+		fprintf(stderr, "[QE] Dolozylem obiekt\n");
+		fprintf(stderr, "[QE] Zwracam Result\n");
+		
+		//Koniec kodu probnego
+		fprintf(stderr, "[QE] Koncze\n");
 		return 0;
 		}
 
