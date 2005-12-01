@@ -89,6 +89,8 @@ namespace Errors {
 	string ErrorConsole::operator<<(string errorMsg)
        	{
 		*consoleFile << errorMsg;
+		if (serr)
+			cerr << errorMsg;
 		return errorMsg;
 	};
 
