@@ -139,17 +139,17 @@ Result* Connection::execute(char* query){
      // 	}
       	return new ResultError("receiving error");
       }
-      cout << "<Connection::execute> driver przyszlo bajtow: " << ile << " a tresc to: " << ptr << endl;
-      cout << "<Connection::execute> driver odebral" << endl;
+      cout << "<Connection::execute> driver przyszlo bajtow: " << ile << endl;
       bufferBegin = ptr;
       bufferEnd = ptr+ile;
       
       Result* rs;
       error = deserialize(&rs);
-      cout << "<Connection::execute> wynik deserializacji: " << error << endl;
       free(ptr); //free buffer created by bufferReceive()
-      if (0 != error)
+      if (0 != error) {
+      	cout << "<Connection::execute> blad deserializacji, kod bledu: " << error << endl;
       	return new ResultError("blad protokolu");
+      }
       cout << "<Connection::execute> obiekt Result stworzony -> procedura zakonczona sukcesem" << endl;
       return rs;
 }

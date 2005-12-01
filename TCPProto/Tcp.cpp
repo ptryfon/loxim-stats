@@ -18,7 +18,7 @@ int bufferSend(char* buf, int buf_size, int sock) {
 	lengthBuf = (char*)(& ile);
 
    	cout << "ile bajtow wysylam: " << buf_size << endl;
-   	cout << "co wysylam: " << buf << endl;
+ //  	cout << "co wysylam: " << buf << endl;
 	// lengthBuf = ...buf_size
 	while (lengthBufSize > 0) {
 		if (0 >= (ile = send(sock, lengthBuf, lengthBufSize, 0))) {
@@ -101,7 +101,7 @@ int bufferReceive (char** buffer, int* receiveDataSize, int sock) {
         
         }
         
-       	cout << "a oto tresc: " << messgBuffBeg << endl;
+     //  	cout << "a oto tresc: " << messgBuffBeg << endl;
         
         *buffer = messgBuffBeg; //zwrocic wynik
         
