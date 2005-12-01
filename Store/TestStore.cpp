@@ -14,17 +14,17 @@ int main(int argc, char* argv[])
 	
 	LogicalID* lid = new DBLogicalID(175);
 	cout << lid->toString() << endl;
-	return 0;
 
 	DataValue* value = store->createIntValue(7);
-	ObjectPointer* object = 0;
-	store->createObject(0, "nowyObiekt", value, object);
+	ObjectPointer* object = NULL;
+	store->createObject(0, "kilof", value, object);
 	if (object)
 		cout << object->toString() << "\n";
 	else
 		cout << "Obiektu nie utworzono\n";
+	return 0;
 
-	vector<ObjectPointer*>* objects = 0;
+	vector<ObjectPointer*>* objects = NULL;
 	store->getRoots(0, objects);
 	vector<ObjectPointer*>::iterator iterator;
 

@@ -25,6 +25,8 @@ namespace Store
 	public:
 		DBDataValue();
 		DBDataValue(int value);
+		DBDataValue(double value);
+		DBDataValue(string value);
 		~DBDataValue();
 
 		virtual DataType getType();

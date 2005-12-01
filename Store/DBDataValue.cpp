@@ -17,6 +17,20 @@ namespace Store
 		type = Store::Integer;
 		value.int_value = new int(val);
 	};
+
+	DBDataValue::DBDataValue(double val)
+	{
+		DBDataValue();
+		type = Store::Double;
+		value.double_value = new double(val);
+	};
+
+	DBDataValue::DBDataValue(string val)
+	{
+		DBDataValue();
+		type = Store::String;
+		value.string_value = new string(val);
+	};
 	
 	DBDataValue::~DBDataValue()
 	{

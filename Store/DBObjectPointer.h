@@ -10,8 +10,10 @@ namespace Store
 	class DBObjectPointer : public ObjectPointer
 	{
 	public:
-		DBObjectPointer() {};
-		DBObjectPointer(string, DataValue*);
+		DBObjectPointer();
+		DBObjectPointer(string name, DataValue*);
+		DBObjectPointer(string name, DataValue*, LogicalID*);
+		~DBObjectPointer();
 
 		virtual LogicalID* getLogicalID();
 		virtual string getName();

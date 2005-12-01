@@ -1,4 +1,6 @@
+#include <iostream>
 #include "DBStoreManager.h"
+#include "DBDataValue.h"
 
 namespace Store
 {
@@ -96,8 +98,9 @@ namespace Store
 
 	int DBStoreManager::createObject(TransactionID* tid, string name, DataValue* value, ObjectPointer*& object)
 	{
+		// przydziel LogicalID ?
 		
-		object = new DBObjectPointer(name, value);
+		object = new DBObjectPointer(name, value, NULL);
 		
 		misc->vect.push_back(object);
 		
@@ -151,26 +154,30 @@ namespace Store
 
 	DataValue* DBStoreManager::createIntValue(int value)
 	{
-		return 0;
+		return new DBDataValue(value);
 	};
 
 	DataValue* DBStoreManager::createDoubleValue(double value)
 	{
-		return 0;
+		return new DBDataValue(value);
 	};
 
 	DataValue* DBStoreManager::createStringValue(string value)
 	{
+		return new DBDataValue(value);
+	};
+
+	DataValue* DBStoreManager::createPointerValue(ObjectPointer* value)
+	{
+//		return new DBDataValue(value);
+		cout << "Store::Manager::createPointer not implemented" << endl;
 		return 0;
 	};
 
 	DataValue* DBStoreManager::createVectorValue(vector<ObjectPointer*>* value)
 	{
-		return 0;
-	};
-
-	DataValue* DBStoreManager::createPointerValue(ObjectPointer* value)
-	{
+//		return new DBDataValue(value);
+		cout << "Store::Manager::createVector not implemented" << endl;
 		return 0;
 	};
 
