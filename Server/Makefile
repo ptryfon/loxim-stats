@@ -21,7 +21,8 @@ LIBS	=	../Config/Config.a \
 		../Store/Store.a \
 		../TransactionManager/TransactionManager.a \
 		../QueryExecutor/QueryExecutor.a \
-		../Lock/Lock.a
+		../Lock/Lock.a \
+		../TCPProto/TCPProto.a
 
 all: $(STATIC_LIB) $(PROGRAM)
 

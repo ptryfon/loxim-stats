@@ -7,6 +7,7 @@ SUBDIRS	=	Backup \
 		TransactionManager \
 		Errors \
 		Config \
+		TCPProto \
 		Driver \
 		Lock \
 		Log \

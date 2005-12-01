@@ -12,7 +12,8 @@ HEADERS	= ../Driver/Result.h
 OBJECTS	=	$(SOURCES:.cpp=.o)
 DEPFILES =	$(SOURCES:.cpp=.d) $(PROGRAM).d
 
-LIBS	=	../Driver/Driver.a
+LIBS	=	../Driver/Driver.a \
+			../TCPProto/TCPProto.a
 
 all: $(STATIC_LIB) $(PROGRAM)
 

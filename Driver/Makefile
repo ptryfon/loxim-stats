@@ -10,6 +10,8 @@ HEADERS	=	Connection.h \
 		DriverManager.h \
 		Result.h
 
+LIBS	=	../TCPProto/TCPProto.a
+
 STATIC_LIB =	Driver.a
 PROGRAM =	
 
