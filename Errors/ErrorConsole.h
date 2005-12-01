@@ -15,8 +15,8 @@ namespace Errors {
 			ErrorConsole();
 			ErrorConsole(string module);
 
-			virtual void operator<<(int error);
-			virtual void operator<<(string errorMsg);
+			virtual int operator<<(int error);
+			virtual string operator<<(string errorMsg);
 			virtual ~ErrorConsole();
 	};
 }

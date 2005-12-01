@@ -25,7 +25,7 @@ namespace Errors {
 		nObjects++;
 	};
 
-	void ErrorConsole::operator<<(int error)
+	int ErrorConsole::operator<<(int error)
        	{
 		switch(error & ErrAllModules) {
 			case ErrBackup:
@@ -71,11 +71,13 @@ namespace Errors {
 		*consoleFile << "errno: ";
 		*consoleFile << (error & ~ErrAllModules);
 		*consoleFile << endl;
+		return error;
 	};
 
-	void ErrorConsole::operator<<(string errorMsg)
+	string ErrorConsole::operator<<(string errorMsg)
        	{
 		*consoleFile << errorMsg;
+		return errorMsg;
 	};
 
 	ErrorConsole::~ErrorConsole()
