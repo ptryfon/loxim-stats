@@ -11,66 +11,78 @@ namespace Errors {
 
 	ErrorConsole::ErrorConsole()
        	{
-		if (consoleFile == NULL)
-			consoleFile = new ofstream("sbqlerror.log", ios::app);
-//		if (!consoleFile->is_open())
-//			return -EOPEN;
+//		owner();
 		nObjects++;
 	};
 
 	ErrorConsole::ErrorConsole(string module)
 	{
+		owner = module;
+		nObjects++;
+	};
+
+//	int ErrorConsole::init(void)
+	int ErrorConsole::init(int tostderr)
+	{
+		serr = tostderr;
 		if (consoleFile == NULL)
 			consoleFile = new ofstream("sbqlerror.log", ios::app);
-		nObjects++;
+//		if (!consoleFile->is_open())
+//			return EOPEN;
+		return 0;
 	};
 
 	int ErrorConsole::operator<<(int error)
        	{
+		string modname;
+
 		switch(error & ErrAllModules) {
 			case ErrBackup:
-				*consoleFile << "Backup: ";
+				modname = "Backup: ";
 				break;
 			case ErrConfig:
-				*consoleFile << "Config: ";
+				modname = "Config: ";
 				break;
 			case ErrDriver:
-				*consoleFile << "Driver: ";
+				modname = "Driver: ";
 				break;
 			case ErrErrors:
-				*consoleFile << "Errors: ";
+				modname = "Errors: ";
 				break;
 			case ErrLockMgr:
-				*consoleFile << "LockMgr: ";
+				modname = "LockMgr: ";
 				break;
 			case ErrLogs:
-				*consoleFile << "Logs: ";
+				modname = "Logs: ";
 				break;
 			case ErrQExecutor:
-				*consoleFile << "QExecutor: ";
+				modname = "QExecutor: ";
 				break;
 			case ErrQParser:
-				*consoleFile << "QParser: ";
+				modname = "QParser: ";
 				break;
 			case ErrSBQLCli:
-				*consoleFile << "SBQLCli: ";
+				modname = "SBQLCli: ";
 				break;
 			case ErrServer:
-				*consoleFile << "Server: ";
+				modname = "Server: ";
 				break;
 			case ErrStore:
-				*consoleFile << "Store: ";
+				modname = "Store: ";
 				break;
 			case ErrTManager:
-				*consoleFile << "TManager: ";
+				modname = "TManager: ";
 				break;
 			default:
-				*consoleFile << "Aieeeee! \"Unknown\" returned: ";
+				if (owner.length() == 0)
+					modname = "Aieeeee! \"Unknown\" returned: ";
+				else
+					modname = owner + ": ";
 				break;
 		}
-		*consoleFile << "errno: ";
-		*consoleFile << (error & ~ErrAllModules);
-		*consoleFile << endl;
+		*consoleFile << modname << "errno: " << (error & ~ErrAllModules) << endl;
+		if (serr)
+			cerr << modname << "errno: " << (error & ~ErrAllModules) << endl;
 		return error;
 	};
 

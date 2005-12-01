@@ -11,10 +11,13 @@ namespace Errors {
 		private:
 			static ofstream* consoleFile;
 			static int nObjects;
+			string owner;
+			int serr;
 		public:
 			ErrorConsole();
 			ErrorConsole(string module);
 
+			int init(int tostderr);
 			virtual int operator<<(int error);
 			virtual string operator<<(string errorMsg);
 			virtual ~ErrorConsole();

@@ -5,9 +5,9 @@ using namespace Errors;
 
 int main(int argc, char *argv[])
 {
-	ErrorConsole *ec = new ErrorConsole;
+	ErrorConsole *ec = new ErrorConsole("Config");
 
-//	ec->init();
+	ec->init(1);
 	*ec << "dupa\n";
 	*ec << (EBadFile | ErrStore);
 	*ec << (ENoFile);
