@@ -245,6 +245,8 @@ int Server::Run()
 	messgBuff=(char*) malloc(MAX_MESSG);
 	
 	serializedMessg=(char*) malloc(MAX_MESSG);
+	
+while (true) {
 	memset(serializedMessg, '\0', MAX_MESSG); 
 	*sPoint=serializedMessg;
 	
@@ -273,7 +275,7 @@ int Server::Run()
 	printf("[Server.Run]--> Sending results to client \n");		
 	printf("[Server.Run]--> Sending.. (%s)\n", serializedMessg); 
 	Send(serializedMessg, MAX_MESSG);
-	
+}
 	printf("[Server.Run]--> Releasing message buffers \n");
 	//TODO
 	
