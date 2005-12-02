@@ -129,7 +129,7 @@ int  Server::Serialize(QueryResult *qr, char **buffer, char **bufStart)
 			printf("[Server.Serialize]--> Getting collection items \n");
 			//while (bagRes->getResult(collItem)!=-1) {
 				retVal=bagRes->getResult(collItem);
-				printf("[Server.Serialize]-->  getResult returned %d \n", retVal);
+				printf("[Server.Serialize]--> getResult returned %d \n", retVal);
 				printf("[Server.Serialize]--> Item type is |%d| \n", collItem->type());
 				//contains no more results
 				resTypeIns=(Result::ResultType)collItem->type();
@@ -273,7 +273,7 @@ while (true) {
 	
 	//Send results to client
 	printf("[Server.Run]--> Sending results to client \n");		
-	printf("[Server.Run]--> Sending.. (%s)\n", serializedMessg); 
+	printf("[Server.Run]--> Sending.. type=(%d)\n", (int)serializedMessg[0]); 
 	Send(serializedMessg, MAX_MESSG);
 }
 	printf("[Server.Run]--> Releasing message buffers \n");
