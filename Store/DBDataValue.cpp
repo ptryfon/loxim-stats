@@ -4,6 +4,10 @@ using namespace std;
 
 namespace Store
 {
+	DBDataValue::DBDataValue()
+	{
+		p_init();
+	};
 	
 	DBDataValue::DBDataValue(int val)
 	{

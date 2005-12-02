@@ -23,6 +23,7 @@ namespace Store
 		} complex_value;
 
 	public:
+		DBDataValue();
 		DBDataValue(int value);
 		DBDataValue(double value);
 		DBDataValue(string value);
