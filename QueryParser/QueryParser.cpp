@@ -29,8 +29,8 @@ namespace QParser {
 	        int res = yyparse();
 		if (res != 0){
 		    *ec << "zapytanie nie sparsowane robi return...\n";
-		    *ec << (ErrQParser | 5);	// zglosic jakis blad do Bagginsa ENotParsed ...    
-		    return (ErrQParser | 5);
+		    *ec << (ErrQParser | ENotParsed);	// zglosic jakis blad do Bagginsa ENotParsed ...    
+		    return (ErrQParser | ENotParsed);
 		} else
 		    *ec << "zapytanie sparsowane chyba ok\n";
 		delete lexer;
@@ -38,7 +38,7 @@ namespace QParser {
 		
 
 		printf( "po parsowaniu treeNode: %d. \n", qTree);
-		cout << "88Odczyt z drzewka, ktore przekazuje:" << endl;
+		cout << "Odczyt z drzewka, ktore przekazuje:" << endl;
 		cout << "--------------------------------------" << endl;
 		qTree->putToString();
 		cout << "\n--------------------------------------" << endl;
