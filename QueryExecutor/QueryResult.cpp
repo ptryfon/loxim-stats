@@ -91,11 +91,11 @@ int QueryNothingResult::size()		{ return 0; }
 
 //accesors for collection result classes - sequence, bag, struct
 void QuerySequenceResult::addResult(QueryResult *r)	{ seq.push_back(r); }
-int QuerySequenceResult::getResult(QueryResult *r)	{ if (seq.empty()) { return EEmptySet | ErrQExecutor; } 
+int QuerySequenceResult::getResult(QueryResult *&r)	{ if (seq.empty()) { return EEmptySet | ErrQExecutor; } 
 							else { r=(seq.front()); it=(seq.begin()); seq.erase(it);}; return 0; }
 
 void QueryBagResult::addResult(QueryResult *r)		{ bag.push_back(r); }
-int QueryBagResult::getResult(QueryResult *r) {
+int QueryBagResult::getResult(QueryResult *&r) {
     if (bag.empty())
 	{ return EEmptySet | ErrQExecutor; }
     else {
@@ -107,7 +107,7 @@ int QueryBagResult::getResult(QueryResult *r) {
 }
 
 void QueryStructResult::addResult(QueryResult *r)	{ str.push_back(r); }
-int QueryStructResult::getResult(QueryResult *r)	{ if (str.empty()) { return EEmptySet | ErrQExecutor; } 
+int QueryStructResult::getResult(QueryResult *&r)	{ if (str.empty()) { return EEmptySet | ErrQExecutor; } 
 							else { r=(str.front()); it=(str.begin()); str.erase(it);}; return 0; }
 
 //accesors for single value type result classes - binder, string, int, double, bool, reference

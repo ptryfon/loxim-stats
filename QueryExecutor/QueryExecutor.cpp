@@ -148,7 +148,9 @@ fprintf(stderr, "[QE] Wzialem typ.\n");
 			//ec << (ERootAdd | ErrQExecutor);
 			return ERootAdd | ErrQExecutor;
 			}
-		*result = (QueryResult *) (new QueryNothingResult);
+		*result = new QueryBagResult;
+		QueryReferenceResult *lidres = new QueryReferenceResult(optr->getLogicalID());
+		(* result)->addResult (lidres);
 		return 0;
 		}
 		

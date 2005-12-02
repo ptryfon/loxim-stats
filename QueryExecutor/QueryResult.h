@@ -34,6 +34,7 @@ public:
 	virtual bool isEmpty()=0;
 	virtual int size()=0;
 	virtual void addResult(QueryResult *r) {};
+	virtual int getResult(QueryResult *&r) { return 0; };
 };
 
 
@@ -60,7 +61,7 @@ public:
 	bool isEmpty();
 	int size();
 	void addResult(QueryResult *r);
-	int getResult(QueryResult *r);
+	int getResult(QueryResult *&r);
 };
 
 class QueryBagResult : public QueryResult
@@ -85,7 +86,7 @@ public:
 	bool isEmpty();
 	int size();
 	void addResult(QueryResult *r);
-	int getResult(QueryResult *r);
+	int getResult(QueryResult *&r);
 };
 
 
@@ -111,7 +112,7 @@ public:
 	bool isEmpty();
 	int size();
 	void addResult(QueryResult *r);
-	int getResult(QueryResult *r);
+	int getResult(QueryResult *&r);
 };
 
 
