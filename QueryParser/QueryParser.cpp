@@ -19,25 +19,20 @@ namespace QParser {
 
 	int QueryParser::parseIt(string query, TreeNode *&qTree)
 	{
-		cerr << "Jest w parserze \n";
 		ErrorConsole *ec = new ErrorConsole("Parser");
 		cerr << "stworzyl errConsole \n";
-		// *ec << "PARSER::parseIt start\n";
-		// ec->init(1);
-		cerr << "uzyl ec\n";
-		
+		*ec << "PARSER::parseIt start\n";
+				
 		stringstream ss (stringstream::in | stringstream::out);
 		ss << query;
 		lexer = new yyFlexLexer(&ss); 
 	        int res = yyparse();
 		if (res != 0){
-		    cerr << "uzyje errcons\n";
 		    *ec << "zapytanie nie sparsowane robi return...\n";
-		    *ec << (ErrQParser | ENotParsed);	// zglosic jakis blad do Bagginsa ENotParsed ...    
+		    *ec << (ErrQParser | ENotParsed);	 
 		    return (ErrQParser | ENotParsed);
 		} else
-		    cerr << "sparsowal\n";
-	//		    *ec << "zapytanie sparsowane chyba ok\n";
+			    *ec << "zapytanie sparsowane chyba ok\n";
 		delete lexer;
 		qTree = d;
 		
