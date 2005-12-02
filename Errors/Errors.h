@@ -41,6 +41,9 @@ namespace Errors {
 #define EBadFile		    0x7
 #define EPageNotValid		    0x8
 #define EPageNotAquired		    0x9
+
+// Parser
+#define ENotParsed		    0xA
 }
 
 #endif
