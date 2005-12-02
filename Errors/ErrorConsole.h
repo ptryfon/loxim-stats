@@ -18,9 +18,12 @@ namespace Errors {
 			ErrorConsole(string module);
 
 			int init(int tostderr);
-			virtual int operator<<(int error);
-			virtual string operator<<(string errorMsg);
+			virtual ErrorConsole& operator<<(int error);
+			virtual ErrorConsole& operator<<(string errorMsg);
+			virtual ErrorConsole& operator<<(ErrorConsole &cons);
 			virtual ~ErrorConsole();
 	};
+
+	inline ErrorConsole &endl(ErrorConsole &s) { s << "\n"; return s; }
 }
 #endif

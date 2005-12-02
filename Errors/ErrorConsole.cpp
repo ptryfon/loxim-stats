@@ -1,5 +1,6 @@
 #include <fstream>
 #include <iostream>
+#include <ios>
 #include "ErrorConsole.h"
 #include "Errors.h"
 
@@ -32,7 +33,7 @@ namespace Errors {
 		return 0;
 	};
 
-	int ErrorConsole::operator<<(int error)
+	ErrorConsole& ErrorConsole::operator<<(int error)
        	{
 		string modname;
 
@@ -80,18 +81,26 @@ namespace Errors {
 					modname = owner + ": ";
 				break;
 		}
-		*consoleFile << modname << "errno: " << (error & ~ErrAllModules) << endl;
+		*consoleFile << modname << "errno: " << (error & ~ErrAllModules) << "\n";
 		if (serr)
-			cerr << modname << "errno: " << (error & ~ErrAllModules) << endl;
-		return error;
+			cerr << modname << "errno: " << (error & ~ErrAllModules) << "\n";
+		return *this;
 	};
 
-	string ErrorConsole::operator<<(string errorMsg)
+	ErrorConsole& ErrorConsole::operator<<(string errorMsg)
        	{
 		*consoleFile << errorMsg;
 		if (serr)
 			cerr << errorMsg;
-		return errorMsg;
+		return *this;
+	};
+
+	ErrorConsole& ErrorConsole::operator<<(ErrorConsole &cons)
+       	{
+		*consoleFile << cons.consoleFile;
+		if (serr)
+			cerr << cons.consoleFile;
+		return *this;
 	};
 
 	ErrorConsole::~ErrorConsole()
