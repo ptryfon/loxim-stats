@@ -21,7 +21,7 @@ namespace QParser {
 	{
 		ErrorConsole *ec = new ErrorConsole("Parser");
 		
-		ec* << "PARSER::parseIt start\n";
+		*ec << "PARSER::parseIt start\n";
 		
 		stringstream ss (stringstream::in | stringstream::out);
 		ss << query;
@@ -42,7 +42,7 @@ namespace QParser {
 		cout << "--------------------------------------" << endl;
 		qTree->putToString();
 		cout << "\n--------------------------------------" << endl;
-		ec* << "PARSER::parseIt end\n";
+		*ec << "PARSER::parseIt end\n";
 
 		return 0;
 	}  
