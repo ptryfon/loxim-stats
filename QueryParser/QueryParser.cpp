@@ -20,7 +20,7 @@ namespace QParser {
 	int QueryParser::parseIt(string query, TreeNode *&qTree)
 	{
 		ErrorConsole *ec = new ErrorConsole("Parser");
-		ec->init(1);
+		// ec->init(1);
 		cerr << "stworzyl errConsole \n";
 		*ec << "PARSER::parseIt start\n";
 		cerr << "uzyl errCons\n";
