@@ -93,6 +93,7 @@ namespace Store
 				break;
 			}
 		}
+		cout << "Store::Manager::getObject done: " + object->toString() + "\n";
 		return 0;
 	};
 
@@ -104,6 +105,7 @@ namespace Store
 		
 		misc->vect.push_back(object);
 		
+		cout << "Store::Manager::createObject done: " + object->toString() + "\n";
 		return 0;
 	};
 
@@ -122,6 +124,7 @@ namespace Store
 
 		roots = &(misc->roots);
 
+		cout << "Store::Manager::getRoots(ALL) done\n";
 		return 0;
 	};
 
@@ -134,6 +137,7 @@ namespace Store
 				roots->push_back(misc->vect[i]);
 		}
 
+		cout << "Store::Manager::getRoots(BY NAME) done\n";
 		return 0;
 	};
 
@@ -146,6 +150,7 @@ namespace Store
 		
 		misc->roots.push_back(object);
 		
+		cout << "Store::Manager::addRoot done: " + object->toString() + "\n";
 		return 0;
 	};
 
