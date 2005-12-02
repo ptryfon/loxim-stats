@@ -12,7 +12,8 @@ Log			Piotr Karpiuk <pk167277-students.mimuw.edu.pl>
 QueryExecutor		Adam Michalik  <am209482-students.mimuw.edu.pl>
 QueryParser		Jakub Sitek <js209298-students.mimuw.edu.pl>
 Server			Piotr Turski <pt209301-students.mimuw.edu.pl>
-Store			Maciej Olesinski <mo201077-students.mimuw.edu.pl>
+Store			Michal Drausowski <md243003-students.mimuw.edu.pl>
+			Maciej Olesinski <mo201077-students.mimuw.edu.pl>
 Transaction		Dominik Klimczak <dk189404-students.mimuw.edu.pl>
 XMLIO			Tomasz Rosiak <tr201089-students.mimuw.edu.pl>
 
@@ -29,7 +30,8 @@ QueryExecutor		Adam Michalik  <am209482-students.mimuw.edu.pl>
 QueryParser		Jakub Sitek <js209298-students.mimuw.edu.pl>
 SBQLCli			Piotr Turski <pt209301-students.mimuw.edu.pl>
 Server			Piotr Turski <pt209301-students.mimuw.edu.pl>
-Store			Maciej Olesinski <mo201077-students.mimuw.edu.pl>
+Store			Michal Drausowski <md243003-students.mimuw.edu.pl>
+			Maciej Olesinski <mo201077-students.mimuw.edu.pl>
 TransactionManager	Dominik Klimczak <dk189404-students.mimuw.edu.pl>
 
 Nasze maile:
