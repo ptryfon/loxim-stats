@@ -4,30 +4,24 @@ using namespace std;
 
 namespace Store
 {
-	DBDataValue::DBDataValue()
-	{
-		p_clearPtr();
-		type = Store::Integer;
-		value.int_value     = new int(0);
-	};
 	
 	DBDataValue::DBDataValue(int val)
 	{
-		DBDataValue();
+		p_init();
 		type = Store::Integer;
 		value.int_value = new int(val);
 	};
 
 	DBDataValue::DBDataValue(double val)
 	{
-		DBDataValue();
+		p_init();
 		type = Store::Double;
 		value.double_value = new double(val);
 	};
 
 	DBDataValue::DBDataValue(string val)
 	{
-		DBDataValue();
+		p_init();
 		type = Store::String;
 		value.string_value = new string(val);
 	};
@@ -149,6 +143,14 @@ namespace Store
 				return (this->getVector() == dv.getVector());
 		}
 		return false;
+	};
+	
+	
+	void DBDataValue::p_init()
+	{
+		p_clearPtr();
+		type = Store::Integer;
+		value.int_value     = new int(0);
 	};
 	
 	void DBDataValue::p_destroyVal()

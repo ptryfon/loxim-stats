@@ -23,7 +23,6 @@ namespace Store
 		} complex_value;
 
 	public:
-		DBDataValue();
 		DBDataValue(int value);
 		DBDataValue(double value);
 		DBDataValue(string value);
@@ -51,6 +50,7 @@ namespace Store
 		DataType type;
 		complex_value value;
 
+		void p_init();
 		void p_clearPtr();
 		void p_destroyVal();
 	};
