@@ -12,15 +12,16 @@ yyFlexLexer* lexer;
 extern QParser::TreeNode *d;
 int yyparse();
 
-// using namespace std;
- using namespace Errors;	// FIXME 
+using namespace std;
+using namespace Errors;	
 
 namespace QParser {
 
 	int QueryParser::parseIt(string query, TreeNode *&qTree)
 	{
 		ErrorConsole *ec = new ErrorConsole("Parser");
-		ec->init(1);
+		
+		ec* << "PARSER::parseIt start\n";
 		
 		stringstream ss (stringstream::in | stringstream::out);
 		ss << query;
@@ -35,17 +36,14 @@ namespace QParser {
 		delete lexer;
 		qTree = d;
 		
-		*ec << "po parsowaniu treeNode: ";
-		*ec << ((int) qTree);
-		*ec << "Odczyt z drzewka, ktore przekazuje: \n";
-		*ec << "----------------------------------------\n";
-		qTree->putToString();		// putToString uzywa coutow i dlatego inna kolejnosc wypisywania FIXME
-		*ec << "\n----------------------------------------\n";		
-		//printf( "po parsowaniu treeNode: %d. \n", qTree);
-		//cout << "88Odczyt z drzewka, ktore przekazuje:" << endl;
-		//cout << "88--------------------------------------" << endl;
-		//qTree->putToString();
-		//cout << "\n88--------------------------------------" << endl;
+
+		printf( "po parsowaniu treeNode: %d. \n", qTree);
+		cout << "88Odczyt z drzewka, ktore przekazuje:" << endl;
+		cout << "--------------------------------------" << endl;
+		qTree->putToString();
+		cout << "\n--------------------------------------" << endl;
+		ec* << "PARSER::parseIt end\n";
+
 		return 0;
 	}  
 }
