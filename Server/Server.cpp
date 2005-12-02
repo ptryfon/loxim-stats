@@ -15,6 +15,7 @@
 #include "../QueryExecutor/QueryExecutor.h"
 #include "../Store/DBStoreManager.h"
 #include "../TransactionManager/Transaction.h"
+#include "../Errors/ErrorConsole.h"
 
 #include "Server.h"
 #include "../Driver/Result.h"
@@ -43,6 +44,7 @@ typedef char TREE_NODE_TYPE;
 #include "../TransactionManager/Transaction.h"
 */
 
+using namespace Errors;
 using namespace std;
 using namespace Config;
 using namespace Logs;
@@ -221,6 +223,10 @@ int Server::Run()
 	
 	
 	printf("[Server.Run]--> Starts \n");
+
+	ErrorConsole con;// Czarek
+	con.init(1);     // Czarek
+
 	SBQLConfig* config = new SBQLConfig();
 	config->init();
 	
