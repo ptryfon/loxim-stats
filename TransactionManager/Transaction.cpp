@@ -6,10 +6,13 @@
 
 #include "Transaction.h"
 #include "Semlib.h"
+#include "../Errors/ErrorConsole.h"
 #include "../Lock/Lock.h"
+
 
 using namespace LockMgr;
 using namespace Logs;
+using namespace Errors;
 
 namespace TManager
 {
@@ -17,17 +20,19 @@ namespace TManager
 /*______TransactionID________________________________________*/
 	TransactionID::TransactionID(int id)
 	{
-	    printf("TransactionID");
 	    this->id = id;
 	};
-	int TransactionID::getId() { return id; }
+	int TransactionID::getId() const { return id; }
 
 /*______Transaction_________________________________________*/
-	Transaction::Transaction() {};
+	Transaction::Transaction() 
+	{
+	    err = ErrorConsole(); 
+	};
 
 	Transaction::Transaction(TransactionID* tid)
 	{
-	    printf("Transaction");
+	    err << "Transaction started\n";
 	    this->tid = tid;
 	    tm = TransactionManager::getHandle();
 	    lm = LockManager::getHandle();
@@ -35,26 +40,20 @@ namespace TManager
 
 	int Transaction::getId() { return tid->getId(); };
 
-/*	void Transaction::setSM(StoreManager* stmg)
-	{
-	    sm = stmg;
-	};
-*/
 	int Transaction::init(StoreManager *stmg, LogManager *lgmg)
 	{
 	    unsigned id;
-
 	    sm = stmg;
 	    logm = lgmg;
-	    //message to Logs
+	    /* message to Logs */
 	    return logm->beginTransaction(tid, id);
 	}
 				
 	int Transaction::getObjectPointer(LogicalID* lid, AccessMode mode, ObjectPointer* &p)
 	{
 	    int errorNumber;
-
-	    printf("Transaction: getProxy\n"); fflush(stdout);
+	
+	    err << "Transaction: getObjectPointer\n";
 	    errorNumber = lm->lock(lid, tid, mode);
 	    if (errorNumber == 0)
     		errorNumber = sm->getObject( tid, lid, mode, p);
@@ -65,11 +64,10 @@ namespace TManager
 	int Transaction::createObject(string name, DataValue* value, ObjectPointer* &p)
 	{
 	    int errorNumber;
-
-	    printf("Transaction: create\n"); fflush(stdout);
+	    
+	    err << "Transaction: createObject\n";
 	    errorNumber = sm->createObject( tid, name, value, p);
-	    //p = tmp;
-	    // locking object
+	    
 	    return errorNumber;
 	}
 
@@ -77,7 +75,7 @@ namespace TManager
 	{
 	    int errorNumber;
 
-	    printf("Transaction: delete\n"); fflush(stdout);
+	    err << "Transaction: deleteObject\n";
 	    /* exclusive lock for this object */
 	    errorNumber = lm->lock(object->getLogicalID(), tid, Write);
 	    if (errorNumber == 0)
@@ -90,9 +88,8 @@ namespace TManager
         int Transaction::getRoots(vector<ObjectPointer*>* &p)
 	{
 	    int errorNumber;
-
-	    errorNumber = sm->getRoots(tid, p);
 	    //lock?
+	    errorNumber = sm->getRoots(tid, p);
 	    return errorNumber;
 	}
 
@@ -129,7 +126,7 @@ namespace TManager
 	    int errorNumber;
 	    unsigned id;
 	    
-	    printf("Transaction commited\n"); fflush(stdout);
+	    err << "Transaction: commit\n";
 	    errorNumber = logm->commitTransaction(tid, id);  //need to process error
 	    return tm->commit(this);
 	}
@@ -139,7 +136,7 @@ namespace TManager
 	    int errorNumber;
 	    unsigned id;
 	    
-	    printf("Transaction aborted\n"); fflush(stdout);
+	    err << "Transaction: abort\n";
 	    errorNumber = logm->rollbackTransaction(tid, id);  //need to process error
 	    return tm->abort(this);
 	}
@@ -149,11 +146,13 @@ namespace TManager
 
 	TransactionManager::TransactionManager() 
 	{
+	    err = ErrorConsole();
 	    if ( (mutex = create_sem(SEMKEY1)) < 0 )
-		 printf("Error in creating semaphore\n"); 
+		 err << "TManager: cannot create sem\n";
 
 	     V(mutex);	     
 	     transactions = new list<int>;
+	     printf("Mutex: %d\n", mutex);
 	};
 	
 	TransactionManager* TransactionManager::tranMgr = new TransactionManager();
@@ -178,12 +177,6 @@ namespace TManager
 	    return tr->init(tranMgr->storeMgr, tranMgr->logMgr);
 	}              
 
-/*	int TransactionManager::init(StoreManager *strMgr)
-	{
-	    storeMgr = strMgr;
-	    return 0;
-	}
-*/
 	int TransactionManager::init(StoreManager *strMgr, LogManager *logsMgr)
 	{
 	    storeMgr = strMgr;

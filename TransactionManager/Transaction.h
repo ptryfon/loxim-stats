@@ -12,9 +12,11 @@ namespace TManager
 #include "../Store/Store.h"
 #include "../Lock/Lock.h"
 #include "../Log/Logs.h"
+#include "../Errors/ErrorConsole.h"
 using namespace Store;
 using namespace LockMgr;
 using namespace Logs;
+using namespace Errors;
 
 namespace TManager
 {
@@ -27,8 +29,9 @@ namespace TManager
 	      private:
 		friend class Transaction;
 	        int id;	
-		int getId();
+
 	      public:
+		int getId() const;	      
 	        TransactionID(int n);
 	};
 
@@ -45,6 +48,7 @@ namespace TManager
 		TransactionManager* tm;
 		LockManager* lm;
 		int getId();
+		ErrorConsole err;
 	      public:
 		    Transaction();
 		    Transaction(TransactionID* tId);
@@ -73,7 +77,7 @@ namespace TManager
 	class TransactionManager
 	{ 
 	   private:
-	      int mutex;	    /* critical section */
+	      int mutex;	    /* mutual exclusion */
 	      int transactionId;    /* counter of TransactionID objects */	
 	      static TransactionManager *tranMgr;   	   
 	      StoreManager* storeMgr;
@@ -83,7 +87,8 @@ namespace TManager
     	      void addTransaction(int);
 	      list<int>* transactions;
 	      int remove_from_list(int);
-
+	      ErrorConsole err;
+	      
 	   public:	   	      
 	      ~TransactionManager();
 	      static TransactionManager* getHandle();
