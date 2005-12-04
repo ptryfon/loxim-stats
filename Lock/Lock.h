@@ -1,7 +1,7 @@
 #ifndef _LOCK_
 #define _LOCK_
 
-namespace LockMgr { class SingleLock; class LockManager;}
+namespace LockMgr { class LockManager;}
 
 #include "../Store/Store.h"
 #include "../Store/DBPhysicalID.h"
