@@ -12,14 +12,14 @@
    
 #include "QueryResult.h"
 #include "TransactionManager/Transaction.h"
-//#include "Store/Store.h"
+#include "Store/Store.h"
 #include "Store/DBDataValue.h"
 #include "Store/DBLogicalID.h"
 #include "QueryParser/QueryParser.h"
 #include "QueryParser/TreeNode.h"
 #include "QueryExecutor.h"
 #include "Errors/Errors.h"
-//#include "Errors/ErrorConsole.h"
+#include "Errors/ErrorConsole.h"
 
 using namespace QParser;
 using namespace TManager;
@@ -65,26 +65,15 @@ fprintf(stderr, "[QE] Wzialem typ.\n");
 		fprintf(stderr, "[QE] Wziete rootsy\n");
 		*result = new QueryBagResult;
 		fprintf(stderr, "[QE] Jest worek\n");
-		// Chwilowo wykomentowane - do czasu az Store bedzie zwracal cos sensownego
-		/* for (int i = 0; i < vecSize; i++ )
+		for (int i = 0; i < vecSize; i++ )
 			{
    			optr = vec->at(i);
 			lid = optr->getLogicalID();
-			fprintf(stderr, "Wzialem LogicalID\n");
+			fprintf(stderr, "[QE] Wzialem LogicalID\n");
 			QueryReferenceResult *lidres = new QueryReferenceResult(lid);
 			(*result)->addResult(lidres);
-			fprintf(stderr, "Dolozylem obiekt\n");
-			} */
-		fprintf(stderr, "[QE] Tymczasowo - w celach testowych - zawsze zwracamy to samo\n");
-		// Kod probny
-		lid = new DBLogicalID(7);
-		QueryReferenceResult *lidres = new QueryReferenceResult(lid);
-		fprintf(stderr, "[QE] Utworzylem tymczasowo QueryReferenceResult o typie %d\n", lidres->type());
-		(*result)->addResult(lidres);
-		fprintf(stderr, "[QE] Dolozylem obiekt\n");
-		fprintf(stderr, "[QE] Zwracam Result\n");
-		
-		//Koniec kodu probnego
+			fprintf(stderr, "[QE] Dolozylem obiekt\n");
+			}
 		fprintf(stderr, "[QE] Koncze\n");
 		return 0;
 		}
