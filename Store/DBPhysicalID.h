@@ -10,10 +10,10 @@ namespace Store
 	class DBPhysicalID //: PhysicalID
 	{
 	public:
-		virtual unsigned short getFile();
-		virtual unsigned int getPage();
-		virtual unsigned short getOffset();
-	};
+		virtual unsigned short getFile() const;
+		virtual unsigned int getPage()   const;
+		virtual unsigned short getOffset() const;		
+	};	
 }
 
 #endif
