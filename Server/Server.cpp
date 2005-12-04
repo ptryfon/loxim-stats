@@ -287,7 +287,7 @@ while (true) {
 	
 	printf("[Server.Run]--> destroying TransactionManager \n");
 	TransactionManager::getHandle()->~TransactionManager();
-	
+	LockManager::getHandle()->~LockManager();
 	printf("[Server.Run]--> Disconnecting \n");
 	Disconnect();
 	
