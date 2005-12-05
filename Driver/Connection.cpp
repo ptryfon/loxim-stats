@@ -51,6 +51,7 @@ int Connection::deserialize(Result** rs) {
 	char* id;
 	unsigned long number;
 	unsigned long i;
+	char df;
 		
 	switch (*(bufferBegin++)) {
 		case Result::BAG:
@@ -112,7 +113,8 @@ int Connection::deserialize(Result** rs) {
 		case Result::BINDER:
 		
 		default:
-			cout << "<Connection::deserialize> obiekt nieznany lub jeszcze niezaimplementowany" << endl;
+			df = *(bufferBegin-1);
+			cout << "<Connection::deserialize> obiekt nieznany lub jeszcze niezaimplementowany, nr: " << (int) df << endl;
 			*rs = NULL;
 			return 1;//w przyszlosci bedzie tu nr bledu
 	}
