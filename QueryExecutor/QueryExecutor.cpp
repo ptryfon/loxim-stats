@@ -31,25 +31,25 @@ namespace QExecutor {
 int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 	Transaction *tr;
 	LogicalID *lid;
-	//AccessMode mode;
 	ObjectPointer *optr;
 	string name;
 	DataValue* value;
 	int nodeType; //to tylko tymczasowo.
 	vector<ObjectPointer*>* vec;
 	int vecSize;
-	//ErrorConsole ec;
+	ErrorConsole ec;
 	int errcode;
-	  
-	fprintf(stderr, "[QE] queryResult()\n");
-	fprintf(stderr, "[QE] Asking TransactionManager for a new transaction.\n");
-	
-	if (TransactionManager::getHandle()->createTransaction(tr) != 0) {
-		fprintf(stderr, "[QE] Error in createTransaction.\n");
-	}
-fprintf(stderr, "[QE] Transaction opened.\n");
-nodeType = tree->type();
-fprintf(stderr, "[QE] Type taken.\n");
+
+    fprintf(stderr, "[QE] queryResult()\n");
+    fprintf(stderr, "[QE] Asking TransactionManager for a new transaction\n");
+
+    if ((errcode = TransactionManager::getHandle()->createTransaction(tr)) != 0) {
+	fprintf(stderr, "Error in createTransaction\n");
+        return errcode;	
+    }
+    fprintf(stderr, "[QE] Transaction opened\n");
+    nodeType = tree->type();
+    fprintf(stderr, "[QE] TreeType taken\n");
 	switch (nodeType)
 	{
 	case TreeNode::TNNAME:
@@ -57,44 +57,41 @@ fprintf(stderr, "[QE] Type taken.\n");
 		name = tree->getName();
 		fprintf(stderr, "[QE] Type: TNNAME\n");
 		if ((errcode = tr->getRoots(name, vec)) != 0)
-			{
-			//ec << (errcode);
-			fprintf(stderr, "[QE] Error in getRoots.\n");
-			return errcode;
-			}
+		{
+		    return errcode;
+		}
 		vecSize = vec->size();
-		fprintf(stderr, "[QE] Roots taken.\n");
+		fprintf(stderr, "[QE] Roots taken\n");
 		*result = new QueryBagResult;
-		fprintf(stderr, "[QE] Bag appeared.\n");
+		fprintf(stderr, "[QE] QueryBagResult created\n");
 		for (int i = 0; i < vecSize; i++ )
 			{
    			optr = vec->at(i);
 			lid = optr->getLogicalID();
-			fprintf(stderr, "[QE] LogicalID taken.\n");
+			fprintf(stderr, "[QE] LogicalID received\n");
 			QueryReferenceResult *lidres = new QueryReferenceResult(lid);
 			(*result)->addResult(lidres);
-			fprintf(stderr, "[QE] An object added\n");
+			fprintf(stderr, "[QE] Object added to QueryResult\n");
 			}
-		fprintf(stderr, "[QE] Finishing...\n");
+		fprintf(stderr, "[QE] Done!\n");
 		return 0;
 		}
 
-	case TreeNode::TNCREATE: 
-		    
+	case TreeNode::TNCREATE:
 		{
 		name = tree->getName();
 		fprintf(stderr, "[QE] Type: TNNAME\n");
 		tree = tree->getArg();
-		fprintf(stderr, "[QE] Reading the tree.\n");
+		fprintf(stderr, "[QE] Getting node arguments\n");
 		if (tree != NULL)
 			{
 			nodeType = tree->type();
-			fprintf(stderr, "[QE] Node-type recognized.\n");
+			fprintf(stderr, "[QE] Node type recognized.\n");
 			DBDataValue *dbValue = new DBDataValue;
 
 			switch (nodeType) 
 			{
-			case TreeNode::TNINT: 
+			case TreeNode::TNINT:
 				{
 				int intValue = ((IntNode *) tree)->getValue();
 				dbValue->setInt(intValue);
@@ -119,45 +116,40 @@ fprintf(stderr, "[QE] Type taken.\n");
 				} 
 			default:
 				{
-				//ec << (EBadType | ErrQExecutor);
+				ec << (EBadType | ErrQExecutor);
 				fprintf(stderr, "[QE] Error - incorrect node type.\n");
 				return EBadType | ErrQExecutor;
 				}
 			
 			}
-			
 			value = dbValue;
-			fprintf(stderr, "[QE] Value set.\n");
-			
-			
+			fprintf(stderr, "[QE] Value set\n");
 			}
 		else
 			{
 			value=NULL;
-			fprintf(stderr, "[QE] The tree is empty.\n");
+			fprintf(stderr, "[QE] No arguments (value = NULL)\n");
 			}
 
-		if (tr->createObject(name, value, optr) != 0)
+		if ((errcode = tr->createObject(name, value, optr)) != 0)
 			{
-			//ec << (errcode);
 			fprintf(stderr, "[QE] Error in createObject.\n");
-			return EObjCreate | ErrQExecutor;
+			return errcode;
 			}
-		if (tr->addRoot(optr) != 0)
+		if ((errcode = tr->addRoot(optr)) != 0)
 			{
-			//ec << (ERootAdd | ErrQExecutor);
 			fprintf(stderr, "[QE] Error in addRoot.\n");
-			return ERootAdd | ErrQExecutor;
+			return errcode;
 			}
 		*result = new QueryBagResult;
-		fprintf(stderr, "[QE] Bag appeared.\n");
+		fprintf(stderr, "[QE] QueryBagResult created\n");
 		QueryReferenceResult *lidres = new QueryReferenceResult(optr->getLogicalID());
 		(* result)->addResult (lidres);
-		fprintf(stderr, "[QE] An object added. Finishing...\n");
+		fprintf(stderr, "[QE] Object added to QueryResult. Done!\n");
 		return 0;
 		}
-		
-	
+
+
 	case TreeNode::TNINT: {break;}
 	case TreeNode::TNSTRING: {break;}
 	case TreeNode::TNDOUBLE: {break;} 
@@ -170,10 +162,11 @@ fprintf(stderr, "[QE] Type taken.\n");
 	
 	default:
 		{
-		//ec << (ENoType | ErrQExecutor);
+		fprintf(stderr, "Unknow node type\n");
+		ec << (ENoType | ErrQExecutor);
 		return ENoType | ErrQExecutor;
 		}
-	
+
 	} // end of switch
 	return 0;
     }
