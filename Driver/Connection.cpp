@@ -118,13 +118,14 @@ int Connection::deserialize(Result** rs) {
 	}
 }
 
-Result* Connection::execute(char* query){
+Result* Connection::execute(char* query) throw (ConnectionException) {
 	
 	int error;
 
       error = bufferSend(query, strlen(query)+1, sock);
       if (0 != error) {
-      	return new ResultError("sending error");
+      	throw ConnectionException("sending error");
+    //  	return new ResultError("sending error");
       }
     //  cout << "<Connection::execute> wysylanie zakonczone" << endl;
       char* ptr = NULL;
@@ -137,7 +138,8 @@ Result* Connection::execute(char* query){
       		free(ptr); // if ptr == NULL nothing happens
      // 		cout << "<Connection::execute> wskaznik zwolniony" << endl;
      // 	}
-      	return new ResultError("receiving error");
+     	throw ConnectionException("receiving error");
+      //	return new ResultError("receiving error");
       }
       cout << "<Connection::execute> driver przyszlo bajtow: " << ile << endl;
       bufferBegin = ptr;
@@ -148,7 +150,8 @@ Result* Connection::execute(char* query){
       free(ptr); //free buffer created by bufferReceive()
       if (0 != error) {
       	cout << "<Connection::execute> blad deserializacji, kod bledu: " << error << endl;
-      	return new ResultError("blad protokolu");
+      	throw ConnectionException("protocol corrupt");
+      //	return new ResultError("blad protokolu");
       }
       cout << "<Connection::execute> obiekt Result stworzony -> procedura zakonczona sukcesem" << endl;
       return rs;

@@ -37,6 +37,7 @@ int main(int argc, char *argv[]) {
   char input[50];
   cout << "SBQLCli ver 0.0.0.1 \n";
   cout << " > ";
+  try { //Piotrek
   while (cin.getline(input,50)) {
     Result* result = con->execute(input);
     if (result != 0) { //Piotrek - mam nadzieje ze sie nie obrazisz :)
@@ -46,6 +47,10 @@ int main(int argc, char *argv[]) {
     } else {cout << "zapytanie nie powiodlo sie" << endl;}
     cout << endl << " > ";
   };
+  } catch (ConnectionException e) { //Piotrek
+	cout << e << endl;
+  	exit(1);
+  }
 
   return 0;		
 

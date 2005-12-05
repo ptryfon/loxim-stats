@@ -39,7 +39,7 @@ Connection* DriverManager::getConnection(char* url, int port)
   Addr.sin_port=htons( port );
   //////////////
   struct hostent *hp;
-  char hostn[30];
+  //char hostn[30];
   
   hp = gethostbyname (url);
   if (hp == 0)
@@ -57,7 +57,7 @@ Connection* DriverManager::getConnection(char* url, int port)
 
 
   if (0 != connect( sock, (sockaddr*)&Addr, sizeof( Addr ) ))  
-    throw new ConnectionException(" can't establish connection ");
+    throw ConnectionException(" can't establish connection ");
   //cerr << "blad w connect" << endl;
 
 
