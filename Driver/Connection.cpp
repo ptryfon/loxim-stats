@@ -157,3 +157,9 @@ Result* Connection::execute(char* query){
 int Connection::disconnect() {
 	return close(sock);
 }
+
+
+ostream& operator<<(ostream& os, ConnectionException& e) {
+	e.toStream(os);
+	return os;
+}

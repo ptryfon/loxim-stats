@@ -3,6 +3,8 @@
 
 #include "Result.h"
 
+using namespace std;
+
 class Connection
 {
 public:
@@ -18,6 +20,18 @@ private:
 	int getULong(unsigned long &val);
 	int stringCopy(char* &newBuffer);
 	int deserialize(Result** rs);
+};
+
+
+class ConnectionException //Czarek
+{
+private:
+	string msg;
+public:
+	ConnectionException() { msg = " Undefined exception "; }
+	ConnectionException(string msg) : msg(msg) {}
+	void   toStream(ostream& os) const { os << msg;  }
+	friend ostream& operator<<(ostream&, ConnectionException&);
 };
 
 #endif //_CONNECTION_H_
