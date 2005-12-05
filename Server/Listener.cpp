@@ -37,10 +37,30 @@ int Listener::Start(int port) {
 
 
 int main(int argc, char* argv[]) {
+	//return 0;
 	int port = 6543;
 	if (argc>1) 
 		port = atoi(argv[1]);
 	printf("Listener: running port ----> %d\n", port);
+	/*
+	char buffer[4096];
+	char dupa[3]="AB";
+	char pupa[3]="CD";
+	char *bufPoint;
+	
+	memset(buffer, '\0', 4096);
+	bufPoint = buffer;
+	memcpy(bufPoint, dupa, 3);
+	printf("buffer is %s\n", buffer);
+	printf("bufPoint is %s\n", bufPoint);
+	bufPoint++;
+	bufPoint++;
+	printf("buffer is %s \n", buffer);
+	printf("buffPoint is %s \n", bufPoint);
+	memcpy(bufPoint, pupa, 3);
+	printf("buffer is %s \n bufPoint is %s \n", buffer, bufPoint);
+	return 0;
+	*/
 	Listener *ls = new Listener();
 	ls->Start(port);
 	printf("Listener: ends \n");

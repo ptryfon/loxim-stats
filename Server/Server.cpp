@@ -88,17 +88,19 @@ int  Server::Serialize(QueryResult *qr, char **buffer, char **bufStart)
 	unsigned int intVal;
 	unsigned long bufBagLen;
 	char bufferP[MAX_MESSG];
+	char *bufPointer;
 	char sentType[1];
 	sentType[0]='\0';
 	char *finalBuf;
 	int retVal;
 	char * dupaTest="dupa";
 	QueryReferenceResult *refRes;
-	char *bufBeg;
 	
 	
 	finalBuf = (char *)malloc(MAX_MESSG);
 	memset(bufferP, '\0', MAX_MESSG); 
+	bufPointer=bufferP;
+		
 	//printf("[Server.Serialize]--> Starting 1\n")
 	
 	//int i;
@@ -120,12 +122,12 @@ int  Server::Serialize(QueryResult *qr, char **buffer, char **bufStart)
 			bagRes = (QueryBagResult *)qr->clone();
 			
 			printf("[Server.Serialize]--> Adding bag header \n");
-			bufferP[0]=(char)resType;
-			*bufferP=*bufferP+1;
-			memcpy((void *)&bufferP, (const void *)&bufBagLen, sizeof(bufBagLen));
+			bufPointer[0]=(char)resType;
+			bufPointer++;
+			memcpy((void *)&bufPointer, (const void *)&bufBagLen, sizeof(bufBagLen));
 			printf("[Server.Serialize]--> Bag header complete \n");
-			printf("[Server.Serialize]--> Bag size as passed is |(size)=%lu|\n",			ntohl(*(unsigned long *)bufferP));
-			*bufferP=*bufferP+sizeof(bufBagLen);
+			printf("[Server.Serialize]--> Bag size as passed is |(size)=%lu|\n", ntohl(*(unsigned long *)&bufPointer));
+			bufPointer=bufPointer+sizeof(bufBagLen);
 												
 			//TODO depth handling - rekurencja pewnie bedzie
 			printf("[Server.Serialize]--> Getting collection items \n");
@@ -137,11 +139,15 @@ int  Server::Serialize(QueryResult *qr, char **buffer, char **bufStart)
 				resTypeIns=(Result::ResultType)collItem->type();
 				printf("[Server.Serialize]-->Result type %d \n", resTypeIns);
 				if (resTypeIns==Result::REFERENCE) {
-					bufferP[0]=(char)resTypeIns;
+					bufPointer[0]=(char)resTypeIns;
+					printf("Checker -1\n");
 					refRes = (QueryReferenceResult *)collItem;
 					intVal=(refRes->getValue())->toInteger();
-					*bufferP=*bufferP+1;
-					memcpy((void *)&bufferP, (const void *)&intVal, sizeof(intVal));
+					bufPointer++;
+					printf("Checker \n");
+					memcpy((void *)&bufPointer, (const void *)&intVal, sizeof(intVal));
+					bufPointer=bufPointer+sizeof(intVal);
+					printf("Checker 1\n");
 				}
 				
 				
@@ -176,11 +182,11 @@ int  Server::Serialize(QueryResult *qr, char **buffer, char **bufStart)
 			strVal=stringRes->getValue();
 			valSize=stringRes->size();
 			printf("[Server.Serialize]--> Adding string header \n");
-			bufferP[0]=(char)resType;
-			*bufferP=*bufferP+1;
+			bufPointer[0]=(char)resType;
+			bufPointer++;
 			printf("[Server.Serialize]--> String header complete \n");
 			strVal.copy(bufferP, valSize);
-			//bufferP=bufferP + valSize;
+			bufPointer=bufPointer + valSize;
 			break;
 		case Result::RESULT:
 			printf("\n[Server.Serialize]--> BAD TYPE RECEIVED FROM EXECUTOR -- RESULT \n \n");
@@ -190,24 +196,29 @@ int  Server::Serialize(QueryResult *qr, char **buffer, char **bufStart)
 		   // memcpy(buffer, (char *)resType, 4);
 		   // printf("[Server.Serialize]--> in progress.. \n");
 		   // printf("[Server.Serialize]--> Some header added \n"); 
-		    memcpy(bufferP, dupaTest, strlen(dupaTest));
+		    memcpy(bufPointer, dupaTest, strlen(dupaTest));
 		   // memcpy(&buffer, '\0', 1);
 		    break;    
 		 case Result::VOID:
 			printf("[Server.Serialize]--> VOID type, sending type indicator and C(orrect) (what should I?)\n");
-			bufferP[0]=(char)resType;
+			bufPointer[0]=(char)resType;
 			//sprintf(bufferP, "%dC", (char)resType);
-			//printf("%s\n", bufferP);
+			printf("%d\n", (int)bufPointer[0]);
 			printf("[Server.Serialize]--> VOID type written \n");
+			printf("%d\n", (int)bufferP[0]);
 			break;
 		default:
 			printf("[Server.Serialize]--> object type not handled yet(!) \n");
 			return -1;
 			break;
 	}
+	free(bufPointer);
 	printf("[Server.Serialize]--> Done! \n");
-	memcpy(&finalBuf, &bufferP, MAX_MESSG);
+	memcpy(&finalBuf, bufferP, MAX_MESSG);
+	printf("[Server.Serialize]--> Ending.. \n");
+	printf("bufferType=%d\n", (int)(bufferP[0]));
 	*buffer = finalBuf;
+	//printf("%d\n", (int)buffer[0]);
 	//printf("[Server.Serialize]--> I've got a nice buffer containing:  \n--->%s<---\n", buffer);
 	//printf("...ok, it's not so nice, but first char is --->%d<---\n", (int)buffer[0]); 
 	return 0;
@@ -253,8 +264,10 @@ int Server::Run()
 	serializedMessg=(char*) malloc(MAX_MESSG);
 	
 while (true) {
+
+	printf("[Server.Run]--> Cleaning buffers \n");
 	memset(serializedMessg, '\0', MAX_MESSG); 
-	*sPoint=serializedMessg;
+	*sPoint=serializedMessg;	
 	
 	//Get string from client
 	printf("[Server.Run]--> Receiving query from client \n");
