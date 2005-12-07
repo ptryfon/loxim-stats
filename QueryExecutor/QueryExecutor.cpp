@@ -40,7 +40,10 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 	ErrorConsole ec;
 	int errcode;
 
-    fprintf(stderr, "[QE] queryResult()\n");
+    fprintf(stderr, "[QE] executeQuery()\n");
+    
+    if (tree != NULL)
+    {
     fprintf(stderr, "[QE] Asking TransactionManager for a new transaction\n");
 
     if ((errcode = TransactionManager::getHandle()->createTransaction(tr)) != 0) {
@@ -79,7 +82,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 
 	case TreeNode::TNCREATE:
 		{
-		name = tree->getName();
+		name = tree->getName(); 
 		fprintf(stderr, "[QE] Type: TNNAME\n");
 		tree = tree->getArg();
 		fprintf(stderr, "[QE] Getting node arguments\n");
@@ -155,7 +158,59 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 	case TreeNode::TNDOUBLE: {break;} 
 	case TreeNode::TNVECTOR: {break;}
 	case TreeNode::TNAS: {break;}
-	case TreeNode::TNUNOP: {break;}
+	
+	case TreeNode::TNUNOP: 
+		{
+		UnOpNode::unOp op = ((UnOpNode *) tree)->getOp();
+		fprintf(stderr, "[QE] Unary operator - type recognized: .\n");
+	    
+		if (op == UnOpNode::deleteOp)
+			{
+			fprintf(stderr, "[QE] Oprator: deleteOp\n");
+		
+			tree = tree->getArg();
+			fprintf(stderr, "[QE] Getting node arguments\n");
+			
+			if ((errcode = executeQuery (tree, result)) != 0)
+				{
+				return errcode;
+				};
+			
+			QueryResult* toDelete;  //single object to be deleted
+			for (int i = 0; i < ((*result)->size()); i++ ) // Deleting objects
+				{
+   				(*result)->getResult(toDelete);  //bledy??
+				lid = ((QueryReferenceResult *) toDelete)->getValue();
+				if ((errcode = tr->getObjectPointer (lid, Store::Write, optr)) !=0)
+					{
+					fprintf(stderr, "[QE] Error in getObjectPointer.\n");
+					return errcode;
+					}
+				if ((errcode = tr->removeRoot(optr)) != 0)
+					{
+					fprintf(stderr, "[QE] Error in removeRoot.\n");
+					return errcode;
+					}
+				fprintf(stderr, "[QE] Root removed\n");
+				if ((errcode = tr->deleteObject(optr)) != 0)
+					{
+					fprintf(stderr, "[QE] Error in deleteObject.\n");
+					return errcode;
+					}
+				fprintf(stderr, "[QE] Object deleted\n");
+				} //for
+			fprintf(stderr, "[QE] Done!\n");
+			} //if	    
+		else {} // Jeszcze nie zaimplementowane
+		*result = new QueryBagResult;
+		fprintf(stderr, "[QE] QueryBagResult created\n");
+		QueryReferenceResult *lidres = new QueryReferenceResult(optr->getLogicalID());
+		(* result)->addResult (lidres);
+		fprintf(stderr, "[QE] Object added to QueryResult. Done!\n");
+		return 0;
+		}
+	
+	
 	case TreeNode::TNALGOP: {break;}
 	case TreeNode::TNNONALGOP: {break;}
 	case TreeNode::TNTRANS: {break;}
@@ -168,6 +223,14 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 		}
 
 	} // end of switch
+	} // if tree!=Null
+	else // tree == NULL; return empty result
+		{
+		*result = new QueryBagResult;
+		fprintf(stderr, "[QE] QueryBagResult created\n");
+		QueryReferenceResult *lidres = new QueryReferenceResult(optr->getLogicalID());
+		(* result)->addResult (lidres);
+		}
 	return 0;
     }
 
