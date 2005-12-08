@@ -40,196 +40,194 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 	ErrorConsole ec;
 	int errcode;
 
-    fprintf(stderr, "[QE] executeQuery()\n");
+	fprintf(stderr, "[QE] executeQuery()\n");
     
-    if (tree != NULL)
-    {
-    fprintf(stderr, "[QE] Asking TransactionManager for a new transaction\n");
-
-    if ((errcode = TransactionManager::getHandle()->createTransaction(tr)) != 0) {
-	fprintf(stderr, "Error in createTransaction\n");
-        return errcode;	
-    }
-    fprintf(stderr, "[QE] Transaction opened\n");
-    nodeType = tree->type();
-    fprintf(stderr, "[QE] TreeType taken\n");
-	switch (nodeType)
+	if (tree != NULL)
 	{
-	case TreeNode::TNNAME:
-		{
-		name = tree->getName();
-		fprintf(stderr, "[QE] Type: TNNAME\n");
-		if ((errcode = tr->getRoots(name, vec)) != 0)
-		{
-		    return errcode;
-		}
-		vecSize = vec->size();
-		fprintf(stderr, "[QE] Roots taken\n");
-		*result = new QueryBagResult;
-		fprintf(stderr, "[QE] QueryBagResult created\n");
-		for (int i = 0; i < vecSize; i++ )
-			{
-   			optr = vec->at(i);
-			lid = optr->getLogicalID();
-			fprintf(stderr, "[QE] LogicalID received\n");
-			QueryReferenceResult *lidres = new QueryReferenceResult(lid);
-			(*result)->addResult(lidres);
-			fprintf(stderr, "[QE] Object added to QueryResult\n");
-			}
-		fprintf(stderr, "[QE] Done!\n");
-		return 0;
-		}
+		fprintf(stderr, "[QE] Asking TransactionManager for a new transaction\n");
 
-	case TreeNode::TNCREATE:
-		{
-		name = tree->getName(); 
-		fprintf(stderr, "[QE] Type: TNNAME\n");
-		tree = tree->getArg();
-		fprintf(stderr, "[QE] Getting node arguments\n");
-		if (tree != NULL)
+		if ((errcode = TransactionManager::getHandle()->createTransaction(tr)) != 0) 
 			{
-			nodeType = tree->type();
-			fprintf(stderr, "[QE] Node type recognized.\n");
-			DBDataValue *dbValue = new DBDataValue;
-
-			switch (nodeType) 
-			{
-			case TreeNode::TNINT:
-				{
-				int intValue = ((IntNode *) tree)->getValue();
-				dbValue->setInt(intValue);
-				fprintf(stderr, "[QE] It's 'integer'.\n");
-				break;
-				}
-			
-			case TreeNode::TNSTRING: 
-				{
-				string stringValue = ((StringNode *) tree)->getValue();
-				dbValue->setString(stringValue);
-				fprintf(stderr, "[QE] It's 'string'.\n");
-				break;
-				}
-
-			case TreeNode::TNDOUBLE: 
-				{
-				double doubleValue = ((DoubleNode *) tree)->getValue();
-				dbValue->setDouble(doubleValue);
-				fprintf(stderr, "[QE] It's 'double'.\n");
-				break;
-				} 
-			default:
-				{
-				ec << (EBadType | ErrQExecutor);
-				fprintf(stderr, "[QE] Error - incorrect node type.\n");
-				return EBadType | ErrQExecutor;
-				}
-			
+			fprintf(stderr, "Error in createTransaction\n");
+    			return errcode;	
 			}
-			value = dbValue;
-			fprintf(stderr, "[QE] Value set\n");
-			}
-		else
-			{
-			value=NULL;
-			fprintf(stderr, "[QE] No arguments (value = NULL)\n");
-			}
-
-		if ((errcode = tr->createObject(name, value, optr)) != 0)
-			{
-			fprintf(stderr, "[QE] Error in createObject.\n");
-			return errcode;
-			}
-		if ((errcode = tr->addRoot(optr)) != 0)
-			{
-			fprintf(stderr, "[QE] Error in addRoot.\n");
-			return errcode;
-			}
-		*result = new QueryBagResult;
-		fprintf(stderr, "[QE] QueryBagResult created\n");
-		QueryReferenceResult *lidres = new QueryReferenceResult(optr->getLogicalID());
-		(* result)->addResult (lidres);
-		fprintf(stderr, "[QE] Object added to QueryResult. Done!\n");
-		return 0;
-		}
-
-
-	case TreeNode::TNINT: {break;}
-	case TreeNode::TNSTRING: {break;}
-	case TreeNode::TNDOUBLE: {break;} 
-	case TreeNode::TNVECTOR: {break;}
-	case TreeNode::TNAS: {break;}
+		fprintf(stderr, "[QE] Transaction opened\n");
+		nodeType = tree->type();
+		fprintf(stderr, "[QE] TreeType taken\n");
 	
-	case TreeNode::TNUNOP: 
+		switch (nodeType)
 		{
-		UnOpNode::unOp op = ((UnOpNode *) tree)->getOp();
-		fprintf(stderr, "[QE] Unary operator - type recognized: .\n");
-	    
-		if (op == UnOpNode::deleteOp)
+		case TreeNode::TNNAME:
 			{
-			fprintf(stderr, "[QE] Oprator: deleteOp\n");
-		
+			name = tree->getName();
+			fprintf(stderr, "[QE] Type: TNNAME\n");
+			if ((errcode = tr->getRoots(name, vec)) != 0)
+			{
+			    return errcode;
+			}
+			vecSize = vec->size();
+			fprintf(stderr, "[QE] Roots taken\n");
+			*result = new QueryBagResult;
+			fprintf(stderr, "[QE] QueryBagResult created\n");
+			for (int i = 0; i < vecSize; i++ )
+				{
+   				optr = vec->at(i);
+				lid = optr->getLogicalID();
+				fprintf(stderr, "[QE] LogicalID received\n");
+				QueryReferenceResult *lidres = new QueryReferenceResult(lid);
+				(*result)->addResult(lidres);
+				fprintf(stderr, "[QE] Object added to QueryResult\n");
+				}
+			fprintf(stderr, "[QE] Done!\n");
+			return 0;
+			}//case
+
+		case TreeNode::TNCREATE:
+			{
+			name = tree->getName(); 
+			fprintf(stderr, "[QE] Type: TNNAME\n");
 			tree = tree->getArg();
 			fprintf(stderr, "[QE] Getting node arguments\n");
-			
-			if ((errcode = executeQuery (tree, result)) != 0)
+			if (tree != NULL)
 				{
-				return errcode;
-				};
-			
-			QueryResult* toDelete;  //single object to be deleted
-			for (int i = 0; i < ((*result)->size()); i++ ) // Deleting objects
-				{
-   				(*result)->getResult(toDelete);  //bledy??
-				lid = ((QueryReferenceResult *) toDelete)->getValue();
-				if ((errcode = tr->getObjectPointer (lid, Store::Write, optr)) !=0)
-					{
-					fprintf(stderr, "[QE] Error in getObjectPointer.\n");
-					return errcode;
-					}
-				if ((errcode = tr->removeRoot(optr)) != 0)
-					{
-					fprintf(stderr, "[QE] Error in removeRoot.\n");
-					return errcode;
-					}
-				fprintf(stderr, "[QE] Root removed\n");
-				if ((errcode = tr->deleteObject(optr)) != 0)
-					{
-					fprintf(stderr, "[QE] Error in deleteObject.\n");
-					return errcode;
-					}
-				fprintf(stderr, "[QE] Object deleted\n");
-				} //for
-			fprintf(stderr, "[QE] Done!\n");
-			} //if	    
-		else {} // Jeszcze nie zaimplementowane
-		*result = new QueryBagResult;
-		fprintf(stderr, "[QE] QueryBagResult created\n");
-		QueryReferenceResult *lidres = new QueryReferenceResult(optr->getLogicalID());
-		(* result)->addResult (lidres);
-		fprintf(stderr, "[QE] Object added to QueryResult. Done!\n");
-		return 0;
-		}
-	
-	
-	case TreeNode::TNALGOP: {break;}
-	case TreeNode::TNNONALGOP: {break;}
-	case TreeNode::TNTRANS: {break;}
-	
-	default:
-		{
-		fprintf(stderr, "Unknow node type\n");
-		ec << (ENoType | ErrQExecutor);
-		return ENoType | ErrQExecutor;
-		}
+				nodeType = tree->type();
+				fprintf(stderr, "[QE] Node type recognized.\n");
+				DBDataValue *dbValue = new DBDataValue;
 
-	} // end of switch
+				switch (nodeType) 
+				{
+				case TreeNode::TNINT:
+					{
+					int intValue = ((IntNode *) tree)->getValue();
+					dbValue->setInt(intValue);
+					fprintf(stderr, "[QE] It's 'integer'.\n");
+					break;
+					}
+			
+				case TreeNode::TNSTRING: 
+					{
+					string stringValue = ((StringNode *) tree)->getValue();
+					dbValue->setString(stringValue);
+					fprintf(stderr, "[QE] It's 'string'.\n");
+					break;
+					}
+
+				case TreeNode::TNDOUBLE: 
+					{
+					double doubleValue = ((DoubleNode *) tree)->getValue();
+					dbValue->setDouble(doubleValue);
+					fprintf(stderr, "[QE] It's 'double'.\n");
+					break;
+					} 
+				default:
+					{
+					ec << (EBadType | ErrQExecutor);
+					fprintf(stderr, "[QE] Error - incorrect node type.\n");
+					return EBadType | ErrQExecutor;
+					}
+			
+				}//switch
+				value = dbValue;
+				fprintf(stderr, "[QE] Value set\n");
+				} //if
+			else
+				{
+				value=NULL;
+				fprintf(stderr, "[QE] No arguments (value = NULL)\n");
+				}
+
+			if ((errcode = tr->createObject(name, value, optr)) != 0)
+				{
+				fprintf(stderr, "[QE] Error in createObject.\n");
+				return errcode;
+				}
+			if ((errcode = tr->addRoot(optr)) != 0)
+				{
+				fprintf(stderr, "[QE] Error in addRoot.\n");
+				return errcode;
+				}
+			*result = new QueryBagResult;
+			fprintf(stderr, "[QE] QueryBagResult created\n");
+			QueryReferenceResult *lidres = new QueryReferenceResult(optr->getLogicalID());
+			(* result)->addResult (lidres);
+			fprintf(stderr, "[QE] Object added to QueryResult. Done!\n");
+			return 0;
+			}
+
+
+		case TreeNode::TNINT: {break;}
+		case TreeNode::TNSTRING: {break;}
+		case TreeNode::TNDOUBLE: {break;} 
+		case TreeNode::TNVECTOR: {break;}
+		case TreeNode::TNAS: {break;}
+	
+		case TreeNode::TNUNOP: 
+			{
+			UnOpNode::unOp op = ((UnOpNode *) tree)->getOp();
+			fprintf(stderr, "[QE] Unary operator - type recognized: .\n");
+	    
+			if (op == UnOpNode::deleteOp)
+				{
+				fprintf(stderr, "[QE] Oprator: deleteOp\n");
+		
+				tree = tree->getArg();
+				fprintf(stderr, "[QE] Getting node arguments\n");
+			
+				if ((errcode = executeQuery (tree, result)) != 0)
+					{
+					return errcode;
+					};
+			
+				QueryResult* toDelete;  //single object to be deleted
+				for (int i = 0; i < ((*result)->size()); i++ ) // Deleting objects
+					{
+   					(*result)->getResult(toDelete);  //bledy??
+					lid = ((QueryReferenceResult *) toDelete)->getValue();
+					if ((errcode = tr->getObjectPointer (lid, Store::Write, optr)) !=0)
+						{
+						fprintf(stderr, "[QE] Error in getObjectPointer.\n");
+						return errcode;
+						}
+					if ((errcode = tr->removeRoot(optr)) != 0)
+						{
+						fprintf(stderr, "[QE] Error in removeRoot.\n");
+						return errcode;
+						}
+					fprintf(stderr, "[QE] Root removed\n");
+					if ((errcode = tr->deleteObject(optr)) != 0)
+						{
+						fprintf(stderr, "[QE] Error in deleteObject.\n");
+						return errcode;
+						}
+					fprintf(stderr, "[QE] Object deleted\n");
+					} //for
+				fprintf(stderr, "[QE] Done!\n");
+				} //if	    
+			else {} // Jeszcze nie zaimplementowane
+			*result = new QueryNothingResult;
+			fprintf(stderr, "[QE] QueryNothingResult created\n");
+			return 0;
+			}//case
+	
+	
+		case TreeNode::TNALGOP: {break;}
+		case TreeNode::TNNONALGOP: {break;}
+		case TreeNode::TNTRANS: {break;}
+	
+		default:
+			{
+			fprintf(stderr, "Unknow node type\n");
+			ec << (ENoType | ErrQExecutor);
+			return ENoType | ErrQExecutor;
+			}
+
+		} // end of switch
+		
 	} // if tree!=Null
 	else // tree == NULL; return empty result
 		{
-		*result = new QueryBagResult;
-		fprintf(stderr, "[QE] QueryBagResult created\n");
-		QueryReferenceResult *lidres = new QueryReferenceResult(optr->getLogicalID());
-		(* result)->addResult (lidres);
+		*result = new QueryNothingResult;
+		fprintf(stderr, "[QE] QueryNothingResult created\n");
 		}
 	return 0;
     }
