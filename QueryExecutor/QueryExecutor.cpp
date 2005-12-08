@@ -166,7 +166,9 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			UnOpNode::unOp op = ((UnOpNode *) tree)->getOp();
 			fprintf(stderr, "[QE] Unary operator - type recognized: .\n");
 	    
-			if (op == UnOpNode::deleteOp)
+			switch (op)
+			{
+			case UnOpNode::deleteOp:
 				{
 				fprintf(stderr, "[QE] Oprator: deleteOp\n");
 		
@@ -202,8 +204,9 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					fprintf(stderr, "[QE] Object deleted\n");
 					} //for
 				fprintf(stderr, "[QE] Done!\n");
-				} //if	    
-			else {} // Jeszcze nie zaimplementowane
+				} //case	    
+			default: {break;} // Reszta jeszcze nie zaimplementowane
+			}//switch
 			*result = new QueryNothingResult;
 			fprintf(stderr, "[QE] QueryNothingResult created\n");
 			return 0;
