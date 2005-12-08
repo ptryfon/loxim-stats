@@ -155,9 +155,30 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			}
 
 
-		case TreeNode::TNINT: {break;}
-		case TreeNode::TNSTRING: {break;}
-		case TreeNode::TNDOUBLE: {break;} 
+		case TreeNode::TNINT: 
+			{
+			int intValue = ((IntNode *) tree)->getValue();
+			fprintf(stderr, "[QE] TNINT: %d\n",intValue);
+			*result = new QueryIntResult (intValue);
+			fprintf(stderr, "[QE] QueryIntResult (%d) created\n",intValue);
+			return 0;
+			}
+		case TreeNode::TNSTRING: 
+			{
+			string stringValue = ((StringNode *) tree)->getValue();
+			//fprintf(stderr, "[QE] QueryStringResult (%s) created\n",stringValue);
+			*result = new QueryStringResult (stringValue);
+			//fprintf(stderr, "[QE] QueryStringResult (%s) created\n",stringValue);
+			return 0;
+			}
+		case TreeNode::TNDOUBLE:
+			{
+			double doubleValue = ((DoubleNode *) tree)->getValue();
+			fprintf(stderr, "[QE] TNDOUBLE: %d\n",doubleValue);
+			*result = new QueryDoubleResult (doubleValue);
+			fprintf(stderr, "[QE] QueryDoubleResult (%d) created\n",doubleValue);
+			return 0;
+			}
 		case TreeNode::TNVECTOR: {break;}
 		case TreeNode::TNAS: {break;}
 	
@@ -179,7 +200,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					{
 					return errcode;
 					};
-			
+
 				QueryResult* toDelete;  //single object to be deleted
 				for (int i = 0; i < ((*result)->size()); i++ ) // Deleting objects
 					{
