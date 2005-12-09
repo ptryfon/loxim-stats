@@ -8,8 +8,10 @@ namespace QExecutor
 {
 	class QueryExecutor
 	{
+	protected:
+		Transaction *tr;
 	public:
-		QueryExecutor() {};
+		QueryExecutor() { tr = NULL; };
 		~QueryExecutor();
 		int executeQuery(TreeNode *tree, QueryResult **result);
 	};

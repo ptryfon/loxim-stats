@@ -29,7 +29,7 @@ using namespace Store;
 namespace QExecutor {
 
 int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
-	Transaction *tr;
+	
 	LogicalID *lid;
 	ObjectPointer *optr;
 	string name;
@@ -45,13 +45,16 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 	if (tree != NULL)
 	{
 		fprintf(stderr, "[QE] Asking TransactionManager for a new transaction\n");
-
-		if ((errcode = TransactionManager::getHandle()->createTransaction(tr)) != 0) 
-			{
-			fprintf(stderr, "Error in createTransaction\n");
-    			return errcode;	
+		if (tr == NULL) {
+			if ((errcode = TransactionManager::getHandle()->createTransaction(tr)) != 0) 
+				{
+				fprintf(stderr, "Error in createTransaction\n");
+    				return errcode;	
+				}
+			else {
+				fprintf(stderr, "[QE] Transaction opened\n");
 			}
-		fprintf(stderr, "[QE] Transaction opened\n");
+		}
 		nodeType = tree->type();
 		fprintf(stderr, "[QE] TreeType taken\n");
 	
@@ -195,16 +198,17 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 		
 				tree = tree->getArg();
 				fprintf(stderr, "[QE] Getting node arguments\n");
-			
-				if ((errcode = executeQuery (tree, result)) != 0)
+				
+				QueryResult** cokolwiek; 
+				if ((errcode = executeQuery (tree, cokolwiek)) != 0)
 					{
 					return errcode;
 					};
 
 				QueryResult* toDelete;  //single object to be deleted
-				for (int i = 0; i < ((*result)->size()); i++ ) // Deleting objects
+				for (int i = 0; i < ((*cokolwiek)->size()); i++ ) // Deleting objects
 					{
-   					(*result)->getResult(toDelete);  //bledy??
+   					(*cokolwiek)->getResult(toDelete);  //bledy??
 					lid = ((QueryReferenceResult *) toDelete)->getValue();
 					if ((errcode = tr->getObjectPointer (lid, Store::Write, optr)) !=0)
 						{
@@ -257,5 +261,5 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
     }
 
 
-QueryExecutor::~QueryExecutor() {};
+QueryExecutor::~QueryExecutor() { delete tr; };
 }
