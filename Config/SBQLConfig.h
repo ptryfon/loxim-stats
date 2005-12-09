@@ -12,7 +12,6 @@ namespace Config {
 			static ifstream* configFile;
 			static int nObjects;
 		public:
-			SBQLConfig();
 			SBQLConfig(string module);
 
 			int init();

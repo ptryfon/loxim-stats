@@ -3,24 +3,34 @@
 using namespace std;
 
 namespace Config {
+	struct ConfOpt {
+		string name;
+		string value;
+		struct ConfOpt *nextOpt;
+	};
+
+	struct ModuleOptions {
+		string name;
+		struct ConfOpt *options;
+	};
+
 	ifstream* SBQLConfig::configFile = NULL;
 	int SBQLConfig::nObjects = 0;
-
-	int SBQLConfig::init()
-	{
-		return 0;
-	};
-
-	SBQLConfig::SBQLConfig()
-       	{
-		if (configFile == NULL)
-			configFile = new ifstream("sbql.conf");
-		nObjects++;
-	};
 
 	SBQLConfig::SBQLConfig(string module)
 	{
 		nObjects++;
+	};
+
+	int SBQLConfig::init()
+	{
+		if (configFile == NULL)
+			configFile = new ifstream("sbql.conf");
+
+//		while () {
+//		}
+
+		return 0;
 	};
 
 	int SBQLConfig::getBool(string param, int& value)
