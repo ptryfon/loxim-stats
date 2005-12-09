@@ -66,6 +66,11 @@ namespace Logs
      */
     int rollbackTransaction( TransactionID *tid, unsigned &id );
 
+    /**
+     * Zapisuje do dziennika <SHUTDOWN> ("poprawnie zamknieto baze danych").
+     */
+    int shutdown( unsigned &id );
+
     int destroy();
   };
 

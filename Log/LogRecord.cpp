@@ -16,6 +16,7 @@ int LogRecord::initialize()
   new EndCkptRecord();
   new CommitRecord();
   new RollbackRecord();
+  new ShutdownRecord();
 
   return 0;
 }

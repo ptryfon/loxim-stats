@@ -101,3 +101,17 @@ int LogManager::rollbackTransaction( TransactionID *tid, unsigned &id )
   return 0;
 }
 
+int LogManager::shutdown( unsigned &id )
+{
+  LogRecord *record = new ShutdownRecord();
+  logThread->push( record );
+  logThread->flush();
+  record->getId( id );
+
+  printf( "LogManager: shutdown\n" );
+
+  return 0;
+}
+
+
+

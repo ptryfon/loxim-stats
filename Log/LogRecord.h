@@ -35,6 +35,7 @@ namespace Logs
 #define CKPT_LOG_REC_TYPE      4
 #define END_CKPT_LOG_REC_TYPE  5
 #define WRITE_LOG_REC_TYPE     6
+#define SHUTDOWN_LOG_REC_TYPE  7
 
 
   class LogRecord
@@ -62,6 +63,24 @@ namespace Logs
     virtual ~LogRecord() {}
     int getId( unsigned int &result ) { result = id; return 0; }
     int getType( int &result ) { result = type; return 0; }
+  };
+
+
+  class ShutdownRecord : public LogRecord
+  {
+    friend class LogRecord;
+
+    protected:
+
+    virtual int read( int fileDes ) { return 0; }
+    virtual int write( int fileDes ) { return 0; }
+
+    virtual int instance( LogRecord *&result ) { result = new ShutdownRecord(); return 0; }
+
+    public:
+    ShutdownRecord() : LogRecord( SHUTDOWN_LOG_REC_TYPE ) {}
+    virtual ~ShutdownRecord() {}
+
   };
 
 
