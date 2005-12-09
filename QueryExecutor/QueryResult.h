@@ -26,15 +26,20 @@ public:
 		QNOTHING  =10
 		};
 		
-	//virtual bool operator==(QueryResult& r)=0;
 	virtual QueryResult* clone()=0;
 	
 	virtual int type();
 	virtual bool collection()=0;
 	virtual bool isEmpty()=0;
-	virtual int size()=0;
+	virtual unsigned int size()=0;
 	virtual void addResult(QueryResult *r) {};
 	virtual int getResult(QueryResult *&r) { return 0; };
+	virtual bool equal(QueryResult *r)=0;
+	virtual bool not_equal(QueryResult *r)=0;
+	virtual bool greater_than(QueryResult *r)=0;
+	virtual bool less_than(QueryResult *r)=0;
+	virtual bool greater_eq(QueryResult *r)=0;
+	virtual bool less_eq(QueryResult *r)=0;
 };
 
 
@@ -47,9 +52,6 @@ public:
 	QuerySequenceResult ();
 	QuerySequenceResult (unsigned int size);
 	QuerySequenceResult (vector<QueryResult*> s);
-	//virtual bool operator==(QueryResult& r){ return false; };
-	//virtual void operator+=(QueryResult& r){};
-	//virtual QueryResult& operator[](int p){ return *(this->clone());};
 	QueryResult* clone();
 	virtual ~QuerySequenceResult() {
 		if ((seq.size()) > 0) {
@@ -59,9 +61,16 @@ public:
 	int type();
 	bool collection();
 	bool isEmpty();
-	int size();
+	unsigned int size();
 	void addResult(QueryResult *r);
 	int getResult(QueryResult *&r);
+	int at(unsigned int i, QueryResult *&r);
+	bool equal(QueryResult *r);
+	bool not_equal(QueryResult *r);
+	bool greater_than(QueryResult *r);
+	bool less_than(QueryResult *r);
+	bool greater_eq(QueryResult *r);
+	bool less_eq(QueryResult *r);
 };
 
 class QueryBagResult : public QueryResult
@@ -73,8 +82,6 @@ public:
 	QueryBagResult ();
 	QueryBagResult (unsigned int size);
 	QueryBagResult (vector<QueryResult*> b);
-	//virtual bool operator==(QueryResult& r){ return false; };
-	//virtual void operator+=(QueryResult& r){};
 	QueryResult* clone();
 	virtual ~QueryBagResult() {
 		if ((bag.size()) > 0) {
@@ -84,9 +91,16 @@ public:
 	int type();
 	bool collection();
 	bool isEmpty();
-	int size();
+	unsigned int size();
 	void addResult(QueryResult *r);
 	int getResult(QueryResult *&r);
+	int at(unsigned int i, QueryResult *&r);
+	bool equal(QueryResult *r);
+	bool not_equal(QueryResult *r);
+	bool greater_than(QueryResult *r);
+	bool less_than(QueryResult *r);
+	bool greater_eq(QueryResult *r);
+	bool less_eq(QueryResult *r);
 };
 
 
@@ -99,8 +113,6 @@ public:
 	QueryStructResult ();
 	QueryStructResult (unsigned int size);
 	QueryStructResult (vector<QueryResult*> s);
-	//virtual bool operator==(QueryResult& r){ return false; };
-	//virtual void operator+=(QueryResult& r){};
 	QueryResult* clone();
 	virtual ~QueryStructResult() {
 		if ((str.size()) > 0) {
@@ -110,9 +122,16 @@ public:
 	int type();
 	bool collection();
 	bool isEmpty();
-	int size();
+	unsigned int size();
 	void addResult(QueryResult *r);
 	int getResult(QueryResult *&r);
+	int at(unsigned int i, QueryResult *&r);
+	bool equal(QueryResult *r);
+	bool not_equal(QueryResult *r);
+	bool greater_than(QueryResult *r);
+	bool less_than(QueryResult *r);
+	bool greater_eq(QueryResult *r);
+	bool less_eq(QueryResult *r);
 };
 
 
@@ -122,8 +141,8 @@ protected:
 	string name;
 	QueryResult* item;
 public:
+	QueryBinderResult();
 	QueryBinderResult(string n, QueryResult* r);
-	//virtual bool operator==(QueryResult& r){ return false; };
 	QueryResult* clone();
 	virtual ~QueryBinderResult() { if (item != NULL) delete item; };
 	string getName();
@@ -133,7 +152,13 @@ public:
 	int type();
 	bool collection();
 	bool isEmpty();
-	int size();
+	unsigned int size();
+	bool equal(QueryResult *r);
+	bool not_equal(QueryResult *r);
+	bool greater_than(QueryResult *r);
+	bool less_than(QueryResult *r);
+	bool greater_eq(QueryResult *r);
+	bool less_eq(QueryResult *r);
 };
 
 
@@ -142,8 +167,8 @@ class QueryStringResult : public QueryResult
 protected:
 	string value;
 public:
+	QueryStringResult();
 	QueryStringResult(string  v);
-	//virtual bool operator==(QueryResult& r){ return false; };
 	QueryResult* clone();
 	virtual ~QueryStringResult() {};
 	string getValue();
@@ -151,7 +176,13 @@ public:
 	int type();
 	bool collection();
 	bool isEmpty();
-	int size();
+	unsigned int size();
+	bool equal(QueryResult *r);
+	bool not_equal(QueryResult *r);
+	bool greater_than(QueryResult *r);
+	bool less_than(QueryResult *r);
+	bool greater_eq(QueryResult *r);
+	bool less_eq(QueryResult *r);
 };
 
 
@@ -160,8 +191,8 @@ class QueryIntResult : public QueryResult
 protected:
 	int value;
 public:
+	QueryIntResult();
 	QueryIntResult(int  v);
-	//virtual bool operator==(QueryResult& r){ return false; };
 	QueryResult* clone();
 	virtual ~QueryIntResult() {};
 	int getValue();
@@ -169,7 +200,18 @@ public:
 	int type();
 	bool collection();
 	bool isEmpty();
-	int size();
+	unsigned int size();
+	QueryResult* plus(QueryResult *r);
+	QueryResult* minus(QueryResult *r);
+	QueryResult* times(QueryResult *r);
+	QueryResult* divide_by(QueryResult *r);
+	QueryResult* minus();
+	bool equal(QueryResult *r);
+	bool not_equal(QueryResult *r);
+	bool greater_than(QueryResult *r);
+	bool less_than(QueryResult *r);
+	bool greater_eq(QueryResult *r);
+	bool less_eq(QueryResult *r);
 };
 
 
@@ -178,8 +220,8 @@ class QueryDoubleResult : public QueryResult
 protected:
 	double value;
 public:
+	QueryDoubleResult();
 	QueryDoubleResult(double v);
-	//virtual bool operator==(QueryResult& r){ return false; };
 	QueryResult* clone();
 	virtual ~QueryDoubleResult() {};
 	double getValue();
@@ -187,7 +229,18 @@ public:
 	int type();
 	bool collection();
 	bool isEmpty();
-	int size();
+	unsigned int size();
+	QueryResult* plus(QueryResult *r);
+	QueryResult* minus(QueryResult *r);
+	QueryResult* times(QueryResult *r);
+	QueryResult* divide_by(QueryResult *r);
+	QueryResult* minus();
+	bool equal(QueryResult *r);
+	bool not_equal(QueryResult *r);
+	bool greater_than(QueryResult *r);
+	bool less_than(QueryResult *r);
+	bool greater_eq(QueryResult *r);
+	bool less_eq(QueryResult *r);
 };
 
 class QueryBoolResult : public QueryResult
@@ -195,8 +248,8 @@ class QueryBoolResult : public QueryResult
 protected:
 	bool value;
 public:
+	QueryBoolResult();
 	QueryBoolResult(bool v);
-	//virtual bool operator==(QueryResult& r){ return false; };
 	QueryResult* clone();
 	virtual ~QueryBoolResult() {};
 	bool getValue();
@@ -204,7 +257,16 @@ public:
 	int type();
 	bool collection();
 	bool isEmpty();
-	int size();
+	unsigned int size();
+	QueryResult* bool_and(QueryResult *r);
+	QueryResult* bool_or(QueryResult *r);
+	QueryResult* bool_not();
+	bool equal(QueryResult *r);
+	bool not_equal(QueryResult *r);
+	bool greater_than(QueryResult *r);
+	bool less_than(QueryResult *r);
+	bool greater_eq(QueryResult *r);
+	bool less_eq(QueryResult *r);
 };
 
 
@@ -213,8 +275,8 @@ class QueryReferenceResult : public QueryResult
 protected:
 	LogicalID *value;
 public:
+	QueryReferenceResult();
 	QueryReferenceResult(LogicalID* v);
-	//virtual bool operator==(QueryResult& r){ return false; };
 	QueryResult* clone();
 	virtual ~QueryReferenceResult() { if (value != NULL) delete value; };
 	LogicalID* getValue();
@@ -222,7 +284,13 @@ public:
 	int type();
 	bool collection();
 	bool isEmpty();
-	int size();
+	unsigned int size();
+	bool equal(QueryResult *r);
+	bool not_equal(QueryResult *r);
+	bool greater_than(QueryResult *r);
+	bool less_than(QueryResult *r);
+	bool greater_eq(QueryResult *r);
+	bool less_eq(QueryResult *r);
 };
 
 /* You get this, as a result of non-select query like create, insert etc. */
@@ -235,7 +303,13 @@ public:
 	int type();
 	bool collection();
 	bool isEmpty();
-	int size();
+	unsigned int size();
+	bool equal(QueryResult *r);
+	bool not_equal(QueryResult *r);
+	bool greater_than(QueryResult *r);
+	bool less_than(QueryResult *r);
+	bool greater_eq(QueryResult *r);
+	bool less_eq(QueryResult *r);
 };
 
 }
