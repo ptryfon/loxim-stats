@@ -62,6 +62,13 @@ namespace TManager
 		    int addRoot(ObjectPointer* &p);
 		    int removeRoot(ObjectPointer* &p);
 
+		// Data creation
+		    int createIntValue(int value, DataValue* &dataVal);
+		    int createDoubleValue(double value, DataValue* &dataVal);
+		    int createStringValue(string value, DataValue* &dataVal);
+		    int createVectorValue(vector<ObjectPointer*>* value, DataValue* &dataVal);
+		    int createPointerValue(ObjectPointer* value, DataValue* &dataVal) ;
+
 		    int abort();
 		    int commit();
 

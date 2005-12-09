@@ -121,6 +121,42 @@ namespace TManager
 	}
 
 
+	// Data creation
+	int Transaction::createIntValue(int value, DataValue* &dataVal)
+	{
+	    /* temporary interface, error number returnig should be here */
+	    dataVal = sm->createIntValue(value);
+	    return 0;
+	}
+
+	int Transaction::createDoubleValue(double value, DataValue* &dataVal)
+	{
+	    /* temporary interface, error number returnig should be here */
+	    dataVal = sm->createDoubleValue(value);
+	    return 0;
+	}
+	int Transaction::createStringValue(string value, DataValue* &dataVal)
+	{
+	    /* temporary interface, error number returnig should be here */
+	    dataVal = sm->createStringValue(value);
+	    return 0;
+	}
+
+	int Transaction::createVectorValue(vector<ObjectPointer*>* value, DataValue* &dataVal)
+	{
+	    /* temporary interface, error number returnig should be here */
+	    dataVal = sm->createVectorValue(value);
+	    return 0;
+	}
+
+	int Transaction::createPointerValue(ObjectPointer* value, DataValue* &dataVal)
+	{
+	    /* temporary interface, error number returnig should be here */
+	    dataVal = sm->createPointerValue(value);
+	    return 0;
+	}
+
+
 	int Transaction::commit()
 	{
 	    int errorNumber;
