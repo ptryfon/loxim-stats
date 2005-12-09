@@ -4,3 +4,4 @@
 *.d
 Listener
 szbd_logs
+sbqlerror.log

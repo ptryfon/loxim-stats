@@ -3,3 +3,6 @@
 *.a
 TestStore
 *.d
+sbdefault
+sbmap
+sbroots

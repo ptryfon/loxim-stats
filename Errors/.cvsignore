@@ -2,3 +2,5 @@
 *.o
 *.a
 *.d
+consoletest
+sbqlerror.log
