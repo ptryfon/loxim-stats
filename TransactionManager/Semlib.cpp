@@ -7,7 +7,7 @@
 
 int create_sem(int sem_id)
 {
-    return (semget(sem_id, 1, 0666 | IPC_CREAT | IPC_EXCL));
+    return (semget(sem_id, 1, 0666 | IPC_CREAT));
 }
 int release_sem(int sem_id)
 {
