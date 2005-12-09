@@ -238,7 +238,7 @@ int Server::Run()
 	ErrorConsole con;// Czarek
 	con.init(1);     // Czarek
 
-	SBQLConfig* config = new SBQLConfig();
+	SBQLConfig* config = new SBQLConfig("Server");
 	config->init();
 	
 	LogManager* logManager = new LogManager();
