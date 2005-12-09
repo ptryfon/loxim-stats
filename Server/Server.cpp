@@ -212,15 +212,15 @@ int  Server::Serialize(QueryResult *qr, char **buffer, char **bufStart)
 			return -1;
 			break;
 	}
-	free(bufPointer);
+	//free(bufPointer);
 	printf("[Server.Serialize]--> Done! \n");
-	memcpy(&finalBuf, bufferP, MAX_MESSG);
+	memcpy(finalBuf, bufferP, MAX_MESSG);
 	printf("[Server.Serialize]--> Ending.. \n");
 	printf("bufferType=%d\n", (int)(bufferP[0]));
 	*buffer = finalBuf;
-	//printf("%d\n", (int)buffer[0]);
-	//printf("[Server.Serialize]--> I've got a nice buffer containing:  \n--->%s<---\n", buffer);
-	//printf("...ok, it's not so nice, but first char is --->%d<---\n", (int)buffer[0]); 
+	//printf("%d\n", (int)*buffer[0]);
+	//printf("[Server.Serialize]--> I've got a nice buffer containing:  \n--->%s<---\n", *buffer);
+	//printf("...ok, it's not so nice, but first char is --->%d<---\n", (int)*buffer[0]); 
 	return 0;
 }
 
@@ -287,7 +287,7 @@ while (true) {
 	
 	if (qResult == 0) {printf ("brak wyniku\n"); return 0;} //Piotrek
 	
-	Serialize(qResult, (char **)serializedMessg, sPoint); 
+	Serialize(qResult, (char **)&serializedMessg, sPoint); 
 	
 	
 	//Send results to client
