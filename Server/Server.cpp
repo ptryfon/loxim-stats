@@ -124,9 +124,9 @@ int  Server::Serialize(QueryResult *qr, char **buffer, char **bufStart)
 			printf("[Server.Serialize]--> Adding bag header \n");
 			bufPointer[0]=(char)resType;
 			bufPointer++;
-			memcpy((void *)&bufPointer, (const void *)&bufBagLen, sizeof(bufBagLen));
+			memcpy((void *)bufPointer, (const void *)&bufBagLen, sizeof(bufBagLen));
 			printf("[Server.Serialize]--> Bag header complete \n");
-			printf("[Server.Serialize]--> Bag size as passed is |(size)=%lu|\n", ntohl(*(unsigned long *)&bufPointer));
+			printf("[Server.Serialize]--> Bag size as passed is |(size)=%lu|\n", ntohl(*(unsigned long *)bufPointer));
 			bufPointer=bufPointer+sizeof(bufBagLen);
 												
 			//TODO depth handling - rekurencja pewnie bedzie
@@ -145,7 +145,7 @@ int  Server::Serialize(QueryResult *qr, char **buffer, char **bufStart)
 					intVal=(refRes->getValue())->toInteger();
 					bufPointer++;
 					printf("Checker \n");
-					memcpy((void *)&bufPointer, (const void *)&intVal, sizeof(intVal));
+					memcpy((void *)bufPointer, (const void *)&intVal, sizeof(intVal));
 					bufPointer=bufPointer+sizeof(intVal);
 					printf("Checker 1\n");
 				}
