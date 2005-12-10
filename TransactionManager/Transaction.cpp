@@ -22,23 +22,29 @@ namespace TManager
 	{
 	    this->id = id;
 	};
-	int TransactionID::getId() const { return id; }
+	int TransactionID::getId() const { return id; };
 
-/*______Transaction_________________________________________*/
-	Transaction::Transaction() 
+	TransactionID* TransactionID::clone()
 	{
-	    err = ErrorConsole(); 
-	};
-
+		return new TransactionID(this->id);
+	}
+	
+/*______Transaction_________________________________________*/
 	Transaction::Transaction(TransactionID* tid)
 	{
-	    err << "Transaction started\n";
+		err = ErrorConsole(); 
+	    err << "Transaction started, id: \n";	
 	    this->tid = tid;
 	    tm = TransactionManager::getHandle();
-	    lm = LockManager::getHandle();
+	    lm = LockManager::getHandle();	    	    
 	};
-
-	int Transaction::getId() { return tid->getId(); };
+	
+	Transaction::~Transaction()
+	{
+		delete tid;
+	}
+	
+	TransactionID* Transaction::getId() { return tid; };
 
 	int Transaction::init(StoreManager *stmg, LogManager *lgmg)
 	{
@@ -85,7 +91,7 @@ namespace TManager
 	}
 
 
-        int Transaction::getRoots(vector<ObjectPointer*>* &p)
+    int Transaction::getRoots(vector<ObjectPointer*>* &p)
 	{
 	    int errorNumber;
 	    //lock?
@@ -184,11 +190,10 @@ namespace TManager
 	{
 	    err = ErrorConsole();
 	    if ( (mutex = create_sem(SEMKEY1)) < 0 )
-		 err << "TManager: cannot create sem\n";
+		 	err << "TManager: cannot create sem\n";
 
 	     V(mutex);	     
-	     transactions = new list<int>;
-	     printf("Mutex: %d\n", mutex);
+	     transactions = new list<TransactionID*>;
 	};
 	
 	TransactionManager* TransactionManager::tranMgr = new TransactionManager();
@@ -201,14 +206,13 @@ namespace TManager
 	}
 	int TransactionManager::createTransaction(Transaction* &tr)
 	{
-
 	    P(mutex);
-		int currentId = transactionId;
-		transactionId++;
-		addTransaction(currentId);
+			int currentId = transactionId;
+			transactionId++;
+			TransactionID* tid = new TransactionID(currentId);	    	
+			addTransaction(tid);
 	    V(mutex);
-	    
-	    TransactionID* tid = new TransactionID(currentId);	    	
+	    	    
 	    tr = new Transaction(tid);	
 	    return tr->init(tranMgr->storeMgr, tranMgr->logMgr);
 	}              
@@ -220,27 +224,27 @@ namespace TManager
 	    return 0;
 	}
 
-	void TransactionManager::addTransaction(int id)
+	void TransactionManager::addTransaction(TransactionID* tid)
 	{
-	    transactions->push_back(id); 
-	}
-	
-	list<int>* TransactionManager::getTransactions()
+	    transactions->push_back(tid); 
+	}	
+	list<TransactionID*>* TransactionManager::getTransactions()
 	{
 	    /* block creating new transactions */
 	    P(mutex);
-		list<int>* copy_of_transactions = new list<int>;
-		for (list<int>::iterator i = transactions->begin();
-			i != transactions->end(); i++)
-		copy_of_transactions->push_back(*i);
+			list<TransactionID*>* copy_of_transactions = new list<TransactionID*>;
+			for (list<TransactionID*>::iterator i = transactions->begin();	i != transactions->end(); i++)
+				copy_of_transactions->push_back((*i)->clone());
 	    V(mutex);
 	    return copy_of_transactions;  
 	}	
 	int TransactionManager::commit(Transaction* tr)
 	{
+		int errorNumber;
+		errorNumber = LockManager::getHandle()->unlockAll(tr->getId());
 	    remove_from_list(tr->getId());
 	    delete tr;
-	    return 0;
+	    return errorNumber;
 	}	
 	int TransactionManager::abort(Transaction* tr)
 	{
@@ -248,10 +252,10 @@ namespace TManager
 	    delete tr;
 	    return 0;
 	}
-	int TransactionManager::remove_from_list(int id)
+	int TransactionManager::remove_from_list(TransactionID* tid)
 	{
 	    P(mutex);
-		transactions->remove(id);
+			transactions->remove(tid);
 	    V(mutex);
 	    return 0;
 	}

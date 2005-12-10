@@ -27,11 +27,13 @@ namespace TManager
 	class TransactionID 
 	{      
 	      private:
-		friend class Transaction;
+			friend class Transaction;
+			friend class TransactionManager;
+			TransactionID* clone();
 	        int id;	
 
 	      public:
-		int getId() const;	      
+			int getId() const;	      
 	        TransactionID(int n);
 	};
 
@@ -41,17 +43,19 @@ namespace TManager
 	class Transaction
 	{
 	      private:
-		friend class TransactionManager;
-		TransactionID *tid;
-		StoreManager* sm;
-		LogManager* logm;
-		TransactionManager* tm;
-		LockManager* lm;
-		int getId();
-		ErrorConsole err;
+			friend class TransactionManager;
+			TransactionID *tid;
+			StoreManager* sm;
+			LogManager* logm;
+			TransactionManager* tm;
+			LockManager* lm;
+			TransactionID* getId();
+			ErrorConsole err;
+	    
 	      public:
-		    Transaction();
 		    Transaction(TransactionID* tId);
+	    	~Transaction();
+	    	
 	      /* Executor calls: */
 		    int getObjectPointer(LogicalID* lid, AccessMode mode, ObjectPointer* &p);
 		    int createObject(string name, DataValue* value, ObjectPointer* &p);
@@ -62,52 +66,54 @@ namespace TManager
 		    int addRoot(ObjectPointer* &p);
 		    int removeRoot(ObjectPointer* &p);
 
-		// Data creation
+		/* Data creation: */
 		    int createIntValue(int value, DataValue* &dataVal);
 		    int createDoubleValue(double value, DataValue* &dataVal);
 		    int createStringValue(string value, DataValue* &dataVal);
 		    int createVectorValue(vector<ObjectPointer*>* value, DataValue* &dataVal);
 		    int createPointerValue(ObjectPointer* value, DataValue* &dataVal) ;
 
+		/* Final execution of transacion */
 		    int abort();
 		    int commit();
 
 	      private:
-	    	    int init(StoreManager*, LogManager*);
-//		    void setSM(StoreManager*);
+	    	int init(StoreManager*, LogManager*);
 	}; 
 
 	/**
-	 *	TransactionManager - factory of Transactions
+	 *	TransactionManager - factory of Transactions, handles rollback operation
 	 *      Sigleton Design Pattern
 	 */
 	class TransactionManager
 	{ 
 	   private:
-	      int mutex;	    /* mutual exclusion */
+	      int mutex;	    	/* mutual exclusion */
 	      int transactionId;    /* counter of TransactionID objects */	
 	      static TransactionManager *tranMgr;   	   
 	      StoreManager* storeMgr;
 	      LogManager* logMgr;
 
 	      TransactionManager();
-    	      void addTransaction(int);
-	      list<int>* transactions;
-	      int remove_from_list(int);
+    	  void addTransaction(TransactionID*);
+	      list<TransactionID*>* transactions;
+	      int remove_from_list(TransactionID*);
 	      ErrorConsole err;
 	      
 	   public:	   	      
 	      ~TransactionManager();
 	      static TransactionManager* getHandle();
+	      
 	   /* called at server startup: */
-//	      int init(StoreManager*);
 	      int init(StoreManager*, LogManager*);
-	   /* executor calling: */
+	      
+	   /* executor calls: */
 	      int createTransaction(Transaction* &tr);
 	      int commit(Transaction*);
 	      int abort(Transaction*);
-	   /* log calling: */
-	      list<int>* getTransactions();
+	      
+	   /* log calls: */
+	      list<TransactionID*>* getTransactions();
 	};
 };
 
