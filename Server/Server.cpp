@@ -130,7 +130,8 @@ int  Server::Serialize(QueryResult *qr, char **buffer, char **bufStart)
 									
 			//TODO depth handling - rekurencja pewnie bedzie
 			for (i=0;i<bagSize;i++) {
-				printf("[Server.Serialize]--> Serializing collection item %d \n", i);
+				printf("[Server.Serialize]--> Serializing collection item %d \n");
+			
 			}
 			/*
 			//while (bagRes->getResult(collItem)!=-1) {
@@ -216,8 +217,11 @@ int  Server::Serialize(QueryResult *qr, char **buffer, char **bufStart)
 			break;
 	}
 
+	char *finalBuf=(char *)malloc(MAX_MESSG);
+	memcpy(finalBuf, bufferP, MAX_MESSG);
 	printf("[Server.Serialize]--> Ending.. \n");
-	*buffer = bufPointer;
+	printf("[Server.Serialize]--> Passing type=%d\n", (int)finalBuf[0]);
+	*buffer = finalBuf;
 	//free(bufPointer);
 	return 0;
 }
