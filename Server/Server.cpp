@@ -129,7 +129,7 @@ int  Server::Serialize(QueryResult *qr, char **buffer, char **bufStart)
 			
 									
 			//TODO depth handling - rekurencja pewnie bedzie
-			for (i=0;i<(int)bufBagLen;i++) {
+			for (i=0;i<bagSize;i++) {
 				printf("[Server.Serialize]--> Serializing collection item %d \n", i);
 			}
 			/*
