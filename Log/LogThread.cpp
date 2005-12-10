@@ -57,7 +57,26 @@ void LogThread::main() {
       printf( "LogThread err_code: %d (%s)\n", errCode, strerror( errCode ) );
       return;
     }
+
+    delete logRecord;
+
+    ::pthread_mutex_lock( &threadFlagMutex );
+    if( queue.empty() )
+      ::pthread_cond_signal( &threadFlagCV );
+    ::pthread_mutex_unlock( &threadFlagMutex );
+
   }
 }
 
+int LogThread::flush() {
+  int err = 0;
+
+  ::pthread_mutex_lock( &threadFlagMutex );
+  while( !queue.empty() || err ) {
+    err = ::pthread_cond_wait( &threadFlagCV, &threadFlagMutex );
+  }
+  ::pthread_mutex_unlock( &threadFlagMutex );
+
+  return err;
+}
 

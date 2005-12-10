@@ -10,6 +10,7 @@ int main( int argc, char *argv[] )
 
   logManager.init();
   logManager.beginTransaction( new TransactionID( 1234 ), id );
+  logManager.shutdown( id );
   ::sleep( 5 );
   logManager.destroy();
 }

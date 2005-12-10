@@ -41,7 +41,7 @@ namespace Logs
     ~LogThread() { flush(); }
     int push( LogRecord *record );
     void main();
-    int flush() { return 0; } // TODO
+    int flush();
   };
 
 };
