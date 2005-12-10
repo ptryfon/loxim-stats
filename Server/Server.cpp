@@ -130,29 +130,23 @@ int  Server::Serialize(QueryResult *qr, char **buffer, char **bufStart)
 									
 			//TODO depth handling - rekurencja pewnie bedzie
 			for (i=0;i<bagSize;i++) {
-				printf("[Server.Serialize]--> Serializing collection item %d \n");
-			
-			}
-			/*
-			//while (bagRes->getResult(collItem)!=-1) {
+				printf("[Server.Serialize]--> Serializing collection item %d \n", i);
 				retVal=bagRes->getResult(collItem);
 				printf("[Server.Serialize]--> getResult returned %d \n", retVal);
-				printf("[Server.Serialize]--> Item type is |%d| \n", collItem->type());
-				//contains no more results
-				resTypeIns=(Result::ResultType)collItem->type();
-				printf("[Server.Serialize]-->Result type %d \n", resTypeIns);
-				if (resTypeIns==Result::REFERENCE) {
-					bufPointer[0]=(char)resTypeIns;
-					printf("Checker -1\n");
+			
+				resType=(Result::ResultType)collItem->type();
+				printf("[Server.Serialize]-->Result type %d \n", resType);
+				if (resType==Result::REFERENCE) {
+					bufPointer[0]=(char)resType;
 					refRes = (QueryReferenceResult *)collItem;
 					intVal=(refRes->getValue())->toInteger();
 					bufPointer++;
-					printf("Checker \n");
+					printf("Reference integer value: intVal=%d \n", intVal);
 					memcpy((void *)bufPointer, (const void *)&intVal, sizeof(intVal));
 					bufPointer=bufPointer+sizeof(intVal);
-					printf("Checker 1\n");
 				}
-				*/
+			}
+			
 				
 				//switch (resTypeIns)
 				//{
@@ -178,6 +172,13 @@ int  Server::Serialize(QueryResult *qr, char **buffer, char **bufStart)
 			break;
 		case Result::REFERENCE:
 			printf("[Server.Serialize]--> Getting reference \n");
+			bufPointer[0]=(char)resType;
+			refRes = (QueryReferenceResult *)qr;
+			intVal=(refRes->getValue())->toInteger();
+			bufPointer++;
+			printf("Reference integer value: intVal=%d \n", intVal);
+			memcpy((void *)bufPointer, (const void *)&intVal, sizeof(intVal));
+			bufPointer=bufPointer+sizeof(intVal);
 			break;	
 		case Result::STRING:
 			printf("[Server.Serialize]--> Getting string \n");
