@@ -18,10 +18,31 @@ using namespace Store;
 using namespace TManager;
 using namespace Errors;
 
-namespace LockMgr {
+namespace LockMgr 
+{
 
-    /* class declaration */
-//    class SingleLock;
+	class SingleLock;
+    /* class to compare DBPhysicalID's */    
+    class DBPhysicalIDCmp
+    {
+        public:
+		bool operator() (const DBPhysicalID& , const DBPhysicalID& ) const;
+    }; 
+
+    /* class to compare TransactionID's */
+    class TransactionIDCmp
+    {
+        public:
+		bool operator() (const TransactionID& , const TransactionID& ) const;
+    }; 
+
+    /* class to compare SingleLocks objects */
+    class SingleLockCmp
+    {
+        public:
+		bool operator() (const SingleLock& , const SingleLock& ) const;
+    }; 
+
 
     /*
      *	Class representing Lock for single Object
@@ -30,17 +51,26 @@ namespace LockMgr {
     {
 	private:
 	    
+	    friend class SingleLockCmp;
 	    /* 
 	     * current transaction ids that locked an object 
 	     * (if the mode is for reading there may be many transactions that hold on object )
 	     */
-	    set<TransactionID*> current; 
-	    
+	    typedef set<TransactionID ,TransactionIDCmp> TransactionIdSet;
+	    TransactionIdSet* current; 
+
+		/* how many transaction locks an object */
+	    int inside;
 	    /* 
 	     * current lock mode for object: Read | Write 
 	     */
 	    AccessMode current_mode;
 	    
+	    /*
+	     * mutual exclusion semaphore
+	     */ 
+	    int mutex;
+	    int str_mutex;
 	    /* 
 	     * transactions that wait for reading an object (wait on a semaphore with unique id = wait_readers)
 	     */
@@ -57,29 +87,17 @@ namespace LockMgr {
 	    int count_wait_readers;
 	    int count_wait_writers;
 	    
+   	    int is_reader_waiting();
+	    int is_writer_waiting();	    
+	    
+	    int getId() const;  /* returns id - to compare SingleLocks */
 	public:
 	    SingleLock(TransactionID* tid, AccessMode mode, int current_sem);	
-	    ~SingleLock();    
-	    int is_reader_waiting();
-	    int is_writer_waiting();	    
-	    void setCurrent(TransactionID* current, AccessMode mode);	    
-    	    int wait_for_lock(TransactionID* tid, AccessMode mode);
+	    ~SingleLock();     
+   	    int wait_for_lock(TransactionID* tid, AccessMode mode);
+   	    int unlock(TransactionID*);
     };
     
-    /* class to compare DBPhysicalID's */    
-    class DBPhysicalIDCmp
-    {
-        public:
-		bool operator() (const DBPhysicalID& , const DBPhysicalID& ) const;
-    }; 
-
-    /* class to compare TransactionID's */
-    class TransactionIDCmp
-    {
-        public:
-		bool operator() (const TransactionID& , const TransactionID& ) const;
-    }; 
-
 
     /*
      *	Singleton Desing Pattern
@@ -92,38 +110,40 @@ namespace LockMgr {
 	     */
 	    static LockManager* lockMgr;
 	    
-    	    LockManager();
+   	    LockManager();
 	    
 	    /* 
 	     * map from PhysicalId to SingleLock, 
 	     */
-	    typedef map<Store::DBPhysicalID , SingleLock* , DBPhysicalIDCmp> PhysicalIdMap;
-	    PhysicalIdMap* map_of_locks;
+	    typedef map<Store::DBPhysicalID , SingleLock* , DBPhysicalIDCmp> DBPhysicalIdMap;
+	    DBPhysicalIdMap* map_of_locks;
 	    
 	    /* 
 	     * map from transactionId to list of PhysicalIds locked 
 	     */
-	    typedef map<TransactionID , set<DBPhysicalID>*, TransactionIDCmp> TransactionIdMap;
+	    typedef set<DBPhysicalID, DBPhysicalIDCmp> DBPhysicalIdSet;
+   	    typedef set<SingleLock, SingleLockCmp> SingleLockSet;
+	    typedef map<TransactionID , SingleLockSet*, TransactionIDCmp> TransactionIdMap;
 	    TransactionIdMap* transaction_locks;
 	    
 	    /*
 	     * transaction released object 
 	     * ( hovewer it can be locked by other tranasactions if share_lock was used )
 	     */
-	    int unlock(DBPhysicalID, TransactionID*);
+	    int unlock(SingleLock, TransactionID*);
 	    
-	    /* For every DBPhysicalID we need two semaphores: 
+	    /* 
+	     * For every DBPhysicalID we need three semaphores: 
 	     * 	a. for readers
 	     * 	b. for writers
+	     *  c. mutex
 	     * For every semaphore we need a unique number. This number 
 	     * is current_sem_key - incremented with every new semaphore
 	     */
 	    int current_sem_key;
 	    int mutex;
 	    ErrorConsole err;	    
-	    
-	    /* sem ids that was created - needed to release all sems in destructor */
-	    set<int>* sem_created;
+	    int SEMKEY;
 	    
 	public: 
 	    /*
@@ -146,8 +166,5 @@ namespace LockMgr {
 	     */
 	    int unlockAll(TransactionID* );
     };
-
-
-
 }
 #endif
