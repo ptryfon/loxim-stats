@@ -1,3 +1,4 @@
+#include <iostream>
 #include "File.h"
 #include "Errors/Errors.h"
 
@@ -49,16 +50,16 @@ namespace Store
 
 		if (!fmap->is_open() || !froots->is_open() || !fdefault->is_open())
 		{
-			if (fdefault->is_open()) fdefault->close();
 			if (fmap->is_open()) fmap->close();
 			if (froots->is_open()) froots->close();
+			if (fdefault->is_open()) fdefault->close();
 
 			fmap->open("sbmap", ios::in | ios::out | ios::binary | ios::trunc);
 			froots->open("sbroots", ios::in | ios::out | ios::binary | ios::trunc);
 			fdefault->open("sbdefault", ios::in | ios::out | ios::binary | ios::trunc);
 
-			//store->getMap()->initializeFile(this);
-			//store->getRoots()-initializeFile(this);
+			store->getMap()->initializeFile(this);
+			store->getRoots()->initializeFile(this);
 		}
 
 		started = 1;
@@ -105,12 +106,19 @@ namespace Store
 	{
 		fstream* file = 0;
 		int err = 0;
+    long begin, end;
 
 		if ((err = getStream(fileID, &file)) != 0)
 			return err;
 
 		file->seekp(offset, ios::beg);
 		file->write(buffer, length);
+
+    begin = file->tellg();
+    file->seekg(0, ios::end);
+    end = file->tellg();
+
+    //cout << "rozmiar: " << (end - begin) << endl;
 
 		return 0;
 	};
