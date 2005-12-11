@@ -34,12 +34,12 @@ public:
 	virtual unsigned int size()=0;
 	virtual void addResult(QueryResult *r) {};
 	virtual int getResult(QueryResult *&r) { return 0; };
-	virtual bool equal(QueryResult *r) { return false; };
-	virtual bool not_equal(QueryResult *r) { return false; };
-	virtual bool greater_than(QueryResult *r) { return false; };
-	virtual bool less_than(QueryResult *r) { return false; };
-	virtual bool greater_eq(QueryResult *r) { return false; };
-	virtual bool less_eq(QueryResult *r) { return false; };
+	virtual bool equal(QueryResult *r)=0;
+	virtual bool not_equal(QueryResult *r)=0;
+	virtual bool greater_than(QueryResult *r)=0;
+	virtual bool less_than(QueryResult *r)=0;
+	virtual bool greater_eq(QueryResult *r)=0;
+	virtual bool less_eq(QueryResult *r)=0;
 };
 
 
@@ -67,10 +67,10 @@ public:
 	int at(unsigned int i, QueryResult *&r);
 	bool equal(QueryResult *r);
 	bool not_equal(QueryResult *r);
-	bool greater_than(QueryResult *r);
-	bool less_than(QueryResult *r);
-	bool greater_eq(QueryResult *r);
-	bool less_eq(QueryResult *r);
+	bool greater_than(QueryResult *r) { return false; };
+	bool less_than(QueryResult *r) { return false; };
+	bool greater_eq(QueryResult *r) { return false; };
+	bool less_eq(QueryResult *r) { return false; };
 };
 
 class QueryBagResult : public QueryResult
@@ -97,10 +97,10 @@ public:
 	int at(unsigned int i, QueryResult *&r);
 	bool equal(QueryResult *r);
 	bool not_equal(QueryResult *r);
-	bool greater_than(QueryResult *r);
-	bool less_than(QueryResult *r);
-	bool greater_eq(QueryResult *r);
-	bool less_eq(QueryResult *r);
+	bool greater_than(QueryResult *r) { return false; };
+	bool less_than(QueryResult *r) { return false; };
+	bool greater_eq(QueryResult *r) { return false; };
+	bool less_eq(QueryResult *r) { return false; };
 };
 
 
@@ -128,10 +128,10 @@ public:
 	int at(unsigned int i, QueryResult *&r);
 	bool equal(QueryResult *r);
 	bool not_equal(QueryResult *r);
-	bool greater_than(QueryResult *r);
-	bool less_than(QueryResult *r);
-	bool greater_eq(QueryResult *r);
-	bool less_eq(QueryResult *r);
+	bool greater_than(QueryResult *r) { return false; };
+	bool less_than(QueryResult *r) { return false; };
+	bool greater_eq(QueryResult *r) { return false; };
+	bool less_eq(QueryResult *r) { return false; };
 };
 
 
@@ -155,10 +155,10 @@ public:
 	unsigned int size();
 	bool equal(QueryResult *r);
 	bool not_equal(QueryResult *r);
-	bool greater_than(QueryResult *r);
-	bool less_than(QueryResult *r);
-	bool greater_eq(QueryResult *r);
-	bool less_eq(QueryResult *r);
+	bool greater_than(QueryResult *r) { return false; };
+	bool less_than(QueryResult *r) { return false; };
+	bool greater_eq(QueryResult *r) { return false; };
+	bool less_eq(QueryResult *r) { return false; };
 };
 
 
@@ -306,10 +306,10 @@ public:
 	unsigned int size();
 	bool equal(QueryResult *r);
 	bool not_equal(QueryResult *r);
-	bool greater_than(QueryResult *r);
-	bool less_than(QueryResult *r);
-	bool greater_eq(QueryResult *r);
-	bool less_eq(QueryResult *r);
+	bool greater_than(QueryResult *r) { return false; };
+	bool less_than(QueryResult *r) { return false; };
+	bool greater_eq(QueryResult *r) { return false; };
+	bool less_eq(QueryResult *r) { return false; };
 };
 
 }
