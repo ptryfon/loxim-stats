@@ -1,4 +1,3 @@
-#include <iostream>
 #include "File.h"
 #include "Errors/Errors.h"
 
@@ -44,23 +43,31 @@ namespace Store
 		froots = new fstream();
 		fdefault = new fstream();
 
-		fmap->open("sbmap", ios::in | ios::out | ios::binary);
-		froots->open("sbroots", ios::in | ios::out | ios::binary);
-		fdefault->open("sbdefault", ios::in | ios::out | ios::binary);
+		fmap->open("sbmap", ios::in | ios::binary);
+		froots->open("sbroots", ios::in | ios::binary);
+		fdefault->open("sbdefault", ios::in | ios::binary);
 
-		if (!fmap->is_open() || !froots->is_open() || !fdefault->is_open())
+		if (!(fmap->is_open()) || !froots->is_open() || !fdefault->is_open())
 		{
 			if (fmap->is_open()) fmap->close();
 			if (froots->is_open()) froots->close();
 			if (fdefault->is_open()) fdefault->close();
 
-			fmap->open("sbmap", ios::in | ios::out | ios::binary | ios::trunc);
-			froots->open("sbroots", ios::in | ios::out | ios::binary | ios::trunc);
-			fdefault->open("sbdefault", ios::in | ios::out | ios::binary | ios::trunc);
+			fmap->open("sbmap", ios::out | ios::binary | ios::trunc);
+			froots->open("sbroots", ios::out | ios::binary | ios::trunc);
+			fdefault->open("sbdefault", ios::out | ios::binary | ios::trunc);
 
 			store->getMap()->initializeFile(this);
 			store->getRoots()->initializeFile(this);
+
+			if (fmap->is_open()) fmap->close();
+			if (froots->is_open()) froots->close();
+			if (fdefault->is_open()) fdefault->close();
 		}
+
+		fmap->open("sbmap", ios::in | ios::out | ios::binary);
+		froots->open("sbroots", ios::in | ios::out | ios::binary);
+		fdefault->open("sbdefault", ios::in | ios::out | ios::binary);
 
 		started = 1;
 		return 0;
@@ -106,19 +113,12 @@ namespace Store
 	{
 		fstream* file = 0;
 		int err = 0;
-    long begin, end;
 
 		if ((err = getStream(fileID, &file)) != 0)
 			return err;
 
 		file->seekp(offset, ios::beg);
 		file->write(buffer, length);
-
-    begin = file->tellg();
-    file->seekg(0, ios::end);
-    end = file->tellg();
-
-    //cout << "rozmiar: " << (end - begin) << endl;
 
 		return 0;
 	};
