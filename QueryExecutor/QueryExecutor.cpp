@@ -88,9 +88,14 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 		case TreeNode::TNCREATE:
 			{
 			name = tree->getName(); 
-			fprintf(stderr, "[QE] Type: TNNAME\n");
+			fprintf(stderr, "[QE] Type: TNCREATE\n");
 			tree = tree->getArg();
 			fprintf(stderr, "[QE] Getting node arguments\n");
+			QueryResult** cokolwiek; 
+			if ((errcode = executeQuery (tree, cokolwiek)) != 0)
+				{
+				return errcode;
+				};
 			if (tree != NULL)
 				{
 				nodeType = tree->type();
