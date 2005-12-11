@@ -34,12 +34,12 @@ public:
 	virtual unsigned int size()=0;
 	virtual void addResult(QueryResult *r) {};
 	virtual int getResult(QueryResult *&r) { return 0; };
-	virtual bool equal(QueryResult *r)=0;
-	virtual bool not_equal(QueryResult *r)=0;
-	virtual bool greater_than(QueryResult *r)=0;
-	virtual bool less_than(QueryResult *r)=0;
-	virtual bool greater_eq(QueryResult *r)=0;
-	virtual bool less_eq(QueryResult *r)=0;
+	virtual bool equal(QueryResult *r) { return false; };
+	virtual bool not_equal(QueryResult *r) { return false; };
+	virtual bool greater_than(QueryResult *r) { return false; };
+	virtual bool less_than(QueryResult *r) { return false; };
+	virtual bool greater_eq(QueryResult *r) { return false; };
+	virtual bool less_eq(QueryResult *r) { return false; };
 };
 
 

@@ -462,21 +462,6 @@ bool QueryNothingResult::not_equal(QueryResult *r){
 }
 
 
-bool QuerySequenceResult::greater_than(QueryResult *r){
-	return false;
-}
-
-bool QueryBagResult::greater_than(QueryResult *r){
-	return false;
-}
-
-bool QueryStructResult::greater_than(QueryResult *r){
-	return false;
-}
-
-bool QueryBinderResult::greater_than(QueryResult *r){
-	return false;
-}
 
 bool QueryStringResult::greater_than(QueryResult *r){
 	if (r->type() != QueryResult::QSTRING ) {
@@ -516,73 +501,6 @@ bool QueryReferenceResult::greater_than(QueryResult *r){
 	}
 	bool tmp_value = ((int)value > (int)(((QueryReferenceResult*) r)->getValue()));
 	return tmp_value;
-}
-
-bool QueryNothingResult::greater_than(QueryResult *r){ 
-	return false; 
-}
-
-
-bool QuerySequenceResult::less_eq(QueryResult *r){
-	return false;
-}
-
-bool QueryBagResult::less_eq(QueryResult *r){
-	return false;
-}
-
-bool QueryStructResult::less_eq(QueryResult *r){
-	return false;
-}
-
-bool QueryBinderResult::less_eq(QueryResult *r){
-	return false;
-}
-
-bool QueryStringResult::less_eq(QueryResult *r){
-	bool tmp_value = not ( this->greater_than(r) );
-	return tmp_value;
-}
-
-bool QueryIntResult::less_eq(QueryResult *r){
-	bool tmp_value = not ( this->greater_than(r) );
-	return tmp_value;
-}
-
-bool QueryDoubleResult::less_eq(QueryResult *r){
-	bool tmp_value = not ( this->greater_than(r) );
-	return tmp_value;
-}
-
-bool QueryBoolResult::less_eq(QueryResult *r){
-	bool tmp_value = not ( this->greater_than(r) );
-	return tmp_value;
-}
-
-bool QueryReferenceResult::less_eq(QueryResult *r){
-	bool tmp_value = not ( this->greater_than(r) );
-	return tmp_value;
-}
-
-bool QueryNothingResult::less_eq(QueryResult *r){
-	return false;
-}
-
-
-bool QuerySequenceResult::less_than(QueryResult *r){
-	return false;
-}
-
-bool QueryBagResult::less_than(QueryResult *r){
-	return false;
-}
-
-bool QueryStructResult::less_than(QueryResult *r){
-	return false;
-}
-
-bool QueryBinderResult::less_than(QueryResult *r){
-	return false;
 }
 
 bool QueryStringResult::less_than(QueryResult *r){
@@ -625,55 +543,93 @@ bool QueryReferenceResult::less_than(QueryResult *r){
 	return tmp_value;
 }
 
-bool QueryNothingResult::less_than(QueryResult *r){ 
-	return false; 
-}
-
-
-bool QuerySequenceResult::greater_eq(QueryResult *r){
-	return false;
-}
-
-bool QueryBagResult::greater_eq(QueryResult *r){
-	return false;
-}
-
-bool QueryStructResult::greater_eq(QueryResult *r){
-	return false;
-}
-
-bool QueryBinderResult::greater_eq(QueryResult *r){
-	return false;
-}
-
 bool QueryStringResult::greater_eq(QueryResult *r){
-	bool tmp_value = not ( this->less_than(r) );
+	if (r->type() != QueryResult::QSTRING ) {
+		return false; 
+	}
+	bool tmp_value = (value >= ((QueryStringResult*) r)->getValue());
 	return tmp_value;
 }
 
 bool QueryIntResult::greater_eq(QueryResult *r){
-	bool tmp_value = not ( this->less_than(r) );
+	if (r->type() != QueryResult::QINT ) {
+		return false; 
+	}
+	bool tmp_value = (value >= ((QueryIntResult*) r)->getValue());
 	return tmp_value;
 }
 
 bool QueryDoubleResult::greater_eq(QueryResult *r){
-	bool tmp_value = not ( this->less_than(r) );
+	if (r->type() != QueryResult::QDOUBLE ) {
+		return false; 
+	}
+	bool tmp_value = (value >= ((QueryDoubleResult*) r)->getValue());
 	return tmp_value;
 }
 
 bool QueryBoolResult::greater_eq(QueryResult *r){
-	bool tmp_value = not ( this->less_than(r) );
+	if (r->type() != QueryResult::QBOOL ) {
+		return false; 
+	}
+	bool tmp_value = (value >= ((QueryBoolResult*) r)->getValue());
 	return tmp_value;
 }
 
 bool QueryReferenceResult::greater_eq(QueryResult *r){
-	bool tmp_value = not ( this->less_than(r) );
+	if (r->type() != QueryResult::QREFERENCE ) {
+		return false; 
+	}
+	bool tmp_value = ((int)value >= (int)(((QueryReferenceResult*) r)->getValue()));
 	return tmp_value;
 }
 
-bool QueryNothingResult::greater_eq(QueryResult *r){
-	return false;
+bool QueryStringResult::less_eq(QueryResult *r){
+	if (r->type() != QueryResult::QSTRING ) {
+		return false; 
+	}
+	bool tmp_value = (value <= ((QueryStringResult*) r)->getValue());
+	return tmp_value;
 }
+
+bool QueryIntResult::less_eq(QueryResult *r){
+	if (r->type() != QueryResult::QINT ) {
+		return false; 
+	}
+	bool tmp_value = (value <= ((QueryIntResult*) r)->getValue());
+	return tmp_value;
+}
+
+bool QueryDoubleResult::less_eq(QueryResult *r){
+	if (r->type() != QueryResult::QDOUBLE ) {
+		return false; 
+	}
+	bool tmp_value = (value <= ((QueryDoubleResult*) r)->getValue());
+	return tmp_value;
+}
+
+bool QueryBoolResult::less_eq(QueryResult *r){
+	if (r->type() != QueryResult::QBOOL ) {
+		return false; 
+	}
+	bool tmp_value = (value <= ((QueryBoolResult*) r)->getValue());
+	return tmp_value;
+}
+
+bool QueryReferenceResult::less_eq(QueryResult *r){
+	if (r->type() != QueryResult::QREFERENCE ) {
+		return false; 
+	}
+	bool tmp_value = ((int)value <= (int)(((QueryReferenceResult*) r)->getValue()));
+	return tmp_value;
+}
+
+
+
+
+
+
+
+
 
 
 }

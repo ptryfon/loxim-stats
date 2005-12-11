@@ -177,9 +177,9 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 		case TreeNode::TNDOUBLE:
 			{
 			double doubleValue = ((DoubleNode *) tree)->getValue();
-			fprintf(stderr, "[QE] TNDOUBLE: %d\n",doubleValue);
+			fprintf(stderr, "[QE] TNDOUBLE: %f\n",doubleValue);
 			*result = new QueryDoubleResult (doubleValue);
-			fprintf(stderr, "[QE] QueryDoubleResult (%d) created\n",doubleValue);
+			fprintf(stderr, "[QE] QueryDoubleResult (%f) created\n",doubleValue);
 			return 0;
 			}
 		case TreeNode::TNVECTOR: {break;}
