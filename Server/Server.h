@@ -21,8 +21,6 @@ using namespace QExecutor;
 		int Send(char* buf, int buf_size);
 		int Serialize(QueryResult *qr, char **buffer, char **bufferStart);
 		int BExit();
-
-		int InitializeAll();
 		
 	private:
 		int Sock;

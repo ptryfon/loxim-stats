@@ -14,9 +14,10 @@
 #include "../QueryExecutor/QueryResult.h"
 #include "../QueryExecutor/QueryExecutor.h"
 #include "../Store/DBStoreManager.h"
+
 #include "../TransactionManager/Transaction.h"
 #include "../Errors/ErrorConsole.h"
-
+#include "../Store/DBLogicalID.h"
 #include "Server.h"
 #include "../Driver/Result.h"
 
@@ -29,20 +30,6 @@ typedef char TREE_NODE_TYPE;
 // 3-Obsluga bledow
 // 4-Lepsza diagnostyka
 
-/*
-#include "../QueryParser/QueryParser.h"
-
-//Co za shit ;)
-#include "../QueryExecutor/QueryResult.h"
-
-#include "../QueryExecutor/QueryExecutor.h"
-
-#include "../Config/SBQLConfig.h"
-#include "../Log/Logs.h"
-
-#include "../Store/DBStoreManager.h"
-#include "../TransactionManager/Transaction.h"
-*/
 
 using namespace Errors;
 using namespace std;
@@ -57,18 +44,10 @@ using namespace TManager;
 Server::Server(int newSock)
 {
 	Sock = newSock;
-	//memset(messgBuff, 0, sizeof(messgBuff));
 }
 
 Server::~Server()
 {
-}
-
-
-//TODO - inicjacja obiektow
-int Server::InitializeAll() 
-{
-	return 0;
 }
 
 //TODO - rekurencja, support innych typow
@@ -93,7 +72,6 @@ int  Server::Serialize(QueryResult *qr, char **buffer, char **bufStart)
 	
 	int retVal;
 	int i;
-	char * dupaTest="dupa";
 
 	bufPointer = (char *)malloc(MAX_MESSG);
 	memset(bufferP, '\0', MAX_MESSG); 
@@ -139,11 +117,15 @@ int  Server::Serialize(QueryResult *qr, char **buffer, char **bufStart)
 				if (resType==Result::REFERENCE) {
 					bufPointer[0]=(char)resType;
 					refRes = (QueryReferenceResult *)collItem;
-					intVal=(refRes->getValue())->toInteger();
+					//intVal=(refRes->getValue())->toInteger();
+					//strVal=((DBLogicalID *)(refRes->getValue()))->toString();
+					strVal=(refRes->getValue())->toString();
 					bufPointer++;
-					printf("Reference integer value: intVal=%d \n", intVal);
-					memcpy((void *)bufPointer, (const void *)&intVal, sizeof(intVal));
-					bufPointer=bufPointer+sizeof(intVal);
+					printf("[Server.Serialize]-->Referencestring value: strVal=%s \n", strVal.c_str());
+					strVal.copy(bufPointer, strVal.length());
+					//strcpy(bufPointer, "zak"); 
+					//memcpy((void *)bufPointer, (const void *)&intVal, sizeof(intVal));
+					bufPointer=bufPointer+strVal.length();
 				}
 			}
 			
@@ -296,8 +278,8 @@ while (true) {
 	//Send results to client
 	printf("[Server.Run]--> Sending results to client \n");		
 	printf("[Server.Run]--> Sending.. type=(%d)\n", (int)serializedMessg[0]); 
-	break;
-	Send(serializedMessg, MAX_MESSG);
+//	break;
+	Send(&*serializedMessg, MAX_MESSG);
 }
 	printf("[Server.Run]--> Releasing message buffers \n");
 	//TODO
