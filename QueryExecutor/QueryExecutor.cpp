@@ -211,9 +211,9 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					}
 
 				QueryResult* toDelete;  //single object to be deleted
-				for (unsigned int i = 0; i < ((*cokolwiek)->size()); i++ ) // Deleting objects
+				for (unsigned int i = 0; i < ((*nextResult)->size()); i++ ) // Deleting objects
 					{
-   					(*cokolwiek)->getResult(toDelete);  //bledy??
+   					(*nextResult)->getResult(toDelete);  //bledy??
 					lid = ((QueryReferenceResult *) toDelete)->getValue();
 					if ((errcode = tr->getObjectPointer (lid, Store::Write, optr)) !=0)
 						{
