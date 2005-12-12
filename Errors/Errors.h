@@ -21,6 +21,7 @@ namespace Errors {
 #define	ErrServer		0x22000
 #define	ErrStore		0x24000
 #define	ErrTManager		0x28000
+#define ErrTCPProto		0x40000
 #define ErrAllModules		0xFF000
 
 #define ENoFile			    0x1
