@@ -2,7 +2,10 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <iostream>
+#include <errno.h>
+
 #include "Tcp.h"
+#include "../Errors/Errors.h"
 
 namespace TCPProto {
 
@@ -21,18 +24,18 @@ int bufferSend(char* buf, int buf_size, int sock) {
  //  	cout << "co wysylam: " << buf << endl;
 	// lengthBuf = ...buf_size
 	while (lengthBufSize > 0) {
-		if (0 >= (ile = send(sock, lengthBuf, lengthBufSize, 0))) {
-		cerr << "blad wysylania" << endl;
-		return 1;
+		if (-1 ==  (ile = send(sock, lengthBuf, lengthBufSize, 0))) {
+			cerr << "blad wysylania" << endl;
+			return errno | ErrTCPProto;
 		}
 		lengthBufSize -= ile;
 		lengthBuf += ile;	
 	}
 	
 	while (buf_size > 0) {
-	if (0 > (ile = send(sock, buf, buf_size, 0))) {
+	if (-1 == (ile = send(sock, buf, buf_size, 0))) {
 		cerr << "blad wysylania" << endl;
-		return 1;
+		return errno | ErrTCPProto;
 	}
 	
 		buf_size -= ile;
@@ -67,8 +70,8 @@ int bufferReceive (char** buffer, int* receiveDataSize, int sock) {
           while (rest > 0) {
          	ile = recv (sock, lengthBuff, rest, 0);
          	
-         	if (ile < 0) return 1; //error
-         	if (ile == 0) return 2; //disconnect
+         	if (ile < 0) return errno | ErrTCPProto; //error
+         	if (ile == 0) return ECONNABORTED | ErrTCPProto; //disconnect
          	
          	rest -= ile;
          	lengthBuff += ile;
@@ -83,7 +86,7 @@ int bufferReceive (char** buffer, int* receiveDataSize, int sock) {
          
          messgBuffBeg = messgBuff = (char*) malloc(msgSize);
          
-         if (messgBuff == 0) return 1; //TODO sprawdz czy blad
+         if (messgBuff == NULL) return errno | ErrTCPProto;
          
          // parameterPtr = messgBuff;
          
@@ -93,8 +96,8 @@ int bufferReceive (char** buffer, int* receiveDataSize, int sock) {
          	
         ile = recv (sock, messgBuff, rest, 0);
          
-        if (ile < 0) return 1;
-        if (ile == 0) return 2;
+        if (ile < 0) return errno | ErrTCPProto;
+        if (ile == 0) return ECONNABORTED | ErrTCPProto;
         
         rest -= ile;
         messgBuff += ile;
