@@ -44,8 +44,9 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
     
 	if (tree != NULL)
 	{
-		fprintf(stderr, "[QE] Asking TransactionManager for a new transaction\n");
+
 		if (tr == NULL) {
+			fprintf(stderr, "[QE] Asking TransactionManager for a new transaction\n");
 			if ((errcode = TransactionManager::getHandle()->createTransaction(tr)) != 0) 
 				{
 				fprintf(stderr, "Error in createTransaction\n");
@@ -91,8 +92,8 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			fprintf(stderr, "[QE] Type: TNCREATE\n");
 			tree = tree->getArg();
 			fprintf(stderr, "[QE] Getting node arguments\n");
-			QueryResult** nextResult; 
-			if ((errcode = executeQuery (tree, nextResult)) != 0)
+			QueryResult* nextResult; 
+			if ((errcode = executeQuery (tree, &nextResult)) != 0)
 				{
 				return errcode;
 				}
@@ -157,7 +158,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			*result = new QueryBagResult;
 			fprintf(stderr, "[QE] QueryBagResult created\n");
 			QueryReferenceResult *lidres = new QueryReferenceResult(optr->getLogicalID());
-			(* result)->addResult (lidres);
+			(*result)->addResult (lidres);
 			fprintf(stderr, "[QE] Object added to QueryResult. Done!\n");
 			return 0;
 			}
@@ -166,8 +167,8 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 		case TreeNode::TNINT: 
 			{
 			int intValue = ((IntNode *) tree)->getValue();
-			fprintf(stderr, "[QE] TNINT: %d\n",intValue);
-			*result = new QueryIntResult (intValue);
+			fprintf(stderr, "[QE] TNINT: %d\n", intValue);
+			*result = new QueryIntResult(intValue);
 			fprintf(stderr, "[QE] QueryIntResult (%d) created\n",intValue);
 			return 0;
 			}
@@ -175,16 +176,16 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			{
 			string stringValue = ((StringNode *) tree)->getValue();
 			//fprintf(stderr, "[QE] QueryStringResult (%s) created\n",stringValue);
-			*result = new QueryStringResult (stringValue);
+			*result = new QueryStringResult(stringValue);
 			//fprintf(stderr, "[QE] QueryStringResult (%s) created\n",stringValue);
 			return 0;
 			}
 		case TreeNode::TNDOUBLE:
 			{
 			double doubleValue = ((DoubleNode *) tree)->getValue();
-			fprintf(stderr, "[QE] TNDOUBLE: %f\n",doubleValue);
-			*result = new QueryDoubleResult (doubleValue);
-			fprintf(stderr, "[QE] QueryDoubleResult (%f) created\n",doubleValue);
+			fprintf(stderr, "[QE] TNDOUBLE: %f\n", doubleValue);
+			*result = new QueryDoubleResult(doubleValue);
+			fprintf(stderr, "[QE] QueryDoubleResult (%f) created\n", doubleValue);
 			return 0;
 			}
 		case TreeNode::TNVECTOR: {break;}
