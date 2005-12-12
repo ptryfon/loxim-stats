@@ -91,8 +91,8 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			fprintf(stderr, "[QE] Type: TNCREATE\n");
 			tree = tree->getArg();
 			fprintf(stderr, "[QE] Getting node arguments\n");
-			QueryResult** cokolwiek; 
-			if ((errcode = executeQuery (tree, cokolwiek)) != 0)
+			QueryResult** nextResult; 
+			if ((errcode = executeQuery (tree, nextResult)) != 0)
 				{
 				return errcode;
 				}
@@ -204,11 +204,11 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 				tree = tree->getArg();
 				fprintf(stderr, "[QE] Getting node arguments\n");
 				
-				QueryResult** cokolwiek; 
-				if ((errcode = executeQuery (tree, cokolwiek)) != 0)
+				QueryResult** nextResult; 
+				if ((errcode = executeQuery (tree, nextResult)) != 0)
 					{
 					return errcode;
-					};
+					}
 
 				QueryResult* toDelete;  //single object to be deleted
 				for (unsigned int i = 0; i < ((*cokolwiek)->size()); i++ ) // Deleting objects
