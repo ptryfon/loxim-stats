@@ -95,7 +95,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			if ((errcode = executeQuery (tree, cokolwiek)) != 0)
 				{
 				return errcode;
-				};
+				}
 			if (tree != NULL)
 				{
 				nodeType = tree->type();
