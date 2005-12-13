@@ -122,10 +122,13 @@ int  Server::Serialize(QueryResult *qr, char **buffer, char **bufStart)
 					strVal=(refRes->getValue())->toString();
 					bufPointer++;
 					printf("[Server.Serialize]-->Referencestring value: strVal=%s \n", strVal.c_str());
+					printf("[Server.Serialize]-->This string is %d chars long\n", strVal.length());
 					strVal.copy(bufPointer, strVal.length());
 					//strcpy(bufPointer, "zak"); 
 					//memcpy((void *)bufPointer, (const void *)&intVal, sizeof(intVal));
 					bufPointer=bufPointer+strVal.length();
+					bufPointer[0]='\0';
+					bufPointer++;
 				}
 			}
 			
