@@ -235,7 +235,15 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					fprintf(stderr, "[QE] Object deleted\n");
 					} //for
 				fprintf(stderr, "[QE] Done!\n");
-				} //case	    
+				} //case
+			case UnOpNode::unMinus:
+				{
+				break;
+				}//case
+			case UnOpNode::boolNot:
+				{
+				break;
+				}//case
 			default: {break;} // Reszta jeszcze nie zaimplementowane
 			}//switch
 			*result = new QueryNothingResult;
@@ -244,7 +252,67 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			}//case
 	
 	
-		case TreeNode::TNALGOP: {break;}
+		case TreeNode::TNALGOP: {
+			AlgOpNode::algOp op = ((AlgOpNode *) tree)->getOp();
+			fprintf(stderr, "[QE] Algebraic operator - type recognized: .\n");
+	    
+			switch (op)
+			{
+			case AlgOpNode::plus:
+				{
+				break;
+				}//case
+			case AlgOpNode::minus:
+				{
+				break;
+				}//case
+			case AlgOpNode::times:
+				{
+				break;
+				}//case
+			case AlgOpNode::divide:
+				{
+				break;
+				}//case
+			case AlgOpNode::eq:
+				{
+				break;
+				}//case
+			case AlgOpNode::neq:
+				{
+				break;
+				}//case
+			case AlgOpNode::gt:
+				{
+				break;
+				}//case
+			case AlgOpNode::lt:
+				{
+				break;
+				}//case
+			case AlgOpNode::ge:
+				{
+				break;
+				}//case
+			case AlgOpNode::le:
+				{
+				break;
+				}//case
+			case AlgOpNode::boolAnd:
+				{
+				break;
+				}//case
+			case AlgOpNode::boolOr:
+				{
+				break;
+				}//case
+			default: {break;} // Reszta jeszcze nie zaimplementowane
+			}//switch
+			*result = new QueryNothingResult;
+			fprintf(stderr, "[QE] QueryNothingResult created\n");
+			return 0;
+			}//case
+	
 		case TreeNode::TNNONALGOP: {break;}
 		case TreeNode::TNTRANS: {break;}
 	
@@ -267,5 +335,5 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
     }
 
 
-QueryExecutor::~QueryExecutor() { delete tr; };
+QueryExecutor::~QueryExecutor() { delete tr; };  // <- tu zamiast robic delete tr chyba powinnismy robic abort na tym tr i pozwolic by to TManager usunal te transakcje
 }

@@ -310,7 +310,7 @@ bool QuerySequenceResult::equal(QueryResult *r){
 	bool tmp_value = true;
 	for (unsigned int i = 0; i < (seq.size()); i++ ) {
 		QueryResult* tmp_res;
-		if ( ((QuerySequenceResult*) r)->at(i, tmp_res) ) {
+		if ( ((QuerySequenceResult*) r)->at(i, tmp_res) != 0 ) {
 			return false;
 		};
 		tmp_value = tmp_value && ( (seq.at(i))->equal(tmp_res) );
@@ -328,7 +328,7 @@ bool QueryBagResult::equal(QueryResult *r){
 	bool tmp_value = true;
 	for (unsigned int i = 0; i < (bag.size()); i++ ) { 
 		QueryResult* tmp_res;
-		if ( ((QueryBagResult*) r)->at(i, tmp_res) ) {
+		if ( ((QueryBagResult*) r)->at(i, tmp_res) != 0 ) {
 			return false;
 		};
 		tmp_value = tmp_value && ( (bag.at(i))->equal(tmp_res) );
@@ -346,7 +346,7 @@ bool QueryStructResult::equal(QueryResult *r){
 	bool tmp_value = true;
 	for (unsigned int i = 0; i < (str.size()); i++ ) { 
 		QueryResult* tmp_res;
-		if ( ((QueryStructResult*) r)->at(i, tmp_res) ) {
+		if ( ((QueryStructResult*) r)->at(i, tmp_res) != 0 ) {
 			return false;
 		};
 		tmp_value = tmp_value && ( (str.at(i))->equal(tmp_res) );
