@@ -13,7 +13,8 @@ public:
 	enum ResultType { RESULT=0,    SEQUENCE=1, BAG=2, 
 			  STRUCT=3,    BINDER=4,   STRING=5, 
 			  INT=6,       DOUBLE=7,   BOOL=8, 
-			  REFERENCE=9, VOID=10,    ERROR=11 };
+			  REFERENCE=9, VOID=10,    ERROR=11,
+			  BOOLTRUE=12, BOOLFALSE=13 }; //piotrek
 	Result() {};
 	virtual bool    operator==(Result& r)    =0;
   	virtual Result* clone()			 =0;
