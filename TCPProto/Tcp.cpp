@@ -77,40 +77,37 @@ int bufferReceive (char** buffer, int* receiveDataSize, int sock) {
          	lengthBuff += ile;
          }
          
-         if (rest == 0) {
+         if (rest != 0) {
+         	//TODO wyrzucic to
+         	cout << "<Tcp::bufferReceive> to sie nie moze zdazyc!!!" << endl;
+         	return 1;	
+         } 
          		// mamy juz cala liczbe okreslajaca dlugosc
-         		msgSize = ntohl(*((unsigned long int*) lengthBuffTable));
-         		// msgSize = ...;
+         	msgSize = ntohl(*((unsigned long int*) lengthBuffTable));
          	cout << "ile bajtow dostane: " << msgSize << endl;	
-         	}
+         	
          
-         messgBuffBeg = messgBuff = (char*) malloc(msgSize);
+         messgBuffBeg = messgBuff = (char*) malloc(msgSize + 1); //+1 protection from reading outside the buffer
          
          if (messgBuff == NULL) return errno | ErrTCPProto;
-         
-         // parameterPtr = messgBuff;
+         messgBuff[msgSize] = 0; //now string reading never leads outside the buffer
          
          rest = msgSize;
          
         while (rest > 0) {
-         	
-        ile = recv (sock, messgBuff, rest, 0);
-         
-        if (ile < 0) return errno | ErrTCPProto;
-        if (ile == 0) return ECONNABORTED | ErrTCPProto;
-        
-        rest -= ile;
-        messgBuff += ile;
-        
+        	ile = recv (sock, messgBuff, rest, 0);
+        	
+        	if (ile < 0) return errno | ErrTCPProto;
+        	if (ile == 0) return ECONNABORTED | ErrTCPProto;
+        	
+        	rest -= ile;
+        	messgBuff += ile;
         }
         
-     //  	cout << "a oto tresc: " << messgBuffBeg << endl;
-        
-        *buffer = messgBuffBeg; //zwrocic wynik
-        
-	 //	printf("ServerTcp: received some data --> size = %d \n", ile);
-         	 *receiveDataSize = msgSize;
-                 return 0;               
+        //return results
+        *buffer = messgBuffBeg;
+        *receiveDataSize = msgSize;
+        return 0;               
 }
 
 } //namespace
