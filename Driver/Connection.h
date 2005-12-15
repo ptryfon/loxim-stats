@@ -30,9 +30,10 @@ private:
 	char* bufferBegin;
 	char* bufferEnd;
 	
-	int getULong(unsigned long &val);
+	unsigned long getULong(unsigned long &val);
 	int stringCopy(char* &newBuffer);
-	int deserialize(Result** rs);
+	Result* grabElements(ResultCollection* col);
+	Result* deserialize();
 };
 
 #endif //_CONNECTION_H_

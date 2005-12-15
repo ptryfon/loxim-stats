@@ -26,100 +26,125 @@ Connection::~Connection()
 int Connection::stringCopy(char* &newBuffer) { // od bufferBegin
 		//TODO dodac sprawdzanie zakresu, przepelnienia bufora!!!
 		int len = strlen(bufferBegin)+1; //including NULL
+		
+		if (bufferBegin + len > bufferEnd) {
+			cout << "<Serialize::StringCopy> proba czytania poza buforem" << endl;
+			throw ConnectionException("protocol corrupt");
+		}
+		
 		newBuffer = (char*)malloc (len);
 		strcpy (newBuffer, bufferBegin);
+		//TODO sprawdzac czy sie powiodlo
 		bufferBegin += len;
 		return 0;
 }
 
-int Connection::getULong(unsigned long &val) {
-	if ((bufferBegin + sizeof (long)) <= bufferEnd) {
-		val = ntohl(*((unsigned long*) bufferBegin));
-		bufferBegin += sizeof (long); //skip the number of elements (long)
-		return 0;
-	} else {
+unsigned long Connection::getULong(unsigned long &val) {
+	
+	char* tmpPtr = bufferBegin + sizeof(long);
+	
+	if (tmpPtr > bufferEnd) {
 		cout << "<Connetion::getULong> proba czytania poza odebranym buforem" << endl;
-		return 1;
+		throw ConnectionException("protocol corrupt");
 	}
+	
+		val = ntohl(*((unsigned long*) bufferBegin));
+		bufferBegin = tmpPtr; //skip the number of elements (long)
+		return val;
 }
 
-int Connection::deserialize(Result** rs) {
-	int error;
-//	bufferBegin++;
-	ResultBag *brs;
-	Result* result;	
+
+Result* Connection::grabElements(ResultCollection* col) {
+			
+			unsigned long number;
+			getULong(number);
+//			col->setSize(getULong(number)); //by reference 			
+			for (int i = 1; i <= number; i++) {
+					//TODO w razie bledu zniszczyc
+				col->add(deserialize());
+			}
+			return col;	
+}
+
+
+Result* Connection::deserialize() {
+//	int error;
+//	ResultBag *brs;
+//	Result* result;	
 	char* id;
 	unsigned long number;
-	unsigned long i;
+//	unsigned long i;
+	unsigned long* lptr;
+	double db;
 	char df;
 		
 	switch (*(bufferBegin++)) {
 		case Result::BAG:
 			cout << "<Connection::deserialize> tworze obiekt BAG\n";
-//			bufferBegin++; //skip first byte
-			if (0 != getULong(number)) return 1; //by reference 
-
-			//brs = new ResultBag(number);
-			brs = new ResultBag();  //Czarek
+			return grabElements(new ResultBag());
 			
-			for (i = 1; i <= number; i++) {
-				if(0 != (error = deserialize(&result))) {
-					//TODO w razie bledu zniszczyc brs jak juz destruktor bedzie dzialac
-					*rs = NULL;
-					return error; //TODO poprawic sprawdzanie bledu
-				}
-				brs->add(result);
-			}
-			*rs = brs;
-			return 0;
+		case Result::SEQUENCE:
+			cout << "<Connection::deserialize> tworze obiekt SEQUENCE\n";
+			return grabElements(new ResultSequence());
+		
+		case Result::STRUCT:
+			cout << "<Connection::deserialize> tworze obiekt STRUCT\n";
+			return grabElements(new ResultStruct());
+		
 		
 		case Result::REFERENCE:
 			cout << "<Connection::deserialize> tworze obiekt REFERENCE\n";
 	//		bufferBegin++;
 			stringCopy(id); //by reference
-			*rs = (Result*) new ResultReference(id);
+			return (Result*) new ResultReference(string (id));
 			//TODO poprawic przesuniecie wskaznika
-			return 0;
 		
 		case Result::VOID:
 		cout << "<Connection::deserialize> tworze obiekt VOID\n";
-		//	bufferBegin++;
-			*rs = new ResultVoid();
-			return 0; 
+			return new ResultVoid(); 
 		
 		case Result::STRING:
 			cout << "<Connection::deserialize> tworze obiekt STRING\n";
-//			bufferBegin++;
 			stringCopy(id); // by reference
-			*rs = (Result*) new ResultString(string (id));
-			//co z id czy string je zabiera czy niszczy
-			return 0;
+			return (Result*) new ResultString(string (id));
 		
 		case Result::ERROR:
 			cout << "<Connection::deserialize> tworze obiekt ERROR\n";
-			if (0 != getULong(number)) return 1; //by reference 
-			*rs = new ResultError(number);
-			return 0;
+			getULong(number); //by reference 
+			return new ResultError(number);
 			
-		case Result::SEQUENCE:
-		
-		case Result::STRUCT:
 		
 		case Result::INT:
+					cout << "<Connection::deserialize> tworze obiekt INT\n";
+			getULong(number); //by reference
+			return new ResultInt((int) number);
 		
-		case Result::BOOL:
+		case Result::BOOLTRUE:
+					cout << "<Connection::deserialize> tworze obiekt BOOL (true)\n";
+			return new ResultBool(true);
+		
+		case Result::BOOLFALSE:
+					cout << "<Connection::deserialize> tworze obiekt BOOL (false)\n";
+			return new ResultBool(false);
 		
 		case Result::DOUBLE:
+					cout << "<Connection::deserialize> tworze obiekt DOUBLE\n";
+			lptr = (unsigned long*) &db;
+			getULong(*lptr); //higher word
+			getULong(*(lptr+1)); //lower word
+			return new ResultDouble(db);
 		
 		case Result::BINDER:
-		
+	/*		cout << "<Connection::deserialize> tworze obiekt BINDER\n";
+			getULong(number);
+			return new ResultBinder(number, deserialize());
+		*/
 		default:
 			df = *(bufferBegin-1);
-			cout << "<Connection::deserialize> obiekt nieznany lub jeszcze niezaimplementowany, nr: " << (int) df << endl;
-			*rs = NULL;
-			return 1;//w przyszlosci bedzie tu nr bledu
-	}
-}
+			cout << "<Connection::deserialize> obiekt nieznany, nr: " << (int) df << endl;
+			throw ConnectionException("protocol corrupt");
+	} // switch
+} // deserialize
 
 Result* Connection::execute(char* query) throw (ConnectionException) {
 	
@@ -148,14 +173,9 @@ Result* Connection::execute(char* query) throw (ConnectionException) {
       bufferBegin = ptr;
       bufferEnd = ptr+ile;
       
-      Result* rs;
-      error = deserialize(&rs);
+      Result* rs = deserialize();
       free(ptr); //free buffer created by bufferReceive()
-      if (0 != error) {
-      	cout << "<Connection::execute> blad deserializacji, kod bledu: " << error << endl;
-      	throw ConnectionException("protocol corrupt");
-      //	return new ResultError("blad protokolu");
-      }
+      
       cout << "<Connection::execute> obiekt Result stworzony -> procedura zakonczona sukcesem" << endl;
       return rs;
 }
