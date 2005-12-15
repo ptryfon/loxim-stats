@@ -194,27 +194,27 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 		case TreeNode::TNUNOP: 
 			{
 			UnOpNode::unOp op = ((UnOpNode *) tree)->getOp();
-			fprintf(stderr, "[QE] Unary operator - type recognized: .\n");
+			fprintf(stderr, "[QE] Unary operator - type recognized\n");
 	    
 			switch (op)
 			{
 			case UnOpNode::deleteOp:
 				{
-				fprintf(stderr, "[QE] Oprator: deleteOp\n");
+				fprintf(stderr, "[QE] Operator: deleteOp\n");
 		
 				tree = tree->getArg();
 				fprintf(stderr, "[QE] Getting node arguments\n");
 				
-				QueryResult** nextResult; 
-				if ((errcode = executeQuery (tree, nextResult)) != 0)
+				QueryResult* nextResult; 
+				if ((errcode = executeQuery (tree, &nextResult)) != 0)
 					{
 					return errcode;
 					}
 
 				QueryResult* toDelete;  //single object to be deleted
-				for (unsigned int i = 0; i < ((*nextResult)->size()); i++ ) // Deleting objects
+				for (unsigned int i = 0; i < (nextResult->size()); i++ ) // Deleting objects
 					{
-   					(*nextResult)->getResult(toDelete);  //bledy??
+   					nextResult->getResult(toDelete);  //bledy??
 					lid = ((QueryReferenceResult *) toDelete)->getValue();
 					if ((errcode = tr->getObjectPointer (lid, Store::Write, optr)) !=0)
 						{
@@ -235,15 +235,28 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					fprintf(stderr, "[QE] Object deleted\n");
 					} //for
 				fprintf(stderr, "[QE] Done!\n");
-				} //case
+				} //case DELETE
 			case UnOpNode::unMinus:
 				{
 				break;
 				}//case
 			case UnOpNode::boolNot:
 				{
-				break;
-				}//case
+				fprintf(stderr, "[QE] NOT operation\n");
+				QueryResult *nextResult;
+				if ((errcode = executeQuery (tree->getArg(), &nextResult)) != 0)
+					{
+					return errcode;
+					}
+				fprintf(stderr, "[QE] Result counted, counting NOT\n");
+				*result = ((QueryBoolResult *) nextResult)->bool_not();
+				if ((*result)->type() == QueryResult::QNOTHING)
+				{
+					// ec << 
+					return -1;
+				}
+				return 0;
+				}//case NOT
 			default: {break;} // Reszta jeszcze nie zaimplementowane
 			}//switch
 			*result = new QueryNothingResult;
@@ -254,7 +267,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 	
 		case TreeNode::TNALGOP: {
 			AlgOpNode::algOp op = ((AlgOpNode *) tree)->getOp();
-			fprintf(stderr, "[QE] Algebraic operator - type recognized: .\n");
+			fprintf(stderr, "[QE] Algebraic operator - type recognized\n");
 	    
 			switch (op)
 			{
@@ -300,12 +313,46 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 				}//case
 			case AlgOpNode::boolAnd:
 				{
-				break;
-				}//case
+				fprintf(stderr, "[QE] AND operation\n");
+				QueryResult *lResult, *rResult;
+				if ((errcode = executeQuery (((AlgOpNode *) tree)->getLArg(), &lResult)) != 0)
+					{
+					return errcode;
+					}
+				if ((errcode = executeQuery (((AlgOpNode *) tree)->getRArg(), &rResult)) != 0)
+					{
+					return errcode;
+					}
+				fprintf(stderr, "[QE] Results counted, counting AND\n");
+				*result = ((QueryBoolResult *) lResult)->bool_and(rResult);
+				if ((*result)->type() == QueryResult::QNOTHING)
+				{
+					// ec << 
+					return -1;
+				}
+				return 0;
+				}//case AND
 			case AlgOpNode::boolOr:
 				{
-				break;
-				}//case
+				fprintf(stderr, "[QE] OR operation\n");
+				QueryResult *lResult, *rResult; 
+				if ((errcode = executeQuery (((AlgOpNode *) tree)->getLArg(), &lResult)) != 0)
+					{
+					return errcode;
+					}
+				if ((errcode = executeQuery (((AlgOpNode *) tree)->getRArg(), &rResult)) != 0)
+					{
+					return errcode;
+					}
+				fprintf(stderr, "[QE] Results counted, counting OR\n");
+				*result = ((QueryBoolResult *) lResult)->bool_or(rResult);
+				if ((*result)->type() == QueryResult::QNOTHING)
+				{
+					// ec << 
+					return -1;
+				}
+				return 0;
+				}//case OR
 			default: {break;} // Reszta jeszcze nie zaimplementowane
 			}//switch
 			*result = new QueryNothingResult;
