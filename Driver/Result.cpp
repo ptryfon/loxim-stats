@@ -9,36 +9,15 @@ ostream& operator<<(ostream& os, Result& result) {
 }
 
 
-void   ResultBag::toStream(ostream& os) const 
+void   ResultCollection::toStream(ostream& os) const 
 {
 	os << "{ ";  
-	for(unsigned int i=0; i<bag.size(); i++) 
+	for(unsigned int i=0; i<col.size(); i++) 
 	{
-		os << *(bag.at(i)) << " ";
+		os << *(col.at(i)) << " ";
 	} 
 	os << "} ";
-}		
-
-void   ResultStruct::toStream(ostream& os) const 
-{
-	os << "{ ";  
-	for(unsigned int i=0; i<str.size(); i++) 
-	{
-		os << *(str.at(i)) << " ";
-	} 
-	os << "} ";
-}		
-
-
-void   ResultSequence::toStream(ostream& os) const 
-{
-	os << "{ ";  
-	for(unsigned int i=0; i<seq.size(); i++) 
-	{
-		os << *(seq.at(i)) << " ";
-	} 
-	os << "} ";
-}		
+}
 
 /**
  * ResultReference

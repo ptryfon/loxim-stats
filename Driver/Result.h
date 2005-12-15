@@ -28,72 +28,87 @@ public:
 
 
 
-class ResultBag : public Result
+class ResultCollection : public Result 
 {
 private:	
-	vector<Result*> bag;
+	vector<Result*> col;
 
 public:
-	ResultBag(unsigned long size) : bag(0){} 
+	ResultCollection() : col(0)  {} 
+
+	virtual bool    operator==(Result& r){ return false;       }
+  	virtual Result* clone()              { return NULL;        }
+	int     size()		     { return col.size();  }
+	void    add(Result* val)     { col.push_back(val); }
+	Result* get(int i)	     { return col.at(i);   }
+	void   toStream(ostream& os)   const ;
+	
+	virtual ~ResultCollection()  {} 
+// don't know the class of bat.at(i), so can't delete! hmm...
+//		{ for(unsigned int i=0; i<col.size(); i++) delete col.at(i); }
+};//class ResultCollection
+
+
+class ResultBag : public ResultCollection
+{
+public:
+	ResultBag() {} 
 
 	bool    operator==(Result& r){ return false;       }
   	Result* clone()              { return NULL;        }
   	int 	getType()	     { return Result::BAG; }      
-	int     size()		     { return bag.size();  }
-	void    add(Result* val)     { bag.push_back(val); }
-	Result* get(int i)	     { return bag.at(i);   }
-	void   toStream(ostream& os) const ;
 	
 	virtual ~ResultBag() {} 
-// don't know the class of bat.at(i), so can't delete! hmm...
-//		{ for(unsigned int i=0; i<bag.size(); i++) delete bag.at(i); }
 };//class ResultBag : ResultCollection
 
 
-class ResultStruct : public Result
+class ResultStruct : public ResultCollection
 {
-private:	
-	vector<Result*> str;
-	
 public:
-	ResultStruct(unsigned long size)  : str(0){      }
+	ResultStruct() { }
 
 	bool    operator==(Result& r){ return false;          }
   	Result* clone()              { return NULL;           }
-  	int 	getType()         { return Result::STRUCT;    }      
-	int     size()            { return str.size();        }
-	void    add(Result* val)  { str.push_back(val);       }
-	Result* get(int i)	  { return str.at(i);	      }
-	void   toStream(ostream& os) const ;
+  	int 	getType()            { return Result::STRUCT; }      
 		
 	virtual ~ResultStruct()   {}
-// don't know the class of bat.at(i), so can't delete! hmm...	
-//		{ for(unsigned int i=0; i<str.size(); i++) delete str.at(i); }
-};//class ResultStruct
+};//class ResultStruct : ResultCollection
 
 
-class ResultSequence : public Result
+class ResultSequence : public ResultCollection
 {
-private:	
-	vector<Result*> seq;
-	
 public:
-	ResultSequence(unsigned long size)  : seq(0){ }
+	ResultSequence() { }
 
-	bool    operator==(Result& r){ return false;          }
-  	Result* clone()              { return NULL;           }
-  	int 	getType()         { return Result::SEQUENCE;  }      
-	int     size()            { return seq.size();        }
-	void    add(Result* val)  { seq.push_back(val);       }
-	Result* get(int i)	  { return seq.at(i);	      }
-	void   toStream(ostream& os) const ;
+	bool    operator==(Result& r){ return false;           }
+  	Result* clone()              { return NULL;            }
+  	int 	getType()            { return Result::SEQUENCE;}      
 
 	virtual ~ResultSequence() {}
-// don't know the class of seq.at(i), so can't delete! hmm...	
-//		{ for(unsigned int i=0; i<seq.size(); i++) delete seq.at(i); }
-};//class ResultSequence
+};//class ResultSequence : ResultCollection
 
 
+
+class ResultReference : public Result
+{
+private:
+	string value;
+	
+public:
+	ResultReference(char*  val) : value(val) { }
+	ResultReference(string val) : value(val) { }
+
+	bool   operator==(Result& r) { return false;    }
+	ResultReference* clone()     { return NULL;     }
+	int    getType() 	     { return Result::REFERENCE; }
+	void   setValue(string val)  { value = val;     }
+	string getValue()	     { return value;    }
+	void   toStream(ostream& os) const {os << value;}		
+	virtual ~ResultReference()   { }
+};//class ResultReference
+
+
+/*
 class ResultReference : public Result
 {
 private:
@@ -117,6 +132,7 @@ public:
 	void   toStream(ostream& os) const {os << value;}		
 	virtual ~ResultReference()   { if (ch_value!=NULL) delete[] ch_value; }
 };//class ResultReference 
+*/
 
 
 class ResultInt  : public Result
@@ -133,6 +149,24 @@ public:
 	void   toStream(ostream& os) const { os << value;    }		
 	~ResultInt() {}
 };//class ResultInt
+
+
+
+class ResultDouble  : public Result
+{
+private:	
+	double value;
+public:
+	ResultDouble(double val) : value(val) { }
+	bool   operator==(Result& r) { return false;          }
+	ResultReference* clone()     { return NULL;           }
+	int    getType() 	     { return Result::DOUBLE; }
+	void   setValue(double value){ this->value = value;   }
+	double getValue()	     { return value;	      }
+	void   toStream(ostream& os) const { os << value;     }		
+	~ResultDouble() {}
+};//class ResultDouble
+
 
 
 class ResultString  : public Result

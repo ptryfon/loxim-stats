@@ -59,7 +59,8 @@ int Connection::deserialize(Result** rs) {
 //			bufferBegin++; //skip first byte
 			if (0 != getULong(number)) return 1; //by reference 
 
-			brs = new ResultBag(number);
+			//brs = new ResultBag(number);
+			brs = new ResultBag();  //Czarek
 			
 			for (i = 1; i <= number; i++) {
 				if(0 != (error = deserialize(&result))) {
