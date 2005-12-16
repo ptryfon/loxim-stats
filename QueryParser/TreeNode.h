@@ -14,6 +14,7 @@ namespace QParser {
     {
     protected:
 	TreeNode* parent;
+	int sectionNum;
     public:
 	enum TreeNodeType { TNINT, TNSTRING, TNDOUBLE, TNVECTOR, TNNAME, 
 	    TNAS, TNUNOP, TNALGOP, TNNONALGOP, TNTRANS, TNCREATE};
@@ -27,6 +28,7 @@ namespace QParser {
     // na wniosek Executora:
 	virtual string getName() {return (string) NULL;}
 	virtual TreeNode* getArg() {return (TreeNode *) NULL;}
+	virtual int getSectionNum(){ return sectionNum};
     };
     
 // statement := query
