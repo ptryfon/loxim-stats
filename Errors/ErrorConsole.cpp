@@ -9,6 +9,7 @@ using namespace std;
 namespace Errors {
 	ofstream* ErrorConsole::consoleFile = NULL;
 	int ErrorConsole::nObjects = 0;
+	int ErrorConsole::serr = 0;
 
 	ErrorConsole::ErrorConsole()
        	{
@@ -82,24 +83,33 @@ namespace Errors {
 				break;
 		}
 		*consoleFile << modname << "errno: " << (error & ~ErrAllModules) << "\n";
-		if (serr)
+		consoleFile->flush();
+		if (serr) {
 			cerr << modname << "errno: " << (error & ~ErrAllModules) << "\n";
+			cerr.flush();
+		}
 		return *this;
 	};
 
 	ErrorConsole& ErrorConsole::operator<<(string errorMsg)
        	{
 		*consoleFile << errorMsg;
-		if (serr)
+		consoleFile->flush();
+		if (serr) {
 			cerr << errorMsg;
+			cerr.flush();
+		}
 		return *this;
 	};
 
 	ErrorConsole& ErrorConsole::operator<<(ErrorConsole &cons)
        	{
 		*consoleFile << cons.consoleFile;
-		if (serr)
+		consoleFile->flush();
+		if (serr) {
 			cerr << cons.consoleFile;
+			cerr.flush();
+		}
 		return *this;
 	};
 

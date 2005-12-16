@@ -11,8 +11,8 @@ namespace Errors {
 		private:
 			static ofstream* consoleFile;
 			static int nObjects;
+			static int serr;
 			string owner;
-			int serr;
 		public:
 			ErrorConsole();
 			ErrorConsole(string module);
