@@ -145,7 +145,7 @@ namespace Store
 	{
 		for(unsigned int i=0; i<misc->roots.size(); i++){
 			if(misc->vect[i]->getName() == object->getName())
-			  return 1;
+			  return 0;
 		}
 		
 		misc->roots.push_back(object);
