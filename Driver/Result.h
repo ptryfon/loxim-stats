@@ -88,6 +88,29 @@ public:
 };//class ResultSequence : ResultCollection
 
 
+class ResultBinder : public Result
+{
+private:
+	string  name;
+	Result* value;
+	
+public:
+	ResultBinder(string nm, Result* res) 
+	  : name(nm) { value = res; }
+
+	bool   operator==(Result& r) { return false;    }
+	ResultBinder* clone()        { return NULL;     }
+	int    getType() 	     { return Result::BINDER; }
+	void   setName(string nm)    { name = nm;       }
+	void   setValue(Result* val) { value = val;     }
+	string  getName()            { return name;     } 
+	Result* getValue()	     { return value;    }
+	void   toStream(ostream& os) const 
+	  { os << name << "(" << value << ") "; }		
+	virtual ~ResultBinder()      { }
+};//class ResultBinder : Result
+
+
 
 class ResultReference : public Result
 {
