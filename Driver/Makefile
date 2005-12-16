@@ -4,7 +4,7 @@ CXXFLAGS=-I./ -I./../ -Wall
 
 SOURCES	=	Connection.cpp \
 		DriverManager.cpp \
-		Result.cpp
+		Result.cpp \
 
 HEADERS	=	Connection.h \
 		DriverManager.h \
@@ -13,7 +13,7 @@ HEADERS	=	Connection.h \
 LIBS	=	../TCPProto/TCPProto.a
 
 STATIC_LIB =	Driver.a
-PROGRAM =	
+PROGRAM =	ResultTest
 
 OBJECTS	=	$(SOURCES:.cpp=.o)
 DEPFILES =	$(OBJECTS:.o=.d)
@@ -22,6 +22,10 @@ all: $(STATIC_LIB) $(PROGRAM)
 
 #$(PROGRAM): $(STATIC_LIB)
 #	$(CXX) $(CXXFLAGS) $(LDFLAGS) $@.cpp $< -o $@
+
+$(PROGRAM): $(STATIC_LIB) $(PROGRAM).cpp
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $@.cpp $< -o $@
+
 
 clean:
 	rm -f $(OBJECTS) $(DEPFILES) $(STATIC_LIB) $(PROGRAM)
