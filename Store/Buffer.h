@@ -43,6 +43,7 @@ namespace Store
 		int stop();
 
 		PagePointer* getPagePointer(unsigned short fileID, unsigned int pageID);
+		int writePage(unsigned short fileID, unsigned int pageID, char *pagePointer);
 	};
 };
 

@@ -1,5 +1,5 @@
 /**
- * $Id: Buffer.cpp,v 1.6 2005-11-24 22:40:37 jr243017 Exp $
+ * $Id: Buffer.cpp,v 1.7 2005-12-16 09:47:55 mk189406 Exp $
  *
  */
 #include "Buffer.h"
@@ -58,7 +58,7 @@ namespace Store
 
 		buffer_hash_t::iterator it = buffer_hash.find(buffer_addr);
 		if (it != buffer_hash.end() && (*it).second.haspage)
-			return new PagePointer(fileID, pageID, (*it).second.page);
+			return new PagePointer(fileID, pageID, (*it).second.page, this);
 
 		buffer_page n_page;
 		n_page.page = new char[STORE_PAGESIZE];
@@ -70,6 +70,13 @@ namespace Store
 
 		n_page.haspage = 1;
 		buffer_hash.insert(make_pair (make_pair (fileID, pageID), n_page));
-		return new PagePointer(fileID, pageID, n_page.page);
+		return new PagePointer(fileID, pageID, n_page.page, this);
+	};
+
+	int Buffer::writePage(unsigned short fileID, unsigned int pageID, char *pagePointer) {
+		if (!started)
+			return 0;
+
+		return file->writePage(fileID, pageID, pagePointer);
 	};
 };

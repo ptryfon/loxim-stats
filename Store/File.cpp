@@ -47,7 +47,7 @@ namespace Store
 		froots->open("sbroots", ios::in | ios::binary);
 		fdefault->open("sbdefault", ios::in | ios::binary);
 
-		if (!(fmap->is_open()) || !froots->is_open() || !fdefault->is_open())
+		if (!fmap->is_open() || !froots->is_open() || !fdefault->is_open() || true)
 		{
 			if (fmap->is_open()) fmap->close();
 			if (froots->is_open()) froots->close();
