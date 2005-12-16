@@ -28,7 +28,7 @@ namespace QParser {
     // na wniosek Executora:
 	virtual string getName() {return (string) NULL;}
 	virtual TreeNode* getArg() {return (TreeNode *) NULL;}
-	virtual int getSectionNum(){ return sectionNum};
+	virtual int getSectionNum(){ return sectionNum;};
     };
     
 // statement := query
