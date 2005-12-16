@@ -1,12 +1,15 @@
 #include "PagePointer.h"
 
+#include "Buffer.h"
+
 namespace Store
 {
-	PagePointer::PagePointer(unsigned short fileID, unsigned int pageID, char* pagePointer)
+	PagePointer::PagePointer(unsigned short fileID, unsigned int pageID, char* pagePointer, Buffer* buffer)
 	{
 		this->fileID = fileID;
 		this->pageID = pageID;
 		this->pagePointer = pagePointer;
+		this->buffer = buffer;
 	};
 
 	unsigned short PagePointer::getFileID()
@@ -26,11 +29,12 @@ namespace Store
 
 	int PagePointer::release()
 	{
+		buffer->writePage(fileID, pageID, pagePointer);
 		return 0;
 	};
 
 	char* PagePointer::getPage()
 	{
-		return 0;
+		return pagePointer;
 	};
 };
