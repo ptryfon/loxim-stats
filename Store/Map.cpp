@@ -1,3 +1,4 @@
+#include <iostream>
 #include "Map.h"
 
 namespace Store
@@ -48,7 +49,7 @@ namespace Store
 		unsigned int last;
 
 		if (!header)
-			store->getBuffer()->getPagePointer(STORE_FILE_MAP, 0);
+			header = store->getBuffer()->getPagePointer(STORE_FILE_MAP, 0);
 
 		header->aquire();
 		last = ((map_header*) header->getPage())->last_assigned;
