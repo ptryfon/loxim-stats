@@ -238,7 +238,18 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 				} //case DELETE
 			case UnOpNode::unMinus:
 				{
-				break;
+				fprintf(stderr, "[QE] unMinus operation\n");
+				QueryResult *nextResult;
+				if ((errcode = executeQuery (tree->getArg(), &nextResult)) != 0)
+					{
+					return errcode;
+					}
+				fprintf(stderr, "[QE] Result counted, counting unMinus\n");
+				if ((errcode = ((QueryIntResult *) nextResult)->minus(*result)) != 0)
+					{
+					return errcode;
+					}
+				return 0;
 				}//case
 			case UnOpNode::boolNot:
 				{
@@ -249,12 +260,10 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					return errcode;
 					}
 				fprintf(stderr, "[QE] Result counted, counting NOT\n");
-				*result = ((QueryBoolResult *) nextResult)->bool_not();
-				if ((*result)->type() == QueryResult::QNOTHING)
-				{
-					// ec << 
-					return -1;
-				}
+				if ((errcode = ((QueryBoolResult *) nextResult)->bool_not(*result)) != 0)
+					{
+					return errcode;
+					}
 				return 0;
 				}//case NOT
 			default: {break;} // Reszta jeszcze nie zaimplementowane
@@ -273,43 +282,368 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			{
 			case AlgOpNode::plus:
 				{
-				break;
+				fprintf(stderr, "[QE] + operation\n");
+				QueryResult *lResult, *rResult;
+				if ((errcode = executeQuery (((AlgOpNode *) tree)->getLArg(), &lResult)) != 0)
+					{
+					return errcode;
+					}
+				if ((errcode = executeQuery (((AlgOpNode *) tree)->getRArg(), &rResult)) != 0)
+					{
+					return errcode;
+					}
+				fprintf(stderr, "[QE] Results computed, computing +\n");
+				// We have to check if the arguments are of the same type
+				int argType = rResult->type();
+				fprintf(stderr, "[QE] left argument's type taken\n");
+				switch (argType)
+				{
+				case QueryResult::QINT: //Left argument is a QueryIntResult
+					{
+					argType = rResult->type();
+					fprintf(stderr, "[QE] right argument's type taken\n");
+					switch (argType)
+					{
+					case QueryResult::QINT: //Both arguments are QueryIntResults
+						{
+						if ((errcode = ((QueryIntResult *) lResult)->plus(rResult, (*result))) != 0)
+							{
+							return errcode;
+							}
+						return 0;
+						}
+					case QueryResult::QDOUBLE: //Right argument is a double
+						{
+						break;  // Trzeba jeszce dopisac
+						}
+					default: {break;}
+					} //switch
+					return 0;
+					} //case QINT
+				case QueryResult::QDOUBLE: //Left argument is a QueryDoubleResult
+					{
+					argType = rResult->type();
+					fprintf(stderr, "[QE] right argument's type taken\n");
+					switch (argType)
+					{
+					case QueryResult::QDOUBLE: //Both arguments are QueryDoubleResults
+						{
+						if ((errcode = ((QueryDoubleResult *) lResult)->plus(rResult, (*result))) != 0)
+							{
+							return errcode;
+							}
+						return 0;
+						}
+					case QueryResult::QINT: //Right argument is an int
+						{
+						break;  // Treba jeszce dopisac
+						}
+					default: {break;}
+					} //switch
+					return 0;
+					}//case QDOUBLE
+				default: {break;}
+				}//switch
+				return 0;
 				}//case
 			case AlgOpNode::minus:
 				{
-				break;
+				fprintf(stderr, "[QE] - operation\n");
+				QueryResult *lResult, *rResult;
+				if ((errcode = executeQuery (((AlgOpNode *) tree)->getLArg(), &lResult)) != 0)
+					{
+					return errcode;
+					}
+				if ((errcode = executeQuery (((AlgOpNode *) tree)->getRArg(), &rResult)) != 0)
+					{
+					return errcode;
+					}
+				fprintf(stderr, "[QE] Results computed, computing -\n");
+				// We have to check if the arguments are of the same type
+				int argType = rResult->type();
+				fprintf(stderr, "[QE] left argument's type taken\n");
+				switch (argType)
+				{
+				case QueryResult::QINT: //Left argument is a QueryIntResult
+					{
+					argType = rResult->type();
+					fprintf(stderr, "[QE] right argument's type taken\n");
+					switch (argType)
+					{
+					case QueryResult::QINT: //Both arguments are QueryIntResults
+						{
+						if ((errcode = ((QueryIntResult *) lResult)->minus(rResult, (*result))) != 0)
+							{
+							return errcode;
+							}
+						return 0;
+						}
+					case QueryResult::QDOUBLE: //Right argument is a double
+						{
+						break;  // Trzeba jeszce dopisac
+						}
+					default: {break;}
+					} //switch
+					return 0;
+					} //case QINT
+				case QueryResult::QDOUBLE: //Left argument is a QueryDoubleResult
+					{
+					argType = rResult->type();
+					fprintf(stderr, "[QE] right argument's type taken\n");
+					switch (argType)
+					{
+					case QueryResult::QDOUBLE: //Both arguments are QueryDoubleResults
+						{
+						if ((errcode = ((QueryDoubleResult *) lResult)->minus(rResult, (*result))) != 0)
+							{
+							return errcode;
+							}
+						return 0;
+						}
+					case QueryResult::QINT: //Right argument is an int
+						{
+						break;  // Treba jeszce dopisac
+						}
+					default: {break;}
+					} //switch
+					return 0;
+					}//case QDOUBLE
+				default: {break;}
+				}//switch
+				return 0;
 				}//case
 			case AlgOpNode::times:
 				{
-				break;
+				fprintf(stderr, "[QE] * operation\n");
+				QueryResult *lResult, *rResult;
+				if ((errcode = executeQuery (((AlgOpNode *) tree)->getLArg(), &lResult)) != 0)
+					{
+					return errcode;
+					}
+				if ((errcode = executeQuery (((AlgOpNode *) tree)->getRArg(), &rResult)) != 0)
+					{
+					return errcode;
+					}
+				fprintf(stderr, "[QE] Results computed, computing +\n");
+				// We have to check if the arguments are of the same type
+				int argType = rResult->type();
+				fprintf(stderr, "[QE] left argument's type taken\n");
+				switch (argType)
+				{
+				case QueryResult::QINT: //Left argument is a QueryIntResult
+					{
+					argType = rResult->type();
+					fprintf(stderr, "[QE] right argument's type taken\n");
+					switch (argType)
+					{
+					case QueryResult::QINT: //Both arguments are QueryIntResults
+						{
+						if ((errcode = ((QueryIntResult *) lResult)->times(rResult, (*result))) != 0)
+							{
+							return errcode;
+							}
+						return 0;
+						}
+					case QueryResult::QDOUBLE: //Right argument is a double
+						{
+						break;  // Trzeba jeszce dopisac
+						}
+					default: {break;}
+					} //switch
+					return 0;
+					} //case QINT
+				case QueryResult::QDOUBLE: //Left argument is a QueryDoubleResult
+					{
+					argType = rResult->type();
+					fprintf(stderr, "[QE] right argument's type taken\n");
+					switch (argType)
+					{
+					case QueryResult::QDOUBLE: //Both arguments are QueryDoubleResults
+						{
+						if ((errcode = ((QueryDoubleResult *) lResult)->times(rResult, (*result))) != 0)
+							{
+							return errcode;
+							}
+						return 0;
+						}
+					case QueryResult::QINT: //Right argument is an int
+						{
+						break;  // Treba jeszce dopisac
+						}
+					default: {break;}
+					} //switch
+					return 0;
+					}//case QDOUBLE
+				default: {break;}
+				}//switch
+				return 0;
 				}//case
 			case AlgOpNode::divide:
 				{
-				break;
+				fprintf(stderr, "[QE] + operation\n");
+				QueryResult *lResult, *rResult;
+				if ((errcode = executeQuery (((AlgOpNode *) tree)->getLArg(), &lResult)) != 0)
+					{
+					return errcode;
+					}
+				if ((errcode = executeQuery (((AlgOpNode *) tree)->getRArg(), &rResult)) != 0)
+					{
+					return errcode;
+					}
+				fprintf(stderr, "[QE] Results computed, computing /\n");
+				// We have to check if the arguments are of the same type
+				int argType = rResult->type();
+				fprintf(stderr, "[QE] left argument's type taken\n");
+				switch (argType)
+				{
+				case QueryResult::QINT: //Left argument is a QueryIntResult
+					{
+					argType = rResult->type();
+					fprintf(stderr, "[QE] right argument's type taken\n");
+					switch (argType)
+					{
+					case QueryResult::QINT: //Both arguments are QueryIntResults
+						{
+						if ((errcode = ((QueryIntResult *) lResult)->divide_by(rResult, (*result))) != 0)
+							{
+							return errcode;
+							}
+						return 0;
+						}
+					case QueryResult::QDOUBLE: //Right argument is a double
+						{
+						break;  // Trzeba jeszce dopisac
+						}
+					default: {break;}
+					} //switch
+					return 0;
+					} //case QINT
+				case QueryResult::QDOUBLE: //Left argument is a QueryDoubleResult
+					{
+					argType = rResult->type();
+					fprintf(stderr, "[QE] right argument's type taken\n");
+					switch (argType)
+					{
+					case QueryResult::QDOUBLE: //Both arguments are QueryDoubleResults
+						{
+						if ((errcode = ((QueryDoubleResult *) lResult)->divide_by(rResult, (*result))) != 0)
+							{
+							return errcode;
+							}
+						return 0;
+						}
+					case QueryResult::QINT: //Right argument is an int
+						{
+						break;  // Treba jeszce dopisac
+						}
+					default: {break;}
+					} //switch
+					return 0;
+					}//case QDOUBLE
+				default: {break;}
+				}//switch
+				return 0;
 				}//case
 			case AlgOpNode::eq:
 				{
-				break;
+				fprintf(stderr, "[QE] = operation\n");
+				QueryResult *lResult, *rResult;
+				if ((errcode = executeQuery (((AlgOpNode *) tree)->getLArg(), &lResult)) != 0)
+					{
+					return errcode;
+					}
+				if ((errcode = executeQuery (((AlgOpNode *) tree)->getRArg(), &rResult)) != 0)
+					{
+					return errcode;
+					}
+				fprintf(stderr, "[QE] Results counted, counting =\n");
+				bool tmp_res_bool = lResult->equal(rResult);
+				*result = new QueryBoolResult(tmp_res_bool);
+				return 0;
 				}//case
 			case AlgOpNode::neq:
 				{
-				break;
+				fprintf(stderr, "[QE] != operation\n");
+				QueryResult *lResult, *rResult;
+				if ((errcode = executeQuery (((AlgOpNode *) tree)->getLArg(), &lResult)) != 0)
+					{
+					return errcode;
+					}
+				if ((errcode = executeQuery (((AlgOpNode *) tree)->getRArg(), &rResult)) != 0)
+					{
+					return errcode;
+					}
+				fprintf(stderr, "[QE] Results counted, counting !=\n");
+				bool tmp_res_bool = lResult->not_equal(rResult);
+				*result = new QueryBoolResult(tmp_res_bool);
+				return 0;
 				}//case
 			case AlgOpNode::gt:
 				{
-				break;
+				fprintf(stderr, "[QE] > operation\n");
+				QueryResult *lResult, *rResult;
+				if ((errcode = executeQuery (((AlgOpNode *) tree)->getLArg(), &lResult)) != 0)
+					{
+					return errcode;
+					}
+				if ((errcode = executeQuery (((AlgOpNode *) tree)->getRArg(), &rResult)) != 0)
+					{
+					return errcode;
+					}
+				fprintf(stderr, "[QE] Results counted, counting >\n");
+				bool tmp_res_bool = lResult->greater_than(rResult);
+				*result = new QueryBoolResult(tmp_res_bool);
+				return 0;
 				}//case
 			case AlgOpNode::lt:
 				{
-				break;
+				fprintf(stderr, "[QE] < operation\n");
+				QueryResult *lResult, *rResult;
+				if ((errcode = executeQuery (((AlgOpNode *) tree)->getLArg(), &lResult)) != 0)
+					{
+					return errcode;
+					}
+				if ((errcode = executeQuery (((AlgOpNode *) tree)->getRArg(), &rResult)) != 0)
+					{
+					return errcode;
+					}
+				fprintf(stderr, "[QE] Results counted, counting <\n");
+				bool tmp_res_bool = lResult->less_than(rResult);
+				*result = new QueryBoolResult(tmp_res_bool);
+				return 0;
 				}//case
 			case AlgOpNode::ge:
 				{
-				break;
+				fprintf(stderr, "[QE] >= operation\n");
+				QueryResult *lResult, *rResult;
+				if ((errcode = executeQuery (((AlgOpNode *) tree)->getLArg(), &lResult)) != 0)
+					{
+					return errcode;
+					}
+				if ((errcode = executeQuery (((AlgOpNode *) tree)->getRArg(), &rResult)) != 0)
+					{
+					return errcode;
+					}
+				fprintf(stderr, "[QE] Results counted, counting >=\n");
+				bool tmp_res_bool = lResult->greater_eq(rResult);
+				*result = new QueryBoolResult(tmp_res_bool);
+				return 0;
 				}//case
 			case AlgOpNode::le:
 				{
-				break;
+				fprintf(stderr, "[QE] >= operation\n");
+				QueryResult *lResult, *rResult;
+				if ((errcode = executeQuery (((AlgOpNode *) tree)->getLArg(), &lResult)) != 0)
+					{
+					return errcode;
+					}
+				if ((errcode = executeQuery (((AlgOpNode *) tree)->getRArg(), &rResult)) != 0)
+					{
+					return errcode;
+					}
+				fprintf(stderr, "[QE] Results counted, counting >=\n");
+				bool tmp_res_bool = lResult->less_eq(rResult);
+				*result = new QueryBoolResult(tmp_res_bool);
 				}//case
 			case AlgOpNode::boolAnd:
 				{
@@ -324,12 +658,10 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					return errcode;
 					}
 				fprintf(stderr, "[QE] Results counted, counting AND\n");
-				*result = ((QueryBoolResult *) lResult)->bool_and(rResult);
-				if ((*result)->type() == QueryResult::QNOTHING)
-				{
-					// ec << 
-					return -1;
-				}
+				if ((errcode = ((QueryBoolResult *) lResult)->bool_and(rResult, (*result))) != 0)
+					{
+					return errcode;
+					}
 				return 0;
 				}//case AND
 			case AlgOpNode::boolOr:
@@ -345,12 +677,10 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					return errcode;
 					}
 				fprintf(stderr, "[QE] Results counted, counting OR\n");
-				*result = ((QueryBoolResult *) lResult)->bool_or(rResult);
-				if ((*result)->type() == QueryResult::QNOTHING)
-				{
-					// ec << 
-					return -1;
-				}
+				if ((errcode = ((QueryBoolResult *) lResult)->bool_or(rResult, (*result))) != 0)
+					{
+					return errcode;
+					}
 				return 0;
 				}//case OR
 			default: {break;} // Reszta jeszcze nie zaimplementowane

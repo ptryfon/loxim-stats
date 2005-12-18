@@ -193,109 +193,134 @@ void QueryReferenceResult::setValue(LogicalID* v)	{ value = v; }
 //algebraic operations plus, minus, times, divide_by, and, or.
 
 //function plus()
-QueryResult* QueryIntResult::plus(QueryResult *r){ 
+int QueryIntResult::plus(QueryResult *r, QueryResult *&res){ 
 	if (r->type() != QueryResult::QINT ) {
-		return new QueryNothingResult(); 
+		res = new QueryNothingResult();
+		return -1; 
 	}
 	int tmp_value = value + ((QueryIntResult*) r)->getValue();
-	return new QueryIntResult(tmp_value); 
+	res = new QueryIntResult(tmp_value);
+	return 0; 
 }
 
-QueryResult* QueryDoubleResult::plus(QueryResult *r){
+int QueryDoubleResult::plus(QueryResult *r, QueryResult *&res){
 	if (r->type() != QueryResult::QDOUBLE ) {
-		return new QueryNothingResult(); 
+		res = new QueryNothingResult();
+		return -1; 
 	}
 	double tmp_value = value + ((QueryDoubleResult*) r)->getValue(); 
-	return new QueryDoubleResult(tmp_value); 
+	res = new QueryDoubleResult(tmp_value);
+	return 0; 
 }
 
 //function minus()
-QueryResult* QueryIntResult::minus(QueryResult *r){
+int QueryIntResult::minus(QueryResult *r, QueryResult *&res){
 	if (r->type() != QueryResult::QINT ) {
-		return new QueryNothingResult(); 
+		res = new QueryNothingResult();
+		return -1; 
 	} 
 	int tmp_value = value - ((QueryIntResult*) r)->getValue();
-	return new QueryIntResult(tmp_value); 
+	res = new QueryIntResult(tmp_value);
+	return 0; 
 }
 
-QueryResult* QueryDoubleResult::minus(QueryResult *r){ 
+int QueryDoubleResult::minus(QueryResult *r, QueryResult *&res){ 
 	if (r->type() != QueryResult::QDOUBLE ) {
-		return new QueryNothingResult(); 
+		res = new QueryNothingResult();
+		return -1; 
 	}
 	double tmp_value = value - ((QueryDoubleResult*) r)->getValue();
-	return new QueryDoubleResult(tmp_value);
+	res = new QueryDoubleResult(tmp_value);
+	return 0;
 }
 
-QueryResult* QueryIntResult::minus(){ 
+int QueryIntResult::minus(QueryResult *&res){ 
 	bool tmp_value = - value;
-	return new QueryIntResult(tmp_value); 
+	res = new QueryIntResult(tmp_value);
+	return 0; 
 }
 
-QueryResult* QueryDoubleResult::minus(){ 
+int QueryDoubleResult::minus(QueryResult *&res){ 
 	bool tmp_value = - value;
-	return new QueryDoubleResult(tmp_value); 
+	res = new QueryDoubleResult(tmp_value);
+	return 0; 
 }
 
 //function times()
-QueryResult* QueryIntResult::times(QueryResult *r){ 
+int QueryIntResult::times(QueryResult *r, QueryResult *&res){ 
 	if (r->type() != QueryResult::QINT ) {
-		return new QueryNothingResult(); 
+		res = new QueryNothingResult();
+		return -1; 
 	}
 	int tmp_value = value * ((QueryIntResult*) r)->getValue();
-	return new QueryIntResult(tmp_value); 
+	res = new QueryIntResult(tmp_value);
+	return 0; 
 }
 
-QueryResult* QueryDoubleResult::times(QueryResult *r){ 
+int QueryDoubleResult::times(QueryResult *r, QueryResult *&res){ 
 	if (r->type() != QueryResult::QDOUBLE ) {
-		return new QueryNothingResult(); 
+		res = new QueryNothingResult();
+		return -1; 
 	}
 	double tmp_value = value * ((QueryDoubleResult*) r)->getValue();
-	return new QueryDoubleResult(tmp_value);
+	res = new QueryDoubleResult(tmp_value);
+	return 0;
 }
 
 //function divide_by()
-QueryResult* QueryIntResult::divide_by(QueryResult *r){
+int QueryIntResult::divide_by(QueryResult *r, QueryResult *&res){
 	if (r->type() != QueryResult::QINT ) {
-		return new QueryNothingResult(); 
+		res = new QueryNothingResult();
+		return -1; 
 	}
 	if (((QueryIntResult*) r)->getValue() == 0) {
-		return new QueryNothingResult(); 
+		res = new QueryNothingResult();
+		return -2;  //devide by 0 error 
 	}
 	int tmp_value = value / ((QueryIntResult*) r)->getValue();
-	return new QueryIntResult(tmp_value); 
+	res = new QueryIntResult(tmp_value);
+	return 0; 
 }
 
-QueryResult* QueryDoubleResult::divide_by(QueryResult *r){ 
+int QueryDoubleResult::divide_by(QueryResult *r, QueryResult *&res){ 
 	if (r->type() != QueryResult::QDOUBLE ) {
-		return new QueryNothingResult(); 
+		res = new QueryNothingResult();
+		return -1; 
 	}
 	if (((QueryDoubleResult*) r)->getValue() == 0) {
-		return new QueryNothingResult(); 
+		res = new QueryNothingResult();
+		return -2; //devide by 0 error 
 	}
 	double tmp_value = value / ((QueryIntResult*) r)->getValue();
-	return new QueryDoubleResult(tmp_value);
+	res = new QueryDoubleResult(tmp_value);
+	return 0;
 }
 
 // boolean functions
-QueryResult* QueryBoolResult::bool_and(QueryResult *r){ 
+int QueryBoolResult::bool_and(QueryResult *r, QueryResult *&res){ 
 	if (r->type() != QueryResult::QBOOL ) {
-		return new QueryNothingResult(); 
+		res = new QueryNothingResult();
+		return -1; 
 	}
 	bool tmp_value = value && ((QueryBoolResult*) r)->getValue();
-	return new QueryBoolResult(tmp_value); 
+	res = new QueryBoolResult(tmp_value);
+	return 0; 
 }
 
-QueryResult* QueryBoolResult::bool_or(QueryResult *r){ 
+int QueryBoolResult::bool_or(QueryResult *r, QueryResult *&res){ 
 	if (r->type() != QueryResult::QBOOL ) {
-		return new QueryNothingResult(); 
+		res = new QueryNothingResult();
+		return -1; 
 	}
 	bool tmp_value = value || ((QueryBoolResult*) r)->getValue();
-	return new QueryBoolResult(tmp_value); 
+	res = new QueryBoolResult(tmp_value);
+	return 0; 
 }
 
-QueryResult* QueryBoolResult::bool_not(){ 
+int QueryBoolResult::bool_not(QueryResult *&res){ 
 	bool tmp_value = not value;
-	return new QueryBoolResult(tmp_value); 
+	res = new QueryBoolResult(tmp_value);
+	return 0; 
 }
 
 // functions equal, not_equal etc.
