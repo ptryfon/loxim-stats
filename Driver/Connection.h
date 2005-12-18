@@ -29,6 +29,7 @@ private:
 	int sock;
 	char* bufferBegin;
 	char* bufferEnd;
+	auto_ptr<Result> resultPtr;
 	
 	unsigned long getULong(unsigned long &val);
 	int stringCopy(char* &newBuffer);

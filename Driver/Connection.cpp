@@ -5,6 +5,7 @@
 #include <netinet/in.h> 
 #include <netdb.h> 
 #include <string.h>
+#include <memory.h>
 
 #include "../TCPProto/Tcp.h"
 #include "Connection.h"
@@ -56,10 +57,12 @@ unsigned long Connection::getULong(unsigned long &val) {
 
 Result* Connection::grabElements(ResultCollection* col) {
 			
+			if (resultPtr.get() == NULL) resultPtr.reset(col); //if == NULL it's the root of the whole result, otherwise don't change the root
+			
 			unsigned long number;
 			getULong(number);
 //			col->setSize(getULong(number)); //by reference 			
-			for (int i = 1; i <= number; i++) {
+			for (unsigned long i = 1; i <= number; i++) {
 					//TODO w razie bledu zniszczyc
 				col->add(deserialize());
 			}
@@ -135,10 +138,11 @@ Result* Connection::deserialize() {
 			return new ResultDouble(db);
 		
 		case Result::BINDER:
-	/*		cout << "<Connection::deserialize> tworze obiekt BINDER\n";
-			getULong(number);
-			return new ResultBinder(number, deserialize());
-		*/
+			cout << "<Connection::deserialize> tworze obiekt BINDER\n";
+			stringCopy(id); // by reference
+			//TODO stringi robic jako new i puszczac jako referencja - wtedy trzeba miec pewnosc ze jak konstruktor sie posypie to zostana usuniete
+			return new ResultBinder(string(id), deserialize());
+		
 		default:
 			df = *(bufferBegin-1);
 			cout << "<Connection::deserialize> obiekt nieznany, nr: " << (int) df << endl;
@@ -153,7 +157,6 @@ Result* Connection::execute(char* query) throw (ConnectionException) {
       error = bufferSend(query, strlen(query)+1, sock);
       if (0 != error) {
       	throw ConnectionException("sending error");
-    //  	return new ResultError("sending error");
       }
     //  cout << "<Connection::execute> wysylanie zakonczone" << endl;
       char* ptr = NULL;
@@ -174,7 +177,9 @@ Result* Connection::execute(char* query) throw (ConnectionException) {
       bufferEnd = ptr+ile;
       
       Result* rs = deserialize();
+      resultPtr.release(); // the result has been built, don't destroy it
       free(ptr); //free buffer created by bufferReceive()
+
       
       cout << "<Connection::execute> obiekt Result stworzony -> procedura zakonczona sukcesem" << endl;
       return rs;
