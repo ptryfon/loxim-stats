@@ -1,9 +1,6 @@
-#include <stdio.h>
-#include "Lock.h"
-#include <iomanip>
-#include <algorithm>
 
-using namespace Errors;
+#include "Lock.h"
+
 namespace LockMgr
 {
 
@@ -53,15 +50,14 @@ namespace LockMgr
 		err = ErrorConsole();
 		transaction_locks = new TransactionIdMap;
 		map_of_locks      = new DBPhysicalIdMap; 
-		current_sem_key	  = 2064;
-		SEMKEY = 2002;
-		if ((mutex = create_sem(SEMKEY)) < 0)
-		    err << "LockManager: Cannot create sem\n" ;
-		V(mutex);
+		single_lock_id	  = 0;
+		mutex = new Mutex();
+		mutex->init();
     }
 
     LockManager::~LockManager()
     {
+		delete mutex;
 		for (TransactionIdMap::iterator iter = transaction_locks->begin();
 	    	iter != transaction_locks->end(); iter++ )
 	
@@ -71,38 +67,35 @@ namespace LockMgr
     int LockManager::lock(LogicalID* lid, TransactionID* tid, AccessMode mode)
     {  
 		int errorNumber = 0;
-		P(mutex);
+		mutex->down();
 	    	DBPhysicalID* phid = (DBPhysicalID*) lid->getPhysicalID();
 	    	DBPhysicalIdMap::iterator pos = map_of_locks->find(*phid);
 	    
 	    	if (pos == map_of_locks->end())
 	    	{
-				/* creating new single lock */
-				SingleLock* lock = new SingleLock(tid, mode, current_sem_key);
-				/* values: 
-				 *  current_sem	   : used for mutual exclusion    
-				 * 	current_sem+1  : used for semaphore for reading
-		 		 * 	current_sem+2  : used for semaphore for writing
-		 	 	 */
-				current_sem_key += 8;
-				(*map_of_locks)[*phid] = lock;	
-				(*transaction_locks)[*tid] = new SingleLockSet;
-				((*transaction_locks)[*tid])->insert(*lock);
-				V(mutex);	
+			/* creating new single lock */
+			SingleLock* lock = new SingleLock(tid, mode, new RWSemaphore(), single_lock_id);
+
+			single_lock_id++;
+			(*map_of_locks)[*phid] = lock;	
+			(*transaction_locks)[*tid] = new SingleLockSet;
+			((*transaction_locks)[*tid])->insert(*lock);
+			mutex->up();	
 	    	}
 	    	else
 	    	{
-				/* modifying existing single lock for this PhysicalID */
-				V(mutex);
-				SingleLock* lock = pos->second;
-				errorNumber = lock->wait_for_lock(tid, mode);
-		    }
+			/* modifying existing single lock for this PhysicalID */
+			mutex->up();
+			SingleLock* lock = pos->second;
+			errorNumber = lock->wait_for_lock(tid, mode);
+		}
 		    
 		return errorNumber;
     }
+
     int LockManager::unlockAll(TransactionID* transaction_id)
     {
-		P(mutex);
+		mutex->down();
 		TransactionIdMap::iterator pos = transaction_locks->find(*transaction_id);
 		if (pos != transaction_locks->end())
 		{
@@ -116,7 +109,7 @@ namespace LockMgr
 		    }
 		}	
 	
-		V(mutex);
+		mutex->up();
 		return 0;
     }
     
@@ -127,118 +120,66 @@ namespace LockMgr
 
 
 /*_____SingleLock___________________________________________________*/    
-    SingleLock::SingleLock(TransactionID* tid, AccessMode mode, int current_sem)
+
+    SingleLock::SingleLock(TransactionID* tid, AccessMode mode, Semaphore *_sem, int _id)
     {
-  		count_wait_writers = 0;
-    	count_wait_readers = 0;
-		inside = 1;
-		
-		this->current_mode = mode;
-		mutex        = create_sem(current_sem);
-		wait_readers = create_sem(current_sem+1);
-		wait_writers = create_sem(current_sem+2);
-		str_mutex    = create_sem(current_sem+3); /* structure current mutex - reguire seperate sem */
-		V(mutex);
-		V(str_mutex);
-		
-		/* set of transactions that locked an object */
-		current = new TransactionIdSet;
-		current->insert(*tid);
+	inside 	= 1;	
+	id 	= _id;
+	sem 	= _sem;	
+
+	this->current_mode = mode;
+	
+	if (mode == Read ) sem->lock_read();
+	if (mode == Write) sem->lock_write();
+
+	/* set of transactions that locked an object */
+	current = new TransactionIdSet;
+	current->insert(*tid);
+
+	mutex = new Mutex();
+	mutex->init();
     }
-	SingleLock::~SingleLock()
+
+    SingleLock::~SingleLock()
     {
-		release_sem(mutex);
-		release_sem(wait_readers);
-		release_sem(wait_writers);		
+	delete current;
     }
+
     int SingleLock::wait_for_lock(TransactionID * tid, AccessMode mode)
     {
-    	P(mutex);
-    		/*
-    		 * 	Algorithm : Readers and Writers
-    		 *  wpuszamy czytelnikow dopoki nie czeka pisarz, przychodzi pisarz - czeka az wyjda
-    		 *  czytelnicy, wychodzi pisarz - wpuszczamy wszystkich czytelnikow
-    		 */ 
-    		if (this->current_mode == mode && mode == Read && !is_writer_waiting())
-    		{
-    			current->insert(*tid);   
-    			inside++; 			
-    			V(mutex);
-    		}
-    		else
-    		{
-    			if (mode == Read)  
-    			{ 
-    				count_wait_readers++; 
-    				V(mutex);
-    				P(wait_readers); 
-    			} 
-    			else /* mode == Write */
-    			{
-    				count_wait_writers++; 
-    				V(mutex);
-    				P(wait_writers); 
-    			}
-    			P(str_mutex);
-    				current->insert(*tid);  
-    				inside++;  				
-    			V(str_mutex);
-    		}    	
-		return 0;
-    }
-	int SingleLock::unlock(TransactionID* tid)
-	{
-		int delete_lock = 0;  /* if true - object SingleLock will be destroyed afterwards */
-		P(mutex);
-			/*
-			 *	algorithm: Readers and Writers 
-			 */
-			 inside--;
-			 current->erase(*tid);
-			 if (this->current_mode == Write) /* wychodzi pisarz */
-			 {
-			 	if (is_reader_waiting())	  /* wpuszczam wszystkich czytelnikow */
-			 	{			 		
-			 		for(int i=0; i<count_wait_readers; i++)
-			 			V(wait_readers);	
-			 		count_wait_readers = 0;
-			 		current_mode = Read;
-			 	}
-			 	else if (is_writer_waiting())
-			 	{
-			 		V(wait_writers);
-			 		count_wait_writers--;
-			 	}
-			 	else
-			 		delete_lock = 1;
-			 }
-			 else	/* wychodzi czytelnik */
-			 {
-			 	if (!inside) /* no other reader locks an object */
-			 	{
-			 		if (is_writer_waiting())
-			 		{
-			 			V(wait_writers);
-				 		count_wait_writers--;
-			 		}
-			 		else
-			 			delete_lock = 1;			 		
-			 	}
-			 }
-		V(mutex);
-		return delete_lock;
-	}
+	if (mode == Read) 
+		sem->lock_read();
+	else 
+		sem->lock_write();
+
+	mutex->down();
+		
+		current->insert(*tid);
+		inside++;
+
+	mutex->up();
 	
-    int SingleLock::is_reader_waiting()
-    {
-		return count_wait_readers > 0;
+   	return 0;
     }
-    int SingleLock::is_writer_waiting()
+
+    int SingleLock::unlock(TransactionID* tid)
     {
-		return count_wait_writers > 0;
-    }    
+	int delete_lock = 0;  /* if true - object SingleLock will be destroyed afterwards */
+	
+	mutex->down();
+
+		inside--;
+		current->erase(*tid);
+		
+	mutex->up();
+
+	sem->unlock();
+
+	return delete_lock;
+    }
+    
     int SingleLock::getId() const
     {
-    	return mutex;
+    	return id;
     }
 }
