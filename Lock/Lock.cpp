@@ -4,39 +4,6 @@
 namespace LockMgr
 {
 
-    /* returns true if db1 > db2  */
-   bool DBPhysicalIDCmp::operator() (const DBPhysicalID& db1, const DBPhysicalID& db2) const 
-   {
-		unsigned short f1, f2, p1, p2, o1, o2;
-		f1 = db1.getFile();
-		f2 = db2.getFile();
-	    
-		if (f1 != f2) return f1<f2;
-		    
-		p1 = db1.getPage();
-		p2 = db2.getPage();
-		    
-		if (p1 != p2) return p1<p2;
-	    
-		o1 = db1.getOffset();
-		o2 = db2.getOffset();
-	    
-		return o1<o2;	
-   }
-
-    /* returns true if tid1 > tid2 */
-   bool TransactionIDCmp::operator() (const TransactionID& tid1, const TransactionID& tid2) const 
-   {
-		return ( tid1.getId() > tid2.getId());
-   }
-   
-   /* returns true if sl_1 > sl_2 */
-   bool SingleLockCmp::operator() (const SingleLock& sl_1, const SingleLock& sl_2) const 
-   {
-		return ( sl_1.getId() > sl_2.getId() );
-   }
-
-
 /*_____LockManager___________________________________________________*/
 
 
@@ -119,67 +86,5 @@ namespace LockMgr
     }
 
 
-/*_____SingleLock___________________________________________________*/    
 
-    SingleLock::SingleLock(TransactionID* tid, AccessMode mode, Semaphore *_sem, int _id)
-    {
-	inside 	= 1;	
-	id 	= _id;
-	sem 	= _sem;	
-
-	this->current_mode = mode;
-	
-	if (mode == Read ) sem->lock_read();
-	if (mode == Write) sem->lock_write();
-
-	/* set of transactions that locked an object */
-	current = new TransactionIdSet;
-	current->insert(*tid);
-
-	mutex = new Mutex();
-	mutex->init();
-    }
-
-    SingleLock::~SingleLock()
-    {
-	delete current;
-    }
-
-    int SingleLock::wait_for_lock(TransactionID * tid, AccessMode mode)
-    {
-	if (mode == Read) 
-		sem->lock_read();
-	else 
-		sem->lock_write();
-
-	mutex->down();
-		
-		current->insert(*tid);
-		inside++;
-
-	mutex->up();
-	
-   	return 0;
-    }
-
-    int SingleLock::unlock(TransactionID* tid)
-    {
-	int delete_lock = 0;  /* if true - object SingleLock will be destroyed afterwards */
-	
-	mutex->down();
-
-		inside--;
-		current->erase(*tid);
-		
-	mutex->up();
-
-	sem->unlock();
-
-	return delete_lock;
-    }
-    
-    int SingleLock::getId() const
-    {
-    	return id;
-    }
 }

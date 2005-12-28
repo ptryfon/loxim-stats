@@ -1,11 +1,14 @@
 include ../make.defs
 
-SOURCES	=	Lock.cpp
+SOURCES	=	Lock.cpp \
+		SingleLock.cpp \
+		Comparator.cpp
 
-HEADERS	=	Lock.h
+HEADERS	=	Lock.h \
+		SingleLock.h \
+		Comparator.h
 
 STATIC_LIB =	Lock.a
-PROGRAM	=	
 
 OBJECTS	=	$(SOURCES:.cpp=.o)
 DEPFILES =	$(OBJECTS:.o=.d)
