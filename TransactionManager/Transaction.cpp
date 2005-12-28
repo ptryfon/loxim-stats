@@ -1,18 +1,5 @@
-#include <stdio.h>
-#include <sys/types.h>
-#include <sys/ipc.h>
-#include <sys/sem.h>
-#include <vector>
 
 #include "Transaction.h"
-#include "Semlib.h"
-#include "../Errors/ErrorConsole.h"
-#include "../Lock/Lock.h"
-
-
-using namespace LockMgr;
-using namespace Logs;
-using namespace Errors;
 
 namespace TManager
 {
@@ -20,7 +7,7 @@ namespace TManager
 /*______TransactionID________________________________________*/
 	TransactionID::TransactionID(int id)
 	{
-	    this->id = id;
+		this->id = id;
 	};
 	int TransactionID::getId() const { return id; };
 
@@ -30,13 +17,14 @@ namespace TManager
 	}
 	
 /*______Transaction_________________________________________*/
-	Transaction::Transaction(TransactionID* tid)
+	Transaction::Transaction(TransactionID* tid, Semaphore* _sem)
 	{
 		err = ErrorConsole(); 
-	    err << "Transaction started, id: \n";	
-	    this->tid = tid;
-	    tm = TransactionManager::getHandle();
-	    lm = LockManager::getHandle();	    	    
+		err << "Transaction started, id: \n";	
+		sem = _sem;
+		this->tid = tid;
+		tm = TransactionManager::getHandle();
+		lm = LockManager::getHandle();	    	    
 	};
 	
 	Transaction::~Transaction()
@@ -48,139 +36,173 @@ namespace TManager
 
 	int Transaction::init(StoreManager *stmg, LogManager *lgmg)
 	{
-	    unsigned id;
-	    sm = stmg;
-	    logm = lgmg;
-	    /* message to Logs */
-	    return logm->beginTransaction(tid, id);
+		unsigned id;
+		sm = stmg;
+		logm = lgmg;
+		
+		/* message to Logs */
+	    	return logm->beginTransaction(tid, id);
 	}
 				
 	int Transaction::getObjectPointer(LogicalID* lid, AccessMode mode, ObjectPointer* &p)
 	{
-	    int errorNumber;
+		int errorNumber;
 	
-	    err << "Transaction: getObjectPointer\n";
-	    errorNumber = lm->lock(lid, tid, mode);
-	    if (errorNumber == 0)
-    		errorNumber = sm->getObject( tid, lid, mode, p);
+		err << "Transaction: getObjectPointer\n";
+		errorNumber = lm->lock(lid, tid, mode);
 
-	    return errorNumber; 
+		sem->lock_read();
+
+			if (errorNumber == 0)
+    				errorNumber = sm->getObject( tid, lid, mode, p);
+		sem->unlock();
+
+		return errorNumber; 
 	};
 
 	int Transaction::createObject(string name, DataValue* value, ObjectPointer* &p)
 	{
-	    int errorNumber;
+		int errorNumber;
 	    
-	    err << "Transaction: createObject\n";
-	    errorNumber = sm->createObject( tid, name, value, p);
-	    
-	    return errorNumber;
+		err << "Transaction: createObject\n";
+
+		sem->lock_write();
+			errorNumber = sm->createObject( tid, name, value, p);	    
+		sem->unlock();
+
+		return errorNumber;
 	}
 
 	int Transaction::deleteObject(ObjectPointer* object)
 	{
-	    int errorNumber;
+		int errorNumber;
 
-	    err << "Transaction: deleteObject\n";
-	    /* exclusive lock for this object */
-	    errorNumber = lm->lock(object->getLogicalID(), tid, Write);
-	    if (errorNumber == 0)
-		errorNumber = sm->deleteObject(tid, object);
+		err << "Transaction: deleteObject\n";
+		/* exclusive lock for this object */
+		errorNumber = lm->lock(object->getLogicalID(), tid, Write);
+		
+		sem->lock_write();
+			if (errorNumber == 0)
+				errorNumber = sm->deleteObject(tid, object);
+		sem->unlock();
 
-	    return errorNumber;
+		return errorNumber;
 	}
 
 
-    int Transaction::getRoots(vector<ObjectPointer*>* &p)
+    	int Transaction::getRoots(vector<ObjectPointer*>* &p)
 	{
-	    int errorNumber;
-	    //lock?
-	    errorNumber = sm->getRoots(tid, p);
-	    return errorNumber;
+		int errorNumber;
+		//lock?
+
+		sem->lock_read();
+			errorNumber = sm->getRoots(tid, p);
+		sem->unlock();
+	
+		return errorNumber;
 	}
 
 	int Transaction::getRoots(string name, vector<ObjectPointer*>* &p)
 	{
-	    int errorNumber;
+		int errorNumber;
+		// lock ?
 
-	    errorNumber = sm->getRoots(tid, name, p);
-	    //lock?
-	    return errorNumber;
+		sem->lock_read();
+			errorNumber = sm->getRoots(tid, name, p);
+		sem->unlock();
+	    
+		return errorNumber;
 	}
 
 	int Transaction::addRoot(ObjectPointer* &p)
 	{
-	    int errorNumber;
+		int errorNumber;
+		// lock ?
 
-	     errorNumber = sm->addRoot(tid, p);
-	    //lock?
-	    return errorNumber;
+		sem->lock_write();
+			errorNumber = sm->addRoot(tid, p);
+		sem->unlock();
+	    
+		return errorNumber;
 	}
 
 	int Transaction::removeRoot(ObjectPointer* &p)
 	{
-	    int errorNumber;
+		int errorNumber;
+		// lock ?	
 
-	    errorNumber = sm->addRoot(tid, p);
-	    //lock?
-	    return errorNumber;
+		sem->lock_write();
+			errorNumber = sm->addRoot(tid, p);
+		sem->unlock();
+	   
+		return errorNumber;
 	}
 
 
-	// Data creation
+	/* Data creation */
 	int Transaction::createIntValue(int value, DataValue* &dataVal)
 	{
-	    /* temporary interface, error number returnig should be here */
-	    dataVal = sm->createIntValue(value);
-	    return 0;
+		/* temporary interface, error number returnig should be here */
+		sem->lock_write();
+			dataVal = sm->createIntValue(value);
+		sem->unlock();
+		return 0;
 	}
 
 	int Transaction::createDoubleValue(double value, DataValue* &dataVal)
 	{
-	    /* temporary interface, error number returnig should be here */
-	    dataVal = sm->createDoubleValue(value);
-	    return 0;
+		/* temporary interface, error number returnig should be here */
+		sem->lock_write();
+			dataVal = sm->createDoubleValue(value);
+		sem->unlock();
+		return 0;
 	}
 	int Transaction::createStringValue(string value, DataValue* &dataVal)
 	{
-	    /* temporary interface, error number returnig should be here */
-	    dataVal = sm->createStringValue(value);
-	    return 0;
+		/* temporary interface, error number returnig should be here */
+		sem->lock_write();
+			dataVal = sm->createStringValue(value);
+		sem->unlock();
+		return 0;
 	}
 
 	int Transaction::createVectorValue(vector<ObjectPointer*>* value, DataValue* &dataVal)
 	{
-	    /* temporary interface, error number returnig should be here */
-	    dataVal = sm->createVectorValue(value);
-	    return 0;
+		/* temporary interface, error number returnig should be here */
+		sem->lock_write();
+			dataVal = sm->createVectorValue(value);
+		sem->unlock();
+		return 0;
 	}
 
 	int Transaction::createPointerValue(ObjectPointer* value, DataValue* &dataVal)
 	{
-	    /* temporary interface, error number returnig should be here */
-	    dataVal = sm->createPointerValue(value);
-	    return 0;
+		/* temporary interface, error number returnig should be here */
+		sem->lock_write();
+			dataVal = sm->createPointerValue(value);
+		sem->unlock();
+		return 0;
 	}
 
 
 	int Transaction::commit()
 	{
-	    int errorNumber;
-	    unsigned id;
+		int errorNumber;
+		unsigned id;
 	    
-	    err << "Transaction: commit\n";
-	    errorNumber = logm->commitTransaction(tid, id);  //need to process error
-	    return tm->commit(this);
+		err << "Transaction: commit\n";
+		errorNumber = logm->commitTransaction(tid, id);  //need to process error
+		return tm->commit(this);
 	}
 
 	int Transaction::abort()
 	{
-	    int errorNumber;
-	    unsigned id;
+		int errorNumber;
+		unsigned id;
 	    
-	    err << "Transaction: abort\n";
-	    errorNumber = logm->rollbackTransaction(tid, id);  //need to process error
-	    return tm->abort(this);
+		err << "Transaction: abort\n";
+		errorNumber = logm->rollbackTransaction(tid, id);  //need to process error
+		return tm->abort(this);
 	}
 
 	    
@@ -188,12 +210,12 @@ namespace TManager
 
 	TransactionManager::TransactionManager() 
 	{
-	    err = ErrorConsole();
-	    if ( (mutex = create_sem(SEMKEY1)) < 0 )
-		 	err << "TManager: cannot create sem\n";
-
-	     V(mutex);	     
-	     transactions = new list<TransactionID*>;
+		err = ErrorConsole();
+		sem = new RWSemaphore();
+		sem->init();
+		mutex = new Mutex();
+		mutex->init();
+		transactions = new list<TransactionID*>;
 	};
 	
 	TransactionManager* TransactionManager::tranMgr = new TransactionManager();
@@ -202,18 +224,21 @@ namespace TManager
 	
 	TransactionManager::~TransactionManager()
 	{
-	    release_sem(mutex);
+		delete sem;
+		delete mutex;
+		delete transactions;
 	}
+
 	int TransactionManager::createTransaction(Transaction* &tr)
 	{
-	    P(mutex);
+	    mutex->down();
 			int currentId = transactionId;
 			transactionId++;
 			TransactionID* tid = new TransactionID(currentId);	    	
 			addTransaction(tid);
-	    V(mutex);
+	    mutex->up();
 	    	    
-	    tr = new Transaction(tid);	
+	    tr = new Transaction(tid, sem);	
 	    return tr->init(tranMgr->storeMgr, tranMgr->logMgr);
 	}              
 
@@ -231,32 +256,34 @@ namespace TManager
 	list<TransactionID*>* TransactionManager::getTransactions()
 	{
 	    /* block creating new transactions */
-	    P(mutex);
+	    mutex->down();
 			list<TransactionID*>* copy_of_transactions = new list<TransactionID*>;
 			for (list<TransactionID*>::iterator i = transactions->begin();	i != transactions->end(); i++)
 				copy_of_transactions->push_back((*i)->clone());
-	    V(mutex);
+	    mutex->up();
 	    return copy_of_transactions;  
 	}	
 	int TransactionManager::commit(Transaction* tr)
 	{
 		int errorNumber;
 		errorNumber = LockManager::getHandle()->unlockAll(tr->getId());
-	    remove_from_list(tr->getId());
-	    delete tr;
-	    return errorNumber;
+	    	remove_from_list(tr->getId());
+	    	delete tr;
+	    	return errorNumber;
 	}	
 	int TransactionManager::abort(Transaction* tr)
 	{
-	    remove_from_list(tr->getId());	
-	    delete tr;
-	    return 0;
+	    	remove_from_list(tr->getId());	
+		int errorNumber;
+		// handle rollback operation in colaboration with LogManager
+	    	delete tr;
+	    	return errorNumber;
 	}
 	int TransactionManager::remove_from_list(TransactionID* tid)
 	{
-	    P(mutex);
+	    	mutex->down();
 			transactions->remove(tid);
-	    V(mutex);
-	    return 0;
+	    	mutex->up();
+	    	return 0;
 	}
 }

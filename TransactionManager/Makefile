@@ -1,21 +1,26 @@
 include ../make.defs
 
 SOURCES	=	Transaction.cpp \
-		Semlib.cpp
+		Semaphore.cpp \
+		RWSemaphore.cpp \
+		Mutex.cpp \
+		Main.cpp
 
 HEADERS	=	Transaction.h \
-		Semlib.h
+		Semaphore.h \
+		RWSemaphore.h \
+		Mutex.h
 		
 STATIC_LIB =	TransactionManager.a
-PROGRAM	=	
+PROGRAM	= 	Main	
 
 OBJECTS	=	$(SOURCES:.cpp=.o)
 DEPFILES =	$(OBJECTS:.o=.d)
 
-all: $(STATIC_LIB)
+all: $(STATIC_LIB) $(PROGRAM)
 
-#$(PROGRAM): $(STATIC_LIB)
-#	$(CXX) $(CXXFLAGS) $(LDFLAGS) $@.cpp $< -o $@
+$(PROGRAM): $(STATIC_LIB)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $@.cpp $< -o $@
 
 clean:
 	rm -f $(OBJECTS) $(DEPFILES) $(STATIC_LIB) $(PROGRAM)
