@@ -45,9 +45,9 @@ class SingleLock
 	    	int inside;
 	    	
 		/* 
-	     	 * current lock mode for object: Read | Write 
+	     	 * Transaction id that created this single lock object 
 	     	 */
-	    	AccessMode current_mode;
+	    	TransactionID *tid;
 	    
 		/*
 		 * returns id - to compare SingleLocks

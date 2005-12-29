@@ -6,16 +6,15 @@ namespace LockMgr
 
 /*_____SingleLock___________________________________________________*/    
 
-    SingleLock::SingleLock(TransactionID* tid, AccessMode mode, Semaphore *_sem, int _id)
+    SingleLock::SingleLock(TransactionID* _tid, AccessMode _mode, Semaphore *_sem, int _id)
     {
 	inside 	= 1;	
 	id 	= _id;
 	sem 	= _sem;	
-
-	this->current_mode = mode;
+	tid	= _tid;
 	
-	if (mode == Read ) sem->lock_read();
-	if (mode == Write) sem->lock_write();
+	if ( _mode == Read ) sem->lock_read();
+	if ( _mode == Write) sem->lock_write();
 
 	/* set of transactions that locked an object */
 	current = new TransactionIdSet;
@@ -30,16 +29,27 @@ namespace LockMgr
 	delete current;
     }
 
-    int SingleLock::wait_for_lock(TransactionID * tid, AccessMode mode)
+    int SingleLock::wait_for_lock(TransactionID *_tid, AccessMode _mode)
     {
-	if (mode == Read) 
+	/* prevention against deadlocks: strategy wait - die */
+	mutex->down();		
+		if ( tid->getId() < _tid->getId() ) 
+		/* younger dies ( younger = higher id ) */
+		{
+			mutex->up();
+			return -1; // error abort (rollback) transction
+		}
+	mutex->up();
+	
+	if (_mode == Read) 
 		sem->lock_read();
 	else 
 		sem->lock_write();
 
 	mutex->down();
 		
-		current->insert(*tid);
+		current->insert(*_tid);
+		tid = _tid;
 		inside++;
 
 	mutex->up();
