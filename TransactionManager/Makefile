@@ -20,7 +20,11 @@ DEPFILES =	$(OBJECTS:.o=.d)
 all: $(STATIC_LIB) $(PROGRAM)
 
 $(PROGRAM): $(STATIC_LIB)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $@.cpp $< -o $@
+	make -C ../Errors
+	make -C ../Lock
+	make -C ../Store	
+	make -C ../Log
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $@.cpp $< ../Log/Logs.a ../Lock/Lock.a ../Errors/Errors.a ../Store/Store.a -o $@
 
 clean:
 	rm -f $(OBJECTS) $(DEPFILES) $(STATIC_LIB) $(PROGRAM)
