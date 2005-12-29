@@ -23,7 +23,6 @@ $(PROGRAM): $(STATIC_LIB)
 	make -C ../Errors
 	make -C ../Lock
 	make -C ../Store
-	make -C ../TransactionManager
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $@.cpp $< ../TransactionManager/TransactionManager.a ../Lock/Lock.a ../Errors/Errors.a ../Store/Store.a -o $@
 
 clean:
