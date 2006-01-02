@@ -249,6 +249,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					{
 					return errcode;
 					}
+				fprintf(stderr, "[QE] Done!\n");
 				return 0;
 				}//case
 			case UnOpNode::boolNot:
@@ -264,6 +265,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					{
 					return errcode;
 					}
+				fprintf(stderr, "[QE] Done!\n");
 				return 0;
 				}//case NOT
 			default: {break;} // Reszta jeszcze nie zaimplementowane
@@ -310,6 +312,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 							{
 							return errcode;
 							}
+						fprintf(stderr, "[QE] Done!\n");
 						return 0;
 						}
 					case QueryResult::QDOUBLE: //Right argument is a double
@@ -332,6 +335,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 							{
 							return errcode;
 							}
+						fprintf(stderr, "[QE] Done!\n");							
 						return 0;
 						}
 					case QueryResult::QINT: //Right argument is an int
@@ -376,6 +380,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 							{
 							return errcode;
 							}
+						fprintf(stderr, "[QE] Done!\n");
 						return 0;
 						}
 					case QueryResult::QDOUBLE: //Right argument is a double
@@ -398,6 +403,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 							{
 							return errcode;
 							}
+						fprintf(stderr, "[QE] Done!\n");
 						return 0;
 						}
 					case QueryResult::QINT: //Right argument is an int
@@ -442,6 +448,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 							{
 							return errcode;
 							}
+						fprintf(stderr, "[QE] Done!\n");
 						return 0;
 						}
 					case QueryResult::QDOUBLE: //Right argument is a double
@@ -464,6 +471,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 							{
 							return errcode;
 							}
+						fprintf(stderr, "[QE] Done!\n");
 						return 0;
 						}
 					case QueryResult::QINT: //Right argument is an int
@@ -508,6 +516,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 							{
 							return errcode;
 							}
+						fprintf(stderr, "[QE] Done!\n");
 						return 0;
 						}
 					case QueryResult::QDOUBLE: //Right argument is a double
@@ -530,6 +539,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 							{
 							return errcode;
 							}
+						fprintf(stderr, "[QE] Done!\n");
 						return 0;
 						}
 					case QueryResult::QINT: //Right argument is an int
@@ -559,6 +569,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 				fprintf(stderr, "[QE] Results counted, counting =\n");
 				bool tmp_res_bool = lResult->equal(rResult);
 				*result = new QueryBoolResult(tmp_res_bool);
+				fprintf(stderr, "[QE] Done!\n");
 				return 0;
 				}//case
 			case AlgOpNode::neq:
@@ -576,6 +587,8 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 				fprintf(stderr, "[QE] Results counted, counting !=\n");
 				bool tmp_res_bool = lResult->not_equal(rResult);
 				*result = new QueryBoolResult(tmp_res_bool);
+				fprintf(stderr, "[QE] Done!\n");
+				fprintf(stderr, "[QE] Done!\n");
 				return 0;
 				}//case
 			case AlgOpNode::gt:
@@ -593,6 +606,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 				fprintf(stderr, "[QE] Results counted, counting >\n");
 				bool tmp_res_bool = lResult->greater_than(rResult);
 				*result = new QueryBoolResult(tmp_res_bool);
+				fprintf(stderr, "[QE] Done!\n");
 				return 0;
 				}//case
 			case AlgOpNode::lt:
@@ -610,6 +624,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 				fprintf(stderr, "[QE] Results counted, counting <\n");
 				bool tmp_res_bool = lResult->less_than(rResult);
 				*result = new QueryBoolResult(tmp_res_bool);
+				fprintf(stderr, "[QE] Done!\n");
 				return 0;
 				}//case
 			case AlgOpNode::ge:
@@ -627,6 +642,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 				fprintf(stderr, "[QE] Results counted, counting >=\n");
 				bool tmp_res_bool = lResult->greater_eq(rResult);
 				*result = new QueryBoolResult(tmp_res_bool);
+				fprintf(stderr, "[QE] Done!\n");
 				return 0;
 				}//case
 			case AlgOpNode::le:
@@ -644,6 +660,8 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 				fprintf(stderr, "[QE] Results counted, counting >=\n");
 				bool tmp_res_bool = lResult->less_eq(rResult);
 				*result = new QueryBoolResult(tmp_res_bool);
+				fprintf(stderr, "[QE] Done!\n");
+				return 0;
 				}//case
 			case AlgOpNode::boolAnd:
 				{
@@ -662,6 +680,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					{
 					return errcode;
 					}
+				fprintf(stderr, "[QE] Done!\n");					
 				return 0;
 				}//case AND
 			case AlgOpNode::boolOr:
@@ -681,12 +700,14 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					{
 					return errcode;
 					}
+				fprintf(stderr, "[QE] Done!\n");
 				return 0;
 				}//case OR
 			default: {break;} // Reszta jeszcze nie zaimplementowane
 			}//switch
 			*result = new QueryNothingResult;
 			fprintf(stderr, "[QE] QueryNothingResult created\n");
+			fprintf(stderr, "[QE] Done!\n");
 			return 0;
 			}//case
 	
