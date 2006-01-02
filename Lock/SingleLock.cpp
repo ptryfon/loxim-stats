@@ -39,12 +39,18 @@ namespace LockMgr
 			mutex->up();
 			return -1; // error abort (rollback) transction
 		}
+		
+	int isCurrent = current->find(*_tid) != current->end();
 	mutex->up();
 	
-	if (_mode == Read) 
+	if (_mode == Read && !isCurrent) 
+	{		
 		sem->lock_read();
-	else 
+	}
+	else if (_mode == Write && !isCurrent)
+	{
 		sem->lock_write();
+	}
 
 	mutex->down();
 		

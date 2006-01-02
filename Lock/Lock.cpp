@@ -40,6 +40,7 @@ namespace LockMgr
 	    
 	    	if (pos == map_of_locks->end())
 	    	{
+			printf("TID new lock: %d\n", tid->getId() );fflush(stdout);
 			/* creating new single lock */
 			SingleLock* lock = new SingleLock(tid, mode, new RWSemaphore(), single_lock_id);
 
@@ -51,6 +52,7 @@ namespace LockMgr
 	    	}
 	    	else
 	    	{
+			printf("TID wait lock: %d\n", tid->getId() );fflush(stdout);			
 			/* modifying existing single lock for this PhysicalID */
 			mutex->up();
 			SingleLock* lock = pos->second;
@@ -84,7 +86,4 @@ namespace LockMgr
     {
 		return lock.unlock(tid);
     }
-
-
-
 }
