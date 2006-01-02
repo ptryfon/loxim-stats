@@ -77,15 +77,18 @@ namespace TManager
 	{
 		int errorNumber;
 
-		err << "Transaction: deleteObject\n";
+		err << "Transaction: deleteObject\n";		
 		/* exclusive lock for this object */
 		errorNumber = lm->lock(object->getLogicalID(), tid, Write);
 		
-		sem->lock_write();
+		sem->lock_write();		
+		
+		printf("Before store delete\n");fflush(stdout);
 			if (errorNumber == 0)
-				errorNumber = sm->deleteObject(tid, object);
+				errorNumber = sm->deleteObject(tid, object);		
+		printf("After store delete\n");fflush(stdout);
 		sem->unlock();
-
+		
 		return errorNumber;
 	}
 
@@ -130,11 +133,11 @@ namespace TManager
 	{
 		int errorNumber;
 		// lock ?	
-
-		sem->lock_write();
-			errorNumber = sm->addRoot(tid, p);
+		
+		sem->lock_write();		
+			errorNumber = sm->removeRoot(tid, p);		
 		sem->unlock();
-	   
+			   
 		return errorNumber;
 	}
 
