@@ -57,6 +57,9 @@ int  Server::Serialize(QueryResult *qr, char **buffer, char **bufStart)
 	QueryStringResult *stringRes;
 	QueryBagResult *bagRes;
 	QueryReferenceResult *refRes;
+	QueryIntResult *intRes;
+	QueryBoolResult *boolRes;
+	QueryDoubleResult *doubleRes;
 	
 	Result::ResultType resType;
 
@@ -65,6 +68,7 @@ int  Server::Serialize(QueryResult *qr, char **buffer, char **bufStart)
 	unsigned long bufBagLen;
 
 	unsigned int intVal;
+	double doubleVal;
 	string strVal;
 
 	char bufferP[MAX_MESSG];
@@ -166,8 +170,8 @@ int  Server::Serialize(QueryResult *qr, char **buffer, char **bufStart)
 			bufPointer=bufPointer+sizeof(intVal);
 			break;	
 		case Result::STRING:
-			printf("[Server.Serialize]--> Getting string \n");
-			/*stringRes=(QueryStringResult *)collItem->clone();
+			printf("[Server.Serialize]--> Getting STRING \n");
+			stringRes=(QueryStringResult *)qr;
 			strVal=stringRes->getValue();
 			valSize=stringRes->size();
 			printf("[Server.Serialize]--> Adding string header \n");
@@ -175,19 +179,10 @@ int  Server::Serialize(QueryResult *qr, char **buffer, char **bufStart)
 			bufPointer++;
 			printf("[Server.Serialize]--> String header complete \n");
 			strVal.copy(bufferP, valSize);
-			bufPointer=bufPointer + valSize;
-			*/
+			bufPointer=bufPointer+valSize;
 			break;
 		case Result::RESULT:
-		//	printf("\n[Server.Serialize]--> BAD TYPE RECEIVED FROM EXECUTOR -- RESULT \n \n");
 		    printf("[Server.Serialize]--> Getting RESULT (Getting WHAT?) \n");
-		//    printf("[Server.Serialize]--> Sending sth for testing instead.. \n");
-		    //printf("[Server.Serialize]--> Adding some header \n");
-		   // memcpy(buffer, (char *)resType, 4);
-		   // printf("[Server.Serialize]--> in progress.. \n");
-		   // printf("[Server.Serialize]--> Some header added \n"); 
-		//    memcpy(bufPointer, dupaTest, strlen(dupaTest));
-		   // memcpy(&buffer, '\0', 1);
 		    break;    
 		 case Result::VOID:
 			printf("[Server.Serialize]--> VOID type, sending type indicator and C(orrect) (what should I?)\n");
@@ -196,6 +191,41 @@ int  Server::Serialize(QueryResult *qr, char **buffer, char **bufStart)
 			printf("%d\n", (int)bufPointer[0]);
 			printf("[Server.Serialize]--> VOID type written \n");
 			printf("%d\n", (int)bufferP[0]);
+			break;
+		case Result::INT:
+			printf("[Server.Serialize]--> INT type, sending type indicator.. \n");
+		    bufPointer[0]=(char)resType;
+		    bufPointer++;
+		    intRes = (QueryIntResult *)qr;
+		    intVal = intRes->getValue();
+		    printf("[Server.Serialize]--> .. followed by int value (%d) \n", intVal);
+			intVal=htonl(intVal);
+		    memcpy((void *)bufPointer, (const void *)&intVal, sizeof(intVal));
+		    printf("[Server.Serialize]--> buffer written \n");
+		    break; 
+		case Result::DOUBLE:
+			printf("[Server.Serialize]--> DOUBLE type, NOT IMLEMENTEND YET!!! \n");
+		    /*bufPointer[0]=(char)resType;
+		    bufPointer++;
+		    doubleRes = (QueryDoubleResult *)qr;
+		    doubleVal = doubleRes->getValue();
+		    doubleVal=htonl(doubleVal);
+		    memcpy((void *)bufPointer, (const void *)&doubleVal, sizeof(doubleVal));
+		    */
+		    break; 
+		case Result::BOOLTRUE:
+			printf("[Server.Serialize]--> BOOLTRUE type, sending type indicator only\n");
+			bufPointer[0]=(char)resType;
+			break;
+		case Result::BOOLFALSE:
+			printf("[Server.Serialize]--> BOOLFALSE type, sending type indicator only\n");
+			bufPointer[0]=(char)resType;
+			break;
+		case Result::BOOL:
+			printf("[Server.Serialize]--> BOOL type, sending type indicator and value\n");
+			bufPointer[0]=(char)resType;
+			boolRes = (QueryBoolResult *)qr;
+			bufPointer[1]=(char)(boolRes->getValue());
 			break;
 		default:
 			printf("[Server.Serialize]--> object type not handled yet(!) \n");
@@ -216,15 +246,11 @@ int  Server::Serialize(QueryResult *qr, char **buffer, char **bufStart)
 int Server::Run()
 {
 	int size=MAX_MESSG;
-	//TODO - headers
-	//TREE_NODE_TYPE type;
-	//type=1;
-	
 	
 	printf("[Server.Run]--> Starts \n");
 
-	ErrorConsole con;// Czarek
-	con.init(1);     // Czarek
+	ErrorConsole con;
+	con.init(1);
 
 	SBQLConfig* config = new SBQLConfig("Server");
 	config->init();
