@@ -268,6 +268,93 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 				fprintf(stderr, "[QE] Done!\n");
 				return 0;
 				}//case NOT
+				
+			case UnOpNode::distinct:
+				{
+				fprintf(stderr, "[QE] DISTINCT operation\n");
+				QueryResult *nextResult;
+				if ((errcode = executeQuery (tree->getArg(), &nextResult)) != 0)
+					{
+					return errcode;
+					}
+				fprintf(stderr, "[QE] Result evaluated, computing distinct\n");
+				int argType = nextResult->type();
+				fprintf(stderr, "[QE] argument's type taken\n");
+				switch (argType)
+				{
+				case QueryResult::QSEQUENCE: //The argument is a QuerySequenceResult
+					{
+					*result = new QuerySequenceResult;
+					QueryResult *r1, *r2;
+					for (unsigned int i=0; i<(((QuerySequenceResult *) nextResult)->size());i++)
+						{
+						if ((errcode = ((QuerySequenceResult *) nextResult)->getResult(*&r1)) != 0)
+							{
+							return errcode;
+							}
+						bool already_exists = false;
+						for (unsigned int j=0; j<((*result)->size());i++) //checking if r1 is already present in result
+							{
+							if ((errcode = ((QuerySequenceResult *) nextResult)->getResult(*&r2)) != 0)
+								{
+								return errcode;
+								}
+							already_exists = (r1->equal(r2));
+							};
+						if (!already_exists) (*result)->addResult(r1);
+						};
+					}//case QSEQUENCE
+				case QueryResult::QBAG: //The argument is a QueryBagResult
+					{
+					*result = new QueryBagResult;
+					QueryResult *r1, *r2;
+					for (unsigned int i=0; i<(((QueryBagResult *) nextResult)->size());i++)
+						{
+						if ((errcode = ((QueryBagResult *) nextResult)->getResult(*&r1)) != 0)
+							{
+							return errcode;
+							}
+						bool already_exists = false;
+						for (unsigned int j=0; j<((*result)->size());i++) //checking if r1 is already present in result
+							{
+							if ((errcode = ((QueryBagResult *) nextResult)->getResult(*&r2)) != 0)
+								{
+								return errcode;
+								}
+							already_exists = (r1->equal(r2));
+							};
+						if (!already_exists) (*result)->addResult(r1);
+						};
+					}//case QBAG
+				case QueryResult::QSTRUCT: //The argument is a QueryStructResult
+					{
+					*result = new QueryStructResult;
+					QueryResult *r1, *r2;
+					for (unsigned int i=0; i<(((QueryStructResult *) nextResult)->size());i++)
+						{
+						if ((errcode = ((QueryStructResult *) nextResult)->getResult(*&r1)) != 0)
+							{
+							return errcode;
+							}
+						bool already_exists = false;
+						for (unsigned int j=0; j<((*result)->size());i++) //checking if r1 is already present in result
+							{
+							if ((errcode = ((QueryStructResult *) nextResult)->getResult(*&r2)) != 0)
+								{
+								return errcode;
+								}
+							already_exists = (r1->equal(r2));
+							};
+						if (!already_exists) (*result)->addResult(r1);
+						};
+					}//case QSTRUCT
+				default: //the argument is a single value
+					{
+					*result = (nextResult->clone());
+					}
+				}//switch
+				}//case DISTINCT
+				
 			default: {break;} // Reszta jeszcze nie zaimplementowane
 			}//switch
 			*result = new QueryNothingResult;
