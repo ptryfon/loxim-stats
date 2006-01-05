@@ -269,6 +269,12 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 				return 0;
 				}//case NOT
 				
+			case UnOpNode::deref:
+				{
+				fprintf(stderr, "[QE] DEREF operation\n");
+				QueryResult *nextResult;
+				}
+				
 			case UnOpNode::distinct:
 				{
 				fprintf(stderr, "[QE] DISTINCT operation\n");
