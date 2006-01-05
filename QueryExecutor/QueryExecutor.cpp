@@ -234,7 +234,10 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 						}
 					fprintf(stderr, "[QE] Object deleted\n");
 					} //for
+				*result = new QueryNothingResult;
+				fprintf(stderr, "[QE] QueryNothingResult created\n");
 				fprintf(stderr, "[QE] Done!\n");
+				return 0;
 				} //case DELETE
 			case UnOpNode::unMinus:
 				{
@@ -251,7 +254,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					}
 				fprintf(stderr, "[QE] Done!\n");
 				return 0;
-				}//case
+				}//case unMinus
 			case UnOpNode::boolNot:
 				{
 				fprintf(stderr, "[QE] NOT operation\n");
@@ -292,14 +295,14 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					{
 					*result = new QuerySequenceResult;
 					QueryResult *r1, *r2;
-					for (unsigned int i=0; i<(((QuerySequenceResult *) nextResult)->size());i++)
+					for (unsigned int i = 0; i < (((QuerySequenceResult *) nextResult)->size()); i++)
 						{
 						if ((errcode = ((QuerySequenceResult *) nextResult)->getResult(*&r1)) != 0)
 							{
 							return errcode;
 							}
 						bool already_exists = false;
-						for (unsigned int j=0; j<((*result)->size());i++) //checking if r1 is already present in result
+						for (unsigned int j = 0; j < ((*result)->size()); j++) //checking if r1 is already present in result
 							{
 							if ((errcode = ((QuerySequenceResult *) nextResult)->getResult(*&r2)) != 0)
 								{
@@ -314,14 +317,14 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					{
 					*result = new QueryBagResult;
 					QueryResult *r1, *r2;
-					for (unsigned int i=0; i<(((QueryBagResult *) nextResult)->size());i++)
+					for (unsigned int i = 0; i < (((QueryBagResult *) nextResult)->size()); i++)
 						{
 						if ((errcode = ((QueryBagResult *) nextResult)->getResult(*&r1)) != 0)
 							{
 							return errcode;
 							}
 						bool already_exists = false;
-						for (unsigned int j=0; j<((*result)->size());i++) //checking if r1 is already present in result
+						for (unsigned int j = 0; j < ((*result)->size()); j++) //checking if r1 is already present in result
 							{
 							if ((errcode = ((QueryBagResult *) nextResult)->getResult(*&r2)) != 0)
 								{
@@ -336,14 +339,14 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					{
 					*result = new QueryStructResult;
 					QueryResult *r1, *r2;
-					for (unsigned int i=0; i<(((QueryStructResult *) nextResult)->size());i++)
+					for (unsigned int i = 0; i < (((QueryStructResult *) nextResult)->size()); i++)
 						{
 						if ((errcode = ((QueryStructResult *) nextResult)->getResult(*&r1)) != 0)
 							{
 							return errcode;
 							}
 						bool already_exists = false;
-						for (unsigned int j=0; j<((*result)->size());i++) //checking if r1 is already present in result
+						for (unsigned int j = 0; j < ((*result)->size()); j++) //checking if r1 is already present in result
 							{
 							if ((errcode = ((QueryStructResult *) nextResult)->getResult(*&r2)) != 0)
 								{
@@ -363,9 +366,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 				
 			default: {break;} // Reszta jeszcze nie zaimplementowane
 			}//switch
-			*result = new QueryNothingResult;
-			fprintf(stderr, "[QE] QueryNothingResult created\n");
-			return 0;
+			return -1; //Do ustalenia - nieokreslony blad (niezaimplementowana obsluga tego typu unOpa)
 			}//case
 	
 	
