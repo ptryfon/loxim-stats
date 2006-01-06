@@ -22,6 +22,7 @@ subdirs:
 	done
 
 clean:
+	@find -name "*.d" | xargs rm -f
 	@for i in $(SUBDIRS); do \
 		make -C $$i clean || exit 1; \
 	done
