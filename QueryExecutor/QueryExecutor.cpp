@@ -212,7 +212,8 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					}
 
 				QueryResult* toDelete;  //single object to be deleted
-				for (unsigned int i = 0; i < (nextResult->size()); i++ ) // Deleting objects
+				unsigned int counter = nextResult->size();
+				for (unsigned int i = 0; i < counter; i++ ) // Deleting objects
 					{
    					nextResult->getResult(toDelete);  //bledy??
 					lid = ((QueryReferenceResult *) toDelete)->getValue();
@@ -297,21 +298,26 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					QueryResult *r1, *r2;
 					for (unsigned int i = 0; i < (((QuerySequenceResult *) nextResult)->size()); i++)
 						{
-						if ((errcode = ((QuerySequenceResult *) nextResult)->getResult(*&r1)) != 0)
+						fprintf(stderr, "[QE] Checking element no. %d\n", i);
+						if ((errcode = ((QuerySequenceResult *) nextResult)->at(i, r1)) != 0)
 							{
 							return errcode;
 							}
 						bool already_exists = false;
-						for (unsigned int j = 0; j < ((*result)->size()); j++) //checking if r1 is already present in result
+						for (unsigned int j = 0; (j < ((*result)->size())) && (!already_exists); j++) //checking if r1 is already present in result
 							{
-							if ((errcode = ((QuerySequenceResult *) nextResult)->getResult(*&r2)) != 0)
+							if ((errcode = ((QuerySequenceResult *) nextResult)->at(j, r2)) != 0)
 								{
 								return errcode;
 								}
-							already_exists = (r1->equal(r2));
+							already_exists = ((r1->equal(r2)) && (i != j));
 							};
-						if (!already_exists) (*result)->addResult(r1);
-						};
+						if (!already_exists) 
+							{
+							(*result)->addResult(r1);
+							fprintf(stderr, "[QE] Adding element %d to result as unique\n", i);
+							}
+						}
 					}//case QSEQUENCE
 				case QueryResult::QBAG: //The argument is a QueryBagResult
 					{
@@ -319,21 +325,26 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					QueryResult *r1, *r2;
 					for (unsigned int i = 0; i < (((QueryBagResult *) nextResult)->size()); i++)
 						{
-						if ((errcode = ((QueryBagResult *) nextResult)->getResult(*&r1)) != 0)
+						fprintf(stderr, "[QE] Checking element no. %d\n", i);
+						if ((errcode = ((QueryBagResult *) nextResult)->at(i, r1)) != 0)
 							{
 							return errcode;
 							}
 						bool already_exists = false;
-						for (unsigned int j = 0; j < ((*result)->size()); j++) //checking if r1 is already present in result
+						for (unsigned int j = 0; (j < ((*result)->size())) && (!already_exists); j++) //checking if r1 is already present in result
 							{
-							if ((errcode = ((QueryBagResult *) nextResult)->getResult(*&r2)) != 0)
+							if ((errcode = ((QueryBagResult *) nextResult)->at(j, r2)) != 0)
 								{
 								return errcode;
 								}
-							already_exists = (r1->equal(r2));
+							already_exists = ((r1->equal(r2)) && (i != j));
 							};
-						if (!already_exists) (*result)->addResult(r1);
-						};
+						if (!already_exists)
+							{
+							(*result)->addResult(r1);
+							fprintf(stderr, "[QE] Adding element %d to result as unique\n", i);
+							}
+						}
 					}//case QBAG
 				case QueryResult::QSTRUCT: //The argument is a QueryStructResult
 					{
@@ -341,21 +352,26 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					QueryResult *r1, *r2;
 					for (unsigned int i = 0; i < (((QueryStructResult *) nextResult)->size()); i++)
 						{
-						if ((errcode = ((QueryStructResult *) nextResult)->getResult(*&r1)) != 0)
+						fprintf(stderr, "[QE] Checking element no. %d\n", i);
+						if ((errcode = ((QueryStructResult *) nextResult)->at(i, r1)) != 0)
 							{
 							return errcode;
 							}
 						bool already_exists = false;
-						for (unsigned int j = 0; j < ((*result)->size()); j++) //checking if r1 is already present in result
+						for (unsigned int j = 0; (j < ((*result)->size())) && (!already_exists); j++) //checking if r1 is already present in result
 							{
-							if ((errcode = ((QueryStructResult *) nextResult)->getResult(*&r2)) != 0)
+							if ((errcode = ((QueryStructResult *) nextResult)->at(j, r2)) != 0)
 								{
 								return errcode;
 								}
-							already_exists = (r1->equal(r2));
+							already_exists = ((r1->equal(r2)) && (i != j));
 							};
-						if (!already_exists) (*result)->addResult(r1);
-						};
+						if (!already_exists)
+							{
+							(*result)->addResult(r1);
+							fprintf(stderr, "[QE] Adding element %d to result as unique\n", i);
+							}
+						}
 					}//case QSTRUCT
 				default: //the argument is a single value
 					{
@@ -429,7 +445,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 							{
 							return errcode;
 							}
-						fprintf(stderr, "[QE] Done!\n");							
+						fprintf(stderr, "[QE] Done!\n");
 						return 0;
 						}
 					case QueryResult::QINT: //Right argument is an int
