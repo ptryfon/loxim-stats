@@ -178,7 +178,9 @@ int  Server::Serialize(QueryResult *qr, char **buffer, char **bufStart)
 			bufPointer[0]=(char)resType;
 			bufPointer++;
 			printf("[Server.Serialize]--> String header complete \n");
-			strVal.copy(bufferP, valSize);
+			strcpy(bufPointer, strVal.c_str());  //Czarek
+			//strVal.copy(bufPointer, valSize);  //Czarek
+			printf("[Server.Serialize]--> String serialized to: %s \n", bufPointer); //Czarek
 			bufPointer=bufPointer+valSize;
 			break;
 		case Result::RESULT:

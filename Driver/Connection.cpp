@@ -29,7 +29,7 @@ int Connection::stringCopy(char* &newBuffer) { // od bufferBegin
 		int len = strlen(bufferBegin)+1; //including NULL
 		
 		if (bufferBegin + len > bufferEnd) {
-			cout << "<Serialize::StringCopy> proba czytania poza buforem" << endl;
+			cerr << "<Serialize::StringCopy> proba czytania poza buforem" << endl;
 			throw ConnectionException("protocol corrupt");
 		}
 		
@@ -45,7 +45,7 @@ unsigned long Connection::getULong(unsigned long &val) {
 	char* tmpPtr = bufferBegin + sizeof(long);
 	
 	if (tmpPtr > bufferEnd) {
-		cout << "<Connetion::getULong> proba czytania poza odebranym buforem" << endl;
+		cerr << "<Connetion::getULong> proba czytania poza odebranym buforem" << endl;
 		throw ConnectionException("protocol corrupt");
 	}
 	
@@ -85,69 +85,69 @@ Result* Connection::deserialize() {
 		
 	switch (*(bufferBegin++)) {
 		case Result::BAG:
-			cout << "<Connection::deserialize> tworze obiekt BAG\n";
+			cerr << "<Connection::deserialize> tworze obiekt BAG\n";
 			return grabElements(new ResultBag());
 			
 		case Result::SEQUENCE:
-			cout << "<Connection::deserialize> tworze obiekt SEQUENCE\n";
+			cerr << "<Connection::deserialize> tworze obiekt SEQUENCE\n";
 			return grabElements(new ResultSequence());
 		
 		case Result::STRUCT:
-			cout << "<Connection::deserialize> tworze obiekt STRUCT\n";
+			cerr << "<Connection::deserialize> tworze obiekt STRUCT\n";
 			return grabElements(new ResultStruct());
 		
 		
 		case Result::REFERENCE:
-			cout << "<Connection::deserialize> tworze obiekt REFERENCE\n";
+			cerr << "<Connection::deserialize> tworze obiekt REFERENCE\n";
 	//		bufferBegin++;
 			stringCopy(id); //by reference
 			return (Result*) new ResultReference(string (id));
 			//TODO poprawic przesuniecie wskaznika
 		
 		case Result::VOID:
-		cout << "<Connection::deserialize> tworze obiekt VOID\n";
+		cerr << "<Connection::deserialize> tworze obiekt VOID\n";
 			return new ResultVoid(); 
 		
-		case Result::STRING:
-			cout << "<Connection::deserialize> tworze obiekt STRING\n";
+	        case Result::STRING:
+		  cerr << "<Connection::deserialize> tworze obiekt STRING\n " ;
 			stringCopy(id); // by reference
 			return (Result*) new ResultString(string (id));
 		
 		case Result::ERROR:
-			cout << "<Connection::deserialize> tworze obiekt ERROR\n";
+			cerr << "<Connection::deserialize> tworze obiekt ERROR\n";
 			getULong(number); //by reference 
 			return new ResultError(number);
 			
 		
 		case Result::INT:
-					cout << "<Connection::deserialize> tworze obiekt INT\n";
+					cerr << "<Connection::deserialize> tworze obiekt INT\n";
 			getULong(number); //by reference
 			return new ResultInt((int) number);
 		
 		case Result::BOOLTRUE:
-					cout << "<Connection::deserialize> tworze obiekt BOOL (true)\n";
+					cerr << "<Connection::deserialize> tworze obiekt BOOL (true)\n";
 			return new ResultBool(true);
 		
 		case Result::BOOLFALSE:
-					cout << "<Connection::deserialize> tworze obiekt BOOL (false)\n";
+					cerr << "<Connection::deserialize> tworze obiekt BOOL (false)\n";
 			return new ResultBool(false);
 		
 		case Result::DOUBLE:
-					cout << "<Connection::deserialize> tworze obiekt DOUBLE\n";
+					cerr << "<Connection::deserialize> tworze obiekt DOUBLE\n";
 			lptr = (unsigned long*) &db;
 			getULong(*lptr); //higher word
 			getULong(*(lptr+1)); //lower word
 			return new ResultDouble(db);
 		
 		case Result::BINDER:
-			cout << "<Connection::deserialize> tworze obiekt BINDER\n";
+			cerr << "<Connection::deserialize> tworze obiekt BINDER\n";
 			stringCopy(id); // by reference
 			//TODO stringi robic jako new i puszczac jako referencja - wtedy trzeba miec pewnosc ze jak konstruktor sie posypie to zostana usuniete
 			return new ResultBinder(string(id), deserialize());
 		
 		default:
 			df = *(bufferBegin-1);
-			cout << "<Connection::deserialize> obiekt nieznany, nr: " << (int) df << endl;
+			cerr << "<Connection::deserialize> obiekt nieznany, nr: " << (int) df << endl;
 			throw ConnectionException("protocol corrupt");
 	} // switch
 } // deserialize
@@ -168,13 +168,13 @@ Result* Connection::execute(char* query) throw (ConnectionException) {
       }
       //TODO czy char* mozna zrobic delete, czy to zadziala
       auto_ptr<char> bufferPtr(ptr); //needed only during deserializing (exception possible)
-      cout << "<Connection::execute> driver przyszlo bajtow: " << ile << endl;
+      cerr << "<Connection::execute> driver przyszlo bajtow: " << ile << endl;
       bufferBegin = ptr;
       bufferEnd = ptr+ile;
       
       Result* rs = deserialize();
 
-      cout << "<Connection::execute> obiekt Result stworzony -> procedura zakonczona sukcesem" << endl;
+      cerr << "<Connection::execute> obiekt Result stworzony -> procedura zakonczona sukcesem" << endl;
       return rs;
 }
 
