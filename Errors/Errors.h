@@ -45,6 +45,16 @@ namespace Errors {
 
 // Parser
 #define ENotParsed		    0xA
+
+// Executor
+// - unknown unOp node
+#define EUNodeUNOP		    0xB
+// - unknown algOp node
+#define EUNodeALGOP		    0xC
+// - wrong algOp (arithmetical) argument
+#define EBadALGOPArg		    0xD
+// - wrong deref argument
+#define EBadDerefArg		    0xE
 }
 
 #endif
