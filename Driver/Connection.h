@@ -24,7 +24,7 @@ public:
 	Connection(int socket);
 	int disconnect();
 	virtual ~Connection();
-	Result* execute(char* query) throw (ConnectionException);
+	Result* execute(const char* query) throw (ConnectionException);
 private:
 	int sock;
 	char* bufferBegin;
