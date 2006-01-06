@@ -126,7 +126,8 @@ public:
 	int    getType() 	     { return Result::REFERENCE; }
 	void   setValue(string val)  { value = val;     }
 	string getValue()	     { return value;    }
-	void   toStream(ostream& os) const {os << value;}		
+	void   toStream(ostream& os) const 
+	                { os << "ref(" << value << ")"; }		
 	virtual ~ResultReference()   { }
 };//class ResultReference
 
