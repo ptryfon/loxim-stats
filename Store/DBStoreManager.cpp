@@ -1,6 +1,7 @@
 #include <iostream>
 #include "DBStoreManager.h"
 #include "DBDataValue.h"
+#include <cstdlib>
 
 namespace Store
 {
@@ -99,6 +100,8 @@ namespace Store
 
 	int DBStoreManager::createObject(TransactionID* tid, string name, DataValue* value, ObjectPointer*& object)
 	{
+		cout << "Store::Manager::createObject start..\n";
+		
 		LogicalID* lid = new DBLogicalID(misc->lastlid++);
 		
 		object = new DBObjectPointer(name, value, lid);
@@ -108,6 +111,90 @@ namespace Store
 		cout << "Store::Manager::createObject done: " + object->toString() + "\n";
 		return 0;
 	};
+
+
+//	int DBStoreManager::createObjectEx(TransactionID* tid, string name, DataValue* value, ObjectPointer*& object)
+//	{
+//		cout << "Store::Manager::createObject start..\n";
+//		
+//		//mapa sie wywala
+//		LogicalID* lid = new DBLogicalID(/*map->createLogicalID()*/misc->lastlid++);
+//		
+//		int size = lid->binarySize() + (2*sizeof unsigned int)//random, namesize
+//			+ name.length() + sizeof DataType + value->fullBinarySize();
+//		
+//		rval = map->locateNewSpace(size);
+//		map->setPhisicalID(lid, rval);
+//		PagePointer pPtr = buffer->getpagePointer(rval);
+/*		
+		// BINARIZE OBJECT
+		
+		//pageOperator->binarize(..);
+		
+		unsigned char* binaryObject = new unsigned char[size];
+		int writePosition = 0;
+		int asize = 0;
+		unsigned char* adata = NULL;
+		unsigned int tmp = 0;
+		
+		//LogicalID
+		lid->toByteArray(&adata, &asize);
+		for(int i=0; i<asize; i++)
+			binaryObject[writePosition++] = adata[i];
+		if(adata) delete[] adata;
+		adata = NULL;
+		
+		//random
+		tmp = (rand()%0x100) << 24 + (rand()%0x100) << 16 +
+			(rand()%0x100) << 8 + (rand()%0x100);
+		adata = static_cast<unsigned char*>(&tmp);
+		for(int i=0; i<sizeof unsigned int; i++)
+			binaryObject[writePosition++] = adata[i];
+		adata = NULL;
+		
+		//namesize
+		tmp = static_cast<unsigned int>(name.length());
+		adata = static_cast<unsigned char*>(&tmp);
+		for(int i=0; i<sizeof unsigned int; i++)
+			binaryObject[writePosition++] = adata[i];
+		adata = NULL;
+
+		//name
+		asize = name.length();
+		for(int i=0; i<asize; i++)
+			binaryObject[writePosition++] =
+				reinterpret_cast<unsigned char>(name[i]);
+		
+		//value
+		value->toFullByteArray(&adata, &asize);
+		for(int i=0; i<asize; i++)
+			binaryObject[writePosition++] = adata[i];
+		if(adata) delete[] adata;
+		adata = NULL;
+				
+		// END BINARIZE
+
+		pPtr->acquire();
+
+		// BEGIN SETHEADERS
+		
+		//pageOperator->setHeaders(...);
+		
+		// END SETHEADERS
+
+		// COPY OBJECT to PAGE
+		copy(binaryObject onto pPtr->page);
+		
+		pPtr->release();
+		
+		object = new DBObjectPointer(name, value, lid);
+		
+		//misc->vect.push_back(object);
+		
+		cout << "Store::Manager::createObject done: " + object->toString() + "\n";
+		return 0;
+	};
+*/
 
 	int DBStoreManager::deleteObject(TransactionID* tid, ObjectPointer* object)
 	{
