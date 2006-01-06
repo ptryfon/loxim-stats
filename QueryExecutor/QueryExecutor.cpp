@@ -429,7 +429,11 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 						{
 						break;  // Trzeba jeszce dopisac
 						}
-					default: {break;}
+					default:
+						{
+						fprintf(stderr, "[QE] Error - wrong AlgOp argument\n");
+						return -1;
+						}
 					} //switch
 					return 0;
 					} //case QINT
@@ -452,11 +456,19 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 						{
 						break;  // Treba jeszce dopisac
 						}
-					default: {break;}
+					default:
+						{
+						fprintf(stderr, "[QE] Error - wrong AlgOp argument\n");
+						return -1;
+						}
 					} //switch
 					return 0;
 					}//case QDOUBLE
-				default: {break;}
+				default:
+					{
+					fprintf(stderr, "[QE] Error - wrong AlgOp argument\n");
+					return -1;
+					}
 				}//switch
 				return 0;
 				}//case
@@ -497,7 +509,11 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 						{
 						break;  // Trzeba jeszce dopisac
 						}
-					default: {break;}
+					default:
+						{
+						fprintf(stderr, "[QE] Error - wrong AlgOp argument\n");
+						return -1;
+						}
 					} //switch
 					return 0;
 					} //case QINT
@@ -520,11 +536,19 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 						{
 						break;  // Treba jeszce dopisac
 						}
-					default: {break;}
+					default:
+						{
+						fprintf(stderr, "[QE] Error - wrong AlgOp argument\n");
+						return -1;
+						}
 					} //switch
 					return 0;
 					}//case QDOUBLE
-				default: {break;}
+				default:
+					{
+					fprintf(stderr, "[QE] Error - wrong AlgOp argument\n");
+					return -1;
+					}
 				}//switch
 				return 0;
 				}//case
@@ -565,7 +589,11 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 						{
 						break;  // Trzeba jeszce dopisac
 						}
-					default: {break;}
+					default:
+						{
+						fprintf(stderr, "[QE] Error - wrong AlgOp argument\n");
+						return -1;
+						}
 					} //switch
 					return 0;
 					} //case QINT
@@ -586,13 +614,21 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 						}
 					case QueryResult::QINT: //Right argument is an int
 						{
-						break;  // Treba jeszce dopisac
+						break;  // Trzeba jeszcze dopisac
 						}
-					default: {break;}
+					default:
+						{
+						fprintf(stderr, "[QE] Error - wrong AlgOp argument\n");
+						return -1;
+						}
 					} //switch
 					return 0;
 					}//case QDOUBLE
-				default: {break;}
+				default:
+					{
+					fprintf(stderr, "[QE] Error - wrong AlgOp argument\n");
+					return -1;
+					}
 				}//switch
 				return 0;
 				}//case
@@ -633,7 +669,11 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 						{
 						break;  // Trzeba jeszce dopisac
 						}
-					default: {break;}
+					default:
+						{
+						fprintf(stderr, "[QE] Error - wrong AlgOp argument\n");
+						return -1;
+						}
 					} //switch
 					return 0;
 					} //case QINT
@@ -656,11 +696,19 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 						{
 						break;  // Treba jeszce dopisac
 						}
-					default: {break;}
+					default:
+						{
+						fprintf(stderr, "[QE] Error - wrong AlgOp argument\n");
+						return -1;
+						}
 					} //switch
 					return 0;
 					}//case QDOUBLE
-				default: {break;}
+				default:
+					{
+					fprintf(stderr, "[QE] Error - wrong AlgOp argument\n");
+					return -1;
+					}
 				}//switch
 				return 0;
 				}//case
@@ -813,7 +861,11 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 				fprintf(stderr, "[QE] Done!\n");
 				return 0;
 				}//case OR
-			default: {break;} // Reszta jeszcze nie zaimplementowane
+			default:
+				{
+				fprintf(stderr, "[QE] Unknown AlgOp type\n");
+				return -1;
+				} // Reszta jeszcze nie zaimplementowane
 			}//switch
 			*result = new QueryNothingResult;
 			fprintf(stderr, "[QE] QueryNothingResult created\n");
