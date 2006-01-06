@@ -13,7 +13,7 @@ SUBDIRS	=	Backup \
 		Log \
 		SBQLCli \
 		Server 		
-
+x
 all: subdirs
 
 subdirs:
