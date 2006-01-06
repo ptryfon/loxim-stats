@@ -20,8 +20,8 @@ int bufferSend(char* buf, int buf_size, int sock) {
 	ile = htonl(buf_size);
 	lengthBuf = (char*)(& ile);
 
-   	cout << "ile bajtow wysylam: " << buf_size << endl;
- //  	cout << "co wysylam: " << buf << endl;
+   	cerr << "ile bajtow wysylam: " << buf_size << endl;
+ //  	cerr << "co wysylam: " << buf << endl;
 	// lengthBuf = ...buf_size
 	while (lengthBufSize > 0) {
 		if (-1 ==  (ile = send(sock, lengthBuf, lengthBufSize, 0))) {
@@ -79,12 +79,12 @@ int bufferReceive (char** buffer, int* receiveDataSize, int sock) {
          
          if (rest != 0) {
          	//TODO wyrzucic to
-         	cout << "<Tcp::bufferReceive> to sie nie moze zdazyc!!!" << endl;
+         	cerr << "<Tcp::bufferReceive> to sie nie moze zdazyc!!!" << endl;
          	return 1;	
          } 
          		// mamy juz cala liczbe okreslajaca dlugosc
          	msgSize = ntohl(*((unsigned long int*) lengthBuffTable));
-         	cout << "ile bajtow dostane: " << msgSize << endl;	
+         	cerr << "ile bajtow dostane: " << msgSize << endl;	
          	
          
          messgBuffBeg = messgBuff = (char*) malloc(msgSize + 1); //+1 protection from reading outside the buffer
