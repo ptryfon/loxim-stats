@@ -43,9 +43,9 @@ namespace Store
 		froots = new fstream();
 		fdefault = new fstream();
 
-		fmap->open("sbmap", ios::in | ios::binary);
-		froots->open("sbroots", ios::in | ios::binary);
-		fdefault->open("sbdefault", ios::in | ios::binary);
+		fmap->open("/tmp/sbmap", ios::in | ios::binary);
+		froots->open("/tmp/sbroots", ios::in | ios::binary);
+		fdefault->open("/tmp/sbdefault", ios::in | ios::binary);
 
 		if (!fmap->is_open() || !froots->is_open() || !fdefault->is_open() || true)
 		{
@@ -53,9 +53,9 @@ namespace Store
 			if (froots->is_open()) froots->close();
 			if (fdefault->is_open()) fdefault->close();
 
-			fmap->open("sbmap", ios::out | ios::binary | ios::trunc);
-			froots->open("sbroots", ios::out | ios::binary | ios::trunc);
-			fdefault->open("sbdefault", ios::out | ios::binary | ios::trunc);
+			fmap->open("/tmp/sbmap", ios::out | ios::binary | ios::trunc);
+			froots->open("/tmp/sbroots", ios::out | ios::binary | ios::trunc);
+			fdefault->open("/tmp/sbdefault", ios::out | ios::binary | ios::trunc);
 
 			store->getMap()->initializeFile(this);
 			store->getRoots()->initializeFile(this);
@@ -65,9 +65,9 @@ namespace Store
 			if (fdefault->is_open()) fdefault->close();
 		}
 
-		fmap->open("sbmap", ios::in | ios::out | ios::binary);
-		froots->open("sbroots", ios::in | ios::out | ios::binary);
-		fdefault->open("sbdefault", ios::in | ios::out | ios::binary);
+		fmap->open("/tmp/sbmap", ios::in | ios::out | ios::binary);
+		froots->open("/tmp/sbroots", ios::in | ios::out | ios::binary);
+		fdefault->open("/tmp/sbdefault", ios::in | ios::out | ios::binary);
 
 		started = 1;
 		return 0;
