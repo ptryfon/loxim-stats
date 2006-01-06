@@ -57,15 +57,17 @@ unsigned long Connection::getULong(unsigned long &val) {
 
 Result* Connection::grabElements(ResultCollection* col) {
 			
-			if (resultPtr.get() == NULL) resultPtr.reset(col); //if == NULL it's the root of the whole result, otherwise don't change the root
+			auto_ptr<Result> resultPtr(col); //it's the root of the subtree
 			
 			unsigned long number;
 			getULong(number);
-//			col->setSize(getULong(number)); //by reference 			
+//			col->setSize(getULong(number)); //by reference
 			for (unsigned long i = 1; i <= number; i++) {
-					//TODO w razie bledu zniszczyc
 				col->add(deserialize());
 			}
+			
+			resultPtr.release(); // the subtree has been built, don't destroy it.
+			//if anything fails it will be destroyed by the parent
 			return col;	
 }
 
@@ -153,34 +155,25 @@ Result* Connection::deserialize() {
 Result* Connection::execute(char* query) throw (ConnectionException) {
 	
 	int error;
-
       error = bufferSend(query, strlen(query)+1, sock);
       if (0 != error) {
       	throw ConnectionException("sending error");
       }
-    //  cout << "<Connection::execute> wysylanie zakonczone" << endl;
       char* ptr = NULL;
       int ile;
       error = bufferReceive(&ptr, &ile, sock); //create buffer and set ptr to point at it
-    //  cout << "<Connection::execute> odbieranie zakonczone" << endl;
-      if (error != 0) {
-    //  	if (ptr != NULL) {
-    //  		cout << "<Connection::execute> zwalnianie wskaznika" << endl;
-      		free(ptr); // if ptr == NULL nothing happens
-     // 		cout << "<Connection::execute> wskaznik zwolniony" << endl;
-     // 	}
+      if (error != 0) { //the ptr was free
+      	free(ptr); // if ptr == NULL nothing happens
      	throw ConnectionException("receiving error");
-      //	return new ResultError("receiving error");
       }
+      //TODO czy char* mozna zrobic delete, czy to zadziala
+      auto_ptr<char> bufferPtr(ptr); //needed only during deserializing (exception possible)
       cout << "<Connection::execute> driver przyszlo bajtow: " << ile << endl;
       bufferBegin = ptr;
       bufferEnd = ptr+ile;
       
       Result* rs = deserialize();
-      resultPtr.release(); // the result has been built, don't destroy it
-      free(ptr); //free buffer created by bufferReceive()
 
-      
       cout << "<Connection::execute> obiekt Result stworzony -> procedura zakonczona sukcesem" << endl;
       return rs;
 }
