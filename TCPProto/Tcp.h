@@ -4,7 +4,7 @@
 namespace TCPProto {
 
 int bufferReceive(char** buffer, int* receiveDataSize, int Sock);
-int bufferSend(char* buf, int buf_size, int Sock);
+int bufferSend(const char* buf,  int buf_size, int Sock);
 
 } //namespace
 

@@ -11,7 +11,7 @@ namespace TCPProto {
 
 using namespace std;
 
-int bufferSend(char* buf, int buf_size, int sock) {
+int bufferSend(const char* buf, int buf_size, int sock) {
 	//printf("ServerTcp: sending data on socket %d \n", sock);
 	
 	char* lengthBuf;
@@ -20,7 +20,7 @@ int bufferSend(char* buf, int buf_size, int sock) {
 	ile = htonl(buf_size);
 	lengthBuf = (char*)(& ile);
 
-   	cerr << "ile bajtow wysylam: " << buf_size << endl;
+   	cerr << "<Tcp::bufferSend()> ile bajtow wysylam: " << buf_size << endl;
  //  	cerr << "co wysylam: " << buf << endl;
 	// lengthBuf = ...buf_size
 	while (lengthBufSize > 0) {
@@ -84,7 +84,7 @@ int bufferReceive (char** buffer, int* receiveDataSize, int sock) {
          } 
          		// mamy juz cala liczbe okreslajaca dlugosc
          	msgSize = ntohl(*((unsigned long int*) lengthBuffTable));
-         	cerr << "ile bajtow dostane: " << msgSize << endl;	
+         	cerr << "<Tcp::bufferSend()> ile bajtow dostane: " << msgSize << endl;	
          	
          
          messgBuffBeg = messgBuff = (char*) malloc(msgSize + 1); //+1 protection from reading outside the buffer

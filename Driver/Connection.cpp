@@ -152,7 +152,7 @@ Result* Connection::deserialize() {
 	} // switch
 } // deserialize
 
-Result* Connection::execute(char* query) throw (ConnectionException) {
+Result* Connection::execute(const char* query) throw (ConnectionException) {
 	
 	int error;
       error = bufferSend(query, strlen(query)+1, sock);
