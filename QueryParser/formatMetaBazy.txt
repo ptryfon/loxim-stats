@@ -1,0 +1,99 @@
+
+* Jak przechowywane sa metadane i jak z nich korzysta optymalizator?
+====================================================================
+
+* Metabaza, czyli schemat danych jest przechowywany w taki sam sposob jak 
+  wszystkie inne informacje w bazie danych. Tzn. jest zbiorem obiektow.
+  Metabaze wyroznia to, ze jej obiekty bazowe musza miec konkretna, ustalona
+  nazwe, ustalone podobiekty ustalonego typu, etc. - czyli format, opisany
+  nizej.
+
+* Optymalizator chcac korzystac z metabazy ma do dyspozycji odpowiednie
+  struktury w pamieci, ktore odzwierciedlaja te metabaze. Skad ma te
+  struktury? Serwer na poczatku, gdy sie uruchamia - wywoluje odpowiednia
+  metode optymalizatora (dajac mu dostep do skladu danych), ktora wyluskuje
+  z bazy schemat danych zwyklymi zapytaniami i wczytuje go do pamieci -
+  zapamietuje w odpowiednich strukturach i optymalizator podczas statycznej
+  kompilacji zapytania korzysta wlasnie z tych pomocniczych struktur.
+  
+  
+* Jak wygladaja obiekty metabazy (format).
+=================================
+
+* W samej bazie danych (do ktorej chcemy stworzyc metabaze) sa roznego rodzaju
+  obiekty.  obiekty atomowe, wskaznikowe, zlozone. (W przyszlosci rowniez
+  moga to byc: procedury, metody, klasy, perspektywy, ale tym sie na razie
+  nie zajmujemy) w zaleznosci od jaki rodzaj obiektu opisuje dana jednostka
+  metabazy, rozna bedzie jej budowa:
+  
+* Przyklady obiektow ze schematu danych, w zaleznosci od tego jaki byt opisuja:
+
+- opisujace obiekt atomowy.   (atomic)
+    
+    <id1, __MetaDataNode__ , 
+	{
+	<id2, name, "Location">    /* nazwa opisywanego obiektu */
+	<id3, kind, "atomic">      /* rodzaj obiektu - tu atomowy */
+	<id4, type, "string">      /* tu moze byc jeszcze "int" lub "double"  */
+	<id5, card, "1..1">	   /*  liczebnosc, patrz opis nizej */ 
+	<id6, owner, id18>	   /* ref. do nadobiektu, czyli do obiektu 
+				      zlozonego, dla ktorego ten jest
+                                      podobiektem. */
+	/* jesli dany obiekt jest bazowy, to tego podobiektu Owner w ogole
+	   nie ma. */
+	}
+    >
+
+- opisujace obiekt zlozony.  (complex)
+
+    <id1, __MetaDataNode__ , 
+	{
+	<id2, name, "Worker">	   /* nazwa opisywanego obiektu */
+	<id3, kind, "complex">     /* rodzaj obiektu - tu zlozony */
+	<id4, card, "0..*">     
+	<id6, owner, id18>	   /* ref. do nadobiektu, czyli do obiektu 
+				      zlozonego, dla ktorego ten jest 
+                                      podobiektem. */
+
+        <id6, subobject, id30>     /* obiekty wskaznikowe */
+        <id7, subobject, id36>     /* referencje do podobiektow */
+        <id8, subobject, id22>
+	    ...
+	}
+    >
+
+- opisujace obiekt wskaznikowe  (link)
+
+    <id1, __MetaDataNode__ , 
+	{
+	<id2, name, "WorksIn">	   /* nazwa opisywanego obiektu */
+	<id3, kind, "link">        /* rodzaj obiektu - tu wskaznikowy */
+	<id4, card, "1..*">	
+	<id5, target, id20>	  /* referencja do wskazywanego obiektu. */
+	<id6, owner, id18>	  /* ref. do nadobiektu, czyli do obiektu 
+				     zlozonego, dla ktorego ten jest 
+                                     podobiektem.*/
+	}
+    >
+            
+* Card czyli liczebnosc obiektu
+    
+    Ten atrybut opisuje ile jednostek takiego obiektu moze sie znajdowac w
+    bazie.
+
+    W metabazie jest on napisem, a rozne wartosci oznaczaja:
+     "0..1"  (obiekt opcjonalny, moze miec 0 lub 1 instancje)
+     "1..1"  (obiekt pojedynczy, nieopcjonalny - wiadomo ze jest 1 inst.)
+     "0..*"  (obiekt wielokrotny, opcjonalny - 0, 1 lub wiele instancji)
+     "1..*"  (obiekt wielokrotny, nieopcjonalny - przynajmniej 1 instancja)
+
+    (UWAGA: jak bedziemy rozpatrywali klasy abstrakcyjne, lub procedury, to
+    bedzie sens rozpatrywac tez liczebnosc 0..0, teraz jest to chyba
+    niepotrzebne.)
+
+* Domyslne wartosci
+
+    Jesli nie zdefiniowane przez tworzacego metabaze uzytkownika,
+    przyjmowane sa nastepujace wartosci:
+    - card :  "1..1"
+    - owner:  domyslnie go w ogole nie ma (domyslnie obiekty sa bazowe).
