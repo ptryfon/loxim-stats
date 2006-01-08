@@ -30,7 +30,8 @@ namespace Store
 		~DBDataValue();
 
 		virtual DataType getType();
-		virtual void toByteArray(unsigned char** lid, int* length);
+		virtual void toByteArray(unsigned char** buff, int* length);
+		virtual void toFullByteArray(unsigned char** buff, int* length);
 		virtual string toString();
 
 		virtual int getInt();

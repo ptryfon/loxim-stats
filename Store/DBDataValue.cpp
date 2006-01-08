@@ -40,8 +40,13 @@ namespace Store
 		return type;
 	};
 
-	void DBDataValue::toByteArray(unsigned char** lid, int* length)
+	void DBDataValue::toByteArray(unsigned char** buff, int* length)
 	{
+	};
+
+	void DBDataValue::toFullByteArray(unsigned char** buff, int* length)
+	{
+		//full czyli type + value
 	};
 
 	string DBDataValue::toString()

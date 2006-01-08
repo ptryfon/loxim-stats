@@ -136,7 +136,7 @@ namespace Store
 
 			if (!page)
 				page = store->getBuffer()->getPagePointer(STORE_FILE_ROOTS, pageid);
-			else if (page->getPageID() != pageid)
+			else if (page->getPageID() != static_cast<unsigned int>(pageid))
 			{
 				delete page;
 				page = store->getBuffer()->getPagePointer(STORE_FILE_ROOTS, pageid);

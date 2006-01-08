@@ -3,10 +3,86 @@
 namespace Store
 {
 
-	int PageManager::binarize(ObjectPointer *obj, unsigned char *buff, int size)
+	int PageManager::binarizeSize(ObjectPointer *obj)
 	{
+		return 0;
+	}
+	
+	int PageManager::binarize(ObjectPointer *obj, unsigned char **buff)
+	{
+		unsigned char* binaryObject = new unsigned char[binarizeSize(obj)];
+		int writePosition = 0;
+		int asize = 0;
+		unsigned char* adata = NULL;
+		unsigned int tmp = 0;
+		
+		//LogicalID
+		obj->getLogicalID()->toByteArray(&adata, &asize);
+		for(int i=0; i<asize; i++)
+			binaryObject[writePosition++] = adata[i];
+		if(adata) delete[] adata;
+		adata = NULL;
+		
+		//random
+		tmp = (rand()%0x100) << 24 + (rand()%0x100) << 16 +
+			(rand()%0x100) << 8 + (rand()%0x100);
+		adata = reinterpret_cast<unsigned char*>(&tmp);
+		for(unsigned int i=0; i<sizeof(unsigned int); i++)
+			binaryObject[writePosition++] = adata[i];
+		adata = NULL;
+		
+		string name = obj->getName();
+		//namesize
+		tmp = static_cast<unsigned int>(name.length());
+		adata = reinterpret_cast<unsigned char*>(&tmp);
+		for(unsigned int i=0; i<sizeof(unsigned int); i++)
+			binaryObject[writePosition++] = adata[i];
+		adata = NULL;
+
+		//name
+		asize = name.length();
+		for(int i=0; i<asize; i++)
+			binaryObject[writePosition++] =
+				static_cast<unsigned char>(name[i]);
+		
+		//value
+		obj->getValue()->toFullByteArray(&adata, &asize);
+		for(int i=0; i<asize; i++)
+			binaryObject[writePosition++] = adata[i];
+		if(adata) delete[] adata;
+		adata = NULL;
+
 	
 		return 0;
 	}
 
-};
+/*		
+		// BINARIZE OBJECT
+		
+		//pageOperator->binarize(..);
+		
+				
+		// END BINARIZE
+
+		pPtr->acquire();
+
+		// BEGIN SETHEADERS
+		
+		//pageOperator->setHeaders(...);
+		
+		// END SETHEADERS
+
+		// COPY OBJECT to PAGE
+		copy(binaryObject onto pPtr->page);
+		
+		pPtr->release();
+		
+		object = new DBObjectPointer(name, value, lid);
+		
+		//misc->vect.push_back(object);
+		
+		cout << "Store::Manager::createObject done: " + object->toString() + "\n";
+		return 0;
+	};
+*/
+}

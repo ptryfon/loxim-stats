@@ -9,7 +9,8 @@ namespace Store
 	class PageManager
 	{
 	public:
-		static int binarize(ObjectPointer *obj, unsigned char *buff, int size);
+		static int binarizeSize(ObjectPointer *obj);
+		static int binarize(ObjectPointer *obj, unsigned char **buff);
 	};
 
 };
