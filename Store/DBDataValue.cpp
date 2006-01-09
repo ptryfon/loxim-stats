@@ -30,6 +30,13 @@ namespace Store
 		value.string_value = new string(val);
 	};
 	
+	DBDataValue::DBDataValue(unsigned char *fbArray)
+	{
+		p_init();
+		//type = odczytanyzpierwszegointa;
+		//value. = ;
+	};
+
 	DBDataValue::~DBDataValue()
 	{
 		p_destroyVal();
@@ -47,6 +54,55 @@ namespace Store
 	void DBDataValue::toFullByteArray(unsigned char** buff, int* length)
 	{
 		//full czyli type + value
+		int etyp = static_cast<int>(type);
+		int size = sizeof(int);
+		unsigned char *barray;
+		vector<pair<unsigned char*,int> > vecbarray;
+		vector<ObjectPointer*>::iterator lvec_iter;
+		int basize;
+		switch(type) {
+			case Store::Integer: size+= sizeof(int); break;
+			case Store::Double:  size+= sizeof(double); break;
+			case Store::String:  size+= sizeof(int) +
+				value.string_value->length(); break;
+			case Store::Pointer:
+				value.pointer_value->toByteArray(&barray, &basize);
+				size+= basize; break;
+			case Store::Vector:
+				for(lvec_iter = value.vector_value->begin();
+					lvec_iter != value.vector_value->end(); lvec_iter++)
+				{
+//					lvec_iter.toByteArray(&barray, &basize);
+					vecbarray.push_back(make_pair(barray, basize));
+				}
+				break;
+			default: break;
+		};
+		
+		*buff = new unsigned char[size];
+		*(reinterpret_cast<int*>(*buff)) = etyp;
+		int wpos = sizeof(int);
+		switch(type) {
+			case Store::Integer:
+				*(reinterpret_cast<int*>((*buff)+wpos)) = *(value.int_value);
+				break;
+			case Store::Double:
+				*(reinterpret_cast<double*>((*buff)+wpos)) = *(value.double_value);
+				break;
+			case Store::String: {
+				int l = value.string_value->length();
+				for(int i=0; i<l; i++)
+					*(reinterpret_cast<char*>((*buff)+wpos++)) =
+						(*(value.string_value))[i];
+			} break;
+			case Store::Pointer:
+				for(int i=0; i<basize; i++)
+					(*buff)[wpos++] = barray[i];
+				break;
+			case Store::Vector:   break;
+			default: break;
+		};
+		
 	};
 
 	string DBDataValue::toString()
