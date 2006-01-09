@@ -26,6 +26,8 @@ using namespace SemaphoreLib;
 namespace TManager
 {
 
+  class TransactionManager;
+
 	/**
 	 *	TransactionID - unique object for transaction
 	 */
