@@ -276,9 +276,52 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			case UnOpNode::deref:
 				{
 				fprintf(stderr, "[QE] DEREF operation\n");
+				QueryResult *queryBag;
 				QueryResult *nextResult;
+				if ((errcode = executeQuery (tree->getArg(), &queryBag)) != 0)
+					{
+					return errcode;
+					}
+				fprintf(stderr, "[QE] Argument evaluated\n");
+				int argType = queryBag->type();
+				fprintf(stderr, "[QE] Argument's type taken\n");
+				if (argType==QueryResult::QBAG)
+					{
+					*result = new QueryBagResult;
+					unsigned int bagSize = (queryBag)->size();
+					for (unsigned int i = 0; i < bagSize; i++) 
+						{
+						if ((errcode = ((QueryBagResult *) queryBag)->getResult(nextResult) != 0))
+							{
+							return errcode;
+							}
+						int resultType = nextResult->type();
+						if (resultType == QueryResult::QREFERENCE)
+							{
+						//	if ((errcode = getObject(((QueryReferenceResult *)nextResult)->getValue(), "read", optr)) != 0)
+						//		{
+						//		return errcode;
+						//		}
+						
+			//twierdzi, ze getobject undeclared... powinien widziec.. ja juz mam zacmienie :(			
+						
+						
+							// wyci±ganie obiektów z pointerów...
+							}
+						else 
+							{
+							fprintf(stderr, "[QE] Error - the bag result must consist of logical ids\n");
+							return -1;
+							}
+						};
+					}
+				else 
+					{
+					fprintf(stderr, "[QE] Error - wrong DEREF argument\n");
+					return -1;
+					}				
 				}
-				
+					
 			case UnOpNode::distinct:
 				{
 				fprintf(stderr, "[QE] DISTINCT operation\n");
