@@ -278,6 +278,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 				fprintf(stderr, "[QE] DEREF operation\n");
 				QueryResult *queryBag;
 				QueryResult *nextResult;
+				
 				if ((errcode = executeQuery (tree->getArg(), &queryBag)) != 0)
 					{
 					return errcode;
@@ -298,12 +299,12 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 						int resultType = nextResult->type();
 						if (resultType == QueryResult::QREFERENCE)
 							{
-						//	if ((errcode = getObject(((QueryReferenceResult *)nextResult)->getValue(), "read", optr)) != 0)
-						//		{
-						//		return errcode;
-						//		}
+							if ((errcode = tr->getObjectPointer(((QueryReferenceResult *)nextResult)->getValue(), Store::Read, optr)) != 0)
+								{
+								return errcode;
+								}
 						
-			//twierdzi, ze getobject undeclared... powinien widziec.. ja juz mam zacmienie :(			
+							value = optr->getValue();
 						
 						
 							// wyci±ganie obiektów z pointerów...
