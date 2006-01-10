@@ -303,20 +303,50 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 								{
 								return errcode;
 								}
-						
+					
 							value = optr->getValue();
-						
-						
-							// wyci±ganie obiektów z pointerów...
+							int vType = value->getType();
+							
+							
+/*							switch (vType)
+							    {
+							    case QueryResult::QINT: // it's an integer
+								{
+			    					if (errcode = ((QueryBagResult *)result->addResult(((QueryIntResult*) tmpResult) = (value->getInt()))) =! 0)
+								    {
+								    return errcode;
+								    }
+								}
+							    case QueryResult::QDOUBLE: // it's a double
+								{
+			    					if (errcode = ((QueryBagResult *)result->addResult(((QueryDoubleResult*) tmpResult) = (value->getInt()))) =! 0)
+								    {
+								    return errcode;
+								    }
+								}
+							    case QueryResult::QSTRING: // it's a string
+								{
+			    					if (errcode = ((QueryBagResult *)result->addResult(((QueryStringResult*) tmpResult) = (value->getInt()))) =! 0)
+								    {
+								    return errcode;
+								    }
+								}
+							    default:
+								{
+								fprintf(stderr, "[QE] Error - wrong argument type\n");
+								return -1;
+								}
+							    } //switch
+*/										
 							}
 						else 
 							{
 							fprintf(stderr, "[QE] Error - the bag result must consist of logical ids\n");
 							return -1;
 							}
-						};
+						}
 					}
-				else 
+				else 	
 					{
 					fprintf(stderr, "[QE] Error - wrong DEREF argument\n");
 					return -1;
