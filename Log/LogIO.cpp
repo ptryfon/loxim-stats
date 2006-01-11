@@ -99,10 +99,10 @@ int LogIO::readString( int fileDes, string &str )
 {
   int errCode;
   unsigned int n = 0;
-  unsigned len;
+  int len;
   char *buffer;
 
-  if( ( errCode = readInt( fileDes, (int) len ) ) ) return errCode;
+  if( ( errCode = readInt( fileDes, len ) ) ) return errCode;
 
   buffer = new char[len];
 

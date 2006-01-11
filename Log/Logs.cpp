@@ -81,13 +81,20 @@ int LogManager::endCheckpoint( unsigned &id )
 
 int LogManager::commitTransaction( TransactionID *tid, unsigned &id )
 {
+  //sk
+  int err=0;
+  
   LogRecord *record = new CommitRecord( tid );
   logThread->push( record );
   record->getId( id );
-
+  
+  //sk
+  err = logThread->flush();
+  
   printf( "LogManager: commitTransaction\n" );
 
-  return 0;
+  //sk
+  return err;
 }
 
 int LogManager::rollbackTransaction( TransactionID *tid, unsigned &id )

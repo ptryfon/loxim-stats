@@ -75,6 +75,9 @@ int LogThread::flush() {
   while( !queue.empty() || err ) {
     err = ::pthread_cond_wait( &threadFlagCV, &threadFlagMutex );
   }
+  //sk
+  if(fsync(fileDes) < 0) err = errno;
+  
   ::pthread_mutex_unlock( &threadFlagMutex );
 
   return err;

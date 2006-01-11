@@ -15,6 +15,7 @@ namespace Logs
 #include <queue>
 #include <pthread.h>
 #include <unistd.h>
+#include <errno.h>
 
 using namespace Store;
 using namespace TManager;
