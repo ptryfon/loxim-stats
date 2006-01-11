@@ -47,6 +47,22 @@ namespace Store
 		return type;
 	};
 
+	int DBDataValue::fullBinarySize()
+	{
+		int size = sizeof(int);
+		switch(type) {
+			case Store::Integer:
+				return (size + sizeof(value.int_value)); break;
+			case Store::Double:
+				return (size + sizeof(value.double_value)); break;
+			case Store::String:
+				return (size + value.string_value->length()); break;
+			default:
+// NOT IMPLEMENTED
+				return -1; break;
+		}
+	};
+
 	void DBDataValue::toByteArray(unsigned char** buff, int* length)
 	{
 	};
@@ -58,7 +74,7 @@ namespace Store
 		int size = sizeof(int);
 		unsigned char *barray;
 		vector<pair<unsigned char*,int> > vecbarray;
-		vector<ObjectPointer*>::iterator lvec_iter;
+		vector<ObjectPointer*>::iterator ovec_iter;
 		int basize;
 		switch(type) {
 			case Store::Integer: size+= sizeof(int); break;
@@ -69,10 +85,13 @@ namespace Store
 				value.pointer_value->toByteArray(&barray, &basize);
 				size+= basize; break;
 			case Store::Vector:
-				for(lvec_iter = value.vector_value->begin();
-					lvec_iter != value.vector_value->end(); lvec_iter++)
+				for(ovec_iter = value.vector_value->begin();
+					ovec_iter != value.vector_value->end(); ovec_iter++)
 				{
 //					lvec_iter.toByteArray(&barray, &basize);
+
+//NIE-ZAIMPLEMENTOWANE
+
 					vecbarray.push_back(make_pair(barray, basize));
 				}
 				break;
@@ -99,7 +118,9 @@ namespace Store
 				for(int i=0; i<basize; i++)
 					(*buff)[wpos++] = barray[i];
 				break;
-			case Store::Vector:   break;
+			case Store::Vector:
+//NIE-ZAIMPLEMENTOWANE			
+			   break;
 			default: break;
 		};
 		

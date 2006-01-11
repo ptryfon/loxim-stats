@@ -117,69 +117,36 @@ namespace Store
 //	{
 //		cout << "Store::Manager::createObject start..\n";
 //		
+//		if( (value->getType()!=Store::Integer) &&
+//			(value->getType()!=Store::Double) &&
+//			(value->getType()!=Store::String) )
+//		{
+//			cout << "Store::createObject: Illegal or not implemented value type\n";
+//			return -1;
+//		}
+//
 //		//mapa sie wywala
 //		LogicalID* lid = new DBLogicalID(/*map->createLogicalID()*/misc->lastlid++);
 //		
-//		int size = lid->binarySize() + (2*sizeof unsigned int)//random, namesize
-//			+ name.length() + sizeof DataType + value->fullBinarySize();
+//		//int size = lid->binarySize() + (2*sizeof unsigned int)//random, namesize
+//		//	+ name.length() + sizeof DataType + value->fullBinarySize();
 //		
 //		rval = map->locateNewSpace(size);
 //		map->setPhisicalID(lid, rval);
 //		PagePointer pPtr = buffer->getpagePointer(rval);
 /*		
-		// BINARIZE OBJECT
-		
-		//pageOperator->binarize(..);
-		
-		unsigned char* binaryObject = new unsigned char[size];
-		int writePosition = 0;
-		int asize = 0;
-		unsigned char* adata = NULL;
-		unsigned int tmp = 0;
-		
-		//LogicalID
-		lid->toByteArray(&adata, &asize);
-		for(int i=0; i<asize; i++)
-			binaryObject[writePosition++] = adata[i];
-		if(adata) delete[] adata;
-		adata = NULL;
-		
-		//random
-		tmp = (rand()%0x100) << 24 + (rand()%0x100) << 16 +
-			(rand()%0x100) << 8 + (rand()%0x100);
-		adata = static_cast<unsigned char*>(&tmp);
-		for(int i=0; i<sizeof unsigned int; i++)
-			binaryObject[writePosition++] = adata[i];
-		adata = NULL;
-		
-		//namesize
-		tmp = static_cast<unsigned int>(name.length());
-		adata = static_cast<unsigned char*>(&tmp);
-		for(int i=0; i<sizeof unsigned int; i++)
-			binaryObject[writePosition++] = adata[i];
-		adata = NULL;
 
-		//name
-		asize = name.length();
-		for(int i=0; i<asize; i++)
-			binaryObject[writePosition++] =
-				reinterpret_cast<unsigned char>(name[i]);
-		
-		//value
-		value->toFullByteArray(&adata, &asize);
-		for(int i=0; i<asize; i++)
-			binaryObject[writePosition++] = adata[i];
-		if(adata) delete[] adata;
-		adata = NULL;
-				
+		object = new DBObjectPointer(name, value, lid);
+
+		// BINARIZE OBJECT
+		unsigned char* binaryObject;
+		PageManager::binarize(object, &binaryObject);
 		// END BINARIZE
 
 		pPtr->acquire();
 
 		// BEGIN SETHEADERS
-		
-		//pageOperator->setHeaders(...);
-		
+		//Pagemanager::setHeaders(...);
 		// END SETHEADERS
 
 		// COPY OBJECT to PAGE
@@ -187,7 +154,6 @@ namespace Store
 		
 		pPtr->release();
 		
-		object = new DBObjectPointer(name, value, lid);
 		
 		//misc->vect.push_back(object);
 		
