@@ -31,6 +31,12 @@ namespace Store
 		unsigned short page_type;
 		unsigned int timestamp;
 	} page_header;
+	
+	typedef struct page_header_ex
+	{
+		int objectCount;
+		int freeSpace;
+	} page_header_ex;
 
 	typedef struct map_header
 	{
@@ -56,11 +62,19 @@ namespace Store
 		page_header page_hdr;
 	} roots_page;
 
-	typedef struct data_header
+//	typedef struct data_header
+//	{
+//		page_header page_hdr;
+//		unsigned int page_count;
+//	} data_header;
+	
+	typedef struct page_data
 	{
-		page_header page_hdr;
-		unsigned int page_count;
-	} data_header;
+		unsigned char byte[];
+		page_header header;
+		page_header_ex headex;
+		int objectOffset[];
+	} page_data;
 }
 
 #endif // __STORE_SIZES_H__

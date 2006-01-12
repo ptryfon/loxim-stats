@@ -128,25 +128,21 @@ namespace Store
 //		//mapa sie wywala
 //		LogicalID* lid = new DBLogicalID(/*map->createLogicalID()*/misc->lastlid++);
 //		
-//		//int size = lid->binarySize() + (2*sizeof unsigned int)//random, namesize
-//		//	+ name.length() + sizeof DataType + value->fullBinarySize();
-//		
-//		rval = map->locateNewSpace(size);
-//		map->setPhisicalID(lid, rval);
-//		PagePointer pPtr = buffer->getpagePointer(rval);
-/*		
-
-		object = new DBObjectPointer(name, value, lid);
-
-		// BINARIZE OBJECT
-		unsigned char* binaryObject;
-		PageManager::binarize(object, &binaryObject);
-		// END BINARIZE
-
-		pPtr->acquire();
-
-		// BEGIN SETHEADERS
-		//Pagemanager::setHeaders(...);
+//		object = new DBObjectPointer(name, value, lid);
+//
+//		// BINARIZE OBJECT
+//		unsigned char* binaryObject;
+//		PageManager::binarize(object, &binaryObject);
+//		// END BINARIZE
+//
+//	?	rval = map->locateNewSpace(size);
+//	?	map->setPhisicalID(lid, rval);
+//	?	PagePointer pPtr = buffer->getpagePointer(rval);
+//
+//		//pPtr->acquire();
+//
+/*		// BEGIN SETHEADERS
+		//PageManager::writeObjectOntoPage(pPtr, binaryObject);
 		// END SETHEADERS
 
 		// COPY OBJECT to PAGE
