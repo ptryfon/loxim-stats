@@ -2,6 +2,7 @@
 #include <sstream>
 #include "Result.h"
 
+namespace Driver {
 
 ostream& operator<<(ostream& os, Result& result) {
 	result.toStream(os);
@@ -30,3 +31,5 @@ void   ResultCollection::toStream(ostream& os) const
 	return stream.str();
 }
 */
+
+} // namespace

@@ -72,7 +72,8 @@ int bufferReceive (char** buffer, int* receiveDataSize, int sock) {
          	
          	if (ile < 0) return errno | ErrTCPProto; //error
          	if (ile == 0) return ECONNABORTED | ErrTCPProto; //disconnect
-         	
+         	//TODO jesli klient sie odlaczyl to mozna zwrocic rozmiar danych = 0 ale wtedy trzeba zabronic wysylac 
+         	// wiadomosci dlugosci 0. co robi send gdy size = 0 ???
          	rest -= ile;
          	lengthBuff += ile;
          }

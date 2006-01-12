@@ -3,6 +3,8 @@
 
 #include "Connection.h"
 
+namespace Driver {
+
 class DriverManager
 {
 public:
@@ -11,5 +13,7 @@ public:
 	  throw (ConnectionException);
 	virtual ~DriverManager();
 };
+
+} // namespace
 
 #endif //_DRIVERMANAGER_H_

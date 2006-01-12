@@ -8,6 +8,8 @@
 #include "DriverManager.h"
 #include "Connection.h"
 
+namespace Driver {
+
 using namespace std;
 
 DriverManager::DriverManager()
@@ -70,3 +72,4 @@ Connection* DriverManager::getConnection(char* url, int port)
   return 0;
   }
 */
+} // namespace

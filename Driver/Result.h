@@ -5,6 +5,8 @@
 #include <iterator>
 #include <vector>
 
+namespace Driver {
+
 using namespace std;
 
 class Result
@@ -257,5 +259,6 @@ public:
 	virtual ~ResultError() {}
 };//class ResultError
 
+} // namespace
 
 #endif /*RESULT_H_*/

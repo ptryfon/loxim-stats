@@ -6,7 +6,7 @@
 #include "../Driver/Result.h"
 
 using namespace std;
-
+using namespace Driver;
 
 void printMsg(string str) {
   if (isatty(0))

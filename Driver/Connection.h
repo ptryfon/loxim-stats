@@ -3,6 +3,8 @@
 
 #include "Result.h"
 
+namespace Driver {
+
 using namespace std;
 
 
@@ -35,5 +37,7 @@ private:
 	Result* grabElements(ResultCollection* col);
 	Result* deserialize();
 };
+
+} // namespace
 
 #endif //_CONNECTION_H_

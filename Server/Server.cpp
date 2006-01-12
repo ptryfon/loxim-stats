@@ -39,7 +39,7 @@ using namespace Store;
 using namespace QParser;
 using namespace QExecutor;
 using namespace TManager;
-
+using namespace Driver;
 
 Server::Server(int newSock)
 {
@@ -283,7 +283,7 @@ while (true) {
 
 	printf("[Server.Run]--> Cleaning buffers \n");
 	memset(serializedMessg, '\0', MAX_MESSG); 
-	*sPoint=serializedMessg;	
+//	*sPoint=serializedMessg;	//piotrek - nie uzywane a pod cygwinem naruszenie ochrony pamieci
 	
 	//Get string from client
 	printf("[Server.Run]--> Receiving query from client \n");

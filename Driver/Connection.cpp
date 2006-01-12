@@ -11,6 +11,8 @@
 #include "Connection.h"
 #include "Result.h"
 
+namespace Driver {
+
 using namespace std;
 using namespace TCPProto;
 
@@ -187,3 +189,5 @@ ostream& operator<<(ostream& os, ConnectionException& e) {
 	e.toStream(os);
 	return os;
 }
+
+} // namespace

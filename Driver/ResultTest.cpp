@@ -1,6 +1,8 @@
 
 #include "Result.h"
 
+using namespace Driver;
+
 int main(int argc, char *argv[])
 {
   ResultBag*      bag     = new ResultBag();
