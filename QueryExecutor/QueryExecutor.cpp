@@ -8,6 +8,7 @@
    Maja Perycz */
    
 #include <stdio.h>
+#include <string>
 #include <vector>
    
 #include "QueryResult.h"
@@ -25,6 +26,7 @@ using namespace QParser;
 using namespace TManager;
 using namespace Errors;
 using namespace Store;
+using namespace std;
 
 namespace QExecutor {
 
@@ -65,24 +67,45 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			{
 			name = tree->getName();
 			fprintf(stderr, "[QE] Type: TNNAME\n");
-			if ((errcode = tr->getRoots(name, vec)) != 0)
-			{
-			    return errcode;
-			}
+			
+			if ((stack.size()) == 1) {
+			    errcode = (stack.pop());
+			    fprintf(stderr, "[QE] stack poped\n");
+			    if (errcode != 0) { return errcode; };
+			};
+			if (stack.empty()) {
+				if ((errcode = tr->getRoots(vec)) != 0) {
+					return errcode;
+				};
+				vecSize = vec->size();
+				fprintf(stderr, "[QE] %d Roots taken\n", vecSize);
+				QueryBagResult *stackSection = new QueryBagResult();
+				for (int i = 0; i < vecSize; i++ )
+					{
+   					optr = vec->at(i);
+					lid = optr->getLogicalID();
+					fprintf(stderr, "[QE] LogicalID received\n");
+					string optrName = (optr->getName());
+					fprintf(stderr, "[QE] Name received\n");
+					QueryReferenceResult *lidres = new QueryReferenceResult(lid);
+					QueryBinderResult *newBinding = new QueryBinderResult(optrName, lidres);
+					stackSection->addResult(newBinding);
+				};
+				fprintf(stderr, "[QE] stack pushed\n");
+				if ( (stack.push(stackSection)) != 0 ) {
+					return -1;
+				};
+			};
+			
+			if ((stack.bindName(name, *result)) != 0) {
+				return -1;
+			};
+			if ((errcode = tr->getRoots(name,vec)) != 0) {
+				return errcode;
+			};
 			vecSize = vec->size();
-			fprintf(stderr, "[QE] Roots taken\n");
-			*result = new QueryBagResult;
+			fprintf(stderr, "[QE] %d Roots taken by name\n", vecSize);
 			fprintf(stderr, "[QE] QueryBagResult created\n");
-			for (int i = 0; i < vecSize; i++ )
-				{
-   				optr = vec->at(i);
-				lid = optr->getLogicalID();
-				fprintf(stderr, "[QE] LogicalID received\n");
-				QueryReferenceResult *lidres = new QueryReferenceResult(lid);
-				(*result)->addResult(lidres);
-				fprintf(stderr, "[QE] Object added to QueryResult\n");
-				}
-			fprintf(stderr, "[QE] Done!\n");
 			return 0;
 			}//case
 
@@ -343,7 +366,8 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 							}
 						}
 					}
-				else 	
+				else 
+	
 					{
 					fprintf(stderr, "[QE] Error - wrong DEREF argument\n");
 					return -1;
@@ -944,7 +968,57 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			return 0;
 			}//case
 	
-		case TreeNode::TNNONALGOP: {break;}
+		case TreeNode::TNNONALGOP: {
+			NonAlgOpNode::nonAlgOp op = ((NonAlgOpNode *) tree)->getOp();
+			fprintf(stderr, "[QE] NonAlgebraic operator - type recognized\n");
+			switch (op)
+			{
+			case NonAlgOpNode::dot: {
+				/*fprintf(stderr, "[QE] DOT operation\n");
+				QueryResult *lResult, *rResult; 
+				if ((errcode = executeQuery (((NonAlgOpNode *) tree)->getLArg(), &lResult)) != 0)
+					{
+					return errcode;
+					};
+				
+				unsigned int bagSize = (lResult->size());
+				for (unsigned int i = 0; i < bagSize; i++) {
+					QueryResult *nextRes;
+					if ((((QueryBagResult *) lResult)->at(i, nextRes)) != 0) {
+						return -1;
+					};
+					if ((nextRes->type()) != (QueryResult::QREFERENCE)) {
+						return -1;
+					};
+					lid = (((QueryReferenceResult *) nextRes)->getValue());
+					errcode = (tr->getObjectPointer(lid, Store::Read, optr) != 0);
+					if (errcode != 0) {
+						return errcode;
+					};
+					value = optr->getValue();
+					//tu trzeba dalej zrobic nested ()
+					
+					
+				};//for
+				
+				*/
+				fprintf(stderr, "[QE] Done!\n");
+				return 0;
+			}//case dot
+			case NonAlgOpNode::where: {break;}
+			case NonAlgOpNode::join: {break;}
+			default:
+				{
+				fprintf(stderr, "[QE] Unknown NonAlgOp type\n");
+				return -1;
+				} // Reszta jeszcze nie zaimplementowane
+			}//switch	
+			*result = new QueryNothingResult;
+			fprintf(stderr, "[QE] QueryNothingResult created\n");
+			fprintf(stderr, "[QE] Done!\n");
+			return 0;
+		}//case TNNONALGOP
+		
 		case TreeNode::TNTRANS: {break;}
 	
 		default:
@@ -965,6 +1039,77 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 	return 0;
     }
 
+QueryExecutor::~QueryExecutor() { tr->abort(); stack.deleteAll(); }
 
-QueryExecutor::~QueryExecutor() { delete tr; };  // <- tu zamiast robic delete tr chyba powinnismy robic abort na tym tr i pozwolic by to TManager usunal te transakcje
+EnvironmentStack::EnvironmentStack() {}
+EnvironmentStack::~EnvironmentStack() {}
+
+int EnvironmentStack::push(QueryBagResult *r) {
+	es.push_back(r);
+	return 0;
+}
+
+int EnvironmentStack::pop(){ 
+	if (es.empty()) { 
+		return -1; 
+	} 
+	else {
+		es.pop_back();
+	}; 
+	return 0;
+}
+
+int EnvironmentStack::top(QueryBagResult *&r) {
+	if (es.empty()) {
+		return -1;
+	}
+	else {
+		r=(es.back());
+	};
+	return 0;
+}
+
+bool EnvironmentStack::empty() { return es.empty(); }
+int EnvironmentStack::size() { return es.size(); }
+
+int EnvironmentStack::bindName(string name, QueryResult *&r) {
+	fprintf(stderr, "[QE] name binding\n");
+	unsigned int number = (es.size());
+	fprintf(stderr, "[QE] nameBind: ES got %u sections\n", number);
+	r = new QueryBagResult();
+	bool found_one = false;
+	QueryBagResult *section;
+	unsigned int sectionSize;
+	QueryResult *sth;
+	string current;
+	for (unsigned int i = number; i >= 1; i--) {
+		section = (es.at(i - 1));
+		sectionSize = (section->size());
+		fprintf(stderr, "[QE] nameBind: section %u got %u elements\n", (i - 1), sectionSize);
+		for (unsigned int j = 0; j < sectionSize; j++) {
+			int errNo = (section->at(j,sth));
+			if (errNo != 0) { return errNo; };
+			if ((sth->type()) == (QueryResult::QBINDER)) {
+				current = (((QueryBinderResult *) sth)->getName());
+				fprintf(stderr, "[QE] nameBind: current %u name is: ??\n", j);
+				if (current == name) {
+					found_one = true;
+					fprintf(stderr, "[QE] nameBind: Object added to Result\n");
+					r->addResult(((QueryBinderResult *) sth)->getItem());
+				};
+			};
+		};
+		if (found_one) {
+			return 0;
+		};
+	};
+	return 0;
+}
+
+void EnvironmentStack::deleteAll() {
+	for (unsigned int i = 0; i < (es.size()); i++) {
+		delete es.at(i);
+	};
+}
+
 }
