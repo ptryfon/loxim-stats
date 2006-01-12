@@ -310,19 +310,19 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 							
 							switch (vType)
 							    {
-							    case QueryResult::QINT: // it's an integer
+							    case Store::Integer: // it's an integer
 								{
 								QueryIntResult *tmpResult;
 								tmpResult->setValue(value->getInt());
 			    					((QueryBagResult *)(*result))->addResult(tmpResult);
 								}
-							    case QueryResult::QDOUBLE: // it's a double
+							    case Store::Double: // it's a double
 								{
 								QueryDoubleResult *tmpResult;
 								tmpResult->setValue(value->getDouble());
 			    					((QueryBagResult *)(*result))->addResult(tmpResult);
 	   							}
-							    case QueryResult::QSTRING: // it's a string
+							    case Store::String: // it's a string
 								{
 								QueryStringResult *tmpResult;
 								tmpResult->setValue(value->getString());
