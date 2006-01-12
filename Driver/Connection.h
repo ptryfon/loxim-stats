@@ -38,6 +38,14 @@ private:
 	Result* deserialize();
 };
 
+class BufferHandler
+{
+	public:
+		char* buf;
+		BufferHandler(char* buffer): buf(buffer) {};
+		~BufferHandler() {free (buf);};
+};
+
 } // namespace
 
 #endif //_CONNECTION_H_

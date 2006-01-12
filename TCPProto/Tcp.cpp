@@ -14,16 +14,19 @@ using namespace std;
 int bufferSend(const char* buf, int buf_size, int sock) {
 	//printf("ServerTcp: sending data on socket %d \n", sock);
 	
+	//TODO zdecydowac czy beda signed czy unsigned
+	
+	if (buf_size <= 0) return EINVAL | ErrTCPProto; //message size has to be positive
+	
 	char* lengthBuf;
-	int lengthBufSize = 4;
+	int lengthBufSize = 4; //int = 4 bytes
 	int ile;
-	ile = htonl(buf_size);
-	lengthBuf = (char*)(& ile);
+	int msg_size = htonl(buf_size);
+	lengthBuf = (char*)(& msg_size); //contains the size of the message
 
    	cerr << "<Tcp::bufferSend()> ile bajtow wysylam: " << buf_size << endl;
- //  	cerr << "co wysylam: " << buf << endl;
-	// lengthBuf = ...buf_size
-	while (lengthBufSize > 0) {
+   	
+	while (lengthBufSize > 0) { //if 0, the size was sent
 		if (-1 ==  (ile = send(sock, lengthBuf, lengthBufSize, 0))) {
 			cerr << "blad wysylania" << endl;
 			return errno | ErrTCPProto;
@@ -50,19 +53,23 @@ int bufferSend(const char* buf, int buf_size, int sock) {
  * parametr musi byc przekazany przez referencje
  * 
  * wynik:
- * 0 - wszystko ok, wtedy *receiveDataSize = ile bejtow wczytano do bufora
+ * 0 - wszystko ok, wtedy 0 < *receiveDataSize = ile bajtow wczytano do nowo utworzonego bufora
+ * 0 - nadawca sie rozlaczyl, wtedy *buffer = null, *receiveDataSize = 0
  * wpp. kod bledu
  */
 
 
 int bufferReceive (char** buffer, int* receiveDataSize, int sock) {
-	//printf("ServerTcp: receiving on socket %d... \n", sock);
 		
          int ile;
          int msgSize = 0;
          int rest = 4;         
-         char* messgBuff;
-         char* messgBuffBeg;
+         char* messgBuff; //position in the message buffer
+         char* messgBuffBeg; //begining of the message buffer
+                  
+         // in case of error
+         *receiveDataSize = 0;
+         *buffer = NULL;
          
          char lengthBuffTable[3];
          char* lengthBuff = lengthBuffTable;
@@ -70,10 +77,9 @@ int bufferReceive (char** buffer, int* receiveDataSize, int sock) {
           while (rest > 0) {
          	ile = recv (sock, lengthBuff, rest, 0);
          	
-         	if (ile < 0) return errno | ErrTCPProto; //error
-         	if (ile == 0) return ECONNABORTED | ErrTCPProto; //disconnect
-         	//TODO jesli klient sie odlaczyl to mozna zwrocic rozmiar danych = 0 ale wtedy trzeba zabronic wysylac 
-         	// wiadomosci dlugosci 0. co robi send gdy size = 0 ???
+         	if (ile < 0) return errno | ErrTCPProto;
+         	if (ile == 0) return 0; //disconnect
+ 
          	rest -= ile;
          	lengthBuff += ile;
          }
@@ -98,8 +104,15 @@ int bufferReceive (char** buffer, int* receiveDataSize, int sock) {
         while (rest > 0) {
         	ile = recv (sock, messgBuff, rest, 0);
         	
-        	if (ile < 0) return errno | ErrTCPProto;
-        	if (ile == 0) return ECONNABORTED | ErrTCPProto;
+        	if (ile < 0) {
+        		int error = errno;
+        		free(messgBuffBeg);
+        		return error | ErrTCPProto;
+        	}
+        	if (ile == 0) {
+        		free(messgBuffBeg);
+        		return 0; //disconnect
+        	}
         	
         	rest -= ile;
         	messgBuff += ile;

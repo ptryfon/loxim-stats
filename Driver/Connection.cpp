@@ -164,12 +164,15 @@ Result* Connection::execute(const char* query) throw (ConnectionException) {
       char* ptr = NULL;
       int ile;
       error = bufferReceive(&ptr, &ile, sock); //create buffer and set ptr to point at it
-      if (error != 0) { //the ptr was free
-      	free(ptr); // if ptr == NULL nothing happens
+
+      if (error != 0) { //ptr was free
      	throw ConnectionException("receiving error");
       }
-      //TODO czy char* mozna zrobic delete, czy to zadziala
-      auto_ptr<char> bufferPtr(ptr); //needed only during deserializing (exception possible)
+      if (ile == 0) { //no error but also no data -> server was closed
+      	throw ConnectionException("server was closed");
+      }
+      //bufferHandler will free memory pointed by ptr at the end of a scope
+      BufferHandler bufferPtr(ptr); //needed only during deserializing (exception possible)
       cerr << "<Connection::execute> driver przyszlo bajtow: " << ile << endl;
       bufferBegin = ptr;
       bufferEnd = ptr+ile;
