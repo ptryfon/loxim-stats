@@ -28,9 +28,9 @@ namespace Store
 			char* page;
 		} buffer_page;
 
-    typedef pair<unsigned short, unsigned short> buffer_addr_t;
-    typedef map<buffer_addr_t, buffer_page> buffer_hash_t;
-    buffer_hash_t buffer_hash;
+		typedef pair<unsigned short, unsigned short> buffer_addr_t;
+		typedef map<buffer_addr_t, buffer_page> buffer_hash_t;
+		buffer_hash_t buffer_hash;
 
 		DBStoreManager* store;
 		File* file;
