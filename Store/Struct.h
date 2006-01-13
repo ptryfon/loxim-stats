@@ -62,7 +62,7 @@ namespace Store
 		page_header header;
 		int object_count;
 		int free_space;
-		int objectOffset[];
+		int object_offset[];
 	} page_data;
 }
 
