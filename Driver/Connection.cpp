@@ -6,6 +6,7 @@
 #include <netdb.h> 
 #include <string.h>
 #include <memory.h>
+#include <errno.h>
 
 #include "../TCPProto/Tcp.h"
 #include "Connection.h"
@@ -27,17 +28,19 @@ Connection::~Connection()
 }
 
 int Connection::stringCopy(char* &newBuffer) { // od bufferBegin
-		//TODO dodac sprawdzanie zakresu, przepelnienia bufora!!!
 		int len = strlen(bufferBegin)+1; //including NULL
 		
 		if (bufferBegin + len > bufferEnd) {
 			cerr << "<Serialize::StringCopy> proba czytania poza buforem" << endl;
-			throw ConnectionException("protocol corrupt");
+			throw ProtocolCorruptException();
 		}
 		
 		newBuffer = (char*)malloc (len);
-		strcpy (newBuffer, bufferBegin);
-		//TODO sprawdzac czy sie powiodlo
+		
+		if (NULL == newBuffer) {
+			throw MemoryException(errno);
+		}
+		strcpy (newBuffer, bufferBegin); // always succeeds
 		bufferBegin += len;
 		return 0;
 }
@@ -48,7 +51,7 @@ unsigned long Connection::getULong(unsigned long &val) {
 	
 	if (tmpPtr > bufferEnd) {
 		cerr << "<Connetion::getULong> proba czytania poza odebranym buforem" << endl;
-		throw ConnectionException("protocol corrupt");
+		throw ProtocolCorruptException();
 	}
 	
 		val = ntohl(*((unsigned long*) bufferBegin));
@@ -101,10 +104,8 @@ Result* Connection::deserialize() {
 		
 		case Result::REFERENCE:
 			cerr << "<Connection::deserialize> tworze obiekt REFERENCE\n";
-	//		bufferBegin++;
 			stringCopy(id); //by reference
-			return (Result*) new ResultReference(string (id));
-			//TODO poprawic przesuniecie wskaznika
+			return new ResultReference(string (id));
 		
 		case Result::VOID:
 		cerr << "<Connection::deserialize> tworze obiekt VOID\n";
@@ -113,12 +114,13 @@ Result* Connection::deserialize() {
 	        case Result::STRING:
 		  cerr << "<Connection::deserialize> tworze obiekt STRING\n " ;
 			stringCopy(id); // by reference
-			return (Result*) new ResultString(string (id));
+			return new ResultString(string (id));
 		
 		case Result::ERROR:
 			cerr << "<Connection::deserialize> tworze obiekt ERROR\n";
-			getULong(number); //by reference 
-			return new ResultError(number);
+			getULong(number); //by reference
+			throw ServerException(number); 
+			//return new ResultError(number);
 			
 		
 		case Result::INT:
@@ -150,7 +152,7 @@ Result* Connection::deserialize() {
 		default:
 			df = *(bufferBegin-1);
 			cerr << "<Connection::deserialize> obiekt nieznany, nr: " << (int) df << endl;
-			throw ConnectionException("protocol corrupt");
+			throw ProtocolCorruptException();
 	} // switch
 } // deserialize
 
@@ -159,17 +161,17 @@ Result* Connection::execute(const char* query) throw (ConnectionException) {
 	int error;
       error = bufferSend(query, strlen(query)+1, sock);
       if (0 != error) {
-      	throw ConnectionException("sending error");
+      	throw TransmissionException(error);
       }
       char* ptr = NULL;
       int ile;
       error = bufferReceive(&ptr, &ile, sock); //create buffer and set ptr to point at it
 
       if (error != 0) { //ptr was free
-     	throw ConnectionException("receiving error");
+     	throw TransmissionException(error);
       }
       if (ile == 0) { //no error but also no data -> server was closed
-      	throw ConnectionException("server was closed");
+      	throw ClosedConnectionException();
       }
       //bufferHandler will free memory pointed by ptr at the end of a scope
       BufferHandler bufferPtr(ptr); //needed only during deserializing (exception possible)

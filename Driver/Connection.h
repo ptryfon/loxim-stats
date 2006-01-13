@@ -10,15 +10,49 @@ using namespace std;
 
 class ConnectionException //Czarek
 {
-private:
+protected:
 	string msg;
+	int error;
 public:
-	ConnectionException() { msg = " Undefined exception "; }
-	ConnectionException(string msg) : msg(msg) {}
-	void   toStream(ostream& os) const { os << msg;  }
+	ConnectionException(int err, string msg) : msg(msg), error(err) {};
+	ConnectionException() : error(-1) { msg = " Undefined exception "; }
+	ConnectionException(string msg) : msg(msg), error(-1) {}
+	ConnectionException(int err) : msg(""), error(err) {}
+	virtual void toStream(ostream& os) const { os << msg << " error code: " << error;  }
 	friend ostream& operator<<(ostream&, ConnectionException&);
+	virtual int getError() { return error; }
+	virtual ~ConnectionException() {}
 };
 
+class ClosedConnectionException : public ConnectionException
+{
+public:
+	ClosedConnectionException() : ConnectionException("server was closed") {};
+};
+
+class ProtocolCorruptException : public ConnectionException
+{
+public:
+	ProtocolCorruptException() : ConnectionException("protocol corrupt") {};
+};
+
+class TransmissionException : public ConnectionException
+{
+public:
+	TransmissionException(int err) : ConnectionException(err, "transmission exception") {};
+};
+
+class ServerException : public ConnectionException
+{
+public:
+	ServerException(int err) : ConnectionException(err, "server error") {};
+};
+
+class MemoryException : public ConnectionException
+{
+public:
+	MemoryException(int err) : ConnectionException(err, "memory exception") {};
+};
 
 class Connection
 {
