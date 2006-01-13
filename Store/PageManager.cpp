@@ -1,16 +1,32 @@
 #include "PageManager.h"
+/*
+  Obiekty na stronie sa posortowane przeciwnie wg offsetu.
+  PAGE = <HEADER><EX><OFFSETTABLE><FREESPACE><OBJECTS>
+  OFFSETTABLE = tablica mowiaca, gdzie zaczyna sie obiekt o indeksie i
+  OBJECTS = obiekty ukladane sa od konca, sa posortowane od najmlodszego
+  do najstarszego
+*/
+#include <iostream>
+
+using namespace std;
 
 namespace Store
 {
+
+	BinaryObject::BinaryObject(int psize)
+	{
+		bytes = new unsigned char[psize];
+		size = psize; 
+	}
 
 	int PageManager::binarizeSize(ObjectPointer *obj)
 	{
 		return 0;
 	}
 	
-	int PageManager::binarize(ObjectPointer *obj, unsigned char **buff)
+	int PageManager::binarize(ObjectPointer *obj, BinaryObject*& binobj)
 	{
-		unsigned char* binaryObject = new unsigned char[binarizeSize(obj)];
+		binobj = new BinaryObject(binarizeSize(obj));
 		int writePosition = 0;
 		int asize = 0;
 		unsigned char* adata = NULL;
@@ -19,7 +35,7 @@ namespace Store
 		//LogicalID
 		obj->getLogicalID()->toByteArray(&adata, &asize);
 		for(int i=0; i<asize; i++)
-			binaryObject[writePosition++] = adata[i];
+			binobj->bytes[writePosition++] = adata[i];
 		if(adata) delete[] adata;
 		adata = NULL;
 		
@@ -28,7 +44,7 @@ namespace Store
 			(rand()%0x100) << 8 + (rand()%0x100);
 		adata = reinterpret_cast<unsigned char*>(&tmp);
 		for(unsigned int i=0; i<sizeof(unsigned int); i++)
-			binaryObject[writePosition++] = adata[i];
+			binobj->bytes[writePosition++] = adata[i];
 		adata = NULL;
 		
 		string name = obj->getName();
@@ -36,19 +52,19 @@ namespace Store
 		tmp = static_cast<unsigned int>(name.length());
 		adata = reinterpret_cast<unsigned char*>(&tmp);
 		for(unsigned int i=0; i<sizeof(unsigned int); i++)
-			binaryObject[writePosition++] = adata[i];
+			binobj->bytes[writePosition++] = adata[i];
 		adata = NULL;
 
 		//name
 		asize = name.length();
 		for(int i=0; i<asize; i++)
-			binaryObject[writePosition++] =
+			binobj->bytes[writePosition++] =
 				static_cast<unsigned char>(name[i]);
 		
 		//value
 		obj->getValue()->toFullByteArray(&adata, &asize);
 		for(int i=0; i<asize; i++)
-			binaryObject[writePosition++] = adata[i];
+			binobj->bytes[writePosition++] = adata[i];
 		if(adata) delete[] adata;
 		adata = NULL;
 
@@ -56,19 +72,41 @@ namespace Store
 		return 0;
 	}
 	
-	int PageManager::writeHeader(PagePointer *pPtr, page_header hdr)
+	int PageManager::writeNewHeader(PagePointer *pPtr, page_header hdr)
 	{
-	
+		page_data *page = reinterpret_cast<page_data*>(pPtr->getPage());
+		
+		page->header.file_id = hdr.file_id;
+		page->header.page_id = hdr.page_id;
+		page->header.page_type = hdr.page_type;
+		page->header.timestamp = hdr.timestamp;
+		page->object_count = 0;
+		page->free_space = STORE_PAGESIZE - sizeof(page_header);
+		
 		return 0;
 	}
 	
-	int PageManager::putObject(PagePointer *pPtr)
+	int PageManager::insertObject(PagePointer *pPtr, BinaryObject *obj)
 	{
-	
+		page_data *page = reinterpret_cast<page_data*>(pPtr->getPage());
+		
+		if(page->free_space < static_cast<int>(obj->size + sizeof(int))){
+			cout << "Store::PageManager::insertObject not enough free space on page\n";
+			return -1;
+		}
+		int lastoffset = page->object_count > 0 ?
+			page->object_offset[page->object_count-1] : STORE_PAGESIZE;
+		page->free_space -= obj->size + sizeof(int);
+		int newoffset = lastoffset - obj->size - sizeof(int);
+		page->object_offset[page->object_count] = newoffset;
+		for(int i=0; i<obj->size; i++)
+			page->bytes[newoffset+i] = obj->bytes[i];
+		page->object_count++;
+
 		return 0;
 	}
 	
-	int PageManager::unbinarize(unsigned char *binobj, ObjectPointer **newobj)
+	int PageManager::unbinarize(unsigned char *binobj, ObjectPointer*& newobj)
 	{
 	
 		return 0;

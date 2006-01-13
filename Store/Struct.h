@@ -58,7 +58,7 @@ namespace Store
 
 	typedef struct page_data
 	{
-		unsigned char byte[];
+		unsigned char bytes[];
 		page_header header;
 		int object_count;
 		int free_space;

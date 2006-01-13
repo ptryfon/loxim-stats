@@ -158,8 +158,8 @@ namespace Store
 //		object = new DBObjectPointer(name, value, lid);
 //
 //		// BINARIZE OBJECT
-//		unsigned char* binaryObject;
-//		PageManager::binarize(object, &binaryObject);
+//		BinaryObject* binaryObject;
+//		PageManager::binarize(object, binaryObject);
 //		// END BINARIZE
 //
 //		int lastas = map->getLastAssigned();
@@ -169,12 +169,16 @@ namespace Store
 //		pPtr->acquire();
 //
 //		// DOSTAJE +NOWA PUSTA+ STRONE, wiec BEGIN SETHEADERS
-//		page_header ph
-//		PageManager::writeHeader(pPtr);
+//		page_header hdr;
+//		hdr.page_id = pPtr->getPageID();
+//		hdr.file_id = pPtr->getFileID();
+//		hdr.page_type = NULL;
+//		hdr.timestamp = NULL;
+//		PageManager::writeHeader(pPtr, hdr);
 //		// END SETHEADERS
 //
 //		// COPY OBJECT to PAGE
-//		PageManager::putObject(pPtr, binaryObject);
+//		PageManager::insertObject(pPtr, binaryObject);
 //		
 //		pPtr->release();
 //		

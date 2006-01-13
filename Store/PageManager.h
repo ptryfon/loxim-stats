@@ -8,14 +8,21 @@
 namespace Store
 {
 
+	typedef struct BinaryObject
+	{
+		BinaryObject(int size);
+		unsigned char *bytes;
+		int size;
+	} BinaryObject;
+
 	class PageManager
 	{
 	public:
 		static int binarizeSize(ObjectPointer *obj);
-		static int binarize(ObjectPointer *obj, unsigned char **buff);
-		static int writeHeader(PagePointer *ptr, page_header hdr);
-		static int putObject(PagePointer *ptr);
-		static int unbinarize(unsigned char *binobj, ObjectPointer **newobj);
+		static int binarize(ObjectPointer *obj, BinaryObject*& binobj);
+		static int writeNewHeader(PagePointer *ptr, page_header hdr);
+		static int insertObject(PagePointer *ptr, BinaryObject* obj);
+		static int unbinarize(unsigned char *binobj, ObjectPointer*& newobj);
 	};
 
 };
