@@ -56,5 +56,22 @@ namespace Store
 		return 0;
 	}
 	
+	int PageManager::writeHeader(PagePointer *pPtr, page_header hdr)
+	{
+	
+		return 0;
+	}
+	
+	int PageManager::putObject(PagePointer *pPtr)
+	{
+	
+		return 0;
+	}
+	
+	int PageManager::unbinarize(unsigned char *binobj, ObjectPointer **newobj)
+	{
+	
+		return 0;
+	}
 	
 }

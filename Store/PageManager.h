@@ -13,8 +13,9 @@ namespace Store
 	public:
 		static int binarizeSize(ObjectPointer *obj);
 		static int binarize(ObjectPointer *obj, unsigned char **buff);
-		static int writeNewHeader(PagePointer *ptr, page_header hdr);
+		static int writeHeader(PagePointer *ptr, page_header hdr);
 		static int putObject(PagePointer *ptr);
+		static int unbinarize(unsigned char *binobj, ObjectPointer **newobj);
 	};
 
 };

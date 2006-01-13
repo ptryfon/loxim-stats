@@ -140,7 +140,6 @@ namespace Store
 		return 0;
 	};
 
-
 //	int DBStoreManager::createObjectEx(TransactionID* tid, string name, DataValue* value, ObjectPointer*& object)
 //	{
 //		cout << "Store::Manager::createObject start..\n";
@@ -163,28 +162,25 @@ namespace Store
 //		PageManager::binarize(object, &binaryObject);
 //		// END BINARIZE
 //
-//	?	rval = map->locateNewSpace(size);
-//	?	map->setPhisicalID(lid, rval);
-//	?	PagePointer pPtr = buffer->getpagePointer(rval);
+//		int lastas = map->getLastAssigned();
+//		map->setLastAssigned(++lastas);
+//		PagePointer pPtr = buffer->getPagePointer(STORE_FILE_ROOTS, lastas);
 //
-//		//pPtr->acquire();
+//		pPtr->acquire();
 //
-/*		// BEGIN SETHEADERS
-		//PageManager::writeObjectOntoPage(pPtr, binaryObject);
-		// END SETHEADERS
-
-		// COPY OBJECT to PAGE
-		copy(binaryObject onto pPtr->page);
-		
-		pPtr->release();
-		
-		
-		//misc->vect.push_back(object);
-		
-		cout << "Store::Manager::createObject done: " + object->toString() + "\n";
-		return 0;
-	};
-*/
+//		// DOSTAJE +NOWA PUSTA+ STRONE, wiec BEGIN SETHEADERS
+//		page_header ph
+//		PageManager::writeHeader(pPtr);
+//		// END SETHEADERS
+//
+//		// COPY OBJECT to PAGE
+//		PageManager::putObject(pPtr, binaryObject);
+//		
+//		pPtr->release();
+//		
+//		cout << "Store::Manager::createObject done: " + object->toString() + "\n";
+//		return 0;
+//	};
 
 	int DBStoreManager::deleteObject(TransactionID* tid, ObjectPointer* object)
 	{
@@ -285,4 +281,3 @@ namespace Store
 		return 0;
 	};
 }
-
