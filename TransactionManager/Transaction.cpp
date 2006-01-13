@@ -68,7 +68,12 @@ namespace TManager
 
 		sem->lock_write();
 			errorNumber = sm->createObject( tid, name, value, p);	    
-		sem->unlock();
+			
+			if (errorNumber == 0)
+			/* quaranteed not wait for lock */			
+			    errorNumber = lm->lock(p->getLogicalID(), tid, Write);
+			    
+		sem->unlock();	
 
 		return errorNumber;
 	}
@@ -96,43 +101,56 @@ namespace TManager
     	int Transaction::getRoots(vector<ObjectPointer*>* &p)
 	{
 		int errorNumber;
-		//lock?
 
 		sem->lock_read();
-			errorNumber = sm->getRoots(tid, p);
+			errorNumber = sm->getRoots(tid, p);			
 		sem->unlock();
-	
+		
+		for (vector<ObjectPointer*>::iterator iter = p->begin();
+	    	     iter != p->end(); iter++ ) 
+		{     
+		    int ret = lm->lock( (*iter)->getLogicalID(), tid, Read);
+		    errorNumber = ret;
+		}
+			
 		return errorNumber;
 	}
 
 	int Transaction::getRoots(string name, vector<ObjectPointer*>* &p)
 	{
 		int errorNumber;
-		// lock ?
 
 		sem->lock_read();
 			errorNumber = sm->getRoots(tid, name, p);
 		sem->unlock();
-	    
+		
+		for (vector<ObjectPointer*>::iterator iter = p->begin();
+	    	     iter != p->end(); iter++ ) 
+		{     
+		    int ret = lm->lock( (*iter)->getLogicalID(), tid, Read);
+		    errorNumber = ret;
+		}
 		return errorNumber;
 	}
 
 	int Transaction::addRoot(ObjectPointer* &p)
 	{
 		int errorNumber;
-		// lock ?
-
+		
 		sem->lock_write();
 			errorNumber = sm->addRoot(tid, p);
+			if (errorNumber == 0)	
+			    errorNumber = lm->lock( p->getLogicalID(), tid, Write);
 		sem->unlock();
-	    
+			    
 		return errorNumber;
 	}
 
 	int Transaction::removeRoot(ObjectPointer* &p)
 	{
 		int errorNumber;
-		// lock ?	
+		
+		errorNumber = lm->lock( p->getLogicalID(), tid, Write);
 		
 		sem->lock_write();		
 			errorNumber = sm->removeRoot(tid, p);		
@@ -145,27 +163,24 @@ namespace TManager
 	/* Data creation */
 	int Transaction::createIntValue(int value, DataValue* &dataVal)
 	{
-		/* temporary interface, error number returnig should be here */
-		sem->lock_write();
-			dataVal = sm->createIntValue(value);
-		sem->unlock();
+		/* temporary interface, error number returnig should be here */		
+		dataVal = sm->createIntValue(value);
+		
 		return 0;
 	}
 
 	int Transaction::createDoubleValue(double value, DataValue* &dataVal)
 	{
-		/* temporary interface, error number returnig should be here */
-		sem->lock_write();
-			dataVal = sm->createDoubleValue(value);
-		sem->unlock();
+		/* temporary interface, error number returnig should be here */		
+		dataVal = sm->createDoubleValue(value);
+		
 		return 0;
 	}
 	int Transaction::createStringValue(string value, DataValue* &dataVal)
 	{
-		/* temporary interface, error number returnig should be here */
-		sem->lock_write();
-			dataVal = sm->createStringValue(value);
-		sem->unlock();
+		/* temporary interface, error number returnig should be here */		
+		dataVal = sm->createStringValue(value);
+		
 		return 0;
 	}
 
