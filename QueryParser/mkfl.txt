@@ -1,0 +1,26 @@
+
+QueryParser: TreeNode.o QueryParser.o Stack.o lex.yy.o parser.tab.o
+	g++ TreeNode.o QueryParser.o lex.yy.o parser.tab.o -o QueryParser
+
+QueryParser.a: TreeNode.o Stack.o QueryParser.o lex.yy.o parser.tab.o
+	ar -ruc QueryParser.a TreeNode.o QueryParser.o lex.yy.o \
+		parser.tab.o
+TreeNode.o: TreeNode.cpp TreeNode.h
+	g++ -c -Wall TreeNode.cpp
+QueryParser.o: QueryParser.cpp TreeNode.h Stack.h QueryParser.h \
+		   QueryParser.h TreeNode.h 
+	g++ -c -Wall QueryParser.cpp
+
+Stack.o: Stack.cpp Stack.h
+	g++ -c -Wall Stack.cpp
+	
+lex.yy.o: lex.yy.cc parser.tab.c TreeNode.h 
+	g++ -c lex.yy.cc
+parser.tab.o: parser.tab.c TreeNode.h
+	g++ -c parser.tab.c
+parser.tab.c: parser.y
+	bison -d -v parser.y
+lex.yy.cc: scanner.l
+	lex -+ scanner.l
+clean:
+	-rm -f *.o *.a *~ sample parser.tab.* lex.yy.* parser.output
