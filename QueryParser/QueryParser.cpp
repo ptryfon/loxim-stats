@@ -56,6 +56,7 @@ namespace QParser {
 
 }
 
+/*
 int main (int argc, char* argv[]) {
 
     string theStr = argv[1];
@@ -74,6 +75,7 @@ int main (int argc, char* argv[]) {
     cout << "skonczylem maina \n";
     return 0;
 }
+*/
 
 
 
