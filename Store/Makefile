@@ -33,6 +33,7 @@ OBJECTS	=	$(SOURCES:.cpp=.o)
 DEPFILES =	$(OBJECTS:.o=.d)
 
 all: $(STATIC_LIB)
+test: $(PROGRAM)
 
 $(PROGRAM): $(STATIC_LIB)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $@.cpp $< ../TransactionManager/TransactionManager.a ../Lock/Lock.a ../Errors/Errors.a ../Log/Logs.a -o $@
