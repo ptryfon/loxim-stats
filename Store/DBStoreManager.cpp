@@ -3,6 +3,8 @@
 #include "DBDataValue.h"
 #include <cstdlib>
 
+#include "../Log/Logs.h"
+
 namespace Store
 {
 	DBStoreManager::DBStoreManager()
@@ -108,6 +110,8 @@ namespace Store
 		
 		misc->vect.push_back(object);
 		
+		if (log != NULL)
+			log->write(tid, lid, NULL, value, timer);
 		cout << "Store::Manager::createObject done: " + object->toString() + "\n";
 		return 0;
 	};

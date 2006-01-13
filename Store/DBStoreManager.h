@@ -26,6 +26,7 @@ namespace Store
 		Buffer* buffer;
 		Map* map;
 		Roots* roots;
+		unsigned timer;
 
 	public:
 		DBStoreManager();
