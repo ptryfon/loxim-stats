@@ -55,6 +55,8 @@ using namespace TManager;
 
 namespace Store
 {
+	typedef struct Serialized Serialized;
+	
 	class PhysicalID
 	{
 	public:
@@ -75,6 +77,7 @@ namespace Store
 		virtual void toByteArray(unsigned char** lid, int* length) = 0;
 		virtual string toString() const = 0;
 		virtual unsigned int toInteger() const = 0;
+		virtual Serialized serialize() const = 0;
 
 		// Operators
 		virtual bool operator==(LogicalID& lid) = 0;
@@ -90,6 +93,7 @@ namespace Store
 		virtual void toByteArray(unsigned char** buff, int* length) = 0;
 		virtual void toFullByteArray(unsigned char** buff, int* length) = 0;
 		virtual string toString() = 0;
+		virtual Serialized serialize() const = 0;
 
 		// Specific type accessors
 		virtual int getInt() = 0;
@@ -114,12 +118,13 @@ namespace Store
 	{
 	public:
 		// Class functions
-		virtual LogicalID* getLogicalID() = 0;
-		virtual string getName() = 0;
-		virtual AccessMode getMode() = 0;
-		virtual DataValue* getValue() = 0;
+		virtual LogicalID* getLogicalID() const = 0;
+		virtual string getName() const = 0;
+		virtual AccessMode getMode() const = 0;
+		virtual DataValue* getValue() const = 0;
 		virtual void setValue(DataValue* val) = 0;
 		virtual string toString() = 0;
+		virtual Serialized serialize() const = 0;
 
 		// Operators
 		virtual bool operator==(ObjectPointer& dv) = 0;
@@ -159,14 +164,34 @@ namespace Store
 		virtual ~StoreManager() {};
 	};
 	
-	class Misc
+	typedef struct Serialized
 	{
-	public:
-		Misc(){lastlid = 0;};
-	   vector <ObjectPointer*> vect;
-		vector <ObjectPointer*> roots;
-		int lastlid;
-	};
+		Serialized();
+		Serialized(int size);
+		Serialized(const Serialized&);
+		Serialized& operator=(const Serialized&);
+		virtual ~Serialized();
+		Serialized& operator+=(const Serialized&);
+		Serialized& operator+=(const int&);
+		Serialized& operator+=(const double&);
+		Serialized& operator+=(const string&);		
+		template <typename T> Serialized& operator+=(const T&);
+		
+		unsigned char* bytes;
+		int size;
+	private:
+		int realsize;
+		template <typename T> Serialized p_baseTypeSerialize(const T&);
+	} Serialized;
+	
+	//class Misc
+	//{
+	//public:
+	//	Misc(){lastlid = 0;};
+	//   vector <ObjectPointer*> vect;
+	//	vector <ObjectPointer*> roots;
+	//	int lastlid;
+	//};
 	
 };
 

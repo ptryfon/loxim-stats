@@ -33,22 +33,22 @@ namespace Store
 //		cout << "object destroyd\n";
 	};
 	
-	LogicalID* DBObjectPointer::getLogicalID()
+	LogicalID* DBObjectPointer::getLogicalID() const
 	{
 		return this->lid;
 	};
 
-	string DBObjectPointer::getName()
+	string DBObjectPointer::getName() const
 	{
 		return this->name;
 	};
 
-	AccessMode DBObjectPointer::getMode()
+	AccessMode DBObjectPointer::getMode() const
 	{
 		return this->mode;
 	};
 
-	DataValue* DBObjectPointer::getValue()
+	DataValue* DBObjectPointer::getValue() const
 	{
 		return this->value;
 	};
@@ -68,9 +68,24 @@ namespace Store
 				this->getValue()->toString() : "NoValue") + ">";
 	};
 
+	Serialized DBObjectPointer::serialize() const
+	{
+		Serialized s;
+		//LogicalID
+		s += *(getLogicalID());
+		//Random
+		s += static_cast<int>((rand()%0x100) << 24 +
+			(rand()%0x100) << 16 + (rand()%0x100) << 8 + (rand()%0x100));
+		//Name
+		s += getName();
+		//Value
+		s += *(getValue());
+		
+		return Serialized();
+	};
+
 	bool DBObjectPointer::operator==(ObjectPointer& dv)
 	{
 		return false;
 	};
 }
-

@@ -15,12 +15,13 @@ namespace Store
 		DBObjectPointer(string name, DataValue*, LogicalID*);
 		~DBObjectPointer();
 
-		virtual LogicalID* getLogicalID();
-		virtual string getName();
-		virtual AccessMode getMode();
-		virtual DataValue* getValue();
+		virtual LogicalID* getLogicalID() const;
+		virtual string getName() const;
+		virtual AccessMode getMode() const;
+		virtual DataValue* getValue() const;
 		virtual void setValue(DataValue* val);
 		virtual string toString();
+		virtual Serialized serialize() const;
 
 		virtual bool operator==(ObjectPointer& dv);
 	

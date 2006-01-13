@@ -11,6 +11,8 @@ namespace Store
 #include "Map.h"
 #include "Roots.h"
 #include "DBObjectPointer.h"
+#include "PageManager.h"
+#include "Misc.h"
 
 using namespace std;
 using namespace Config;
@@ -45,6 +47,7 @@ namespace Store
 
 		virtual int getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object);
 		virtual int createObject(TransactionID* tid, string name, DataValue* value, ObjectPointer*& object);
+		virtual int createObjectEx(TransactionID* tid, string name, DataValue* value, ObjectPointer*& object);
 		virtual int deleteObject(TransactionID* tid, ObjectPointer* object);
 
 		virtual int getRoots(TransactionID* tid, vector<ObjectPointer*>*& roots);

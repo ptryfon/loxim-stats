@@ -18,10 +18,10 @@ namespace Store
 	class PageManager
 	{
 	public:
-		static int binarizeSize(ObjectPointer *obj);
-		static int binarize(ObjectPointer *obj, BinaryObject*& binobj);
-		static int writeNewHeader(PagePointer *ptr, page_header hdr);
-		static int insertObject(PagePointer *ptr, BinaryObject* obj);
+//		static int binarizeSize(ObjectPointer *obj);
+//		static int binarize(ObjectPointer *obj, BinaryObject*& binobj);
+		static int writeNewHeader(PagePointer *ptr);
+		static int insertObject(PagePointer *ptr, Serialized& obj);
 		static int unbinarize(unsigned char *binobj, ObjectPointer*& newobj);
 	};
 

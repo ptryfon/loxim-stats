@@ -10,7 +10,8 @@ SOURCES	=	Buffer.cpp \
 		Map.cpp \
 		Roots.cpp \
 		PagePointer.cpp \
-		PageManager.cpp
+		PageManager.cpp \
+		Misc.cpp
 
 HEADERS	=	Buffer.h \
 		DBDataValue.h \
@@ -24,6 +25,7 @@ HEADERS	=	Buffer.h \
 		PagePointer.h \
 		PageManager.h \
 		Store.h \
+		Misc.h \
 		Struct.h
 
 STATIC_LIB =	Store.a

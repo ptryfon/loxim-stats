@@ -12,7 +12,7 @@ using namespace std;
 
 namespace Store
 {
-
+/*
 	BinaryObject::BinaryObject(int psize)
 	{
 		bytes = new unsigned char[psize];
@@ -71,36 +71,36 @@ namespace Store
 	
 		return 0;
 	}
-	
-	int PageManager::writeNewHeader(PagePointer *pPtr, page_header hdr)
+*/	
+	int PageManager::writeNewHeader(PagePointer *pPtr)
 	{
 		page_data *page = reinterpret_cast<page_data*>(pPtr->getPage());
 		
-		page->header.file_id = hdr.file_id;
-		page->header.page_id = hdr.page_id;
-		page->header.page_type = hdr.page_type;
-		page->header.timestamp = hdr.timestamp;
+		page->header.file_id = pPtr->getFileID();
+		page->header.page_id = pPtr->getPageID();
+		page->header.page_type = 0;
+		page->header.timestamp = 0;
 		page->object_count = 0;
 		page->free_space = STORE_PAGESIZE - sizeof(page_header);
 		
 		return 0;
 	}
 	
-	int PageManager::insertObject(PagePointer *pPtr, BinaryObject *obj)
+	int PageManager::insertObject(PagePointer *pPtr, Serialized& obj)
 	{
 		page_data *page = reinterpret_cast<page_data*>(pPtr->getPage());
 		
-		if(page->free_space < static_cast<int>(obj->size + sizeof(int))){
+		if(page->free_space < static_cast<int>(obj.size + sizeof(int))){
 			cout << "Store::PageManager::insertObject not enough free space on page\n";
 			return -1;
 		}
 		int lastoffset = page->object_count > 0 ?
 			page->object_offset[page->object_count-1] : STORE_PAGESIZE;
-		page->free_space -= obj->size + sizeof(int);
-		int newoffset = lastoffset - obj->size - sizeof(int);
+		page->free_space -= obj.size + sizeof(int);
+		int newoffset = lastoffset - obj.size - sizeof(int);
 		page->object_offset[page->object_count] = newoffset;
-		for(int i=0; i<obj->size; i++)
-			page->bytes[newoffset+i] = obj->bytes[i];
+		for(int i=0; i<obj.size; i++)
+			page->bytes[newoffset+i] = obj.bytes[i];
 		page->object_count++;
 
 		return 0;

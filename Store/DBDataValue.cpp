@@ -46,8 +46,8 @@ namespace Store
 	{
 		return type;
 	};
-
-	int DBDataValue::fullBinarySize()
+/*
+	int DBDataValue::fullBinarySize() const
 	{
 		int size = sizeof(int);
 		switch(type) {
@@ -126,7 +126,7 @@ namespace Store
 		};
 		
 	};
-
+*/
 	string DBDataValue::toString()
 	{
 		ostringstream str;
@@ -141,6 +141,28 @@ namespace Store
 				str << "ptr_or_vect"; break;
 		}
 		return str.str();
+	};
+
+	Serialized DBDataValue::serialize() const
+	{
+		Serialized s;
+		s += static_cast<int>(type);
+
+		switch(type) {
+			case Store::Integer: s += *value.int_value; break;
+			case Store::Double:  s += *value.double_value; break;
+			case Store::String:  s += *value.string_value; break;
+			case Store::Pointer: s += *value.pointer_value; break;
+			case Store::Vector: {
+				vector<ObjectPointer*>::iterator obj_iter;
+				for(obj_iter = value.vector_value->begin();
+					obj_iter != value.vector_value->end(); obj_iter++)
+					s += *((*obj_iter)->getLogicalID());
+				} break;
+			default:
+				break;
+		}
+		return s;
 	};
 
 	int DBDataValue::getInt()
@@ -265,4 +287,3 @@ namespace Store
 		//could clear all fields bu this is an union (4bytes?)
 	}
 }
-

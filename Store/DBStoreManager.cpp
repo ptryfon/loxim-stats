@@ -1,7 +1,7 @@
 #include <iostream>
+#include <cstdlib>
 #include "DBStoreManager.h"
 #include "DBDataValue.h"
-#include <cstdlib>
 
 namespace Store
 {
@@ -157,28 +157,20 @@ namespace Store
 //		
 //		object = new DBObjectPointer(name, value, lid);
 //
-//		// BINARIZE OBJECT
-//		BinaryObject* binaryObject;
-//		PageManager::binarize(object, binaryObject);
-//		// END BINARIZE
+//		Serialized sObj = object->serialize();
 //
 //		int lastas = map->getLastAssigned();
 //		map->setLastAssigned(++lastas);
-//		PagePointer pPtr = buffer->getPagePointer(STORE_FILE_ROOTS, lastas);
+//		PagePointer *pPtr = buffer->getPagePointer(STORE_FILE_ROOTS, lastas);
 //
-//		pPtr->acquire();
+//		pPtr->aquire();
 //
 //		// DOSTAJE +NOWA PUSTA+ STRONE, wiec BEGIN SETHEADERS
-//		page_header hdr;
-//		hdr.page_id = pPtr->getPageID();
-//		hdr.file_id = pPtr->getFileID();
-//		hdr.page_type = NULL;
-//		hdr.timestamp = NULL;
-//		PageManager::writeHeader(pPtr, hdr);
+//		PageManager::writeNewHeader(pPtr);
 //		// END SETHEADERS
 //
 //		// COPY OBJECT to PAGE
-//		PageManager::insertObject(pPtr, binaryObject);
+//		PageManager::insertObject(pPtr, sObj);
 //		
 //		pPtr->release();
 //		

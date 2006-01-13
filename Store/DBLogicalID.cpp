@@ -30,6 +30,13 @@ namespace Store
 		return static_cast<unsigned int>(value);
 	};
 
+	Serialized DBLogicalID::serialize() const
+	{
+		Serialized s(sizeof(unsigned int));
+		*(reinterpret_cast<unsigned int*>(s.bytes)) = value;
+		return s;
+	};
+
 	bool DBLogicalID::operator==(LogicalID& lid)
 	{
 		return (this->toInteger() == lid.toInteger());

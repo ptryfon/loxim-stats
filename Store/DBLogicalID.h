@@ -18,6 +18,7 @@ namespace Store
 		virtual void toByteArray(unsigned char** lid, int* length);
 		virtual string toString() const;
 		virtual unsigned int toInteger() const;
+		virtual Serialized serialize() const;
 
 		virtual bool operator==(LogicalID& lid);
 		virtual DBLogicalID& operator=(const LogicalID& lid);
