@@ -32,10 +32,10 @@ PROGRAM =	TestStore
 OBJECTS	=	$(SOURCES:.cpp=.o)
 DEPFILES =	$(OBJECTS:.o=.d)
 
-all: $(STATIC_LIB) $(PROGRAM)
+all: $(STATIC_LIB)
 
 $(PROGRAM): $(STATIC_LIB)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $@.cpp $< -o $@
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $@.cpp $< ../TransactionManager/TransactionManager.a ../Lock/Lock.a ../Errors/Errors.a ../Log/Logs.a -o $@
 
 clean:
 	rm -f $(OBJECTS) $(DEPFILES) $(STATIC_LIB) $(PROGRAM)
