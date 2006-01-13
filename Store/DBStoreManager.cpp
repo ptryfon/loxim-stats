@@ -3,8 +3,6 @@
 #include "DBDataValue.h"
 #include <cstdlib>
 
-#include "../Log/Logs.h"
-
 namespace Store
 {
 	DBStoreManager::DBStoreManager()
@@ -100,6 +98,34 @@ namespace Store
 		return 0;
 	};
 
+//	int DBStoreManager::getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object)
+///	{
+///	    cout << "Store::Manager::getObject started..\n";
+//	    
+//	    unsigned int logid = lid->toInteger();
+//	    physical_id *p_id;
+//	    PagePointer *page;
+//	    
+//	    map->getPhysicalID(logid, &p_id);
+//	    page = buffer->getPagePointer(p_id->file_id, p_id->page_id);
+//	    page->aquire();
+//	    buf = page->getPage();
+//	    
+	    // offset do poczatku tablicy
+	    // zrzutowac na page_data
+	    // tablica object_offset[i], gdzie i==p_id->offset
+	    // metoda z PageManager, ktora stworzy obiekt
+//	    int offset = sizeof(struct data_header);
+//	    char[sizeof(int)] object_start;
+//	    offset = offset + p_id->offset;
+//	    memcpy(object_start, offset, sizeof(int));
+//	    offset = atoi(object_start);
+//	
+	    
+//	    cout << "Store::Manager::getObject done: " + object->toString();
+//	    return 0;	
+//	};
+	
 	int DBStoreManager::createObject(TransactionID* tid, string name, DataValue* value, ObjectPointer*& object)
 	{
 		cout << "Store::Manager::createObject start..\n";
@@ -110,8 +136,6 @@ namespace Store
 		
 		misc->vect.push_back(object);
 		
-		if (log != NULL)
-			log->write(tid, lid, NULL, value, timer);
 		cout << "Store::Manager::createObject done: " + object->toString() + "\n";
 		return 0;
 	};
@@ -139,24 +163,28 @@ namespace Store
 //		PageManager::binarize(object, &binaryObject);
 //		// END BINARIZE
 //
-//		int lastas = map->getLastAssigned();
-//		map->setLastAssigned(++lastas);
-//		PagePointer pPtr = buffer->getPagePointer(STORE_FILE_ROOTS, lastas);
+//	?	rval = map->locateNewSpace(size);
+//	?	map->setPhisicalID(lid, rval);
+//	?	PagePointer pPtr = buffer->getpagePointer(rval);
 //
-//		pPtr->acquire();
+//		//pPtr->acquire();
 //
-//		// DOSTAJE +NOWA PUSTA+ STRONE, wiec BEGIN SETHEADERS
-//		PageManager::writeNewHeader(pPtr);
-//		// END SETHEADERS
-//
-//		// COPY OBJECT to PAGE
-//		PageManager::putObject(pPtr, binaryObject);
-//		
-//		pPtr->release();
-//		
-//		cout << "Store::Manager::createObject done: " + object->toString() + "\n";
-//		return 0;
-//	};
+/*		// BEGIN SETHEADERS
+		//PageManager::writeObjectOntoPage(pPtr, binaryObject);
+		// END SETHEADERS
+
+		// COPY OBJECT to PAGE
+		copy(binaryObject onto pPtr->page);
+		
+		pPtr->release();
+		
+		
+		//misc->vect.push_back(object);
+		
+		cout << "Store::Manager::createObject done: " + object->toString() + "\n";
+		return 0;
+	};
+*/
 
 	int DBStoreManager::deleteObject(TransactionID* tid, ObjectPointer* object)
 	{
@@ -171,13 +199,8 @@ namespace Store
 		//(roots)->push_back(new DBObjectPointer());
 		//(roots)->push_back(new DBObjectPointer());
 
-		//roots = &(misc->roots);
-		roots = new vector<ObjectPointer*>(0);
+		roots = &(misc->roots);
 
-		for(unsigned int i=0; i<misc->vect.size(); i++){
-			roots->push_back(misc->vect[i]);
-		}
-		
 		cout << "Store::Manager::getRoots(ALL) done\n";
 		return 0;
 	};
