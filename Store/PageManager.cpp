@@ -55,34 +55,6 @@ namespace Store
 	
 		return 0;
 	}
-
-/*		
-		// BINARIZE OBJECT
-		
-		//pageOperator->binarize(..);
-		
-				
-		// END BINARIZE
-
-		pPtr->acquire();
-
-		// BEGIN SETHEADERS
-		
-		//pageOperator->setHeaders(...);
-		
-		// END SETHEADERS
-
-		// COPY OBJECT to PAGE
-		copy(binaryObject onto pPtr->page);
-		
-		pPtr->release();
-		
-		object = new DBObjectPointer(name, value, lid);
-		
-		//misc->vect.push_back(object);
-		
-		cout << "Store::Manager::createObject done: " + object->toString() + "\n";
-		return 0;
-	};
-*/
+	
+	
 }
