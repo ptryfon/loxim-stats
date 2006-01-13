@@ -322,8 +322,10 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 						int resultType = nextResult->type();
 						if (resultType == QueryResult::QREFERENCE)
 							{
+							fprintf(stderr, "[QE] Dereferencing %d result\n", i);
 							if ((errcode = tr->getObjectPointer(((QueryReferenceResult *)nextResult)->getValue(), Store::Read, optr)) != 0)
 								{
+								fprintf(stderr, "[QE] Error in getObjectPointer\n");
 								return errcode;
 								}
 					
@@ -335,21 +337,33 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 							    {
 							    case Store::Integer: // it's an integer
 								{
+								fprintf(stderr, "[QE] ObjectValue = Int\n");
 								QueryIntResult *tmpResult;
+								tmpResult = new QueryIntResult;
 								tmpResult->setValue(value->getInt());
 			    					((QueryBagResult *)(*result))->addResult(tmpResult);
+								fprintf(stderr, "[QE] Result added\n");
+								break;
 								}
 							    case Store::Double: // it's a double
 								{
+								fprintf(stderr, "[QE] ObjectValue = Double\n");
 								QueryDoubleResult *tmpResult;
+								tmpResult = new QueryDoubleResult;
 								tmpResult->setValue(value->getDouble());
 			    					((QueryBagResult *)(*result))->addResult(tmpResult);
+								fprintf(stderr, "[QE] Result added\n");
+								break;
 	   							}
 							    case Store::String: // it's a string
 								{
+								fprintf(stderr, "[QE] ObjectValue = String\n");
 								QueryStringResult *tmpResult;
+								tmpResult = new QueryStringResult;
 								tmpResult->setValue(value->getString());
 			    					((QueryBagResult *)(*result))->addResult(tmpResult);
+								fprintf(stderr, "[QE] Result added\n");
+								break;
 								}
 							    default:
 								{
@@ -357,15 +371,16 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 								return -1;
 								}
 							    } //switch
-	
 							}
 						else 
 							{
-							fprintf(stderr, "[QE] Error - the bag result must consist of logical ids\n");
+							fprintf(stderr, "[QE] Error - the bag result must consist of QREFERENCE\n");
 							return -1;
 							}
-						}
-					}
+						} //for
+					fprintf(stderr, "[QE] Done!\n");
+					return 0;
+					} //case deref
 				else 
 	
 					{
