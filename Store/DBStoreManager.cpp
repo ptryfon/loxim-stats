@@ -135,28 +135,24 @@ namespace Store
 //		PageManager::binarize(object, &binaryObject);
 //		// END BINARIZE
 //
-//	?	rval = map->locateNewSpace(size);
-//	?	map->setPhisicalID(lid, rval);
-//	?	PagePointer pPtr = buffer->getpagePointer(rval);
+//		int lastas = map->getLastAssigned();
+//		map->setLastAssigned(++lastas);
+//		PagePointer pPtr = buffer->getPagePointer(STORE_FILE_ROOTS, lastas);
 //
-//		//pPtr->acquire();
+//		pPtr->acquire();
 //
-/*		// BEGIN SETHEADERS
-		//PageManager::writeObjectOntoPage(pPtr, binaryObject);
-		// END SETHEADERS
-
-		// COPY OBJECT to PAGE
-		copy(binaryObject onto pPtr->page);
-		
-		pPtr->release();
-		
-		
-		//misc->vect.push_back(object);
-		
-		cout << "Store::Manager::createObject done: " + object->toString() + "\n";
-		return 0;
-	};
-*/
+//		// DOSTAJE +NOWA PUSTA+ STRONE, wiec BEGIN SETHEADERS
+//		PageManager::writeNewHeader(pPtr);
+//		// END SETHEADERS
+//
+//		// COPY OBJECT to PAGE
+//		PageManager::putObject(pPtr, binaryObject);
+//		
+//		pPtr->release();
+//		
+//		cout << "Store::Manager::createObject done: " + object->toString() + "\n";
+//		return 0;
+//	};
 
 	int DBStoreManager::deleteObject(TransactionID* tid, ObjectPointer* object)
 	{
@@ -171,8 +167,13 @@ namespace Store
 		//(roots)->push_back(new DBObjectPointer());
 		//(roots)->push_back(new DBObjectPointer());
 
-		roots = &(misc->roots);
+		//roots = &(misc->roots);
+		roots = new vector<ObjectPointer*>(0);
 
+		for(unsigned int i=0; i<misc->vect.size(); i++){
+			roots->push_back(misc->vect[i]);
+		}
+		
 		cout << "Store::Manager::getRoots(ALL) done\n";
 		return 0;
 	};

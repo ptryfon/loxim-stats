@@ -65,6 +65,7 @@ namespace Store
 
 	void DBDataValue::toByteArray(unsigned char** buff, int* length)
 	{
+		return toFullByteArray(buff, length);
 	};
 
 	void DBDataValue::toFullByteArray(unsigned char** buff, int* length)
