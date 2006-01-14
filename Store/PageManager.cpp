@@ -106,7 +106,7 @@ namespace Store
 		return 0;
 	}
 	
-	int PageManager::unbinarize(unsigned char *binobj, ObjectPointer*& newobj)
+	int PageManager::deserialize(PagePointer *ptr, int objindex, ObjectPointer*& newobj)
 	{
 	
 		return 0;

@@ -22,7 +22,7 @@ namespace Store
 //		static int binarize(ObjectPointer *obj, BinaryObject*& binobj);
 		static int writeNewHeader(PagePointer *ptr);
 		static int insertObject(PagePointer *ptr, Serialized& obj);
-		static int unbinarize(unsigned char *binobj, ObjectPointer*& newobj);
+		static int deserialize(PagePointer *ptr, int objindex, ObjectPointer*& newobj);
 	};
 
 };

@@ -99,31 +99,26 @@ namespace Store
 	};
 
 //	int DBStoreManager::getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object)
-///	{
-///	    cout << "Store::Manager::getObject started..\n";
-//	    
-//	    unsigned int logid = lid->toInteger();
-//	    physical_id *p_id;
-//	    PagePointer *page;
-//	    
-//	    map->getPhysicalID(logid, &p_id);
-//	    page = buffer->getPagePointer(p_id->file_id, p_id->page_id);
-//	    page->aquire();
-//	    buf = page->getPage();
-//	    
-	    // offset do poczatku tablicy
-	    // zrzutowac na page_data
-	    // tablica object_offset[i], gdzie i==p_id->offset
-	    // metoda z PageManager, ktora stworzy obiekt
-//	    int offset = sizeof(struct data_header);
-//	    char[sizeof(int)] object_start;
-//	    offset = offset + p_id->offset;
-//	    memcpy(object_start, offset, sizeof(int));
-//	    offset = atoi(object_start);
-//	
-	    
-//	    cout << "Store::Manager::getObject done: " + object->toString();
-//	    return 0;	
+//	{
+//		cout << "Store::Manager::getObject started..\n";
+//		
+//		physical_id *p_id;
+//		map->getPhysicalID(lid->toInteger(), &p_id);
+//		PagePointer *pPtr = buffer->getPagePointer(p_id->file_id, p_id->page_id);
+//		
+//		pPtr->aquire();
+//		
+//		page_data = reinterpret_cast<page_data*>(pPtr->getPage());
+//		int rval = PageManager::deserializeObjectPointer(pPtr, object);
+//		
+//		pPtr->release();
+//		
+//		if(rval) {
+//			cout << "Store::Manager::getObject failed\n";
+//			return -1;
+//		}
+//		cout << "Store::Manager::getObject done: " + object->toString();
+//		return 0;	
 //	};
 	
 	int DBStoreManager::createObject(TransactionID* tid, string name, DataValue* value, ObjectPointer*& object)
