@@ -64,7 +64,7 @@ namespace Logs
     /**
      * Zapisuje do dziennika <ABORT tid>.
      */
-    int rollbackTransaction( TransactionID *tid, unsigned &id );
+    int rollbackTransaction( TransactionID *tid, StoreManager *sm, unsigned &id );
 
     /**
      * Zapisuje do dziennika <SHUTDOWN> ("poprawnie zamknieto baze danych").

@@ -97,7 +97,7 @@ int LogManager::commitTransaction( TransactionID *tid, unsigned &id )
   return err;
 }
 
-int LogManager::rollbackTransaction( TransactionID *tid, unsigned &id )
+int LogManager::rollbackTransaction( TransactionID *tid, StoreManager *sm, unsigned &id )
 {
   LogRecord *record = new RollbackRecord( tid );
   logThread->push( record );

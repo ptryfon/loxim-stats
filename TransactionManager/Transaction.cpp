@@ -219,7 +219,7 @@ namespace TManager
 		unsigned id;
 	    
 		err << "Transaction: abort\n";
-		errorNumber = logm->rollbackTransaction(tid, id);  //need to process error
+		errorNumber = logm->rollbackTransaction(tid, sm, id);  //need to process error
 		return tm->abort(this);
 	}
 
