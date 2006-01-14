@@ -47,7 +47,7 @@ namespace Store
 
 		virtual int getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object);
 		virtual int createObject(TransactionID* tid, string name, DataValue* value, ObjectPointer*& object);
-		virtual int createObjectEx(TransactionID* tid, string name, DataValue* value, ObjectPointer*& object);
+		//virtual int createObjectEx(TransactionID* tid, string name, DataValue* value, ObjectPointer*& object);
 		virtual int deleteObject(TransactionID* tid, ObjectPointer* object);
 
 		virtual int getRoots(TransactionID* tid, vector<ObjectPointer*>*& roots);

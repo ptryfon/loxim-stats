@@ -174,7 +174,9 @@ namespace Store
 		Serialized& operator+=(const Serialized&);
 		Serialized& operator+=(const int&);
 		Serialized& operator+=(const double&);
-		Serialized& operator+=(const string&);		
+		Serialized& operator+=(const string&);
+		Serialized& operator+=(const LogicalID&);
+		Serialized& operator+=(const DataValue&);
 		template <typename T> Serialized& operator+=(const T&);
 		
 		unsigned char* bytes;

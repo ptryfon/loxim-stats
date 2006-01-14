@@ -46,7 +46,7 @@ namespace Store
 	{
 		return type;
 	};
-/*
+
 	int DBDataValue::fullBinarySize() const
 	{
 		int size = sizeof(int);
@@ -126,7 +126,7 @@ namespace Store
 		};
 		
 	};
-*/
+
 	string DBDataValue::toString()
 	{
 		ostringstream str;

@@ -72,9 +72,19 @@ namespace Store
 		return ((*this) += z);
 	}
 
+	Serialized& Serialized::operator+=(const LogicalID& s)
+	{
+		return ((*this) += s.serialize());
+	}
+
+	Serialized& Serialized::operator+=(const DataValue& s)
+	{
+		return ((*this) += s.serialize());
+	}
+
 	template <typename T> Serialized& Serialized::operator+=(const T& s)
 	{
-		return ((*this) += T::serialize());
+		return ((*this) += s.serialize());
 	}
 
 	template <typename T> Serialized Serialized::p_baseTypeSerialize(const T& s)
