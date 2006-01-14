@@ -2,11 +2,13 @@ include ../make.defs
 
 SOURCES	=	QueryParser.cpp \
 		TreeNode.cpp \
+		DataRead.cpp \
 		parser.tab.cpp \
 		lex.yy.cpp
 
 HEADERS	=	QueryParser.h \
 		TreeNode.h \
+		DataRead.h \
 		parser.tab.h
 
 STATIC_LIB =	QueryParser.a
