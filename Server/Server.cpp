@@ -20,6 +20,7 @@
 #include "../Store/DBLogicalID.h"
 #include "Server.h"
 #include "../Driver/Result.h"
+#include "../Errors/Errors.h"
 
 typedef char TREE_NODE_TYPE;
 
@@ -97,6 +98,7 @@ int  Server::Serialize(QueryResult *qr, char **buffer, char **bufStart)
 			bufBagLen=htonl(bufBagLen);
 			if (qr->collection() != true) {
 				printf("[Server.Serialize]-->QueryResult shows type of BAG and says it is no collection\n");
+				//return ErrServer+EBadResult;
 				return -1;
 			} //TODO errorcode
 			bagRes = (QueryBagResult *)qr;
@@ -133,6 +135,17 @@ int  Server::Serialize(QueryResult *qr, char **buffer, char **bufStart)
 					bufPointer=bufPointer+strVal.length();
 					bufPointer[0]='\0';
 					bufPointer++;
+				}
+				if (resType==Result::INT) {
+				    printf("[Server.Serialize]--> INT type, sending type indicator.. \n");
+				    bufPointer[0]=(char)resType;
+				    bufPointer++;
+				    intRes = (QueryIntResult *)qr;
+				    intVal = intRes->getValue();
+				    printf("[Server.Serialize]--> .. followed by int value (%d) \n", intVal);
+				    intVal=htonl(intVal);
+				    memcpy((void *)bufPointer, (const void *)&intVal, sizeof(intVal));
+				    printf("[Server.Serialize]--> buffer written \n");
 				}
 			}
 			
@@ -206,14 +219,14 @@ int  Server::Serialize(QueryResult *qr, char **buffer, char **bufStart)
 		    printf("[Server.Serialize]--> buffer written \n");
 		    break; 
 		case Result::DOUBLE:
-			printf("[Server.Serialize]--> DOUBLE type, NOT IMLEMENTEND YET!!! \n");
-		    /*bufPointer[0]=(char)resType;
+			//printf("[Server.Serialize]--> DOUBLE type, NOT IMLEMENTEND YET!!! \n");
+		    bufPointer[0]=(char)resType;
 		    bufPointer++;
 		    doubleRes = (QueryDoubleResult *)qr;
 		    doubleVal = doubleRes->getValue();
 		    doubleVal=htonl(doubleVal);
 		    memcpy((void *)bufPointer, (const void *)&doubleVal, sizeof(doubleVal));
-		    */
+		    
 		    break; 
 		case Result::BOOLTRUE:
 			printf("[Server.Serialize]--> BOOLTRUE type, sending type indicator only\n");
