@@ -1,10 +1,18 @@
+
+
+#include <vector>
 #include "TreeNode.h"
 #include "DataRead.h"
 #include "QueryExecutor/QueryResult.h"
 #include "QueryExecutor/QueryExecutor.h"
+#include "Store/Store.h"
+#include "Store/DBStoreManager.h"
+#include "Store/DBObjectPointer.h"
+#include "TransactionManager/Transaction.h"
 
 using namespace std;
 using namespace QExecutor;
+using namespace Store;
 
 namespace QParser {
 
@@ -12,9 +20,45 @@ namespace QParser {
 int DataScheme::readData(){
 
     // ????????????         co zrobic zebym mogl tu wywolac executora i stora?        ??????????
-
-    QueryExecutor * ecec = new QueryExecutor();		// ??????????????????????????
-
+    cout << "-------------------readData START--------------------------------------" << endl;
+    // QueryExecutor * ecec = new QueryExecutor();		// ??????????????????????????
+    vector<ObjectPointer *> * roots;
+/*		nie wiem dlaczego ale to nie dziala
+    StoreManager * sm = new DBStoreManager();
+    sm->getRoots(0, "dupa", roots);
+    cout << "odebral " << roots->size() << " obiektow"<< endl;
+    sm->getRoots(0, roots);
+    cout << "odebral " << roots->size() << " obiektow"<< endl;
+*/
+    
+    Transaction * tr;     
+    if (TransactionManager::getHandle()->createTransaction(tr))
+	cout << "nie udalo sie zrobic tranzakcji" << endl;
+    
+    
+    tr->getRoots("dupa", roots);	
+    cout << "odebral " << roots->size() << " obiektow"<< endl;
+    
+    /* teraz to obrabiam w 2 podejciach, najpierw tworze obiekty, wstawiam do
+	this->baseObjects i this->refTable
+	oraz ustawiam pola rozne od owner i target
+	
+	potem przechodze jeszcze raz i moge ustawic pola owner i target
+    */
+    
+    // a moze  w owner i target zamiast wskaznika dac id - int
+    // moze listy zamienic listami stl'a i refTable hashMapem'
+    
+    //tr->getRoots(roots);	// nie wiem dlaczego ale tto tez nie dziala
+    //cout << "odebral " << roots->size() << " obiektow"<< endl;
+    
+    for (int i = 0; i < roots->size(); i++){
+	
+    }
+    
+    // -----------------------------------------------------------------------
+    // recznie tworze przykladowy schemat
+    
     DataObjectDef * obj1 = new DataObjectDef();
     obj1->setMyId(1);
     obj1->setName("EMP");
@@ -82,7 +126,7 @@ int DataScheme::readData(){
     obj30->addSubObject(getObjById(37));
     obj30->addSubObject(getObjById(38));
 
-
+cout << "-------------------readData END--------------------------------------" << endl;
 }
 
 

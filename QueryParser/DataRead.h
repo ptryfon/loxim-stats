@@ -85,6 +85,7 @@ namespace QParser {
 	DataObjectDef *refTable[100]; /*TODO: czy tak sie deklaruje tablice wskaznikow???*/
 	
 	public:
+		DataScheme(){};
 		int readData();	
 	    	
 		virtual int hashFun (int objId) {return (objId % 100); }
