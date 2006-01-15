@@ -109,7 +109,7 @@ namespace Store
 //		pPtr->aquire();
 //		
 //		page_data = reinterpret_cast<page_data*>(pPtr->getPage());
-//		int rval = PageManager::deserializeObjectPointer(pPtr, object);
+//		int rval = PageManager::deserialize(pPtr, p_id->offset, object);
 //		
 //		pPtr->release();
 //		
