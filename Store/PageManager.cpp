@@ -7,6 +7,9 @@
   do najstarszego
 */
 #include <iostream>
+#include "DBLogicalID.h"
+#include "DBObjectPointer.h"
+#include "DBDataValue.h"
 
 using namespace std;
 
@@ -108,7 +111,33 @@ namespace Store
 	
 	int PageManager::deserialize(PagePointer *ptr, int objindex, ObjectPointer*& newobj)
 	{
-	
+		page_data *p = reinterpret_cast<page_data*>(ptr->getPage());
+		int osize = objindex > 0 ?
+			p->object_offset[objindex-1] - p->object_offset[objindex] :
+			STORE_PAGESIZE - p->object_offset[objindex];
+		unsigned char *startpos =
+			reinterpret_cast<unsigned char*>(p->bytes[p->object_offset[objindex]]);
+		int usedbytes;
+		unsigned char *curpos = startpos;
+
+		DBLogicalID *lid;
+		usedbytes = DBLogicalID::deserialize(curpos, lid);
+		if(usedbytes > 0 ) curpos = curpos + usedbytes; else return -1;
+		
+		int slen = *(reinterpret_cast<int*>(curpos));
+		curpos += sizeof(int);
+		string name;
+		for(int i=0; i<slen; i++)
+			name += *(reinterpret_cast<char*>(curpos++));
+		
+		DBDataValue *value;
+		usedbytes = DBDataValue::deserialize(curpos, value);
+		if(usedbytes > 0 ) curpos = curpos + usedbytes; else return -1;		
+		
+		if(curpos-startpos > osize) return -1;
+		
+		newobj = new DBObjectPointer(name, value, lid);
+		
 		return 0;
 	}
 	

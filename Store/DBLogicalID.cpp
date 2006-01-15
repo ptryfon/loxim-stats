@@ -37,6 +37,12 @@ namespace Store
 		return s;
 	};
 
+	int DBLogicalID::deserialize(unsigned char* bytes, DBLogicalID*& lid)
+	{
+		lid = new DBLogicalID(*(reinterpret_cast<unsigned int*>(bytes)));
+		return sizeof(unsigned int);
+	};
+
 	bool DBLogicalID::operator==(LogicalID& lid)
 	{
 		return (this->toInteger() == lid.toInteger());

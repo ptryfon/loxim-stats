@@ -36,6 +36,7 @@ namespace Store
 		virtual void toFullByteArray(unsigned char** buff, int* length);
 		virtual string toString();
 		virtual Serialized serialize() const;
+		static int deserialize(unsigned char* bytes, DBDataValue*& value);
 
 		virtual int getInt();
 		virtual double getDouble();

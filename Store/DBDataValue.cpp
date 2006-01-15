@@ -165,6 +165,47 @@ namespace Store
 		return s;
 	};
 
+	int DBDataValue::deserialize(unsigned char* bytes, DBDataValue*& value)
+	{
+		unsigned char *curpos = bytes;
+		DataType type = static_cast<DataType>(
+			*(reinterpret_cast<int*>(curpos)) );
+		curpos += sizeof(int);
+		
+		switch(type) {
+			case Store::Integer:
+				value = new DBDataValue(*(reinterpret_cast<int*>(curpos)));
+				return ((bytes-curpos)+sizeof(int));
+				break;
+			case Store::Double:
+				value = new DBDataValue(*(reinterpret_cast<double*>(curpos)));
+				return ((bytes-curpos)+sizeof(double));
+				break;
+			case Store::String: {
+				int slen = *(reinterpret_cast<int*>(curpos));
+				curpos += sizeof(int);
+				string s;
+				for(int i=0; i<slen; i++)
+					s += *(reinterpret_cast<char*>(curpos++));
+				value = new DBDataValue(s);
+				return (bytes-curpos);
+			} break;
+			case Store::Pointer: {
+				DBLogicalID *lid;
+				int ub = DBLogicalID::deserialize(curpos, lid);
+				value = new DBDataValue();
+				value->setPointer(lid);
+				return ((bytes-curpos)+ub);
+			} break;
+			case Store::Vector:
+// NOT IMPLEMENTED
+				break;
+			default:
+				break;
+		}		
+		return -1;
+	};
+
 	int DBDataValue::getInt()
 	{
 		if( type == Store::Integer )

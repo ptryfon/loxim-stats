@@ -19,6 +19,7 @@ namespace Store
 		virtual string toString() const;
 		virtual unsigned int toInteger() const;
 		virtual Serialized serialize() const;
+		static int deserialize(unsigned char* bytes, DBLogicalID*& lid);
 
 		virtual bool operator==(LogicalID& lid);
 		virtual DBLogicalID& operator=(const LogicalID& lid);
