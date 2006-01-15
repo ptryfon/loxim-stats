@@ -5,15 +5,15 @@ SOURCES	=	SBQLConfig.cpp
 HEADERS	=	SBQLConfig.h
 
 STATIC_LIB =	Config.a
-PROGRAM	=	
+PROGRAM	=	conftest
 
 OBJECTS	=	$(SOURCES:.cpp=.o)
-DEPFILES =	$(OBJECTS:.o=.d)
+DEPFILES =	$(OBJECTS:.o=.d) $(PROGRAM).d
 
-all: $(STATIC_LIB)
+all: $(STATIC_LIB) $(PROGRAM)
 
-#$(PROGRAM): $(STATIC_LIB)
-#	$(CXX) $(CXXFLAGS) $(LDFLAGS) $@.cpp $< -o $@
+$(PROGRAM): $(STATIC_LIB)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $@.cpp $< -o $@
 
 clean:
 	rm -f $(OBJECTS) $(DEPFILES) $(STATIC_LIB) $(PROGRAM)

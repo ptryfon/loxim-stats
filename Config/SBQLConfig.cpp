@@ -1,68 +1,339 @@
+#include <limits.h>
+#include <stdlib.h>
+#include <string.h>
+#include <iostream>
+#include "Errors/Errors.h"
 #include "SBQLConfig.h"
 
 using namespace std;
+using namespace Errors;
 
 namespace Config {
-	struct ConfOpt {
-		string name;
-		string value;
-		struct ConfOpt *nextOpt;
-	};
-
-	struct ModuleOptions {
-		string name;
-		struct ConfOpt *options;
-	};
-
-	ifstream* SBQLConfig::configFile = NULL;
 	int SBQLConfig::nObjects = 0;
+	struct ModuleOptions *SBQLConfig::config = NULL;
 
 	SBQLConfig::SBQLConfig(string module)
 	{
 		nObjects++;
+		callerModule = module;
+		callerModuleOpts = findConfigModule(callerModule);
 	};
 
-	int SBQLConfig::init()
+	int SBQLConfig::init(void) {
+		return init("");
+	};
+	
+	int SBQLConfig::init(string file)
 	{
-		if (configFile == NULL)
-			configFile = new ifstream("sbql.conf");
+		ifstream configFile;
+		char *c1, *c2, *n, *v;
+		char line[256];
+		struct ModuleOptions *mod, *lastmod;
+		struct ConfOpt *opt, *lastopt;
 
-//		while () {
-//		}
+		if (file.empty())
+			configFile.open("sbql.conf");
+		else
+			configFile.open(file.c_str());
+
+		if (!configFile.is_open())
+			return ErrConfig | ENoFile;
+		
+		while (!configFile.eof()) {
+			configFile.getline(line, 255);
+			line[255] = '\0';
+			// clear comments (remove everything after and including '#')
+			for (unsigned int i=0; i<strlen(line); i++) {
+				if (line[i] == '#') {
+					line[i] = '\0';
+					break;
+				}
+			}
+			n = line;
+			// remove starting whitespace
+			while ((strlen(n) > 0) && (*n == ' ' || *n == '\t'))
+				n++;
+			// ignore empty lines
+			if (strlen(n) == 0)
+				continue;
+			// remove trailing whitespace
+			v = n + strlen(n) - 1;
+			while (*v == ' ' || *v == '\t') {
+				*v = '\0';
+				v--;
+			}
+			// check for [.*] pattern
+			c1 = strchr(n,'[');
+			if (c1 != NULL) {
+				c1++;
+				// Module name
+				c2 = strchr(c1, ']');
+				if (c2 == NULL) {
+					freeConfig();
+					configFile.close();
+					return ErrConfig | ENotParsed;
+				}
+				*c2 = '\0';
+				mod = config;
+				while (mod != NULL) {
+					if (strcasecmp(mod->name, c1) == 0)
+						break;
+					mod = mod->nextMod;
+				}
+				if (mod == NULL) {
+					mod = (struct ModuleOptions *)malloc(sizeof(struct ModuleOptions));
+					if (mod == NULL) {
+						freeConfig();
+						configFile.close();
+						return ErrConfig | ENOMEM;
+					}
+					mod->name = strdup(c1);
+					mod->options = NULL;
+					mod->nextMod = NULL;
+					if (config == NULL) {
+						config = mod;
+					} else {
+						lastmod->nextMod = mod;
+					}
+					lastmod = mod;
+					lastopt = NULL;
+				} else {
+					lastopt = mod->options;
+					while (lastopt != NULL) {
+						if (lastopt->nextOpt != NULL)
+							lastopt = lastopt->nextOpt;
+						else
+							break;
+					}
+				}
+				continue;
+			}
+			// check for name = value pattern
+			for (unsigned int i=0; i<strlen(n); i++) {
+				if (*(n + i) == ' ' || *(n + i) == '\t' || *(n + i) == '=') {
+					v = n + i + 1;
+					*(n + i) = '\0';
+					break;
+				}
+			}
+			if (strlen(n) == 0) {
+				freeConfig();
+				configFile.close();
+				return ErrConfig | ENotParsed;
+			}
+			while ((strlen(v) > 0) && (*v == ' ' || *v == '\t' || *v == '='))
+				v++;
+			if (strlen(v) == 0 || config == NULL) {
+				freeConfig();
+				configFile.close();
+				return ErrConfig | ENotParsed;
+			}
+			opt = mod->options;
+			while (opt != NULL) {
+				if (strcasecmp(opt->name, n) == 0)
+					break;
+				opt = opt->nextOpt;
+			}
+			if (opt == NULL) {
+				opt = (struct ConfOpt *)malloc(sizeof(struct ConfOpt));
+				if (opt == NULL) {
+					freeConfig();
+					configFile.close();
+					return ErrConfig | ENOMEM;
+				}
+				opt->name = strdup(n);
+				opt->nextOpt = NULL;
+				if (lastopt == NULL)
+					mod->options = opt;
+				else
+					lastopt->nextOpt = opt;
+				lastopt = opt;
+			}
+			opt->value = strdup(v);
+		}
+
+		configFile.close();
 
 		return 0;
 	};
 
-	int SBQLConfig::getBool(string param, int& value)
+	struct ModuleOptions *SBQLConfig::findConfigModule(string module)
 	{
-		value = 1;
+		struct ModuleOptions *mod;
+
+		if (config != NULL) {
+			mod = config;
+			while (mod != NULL) {
+				if (strcasecmp(mod->name, module.c_str()) == 0) {
+					return mod;
+				}
+				mod = mod->nextMod;
+			}
+		}
+		return NULL;
+	};
+
+	struct ConfOpt *SBQLConfig::findConfigOption(string option)
+	{
+		struct ConfOpt *opt;
+
+		if (callerModuleOpts == NULL)
+			callerModuleOpts = findConfigModule(callerModule);
+
+		if (callerModuleOpts == NULL)
+			return NULL;
+
+		opt = callerModuleOpts->options;
+		while (opt != NULL) {
+			if (strcasecmp(opt->name, option.c_str()) == 0) {
+				return opt;
+			}
+			opt = opt->nextOpt;
+		}
+		return NULL;
+	};
+
+	void SBQLConfig::dumpConfig(void)
+	{
+		struct ModuleOptions *mod;
+		struct ConfOpt *opt;
+
+		mod = config;		
+		while (mod != NULL) {
+			cout << "[" << mod->name << "]" << endl;
+			opt = mod->options;
+			while (opt != NULL) {
+				cout << opt->name << " = " << opt->value << endl;
+				opt = opt->nextOpt;
+			}
+			cout << endl;
+			mod = mod->nextMod;
+		}
+	};
+
+	void SBQLConfig::freeConfig(void)
+	{
+		struct ModuleOptions *mod, *pmod;
+		struct ConfOpt *opt, *popt;
+
+		mod = config;		
+		while (mod != NULL) {
+			opt = mod->options;
+			while (opt != NULL) {
+				popt = opt;
+				opt = opt->nextOpt;
+				free(popt);
+			}
+			pmod = mod;
+			mod = mod->nextMod;
+			free(pmod);
+		}
+		config = NULL;
+	};
+
+	int SBQLConfig::getBool(string param, bool& value)
+	{
+		struct ConfOpt *opt;
+
+		if (config == NULL)
+			return ErrConfig | ENotInit;
+
+		opt = findConfigOption(param);
+		if (opt == NULL)
+			return ErrConfig | ENoValue;
+
+		if ((strcasecmp(opt->value, "yes") == 0) ||
+				(strcasecmp(opt->value, "1") == 0) ||
+				(strcasecmp(opt->value, "on") == 0) ||
+				(strcasecmp(opt->value, "true") == 0)) {
+			value = true;
+		} else {
+			if ((strcasecmp(opt->value, "no") == 0) || 
+					(strcasecmp(opt->value, "0") == 0) ||
+					(strcasecmp(opt->value, "off") == 0) ||
+					(strcasecmp(opt->value, "false") == 0)) {
+				value = false;
+			} else {
+				return ErrConfig | EBadValue;
+			}
+		}
+
 		return 0;
 	};
 	
 	int SBQLConfig::getInt(string param, int& value)
 	{
-		value = 666;
+		struct ConfOpt *opt;
+
+		if (config == NULL)
+			return ErrConfig | ENotInit;
+
+		opt = findConfigOption(param);
+		if (opt == NULL)
+			return ErrConfig | ENoValue;
+
+		value = strtol(opt->value, NULL, 10);
+		if (errno == ERANGE || errno == EINVAL)
+			return ErrConfig || EBadValue;
+
 		return 0;
 	};
-	
+
+	int SBQLConfig::getLong(string param, long long& value)
+	{
+		struct ConfOpt *opt;
+
+		if (config == NULL)
+			return ErrConfig | ENotInit;
+
+		opt = findConfigOption(param);
+		if (opt == NULL)
+			return ErrConfig | ENoValue;
+
+		value = strtoll(opt->value, NULL, 10);
+		if (errno == ERANGE || errno == EINVAL)
+			return ErrConfig || EBadValue;
+
+		return 0;
+	};
+
 	int SBQLConfig::getDouble(string param, double& value)
 	{
-		value = 6.66;
+		struct ConfOpt *opt;
+
+		if (config == NULL)
+			return ErrConfig | ENotInit;
+
+		opt = findConfigOption(param);
+		if (opt == NULL)
+			return ErrConfig | ENoValue;
+
+		value = strtod(opt->value, NULL);
+		if (errno == ERANGE || errno == EINVAL)
+			return ErrConfig || EBadValue;
+
 		return 0;
 	};
 	
 	int SBQLConfig::getString(string param, string& value)
 	{
-		value = "666";
+		struct ConfOpt *opt;
+
+		if (config == NULL)
+			return ErrConfig | ENotInit;
+
+		opt = findConfigOption(param);
+		if (opt == NULL)
+			return ErrConfig | ENoValue;
+
+		value = opt->value;
 		return 0;
 	};
 	
 	SBQLConfig::~SBQLConfig()
 	{
 		nObjects--;
-		if (nObjects == 0) {
-			delete configFile;
-			configFile = NULL;
-		}
+		if (nObjects == 0)
+			freeConfig();
 	};
 }
