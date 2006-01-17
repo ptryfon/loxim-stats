@@ -7,6 +7,8 @@
 #include <iostream>
 #include <string>
 #include <netinet/in.h>
+#include <signal.h>
+
 #include "../Config/SBQLConfig.h"
 #include "../Log/Logs.h"
 #include "../QueryParser/QueryParser.h"
@@ -41,6 +43,12 @@ using namespace QParser;
 using namespace QExecutor;
 using namespace TManager;
 using namespace Driver;
+
+
+
+volatile sig_atomic_t signalReceived = 0;
+
+void sigHandler(int sig);
 
 Server::Server(int newSock)
 {
@@ -82,8 +90,6 @@ int  Server::Serialize(QueryResult *qr, char **buffer, char **bufStart)
 	memset(bufferP, '\0', MAX_MESSG); 
 	bufPointer=bufferP;
 
-
-	
 	resType=(Result::ResultType)qr->type();
 	
 	printf("[Server.Serialize]--> Starting \n");
@@ -98,9 +104,9 @@ int  Server::Serialize(QueryResult *qr, char **buffer, char **bufStart)
 			bufBagLen=htonl(bufBagLen);
 			if (qr->collection() != true) {
 				printf("[Server.Serialize]-->QueryResult shows type of BAG and says it is no collection\n");
-				//return ErrServer+EBadResult;
+				return ErrServer+EBadResult;
 				return -1;
-			} //TODO errorcode
+			} 
 			bagRes = (QueryBagResult *)qr;
 			
 			printf("[Server.Serialize]--> Adding bag header \n");
@@ -253,7 +259,6 @@ int  Server::Serialize(QueryResult *qr, char **buffer, char **bufStart)
 	printf("[Server.Serialize]--> Ending.. \n");
 	printf("[Server.Serialize]--> Passing type=%d\n", (int)finalBuf[0]);
 	*buffer = finalBuf;
-	//free(bufPointer);
 	return 0;
 }
 
@@ -261,8 +266,20 @@ int  Server::Serialize(QueryResult *qr, char **buffer, char **bufStart)
 int Server::Run()
 {
 	int size=MAX_MESSG;
+	int res=0;
+	
+	sigset_t block_cc;
 	
 	printf("[Server.Run]--> Starts \n");
+
+	//Signal Handling
+	sigemptyset(&block_cc);
+	sigaddset(&block_cc, SIGINT);
+	
+	//Create process signal mask
+	sigprocmask(SIG_BLOCK, &block_cc, NULL);
+	
+	signal(SIGINT, sigHandler);
 
 	ErrorConsole con;
 	con.init(1);
@@ -292,41 +309,72 @@ int Server::Run()
 	
 	serializedMessg=(char*) malloc(MAX_MESSG);
 	
-while (true) {
+	sigprocmask(SIG_UNBLOCK, &block_cc, NULL);
+	
+	
+while (!signalReceived) {
 
+	printf("[Server.Run]--> Blocking signals \n");
+	sigprocmask(SIG_BLOCK, &block_cc, NULL);
+	
 	printf("[Server.Run]--> Cleaning buffers \n");
 	memset(serializedMessg, '\0', MAX_MESSG); 
 //	*sPoint=serializedMessg;	//piotrek - nie uzywane a pod cygwinem naruszenie ochrony pamieci
 	
 	//Get string from client
 	printf("[Server.Run]--> Receiving query from client \n");
-	Receive(&messgBuff, &size);
-		
+	sigprocmask(SIG_UNBLOCK, &block_cc, NULL);
+	
+	res = (Receive(&messgBuff, &size));
+	if (res < 0) {
+	    printf("[Server.Run--> Receive returned error code %d\n", res);
+	    return ErrServer+EReceive;
+	}    
+	
+	sigprocmask(SIG_BLOCK, &block_cc, NULL);	
+	
 	printf("[Server.Run]--> Request parse \n");
 	printf("string do parsera: %s\n", messgBuff);
 	cout << (string) messgBuff << endl;
-	qPa->parseIt((string) messgBuff, tNode); 
+	res = (qPa->parseIt((string) messgBuff, tNode));
+	if (res < 0) {
+	    printf("[Server.Run--> Parser returned error code %d\n", res);
+	    return ErrServer+EParse;
+	}
 	
 	printf("tree node%d\n", (int) tNode); 
 	printf("[Server.Run]--> Request query result \n");
-	qEx->executeQuery(tNode, &qResult); 
-	 
+	res = (qEx->executeQuery(tNode, &qResult)); 
+	if (res < 0) {
+	    printf("[Server.Run--> Executor returned error code %d\n", res);
+	    return ErrServer+EExecute;
+	} 
+	
 	printf("[Server.Run]--> Serializing data \n");
 	printf ("[Server.Run]-->qResult=%d \n", (int)qResult);
 	
 	if (qResult == 0) {printf ("brak wyniku\n"); return 0;} //Piotrek
 	
-	Serialize(qResult, (char **)&serializedMessg, sPoint); 
-	
+	res = (Serialize(qResult, (char **)&serializedMessg, sPoint)); 
+	if (res < 0) {
+	    printf("[Server.Run--> Serialize returned error code %d\n", res);
+	    return ErrServer+ESerialize;
+	}
 	
 	//Send results to client
 	printf("[Server.Run]--> Sending results to client \n");		
 	printf("[Server.Run]--> Sending.. type=(%d)\n", (int)serializedMessg[0]); 
-//	break;
-	Send(&*serializedMessg, MAX_MESSG);
+	res=(Send(&*serializedMessg, MAX_MESSG));
+	if (res < 0) {
+	    printf("[Server.Run--> Send returned error code %d\n", res);
+	    return ErrServer+ESend;
+	}
+	
+	sigprocmask(SIG_UNBLOCK, &block_cc, NULL);
 }
 	printf("[Server.Run]--> Releasing message buffers \n");
-	//TODO
+	free(messgBuff);
+	free(serializedMessg);
 	
 	printf("[Server.Run]--> destroying TransactionManager \n");
 	TransactionManager::getHandle()->~TransactionManager();
@@ -334,20 +382,27 @@ while (true) {
 	printf("[Server.Run]--> Disconnecting \n");
 	Disconnect();
 	
-	printf("[Server.Run]--> Ends \n");
+	printf("[Server.Run]--> Ends \n"); 
+	
 	return 0;	
 }		
 
-int Server::BExit() {
+int BExit() {
 	printf("[Server.BExit]-->destroying TM\n");	
 	TransactionManager::getHandle()->~TransactionManager();
 	printf("[Server.BExit]-->destroying LM\n");
 	LockManager::getHandle()->~LockManager();
-	printf("[Server.BExit]-->disconnecting\n");
-	Disconnect();
+	//printf("[Server.BExit]-->disconnecting\n");
+	//Disconnect();
 	printf("[Server.BExit]-->exiting\n");
 	exit(0);
 	return 0;
 }
 
+void sigHandler(int sig) {
+	printf("[Server]--> Signal intercepted \n");
+	signalReceived = 1;    
+	signal(sig, sigHandler);
+	printf("[Server]--> Quitting signal handler, calling BExit function \n");
+}
 

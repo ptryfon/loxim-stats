@@ -20,11 +20,10 @@ using namespace QExecutor;
 	// Made public for testing
 		int Send(char* buf, int buf_size);
 		int Serialize(QueryResult *qr, char **buffer, char **bufferStart);
-		int BExit();
-		
+		//int BExit();
 	private:
 		int Sock;
-
+		//void sigHandler(int sig);
 	//TCP methods
 		int Receive(char** buffer, int* receiveDataSize);
 		int Disconnect();
