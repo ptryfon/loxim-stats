@@ -62,6 +62,15 @@ namespace Errors {
 #define ENotInit		0x1000
 #define ENoValue		0x1100
 #define EBadValue		0x1200
+
+// Server
+#define EReceive		0x1300
+#define EParse			0x1400
+#define EExecute		0x1500
+#define ESerialize		0x1600
+#define ESend			0x1700
+#define EBadResult		0x1800
+
 }
 
 #endif
