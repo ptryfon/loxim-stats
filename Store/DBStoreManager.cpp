@@ -116,7 +116,26 @@ namespace Store
 //		if(rval) {
 //			cout << "Store::Manager::getObject failed\n";
 //			return -1;
-//	int DBStoreManager::createObjectEx(nie 15 sty 2006 23:04:50 CETTransactionID* tid, string name, DataValue* value, ObjectPointer*& object)
+//		}
+//		cout << "Store::Manager::getObject done: " + object->toString();
+//		return 0;	
+//	};
+	
+	int DBStoreManager::createObject(TransactionID* tid, string name, DataValue* value, ObjectPointer*& object)
+	{
+		cout << "Store::Manager::createObject start..\n";
+		
+		LogicalID* lid = new DBLogicalID(misc->lastlid++);
+		
+		object = new DBObjectPointer(name, value, lid);
+		
+		misc->vect.push_back(object);
+		
+		cout << "Store::Manager::createObject done: " + object->toString() + "\n";
+		return 0;
+	};
+
+//	int DBStoreManager::createObjectEx(TransactionID* tid, string name, DataValue* value, ObjectPointer*& object)
 //	{
 //		cout << "Store::Manager::createObject start..\n";
 //		
@@ -156,56 +175,6 @@ namespace Store
 
 	int DBStoreManager::deleteObject(TransactionID* tid, ObjectPointer* object)
 	{
-		cout << "Store::Manager::deleteObject start..\n";
-		
-		physical_id *p_id;
-		map->getPhysicalID(object->getLogicalID()->toInteger(), &p_id);
-		PagePointer *pPtr = buffer->getPagePointer(p_id->file_id, p_id->page_id);
-		pPtr->aquire();
-		page_data *p = reinterpret_cast<page_data*>(pPtr->getPage());
-		
-		int pos_table = p_id->offset;
-		int end_of_object;
-	
-		if ( pos_table == 0 )
-			end_of_object = STORE_PAGESIZE; // koniec strony
-		else	//poczatek poprz obiektu
-			end_of_object = p->object_offset[pos_table-1];
-		
-		// rozmiar usuwanego obiektu
-		int object_size = end_of_object - p->object_offset[pos_table];
-		
-		char* page = pPtr->getPage();
-		
-		// przesuniecie obiektow na stronie
-		int i;
-		for(i = pos_table+1; i <= p->object_count-1; i++)
-		{
-		    char pom[STORE_PAGESIZE];
-		    int size = p->object_offset[i-1] - p->object_offset[i];
-		    int start = p->object_offset[i-1];
-		    
-		    memmove(pom, page + start  , size);
-		    memmove(page + start + object_size, pom, size);
-		    
-		};
-		
-		// uaktualnienie tablicy offsetow
-		// tzn cofane wpisy w tablicy o 1 miejsce
-		// oraz dodanie do starego offsetu rozmiaru usuwanego obiektu
-		for(i = pos_table+1; i <= p->object_count-1; i++)
-		    p->object_offset[i-1] = p->object_offset[i] + object_size;    
-		// tu nalezaloby powiadamiac mape ze nastapilo przesuniecie obiektow
-		// narazie nie wiem w jaka funkcje wywolac
-		
-		// uaktualnienie info na stronie
-		p->object_count--;
-		p->free_space+=object_size;
-		
-		pPtr->release();
-
-		cout << "Store::Manager::deleteObject done: " + object->toString() + "\n";
-		
 		return 0;
 	};
 
@@ -303,3 +272,58 @@ namespace Store
 		return 0;
 	};
 }
+
+//	int DBStoreManager::deleteObject(TransactionID* tid, ObjectPointer* object)
+//	{
+//		cout << "Store::Manager::deleteObject start..\n";
+//		
+//		physical_id *p_id;
+//		map->getPhysicalID(object->getLogicalID()->toInteger(), &p_id);
+//		PagePointer *pPtr = buffer->getPagePointer(p_id->file_id, p_id->page_id);
+//		pPtr->aquire();
+//		page_data *p = reinterpret_cast<page_data*>(pPtr->getPage());
+//		
+//		int pos_table = p_id->offset;
+//		int end_of_object;
+//	
+//		if ( pos_table == 0 )
+//			end_of_object = STORE_PAGESIZE; // koniec strony
+//		else	//poczatek poprz obiektu
+//			end_of_object = p->object_offset[pos_table-1];
+//		
+//		// rozmiar usuwanego obiektu
+//		int object_size = end_of_object - p->object_offset[pos_table];
+//		
+//		char* page = pPtr->getPage();
+//		
+//		// przesuniecie obiektow na stronie
+//		int i;
+//		for(i = pos_table+1; i <= p->object_count-1; i++)
+//		{
+//		    char pom[STORE_PAGESIZE];
+//		    int size = p->object_offset[i-1] - p->object_offset[i];
+//		    int start = p->object_offset[i-1];
+//		    
+//		    memmove(pom, page + start  , size);
+//		    memmove(page + start + object_size, pom, size);
+//		    
+//		};
+//		
+//		// uaktualnienie tablicy offsetow
+//		// tzn cofane wpisy w tablicy o 1 miejsce
+//		// oraz dodanie do starego offsetu rozmiaru usuwanego obiektu
+//		for(i = pos_table+1; i <= p->object_count-1; i++)
+//		    p->object_offset[i-1] = p->object_offset[i] + object_size;    
+//		// tu nalezaloby powiadamiac mape ze nastapilo przesuniecie obiektow
+//		// narazie nie wiem w jaka funkcje wywolac
+//		
+//		// uaktualnienie info na stronie
+//		p->object_count--;
+//		p->free_space+=object_size;
+//		
+//		pPtr->release();
+//
+//		cout << "Store::Manager::deleteObject done: " + object->toString() + "\n";
+//		
+//		return 0;
+//	};
