@@ -181,18 +181,19 @@ namespace Store
 		int i;
 		for(i = pos_table+1; i <= p->object_count-1; i++)
 		{
-		    char* pom;
+		    char pom[STORE_PAGESIZE];
 		    int size = p->object_offset[i-1] - p->object_offset[i];
+		    int start = p->object_offset[i-1];
 		    
-		    memcpy(pom, page + start, size);
-		    memcpy(page + start + object_size, pom, size);
+		    memmove(pom, page + start  , size);
+		    memmove(page + start + object_size, pom, size);
 		    
 		};
 		
 		// uaktualnienie tablicy offsetow
 		// tzn cofane wpisy w tablicy o 1 miejsce
 		// oraz dodanie do starego offsetu rozmiaru usuwanego obiektu
-		for(i = pos_table+1; i <= p->object_count-1[21~; i++)
+		for(i = pos_table+1; i <= p->object_count-1; i++)
 		    p->object_offset[i-1] = p->object_offset[i] + object_size;    
 		// tu nalezaloby powiadamiac mape ze nastapilo przesuniecie obiektow
 		// narazie nie wiem w jaka funkcje wywolac
