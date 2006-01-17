@@ -275,7 +275,7 @@ int QueryIntResult::divide_by(QueryResult *r, QueryResult *&res){
 	}
 	if (((QueryIntResult*) r)->getValue() == 0) {
 		res = new QueryNothingResult();
-		fprintf (stderr, "[QE] Division by 0 error!");
+		fprintf (stderr, "[QE] Division by 0 error!\n");
 		return -2;  //devide by 0 error 
 	}
 	int tmp_value = value / ((QueryIntResult*) r)->getValue();
@@ -290,7 +290,7 @@ int QueryDoubleResult::divide_by(QueryResult *r, QueryResult *&res){
 	}
 	if (((QueryDoubleResult*) r)->getValue() == 0) {
 		res = new QueryNothingResult();
-		fprintf (stderr, "[QE] Division by 0 error!");
+		fprintf (stderr, "[QE] Division by 0 error!\n");
 		return -2; //devide by 0 error 
 	}
 	double tmp_value = value / ((QueryIntResult*) r)->getValue();

@@ -70,7 +70,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			
 			if ((stack.size()) == 1) {
 			    errcode = (stack.pop());
-			    fprintf(stderr, "[QE] stack poped\n");
+			    fprintf(stderr, "[QE] Environment Stack poped\n");
 			    if (errcode != 0) { return errcode; };
 			};
 			if (stack.empty()) {
@@ -78,7 +78,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					return errcode;
 				};
 				vecSize = vec->size();
-				fprintf(stderr, "[QE] %d Roots taken\n", vecSize);
+				fprintf(stderr, "[QE] All %d Roots taken\n", vecSize);
 				QueryBagResult *stackSection = new QueryBagResult();
 				for (int i = 0; i < vecSize; i++ )
 					{
@@ -91,20 +91,14 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					QueryBinderResult *newBinding = new QueryBinderResult(optrName, lidres);
 					stackSection->addResult(newBinding);
 				};
-				fprintf(stderr, "[QE] stack pushed\n");
+				fprintf(stderr, "[QE] Environment Stack pushed\n");
 				if ( (stack.push(stackSection)) != 0 ) {
 					return -1;
 				};
-			};
-			
+			};			
 			if ((stack.bindName(name, *result)) != 0) {
 				return -1;
 			};
-			if ((errcode = tr->getRoots(name,vec)) != 0) {
-				return errcode;
-			};
-			vecSize = vec->size();
-			fprintf(stderr, "[QE] %d Roots taken by name\n", vecSize);
 			fprintf(stderr, "[QE] QueryBagResult created\n");
 			return 0;
 			}//case
@@ -170,12 +164,12 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 
 			if ((errcode = tr->createObject(name, value, optr)) != 0)
 				{
-				fprintf(stderr, "[QE] Error in createObject.\n");
+				fprintf(stderr, "[QE] Error in createObject\n");
 				return errcode;
 				}
 			if ((errcode = tr->addRoot(optr)) != 0)
 				{
-				fprintf(stderr, "[QE] Error in addRoot.\n");
+				fprintf(stderr, "[QE] Error in addRoot\n");
 				return errcode;
 				}
 			*result = new QueryBagResult;
@@ -674,7 +668,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					{
 					return errcode;
 					}
-				fprintf(stderr, "[QE] Results computed, computing +\n");
+				fprintf(stderr, "[QE] Results computed, computing *\n");
 				// We have to check if the arguments are of the same type
 				int argType = rResult->type();
 				fprintf(stderr, "[QE] left argument's type taken\n");
@@ -744,7 +738,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 				}//case
 			case AlgOpNode::divide:
 				{
-				fprintf(stderr, "[QE] + operation\n");
+				fprintf(stderr, "[QE] / operation\n");
 				QueryResult *lResult, *rResult;
 				if ((errcode = executeQuery (((AlgOpNode *) tree)->getLArg(), &lResult)) != 0)
 					{
@@ -1019,6 +1013,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 				*/
 				fprintf(stderr, "[QE] Done!\n");
 				return 0;
+				break;
 			}//case dot
 			case NonAlgOpNode::where: {break;}
 			case NonAlgOpNode::join: {break;}
@@ -1026,6 +1021,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 				{
 				fprintf(stderr, "[QE] Unknown NonAlgOp type\n");
 				return -1;
+				break;
 				} // Reszta jeszcze nie zaimplementowane
 			}//switch	
 			*result = new QueryNothingResult;
@@ -1088,9 +1084,9 @@ bool EnvironmentStack::empty() { return es.empty(); }
 int EnvironmentStack::size() { return es.size(); }
 
 int EnvironmentStack::bindName(string name, QueryResult *&r) {
-	fprintf(stderr, "[QE] name binding\n");
+	fprintf(stderr, "[QE] Name binding on ES\n");
 	unsigned int number = (es.size());
-	fprintf(stderr, "[QE] nameBind: ES got %u sections\n", number);
+	fprintf(stderr, "[QE] bindName: ES got %u sections\n", number);
 	r = new QueryBagResult();
 	bool found_one = false;
 	QueryBagResult *section;
@@ -1100,16 +1096,17 @@ int EnvironmentStack::bindName(string name, QueryResult *&r) {
 	for (unsigned int i = number; i >= 1; i--) {
 		section = (es.at(i - 1));
 		sectionSize = (section->size());
-		fprintf(stderr, "[QE] nameBind: section %u got %u elements\n", (i - 1), sectionSize);
+		fprintf(stderr, "[QE] bindName: section %u got %u elements\n", (i - 1), sectionSize);
 		for (unsigned int j = 0; j < sectionSize; j++) {
 			int errNo = (section->at(j,sth));
 			if (errNo != 0) { return errNo; };
 			if ((sth->type()) == (QueryResult::QBINDER)) {
 				current = (((QueryBinderResult *) sth)->getName());
-				fprintf(stderr, "[QE] nameBind: current %u name is: ??\n", j);
+				fprintf(stderr, "[QE] bindName: current %u name is: ", j);
+				cout << current << endl;
 				if (current == name) {
 					found_one = true;
-					fprintf(stderr, "[QE] nameBind: Object added to Result\n");
+					fprintf(stderr, "[QE] bindName: Object added to Result\n");
 					r->addResult(((QueryBinderResult *) sth)->getItem());
 				};
 			};
