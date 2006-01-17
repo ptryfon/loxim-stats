@@ -5,13 +5,23 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <list>
+//#include "DataRead.h"
+#include "ClassNames.h"
+
+
 using namespace std;
 
-namespace QStack {
+namespace QParser {
 
 	class ElemContent /* abstract superclass of elements found in sections belonging to a stack. */
 	{
-	
+	public:
+		ElemContent() {};
+		virtual void putToString() {
+			cout << "( Some ElemContent ) ";
+		}
+		virtual ~ElemContent() {};
 	};
 	/* TO CHYBA BEZ SENSU ..... ? */
 	/* abstract superclass for structures holding single elements. eg. in an ENV Stack, a section has
@@ -39,6 +49,11 @@ namespace QStack {
 		virtual QStackElem *push(QStackElem *newElem) = 0;
 		virtual QStackElem *pop() = 0;
 		virtual QStackElem *top() = 0;
+		virtual void putToString() {
+			if (this->content == NULL) cout << "# emptyQStackElem #"; 
+			else { cout << "#"<< myNumber << ": "; content->putToString(); cout << " #";}
+			cout << endl;
+		}
 		virtual ~QStackElem() {}
     };
     
@@ -56,14 +71,23 @@ namespace QStack {
 		virtual void setSize(int newVal) {this->currSize = newVal;}
 		virtual int incSize () {(this->currSize)++; return this->currSize;}
 		virtual int decSize () {(this->currSize)--; return this->currSize;}
-
-		virtual QStackElem *getElt(int eltNo) {return this->elts->getElt(eltNo);}
 		virtual bool isEmpty () { return (this->elts == NULL);};
+		virtual QStackElem *getElt(int eltNo) {if (this->isEmpty()) return NULL; return this->elts->getElt(eltNo);}
+		
 
+		virtual QStackElem *top () {
+/*			return this->getElt(this->getSize()); */
+			if (this->isEmpty()) return NULL;
+			else return this->elts->top();
+		}	    	    
 		virtual int push (QStackElem *newSection) {
 			if (newSection == NULL) return -1; /* can't push a NULL on the stack.. ?*/
-			this->setElts (this->elts->push (newSection));
+			if (this->isEmpty()) this->setElts (newSection);
+			else this->setElts (this->elts->push (newSection));
 			this->incSize();
+			this->elts->setNumber(this->getSize());
+			//newSection->setNumber(this->getSize());
+			
 			return 0;
 		};
 		virtual int pop () {
@@ -73,18 +97,20 @@ namespace QStack {
 				this->setElts (this->elts->pop());
 				return 0;}
 		}
-		virtual QStackElem *top () {
-/*			return this->getElt(this->getSize()); */
-			if (this->isEmpty()) return NULL;
-			else return this->elts->top();
-		}	    	    
+
+		virtual void putToString() {
+			if (this->isEmpty()) cout << " < EMPTY STACK > "; 
+			else { cout <<" < my size: " << currSize << "||" << endl; elts->putToString(); cout << " >";}
+			cout << endl;
+		}
 		virtual ~QStack() {if (this->elts != NULL) delete this->elts;}
     };
 	
+
 	class Signature : public ElemContent
 	{
 	protected:
-		int type;
+		int typ;
 		Signature *next; 	/* !=NULL when this sign. is part of a collection.. like sequence or bag or sth. */
 	public:
 	    enum SigType {
@@ -99,13 +125,18 @@ namespace QStack {
 		SREF      = 9,
 		SNOTHING  = 10
 		};
-		Signature (int _type) : type(_type) {this->next = NULL;}
+		Signature (int _type) : typ(_type) {this->next = NULL;}
 		Signature () {this->next = NULL;}
 		virtual void setNext (Signature *newNext) {this->next = newNext;}
 		virtual Signature *getNext () {return this->next;}
 		
+		virtual int type() {return 0;}
 		virtual bool isAtom () {return false;} /* overridden only in SigAtom */
 		virtual bool isColl () {return false;} /* overridden only in SigColl */
+		virtual bool isBinder () {return false;}
+		virtual BinderWrap *statNested() {return NULL;} /*the default behaviour of a signature*/
+		virtual Signature *clone();
+		virtual void putToString () { cout << "(signature) ";if (this->next != NULL) next->putToString();}
 		virtual ~Signature() { if (this->next != NULL) delete this->next; }
 	};
 	
@@ -119,14 +150,26 @@ namespace QStack {
 		int collType;	
 	public:
 		SigColl (int _collType) : collType(_collType) {this->myList = NULL;}
-		SigColl () {this->myList = NULL;}
+		SigColl () {this->collType = Signature::SBAG; this->myList = NULL;} /*bag is the default collection*/
 		SigColl (int _collType, Signature *_myList) : myList(_myList), collType(_collType) {};
 		virtual bool isColl () {return true;}
 		virtual int type() {return this->collType;}
 		virtual void setElts (Signature *newList) {this->myList = newList;}
 		virtual Signature *getMyList () {return this->myList;}
-		virtual void addToMyList(Signature *newElt) {newElt->setNext (this->myList); this->setElts(newElt);}
-		
+		virtual void addToMyList(Signature *newElt) {newElt->setNext (this->myList);
+													this->setElts(newElt);}
+		virtual BinderWrap *statNested() {
+//			Signature *elt = myList;
+			cout << "statNested::sigColl -- can't handle structs and collections for statNested yet." << endl;	
+			return NULL;			
+		}						
+		virtual Signature *clone();							
+		virtual void putToString() {
+			cout << "{";
+			if (this->myList != NULL) myList->putToString();
+			cout << "} ";
+			if (next != NULL) next->putToString();
+		}
 		virtual ~SigColl() {delete this->myList;}	
 	};
 	
@@ -138,8 +181,20 @@ namespace QStack {
 		SigAtomType() {}
 		SigAtomType(string _atomType) : atomType(_atomType) {}
 		virtual bool isAtom () {return true;}
-		virtual string type() {return this->atomType;}
+		virtual int getNumb (string atype) {
+			if (atype == "int") return Signature::SINT;
+			if (atype == "double") return Signature::SDOUBLE;
+			if (atype == "string") return Signature::SSTRING;
+			if (atype == "bool") return Signature::SBOOL;
+			return -1; /*atype must be 1 of the above*/
+		}
+		virtual int type() {return this->getNumb(atomType);}
 		virtual void setType(string newType) {this->atomType = newType;}
+		virtual Signature *clone();
+		virtual void putToString() {
+			cout << "(" << this->atomType << ") ";
+			if (next != NULL) next->putToString();
+		}		
 		virtual ~SigAtomType() {}
 	};
 		
@@ -153,6 +208,12 @@ namespace QStack {
 		virtual int getRefNo () {return this->refNo;}
 		virtual void setRefNo (int newNo) {this->refNo = newNo;}
 		virtual int type() {return Signature::SREF;}
+		virtual BinderWrap *statNested();/*implmnted in Stack.cpp*/
+		virtual Signature *clone();
+		virtual void putToString() {
+			cout << "ref(" << refNo << ") ";
+			if (next != NULL) next->putToString();
+		}
 		virtual ~SigRef() {}
 		
 	};
@@ -169,7 +230,16 @@ namespace QStack {
 		virtual void setName(string newName) {this->name = newName;};
 		virtual void setValue(Signature *newValue) {this->value = newValue;};
 		virtual int type() {return Signature::SBINDER;}
-		
+		virtual bool isBinder() {return true;}
+		virtual BinderWrap *statNested();
+		virtual Signature *clone();
+		virtual void putToString() {
+			cout << name <<"(";
+			if (value == NULL) cout << "__";
+			else value->putToString();
+			cout << ") ";
+			if (next != NULL) next->putToString();
+		}
 		virtual ~StatBinder() {if (this->value != NULL) delete this->value;};
 	};
 	
@@ -177,13 +247,20 @@ namespace QStack {
 	{ /* subclasses of BinderWrap give different implementations of structures 
 	   * for groups of binders within one section on ENVS (eg. BinderList */
 	protected:	
+		int sectNumb;
 		StatBinder *binder;
 	public:
 		virtual void setBinder(StatBinder *newBinder) {this->binder = newBinder;};
 		virtual StatBinder *getBinder() {return this->binder;};
-
+	
+		virtual void setSectNumb(int newNr) {this->sectNumb = newNr;};
+		virtual int getSectNumb() {return this->sectNumb;};
+		
+		
 		virtual BinderWrap *addOne (BinderWrap *newElt) = 0;
+		virtual BinderWrap *addPureBinder (StatBinder *newBndr) = 0;
 		virtual BinderWrap *bindName(string aName) = 0;
+		virtual void putToString() {cout << "name(sign)" << endl;};
 	};	
 	
 	class BinderList : public BinderWrap
@@ -193,14 +270,28 @@ namespace QStack {
 	public:
 		BinderList(StatBinder *_binder) {this->setBinder(_binder); this->next = NULL;}
 		virtual void setNext(BinderList *newNext) {this->next = newNext;}
-
-		virtual BinderList *addOne (BinderList *newBW) {
-			newBW->setNext(this); return newBW;
+		virtual void setSectNumb (int newNr) {
+			this->sectNumb = newNr; 
+			if (this->next != NULL) next->setSectNumb(newNr);
 		}
-		virtual BinderList *bindName(string aName) {
+		virtual BinderWrap *addOne (BinderWrap *newBW) {
+			((BinderList *)newBW)->setNext(this); 
+			newBW->setSectNumb(this->sectNumb);
+			return newBW;
+		}
+		virtual BinderWrap *addPureBinder (StatBinder *newBndr) {
+			return this->addOne (new BinderList (newBndr));				
+		}
+		virtual BinderWrap *bindName(string aName) {
 			if (this->binder->getName() == aName) return this;
 			else if (this->next == NULL) return NULL;
 			else return this->next->bindName(aName);
+		}
+		virtual void putToString() {
+			if (this->binder == NULL) cout << "_noBinder_";
+			else {cout << "[s:" << this->sectNumb << ","; 
+				binder->putToString(); cout << "] ";}
+			if (this->next != NULL) this->next->putToString();
 		}
 	};
 
@@ -213,24 +304,31 @@ namespace QStack {
 		virtual void setNext (ListQStackElem *newNext) {this->next = newNext;}
 		
 		virtual ListQStackElem *getElt(int sectNo) {
+			cout << "ja: " << myNumber << ", szukane: " << sectNo << endl;
 			if (this->myNumber == sectNo) return this;
 			else if (this->myNumber < sectNo) return NULL;
 			else if (this->next == NULL) return NULL;
 			else return this->next->getElt(sectNo);
 		}						
-		virtual ListQStackElem *push (ListQStackElem *newSect) {
-			newSect->setNext(this);
-			newSect->setNumber((this->myNumber) + 1);
+		virtual QStackElem *push (QStackElem *newSect) {
+			((ListQStackElem *)newSect)->setNext(this);
+			//newSect->setNumber((this->myNumber) + 1);
 			return newSect;
 		}
-		virtual ListQStackElem *pop () { /* we know there is at least 1 elt to pop.. */
+		virtual QStackElem *pop () { /* we know there is at least 1 elt to pop.. */
 			ListQStackElem *sectPoint = this->getNext();
 			this->next = NULL;
 			delete(this);	/* TODO: czy tak mo¿na ... ??? */
 			return sectPoint;
 		}
-		virtual ListQStackElem *top () {
+		virtual QStackElem *top () {
 			return this;
+		}
+		virtual void putToString() {
+			if (this->content == NULL) cout << "# LISTSection #"; 
+			else { cout << "#"<< myNumber << ": "; content->putToString(); cout << " #";}
+			cout << endl;
+			if (this->next != NULL) this->next->putToString();
 		}				
 		virtual ~ListQStackElem() {if (this->next != NULL) delete this->next;}
 	};
@@ -239,12 +337,19 @@ namespace QStack {
     class StatEnvSection : public ListQStackElem 	/* these sections are elements of StatEnvStacks */
 	{
 	protected:
-		int myNumber;	/*numer danej sekcji */
+		//int myNumber;	/*numer danej sekcji */
 		BinderWrap *content;
 	public:
 		StatEnvSection() {this->next = NULL;};
+		StatEnvSection (BinderWrap *cnt) {this->content = cnt; this->next = NULL;
+											this->content->setSectNumb(myNumber);}
 		virtual void addBinder (BinderWrap *bw) { this->content = (this->content->addOne(bw));}
-
+		virtual void addPureBinder (StatBinder *sb) {this->content = (this->content->addPureBinder(sb));}
+		virtual void setContent(ElemContent *newCont) {this->content = (BinderWrap *)newCont; this->content->setSectNumb(myNumber);}
+		virtual void setNumber(int newNr) {
+			this->myNumber = newNr; 
+			if (this->content != NULL) content->setSectNumb(newNr);
+		}
 		virtual BinderWrap *bindName (string aName) {
 			BinderWrap *bw = this->content->bindName(aName);
 			if (bw == NULL) {
@@ -252,6 +357,13 @@ namespace QStack {
 				else return ((StatEnvSection *)this->next)->bindName(aName);
 			} else return bw;			
 		}		
+
+		virtual void putToString() {
+			if (this->content == NULL) cout << "# emptySection #"; 
+			else { cout << "#"<< myNumber << ": "; content->putToString(); cout << " #";}
+			cout << endl;
+			if (this->next != NULL) this->next->putToString();
+		}
 		virtual ~StatEnvSection () { delete (this->content); delete (this->next);};
 	};
 	
@@ -269,10 +381,31 @@ namespace QStack {
 		}
 		virtual BinderWrap *bindNameHere (string aName, int sectNo) {
 			QStackElem *s = this->getElt(sectNo);
-			if (s == NULL) return NULL;
+			cout << "znalazlem getElt"<< endl;
+			if (s == NULL) { cout << "NULL" << endl; return NULL;}
 			else return ((StatEnvSection *) s)->bindName(aName);
 			return NULL;
 		}
+		virtual int pushBinders (BinderWrap *bw) {/* a collection of binders, not packed in a section yet... */
+			if (bw == NULL) return -1;
+			ListQStackElem *newSect = new StatEnvSection (bw);
+			if (this->isEmpty()) this->setElts (newSect);
+			else this->setElts (elts->push (newSect));
+			this->incSize();
+			this->elts->setNumber(this->getSize());
+			return 0;
+		}	
+		virtual int push (QStackElem *newSection) {
+			if (newSection == NULL) return -1; /* can't push a NULL on the stack.. ?*/
+			if (this->isEmpty()) this->setElts (newSection);
+			else this->setElts (this->elts->push (newSection));
+			this->incSize();
+			this->elts->setNumber(this->getSize());
+			//newSection->setNumber(this->getSize());
+			
+			return 0;
+		};	
+		
 		virtual ~StatEnvStack() { delete this->elts; };
 	};
 
@@ -287,6 +420,7 @@ namespace QStack {
 		StatQResElt() {this->next == NULL; this->content == NULL;};
 		StatQResElt(Signature *cont) : content(cont) {this->next = NULL;};
 		
+		virtual Signature *getContent() {return this->content;}
 		virtual ~StatQResElt() {delete content; delete this->next;}
 	};
 	
@@ -297,9 +431,19 @@ namespace QStack {
 		int currSize;     --> currSize from super class. 
 */		
 	public:
-//		virtual int push (QStackElem *newElt) {
-//			if (newElt == NULL) return -1; /* can't push a NULL on the stack.. ?*/
-//			newElt->setNext (this->getElts());
+		virtual int pushSig (Signature *newSig) {
+			if (newSig == NULL) return -1;
+			return this->push(new StatQResElt (newSig));
+		} 
+		
+		virtual Signature *topSig() {
+			return ((StatQResElt *)elts)->getContent();
+		}		
+//		virtual Signature *topSig () {
+//			return ((StatQResElt *)elts)->getContent();
+//		}
+		
+
 //			this->incSize();
 //			newElt->setNumber(this->getSize());
 //			this->setElts (newSection);			
@@ -324,6 +468,22 @@ namespace QStack {
 //			if (this->isEmpty()) return NULL;
 //			else return this->getElts();
 //		}		
+	
+	};
+	
+	class Optimiser {
+	protected:
+	    StatQResStack *sQres;
+	    StatEnvStack *sEnvs;
+	public:
+	    Optimiser() {sQres = NULL; sEnvs = NULL;}
+	    virtual void setQres(StatQResStack *nq);
+	    virtual void setEnvs(StatEnvStack *ne);
+	    virtual int simpleTest();
+	    virtual int stEvalTest(TreeNode *tn);
+	    virtual ~Optimiser();
+	    
+	
 	
 	};
 	

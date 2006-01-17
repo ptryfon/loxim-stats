@@ -4,6 +4,7 @@
 #include <FlexLexer.h>
 #include "TreeNode.h"
 #include "Stack.h"
+#include "DataRead.h"
 #include "QueryParser.h"
 //#include "../Errors/ErrorConsole.h"
 //#include "../Errors/Errors.h"
@@ -67,15 +68,22 @@ int main (int argc, char* argv[]) {
     QParser::TreeNode *tNode;
     qp->parseIt(theStr, tNode);
     
+//	cout << "teraz bede testowal stosy... " << endl;
+//	QParser::Optimiser *opt = new QParser::Optimiser();
+//	int res = opt->simpleTest();
+
+//	cout << "to tyle z testow stosow. wynik testow: "<< res << endl;
 //    cout << "zaraz zrobie factorSub" << endl;
 //    QParser::TreeNode *modNode = tNode->factorSubQuery( tNode->getRArg()->getRArg(), "sik");
 //    cout << "\n ~~~~~~~~~~~~~~~~~~" << endl;
 //    modNode->putToString();
 //    cout << "\n ~~~~~~~~~~~~~~~~~~" << endl;    
-    cout << "skonczylem maina \n";
+  //  cout << "skonczylem maina \n";
     return 0;
 }
+
 */
+
 
 
 

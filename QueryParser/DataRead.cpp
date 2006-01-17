@@ -1,8 +1,11 @@
 
 
+#include <list>
 #include <vector>
 #include "TreeNode.h"
 #include "DataRead.h"
+#include "Stack.h"
+//#include "ClassNames.h"
 #include "QueryExecutor/QueryResult.h"
 #include "QueryExecutor/QueryExecutor.h"
 #include "Store/Store.h"
@@ -15,6 +18,54 @@ using namespace QExecutor;
 using namespace Store;
 
 namespace QParser {
+
+
+		BinderWrap *DataScheme::statNested (int objId) {
+			DataObjectDef *candidate = this->getObjById(objId);
+			DataObjectDef *pom;
+//			list<StatBinder *> bindersCol;
+			BinderList *bindersCol;
+			if (candidate == NULL)	
+				return bindersCol; //<pusta kolekcja chyba ... >;
+			/*dalej zakladamy ze znalezlismy taki objekt w metabazie... */
+			
+			
+			if (candidate->getKind() == "atomic") return bindersCol;	//<pusta kolekcja>;
+			if (candidate->getKind() == "link") {
+				pom = candidate->getTarget(); /*now pom points to the target object. */
+				StatBinder * sb = new StatBinder (pom->getName(), new SigRef (pom->getMyId()));				
+				//bindersCol.push_back(sb);
+				bindersCol = new BinderList(sb);
+				return bindersCol;	//<kolekcja 1-eltowa zawierajaca sb>;				
+			};
+			/*dalej zakladamy ze kind == "complex" -- objekt zlozony. */
+			pom = candidate->getSubObjects();
+				// <kolekcja statBinderow> *binders = new <pusta kolekcja>;	
+			while (pom != NULL) {
+				StatBinder * sb = new StatBinder (pom->getName(), new SigRef (pom->getMyId()));
+				//binders->addBinder(sb);
+				if (bindersCol == NULL) bindersCol = new BinderList(sb);
+				else {
+					bindersCol = (BinderList *) (bindersCol->addOne(new BinderList(sb)));
+				}
+//				bindersCol.push_back(sb);
+				pom = pom->getNextSub();
+				/**NIEEE !!! pom = pom->getNextSub() ! >:-0 */
+			}
+			return bindersCol;		
+		};
+
+
+		BinderWrap* DataScheme::bindBaseObjects() {
+			BinderList *bw = NULL;
+			for (DataObjectDef *obts = this->getBaseObjects(); obts != NULL; obts = obts->getNextBase()) {
+				StatBinder * sb = new StatBinder (obts->getName(), new SigRef (obts->getMyId()));
+				if (bw == NULL) bw = new BinderList (sb);
+				else bw = (BinderList *) bw->addPureBinder(sb);			
+			}
+			return bw;
+		};		
+
 
 
 int DataScheme::readData(){
@@ -127,7 +178,23 @@ int DataScheme::readData(){
     obj30->addSubObject(getObjById(38));
 
 cout << "-------------------readData END--------------------------------------" << endl;
-}
+	return 0;
+};
 
 
 }
+	DataScheme* DataScheme::datScheme = 0;
+	
+	DataScheme* DataScheme::dScheme() {
+		if (datScheme == NULL) {
+			datScheme = new DataScheme();
+			datScheme->readData();
+		}
+		return datScheme;
+	};
+
+
+
+
+
+

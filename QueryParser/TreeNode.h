@@ -5,7 +5,9 @@
 
 #include <vector>
 #include <string>
-using namespace std;
+#include "Stack.h"
+#include "ClassNames.h"
+//using namespace std;
 
 namespace QParser {
 
@@ -14,7 +16,8 @@ namespace QParser {
     {
     protected:
 	TreeNode* parent;
-	int sectionNum;
+
+
     public:
 	enum TreeNodeType { TNINT, TNSTRING, TNDOUBLE, TNVECTOR, TNNAME, 
 	    TNAS, TNUNOP, TNALGOP, TNNONALGOP, TNTRANS, TNCREATE};
@@ -28,9 +31,19 @@ namespace QParser {
     // na wniosek Executora:
 	virtual string getName() {return (string) NULL;}
 	virtual TreeNode* getArg() {return (TreeNode *) NULL;}
-	virtual int getSectionNum(){ return sectionNum;};
+	virtual TreeNode* getLArg() {return (TreeNode *) NULL;}
+	virtual TreeNode* getRArg() {return (TreeNode *) NULL;}
+	virtual int getSectionNum(){ return -1;};  /* Nodes other than nonalgops don't hold this info. */
+	virtual TreeNode* factorSubQuery (TreeNode *subT, string newName);
+//	virtual TreeNode* optimizeByFactoring ();
+	virtual int swapSon (TreeNode *oldSon, TreeNode *newSon) {
+	/*should call an error. Subclasses that have at least 1 arg override this method.*/
+	    return -1;}
+	virtual int staticEval (StatQResStack *&qres, StatEnvStack *&envs) {return 0;}	
+	/* should overridden in subclasses...*/
+	/* AND should have an argument for the data scheme ... ??? !!! */
     };
-    
+
 // statement := query
     class QueryNode : public TreeNode 
     {
@@ -38,27 +51,76 @@ namespace QParser {
 	virtual TreeNode* clone()=0;
 	virtual int type()=0;
 	virtual int putToString()=0;
+
     };
+
+// nodes that have two sons (one may be a NULL) - both alg. and non-alg.
+    class TwoArgsNode : public QueryNode
+    {
+
+    protected:
+	QueryNode* larg;
+	QueryNode* rarg;
+    public:
+	virtual int putToString()=0;
+	QueryNode* getLArg() { return larg; }
+	QueryNode* getRArg() { return rarg; }
+
+	virtual void setLArg(QueryNode* _larg) {larg = _larg;larg->setParent(this);}
+	virtual void setRArg(QueryNode* _rarg) {rarg = _rarg;rarg->setParent(this);}
+
+	virtual int swapSon (TreeNode *oldSon, TreeNode *newSon) {
+    	    if (this->getLArg() == oldSon) {
+    		this->setLArg ((QueryNode *) newSon);	return 0;} 
+	    else if (this->getRArg() == oldSon) {
+    		this->setRArg ((QueryNode *) newSon); return 0;} 
+	    else { /*an error should be reported - oldSon is not my son!*/ 
+    		return -1;}        
+        }	
+    };
+    
+// atomic nodes with string/int/double/bool value
+    class ValueNode : public QueryNode 
+    {
+
+	public:
+	virtual int putToString() {
+	    cout << "(_value_)";    
+	    return 0;
+	}	
+	virtual int staticEval (StatQResStack *&qres, StatEnvStack *&envs);		
+    };    
 
 // query := name
     class NameNode : public QueryNode 
     {
     protected:
 	string name;
+	int bindSect;
+	int stackSize;
     public:
 	NameNode(string _name) : name(_name) {}
+
+	virtual int getBindSect() { return this->bindSect;}
+	virtual int getStackSize() {return this->stackSize;}
+	virtual void setBindSect(int newBSect) { this->bindSect = newBSect;}
+	virtual void setStackSize(int newSize) { this->stackSize = newSize;}
+	
 	virtual TreeNode* clone();
 	virtual int type() { return TreeNode::TNNAME; }
-	string getName() { return name; }
+	virtual string getName() { return name; }
 	virtual int putToString() {
 	    cout << "("<< this->getName() <<")";    
 	    return 0;
 	}
+	virtual int staticEval (StatQResStack *&qres, StatEnvStack *&envs);	
+	
 	virtual ~NameNode() {}
+	
     };  
 
 // query := integer
-    class IntNode : public QueryNode 
+    class IntNode : public ValueNode 
     {
     protected:
 	int value;
@@ -67,17 +129,11 @@ namespace QParser {
 	virtual TreeNode* clone();
 	virtual int type() { return TreeNode::TNINT; }
 	int getValue() {return value;}
-
-	virtual int putToString() {
-	    cout << "("<< this->getValue() <<")";    
-	    return 0;
-	}
-
-
+  	virtual ~IntNode() {}
     };  
 
 // query := string
-    class StringNode : public QueryNode 
+    class StringNode : public ValueNode 
     {
     protected:
 	string value;
@@ -86,15 +142,11 @@ namespace QParser {
 	virtual TreeNode* clone();
 	virtual int type() { return TreeNode::TNSTRING; }
 	string getValue() { return value; }
-	virtual int putToString() {
-	    cout << "("<< this->getValue() <<")";    
-	    return 0;
-	}
   	virtual ~StringNode() {}
     };  
 
 // query := double
-    class DoubleNode : public QueryNode 
+    class DoubleNode : public ValueNode 
     {
     protected:
 	double value;
@@ -103,13 +155,29 @@ namespace QParser {
 	virtual TreeNode* clone();
 	virtual int type() { return TreeNode::TNDOUBLE; }
 	double getValue() { return value; }        
+
+	virtual ~DoubleNode() {}
+    };  
+
+// TODO: query := bool??? czy tylko powstaje w wyniku jakichs rzeczy .. ? 
+// CZY TO W OGOLE POTRZEBNE GDZIEKOLWIEK ? ! 
+    class BoolNode : public QueryNode 
+    {
+    protected:
+	bool value;
+    public:
+	BoolNode(bool _value) : value(_value) {}
+	virtual TreeNode* clone();
+	virtual int type() { return TreeNode::TNDOUBLE; }
+	bool getValue() { return value; }        
 	virtual int putToString() {
 	    cout << "("<< this->getValue() <<")";    
 	    return 0;
 	}
-
-    };  
-
+	virtual int staticEval (StatQResStack *&qres, StatEnvStack *&envs);		
+	virtual ~BoolNode() {}
+    };      
+    
 // query := query "as" name | query "group as" name
     class NameAsNode : public QueryNode 
     {
@@ -136,7 +204,11 @@ namespace QParser {
 	    cout << this->getName() <<")";    
 	    return 0;
 	}
-
+	virtual int swapSon (TreeNode *oldSon, TreeNode *newSon) {
+	    if (arg == oldSon) {this->setArg((QueryNode *) newSon); return 0;}
+	    else {/*an error from errorConsole is called;*/ return -1;}
+	}    	
+	virtual int staticEval(StatQResStack *&qres, StatEnvStack *&envs);
 	virtual ~NameAsNode() { if (arg != NULL) delete arg; }
     };  
 
@@ -159,8 +231,8 @@ namespace QParser {
 	virtual void setOp(unOp _op) { op = _op; }
 
 	virtual int putToString() {
-	    cout << "(UNOP ";
-
+	    cout << "(";
+	    cout << this->opStr() ;
 	    if (arg!= NULL) arg->putToString();
 	    else cout << "___";
 	    
@@ -168,11 +240,31 @@ namespace QParser {
 	    return 0;
 	}
 	
+	virtual string opStr() {
+	    int op = this->getOp();
+	    if (op == 0) return "unMinus";
+	    if (op == 1) return "count";	    
+	    if (op == 2) return "sum";	    
+	    if (op == 3) return "avg";
+	    if (op == 4) return "min";
+	    if (op == 5) return "max";
+	    if (op == 6) return "distinct";
+	    if (op == 7) return "boolNot";	    
+	    if (op == 8) return "deleteOp";	    
+	    if (op == 9) return "deref";	    
+	    return "~~~";
+	}
+
+	virtual int swapSon (TreeNode *oldSon, TreeNode *newSon) {
+	    if (arg == oldSon) {this->setArg((QueryNode *) newSon); return 0;}
+	    else {/*an error from errorConsole is called;*/ return -1;}
+	}    	
+	virtual int staticEval (StatQResStack *&qres, StatEnvStack *&envs);		
 	virtual ~UnOpNode() { if (arg != NULL) delete arg; }
     };  
 
 // query := query InfixAlgOp query
-    class AlgOpNode : public QueryNode 
+    class AlgOpNode : public TwoArgsNode 
     {
     public:
 	enum algOp { bagUnion, bagIntersect, bagMinus, plus, minus, times, divide,
@@ -198,21 +290,41 @@ namespace QParser {
 	    cout << "(";
 	    if (larg!= NULL) larg->putToString();
 	    else cout << "___";
-	    cout << "ALGOP ";
+	    cout << this->opStr();
 	    if (rarg!= NULL) rarg->putToString();
 	    else cout << "___";
 	    
 	    cout << ")";    
 	    return 0;
 	}
-
-
+	virtual string opStr() {
+	    int op = this->getOp();
+	    if (op == 0) return "algop";
+	    if (op == 1) return "algop";
+	    if (op == 2) return "algop";
+	    if (op == 3) return "plus";
+	    if (op == 4) return "minus";
+	    if (op == 5) return "times";
+	    if (op == 6) return "divide";
+	    if (op == 7) return " = ";	    
+	    if (op == 8) return " != ";	    
+	    if (op == 9) return " < ";	    
+	    if (op == 10) return " > ";	    
+	    if (op == 11) return " <= ";
+	    if (op == 12) return " >= ";
+	    if (op == 13) return " && ";
+	    if (op == 14) return " || ";
+	    if (op == 15) return " , ";	    
+	    if (op == 16) return "insert";
+	    return "~~~";
+	}
+	virtual int staticEval (StatQResStack *&qres, StatEnvStack *&envs);	
 	virtual ~AlgOpNode() { if (larg != NULL) delete larg;
                          if (rarg != NULL) delete rarg; }
     };  
 
 // query := query InfixNonalgOp query
-    class NonAlgOpNode : public QueryNode 
+    class NonAlgOpNode : public TwoArgsNode 
     {
     public:
 	enum nonAlgOp { dot, join, where, closeBy, closeUniqueBy, leavesBy,
@@ -221,6 +333,8 @@ namespace QParser {
 	QueryNode* larg;
 	QueryNode* rarg;
 	nonAlgOp op;
+	int openSect;   /* sekcja na stosie ENV, otwarta przez ten operator */	
+
     public:
 	NonAlgOpNode(QueryNode* _larg, QueryNode* _rarg, nonAlgOp _op)
                 : larg(_larg), rarg(_rarg), op(_op)
@@ -233,21 +347,36 @@ namespace QParser {
 	virtual void setLArg(QueryNode* _larg) {larg = _larg;larg->setParent(this);}
 	virtual void setRArg(QueryNode* _rarg) {rarg = _rarg;rarg->setParent(this);}
 	virtual void setOp(nonAlgOp _op) { op = _op; }
-
+	
+	virtual int getOpenSect() {return this->openSect;}
+	virtual void setOpenSect(int newSectNr) {this->openSect = newSectNr;}
+	
+//	virtual Signature *combine(Signature *lRes, Signature *rRes);
+	
 	virtual int putToString() {
 	    cout << "(";
 	    if (larg!= NULL) larg->putToString();
 	    else cout << "___";
-	    cout << "NONALGOP ";
+	    cout << this->opStr();
 	    if (rarg!= NULL) rarg->putToString();
-	    else cout << "___";
-	    
+	    else cout << "___";	    
 	    cout << ")";    
 	    return 0;
 	}
-
-
-
+	virtual string opStr() {
+	    int op = this->getOp();
+	    if (op == 0) return "_ . _";
+	    if (op == 1) return "join";
+	    if (op == 2) return "where";
+	    if (op == 3) return "closeBy";
+	    if (op == 4) return "closeUniqueBy";
+	    if (op == 5) return "leavesBy";
+	    if (op == 6) return "leavesUniqueBy";
+	    if (op == 7) return "orderBy";	    
+	    if (op == 8) return "exists";	    
+	    if (op == 9) return "forAll";	    
+	    return "~~~";	}
+	virtual int staticEval (StatQResStack *&qres, StatEnvStack *&envs);	
 	virtual ~NonAlgOpNode() { if (larg != NULL) delete larg;
                             if (rarg != NULL) delete rarg; }
     };  
@@ -255,46 +384,46 @@ namespace QParser {
     class TransactNode : public TreeNode 
     {
     public:
-	enum transactionOp { begin, end, abort }; 
+		enum transactionOp { begin, end, abort }; 
     protected:
-	transactionOp op;
+		transactionOp op;
     public:
-	TransactNode (transactionOp _op) : op(_op) {}
-	virtual TreeNode* clone();
-	virtual int type() { return TreeNode::TNTRANS; }
-	transactionOp getOp() { return op; }
-	virtual void setOp(transactionOp _op) { op = _op; }
+		TransactNode (transactionOp _op) : op(_op) {}
+		virtual TreeNode* clone();
+		virtual int type() { return TreeNode::TNTRANS; }
+		transactionOp getOp() { return op; }
+		virtual void setOp(transactionOp _op) { op = _op; }
 
         virtual int putToString() {
     	    cout << "(begin/end/abort)";
     	    return 0;
-	}
-	virtual ~TransactNode() {}
+		}
+		virtual ~TransactNode() {}
     };  
 
 // query := CREATE NAME  |  CREATE NAME LEFTPAR query RIGHTPAR
     class CreateNode : public QueryNode 
     {
     protected:
-	QueryNode* arg;
-	string name;
+		QueryNode* arg;
+		string name;
     public:
-	CreateNode(string _name, QueryNode* _arg = NULL)
-            : arg(_arg), name(_name)  {}
-	virtual TreeNode* clone();
-	virtual int type() { return TreeNode::TNCREATE; }
-	string getName() { return name; }
-	TreeNode* getArg() { return arg; }
-	virtual void setArg(QueryNode* _arg) { arg = _arg; arg->setParent(this); }    
-	virtual int putToString() {
-	    cout << "(create " << this->getName();
-	    if (arg != NULL) arg->putToString();
-	    
-	    cout << ")";
-	    return 0;
-	    
-	}
-	
+		CreateNode(string _name, QueryNode* _arg = NULL)
+	            : arg(_arg), name(_name)  {}
+		virtual TreeNode* clone();
+		virtual int type() { return TreeNode::TNCREATE; }
+		string getName() { return name; }
+		TreeNode* getArg() { return arg; }
+		virtual void setArg(QueryNode* _arg) { arg = _arg; arg->setParent(this); }    
+		virtual int putToString() {
+		    cout << "(create " << this->getName();
+		    if (arg != NULL) arg->putToString();
+			cout << ")"; return 0;
+		}
+		virtual int swapSon (TreeNode *oldSon, TreeNode *newSon) {
+		    if (arg == oldSon) {this->setArg((QueryNode *) newSon); return 0;}
+		    else {/*an error from errorConsole is called;*/ return -1;}
+		}    		
 	
         virtual ~CreateNode() { if (arg != NULL) delete arg; }
     };  

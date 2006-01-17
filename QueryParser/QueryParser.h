@@ -2,7 +2,8 @@
 #define _QUERY_PARSER_H_
 
 #include <string>
-#include "TreeNode.h"
+//#include "TreeNode.h"
+#include "ClassNames.h"
 
 using namespace std;
 
@@ -16,6 +17,8 @@ namespace QParser
 	virtual int parseIt (string s, TreeNode *&aTree);
 	virtual ~QueryParser() {}
     };
+	
+	
 }
 
 #endif

@@ -6,11 +6,12 @@
 #include <vector>
 #include <list>
 #include <string>
-#include "Stack.h"
+//#include "Stack.h"
+#include "ClassNames.h"
 
 
 using namespace std;
-using namespace QStack;
+//using namespace QStack;
 
 namespace QParser {
 
@@ -51,6 +52,7 @@ namespace QParser {
 		virtual DataObjectDef * getNextHash() {return nextHash;}
 		virtual void setNextBase(DataObjectDef *next){nextBase=next;}
 		virtual DataObjectDef * getNextBase(){return nextBase;}
+		virtual DataObjectDef * getNextSub() {return nextSub;}
 		virtual int getMyId(){return myId;}
 		virtual void setMyId(int id){myId = id;}
 		virtual string getName(){return name;}
@@ -80,24 +82,34 @@ namespace QParser {
 	
 	class DataScheme 
 	{	
+
+	static DataScheme* datScheme;
 	protected:
 	DataObjectDef *baseObjects;
 	DataObjectDef *refTable[100]; /*TODO: czy tak sie deklaruje tablice wskaznikow???*/
+
 	
 	public:
 		DataScheme(){};
 		int readData();	
 	    	
+		static DataScheme *dScheme();
 		virtual int hashFun (int objId) {return (objId % 100); }
 	
 		virtual void hashIn (int tabPos, DataObjectDef *newObj) {
 			newObj->setNextHash(refTable[tabPos]);	
 			refTable[tabPos] = newObj;			
 		}
-	
+		
+		virtual DataObjectDef *getBaseObjects() {return baseObjects;}
+		virtual void addObj(DataObjectDef *obj){
+		    int newPlace = this->hashFun(obj->getMyId());
+		    this->hashIn(newPlace, obj);
+		}
+			
 		virtual void addBaseObj (DataObjectDef *newOne) {
 			// DataObjectDef *pom;
-			int newPlace;
+//			int newPlace;
 			/*	//	FIXME	nie wiem o co tu chodzilo, czy dodanie obiektu do listy??
 			if (this->baseObjects != NULL) {
 				pom = this->baseObjects->getNextBase();		// czy w ten sposob nie traci sie 
@@ -114,10 +126,6 @@ namespace QParser {
 			// this->hashIn(newPlace, newOne);
 		}
 		
-		virtual void addObj(DataObjectDef *obj){
-		    int newPlace = this->hashFun(obj->getMyId());
-		    this->hashIn(newPlace, obj);
-		}
 		
 		virtual DataObjectDef *getObjById (int objId) {
 			int itsPlace = this->hashFun (objId);
@@ -134,43 +142,18 @@ namespace QParser {
 		};
 		
 		
-		virtual list<StatBinder *> statNested (int objId) {
-			DataObjectDef *candidate = this->getObjById(objId);
-			DataObjectDef *pom;
-			list<StatBinder *> bindersCol;
-			if (candidate == NULL)	
-				return bindersCol; //<pusta kolekcja chyba ... >;
-			/*dalej zakladamy ze znalezlismy taki objekt w metabazie... */
-			
-			
-			if (candidate->getKind() == "atomic") return bindersCol;	//<pusta kolekcja>;
-			if (candidate->getKind() == "link") {
-				pom = candidate->getTarget(); /*now pom points to the target object. */
-				StatBinder * sb = new StatBinder (pom->getName(), new SigRef (pom->getMyId()));				
-				bindersCol.push_back(sb);
-				return bindersCol;	//<kolekcja 1-eltowa zawierajaca sb>;				
-			};
-			/*dalej zakladamy ze kind == "complex" -- objekt zlozony. */
-			pom = candidate->getSubObjects();
-				// <kolekcja statBinderow> *binders = new <pusta kolekcja>;	
-			while (pom != NULL) {
-				StatBinder * sb = new StatBinder (pom->getName(), new SigRef (pom->getMyId()));
-				//binders->addBinder(sb);
-				bindersCol.push_back(sb);
-				pom = pom->getSubObjects();
-			}
-			/*
-			for (list <DataObjectDef *>::iterator *it = pom->begin(),
-				*it != pom->end(); it++){
-				StatBinder * sb = new StatBinder (it->getName(), new SigRef (it->getMyId()));
-				//binders->addBinder(sb);
-				bindersCol.push_back(sb);
-			}
-			*/
-			return bindersCol;		
-			//return binders;				
-		};		
+		virtual BinderWrap *statNested (int objId);
+//		virtual list<StatBinder *> statNested (int objId); 
+
+		
+		/*function below uses a list impl. of BinderWraps. you can change it ...  */
+		virtual BinderWrap* bindBaseObjects(); 
+		
 	};	
+		
 }
 
 #endif
+
+
+

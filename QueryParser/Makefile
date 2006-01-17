@@ -3,11 +3,14 @@ include ../make.defs
 SOURCES	=	QueryParser.cpp \
 		TreeNode.cpp \
 		DataRead.cpp \
+		Stack.cpp \
 		parser.tab.cpp \
 		lex.yy.cpp
 
 HEADERS	=	QueryParser.h \
 		TreeNode.h \
+		Stack.h \
+		ClassNames.h \
 		DataRead.h \
 		parser.tab.h
 
