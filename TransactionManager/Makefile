@@ -2,13 +2,13 @@ include ../make.defs
 
 SOURCES	=	Transaction.cpp \
 		Semaphore.cpp \
-		RWSemaphore.cpp \
+		RWUJSemaphore.cpp \
 		Mutex.cpp \
 		Main.cpp
 
 HEADERS	=	Transaction.h \
 		Semaphore.h \
-		RWSemaphore.h \
+		RWUJSemaphore.h \
 		Mutex.h
 		
 STATIC_LIB =	TransactionManager.a

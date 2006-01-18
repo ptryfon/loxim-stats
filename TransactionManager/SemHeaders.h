@@ -2,7 +2,7 @@
 #define _SEMHEADERS_
 
 #include "Semaphore.h"
-#include "RWSemaphore.h"
+#include "RWUJSemaphore.h"
 #include "Mutex.h"
 
 #endif

@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "RWSemaphore.h"
+#include "RWUJSemaphore.h"
 
 using namespace SemaphoreLib;
 
@@ -13,7 +13,7 @@ Semaphore* sem;
 
 int main()
 {
-	sem = new RWSemaphore();	
+	sem = new RWUJSemaphore();	
 	sem->init();
     
 	int ith = 50;

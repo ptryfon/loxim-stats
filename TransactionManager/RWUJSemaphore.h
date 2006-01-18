@@ -2,8 +2,8 @@
   Readers-Writers-Upgraders semaphores with Just access for writers
 */
 
-#ifndef _RWSEMAPHORE_
-#define _RWSEMAPHORE_
+#ifndef _RWUJSEMAPHORE_
+#define _RWUJSEMAPHORE_
 
 #include <pthread.h>
 #include <stdlib.h>

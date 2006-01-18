@@ -229,7 +229,7 @@ namespace TManager
 	TransactionManager::TransactionManager() 
 	{
 		err = ErrorConsole();
-		sem = new RWSemaphore();
+		sem = new RWUJSemaphore();
 		sem->init();
 		mutex = new Mutex();
 		mutex->init();

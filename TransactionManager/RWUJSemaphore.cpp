@@ -9,7 +9,7 @@ namespace SemaphoreLib {
 		inside		=	0;
 		wait_readers	=	0;
 		wait_writers	=	0;
-		wait_updaters	=	0;
+		wait_upgraders	=	0;
 		best_upgrader	=	0;
 	}
 
@@ -116,7 +116,7 @@ namespace SemaphoreLib {
 		{
 			/* there can be only one;) */
 			/* primary selection */
-			if (best_upgrader = 0 || id < best_upgrader)		/* i am better */
+			if (best_upgrader == 0 || id < best_upgrader)		/* i am better */
 			{
 			    wait_upgraders++;
 			    best_upgrader = id;
@@ -124,7 +124,7 @@ namespace SemaphoreLib {
 			    /* after signal re-aquire mutex */
 			    wait_upgraders--;
 			    /* secondary selection */
-			    if (id = best_upgrader)		/* maybe better come meanwhile */
+			    if (id == best_upgrader)		/* maybe better come meanwhile */
 			    {
     				inside++;
 			    }
@@ -147,7 +147,7 @@ namespace SemaphoreLib {
 			if (wait_upgraders)
 			{
 				current_mode = Upgrade;
-				pthread_cond_broadcast( &updater_cond );	/* should be signal after one-upgrader-waiting optimization */
+				pthread_cond_broadcast( &upgrader_cond );	/* should be signal after one-upgrader-waiting optimization */
 			}
 			else if (wait_writers)
 			{
