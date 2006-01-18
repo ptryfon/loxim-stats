@@ -126,4 +126,9 @@ namespace SemaphoreLib {
 		pthread_mutex_unlock( &mutex );
 		return 0;
 	}
+
+	int RWSemaphore::lock_upgrade(int id)
+	{
+	    return -1;
+	}
 } /* namespace SemaphoreLib */
