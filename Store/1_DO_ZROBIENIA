@@ -1,0 +1,32 @@
+DBDataVaule
+1. deserialize() - <- dodac obsluge wektora
+2. p_DestroyVal() - <- dodac obsluge pointera i wektora
+
+DBObjectPointer
+1. ~DBObjectPointer() 
+2. operator==()
+
+DBPhysicalID
+1. getFile()
+2. getPage()
+3. getOffset()
+
+DBStoreManager
+1. getObject() - dokonczyc
+2. createObject() - dokonczyc
+3. deleteObject() - dokonczyc
+4. getRoots(ALL) - remake + ktos wgral stara wersje sprzed tygodnia
+osoba ta zostanie predzej czy pozniej dopadnieta
+5. getRoots(BYNAME) - remake
+6. addRoot() - remake
+7. removeRoot()
+
+8. commitTransaction() ?
+9. abortTransaction() ?
+10. createPointerValue()
+11. createVectorValue()
+
+PagePointer
+1. aquire()
+
+
