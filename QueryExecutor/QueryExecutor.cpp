@@ -100,6 +100,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 				return -1;
 			};
 			fprintf(stderr, "[QE] QueryBagResult created\n");
+			fprintf(stderr, "[QE] Done!\n");
 			return 0;
 			}//case
 
@@ -114,11 +115,13 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 				{
 				return errcode;
 				}
+			
+			DBDataValue *dbValue = new DBDataValue;
+			
 			if (tree != NULL)
 				{
 				nodeType = tree->type();
 				fprintf(stderr, "[QE] Node type recognized.\n");
-				DBDataValue *dbValue = new DBDataValue;
 
 				switch (nodeType) 
 				{
@@ -158,7 +161,9 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 				} //if
 			else
 				{
-				value=NULL;
+				vector<ObjectPointer*> emptyVector;
+				dbValue->setVector(&emptyVector);
+				value = dbValue;
 				fprintf(stderr, "[QE] No arguments (value = NULL)\n");
 				}
 
@@ -510,7 +515,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					}
 				fprintf(stderr, "[QE] Results computed, computing +\n");
 				// We have to check if the arguments are of the same type
-				int argType = rResult->type();
+				int argType = lResult->type();
 				fprintf(stderr, "[QE] left argument's type taken\n");
 				switch (argType)
 				{
@@ -590,7 +595,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					}
 				fprintf(stderr, "[QE] Results computed, computing -\n");
 				// We have to check if the arguments are of the same type
-				int argType = rResult->type();
+				int argType = lResult->type();
 				fprintf(stderr, "[QE] left argument's type taken\n");
 				switch (argType)
 				{
@@ -670,7 +675,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					}
 				fprintf(stderr, "[QE] Results computed, computing *\n");
 				// We have to check if the arguments are of the same type
-				int argType = rResult->type();
+				int argType = lResult->type();
 				fprintf(stderr, "[QE] left argument's type taken\n");
 				switch (argType)
 				{
@@ -750,7 +755,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					}
 				fprintf(stderr, "[QE] Results computed, computing /\n");
 				// We have to check if the arguments are of the same type
-				int argType = rResult->type();
+				int argType = lResult->type();
 				fprintf(stderr, "[QE] left argument's type taken\n");
 				switch (argType)
 				{
@@ -798,7 +803,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 						}
 					case QueryResult::QINT: //Right argument is an int
 						{
-						break;  // Treba jeszce dopisac
+						break;  // Trzeba jeszce dopisac
 						}
 					default:
 						{
@@ -965,6 +970,119 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 				fprintf(stderr, "[QE] Done!\n");
 				return 0;
 				}//case OR
+			case AlgOpNode::insert:
+				{
+				
+				fprintf(stderr, "[QE] INSERT operation\n");                                                  /******************/
+				QueryResult *lResult, *rResult; 
+				if ((errcode = executeQuery (((AlgOpNode *) tree)->getLArg(), &lResult)) != 0)
+					{
+					return errcode;
+					}
+				int argType = lResult->type();
+				fprintf(stderr, "[QE] left argument's type taken\n");
+				if (argType!=QueryResult::QBAG) //Both arguments have to be a bags
+					{
+					fprintf(stderr, "[QE] Error - wrong INSERT argument\n");
+					return -1;
+					}
+				if ((errcode = executeQuery (((AlgOpNode *) tree)->getRArg(), &rResult)) != 0)
+					{
+					return errcode;
+					}
+				argType = rResult->type();
+				fprintf(stderr, "[QE] right argument's type taken\n");
+				if (argType!=QueryResult::QBAG) //Both arguments have to be a bags
+					{
+					fprintf(stderr, "[QE] Error - wrong INSERT argument\n");
+					return -1;
+					}
+				
+				// Both arguments are bags
+					
+				QueryResult* toInsert;  //the object to be inserted
+				unsigned int counter = lResult->size();
+				if (counter != 1) // chyba zle jesli counter<>1 ????????????????????????????????????????????????????????????????????????????????
+					{
+					fprintf(stderr, "[QE] Wrong number of objects to be inserted.\n");
+					return -1;
+					}
+				if ((errcode = ((QueryBagResult *) lResult)->getResult(toInsert) != 0))
+					{
+					return errcode;
+					}
+				int resultType = toInsert->type();
+				if (resultType != QueryResult::QREFERENCE)
+					{
+					fprintf(stderr, "[QE] Error - the bag result must consist of QREFERENCE\n");
+					return -1;
+					}
+				LogicalID *lidIn = ((QueryReferenceResult *) toInsert)->getValue();
+				ObjectPointer *optrIn;
+				if ((errcode = tr->getObjectPointer (lidIn, Store::Write, optrIn)) !=0)
+					{
+					fprintf(stderr, "[QE] Error in getObjectPointer.\n");
+					return errcode;
+					}
+				if ((errcode = tr->removeRoot(optrIn)) != 0)
+					{
+					fprintf(stderr, "[QE] Error in removeRoot.\n");
+					return errcode;
+					}
+				fprintf(stderr, "[QE] Root removed\n");
+				
+				
+				//the object into which the left agument will be inserted
+				QueryResult* outer; 
+				counter = rResult->size();
+				if (counter != 1) // chyba zle jesli counter<>1 ????????????????????????????????????????????????????????????????????????????????
+					{
+					fprintf(stderr, "[QE] Wrong number of objects to be inserted.\n");
+					return -1;
+					}
+				if ((errcode = ((QueryBagResult *) rResult)->getResult(outer) != 0))
+					{
+					return errcode;
+					}
+				resultType = outer->type();
+				if (resultType != QueryResult::QREFERENCE)
+					{
+					fprintf(stderr, "[QE] Error - the bag result must consist of QREFERENCE\n");
+					return -1;
+					}
+				LogicalID *lidOut = ((QueryReferenceResult *) outer)->getValue();
+				ObjectPointer *optrOut;
+				if ((errcode = tr->getObjectPointer (lidOut, Store::Write, optrOut)) !=0)
+					{
+					fprintf(stderr, "[QE] Error in getObjectPointer.\n");
+					return errcode;
+					}
+				// We have to modify the "outer" object's value 
+				value = optrOut->getValue();
+				fprintf(stderr, "[QE] Value taken\n");
+				int vType = value->getType();
+				fprintf(stderr, "[QE] Type taken\n");
+				if (vType != Store::Vector) 
+					{
+					fprintf(stderr, "[QE] Error - the value has to be a Vector\n");
+					return -1;
+					}
+				vec = value->getVector();
+				
+				vector<ObjectPointer*> aaa;
+				
+				if (vec == NULL) fprintf(stderr, "Ale gupie\n");
+				fprintf(stderr, "[QE] Vector taken\n");
+				fprintf(stderr, "[QE] Vec.size = %d\n", vec->size());
+				vec->push_back(optrIn); // Inserting of the object
+				fprintf(stderr, "[QE] Object added to value\n");
+				fprintf(stderr, "[QE] New Vec.size = %d\n", vec->size());
+				
+				*result = new QueryNothingResult;
+				fprintf(stderr, "[QE] QueryNothingResult created\n");
+				fprintf(stderr, "[QE] Done!\n");
+				return 0;
+				}//case INSERT INTO
 			default:
 				{
 				fprintf(stderr, "[QE] Unknown AlgOp type\n");
