@@ -41,7 +41,7 @@ class SingleLock
 	    	typedef set<TransactionID ,TransactionIDCmp> TransactionIdSet;
 	    	TransactionIdSet* current; 
 
-		/* how many transaction locks an object */
+		/* how many transactions lock an object */
 	    	int inside;
 	    	
 		/* 

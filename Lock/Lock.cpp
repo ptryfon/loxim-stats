@@ -42,7 +42,7 @@ namespace LockMgr
 	    	{
 			printf("TID new lock: %d\n", tid->getId() );fflush(stdout);
 			/* creating new single lock */
-			SingleLock* lock = new SingleLock(tid, mode, new RWSemaphore(), single_lock_id);
+			SingleLock* lock = new SingleLock(tid, mode, new RWUJSemaphore(), single_lock_id);
 
 			single_lock_id++;
 			(*map_of_locks)[*phid] = lock;	
