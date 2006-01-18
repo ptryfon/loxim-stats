@@ -15,7 +15,6 @@ class Semaphore
 		virtual int lock_read()	 = 0;
 		virtual	int lock_write() = 0;
 		virtual int unlock()	 = 0;
-		virtual int lock_exchange()   = 0;
 };
 
 } /* namespace SemaphoreLib  */
