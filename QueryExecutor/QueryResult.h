@@ -1,10 +1,23 @@
 #ifndef _QUERYRESULT_H_
 #define _QUERYRESULT_H_
 
+#include <stdio.h>
 #include <string>
 #include <vector>
+   
+#include "TransactionManager/Transaction.h"
 #include "Store/Store.h"
+#include "Store/DBDataValue.h"
+#include "Store/DBLogicalID.h"
+#include "QueryParser/QueryParser.h"
+#include "QueryParser/TreeNode.h"
+#include "Errors/Errors.h"
+#include "Errors/ErrorConsole.h"
 
+using namespace QParser;
+using namespace TManager;
+using namespace Errors;
+using namespace Store;
 using namespace std;
 
 namespace QExecutor {
@@ -41,6 +54,8 @@ public:
 	virtual bool greater_eq(QueryResult *r)=0;
 	virtual bool less_eq(QueryResult *r)=0;
 	virtual int nested(Transaction *tr, QueryResult *&r)=0;
+	virtual bool isBool()=0;
+	virtual int getBoolValue(bool &b)=0;
 };
 
 
@@ -73,6 +88,8 @@ public:
 	bool greater_eq(QueryResult *r) { return false; };
 	bool less_eq(QueryResult *r) { return false; };
 	int nested(Transaction *tr, QueryResult *&r);
+	bool isBool();
+	int getBoolValue(bool &b);
 };
 
 class QueryBagResult : public QueryResult
@@ -104,6 +121,8 @@ public:
 	bool greater_eq(QueryResult *r) { return false; };
 	bool less_eq(QueryResult *r) { return false; };
 	int nested(Transaction *tr, QueryResult *&r);
+	bool isBool();
+	int getBoolValue(bool &b);
 };
 
 
@@ -136,6 +155,8 @@ public:
 	bool greater_eq(QueryResult *r) { return false; };
 	bool less_eq(QueryResult *r) { return false; };
 	int nested(Transaction *tr, QueryResult *&r);
+	bool isBool();
+	int getBoolValue(bool &b);
 };
 
 
@@ -164,6 +185,8 @@ public:
 	bool greater_eq(QueryResult *r) { return false; };
 	bool less_eq(QueryResult *r) { return false; };
 	int nested(Transaction *tr, QueryResult *&r);
+	bool isBool();
+	int getBoolValue(bool &b);
 };
 
 
@@ -189,6 +212,8 @@ public:
 	bool greater_eq(QueryResult *r);
 	bool less_eq(QueryResult *r);
 	int nested(Transaction *tr, QueryResult *&r);
+	bool isBool();
+	int getBoolValue(bool &b);
 };
 
 
@@ -219,6 +244,8 @@ public:
 	bool greater_eq(QueryResult *r);
 	bool less_eq(QueryResult *r);
 	int nested(Transaction *tr, QueryResult *&r);
+	bool isBool();
+	int getBoolValue(bool &b);
 };
 
 
@@ -249,6 +276,8 @@ public:
 	bool greater_eq(QueryResult *r);
 	bool less_eq(QueryResult *r);
 	int nested(Transaction *tr, QueryResult *&r);
+	bool isBool();
+	int getBoolValue(bool &b);
 };
 
 class QueryBoolResult : public QueryResult
@@ -276,6 +305,8 @@ public:
 	bool greater_eq(QueryResult *r);
 	bool less_eq(QueryResult *r);
 	int nested(Transaction *tr, QueryResult *&r);
+	bool isBool();
+	int getBoolValue(bool &b);
 };
 
 
@@ -301,6 +332,8 @@ public:
 	bool greater_eq(QueryResult *r);
 	bool less_eq(QueryResult *r);
 	int nested(Transaction *tr, QueryResult *&r);
+	bool isBool();
+	int getBoolValue(bool &b);
 };
 
 /* You get this, as a result of non-select query like create, insert etc. */
@@ -321,6 +354,8 @@ public:
 	bool greater_eq(QueryResult *r) { return false; };
 	bool less_eq(QueryResult *r) { return false; };
 	int nested(Transaction *tr, QueryResult *&r);
+	bool isBool();
+	int getBoolValue(bool &b);
 };
 
 }

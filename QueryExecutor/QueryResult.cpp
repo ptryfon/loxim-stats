@@ -1,11 +1,21 @@
-#include <vector>
-#include "QueryResult.h"
-
+#include <stdio.h>
 #include <string>
 #include <vector>
+   
+#include "QueryResult.h"
+#include "TransactionManager/Transaction.h"
 #include "Store/Store.h"
+#include "Store/DBDataValue.h"
+#include "Store/DBLogicalID.h"
+#include "QueryParser/QueryParser.h"
+#include "QueryParser/TreeNode.h"
 #include "Errors/Errors.h"
+#include "Errors/ErrorConsole.h"
 
+using namespace QParser;
+using namespace TManager;
+using namespace Errors;
+using namespace Store;
 using namespace std;
 
 namespace QExecutor {
@@ -651,6 +661,7 @@ bool QueryReferenceResult::less_eq(QueryResult *r){
 }
 
 
+// nested function returns bag of binders, which will be pushed on the environment stack
 
 int QuerySequenceResult::nested(Transaction *tr, QueryResult *&r) {
 	return -1; // nested () function is applied to rows of a QueryResult and so, it shouldn't be applied to sequences and bags
@@ -661,106 +672,56 @@ int QueryBagResult::nested(Transaction *tr, QueryResult *&r) {
 }
 
 int QueryStructResult::nested(Transaction *tr, QueryResult *&r) {
-	r = new QueryBagResult;
+	fprintf(stderr, "[QE] nested(): QueryStructResult\n");
 	int errcode;
-	ObjectPointer *optr;
 	for (unsigned int i = 0; i < str.size(); i++) {
-		int tmp_type = (str.at(i))->type();
-		switch (tmp_type) {
-			case QueryResult::QSEQUENCE: {
-				return -1;
-				break;
-			}
-			case QueryResult::QBAG: {
-				return -1;
-				break;
-			}
-			case QueryResult::QSTRUCT: {
-				return -1;
-				break;
-			}
-			case QueryResult::QINT: {
-				break;
-			}
-			case QueryResult::QDOUBLE: {
-				break;
-			}
-			case QueryResult::QBOOL: {
-				break;
-			}
-			case QueryResult::QSTRING: {
-				break;
-			}
-			case QueryResult::QNOTHING: {
-				break;
-			}
-			case QueryResult::QBINDER: {
-				QueryResult *tmp_item = (((QueryBinderResult *) str.at(i))->getItem());
-				string tmp_name = (((QueryBinderResult *) str.at(i))->getName());
-				if (tmp_item != NULL) {
-					QueryBinderResult *tmp_value = new QueryBinderResult(tmp_name, tmp_item);
-					r->addResult(tmp_value);
-				}
-				break;
-			}
-			case QueryResult::QREFERENCE: {
-				LogicalID *lid_value = (((QueryReferenceResult *) str.at(i))->getValue());
-				if (lid_value != NULL) {
-					if ((errcode = tr->getObjectPointer(lid_value, Store::Read, optr)) != 0) {
-						fprintf(stderr, "[QE] Error in getObjectPointer\n");
-						return errcode;
-					}
-					string optrName = (optr->getName());
-					QueryBinderResult *tmp_value = new QueryBinderResult(optrName, str.at(i));
-					r->addResult(tmp_value);
-				}
-				break;
-			}
-			default : {
-				return -1; // unknown query result type
-				break;
-			}
-		}//switch
-	}//for
+		if ((str.at(i))->type() == QueryResult::QSTRUCT)
+			return -1; // one row shouldn't contain another row;
+		else {
+			errcode = ((str.at(i))->nested(tr, r));
+			if (errcode != 0) return errcode;
+		}
+	}
 	return 0;
 }
 
 int QueryStringResult::nested(Transaction *tr, QueryResult *&r) {
-	r = new QueryBagResult;
+	fprintf(stderr, "[QE] nested(): QueryStringResult can't be nested\n");
 	return 0;
 }
 
 int QueryIntResult::nested(Transaction *tr, QueryResult *&r) {
-	r = new QueryBagResult;
+	fprintf(stderr, "[QE] nested(): QueryIntResult can't be nested\n");
 	return 0;
 }
 
 int QueryDoubleResult::nested(Transaction *tr, QueryResult *&r) {
-	r = new QueryBagResult;
+	fprintf(stderr, "[QE] nested(): QueryDoubleResult can't be nested\n");
 	return 0;
 }
 
 int QueryBoolResult::nested(Transaction *tr, QueryResult *&r) {
-	r = new QueryBagResult;
+	fprintf(stderr, "[QE] nested(): QueryBoolResult can't be nested\n");
 	return 0;
 }
 
 int QueryNothingResult::nested(Transaction *tr, QueryResult *&r) {
-	r = new QueryBagResult;
+	fprintf(stderr, "[QE] nested(): QueryNothingResult can't be nested\n");
 	return 0;
 }
 
 int QueryBinderResult::nested(Transaction *tr, QueryResult *&r) {
-	r = new QueryBagResult;
 	if (item != NULL) {
 		QueryBinderResult *tmp_value = new QueryBinderResult(name,item);
+		fprintf(stderr, "[QE] nested(): QueryBinderResult copy returned name: ");
+		cout << name << endl;
 		r->addResult(tmp_value);
 	}
 	return 0;
 }
 
 int QueryReferenceResult::nested(Transaction *tr, QueryResult *&r) {
-	r = new QueryBagResult;
+	DataValue* tmp_data_value;
 	int errcode;
 	ObjectPointer *optr;
 	if (value != NULL) {
@@ -768,34 +729,118 @@ int QueryReferenceResult::nested(Transaction *tr, QueryResult *&r) {
 			fprintf(stderr, "[QE] Error in getObjectPointer\n");
 			return errcode;
 		}
-		string optrName = (optr->getName());
-		QueryReferenceResult *tmp_ref = new QueryReferenceResult(value);
-		QueryBinderResult *tmp_value = new QueryBinderResult(optrName, tmp_ref);
-		r->addResult(tmp_value);
+		tmp_data_value = optr->getValue();
+		int vType = tmp_data_value->getType();
+		switch (vType) {
+			case Store::Integer: {
+				fprintf(stderr, "[QE] nested(): QueryReferenceResult pointing integer value - can't be nested\n");
+				break;
+			}
+			case Store::Double: {
+				fprintf(stderr, "[QE] nested(): QueryReferenceResult pointing double value - can't be nested\n");
+				break;
+			}
+			case Store::String: {
+				fprintf(stderr, "[QE] nested(): QueryReferenceResult pointing string value - can't be nested\n");
+				break;
+			}
+			case Store::Pointer: {
+				LogicalID *tmp_logID = (tmp_data_value->getPointer());
+				if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, optr)) != 0) {
+				fprintf(stderr, "[QE] Error in getObjectPointer\n");
+					return errcode;
+				}
+				string tmp_name = optr->getName();
+				QueryReferenceResult *final_ref = new QueryReferenceResult(tmp_logID);
+				QueryBinderResult *final_binder = new QueryBinderResult(tmp_name, final_ref);
+				fprintf(stderr, "[QE] nested(): QueryReferenceResult pointing reference value\n");
+				r->addResult(final_binder);
+				fprintf(stderr, "[QE] nested(): new QueryBinderResult returned name: ");
+				cout << tmp_name << endl;
+				break;
+			}
+			case Store::Vector: {
+				vector<ObjectPointer*>* tmp_vec = (tmp_data_value->getVector());
+				fprintf(stderr, "[QE] nested(): QueryReferenceResult pointing vector value\n");
+				int vec_size = tmp_vec->size();
+				for (int i = 0; i < vec_size; i++ ) {
+					optr = tmp_vec->at(i);
+					LogicalID *tmp_logID = optr->getLogicalID();
+					string tmp_name = optr->getName();
+					QueryReferenceResult *final_ref = new QueryReferenceResult(tmp_logID);
+					QueryBinderResult *final_binder = new QueryBinderResult(tmp_name, final_ref);
+					fprintf(stderr, "[QE] nested(): vector element number %d\n", i);
+					r->addResult(final_binder);
+					fprintf(stderr, "[QE] nested(): new QueryBinderResult returned name: ");
+					cout << tmp_name << endl;
+				}
+				break;
+			}
+			default : {
+				fprintf(stderr, "[QE] nested(): ERROR! QueryReferenceResult pointing unknown format value\n");
+				return -1;
+				break;
+			}
+		}
 	}
 	return 0;
 }
 
+//function isBool() - returns true if result is a boolean (also if it is table 1x1 containing one bollean), false if not
+bool QuerySequenceResult::isBool() { 
+	if (seq.size() == 1)
+		return ((seq.at(0))->isBool());
+	else
+		return false; 
+}
+bool QueryBagResult::isBool() { 
+	if (bag.size() == 1)
+		return ((bag.at(0))->isBool());
+	else
+		return false; 
+}
+bool QueryStructResult::isBool() { 
+	if (str.size() == 1)
+		return ((str.at(0))->isBool());
+	else
+		return false; 
+}
+bool QueryBinderResult::isBool()	{ return false; }
+bool QueryStringResult::isBool()	{ return false; }
+bool QueryIntResult::isBool()		{ return false; }
+bool QueryDoubleResult::isBool()	{ return false; }
+bool QueryBoolResult::isBool()		{ return true; }
+bool QueryReferenceResult::isBool()	{ return false; }
+bool QueryNothingResult::isBool()	{ return false; }
 
-
-
-
-
-
-
+// function getBoolValue returns a boolean value if the object is a bollean
+int QuerySequenceResult::getBoolValue(bool &b) { 
+	if (seq.size() == 1)
+		return ((seq.at(0))->getBoolValue(b));
+	else
+		return -1; 
+}
+int QueryBagResult::getBoolValue(bool &b) {
+	if (bag.size() == 1)
+		return ((bag.at(0))->getBoolValue(b));
+	else
+		return -1;
+}
+int QueryStructResult::getBoolValue(bool &b) { 
+	if (str.size() == 1)
+		return ((str.at(0))->getBoolValue(b));
+	else
+		return -1;
+}
+int QueryBinderResult::getBoolValue(bool &b)	{ return -1; } //error not a boolean type
+int QueryStringResult::getBoolValue(bool &b)	{ return -1; } //error not a boolean type
+int QueryIntResult::getBoolValue(bool &b)	{ return -1; } //error not a boolean type
+int QueryDoubleResult::getBoolValue(bool &b)	{ return -1; } //error not a boolean type
+int QueryBoolResult::getBoolValue(bool &b) { 
+	b = value;
+	return 0;
+}
+int QueryReferenceResult::getBoolValue(bool &b)	{ return -1; } //error not a boolean type
+int QueryNothingResult::getBoolValue(bool &b)	{ return -1; } //error not a boolean type
 
 }
-
-/* TODO 
-- pisac err na konsole bagginsa
-
-- zastanowic sie jak naprawde powinny wygladac i zachowywac sie bag, sequence i struct
-  i ewentulanie zmienic ich implementacje
-
-- byc moze opracowac operatory dla stringow np. konkatenacje
-- byc moze dodac operatory replace(i), remove(i) do kolekcji
-
-- do rozwazenia, czy zrobimy osobna klase na stos czy wykorzystamy ktoryz z typow result,
-- do rozwazenie czy operacje typu suma zbiorów, przeciecie, i inne podobne jakie bedziemy wykonywac na wynikach maja byc zdefiniowane
-  w QueryExecutorze czy tez moga to byc wbudowane metody poszczególnych resultów */
-

@@ -1,11 +1,24 @@
 #ifndef _QUERYEXECUTOR_H
 #define _QUERYEXECUTOR_H
 
+#include <stdio.h>
 #include <string>
 #include <vector>
+   
+#include "QueryResult.h"
+#include "TransactionManager/Transaction.h"
+#include "Store/Store.h"
+#include "Store/DBDataValue.h"
+#include "Store/DBLogicalID.h"
+#include "QueryParser/QueryParser.h"
+#include "QueryParser/TreeNode.h"
+#include "Errors/Errors.h"
+#include "Errors/ErrorConsole.h"
 
 using namespace QParser;
 using namespace TManager;
+using namespace Errors;
+using namespace Store;
 using namespace std;
 
 namespace QExecutor

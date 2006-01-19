@@ -1106,7 +1106,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 				fprintf(stderr, "[QE] For each row of this score, the right argument will be computed \n");
 				for (unsigned int i = 0; i < (lResult->size()); i++) {
 					QueryResult *currentResult;
-					QueryResult *newStackSection;
+					QueryResult *newStackSection = new QueryBagResult();
 					if ((lResult->type()) == QueryResult::QSEQUENCE)
 						errcode = (((QuerySequenceResult *) lResult)->at(i, currentResult));
 					else
@@ -1131,8 +1131,8 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 				}
 			}
 			else { //QSTRUCT, QINT, QDOUBLE, QBOOL, QSTRING, QNOTHING, QBINDER, QREFERENCE
-				fprintf(stderr, "[QE] The score has got only one row, the right argument will now be computed \n");
-				QueryResult *newStackSection;
+				fprintf(stderr, "[QE] Left argument score has got only one row, the right argument will now be computed \n");
+				QueryResult *newStackSection = new QueryBagResult();
 				errcode = lResult->nested(tr, newStackSection);
 				if (errcode != 0) return errcode;
 				fprintf(stderr, "[QE] nested(): function calculated for the single row");
@@ -1152,10 +1152,12 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 				
 				
 			}
-			errcode = this->merge(op,partial_result,*result);
+			QueryResult *final_result = new QueryBagResult();
+			errcode = this->merge(op,partial_result, final_result);
 			if (errcode != 0) return errcode;
 			fprintf(stderr, "[QE] Merged partial results into final result\n");
 			fprintf(stderr, "[QE] NonAlgebraic operation Done!\n");
+			*result = final_result;
 			return 0;
 		}//case TNNONALGOP
 		
@@ -1181,7 +1183,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 
 int QueryExecutor::combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryResult *lRes, QueryResult *&partial) {
 	fprintf(stderr, "[QE] combine() function applied to the partial results\n");
-	//int errcode;
+	int errcode;
 	switch (op) {
 		case NonAlgOpNode::dot: {
 			fprintf(stderr, "[QE] combine(): NonAlgebraic operator <dot>\n");
@@ -1194,8 +1196,11 @@ int QueryExecutor::combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryRe
 		}
 		case NonAlgOpNode::where: {
 			fprintf(stderr, "[QE] combine(): NonAlgebraic operator <where>\n");
-			if ((lRes->type()) == QueryResult::QBOOL) {
-				if (((QueryBoolResult *) lRes)->getValue())
+			if (lRes->isBool()) {
+				bool tmp_bool_value;
+				errcode = (lRes->getBoolValue(tmp_bool_value));
+				if (errcode != 0) return errcode;
+				if (tmp_bool_value) 
 					partial->addResult(curr);
 			}
 			else {
@@ -1226,15 +1231,12 @@ int QueryExecutor::combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryRe
 		}
 		case NonAlgOpNode::exists: {
 			fprintf(stderr, "[QE] combine(): NonAlgebraic operator <exists>\n");
-			if ((lRes->type()) == QueryResult::QBOOL) {
-				if (((QueryBoolResult *) lRes)->getValue()) {
-					QueryBoolResult *tmp_result = new QueryBoolResult(true); 
-					partial->addResult(tmp_result);
-				}
-				else {
-					QueryBoolResult *tmp_result = new QueryBoolResult(false); 
-					partial->addResult(tmp_result);
-				}
+			if (lRes->isBool()) {
+				bool tmp_bool_value;
+				errcode = (lRes->getBoolValue(tmp_bool_value));
+				if (errcode != 0) return errcode;
+				QueryBoolResult *tmp_result = new QueryBoolResult(tmp_bool_value); 
+				partial->addResult(tmp_result);
 			}
 			else {
 				fprintf(stderr, "[QE] combine(): ERROR! Right argument of operator <exists> is not boolean!\n");
@@ -1244,15 +1246,12 @@ int QueryExecutor::combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryRe
 		}
 		case NonAlgOpNode::forAll: {
 			fprintf(stderr, "[QE] combine(): NonAlgebraic operator <forAll> not imlemented yet\n");
-			if ((lRes->type()) == QueryResult::QBOOL) {
-				if (((QueryBoolResult *) lRes)->getValue()) {
-					QueryBoolResult *tmp_result = new QueryBoolResult(true); 
-					partial->addResult(tmp_result);
-				}
-				else {
-					QueryBoolResult *tmp_result = new QueryBoolResult(false); 
-					partial->addResult(tmp_result);
-				}
+			if (lRes->isBool()) {
+				bool tmp_bool_value;
+				errcode = (lRes->getBoolValue(tmp_bool_value));
+				if (errcode != 0) return errcode;
+				QueryBoolResult *tmp_result = new QueryBoolResult(tmp_bool_value); 
+				partial->addResult(tmp_result);
 			}
 			else {
 				fprintf(stderr, "[QE] combine(): ERROR! Right argument of operator <forAll> is not boolean!\n");
@@ -1275,88 +1274,78 @@ int QueryExecutor::merge(NonAlgOpNode::nonAlgOp op, QueryResult *partial, QueryR
 	switch (op) {
 		case NonAlgOpNode::dot: {
 			fprintf(stderr, "[QE] merge(): NonAlgebraic operator <dot>\n");
-			final = new QueryBagResult();
-			for (unsigned i = 0; i > (partial->size()); i++) {
-				QueryResult *tmp_result;
-				errcode = (((QueryBagResult *) partial)->at(i,tmp_result));
-				final->addResult(tmp_result);
-				if (errcode != 0) return errcode;
-			}
+			final = partial;
 			break;
 		}
 		case NonAlgOpNode::join: {
 			fprintf(stderr, "[QE] merge(): NonAlgebraic operator <join> not imlemented yet\n");
-			final = new QueryBagResult();
 			break;
 		}
 		case NonAlgOpNode::where: {
 			fprintf(stderr, "[QE] merge(): NonAlgebraic operator <where>\n");
-			final = new QueryBagResult();
-			for (unsigned i = 0; i > (partial->size()); i++) {
-				QueryResult *tmp_result;
-				errcode = (((QueryBagResult *) partial)->at(i,tmp_result));
-				final->addResult(tmp_result);
-				if (errcode != 0) return errcode;
-			}
+			final = partial;
 			break;
 		}
 		case NonAlgOpNode::closeBy: {
 			fprintf(stderr, "[QE] merge(): NonAlgebraic operator <closeBy> not imlemented yet\n");
-			final = new QueryBagResult();
 			break;
 		}
 		case NonAlgOpNode::closeUniqueBy: {
 			fprintf(stderr, "[QE] merge(): NonAlgebraic operator <closeUniqueBy> not imlemented yet\n");
-			final = new QueryBagResult();
 			break;
 		}
 		case NonAlgOpNode::leavesBy: {
 			fprintf(stderr, "[QE] merge(): NonAlgebraic operator <leavesBy> not imlemented yet\n");
-			final = new QueryBagResult();
 			break;
 		}
 		case NonAlgOpNode::leavesUniqueBy: {
 			fprintf(stderr, "[QE] merge(): NonAlgebraic operator <leavesUniqueBy> not imlemented yet\n");
-			final = new QueryBagResult();
 			break;
 		}
 		case NonAlgOpNode::orderBy: {
 			fprintf(stderr, "[QE] merge(): NonAlgebraic operator <orderBy> not imlemented yet\n");
-			final = new QueryBagResult();
 			break;
 		}
 		case NonAlgOpNode::exists: {
 			fprintf(stderr, "[QE] merge(): NonAlgebraic operator <exists>\n");
 			bool tmp_bool = false;
-			for (unsigned i = 0; i > (partial->size()); i++) {
+			bool current_bool;
+			for (unsigned i = 0; i < (partial->size()); i++) {
 				QueryResult *tmp_result;
 				errcode = (((QueryBagResult *) partial)->at(i,tmp_result));
-				if ((tmp_result->type()) != QueryResult::QBOOL) {
+				if (errcode != 0) return errcode;
+				if (not (tmp_result->isBool())) {
 					fprintf(stderr, "[QE] merge(): ERROR! operator <exists> expects boolean type arguments\n");
 					return -1; //something went odd, partial results should be boolean type
 				}
-				if (((QueryBoolResult *) tmp_result)->getValue())
-					tmp_bool = true;
+				errcode = (tmp_result->getBoolValue(current_bool));
 				if (errcode != 0) return errcode;
+				if (current_bool)
+					tmp_bool = true;
 			}
-			final = new QueryBoolResult(tmp_bool);
+			QueryBoolResult * tmp_bool_res = new QueryBoolResult(tmp_bool);
+			final->addResult(tmp_bool_res);
 			break;
 		}
 		case NonAlgOpNode::forAll: {
 			fprintf(stderr, "[QE] merge(): NonAlgebraic operator <forAll>\n");
 			bool tmp_bool = true;
-			for (unsigned i = 0; i > (partial->size()); i++) {
+			bool current_bool;
+			for (unsigned i = 0; i < (partial->size()); i++) {
 				QueryResult *tmp_result;
 				errcode = (((QueryBagResult *) partial)->at(i,tmp_result));
-				if ((tmp_result->type()) != QueryResult::QBOOL) {
-					fprintf(stderr, "[QE] merge(): ERROR! operator <forAll> expects boolean type arguments\n");
+				if (errcode != 0) return errcode;
+				if (not (tmp_result->isBool())) {
+					fprintf(stderr, "[QE] merge(): ERROR! operator <exists> expects boolean type arguments\n");
 					return -1; //something went odd, partial results should be boolean type
 				}
-				if (not (((QueryBoolResult *) tmp_result)->getValue()))
-					tmp_bool = false;
+				errcode = (tmp_result->getBoolValue(current_bool));
 				if (errcode != 0) return errcode;
+				if (not current_bool)
+					tmp_bool = false;
 			}
-			final = new QueryBoolResult(tmp_bool);
+			QueryBoolResult *tmp_bool_res = new QueryBoolResult(tmp_bool);
+			final->addResult(tmp_bool_res);
 			break;
 		}
 		default: {
