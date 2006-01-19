@@ -38,6 +38,7 @@ all: $(STATIC_LIB)
 test: $(PROGRAM)
 
 $(PROGRAM): $(STATIC_LIB)
+	make -C ../Log
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $@.cpp $< ../TransactionManager/TransactionManager.a ../Lock/Lock.a ../Errors/Errors.a ../Log/Logs.a -o $@
 
 clean:
