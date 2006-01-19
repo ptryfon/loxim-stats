@@ -6,7 +6,11 @@ namespace Store
 	class File;
 };
 
-#include <fstream>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+
 #include "Store.h"
 #include "Struct.h"
 #include "DBStoreManager.h"
@@ -21,21 +25,21 @@ namespace Store
 		DBStoreManager* store;
 		int started;
 
-		fstream* fmap;
-		fstream* froots;
-		fstream* fdefault;
+		int fmap;
+		int froots;
+		int fdefault;
 
 	private:
-		int getStream(unsigned short fileID, fstream** file);
+		int getStream(unsigned short fileID, int* file);
 
 	public:
 		File(DBStoreManager* store);
 		~File();
 		int start();
 		int stop();
-		int read(unsigned short fileID, unsigned int offset, int length, char* buffer);
+		int fread(unsigned short fileID, unsigned int offset, int length, char* buffer);
 		int readPage(unsigned short fileID, unsigned int pageOffset, char* buffer);
-		int write(unsigned short fileID, unsigned int offset, int length, char* buffer);
+		int fwrite(unsigned short fileID, unsigned int offset, int length, char* buffer);
 		int writePage(unsigned short fileID, unsigned int pageOffset, char* buffer);
 	};
 };

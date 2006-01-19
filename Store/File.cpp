@@ -1,6 +1,10 @@
 #include "File.h"
 #include "Errors/Errors.h"
 
+#include <iostream>
+#include <errno.h>
+#include <string.h>
+
 namespace Store
 {
 	File::File(DBStoreManager* store)
@@ -17,7 +21,7 @@ namespace Store
 	{
 	}
 
-	int File::getStream(unsigned short fileID, fstream** file)
+	int File::getStream(unsigned short fileID, int* file)
 	{
 		if (fileID == STORE_FILE_DEFAULT)
 			*file = fdefault;
@@ -39,35 +43,23 @@ namespace Store
 		if (started)
 			return 0;
 
-		fmap = new fstream();
-		froots = new fstream();
-		fdefault = new fstream();
+		fmap = open("/tmp/sbmap", O_RDWR | O_DIRECT);
+		froots = open("/tmp/sbroots", O_RDWR | O_DIRECT);
+		fdefault = open("/tmp/sbdefault", O_RDWR | O_DIRECT);
 
-		fmap->open("/tmp/sbmap", ios::in | ios::binary);
-		froots->open("/tmp/sbroots", ios::in | ios::binary);
-		fdefault->open("/tmp/sbdefault", ios::in | ios::binary);
-
-		if (!fmap->is_open() || !froots->is_open() || !fdefault->is_open() || true)
+		if (fmap == -1 || froots == -1 || fdefault == -1)
 		{
-			if (fmap->is_open()) fmap->close();
-			if (froots->is_open()) froots->close();
-			if (fdefault->is_open()) fdefault->close();
+			if (fmap > 0) close(fmap);
+			if (froots > 0) close(froots);
+			if (fdefault > 0) close(fdefault);
 
-			fmap->open("/tmp/sbmap", ios::out | ios::binary | ios::trunc);
-			froots->open("/tmp/sbroots", ios::out | ios::binary | ios::trunc);
-			fdefault->open("/tmp/sbdefault", ios::out | ios::binary | ios::trunc);
+			fmap = open("/tmp/sbmap", O_CREAT | O_RDWR | O_DIRECT, S_IRUSR | S_IWUSR);
+			froots = open("/tmp/sbroots", O_CREAT | O_RDWR | O_DIRECT, S_IRUSR | S_IWUSR);
+			fdefault = open("/tmp/sbdefault", O_CREAT | O_RDWR | O_DIRECT, S_IRUSR | S_IWUSR);
 
 			store->getMap()->initializeFile(this);
 			store->getRoots()->initializeFile(this);
-
-			if (fmap->is_open()) fmap->close();
-			if (froots->is_open()) froots->close();
-			if (fdefault->is_open()) fdefault->close();
 		}
-
-		fmap->open("/tmp/sbmap", ios::in | ios::out | ios::binary);
-		froots->open("/tmp/sbroots", ios::in | ios::out | ios::binary);
-		fdefault->open("/tmp/sbdefault", ios::in | ios::out | ios::binary);
 
 		started = 1;
 		return 0;
@@ -78,53 +70,57 @@ namespace Store
 		if (!started)
 			return 0;
 
-		if (fdefault && fdefault->is_open()) { fdefault->flush(); fdefault->close(); }
-		if (fmap && fmap->is_open()) { fmap->flush(); fmap->close(); }
-		if (froots && froots->is_open()) { froots->flush(); froots->close(); }
-
-		if (fdefault) { delete fdefault; fdefault = 0; }
-		if (fmap) { delete fmap; fmap = 0; }
-		if (froots) { delete froots; froots = 0; }
+		if (fmap > 0) close(fmap);
+		if (froots > 0) close(froots);
+		if (fdefault > 0) close(fdefault);
 
 		started = 0;
 		return 0;
 	};
 
-	int File::read(unsigned short fileID, unsigned int offset, int length, char* buffer)
+	int File::fread(unsigned short fileID, unsigned int offset, int length, char* buffer)
 	{
-		fstream* file = 0;
+		int file = 0;
 		int err = 0;
 
 		if ((err = getStream(fileID, &file)) != 0)
 			return err;
 
-		file->seekg(offset, ios::beg);
-		file->read(buffer, length);
+		lseek(file, offset, SEEK_SET);
+		read(file, buffer, length);
 
 		return 0;
 	};
 
 	int File::readPage(unsigned short fileID, unsigned int pageOffset, char* buffer)
 	{
-		return this->read(fileID, pageOffset * STORE_PAGESIZE, STORE_PAGESIZE, buffer);
+		return this->fread(fileID, pageOffset * STORE_PAGESIZE, STORE_PAGESIZE, buffer);
 	};
 
-	int File::write(unsigned short fileID, unsigned int offset, int length, char* buffer)
+	int File::fwrite(unsigned short fileID, unsigned int offset, int length, char* buffer)
 	{
-		fstream* file = 0;
+		int file = 0;
 		int err = 0;
+		int rlseek, rwrite;
+		char buff[STORE_PAGESIZE];
 
 		if ((err = getStream(fileID, &file)) != 0)
 			return err;
 
-		file->seekp(offset, ios::beg);
-		file->write(buffer, length);
+		memcpy(&buff, buffer, STORE_PAGESIZE);
+
+		//cout << "Store:: Pisze do deskryptora " << file << " na pozycje " << offset << "." << endl;
+		rlseek = lseek(file, offset, SEEK_SET);
+		//cout << "   Wynik lseek: " << rlseek << "." << endl;
+		rwrite = write(file, &buff, length);
+		/*cout << "   Wynik write: " << rwrite << "." << endl;
+		cout << "       errno: " << errno << " [" << sys_errlist[errno] << "]" << endl;*/
 
 		return 0;
 	};
 
 	int File::writePage(unsigned short fileID, unsigned int pageOffset, char* buffer)
 	{
-		return this->write(fileID, pageOffset * STORE_PAGESIZE, STORE_PAGESIZE, buffer);
+		return this->fwrite(fileID, pageOffset * STORE_PAGESIZE, STORE_PAGESIZE, buffer);
 	};
 }
