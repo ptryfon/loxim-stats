@@ -31,7 +31,7 @@ int LogRecord::destroy()
   return 0;
 }
 
-int LogRecord::readLogRecordForward( LogRecord *&result, int fileDes )
+int LogRecord::readLogRecordForward( LogRecord *&result, int fileDes, StoreManager* sm )
 {
   int recordType;
   int errCode;
@@ -43,7 +43,7 @@ int LogRecord::readLogRecordForward( LogRecord *&result, int fileDes )
   if( !dictionary.count( recordType ) ) return UNKNOWN_LOG_RECORD_TYPE_ERROR;
 
   if( ( errCode = dictionary[recordType]->instance( result ) ) ) return errCode;
-  result->read( fileDes );
+  result->read( fileDes, sm );
 
   if( ( errCode = LogIO::readInt( fileDes, recordLen ) ) ) return errCode;
   if( ( errCode = LogIO::getFilePos( fileDes, filePosEnd ) ) ) return errCode;
@@ -53,7 +53,7 @@ int LogRecord::readLogRecordForward( LogRecord *&result, int fileDes )
   return 0;
 }
 
-int LogRecord::readLogRecordBackward( LogRecord *&result, int fileDes )
+int LogRecord::readLogRecordBackward( LogRecord *&result, int fileDes, StoreManager* sm )
 {
   int errCode;
   int recordLen;
@@ -73,7 +73,7 @@ int LogRecord::readLogRecordBackward( LogRecord *&result, int fileDes )
   // cofamy sie o rozmiar rekordu do tylu
   if( ::lseek( fileDes, - recordLen, SEEK_CUR ) < 0 ) return errno;
 
-  if( ( errCode = readLogRecordForward( result, fileDes ) ) ) return errCode;
+  if( ( errCode = readLogRecordForward( result, fileDes, sm ) ) ) return errCode;
 
   // ustawiamy sie przed odczytanym wlasnie rekordem
   if( ::lseek( fileDes, - recordLen, SEEK_CUR ) < 0 ) return errno;
@@ -106,29 +106,50 @@ int LogRecord::writeLogRecord( LogRecord *recordPtr, int fileDes )
 
 /* TransactionRecord class */
 
-int TransactionRecord::read( int fileDes ) { return LogIO::readTransactionID( tid, fileDes ); }
+int TransactionRecord::read( int fileDes, StoreManager* sm ) { return LogIO::readTransactionID( tid, fileDes ); }
 
 int TransactionRecord::write( int fileDes ) { return LogIO::writeTransactionID( tid, fileDes ); }
+
+/* BeginTransactionRecord class */
+
+int BeginTransactionRecord::rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm)
+{
+  // Ponieważ się cofamy, to po napotkaniu poczatku tranzakcji 
+  // mozemy ja usunac ze spisu transakcji do wycofania.
+  setOfTIDs->erase(*tid);
+  return 0;
+}
 
 
 
 /* CkptRecord class */
 
-int CkptRecord::read( int fileDes ) { return LogIO::readTransactionIDVector( tidVec, fileDes ); }
+int CkptRecord::read( int fileDes, StoreManager* sm ) { return LogIO::readTransactionIDVector( tidVec, fileDes ); }
 int CkptRecord::write( int fileDes ) { return LogIO::writeTransactionIDVector( tidVec, fileDes ); }
 
 
 /* WriteRecord class */
 
-int WriteRecord::read( int fileDes )
+int WriteRecord::rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm)
+{
+  //sprawdzamy czy zapis dotyczy jednej z tranzakcji do wycofania
+  if(setOfTIDs->find(*tid) != setOfTIDs->end())
+  {
+    return 0;
+  }
+  return 0;
+}
+
+int WriteRecord::read( int fileDes, StoreManager* sm )
 {
   int errCode;
 
-  if( ( errCode = TransactionRecord::read( fileDes ) ) ) return errCode;
+  if( ( errCode = TransactionRecord::read( fileDes, sm ) ) ) return errCode;
   if( ( errCode = LogIO::readTransactionID( tid, fileDes ) ) ) return errCode;
-  if( ( errCode = LogIO::readLogicalID( lid, fileDes ) ) ) return errCode;
-  if( ( errCode = LogIO::readDataValue( oldVal, fileDes ) ) ) return errCode;
-  if( ( errCode = LogIO::readDataValue( newVal, fileDes ) ) ) return errCode;
+  if( ( errCode = LogIO::readString( fileDes, name ) ) ) return errCode;
+  if( ( errCode = LogIO::readLogicalID( lid, fileDes, sm ) ) ) return errCode;
+  if( ( errCode = LogIO::readDataValue( oldVal, fileDes, sm ) ) ) return errCode;
+  if( ( errCode = LogIO::readDataValue( newVal, fileDes, sm ) ) ) return errCode;
 
   return errCode;
 }
@@ -139,6 +160,7 @@ int WriteRecord::write( int fileDes )
 
   if( ( errCode = TransactionRecord::write( fileDes ) ) ) return errCode;
   if( ( errCode = LogIO::writeLogicalID( lid, fileDes ) ) ) return errCode;
+  if( ( errCode = LogIO::writeString( fileDes, (char*) name.data(), name.length() ) ) ) return errCode;
   if( ( errCode = LogIO::writeDataValue( oldVal, fileDes ) ) ) return errCode;
   if( ( errCode = LogIO::writeDataValue( newVal, fileDes ) ) ) return errCode;
 

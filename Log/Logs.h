@@ -43,7 +43,7 @@ namespace Logs
      * Nakazuje zapisac w logach informacje o starej i nowej wartosci
      * zmodyfikowanego atrybutu.
      */
-    int write( TransactionID *tid, LogicalID *lid, DataValue *oldVal, DataValue *newVal, unsigned &id );
+    int write( TransactionID *tid, LogicalID *lid, string name, DataValue *oldVal, DataValue *newVal, unsigned &id );
 
     /**
      * Rozpoczyna tworzenie bezkonfliktowego punktu kontrolnego.
@@ -70,6 +70,16 @@ namespace Logs
      * Zapisuje do dziennika <SHUTDOWN> ("poprawnie zamknieto baze danych").
      */
     int shutdown( unsigned &id );
+
+    /**
+     * Nakazuje zapisac wlogach informacje o nowym korzeniu (root).
+     */
+    int addRoot( TransactionID *tid, LogicalID *lid, unsigned &id ){ id=1; return 0; };
+
+    /**
+     * Nakazuje zapisac wlogach informacje o nowym korzeniu (root).
+     */
+    int removeRoot( TransactionID *tid, LogicalID *lid, unsigned &id ){ id=1; return 0; };
 
     int destroy();
   };

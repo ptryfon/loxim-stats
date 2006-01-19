@@ -14,12 +14,15 @@ namespace Logs
 
 #include <string>
 #include <map>
+#include <set>
 #include <stdio.h>
 #include "../Store/Store.h"
 #include "../TransactionManager/Transaction.h"
+#include "../Lock/Comparator.h"
 
 using namespace Store;
 using namespace TManager;
+using namespace LockMgr;
 
 
 namespace Logs
@@ -37,6 +40,7 @@ namespace Logs
 #define WRITE_LOG_REC_TYPE     6
 #define SHUTDOWN_LOG_REC_TYPE  7
 
+  typedef set<TransactionID, TransactionIDCmp> SetOfTransactionIDS;
 
   class LogRecord
   {
@@ -49,20 +53,21 @@ namespace Logs
     LogRecord() : id( ++idSeq ) {}
     LogRecord( int _type ) : id( ++idSeq ), type( _type ) { dictionary[type] = this; }
 
-    virtual int read( int fileDes ) = 0;
+    virtual int read( int fileDes, StoreManager* sm ) = 0;
     virtual int write( int fileDes ) = 0;
     virtual int instance( LogRecord *&result ) = 0;
 
     public:
     static int initialize();
-    static int readLogRecordForward( LogRecord *&result, int fileDes );
-    static int readLogRecordBackward( LogRecord *&result, int fileDes );
+    static int readLogRecordForward( LogRecord *&result, int fileDes, StoreManager* sm );
+    static int readLogRecordBackward( LogRecord *&result, int fileDes, StoreManager* sm );
     static int writeLogRecord( LogRecord *recordPtr, int fileDes ); // zakladamy ze wskaznik biezacej pozycji w pliku jest na koncu pliku
     static int destroy();
 
     virtual ~LogRecord() {}
     int getId( unsigned int &result ) { result = id; return 0; }
     int getType( int &result ) { result = type; return 0; }
+    virtual int rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm) {return 0;}
   };
 
 
@@ -72,7 +77,7 @@ namespace Logs
 
     protected:
 
-    virtual int read( int fileDes ) { return 0; }
+    virtual int read( int fileDes, StoreManager* sm ) { return 0; }
     virtual int write( int fileDes ) { return 0; }
 
     virtual int instance( LogRecord *&result ) { result = new ShutdownRecord(); return 0; }
@@ -93,7 +98,7 @@ namespace Logs
 
     TransactionRecord( int _type ) : LogRecord( _type ) {}
 
-    virtual int read( int fileDes );
+    virtual int read( int fileDes, StoreManager* sm );
     virtual int write( int fileDes );
 
     public:
@@ -112,6 +117,7 @@ namespace Logs
     virtual int instance( LogRecord *&result ) { result = new BeginTransactionRecord(); return 0; }
 
     public:
+    virtual int rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm);
     BeginTransactionRecord( TransactionID *_tid ) : TransactionRecord( _tid ) {}
   };
 
@@ -124,18 +130,20 @@ namespace Logs
     LogicalID *lid;
     DataValue *oldVal;
     DataValue *newVal;
+    string name;
 
     WriteRecord() : TransactionRecord( WRITE_LOG_REC_TYPE ) {}
 
-    virtual int read( int fileDes );
+    virtual int read( int fileDes, StoreManager* sm );
     virtual int write( int fileDes );
     virtual int instance( LogRecord *&result ) { result = new WriteRecord(); return 0; }
 
     public:
-    WriteRecord( TransactionID *_tid, LogicalID *_lid, DataValue *_oldVal, DataValue *_newVal )
-    : TransactionRecord( _tid ), lid( _lid ), oldVal( _oldVal ), newVal( _newVal )
+    WriteRecord( TransactionID *_tid, LogicalID *_lid, string _name, DataValue *_oldVal, DataValue *_newVal )
+    : TransactionRecord( _tid ), lid( _lid ), oldVal( _oldVal ), newVal( _newVal ), name(_name)
     {}
-    virtual ~WriteRecord() { /* delete lid; delete oldVal; delete newVal; */} // TODO
+    virtual ~WriteRecord() {  /*delete lid; delete oldVal; delete newVal;*/ } //
+    virtual int rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm);
   };
 
 
@@ -176,7 +184,7 @@ namespace Logs
 
     CkptRecord() : LogRecord( CKPT_LOG_REC_TYPE ) {}
 
-    virtual int read( int fileDes );
+    virtual int read( int fileDes, StoreManager* sm );
     virtual int write( int fileDes );
     virtual int instance( LogRecord *&result ) { result = new CkptRecord(); return 0; }
 
@@ -191,7 +199,7 @@ namespace Logs
   {
     friend class LogRecord;
 
-    virtual int read( int fileDes ) { return 0; }
+    virtual int read( int fileDes, StoreManager* sm ) { return 0; }
     virtual int write( int fileDes ) { return 0; }
     virtual int instance( LogRecord *&result ) { result = new EndCkptRecord(); return 0; }
 

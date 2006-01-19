@@ -31,15 +31,56 @@ int LogIO::getFilePos( int fileDes, off_t &result )
   return ( result < 0 ) ? errno : 0;
 }
 
-int LogIO::readDataValue( DataValue *&dv, int fileDes )
+int LogIO::readLogicalID( LogicalID *&lid, int fileDes, StoreManager* sm )
+{
+  string s;
+  int errCode;
+
+  if( ( ( errCode = readString( fileDes, s ) ) ) ) return errCode;
+  if(s.empty())
+  {
+    lid=NULL;
+  }
+  else
+  {
+    return sm->logicalIDFromByteArray((unsigned char*) (s.data()), s.length(), &lid);
+  }
+  return 0;
+}
+
+int LogIO::writeLogicalID( LogicalID *lid, int fileDes ) 
+{ 
+  unsigned char *buffer;
+  int len;
+  int result;
+  
+  //gdy lid = NULL zapisujemy długość łańcucha = 0
+  if( lid == NULL)
+    return writeInt(fileDes, 0);
+    
+  lid->toByteArray( 0, &len );
+  buffer = new unsigned char[len];
+  lid->toByteArray( &buffer, &len );
+  result = writeString( fileDes, (char *) buffer, len );
+  delete buffer;
+
+  return result;
+}
+
+int LogIO::readDataValue( DataValue *&dv, int fileDes, StoreManager* sm )
 {
   string s;
   int errCode;
 
   if( ( errCode = readString( fileDes, s ) ) ) return errCode;
-
-  // TODO: jak stworzyc DataValue z lancucha?
-
+  if(s.empty())
+  {
+    dv=NULL;
+  }
+  else
+  {
+    return sm->dataValueFromByteArray((unsigned char*) (s.data()), s.length(), &dv);
+  }
   return 0;
 }
 
@@ -49,6 +90,10 @@ int LogIO::writeDataValue( DataValue *dv, int fileDes )
   int len;
   int result;
 
+  //gdy dv = NULL zapisujemy długość łańcucha = 0
+  if( dv == NULL)
+    return writeInt(fileDes, 0);
+    
   dv->toByteArray( 0, &len );
   buffer = new unsigned char[len];
   dv->toByteArray( &buffer, &len );
