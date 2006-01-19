@@ -156,7 +156,7 @@ namespace Store
 			case Store::Vector: {
 				vector<ObjectPointer*>::iterator obj_iter;
 				for(obj_iter = value.vector_value->begin();
-					obj_iter != value.vector_value->end(); obj_iter++)
+						obj_iter != value.vector_value->end(); obj_iter++)
 					s += *((*obj_iter)->getLogicalID());
 				} break;
 			default:
@@ -300,7 +300,7 @@ namespace Store
 	{
 		p_clearPtr();
 		type = Store::Integer;
-		value.int_value     = new int(0);
+		value.int_value = new int(0);
 	};
 	
 	void DBDataValue::p_destroyVal()
@@ -313,10 +313,15 @@ namespace Store
 			case Store::String:
 				if(value.string_value) delete value.string_value; break;
 			case Store::Pointer:
-//				if(value.pointer_value) delete value.pointer_value;
+				if(value.pointer_value) delete value.pointer_value;
 				break;
 			case Store::Vector:
-//				if(value.vector_value) delete value.vector_value;
+				if(value.vector_value) {
+					vector<ObjectPointer*>::iterator obj_iter;
+					for(obj_iter = value.vector_value->begin();
+							obj_iter != value.vector_value->end(); obj_iter++)
+						delete (*obj_iter);
+				} delete value.vector_value;
 				break;
 		}
 		p_clearPtr();
@@ -325,6 +330,6 @@ namespace Store
 	void DBDataValue::p_clearPtr()
 	{
 		value.int_value = NULL;
-		//could clear all fields bu this is an union (4bytes?)
+		//could clear all fields but this is an union (4bytes?)
 	}
 }

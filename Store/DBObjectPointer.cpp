@@ -30,7 +30,8 @@ namespace Store
 	
 	DBObjectPointer::~DBObjectPointer()
 	{
-//		cout << "object destroyd\n";
+		if(lid) delete lid;
+		if(value) delete value;
 	};
 	
 	LogicalID* DBObjectPointer::getLogicalID() const
