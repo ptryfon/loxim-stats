@@ -70,7 +70,6 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			
 			if ((stack.size()) == 1) {
 			    errcode = (stack.pop());
-			    fprintf(stderr, "[QE] Environment Stack poped\n");
 			    if (errcode != 0) { return errcode; };
 			};
 			if (stack.empty()) {
@@ -91,7 +90,6 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					QueryBinderResult *newBinding = new QueryBinderResult(optrName, lidres);
 					stackSection->addResult(newBinding);
 				};
-				fprintf(stderr, "[QE] Environment Stack pushed\n");
 				if ( (stack.push(stackSection)) != 0 ) {
 					return -1;
 				};
@@ -1098,53 +1096,68 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 		case TreeNode::TNNONALGOP: {
 			NonAlgOpNode::nonAlgOp op = ((NonAlgOpNode *) tree)->getOp();
 			fprintf(stderr, "[QE] NonAlgebraic operator - type recognized\n");
-			switch (op)
-			{
-			case NonAlgOpNode::dot: {
-				/*fprintf(stderr, "[QE] DOT operation\n");
-				QueryResult *lResult, *rResult; 
-				if ((errcode = executeQuery (((NonAlgOpNode *) tree)->getLArg(), &lResult)) != 0)
-					{
-					return errcode;
-					};
-				
-				unsigned int bagSize = (lResult->size());
-				for (unsigned int i = 0; i < bagSize; i++) {
-					QueryResult *nextRes;
-					if ((((QueryBagResult *) lResult)->at(i, nextRes)) != 0) {
-						return -1;
-					};
-					if ((nextRes->type()) != (QueryResult::QREFERENCE)) {
-						return -1;
-					};
-					lid = (((QueryReferenceResult *) nextRes)->getValue());
-					errcode = (tr->getObjectPointer(lid, Store::Read, optr) != 0);
-					if (errcode != 0) {
+			QueryResult *lResult;
+			if ((errcode = executeQuery (((NonAlgOpNode *) tree)->getLArg(), &lResult)) != 0) {
+				return errcode;
+			}
+			fprintf(stderr, "[QE] Left argument of NonAlgebraic querry has been computed\n");
+			QueryResult *partial_result = new QueryBagResult();
+			QueryResult *final_result;
+			if (((lResult->type()) == QueryResult::QSEQUENCE) || ((lResult->type()) == QueryResult::QBAG)) {
+				fprintf(stderr, "[QE] For each row of this score, the right argument will be computed \n");
+				for (unsigned int i = 0; i < (lResult->size()); i++) {
+					QueryResult *currentResult;
+					QueryResult *newStackSection;
+					if ((lResult->type()) == QueryResult::QSEQUENCE)
+						errcode = (((QuerySequenceResult *) lResult)->at(i, currentResult));
+					else
+						errcode = (((QueryBagResult *) lResult)->at(i, currentResult));
+					if (errcode != 0) return errcode;
+					errcode = (currentResult)->nested(tr, newStackSection);
+					if (errcode != 0) return errcode;
+					fprintf(stderr, "[QE] nested(): function calculated for current row number %d\n", i);
+					if ( (stack.push((QueryBagResult *) newStackSection)) != 0 ) {
+						return -1; //this would be very strange, this function can only return 0
+					}
+					QueryResult *rResult;
+					if ((errcode = executeQuery (((NonAlgOpNode *) tree)->getRArg(), &rResult)) != 0) {
 						return errcode;
-					};
-					value = optr->getValue();
-					//tu trzeba dalej zrobic nested ()
-					
-					
-				};//for
+					}
+					fprintf(stderr, "[QE] Computing left Argument with a new scope of ES\n");
+					errcode = this->combine(op,currentResult,rResult,partial_result);
+					if (errcode != 0) return errcode;
+					fprintf(stderr, "[QE] Combined partial results\n");
+					errcode = stack.pop();
+					if (errcode != 0) return errcode;
+				}
+			}
+			else { //QSTRUCT, QINT, QDOUBLE, QBOOL, QSTRING, QNOTHING, QBINDER, QREFERENCE
+				fprintf(stderr, "[QE] The score has got only one row, the right argument will now be computed \n");
+				QueryResult *newStackSection;
+				errcode = lResult->nested(tr, newStackSection);
+				if (errcode != 0) return errcode;
+				fprintf(stderr, "[QE] nested(): function calculated for the single row");
+				if ( (stack.push((QueryBagResult *)newStackSection)) != 0 ) {
+					return -1; //this would be very strange, this function can only return 0
+				}
+				QueryResult *rResult;
+				if ((errcode = executeQuery (((NonAlgOpNode *) tree)->getRArg(), &rResult)) != 0) {
+					return errcode;
+				}
+				fprintf(stderr, "[QE] Computing left Argument with a new scope of ES\n");
+				errcode = this->combine(op,lResult,rResult,partial_result);
+				if (errcode != 0) return errcode;
+				fprintf(stderr, "[QE] Combined partial results\n");
+				errcode = stack.pop();
+				if (errcode != 0) return errcode;
 				
-				*/
-				fprintf(stderr, "[QE] Done!\n");
-				return 0;
-				break;
-			}//case dot
-			case NonAlgOpNode::where: {break;}
-			case NonAlgOpNode::join: {break;}
-			default:
-				{
-				fprintf(stderr, "[QE] Unknown NonAlgOp type\n");
-				return -1;
-				break;
-				} // Reszta jeszcze nie zaimplementowane
-			}//switch	
-			*result = new QueryNothingResult;
-			fprintf(stderr, "[QE] QueryNothingResult created\n");
-			fprintf(stderr, "[QE] Done!\n");
+				
+			}
+			errcode = this->merge(op,partial_result,final_result);
+			if (errcode != 0) return errcode;
+			fprintf(stderr, "[QE] Merged partial results into final result\n");
+			*result = final_result;
+			fprintf(stderr, "[QE] NonAlgebraic operation Done!\n");
 			return 0;
 		}//case TNNONALGOP
 		
@@ -1168,6 +1181,196 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 	return 0;
     }
 
+int QueryExecutor::combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryResult *lRes, QueryResult *&partial) {
+	fprintf(stderr, "[QE] combine() function applied to the partial results\n");
+	//int errcode;
+	switch (op) {
+		case NonAlgOpNode::dot: {
+			fprintf(stderr, "[QE] combine(): NonAlgebraic operator <dot>\n");
+			partial->addResult(lRes);
+			break;
+		}
+		case NonAlgOpNode::join: {
+			fprintf(stderr, "[QE] combine(): NonAlgebraic operator <join> not imlemented yet\n");
+			break;
+		}
+		case NonAlgOpNode::where: {
+			fprintf(stderr, "[QE] combine(): NonAlgebraic operator <where>\n");
+			if ((lRes->type()) == QueryResult::QBOOL) {
+				if (((QueryBoolResult *) lRes)->getValue())
+					partial->addResult(curr);
+			}
+			else {
+				fprintf(stderr, "[QE] combine(): ERROR! Right argument of operator <where> is not boolean!\n");
+				return -1; // second argument of the <where> operator must be boolean type
+			}
+			break;
+		}
+		case NonAlgOpNode::closeBy: {
+			fprintf(stderr, "[QE] combine(): NonAlgebraic operator <closeBy> not imlemented yet\n");
+			break;
+		}
+		case NonAlgOpNode::closeUniqueBy: {
+			fprintf(stderr, "[QE] combine(): NonAlgebraic operator <closeUniqueBy> not imlemented yet\n");
+			break;
+		}
+		case NonAlgOpNode::leavesBy: {
+			fprintf(stderr, "[QE] combine(): NonAlgebraic operator <leavesBy> not imlemented yet\n");
+			break;
+		}
+		case NonAlgOpNode::leavesUniqueBy: {
+			fprintf(stderr, "[QE] combine(): NonAlgebraic operator <leavesUniqueBy> not imlemented yet\n");
+			break;
+		}
+		case NonAlgOpNode::orderBy: {
+			fprintf(stderr, "[QE] combine(): NonAlgebraic operator <orderBy> not imlemented yet\n");
+			break;
+		}
+		case NonAlgOpNode::exists: {
+			fprintf(stderr, "[QE] combine(): NonAlgebraic operator <exists>\n");
+			if ((lRes->type()) == QueryResult::QBOOL) {
+				if (((QueryBoolResult *) lRes)->getValue()) {
+					QueryBoolResult *tmp_result = new QueryBoolResult(true); 
+					partial->addResult(tmp_result);
+				}
+				else {
+					QueryBoolResult *tmp_result = new QueryBoolResult(false); 
+					partial->addResult(tmp_result);
+				}
+			}
+			else {
+				fprintf(stderr, "[QE] combine(): ERROR! Right argument of operator <exists> is not boolean!\n");
+				return -1; // second argument of the <exists> operator must be boolean type
+			}
+			break;
+		}
+		case NonAlgOpNode::forAll: {
+			fprintf(stderr, "[QE] combine(): NonAlgebraic operator <forAll> not imlemented yet\n");
+			if ((lRes->type()) == QueryResult::QBOOL) {
+				if (((QueryBoolResult *) lRes)->getValue()) {
+					QueryBoolResult *tmp_result = new QueryBoolResult(true); 
+					partial->addResult(tmp_result);
+				}
+				else {
+					QueryBoolResult *tmp_result = new QueryBoolResult(false); 
+					partial->addResult(tmp_result);
+				}
+			}
+			else {
+				fprintf(stderr, "[QE] combine(): ERROR! Right argument of operator <forAll> is not boolean!\n");
+				return -1; // second argument of the <forAll> operator must be boolean type
+			}
+			break;
+		}
+		default: {
+			fprintf(stderr, "[QE] combine(): unknown NonAlgebraic operator!\n");
+			return -1;
+			break;
+		}
+	}
+	return 0;
+}
+
+int QueryExecutor::merge(NonAlgOpNode::nonAlgOp op, QueryResult *partial, QueryResult *&final) {
+	fprintf(stderr, "[QE] merge() function applied to the partial results, creating final result\n");
+	int errcode;
+	switch (op) {
+		case NonAlgOpNode::dot: {
+			fprintf(stderr, "[QE] merge(): NonAlgebraic operator <dot>\n");
+			final = new QueryBagResult();
+			for (unsigned i = 0; i > (partial->size()); i++) {
+				QueryResult *tmp_result;
+				errcode = (((QueryBagResult *) partial)->at(i,tmp_result));
+				final->addResult(tmp_result);
+				if (errcode != 0) return errcode;
+			}
+			break;
+		}
+		case NonAlgOpNode::join: {
+			fprintf(stderr, "[QE] merge(): NonAlgebraic operator <join> not imlemented yet\n");
+			final = new QueryBagResult();
+			break;
+		}
+		case NonAlgOpNode::where: {
+			fprintf(stderr, "[QE] merge(): NonAlgebraic operator <where>\n");
+			final = new QueryBagResult();
+			for (unsigned i = 0; i > (partial->size()); i++) {
+				QueryResult *tmp_result;
+				errcode = (((QueryBagResult *) partial)->at(i,tmp_result));
+				final->addResult(tmp_result);
+				if (errcode != 0) return errcode;
+			}
+			break;
+		}
+		case NonAlgOpNode::closeBy: {
+			fprintf(stderr, "[QE] merge(): NonAlgebraic operator <closeBy> not imlemented yet\n");
+			final = new QueryBagResult();
+			break;
+		}
+		case NonAlgOpNode::closeUniqueBy: {
+			fprintf(stderr, "[QE] merge(): NonAlgebraic operator <closeUniqueBy> not imlemented yet\n");
+			final = new QueryBagResult();
+			break;
+		}
+		case NonAlgOpNode::leavesBy: {
+			fprintf(stderr, "[QE] merge(): NonAlgebraic operator <leavesBy> not imlemented yet\n");
+			final = new QueryBagResult();
+			break;
+		}
+		case NonAlgOpNode::leavesUniqueBy: {
+			fprintf(stderr, "[QE] merge(): NonAlgebraic operator <leavesUniqueBy> not imlemented yet\n");
+			final = new QueryBagResult();
+			break;
+		}
+		case NonAlgOpNode::orderBy: {
+			fprintf(stderr, "[QE] merge(): NonAlgebraic operator <orderBy> not imlemented yet\n");
+			final = new QueryBagResult();
+			break;
+		}
+		case NonAlgOpNode::exists: {
+			fprintf(stderr, "[QE] merge(): NonAlgebraic operator <exists> not imlemented yet\n");
+			bool tmp_bool = false;
+			for (unsigned i = 0; i > (partial->size()); i++) {
+				QueryResult *tmp_result;
+				errcode = (((QueryBagResult *) partial)->at(i,tmp_result));
+				if ((tmp_result->type()) != QueryResult::QBOOL) {
+					fprintf(stderr, "[QE] merge(): ERROR! operator <exists> expects boolean type arguments\n");
+					return -1; //something went odd, partial results should be boolean type
+				}
+				if (((QueryBoolResult *) tmp_result)->getValue())
+					tmp_bool = true;
+				if (errcode != 0) return errcode;
+			}
+			final = new QueryBoolResult(tmp_bool);
+			break;
+		}
+		case NonAlgOpNode::forAll: {
+			fprintf(stderr, "[QE] merge(): NonAlgebraic operator <forAll> not imlemented yet\n");
+			bool tmp_bool = true;
+			for (unsigned i = 0; i > (partial->size()); i++) {
+				QueryResult *tmp_result;
+				errcode = (((QueryBagResult *) partial)->at(i,tmp_result));
+				if ((tmp_result->type()) != QueryResult::QBOOL) {
+					fprintf(stderr, "[QE] merge(): ERROR! operator <forAll> expects boolean type arguments\n");
+					return -1; //something went odd, partial results should be boolean type
+				}
+				if (not (((QueryBoolResult *) tmp_result)->getValue()))
+					tmp_bool = false;
+				if (errcode != 0) return errcode;
+			}
+			final = new QueryBoolResult(tmp_bool);
+			break;
+		}
+		default: {
+			fprintf(stderr, "[QE] merge(): unknown NonAlgebraic operator!\n");
+			return -1;
+			break;
+		}
+	}
+	return 0;
+}
+
+
 QueryExecutor::~QueryExecutor() { tr->abort(); stack.deleteAll(); }
 
 EnvironmentStack::EnvironmentStack() {}
@@ -1175,6 +1378,7 @@ EnvironmentStack::~EnvironmentStack() {}
 
 int EnvironmentStack::push(QueryBagResult *r) {
 	es.push_back(r);
+	fprintf(stderr, "[QE] Environment Stack pushed\n");
 	return 0;
 }
 
@@ -1184,7 +1388,8 @@ int EnvironmentStack::pop(){
 	} 
 	else {
 		es.pop_back();
-	}; 
+	};
+	fprintf(stderr, "[QE] Environment Stack poped\n"); 
 	return 0;
 }
 
@@ -1214,7 +1419,7 @@ int EnvironmentStack::bindName(string name, QueryResult *&r) {
 	for (unsigned int i = number; i >= 1; i--) {
 		section = (es.at(i - 1));
 		sectionSize = (section->size());
-		fprintf(stderr, "[QE] bindName: section %u got %u elements\n", (i - 1), sectionSize);
+		fprintf(stderr, "[QE] bindName: ES section %u got %u elements\n", (i - 1), sectionSize);
 		for (unsigned int j = 0; j < sectionSize; j++) {
 			int errNo = (section->at(j,sth));
 			if (errNo != 0) { return errNo; };

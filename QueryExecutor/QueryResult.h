@@ -40,6 +40,7 @@ public:
 	virtual bool less_than(QueryResult *r)=0;
 	virtual bool greater_eq(QueryResult *r)=0;
 	virtual bool less_eq(QueryResult *r)=0;
+	virtual int nested(Transaction *tr, QueryResult *&r)=0;
 };
 
 
@@ -71,6 +72,7 @@ public:
 	bool less_than(QueryResult *r) { return false; };
 	bool greater_eq(QueryResult *r) { return false; };
 	bool less_eq(QueryResult *r) { return false; };
+	int nested(Transaction *tr, QueryResult *&r);
 };
 
 class QueryBagResult : public QueryResult
@@ -101,6 +103,7 @@ public:
 	bool less_than(QueryResult *r) { return false; };
 	bool greater_eq(QueryResult *r) { return false; };
 	bool less_eq(QueryResult *r) { return false; };
+	int nested(Transaction *tr, QueryResult *&r);
 };
 
 
@@ -132,6 +135,7 @@ public:
 	bool less_than(QueryResult *r) { return false; };
 	bool greater_eq(QueryResult *r) { return false; };
 	bool less_eq(QueryResult *r) { return false; };
+	int nested(Transaction *tr, QueryResult *&r);
 };
 
 
@@ -159,6 +163,7 @@ public:
 	bool less_than(QueryResult *r) { return false; };
 	bool greater_eq(QueryResult *r) { return false; };
 	bool less_eq(QueryResult *r) { return false; };
+	int nested(Transaction *tr, QueryResult *&r);
 };
 
 
@@ -183,6 +188,7 @@ public:
 	bool less_than(QueryResult *r);
 	bool greater_eq(QueryResult *r);
 	bool less_eq(QueryResult *r);
+	int nested(Transaction *tr, QueryResult *&r);
 };
 
 
@@ -212,6 +218,7 @@ public:
 	bool less_than(QueryResult *r);
 	bool greater_eq(QueryResult *r);
 	bool less_eq(QueryResult *r);
+	int nested(Transaction *tr, QueryResult *&r);
 };
 
 
@@ -241,6 +248,7 @@ public:
 	bool less_than(QueryResult *r);
 	bool greater_eq(QueryResult *r);
 	bool less_eq(QueryResult *r);
+	int nested(Transaction *tr, QueryResult *&r);
 };
 
 class QueryBoolResult : public QueryResult
@@ -267,6 +275,7 @@ public:
 	bool less_than(QueryResult *r);
 	bool greater_eq(QueryResult *r);
 	bool less_eq(QueryResult *r);
+	int nested(Transaction *tr, QueryResult *&r);
 };
 
 
@@ -291,6 +300,7 @@ public:
 	bool less_than(QueryResult *r);
 	bool greater_eq(QueryResult *r);
 	bool less_eq(QueryResult *r);
+	int nested(Transaction *tr, QueryResult *&r);
 };
 
 /* You get this, as a result of non-select query like create, insert etc. */
@@ -310,6 +320,7 @@ public:
 	bool less_than(QueryResult *r) { return false; };
 	bool greater_eq(QueryResult *r) { return false; };
 	bool less_eq(QueryResult *r) { return false; };
+	int nested(Transaction *tr, QueryResult *&r);
 };
 
 }

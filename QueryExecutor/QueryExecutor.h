@@ -31,6 +31,8 @@ namespace QExecutor
 	protected:
 		Transaction *tr;
 		EnvironmentStack stack;
+		int combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryResult *lRes, QueryResult *&partial);
+		int merge(NonAlgOpNode::nonAlgOp op, QueryResult *partial, QueryResult *&final);
 	public:
 		QueryExecutor() { tr = NULL; };
 		~QueryExecutor();

@@ -652,6 +652,131 @@ bool QueryReferenceResult::less_eq(QueryResult *r){
 
 
 
+int QuerySequenceResult::nested(Transaction *tr, QueryResult *&r) {
+	return -1; // nested () function is applied to rows of a QueryResult and so, it shouldn't be applied to sequences and bags
+}
+
+int QueryBagResult::nested(Transaction *tr, QueryResult *&r) {
+	return -1; // nested () function is applied to rows of a QueryResult and so, it shouldn't be applied to sequences and bags
+}
+
+int QueryStructResult::nested(Transaction *tr, QueryResult *&r) {
+	r = new QueryBagResult;
+	int errcode;
+	ObjectPointer *optr;
+	for (unsigned int i = 0; i < str.size(); i++) {
+		int tmp_type = (str.at(i))->type();
+		switch (tmp_type) {
+			case QueryResult::QSEQUENCE: {
+				return -1;
+				break;
+			}
+			case QueryResult::QBAG: {
+				return -1;
+				break;
+			}
+			case QueryResult::QSTRUCT: {
+				return -1;
+				break;
+			}
+			case QueryResult::QINT: {
+				break;
+			}
+			case QueryResult::QDOUBLE: {
+				break;
+			}
+			case QueryResult::QBOOL: {
+				break;
+			}
+			case QueryResult::QSTRING: {
+				break;
+			}
+			case QueryResult::QNOTHING: {
+				break;
+			}
+			case QueryResult::QBINDER: {
+				QueryResult *tmp_item = (((QueryBinderResult *) str.at(i))->getItem());
+				string tmp_name = (((QueryBinderResult *) str.at(i))->getName());
+				if (tmp_item != NULL) {
+					QueryBinderResult *tmp_value = new QueryBinderResult(tmp_name, tmp_item);
+					r->addResult(tmp_value);
+				}
+				break;
+			}
+			case QueryResult::QREFERENCE: {
+				LogicalID *lid_value = (((QueryReferenceResult *) str.at(i))->getValue());
+				if (lid_value != NULL) {
+					if ((errcode = tr->getObjectPointer(lid_value, Store::Read, optr)) != 0) {
+						fprintf(stderr, "[QE] Error in getObjectPointer\n");
+						return errcode;
+					}
+					string optrName = (optr->getName());
+					QueryBinderResult *tmp_value = new QueryBinderResult(optrName, str.at(i));
+					r->addResult(tmp_value);
+				}
+				break;
+			}
+			default : {
+				return -1; // unknown query result type
+				break;
+			}
+		}//switch
+	}//for
+	return 0;
+}
+
+int QueryStringResult::nested(Transaction *tr, QueryResult *&r) {
+	r = new QueryBagResult;
+	return 0;
+}
+
+int QueryIntResult::nested(Transaction *tr, QueryResult *&r) {
+	r = new QueryBagResult;
+	return 0;
+}
+
+int QueryDoubleResult::nested(Transaction *tr, QueryResult *&r) {
+	r = new QueryBagResult;
+	return 0;
+}
+
+int QueryBoolResult::nested(Transaction *tr, QueryResult *&r) {
+	r = new QueryBagResult;
+	return 0;
+}
+
+int QueryNothingResult::nested(Transaction *tr, QueryResult *&r) {
+	r = new QueryBagResult;
+	return 0;
+}
+
+int QueryBinderResult::nested(Transaction *tr, QueryResult *&r) {
+	r = new QueryBagResult;
+	if (item != NULL) {
+		QueryBinderResult *tmp_value = new QueryBinderResult(name,item);
+		r->addResult(tmp_value);
+	}
+	return 0;
+}
+
+int QueryReferenceResult::nested(Transaction *tr, QueryResult *&r) {
+	r = new QueryBagResult;
+	int errcode;
+	ObjectPointer *optr;
+	if (value != NULL) {
+		if ((errcode = tr->getObjectPointer(value, Store::Read, optr)) != 0) {
+			fprintf(stderr, "[QE] Error in getObjectPointer\n");
+			return errcode;
+		}
+		string optrName = (optr->getName());
+		QueryReferenceResult *tmp_ref = new QueryReferenceResult(value);
+		QueryBinderResult *tmp_value = new QueryBinderResult(optrName, tmp_ref);
+		r->addResult(tmp_value);
+	}
+	return 0;
+}
+
+
 
 
 
