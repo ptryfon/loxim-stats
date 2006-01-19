@@ -47,6 +47,10 @@ namespace LockMgr
 	{		
 		sem->lock_read();
 	}
+	else if (_mode == Write && isCurrent)
+	{
+		sem->lock_upgrade(_tid->getId());
+	}
 	else if (_mode == Write && !isCurrent)
 	{
 		sem->lock_write();
