@@ -1,27 +1,30 @@
 include ../make.defs
 
-PROGRAM =	XMLexport
+PROGRAM =	XMLIO
 
-SOURCES	=	XMLexport.cpp 
+SOURCES =	XMLimport.cpp XMLexport.cpp XMLIO.cpp
 
-HEADERS	=	XMLexport.h
+HEADERS	=	XMLimport.h XMLexport.h
 
-OBJECTS	=	$(SOURCES:.cpp=.o)
+OBJECTS = 	$(SOURCES:.cpp=.o)
+	
 DEPFILES =	$(OBJECTS:.o=.d) $(PROGRAM).d
 
-LIBS =		../Driver/Driver.a
+LIBS =		../Driver/Driver.a ../TCPProto/TCPProto.a
 
 #STATIC_LIB =	XMLexport.a 
+CXXFLAGS +=  -fexceptions
 LDFLAGS =	-lxerces-c
 
 
-all: $(STATIC_LIB) $(PROGRAM)
+all: $(STATIC_LIB) $(PROGRAM) $(PROGRAM)
 
 $(PROGRAM): $(OBJECTS) $(LIBS) $(STATIC_LIB)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $^ -o $@
 
+	
 clean:
-	rm -f $(OBJECTS) $(DEPFILES) $(STATIC_LIB) $(PROGRAM)
+	rm -f $(OBJECTS) $(DEPFILES) $(STATIC_LIB) $(PROGRAM1) $(PROGRAM2)
 
 $(STATIC_LIB): $(OBJECTS)
 	$(AR) r $(STATIC_LIB) $(OBJECTS)

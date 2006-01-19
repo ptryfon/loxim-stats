@@ -23,7 +23,7 @@
 using namespace std;
 XERCES_CPP_NAMESPACE_USE
 
-//using namespace Driver; <- rozumiem ze docelowo bedzie namespace
+using namespace Driver;
 
 /*
  *  Ponizsza klasa to copy&paste z przykladow do Xerces'a - przejrzec
@@ -233,22 +233,19 @@ namespace XMLIO
 	protected:
 		string host;
 		unsigned int port;
-		string xmlPath;
-		string query;
 		int verboseLevel;
 	
-		int produceXMLfile(Result *result);
+		int produceXMLfile(Result *result, string xmlPath);
 	public:
-		XMLExporter(string aHost, unsigned int aPort, string aQuery, string aXmlPath, int aVerboseLevel = 0)
+
+		XMLExporter(string aHost, unsigned int aPort, int aVerboseLevel)
 		{
 			host = aHost;
 			port = aPort;
-			query = aQuery;
-		    xmlPath = aXmlPath;
 		    verboseLevel = aVerboseLevel;
 		}	
 	
-		int exec();
+		int doExport(string query, string xmlPath);
 	};
 };
 

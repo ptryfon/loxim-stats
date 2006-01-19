@@ -2,11 +2,6 @@
 
 
 using namespace XMLIO;
-
-int main(int argc, char* argv[]) {	
-	return 0;
-}
-
 namespace XMLIO {
 	
 int QuerySequenceExporter::produce(DOMElement* parent)
@@ -186,7 +181,7 @@ QueryExporter* QueryExporterFactory::makeExporter(Result* result)
 	}
 }	
 
-int XMLExporter::produceXMLfile(Result *result)
+int XMLExporter::produceXMLfile(Result *result, string xmlPath)
 {
 	int returnVal = 0;
 	try
@@ -234,7 +229,7 @@ int XMLExporter::produceXMLfile(Result *result)
 	return returnVal;
 }
 
-int XMLExporter::exec()
+int XMLExporter::doExport(string query, string xmlPath)
 {
 	int returnVal = 0;
 	char cHost[255];
@@ -247,11 +242,11 @@ int XMLExporter::exec()
 	if (con == NULL) {
 		returnVal = ERR_CONNECTION;
 	} else {
-	    Result* result = con->execute(cQuery);
+	    Result* result = con->execute(query.c_str());
 	    if (result == NULL) {
 	    	returnVal = ERR_NULL_RESULT;
 	    } else {
-			returnVal = produceXMLfile(result);	    	
+			returnVal = produceXMLfile(result, xmlPath);	    	
 	    }
 	    con->disconnect();	    
     }
