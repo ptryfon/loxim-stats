@@ -44,6 +44,7 @@ class RWUJSemaphore: public Semaphore
 		virtual int lock_write();
 		virtual int unlock();
 		virtual int lock_upgrade(int id);
+		int status();
 };
 
 

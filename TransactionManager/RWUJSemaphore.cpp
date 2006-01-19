@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <pthread.h>
 #include "RWUJSemaphore.h"
 
@@ -10,14 +11,14 @@ namespace SemaphoreLib {
 		wait_readers	=	0;
 		wait_writers	=	0;
 		wait_upgraders	=	0;
-		best_upgrader	=	0;
+		best_upgrader	=	-1;
 	}
 
 	RWUJSemaphore::~RWUJSemaphore()
 	{
 		current_mode	=	None;
 		inside		=	0;
-		best_upgrader	=	0;
+		best_upgrader	=	-1;
 	}
 
 	int RWUJSemaphore::init()
@@ -99,41 +100,68 @@ namespace SemaphoreLib {
 
 	int RWUJSemaphore::lock_upgrade(int id)
 	/* should be optimized to eliminate waiting of no good enought transactions */
+	/* guaranteed having lock for read */
 	{
 	    int errorCode;
-	    
 		errorCode = 0;
 	    
 		pthread_mutex_lock( &mutex );
 
-		if (current_mode == None)	current_mode = Upgrade;
-
 		if (inside == 0)
+		    return -10;		/* error: lock_upgrade without having a lock */
+		else if (inside > 1)
 		{
-			inside++;
-		}
-		else
-		{
-			/* there can be only one;) */
-			/* primary selection */
-			if (best_upgrader == 0 || id < best_upgrader)		/* i am better */
-			{
-			    wait_upgraders++;
-			    best_upgrader = id;
-			    pthread_cond_wait( &upgrader_cond, &mutex);
-			    /* after signal re-aquire mutex */
-			    wait_upgraders--;
-			    /* secondary selection */
-			    if (id == best_upgrader)		/* maybe better come meanwhile */
-			    {
-    				inside++;
-			    }
-			    else errorCode = -1;	/* i am worse, abort transaction */
+		    inside--;	/* not last */
+
+		    /* there can be only one;) */
+		    /* primary selection */
+		    if (best_upgrader == -1 || id < best_upgrader)		/* i am better */
+		    {
+		        wait_upgraders++;
+		        best_upgrader = id;
+		        pthread_cond_wait( &upgrader_cond, &mutex);
+		        /* after signal re-aquire mutex */
+		        wait_upgraders--;
+		        /* secondary selection */
+		        if (id == best_upgrader)		/* maybe better come meanwhile */
+		        {
+    			    inside++;		/* is already inside */
+			    best_upgrader = -1;
 			}
-			else errorCode = -1;	/* i am worse, abort transaction */
+			else 
+			{
+			    errorCode = -2;	/* i am worse, abort transaction */
+			    if (inside == 0 || wait_upgraders == 0)
+				this->unlock();
+			}
+		    }
+		    else errorCode = -1;	/* i am worse, abort transaction */
+		}
+		else		/* last */
+		{
+		    if (current_mode == None)	current_mode = Upgrade;
+		    if (best_upgrader == -1 || id < best_upgrader)
+		    {
+			best_upgrader = -1;	/* iam the best */
+		    }
+		    else errorCode = -3;
+		    if (wait_upgraders)
+    			pthread_cond_broadcast( &upgrader_cond );	/* should be signal after one-upgrader-waiting optimization */
 		}
 		pthread_mutex_unlock( &mutex );
 		return errorCode;
+	}
+
+	int RWUJSemaphore::status()
+	{
+	    printf("Inside %d\n", inside);
+	    printf("Readers waiting %d\n", wait_readers);
+	    printf("Upgraders waiting %d\n", wait_upgraders);
+	    printf("Writers waintin %d\n", wait_writers);
+	    printf("Best upgrader %d\n", best_upgrader);
+	    printf("Current mode %d\n", current_mode);
+	    fflush(stdout);
+	    return 0;
 	}
 
 	int RWUJSemaphore::unlock()
