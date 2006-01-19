@@ -4,6 +4,7 @@ SOURCES	=	QueryParser.cpp \
 		TreeNode.cpp \
 		DataRead.cpp \
 		Stack.cpp \
+		Optymalizator.cpp \
 		parser.tab.cpp \
 		lex.yy.cpp
 
@@ -12,6 +13,7 @@ HEADERS	=	QueryParser.h \
 		Stack.h \
 		ClassNames.h \
 		DataRead.h \
+		Optymalizator.h \
 		parser.tab.h
 
 STATIC_LIB =	QueryParser.a
