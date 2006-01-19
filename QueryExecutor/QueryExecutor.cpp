@@ -1102,7 +1102,6 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			}
 			fprintf(stderr, "[QE] Left argument of NonAlgebraic querry has been computed\n");
 			QueryResult *partial_result = new QueryBagResult();
-			QueryResult *final_result;
 			if (((lResult->type()) == QueryResult::QSEQUENCE) || ((lResult->type()) == QueryResult::QBAG)) {
 				fprintf(stderr, "[QE] For each row of this score, the right argument will be computed \n");
 				for (unsigned int i = 0; i < (lResult->size()); i++) {
@@ -1153,10 +1152,9 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 				
 				
 			}
-			errcode = this->merge(op,partial_result,final_result);
+			errcode = this->merge(op,partial_result,*result);
 			if (errcode != 0) return errcode;
 			fprintf(stderr, "[QE] Merged partial results into final result\n");
-			*result = final_result;
 			fprintf(stderr, "[QE] NonAlgebraic operation Done!\n");
 			return 0;
 		}//case TNNONALGOP
@@ -1328,7 +1326,7 @@ int QueryExecutor::merge(NonAlgOpNode::nonAlgOp op, QueryResult *partial, QueryR
 			break;
 		}
 		case NonAlgOpNode::exists: {
-			fprintf(stderr, "[QE] merge(): NonAlgebraic operator <exists> not imlemented yet\n");
+			fprintf(stderr, "[QE] merge(): NonAlgebraic operator <exists>\n");
 			bool tmp_bool = false;
 			for (unsigned i = 0; i > (partial->size()); i++) {
 				QueryResult *tmp_result;
@@ -1345,7 +1343,7 @@ int QueryExecutor::merge(NonAlgOpNode::nonAlgOp op, QueryResult *partial, QueryR
 			break;
 		}
 		case NonAlgOpNode::forAll: {
-			fprintf(stderr, "[QE] merge(): NonAlgebraic operator <forAll> not imlemented yet\n");
+			fprintf(stderr, "[QE] merge(): NonAlgebraic operator <forAll>\n");
 			bool tmp_bool = true;
 			for (unsigned i = 0; i > (partial->size()); i++) {
 				QueryResult *tmp_result;
