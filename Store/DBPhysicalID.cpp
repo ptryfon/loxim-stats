@@ -6,17 +6,17 @@ namespace Store
 {
 	unsigned short DBPhysicalID::getFile() const
 	{
-		return 0;
+		return file;
 	};
 
 	unsigned int DBPhysicalID::getPage() const
 	{
-		return 0;
+		return page;
 	};
 
 	unsigned short DBPhysicalID::getOffset() const
 	{
-		return 0;
+		return offset;
 	};
 	
 }

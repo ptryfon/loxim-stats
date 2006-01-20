@@ -332,7 +332,9 @@ namespace Store
 //		// nagrobek 
 //		p->object_offset[i] = -1;		
 //
-//		// poinformowac mape o usunieciu obiektu
+//		// poinformowanie mapy o usunieciu obiektu
+//		memset(p_id, 0xFF, sizeof(p_id));
+//		map->setPhysicalID(lid, p_id);
 //
 //		// uaktualnienie info na stronie
 //		p->object_count--;
