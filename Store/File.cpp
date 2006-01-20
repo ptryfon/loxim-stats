@@ -119,4 +119,13 @@ namespace Store
 	{
 		return this->fwrite(fileID, pageOffset * STORE_PAGESIZE, STORE_PAGESIZE, buffer);
 	};
+
+	unsigned int File::hasPage(unsigned short fileID, unsigned int pageOffset)
+	{
+		int file, err;
+		if ((err = getStream(fileID, &file)) != 0)
+			return err;
+
+		return lseek(file, 0, SEEK_END) / STORE_PAGESIZE;
+	};
 }

@@ -36,6 +36,7 @@ namespace Store
 		int readPage(unsigned short fileID, unsigned int pageOffset, char* buffer);
 		int fwrite(unsigned short fileID, unsigned int offset, int length, char* buffer);
 		int writePage(unsigned short fileID, unsigned int pageOffset, char* buffer);
+		unsigned int hasPage(unsigned short fileID, unsigned int pageOffset);
 	};
 };
 
