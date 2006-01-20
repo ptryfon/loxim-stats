@@ -10,6 +10,7 @@ namespace Logs
   class EndCkptRecord;
   class CommitRecord;
   class RollbackRecord;
+  class AddRootRecord;
 }
 
 #include <string>
@@ -32,13 +33,15 @@ namespace Logs
 #define LOG_RECORD_LENGTH_MISMATCH_ERROR 200003
 
 /// Mozliwe typy rekordu logowania
-#define BEGIN_LOG_REC_TYPE     1
-#define COMMIT_LOG_REC_TYPE    2
-#define ROLLBACK_LOG_REC_TYPE  3
-#define CKPT_LOG_REC_TYPE      4
-#define END_CKPT_LOG_REC_TYPE  5
-#define WRITE_LOG_REC_TYPE     6
-#define SHUTDOWN_LOG_REC_TYPE  7
+#define BEGIN_LOG_REC_TYPE        1
+#define COMMIT_LOG_REC_TYPE       2
+#define ROLLBACK_LOG_REC_TYPE     3
+#define CKPT_LOG_REC_TYPE         4
+#define END_CKPT_LOG_REC_TYPE     5
+#define WRITE_LOG_REC_TYPE        6
+#define SHUTDOWN_LOG_REC_TYPE     7
+#define ADD_ROOT_LOG_REC_TYPE     8
+#define REMOVE_ROOT_LOG_REC_TYPE  9
 
   typedef set<TransactionID, TransactionIDCmp> SetOfTransactionIDS;
 
@@ -127,9 +130,9 @@ namespace Logs
     friend class LogRecord;
 
     protected:
-    LogicalID *lid;
-    DataValue *oldVal;
-    DataValue *newVal;
+    LogicalID *lid;// trzeba miec tu bytearray
+    DataValue *oldVal;// trzeba miec tu bytearray
+    DataValue *newVal;// trzeba miec tu bytearray
     string name;
 
     WriteRecord() : TransactionRecord( WRITE_LOG_REC_TYPE ) {}
@@ -144,6 +147,36 @@ namespace Logs
     {}
     virtual ~WriteRecord() {  /*delete lid; delete oldVal; delete newVal;*/ } //
     virtual int rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm);
+  };
+
+  class RootRecord : public TransactionRecord
+  {
+    friend class LogRecord;
+
+    private:
+    LogicalID *lid;// trzeba miec tu bytearray
+
+    protected:
+    RootRecord( int _type ) : TransactionRecord( _type ) {}
+
+    virtual int read( int fileDes, StoreManager* sm );
+    virtual int write( int fileDes );
+
+    public:
+    virtual ~RootRecord() {  /*delete lid; */ } //
+    //virtual int rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm);
+  };
+
+  class AddRootRecord : public RootRecord
+  {
+    friend class LogRecord;
+
+    protected:
+    AddRootRecord() : RootRecord(ADD_ROOT_LOG_REC_TYPE) {}
+    virtual int instance( LogRecord *&result ) { result = new AddRootRecord(); return 0; }
+
+    public:
+    virtual ~AddRootRecord(){}
   };
 
 
@@ -173,7 +206,6 @@ namespace Logs
     public:
     RollbackRecord( TransactionID *_tid ) : TransactionRecord( _tid ) {}
   };
-
 
   class CkptRecord : public LogRecord
   {

@@ -46,10 +46,12 @@ int LogManager::beginTransaction( TransactionID *tid, unsigned &id )
   return 0;
 }
 
+//jeśli tid == NULL to do logów nie jest nic zapisywane
 int LogManager::write( TransactionID *tid, LogicalID *lid, string name, DataValue *oldVal, DataValue *newVal, unsigned &id )
 {
   LogRecord *record = new WriteRecord( tid, lid, name, oldVal, newVal );
-  logThread->push( record );
+  if(tid != NULL)
+    logThread->push( record );
   record->getId( id );
 
   printf( "LogManager: write\n" );

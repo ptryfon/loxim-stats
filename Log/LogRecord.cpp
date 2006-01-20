@@ -145,7 +145,7 @@ int WriteRecord::read( int fileDes, StoreManager* sm )
   int errCode;
 
   if( ( errCode = TransactionRecord::read( fileDes, sm ) ) ) return errCode;
-  if( ( errCode = LogIO::readTransactionID( tid, fileDes ) ) ) return errCode;
+  //if( ( errCode = LogIO::readTransactionID( tid, fileDes ) ) ) return errCode;
   if( ( errCode = LogIO::readString( fileDes, name ) ) ) return errCode;
   if( ( errCode = LogIO::readLogicalID( lid, fileDes, sm ) ) ) return errCode;
   if( ( errCode = LogIO::readDataValue( oldVal, fileDes, sm ) ) ) return errCode;
@@ -164,5 +164,23 @@ int WriteRecord::write( int fileDes )
   if( ( errCode = LogIO::writeDataValue( oldVal, fileDes ) ) ) return errCode;
   if( ( errCode = LogIO::writeDataValue( newVal, fileDes ) ) ) return errCode;
 
+  return errCode;
+}
+
+int RootRecord::write( int fileDes )
+{
+  int errCode;
+
+  if( ( errCode = TransactionRecord::write( fileDes ) ) ) return errCode;
+  if( ( errCode = LogIO::writeLogicalID( lid, fileDes ) ) ) return errCode;
+  return errCode;
+}
+
+int RootRecord::read( int fileDes, StoreManager* sm )
+{
+  int errCode;
+
+  if( ( errCode = TransactionRecord::read( fileDes, sm ) ) ) return errCode;
+  if( ( errCode = LogIO::readLogicalID( lid, fileDes, sm ) ) ) return errCode;
   return errCode;
 }
