@@ -139,9 +139,11 @@ namespace SemaphoreLib {
 		}
 		else		/* last */
 		{
+		    inside--;
 		    if (current_mode == None)	current_mode = Upgrade;
 		    if (best_upgrader == -1 || id < best_upgrader)
 		    {
+			inside++;
 			best_upgrader = -1;	/* iam the best */
 		    }
 		    else errorCode = -3;

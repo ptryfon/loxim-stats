@@ -19,7 +19,7 @@ int main()
 	int ith = 1;
 	pthread_t threads[MAX];
 	int arg[MAX];
-        int test = 1;		/* TEST MODE = 1 or 2 */
+        int test = 2;		/* TEST MODE = 1 or 2 */
 
 	sem = new RWUJSemaphore();
 	sem->init();
