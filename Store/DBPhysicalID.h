@@ -16,10 +16,9 @@ namespace Store
 		
 	public:
 		virtual unsigned short getFile() const;
-		virtual unsigned int getPage()   const;
+		virtual unsigned int getPage() const;
 		virtual unsigned short getOffset() const;		
 	};	
-	
 	
 }
 
