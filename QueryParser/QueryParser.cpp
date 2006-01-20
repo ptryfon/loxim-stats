@@ -53,7 +53,7 @@ namespace QParser {
 
 			QParser::Optimiser *opt = new QParser::Optimiser();
 	int reslt;
-	if ((reslt = opt->stEvalTest(qTree)) != 0)
+	if ((reslt = opt->stEvalTest(d)) != 0)
 	 fprintf (stderr, "static evaluation did not work out...\n");
 	cout << "static evaluatioin OK, result: "<< reslt << endl;
 
