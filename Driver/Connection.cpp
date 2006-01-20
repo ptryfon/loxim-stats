@@ -38,7 +38,7 @@ int Connection::stringCopy(char* &newBuffer) { // od bufferBegin
 		newBuffer = (char*)malloc (len);
 		
 		if (NULL == newBuffer) {
-			throw MemoryException(errno);
+			throw MemoryException(errno | ErrDriver);
 		}
 		strcpy (newBuffer, bufferBegin); // always succeeds
 		bufferBegin += len;

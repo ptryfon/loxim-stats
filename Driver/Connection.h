@@ -24,6 +24,8 @@ public:
 	virtual ~ConnectionException() {}
 };
 
+//TODO transmission i to co jest w drivermanager jako ConnectionIOException
+
 class ClosedConnectionException : public ConnectionException
 {
 public:
