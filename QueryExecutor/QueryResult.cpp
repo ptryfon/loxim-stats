@@ -131,7 +131,17 @@ int QuerySequenceResult::at(unsigned int i, QueryResult *&r){
 }
 
 void QueryBagResult::addResult(QueryResult *r){
-	bag.push_back(r); 
+	if ((r->type()) == (QueryResult::QBAG)) {
+		unsigned int bag_size = (r->size());
+		for (unsigned int i = 0; i < bag_size; i++) {
+			int errcode;
+			QueryResult *tmp_res;
+			errcode = (r->getResult(tmp_res));
+			bag.push_back(tmp_res);
+		}
+	}
+	else
+		bag.push_back(r); 
 }
 int QueryBagResult::getResult(QueryResult *&r){
 	if (bag.empty()) { 
@@ -762,7 +772,9 @@ int QueryReferenceResult::nested(Transaction *tr, QueryResult *&r) {
 			case Store::Vector: {
 				vector<ObjectPointer*>* tmp_vec = (tmp_data_value->getVector());
 				fprintf(stderr, "[QE] nested(): QueryReferenceResult pointing vector value\n");
-				int vec_size = tmp_vec->size();
+				if (tmp_vec == NULL) fprintf (stderr, "[QE] nested() vector == NULL");
+				int vec_size = tmp_vec->size();	
+				fprintf (stderr, "[QE] nested() vector ok");
 				for (int i = 0; i < vec_size; i++ ) {
 					optr = tmp_vec->at(i);
 					LogicalID *tmp_logID = optr->getLogicalID();
