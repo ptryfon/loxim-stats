@@ -7,7 +7,75 @@ namespace Driver {
 
 using namespace std;
 
+	
+class ConnectionException {
+ protected:
+	string msg;
+ public: 
+	ConnectionException() {}
+	ConnectionException(string msg) : msg(msg) {}
+	virtual void toStream(ostream& os) const { os << msg; }
+	friend ostream& operator<<(ostream&, ConnectionException&);
+	virtual ~ConnectionException() {}
+};
 
+
+class ConnectionErrnoException : public ConnectionException {
+ protected:
+	int error;
+ public:
+	ConnectionErrnoException(int err): ConnectionException(), error(err) {}
+	virtual int getError() { return error; }
+	virtual ~ConnectionErrnoException() {}
+};
+
+class ConnectionIOException : public ConnectionErrnoException {
+ public:
+	ConnectionIOException(int err): ConnectionErrnoException(err){}
+};
+
+class ConnectionMemoryException : public ConnectionErrnoException {
+ public:
+	ConnectionMemoryException(int err): ConnectionErrnoException(err){}
+
+};
+
+class ConnectionServerException : public ConnectionErrnoException {
+ public:
+	ConnectionServerException(int err): ConnectionErrnoException(err){}
+
+};
+
+
+class ConnectionClosedException : public ConnectionException {
+ public:
+	virtual void toStream(ostream& os) const 
+		{ os << "Closed connection Exception "; }
+};
+
+
+class ConnectionProtocolException : public ConnectionException {
+ public:
+	virtual void toStream(ostream& os) const 
+		{ os << "Protocol Corrupt  Exception "; }
+};
+
+
+class ConnectionDriverException : public ConnectionException {
+/* protected:
+   string msg;*/
+ public:
+	ConnectionDriverException() {}
+	ConnectionDriverException(string msg) : 
+		ConnectionException(msg) {}
+	virtual void toStream(ostream& os) const 
+		{ os << msg; }
+	friend ostream& operator<<(ostream&, ConnectionDriverException&);
+};
+
+
+
+#if 0
 class ConnectionException //Czarek
 {
 protected:
@@ -55,6 +123,9 @@ class MemoryException : public ConnectionException
 public:
 	MemoryException(int err) : ConnectionException(err, "memory exception") {};
 };
+
+
+#endif
 
 class Connection
 {

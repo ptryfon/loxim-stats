@@ -21,13 +21,13 @@ DriverManager::~DriverManager()
 }
 
 Connection* DriverManager::getConnection(char* url, int port) 
-  throw (ConnectionException)
+  throw (ConnectionDriverException)
 {
   
   int sock;
   sock = socket( PF_INET, SOCK_STREAM, 0 );
   if (sock < 0) 
-    throw new ConnectionException(" failure with socket ");
+    throw new ConnectionDriverException(" failure with socket ");
   
   //cerr << "problem z socketem" << endl;
   //  cout << "socket: " << sock << endl;
@@ -46,7 +46,7 @@ Connection* DriverManager::getConnection(char* url, int port)
   hp = gethostbyname (url);
   if (hp == 0)
     {
-      throw ConnectionException(" unknown host ");
+      throw ConnectionDriverException(" unknown host ");
       //fprintf (stderr, "%s : unknown host\n", hostn);
       //exit (2);
     }
@@ -59,7 +59,7 @@ Connection* DriverManager::getConnection(char* url, int port)
 
 
   if (0 != connect( sock, (sockaddr*)&Addr, sizeof( Addr ) ))  
-    throw ConnectionException(" can't establish connection ");
+    throw ConnectionDriverException(" can't establish connection ");
   //cerr << "blad w connect" << endl;
 
 

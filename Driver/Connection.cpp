@@ -33,13 +33,13 @@ int Connection::stringCopy(char* &newBuffer) { // od bufferBegin
 		
 		if (bufferBegin + len > bufferEnd) {
 			cerr << "<Serialize::StringCopy> proba czytania poza buforem" << endl;
-			throw ProtocolCorruptException();
+			throw ConnectionProtocolException();
 		}
 		
 		newBuffer = (char*)malloc (len);
 		
 		if (NULL == newBuffer) {
-			throw MemoryException(errno | ErrDriver);
+			throw ConnectionMemoryException(errno | ErrDriver);
 		}
 		strcpy (newBuffer, bufferBegin); // always succeeds
 		bufferBegin += len;
@@ -52,7 +52,7 @@ unsigned long Connection::getULong(unsigned long &val) {
 	
 	if (tmpPtr > bufferEnd) {
 		cerr << "<Connetion::getULong> proba czytania poza odebranym buforem" << endl;
-		throw ProtocolCorruptException();
+		throw ConnectionProtocolException();
 	}
 	
 		val = ntohl(*((unsigned long*) bufferBegin));
@@ -120,7 +120,7 @@ Result* Connection::deserialize() {
 		case Result::ERROR:
 			cerr << "<Connection::deserialize> tworze obiekt ERROR\n";
 			getULong(number); //by reference
-			throw ServerException(number); 
+			throw ConnectionServerException(number); 
 			//return new ResultError(number);
 			
 		
@@ -153,7 +153,7 @@ Result* Connection::deserialize() {
 		default:
 			df = *(bufferBegin-1);
 			cerr << "<Connection::deserialize> obiekt nieznany, nr: " << (int) df << endl;
-			throw ProtocolCorruptException();
+			throw ConnectionProtocolException();
 	} // switch
 } // deserialize
 
@@ -162,17 +162,17 @@ Result* Connection::execute(const char* query) throw (ConnectionException) {
 	int error;
       error = bufferSend(query, strlen(query)+1, sock);
       if (0 != error) {
-      	throw TransmissionException(error);
+      	throw ConnectionIOException(error);
       }
       char* ptr = NULL;
       int ile;
       error = bufferReceive(&ptr, &ile, sock); //create buffer and set ptr to point at it
 
       if (error != 0) { //ptr was free
-     	throw TransmissionException(error);
+     	throw ConnectionIOException(error);
       }
       if (ile == 0) { //no error but also no data -> server was closed
-      	throw ClosedConnectionException();
+      	throw ConnectionClosedException();
       }
       //bufferHandler will free memory pointed by ptr at the end of a scope
       BufferHandler bufferPtr(ptr); //needed only during deserializing (exception possible)
@@ -195,5 +195,7 @@ ostream& operator<<(ostream& os, ConnectionException& e) {
 	e.toStream(os);
 	return os;
 }
+
+
 
 } // namespace
