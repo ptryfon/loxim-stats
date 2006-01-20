@@ -229,6 +229,7 @@ int QueryDoubleResult::plus(QueryResult *r, QueryResult *&res){
 		return -1; 
 	}
 	double tmp_value = value + ((QueryDoubleResult*) r)->getValue(); 
+	fprintf(stderr, "[QE] + Result is: %e\n", tmp_value);
 	res = new QueryDoubleResult(tmp_value);
 	return 0; 
 }
@@ -770,14 +771,19 @@ int QueryReferenceResult::nested(Transaction *tr, QueryResult *&r) {
 				break;
 			}
 			case Store::Vector: {
-				vector<ObjectPointer*>* tmp_vec = (tmp_data_value->getVector());
+				vector<LogicalID*>* tmp_vec = (tmp_data_value->getVector());
 				fprintf(stderr, "[QE] nested(): QueryReferenceResult pointing vector value\n");
 				if (tmp_vec == NULL) fprintf (stderr, "[QE] nested() vector == NULL");
-				int vec_size = tmp_vec->size();	
+				int vec_size = tmp_vec->size();
+	
 				fprintf (stderr, "[QE] nested() vector ok");
 				for (int i = 0; i < vec_size; i++ ) {
-					optr = tmp_vec->at(i);
-					LogicalID *tmp_logID = optr->getLogicalID();
+					LogicalID *tmp_logID = tmp_vec->at(i);
+					fprintf (stderr, "[QE] nested() vector ok 2");
+					if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, optr)) != 0) {
+					fprintf(stderr, "[QE] Error in getObjectPointer\n");
+						return errcode;
+					}
 					string tmp_name = optr->getName();
 					QueryReferenceResult *final_ref = new QueryReferenceResult(tmp_logID);
 					QueryBinderResult *final_binder = new QueryBinderResult(tmp_name, final_ref);

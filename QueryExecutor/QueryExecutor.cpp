@@ -159,7 +159,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 				} //if
 			else
 				{
-				vector<ObjectPointer*> emptyVector;
+				vector<LogicalID*> emptyVector;
 				dbValue->setVector(&emptyVector);
 				value = dbValue;
 				fprintf(stderr, "[QE] No arguments (value = NULL)\n");
@@ -337,6 +337,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 								fprintf(stderr, "[QE] ObjectValue = Int\n");
 								QueryIntResult *tmpResult;
 								tmpResult = new QueryIntResult;
+								fprintf(stderr, "[QE] Value is %d\n", value->getInt());
 								tmpResult->setValue(value->getInt());
 			    					((QueryBagResult *)(*result))->addResult(tmpResult);
 								fprintf(stderr, "[QE] Result added\n");
@@ -970,6 +971,8 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 				}//case OR
 			case AlgOpNode::insert:
 				{
+				vector<LogicalID*> *insVector;
+				
 				
 				fprintf(stderr, "[QE] INSERT operation\n");                                                  /******************/
 				QueryResult *lResult, *rResult; 
@@ -1065,14 +1068,14 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					fprintf(stderr, "[QE] Error - the value has to be a Vector\n");
 					return -1;
 					}
-				vec = value->getVector();
+				insVector = value->getVector();
 				
-				vector<ObjectPointer*> aaa;
+				//vector<ObjectPointer*> aaa;
 				
-				if (vec == NULL) fprintf(stderr, "Ale gupie\n");
+				if (insVector == NULL) fprintf(stderr, "Ale gupie\n");
 				fprintf(stderr, "[QE] Vector taken\n");
 				fprintf(stderr, "[QE] Vec.size = %d\n", vec->size());
-				vec->push_back(optrIn); // Inserting of the object
+				insVector->push_back(lidIn); // Inserting of the object
 				fprintf(stderr, "[QE] Object added to value\n");
 				fprintf(stderr, "[QE] New Vec.size = %d\n", vec->size());
 				
