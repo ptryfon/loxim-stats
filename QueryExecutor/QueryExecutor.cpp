@@ -550,12 +550,20 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			case AlgOpNode::plus:
 				{
 				fprintf(stderr, "[QE] + operation\n");
-				QueryResult *lResult, *rResult;
-				if ((errcode = executeQuery (((AlgOpNode *) tree)->getLArg(), &lResult)) != 0)
+				QueryResult *lResult, *rResult, *bagResult, *tmpResult;
+				if ((errcode = executeQuery (((AlgOpNode *) tree)->getLArg(), &bagResult)) != 0)
 					{
 					return errcode;
 					}
-				if ((errcode = executeQuery (((AlgOpNode *) tree)->getRArg(), &rResult)) != 0)
+				if ((errcode = ((QueryBagResult *) bagResult)->getResult(lResult) != 0))
+					{
+					return errcode;
+					}
+				if ((errcode = executeQuery (((AlgOpNode *) tree)->getRArg(), &bagResult)) != 0)
+					{
+					return errcode;
+					}
+				if ((errcode = ((QueryBagResult *) bagResult)->getResult(rResult) != 0))
 					{
 					return errcode;
 					}
@@ -573,12 +581,10 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					{
 					case QueryResult::QINT: //Both arguments are QueryIntResults
 						{
-						if ((errcode = ((QueryIntResult *) lResult)->plus(rResult, (*result))) != 0)
+						if ((errcode = ((QueryIntResult *) lResult)->plus(rResult, tmpResult)) != 0)
 							{
 							return errcode;
 							}
-						fprintf(stderr, "[QE] Done!\n");
-						return 0;
 						}
 					case QueryResult::QDOUBLE: //Right argument is a double
 						{
@@ -590,7 +596,6 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 						return -1;
 						}
 					} //switch
-					return 0;
 					} //case QINT
 				case QueryResult::QDOUBLE: //Left argument is a QueryDoubleResult
 					{
@@ -600,12 +605,10 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					{
 					case QueryResult::QDOUBLE: //Both arguments are QueryDoubleResults
 						{
-						if ((errcode = ((QueryDoubleResult *) lResult)->plus(rResult, (*result))) != 0)
+						if ((errcode = ((QueryDoubleResult *) lResult)->plus(rResult, tmpResult)) != 0)
 							{
 							return errcode;
 							}
-						fprintf(stderr, "[QE] Done!\n");
-						return 0;
 						}
 					case QueryResult::QINT: //Right argument is an int
 						{
@@ -617,7 +620,6 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 						return -1;
 						}
 					} //switch
-					return 0;
 					}//case QDOUBLE
 				default:
 					{
@@ -625,17 +627,28 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					return -1;
 					}
 				}//switch
+				*result = new QueryBagResult;
+				(*result)->addResult(tmpResult);
+				fprintf(stderr, "[QE] Done!\n");
 				return 0;
 				}//case
 			case AlgOpNode::minus:
 				{
 				fprintf(stderr, "[QE] - operation\n");
-				QueryResult *lResult, *rResult;
-				if ((errcode = executeQuery (((AlgOpNode *) tree)->getLArg(), &lResult)) != 0)
+				QueryResult *lResult, *rResult, *bagResult, *tmpResult;
+				if ((errcode = executeQuery (((AlgOpNode *) tree)->getLArg(), &bagResult)) != 0)
 					{
 					return errcode;
 					}
-				if ((errcode = executeQuery (((AlgOpNode *) tree)->getRArg(), &rResult)) != 0)
+				if ((errcode = ((QueryBagResult *) bagResult)->getResult(lResult) != 0))
+					{
+					return errcode;
+					}
+				if ((errcode = executeQuery (((AlgOpNode *) tree)->getRArg(), &bagResult)) != 0)
+					{
+					return errcode;
+					}
+				if ((errcode = ((QueryBagResult *) bagResult)->getResult(rResult) != 0))
 					{
 					return errcode;
 					}
@@ -653,12 +666,10 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					{
 					case QueryResult::QINT: //Both arguments are QueryIntResults
 						{
-						if ((errcode = ((QueryIntResult *) lResult)->minus(rResult, (*result))) != 0)
+						if ((errcode = ((QueryIntResult *) lResult)->minus(rResult, tmpResult)) != 0)
 							{
 							return errcode;
 							}
-						fprintf(stderr, "[QE] Done!\n");
-						return 0;
 						}
 					case QueryResult::QDOUBLE: //Right argument is a double
 						{
@@ -670,7 +681,6 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 						return -1;
 						}
 					} //switch
-					return 0;
 					} //case QINT
 				case QueryResult::QDOUBLE: //Left argument is a QueryDoubleResult
 					{
@@ -680,12 +690,10 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					{
 					case QueryResult::QDOUBLE: //Both arguments are QueryDoubleResults
 						{
-						if ((errcode = ((QueryDoubleResult *) lResult)->minus(rResult, (*result))) != 0)
+						if ((errcode = ((QueryDoubleResult *) lResult)->minus(rResult, tmpResult)) != 0)
 							{
 							return errcode;
 							}
-						fprintf(stderr, "[QE] Done!\n");
-						return 0;
 						}
 					case QueryResult::QINT: //Right argument is an int
 						{
@@ -697,7 +705,6 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 						return -1;
 						}
 					} //switch
-					return 0;
 					}//case QDOUBLE
 				default:
 					{
@@ -705,17 +712,28 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					return -1;
 					}
 				}//switch
+				*result = new QueryBagResult;
+				(*result)->addResult(tmpResult);
+				fprintf(stderr, "[QE] Done!\n");
 				return 0;
 				}//case
 			case AlgOpNode::times:
 				{
 				fprintf(stderr, "[QE] * operation\n");
-				QueryResult *lResult, *rResult;
-				if ((errcode = executeQuery (((AlgOpNode *) tree)->getLArg(), &lResult)) != 0)
+				QueryResult *lResult, *rResult, *bagResult, *tmpResult;
+				if ((errcode = executeQuery (((AlgOpNode *) tree)->getLArg(), &bagResult)) != 0)
 					{
 					return errcode;
 					}
-				if ((errcode = executeQuery (((AlgOpNode *) tree)->getRArg(), &rResult)) != 0)
+				if ((errcode = ((QueryBagResult *) bagResult)->getResult(lResult) != 0))
+					{
+					return errcode;
+					}
+				if ((errcode = executeQuery (((AlgOpNode *) tree)->getRArg(), &bagResult)) != 0)
+					{
+					return errcode;
+					}
+				if ((errcode = ((QueryBagResult *) bagResult)->getResult(rResult) != 0))
 					{
 					return errcode;
 					}
@@ -733,12 +751,10 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					{
 					case QueryResult::QINT: //Both arguments are QueryIntResults
 						{
-						if ((errcode = ((QueryIntResult *) lResult)->times(rResult, (*result))) != 0)
+						if ((errcode = ((QueryIntResult *) lResult)->times(rResult, tmpResult)) != 0)
 							{
 							return errcode;
 							}
-						fprintf(stderr, "[QE] Done!\n");
-						return 0;
 						}
 					case QueryResult::QDOUBLE: //Right argument is a double
 						{
@@ -750,7 +766,6 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 						return -1;
 						}
 					} //switch
-					return 0;
 					} //case QINT
 				case QueryResult::QDOUBLE: //Left argument is a QueryDoubleResult
 					{
@@ -760,12 +775,10 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					{
 					case QueryResult::QDOUBLE: //Both arguments are QueryDoubleResults
 						{
-						if ((errcode = ((QueryDoubleResult *) lResult)->times(rResult, (*result))) != 0)
+						if ((errcode = ((QueryDoubleResult *) lResult)->times(rResult, tmpResult)) != 0)
 							{
 							return errcode;
 							}
-						fprintf(stderr, "[QE] Done!\n");
-						return 0;
 						}
 					case QueryResult::QINT: //Right argument is an int
 						{
@@ -777,7 +790,6 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 						return -1;
 						}
 					} //switch
-					return 0;
 					}//case QDOUBLE
 				default:
 					{
@@ -785,17 +797,28 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					return -1;
 					}
 				}//switch
+				*result = new QueryBagResult;
+				(*result)->addResult(tmpResult);
+				fprintf(stderr, "[QE] Done!\n");
 				return 0;
 				}//case
 			case AlgOpNode::divide:
 				{
 				fprintf(stderr, "[QE] / operation\n");
-				QueryResult *lResult, *rResult;
-				if ((errcode = executeQuery (((AlgOpNode *) tree)->getLArg(), &lResult)) != 0)
+				QueryResult *lResult, *rResult, *bagResult, *tmpResult;
+				if ((errcode = executeQuery (((AlgOpNode *) tree)->getLArg(), &bagResult)) != 0)
 					{
 					return errcode;
 					}
-				if ((errcode = executeQuery (((AlgOpNode *) tree)->getRArg(), &rResult)) != 0)
+				if ((errcode = ((QueryBagResult *) bagResult)->getResult(lResult) != 0))
+					{
+					return errcode;
+					}
+				if ((errcode = executeQuery (((AlgOpNode *) tree)->getRArg(), &bagResult)) != 0)
+					{
+					return errcode;
+					}
+				if ((errcode = ((QueryBagResult *) bagResult)->getResult(rResult) != 0))
 					{
 					return errcode;
 					}
@@ -813,12 +836,10 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					{
 					case QueryResult::QINT: //Both arguments are QueryIntResults
 						{
-						if ((errcode = ((QueryIntResult *) lResult)->divide_by(rResult, (*result))) != 0)
+						if ((errcode = ((QueryIntResult *) lResult)->divide_by(rResult, tmpResult)) != 0)
 							{
 							return errcode;
 							}
-						fprintf(stderr, "[QE] Done!\n");
-						return 0;
 						}
 					case QueryResult::QDOUBLE: //Right argument is a double
 						{
@@ -830,7 +851,6 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 						return -1;
 						}
 					} //switch
-					return 0;
 					} //case QINT
 				case QueryResult::QDOUBLE: //Left argument is a QueryDoubleResult
 					{
@@ -840,12 +860,10 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					{
 					case QueryResult::QDOUBLE: //Both arguments are QueryDoubleResults
 						{
-						if ((errcode = ((QueryDoubleResult *) lResult)->divide_by(rResult, (*result))) != 0)
+						if ((errcode = ((QueryDoubleResult *) lResult)->divide_by(rResult, tmpResult)) != 0)
 							{
 							return errcode;
 							}
-						fprintf(stderr, "[QE] Done!\n");
-						return 0;
 						}
 					case QueryResult::QINT: //Right argument is an int
 						{
@@ -857,7 +875,6 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 						return -1;
 						}
 					} //switch
-					return 0;
 					}//case QDOUBLE
 				default:
 					{
@@ -865,6 +882,9 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					return -1;
 					}
 				}//switch
+				*result = new QueryBagResult;
+				(*result)->addResult(tmpResult);
+				fprintf(stderr, "[QE] Done!\n");
 				return 0;
 				}//case
 			case AlgOpNode::eq:
