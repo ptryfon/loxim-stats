@@ -13,6 +13,14 @@ namespace Store
 		name = "NoName";
 		value = NULL;
 	};
+
+	DBObjectPointer::DBObjectPointer(LogicalID* p_lid)
+	{
+		lid = p_lid;
+		name = "NoName";
+		value = NULL;
+	};
+
 	
 	DBObjectPointer::DBObjectPointer(string p_name, DataValue* dv)
 	{

@@ -11,6 +11,7 @@ namespace Store
 	{
 	public:
 		DBObjectPointer();
+		DBObjectPointer(LogicalID*);
 		DBObjectPointer(string name, DataValue*);
 		DBObjectPointer(string name, DataValue*, LogicalID*);
 		~DBObjectPointer();

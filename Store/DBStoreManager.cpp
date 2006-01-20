@@ -268,6 +268,16 @@ namespace Store
 		return 0;
 	};
 
+	ObjectPointer* DBStoreManager::createObjectPointer(LogicalID* lid)
+	{
+		return new DBObjectPointer(lid);
+	};
+
+	ObjectPointer* DBStoreManager::createObjectPointer(LogicalID* lid, string name, DataValue* dv)
+	{
+		return new DBObjectPointer(name, dv, lid);
+	};
+
 	int DBStoreManager::logicalIDFromByteArray(unsigned char* buffer, int length, LogicalID** lid)
 	{
 		return 0;
