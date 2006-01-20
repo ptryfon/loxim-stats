@@ -166,6 +166,8 @@ namespace Store
 //
 //		// COPY OBJECT to PAGE
 //		PageManager::insertObject(pPtr, sObj);
+//
+//		PageManager::addToFreeMap(pPtr);
 //		
 //		pPtr->release();
 //		

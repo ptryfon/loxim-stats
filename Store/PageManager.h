@@ -4,6 +4,7 @@
 #include "Store.h"
 #include "Struct.h"
 #include "PagePointer.h"
+#include "File.h"
 
 namespace Store
 {
@@ -23,7 +24,11 @@ namespace Store
 		static int writeNewHeader(PagePointer *ptr);
 		static int insertObject(PagePointer *ptr, Serialized& obj);
 		static int deserialize(PagePointer *ptr, int objindex, ObjectPointer*& newobj);
+		static int initializeFile(File* file);
 		static int initializePage(unsigned int page_num, char* page);
+		static int getFreePage();
+		static int getFreePage(int space);
+		static int addToFreeMap(PagePointer *ptr);
 	};
 
 };

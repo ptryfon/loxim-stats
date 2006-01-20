@@ -140,6 +140,12 @@ namespace Store
 		
 		return 0;
 	}
+	
+	int PageManager::initializeFile(File* file)
+	{
+	
+		return 0;
+	}
 
 	int PageManager::initializePage(unsigned int page_num, char* page)
 	{
@@ -152,6 +158,21 @@ namespace Store
 		p->object_count = 0;
 		p->free_space = STORE_PAGESIZE - sizeof(page_header);
 		
+		return 0;
+	}
+	
+	int PageManager::getFreePage()
+	{
+		return 0;
+	}
+
+	int PageManager::getFreePage(int space)
+	{
+		return 0;
+	}
+
+	int PageManager::addToFreeMap(PagePointer *pPtr)
+	{
 		return 0;
 	}
 	
