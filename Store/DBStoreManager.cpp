@@ -283,12 +283,18 @@ namespace Store
 //	{
 //		cout << "Store::Manager::deleteObject start..\n";
 //		
+//		//zapisane do Log
+//		unsigned *id;
+//		Log::write(tid, object->getLogicalID(), object->getValue(), NULL, &id);
+//
+//
 //		physical_id *p_id;
 //		map->getPhysicalID(object->getLogicalID()->toInteger(), &p_id);
 //		PagePointer *pPtr = buffer->getPagePointer(p_id->file_id, p_id->page_id);
 //		pPtr->aquire();
 //		page_data *p = reinterpret_cast<page_data*>(pPtr->getPage());
-//		
+//		p->header->timestamp= id;		
+//
 //		int pos_table = p_id->offset;
 //		int end_of_object;
 //	
@@ -307,8 +313,11 @@ namespace Store
 //		for(i = pos_table+1; i <= p->object_count-1; i++)
 //		{
 //		    char pom[STORE_PAGESIZE];
+// 		    
+//		    //rozmiar przesuwanego obiektu
 //		    int size = p->object_offset[i-1] - p->object_offset[i];
-//		    int start = p->object_offset[i-1];
+//		    // poczatek przesuwanego obiektu
+//		    int start = p->object_offset[i];
 //		    
 //		    memmove(pom, page + start  , size);
 //		    memmove(page + start + object_size, pom, size);
@@ -316,16 +325,16 @@ namespace Store
 //		};
 //		
 //		// uaktualnienie tablicy offsetow
-//		// tzn cofane wpisy w tablicy o 1 miejsce
 //		// oraz dodanie do starego offsetu rozmiaru usuwanego obiektu
 //		for(i = pos_table+1; i <= p->object_count-1; i++)
-//		    p->object_offset[i-1] = p->object_offset[i] + object_size;    
-//		// tu nalezaloby powiadamiac mape ze nastapilo przesuniecie obiektow
-//		// narazie nie wiem w jaka funkcje wywolac
-//		
+//		    p->object_offset[i] = p->obcject_offset[i] + object_size;    
+//
+//		// nagrobek 
+//		p->object_offset[i] = -1;		
+//
 //		// uaktualnienie info na stronie
 //		p->object_count--;
-//		p->free_space+=object_size;
+//		p->free_space = p->free_space + object_size;
 //		
 //		pPtr->release();
 //
