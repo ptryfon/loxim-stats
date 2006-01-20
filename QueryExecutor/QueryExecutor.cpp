@@ -188,7 +188,9 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			{
 			int intValue = ((IntNode *) tree)->getValue();
 			fprintf(stderr, "[QE] TNINT: %d\n", intValue);
-			*result = new QueryIntResult(intValue);
+			*result = new QueryBagResult;
+			QueryIntResult *tmpResult = new QueryIntResult(intValue);
+			(*result)->addResult(tmpResult);
 			fprintf(stderr, "[QE] QueryIntResult (%d) created\n",intValue);
 			return 0;
 			}
@@ -196,7 +198,9 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			{
 			string stringValue = ((StringNode *) tree)->getValue();
 			//fprintf(stderr, "[QE] QueryStringResult (%s) created\n",stringValue);
-			*result = new QueryStringResult(stringValue);
+			*result = new QueryBagResult;
+			QueryStringResult *tmpResult = new QueryStringResult(stringValue);
+			(*result)->addResult(tmpResult);
 			//fprintf(stderr, "[QE] QueryStringResult (%s) created\n",stringValue);
 			return 0;
 			}
@@ -204,7 +208,9 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			{
 			double doubleValue = ((DoubleNode *) tree)->getValue();
 			fprintf(stderr, "[QE] TNDOUBLE: %f\n", doubleValue);
-			*result = new QueryDoubleResult(doubleValue);
+			*result = new QueryBagResult;
+			QueryDoubleResult *tmpResult = new QueryDoubleResult(doubleValue);
+			(*result)->addResult(tmpResult);
 			fprintf(stderr, "[QE] QueryDoubleResult (%f) created\n", doubleValue);
 			return 0;
 			}
@@ -263,32 +269,65 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			case UnOpNode::unMinus:
 				{
 				fprintf(stderr, "[QE] unMinus operation\n");
-				QueryResult *nextResult;
-				if ((errcode = executeQuery (tree->getArg(), &nextResult)) != 0)
+				QueryResult *bagResult;
+				if ((errcode = executeQuery (tree->getArg(), &bagResult)) != 0)
+					{
+					return errcode;
+					}
+				QueryResult *tmpResult, *negResult;
+				if ((errcode = ((QueryBagResult *) bagResult)->getResult(tmpResult) != 0))
 					{
 					return errcode;
 					}
 				fprintf(stderr, "[QE] Result counted, counting unMinus\n");
-				if ((errcode = ((QueryIntResult *) nextResult)->minus(*result)) != 0)
+				int argType = tmpResult->type();
+				fprintf(stderr, "[QE] left argument's type taken\n");
+				switch (argType)
 					{
-					return errcode;
-					}
+					case QueryResult::QINT: //argument is a QueryIntResult
+						{
+						if ((errcode = ((QueryIntResult *) tmpResult)->minus(negResult)) != 0)
+							{
+							return errcode;
+							}
+						}
+					case QueryResult::QDOUBLE: //argument is a QueryDoubleResult
+						{
+						if ((errcode = ((QueryDoubleResult *) tmpResult)->minus(negResult)) != 0)
+							{
+							return errcode;
+							}
+						}
+					default: //wrong type!
+						{
+						fprintf(stderr, "[QE] Error - wrong unMinus argument\n");
+						return -1;
+						}
+					}//switch
+				*result = new QueryBagResult;
+				(*result)->addResult(negResult);
 				fprintf(stderr, "[QE] Done!\n");
 				return 0;
 				}//case unMinus
 			case UnOpNode::boolNot:
 				{
 				fprintf(stderr, "[QE] NOT operation\n");
-				QueryResult *nextResult;
-				if ((errcode = executeQuery (tree->getArg(), &nextResult)) != 0)
+				QueryResult *notResult, *tmpResult, *bagResult;;
+				if ((errcode = executeQuery (tree->getArg(), &bagResult)) != 0)
+					{
+					return errcode;
+					}
+				if ((errcode = ((QueryBagResult *) bagResult)->getResult(tmpResult) != 0))
 					{
 					return errcode;
 					}
 				fprintf(stderr, "[QE] Result counted, counting NOT\n");
-				if ((errcode = ((QueryBoolResult *) nextResult)->bool_not(*result)) != 0)
+				if ((errcode = ((QueryBoolResult *) tmpResult)->bool_not(notResult)) != 0)
 					{
 					return errcode;
 					}
+				*result = new QueryBagResult;
+				(*result)->addResult(notResult);
 				fprintf(stderr, "[QE] Done!\n");
 				return 0;
 				}//case NOT
@@ -1111,7 +1150,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			if ((errcode = executeQuery (((NonAlgOpNode *) tree)->getLArg(), &lResult)) != 0) {
 				return errcode;
 			}
-			fprintf(stderr, "[QE] Left argument of NonAlgebraic querry has been computed\n");
+			fprintf(stderr, "[QE] Left argument of NonAlgebraic query has been computed\n");
 			QueryResult *partial_result = new QueryBagResult();
 			if (((lResult->type()) == QueryResult::QSEQUENCE) || ((lResult->type()) == QueryResult::QBAG)) {
 				fprintf(stderr, "[QE] For each row of this score, the right argument will be computed \n");
