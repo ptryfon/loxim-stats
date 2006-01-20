@@ -16,12 +16,14 @@ int main(int argc, char* argv[])
 		store->init(0, 0);
 		store->start();
 
-		physical_id* pid;
+		physical_id* pid = NULL;
 		Map* map = store->getMap();
 		unsigned int lid = map->createLogicalID();
 		cout << "createLogicalID() = " << lid << "\n";
 		cout << map->getPhysicalID(lid, &pid) << "\n";
 		cout << map->setPhysicalID(lid, pid) << "\n";
+		if (pid)
+			delete pid;
 /*
 		Roots* roots = store->getRoots();
 

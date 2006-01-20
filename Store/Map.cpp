@@ -75,7 +75,7 @@ namespace Store
 	unsigned int Map::createLogicalID()
 	{
 		unsigned int last = getLastAssigned();
-		PagePointer* page = store->getBuffer()->getPagePointer(STORE_FILE_ROOTS, STORE_ROOTS_ROOTPAGE(last + 1));
+		PagePointer* page = store->getBuffer()->getPagePointer(STORE_FILE_MAP, STORE_MAP_MAPPAGE(last + 1));
 
 		page->aquire();
 
