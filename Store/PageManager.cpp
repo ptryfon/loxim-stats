@@ -140,5 +140,19 @@ namespace Store
 		
 		return 0;
 	}
+
+	int PageManager::initializePage(unsigned int page_num, char* page)
+	{
+		page_data *p = reinterpret_cast<page_data*>(page);
+		
+		p->header.file_id = STORE_FILE_DEFAULT;
+		p->header.page_id = page_num;
+		p->header.page_type = STORE_PAGE_DATAHEADER;
+		p->header.timestamp = 0;
+		p->object_count = 0;
+		p->free_space = STORE_PAGESIZE - sizeof(page_header);
+		
+		return 0;
+	}
 	
 }

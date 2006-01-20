@@ -154,14 +154,14 @@ namespace Store
 //
 //		Serialized sObj = object->serialize();
 //
-//		int lastas = map->getLastAssigned();
-//		map->setLastAssigned(++lastas);
-//		PagePointer *pPtr = buffer->getPagePointer(STORE_FILE_ROOTS, lastas);
+//		int freepage = PageManager::getFreePage(); // strona z wystaraczajaca iloscia miejsca na nowy obiekt
+//
+//		PagePointer *pPtr = buffer->getPagePointer(STORE_FILE_DEFAULT, freegame);
 //
 //		pPtr->aquire();
 //
-//		// DOSTAJE +NOWA PUSTA+ STRONE, wiec BEGIN SETHEADERS
-//		PageManager::writeNewHeader(pPtr);
+//		// BEGIN SETHEADERS
+//		// PageManager::writeHeader(pPtr); // sprawdzic czy stroa jest zainicjalizowana, jesli nie do ustawic reszte pol
 //		// END SETHEADERS
 //
 //		// COPY OBJECT to PAGE

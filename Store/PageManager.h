@@ -23,6 +23,7 @@ namespace Store
 		static int writeNewHeader(PagePointer *ptr);
 		static int insertObject(PagePointer *ptr, Serialized& obj);
 		static int deserialize(PagePointer *ptr, int objindex, ObjectPointer*& newobj);
+		static int initializePage(unsigned int page_num, char* page);
 	};
 
 };
