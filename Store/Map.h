@@ -13,8 +13,8 @@ namespace Store
 #include "PagePointer.h"
 
 #define STORE_MAP_PERPAGE			((STORE_PAGESIZE - sizeof(map_page)) / sizeof(physical_id))
-#define STORE_MAP_MAPPAGE(i)		(1 + (i / STORE_MAP_PERPAGE))
-#define STORE_MAP_MAPOFFSET(i)		(sizeof(map_page) + sizeof(physical_id) * (i % STORE_MAP_PERPAGE))
+#define STORE_MAP_MAPPAGE(i)		(1 + ((i) / STORE_MAP_PERPAGE))
+#define STORE_MAP_MAPOFFSET(i)		(sizeof(map_page) + sizeof(physical_id) * ((i) % STORE_MAP_PERPAGE))
 
 using namespace std;
 

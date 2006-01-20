@@ -14,8 +14,8 @@ namespace Store
 #include "PagePointer.h"
 
 #define STORE_ROOTS_PERPAGE			((STORE_PAGESIZE - sizeof(roots_page)) / sizeof(unsigned int))
-#define STORE_ROOTS_ROOTPAGE(i)		(1 + (i / STORE_ROOTS_PERPAGE))
-#define STORE_ROOTS_ROOTOFFSET(i)	(sizeof(roots_page) + sizeof(unsigned int) * (i % STORE_ROOTS_PERPAGE))
+#define STORE_ROOTS_ROOTPAGE(i)		(1 + ((i) / STORE_ROOTS_PERPAGE))
+#define STORE_ROOTS_ROOTOFFSET(i)	(sizeof(roots_page) + sizeof(unsigned int) * ((i) % STORE_ROOTS_PERPAGE))
 
 using namespace std;
 
@@ -27,7 +27,6 @@ namespace Store
 		DBStoreManager* store;
 		PagePointer* header;
 
-	public:
 		unsigned int getLastAssigned();
 		void setLastAssigned(unsigned int);
 

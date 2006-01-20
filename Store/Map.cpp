@@ -66,7 +66,7 @@ namespace Store
 	void Map::setLastAssigned(unsigned int last)
 	{
 		if (!header)
-			store->getBuffer()->getPagePointer(STORE_FILE_MAP, 0);
+			header = store->getBuffer()->getPagePointer(STORE_FILE_MAP, 0);
 
 		header->aquire();
 		((map_header*) header->getPage())->last_assigned = last;
