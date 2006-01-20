@@ -78,8 +78,8 @@ namespace TManager
 		    	int createIntValue(int value, DataValue* &dataVal);
 		    	int createDoubleValue(double value, DataValue* &dataVal);
 		    	int createStringValue(string value, DataValue* &dataVal);
-		    	int createVectorValue(vector<ObjectPointer*>* value, DataValue* &dataVal);
-		    	int createPointerValue(ObjectPointer* value, DataValue* &dataVal) ;
+		    	int createVectorValue(vector<LogicalID*>* value, DataValue* &dataVal);
+		    	int createPointerValue(LogicalID* value, DataValue* &dataVal) ;
 
 			/* Final execution of transacion */
 		    	int abort();

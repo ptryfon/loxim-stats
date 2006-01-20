@@ -184,7 +184,7 @@ namespace TManager
 		return 0;
 	}
 
-	int Transaction::createVectorValue(vector<ObjectPointer*>* value, DataValue* &dataVal)
+	int Transaction::createVectorValue(vector<LogicalID*>* value, DataValue* &dataVal)
 	{
 		/* temporary interface, error number returnig should be here */
 		sem->lock_write();
@@ -193,7 +193,7 @@ namespace TManager
 		return 0;
 	}
 
-	int Transaction::createPointerValue(ObjectPointer* value, DataValue* &dataVal)
+	int Transaction::createPointerValue(LogicalID* value, DataValue* &dataVal)
 	{
 		/* temporary interface, error number returnig should be here */
 		sem->lock_write();
