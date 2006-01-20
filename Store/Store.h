@@ -100,13 +100,13 @@ namespace Store
 		virtual double getDouble() = 0;
 		virtual string getString() = 0;
 		virtual LogicalID* getPointer() = 0;
-		virtual vector<ObjectPointer*>* getVector() = 0;				// Good or bad idea??
+		virtual vector<LogicalID*>* getVector() = 0;				// Good or bad idea??
 
 		virtual void setInt(int value) = 0;
 		virtual void setDouble(double value) = 0;
 		virtual void setString(string value) = 0;
 		virtual void setPointer(LogicalID* value) = 0;
-		virtual void setVector(vector<ObjectPointer*>* value) = 0;		// Good or bad idea??
+		virtual void setVector(vector<LogicalID*>* value) = 0;		// Good or bad idea??
 
 		// Operators
 		virtual bool operator==(DataValue& dv) = 0;

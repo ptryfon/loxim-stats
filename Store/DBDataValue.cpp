@@ -71,7 +71,7 @@ namespace Store
 	void DBDataValue::toFullByteArray(unsigned char** buff, int* length)
 	{
 		//full czyli type + value
-		int etyp = static_cast<int>(type);
+/*		int etyp = static_cast<int>(type);
 		int size = sizeof(int);
 		unsigned char *barray;
 		vector<pair<unsigned char*,int> > vecbarray;
@@ -124,7 +124,7 @@ namespace Store
 			   break;
 			default: break;
 		};
-		
+*/		
 	};
 
 	string DBDataValue::toString()
@@ -154,10 +154,10 @@ namespace Store
 			case Store::String:  s += *value.string_value; break;
 			case Store::Pointer: s += *value.pointer_value; break;
 			case Store::Vector: {
-				vector<ObjectPointer*>::iterator obj_iter;
+				vector<LogicalID*>::iterator obj_iter;
 				for(obj_iter = value.vector_value->begin();
 						obj_iter != value.vector_value->end(); obj_iter++)
-					s += *((*obj_iter)->getLogicalID());
+					s += *(*obj_iter);
 				} break;
 			default:
 				break;
@@ -234,7 +234,7 @@ namespace Store
 		return NULL;
 	};
 
-	vector<ObjectPointer*>* DBDataValue::getVector()
+	vector<LogicalID*>* DBDataValue::getVector()
 	{
 		if( type == Store::Vector )
 			return value.vector_value;
@@ -269,7 +269,7 @@ namespace Store
 		value.pointer_value = val;
 	};
 
-	void DBDataValue::setVector(vector<ObjectPointer*>* val)
+	void DBDataValue::setVector(vector<LogicalID*>* val)
 	{
 		p_destroyVal();
 		type = Store::Vector;
@@ -317,7 +317,7 @@ namespace Store
 				break;
 			case Store::Vector:
 				if(value.vector_value) {
-					vector<ObjectPointer*>::iterator obj_iter;
+					vector<LogicalID*>::iterator obj_iter;
 					for(obj_iter = value.vector_value->begin();
 							obj_iter != value.vector_value->end(); obj_iter++)
 						delete (*obj_iter);

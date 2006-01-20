@@ -18,7 +18,7 @@ namespace Store
 				double* double_value;
 				string* string_value;
 				LogicalID* pointer_value;
-				vector<ObjectPointer*>* vector_value;
+				vector<LogicalID*>* vector_value;
 //			} v;
 		} complex_value;
 
@@ -42,13 +42,13 @@ namespace Store
 		virtual double getDouble();
 		virtual string getString();
 		virtual LogicalID* getPointer();
-		virtual vector<ObjectPointer*>* getVector();
+		virtual vector<LogicalID*>* getVector();
 
 		virtual void setInt(int value);
 		virtual void setDouble(double value);
 		virtual void setString(string value);
 		virtual void setPointer(LogicalID* value);
-		virtual void setVector(vector<ObjectPointer*>* value);
+		virtual void setVector(vector<LogicalID*>* value);
 
 		virtual bool operator==(DataValue& dv);
 		
