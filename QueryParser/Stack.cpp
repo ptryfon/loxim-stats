@@ -25,7 +25,8 @@ namespace QParser {
 	Signature* Signature::clone(){return NULL;}
 	Signature* SigColl::clone(){
 		SigColl *ns = new SigColl(type()); 
-		if (myList != NULL) ns->setElts (getMyList()->clone());
+		if (myList != NULL) {ns->setElts (myList->clone()); ns->setMyLast (this->myLast);}
+		
 		if (next != NULL) ns->setNext(next->clone());
 		return ns;}
 	Signature* SigAtomType::clone(){
@@ -45,8 +46,14 @@ namespace QParser {
 	BinderWrap* SigRef::statNested() {
 		return DataScheme::dScheme()->statNested(refNo);
 		}		
-	BinderWrap* StatBinder::statNested() { return new BinderList(this);};
+	BinderWrap* StatBinder::statNested() { return new BinderList((StatBinder *) this);};
 
+	BinderWrap* SigColl::statNested() {
+//		Signature *elt = myList;
+		cout << "statNested::sigColl -- should not be evoked..." << endl;	
+		return NULL;
+		}						
+  
 	void Optimiser::setQres(StatQResStack *nq) {this->sQres = nq;}
 	void Optimiser::setEnvs(StatEnvStack *nq) {this->sEnvs = nq;}	
 	Optimiser::~Optimiser() {if (sQres != NULL) delete sQres;
@@ -85,17 +92,33 @@ namespace QParser {
 		return 0;
 	}
 
-	int Optimiser::stEvalTest(TreeNode *tn) {
+	int Optimiser::stEvalTest(TreeNode *&tn) {
 		setEnvs(new StatEnvStack());
 		setQres(new StatQResStack());
 		/* plus mamy globalna zmienna DataScheme *dScheme*/
 		
 		/* set the first section of the ENVS stack with binders to 
 		   definitions of base objects ... */
-		sEnvs->pushBinders(DataScheme::dScheme()->bindBaseObjects());	
+    	sEnvs->pushBinders(DataScheme::dScheme()->bindBaseObjects());	
+		sEnvs->putToString();
 		
 		/* modify the tree setting special info in nameNodes and NonAlgOpNodes */
-//		int res = tn->staticEval (sEnvs, sQres);
+		cout << "no, mam envs gotowy ze startowymi obiektami w pierwszej sekcji .. " << endl;
+		int res = tn->staticEval (sQres, sEnvs);
+		tn->putToString();
+		cout <<endl << "qres: " << endl;
+		sQres->topSig()->putToString(); cout << endl;
+//		delete sQres;
+		fprintf (stderr, "==============\n");
+		sEnvs->putToString();
+		fprintf (stderr, "==============\n");
+		
+
+		
+//		delete sEnvs;
+		/*UWAGA! tego ponizej chyba normalnie nie robimy my, nie? kto niszczy schemat danych ?*/
+		//if (DataScheme::dScheme() != NULL) delete (DataScheme::dScheme());
+
 		return 0;	
 	}
 		

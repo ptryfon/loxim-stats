@@ -45,7 +45,11 @@ namespace QParser {
 		DataObjectDef *owner;		/* o ile to nie ob. bazowy. wtedy null. */
 		
 	public:
-		virtual ~DataObjectDef(){};
+		DataObjectDef() {subObjects = NULL; target = NULL; owner = NULL; nextBase = NULL; nextSub = NULL; nextHash = NULL;}
+		virtual ~DataObjectDef(){
+			if (nextBase != NULL) delete nextBase;
+			if (subObjects != NULL) delete subObjects;
+			if (nextSub != NULL) delete nextSub;}
 		virtual DataObjectDef * getSubObjects(){return subObjects;};
 		virtual void setSubObjects(DataObjectDef * sub){subObjects = sub;}
 		virtual void setNextHash(DataObjectDef *p){this->nextHash = p;}
@@ -71,8 +75,8 @@ namespace QParser {
 		virtual void  setTarget(DataObjectDef * t){target = t;}
 		/* TODO: get/set na wiekszosci tego powyzej... + konstruktory sensowne. */
 		virtual void addSubObject(DataObjectDef * nobj){
-		    nobj->nextSub = this->nextSub;
-		    this->nextSub = nobj;
+		    nobj->nextSub = this->subObjects;
+		    this->subObjects = nobj;
 		}
 		virtual void setType(string t){type = t;}
 		virtual string getType(){return type;}
@@ -90,7 +94,8 @@ namespace QParser {
 
 	
 	public:
-		DataScheme(){};
+		DataScheme(){this->baseObjects = NULL;};
+		virtual ~DataScheme() {delete baseObjects;};
 		int readData();	
 	    	
 		static DataScheme *dScheme();
@@ -102,6 +107,7 @@ namespace QParser {
 		}
 		
 		virtual DataObjectDef *getBaseObjects() {return baseObjects;}
+		
 		virtual void addObj(DataObjectDef *obj){
 		    int newPlace = this->hashFun(obj->getMyId());
 		    this->hashIn(newPlace, obj);

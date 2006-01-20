@@ -147,30 +147,33 @@ namespace QParser {
 		/*vector<Signature*> set;
 		  vector<Signature*>::iterator it;  */
 		Signature *myList;
+		Signature *myLast;
 		int collType;	
 	public:
-		SigColl (int _collType) : collType(_collType) {this->myList = NULL;}
-		SigColl () {this->collType = Signature::SBAG; this->myList = NULL;} /*bag is the default collection*/
-		SigColl (int _collType, Signature *_myList) : myList(_myList), collType(_collType) {};
+		SigColl (int _collType) : collType(_collType) {myList = NULL; myLast = NULL; next = NULL;}
+		SigColl () {this->collType = Signature::SBAG; myList = NULL; myLast = NULL; next = NULL;} /*bag is the default collection*/
+		SigColl (int _collType, Signature *_myList) : myList(_myList), collType(_collType) {myLast = _myList; next = NULL;};
 		virtual bool isColl () {return true;}
+		virtual bool isEmpty() {return (myList == NULL);}
 		virtual int type() {return this->collType;}
-		virtual void setElts (Signature *newList) {this->myList = newList;}
+		virtual Signature *getMyLast () {return myLast;}		
+		virtual void setMyLast (Signature *nl) {if (nl->getNext() == NULL) myLast = nl; else setMyLast (nl->getNext());}
+		virtual void setElts (Signature *newList) {this->myList = newList; this->myLast = newList;}
 		virtual Signature *getMyList () {return this->myList;}
-		virtual void addToMyList(Signature *newElt) {newElt->setNext (this->myList);
-													this->setElts(newElt);}
-		virtual BinderWrap *statNested() {
-//			Signature *elt = myList;
-			cout << "statNested::sigColl -- can't handle structs and collections for statNested yet." << endl;	
-			return NULL;			
-		}						
+		
+		virtual void addToMyList(Signature *newElt) {
+			if (this->isEmpty()) {this->setElts(newElt);}
+			else {this->myLast->setNext(newElt); newElt->setNext (NULL); myLast = newElt;}
+		}
+		virtual BinderWrap *statNested();
 		virtual Signature *clone();							
 		virtual void putToString() {
-			cout << "{";
+			fprintf (stderr, "{");
 			if (this->myList != NULL) myList->putToString();
-			cout << "} ";
+			fprintf (stderr,  "} ");
 			if (next != NULL) next->putToString();
 		}
-		virtual ~SigColl() {delete this->myList;}	
+		virtual ~SigColl() {if (myList != NULL) delete this->myList; if (next != NULL) delete next;}	
 	};
 	
 	class SigAtomType : public Signature 
@@ -178,8 +181,8 @@ namespace QParser {
 	protected:
 		string atomType;	/*"int" lub "double" lub "string" lub "bool"*/		
 	public:
-		SigAtomType() {}
-		SigAtomType(string _atomType) : atomType(_atomType) {}
+		SigAtomType() {next = NULL;}
+		SigAtomType(string _atomType) : atomType(_atomType) {next = NULL;}
 		virtual bool isAtom () {return true;}
 		virtual int getNumb (string atype) {
 			if (atype == "int") return Signature::SINT;
@@ -195,7 +198,7 @@ namespace QParser {
 			cout << "(" << this->atomType << ") ";
 			if (next != NULL) next->putToString();
 		}		
-		virtual ~SigAtomType() {}
+		virtual ~SigAtomType() {if (next != NULL) delete next;}
 	};
 		
 	class SigRef : public Signature 
@@ -203,8 +206,8 @@ namespace QParser {
 	protected:
 		int refNo;
 	public:
-		SigRef() {}
-		SigRef(int _refNo) : refNo(_refNo) {}
+		SigRef() {next = NULL;}
+		SigRef(int _refNo) : refNo(_refNo) {next = NULL;}
 		virtual int getRefNo () {return this->refNo;}
 		virtual void setRefNo (int newNo) {this->refNo = newNo;}
 		virtual int type() {return Signature::SREF;}
@@ -214,7 +217,7 @@ namespace QParser {
 			cout << "ref(" << refNo << ") ";
 			if (next != NULL) next->putToString();
 		}
-		virtual ~SigRef() {}
+		virtual ~SigRef() {fprintf (stderr, "killing ref\n");if (next != NULL) delete next;fprintf (stderr, "killed 1 ref\n");}
 		
 	};
 	class StatBinder : public Signature
@@ -223,8 +226,8 @@ namespace QParser {
 		string name;
 		Signature *value;
 	public:
-		StatBinder(string _name, Signature *_value) : name(_name), value(_value) {};
-		StatBinder(string _name) : name(_name) {};
+		StatBinder(string _name, Signature *_value) : name(_name), value(_value) {next = NULL;};
+		StatBinder(string _name) : name(_name) {next = NULL;};
 		virtual string getName() {return this->name;};
 		virtual Signature *getValue() {return this->value;};
 		virtual void setName(string newName) {this->name = newName;};
@@ -240,7 +243,9 @@ namespace QParser {
 			cout << ") ";
 			if (next != NULL) next->putToString();
 		}
-		virtual ~StatBinder() {if (this->value != NULL) delete this->value;};
+		virtual ~StatBinder() {if (value != NULL) {fprintf (stderr, "value to kil\n");delete value; }
+							if (next != NULL){fprintf (stderr, "next binder to kil\n"); delete next;}
+							fprintf (stderr, "killed a binder\n");};
 	};
 	
 	class BinderWrap : public ElemContent	/* abstract superclass... */
@@ -269,6 +274,7 @@ namespace QParser {
 		BinderList *next;
 	public:
 		BinderList(StatBinder *_binder) {this->setBinder(_binder); this->next = NULL;}
+		BinderList() {binder = NULL; next = NULL;}
 		virtual void setNext(BinderList *newNext) {this->next = newNext;}
 		virtual void setSectNumb (int newNr) {
 			this->sectNumb = newNr; 
@@ -293,6 +299,7 @@ namespace QParser {
 				binder->putToString(); cout << "] ";}
 			if (this->next != NULL) this->next->putToString();
 		}
+		virtual ~BinderList() {if (next != NULL) {fprintf (stderr, "next bdList to kil\n");delete next;} if (binder != NULL){fprintf (stderr, "binder to kil\n"); delete binder;} fprintf (stderr, "kiled 1 bList\n");}
 	};
 
 	class ListQStackElem : public QStackElem 
@@ -318,7 +325,7 @@ namespace QParser {
 		virtual QStackElem *pop () { /* we know there is at least 1 elt to pop.. */
 			ListQStackElem *sectPoint = this->getNext();
 			this->next = NULL;
-			delete(this);	/* TODO: czy tak mo¿na ... ??? */
+//			delete(this);	/* TODO: czy tak mo¿na ... ??? */
 			return sectPoint;
 		}
 		virtual QStackElem *top () {
@@ -340,7 +347,7 @@ namespace QParser {
 		//int myNumber;	/*numer danej sekcji */
 		BinderWrap *content;
 	public:
-		StatEnvSection() {this->next = NULL;};
+		StatEnvSection() {this->next = NULL; content = NULL;};
 		StatEnvSection (BinderWrap *cnt) {this->content = cnt; this->next = NULL;
 											this->content->setSectNumb(myNumber);}
 		virtual void addBinder (BinderWrap *bw) { this->content = (this->content->addOne(bw));}
@@ -364,7 +371,12 @@ namespace QParser {
 			cout << endl;
 			if (this->next != NULL) this->next->putToString();
 		}
-		virtual ~StatEnvSection () { delete (this->content); delete (this->next);};
+		virtual ~StatEnvSection () { 
+			fprintf (stderr, "killing elts..\n");
+			if (content != NULL) {fprintf (stderr, "content to kil\n");delete (this->content);} 
+			fprintf (stderr, "will ask for next section\n");
+			if (next != NULL) {fprintf (stderr, "next section to kil\n");delete (this->next);}
+			fprintf (stderr, "killed a section\n");};
 	};
 	
 	class StatEnvStack : public QStack 
@@ -387,7 +399,7 @@ namespace QParser {
 			return NULL;
 		}
 		virtual int pushBinders (BinderWrap *bw) {/* a collection of binders, not packed in a section yet... */
-			if (bw == NULL) return -1;
+			if (bw == NULL) {fprintf (stderr, "null binders not pushed on envs\n"); return -1;};
 			ListQStackElem *newSect = new StatEnvSection (bw);
 			if (this->isEmpty()) this->setElts (newSect);
 			else this->setElts (elts->push (newSect));
@@ -406,7 +418,8 @@ namespace QParser {
 			return 0;
 		};	
 		
-		virtual ~StatEnvStack() { delete this->elts; };
+		virtual ~StatEnvStack() { 
+		if (elts != NULL) {fprintf (stderr, "elts to kil\n"); delete this->elts;} fprintf (stderr, "killed elts\n");};
 	};
 
 	
@@ -421,7 +434,7 @@ namespace QParser {
 		StatQResElt(Signature *cont) : content(cont) {this->next = NULL;};
 		
 		virtual Signature *getContent() {return this->content;}
-		virtual ~StatQResElt() {delete content; delete this->next;}
+		virtual ~StatQResElt() {if (content != NULL) delete content; if (next != NULL) delete this->next;}
 	};
 	
 	class StatQResStack : public QStack
@@ -431,14 +444,18 @@ namespace QParser {
 		int currSize;     --> currSize from super class. 
 */		
 	public:
+		StatQResStack() {this->setElts(NULL); this->setSize(0);}
 		virtual int pushSig (Signature *newSig) {
 			if (newSig == NULL) return -1;
 			return this->push(new StatQResElt (newSig));
 		} 
-		
+
+		
 		virtual Signature *topSig() {
-			return ((StatQResElt *)elts)->getContent();
+			return ((Signature *)((StatQResElt *)elts)->getContent())->clone();
 		}		
+		virtual ~StatQResStack() {if (elts != NULL) delete elts;}
+
 //		virtual Signature *topSig () {
 //			return ((StatQResElt *)elts)->getContent();
 //		}
@@ -480,7 +497,7 @@ namespace QParser {
 	    virtual void setQres(StatQResStack *nq);
 	    virtual void setEnvs(StatEnvStack *ne);
 	    virtual int simpleTest();
-	    virtual int stEvalTest(TreeNode *tn);
+	    virtual int stEvalTest(TreeNode *&tn);
 	    virtual ~Optimiser();
 	    
 	

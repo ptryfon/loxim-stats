@@ -20,3 +20,5 @@ class Optymalizator{
 
 }
 #endif
+
+

@@ -40,6 +40,7 @@ namespace QParser {
 	/*should call an error. Subclasses that have at least 1 arg override this method.*/
 	    return -1;}
 	virtual int staticEval (StatQResStack *&qres, StatEnvStack *&envs) {return 0;}	
+	virtual int optimizeTree () {fprintf (stderr, "type: %d.", type());	return 0;}
 	/* should overridden in subclasses...*/
 	/* AND should have an argument for the data scheme ... ??? !!! */
     };
@@ -210,6 +211,7 @@ namespace QParser {
 	}    	
 
 	virtual int staticEval(StatQResStack *&qres, StatEnvStack *&envs);
+	virtual int optimizeTree() {return arg->optimizeTree();}
 	virtual ~NameAsNode() { if (arg != NULL) delete arg; }
     };  
 
@@ -261,6 +263,7 @@ namespace QParser {
 	    else {/*an error from errorConsole is called;*/ return -1;}
 	}    	
 	virtual int staticEval (StatQResStack *&qres, StatEnvStack *&envs);		
+	virtual int optimizeTree() {return arg->optimizeTree();}
 	virtual ~UnOpNode() { if (arg != NULL) delete arg; }
     };  
 
@@ -320,6 +323,7 @@ namespace QParser {
 	    return "~~~";
 	}
 	virtual int staticEval (StatQResStack *&qres, StatEnvStack *&envs);	
+	virtual int optimizeTree();
 	virtual ~AlgOpNode() { if (larg != NULL) delete larg;
                          if (rarg != NULL) delete rarg; }
     };  
@@ -381,6 +385,8 @@ namespace QParser {
 	    if (op == 9) return "forAll";	    
 	    return "~~~";	}
 	virtual int staticEval (StatQResStack *&qres, StatEnvStack *&envs);	
+	virtual int optimizeTree();	
+//	virtual TreeNode *getHighestIndependant(); nieaktualne... ?
 	virtual ~NonAlgOpNode() { if (larg != NULL) delete larg;
                             if (rarg != NULL) delete rarg; }
     };  

@@ -62,3 +62,4 @@ namespace QParser{
 	} else return NULL;
     }
 }
+
