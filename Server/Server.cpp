@@ -69,6 +69,7 @@ int  Server::Serialize(QueryResult *qr, char **buffer, char **bufStart)
 	QueryIntResult *intRes;
 	QueryBoolResult *boolRes;
 	QueryDoubleResult *doubleRes;
+	QueryBinderResult *bindRes;
 	
 	Result::ResultType resType;
 
@@ -154,29 +155,7 @@ int  Server::Serialize(QueryResult *qr, char **buffer, char **bufStart)
 				    printf("[Server.Serialize]--> buffer written \n");
 				}
 			}
-			
 				
-				//switch (resTypeIns)
-				//{
-					//	case Result::STRING:
-							//printf("[Server.Serialize]--> Getting string \n");
-							//stringRes=(QueryStringResult *)collItem->clone();
-							//strVal=stringRes->getValue();
-							//valSize=stringRes->size();
-							//printf("[Server.Serialize]--> Adding string header \n");
-							//bufferP[0]=(char)resType;
-							//*bufferP=*bufferP+1;
-							//printf("[Server.Serialize]--> String header complete \n");
-							//strVal.copy(bufferP, valSize);
-			//				bufferP=bufferP + valSize;
-						//	break;
-					//	default:
-							//printf("[Server.Serialize]--> Getting something else(!) \n");
-					//		return -1;
-					//		break;
-					
-				//}
-			//}
 			break;
 		case Result::REFERENCE:
 			printf("[Server.Serialize]--> Getting reference \n");
@@ -247,6 +226,20 @@ int  Server::Serialize(QueryResult *qr, char **buffer, char **bufStart)
 			bufPointer[0]=(char)resType;
 			boolRes = (QueryBoolResult *)qr;
 			bufPointer[1]=(char)(boolRes->getValue());
+			break;
+		case Result::BINDER:
+			printf("[Server.Serialize]--> BINDER type, sending name(string) and reference\n");
+			bufPointer[0]=(char)resType;
+			bufPointer++;
+			bindRes=(QueryBinderResult *) qr;
+			strVal=bindRes->getName();
+			refRes = (QueryReferenceResult *)(bindRes->getItem());
+			intVal=(refRes->getValue())->toInteger();
+			strcpy(bufPointer, strVal.c_str());
+			bufPointer=bufPointer+(strVal.length());
+			printf("Reference integer value: intVal=%d \n", intVal);
+			memcpy((void *)bufPointer, (const void *)&intVal, sizeof(intVal));
+			bufPointer=bufPointer+sizeof(intVal);
 			break;
 		default:
 			printf("[Server.Serialize]--> object type not handled yet(!) \n");
