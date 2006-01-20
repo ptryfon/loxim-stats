@@ -426,6 +426,8 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 							fprintf(stderr, "[QE] Adding element %d to result as unique\n", i);
 							}
 						}
+					fprintf(stderr, "[QE] Done!\n");
+					return 0;	
 					}//case QSEQUENCE
 				case QueryResult::QBAG: //The argument is a QueryBagResult
 					{
@@ -453,6 +455,8 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 							fprintf(stderr, "[QE] Adding element %d to result as unique\n", i);
 							}
 						}
+					fprintf(stderr, "[QE] Done!\n");
+					return 0;
 					}//case QBAG
 				case QueryResult::QSTRUCT: //The argument is a QueryStructResult
 					{
@@ -480,10 +484,14 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 							fprintf(stderr, "[QE] Adding element %d to result as unique\n", i);
 							}
 						}
+					fprintf(stderr, "[QE] Done!\n");	
+					return 0;
 					}//case QSTRUCT
 				default: //the argument is a single value
 					{
 					*result = (nextResult->clone());
+					fprintf(stderr, "[QE] Done!\n");
+					return 0;
 					}
 				}//switch
 				}//case DISTINCT
