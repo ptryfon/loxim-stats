@@ -6,32 +6,33 @@
 #include "DataRead.h"
 #include "Stack.h"
 //#include "ClassNames.h"
-#include "QueryExecutor/QueryResult.h"
-#include "QueryExecutor/QueryExecutor.h"
-#include "Store/Store.h"
-#include "Store/DBStoreManager.h"
-#include "Store/DBObjectPointer.h"
-#include "TransactionManager/Transaction.h"
+//#include "QueryExecutor/QueryResult.h"
+//#include "QueryExecutor/QueryExecutor.h"
+//#include "Store/Store.h"
+//#include "Store/DBStoreManager.h"
+//#include "Store/DBObjectPointer.h"
+//#include "TransactionManager/Transaction.h"
 
 using namespace std;
-using namespace QExecutor;
-using namespace Store;
+//using namespace QExecutor;
+//using namespace Store;
 
 namespace QParser {
 
 
 		BinderWrap *DataScheme::statNested (int objId) {
 			DataObjectDef *candidate = this->getObjById(objId);
-			DataObjectDef *pom;
+			DataObjectDef *pom = NULL;
 //			list<StatBinder *> bindersCol;
-			BinderList *bindersCol;
+			BinderList *bindersCol = NULL;
 			if (candidate == NULL)	
 				return bindersCol; //<pusta kolekcja chyba ... >;
 			/*dalej zakladamy ze znalezlismy taki objekt w metabazie... */
 			
-			
+			fprintf(stderr, "i found object nr %d.\n", candidate->getMyId());
 			if (candidate->getKind() == "atomic") return bindersCol;	//<pusta kolekcja>;
 			if (candidate->getKind() == "link") {
+				fprintf(stderr, "object is a link !\n");
 				pom = candidate->getTarget(); /*now pom points to the target object. */
 				StatBinder * sb = new StatBinder (pom->getName(), new SigRef (pom->getMyId()));				
 				//bindersCol.push_back(sb);
@@ -39,8 +40,10 @@ namespace QParser {
 				return bindersCol;	//<kolekcja 1-eltowa zawierajaca sb>;				
 			};
 			/*dalej zakladamy ze kind == "complex" -- objekt zlozony. */
+			fprintf(stderr, "the object is a complex one ! \n");
 			pom = candidate->getSubObjects();
 				// <kolekcja statBinderow> *binders = new <pusta kolekcja>;	
+			fprintf (stderr, "one sub - nr: %d.\n", pom->getMyId());
 			while (pom != NULL) {
 				StatBinder * sb = new StatBinder (pom->getName(), new SigRef (pom->getMyId()));
 				//binders->addBinder(sb);
@@ -73,7 +76,7 @@ int DataScheme::readData(){
     // ????????????         co zrobic zebym mogl tu wywolac executora i stora?        ??????????
     cout << "-------------------readData START--------------------------------------" << endl;
     // QueryExecutor * ecec = new QueryExecutor();		// ??????????????????????????
-    vector<ObjectPointer *> * roots;
+//    vector<ObjectPointer *> * roots;
 /*		nie wiem dlaczego ale to nie dziala
     StoreManager * sm = new DBStoreManager();
     sm->getRoots(0, "dupa", roots);
@@ -82,13 +85,13 @@ int DataScheme::readData(){
     cout << "odebral " << roots->size() << " obiektow"<< endl;
 */
     
-    Transaction * tr;     
-    if (TransactionManager::getHandle()->createTransaction(tr))
-	cout << "nie udalo sie zrobic tranzakcji" << endl;
+//    Transaction * tr;     
+//    if (TransactionManager::getHandle()->createTransaction(tr))
+//	cout << "nie udalo sie zrobic tranzakcji" << endl;
     
     
-    tr->getRoots("dupa", roots);	
-    cout << "odebral " << roots->size() << " obiektow"<< endl;
+//    tr->getRoots("dupa", roots);	
+//    cout << "odebral " << roots->size() << " obiektow"<< endl;
     
     /* teraz to obrabiam w 2 podejciach, najpierw tworze obiekty, wstawiam do
 	this->baseObjects i this->refTable
@@ -103,9 +106,9 @@ int DataScheme::readData(){
     //tr->getRoots(roots);	// nie wiem dlaczego ale tto tez nie dziala
     //cout << "odebral " << roots->size() << " obiektow"<< endl;
     
-    for (int i = 0; i < roots->size(); i++){
+//    for (int i = 0; i < roots->size(); i++){
 	
-    }
+//    }
     
     // -----------------------------------------------------------------------
     // recznie tworze przykladowy schemat
@@ -182,17 +185,25 @@ cout << "-------------------readData END--------------------------------------" 
 };
 
 
-}
-	DataScheme* DataScheme::datScheme = 0;
+
+	DataScheme* DataScheme::datScheme = NULL;
 	
 	DataScheme* DataScheme::dScheme() {
 		if (datScheme == NULL) {
 			datScheme = new DataScheme();
 			datScheme->readData();
-		}
+		}		
+		DataObjectDef *pom = datScheme->getBaseObjects();
+		//cout << "i read my Data:" << pom->getMyId() <<  endl;
+		fprintf(stderr, "DataScheme has these base objects: ");
+		while (pom != NULL) {			
+			fprintf(stderr, "[%d]", pom->getMyId());			
+			pom = pom->getNextBase();
+		} cout << endl;
 		return datScheme;
 	};
 
+}
 
 
 

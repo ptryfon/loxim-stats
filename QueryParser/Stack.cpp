@@ -44,6 +44,7 @@ namespace QParser {
 		return ns;
 		}
 	BinderWrap* SigRef::statNested() {
+		fprintf (stderr, "doing statNested on DATA SCHEME ! \n");
 		return DataScheme::dScheme()->statNested(refNo);
 		}		
 	BinderWrap* StatBinder::statNested() { return new BinderList((StatBinder *) this);};

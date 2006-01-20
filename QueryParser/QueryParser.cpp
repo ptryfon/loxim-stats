@@ -52,11 +52,10 @@ namespace QParser {
 //		*ec << "PARSER::parseIt end\n";
 
 			QParser::Optimiser *opt = new QParser::Optimiser();
-//	int res = opt->simpleTest();
-//	int reslt;
-//	if ((reslt = opt->stEvalTest(qTree)) != 0)
-//	 fprintf (stderr, "static evaluation did not work out...\n");
-//	cout << "static evaluatioin OK, result: "<< reslt << endl;
+	int reslt;
+	if ((reslt = opt->stEvalTest(qTree)) != 0)
+	 fprintf (stderr, "static evaluation did not work out...\n");
+	cout << "static evaluatioin OK, result: "<< reslt << endl;
 
 
 		cout << "koniec parseIt\n";

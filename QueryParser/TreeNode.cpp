@@ -222,6 +222,7 @@ namespace QParser
 		/*TODO: this below is temporary, as it does not handle eg. struct{struct{a,b}, c}...*/
 		int sToPop = 0;
 		Signature *toPush = lSig->clone();
+		fprintf (stderr, "just before push/statNested loop\n");
 		if (toPush->isColl()) {
 			Signature *pt = ((SigColl *) toPush)->getMyList();
 			while (pt != NULL) { if (envs->pushBinders(pt->statNested()) == 0) sToPop++; pt = pt->getNext();}
