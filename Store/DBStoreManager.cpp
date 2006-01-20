@@ -277,7 +277,7 @@ namespace Store
 	{
 		return 0;
 	};
-}
+
 
 //	int DBStoreManager::deleteObject(TransactionID* tid, ObjectPointer* object)
 //	{
@@ -332,6 +332,8 @@ namespace Store
 //		// nagrobek 
 //		p->object_offset[i] = -1;		
 //
+//		// poinformowac mape o usunieciu obiektu
+//
 //		// uaktualnienie info na stronie
 //		p->object_count--;
 //		p->free_space = p->free_space + object_size;
@@ -342,3 +344,4 @@ namespace Store
 //		
 //		return 0;
 //	};
+}
