@@ -31,13 +31,26 @@ namespace QParser
 
 
 	int NameNode::staticEval (StatQResStack *&qres, StatEnvStack *&envs) {
+		fprintf (stderr, "staticEval(Name) - start\n");
+		
 		BinderWrap *bw = envs->bindName(this->name);
+		cout << name << endl;
+		if (bw == NULL) { fprintf (stderr, "name could NOT be bound ! will exit..\n"); return -1;}
+		fprintf (stderr, "name bound on envs, ");
 		this->setBindSect(bw->getSectNumb());
+		fprintf (stderr, "section nr set %d, ", bw->getSectNumb());
 		this->setStackSize(envs->getSize());
-		qres->pushSig (bw->getBinder()->getValue());
+		fprintf (stderr, "stack size set, ");
+		if (bw->getBinder()->getName() == "EMP") fprintf(stderr, "ok");
+		else fprintf (stderr, "not EMP, ");
+		fprintf(stderr, "ok:%d, ", ((SigRef *) (bw->getBinder()->getValue()))->getRefNo());
+		
+		qres->pushSig (bw->getBinder()->getValue()->clone());
+		fprintf (stderr, "result pushed on qres\n");
 		return 0;
 	}
 	int ValueNode::staticEval (StatQResStack *&qres, StatEnvStack *&envs) {
+		fprintf(stderr, "staticEval:value - starting... ");
 		switch (this->type()) {
 	    	case TreeNode::TNINT: {
 		    	qres->pushSig (new SigAtomType ("int"));
@@ -54,14 +67,19 @@ namespace QParser
 	}
 	int NameAsNode::staticEval (StatQResStack *&qres, StatEnvStack *&envs) {
 		/*zrob staticEval dla this->arg. potem sprawdz top na qres, zrob pop, zrob z tego bindera, wsadz spowrotem.*/
+		fprintf(stderr, "staticEval(nameas) starting.. \n");
 		if (this->arg->staticEval(qres, envs) == -1 ) return -1;
+		fprintf(stderr, "staticEval(nas) - done with arg\n");
 		Signature *topSig = qres->topSig();
 		qres->pop();
 		if (((Signature *)topSig)->type() == Signature::SBINDER) {/* We simply change the name in the binder..?*/
 			((StatBinder *) topSig)->setName(this->name);
+			fprintf(stderr, "about to push modified binder on qres\n");
 			qres->pushSig (topSig);
 		}
-		else qres->pushSig (new StatBinder (this->name, topSig));
+		
+		else {fprintf(stderr, "about to push sth on qres\n");
+		qres->pushSig (new StatBinder (this->name, topSig));}
 		return 0;
 	}
 	
@@ -120,6 +138,7 @@ namespace QParser
 //	TODO: { comma, insert}
 //  DONE:  {eq, neq, lt, gt, le, ge, boolAnd, boolOr, plus, minus, 
 //			times, divide, bagUnion, bagIntersect, bagMinus }; 	
+		fprintf(stderr, "staticEval(algOp) - starting\n");
 		if (this->larg->staticEval(qres, envs) == -1) return -1;
 		Signature *lSig = qres->topSig();
 		cout << "static_eval::AlgOP:: -- finished with LEFT arg" << endl;
@@ -148,8 +167,16 @@ namespace QParser
 		if (op == AlgOpNode::comma) {
 			/*TODO: must construct a struct here, or if lSig is a struct - then
 					add rSig to it... */	
-			cout << "static_eval::AlgOp -- can't handle comma yet ... " << endl;
-			return -1; //change to return 0 when this case is implemented. 
+			lSig->putToString(); cout << "/^\\"; rSig->putToString(); cout << endl;
+			if (lSig->type() == Signature::SSTRUCT) {
+				((SigColl *) lSig)->addToMyList (rSig);
+				qres->pushSig (lSig);
+			} else {
+				SigColl *s = new SigColl(Signature::SSTRUCT);
+				s->setElts(lSig); s->addToMyList(rSig);
+				qres->pushSig(s);
+			}
+			return 0; //change to return 0 when this case is implemented. 
 		}
 		if (op == AlgOpNode::insert) {
 			cout << "static_eval::AlgOp -- can't handle insert ... " << endl;
@@ -160,36 +187,45 @@ namespace QParser
 	
 	int NonAlgOpNode::staticEval (StatQResStack *&qres, StatEnvStack *&envs) {
 /*TODO: !!! first do dot, join and where, the rest will follow ... */
+		fprintf (stderr, "staticEval(nonalg) - start\n");
 		if (this->larg->staticEval(qres, envs) == -1) return -1;
 		Signature *lSig = qres->topSig();
-		cout << "static_eval::NON ALG OP -- finished with LEFT arg" << endl;
-
-		envs->pushBinders(lSig->statNested());
-	
-		this->setOpenSect(envs->getSize());
+		fprintf (stderr, "static_eval::NON ALG OP -- finished with LEFT arg\n");
+		//fprintf(stderr, "refno: %d.\n", ((SigRef *) lSig)->getRefNo());
+		this->setFirstOpenSect(1 + envs->getSize());
+		/*TODO: this below is temporary, as it does not handle eg. struct{struct{a,b}, c}...*/
+		if (lSig->isColl()) {
+			Signature *pt = ((SigColl *) lSig)->getMyList();
+			while (pt != NULL) { envs->pushBinders(pt->statNested()); pt = pt->getNext();}
+		} else 	envs->pushBinders(lSig->statNested());
+		fprintf(stderr, "pushed static nested result on envs\n");
+		this->setLastOpenSect(envs->getSize());
 		if (this->rarg->staticEval(qres, envs) == -1) return -1;
 		Signature *rSig = qres->topSig();
-		cout << "static_eval::NON ALG OP -- finished with RIGHT arg"  << endl;
 		
+		fprintf (stderr, "static_eval::NON ALG OP -- finished with RIGHT arg\n");
 		envs->pop();	
 		qres->pop();	/*pop rSig*/
 		qres->pop();	/*pop lSig*/
+		fprintf (stderr, "static_eval(nonalg): popped 2 off qres, 1 off envs\n");
 		switch (op) {
 			case NonAlgOpNode::dot :{/*we just take the part to the right of the dot*/
 				qres->pushSig(rSig);
-				}
+				fprintf (stderr, "dot: pushed rSig on qres\n");
+				break;}
 			case NonAlgOpNode::where: {/*TODO: do we assume the <where> condition is fulfilled ?? */
 				if (rSig->type() != Signature::SBOOL) {cout <<"no bool after 'where' !" << endl; return -1;}
 				qres->pushSig(lSig);				
-				} 
+				break;} 
 			case NonAlgOpNode::join: {/* eg. EMP.SAL --> push (struct(EMP, SAL)) ... */
 				SigColl *s = new SigColl(Signature::SSTRUCT);
-				s->setElts(rSig); s->addToMyList(lSig);
+				s->setElts(lSig); s->addToMyList(rSig);
 				qres->pushSig(s);
-				}
+				break;}
 			default: {cout << "statEval::nonalg operator not handled yet.." << endl; return -1;}
 		
 		}
+		fprintf(stderr, "will return 0\n");
 		return 0;
 	}
 

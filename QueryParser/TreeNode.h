@@ -110,7 +110,7 @@ namespace QParser {
 	virtual int type() { return TreeNode::TNNAME; }
 	virtual string getName() { return name; }
 	virtual int putToString() {
-	    cout << "("<< this->getName() <<")";    
+	    cout << "("<< this->getName() <<"["<<bindSect << "," << stackSize << "])";    
 	    return 0;
 	}
 	virtual int staticEval (StatQResStack *&qres, StatEnvStack *&envs);	
@@ -208,7 +208,8 @@ namespace QParser {
 	    if (arg == oldSon) {this->setArg((QueryNode *) newSon); return 0;}
 	    else {/*an error from errorConsole is called;*/ return -1;}
 	}    	
-	virtual int staticEval(StatQResStack *&qres, StatEnvStack *&envs);
+
+	virtual int staticEval(StatQResStack *&qres, StatEnvStack *&envs);
 	virtual ~NameAsNode() { if (arg != NULL) delete arg; }
     };  
 
@@ -333,8 +334,8 @@ namespace QParser {
 	QueryNode* larg;
 	QueryNode* rarg;
 	nonAlgOp op;
-	int openSect;   /* sekcja na stosie ENV, otwarta przez ten operator */	
-
+	int firstOpenSect;   /* nrs of the ENV section which was open by this operator */	
+	int lastOpenSect;	
     public:
 	NonAlgOpNode(QueryNode* _larg, QueryNode* _rarg, nonAlgOp _op)
                 : larg(_larg), rarg(_rarg), op(_op)
@@ -348,8 +349,10 @@ namespace QParser {
 	virtual void setRArg(QueryNode* _rarg) {rarg = _rarg;rarg->setParent(this);}
 	virtual void setOp(nonAlgOp _op) { op = _op; }
 	
-	virtual int getOpenSect() {return this->openSect;}
-	virtual void setOpenSect(int newSectNr) {this->openSect = newSectNr;}
+	virtual int getFirstOpenSect() {return this->firstOpenSect;}
+	virtual void setFirstOpenSect(int newSectNr) {this->firstOpenSect = newSectNr;}
+	virtual int getLastOpenSect() {return this->lastOpenSect;}
+	virtual void setLastOpenSect(int newNr) {this->lastOpenSect = newNr;}
 	
 //	virtual Signature *combine(Signature *lRes, Signature *rRes);
 	
@@ -358,6 +361,7 @@ namespace QParser {
 	    if (larg!= NULL) larg->putToString();
 	    else cout << "___";
 	    cout << this->opStr();
+		cout << "<" << firstOpenSect << ","<< lastOpenSect << ">";
 	    if (rarg!= NULL) rarg->putToString();
 	    else cout << "___";	    
 	    cout << ")";    
