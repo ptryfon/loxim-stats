@@ -27,6 +27,7 @@ namespace Store
 		DBStoreManager* store;
 		PagePointer* header;
 
+	public:
 		unsigned int getLastAssigned();
 		void setLastAssigned(unsigned int);
 
@@ -35,6 +36,7 @@ namespace Store
 		~Roots();
 
 		int initializeFile(File* file);
+		int initializePage(unsigned int pageID, char* page);
 
 		int addRoot(unsigned int logicalID);
 		int removeRoot(unsigned int logicalID);

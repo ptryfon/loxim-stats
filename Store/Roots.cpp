@@ -1,3 +1,4 @@
+#include <iostream>
 #include "Roots.h"
 
 namespace Store
@@ -43,12 +44,17 @@ namespace Store
 		return 0;
 	};
 
+	int Roots::initializePage(unsigned int pageID, char* page)
+	{
+		return 0;
+	}
+
 	unsigned int Roots::getLastAssigned()
 	{
 		unsigned int last;
 
 		if (!header)
-			store->getBuffer()->getPagePointer(STORE_FILE_ROOTS, 0);
+			header = store->getBuffer()->getPagePointer(STORE_FILE_ROOTS, 0);
 
 		header->aquire();
 		last = ((roots_header*) header->getPage())->last_assigned;
@@ -60,7 +66,7 @@ namespace Store
 	void Roots::setLastAssigned(unsigned int last)
 	{
 		if (!header)
-			store->getBuffer()->getPagePointer(STORE_FILE_ROOTS, 0);
+			header = store->getBuffer()->getPagePointer(STORE_FILE_ROOTS, 0);
 
 		header->aquire();
 		((roots_header*) header->getPage())->last_assigned = last;
@@ -73,10 +79,15 @@ namespace Store
 			return 1;
 
 		unsigned int last = getLastAssigned();
-		PagePointer* page = store->getBuffer()->getPagePointer(STORE_FILE_ROOTS, STORE_ROOTS_ROOTPAGE(last + 1));
+		unsigned int index = STORE_ROOTS_ROOTPAGE(last + 1);
+		unsigned int offset = STORE_ROOTS_ROOTOFFSET(last + 1);
+
+		cout << "Adding root " << logicalID << " at page " << index << " at offset " << offset << "\n";
+
+		PagePointer* page = store->getBuffer()->getPagePointer(STORE_FILE_ROOTS, index);
 
 		page->aquire();
-		*((unsigned int*) (page->getPage() + STORE_ROOTS_ROOTOFFSET(last + 1))) = logicalID;
+		*((unsigned int*) (page->getPage() + offset)) = logicalID;
 		page->release();
 
 		setLastAssigned(last + 1);

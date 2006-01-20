@@ -44,6 +44,11 @@ namespace Store
 		return 0;
 	};
 
+	int Map::initializePage(unsigned int pageID, char* page)
+	{
+		return 0;
+	}
+
 	unsigned int Map::getLastAssigned()
 	{
 		unsigned int last;

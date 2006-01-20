@@ -34,6 +34,7 @@ namespace Store
 		~Map();
 
 		int initializeFile(File* file);
+		int initializePage(unsigned int pageID, char* page);
 
 		unsigned int createLogicalID();
 		int getPhysicalID(unsigned int logicalID, physical_id** physicalID);
