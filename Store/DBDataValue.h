@@ -27,6 +27,7 @@ namespace Store
 		DBDataValue(int value);
 		DBDataValue(double value);
 		DBDataValue(string value);
+		
 		DBDataValue(unsigned char* fullByteArray);
 		~DBDataValue();
 

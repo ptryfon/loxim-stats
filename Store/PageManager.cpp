@@ -147,7 +147,7 @@ namespace Store
 		
 		p->header.file_id = STORE_FILE_DEFAULT;
 		p->header.page_id = page_num;
-		p->header.page_type = STORE_PAGE_DATAHEADER;
+		p->header.page_type = STORE_PAGE_DATAHEADER; // nie istotne
 		p->header.timestamp = 0;
 		p->object_count = 0;
 		p->free_space = STORE_PAGESIZE - sizeof(page_header);

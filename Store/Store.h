@@ -153,8 +153,8 @@ namespace Store
 		virtual DataValue* createIntValue(int value) = 0;
 		virtual DataValue* createDoubleValue(double value) = 0;
 		virtual DataValue* createStringValue(string value) = 0;
-		virtual DataValue* createVectorValue(vector<ObjectPointer*>* value) = 0;
 		virtual DataValue* createPointerValue(ObjectPointer* value) = 0;
+		virtual DataValue* createVectorValue(vector<LogicalID*>* value) = 0;
 
 		// Deserialization
 		virtual int logicalIDFromByteArray(unsigned char* buffer, int length, LogicalID** lid) = 0;

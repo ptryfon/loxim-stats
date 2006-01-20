@@ -29,6 +29,9 @@ namespace Store
 		type = Store::String;
 		value.string_value = new string(val);
 	};
+
+
+
 	
 	DBDataValue::DBDataValue(unsigned char *fbArray)
 	{

@@ -254,17 +254,15 @@ namespace Store
 		return new DBDataValue(value);
 	};
 
-	DataValue* DBStoreManager::createPointerValue(ObjectPointer* value)
+	DataValue* DBStoreManager::createPointerValue(LogicalID* value)
 	{
 //		return new DBDataValue(value);
-		cout << "Store::Manager::createPointer not implemented" << endl;
 		return 0;
 	};
 
-	DataValue* DBStoreManager::createVectorValue(vector<ObjectPointer*>* value)
+	DataValue* DBStoreManager::createVectorValue(vector<LogicalID*>* value)
 	{
 //		return new DBDataValue(value);
-		cout << "Store::Manager::createVector not implemented" << endl;
 		return 0;
 	};
 

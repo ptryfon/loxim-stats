@@ -61,8 +61,8 @@ namespace Store
 		virtual DataValue* createIntValue(int value);
 		virtual DataValue* createDoubleValue(double value);
 		virtual DataValue* createStringValue(string value);
-		virtual DataValue* createVectorValue(vector<ObjectPointer*>* value);
-		virtual DataValue* createPointerValue(ObjectPointer* value);
+		virtual DataValue* createPointerValue(LogicalID* value);
+		virtual DataValue* createVectorValue(vector<LogicalID*>* value);
 
 		virtual int logicalIDFromByteArray(unsigned char* buffer, int length, LogicalID** lid);
 		virtual int dataValueFromByteArray(unsigned char* buffer, int length, DataValue** value);
