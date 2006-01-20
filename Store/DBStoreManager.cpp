@@ -135,7 +135,7 @@ namespace Store
 		return 0;
 	};
 
-//	int DBStoreManager::createObjectEx(TransactionID* tid, string name, DataValue* value, ObjectPointer*& object)
+//	int DBStoreManager::createObject(TransactionID* tid, string name, DataValue* value, ObjectPointer*& object)
 //	{
 //		cout << "Store::Manager::createObject start..\n";
 //		
