@@ -1,14 +1,3 @@
-Omowic czy data value::vector przechowuje objectPointery czy samo LogicalID
-- jesli przechowuje objectPointery to jest problem przy odczycie
-  z bazy: dataValue nie ma mozliwosci wywolywania StoreManagera
-  nawet gdyby mialo, to takie odczyty nie bylyby synchronizowane (pomijalyby
-  pozakladane locki)
-- jesli przechowuje LogicalID to ci co uzywaja tego data value musza
-  manualnie wywolywac getObject dla kazdego LogicalID z vektora
-  i przechowywac na wlasnej strukturze rezultaty
-Nalezy rozwazyc inne za i przeciw obu propozycji
-Proponowane rozwiazanie na dzien dzisiejszy: drugie
-
 
 DBDataVaule : Serializable
 md  // 1. deserialize() - <- dodac obsluge wektora

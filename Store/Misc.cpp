@@ -82,6 +82,7 @@ namespace Store
 		return ((*this) += s.serialize());
 	}
 
+// dlaczego ten template nie dziala O_O?
 	template <typename T> Serialized& Serialized::operator+=(const T& s)
 	{
 		return ((*this) += s.serialize());
