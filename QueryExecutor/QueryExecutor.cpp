@@ -274,6 +274,11 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					{
 					return errcode;
 					}
+				if (bagResult->type() != QueryResult::QBAG)
+					{
+					fprintf(stderr, "[QE] Error - wrong unMinus argument\n");
+					return -1;
+					}
 				QueryResult *tmpResult, *negResult;
 				if ((errcode = ((QueryBagResult *) bagResult)->getResult(tmpResult) != 0))
 					{
@@ -316,6 +321,11 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 				if ((errcode = executeQuery (tree->getArg(), &bagResult)) != 0)
 					{
 					return errcode;
+					}
+				if (bagResult->type() != QueryResult::QBAG)
+					{
+					fprintf(stderr, "[QE] Error - wrong boolNot argument\n");
+					return -1;
 					}
 				if ((errcode = ((QueryBagResult *) bagResult)->getResult(tmpResult) != 0))
 					{
@@ -555,6 +565,11 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					{
 					return errcode;
 					}
+				if (bagResult->type() != QueryResult::QBAG)
+					{
+					fprintf(stderr, "[QE] Error - wrong left argument\n");
+					return -1;
+					}
 				if ((errcode = ((QueryBagResult *) bagResult)->getResult(lResult) != 0))
 					{
 					return errcode;
@@ -562,6 +577,11 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 				if ((errcode = executeQuery (((AlgOpNode *) tree)->getRArg(), &bagResult)) != 0)
 					{
 					return errcode;
+					}
+				if (bagResult->type() != QueryResult::QBAG)
+					{
+					fprintf(stderr, "[QE] Error - wrong right argument\n");
+					return -1;
 					}
 				if ((errcode = ((QueryBagResult *) bagResult)->getResult(rResult) != 0))
 					{
@@ -640,6 +660,11 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					{
 					return errcode;
 					}
+				if (bagResult->type() != QueryResult::QBAG)
+					{
+					fprintf(stderr, "[QE] Error - wrong left argument\n");
+					return -1;
+					}
 				if ((errcode = ((QueryBagResult *) bagResult)->getResult(lResult) != 0))
 					{
 					return errcode;
@@ -647,6 +672,11 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 				if ((errcode = executeQuery (((AlgOpNode *) tree)->getRArg(), &bagResult)) != 0)
 					{
 					return errcode;
+					}
+				if (bagResult->type() != QueryResult::QBAG)
+					{
+					fprintf(stderr, "[QE] Error - wrong right argument\n");
+					return -1;
 					}
 				if ((errcode = ((QueryBagResult *) bagResult)->getResult(rResult) != 0))
 					{
@@ -725,6 +755,11 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					{
 					return errcode;
 					}
+				if (bagResult->type() != QueryResult::QBAG)
+					{
+					fprintf(stderr, "[QE] Error - wrong left argument\n");
+					return -1;
+					}
 				if ((errcode = ((QueryBagResult *) bagResult)->getResult(lResult) != 0))
 					{
 					return errcode;
@@ -732,6 +767,11 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 				if ((errcode = executeQuery (((AlgOpNode *) tree)->getRArg(), &bagResult)) != 0)
 					{
 					return errcode;
+					}
+				if (bagResult->type() != QueryResult::QBAG)
+					{
+					fprintf(stderr, "[QE] Error - wrong right argument\n");
+					return -1;
 					}
 				if ((errcode = ((QueryBagResult *) bagResult)->getResult(rResult) != 0))
 					{
@@ -810,6 +850,11 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					{
 					return errcode;
 					}
+				if (bagResult->type() != QueryResult::QBAG)
+					{
+					fprintf(stderr, "[QE] Error - wrong left argument\n");
+					return -1;
+					}
 				if ((errcode = ((QueryBagResult *) bagResult)->getResult(lResult) != 0))
 					{
 					return errcode;
@@ -817,6 +862,11 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 				if ((errcode = executeQuery (((AlgOpNode *) tree)->getRArg(), &bagResult)) != 0)
 					{
 					return errcode;
+					}
+				if (bagResult->type() != QueryResult::QBAG)
+					{
+					fprintf(stderr, "[QE] Error - wrong right argument\n");
+					return -1;
 					}
 				if ((errcode = ((QueryBagResult *) bagResult)->getResult(rResult) != 0))
 					{
