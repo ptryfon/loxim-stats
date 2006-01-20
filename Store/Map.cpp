@@ -1,4 +1,3 @@
-#include <iostream>
 #include "Map.h"
 
 namespace Store

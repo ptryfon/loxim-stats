@@ -1,4 +1,3 @@
-#include <iostream>
 #include "Roots.h"
 
 namespace Store

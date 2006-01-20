@@ -1,6 +1,7 @@
 #include <iostream>
 #include "Store.h"
 #include "Roots.h"
+#include "Map.h"
 #include "DBStoreManager.h"
 #include "DBLogicalID.h"
 
@@ -15,6 +16,13 @@ int main(int argc, char* argv[])
 		store->init(0, 0);
 		store->start();
 
+		physical_id* pid;
+		Map* map = store->getMap();
+		unsigned int lid = map->createLogicalID();
+		cout << "createLogicalID() = " << lid << "\n";
+		cout << map->getPhysicalID(lid, &pid) << "\n";
+		cout << map->setPhysicalID(lid, pid) << "\n";
+/*
 		Roots* roots = store->getRoots();
 
 		cout << "addRoot(0x32) = " << roots->addRoot(0x32) << "\n";
@@ -32,6 +40,7 @@ int main(int argc, char* argv[])
 				cout << (int) *ri << "\n";
 			delete rv;
 		}
+*/
 
 		store->stop();
 	}
