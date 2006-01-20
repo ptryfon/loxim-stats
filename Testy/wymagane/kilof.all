@@ -4,7 +4,22 @@ create kilof(2);
 
 create kilof(10);
 
+create kilof(8.3);
+
+insert (create kilof(8.4)) into (create mlot); 
+
 kilof;
 
 deref(kilof);
+
+mlot;
+
+deref(mlot.kilof);
+
+mlot.deref(kilof);
+
+count(kilof);
+
+mlot.count(kilof);
+
 
