@@ -7,6 +7,7 @@
 #include <string.h>
 #include <memory.h>
 #include <errno.h>
+#include "../Errors/Errors.h"
 
 #include "../TCPProto/Tcp.h"
 #include "Connection.h"
