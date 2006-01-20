@@ -2,6 +2,10 @@
 #include "Errors/Errors.h"
 
 #include <iostream>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include <errno.h>
 #include <string.h>
 
@@ -43,9 +47,9 @@ namespace Store
 		if (started)
 			return 0;
 
-		fmap = open("/tmp/sbmap", O_RDWR | O_DIRECT);
-		froots = open("/tmp/sbroots", O_RDWR | O_DIRECT);
-		fdefault = open("/tmp/sbdefault", O_RDWR | O_DIRECT);
+		fmap = open("/tmp/sbmap", O_RDWR);
+		froots = open("/tmp/sbroots", O_RDWR);
+		fdefault = open("/tmp/sbdefault", O_RDWR);
 
 		if (fmap == -1 || froots == -1 || fdefault == -1)
 		{
@@ -53,9 +57,9 @@ namespace Store
 			if (froots > 0) close(froots);
 			if (fdefault > 0) close(fdefault);
 
-			fmap = open("/tmp/sbmap", O_CREAT | O_RDWR | O_DIRECT, S_IRUSR | S_IWUSR);
-			froots = open("/tmp/sbroots", O_CREAT | O_RDWR | O_DIRECT, S_IRUSR | S_IWUSR);
-			fdefault = open("/tmp/sbdefault", O_CREAT | O_RDWR | O_DIRECT, S_IRUSR | S_IWUSR);
+			fmap = open("/tmp/sbmap", O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
+			froots = open("/tmp/sbroots", O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
+			fdefault = open("/tmp/sbdefault", O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
 
 			store->getMap()->initializeFile(this);
 			store->getRoots()->initializeFile(this);
@@ -101,20 +105,12 @@ namespace Store
 	{
 		int file = 0;
 		int err = 0;
-		int rlseek, rwrite;
-		char buff[STORE_PAGESIZE];
 
 		if ((err = getStream(fileID, &file)) != 0)
 			return err;
 
-		memcpy(&buff, buffer, STORE_PAGESIZE);
-
-		//cout << "Store:: Pisze do deskryptora " << file << " na pozycje " << offset << "." << endl;
-		rlseek = lseek(file, offset, SEEK_SET);
-		//cout << "   Wynik lseek: " << rlseek << "." << endl;
-		rwrite = write(file, &buff, length);
-		/*cout << "   Wynik write: " << rwrite << "." << endl;
-		cout << "       errno: " << errno << " [" << sys_errlist[errno] << "]" << endl;*/
+		lseek(file, offset, SEEK_SET);
+		write(file, buffer, length);
 
 		return 0;
 	};
