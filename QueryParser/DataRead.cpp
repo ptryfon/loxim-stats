@@ -186,7 +186,7 @@ cout << "-------------------readData END--------------------------------------" 
 
 
 
-	DataScheme* DataScheme::datScheme = NULL;
+	DataScheme* DataScheme::datScheme;
 	
 	DataScheme* DataScheme::dScheme() {
 		if (datScheme == NULL) {
@@ -197,7 +197,7 @@ cout << "-------------------readData END--------------------------------------" 
 		//cout << "i read my Data:" << pom->getMyId() <<  endl;
 		fprintf(stderr, "DataScheme has these base objects: ");
 		while (pom != NULL) {			
-			fprintf(stderr, "[%d]", pom->getMyId());			
+			fprintf(stderr, "[%d]", pom->getMyId());	
 			pom = pom->getNextBase();
 		} cout << endl;
 		return datScheme;

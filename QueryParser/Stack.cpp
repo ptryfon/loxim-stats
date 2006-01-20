@@ -107,12 +107,12 @@ namespace QParser {
 		cout << "no, mam envs gotowy ze startowymi obiektami w pierwszej sekcji .. " << endl;
 		int res = tn->staticEval (sQres, sEnvs);
 		tn->putToString();
-		cout <<endl << "qres: " << endl;
-		sQres->topSig()->putToString(); cout << endl;
+//		cout <<endl << "qres: " << endl;
+//		sQres->topSig()->putToString(); cout << endl;
 //		delete sQres;
-		fprintf (stderr, "==============\n");
-		sEnvs->putToString();
-		fprintf (stderr, "==============\n");
+//		fprintf (stderr, "==============\n");
+//		sEnvs->putToString();
+//		fprintf (stderr, "==============\n");
 		
 
 		

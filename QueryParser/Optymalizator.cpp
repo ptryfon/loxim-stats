@@ -4,7 +4,7 @@
 namespace QParser{
 
 
-    TreeNode * Optymalizator::getIndependent(TreeNode *niealg){
+    TreeNode * Optymalizator::getIndependant(TreeNode *niealg){
 	int min = ((NonAlgOpNode* ) niealg)->getFirstOpenSect();
 	int max = ((NonAlgOpNode* ) niealg)->getLastOpenSect();
 	int depth = 0;	

@@ -39,7 +39,7 @@ namespace QParser {
 	virtual int swapSon (TreeNode *oldSon, TreeNode *newSon) {
 	/*should call an error. Subclasses that have at least 1 arg override this method.*/
 	    return -1;}
-	virtual int staticEval (StatQResStack *&qres, StatEnvStack *&envs) {return 0;}	
+	virtual int staticEval (StatQResStack *&qres, StatEnvStack *&envs) {return -1;}	
 	virtual int optimizeTree () {fprintf (stderr, "type: %d.", type());	return 0;}
 	/* should overridden in subclasses...*/
 	/* AND should have an argument for the data scheme ... ??? !!! */
@@ -100,7 +100,7 @@ namespace QParser {
 	int bindSect;
 	int stackSize;
     public:
-	NameNode(string _name) : name(_name) {}
+	NameNode(string _name) : name(_name) {bindSect = 0; stackSize = 0;}
 
 	virtual int getBindSect() { return this->bindSect;}
 	virtual int getStackSize() {return this->stackSize;}
@@ -343,7 +343,8 @@ namespace QParser {
     public:
 	NonAlgOpNode(QueryNode* _larg, QueryNode* _rarg, nonAlgOp _op)
                 : larg(_larg), rarg(_rarg), op(_op)
-                { larg->setParent(this); rarg->setParent(this); } 
+                { larg->setParent(this); rarg->setParent(this); firstOpenSect = 0; 
+lastOpenSect = 0; } 
 	virtual TreeNode* clone();
 	virtual int type() { return TreeNode::TNNONALGOP; }
 	QueryNode* getLArg() { return larg; }

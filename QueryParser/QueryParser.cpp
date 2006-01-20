@@ -43,23 +43,32 @@ namespace QParser {
 		delete lexer;
 		qTree = d;
 		
-
-		printf( "po parsowaniu treeNode: %d. \n", qTree);
+		printf( "po parsowaniu treeNode: %d. \n", qTree);
 		cout << "Odczyt z drzewka, ktore przekazuje:" << endl;
 		cout << "--------------------------------------" << endl;
 		qTree->putToString();
 		cout << "\n--------------------------------------" << endl;
 //		*ec << "PARSER::parseIt end\n";
 
-//			QParser::Optimiser *opt = new QParser::Optimiser();
-//	int reslt;
-//	if ((reslt = opt->stEvalTest(d)) != 0)
-//	 fprintf (stderr, "static evaluation did not work out...\n");
-//	cout << "static evaluatioin OK, result: "<< reslt << endl;
+			QParser::Optimiser *opt = new QParser::Optimiser();
+	int reslt;
+/*	cout << "now the following tree will be evaluated statically.." << endl;
+	TreeNode *nt = d->clone();
+	nt->putToString();
+	if ((reslt = opt->stEvalTest(d)) != 0)
+	    fprintf (stderr, "static evaluation did not work out...\n");
+	else {
+	    cout << "static evaluatioin OK, result: "<< reslt << endl;
+*/	    /*tu bedzie optymalizacja... */    
+/*	    	fprintf (stderr, "now I will try to optimise the tree..\n");
+		int optres = nt->optimizeTree();
+		fprintf (stderr, "__%d__", optres);
 
+		fprintf (stderr, "end of optimisation.\n");
+	}
 
+*/
 		cout << "koniec parseIt\n";
-
 		return 0;
 	}  
 

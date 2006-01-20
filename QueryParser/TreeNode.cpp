@@ -1,6 +1,7 @@
 #include "TreeNode.h"
 #include "Stack.h"
 #include "DataRead.h"
+#include "Optymalizator.h"
 
 namespace QParser 
 {
@@ -44,14 +45,18 @@ namespace QParser
 	
 	int NonAlgOpNode::optimizeTree() {
 		int pRes = 0;
-		TreeNode *hInd = NULL; //this->getHighestIndependant();
-			fprintf (stderr, "NONalg: %d.", op);
+		Optymalizator *optimiser = new Optymalizator();
+		
+		TreeNode *hInd = optimiser->getIndependant(this);
+		//LL; //this->getHighestIndependant();
+			fprintf (stderr, "NONalg: %d.\n", op);
 		if (hInd == NULL) {
+			fprintf(stderr, "hInd is NULL\n");
 			if ((pRes = larg->optimizeTree()) < 0) return pRes;
 			else return rarg->optimizeTree();
-		}
+		} else hInd->putToString();
 		TreeNode *prt = this->parent;
-		prt-> swapSon (this, this->factorSubQuery(hInd, "newName"));
+		prt-> swapSon (this, this->factorSubQuery(hInd, "newName"));/*TODO: to */
 		return -2;	/*found ind. subquery and factored it. restart the whole procedure.. */
 	}
 
@@ -160,7 +165,7 @@ namespace QParser
 	}
 	
 	int AlgOpNode::staticEval (StatQResStack *&qres, StatEnvStack *&envs) {
-//	TODO: { comma, insert}
+//	TODO: {insert}
 //  DONE:  {eq, neq, lt, gt, le, ge, boolAnd, boolOr, plus, minus, 
 //			times, divide, bagUnion, bagIntersect, bagMinus }; 	
 		fprintf(stderr, "staticEval(algOp) - starting\n");
@@ -190,8 +195,6 @@ namespace QParser
 			return 0;	
 		}
 		if (op == AlgOpNode::comma) {
-			/*TODO: must construct a struct here, or if lSig is a struct - then
-					add rSig to it... */	
 			lSig->putToString(); cout << "/^\\"; rSig->putToString(); cout << endl;
 			if (lSig->type() == Signature::SSTRUCT) {
 				((SigColl *) lSig)->addToMyList (rSig);

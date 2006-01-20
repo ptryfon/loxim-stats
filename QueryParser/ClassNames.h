@@ -13,6 +13,7 @@ namespace QParser{
 	class TreeNode;
 	class StatEnvStack;
 	class StatQResStack;
+	class Optymalizator;
 }
 #endif
 
