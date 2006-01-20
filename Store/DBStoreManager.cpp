@@ -186,7 +186,13 @@ namespace Store
 		//(roots)->push_back(new DBObjectPointer());
 		//(roots)->push_back(new DBObjectPointer());
 
-		roots = &(misc->roots);
+//		roots = &(misc->roots);
+
+		roots = new vector<ObjectPointer*>(0);
+
+		for(unsigned int i=0; i<misc->vect.size(); i++){
+			roots->push_back(misc->vect[i]);
+		}
 
 		cout << "Store::Manager::getRoots(ALL) done\n";
 		return 0;
