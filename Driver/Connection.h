@@ -62,15 +62,10 @@ class ConnectionProtocolException : public ConnectionException {
 
 
 class ConnectionDriverException : public ConnectionException {
-/* protected:
-   string msg;*/
  public:
 	ConnectionDriverException() {}
 	ConnectionDriverException(string msg) : 
 		ConnectionException(msg) {}
-	virtual void toStream(ostream& os) const 
-		{ os << msg; }
-	friend ostream& operator<<(ostream&, ConnectionDriverException&);
 };
 
 
