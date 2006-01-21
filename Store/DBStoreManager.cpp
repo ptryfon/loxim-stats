@@ -3,6 +3,8 @@
 #include "DBStoreManager.h"
 #include "DBDataValue.h"
 
+#define VIRTUAL
+
 namespace Store
 {
 	StoreManager* StoreManager::theStore = NULL;
@@ -88,6 +90,7 @@ namespace Store
 		return roots;
 	};
 
+#ifdef VIRTUAL
 	int DBStoreManager::getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object)
 	{
 		object = NULL;
@@ -103,30 +106,31 @@ namespace Store
 		cout << "Store::Manager::getObject done: " + object->toString() + "\n";
 		return 0;
 	};
+#else
+	int DBStoreManager::getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object)
+	{
+		cout << "Store::Manager::getObject started..\n";
+		
+		physical_id *p_id;
+		map->getPhysicalID(lid->toInteger(), &p_id);
+		PagePointer *pPtr = buffer->getPagePointer(p_id->file_id, p_id->page_id);
+		
+		pPtr->aquire();
+		
+		int rval = PageManager::deserialize(pPtr, p_id->offset, object);
+		
+		pPtr->release();
+		
+		if(rval) {
+			cout << "Store::Manager::getObject failed\n";
+			return -1;
+		}
+		cout << "Store::Manager::getObject done: " + object->toString();
+		return 0;	
+	};
+#endif
 
-//	int DBStoreManager::getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object)
-//	{
-//		cout << "Store::Manager::getObject started..\n";
-//		
-//		physical_id *p_id;
-//		map->getPhysicalID(lid->toInteger(), &p_id);
-//		PagePointer *pPtr = buffer->getPagePointer(p_id->file_id, p_id->page_id);
-//		
-//		pPtr->aquire();
-//		
-//		page_data = reinterpret_cast<page_data*>(pPtr->getPage());
-//		int rval = PageManager::deserialize(pPtr, p_id->offset, object);
-//		
-//		pPtr->release();
-//		
-//		if(rval) {
-//			cout << "Store::Manager::getObject failed\n";
-//			return -1;
-//		}
-//		cout << "Store::Manager::getObject done: " + object->toString();
-//		return 0;	
-//	};
-	
+#ifdef VIRTUAL
 	int DBStoreManager::createObject(TransactionID* tid, string name, DataValue* value, ObjectPointer*& object)
 	{
 		cout << "Store::Manager::createObject start..\n";
@@ -140,46 +144,119 @@ namespace Store
 		cout << "Store::Manager::createObject done: " + object->toString() + "\n";
 		return 0;
 	};
+#else
+	int DBStoreManager::createObject(TransactionID* tid, string name, DataValue* value, ObjectPointer*& object)
+	{
+		cout << "Store::Manager::createObject start..\n";
+		
+		if( (value->getType()!=Store::Integer) &&
+			(value->getType()!=Store::Double) &&
+			(value->getType()!=Store::String) )
+		{
+			cout << "Store::createObject: Illegal or not implemented value type\n";
+			return -1;
+		}
 
-//	int DBStoreManager::createObject(TransactionID* tid, string name, DataValue* value, ObjectPointer*& object)
-//	{
-//		cout << "Store::Manager::createObject start..\n";
-//		
-//		if( (value->getType()!=Store::Integer) &&
-//			(value->getType()!=Store::Double) &&
-//			(value->getType()!=Store::String) )
-//		{
-//			cout << "Store::createObject: Illegal or not implemented value type\n";
-//			return -1;
-//		}
-//
-//		//mapa sie wywala
-//		LogicalID* lid = new DBLogicalID(/*map->createLogicalID()*/misc->lastlid++);
-//		
-//		object = new DBObjectPointer(name, value, lid);
-//
-//		Serialized sObj = object->serialize();
-//
-//		int freepage = PageManager::getFreePage(); // strona z wystaraczajaca iloscia miejsca na nowy obiekt
-//
-//		PagePointer* pPtr = buffer->getPagePointer(STORE_FILE_DEFAULT, freepage);
-//
-//		pPtr->aquire();
-//
-//		PageManager::insertObject(pPtr, sObj);
-//
-//		PageManager::updateFreeMap(pPtr);
-//		
-//		pPtr->release();
-//		
-//		cout << "Store::Manager::createObject done: " + object->toString() + "\n";
-//		return 0;
-//	};
+		//mapa sie wywala
+		cout << "create LID.." << endl;
+		LogicalID* lid = new DBLogicalID(map->createLogicalID()/*misc->lastlid++*/);
+		cout << "create LID OK:)" << endl;
+		
+		object = new DBObjectPointer(name, value, lid);
 
+		Serialized sObj = object->serialize();
+
+		int freepage = pagemgr->getFreePage(); // strona z wystaraczajaca iloscia miejsca na nowy obiekt
+
+		PagePointer* pPtr = buffer->getPagePointer(STORE_FILE_DEFAULT, freepage);
+
+		pPtr->aquire();
+
+		PageManager::insertObject(pPtr, sObj);
+
+		pagemgr->updateFreeMap(pPtr);
+		
+		pPtr->release();
+		
+		cout << "Store::Manager::createObject done: " + object->toString() + "\n";
+		return 0;
+	};
+#endif
+
+#ifdef VIRTUAL
 	int DBStoreManager::deleteObject(TransactionID* tid, ObjectPointer* object)
 	{
 		return 0;
 	};
+#else
+	int DBStoreManager::deleteObject(TransactionID* tid, ObjectPointer* object)
+	{
+		cout << "Store::Manager::deleteObject start..\n";
+		
+		//zapisane do Log
+		unsigned *id;
+//		Log::write(tid, object->getLogicalID(), object->getValue(), NULL, &id);
+
+
+		physical_id *p_id;
+		map->getPhysicalID(object->getLogicalID()->toInteger(), &p_id);
+		PagePointer *pPtr = buffer->getPagePointer(p_id->file_id, p_id->page_id);
+		pPtr->aquire();
+		page_data *p = reinterpret_cast<page_data*>(pPtr->getPage());
+		p->header.timestamp = *id;		
+
+		int pos_table = p_id->offset;
+		int end_of_object;
+	
+		if ( pos_table == 0 )
+			end_of_object = STORE_PAGESIZE; // koniec strony
+		else	//poczatek poprz obiektu
+			end_of_object = p->object_offset[pos_table-1];
+		
+		// rozmiar usuwanego obiektu
+		int object_size = end_of_object - p->object_offset[pos_table];
+		
+		char* page = pPtr->getPage();
+		
+		// przesuniecie obiektow na stronie
+		int i;
+		for(i = pos_table+1; i <= p->object_count-1; i++)
+		{
+		    char pom[STORE_PAGESIZE];
+ 		    
+		    //rozmiar przesuwanego obiektu
+		    int size = p->object_offset[i-1] - p->object_offset[i];
+		    // poczatek przesuwanego obiektu
+		    int start = p->object_offset[i];
+		    
+		    memmove(pom, page + start  , size);
+		    memmove(page + start + object_size, pom, size);
+		    
+		};
+		
+		// uaktualnienie tablicy offsetow
+		// oraz dodanie do starego offsetu rozmiaru usuwanego obiektu
+		for(i = pos_table+1; i <= p->object_count-1; i++)
+		    p->object_offset[i] = p->object_offset[i] + object_size;    
+
+		// nagrobek 
+		p->object_offset[i] = -1;		
+
+		// poinformowanie mapy o usunieciu obiektu
+		memset(p_id, 0xFF, sizeof(p_id));
+		map->setPhysicalID(object->getLogicalID()->toInteger(), p_id);
+
+		// uaktualnienie info na stronie
+		p->object_count--;
+		p->free_space = p->free_space + object_size;
+		
+		pPtr->release();
+
+		cout << "Store::Manager::deleteObject done: " + object->toString() + "\n";
+		
+		return 0;
+	};
+#endif
 
 	int DBStoreManager::getRoots(TransactionID* tid, vector<ObjectPointer*>*& roots)
 	{
@@ -296,72 +373,4 @@ namespace Store
 		return new DBPhysicalID(*pid);
 	};
 	
-
-//	int DBStoreManager::deleteObject(TransactionID* tid, ObjectPointer* object)
-//	{
-//		cout << "Store::Manager::deleteObject start..\n";
-//		
-//		//zapisane do Log
-//		unsigned *id;
-//		Log::write(tid, object->getLogicalID(), object->getValue(), NULL, &id);
-//
-//
-//		physical_id *p_id;
-//		map->getPhysicalID(object->getLogicalID()->toInteger(), &p_id);
-//		PagePointer *pPtr = buffer->getPagePointer(p_id->file_id, p_id->page_id);
-//		pPtr->aquire();
-//		page_data *p = reinterpret_cast<page_data*>(pPtr->getPage());
-//		p->header->timestamp= id;		
-//
-//		int pos_table = p_id->offset;
-//		int end_of_object;
-//	
-//		if ( pos_table == 0 )
-//			end_of_object = STORE_PAGESIZE; // koniec strony
-//		else	//poczatek poprz obiektu
-//			end_of_object = p->object_offset[pos_table-1];
-//		
-//		// rozmiar usuwanego obiektu
-//		int object_size = end_of_object - p->object_offset[pos_table];
-//		
-//		char* page = pPtr->getPage();
-//		
-//		// przesuniecie obiektow na stronie
-//		int i;
-//		for(i = pos_table+1; i <= p->object_count-1; i++)
-//		{
-//		    char pom[STORE_PAGESIZE];
-// 		    
-//		    //rozmiar przesuwanego obiektu
-//		    int size = p->object_offset[i-1] - p->object_offset[i];
-//		    // poczatek przesuwanego obiektu
-//		    int start = p->object_offset[i];
-//		    
-//		    memmove(pom, page + start  , size);
-//		    memmove(page + start + object_size, pom, size);
-//		    
-//		};
-//		
-//		// uaktualnienie tablicy offsetow
-//		// oraz dodanie do starego offsetu rozmiaru usuwanego obiektu
-//		for(i = pos_table+1; i <= p->object_count-1; i++)
-//		    p->object_offset[i] = p->obcject_offset[i] + object_size;    
-//
-//		// nagrobek 
-//		p->object_offset[i] = -1;		
-//
-//		// poinformowanie mapy o usunieciu obiektu
-//		memset(p_id, 0xFF, sizeof(p_id));
-//		map->setPhysicalID(lid, p_id);
-//
-//		// uaktualnienie info na stronie
-//		p->object_count--;
-//		p->free_space = p->free_space + object_size;
-//		
-//		pPtr->release();
-//
-//		cout << "Store::Manager::deleteObject done: " + object->toString() + "\n";
-//		
-//		return 0;
-//	};
 }

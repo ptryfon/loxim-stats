@@ -29,6 +29,7 @@ namespace Store
 		static int deserialize(PagePointer *ptr, int objindex, ObjectPointer*& newobj);
 		static int initializeFile(File* file);
 		static int initializePage(unsigned int page_num, char* page);
+		int getFreePage();
 		int getFreePage(int space);
 		int updateFreeMap(PagePointer *ptr);
 	private:

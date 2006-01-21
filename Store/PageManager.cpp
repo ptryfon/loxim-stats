@@ -196,8 +196,13 @@ namespace Store
 		cout << "Store::PageManager::initializePage done" << endl;
 		return 0;
 	}
+
+	int PageManager::getFreePage()
+	{
+		return getFreePage(MAX_FREE_SPACE);
+	}
 	
-	int PageManager::getFreePage(int space=MAX_FREE_SPACE)
+	int PageManager::getFreePage(int space)
 	{
 		cout << "Store::PageManager::getFreePage begin.." << endl;
 		int pii = 0;
