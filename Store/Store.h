@@ -132,7 +132,8 @@ namespace Store
 		virtual Serialized serialize() const = 0;
 
 		// Operators
-		virtual bool operator==(ObjectPointer& dv) = 0;
+		virtual bool operator==(ObjectPointer& dv) {
+			return (this->getLogicalID() == dv.getLogicalID()); }
 		virtual ~ObjectPointer() {};
 	};
 

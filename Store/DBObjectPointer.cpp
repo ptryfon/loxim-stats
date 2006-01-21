@@ -95,6 +95,6 @@ namespace Store
 
 	bool DBObjectPointer::operator==(ObjectPointer& dv)
 	{
-		return false;
+		return (this->getLogicalID() == dv.getLogicalID());
 	};
 }

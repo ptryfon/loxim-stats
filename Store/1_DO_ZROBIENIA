@@ -2,7 +2,6 @@
 DBDataVaule : Serializable
 
 DBObjectPointer : Serializable
-md  // 2. operator==()
 
 DBStoreManager
 md  // 1. getObject() - dokonczyc
