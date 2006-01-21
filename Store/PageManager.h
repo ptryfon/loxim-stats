@@ -1,6 +1,8 @@
 #ifndef __STORE_PAGEMANAGER_H_
 #define __STORE_PAGEMANAGER_H_
 
+namespace Store{ class PageManager; }
+
 #include "Store.h"
 #include "Struct.h"
 #include "PagePointer.h"

@@ -28,6 +28,7 @@ namespace Store
 		Buffer* buffer;
 		Map* map;
 		Roots* roots;
+		PageManager* pagemgr;
 		unsigned timer;
 
 	public:

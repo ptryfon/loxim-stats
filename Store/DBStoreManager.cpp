@@ -15,19 +15,19 @@ namespace Store
 
 	DBStoreManager::~DBStoreManager()
 	{
-		if (buffer)
-		{
+		if(buffer) {
 			buffer->stop();
 			delete buffer;
-			buffer = 0;
+			buffer = NULL;
 		}
-
-		if (map)
-		{
+		if(map) {
 			delete map;
-			map = 0;
+			map = NULL;
 		}
-
+		if(pagemgr) {
+			delete pagemgr;
+			pagemgr = NULL;
+		}
 		StoreManager::theStore = NULL;
 	};
 
@@ -38,6 +38,7 @@ namespace Store
 		this->buffer = new Buffer(this);
 		this->map = new Map(this);
 		this->roots = new Roots(this);
+		this->pagemgr = new PageManager(this);
 
 		return 0;
 	};
