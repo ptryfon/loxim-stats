@@ -76,6 +76,7 @@ int  Server::Serialize(QueryResult *qr, char **buffer, char **bufStart)
 	int valSize;
 	int bagSize;
 	unsigned long bufBagLen;
+	unsigned int *inD, *outD;
 
 	unsigned int intVal;
 	double doubleVal;
@@ -149,11 +150,33 @@ int  Server::Serialize(QueryResult *qr, char **buffer, char **bufStart)
 				    bufPointer++;
 				    intRes = (QueryIntResult *)qr;
 				    intVal = intRes->getValue();
-				    printf("[Server.Serialize]--> .. followed by int value (%d) \n", intVal);
+				    printf("[Server.Serialize]--> Int value as passed to server:  (%d) \n", intVal);
 				    intVal=htonl(intVal);
 				    memcpy((void *)bufPointer, (const void *)&intVal, sizeof(intVal));
 				    printf("[Server.Serialize]--> buffer written \n");
 				}
+				
+				if (resType=Result::INT) {
+		    printf("[Server.Serialize]--> DOUBLE type \n");
+		    bufPointer[0]=(char)resType;
+		    bufPointer++;
+		    doubleRes = (QueryDoubleResult *)qr;
+		    doubleVal = doubleRes->getValue();
+		    inD = (unsigned int *)(&doubleVal);
+		    outD = (unsigned int *)(&doubleVal);
+		    
+		    printf("inD: |%d . %d| \n", inD[0], inD[1]);
+		    
+		    outD[0] = htonl(inD[0]);
+		    outD[1] = htonl(inD[1]);
+		    
+		    printf("[Server.Serialize]--> Splitting and byte order change complete \n");
+		    
+		    doubleVal=htonl(doubleVal);
+		    memcpy((void *)bufPointer, (const void *)&outD, 8);
+		    bufPointer = bufPointer + 8;		        
+		    
+		    }
 			}
 				
 			break;
@@ -204,13 +227,24 @@ int  Server::Serialize(QueryResult *qr, char **buffer, char **bufStart)
 		    printf("[Server.Serialize]--> buffer written \n");
 		    break; 
 		case Result::DOUBLE:
-			//printf("[Server.Serialize]--> DOUBLE type, NOT IMLEMENTEND YET!!! \n");
+		    printf("[Server.Serialize]--> DOUBLE type \n");
 		    bufPointer[0]=(char)resType;
 		    bufPointer++;
 		    doubleRes = (QueryDoubleResult *)qr;
 		    doubleVal = doubleRes->getValue();
+		    inD = (unsigned int *)(&doubleVal);
+		    outD = (unsigned int *)(&doubleVal);
+		    
+		    printf("inD: |%d . %d| \n", inD[0], inD[1]);
+		    
+		    outD[0] = htonl(inD[0]);
+		    outD[1] = htonl(inD[1]);
+		    
+		    printf("[Server.Serialize]--> Splitting and byte order change complete \n");
+		    
 		    doubleVal=htonl(doubleVal);
-		    memcpy((void *)bufPointer, (const void *)&doubleVal, sizeof(doubleVal));
+		    memcpy((void *)bufPointer, (const void *)&outD, 8);
+		    bufPointer = bufPointer + 8;		        
 		    
 		    break; 
 		case Result::BOOLTRUE:
@@ -274,11 +308,11 @@ int Server::Run()
 	
 	signal(SIGINT, sigHandler);
 
-	ErrorConsole con;
-	con.init(1);
-
 	SBQLConfig* config = new SBQLConfig("Server");
 	config->init();
+
+	ErrorConsole con;
+	con.init(1);
 	
 	LogManager* logManager = new LogManager();
 	logManager->init();
@@ -319,7 +353,7 @@ while (!signalReceived) {
 	sigprocmask(SIG_UNBLOCK, &block_cc, NULL);
 	
 	res = (Receive(&messgBuff, &size));
-	if (res < 0) {
+	if (res != 0) {
 	    printf("[Server.Run--> Receive returned error code %d\n", res);
 	    return ErrServer+EReceive;
 	}    
@@ -330,7 +364,7 @@ while (!signalReceived) {
 	printf("string do parsera: %s\n", messgBuff);
 	cout << (string) messgBuff << endl;
 	res = (qPa->parseIt((string) messgBuff, tNode));
-	if (res < 0) {
+	if (res != 0) {
 	    printf("[Server.Run--> Parser returned error code %d\n", res);
 	    return ErrServer+EParse;
 	}
@@ -338,7 +372,7 @@ while (!signalReceived) {
 	printf("tree node%d\n", (int) tNode); 
 	printf("[Server.Run]--> Request query result \n");
 	res = (qEx->executeQuery(tNode, &qResult)); 
-	if (res < 0) {
+	if (res != 0) {
 	    printf("[Server.Run--> Executor returned error code %d\n", res);
 	    return ErrServer+EExecute;
 	} 
@@ -349,7 +383,7 @@ while (!signalReceived) {
 	if (qResult == 0) {printf ("brak wyniku\n"); return 0;} //Piotrek
 	
 	res = (Serialize(qResult, (char **)&serializedMessg, sPoint)); 
-	if (res < 0) {
+	if (res != 0) {
 	    printf("[Server.Run--> Serialize returned error code %d\n", res);
 	    return ErrServer+ESerialize;
 	}
@@ -358,7 +392,7 @@ while (!signalReceived) {
 	printf("[Server.Run]--> Sending results to client \n");		
 	printf("[Server.Run]--> Sending.. type=(%d)\n", (int)serializedMessg[0]); 
 	res=(Send(&*serializedMessg, MAX_MESSG));
-	if (res < 0) {
+	if (res != 0) {
 	    printf("[Server.Run--> Send returned error code %d\n", res);
 	    return ErrServer+ESend;
 	}
