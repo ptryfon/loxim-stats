@@ -156,7 +156,7 @@ int  Server::Serialize(QueryResult *qr, char **buffer, char **bufStart)
 				    printf("[Server.Serialize]--> buffer written \n");
 				}
 				
-				if (resType=Result::INT) {
+				if (resType==Result::DOUBLE) {
 		    printf("[Server.Serialize]--> DOUBLE type \n");
 		    bufPointer[0]=(char)resType;
 		    bufPointer++;
@@ -302,24 +302,21 @@ int Server::Run()
 	//Signal Handling
 	sigemptyset(&block_cc);
 	sigaddset(&block_cc, SIGINT);
-	
-	//Create process signal mask
-	sigprocmask(SIG_BLOCK, &block_cc, NULL);
-	
 	signal(SIGINT, sigHandler);
+	
+	//Set process signal mask
+	printf("[Server.Run]--> Blocking SIGINT for now.. \n");
+	sigprocmask(SIG_BLOCK, &block_cc, NULL);
 
+	printf("[Server.Run]--> Initializing objects.. \n");
 	SBQLConfig* config = new SBQLConfig("Server");
 	config->init();
-
 	ErrorConsole con;
 	con.init(1);
-	
 	LogManager* logManager = new LogManager();
 	logManager->init();
-	
 	DBStoreManager* storeManager = new DBStoreManager();
 	storeManager->init(config, logManager);
-	
 	TransactionManager::getHandle()->init(storeManager, logManager);
 	
 	QueryParser *qPa = new QueryParser();
@@ -328,28 +325,24 @@ int Server::Run()
 	TreeNode *tNode;
 	QueryResult *qResult;
 	
-	printf("[Server.Run]--> Creating message buffers \n");
+	printf("[Server.Run]--> Creating message buffers.. \n");
 	char *messgBuff;
 	char *serializedMessg;
 	char **sPoint;
 	messgBuff=(char*) malloc(MAX_MESSG);
-	
 	serializedMessg=(char*) malloc(MAX_MESSG);
-	
-	sigprocmask(SIG_UNBLOCK, &block_cc, NULL);
 	
 	
 while (!signalReceived) {
 
-	printf("[Server.Run]--> Blocking signals \n");
+	printf("[Server.Run]--> Blocking SIGINT for now.. \n");
 	sigprocmask(SIG_BLOCK, &block_cc, NULL);
 	
 	printf("[Server.Run]--> Cleaning buffers \n");
 	memset(serializedMessg, '\0', MAX_MESSG); 
-//	*sPoint=serializedMessg;	//piotrek - nie uzywane a pod cygwinem naruszenie ochrony pamieci
 	
 	//Get string from client
-	printf("[Server.Run]--> Receiving query from client \n");
+	printf("[Server.Run]--> Unblocking sigint and receiving query from client \n");
 	sigprocmask(SIG_UNBLOCK, &block_cc, NULL);
 	
 	res = (Receive(&messgBuff, &size));
@@ -357,30 +350,30 @@ while (!signalReceived) {
 	    printf("[Server.Run--> Receive returned error code %d\n", res);
 	    return ErrServer+EReceive;
 	}    
-	
+
+	printf("[Server.Run]--> Blocking sigint again.. \n");
 	sigprocmask(SIG_BLOCK, &block_cc, NULL);	
 	
-	printf("[Server.Run]--> Request parse \n");
-	printf("string do parsera: %s\n", messgBuff);
-	cout << (string) messgBuff << endl;
+	printf("[Server.Run]--> Requesting PARSE: |%s| \n", messgBuff);
 	res = (qPa->parseIt((string) messgBuff, tNode));
 	if (res != 0) {
 	    printf("[Server.Run--> Parser returned error code %d\n", res);
 	    return ErrServer+EParse;
 	}
-	
-	printf("tree node%d\n", (int) tNode); 
-	printf("[Server.Run]--> Request query result \n");
+
+	printf("[Server.Run]--> Requesting EXECUTE on tree node: |%d| \n", (int) tNode);
 	res = (qEx->executeQuery(tNode, &qResult)); 
 	if (res != 0) {
 	    printf("[Server.Run--> Executor returned error code %d\n", res);
 	    return ErrServer+EExecute;
 	} 
 	
-	printf("[Server.Run]--> Serializing data \n");
-	printf ("[Server.Run]-->qResult=%d \n", (int)qResult);
+	printf("[Server.Run]--> Got qResult=|%d| of size: qResult->size()=|%d| :\n",  (int)qResult, qResult->size());
 	
-	if (qResult == 0) {printf ("brak wyniku\n"); return 0;} //Piotrek
+	if (qResult == 0) {//TODO ERROR
+	 return 0;} 
+	
+	printf("[Server.Run]--> *****SERIALIZE starts***** \n");
 	
 	res = (Serialize(qResult, (char **)&serializedMessg, sPoint)); 
 	if (res != 0) {
@@ -388,28 +381,26 @@ while (!signalReceived) {
 	    return ErrServer+ESerialize;
 	}
 	
-	//Send results to client
-	printf("[Server.Run]--> Sending results to client \n");		
-	printf("[Server.Run]--> Sending.. type=(%d)\n", (int)serializedMessg[0]); 
+	printf("[Server.Run]--> Sending results to client.. Result type=|%d|\n", (int)serializedMessg[0]); 
 	res=(Send(&*serializedMessg, MAX_MESSG));
 	if (res != 0) {
 	    printf("[Server.Run--> Send returned error code %d\n", res);
 	    return ErrServer+ESend;
 	}
 	
-	sigprocmask(SIG_UNBLOCK, &block_cc, NULL);
 }
 	printf("[Server.Run]--> Releasing message buffers \n");
 	free(messgBuff);
 	free(serializedMessg);
 	
-	printf("[Server.Run]--> destroying TransactionManager \n");
+	//TODO DESTROY ALL OBJECTS
+	printf("[Server.Run]--> Destroying Objects \n");
 	TransactionManager::getHandle()->~TransactionManager();
 	LockManager::getHandle()->~LockManager();
 	printf("[Server.Run]--> Disconnecting \n");
 	Disconnect();
 	
-	printf("[Server.Run]--> Ends \n"); 
+	printf("[Server.Run]--> <><><>End<><><> \n"); 
 	
 	return 0;	
 }		
