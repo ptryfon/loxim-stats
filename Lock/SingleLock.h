@@ -44,6 +44,8 @@ class SingleLock
 		/* how many transactions lock an object */
 	    	int inside;
 	    	
+		/* how many transactions waiting for an object - and if any - cannot delete the object */
+		int waiting;
 		/* 
 	     	 * Transaction id that created this single lock object 
 	     	 */

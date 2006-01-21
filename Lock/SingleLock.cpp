@@ -10,8 +10,9 @@ namespace LockMgr
     {
 	inside 	= 1;	
 	id 	= _id;
-	sem 	= _sem;	
+	sem 	= _sem;		
 	tid	= _tid;
+	waiting = 0;
 	
 	if ( _mode == Read ) sem->lock_read();
 	if ( _mode == Write) sem->lock_write();
@@ -41,6 +42,8 @@ namespace LockMgr
 		}
 		
 	int isCurrent = current->find(*_tid) != current->end();
+	waiting++;
+	
 	mutex->up();
 	
 	if (_mode == Read && !isCurrent) 
@@ -57,7 +60,8 @@ namespace LockMgr
 	}
 
 	mutex->down();
-		
+	
+		waiting--;	
 		current->insert(*_tid);
 		tid = _tid;
 		inside++;
@@ -75,6 +79,9 @@ namespace LockMgr
 
 		inside--;
 		current->erase(*tid);
+		
+		if (inside == 0 && waiting == 0)	
+		    delete_lock = 1;
 		
 	mutex->up();
 
