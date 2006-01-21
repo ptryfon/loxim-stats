@@ -162,18 +162,13 @@ namespace Store
 //
 //		int freepage = PageManager::getFreePage(); // strona z wystaraczajaca iloscia miejsca na nowy obiekt
 //
-//		PagePointer *pPtr = buffer->getPagePointer(STORE_FILE_DEFAULT, freegame);
+//		PagePointer* pPtr = buffer->getPagePointer(STORE_FILE_DEFAULT, freepage);
 //
 //		pPtr->aquire();
 //
-//		// BEGIN SETHEADERS
-//		// PageManager::writeHeader(pPtr); // sprawdzic czy stroa jest zainicjalizowana, jesli nie do ustawic reszte pol
-//		// END SETHEADERS
-//
-//		// COPY OBJECT to PAGE
 //		PageManager::insertObject(pPtr, sObj);
 //
-//		PageManager::addToFreeMap(pPtr);
+//		PageManager::updateFreeMap(pPtr);
 //		
 //		pPtr->release();
 //		

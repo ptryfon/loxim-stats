@@ -101,6 +101,7 @@ namespace Store
 */	
 	int PageManager::insertObject(PagePointer *pPtr, Serialized& obj)
 	{
+		cout << "Store::PageManager::insertObject begin.." << endl;
 		page_data *page = reinterpret_cast<page_data*>(pPtr->getPage());
 		
 		if(page->free_space < static_cast<int>(obj.size + sizeof(int))){
@@ -116,11 +117,13 @@ namespace Store
 			page->bytes[newoffset+i] = obj.bytes[i];
 		page->object_count++;
 
+		cout << "Store::PageManager::insertObject done" << endl;
 		return 0;
 	}
 	
 	int PageManager::deserialize(PagePointer *ptr, int objindex, ObjectPointer*& newobj)
 	{
+		cout << "Store::PageManager::deserializeObj begin.." << endl;
 		page_data *p = reinterpret_cast<page_data*>(ptr->getPage());
 		int osize = objindex > 0 ?
 			p->object_offset[objindex-1] - p->object_offset[objindex] :
@@ -148,11 +151,13 @@ namespace Store
 		
 		newobj = new DBObjectPointer(name, value, lid);
 		
+		cout << "Store::PageManager::deserializeObj done" << endl;
 		return 0;
 	}
 	
 	int PageManager::initializeFile(File* file)
 	{
+		cout << "Store::PageManager::initializeFile begin.." << endl;		
 		char* rawpage = new char[STORE_PAGESIZE];
 		page_data* p = reinterpret_cast<page_data*>(rawpage);
 		
@@ -165,29 +170,36 @@ namespace Store
 		file->writePage(STORE_FILE_DEFAULT, 0, rawpage);
 		
 		delete[] rawpage;
+		cout << "Store::PageManager::initializeFile done" << endl;
 		return 0;
 	}
 
 	int PageManager::initializePage(unsigned int page_num, char* page)
 	{
-	
-	// musi sprawdzac czy strona jest modulo header ;)
-	// i ustawiac odpowiedni typ strony
+		cout << "Store::PageManager::initializePage begin.." << endl;
+		bool isFreeMapPage = (page_num%(MAX_OBJECT_COUNT+1) == 0);
 	
 		page_data *p = reinterpret_cast<page_data*>(page);
 		
 		p->header.file_id = STORE_FILE_DEFAULT;
 		p->header.page_id = page_num;
-		p->header.page_type = STORE_PAGE_DATAPAGE;
 		p->header.timestamp = 0;
 		p->object_count = 0;
-		p->free_space = MAX_FREE_SPACE;
-		
+
+		if(isFreeMapPage) {
+			p->header.page_type = STORE_PAGE_DATAHEADER;
+			p->free_space = MAX_OBJECT_COUNT;
+		} else {
+			p->header.page_type = STORE_PAGE_DATAPAGE;
+			p->free_space = MAX_FREE_SPACE;
+		}
+		cout << "Store::PageManager::initializePage done" << endl;
 		return 0;
 	}
 	
 	int PageManager::getFreePage(int space=MAX_FREE_SPACE)
 	{
+		cout << "Store::PageManager::getFreePage begin.." << endl;
 		int pii = 0;
 		do	{
 			PagePointer* pPtr = buffer->getPagePointer(STORE_FILE_DEFAULT, pii);
@@ -200,22 +212,36 @@ namespace Store
 					return (pPtr->getPageID()+i+1);
 				}
 			}
-			if(p->object_count < MAX_OBJECT_COUNT) {
+			if(p->object_count < static_cast<int>(MAX_OBJECT_COUNT)) {
 				pPtr->release();
 				return (pPtr->getPageID()+p->object_count+1);
-			} else {
-				// jesli init strony bedzie dzialal ok to nie trzeba tu nic dodawac
 			}
 			
 			pPtr->release();
 			pii += MAX_OBJECT_COUNT+1;
 		} while(pii > 0);
 		
+		cout << "Store::PageManager::getFreePage done" << endl;
 		return 0;
 	}
 
-	int PageManager::addToFreeMap(PagePointer *pPtr)
+	int PageManager::updateFreeMap(PagePointer *pPtr)
 	{
+		cout << "Store::PageManager::updateFreeMap begin.." << endl;
+		page_data* p = reinterpret_cast<page_data*>(pPtr->getPage());
+
+		int pii = p->header.page_id - (p->header.page_id%MAX_OBJECT_COUNT);
+
+		PagePointer* pFree = buffer->getPagePointer(STORE_FILE_DEFAULT, pii);
+		pFree->aquire();
+		page_data* f = reinterpret_cast<page_data*>(pFree->getPage());
+
+		f->object_offset[(p->header.page_id%MAX_OBJECT_COUNT)-1] =
+			f->free_space;
+		
+		pFree->release();
+
+		cout << "Store::PageManager::updateFreeMap done" << endl;
 		return 0;
 	}
 	

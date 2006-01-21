@@ -30,7 +30,7 @@ namespace Store
 		static int initializeFile(File* file);
 		static int initializePage(unsigned int page_num, char* page);
 		int getFreePage(int space);
-		static int addToFreeMap(PagePointer *ptr);
+		int updateFreeMap(PagePointer *ptr);
 	private:
 		DBStoreManager* store;
 		Buffer* buffer;
