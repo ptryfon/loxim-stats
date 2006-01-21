@@ -35,7 +35,7 @@ namespace LockMgr
     {  
 		int errorNumber = 0;
 		mutex->down();
-	    	DBPhysicalID* phid = (DBPhysicalID*) lid->getPhysicalID();
+	    	DBPhysicalID* phid = lid->getPhysicalID();
 	    	DBPhysicalIdMap::iterator pos = map_of_locks->find(*phid);
 	    
 	    	if (pos == map_of_locks->end())

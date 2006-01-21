@@ -3,7 +3,7 @@
 
 namespace Store
 {
-	class PhysicalID;
+//	class PhysicalID;
 	class LogicalID;
 	class DataValue;
 	class ObjectPointer;
@@ -33,6 +33,7 @@ namespace Store
 #include "Config/SBQLConfig.h"
 #include "Log/Logs.h"
 #include "TransactionManager/Transaction.h"
+#include "DBPhysicalID.h"
 
 /////////////////////////// WORDAROUND ///////////////////////////
 //namespace Logs
@@ -56,8 +57,11 @@ using namespace TManager;
 namespace Store
 {
 	typedef struct Serialized Serialized;
-	
-	class PhysicalID
+
+// Using "PhysicalID" interface removed
+//	include DBPhysicalID.h instead
+
+/*	class PhysicalID
 	{
 	public:
 		// Class functions
@@ -68,12 +72,13 @@ namespace Store
 		// Operators
 		virtual ~PhysicalID() {};
 	};
+*/
 
 	class LogicalID
 	{
 	public:
 		// Class functions
-		virtual PhysicalID* getPhysicalID() = 0;
+		virtual DBPhysicalID* getPhysicalID() = 0;
 		virtual void toByteArray(unsigned char** lid, int* length) = 0;
 		virtual string toString() const = 0;
 		virtual unsigned int toInteger() const = 0;
@@ -134,6 +139,8 @@ namespace Store
 	class StoreManager
 	{
 	public:
+		static StoreManager* theStore;
+		
 		// Object
 		virtual int getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object) = 0;
 		virtual int createObject(TransactionID* tid, string name, DataValue* value, ObjectPointer*& object) = 0;
@@ -163,11 +170,14 @@ namespace Store
 		// Deserialization
 		virtual int logicalIDFromByteArray(unsigned char* buffer, int length, LogicalID** lid) = 0;
 		virtual int dataValueFromByteArray(unsigned char* buffer, int length, DataValue** value) = 0;
-
+		
+		// Misc
+		virtual DBPhysicalID* getPhysicalID(LogicalID* lid) = 0;
+		
 		// Operators
 		virtual ~StoreManager() {};
 	};
-	
+
 	typedef struct Serialized
 	{
 		Serialized();
@@ -202,6 +212,3 @@ namespace Store
 };
 
 #endif
-
-
-

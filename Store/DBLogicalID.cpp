@@ -4,14 +4,19 @@ using namespace std;
 
 namespace Store
 {
+	DBLogicalID::DBLogicalID()
+	{
+		value = 0;
+	};
+
 	DBLogicalID::DBLogicalID(unsigned int v)
 	{
 		value = v;
 	};
 	
-	PhysicalID* DBLogicalID::getPhysicalID()
+	DBPhysicalID* DBLogicalID::getPhysicalID()
 	{
-		return 0;
+		return StoreManager::theStore->getPhysicalID(this);
 	};
 
 	void DBLogicalID::toByteArray(unsigned char** lid, int* length)

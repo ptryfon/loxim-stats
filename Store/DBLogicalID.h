@@ -3,6 +3,7 @@
 
 #include "Store.h"
 #include <sstream>
+#include "DBStoreManager.h"
 
 using namespace std;
 
@@ -11,10 +12,10 @@ namespace Store
 	class DBLogicalID : public LogicalID
 	{
 	public:
-		DBLogicalID() {};
+		DBLogicalID();
 		DBLogicalID(unsigned int value);
 
-		virtual PhysicalID* getPhysicalID();
+		virtual DBPhysicalID* getPhysicalID();
 		virtual void toByteArray(unsigned char** lid, int* length);
 		virtual string toString() const;
 		virtual unsigned int toInteger() const;
@@ -23,6 +24,7 @@ namespace Store
 
 		virtual bool operator==(LogicalID& lid);
 		virtual DBLogicalID& operator=(const LogicalID& lid);
+
 	private:
 		unsigned int value;
 	};

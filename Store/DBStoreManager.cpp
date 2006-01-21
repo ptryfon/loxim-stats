@@ -5,9 +5,12 @@
 
 namespace Store
 {
+	StoreManager* StoreManager::theStore = NULL;
+
 	DBStoreManager::DBStoreManager()
 	{
 		misc = new Misc();
+		StoreManager::theStore = this;
 	};
 
 	DBStoreManager::~DBStoreManager()
@@ -24,6 +27,8 @@ namespace Store
 			delete map;
 			map = 0;
 		}
+
+		StoreManager::theStore = NULL;
 	};
 
 	int DBStoreManager::init(SBQLConfig* config, LogManager* log)
@@ -288,6 +293,13 @@ namespace Store
 		return 0;
 	};
 
+	DBPhysicalID* DBStoreManager::getPhysicalID(LogicalID* lid)
+	{
+		physical_id* pid;
+		map->getPhysicalID(lid->toInteger(), &pid);
+		return new DBPhysicalID(*pid);
+	};
+	
 
 //	int DBStoreManager::deleteObject(TransactionID* tid, ObjectPointer* object)
 //	{
