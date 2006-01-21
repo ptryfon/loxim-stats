@@ -2,13 +2,7 @@
 DBDataVaule : Serializable
 
 DBObjectPointer : Serializable
-mdOK// 1. ~DBObjectPointer() 
 md  // 2. operator==()
-
-DBPhysicalID
-??  // 1. getFile()
-??  // 2. getPage()
-??  // 3. getOffset()
 
 DBStoreManager
 md  // 1. getObject() - dokonczyc
