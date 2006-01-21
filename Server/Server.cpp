@@ -44,8 +44,6 @@ using namespace QExecutor;
 using namespace TManager;
 using namespace Driver;
 
-
-
 volatile sig_atomic_t signalReceived = 0;
 
 void sigHandler(int sig);
@@ -57,6 +55,15 @@ Server::Server(int newSock)
 
 Server::~Server()
 {
+}
+
+double Server::htonDouble(double inD) {
+    double res;
+    unsigned int *in = (unsigned int *)(&inD);
+    unsigned int *out = (unsigned int *)(&res);
+    out[0]=htonl(in[0]);
+    out[1]=htonl(in[1]);
+    return res;
 }
 
 //TODO - rekurencja, support innych typow
@@ -289,6 +296,222 @@ int  Server::Serialize(QueryResult *qr, char **buffer, char **bufStart)
 	return 0;
 }
 
+//DEVELOPING - NOT YET USED
+int  Server::SerializeRec(QueryResult *qr) 
+{
+	QueryResult *qres;
+	QueryResult *collItem;
+	QueryStringResult *stringRes;
+	QueryBagResult *bagRes;
+	QueryReferenceResult *refRes;
+	QueryIntResult *intRes;
+	QueryBoolResult *boolRes;
+	QueryDoubleResult *doubleRes;
+	QueryBinderResult *bindRes;
+	
+	int rT;
+	Result::ResultType resType;
+
+	int valSize;
+	int bagSize;
+	unsigned long bufBagLen;
+	unsigned int intVal;
+	double doubleVal;
+	string strVal;
+	int retVal;
+	int i;
+
+	char bufferP[MAX_MESSG];
+	char *bufPointer;
+	
+	bufPointer = (char *)malloc(MAX_MESSG);
+	memset(bufferP, '\0', MAX_MESSG); 
+	bufPointer=bufferP;
+
+	resType=(Result::ResultType)qr->type();
+	rT=qr->type();
+	
+	printf("[Server.Serialize]--> Starting \n");
+	printf("[Server.Serialize]--> Serializing object of type: %d=%d \n", resType, rT);
+	
+	switch (rT) {
+		case QueryResult::QBAG:
+			printf("[Server.Serialize]--> Received BAG ");
+			resType=Result::BAG;
+			bagSize=qr->size();
+			bufBagLen=(unsigned long) bagSize;
+			printf(" of size %lu \n", bufBagLen);
+			bufBagLen=htonl(bufBagLen);
+			if (qr->collection() != true) {
+				printf("[Server.Serialize]-->QueryResult shows type of BAG and says it is no collection\n");
+				return ErrServer+EBadResult;
+				return -1;
+			} 
+			bagRes = (QueryBagResult *)qr;
+			printf("[Server.Serialize]--> Adding bag header \n");
+			bufPointer[0]=(char)resType;
+			bufPointer++;
+			memcpy((void *)bufPointer, (const void *)&bufBagLen, sizeof(bufBagLen));
+			printf("[Server.Serialize]--> Bag header: |(type)=%d|(size)=%lu|\n", (int)bufferP[0], ntohl(*(unsigned long *)bufPointer));
+			bufPointer=bufPointer+sizeof(bufBagLen);
+						
+			//TODO DEPTH
+			for (i=0;i<bagSize;i++) {
+				printf("[Server.Serialize]--> Serializing collection item %d \n", i);
+				retVal=bagRes->getResult(collItem);
+				printf("[Server.Serialize]--> getResult returned %d \n", retVal);
+				SerializeRec(collItem);
+			}
+				
+			break;
+		case QueryResult::QSEQUENCE: //TODO CZYM SIE ROZNI SEQUENCE OD BAGA??
+			printf("[Server.Serialize]--> Received SEQUENCE ");
+			resType=Result::SEQUENCE;
+			bagSize=qr->size();
+			bufBagLen=(unsigned long) bagSize;
+			printf(" of size %lu \n", bufBagLen);
+			bufBagLen=htonl(bufBagLen);
+			if (qr->collection() != true) {
+				printf("[Server.Serialize]-->QueryResult shows type of SEQUENCE and says it is no collection\n");
+				return ErrServer+EBadResult;
+				return -1;
+			} 
+			bagRes = (QueryBagResult *)qr;
+			printf("[Server.Serialize]--> Adding sequence header \n");
+			bufPointer[0]=(char)resType;
+			bufPointer++;
+			memcpy((void *)bufPointer, (const void *)&bufBagLen, sizeof(bufBagLen));
+			printf("[Server.Serialize]--> Sequence header: |(type)=%d|(size)=%lu|\n", (int)bufferP[0], ntohl(*(unsigned long *)bufPointer));
+			bufPointer=bufPointer+sizeof(bufBagLen);
+						
+			//TODO DEPTH
+			for (i=0;i<bagSize;i++) {
+				printf("[Server.Serialize]--> Serializing collection item %d \n", i);
+				retVal=bagRes->getResult(collItem);
+				printf("[Server.Serialize]--> getResult returned %d \n", retVal);
+				SerializeRec(collItem);
+			}
+				
+			break;
+		case QueryResult::QSTRUCT: //TODO CZYM SIE ROZNI STRUCT OD BAGA??
+			printf("[Server.Serialize]--> Received STRUCT ");
+			resType=Result::STRUCT;
+			bagSize=qr->size();
+			bufBagLen=(unsigned long) bagSize;
+			printf(" of size %lu \n", bufBagLen);
+			bufBagLen=htonl(bufBagLen);
+			if (qr->collection() != true) {
+				printf("[Server.Serialize]-->QueryResult shows type of STRUCT and says it is no collection\n");
+				return ErrServer+EBadResult;
+				return -1;
+			} 
+			bagRes = (QueryBagResult *)qr;
+			printf("[Server.Serialize]--> Adding struct header \n");
+			bufPointer[0]=(char)resType;
+			bufPointer++;
+			memcpy((void *)bufPointer, (const void *)&bufBagLen, sizeof(bufBagLen));
+			printf("[Server.Serialize]--> Struct header: |(type)=%d|(size)=%lu|\n", (int)bufferP[0], ntohl(*(unsigned long *)bufPointer));
+			bufPointer=bufPointer+sizeof(bufBagLen);
+						
+			//TODO DEPTH
+			for (i=0;i<bagSize;i++) {
+				printf("[Server.Serialize]--> Serializing collection item %d \n", i);
+				retVal=bagRes->getResult(collItem);
+				printf("[Server.Serialize]--> getResult returned %d \n", retVal);
+				SerializeRec(collItem);
+			}
+				
+			break;
+		case QueryResult::QREFERENCE:
+		    printf("[Server.Serialize]--> Getting reference \n");
+		    resType=Result::REFERENCE;
+		    bufPointer[0]=(char)resType;
+		    refRes = (QueryReferenceResult *)qr;
+		    intVal=(refRes->getValue())->toInteger();
+		    bufPointer++;
+		    printf("Reference integer value: intVal=%d \n", intVal);
+		    memcpy((void *)bufPointer, (const void *)&intVal, sizeof(intVal));
+		    bufPointer=bufPointer+sizeof(intVal);
+		    break;	
+		case QueryResult::QSTRING:
+		    printf("[Server.Serialize]--> Getting STRING \n");
+		    resType=Result::STRING;
+		    stringRes=(QueryStringResult *)qr;
+		    strVal=stringRes->getValue();
+		    valSize=stringRes->size();
+		    printf("[Server.Serialize]--> Adding string header \n");
+		    bufPointer[0]=(char)resType;
+		    bufPointer++;
+		    printf("[Server.Serialize]--> String header complete \n");
+		    strcpy(bufPointer, strVal.c_str());  
+		    printf("[Server.Serialize]--> String serialized to: %s \n", bufPointer);
+		    bufPointer=bufPointer+valSize;
+		    break;
+		case QueryResult::QRESULT:
+		    printf("[Server.Serialize]--> Getting RESULT (ERROR!)\n");
+		    return -1; //TODO ERRORCODE
+		    break;    
+		 case QueryResult::QNOTHING:
+		    printf("[Server.Serialize]--> VOID type, sending type indicator only\n");
+		    resType=Result::VOID;
+		    bufPointer[0]=(char)resType;
+		    printf("[Server.Serialize]--> VOID type written \n");
+		    bufPointer++;
+		    break;
+		case QueryResult::QINT:
+		    printf("[Server.Serialize]--> INT type, sending type indicator.. \n");
+		    resType=Result::INT;
+		    bufPointer[0]=(char)resType;
+		    bufPointer++;
+		    intRes = (QueryIntResult *)qr;
+		    intVal = intRes->getValue();
+		    printf("[Server.Serialize]--> .. followed by int value (%d) \n", intVal);
+		    intVal=htonl(intVal);
+		    memcpy((void *)bufPointer, (const void *)&intVal, sizeof(intVal));
+		    printf("[Server.Serialize]--> buffer written \n");
+		    break; 
+		case QueryResult::QDOUBLE:
+		    printf("[Server.Serialize]--> DOUBLE type \n");
+		    resType=Result::DOUBLE;
+		    bufPointer[0]=(char)resType;
+		    bufPointer++;
+		    doubleRes = (QueryDoubleResult *)qr;
+		    doubleVal = doubleRes->getValue();
+		    printf("[Server.Serialize]--> Switching double byte order.. \n");
+		    doubleVal = htonDouble(doubleVal);
+		    printf("[Server.Serialize]--> Splitting and byte order change complete \n");
+		    memcpy((void *)bufPointer, (const void *)&doubleVal, sizeof(doubleVal));
+		    bufPointer = bufPointer + sizeof(doubleVal);		        
+		    break; 
+		case QueryResult::QBOOL: //TODO - pass either BOOLTRUE or BOOLFALSE or just BOOL?
+		    printf("[Server.Serialize]--> BOOL type, sending type indicator and value\n");
+		    resType=Result::BOOL;
+		    bufPointer[0]=(char)resType;
+		    boolRes = (QueryBoolResult *)qr;
+		    bufPointer++;
+		    bufPointer[0]=(char)(boolRes->getValue());
+		    bufPointer++;
+		    break;
+		case QueryResult::QBINDER:
+		    printf("[Server.Serialize]--> BINDER type, sending name(string) and result\n");
+		    resType=Result::BINDER;
+		    bufPointer[0]=(char)resType;
+		    bufPointer++;
+		    bindRes=(QueryBinderResult *) qr;
+		    strVal=bindRes->getName();
+		    qres=bindRes->getItem();
+		    strcpy(bufPointer, strVal.c_str());
+		    bufPointer=bufPointer+(strVal.length());
+		    SerializeRec(qres);
+		    break;
+		default:
+		    printf("[Server.Serialize]--> object UNRECOGNIZED ! \n");
+		    return -1; //TODO ERROR
+		    break;
+	}
+	return 0;
+}
+
 
 int Server::Run()
 {
@@ -395,8 +618,23 @@ while (!signalReceived) {
 	
 	//TODO DESTROY ALL OBJECTS
 	printf("[Server.Run]--> Destroying Objects \n");
+	//qEx->~QueryExecutor(); //segfault
+	//printf("Past Executor\n");
+	qPa->~QueryParser();
+	printf("Past Parser\n");
 	TransactionManager::getHandle()->~TransactionManager();
+	printf("Past Transaction Manager\n");
 	LockManager::getHandle()->~LockManager();
+	printf("Past LockManager\n");
+	//storeManager->~DBStoreManager(); //segfault
+	//printf("Past DBStoreManager\n");
+	logManager->~LogManager();
+	printf("Past LogManager\n");
+	con.~ErrorConsole();
+	printf("Past ErrorConsole\n");
+	config->~SBQLConfig();
+	printf("Past SBQLConfig\n");
+	
 	printf("[Server.Run]--> Disconnecting \n");
 	Disconnect();
 	
@@ -409,7 +647,7 @@ int BExit() {
 	printf("[Server.BExit]-->destroying TM\n");	
 	TransactionManager::getHandle()->~TransactionManager();
 	printf("[Server.BExit]-->destroying LM\n");
-	LockManager::getHandle()->~LockManager();
+	LockManager::getHandle()->~LockManager();		
 	//printf("[Server.BExit]-->disconnecting\n");
 	//Disconnect();
 	printf("[Server.BExit]-->exiting\n");
