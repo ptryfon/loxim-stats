@@ -19,16 +19,19 @@ namespace Store
 	class PageManager
 	{
 	public:
+		PageManager(DBStoreManager* store);
 //		static int binarizeSize(ObjectPointer *obj);
 //		static int binarize(ObjectPointer *obj, BinaryObject*& binobj);
-		static int writeNewHeader(PagePointer *ptr);
+//		static int writeNewHeader(PagePointer *ptr);
 		static int insertObject(PagePointer *ptr, Serialized& obj);
 		static int deserialize(PagePointer *ptr, int objindex, ObjectPointer*& newobj);
 		static int initializeFile(File* file);
 		static int initializePage(unsigned int page_num, char* page);
-		static int getFreePage();
-		static int getFreePage(int space);
+		int getFreePage(int space);
 		static int addToFreeMap(PagePointer *ptr);
+	private:
+		DBStoreManager* store;
+		Buffer* buffer;
 	};
 
 };

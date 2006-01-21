@@ -11,10 +11,20 @@
 #include "DBObjectPointer.h"
 #include "DBDataValue.h"
 
+#define MAX_FREE_SPACE   (STORE_PAGESIZE-sizeof(page_data))
+#define MAX_OBJECT_SIZE  (STORE_PAGESIZE-sizeof(page_data)-sizeof(int))
+#define MAX_OBJECT_COUNT (MAX_FREE_SPACE/sizeof(int))
+
 using namespace std;
 
 namespace Store
 {
+
+	PageManager::PageManager(DBStoreManager* p_store)
+	{
+		store = p_store;
+		buffer = store->getBuffer();
+	}
 /*
 	BinaryObject::BinaryObject(int psize)
 	{
@@ -75,7 +85,7 @@ namespace Store
 		return 0;
 	}
 */	
-	int PageManager::writeNewHeader(PagePointer *pPtr)
+/*	int PageManager::writeNewHeader(PagePointer *pPtr)
 	{
 		page_data *page = reinterpret_cast<page_data*>(pPtr->getPage());
 		
@@ -88,7 +98,7 @@ namespace Store
 		
 		return 0;
 	}
-	
+*/	
 	int PageManager::insertObject(PagePointer *pPtr, Serialized& obj)
 	{
 		page_data *page = reinterpret_cast<page_data*>(pPtr->getPage());
@@ -143,31 +153,64 @@ namespace Store
 	
 	int PageManager::initializeFile(File* file)
 	{
-	
+		char* rawpage = new char[STORE_PAGESIZE];
+		page_data* p = reinterpret_cast<page_data*>(rawpage);
+		
+		memset(rawpage, 0, STORE_PAGESIZE);
+		initializePage(0, rawpage);
+		p->header.page_type = STORE_PAGE_DATAHEADER;
+		p->object_count = 0;
+		p->free_space = MAX_FREE_SPACE / sizeof(int);
+		
+		file->writePage(STORE_FILE_DEFAULT, 0, rawpage);
+		
+		delete[] rawpage;
 		return 0;
 	}
 
 	int PageManager::initializePage(unsigned int page_num, char* page)
 	{
+	
+	// musi sprawdzac czy strona jest modulo header ;)
+	// i ustawiac odpowiedni typ strony
+	
 		page_data *p = reinterpret_cast<page_data*>(page);
 		
 		p->header.file_id = STORE_FILE_DEFAULT;
 		p->header.page_id = page_num;
-		p->header.page_type = STORE_PAGE_DATAHEADER; // nie istotne
+		p->header.page_type = STORE_PAGE_DATAPAGE;
 		p->header.timestamp = 0;
 		p->object_count = 0;
-		p->free_space = STORE_PAGESIZE - sizeof(page_header);
+		p->free_space = MAX_FREE_SPACE;
 		
 		return 0;
 	}
 	
-	int PageManager::getFreePage()
+	int PageManager::getFreePage(int space=MAX_FREE_SPACE)
 	{
-		return 0;
-	}
-
-	int PageManager::getFreePage(int space)
-	{
+		int pii = 0;
+		do	{
+			PagePointer* pPtr = buffer->getPagePointer(STORE_FILE_DEFAULT, pii);
+			pPtr->aquire();
+			page_data* p = reinterpret_cast<page_data*>(pPtr->getPage());
+			
+			for(int i=0; i<p->object_count; i++) {
+				if(p->object_offset[i] >= space) {
+					pPtr->release();
+					return (pPtr->getPageID()+i+1);
+				}
+			}
+			if(p->object_count < MAX_OBJECT_COUNT) {
+				pPtr->release();
+				return (pPtr->getPageID()+p->object_count+1);
+			} else {
+				// jesli init strony bedzie dzialal ok to nie trzeba tu nic dodawac
+			}
+			
+			pPtr->release();
+			pii += MAX_OBJECT_COUNT+1;
+		} while(pii > 0);
+		
 		return 0;
 	}
 
