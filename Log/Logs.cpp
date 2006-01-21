@@ -9,6 +9,12 @@
 
 /* LogManager class */
 
+void LogManager::pushLogable( TransactionID* tid, LogRecord *record)
+{
+  if(tid != NULL)
+    logThread->push( record );
+}
+
 int LogManager::init()
 {
   // otwieramy plik z logami
@@ -50,12 +56,31 @@ int LogManager::beginTransaction( TransactionID *tid, unsigned &id )
 int LogManager::write( TransactionID *tid, LogicalID *lid, string name, DataValue *oldVal, DataValue *newVal, unsigned &id )
 {
   LogRecord *record = new WriteRecord( tid, lid, name, oldVal, newVal );
-  if(tid != NULL)
-    logThread->push( record );
+  pushLogable( tid, record );
   record->getId( id );
 
   printf( "LogManager: write\n" );
 
+  return 0;
+}
+
+int LogManager::addRoot( TransactionID *tid, LogicalID *lid, unsigned &id )
+{
+  LogRecord *record = new AddRootRecord( tid, lid);
+  pushLogable( tid, record );
+  record->getId( id );
+
+  printf( "LogManager: addRoot\n" );
+  return 0;
+}
+
+int LogManager::removeRoot( TransactionID *tid, LogicalID *lid, unsigned &id )
+{
+  LogRecord *record = new RemoveRootRecord( tid, lid);
+  pushLogable( tid, record );
+  record->getId( id );
+
+  printf( "LogManager: addRoot\n" );
   return 0;
 }
 
@@ -101,6 +126,35 @@ int LogManager::commitTransaction( TransactionID *tid, unsigned &id )
 
 int LogManager::rollbackTransaction( TransactionID *tid, StoreManager *sm, unsigned &id )
 {
+  int fd;
+  int err=0;
+  SetOfTransactionIDS setOfTIDs;
+  if( ( fd = ::open(LOG_FILE_PATH, O_RDONLY) ) < 0 ) return errno;
+  //przesunięcie na koniec bo czytamy od końca.
+  //UWAGA! jeśli może być tak, że  rozmiar pliku zmienia się o część zapisanych w pliku danych, to będzie źle
+  //ale mam wrażenie, że tak niejest.
+  if( ::lseek(fd,0,SEEK_END) < 0 ) return errno;
+  setOfTIDs.insert(*tid);
+
+  //pętla jest wykonywana dopóki nie znajdzie się begin który usunie tranzakcję ze zbioru
+  while(!setOfTIDs.empty())
+  {
+    LogRecord* tmp;
+    //wczytywanie rekordu dziennika
+    if( (err = LogRecord::readLogRecordBackward(tmp, fd, sm) ) > 0)
+    {
+      delete tmp;
+      return err;
+    }
+    //wykonywanie rollbacka na rekordzie
+    if( (err = tmp->rollBack(&setOfTIDs, sm)) >0 )
+    {
+      delete tmp;
+      return err;
+    }
+    delete tmp;
+  }
+  close(fd);
   LogRecord *record = new RollbackRecord( tid );
   logThread->push( record );
   record->getId( id );

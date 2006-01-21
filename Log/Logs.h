@@ -11,6 +11,7 @@ namespace Logs
 #include "../Store/Store.h"
 #include "../TransactionManager/Transaction.h"
 #include "LogThread.h"
+#include "LogRecord.h"
 
 using namespace Store;
 using namespace TManager;
@@ -27,6 +28,9 @@ namespace Logs
     protected:
     LogThread *logThread;
     int fileDes; // deskryptor pliku dziennika
+
+    //jeśli tid == NULL to do logów nie jest nic zapisywane
+    void pushLogable( TransactionID* tid, LogRecord *record);
 
     public:
 
@@ -74,12 +78,12 @@ namespace Logs
     /**
      * Nakazuje zapisac wlogach informacje o nowym korzeniu (root).
      */
-    int addRoot( TransactionID *tid, LogicalID *lid, unsigned &id ){ id=1; return 0; };
+    int addRoot( TransactionID *tid, LogicalID *lid, unsigned &id );
 
     /**
      * Nakazuje zapisac wlogach informacje o nowym korzeniu (root).
      */
-    int removeRoot( TransactionID *tid, LogicalID *lid, unsigned &id ){ id=1; return 0; };
+    int removeRoot( TransactionID *tid, LogicalID *lid, unsigned &id );
 
     int destroy();
   };

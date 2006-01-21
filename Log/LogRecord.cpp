@@ -130,11 +130,36 @@ int CkptRecord::write( int fileDes ) { return LogIO::writeTransactionIDVector( t
 
 /* WriteRecord class */
 
+int WriteRecord::deleteFromStore(StoreManager* sm, DataValue *dv)
+{
+  ObjectPointer* op = sm->createObjectPointer( lid, name, dv);
+  return sm->deleteObject((TransactionID*) NULL, op );
+}
+
+//UWAGA to zle dziala  TODO createObject, trzeba zamienic na cos co robi undo delete
+int WriteRecord::addToStore(StoreManager* sm, DataValue *dv)
+{
+  ObjectPointer* op = sm->createObjectPointer( lid, name, dv);
+  return sm->createObject((TransactionID*) NULL, name, dv, op );
+}
+
 int WriteRecord::rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm)
 {
-  //sprawdzamy czy zapis dotyczy jednej z tranzakcji do wycofania
+  //sprawdzamy czy zapis dotyczy jednej z tranzakcji do wycofania.
   if(setOfTIDs->find(*tid) != setOfTIDs->end())
   {
+    //zła postać rekordu w logach
+    if(oldVal == NULL && newVal == NULL )
+      return LOG_INCORRECT_RECORD_FORMAT;
+
+    //Wycofywana transakcja stworzyla obiekt, nalezy go usunac.
+    if(oldVal == NULL)
+      return deleteFromStore(sm, newVal);
+
+    //Wycofywana tranzakcja usunęła obiekt, należy go odtworzyć.
+    if(newVal == NULL)
+      return addToStore( sm, oldVal);
+
     return 0;
   }
   return 0;
@@ -145,9 +170,8 @@ int WriteRecord::read( int fileDes, StoreManager* sm )
   int errCode;
 
   if( ( errCode = TransactionRecord::read( fileDes, sm ) ) ) return errCode;
-  //if( ( errCode = LogIO::readTransactionID( tid, fileDes ) ) ) return errCode;
-  if( ( errCode = LogIO::readString( fileDes, name ) ) ) return errCode;
   if( ( errCode = LogIO::readLogicalID( lid, fileDes, sm ) ) ) return errCode;
+  if( ( errCode = LogIO::readString( fileDes, name ) ) ) return errCode;
   if( ( errCode = LogIO::readDataValue( oldVal, fileDes, sm ) ) ) return errCode;
   if( ( errCode = LogIO::readDataValue( newVal, fileDes, sm ) ) ) return errCode;
 
@@ -167,6 +191,27 @@ int WriteRecord::write( int fileDes )
   return errCode;
 }
 
+/* RootRecord class */
+
+//Uwaga, czy Store jest odporny na usuwanie roota ktorego nie ma??
+//bo moze byc tak, ze najpierw zostanie usuniety obiekt z roota, a potem sam obiekt
+//przy jechaniu w tył bedzie zle.
+//Jesli Store nie jest na to odporny trzeba sie przejechac dwa razy po logu zeby cos wycofac.
+int RootRecord::removeRootFromStore( StoreManager* sm )
+{
+  ObjectPointer* op = sm->createObjectPointer( lid );
+  return sm->removeRoot( (TransactionID*) NULL, op );
+}
+
+//Uwaga może działać bez sensu, jeśli przy odtwarzaniu obiektu bedzie przydzielane nowe lid
+//to wtedy jako root moze byc wstawiane cos czego juz nie ma
+int RootRecord::addRootToStore( StoreManager* sm )
+{
+  ObjectPointer* op = sm->createObjectPointer( lid );
+  return sm->addRoot( (TransactionID*) NULL, op );
+}
+
+
 int RootRecord::write( int fileDes )
 {
   int errCode;
@@ -183,4 +228,24 @@ int RootRecord::read( int fileDes, StoreManager* sm )
   if( ( errCode = TransactionRecord::read( fileDes, sm ) ) ) return errCode;
   if( ( errCode = LogIO::readLogicalID( lid, fileDes, sm ) ) ) return errCode;
   return errCode;
+}
+
+/* AddRootRecord class */
+int AddRootRecord::rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm)
+{
+  //sprawdzamy czy zapis dotyczy jednej z tranzakcji do wycofania.
+  if(setOfTIDs->find(*tid) != setOfTIDs->end())
+    //Wycofywana tranzakcja dodała roota więc go usuwamy.
+    return removeRootFromStore( sm );
+  return 0;
+}
+
+/* RemoveRootRecord class */
+int RemoveRootRecord::rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm)
+{
+  //sprawdzamy czy zapis dotyczy jednej z tranzakcji do wycofania.
+  if(setOfTIDs->find(*tid) != setOfTIDs->end())
+    //Wycofywana tranzakcja usunęła roota więc go dodajemy.
+    return addRootToStore( sm );
+  return 0;
 }

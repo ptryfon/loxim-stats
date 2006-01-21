@@ -11,6 +11,7 @@ namespace Logs
   class CommitRecord;
   class RollbackRecord;
   class AddRootRecord;
+  class RemoveRootRecord;
 }
 
 #include <string>
@@ -31,6 +32,7 @@ namespace Logs
 
 #define UNKNOWN_LOG_RECORD_TYPE_ERROR    200002
 #define LOG_RECORD_LENGTH_MISMATCH_ERROR 200003
+#define LOG_INCORRECT_RECORD_FORMAT      200004
 
 /// Mozliwe typy rekordu logowania
 #define BEGIN_LOG_REC_TYPE        1
@@ -70,6 +72,12 @@ namespace Logs
     virtual ~LogRecord() {}
     int getId( unsigned int &result ) { result = id; return 0; }
     int getType( int &result ) { result = type; return 0; }
+
+    /*
+    setOfTIDs - wszystkie tranzakcje które chcemy wycofać.
+    Metoda bierze zbiór tranzakcji do wycofania i jeśli rekord dotyczy tej tranzakcji to dokonuje wycofania w sm
+    lub usuwa transakcję ze zbioru (begin) lub nie robi nic.
+    */
     virtual int rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm) {return 0;}
   };
 
@@ -140,6 +148,8 @@ namespace Logs
     virtual int read( int fileDes, StoreManager* sm );
     virtual int write( int fileDes );
     virtual int instance( LogRecord *&result ) { result = new WriteRecord(); return 0; }
+    virtual int deleteFromStore(StoreManager* sm, DataValue *dv);
+    virtual int addToStore(StoreManager* sm, DataValue *dv);
 
     public:
     WriteRecord( TransactionID *_tid, LogicalID *_lid, string _name, DataValue *_oldVal, DataValue *_newVal )
@@ -161,8 +171,11 @@ namespace Logs
 
     virtual int read( int fileDes, StoreManager* sm );
     virtual int write( int fileDes );
+    virtual int removeRootFromStore( StoreManager* sm );
+    virtual int addRootToStore( StoreManager* sm );
 
     public:
+    RootRecord( TransactionID *_tid, LogicalID *_lid) : TransactionRecord( _tid ), lid(_lid) {}
     virtual ~RootRecord() {  /*delete lid; */ } //
     //virtual int rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm);
   };
@@ -176,9 +189,24 @@ namespace Logs
     virtual int instance( LogRecord *&result ) { result = new AddRootRecord(); return 0; }
 
     public:
+    AddRootRecord( TransactionID *_tid, LogicalID *_lid) : RootRecord( _tid, _lid ) {}
+    virtual int rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm);
     virtual ~AddRootRecord(){}
   };
 
+  class RemoveRootRecord : public RootRecord
+  {
+    friend class LogRecord;
+
+    protected:
+    RemoveRootRecord() : RootRecord(REMOVE_ROOT_LOG_REC_TYPE) {}
+    virtual int instance( LogRecord *&result ) { result = new RemoveRootRecord(); return 0; }
+
+    public:
+    RemoveRootRecord( TransactionID *_tid, LogicalID *_lid) : RootRecord( _tid, _lid ) {}
+    virtual int rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm);
+    virtual ~RemoveRootRecord(){}
+  };
 
   class CommitRecord : public TransactionRecord
   {
