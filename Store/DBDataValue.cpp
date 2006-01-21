@@ -200,9 +200,21 @@ namespace Store
 				value->setPointer(lid);
 				return ((bytes-curpos)+ub);
 			} break;
-			case Store::Vector:
-// NOT IMPLEMENTED
-				break;
+			case Store::Vector: {
+				int vlen = *(reinterpret_cast<int*>(curpos));
+				curpos += sizeof(int);
+				vector<LogicalID*>* v = new vector<LogicalID*>;
+				DBLogicalID *lid;
+				int ub;
+				for(int i=0; i<vlen; i++) {
+					ub = DBLogicalID::deserialize(curpos, lid);
+					curpos += ub;
+					v->push_back(lid);
+				}
+				value = new DBDataValue();
+				value->setVector(v);
+				return (bytes-curpos);
+			} break;
 			default:
 				break;
 		}		

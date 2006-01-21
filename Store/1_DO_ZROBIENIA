@@ -1,7 +1,5 @@
 
 DBDataVaule : Serializable
-md  // 1. deserialize() - <- dodac obsluge wektora
-mdOK// 2. p_DestroyVal() - <- dodac obsluge pointera i wektora
 
 DBObjectPointer : Serializable
 mdOK// 1. ~DBObjectPointer() 
