@@ -31,22 +31,12 @@ using namespace std;
 namespace QExecutor {
 
 int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
-	
-	LogicalID *lid;
-	ObjectPointer *optr;
-	string name;
-	DataValue* value;
-	int nodeType; //to tylko tymczasowo.
-	vector<ObjectPointer*>* vec;
-	int vecSize;
 	ErrorConsole ec;
 	int errcode;
-
 	fprintf(stderr, "[QE] executeQuery()\n");
-    
+	
 	if (tree != NULL)
 	{
-
 		if (tr == NULL) {
 			fprintf(stderr, "[QE] Asking TransactionManager for a new transaction\n");
 			if ((errcode = TransactionManager::getHandle()->createTransaction(tr)) != 0) 
@@ -58,14 +48,14 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 				fprintf(stderr, "[QE] Transaction opened\n");
 			}
 		}
-		nodeType = tree->type();
+		int nodeType = tree->type();
 		fprintf(stderr, "[QE] TreeType taken\n");
 	
 		switch (nodeType)
 		{
 		case TreeNode::TNNAME:
 			{
-			name = tree->getName();
+			string name = tree->getName();
 			fprintf(stderr, "[QE] Type: TNNAME\n");
 			
 			if ((stack.size()) == 1) {
@@ -73,16 +63,17 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			    if (errcode != 0) { return errcode; };
 			};
 			if (stack.empty()) {
+				vector<ObjectPointer*>* vec;
 				if ((errcode = tr->getRoots(vec)) != 0) {
 					return errcode;
 				};
-				vecSize = vec->size();
+				int vecSize = vec->size();
 				fprintf(stderr, "[QE] All %d Roots taken\n", vecSize);
 				QueryBagResult *stackSection = new QueryBagResult();
 				for (int i = 0; i < vecSize; i++ )
 					{
-   					optr = vec->at(i);
-					lid = optr->getLogicalID();
+   					ObjectPointer *optr = vec->at(i);
+					LogicalID *lid = optr->getLogicalID();
 					fprintf(stderr, "[QE] LogicalID received\n");
 					string optrName = (optr->getName());
 					fprintf(stderr, "[QE] Name received\n");
@@ -97,14 +88,14 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			if ((stack.bindName(name, *result)) != 0) {
 				return -1;
 			};
-			fprintf(stderr, "[QE] QueryBagResult created\n");
 			fprintf(stderr, "[QE] Done!\n");
 			return 0;
 			}//case
 
 		case TreeNode::TNCREATE:
 			{
-			name = tree->getName(); 
+			string name = tree->getName();
+			DataValue* value;
 			fprintf(stderr, "[QE] Type: TNCREATE\n");
 			tree = tree->getArg();
 			fprintf(stderr, "[QE] Getting node arguments\n");
@@ -164,7 +155,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 				value = dbValue;
 				fprintf(stderr, "[QE] No arguments (value = NULL)\n");
 				}
-
+			ObjectPointer *optr;
 			if ((errcode = tr->createObject(name, value, optr)) != 0)
 				{
 				fprintf(stderr, "[QE] Error in createObject\n");
@@ -242,7 +233,8 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 				for (unsigned int i = 0; i < counter; i++ ) // Deleting objects
 					{
    					nextResult->getResult(toDelete);  //bledy??
-					lid = ((QueryReferenceResult *) toDelete)->getValue();
+					LogicalID *lid = ((QueryReferenceResult *) toDelete)->getValue();
+					ObjectPointer *optr;
 					if ((errcode = tr->getObjectPointer (lid, Store::Write, optr)) !=0)
 						{
 						fprintf(stderr, "[QE] Error in getObjectPointer.\n");
@@ -345,6 +337,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			case UnOpNode::deref:
 				{
 				fprintf(stderr, "[QE] DEREF operation\n");
+				DataValue* value;
 				QueryResult *queryBag;
 				QueryResult *nextResult;
 				
@@ -369,6 +362,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 						if (resultType == QueryResult::QREFERENCE)
 							{
 							fprintf(stderr, "[QE] Dereferencing %d result\n", i);
+							ObjectPointer *optr;
 							if ((errcode = tr->getObjectPointer(((QueryReferenceResult *)nextResult)->getValue(), Store::Read, optr)) != 0)
 								{
 								fprintf(stderr, "[QE] Error in getObjectPointer\n");
@@ -554,665 +548,26 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 		case TreeNode::TNALGOP: {
 			AlgOpNode::algOp op = ((AlgOpNode *) tree)->getOp();
 			fprintf(stderr, "[QE] Algebraic operator - type recognized\n");
-	    
-			switch (op)
-			{
-			case AlgOpNode::plus:
-				{
-				fprintf(stderr, "[QE] + operation\n");
-				QueryResult *lResult, *rResult, *bagResult, *tmpResult;
-				if ((errcode = executeQuery (((AlgOpNode *) tree)->getLArg(), &bagResult)) != 0)
-					{
-					return errcode;
-					}
-				if (bagResult->type() != QueryResult::QBAG)
-					{
-					fprintf(stderr, "[QE] Error - wrong left argument\n");
-					return -1;
-					}
-				if ((errcode = ((QueryBagResult *) bagResult)->getResult(lResult) != 0))
-					{
-					return errcode;
-					}
-				if ((errcode = executeQuery (((AlgOpNode *) tree)->getRArg(), &bagResult)) != 0)
-					{
-					return errcode;
-					}
-				if (bagResult->type() != QueryResult::QBAG)
-					{
-					fprintf(stderr, "[QE] Error - wrong right argument\n");
-					return -1;
-					}
-				if ((errcode = ((QueryBagResult *) bagResult)->getResult(rResult) != 0))
-					{
-					return errcode;
-					}
-				fprintf(stderr, "[QE] Results computed, computing +\n");
-				// We have to check if the arguments are of the same type
-				int argType = lResult->type();
-				fprintf(stderr, "[QE] left argument's type taken\n");
-				switch (argType)
-				{
-				case QueryResult::QINT: //Left argument is a QueryIntResult
-					{
-					argType = rResult->type();
-					fprintf(stderr, "[QE] right argument's type taken\n");
-					switch (argType)
-					{
-					case QueryResult::QINT: //Both arguments are QueryIntResults
-						{
-						if ((errcode = ((QueryIntResult *) lResult)->plus(rResult, tmpResult)) != 0)
-							{
-							return errcode;
-							}
-						}
-					case QueryResult::QDOUBLE: //Right argument is a double
-						{
-						break;  // Trzeba jeszce dopisac
-						}
-					default:
-						{
-						fprintf(stderr, "[QE] Error - wrong AlgOp argument\n");
-						return -1;
-						}
-					} //switch
-					} //case QINT
-				case QueryResult::QDOUBLE: //Left argument is a QueryDoubleResult
-					{
-					argType = rResult->type();
-					fprintf(stderr, "[QE] right argument's type taken\n");
-					switch (argType)
-					{
-					case QueryResult::QDOUBLE: //Both arguments are QueryDoubleResults
-						{
-						if ((errcode = ((QueryDoubleResult *) lResult)->plus(rResult, tmpResult)) != 0)
-							{
-							return errcode;
-							}
-						}
-					case QueryResult::QINT: //Right argument is an int
-						{
-						break;  // Treba jeszce dopisac
-						}
-					default:
-						{
-						fprintf(stderr, "[QE] Error - wrong AlgOp argument\n");
-						return -1;
-						}
-					} //switch
-					}//case QDOUBLE
-				default:
-					{
-					fprintf(stderr, "[QE] Error - wrong AlgOp argument\n");
-					return -1;
-					}
-				}//switch
-				*result = new QueryBagResult;
-				(*result)->addResult(tmpResult);
-				fprintf(stderr, "[QE] Done!\n");
-				return 0;
-				}//case
-			case AlgOpNode::minus:
-				{
-				fprintf(stderr, "[QE] - operation\n");
-				QueryResult *lResult, *rResult, *bagResult, *tmpResult;
-				if ((errcode = executeQuery (((AlgOpNode *) tree)->getLArg(), &bagResult)) != 0)
-					{
-					return errcode;
-					}
-				if (bagResult->type() != QueryResult::QBAG)
-					{
-					fprintf(stderr, "[QE] Error - wrong left argument\n");
-					return -1;
-					}
-				if ((errcode = ((QueryBagResult *) bagResult)->getResult(lResult) != 0))
-					{
-					return errcode;
-					}
-				if ((errcode = executeQuery (((AlgOpNode *) tree)->getRArg(), &bagResult)) != 0)
-					{
-					return errcode;
-					}
-				if (bagResult->type() != QueryResult::QBAG)
-					{
-					fprintf(stderr, "[QE] Error - wrong right argument\n");
-					return -1;
-					}
-				if ((errcode = ((QueryBagResult *) bagResult)->getResult(rResult) != 0))
-					{
-					return errcode;
-					}
-				fprintf(stderr, "[QE] Results computed, computing -\n");
-				// We have to check if the arguments are of the same type
-				int argType = lResult->type();
-				fprintf(stderr, "[QE] left argument's type taken\n");
-				switch (argType)
-				{
-				case QueryResult::QINT: //Left argument is a QueryIntResult
-					{
-					argType = rResult->type();
-					fprintf(stderr, "[QE] right argument's type taken\n");
-					switch (argType)
-					{
-					case QueryResult::QINT: //Both arguments are QueryIntResults
-						{
-						if ((errcode = ((QueryIntResult *) lResult)->minus(rResult, tmpResult)) != 0)
-							{
-							return errcode;
-							}
-						}
-					case QueryResult::QDOUBLE: //Right argument is a double
-						{
-						break;  // Trzeba jeszce dopisac
-						}
-					default:
-						{
-						fprintf(stderr, "[QE] Error - wrong AlgOp argument\n");
-						return -1;
-						}
-					} //switch
-					} //case QINT
-				case QueryResult::QDOUBLE: //Left argument is a QueryDoubleResult
-					{
-					argType = rResult->type();
-					fprintf(stderr, "[QE] right argument's type taken\n");
-					switch (argType)
-					{
-					case QueryResult::QDOUBLE: //Both arguments are QueryDoubleResults
-						{
-						if ((errcode = ((QueryDoubleResult *) lResult)->minus(rResult, tmpResult)) != 0)
-							{
-							return errcode;
-							}
-						}
-					case QueryResult::QINT: //Right argument is an int
-						{
-						break;  // Treba jeszce dopisac
-						}
-					default:
-						{
-						fprintf(stderr, "[QE] Error - wrong AlgOp argument\n");
-						return -1;
-						}
-					} //switch
-					}//case QDOUBLE
-				default:
-					{
-					fprintf(stderr, "[QE] Error - wrong AlgOp argument\n");
-					return -1;
-					}
-				}//switch
-				*result = new QueryBagResult;
-				(*result)->addResult(tmpResult);
-				fprintf(stderr, "[QE] Done!\n");
-				return 0;
-				}//case
-			case AlgOpNode::times:
-				{
-				fprintf(stderr, "[QE] * operation\n");
-				QueryResult *lResult, *rResult, *bagResult, *tmpResult;
-				if ((errcode = executeQuery (((AlgOpNode *) tree)->getLArg(), &bagResult)) != 0)
-					{
-					return errcode;
-					}
-				if (bagResult->type() != QueryResult::QBAG)
-					{
-					fprintf(stderr, "[QE] Error - wrong left argument\n");
-					return -1;
-					}
-				if ((errcode = ((QueryBagResult *) bagResult)->getResult(lResult) != 0))
-					{
-					return errcode;
-					}
-				if ((errcode = executeQuery (((AlgOpNode *) tree)->getRArg(), &bagResult)) != 0)
-					{
-					return errcode;
-					}
-				if (bagResult->type() != QueryResult::QBAG)
-					{
-					fprintf(stderr, "[QE] Error - wrong right argument\n");
-					return -1;
-					}
-				if ((errcode = ((QueryBagResult *) bagResult)->getResult(rResult) != 0))
-					{
-					return errcode;
-					}
-				fprintf(stderr, "[QE] Results computed, computing *\n");
-				// We have to check if the arguments are of the same type
-				int argType = lResult->type();
-				fprintf(stderr, "[QE] left argument's type taken\n");
-				switch (argType)
-				{
-				case QueryResult::QINT: //Left argument is a QueryIntResult
-					{
-					argType = rResult->type();
-					fprintf(stderr, "[QE] right argument's type taken\n");
-					switch (argType)
-					{
-					case QueryResult::QINT: //Both arguments are QueryIntResults
-						{
-						if ((errcode = ((QueryIntResult *) lResult)->times(rResult, tmpResult)) != 0)
-							{
-							return errcode;
-							}
-						}
-					case QueryResult::QDOUBLE: //Right argument is a double
-						{
-						break;  // Trzeba jeszce dopisac
-						}
-					default:
-						{
-						fprintf(stderr, "[QE] Error - wrong AlgOp argument\n");
-						return -1;
-						}
-					} //switch
-					} //case QINT
-				case QueryResult::QDOUBLE: //Left argument is a QueryDoubleResult
-					{
-					argType = rResult->type();
-					fprintf(stderr, "[QE] right argument's type taken\n");
-					switch (argType)
-					{
-					case QueryResult::QDOUBLE: //Both arguments are QueryDoubleResults
-						{
-						if ((errcode = ((QueryDoubleResult *) lResult)->times(rResult, tmpResult)) != 0)
-							{
-							return errcode;
-							}
-						}
-					case QueryResult::QINT: //Right argument is an int
-						{
-						break;  // Trzeba jeszcze dopisac
-						}
-					default:
-						{
-						fprintf(stderr, "[QE] Error - wrong AlgOp argument\n");
-						return -1;
-						}
-					} //switch
-					}//case QDOUBLE
-				default:
-					{
-					fprintf(stderr, "[QE] Error - wrong AlgOp argument\n");
-					return -1;
-					}
-				}//switch
-				*result = new QueryBagResult;
-				(*result)->addResult(tmpResult);
-				fprintf(stderr, "[QE] Done!\n");
-				return 0;
-				}//case
-			case AlgOpNode::divide:
-				{
-				fprintf(stderr, "[QE] / operation\n");
-				QueryResult *lResult, *rResult, *bagResult, *tmpResult;
-				if ((errcode = executeQuery (((AlgOpNode *) tree)->getLArg(), &bagResult)) != 0)
-					{
-					return errcode;
-					}
-				if (bagResult->type() != QueryResult::QBAG)
-					{
-					fprintf(stderr, "[QE] Error - wrong left argument\n");
-					return -1;
-					}
-				if ((errcode = ((QueryBagResult *) bagResult)->getResult(lResult) != 0))
-					{
-					return errcode;
-					}
-				if ((errcode = executeQuery (((AlgOpNode *) tree)->getRArg(), &bagResult)) != 0)
-					{
-					return errcode;
-					}
-				if (bagResult->type() != QueryResult::QBAG)
-					{
-					fprintf(stderr, "[QE] Error - wrong right argument\n");
-					return -1;
-					}
-				if ((errcode = ((QueryBagResult *) bagResult)->getResult(rResult) != 0))
-					{
-					return errcode;
-					}
-				fprintf(stderr, "[QE] Results computed, computing /\n");
-				// We have to check if the arguments are of the same type
-				int argType = lResult->type();
-				fprintf(stderr, "[QE] left argument's type taken\n");
-				switch (argType)
-				{
-				case QueryResult::QINT: //Left argument is a QueryIntResult
-					{
-					argType = rResult->type();
-					fprintf(stderr, "[QE] right argument's type taken\n");
-					switch (argType)
-					{
-					case QueryResult::QINT: //Both arguments are QueryIntResults
-						{
-						if ((errcode = ((QueryIntResult *) lResult)->divide_by(rResult, tmpResult)) != 0)
-							{
-							return errcode;
-							}
-						}
-					case QueryResult::QDOUBLE: //Right argument is a double
-						{
-						break;  // Trzeba jeszce dopisac
-						}
-					default:
-						{
-						fprintf(stderr, "[QE] Error - wrong AlgOp argument\n");
-						return -1;
-						}
-					} //switch
-					} //case QINT
-				case QueryResult::QDOUBLE: //Left argument is a QueryDoubleResult
-					{
-					argType = rResult->type();
-					fprintf(stderr, "[QE] right argument's type taken\n");
-					switch (argType)
-					{
-					case QueryResult::QDOUBLE: //Both arguments are QueryDoubleResults
-						{
-						if ((errcode = ((QueryDoubleResult *) lResult)->divide_by(rResult, tmpResult)) != 0)
-							{
-							return errcode;
-							}
-						}
-					case QueryResult::QINT: //Right argument is an int
-						{
-						break;  // Trzeba jeszce dopisac
-						}
-					default:
-						{
-						fprintf(stderr, "[QE] Error - wrong AlgOp argument\n");
-						return -1;
-						}
-					} //switch
-					}//case QDOUBLE
-				default:
-					{
-					fprintf(stderr, "[QE] Error - wrong AlgOp argument\n");
-					return -1;
-					}
-				}//switch
-				*result = new QueryBagResult;
-				(*result)->addResult(tmpResult);
-				fprintf(stderr, "[QE] Done!\n");
-				return 0;
-				}//case
-			case AlgOpNode::eq:
-				{
-				fprintf(stderr, "[QE] = operation\n");
-				QueryResult *lResult, *rResult;
-				if ((errcode = executeQuery (((AlgOpNode *) tree)->getLArg(), &lResult)) != 0)
-					{
-					return errcode;
-					}
-				if ((errcode = executeQuery (((AlgOpNode *) tree)->getRArg(), &rResult)) != 0)
-					{
-					return errcode;
-					}
-				fprintf(stderr, "[QE] Results counted, counting =\n");
-				bool tmp_res_bool = lResult->equal(rResult);
-				*result = new QueryBoolResult(tmp_res_bool);
-				fprintf(stderr, "[QE] Done!\n");
-				return 0;
-				}//case
-			case AlgOpNode::neq:
-				{
-				fprintf(stderr, "[QE] != operation\n");
-				QueryResult *lResult, *rResult;
-				if ((errcode = executeQuery (((AlgOpNode *) tree)->getLArg(), &lResult)) != 0)
-					{
-					return errcode;
-					}
-				if ((errcode = executeQuery (((AlgOpNode *) tree)->getRArg(), &rResult)) != 0)
-					{
-					return errcode;
-					}
-				fprintf(stderr, "[QE] Results counted, counting !=\n");
-				bool tmp_res_bool = lResult->not_equal(rResult);
-				*result = new QueryBoolResult(tmp_res_bool);
-				fprintf(stderr, "[QE] Done!\n");
-				fprintf(stderr, "[QE] Done!\n");
-				return 0;
-				}//case
-			case AlgOpNode::gt:
-				{
-				fprintf(stderr, "[QE] > operation\n");
-				QueryResult *lResult, *rResult;
-				if ((errcode = executeQuery (((AlgOpNode *) tree)->getLArg(), &lResult)) != 0)
-					{
-					return errcode;
-					}
-				if ((errcode = executeQuery (((AlgOpNode *) tree)->getRArg(), &rResult)) != 0)
-					{
-					return errcode;
-					}
-				fprintf(stderr, "[QE] Results counted, counting >\n");
-				bool tmp_res_bool = lResult->greater_than(rResult);
-				*result = new QueryBoolResult(tmp_res_bool);
-				fprintf(stderr, "[QE] Done!\n");
-				return 0;
-				}//case
-			case AlgOpNode::lt:
-				{
-				fprintf(stderr, "[QE] < operation\n");
-				QueryResult *lResult, *rResult;
-				if ((errcode = executeQuery (((AlgOpNode *) tree)->getLArg(), &lResult)) != 0)
-					{
-					return errcode;
-					}
-				if ((errcode = executeQuery (((AlgOpNode *) tree)->getRArg(), &rResult)) != 0)
-					{
-					return errcode;
-					}
-				fprintf(stderr, "[QE] Results counted, counting <\n");
-				bool tmp_res_bool = lResult->less_than(rResult);
-				*result = new QueryBoolResult(tmp_res_bool);
-				fprintf(stderr, "[QE] Done!\n");
-				return 0;
-				}//case
-			case AlgOpNode::ge:
-				{
-				fprintf(stderr, "[QE] >= operation\n");
-				QueryResult *lResult, *rResult;
-				if ((errcode = executeQuery (((AlgOpNode *) tree)->getLArg(), &lResult)) != 0)
-					{
-					return errcode;
-					}
-				if ((errcode = executeQuery (((AlgOpNode *) tree)->getRArg(), &rResult)) != 0)
-					{
-					return errcode;
-					}
-				fprintf(stderr, "[QE] Results counted, counting >=\n");
-				bool tmp_res_bool = lResult->greater_eq(rResult);
-				*result = new QueryBoolResult(tmp_res_bool);
-				fprintf(stderr, "[QE] Done!\n");
-				return 0;
-				}//case
-			case AlgOpNode::le:
-				{
-				fprintf(stderr, "[QE] >= operation\n");
-				QueryResult *lResult, *rResult;
-				if ((errcode = executeQuery (((AlgOpNode *) tree)->getLArg(), &lResult)) != 0)
-					{
-					return errcode;
-					}
-				if ((errcode = executeQuery (((AlgOpNode *) tree)->getRArg(), &rResult)) != 0)
-					{
-					return errcode;
-					}
-				fprintf(stderr, "[QE] Results counted, counting >=\n");
-				bool tmp_res_bool = lResult->less_eq(rResult);
-				*result = new QueryBoolResult(tmp_res_bool);
-				fprintf(stderr, "[QE] Done!\n");
-				return 0;
-				}//case
-			case AlgOpNode::boolAnd:
-				{
-				fprintf(stderr, "[QE] AND operation\n");
-				QueryResult *lResult, *rResult;
-				if ((errcode = executeQuery (((AlgOpNode *) tree)->getLArg(), &lResult)) != 0)
-					{
-					return errcode;
-					}
-				if ((errcode = executeQuery (((AlgOpNode *) tree)->getRArg(), &rResult)) != 0)
-					{
-					return errcode;
-					}
-				fprintf(stderr, "[QE] Results counted, counting AND\n");
-				if ((errcode = ((QueryBoolResult *) lResult)->bool_and(rResult, (*result))) != 0)
-					{
-					return errcode;
-					}
-				fprintf(stderr, "[QE] Done!\n");					
-				return 0;
-				}//case AND
-			case AlgOpNode::boolOr:
-				{
-				fprintf(stderr, "[QE] OR operation\n");
-				QueryResult *lResult, *rResult; 
-				if ((errcode = executeQuery (((AlgOpNode *) tree)->getLArg(), &lResult)) != 0)
-					{
-					return errcode;
-					}
-				if ((errcode = executeQuery (((AlgOpNode *) tree)->getRArg(), &rResult)) != 0)
-					{
-					return errcode;
-					}
-				fprintf(stderr, "[QE] Results counted, counting OR\n");
-				if ((errcode = ((QueryBoolResult *) lResult)->bool_or(rResult, (*result))) != 0)
-					{
-					return errcode;
-					}
-				fprintf(stderr, "[QE] Done!\n");
-				return 0;
-				}//case OR
-			case AlgOpNode::insert:
-				{
-				vector<LogicalID*> *insVector;
-				
-				
-				fprintf(stderr, "[QE] INSERT operation\n");                                                  /******************/
-				QueryResult *lResult, *rResult; 
-				if ((errcode = executeQuery (((AlgOpNode *) tree)->getLArg(), &lResult)) != 0)
-					{
-					return errcode;
-					}
-				int argType = lResult->type();
-				fprintf(stderr, "[QE] left argument's type taken\n");
-				if (argType!=QueryResult::QBAG) //Both arguments have to be a bags
-					{
-					fprintf(stderr, "[QE] Error - wrong INSERT argument\n");
-					return -1;
-					}
-				if ((errcode = executeQuery (((AlgOpNode *) tree)->getRArg(), &rResult)) != 0)
-					{
-					return errcode;
-					}
-				argType = rResult->type();
-				fprintf(stderr, "[QE] right argument's type taken\n");
-				if (argType!=QueryResult::QBAG) //Both arguments have to be a bags
-					{
-					fprintf(stderr, "[QE] Error - wrong INSERT argument\n");
-					return -1;
-					}
-				
-				// Both arguments are bags
-					
-				QueryResult* toInsert;  //the object to be inserted
-				unsigned int counter = lResult->size();
-				if (counter != 1) // chyba zle jesli counter<>1 ????????????????????????????????????????????????????????????????????????????????
-					{
-					fprintf(stderr, "[QE] Wrong number of objects to be inserted.\n");
-					return -1;
-					}
-				if ((errcode = ((QueryBagResult *) lResult)->getResult(toInsert) != 0))
-					{
-					return errcode;
-					}
-				int resultType = toInsert->type();
-				if (resultType != QueryResult::QREFERENCE)
-					{
-					fprintf(stderr, "[QE] Error - the bag result must consist of QREFERENCE\n");
-					return -1;
-					}
-				LogicalID *lidIn = ((QueryReferenceResult *) toInsert)->getValue();
-				ObjectPointer *optrIn;
-				if ((errcode = tr->getObjectPointer (lidIn, Store::Write, optrIn)) !=0)
-					{
-					fprintf(stderr, "[QE] Error in getObjectPointer.\n");
-					return errcode;
-					}
-				if ((errcode = tr->removeRoot(optrIn)) != 0)
-					{
-					fprintf(stderr, "[QE] Error in removeRoot.\n");
-					return errcode;
-					}
-				fprintf(stderr, "[QE] Root removed\n");
-				
-				
-				//the object into which the left agument will be inserted
-				QueryResult* outer; 
-				counter = rResult->size();
-				if (counter != 1) // chyba zle jesli counter<>1 ????????????????????????????????????????????????????????????????????????????????
-					{
-					fprintf(stderr, "[QE] Wrong number of objects to be inserted.\n");
-					return -1;
-					}
-				if ((errcode = ((QueryBagResult *) rResult)->getResult(outer) != 0))
-					{
-					return errcode;
-					}
-				resultType = outer->type();
-				if (resultType != QueryResult::QREFERENCE)
-					{
-					fprintf(stderr, "[QE] Error - the bag result must consist of QREFERENCE\n");
-					return -1;
-					}
-				LogicalID *lidOut = ((QueryReferenceResult *) outer)->getValue();
-				ObjectPointer *optrOut;
-				if ((errcode = tr->getObjectPointer (lidOut, Store::Write, optrOut)) !=0)
-					{
-					fprintf(stderr, "[QE] Error in getObjectPointer.\n");
-					return errcode;
-					}
-				// We have to modify the "outer" object's value 
-				value = optrOut->getValue();
-				fprintf(stderr, "[QE] Value taken\n");
-				int vType = value->getType();
-				fprintf(stderr, "[QE] Type taken\n");
-				if (vType != Store::Vector) 
-					{
-					fprintf(stderr, "[QE] Error - the value has to be a Vector\n");
-					return -1;
-					}
-				insVector = value->getVector();
-				
-				//vector<ObjectPointer*> aaa;
-				
-				if (insVector == NULL) fprintf(stderr, "Ale gupie\n");
-				fprintf(stderr, "[QE] Vector taken\n");
-				fprintf(stderr, "[QE] Vec.size = %d\n", vec->size());
-				insVector->push_back(lidIn); // Inserting of the object
-				fprintf(stderr, "[QE] Object added to value\n");
-				fprintf(stderr, "[QE] New Vec.size = %d\n", vec->size());
-				
-				*result = new QueryNothingResult;
-				fprintf(stderr, "[QE] QueryNothingResult created\n");
-				fprintf(stderr, "[QE] Done!\n");
-				return 0;
-				}//case INSERT INTO
-			default:
-				{
-				fprintf(stderr, "[QE] Unknown AlgOp type\n");
-				return -1;
-				} // Reszta jeszcze nie zaimplementowane
-			}//switch
-			*result = new QueryNothingResult;
-			fprintf(stderr, "[QE] QueryNothingResult created\n");
-			fprintf(stderr, "[QE] Done!\n");
+			QueryResult *lResult, *rResult;
+			if ((errcode = executeQuery (((AlgOpNode *) tree)->getLArg(), &lResult)) != 0) {
+				return errcode;
+			}
+			if ((errcode = executeQuery (((AlgOpNode *) tree)->getRArg(), &rResult)) != 0) {
+				return errcode;
+			}
+			QueryResult *final_result;
+			errcode = this->algOperate(op,lResult,rResult,final_result);
+			if (errcode != 0) return errcode;
+			// algOperate returns score as it is (int, double, bool) so if in future we will want to unify executeQuery
+			// to we will have to change this:
+			*result = final_result;
+			// into this:
+			//*result = new QueryBagResult();
+			//result->addResult(final_result)
+			fprintf(stderr, "[QE] Algebraic operation Done!\n");
 			return 0;
-			}//case
-	
+			}//case TNALGOP
+
 		case TreeNode::TNNONALGOP: {
 			NonAlgOpNode::nonAlgOp op = ((NonAlgOpNode *) tree)->getOp();
 			fprintf(stderr, "[QE] NonAlgebraic operator - type recognized\n");
@@ -1276,17 +631,22 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			errcode = this->merge(op,partial_result, final_result);
 			if (errcode != 0) return errcode;
 			fprintf(stderr, "[QE] Merged partial results into final result\n");
-			fprintf(stderr, "[QE] NonAlgebraic operation Done!\n");
 			*result = final_result;
+			fprintf(stderr, "[QE] NonAlgebraic operation Done!\n");
 			return 0;
 		}//case TNNONALGOP
-		
-		case TreeNode::TNTRANS: {break;}
-	
+
+		case TreeNode::TNTRANS: {
+			// begin, abort and commit
+			break;
+		}
+
 		default:
 			{
 			fprintf(stderr, "Unknow node type\n");
 			ec << (ENoType | ErrQExecutor);
+			*result = new QueryNothingResult();
+			fprintf(stderr, "[QE] QueryNothingResult created\n");
 			return ENoType | ErrQExecutor;
 			}
 
@@ -1295,11 +655,380 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 	} // if tree!=Null
 	else // tree == NULL; return empty result
 		{
-		*result = new QueryNothingResult;
+		*result = new QueryNothingResult();
 		fprintf(stderr, "[QE] QueryNothingResult created\n");
 		}
 	return 0;
-    }
+    }//executeQuerry
+
+int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
+	fprintf(stderr, "[QE] derefQuery()\n");
+	int errcode;
+	if (arg->isSingleValue()) {
+		QueryResult *single;
+		errcode = arg->getSingleValue(single);
+		if (errcode != 0) return errcode;
+		int singleType = single->type();
+		switch (singleType) {
+			case QueryResult::QSEQUENCE: {
+				fprintf(stderr, "[QE] ERROR in derefQuery() - single value type expected\n");
+				res = new QueryNothingResult();
+				fprintf(stderr, "[QE] QueryNothingResult created\n");
+				return -1;
+			}
+			case QueryResult::QBAG: {
+				fprintf(stderr, "[QE] ERROR in derefQuery() - single value type expected\n");
+				res = new QueryNothingResult();
+				fprintf(stderr, "[QE] QueryNothingResult created\n");
+				return -1;
+			}
+			case QueryResult::QSTRUCT: {
+				fprintf(stderr, "[QE] ERROR in derefQuery() - single value type expected\n");
+				res = new QueryNothingResult();
+				fprintf(stderr, "[QE] QueryNothingResult created\n");
+				return -1;
+			}
+			case QueryResult::QBINDER: {
+				fprintf(stderr, "[QE] ERROR in derefQuery() - single value type expected\n");
+				res = new QueryNothingResult();
+				fprintf(stderr, "[QE] QueryNothingResult created\n");
+				return -1;
+			}
+			case QueryResult::QBOOL: {
+				res = single;
+				return 0;
+			}
+			case QueryResult::QINT: {
+				res = single;
+				return 0;
+			}
+			case QueryResult::QDOUBLE: {
+				res = single;
+				return 0;
+			}
+			case QueryResult::QSTRING: {
+				res = single;
+				return 0;
+			}
+			case QueryResult::QREFERENCE: {
+				LogicalID *ref_value = ((QueryReferenceResult *) arg)->getValue();
+				fprintf(stderr, "[QE] derefQuery() - dereferencing Object\n");
+				ObjectPointer *optr;
+				errcode = tr->getObjectPointer(ref_value, Store::Read, optr);
+				if (errcode != 0) {
+					fprintf(stderr, "[QE] Error in getObjectPointer\n");
+					return errcode;
+				}
+				DataValue* value = optr->getValue();
+				int vType = value->getType();
+				switch (vType) {
+					case Store::Integer: {
+						fprintf(stderr, "[QE] derefQuery() - ObjectValue = Int\n");
+						int tmp_value = value->getInt();
+						res = new QueryIntResult(tmp_value);
+						return 0;
+					}
+					case Store::Double: {
+						fprintf(stderr, "[QE] derefQuery() - ObjectValue = Double\n");
+						double tmp_value = value->getDouble();
+						res = new QueryDoubleResult(tmp_value);
+						return 0;
+					}
+					case Store::String: {
+						fprintf(stderr, "[QE] derefQuery() - ObjectValue = String\n");
+						string tmp_value = value->getString();
+						res = new QueryStringResult(tmp_value);
+						return 0;
+					}
+					default: {
+						fprintf(stderr, "[QE] ERROR! derefQuery() - wrong argument type\n");
+						res = new QueryNothingResult();
+						return -1;
+					}
+				}
+			}
+			case QueryResult::QNOTHING: {
+				res = single;
+				return 0;
+			}
+			default: {
+				fprintf(stderr, "[QE] ERROR in derefQuery() - unknown result type\n");
+				res = new QueryNothingResult();
+				fprintf(stderr, "[QE] QueryNothingResult created\n");
+				return -1;
+			}
+		}
+	}
+	else {
+		fprintf(stderr, "[QE] ERROR in derefQuery() - single value type expected\n");
+		res = new QueryNothingResult();
+		fprintf(stderr, "[QE] QueryNothingResult created\n");
+		return -1;
+	}
+	return 0;
+}
+
+int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResult *rArg, QueryResult *&final) {
+	int errcode;
+	if ((op == AlgOpNode::plus) || (op == AlgOpNode::minus) || (op == AlgOpNode::times) || (op == AlgOpNode::divide)) {
+		QueryResult *derefL, *derefR;
+		errcode = this->derefQuery(lArg,derefL);
+		if (errcode != 0) return errcode;
+		errcode = this->derefQuery(rArg,derefR);
+		if (errcode != 0) return errcode;
+		if ((derefL->type() == QueryResult::QINT) || (derefL->type() == QueryResult::QDOUBLE)) {
+			switch (op) {
+				case AlgOpNode::plus: {
+					fprintf(stderr, "[QE] + operation\n");
+					if (derefL->type() == QueryResult::QINT)
+						errcode = ((QueryIntResult *)derefL)->plus(derefR,final);
+					else
+						errcode = ((QueryDoubleResult *)derefL)->plus(derefR,final);
+					if (errcode != 0) return errcode;
+					return 0;
+				}
+				case AlgOpNode::minus: {
+					fprintf(stderr, "[QE] - operation\n");
+					if (derefL->type() == QueryResult::QINT)
+						errcode = ((QueryIntResult *)derefL)->minus(derefR,final);
+					else
+						errcode = ((QueryDoubleResult *)derefL)->minus(derefR,final);
+					if (errcode != 0) return errcode;
+					return 0;
+				}
+				case AlgOpNode::times: {
+					fprintf(stderr, "[QE] * operation\n");
+					if (derefL->type() == QueryResult::QINT)
+						errcode = ((QueryIntResult *)derefL)->times(derefR,final);
+					else
+						errcode = ((QueryDoubleResult *)derefL)->times(derefR,final);
+					if (errcode != 0) return errcode;
+					return 0;
+				}
+				case AlgOpNode::divide: {
+					fprintf(stderr, "[QE] / operation\n");
+					if (derefL->type() == QueryResult::QINT)
+						errcode = ((QueryIntResult *)derefL)->divide_by(derefR,final);
+					else
+						errcode = ((QueryDoubleResult *)derefL)->divide_by(derefR,final);
+					if (errcode != 0) return errcode;
+					return 0;
+				}
+				default: { break; }
+			}
+		}
+		else {
+			switch (op) {
+				case AlgOpNode::plus: {
+					final = new QueryNothingResult();
+					fprintf (stderr, "[QE] ERROR! + arguments must be INT or DOUBLE\n");
+					return -1;
+				}
+				case AlgOpNode::minus: {
+					final = new QueryNothingResult();
+					fprintf (stderr, "[QE] ERROR! - arguments must be INT or DOUBLE\n");
+					return -1;
+				}
+				case AlgOpNode::times: {
+					final = new QueryNothingResult();
+					fprintf (stderr, "[QE] ERROR! * arguments must be INT or DOUBLE\n");
+					return -1;
+				}
+				case AlgOpNode::divide: {
+					final = new QueryNothingResult();
+					fprintf (stderr, "[QE] ERROR! / arguments must be INT or DOUBLE\n");
+					return -1;
+				}
+				default: { break; }
+			}
+		}
+		return 0;
+	}
+	else if ((op == AlgOpNode::eq) || (op == AlgOpNode::neq) || (op == AlgOpNode::lt) || 
+	(op == AlgOpNode::gt) || (op == AlgOpNode::le) || (op == AlgOpNode::ge)) {
+		QueryResult *derefL, *derefR;
+		errcode = this->derefQuery(lArg,derefL);
+		if (errcode != 0) return errcode;
+		errcode = this->derefQuery(rArg,derefR);
+		if (errcode != 0) return errcode;
+		switch (op) {
+			case AlgOpNode::eq: {
+				fprintf(stderr, "[QE] = operation\n");
+				bool bool_tmp = derefL->equal(derefR);
+				final = new QueryBoolResult(bool_tmp);
+				return 0;
+			}
+			case AlgOpNode::neq: {
+				fprintf(stderr, "[QE] != operation\n");
+				bool bool_tmp = derefL->not_equal(derefR);
+				final = new QueryBoolResult(bool_tmp);
+				return 0;
+			}
+			case AlgOpNode::lt: {
+				fprintf(stderr, "[QE] < operation\n");
+				bool bool_tmp = derefL->less_than(derefR);
+				final = new QueryBoolResult(bool_tmp);
+				return 0;
+			}
+			case AlgOpNode::gt: {
+				fprintf(stderr, "[QE] > operation\n");
+				bool bool_tmp = derefL->greater_than(derefR);
+				final = new QueryBoolResult(bool_tmp);
+				return 0;
+			}
+			case AlgOpNode::le: {
+				fprintf(stderr, "[QE] <= operation\n");
+				bool bool_tmp = derefL->less_eq(derefR);
+				final = new QueryBoolResult(bool_tmp);
+				return 0;
+			}
+			case AlgOpNode::ge: {
+				fprintf(stderr, "[QE] >= operation\n");
+				bool bool_tmp = derefL->greater_eq(derefR);
+				final = new QueryBoolResult(bool_tmp);
+				return 0;
+			}
+			default : { break; }
+		}
+		return 0;
+	} 
+	else if ((op == AlgOpNode::boolOr) || (op == AlgOpNode::boolAnd)) {
+		if ((lArg->isBool()) && (rArg->isBool())) {
+			bool bool_l, bool_r;
+			errcode = lArg->getBoolValue(bool_l);
+			if (errcode != 0) return errcode;
+			errcode = rArg->getBoolValue(bool_r);
+			if (errcode != 0) return errcode;
+			switch (op) {
+				case AlgOpNode::boolOr: {
+					fprintf(stderr, "[QE] OR operation\n");
+					bool bool_tmp = (bool_l || bool_r);
+					final = new QueryBoolResult(bool_tmp);
+					return 0;
+				}
+				case AlgOpNode::boolAnd: {
+					fprintf(stderr, "[QE] AND operation\n");
+					bool bool_tmp = (bool_l && bool_r);
+					final = new QueryBoolResult(bool_tmp);
+					return 0;
+				}
+				default : { break; }
+			}
+		}
+		else {
+			switch (op) {
+				case AlgOpNode::boolOr: {
+					fprintf(stderr, "[QE] ERROR! OR arguments must be BOOLEAN\n");
+					final = new QueryNothingResult();
+					return -1;
+				}
+				case AlgOpNode::boolAnd: {
+					fprintf(stderr, "[QE] ERROR! AND arguments must be BOOLEAN\n");
+					final = new QueryNothingResult();
+					return -1;
+				}
+				default : { break; }
+			}
+		}
+		return 0;
+	} 
+	else if ((op == AlgOpNode::bagUnion) || (op == AlgOpNode::bagIntersect) || (op == AlgOpNode::bagMinus)) {
+		fprintf(stderr, "[QE] bagUnion / bagIntersect / bagMinus operation not implemented yet\n");
+		final = new QueryNothingResult();
+		return 0;
+	}
+	else if (op == AlgOpNode::comma) {
+		fprintf(stderr, "[QE] comma operation not implemented yet\n");
+		final = new QueryNothingResult();
+		return 0;
+	}
+	else if (op == AlgOpNode::insert) {
+		fprintf(stderr, "[QE] INSERT operation\n");
+		DataValue* value;
+		vector<LogicalID*> *insVector;
+		vector<ObjectPointer*>* vec;
+		int argType = lArg->type();
+		if (argType != QueryResult::QBAG) {  //Both arguments have to be a bags
+			fprintf(stderr, "[QE] Error - wrong INSERT argument\n");
+			return -1;
+		}
+		argType = rArg->type();
+		if (argType != QueryResult::QBAG) {  //Both arguments have to be a bags
+			fprintf(stderr, "[QE] Error - wrong INSERT argument\n");
+			return -1;
+		}
+		QueryResult* toInsert;  //the object to be inserted
+		unsigned int counter = lArg->size();
+		if (counter != 1) {// chyba zle jesli counter<>1
+			fprintf(stderr, "[QE] Wrong number of objects to be inserted.\n");
+			return -1;
+		}
+		if ((errcode = ((QueryBagResult *) lArg)->getResult(toInsert) != 0)) {
+			return errcode;
+		}
+		int resultType = toInsert->type();
+		if (resultType != QueryResult::QREFERENCE) {
+			fprintf(stderr, "[QE] Error - the bag result must consist of QREFERENCE\n");
+			return -1;
+		}
+		LogicalID *lidIn = ((QueryReferenceResult *) toInsert)->getValue();
+		ObjectPointer *optrIn;
+		if ((errcode = tr->getObjectPointer (lidIn, Store::Write, optrIn)) !=0) {
+			fprintf(stderr, "[QE] Error in getObjectPointer.\n");
+			return errcode;
+		}
+		if ((errcode = tr->removeRoot(optrIn)) != 0) {
+			fprintf(stderr, "[QE] Error in removeRoot.\n");
+			return errcode;
+		}
+		fprintf(stderr, "[QE] Root removed\n");
+		QueryResult* outer; //the object into which the left agument will be inserted
+		counter = rArg->size();
+		if (counter != 1) { // chyba zle jesli counter<>1
+			fprintf(stderr, "[QE] Wrong number of objects to be inserted.\n");
+			return -1;
+		}
+		if ((errcode = ((QueryBagResult *) rArg)->getResult(outer) != 0)) {
+			return errcode;
+		}
+		resultType = outer->type();
+		if (resultType != QueryResult::QREFERENCE) {
+			fprintf(stderr, "[QE] Error - the bag result must consist of QREFERENCE\n");
+			return -1;
+		}
+		LogicalID *lidOut = ((QueryReferenceResult *) outer)->getValue();
+		ObjectPointer *optrOut;
+		if ((errcode = tr->getObjectPointer (lidOut, Store::Write, optrOut)) !=0) {
+			fprintf(stderr, "[QE] Error in getObjectPointer.\n");
+			return errcode;
+		}
+		// We have to modify the "outer" object's value 
+		value = optrOut->getValue();
+		fprintf(stderr, "[QE] Value taken\n");
+		int vType = value->getType();
+		fprintf(stderr, "[QE] Type taken\n");
+		if (vType != Store::Vector) {
+			fprintf(stderr, "[QE] Error - the value has to be a Vector\n");
+			return -1;
+		}
+		insVector = value->getVector();
+		if (insVector == NULL) fprintf(stderr, "[QE] insVector == NULL\n");
+		fprintf(stderr, "[QE] Vector taken\n");
+		fprintf(stderr, "[QE] Vec.size = %d\n", vec->size());
+		insVector->push_back(lidIn); // Inserting of the object
+		fprintf(stderr, "[QE] Object added to value\n");
+		fprintf(stderr, "[QE] New Vec.size = %d\n", vec->size());
+		final = new QueryNothingResult();
+		fprintf(stderr, "[QE] Done!\n");
+		return 0;
+	}
+	else { // algOperation type not known
+		fprintf(stderr, "[QE] ERROR! Algebraic operation type not known\n");
+		final = new QueryNothingResult();
+		return -1;
+	}
+	return 0;
+}
 
 int QueryExecutor::combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryResult *lRes, QueryResult *&partial) {
 	fprintf(stderr, "[QE] combine() function applied to the partial results\n");

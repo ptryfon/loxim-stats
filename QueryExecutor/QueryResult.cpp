@@ -22,13 +22,10 @@ namespace QExecutor {
 
 //constructors
 QuerySequenceResult::QuerySequenceResult() 			{}
-QuerySequenceResult::QuerySequenceResult(unsigned int size)	{}
 QuerySequenceResult::QuerySequenceResult(vector<QueryResult*> s){ seq = s; }
 QueryBagResult::QueryBagResult() 				{}
-QueryBagResult::QueryBagResult(unsigned int size)		{}
 QueryBagResult::QueryBagResult(vector<QueryResult*> b)		{ bag = b; }
 QueryStructResult::QueryStructResult() 				{}
-QueryStructResult::QueryStructResult(unsigned int size)		{}
 QueryStructResult::QueryStructResult(vector<QueryResult*> s)	{ str = s; }
 QueryBinderResult::QueryBinderResult()				{}
 QueryBinderResult::QueryBinderResult(string n, QueryResult* r) 	{ name=n; item=r; }
@@ -107,7 +104,19 @@ unsigned int QueryNothingResult::size()		{ return 0; }
 
 //accesors for collection result classes - sequence, bag, struct
 void QuerySequenceResult::addResult(QueryResult *r){ 
-	seq.push_back(r); 
+	if (((r->type()) == (QueryResult::QSEQUENCE)) || ((r->type()) == (QueryResult::QBAG))) {
+		unsigned int seq_size = (r->size());
+		for (unsigned int i = 0; i < seq_size; i++) {
+			int errcode;
+			QueryResult *tmp_res;
+			errcode = (r->getResult(tmp_res));
+			seq.push_back(tmp_res);
+		}
+	}
+	else {
+		seq.push_back(r);
+	}
+	//this->orderBy() 
 }
 
 int QuerySequenceResult::getResult(QueryResult *&r){ 
@@ -131,7 +140,7 @@ int QuerySequenceResult::at(unsigned int i, QueryResult *&r){
 }
 
 void QueryBagResult::addResult(QueryResult *r){
-	if ((r->type()) == (QueryResult::QBAG)) {
+	if (((r->type()) == (QueryResult::QSEQUENCE)) || ((r->type()) == (QueryResult::QBAG))) {
 		unsigned int bag_size = (r->size());
 		for (unsigned int i = 0; i < bag_size; i++) {
 			int errcode;
@@ -164,7 +173,17 @@ int QueryBagResult::at(unsigned int i, QueryResult *&r){
 }
 
 void QueryStructResult::addResult(QueryResult *r){ 
-	str.push_back(r);
+if ((r->type()) == (QueryResult::QSTRUCT)) {
+		unsigned int str_size = (r->size());
+		for (unsigned int i = 0; i < str_size; i++) {
+			int errcode;
+			QueryResult *tmp_res;
+			errcode = (r->getResult(tmp_res));
+			str.push_back(tmp_res);
+		}
+	}
+	else
+		str.push_back(r); 
 }
 
 int QueryStructResult::getResult(QueryResult *&r){ 
@@ -214,45 +233,72 @@ void QueryReferenceResult::setValue(LogicalID* v)	{ value = v; }
 
 //function plus()
 int QueryIntResult::plus(QueryResult *r, QueryResult *&res){ 
-	if (r->type() != QueryResult::QINT ) {
+	if ((r->type() != QueryResult::QINT) || (r->type() != QueryResult::QDOUBLE)) {
 		res = new QueryNothingResult();
+		fprintf (stderr, "[QE] ERROR! + arguments must be INT or DOUBLE\n");
 		return -1; 
 	}
-	int tmp_value = value + ((QueryIntResult*) r)->getValue();
-	res = new QueryIntResult(tmp_value);
+	if (r->type() == QueryResult::QINT) {
+		int tmp_value = value + ((QueryIntResult*) r)->getValue();
+		res = new QueryIntResult(tmp_value);
+	}
+	else { //QDOUBLE
+		double tmp_value = ((double)value) + ((QueryDoubleResult*) r)->getValue();
+		res = new QueryDoubleResult(tmp_value);
+	}
 	return 0; 
 }
 
 int QueryDoubleResult::plus(QueryResult *r, QueryResult *&res){
-	if (r->type() != QueryResult::QDOUBLE ) {
+	if ((r->type() != QueryResult::QINT) || (r->type() != QueryResult::QDOUBLE)) {
 		res = new QueryNothingResult();
+		fprintf (stderr, "[QE] ERROR! + arguments must be INT or DOUBLE\n");
 		return -1; 
 	}
-	double tmp_value = value + ((QueryDoubleResult*) r)->getValue(); 
-	fprintf(stderr, "[QE] + Result is: %e\n", tmp_value);
-	res = new QueryDoubleResult(tmp_value);
+	if (r->type() == QueryResult::QINT) {
+		double tmp_value = value + (double)(((QueryIntResult*) r)->getValue());
+		res = new QueryDoubleResult(tmp_value);
+	}
+	else { //QDOUBLE
+		double tmp_value = value + ((QueryDoubleResult*) r)->getValue();
+		res = new QueryDoubleResult(tmp_value);
+	}
 	return 0; 
 }
 
 //function minus()
 int QueryIntResult::minus(QueryResult *r, QueryResult *&res){
-	if (r->type() != QueryResult::QINT ) {
+	if ((r->type() != QueryResult::QINT) || (r->type() != QueryResult::QDOUBLE)) {
 		res = new QueryNothingResult();
+		fprintf (stderr, "[QE] ERROR! - arguments must be INT or DOUBLE\n");
 		return -1; 
 	} 
-	int tmp_value = value - ((QueryIntResult*) r)->getValue();
-	res = new QueryIntResult(tmp_value);
+	if (r->type() == QueryResult::QINT) {
+		int tmp_value = value - ((QueryIntResult*) r)->getValue();
+		res = new QueryIntResult(tmp_value);
+	}
+	else { //QDOUBLE
+		double tmp_value = ((double)value) - ((QueryDoubleResult*) r)->getValue();
+		res = new QueryDoubleResult(tmp_value);
+	}
 	return 0; 
 }
 
 int QueryDoubleResult::minus(QueryResult *r, QueryResult *&res){ 
-	if (r->type() != QueryResult::QDOUBLE ) {
+	if ((r->type() != QueryResult::QINT) || (r->type() != QueryResult::QDOUBLE)) {
 		res = new QueryNothingResult();
+		fprintf (stderr, "[QE] ERROR! - arguments must be INT or DOUBLE\n");
 		return -1; 
 	}
-	double tmp_value = value - ((QueryDoubleResult*) r)->getValue();
-	res = new QueryDoubleResult(tmp_value);
-	return 0;
+	if (r->type() == QueryResult::QINT) {
+		double tmp_value = value - (double)(((QueryIntResult*) r)->getValue());
+		res = new QueryDoubleResult(tmp_value);
+	}
+	else { //QDOUBLE
+		double tmp_value = value - ((QueryDoubleResult*) r)->getValue();
+		res = new QueryDoubleResult(tmp_value);
+	}
+	return 0; 
 }
 
 int QueryIntResult::minus(QueryResult *&res){ 
@@ -269,60 +315,99 @@ int QueryDoubleResult::minus(QueryResult *&res){
 
 //function times()
 int QueryIntResult::times(QueryResult *r, QueryResult *&res){ 
-	if (r->type() != QueryResult::QINT ) {
+	if ((r->type() != QueryResult::QINT) || (r->type() != QueryResult::QDOUBLE)) {
 		res = new QueryNothingResult();
+		fprintf (stderr, "[QE] ERROR! * arguments must be INT or DOUBLE\n");
 		return -1; 
 	}
-	int tmp_value = value * ((QueryIntResult*) r)->getValue();
-	res = new QueryIntResult(tmp_value);
-	return 0; 
+	if (r->type() == QueryResult::QINT) {
+		int tmp_value = value * ((QueryIntResult*) r)->getValue();
+		res = new QueryIntResult(tmp_value);
+	}
+	else { //QDOUBLE
+		double tmp_value = ((double)value) * ((QueryDoubleResult*) r)->getValue();
+		res = new QueryDoubleResult(tmp_value);
+	}
+	return 0;
 }
 
 int QueryDoubleResult::times(QueryResult *r, QueryResult *&res){ 
-	if (r->type() != QueryResult::QDOUBLE ) {
+	if ((r->type() != QueryResult::QINT) || (r->type() != QueryResult::QDOUBLE)) {
 		res = new QueryNothingResult();
+		fprintf (stderr, "[QE] ERROR! * arguments must be INT or DOUBLE\n");
 		return -1; 
 	}
-	double tmp_value = value * ((QueryDoubleResult*) r)->getValue();
-	res = new QueryDoubleResult(tmp_value);
-	return 0;
+	if (r->type() == QueryResult::QINT) {
+		double tmp_value = value * (double)(((QueryIntResult*) r)->getValue());
+		res = new QueryDoubleResult(tmp_value);
+	}
+	else { //QDOUBLE
+		double tmp_value = value * ((QueryDoubleResult*) r)->getValue();
+		res = new QueryDoubleResult(tmp_value);
+	}
+	return 0; 
 }
 
 //function divide_by()
 int QueryIntResult::divide_by(QueryResult *r, QueryResult *&res){
-	if (r->type() != QueryResult::QINT ) {
+	if ((r->type() != QueryResult::QINT) || (r->type() != QueryResult::QDOUBLE)) {
 		res = new QueryNothingResult();
+		fprintf (stderr, "[QE] ERROR! / arguments must be INT or DOUBLE\n");
 		return -1; 
 	}
-	if (((QueryIntResult*) r)->getValue() == 0) {
-		res = new QueryNothingResult();
-		fprintf (stderr, "[QE] Division by 0 error!\n");
-		return -2;  //devide by 0 error 
+	if (r->type() == QueryResult::QINT) {
+		if (((QueryIntResult*) r)->getValue() == 0) {
+			res = new QueryNothingResult();
+			fprintf (stderr, "[QE] Division by 0 error!\n");
+			return -2; //devide by 0 error 
+		}
+		int tmp_value = value / ((QueryIntResult*) r)->getValue();
+		res = new QueryIntResult(tmp_value);
 	}
-	int tmp_value = value / ((QueryIntResult*) r)->getValue();
-	res = new QueryIntResult(tmp_value);
+	else { //QDOUBLE
+		if (((QueryDoubleResult*) r)->getValue() == 0) {
+			res = new QueryNothingResult();
+			fprintf (stderr, "[QE] Division by 0 error!\n");
+			return -2; //devide by 0 error 
+		}
+		double tmp_value = (double)value / ((QueryDoubleResult*) r)->getValue();
+		res = new QueryDoubleResult(tmp_value);
+	}
 	return 0; 
 }
 
 int QueryDoubleResult::divide_by(QueryResult *r, QueryResult *&res){ 
-	if (r->type() != QueryResult::QDOUBLE ) {
+	if ((r->type() != QueryResult::QINT) || (r->type() != QueryResult::QDOUBLE)) {
 		res = new QueryNothingResult();
+		fprintf (stderr, "[QE] ERROR! / arguments must be INT or DOUBLE\n");
 		return -1; 
 	}
-	if (((QueryDoubleResult*) r)->getValue() == 0) {
-		res = new QueryNothingResult();
-		fprintf (stderr, "[QE] Division by 0 error!\n");
-		return -2; //devide by 0 error 
+	if (r->type() == QueryResult::QINT) {
+		if (((QueryIntResult*) r)->getValue() == 0) {
+			res = new QueryNothingResult();
+			fprintf (stderr, "[QE] Division by 0 error!\n");
+			return -2; //devide by 0 error 
+		}
+		double tmp_value = value / (double)(((QueryIntResult*) r)->getValue());
+		res = new QueryDoubleResult(tmp_value);
 	}
-	double tmp_value = value / ((QueryIntResult*) r)->getValue();
-	res = new QueryDoubleResult(tmp_value);
-	return 0;
+	else { //QDOUBLE
+		if (((QueryDoubleResult*) r)->getValue() == 0) {
+			res = new QueryNothingResult();
+			fprintf (stderr, "[QE] Division by 0 error!\n");
+			return -2; //devide by 0 error 
+		}
+		double tmp_value = value / ((QueryDoubleResult*) r)->getValue();
+		res = new QueryDoubleResult(tmp_value);
+	}
+	return 0; 
 }
 
 // boolean functions
 int QueryBoolResult::bool_and(QueryResult *r, QueryResult *&res){ 
 	if (r->type() != QueryResult::QBOOL ) {
 		res = new QueryNothingResult();
+		fprintf (stderr, "[QE] ERROR! AND arguments must be BOOLEAN\n");
 		return -1; 
 	}
 	bool tmp_value = value && ((QueryBoolResult*) r)->getValue();
@@ -333,6 +418,7 @@ int QueryBoolResult::bool_and(QueryResult *r, QueryResult *&res){
 int QueryBoolResult::bool_or(QueryResult *r, QueryResult *&res){ 
 	if (r->type() != QueryResult::QBOOL ) {
 		res = new QueryNothingResult();
+		fprintf (stderr, "[QE] ERROR! OR arguments must be BOOLEAN\n");
 		return -1; 
 	}
 	bool tmp_value = value || ((QueryBoolResult*) r)->getValue();
@@ -675,10 +761,12 @@ bool QueryReferenceResult::less_eq(QueryResult *r){
 // nested function returns bag of binders, which will be pushed on the environment stack
 
 int QuerySequenceResult::nested(Transaction *tr, QueryResult *&r) {
+	fprintf(stderr, "[QE] nested(): ERROR! QuerySequenceResult shouldn't be nested\n");
 	return -1; // nested () function is applied to rows of a QueryResult and so, it shouldn't be applied to sequences and bags
 }
 
 int QueryBagResult::nested(Transaction *tr, QueryResult *&r) {
+	fprintf(stderr, "[QE] nested(): ERROR! QueryBagResult shouldn't be nested\n");
 	return -1; // nested () function is applied to rows of a QueryResult and so, it shouldn't be applied to sequences and bags
 }
 
@@ -773,13 +861,9 @@ int QueryReferenceResult::nested(Transaction *tr, QueryResult *&r) {
 			case Store::Vector: {
 				vector<LogicalID*>* tmp_vec = (tmp_data_value->getVector());
 				fprintf(stderr, "[QE] nested(): QueryReferenceResult pointing vector value\n");
-				if (tmp_vec == NULL) fprintf (stderr, "[QE] nested() vector == NULL");
 				int vec_size = tmp_vec->size();
-	
-				fprintf (stderr, "[QE] nested() vector ok");
 				for (int i = 0; i < vec_size; i++ ) {
 					LogicalID *tmp_logID = tmp_vec->at(i);
-					fprintf (stderr, "[QE] nested() vector ok 2");
 					if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, optr)) != 0) {
 					fprintf(stderr, "[QE] Error in getObjectPointer\n");
 						return errcode;
@@ -860,5 +944,88 @@ int QueryBoolResult::getBoolValue(bool &b) {
 }
 int QueryReferenceResult::getBoolValue(bool &b)	{ return -1; } //error not a boolean type
 int QueryNothingResult::getBoolValue(bool &b)	{ return -1; } //error not a boolean type
+
+//function isSingleValue() - returns true if result is a boolean,int,double,string,reference or nothing 
+//(also if it is table 1x1 containing one of them), false if not
+bool QuerySequenceResult::isSingleValue() { 
+	if (seq.size() == 1)
+		return ((seq.at(0))->isSingleValue());
+	else
+		return false; 
+}
+bool QueryBagResult::isSingleValue() { 
+	if (bag.size() == 1)
+		return ((bag.at(0))->isSingleValue());
+	else
+		return false; 
+}
+bool QueryStructResult::isSingleValue() { 
+	if (str.size() == 1)
+		return ((str.at(0))->isSingleValue());
+	else
+		return false; 
+}
+bool QueryBinderResult::isSingleValue() {
+if (item != NULL)
+		return (item->isSingleValue());
+	else
+		return false; 
+}
+bool QueryStringResult::isSingleValue()		{ return true; }
+bool QueryIntResult::isSingleValue()		{ return true; }
+bool QueryDoubleResult::isSingleValue()		{ return true; }
+bool QueryBoolResult::isSingleValue()		{ return true; }
+bool QueryReferenceResult::isSingleValue()	{ return true; }
+bool QueryNothingResult::isSingleValue()	{ return true; }
+
+int QuerySequenceResult::getSingleValue(QueryResult *&r) { 
+	if (seq.size() == 1)
+		return ((seq.at(0))->getSingleValue(r));
+	else
+		return -1; 
+}
+int QueryBagResult::getSingleValue(QueryResult *&r) {
+	if (bag.size() == 1)
+		return ((bag.at(0))->getSingleValue(r));
+	else
+		return -1;
+}
+int QueryStructResult::getSingleValue(QueryResult *&r) { 
+	if (str.size() == 1)
+		return ((str.at(0))->getSingleValue(r));
+	else
+		return -1;
+}
+int QueryBinderResult::getSingleValue(QueryResult *&r) {
+if (item != NULL)
+		return (item->getSingleValue(r));
+	else
+		return false; 
+}
+int QueryStringResult::getSingleValue(QueryResult *&r) {
+	r = new QueryStringResult(value);
+	return 0;
+}
+int QueryIntResult::getSingleValue(QueryResult *&r) {
+	r = new QueryIntResult(value);
+	return 0;
+}
+int QueryDoubleResult::getSingleValue(QueryResult *&r) {
+	r = new QueryDoubleResult(value);
+	return 0;
+}
+int QueryBoolResult::getSingleValue(QueryResult *&r) { 
+	r = new QueryBoolResult(value);
+	return 0;
+}
+int QueryReferenceResult::getSingleValue(QueryResult *&r) {
+	r = new QueryReferenceResult(value);
+	return 0;
+}
+int QueryNothingResult::getSingleValue(QueryResult *&r) {
+	r = new QueryNothingResult();
+	return 0;
+}
+
 
 }

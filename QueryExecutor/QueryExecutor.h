@@ -46,6 +46,8 @@ namespace QExecutor
 		EnvironmentStack stack;
 		int combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryResult *lRes, QueryResult *&partial);
 		int merge(NonAlgOpNode::nonAlgOp op, QueryResult *partial, QueryResult *&final);
+		int algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResult *rArg, QueryResult *&final);
+		int derefQuery(QueryResult *arg, QueryResult *&res);
 	public:
 		QueryExecutor() { tr = NULL; };
 		~QueryExecutor();
