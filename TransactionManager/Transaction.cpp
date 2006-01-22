@@ -41,7 +41,7 @@ namespace TManager
 		logm = lgmg;
 		
 		/* message to Logs */
-	    	return logm->beginTransaction(tid, id);
+	    	return logm->beginTransaction(tid->getId(), id);
 	}
 				
 	int Transaction::getObjectPointer(LogicalID* lid, AccessMode mode, ObjectPointer* &p)
@@ -209,7 +209,7 @@ namespace TManager
 		unsigned id;
 	    
 		err << "Transaction: commit\n";
-		errorNumber = logm->commitTransaction(tid, id);  //need to process error
+		errorNumber = logm->commitTransaction(tid->getId(), id);  //need to process error
 		return tm->commit(this);
 	}
 
@@ -219,7 +219,7 @@ namespace TManager
 		unsigned id;
 	    
 		err << "Transaction: abort\n";
-		errorNumber = logm->rollbackTransaction(tid, sm, id);  //need to process error
+		errorNumber = logm->rollbackTransaction(tid->getId(), sm, id);  //need to process error
 		return tm->abort(this);
 	}
 
