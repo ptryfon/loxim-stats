@@ -116,7 +116,7 @@ int BeginTransactionRecord::rollBack(SetOfTransactionIDS* setOfTIDs, StoreManage
 {
   // Ponieważ się cofamy, to po napotkaniu poczatku tranzakcji 
   // mozemy ja usunac ze spisu transakcji do wycofania.
-  setOfTIDs->erase(*tid);
+  setOfTIDs->erase(tid);
   return 0;
 }
 
@@ -133,20 +133,20 @@ int CkptRecord::write( int fileDes ) { return LogIO::writeTransactionIDVector( t
 int WriteRecord::deleteFromStore(StoreManager* sm, DataValue *dv)
 {
   ObjectPointer* op = sm->createObjectPointer( lid, name, dv);
-  return sm->deleteObject((TransactionID*) NULL, op );
+  return sm->deleteObject( NULL, op );
 }
 
 //UWAGA to zle dziala  TODO createObject, trzeba zamienic na cos co robi undo delete
 int WriteRecord::addToStore(StoreManager* sm, DataValue *dv)
 {
   ObjectPointer* op = sm->createObjectPointer( lid, name, dv);
-  return sm->createObject((TransactionID*) NULL, name, dv, op );
+  return sm->createObject( NULL, name, dv, op );
 }
 
 int WriteRecord::rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm)
 {
   //sprawdzamy czy zapis dotyczy jednej z tranzakcji do wycofania.
-  if(setOfTIDs->find(*tid) != setOfTIDs->end())
+  if(setOfTIDs->find(tid) != setOfTIDs->end())
   {
     //zła postać rekordu w logach
     if(oldVal == NULL && newVal == NULL )
@@ -203,7 +203,7 @@ int WriteRecord::write( int fileDes )
 int RootRecord::removeRootFromStore( StoreManager* sm )
 {
   ObjectPointer* op = sm->createObjectPointer( lid );
-  return sm->removeRoot( (TransactionID*) NULL, op );
+  return sm->removeRoot( NULL, op );
 }
 
 //Uwaga może działać bez sensu, jeśli przy odtwarzaniu obiektu bedzie przydzielane nowe lid
@@ -211,7 +211,7 @@ int RootRecord::removeRootFromStore( StoreManager* sm )
 int RootRecord::addRootToStore( StoreManager* sm )
 {
   ObjectPointer* op = sm->createObjectPointer( lid );
-  return sm->addRoot( (TransactionID*) NULL, op );
+  return sm->addRoot( NULL, op );
 }
 
 
@@ -237,7 +237,7 @@ int RootRecord::read( int fileDes, StoreManager* sm )
 int AddRootRecord::rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm)
 {
   //sprawdzamy czy zapis dotyczy jednej z tranzakcji do wycofania.
-  if(setOfTIDs->find(*tid) != setOfTIDs->end())
+  if(setOfTIDs->find(tid) != setOfTIDs->end())
     //Wycofywana tranzakcja dodała roota więc go usuwamy.
     return removeRootFromStore( sm );
   return 0;
@@ -247,7 +247,7 @@ int AddRootRecord::rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm)
 int RemoveRootRecord::rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm)
 {
   //sprawdzamy czy zapis dotyczy jednej z tranzakcji do wycofania.
-  if(setOfTIDs->find(*tid) != setOfTIDs->end())
+  if(setOfTIDs->find(tid) != setOfTIDs->end())
     //Wycofywana tranzakcja usunęła roota więc go dodajemy.
     return addRootToStore( sm );
   return 0;

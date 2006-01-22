@@ -103,18 +103,18 @@ int LogIO::writeDataValue( DataValue *dv, int fileDes )
   return result;
 }
 
-int LogIO::readTransactionIDVector( vector< TransactionID *> *&tidVec, int fileDes )
+int LogIO::readTransactionIDVector( vector<int> *&tidVec, int fileDes )
 {
   int errCode;
   int size;
 
   if( ( errCode = readInt( fileDes, size ) ) ) return errCode;
 
-  tidVec = new vector< TransactionID *>( size );
+  tidVec = new vector<int>( size );
 
   for( int i = 0; i < size; i++ )
   {
-    TransactionID *tid;
+    int tid;
 
     errCode = readTransactionID( tid, fileDes );
 
@@ -126,7 +126,7 @@ int LogIO::readTransactionIDVector( vector< TransactionID *> *&tidVec, int fileD
   return 0;
 }
 
-int LogIO::writeTransactionIDVector( vector< TransactionID *> *tidVec, int fileDes )
+int LogIO::writeTransactionIDVector( vector< int > *tidVec, int fileDes )
 {
   int errCode;
 

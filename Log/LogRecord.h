@@ -19,12 +19,8 @@ namespace Logs
 #include <set>
 #include <stdio.h>
 #include "../Store/Store.h"
-#include "../TransactionManager/Transaction.h"
-#include "../Lock/Comparator.h"
 
 using namespace Store;
-using namespace TManager;
-using namespace LockMgr;
 
 
 namespace Logs
@@ -45,7 +41,7 @@ namespace Logs
 #define ADD_ROOT_LOG_REC_TYPE     8
 #define REMOVE_ROOT_LOG_REC_TYPE  9
 
-  typedef set<TransactionID, TransactionIDCmp> SetOfTransactionIDS;
+  typedef set<int> SetOfTransactionIDS;
 
   class LogRecord
   {
@@ -105,7 +101,7 @@ namespace Logs
     friend class LogRecord;
 
     protected:
-    TransactionID *tid;
+    int tid;
 
     TransactionRecord( int _type ) : LogRecord( _type ) {}
 
@@ -114,7 +110,7 @@ namespace Logs
 
     public:
     virtual ~TransactionRecord() { /* delete tid; */ } // TODO
-    TransactionRecord( TransactionID *_tid ) : LogRecord(), tid( _tid ) {}
+    TransactionRecord( int _tid, bool whatever ) : LogRecord(), tid( _tid ) {}
   };
 
 
@@ -129,7 +125,7 @@ namespace Logs
 
     public:
     virtual int rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm);
-    BeginTransactionRecord( TransactionID *_tid ) : TransactionRecord( _tid ) {}
+    BeginTransactionRecord( int _tid ) : TransactionRecord( _tid, true ) {}
   };
 
 
@@ -152,8 +148,8 @@ namespace Logs
     virtual int addToStore(StoreManager* sm, DataValue *dv);
 
     public:
-    WriteRecord( TransactionID *_tid, LogicalID *_lid, string _name, DataValue *_oldVal, DataValue *_newVal )
-    : TransactionRecord( _tid ), lid( _lid ), oldVal( _oldVal ), newVal( _newVal ), name(_name)
+    WriteRecord( int _tid, LogicalID *_lid, string _name, DataValue *_oldVal, DataValue *_newVal )
+    : TransactionRecord( _tid, true ), lid( _lid ), oldVal( _oldVal ), newVal( _newVal ), name(_name)
     {}
     virtual ~WriteRecord() {  /*delete lid; delete oldVal; delete newVal;*/ } //
     virtual int rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm);
@@ -175,7 +171,7 @@ namespace Logs
     virtual int addRootToStore( StoreManager* sm );
 
     public:
-    RootRecord( TransactionID *_tid, LogicalID *_lid) : TransactionRecord( _tid ), lid(_lid) {}
+    RootRecord( int _tid, LogicalID *_lid) : TransactionRecord( _tid, true ), lid(_lid) {}
     virtual ~RootRecord() {  /*delete lid; */ } //
     //virtual int rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm);
   };
@@ -189,7 +185,7 @@ namespace Logs
     virtual int instance( LogRecord *&result ) { result = new AddRootRecord(); return 0; }
 
     public:
-    AddRootRecord( TransactionID *_tid, LogicalID *_lid) : RootRecord( _tid, _lid ) {}
+    AddRootRecord( int _tid, LogicalID *_lid) : RootRecord( _tid, _lid ) {}
     virtual int rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm);
     virtual ~AddRootRecord(){}
   };
@@ -203,7 +199,7 @@ namespace Logs
     virtual int instance( LogRecord *&result ) { result = new RemoveRootRecord(); return 0; }
 
     public:
-    RemoveRootRecord( TransactionID *_tid, LogicalID *_lid) : RootRecord( _tid, _lid ) {}
+    RemoveRootRecord( int _tid, LogicalID *_lid) : RootRecord( _tid, _lid ) {}
     virtual int rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm);
     virtual ~RemoveRootRecord(){}
   };
@@ -218,7 +214,7 @@ namespace Logs
     virtual int instance( LogRecord *&result ) { result = new CommitRecord(); return 0; }
 
     public:
-    CommitRecord( TransactionID *_tid ) : TransactionRecord( _tid ) {}
+    CommitRecord( int _tid ) : TransactionRecord( _tid, true ) {}
   };
 
 
@@ -232,7 +228,7 @@ namespace Logs
     virtual int instance( LogRecord *&result ) { result = new RollbackRecord(); return 0; }
 
     public:
-    RollbackRecord( TransactionID *_tid ) : TransactionRecord( _tid ) {}
+    RollbackRecord( int _tid ) : TransactionRecord( _tid, true ) {}
   };
 
   class CkptRecord : public LogRecord
@@ -240,7 +236,7 @@ namespace Logs
     friend class LogRecord;
 
     protected:
-    vector< TransactionID * > *tidVec;
+    vector< int > *tidVec;
 
     CkptRecord() : LogRecord( CKPT_LOG_REC_TYPE ) {}
 
@@ -249,7 +245,7 @@ namespace Logs
     virtual int instance( LogRecord *&result ) { result = new CkptRecord(); return 0; }
 
     public:
-    CkptRecord( vector< TransactionID *> *_tidVec ) : LogRecord(), tidVec( _tidVec ) {}
+    CkptRecord( vector< int > *_tidVec ) : LogRecord(), tidVec( _tidVec ) {}
 
     virtual ~CkptRecord() { delete tidVec; }
   };

@@ -9,12 +9,10 @@ namespace Logs
 #include <string>
 #include <stdio.h>
 #include "../Store/Store.h"
-#include "../TransactionManager/Transaction.h"
 #include "LogThread.h"
 #include "LogRecord.h"
 
 using namespace Store;
-using namespace TManager;
 
 
 namespace Logs
@@ -30,7 +28,7 @@ namespace Logs
     int fileDes; // deskryptor pliku dziennika
 
     //jesli tid == NULL to do logow nie jest nic zapisywane
-    void pushLogable( TransactionID* tid, LogRecord *record);
+    void pushLogable( int tid, LogRecord *record);
 
     public:
 
@@ -41,18 +39,18 @@ namespace Logs
     /**
      * Zapisuje do dziennika <BEGIN tid>.
      */
-    int beginTransaction( TransactionID *tid, unsigned &id );
+    int beginTransaction( int tid, unsigned &id );
 
     /**
      * Nakazuje zapisac w logach informacje o starej i nowej wartosci
      * zmodyfikowanego atrybutu.
      */
-    int write( TransactionID *tid, LogicalID *lid, string name, DataValue *oldVal, DataValue *newVal, unsigned &id );
+    int write( int tid, LogicalID *lid, string name, DataValue *oldVal, DataValue *newVal, unsigned &id );
 
     /**
      * Rozpoczyna tworzenie bezkonfliktowego punktu kontrolnego.
      */
-    int checkpoint( vector<TransactionID *> *tids, unsigned &id );
+    int checkpoint( vector<int> *tids, unsigned &id );
 
     /**
      * Konczy tworzenie bezkonfliktowego punktu kontrolnego.
@@ -63,12 +61,12 @@ namespace Logs
      * Konczy sie w chwili gdy wszystkie logi transakcji tid znajda sie na dysku;
      * wtedy dopiero mozna zaczac zrzucac brudnych stron do bazy na dysku.
      */
-    int commitTransaction( TransactionID *tid, unsigned &id );
+    int commitTransaction( int tid, unsigned &id );
 
     /**
      * Zapisuje do dziennika <ABORT tid>.
      */
-    int rollbackTransaction( TransactionID *tid, StoreManager *sm, unsigned &id );
+    int rollbackTransaction( int tid, StoreManager *sm, unsigned &id );
 
     /**
      * Zapisuje do dziennika <SHUTDOWN> ("poprawnie zamknieto baze danych").
@@ -78,12 +76,12 @@ namespace Logs
     /**
      * Nakazuje zapisac wlogach informacje o nowym korzeniu (root).
      */
-    int addRoot( TransactionID *tid, LogicalID *lid, unsigned &id );
+    int addRoot( int tid, LogicalID *lid, unsigned &id );
 
     /**
      * Nakazuje zapisac wlogach informacje o nowym korzeniu (root).
      */
-    int removeRoot( TransactionID *tid, LogicalID *lid, unsigned &id );
+    int removeRoot( int tid, LogicalID *lid, unsigned &id );
 
     int destroy();
   };

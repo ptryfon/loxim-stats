@@ -10,7 +10,6 @@ namespace Logs
 #include <string>
 #include <stdio.h>
 #include "../Store/Store.h"
-#include "../TransactionManager/Transaction.h"
 #include "LogRecord.h"
 #include <queue>
 #include <pthread.h>
@@ -18,7 +17,6 @@ namespace Logs
 #include <errno.h>
 
 using namespace Store;
-using namespace TManager;
 
 
 namespace Logs

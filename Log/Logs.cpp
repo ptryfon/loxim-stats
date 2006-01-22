@@ -9,9 +9,9 @@
 
 /* LogManager class */
 
-void LogManager::pushLogable( TransactionID* tid, LogRecord *record)
+void LogManager::pushLogable( int tid, LogRecord *record)
 {
-  if(tid != NULL)
+  if(tid >= 0)
     logThread->push( record );
 }
 
@@ -41,7 +41,7 @@ int LogManager::destroy()
   return 0;
 }
 
-int LogManager::beginTransaction( TransactionID *tid, unsigned &id )
+int LogManager::beginTransaction( int tid, unsigned &id )
 {
   LogRecord *record = new BeginTransactionRecord( tid );
   logThread->push( record );
@@ -53,7 +53,7 @@ int LogManager::beginTransaction( TransactionID *tid, unsigned &id )
 }
 
 //jeśli tid == NULL to do logów nie jest nic zapisywane
-int LogManager::write( TransactionID *tid, LogicalID *lid, string name, DataValue *oldVal, DataValue *newVal, unsigned &id )
+int LogManager::write( int tid, LogicalID *lid, string name, DataValue *oldVal, DataValue *newVal, unsigned &id )
 {
   LogRecord *record = new WriteRecord( tid, lid, name, oldVal, newVal );
   pushLogable( tid, record );
@@ -64,7 +64,7 @@ int LogManager::write( TransactionID *tid, LogicalID *lid, string name, DataValu
   return 0;
 }
 
-int LogManager::addRoot( TransactionID *tid, LogicalID *lid, unsigned &id )
+int LogManager::addRoot( int tid, LogicalID *lid, unsigned &id )
 {
   LogRecord *record = new AddRootRecord( tid, lid);
   pushLogable( tid, record );
@@ -74,7 +74,7 @@ int LogManager::addRoot( TransactionID *tid, LogicalID *lid, unsigned &id )
   return 0;
 }
 
-int LogManager::removeRoot( TransactionID *tid, LogicalID *lid, unsigned &id )
+int LogManager::removeRoot( int tid, LogicalID *lid, unsigned &id )
 {
   LogRecord *record = new RemoveRootRecord( tid, lid);
   pushLogable( tid, record );
@@ -84,7 +84,7 @@ int LogManager::removeRoot( TransactionID *tid, LogicalID *lid, unsigned &id )
   return 0;
 }
 
-int LogManager::checkpoint( vector<TransactionID *> *tids, unsigned &id )
+int LogManager::checkpoint( vector<int> *tids, unsigned &id )
 {
   LogRecord *record = new CkptRecord( tids );
   logThread->push( record );
@@ -106,7 +106,7 @@ int LogManager::endCheckpoint( unsigned &id )
   return 0;
 }
 
-int LogManager::commitTransaction( TransactionID *tid, unsigned &id )
+int LogManager::commitTransaction( int tid, unsigned &id )
 {
   //sk
   int err=0;
@@ -124,7 +124,7 @@ int LogManager::commitTransaction( TransactionID *tid, unsigned &id )
   return err;
 }
 
-int LogManager::rollbackTransaction( TransactionID *tid, StoreManager *sm, unsigned &id )
+int LogManager::rollbackTransaction( int tid, StoreManager *sm, unsigned &id )
 {
   int fd;
   int err=0;
@@ -134,7 +134,7 @@ int LogManager::rollbackTransaction( TransactionID *tid, StoreManager *sm, unsig
   //UWAGA! jeśli może być tak, że  rozmiar pliku zmienia się o część zapisanych w pliku danych, to będzie źle
   //ale mam wrażenie, że tak niejest.
   if( ::lseek(fd,0,SEEK_END) < 0 ) return errno;
-  setOfTIDs.insert(*tid);
+  setOfTIDs.insert(tid);
 
   //pętla jest wykonywana dopóki nie znajdzie się begin który usunie tranzakcję ze zbioru
   while(!setOfTIDs.empty())
