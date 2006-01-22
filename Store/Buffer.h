@@ -43,7 +43,9 @@ namespace Store
 		int stop();
 
 		PagePointer* getPagePointer(unsigned short fileID, unsigned int pageID);
-		int writePage(unsigned short fileID, unsigned int pageID, char *pagePointer);
+		int readPage(unsigned short fileID, unsigned int pageID, buffer_page* n_page);
+		int aquirePage(unsigned short fileID, unsigned int pageID);
+		int releasePage(unsigned short fileID, unsigned int pageID);
 	};
 };
 

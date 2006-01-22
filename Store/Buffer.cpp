@@ -1,5 +1,5 @@
 /**
- * $Id: Buffer.cpp,v 1.8 2006-01-20 12:14:56 mk189406 Exp $
+ * $Id: Buffer.cpp,v 1.9 2006-01-22 15:49:18 mk189406 Exp $
  *
  */
 #include "Buffer.h"
@@ -49,6 +49,22 @@ namespace Store
 		return 0;
 	};
 
+	int Buffer::readPage(unsigned short fileID, unsigned int pageID, buffer_page* n_page)
+	{
+		n_page = new buffer_page;
+		n_page->page = new char[STORE_PAGESIZE];
+
+		if (file->readPage(fileID, pageID, n_page->page) != 0) {
+			delete n_page->page;
+			delete n_page;
+			return -1;
+		}
+		n_page->haspage = 1;
+		n_page->dirty = 1;
+
+		return 0;
+	}
+
 	PagePointer* Buffer::getPagePointer(unsigned short fileID, unsigned int pageID)
 	{
 		unsigned int pnum;
@@ -64,15 +80,9 @@ namespace Store
 			return new PagePointer(fileID, pageID, (*it).second.page, this);
 
 		if ((pnum = file->hasPage(fileID, pageID)) >= pageID) {
-			n_page = new buffer_page;
-			n_page->page = new char[STORE_PAGESIZE];
+			if (readPage(fileID, pageID, n_page) < 0)
+				return NULL;
 
-			if (file->readPage(fileID, pageID, n_page->page) != 0) {
-				delete n_page->page;
-				return 0;
-			}
-			n_page->haspage = 1;
-			n_page->dirty = 1;
 			buffer_hash.insert(make_pair (make_pair (fileID, pageID), *n_page));
 		} else {
 			for (unsigned int i = pnum + 1; i <= pageID; i++) {
@@ -104,10 +114,38 @@ namespace Store
 		return new PagePointer(fileID, pageID, n_page->page, this);
 	};
 
-	int Buffer::writePage(unsigned short fileID, unsigned int pageID, char *pagePointer) {
+	int Buffer::aquirePage(unsigned short fileID, unsigned int pageID)
+	{
 		if (!started)
-			return 0;
+			return -1;
 
-		return file->writePage(fileID, pageID, pagePointer);
+		buffer_addr_t buffer_addr = make_pair(fileID, pageID);
+		buffer_hash_t::iterator it = buffer_hash.find(buffer_addr);
+		buffer_page* n_page;
+
+		if (it != buffer_hash.end() && (*it).second.haspage) {
+			n_page = &((*it).second);
+			n_page->lock = 1;
+			n_page->dirty = 1;
+			return 0;
+		} else
+			return -1;
+	};
+
+	int Buffer::releasePage(unsigned short fileID, unsigned int pageID)
+	{
+		if (!started)
+			return -1;
+
+		buffer_addr_t buffer_addr = make_pair(fileID, pageID);
+		buffer_hash_t::iterator it = buffer_hash.find(buffer_addr);
+		buffer_page* n_page;
+
+		if (it != buffer_hash.end() && (*it).second.haspage) {
+			n_page = &((*it).second);
+			n_page->lock = 0;
+			return file->writePage(fileID, pageID, n_page->page);
+		} else
+			return -1;
 	};
 };
