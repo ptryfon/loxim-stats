@@ -29,7 +29,7 @@ namespace Logs
     LogThread *logThread;
     int fileDes; // deskryptor pliku dziennika
 
-    //jeśli tid == NULL to do logów nie jest nic zapisywane
+    //jesli tid == NULL to do logow nie jest nic zapisywane
     void pushLogable( TransactionID* tid, LogRecord *record);
 
     public:

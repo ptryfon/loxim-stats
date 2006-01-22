@@ -185,8 +185,11 @@ int WriteRecord::write( int fileDes )
   if( ( errCode = TransactionRecord::write( fileDes ) ) ) return errCode;
   if( ( errCode = LogIO::writeLogicalID( lid, fileDes ) ) ) return errCode;
   if( ( errCode = LogIO::writeString( fileDes, (char*) name.data(), name.length() ) ) ) return errCode;
+  printf( "4\n" );
   if( ( errCode = LogIO::writeDataValue( oldVal, fileDes ) ) ) return errCode;
+  printf( "5\n" );
   if( ( errCode = LogIO::writeDataValue( newVal, fileDes ) ) ) return errCode;
+  printf( "6\n" );
 
   return errCode;
 }
