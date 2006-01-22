@@ -10,6 +10,24 @@ using namespace Store;
 
 int main(int argc, char* argv[])
 {
+	if (argc > 1 && strcmp(argv[1], "mk") == 0) 
+	{
+		DBStoreManager* store = new DBStoreManager();
+		store->init(0, 0);
+		store->start();
+		PagePointer* p;
+
+//		for (int i = 0; i < 100; i++) {
+	//		cout << "Store::Test : mk : getPP (" << i << ")" << endl;
+			p = store->getBuffer()->getPagePointer(STORE_FILE_DEFAULT, 50);
+	//		cout << "Store::Test : mk : aquire (" << i << ")" << endl;
+			p->aquire();
+	//		cout << "Store::Test : mk : release (" << i << ")" << endl;
+			p->release();
+//		}
+		cout << "Po tescie mk" << endl;
+	}
+
 	if (argc > 1 && strcmp(argv[1], "mo") == 0)
 	{
 		DBStoreManager* store = new DBStoreManager();

@@ -11,6 +11,8 @@ namespace Store
 #include "PagePointer.h"
 #include "Struct.h"
 
+#include <pthread.h>
+
 #include <map>
 
 using namespace std;
@@ -22,6 +24,8 @@ namespace Store
 	private:
 		typedef struct buffer_page
 		{
+			unsigned short fileID;
+			unsigned int pageID;
 			unsigned char haspage;
 			unsigned char dirty;
 			unsigned char lock;
@@ -34,6 +38,15 @@ namespace Store
 
 		DBStoreManager* store;
 		File* file;
+
+		pthread_t tid_dbwriter;
+		struct {
+			pthread_mutex_t mutex;
+			pthread_cond_t cond;
+			int dirty_pages;
+			int max_dirty;
+		} dbwriter;
+
 		int started;
 
 	public:
@@ -46,6 +59,9 @@ namespace Store
 		int readPage(unsigned short fileID, unsigned int pageID, buffer_page* n_page);
 		int aquirePage(unsigned short fileID, unsigned int pageID);
 		int releasePage(unsigned short fileID, unsigned int pageID);
+		static void* dbWriterThread(void* arg);
+		void* dbWriterMain(void);
+		int dbWriterWrite(void);
 	};
 };
 
