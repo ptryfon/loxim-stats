@@ -38,8 +38,12 @@ all: $(STATIC_LIB)
 test: $(PROGRAM)
 
 $(PROGRAM): $(STATIC_LIB)
+	make -C ../TransactionManager
+	make -C ../Lock
+	make -C ../Errors
 	make -C ../Log
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $@.cpp $< ../TransactionManager/TransactionManager.a ../Lock/Lock.a ../Errors/Errors.a ../Log/Logs.a -o $@
+	make -C ../Config
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $@.cpp $< ../TransactionManager/TransactionManager.a ../Lock/Lock.a ../Errors/Errors.a ../Log/Logs.a ../Config/Config.a -o $@
 
 clean:
 	rm -f $(OBJECTS) $(DEPFILES) $(STATIC_LIB) $(PROGRAM)

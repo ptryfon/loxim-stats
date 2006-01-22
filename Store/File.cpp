@@ -2,6 +2,7 @@
 #include "Errors/Errors.h"
 
 #include <iostream>
+#include <string>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -47,9 +48,18 @@ namespace Store
 		if (started)
 			return 0;
 
-		fmap = open("/tmp/sbmap", O_RDWR);
-		froots = open("/tmp/sbroots", O_RDWR);
-		fdefault = open("/tmp/sbdefault", O_RDWR);
+		string smap, sroots, sdefault;
+
+		if (store->getConfig()->getString("store_file_default", sdefault) != 0)
+			smap = "/tmp/sbmap";
+		if (store->getConfig()->getString("store_file_roots", sroots) != 0)
+			sroots = "/tmp/sbroots";
+		if (store->getConfig()->getString("store_file_map", smap) != 0)
+			sdefault = "/tmp/sbdefault";
+
+		fmap = open(smap.c_str(), O_RDWR);
+		froots = open(sroots.c_str(), O_RDWR);
+		fdefault = open(sdefault.c_str(), O_RDWR);
 
 		if (fmap == -1 || froots == -1 || fdefault == -1)
 		{
@@ -57,9 +67,9 @@ namespace Store
 			if (froots > 0) close(froots);
 			if (fdefault > 0) close(fdefault);
 
-			fmap = open("/tmp/sbmap", O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
-			froots = open("/tmp/sbroots", O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
-			fdefault = open("/tmp/sbdefault", O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
+			fmap = open(smap.c_str(), O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
+			froots = open(sroots.c_str(), O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
+			fdefault = open(sdefault.c_str(), O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
 
 			store->getMap()->initializeFile(this);
 			store->getRoots()->initializeFile(this);
