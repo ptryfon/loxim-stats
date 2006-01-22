@@ -17,13 +17,14 @@ PROGRAM	=	TestLogs
 OBJECTS	=	$(SOURCES:.cpp=.o)
 DEPFILES =	$(OBJECTS:.o=.d)
 
-all: $(STATIC_LIB) $(PROGRAM)
+all: $(STATIC_LIB)
+program: $(PROGRAM)
 
 $(PROGRAM): $(STATIC_LIB)
 	make -C ../Config
 	make -C ../Errors
 	make -C ../Store
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $@.cpp $< ../Config/Config.a ../Errors/Errors.a ../Store/Store.a -o $@
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $@.cpp $< ../Store/Store.a ../Config/Config.a ../Errors/Errors.a -o $@
 
 clean:
 	rm -f $(OBJECTS) $(DEPFILES) $(STATIC_LIB) $(PROGRAM)

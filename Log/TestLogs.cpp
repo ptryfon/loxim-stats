@@ -13,7 +13,7 @@ int main( int argc, char *argv[] )
 {
   Logs::LogManager logManager;
   unsigned id;
-  TransactionID *tid = new TransactionID( 1234 );
+  int tid = 1234;
 
   logManager.init();
   logManager.beginTransaction( tid, id );
