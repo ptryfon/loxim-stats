@@ -36,31 +36,65 @@ int Listener::Start(int port) {
 }
 
 
+char *bufB;
+char *buf;
+int counter;
+
+//TESTING 
+int recWrite() {
+    char mapa[4]="DUP";
+    char mapa2[2]="2";
+    char **bufL=&buf;
+    char type='X';
+
+    printf("%c \n", bufB[0]);
+    buf[0]=type;
+    *bufL++;
+    printf("Inside..");
+    memcpy(*bufL, mapa, 4);
+    *bufL=*bufL+3;
+    printf("buf: |%s|, bufL: |%s|, bufB: |%s| \n", buf,* bufL, bufB);
+    memcpy(*bufL, mapa2, 2);
+    *bufL=*bufL+1;
+    printf("buf: |%s|, bufL: |%s|, bufB: |%s| \n", buf,* bufL, bufB);
+    counter++;    
+    printf("counter %d\n", counter);
+    if (counter<3)
+	recWrite();
+    return 0;
+}
+
 int main(int argc, char* argv[]) {
 	//return 0;
 	int port = 6543;
 	if (argc>1) 
 		port = atoi(argv[1]);
 	printf("Listener: running port ----> %d\n", port);
-	/*
-	char buffer[4096];
+/*
+	int size=4096;
+	bufB =(char *)malloc(size);
 	char dupa[3]="AB";
 	char pupa[3]="CD";
-	char *bufPoint;
+	buf=bufB;
+	char *bufE=bufB+size;
+	counter=0;	
 	
-	memset(buffer, '\0', 4096);
-	bufPoint = buffer;
-	memcpy(bufPoint, dupa, 3);
-	printf("buffer is %s\n", buffer);
-	printf("bufPoint is %s\n", bufPoint);
-	bufPoint++;
-	bufPoint++;
-	printf("buffer is %s \n", buffer);
-	printf("buffPoint is %s \n", bufPoint);
-	memcpy(bufPoint, pupa, 3);
-	printf("buffer is %s \n bufPoint is %s \n", buffer, bufPoint);
+	memcpy(buf, dupa, 3);
+	printf("buffer is %s\n", buf);
+	printf("bufB is %s\n", bufB);
+	buf++;
+	buf++;
+	printf("buffer is %s \n", buf);
+	printf("bufB is %s \n", bufB);
+	memcpy(buf, pupa, 3);
+	printf("buffer is %s \n bufB is %s \n", buf, bufB);
+	buf++;
+	buf++;
+	printf("Entering recWrite");
+	recWrite();
+	printf("buf is %s \n bufB is %s \n", buf, bufB);
 	return 0;
-	*/
+*/
 	Listener *ls = new Listener();
 	ls->Start(port);
 	printf("Listener: ends \n");

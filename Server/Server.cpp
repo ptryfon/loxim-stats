@@ -320,14 +320,10 @@ int  Server::SerializeRec(QueryResult *qr)
 	string strVal;
 	int retVal;
 	int i;
-
-	char bufferP[MAX_MESSG];
-	char *bufPointer;
 	
-	bufPointer = (char *)malloc(MAX_MESSG);
-	memset(bufferP, '\0', MAX_MESSG); 
-	bufPointer=bufferP;
-
+	char **bufPointer=&serialBuf;
+	char dupa[4]="DUP";
+	
 	resType=(Result::ResultType)qr->type();
 	rT=qr->type();
 	
@@ -347,13 +343,18 @@ int  Server::SerializeRec(QueryResult *qr)
 				return ErrServer+EBadResult;
 				return -1;
 			} 
-			bagRes = (QueryBagResult *)qr;
+			bagRes = (QueryBagResult *)qr;	
 			printf("[Server.Serialize]--> Adding bag header \n");
-			bufPointer[0]=(char)resType;
-			bufPointer++;
-			memcpy((void *)bufPointer, (const void *)&bufBagLen, sizeof(bufBagLen));
-			printf("[Server.Serialize]--> Bag header: |(type)=%d|(size)=%lu|\n", (int)bufferP[0], ntohl(*(unsigned long *)bufPointer));
-			bufPointer=bufPointer+sizeof(bufBagLen);
+			serialBuf[0]=(char)resType;
+			printf("\n SerialBuf[0] |%c|%d| \n\n", serialBuf[0], (int)serialBuf[0]);
+			printf("\n SerialBufBegin[0] |%c|%d| \n\n", serialBufBegin[0], (int)serialBufBegin[0]);
+			serialBuf++;
+			printf("\n SerialBuf[0] |%s|%d| \n\n", serialBuf[0], (int)serialBuf[0]);
+			printf("\n SerialBufBegin[0] |%c|%d| \n\n", serialBufBegin[0], (int)serialBufBegin[0]);
+			
+			memcpy((void *)serialBuf, (const void *)&bufBagLen, sizeof(bufBagLen));
+			printf("[Server.Serialize]--> Bag header: |(type)=%d|(size)=%lu|\n", (int)serialBufBegin[0], ntohl(*(unsigned long *)serialBuf));
+			serialBuf=serialBuf+sizeof(bufBagLen);
 						
 			//TODO DEPTH
 			for (i=0;i<bagSize;i++) {
@@ -362,7 +363,6 @@ int  Server::SerializeRec(QueryResult *qr)
 				printf("[Server.Serialize]--> getResult returned %d \n", retVal);
 				SerializeRec(collItem);
 			}
-				
 			break;
 		case QueryResult::QSEQUENCE: //TODO CZYM SIE ROZNI SEQUENCE OD BAGA??
 			printf("[Server.Serialize]--> Received SEQUENCE ");
@@ -378,11 +378,11 @@ int  Server::SerializeRec(QueryResult *qr)
 			} 
 			bagRes = (QueryBagResult *)qr;
 			printf("[Server.Serialize]--> Adding sequence header \n");
-			bufPointer[0]=(char)resType;
-			bufPointer++;
-			memcpy((void *)bufPointer, (const void *)&bufBagLen, sizeof(bufBagLen));
-			printf("[Server.Serialize]--> Sequence header: |(type)=%d|(size)=%lu|\n", (int)bufferP[0], ntohl(*(unsigned long *)bufPointer));
-			bufPointer=bufPointer+sizeof(bufBagLen);
+			serialBuf[0]=(char)resType;
+			serialBuf++;
+			memcpy((void *)serialBuf, (const void *)&bufBagLen, sizeof(bufBagLen));
+			printf("[Server.Serialize]--> Sequence header: |(type)=%d|(size)=%lu|\n", (int)serialBufBegin[0], ntohl(*(unsigned long *)serialBuf));
+			serialBuf=serialBuf+sizeof(bufBagLen);
 						
 			//TODO DEPTH
 			for (i=0;i<bagSize;i++) {
@@ -407,11 +407,11 @@ int  Server::SerializeRec(QueryResult *qr)
 			} 
 			bagRes = (QueryBagResult *)qr;
 			printf("[Server.Serialize]--> Adding struct header \n");
-			bufPointer[0]=(char)resType;
-			bufPointer++;
-			memcpy((void *)bufPointer, (const void *)&bufBagLen, sizeof(bufBagLen));
-			printf("[Server.Serialize]--> Struct header: |(type)=%d|(size)=%lu|\n", (int)bufferP[0], ntohl(*(unsigned long *)bufPointer));
-			bufPointer=bufPointer+sizeof(bufBagLen);
+			serialBuf[0]=(char)resType;
+			serialBuf++;
+			memcpy((void *)serialBuf, (const void *)&bufBagLen, sizeof(bufBagLen));
+			printf("[Server.Serialize]--> Struct header: |(type)=%d|(size)=%lu|\n", (int)serialBufBegin[0], ntohl(*(unsigned long *)serialBuf));
+			serialBuf=serialBuf+sizeof(bufBagLen);
 						
 			//TODO DEPTH
 			for (i=0;i<bagSize;i++) {
@@ -425,13 +425,13 @@ int  Server::SerializeRec(QueryResult *qr)
 		case QueryResult::QREFERENCE:
 		    printf("[Server.Serialize]--> Getting reference \n");
 		    resType=Result::REFERENCE;
-		    bufPointer[0]=(char)resType;
+		    serialBuf[0]=(char)resType;
 		    refRes = (QueryReferenceResult *)qr;
 		    intVal=(refRes->getValue())->toInteger();
-		    bufPointer++;
+		    serialBuf++;
 		    printf("Reference integer value: intVal=%d \n", intVal);
-		    memcpy((void *)bufPointer, (const void *)&intVal, sizeof(intVal));
-		    bufPointer=bufPointer+sizeof(intVal);
+		    memcpy((void *)serialBuf, (const void *)&intVal, sizeof(intVal));
+		    serialBuf=serialBuf+sizeof(intVal);
 		    break;	
 		case QueryResult::QSTRING:
 		    printf("[Server.Serialize]--> Getting STRING \n");
@@ -440,12 +440,12 @@ int  Server::SerializeRec(QueryResult *qr)
 		    strVal=stringRes->getValue();
 		    valSize=stringRes->size();
 		    printf("[Server.Serialize]--> Adding string header \n");
-		    bufPointer[0]=(char)resType;
-		    bufPointer++;
+		    serialBuf[0]=(char)resType;
+		    serialBuf++;
 		    printf("[Server.Serialize]--> String header complete \n");
-		    strcpy(bufPointer, strVal.c_str());  
-		    printf("[Server.Serialize]--> String serialized to: %s \n", bufPointer);
-		    bufPointer=bufPointer+valSize;
+		    strcpy(serialBuf, strVal.c_str());  
+		    printf("[Server.Serialize]--> String serialized to: %s \n", *bufPointer);
+		    serialBuf=serialBuf+valSize;
 		    break;
 		case QueryResult::QRESULT:
 		    printf("[Server.Serialize]--> Getting RESULT (ERROR!)\n");
@@ -454,54 +454,54 @@ int  Server::SerializeRec(QueryResult *qr)
 		 case QueryResult::QNOTHING:
 		    printf("[Server.Serialize]--> VOID type, sending type indicator only\n");
 		    resType=Result::VOID;
-		    bufPointer[0]=(char)resType;
+		    serialBuf[0]=(char)resType;
 		    printf("[Server.Serialize]--> VOID type written \n");
-		    bufPointer++;
+		    serialBuf++;
 		    break;
 		case QueryResult::QINT:
 		    printf("[Server.Serialize]--> INT type, sending type indicator.. \n");
 		    resType=Result::INT;
-		    bufPointer[0]=(char)resType;
-		    bufPointer++;
+		    serialBuf[0]=(char)resType;
+		    serialBuf++;
 		    intRes = (QueryIntResult *)qr;
 		    intVal = intRes->getValue();
 		    printf("[Server.Serialize]--> .. followed by int value (%d) \n", intVal);
 		    intVal=htonl(intVal);
-		    memcpy((void *)bufPointer, (const void *)&intVal, sizeof(intVal));
+		    memcpy((void *)serialBuf, (const void *)&intVal, sizeof(intVal));
 		    printf("[Server.Serialize]--> buffer written \n");
 		    break; 
 		case QueryResult::QDOUBLE:
 		    printf("[Server.Serialize]--> DOUBLE type \n");
 		    resType=Result::DOUBLE;
-		    bufPointer[0]=(char)resType;
-		    bufPointer++;
+		    serialBuf[0]=(char)resType;
+		    serialBuf++;
 		    doubleRes = (QueryDoubleResult *)qr;
 		    doubleVal = doubleRes->getValue();
 		    printf("[Server.Serialize]--> Switching double byte order.. \n");
 		    doubleVal = htonDouble(doubleVal);
 		    printf("[Server.Serialize]--> Splitting and byte order change complete \n");
-		    memcpy((void *)bufPointer, (const void *)&doubleVal, sizeof(doubleVal));
-		    bufPointer = bufPointer + sizeof(doubleVal);		        
+		    memcpy((void *)serialBuf, (const void *)&doubleVal, sizeof(doubleVal));
+		    serialBuf = serialBuf + sizeof(doubleVal);		        
 		    break; 
 		case QueryResult::QBOOL: //TODO - pass either BOOLTRUE or BOOLFALSE or just BOOL?
 		    printf("[Server.Serialize]--> BOOL type, sending type indicator and value\n");
 		    resType=Result::BOOL;
-		    bufPointer[0]=(char)resType;
+		    serialBuf[0]=(char)resType;
 		    boolRes = (QueryBoolResult *)qr;
-		    bufPointer++;
-		    bufPointer[0]=(char)(boolRes->getValue());
-		    bufPointer++;
+		    serialBuf++;
+		    serialBuf[0]=(char)(boolRes->getValue());
+		    serialBuf++;
 		    break;
 		case QueryResult::QBINDER:
 		    printf("[Server.Serialize]--> BINDER type, sending name(string) and result\n");
 		    resType=Result::BINDER;
-		    bufPointer[0]=(char)resType;
-		    bufPointer++;
+		    serialBuf[0]=(char)resType;
+		    serialBuf++;
 		    bindRes=(QueryBinderResult *) qr;
 		    strVal=bindRes->getName();
 		    qres=bindRes->getItem();
-		    strcpy(bufPointer, strVal.c_str());
-		    bufPointer=bufPointer+(strVal.length());
+		    strcpy(*bufPointer, strVal.c_str());
+		    serialBuf=serialBuf+(strVal.length());
 		    SerializeRec(qres);
 		    break;
 		default:
@@ -554,6 +554,12 @@ int Server::Run()
 	char **sPoint;
 	messgBuff=(char*) malloc(MAX_MESSG);
 	serializedMessg=(char*) malloc(MAX_MESSG);
+
+
+	serialBufBegin=(char *)malloc(MAX_MESSG);
+	serialBufEnd=serialBufBegin+MAX_MESSG;
+	serialBufSize=MAX_MESSG;
+	serialBuf=serialBufBegin;
 	
 	
 while (!signalReceived) {
@@ -591,6 +597,7 @@ while (!signalReceived) {
 	    return ErrServer+EExecute;
 	} 
 	
+	printf("[Server.Run]--> EXECUTE complete, checking results.. \n");
 	printf("[Server.Run]--> Got qResult=|%d| of size: qResult->size()=|%d| :\n",  (int)qResult, qResult->size());
 	
 	if (qResult == 0) {//TODO ERROR
@@ -598,18 +605,21 @@ while (!signalReceived) {
 	
 	printf("[Server.Run]--> *****SERIALIZE starts***** \n");
 	
-	res = (Serialize(qResult, (char **)&serializedMessg, sPoint)); 
+	res = (SerializeRec(qResult)); 
 	if (res != 0) {
 	    printf("[Server.Run--> Serialize returned error code %d\n", res);
 	    return ErrServer+ESerialize;
 	}
 	
 	printf("[Server.Run]--> Sending results to client.. Result type=|%d|\n", (int)serializedMessg[0]); 
-	res=(Send(&*serializedMessg, MAX_MESSG));
+	res=(Send(&*serialBufBegin, serialBufSize));
 	if (res != 0) {
 	    printf("[Server.Run--> Send returned error code %d\n", res);
 	    return ErrServer+ESend;
 	}
+	
+	memset(serialBufBegin, '\0', MAX_MESSG);
+	serialBuf=serialBufBegin;	
 	
 }
 	printf("[Server.Run]--> Releasing message buffers \n");
@@ -620,7 +630,7 @@ while (!signalReceived) {
 	printf("[Server.Run]--> Destroying Objects \n");
 	//qEx->~QueryExecutor(); //segfault
 	//printf("Past Executor\n");
-	qPa->~QueryParser();
+	/*qPa->~QueryParser();
 	printf("Past Parser\n");
 	TransactionManager::getHandle()->~TransactionManager();
 	printf("Past Transaction Manager\n");
@@ -634,7 +644,7 @@ while (!signalReceived) {
 	printf("Past ErrorConsole\n");
 	config->~SBQLConfig();
 	printf("Past SBQLConfig\n");
-	
+	*/
 	printf("[Server.Run]--> Disconnecting \n");
 	Disconnect();
 	
