@@ -555,9 +555,11 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			if ((errcode = executeQuery (((AlgOpNode *) tree)->getRArg(), &rResult)) != 0) {
 				return errcode;
 			}
-			QueryResult *final_result;
-			errcode = this->algOperate(op,lResult,rResult,final_result);
+			QueryResult *op_result;
+			errcode = this->algOperate(op,lResult,rResult,op_result);
 			if (errcode != 0) return errcode;
+			QueryResult *final_result = new QueryBagResult();
+			final_result->addResult(op_result);
 			*result = final_result;
 			fprintf(stderr, "[QE] Algebraic operation Done!\n");
 			return 0;
@@ -566,10 +568,17 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 		case TreeNode::TNNONALGOP: {
 			NonAlgOpNode::nonAlgOp op = ((NonAlgOpNode *) tree)->getOp();
 			fprintf(stderr, "[QE] NonAlgebraic operator - type recognized\n");
-			QueryResult *lResult;
-			if ((errcode = executeQuery (((NonAlgOpNode *) tree)->getLArg(), &lResult)) != 0) {
+			QueryResult *l_tmp_Result;
+			if ((errcode = executeQuery (((NonAlgOpNode *) tree)->getLArg(), &l_tmp_Result)) != 0) {
 				return errcode;
 			}
+			QueryResult *lResult;
+			if (((l_tmp_Result->type()) != QueryResult::QSEQUENCE) && ((l_tmp_Result->type()) != QueryResult::QBAG)) {
+				lResult = new QueryBagResult();
+				lResult->addResult(l_tmp_Result);
+			}
+			else
+				lResult = l_tmp_Result;
 			fprintf(stderr, "[QE] Left argument of NonAlgebraic query has been computed\n");
 			QueryResult *partial_result = new QueryBagResult();
 			if (((lResult->type()) == QueryResult::QSEQUENCE) || ((lResult->type()) == QueryResult::QBAG)) {
@@ -600,27 +609,10 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					if (errcode != 0) return errcode;
 				}
 			}
-			else { //QSTRUCT, QINT, QDOUBLE, QBOOL, QSTRING, QNOTHING, QBINDER, QREFERENCE
-				fprintf(stderr, "[QE] Left argument score has got only one row, the right argument will now be computed \n");
-				QueryResult *newStackSection = new QueryBagResult();
-				errcode = lResult->nested(tr, newStackSection);
-				if (errcode != 0) return errcode;
-				fprintf(stderr, "[QE] nested(): function calculated for the single row");
-				if ( (stack.push((QueryBagResult *)newStackSection)) != 0 ) {
-					return -1; //this would be very strange, this function can only return 0
-				}
-				QueryResult *rResult;
-				if ((errcode = executeQuery (((NonAlgOpNode *) tree)->getRArg(), &rResult)) != 0) {
-					return errcode;
-				}
-				fprintf(stderr, "[QE] Computing left Argument with a new scope of ES\n");
-				errcode = this->combine(op,lResult,rResult,partial_result);
-				if (errcode != 0) return errcode;
-				fprintf(stderr, "[QE] Combined partial results\n");
-				errcode = stack.pop();
-				if (errcode != 0) return errcode;
-				
-				
+			else {
+				fprintf(stderr, "[QE] ERROR! NonAlgebraic operation, bad left argument\n");
+				*result = new QueryNothingResult();
+				return -1;
 			}
 			QueryResult *final_result = new QueryBagResult();
 			errcode = this->merge(op,partial_result, final_result);
@@ -798,7 +790,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 					else
 						errcode = ((QueryDoubleResult *)derefL)->plus(derefR,final);
 					if (errcode != 0) return errcode;
-					return 0;
+					break;
 				}
 				case AlgOpNode::minus: {
 					fprintf(stderr, "[QE] - operation\n");
@@ -807,7 +799,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 					else
 						errcode = ((QueryDoubleResult *)derefL)->minus(derefR,final);
 					if (errcode != 0) return errcode;
-					return 0;
+					break;
 				}
 				case AlgOpNode::times: {
 					fprintf(stderr, "[QE] * operation\n");
@@ -816,7 +808,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 					else
 						errcode = ((QueryDoubleResult *)derefL)->times(derefR,final);
 					if (errcode != 0) return errcode;
-					return 0;
+					break;
 				}
 				case AlgOpNode::divide: {
 					fprintf(stderr, "[QE] / operation\n");
@@ -825,7 +817,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 					else
 						errcode = ((QueryDoubleResult *)derefL)->divide_by(derefR,final);
 					if (errcode != 0) return errcode;
-					return 0;
+					break;
 				}
 				default: { break; }
 			}
@@ -917,13 +909,13 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 					fprintf(stderr, "[QE] OR operation\n");
 					bool bool_tmp = (bool_l || bool_r);
 					final = new QueryBoolResult(bool_tmp);
-					return 0;
+					break;
 				}
 				case AlgOpNode::boolAnd: {
 					fprintf(stderr, "[QE] AND operation\n");
 					bool bool_tmp = (bool_l && bool_r);
 					final = new QueryBoolResult(bool_tmp);
-					return 0;
+					break;
 				}
 				default : { break; }
 			}

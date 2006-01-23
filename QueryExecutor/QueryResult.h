@@ -83,6 +83,7 @@ public:
 	void addResult(QueryResult *r);
 	int getResult(QueryResult *&r);
 	int at(unsigned int i, QueryResult *&r);
+	vector<QueryResult*> getVector();
 	bool equal(QueryResult *r);
 	bool not_equal(QueryResult *r);
 	bool greater_than(QueryResult *r) { return false; };
@@ -118,6 +119,7 @@ public:
 	void addResult(QueryResult *r);
 	int getResult(QueryResult *&r);
 	int at(unsigned int i, QueryResult *&r);
+	vector<QueryResult*> getVector();
 	bool equal(QueryResult *r);
 	bool not_equal(QueryResult *r);
 	bool greater_than(QueryResult *r) { return false; };

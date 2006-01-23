@@ -139,14 +139,26 @@ int QuerySequenceResult::at(unsigned int i, QueryResult *&r){
 	return 0;
 }
 
+vector<QueryResult*> QuerySequenceResult::getVector() {
+	return seq;
+}
+
 void QueryBagResult::addResult(QueryResult *r){
 	if (((r->type()) == (QueryResult::QSEQUENCE)) || ((r->type()) == (QueryResult::QBAG))) {
-		unsigned int bag_size = (r->size());
-		for (unsigned int i = 0; i < bag_size; i++) {
-			int errcode;
-			QueryResult *tmp_res;
-			errcode = (r->getResult(tmp_res));
-			bag.push_back(tmp_res);
+		if (this->size() == 0) {
+			if (r->type() == QueryResult::QBAG)
+				bag = ((QueryBagResult *) r)->getVector();
+			else
+				bag = ((QuerySequenceResult *) r)->getVector();
+		}
+		else {
+			unsigned int bag_size = (r->size());
+			for (unsigned int i = 0; i < bag_size; i++) {
+				int errcode;
+				QueryResult *tmp_res;
+				errcode = (r->getResult(tmp_res));
+				bag.push_back(tmp_res);
+			}
 		}
 	}
 	else
@@ -170,6 +182,10 @@ int QueryBagResult::at(unsigned int i, QueryResult *&r){
 	};
 	r=(bag.at(i));
 	return 0;
+}
+
+vector<QueryResult*> QueryBagResult::getVector() {
+	return bag;
 }
 
 void QueryStructResult::addResult(QueryResult *r){ 
@@ -250,7 +266,7 @@ int QueryIntResult::plus(QueryResult *r, QueryResult *&res){
 }
 
 int QueryDoubleResult::plus(QueryResult *r, QueryResult *&res){
-	if ((r->type() != QueryResult::QINT) || (r->type() != QueryResult::QDOUBLE)) {
+	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
 		res = new QueryNothingResult();
 		fprintf (stderr, "[QE] ERROR! + arguments must be INT or DOUBLE\n");
 		return -1; 
@@ -268,7 +284,7 @@ int QueryDoubleResult::plus(QueryResult *r, QueryResult *&res){
 
 //function minus()
 int QueryIntResult::minus(QueryResult *r, QueryResult *&res){
-	if ((r->type() != QueryResult::QINT) || (r->type() != QueryResult::QDOUBLE)) {
+	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
 		res = new QueryNothingResult();
 		fprintf (stderr, "[QE] ERROR! - arguments must be INT or DOUBLE\n");
 		return -1; 
@@ -285,7 +301,7 @@ int QueryIntResult::minus(QueryResult *r, QueryResult *&res){
 }
 
 int QueryDoubleResult::minus(QueryResult *r, QueryResult *&res){ 
-	if ((r->type() != QueryResult::QINT) || (r->type() != QueryResult::QDOUBLE)) {
+	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
 		res = new QueryNothingResult();
 		fprintf (stderr, "[QE] ERROR! - arguments must be INT or DOUBLE\n");
 		return -1; 
@@ -315,7 +331,7 @@ int QueryDoubleResult::minus(QueryResult *&res){
 
 //function times()
 int QueryIntResult::times(QueryResult *r, QueryResult *&res){ 
-	if ((r->type() != QueryResult::QINT) || (r->type() != QueryResult::QDOUBLE)) {
+	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
 		res = new QueryNothingResult();
 		fprintf (stderr, "[QE] ERROR! * arguments must be INT or DOUBLE\n");
 		return -1; 
@@ -332,7 +348,7 @@ int QueryIntResult::times(QueryResult *r, QueryResult *&res){
 }
 
 int QueryDoubleResult::times(QueryResult *r, QueryResult *&res){ 
-	if ((r->type() != QueryResult::QINT) || (r->type() != QueryResult::QDOUBLE)) {
+	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
 		res = new QueryNothingResult();
 		fprintf (stderr, "[QE] ERROR! * arguments must be INT or DOUBLE\n");
 		return -1; 
@@ -350,7 +366,7 @@ int QueryDoubleResult::times(QueryResult *r, QueryResult *&res){
 
 //function divide_by()
 int QueryIntResult::divide_by(QueryResult *r, QueryResult *&res){
-	if ((r->type() != QueryResult::QINT) || (r->type() != QueryResult::QDOUBLE)) {
+	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
 		res = new QueryNothingResult();
 		fprintf (stderr, "[QE] ERROR! / arguments must be INT or DOUBLE\n");
 		return -1; 
@@ -377,7 +393,7 @@ int QueryIntResult::divide_by(QueryResult *r, QueryResult *&res){
 }
 
 int QueryDoubleResult::divide_by(QueryResult *r, QueryResult *&res){ 
-	if ((r->type() != QueryResult::QINT) || (r->type() != QueryResult::QDOUBLE)) {
+	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
 		res = new QueryNothingResult();
 		fprintf (stderr, "[QE] ERROR! / arguments must be INT or DOUBLE\n");
 		return -1; 
