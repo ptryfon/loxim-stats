@@ -356,14 +356,20 @@ namespace Store
 		return new DBObjectPointer(name, dv, lid);
 	};
 
-	int DBStoreManager::logicalIDFromByteArray(unsigned char* buffer, int length, LogicalID** lid)
+	int DBStoreManager::logicalIDFromByteArray(unsigned char* buffer, LogicalID*& lid)
 	{
-		return 0;
+		DBLogicalID* dlid;
+		int rval = DBLogicalID::deserialize(buffer, dlid);
+		lid = dlid;
+		return rval;
 	};
 
-	int DBStoreManager::dataValueFromByteArray(unsigned char* buffer, int length, DataValue** value)
+	int DBStoreManager::dataValueFromByteArray(unsigned char* buffer, DataValue*& value)
 	{
-		return 0;
+		DBDataValue* dvalue;
+		int rval = DBDataValue::deserialize(buffer, dvalue);
+		value = dvalue;
+		return rval;
 	};
 
 	DBPhysicalID* DBStoreManager::getPhysicalID(LogicalID* lid)

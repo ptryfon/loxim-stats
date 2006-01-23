@@ -169,8 +169,8 @@ namespace Store
 		virtual ObjectPointer* createObjectPointer(LogicalID* lid, string name, DataValue* dv) = 0;
 
 		// Deserialization
-		virtual int logicalIDFromByteArray(unsigned char* buffer, int length, LogicalID** lid) = 0;
-		virtual int dataValueFromByteArray(unsigned char* buffer, int length, DataValue** value) = 0;
+		virtual int logicalIDFromByteArray(unsigned char* buffer, LogicalID*& lid) = 0;
+		virtual int dataValueFromByteArray(unsigned char* buffer, DataValue*& value) = 0;
 		
 		// Misc
 		virtual DBPhysicalID* getPhysicalID(LogicalID* lid) = 0;

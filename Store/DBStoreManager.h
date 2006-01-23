@@ -68,8 +68,8 @@ namespace Store
 		virtual ObjectPointer* createObjectPointer(LogicalID* lid);
 		virtual ObjectPointer* createObjectPointer(LogicalID* lid, string name, DataValue* dv);
 
-		virtual int logicalIDFromByteArray(unsigned char* buffer, int length, LogicalID** lid);
-		virtual int dataValueFromByteArray(unsigned char* buffer, int length, DataValue** value);
+		virtual int logicalIDFromByteArray(unsigned char* buffer, LogicalID*& lid);
+		virtual int dataValueFromByteArray(unsigned char* buffer, DataValue*& value);
 		
 		virtual DBPhysicalID* getPhysicalID(LogicalID* lid);
 	};
