@@ -20,6 +20,7 @@ namespace Logs
 
 // tymczasowo - pozniej sie wezmie z configa
 #define LOG_FILE_PATH "szbd_logs"
+#define LOG_UNINITIALIZED_LOG_THREAD 200004
 
   class LogManager
   {
@@ -35,6 +36,11 @@ namespace Logs
     LogManager() {}
 
     int init();
+
+    /**
+    Robi flush Logów;
+    */
+    int flushLog();
 
     /**
      * Zapisuje do dziennika <BEGIN tid>.
