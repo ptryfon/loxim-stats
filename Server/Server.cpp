@@ -346,11 +346,11 @@ int  Server::SerializeRec(QueryResult *qr)
 			bagRes = (QueryBagResult *)qr;	
 			printf("[Server.Serialize]--> Adding bag header \n");
 			serialBuf[0]=(char)resType;
-			printf("\n SerialBuf[0] |%c|%d| \n\n", serialBuf[0], (int)serialBuf[0]);
-			printf("\n SerialBufBegin[0] |%c|%d| \n\n", serialBufBegin[0], (int)serialBufBegin[0]);
+			//printf("\n SerialBuf[0] |%c|%d| \n\n", serialBuf[0], (int)serialBuf[0]);
+			//printf("\n SerialBufBegin[0] |%c|%d| \n\n", serialBufBegin[0], (int)serialBufBegin[0]);
 			serialBuf++;
-			printf("\n SerialBuf[0] |%s|%d| \n\n", serialBuf[0], (int)serialBuf[0]);
-			printf("\n SerialBufBegin[0] |%c|%d| \n\n", serialBufBegin[0], (int)serialBufBegin[0]);
+			//printf("\n SerialBuf[0] |%s|%d| \n\n", serialBuf[0], (int)serialBuf[0]);
+			//printf("\n SerialBufBegin[0] |%c|%d| \n\n", serialBufBegin[0], (int)serialBufBegin[0]);
 			
 			memcpy((void *)serialBuf, (const void *)&bufBagLen, sizeof(bufBagLen));
 			printf("[Server.Serialize]--> Bag header: |(type)=%d|(size)=%lu|\n", (int)serialBufBegin[0], ntohl(*(unsigned long *)serialBuf));
@@ -513,6 +513,21 @@ int  Server::SerializeRec(QueryResult *qr)
 }
 
 
+int Server::sendError(int errNo) {
+    int errMesLen=16;
+    Result::ResultType rT=Result::ERROR;
+    char *bB;
+    char *b;
+    bB=(char *)malloc(errMesLen);
+    b=bB;
+    b[0]=(char)rT;
+    b++;
+    memcpy((void *)b, (const void *)&errNo, sizeof(errNo));
+    Send(*&bB, errMesLen);
+    return 0;
+}    
+
+
 int Server::Run()
 {
 	int size=MAX_MESSG;
@@ -587,6 +602,7 @@ while (!signalReceived) {
 	res = (qPa->parseIt((string) messgBuff, tNode));
 	if (res != 0) {
 	    printf("[Server.Run--> Parser returned error code %d\n", res);
+	    sendError(res);
 	    return ErrServer+EParse;
 	}
 
@@ -594,6 +610,7 @@ while (!signalReceived) {
 	res = (qEx->executeQuery(tNode, &qResult)); 
 	if (res != 0) {
 	    printf("[Server.Run--> Executor returned error code %d\n", res);
+	    sendError(res);
 	    return ErrServer+EExecute;
 	} 
 	

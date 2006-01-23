@@ -22,8 +22,7 @@ using namespace QExecutor;
 		int Serialize(QueryResult *qr, char **buffer, char **bufferStart);
 		
 		//DEVELOPING - NOT YET USED
-		int SerializeRec(QueryResult *qr);
-				
+		int SerializeRec(QueryResult *qr);		
 		double htonDouble(double in);
 		//int BExit();
 	private:
