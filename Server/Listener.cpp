@@ -28,19 +28,20 @@ int Listener::Start(int port) {
 	
 	CreateSocket(port, &sock);
 	ListenOnSocket(sock, &newSock);
-	CreateServer(newSock);
+	return CreateServer(newSock);
 	//CloseSocket(sock);
 	
-	return 0;
+	//return 0;
 
 }
 
 
-char *bufB;
-char *buf;
-int counter;
+//char *bufB;
+//char *buf;
+//int counter;
 
-//TESTING 
+//TESTING
+/* 
 int recWrite() {
     char mapa[4]="DUP";
     char mapa2[2]="2";
@@ -63,7 +64,7 @@ int recWrite() {
 	recWrite();
     return 0;
 }
-
+*/
 int main(int argc, char* argv[]) {
 	//return 0;
 	int port = 6543;
@@ -95,8 +96,12 @@ int main(int argc, char* argv[]) {
 	printf("buf is %s \n bufB is %s \n", buf, bufB);
 	return 0;
 */
+	int res;
 	Listener *ls = new Listener();
-	ls->Start(port);
+	if ((res=(ls->Start(port)))!=0) {
+	    printf("Listener: ends with ERROR: %d \n", res);
+	    return res;
+	}
 	printf("Listener: ends \n");
 	return 0;	
 }

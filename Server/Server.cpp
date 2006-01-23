@@ -325,7 +325,7 @@ int  Server::SerializeRec(QueryResult *qr)
 	rT=qr->type();
 	
 	printf("[Server.Serialize]--> Starting \n");
-	printf("[Server.Serialize]--> Serializing object of type: %d=%d \n", resType, rT);
+	printf("[Server.Serialize]--> Serializing object of type: %d \n",  rT);
 	
 	switch (rT) {
 		case QueryResult::QBAG:
@@ -529,6 +529,9 @@ int Server::Run()
 	int size=MAX_MESSG;
 	int res=0;
 	
+	//Non-critical error occured?
+	int ncError=0;
+	
 	sigset_t block_cc;
 	
 	printf("[Server.Run]--> Starts \n");
@@ -574,6 +577,12 @@ int Server::Run()
 	
 while (!signalReceived) {
 
+	if (ncError==1)
+	    printf("[Server.Run]-> a non-critical error occured during the previous session \n");
+    	memset(serialBufBegin, '\0', MAX_MESSG);
+	serialBuf=serialBufBegin;	
+	ncError=0;
+
 	printf("[Server.Run]--> Blocking SIGINT for now.. \n");
 	sigprocmask(SIG_BLOCK, &block_cc, NULL);
 	
@@ -597,16 +606,22 @@ while (!signalReceived) {
 	printf("[Server.Run]--> Requesting PARSE: |%s| \n", messgBuff);
 	res = (qPa->parseIt((string) messgBuff, tNode));
 	if (res != 0) {
-	    printf("[Server.Run--> Parser returned error code %d\n", res);
+	    printf("[Server.Run]--> Parser returned error code %d\n", res);
 	    sendError(res);
+	    ncError=1;
+	    //continue;
+	    printf("[SERVER]--> ends with ERROR\n");
 	    return ErrServer+EParse;
 	}
-
+	
 	printf("[Server.Run]--> Requesting EXECUTE on tree node: |%d| \n", (int) tNode);
 	res = (qEx->executeQuery(tNode, &qResult)); 
 	if (res != 0) {
-	    printf("[Server.Run--> Executor returned error code %d\n", res);
+	    printf("[Server.Run]--> Executor returned error code %d\n", res);
 	    sendError(res);
+	    ncError=1;
+	    //continue;
+	    printf("[SERVER]--> ends with ERROR\n");
 	    return ErrServer+EExecute;
 	} 
 	
@@ -622,18 +637,17 @@ while (!signalReceived) {
 	if (res != 0) {
 	    printf("[Server.Run--> Serialize returned error code %d\n", res);
 	    sendError(res);
+	    printf("[SERVER]--> ends with ERROR\n");
 	    return ErrServer+ESerialize;
 	}
 	
 	printf("[Server.Run]--> Sending results to client.. Result type=|%d|\n", (int)serializedMessg[0]); 
 	res=(Send(&*serialBufBegin, serialBufSize));
 	if (res != 0) {
-	    printf("[Server.Run--> Send returned error code %d\n", res);
+	    printf("[Server.Run]--> Send returned error code %d\n", res);
+	    printf("[SERVER]--> ends with ERROR\n");
 	    return ErrServer+ESend;
 	}
-	
-	memset(serialBufBegin, '\0', MAX_MESSG);
-	serialBuf=serialBufBegin;	
 	
 }
 	printf("[Server.Run]--> Releasing message buffers \n");
