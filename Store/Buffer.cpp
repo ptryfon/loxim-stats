@@ -1,5 +1,5 @@
 /**
- * $Id: Buffer.cpp,v 1.13 2006-01-23 10:35:09 mk189406 Exp $
+ * $Id: Buffer.cpp,v 1.14 2006-01-23 12:13:27 mk189406 Exp $
  *
  */
 #include "Buffer.h"
@@ -58,7 +58,9 @@ namespace Store
 		dbWriterWrite();
 		file->stop();
 		started = 0;
+		::pthread_cond_signal(&dbwriter.cond);
 		::pthread_mutex_unlock(&dbwriter.mutex);
+		pthread_join(tid_dbwriter, NULL);
 		return 0;
 	};
 
@@ -92,8 +94,9 @@ namespace Store
 
 		buffer_hash_t::iterator it = buffer_hash.find(buffer_addr);
 		if (it != buffer_hash.end() && (*it).second.haspage) {
+			n_page = &((*it).second);
 			::pthread_mutex_unlock(&dbwriter.mutex);
-			return new PagePointer(fileID, pageID, (*it).second.page, this);
+			return new PagePointer(fileID, pageID, n_page->page, this);
 		}
 
 		if ((pnum = file->hasPage(fileID, pageID)) >= pageID) {
@@ -150,12 +153,12 @@ namespace Store
 		::pthread_mutex_lock(&dbwriter.mutex);
 		buffer_addr_t buffer_addr = make_pair(fileID, pageID);
 		buffer_hash_t::iterator it = buffer_hash.find(buffer_addr);
-		buffer_page n_page;
+		buffer_page* n_page;
 
 		if (it != buffer_hash.end() && (*it).second.haspage) {
-			n_page = (*it).second;
+			n_page = &((*it).second);
 
-			n_page.lock = 1;
+			n_page->lock = 1;
 
 			::pthread_mutex_unlock(&dbwriter.mutex);
 			return 0;
@@ -173,16 +176,16 @@ namespace Store
 		::pthread_mutex_lock(&dbwriter.mutex);
 		buffer_addr_t buffer_addr = make_pair(fileID, pageID);
 		buffer_hash_t::iterator it = buffer_hash.find(buffer_addr);
-		buffer_page n_page;
+		buffer_page* n_page;
 
 		if (it != buffer_hash.end() && (*it).second.haspage) {
-			n_page = (*it).second;
+			n_page = &((*it).second);
 
 			if (dbwriter.dirty_pages < dbwriter.max_dirty)
 				::pthread_cond_signal(&dbwriter.cond);
 
-			n_page.lock = 0;
-			n_page.dirty = 1;
+			n_page->lock = 0;
+			n_page->dirty = 1;
 			dbwriter.dirty_pages++;
 
 			::pthread_mutex_unlock(&dbwriter.mutex);
@@ -204,14 +207,22 @@ namespace Store
 		for ( ; ; ) {
 			::pthread_mutex_lock(&dbwriter.mutex);
 
-			while (dbwriter.dirty_pages < dbwriter.max_dirty)
+			while (dbwriter.dirty_pages < dbwriter.max_dirty) {
 				::pthread_cond_wait(&dbwriter.cond, &dbwriter.mutex);
-			cout << "Store::Buffer : starting dbWriter dirty(" << dbwriter.dirty_pages <<
-				")" << endl;
-			if (started)
+				if (started == 0)
+					break;
+			}
+
+			if (started == 1) {
+				cout << "Store::Buffer : dbWriter start dirty(" << dbwriter.dirty_pages <<
+					")" << endl;
 				dbWriterWrite();
-			else
+				cout << "Store::Buffer : dbWriter finish dirty(" << dbwriter.dirty_pages <<
+					")" << endl;
+			} else {
+				::pthread_mutex_unlock(&dbwriter.mutex);
 				break;
+			}
 
 			::pthread_mutex_unlock(&dbwriter.mutex);
 		}
@@ -222,19 +233,21 @@ namespace Store
 	int Buffer::dbWriterWrite(void)
 	{
 		buffer_hash_t::iterator it;
-		buffer_page n_page;
+		buffer_page* n_page;
 
 		it = buffer_hash.begin();
 		while (it != buffer_hash.end()) {
-			n_page = (*it).second;	
+			n_page = &((*it).second);
 
-			if (n_page.haspage == 1 && n_page.lock == 0 && n_page.dirty == 1) {
+			cout << "Stoe::Bufffer : dbWriter : [" << (*it).first.first <<
+				", " << (*it).first.second << "] (haspage: " << (unsigned int) n_page->haspage <<
+				", lock: " << (unsigned int) n_page->lock << ", dirty: " << (unsigned int) n_page->dirty << ")" << endl;
+
+			if (n_page->haspage && (!n_page->lock) && n_page->dirty) {
 				cout << "Store::Buffer : writing(" << (*it).first.first <<
 					", " << (*it).first.second << ")" << endl;
-				file->writePage((*it).first.first, (*it).first.second, n_page.page);
-				n_page.dirty = 0;
-				n_page.haspage = 0;
-				delete n_page.page;
+				file->writePage((*it).first.first, (*it).first.second, n_page->page);
+				n_page->dirty = 0;
 				dbwriter.dirty_pages--;
 			}
 
