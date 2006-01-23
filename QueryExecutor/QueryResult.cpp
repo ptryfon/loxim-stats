@@ -249,7 +249,7 @@ void QueryReferenceResult::setValue(LogicalID* v)	{ value = v; }
 
 //function plus()
 int QueryIntResult::plus(QueryResult *r, QueryResult *&res){ 
-	if ((r->type() != QueryResult::QINT) || (r->type() != QueryResult::QDOUBLE)) {
+	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
 		res = new QueryNothingResult();
 		fprintf (stderr, "[QE] ERROR! + arguments must be INT or DOUBLE\n");
 		return -1; 
