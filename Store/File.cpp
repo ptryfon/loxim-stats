@@ -57,9 +57,9 @@ namespace Store
 		if (store->getConfig()->getString("store_file_map", smap) != 0)
 			sdefault = "/tmp/sbdefault";
 
-		fmap = open(smap.c_str(), O_RDWR);
-		froots = open(sroots.c_str(), O_RDWR);
-		fdefault = open(sdefault.c_str(), O_RDWR);
+		fmap = ::open(smap.c_str(), O_RDWR);
+		froots = ::open(sroots.c_str(), O_RDWR);
+		fdefault = ::open(sdefault.c_str(), O_RDWR);
 
 		if (fmap == -1 || froots == -1 || fdefault == -1)
 		{
@@ -67,9 +67,9 @@ namespace Store
 			if (froots > 0) close(froots);
 			if (fdefault > 0) close(fdefault);
 
-			fmap = open(smap.c_str(), O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
-			froots = open(sroots.c_str(), O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
-			fdefault = open(sdefault.c_str(), O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
+			fmap = ::open(smap.c_str(), O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
+			froots = ::open(sroots.c_str(), O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
+			fdefault = ::open(sdefault.c_str(), O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
 
 			store->getMap()->initializeFile(this);
 			store->getRoots()->initializeFile(this);
@@ -84,9 +84,9 @@ namespace Store
 		if (!started)
 			return 0;
 
-		if (fmap > 0) close(fmap);
-		if (froots > 0) close(froots);
-		if (fdefault > 0) close(fdefault);
+		if (fmap > 0) ::close(fmap);
+		if (froots > 0) ::close(froots);
+		if (fdefault > 0) ::close(fdefault);
 
 		started = 0;
 		return 0;
@@ -100,8 +100,8 @@ namespace Store
 		if ((err = getStream(fileID, &file)) != 0)
 			return err;
 
-		lseek(file, offset, SEEK_SET);
-		read(file, buffer, length);
+		::lseek(file, offset, SEEK_SET);
+		::read(file, buffer, length);
 
 		return 0;
 	};
@@ -119,8 +119,8 @@ namespace Store
 		if ((err = getStream(fileID, &file)) != 0)
 			return err;
 
-		lseek(file, offset, SEEK_SET);
-		write(file, buffer, length);
+		::lseek(file, offset, SEEK_SET);
+		::write(file, buffer, length);
 
 		return 0;
 	};
@@ -136,6 +136,6 @@ namespace Store
 		if ((err = getStream(fileID, &file)) != 0)
 			return err;
 
-		return lseek(file, 0, SEEK_END) / STORE_PAGESIZE;
+		return (lseek(file, 0, SEEK_END) / STORE_PAGESIZE);
 	};
 }
