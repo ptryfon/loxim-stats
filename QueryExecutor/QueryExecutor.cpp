@@ -953,7 +953,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 		switch (op) {
 			case AlgOpNode::bagUnion: {
 				fprintf(stderr, "[QE] BAG_UNION operation\n");
-				final = rArg;
+				final = rightBag;
 				break;
 			}
 			case AlgOpNode::bagIntersect: {
@@ -972,26 +972,23 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 			QueryResult *tmp_res;
 			errcode = ((QueryBagResult *) leftBag)->at(i, tmp_res);
 			if (errcode != 0) return errcode;
-			QueryResult *tmp_res_org;
-			errcode = ((QueryBagResult *) lArg)->at(i, tmp_res_org);
-			if (errcode != 0) return errcode;
 			bool isIncl;
 			errcode = this->isIncluded(tmp_res, rightBag, isIncl);
 			if (errcode != 0) return errcode;
 			switch (op) {
 				case AlgOpNode::bagUnion: {
 					if (not isIncl)
-						final->addResult(tmp_res_org);
+						final->addResult(tmp_res);
 					break;
 				}
 				case AlgOpNode::bagIntersect: {
 					if (isIncl)
-						final->addResult(tmp_res_org);
+						final->addResult(tmp_res);
 					break;
 				}
 				case AlgOpNode::bagMinus: {
 					if (not isIncl)
-						final->addResult(tmp_res_org);
+						final->addResult(tmp_res);
 					break;
 				}
 				default: { break; }
