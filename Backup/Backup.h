@@ -2,45 +2,89 @@
 #define __BACKUP_H__
 
 #include <string>
+#include <string.h>
+
+#include "../Config/SBQLConfig.h"
 
 using namespace std;
+using namespace Config;
+
+// nazwy opcji w pliku konfiguracyjnym
+#define DBPATH_KEY "dbpath"
+#define BACKUP_PATH_KEY "backuppath"
+#define LOGS_PATH_KEY "logspath"
+#define LOCK_PATH_KEY "lockpath"
 
 class BackupManager
 {
   protected:
-  string storePath;
-  string backupPath;
-  string logsDir;
+  string configPath;
   int verboseLevel;
+  SBQLConfig *config;
+  string dbPath;
+  string backupPath;
+  string logsPath;
+  string lockPath;
 
   public:
 
   /**
-   * @param aStorePath sciezka do pliku bazy danych.
-   * @param aBackupPath sciezka do pliku z backupem bazy danych.
-   * @param aLogsDir sciezka do katalogu przechowujacego logi bazy danych.
+   * @param aConfigPath sciezka do pliku konfiguracyjnego.
    * @param aVerbose poziom szczegolowosci wypisywanych komunikatow.
    */
-  BackupManager(string aStorePath, string aBackupPath, string aLogsDir, int aVerboseLevel = 0 )
+  BackupManager(string aConfigPath, int aVerboseLevel = 0 )
   {
-    storePath = aStorePath;
-    backupPath = aBackupPath;
-    logsDir = aLogsDir;
+    configPath = aConfigPath;
     verboseLevel = aVerboseLevel;
+    config = new SBQLConfig( "Backup" );
+  }
+
+  int init()
+  {
+    int errCode = 0;
+
+    config->init( configPath );
+
+    if( ( errCode = config->getString( DBPATH_KEY, dbPath ) ) ) return errCode;
+    if( ( errCode = config->getString( BACKUP_PATH_KEY, backupPath ) ) ) return errCode;
+    if( ( errCode = config->getString( LOGS_PATH_KEY, logsPath ) ) ) return errCode;
+    if( ( errCode = config->getString( LOCK_PATH_KEY, lockPath ) ) ) return errCode;
+
+    errCode = lock( config );
+
+    return errCode;
+  }
+
+  int lock( SBQLConfig *config );
+  int unlock( SBQLConfig *config );
+
+  int copyFile( string fromPath, string toPath )
+  {
+    // TODO
+
+    return 0;
   }
 
   /**
    * Tworzy backup bazy danych w pliku o nazwie pobranym z Configa.
    */
-  int makeBackup() { printf( "BackupManager: makeBackup()\n%s", dump().c_str() ); return 0; }
+  int makeBackup() { return copyFile( dbPath, backupPath ); }
 
   /**
    * Odtwarza baze danych z backupu i logow.  Zakladamy ze przez ten czas
    * baza nie wykonuje zadnych innych dzialan.
    */
-  int restore() { printf( "BackupManager: restore()\n%s", dump().c_str() ); return 0; }
+  int restore() { return copyFile( backupPath, dbPath ); }
 
   string dump();
+
+  int done()
+  {
+    unlock( config );
+    delete config;
+
+    return 0;
+  }
 };
 
 int main( int argc, char *argv[] );
