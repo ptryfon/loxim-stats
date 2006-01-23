@@ -17,13 +17,14 @@ int main(int argc, char* argv[])
 		store->start();
 		PagePointer* p;
 
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < 40; i++) {
 			p = store->getBuffer()->getPagePointer(STORE_FILE_DEFAULT, i);
 			p->aquire();
 			p->release();
 		}
-		p = store->getBuffer()->getPagePointer(STORE_FILE_DEFAULT, 20);
-		p = store->getBuffer()->getPagePointer(STORE_FILE_DEFAULT, 40);
+		p = store->getBuffer()->getPagePointer(STORE_FILE_DEFAULT, 50);
+		p = store->getBuffer()->getPagePointer(STORE_FILE_DEFAULT, 90);
+		store->stop();
 		cout << "Po tescie mk" << endl;
 	}
 

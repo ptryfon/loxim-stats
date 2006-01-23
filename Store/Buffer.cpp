@@ -1,5 +1,5 @@
 /**
- * $Id: Buffer.cpp,v 1.11 2006-01-23 08:48:54 mk189406 Exp $
+ * $Id: Buffer.cpp,v 1.12 2006-01-23 09:46:50 mk189406 Exp $
  *
  */
 #include "Buffer.h"
@@ -52,13 +52,14 @@ namespace Store
 			return 0;
 
 		::pthread_mutex_lock(&dbwriter.mutex);
+		dbWriterWrite();
 		file->stop();
 		started = 0;
 		::pthread_mutex_unlock(&dbwriter.mutex);
 		return 0;
 	};
 
-	int Buffer::readPage(unsigned short fileID, unsigned int pageID, buffer_page* n_page)
+	int Buffer::readPage(unsigned short fileID, unsigned int pageID, buffer_page*& n_page)
 	{
 		n_page = new buffer_page;
 		n_page->page = new char[STORE_PAGESIZE];
@@ -122,15 +123,14 @@ namespace Store
 							break;
 					}
 				
-					if (dbwriter.dirty_pages < dbwriter.max_dirty)
-						::pthread_cond_signal(&dbwriter.cond);
-
 					n_page->haspage = 1;
 					n_page->dirty = 1;
 					dbwriter.dirty_pages++;
 					buffer_hash.insert(make_pair (make_pair (fileID, i), *n_page));
 				}
 			}
+			if (dbwriter.dirty_pages < dbwriter.max_dirty)
+				::pthread_cond_signal(&dbwriter.cond);
 		}
 
 		::pthread_mutex_unlock(&dbwriter.mutex);
@@ -223,7 +223,7 @@ namespace Store
 		while (it != buffer_hash.end()) {
 			n_page = (*it).second;	
 
-			if (n_page.haspage && n_page.lock == 0 && n_page.dirty == 1) {
+			if (n_page.haspage == 1 && n_page.lock == 0 && n_page.dirty == 1) {
 				cout << "Store::Buffer : writing(" << (*it).first.first <<
 					", " << (*it).first.second << ")" << endl;
 				file->writePage((*it).first.first, (*it).first.second, n_page.page);
