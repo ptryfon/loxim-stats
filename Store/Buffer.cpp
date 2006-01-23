@@ -1,5 +1,5 @@
 /**
- * $Id: Buffer.cpp,v 1.10 2006-01-22 23:28:47 mk189406 Exp $
+ * $Id: Buffer.cpp,v 1.11 2006-01-23 08:48:54 mk189406 Exp $
  *
  */
 #include "Buffer.h"
@@ -82,54 +82,58 @@ namespace Store
 		if (!started)
 			return 0;
 		
+		::pthread_mutex_lock(&dbwriter.mutex);
 		buffer_addr_t buffer_addr = make_pair(fileID, pageID);
 
 		buffer_hash_t::iterator it = buffer_hash.find(buffer_addr);
-		if (it != buffer_hash.end() && (*it).second.haspage)
+		if (it != buffer_hash.end() && (*it).second.haspage) {
+			::pthread_mutex_unlock(&dbwriter.mutex);
 			return new PagePointer(fileID, pageID, (*it).second.page, this);
+		}
 
 		if ((pnum = file->hasPage(fileID, pageID)) >= pageID) {
-			if (readPage(fileID, pageID, n_page) < 0)
-				return NULL;
-
-			::pthread_mutex_lock(&dbwriter.mutex);
-			buffer_hash.insert(make_pair (make_pair (fileID, pageID), *n_page));
-			::pthread_mutex_unlock(&dbwriter.mutex);
-		} else {
-			for (unsigned int i = pnum + 1; i <= pageID; i++) {
-				n_page = new buffer_page;
-				n_page->page = new char[STORE_PAGESIZE];
-				switch (fileID) {
-					case STORE_FILE_DEFAULT: 
-						PageManager::initializePage(i, n_page->page); 
-						break;
-
-					case STORE_FILE_MAP: 
-						store->getMap()->initializePage(i, n_page->page); 
-						break;
-
-					case STORE_FILE_ROOTS: 
-						store->getRoots()->initializePage(i, n_page->page); 
-						break;
-
-					default:
-						break;
-				}
-				
-				::pthread_mutex_lock(&dbwriter.mutex);
-
-				if (dbwriter.dirty_pages < dbwriter.max_dirty)
-					::pthread_cond_signal(&dbwriter.cond);
-
-				n_page->haspage = 1;
-				n_page->dirty = 1;
-				dbwriter.dirty_pages++;
-				buffer_hash.insert(make_pair (make_pair (fileID, pageID), *n_page));
-
+			if (readPage(fileID, pageID, n_page) < 0) {
 				::pthread_mutex_unlock(&dbwriter.mutex);
+				return NULL;
+			}
+
+			buffer_hash.insert(make_pair (make_pair (fileID, pageID), *n_page));
+		} else {
+			for (unsigned int i = pnum; i <= pageID; i++) {
+				it = buffer_hash.find(make_pair(fileID, i));
+				if (it == buffer_hash.end() || !(*it).second.haspage) {
+				
+					n_page = new buffer_page;
+					n_page->page = new char[STORE_PAGESIZE];
+					switch (fileID) {
+						case STORE_FILE_DEFAULT: 
+							PageManager::initializePage(i, n_page->page); 
+							break;
+
+						case STORE_FILE_MAP: 
+							store->getMap()->initializePage(i, n_page->page); 
+							break;
+
+						case STORE_FILE_ROOTS: 
+							store->getRoots()->initializePage(i, n_page->page); 
+							break;
+
+						default:
+							break;
+					}
+				
+					if (dbwriter.dirty_pages < dbwriter.max_dirty)
+						::pthread_cond_signal(&dbwriter.cond);
+
+					n_page->haspage = 1;
+					n_page->dirty = 1;
+					dbwriter.dirty_pages++;
+					buffer_hash.insert(make_pair (make_pair (fileID, i), *n_page));
+				}
 			}
 		}
 
+		::pthread_mutex_unlock(&dbwriter.mutex);
 		return new PagePointer(fileID, pageID, n_page->page, this);
 	};
 
@@ -175,8 +179,8 @@ namespace Store
 			n_page.lock = 0;
 			n_page.dirty = 1;
 			dbwriter.dirty_pages++;
-			::pthread_mutex_unlock(&dbwriter.mutex);
 
+			::pthread_mutex_unlock(&dbwriter.mutex);
 			return 0;
 		} else {
 			::pthread_mutex_unlock(&dbwriter.mutex);
