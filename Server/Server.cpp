@@ -321,9 +321,6 @@ int  Server::SerializeRec(QueryResult *qr)
 	int retVal;
 	int i;
 	
-	char **bufPointer=&serialBuf;
-	char dupa[4]="DUP";
-	
 	resType=(Result::ResultType)qr->type();
 	rT=qr->type();
 	
@@ -403,7 +400,6 @@ int  Server::SerializeRec(QueryResult *qr)
 			if (qr->collection() != true) {
 				printf("[Server.Serialize]-->QueryResult shows type of STRUCT and says it is no collection\n");
 				return ErrServer+EBadResult;
-				return -1;
 			} 
 			bagRes = (QueryBagResult *)qr;
 			printf("[Server.Serialize]--> Adding struct header \n");
@@ -444,7 +440,7 @@ int  Server::SerializeRec(QueryResult *qr)
 		    serialBuf++;
 		    printf("[Server.Serialize]--> String header complete \n");
 		    strcpy(serialBuf, strVal.c_str());  
-		    printf("[Server.Serialize]--> String serialized to: %s \n", *bufPointer);
+		    printf("[Server.Serialize]--> String serialized to: %s \n", serialBuf);
 		    serialBuf=serialBuf+valSize;
 		    break;
 		case QueryResult::QRESULT:
@@ -500,7 +496,7 @@ int  Server::SerializeRec(QueryResult *qr)
 		    bindRes=(QueryBinderResult *) qr;
 		    strVal=bindRes->getName();
 		    qres=bindRes->getItem();
-		    strcpy(*bufPointer, strVal.c_str());
+		    strcpy(serialBuf, strVal.c_str());
 		    serialBuf=serialBuf+(strVal.length());
 		    SerializeRec(qres);
 		    break;
@@ -566,7 +562,6 @@ int Server::Run()
 	printf("[Server.Run]--> Creating message buffers.. \n");
 	char *messgBuff;
 	char *serializedMessg;
-	char **sPoint;
 	messgBuff=(char*) malloc(MAX_MESSG);
 	serializedMessg=(char*) malloc(MAX_MESSG);
 
@@ -592,6 +587,7 @@ while (!signalReceived) {
 	res = (Receive(&messgBuff, &size));
 	if (res != 0) {
 	    printf("[Server.Run--> Receive returned error code %d\n", res);
+	    sendError(res);
 	    return ErrServer+EReceive;
 	}    
 
@@ -625,6 +621,7 @@ while (!signalReceived) {
 	res = (SerializeRec(qResult)); 
 	if (res != 0) {
 	    printf("[Server.Run--> Serialize returned error code %d\n", res);
+	    sendError(res);
 	    return ErrServer+ESerialize;
 	}
 	
