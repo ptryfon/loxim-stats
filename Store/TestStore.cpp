@@ -4,6 +4,7 @@
 #include "Map.h"
 #include "DBStoreManager.h"
 #include "DBLogicalID.h"
+#include "../Config/SBQLConfig.h"
 
 using namespace std;
 using namespace Store;
@@ -12,8 +13,10 @@ int main(int argc, char* argv[])
 {
 	if (argc > 1 && strcmp(argv[1], "mk") == 0) 
 	{
+		SBQLConfig* config = new SBQLConfig("store");
+		config->init("example.conf");
 		DBStoreManager* store = new DBStoreManager();
-		store->init(0, 0);
+		store->init(config, 0);
 		store->start();
 		PagePointer* p;
 

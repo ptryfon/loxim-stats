@@ -1,5 +1,5 @@
 /**
- * $Id: Buffer.cpp,v 1.12 2006-01-23 09:46:50 mk189406 Exp $
+ * $Id: Buffer.cpp,v 1.13 2006-01-23 10:35:09 mk189406 Exp $
  *
  */
 #include "Buffer.h"
@@ -39,7 +39,10 @@ namespace Store
 		::pthread_mutex_init(&dbwriter.mutex, NULL);
 		::pthread_cond_init(&dbwriter.cond, NULL);
 		dbwriter.dirty_pages = 0;
-		dbwriter.max_dirty = 16;
+		if (store->getConfig() != NULL)
+			store->getConfig()->getInt("store_buffer_maxdirty", dbwriter.max_dirty);
+		else
+			dbwriter.max_dirty = 16;
 		::pthread_create(&tid_dbwriter, NULL, &dbWriterThread, this);
 
 		started = 1;
@@ -71,6 +74,7 @@ namespace Store
 		}
 		n_page->haspage = 1;
 		n_page->dirty = 0;
+		n_page->lock = 0;
 
 		return 0;
 	}
@@ -125,6 +129,7 @@ namespace Store
 				
 					n_page->haspage = 1;
 					n_page->dirty = 1;
+					n_page->lock = 0;
 					dbwriter.dirty_pages++;
 					buffer_hash.insert(make_pair (make_pair (fileID, i), *n_page));
 				}
