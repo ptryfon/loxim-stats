@@ -130,6 +130,22 @@ int CkptRecord::write( int fileDes ) { return LogIO::writeTransactionIDVector( t
 
 /* WriteRecord class */
 
+WriteRecord::WriteRecord( int _tid, LogicalID *_lid, string _name, DataValue *_oldVal, DataValue *_newVal )
+: TransactionRecord( _tid, true ), lid( _lid ), name(_name), oldVal( _oldVal ), newVal( _newVal )
+{
+  if( _oldVal == NULL ) oldValS = "";
+  else {
+    Serialized serial1 = _oldVal->serialize();
+    oldValS = string( (const char*) serial1.bytes, serial1.size );
+  }
+
+  if( _newVal == NULL ) newValS = "";
+  else {
+    Serialized serial2 = _newVal->serialize();
+    newValS = string( (const char*) serial2.bytes, serial2.size );
+  }
+}
+
 int WriteRecord::deleteFromStore(StoreManager* sm, DataValue *dv)
 {
   ObjectPointer* op = sm->createObjectPointer( lid, name, dv);
@@ -186,9 +202,9 @@ int WriteRecord::write( int fileDes )
   if( ( errCode = LogIO::writeLogicalID( lid, fileDes ) ) ) return errCode;
   if( ( errCode = LogIO::writeString( fileDes, (char*) name.data(), name.length() ) ) ) return errCode;
   printf( "4\n" );
-  if( ( errCode = LogIO::writeDataValue( oldVal, fileDes ) ) ) return errCode;
+  if( ( errCode = LogIO::writeString( fileDes, oldValS.c_str(), oldValS.length() ) ) ) return errCode;
   printf( "5\n" );
-  if( ( errCode = LogIO::writeDataValue( newVal, fileDes ) ) ) return errCode;
+  if( ( errCode = LogIO::writeString( fileDes, newValS.c_str(), newValS.length() ) ) ) return errCode;
   printf( "6\n" );
 
   return errCode;

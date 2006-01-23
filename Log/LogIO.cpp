@@ -43,7 +43,7 @@ int LogIO::readLogicalID( LogicalID *&lid, int fileDes, StoreManager* sm )
   }
   else
   {
-    return sm->logicalIDFromByteArray((unsigned char*) (s.data()), s.length(), &lid);
+    return sm->logicalIDFromByteArray((unsigned char*) (s.data()), lid);
   }
   return 0;
 }
@@ -79,7 +79,7 @@ int LogIO::readDataValue( DataValue *&dv, int fileDes, StoreManager* sm )
   }
   else
   {
-    return sm->dataValueFromByteArray((unsigned char*) (s.data()), s.length(), &dv);
+    return sm->dataValueFromByteArray((unsigned char*) (s.data()), dv);
   }
   return 0;
 }
@@ -151,7 +151,7 @@ int LogIO::readString( int fileDes, string &str )
 
   buffer = new char[len];
 
-  while( n < len )
+  while( n < (unsigned) len )
   {
     unsigned size = ::read( fileDes, buffer+n, len-n );
     if( !size ) return UNEXPECTED_EOF_ERROR;
@@ -166,7 +166,7 @@ int LogIO::readString( int fileDes, string &str )
   return 0;
 }
 
-int LogIO::writeString( int fileDes, char *buffer, unsigned len )
+int LogIO::writeString( int fileDes, const char *buffer, unsigned len )
 {
   int errCode;
   unsigned int n = 0;

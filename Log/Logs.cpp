@@ -136,7 +136,7 @@ int LogManager::rollbackTransaction( int tid, StoreManager *sm, unsigned &id )
   int fd;
   int err=0;
   SetOfTransactionIDS setOfTIDs;
-  if( err = flushLog() > 0 )
+  if( ( err = flushLog() ) > 0 )
     return err;
   if( ( fd = ::open(LOG_FILE_PATH, O_RDONLY) ) < 0 ) return errno;
   //przesunięcie na koniec bo czytamy od końca.

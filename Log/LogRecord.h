@@ -21,6 +21,7 @@ namespace Logs
 #include "../Store/Store.h"
 
 using namespace Store;
+using namespace std;
 
 
 namespace Logs
@@ -135,9 +136,15 @@ namespace Logs
 
     protected:
     LogicalID *lid;// trzeba miec tu bytearray
-    DataValue *oldVal;// trzeba miec tu bytearray
-    DataValue *newVal;// trzeba miec tu bytearray
     string name;
+
+    // do zapisu
+    string oldValS;
+    string newValS;
+
+    // do odczytu
+    DataValue *oldVal;
+    DataValue *newVal;
 
     WriteRecord() : TransactionRecord( WRITE_LOG_REC_TYPE ) {}
 
@@ -148,9 +155,7 @@ namespace Logs
     virtual int addToStore(StoreManager* sm, DataValue *dv);
 
     public:
-    WriteRecord( int _tid, LogicalID *_lid, string _name, DataValue *_oldVal, DataValue *_newVal )
-    : TransactionRecord( _tid, true ), lid( _lid ), oldVal( _oldVal ), newVal( _newVal ), name(_name)
-    {}
+    WriteRecord( int _tid, LogicalID *_lid, string _name, DataValue *_oldVal, DataValue *_newVal );
     virtual ~WriteRecord() {  /*delete lid; delete oldVal; delete newVal;*/ } //
     virtual int rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm);
   };

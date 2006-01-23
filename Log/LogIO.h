@@ -43,7 +43,7 @@ namespace Logs
     static int readInt( int fileDes, int &result );
     static int writeInt( int fileDes, int val );
     static int readString( int fileDes, string &str );
-    static int writeString( int fileDes, char *buffer, unsigned len );//czemu buffer nie jest const char*??
+    static int writeString( int fileDes, const char *buffer, unsigned len );//czemu buffer nie jest const char*??
 
     /// Zwraca wskaznik biezacej pozycji w pliku
     static int getFilePos( int fileDes, off_t &result );
