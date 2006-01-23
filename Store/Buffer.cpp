@@ -1,5 +1,5 @@
 /**
- * $Id: Buffer.cpp,v 1.14 2006-01-23 12:13:27 mk189406 Exp $
+ * $Id: Buffer.cpp,v 1.15 2006-01-23 12:23:28 mk189406 Exp $
  *
  */
 #include "Buffer.h"
@@ -238,10 +238,6 @@ namespace Store
 		it = buffer_hash.begin();
 		while (it != buffer_hash.end()) {
 			n_page = &((*it).second);
-
-			cout << "Stoe::Bufffer : dbWriter : [" << (*it).first.first <<
-				", " << (*it).first.second << "] (haspage: " << (unsigned int) n_page->haspage <<
-				", lock: " << (unsigned int) n_page->lock << ", dirty: " << (unsigned int) n_page->dirty << ")" << endl;
 
 			if (n_page->haspage && (!n_page->lock) && n_page->dirty) {
 				cout << "Store::Buffer : writing(" << (*it).first.first <<

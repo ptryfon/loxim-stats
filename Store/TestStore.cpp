@@ -1,4 +1,7 @@
 #include <iostream>
+
+#include <unistd.h>
+
 #include "Store.h"
 #include "Roots.h"
 #include "Map.h"
@@ -11,6 +14,9 @@ using namespace Store;
 
 int main(int argc, char* argv[])
 {
+	SBQLConfig* config = new SBQLConfig("store");
+	config->init("example.conf");
+
 	if (argc > 1 && strcmp(argv[1], "mk") == 0) 
 	{
 		SBQLConfig* config = new SBQLConfig("store");
@@ -19,14 +25,20 @@ int main(int argc, char* argv[])
 		store->init(config, 0);
 		store->start();
 		PagePointer* p;
+		PagePointer* p2;
 
 		for (int i = 0; i < 40; i++) {
 			p = store->getBuffer()->getPagePointer(STORE_FILE_DEFAULT, i);
 			p->aquire();
-			p->release();
+			if (i != 37)
+				p->release();
+			else
+				p2 = p;
 		}
 		p = store->getBuffer()->getPagePointer(STORE_FILE_DEFAULT, 50);
 		p = store->getBuffer()->getPagePointer(STORE_FILE_DEFAULT, 90);
+		sleep(10);
+		p2->release();
 		store->stop();
 		cout << "Po tescie mk" << endl;
 	}
@@ -34,7 +46,7 @@ int main(int argc, char* argv[])
 	if (argc > 1 && strcmp(argv[1], "mo") == 0)
 	{
 		DBStoreManager* store = new DBStoreManager();
-		store->init(0, 0);
+		store->init(config, 0);
 		store->start();
 
 		physical_id* pid = NULL;
@@ -70,7 +82,7 @@ int main(int argc, char* argv[])
 	else
 	{
 		DBStoreManager* store = new DBStoreManager();
-		store->init(0, 0);
+		store->init(config, 0);
 		store->start();
 	
 		LogicalID* lid = new DBLogicalID(175);
