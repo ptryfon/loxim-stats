@@ -473,6 +473,7 @@ int  Server::SerializeRec(QueryResult *qr)
 		    serialBuf++;
 		    doubleRes = (QueryDoubleResult *)qr;
 		    doubleVal = doubleRes->getValue();
+		    printf("[Server.Serialize]--> double value is %lf \n", doubleVal);
 		    printf("[Server.Serialize]--> Switching double byte order.. \n");
 		    doubleVal = htonDouble(doubleVal);
 		    printf("[Server.Serialize]--> Splitting and byte order change complete \n");
