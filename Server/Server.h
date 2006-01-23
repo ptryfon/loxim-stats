@@ -34,6 +34,7 @@ using namespace QExecutor;
 		char *serialBufEnd;
 		int serialBufSize;
 		
+		int sendError(int errNo);
 		//void sigHandler(int sig);
 	//TCP methods
 		int Receive(char** buffer, int* receiveDataSize);
