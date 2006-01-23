@@ -56,8 +56,9 @@ public:
 	virtual int nested(Transaction *tr, QueryResult *&r)=0;
 	virtual bool isBool()=0;
 	virtual int getBoolValue(bool &b)=0;
-	virtual bool isSingleValue();
-	virtual int getSingleValue(QueryResult *&r);
+	virtual bool isSingleValue()=0;
+	virtual int getSingleValue(QueryResult *&r)=0;
+	virtual int comma(QueryResult *arg, QueryResult *&score)=0;
 };
 
 
@@ -93,6 +94,7 @@ public:
 	int getBoolValue(bool &b);
 	bool isSingleValue();
 	int getSingleValue(QueryResult *&r);
+	int comma(QueryResult *arg, QueryResult *&score);
 };
 
 class QueryBagResult : public QueryResult
@@ -127,6 +129,7 @@ public:
 	int getBoolValue(bool &b);
 	bool isSingleValue();
 	int getSingleValue(QueryResult *&r);
+	int comma(QueryResult *arg, QueryResult *&score);
 };
 
 
@@ -162,6 +165,7 @@ public:
 	int getBoolValue(bool &b);
 	bool isSingleValue();
 	int getSingleValue(QueryResult *&r);
+	int comma(QueryResult *arg, QueryResult *&score);
 };
 
 
@@ -194,6 +198,7 @@ public:
 	int getBoolValue(bool &b);
 	bool isSingleValue();
 	int getSingleValue(QueryResult *&r);
+	int comma(QueryResult *arg, QueryResult *&score);
 };
 
 
@@ -223,6 +228,7 @@ public:
 	int getBoolValue(bool &b);
 	bool isSingleValue();
 	int getSingleValue(QueryResult *&r);
+	int comma(QueryResult *arg, QueryResult *&score);
 };
 
 
@@ -257,6 +263,7 @@ public:
 	int getBoolValue(bool &b);
 	bool isSingleValue();
 	int getSingleValue(QueryResult *&r);
+	int comma(QueryResult *arg, QueryResult *&score);
 };
 
 
@@ -291,6 +298,7 @@ public:
 	int getBoolValue(bool &b);
 	bool isSingleValue();
 	int getSingleValue(QueryResult *&r);
+	int comma(QueryResult *arg, QueryResult *&score);
 };
 
 class QueryBoolResult : public QueryResult
@@ -322,6 +330,7 @@ public:
 	int getBoolValue(bool &b);
 	bool isSingleValue();
 	int getSingleValue(QueryResult *&r);
+	int comma(QueryResult *arg, QueryResult *&score);
 };
 
 
@@ -351,6 +360,7 @@ public:
 	int getBoolValue(bool &b);
 	bool isSingleValue();
 	int getSingleValue(QueryResult *&r);
+	int comma(QueryResult *arg, QueryResult *&score);
 };
 
 /* You get this, as a result of non-select query like create, insert etc. */
@@ -375,6 +385,7 @@ public:
 	int getBoolValue(bool &b);
 	bool isSingleValue();
 	int getSingleValue(QueryResult *&r);
+	int comma(QueryResult *arg, QueryResult *&score);
 };
 
 }

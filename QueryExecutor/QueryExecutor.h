@@ -48,6 +48,7 @@ namespace QExecutor
 		int merge(NonAlgOpNode::nonAlgOp op, QueryResult *partial, QueryResult *&final);
 		int algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResult *rArg, QueryResult *&final);
 		int derefQuery(QueryResult *arg, QueryResult *&res);
+		int isIncluded(QueryResult *elem, QueryResult *set, bool &score);
 	public:
 		QueryExecutor() { tr = NULL; };
 		~QueryExecutor();

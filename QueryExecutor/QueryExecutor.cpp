@@ -558,12 +558,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			QueryResult *final_result;
 			errcode = this->algOperate(op,lResult,rResult,final_result);
 			if (errcode != 0) return errcode;
-			// algOperate returns score as it is (int, double, bool) so if in future we will want to unify executeQuery
-			// to we will have to change this:
 			*result = final_result;
-			// into this:
-			//*result = new QueryBagResult();
-			//result->addResult(final_result)
 			fprintf(stderr, "[QE] Algebraic operation Done!\n");
 			return 0;
 			}//case TNALGOP
@@ -664,106 +659,124 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 	fprintf(stderr, "[QE] derefQuery()\n");
 	int errcode;
-	if (arg->isSingleValue()) {
-		QueryResult *single;
-		errcode = arg->getSingleValue(single);
-		if (errcode != 0) return errcode;
-		int singleType = single->type();
-		switch (singleType) {
-			case QueryResult::QSEQUENCE: {
-				fprintf(stderr, "[QE] ERROR in derefQuery() - single value type expected\n");
-				res = new QueryNothingResult();
-				fprintf(stderr, "[QE] QueryNothingResult created\n");
-				return -1;
+	int argType = arg->type();
+	switch (argType) {
+		case QueryResult::QSEQUENCE: {
+			res = new QuerySequenceResult();
+			for (unsigned int i = 0; i < (arg->size()); i++) {
+				QueryResult *tmp_item;
+				errcode = ((QuerySequenceResult *) arg)->at(i, tmp_item);
+				if (errcode != 0) return errcode;
+				QueryResult *tmp_res;
+				errcode = this->derefQuery(tmp_item, tmp_res);
+				if (errcode != 0) return errcode;
+				res->addResult(tmp_res);
 			}
-			case QueryResult::QBAG: {
-				fprintf(stderr, "[QE] ERROR in derefQuery() - single value type expected\n");
-				res = new QueryNothingResult();
-				fprintf(stderr, "[QE] QueryNothingResult created\n");
-				return -1;
+			break;
+		}
+		case QueryResult::QBAG: {
+			res = new QueryBagResult();
+			for (unsigned int i = 0; i < (arg->size()); i++) {
+				QueryResult *tmp_item;
+				errcode = ((QueryBagResult *) arg)->at(i, tmp_item);
+				if (errcode != 0) return errcode;
+				QueryResult *tmp_res;
+				errcode = this->derefQuery(tmp_item, tmp_res);
+				if (errcode != 0) return errcode;
+				res->addResult(tmp_res);
 			}
-			case QueryResult::QSTRUCT: {
-				fprintf(stderr, "[QE] ERROR in derefQuery() - single value type expected\n");
-				res = new QueryNothingResult();
-				fprintf(stderr, "[QE] QueryNothingResult created\n");
-				return -1;
+			break;
+		}
+		case QueryResult::QSTRUCT: {
+			res = new QueryStructResult();
+			for (unsigned int i = 0; i < (arg->size()); i++) {
+				QueryResult *tmp_item;
+				errcode = ((QueryStructResult *) arg)->at(i, tmp_item);
+				if (errcode != 0) return errcode;
+				QueryResult *tmp_res;
+				errcode = this->derefQuery(tmp_item, tmp_res);
+				if (errcode != 0) return errcode;
+				res->addResult(tmp_res);
 			}
-			case QueryResult::QBINDER: {
-				fprintf(stderr, "[QE] ERROR in derefQuery() - single value type expected\n");
-				res = new QueryNothingResult();
-				fprintf(stderr, "[QE] QueryNothingResult created\n");
-				return -1;
+			break;
+		}
+		case QueryResult::QBINDER: {
+			string tmp_name = ((QueryBinderResult *) arg)->getName();
+			QueryResult *tmp_item;
+			errcode = this->derefQuery(((QueryBinderResult *) arg)->getItem(), tmp_item);
+			if (errcode != 0) return errcode;
+			res = new QueryBinderResult(tmp_name, tmp_item);
+			break;
+		}
+		case QueryResult::QBOOL: {
+			res = arg;
+			break;
+		}
+		case QueryResult::QINT: {
+			res = arg;
+			break;
+		}
+		case QueryResult::QDOUBLE: {
+			res = arg;
+			break;
+		}
+		case QueryResult::QSTRING: {
+			res = arg;
+			break;
+		}
+		case QueryResult::QREFERENCE: {
+			LogicalID *ref_value = ((QueryReferenceResult *) arg)->getValue();
+			fprintf(stderr, "[QE] derefQuery() - dereferencing Object\n");
+			ObjectPointer *optr;
+			errcode = tr->getObjectPointer(ref_value, Store::Read, optr);
+			if (errcode != 0) {
+				fprintf(stderr, "[QE] Error in getObjectPointer\n");
+				return errcode;
 			}
-			case QueryResult::QBOOL: {
-				res = single;
-				return 0;
-			}
-			case QueryResult::QINT: {
-				res = single;
-				return 0;
-			}
-			case QueryResult::QDOUBLE: {
-				res = single;
-				return 0;
-			}
-			case QueryResult::QSTRING: {
-				res = single;
-				return 0;
-			}
-			case QueryResult::QREFERENCE: {
-				LogicalID *ref_value = ((QueryReferenceResult *) arg)->getValue();
-				fprintf(stderr, "[QE] derefQuery() - dereferencing Object\n");
-				ObjectPointer *optr;
-				errcode = tr->getObjectPointer(ref_value, Store::Read, optr);
-				if (errcode != 0) {
-					fprintf(stderr, "[QE] Error in getObjectPointer\n");
-					return errcode;
+			DataValue* value = optr->getValue();
+			int vType = value->getType();
+			switch (vType) {
+				case Store::Integer: {
+					fprintf(stderr, "[QE] derefQuery() - ObjectValue = Int\n");
+					int tmp_value = value->getInt();
+					res = new QueryIntResult(tmp_value);
+					break;
 				}
-				DataValue* value = optr->getValue();
-				int vType = value->getType();
-				switch (vType) {
-					case Store::Integer: {
-						fprintf(stderr, "[QE] derefQuery() - ObjectValue = Int\n");
-						int tmp_value = value->getInt();
-						res = new QueryIntResult(tmp_value);
-						return 0;
-					}
-					case Store::Double: {
-						fprintf(stderr, "[QE] derefQuery() - ObjectValue = Double\n");
-						double tmp_value = value->getDouble();
-						res = new QueryDoubleResult(tmp_value);
-						return 0;
-					}
-					case Store::String: {
-						fprintf(stderr, "[QE] derefQuery() - ObjectValue = String\n");
-						string tmp_value = value->getString();
-						res = new QueryStringResult(tmp_value);
-						return 0;
-					}
-					default: {
-						fprintf(stderr, "[QE] ERROR! derefQuery() - wrong argument type\n");
-						res = new QueryNothingResult();
-						return -1;
-					}
+				case Store::Double: {
+					fprintf(stderr, "[QE] derefQuery() - ObjectValue = Double\n");
+					double tmp_value = value->getDouble();
+					res = new QueryDoubleResult(tmp_value);
+					break;
 				}
-			}
-			case QueryResult::QNOTHING: {
-				res = single;
-				return 0;
-			}
-			default: {
-				fprintf(stderr, "[QE] ERROR in derefQuery() - unknown result type\n");
-				res = new QueryNothingResult();
-				fprintf(stderr, "[QE] QueryNothingResult created\n");
-				return -1;
+				case Store::String: {
+					fprintf(stderr, "[QE] derefQuery() - ObjectValue = String\n");
+					string tmp_value = value->getString();
+					res = new QueryStringResult(tmp_value);
+					break;
+				}
+				default: {
+					fprintf(stderr, "[QE] derefQuery() - wrong argument type\n");
+					res = new QueryNothingResult();
+					break;
+				}
 			}
 		}
+		case QueryResult::QNOTHING: {
+			res = arg;
+			break;
+		}
+		default: {
+			fprintf(stderr, "[QE] ERROR in derefQuery() - unknown result type\n");
+			res = new QueryNothingResult();
+			fprintf(stderr, "[QE] QueryNothingResult created\n");
+			return -1;
+		}
 	}
-	else {
-		fprintf(stderr, "[QE] ERROR in derefQuery() - single value type expected\n");
-		res = new QueryNothingResult();
-		fprintf(stderr, "[QE] QueryNothingResult created\n");
-		return -1;
+	if (res->isSingleValue()) {
+		QueryResult *single;
+		errcode = res->getSingleValue(single);
+		if (errcode != 0) return errcode;
+		res = single;
 	}
 	return 0;
 }
@@ -856,37 +869,37 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 				fprintf(stderr, "[QE] = operation\n");
 				bool bool_tmp = derefL->equal(derefR);
 				final = new QueryBoolResult(bool_tmp);
-				return 0;
+				break;
 			}
 			case AlgOpNode::neq: {
 				fprintf(stderr, "[QE] != operation\n");
 				bool bool_tmp = derefL->not_equal(derefR);
 				final = new QueryBoolResult(bool_tmp);
-				return 0;
+				break;
 			}
 			case AlgOpNode::lt: {
 				fprintf(stderr, "[QE] < operation\n");
 				bool bool_tmp = derefL->less_than(derefR);
 				final = new QueryBoolResult(bool_tmp);
-				return 0;
+				break;
 			}
 			case AlgOpNode::gt: {
 				fprintf(stderr, "[QE] > operation\n");
 				bool bool_tmp = derefL->greater_than(derefR);
 				final = new QueryBoolResult(bool_tmp);
-				return 0;
+				break;
 			}
 			case AlgOpNode::le: {
 				fprintf(stderr, "[QE] <= operation\n");
 				bool bool_tmp = derefL->less_eq(derefR);
 				final = new QueryBoolResult(bool_tmp);
-				return 0;
+				break;
 			}
 			case AlgOpNode::ge: {
 				fprintf(stderr, "[QE] >= operation\n");
 				bool bool_tmp = derefL->greater_eq(derefR);
 				final = new QueryBoolResult(bool_tmp);
-				return 0;
+				break;
 			}
 			default : { break; }
 		}
@@ -933,13 +946,64 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 		return 0;
 	} 
 	else if ((op == AlgOpNode::bagUnion) || (op == AlgOpNode::bagIntersect) || (op == AlgOpNode::bagMinus)) {
-		fprintf(stderr, "[QE] bagUnion / bagIntersect / bagMinus operation not implemented yet\n");
-		final = new QueryNothingResult();
+		QueryResult *leftBag = new QueryBagResult();
+		QueryResult *rightBag = new QueryBagResult();
+		leftBag->addResult(lArg);
+		rightBag->addResult(rArg);
+		switch (op) {
+			case AlgOpNode::bagUnion: {
+				fprintf(stderr, "[QE] BAG_UNION operation\n");
+				final = rArg;
+				break;
+			}
+			case AlgOpNode::bagIntersect: {
+				fprintf(stderr, "[QE] BAG_INTERSECT operation\n");
+				final = new QueryBagResult();
+				break;
+			}
+			case AlgOpNode::bagMinus: {
+				fprintf(stderr, "[QE] BAG_MINUS operation\n");
+				final = new QueryBagResult();
+				break;
+			}
+			default: { break; }
+		}
+		for (unsigned int i = 0; i < leftBag->size(); i++) {
+			QueryResult *tmp_res;
+			errcode = ((QueryBagResult *) leftBag)->at(i, tmp_res);
+			if (errcode != 0) return errcode;
+			QueryResult *tmp_res_org;
+			errcode = ((QueryBagResult *) lArg)->at(i, tmp_res_org);
+			if (errcode != 0) return errcode;
+			bool isIncl;
+			errcode = this->isIncluded(tmp_res, rightBag, isIncl);
+			if (errcode != 0) return errcode;
+			switch (op) {
+				case AlgOpNode::bagUnion: {
+					if (not isIncl)
+						final->addResult(tmp_res_org);
+					break;
+				}
+				case AlgOpNode::bagIntersect: {
+					if (isIncl)
+						final->addResult(tmp_res_org);
+					break;
+				}
+				case AlgOpNode::bagMinus: {
+					if (not isIncl)
+						final->addResult(tmp_res_org);
+					break;
+				}
+				default: { break; }
+			}
+		}
 		return 0;
 	}
 	else if (op == AlgOpNode::comma) {
-		fprintf(stderr, "[QE] comma operation not implemented yet\n");
-		final = new QueryNothingResult();
+		fprintf(stderr, "[QE] COMMA operation\n");
+		final = new QueryBagResult();
+		errcode = lArg->comma(rArg,final);
+		if (errcode != 0) return errcode;
 		return 0;
 	}
 	else if (op == AlgOpNode::insert) {
@@ -1206,6 +1270,31 @@ int QueryExecutor::merge(NonAlgOpNode::nonAlgOp op, QueryResult *partial, QueryR
 	return 0;
 }
 
+int QueryExecutor::isIncluded(QueryResult *elem, QueryResult *set, bool &score) {
+	fprintf(stderr, "[QE] isIncluded()\n");
+	int errcode;
+	if (set->type() != QueryResult::QBAG) {
+		fprintf(stderr, "[QE] isIncluded(): ERROR! set argument must be BAG\n");
+		return -1;
+	}
+	QueryResult *derefElem;
+	errcode = this->derefQuery(elem,derefElem);
+	if (errcode != 0) return errcode;
+	bool tmp_bool = false;
+	for (unsigned int i = 0; i < set->size(); i++) {
+		QueryResult *tmp_res;
+		errcode = ((QueryBagResult *) set)->at(i, tmp_res);
+		if (errcode != 0) return errcode;
+		QueryResult *derefSetElem;
+		errcode = this->derefQuery(tmp_res, derefSetElem);
+		if (errcode != 0) return errcode;
+		bool eq = derefElem->equal(derefSetElem);
+		if (eq) 
+			tmp_bool = true;
+	} 
+	score = tmp_bool;
+	return 0;
+}
 
 QueryExecutor::~QueryExecutor() { tr->abort(); stack.deleteAll(); }
 
