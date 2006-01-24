@@ -45,6 +45,13 @@ namespace Store
 		return 0;
 	};
 
+	int DBStoreManager::setTManager(TransactionManager* tm)
+	{
+		this->tm = tm;
+
+		return 0;
+	};
+
 	int DBStoreManager::start()
 	{
 		int retval = 0;
@@ -73,6 +80,11 @@ namespace Store
 	LogManager* DBStoreManager::getLogManager()
 	{
 		return log;
+	};
+
+	TransactionManager* DBStoreManager::getTManager()
+	{
+		return tm;
 	};
 
 	Buffer* DBStoreManager::getBuffer()

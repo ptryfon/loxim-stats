@@ -17,6 +17,7 @@ namespace Store
 using namespace std;
 using namespace Config;
 using namespace Logs;
+using namespace TManager;
 
 namespace Store
 {
@@ -25,6 +26,7 @@ namespace Store
 	private:
 		SBQLConfig* config;
 		LogManager* log;
+		TransactionManager* tm;
 		Buffer* buffer;
 		Map* map;
 		Roots* roots;
@@ -37,11 +39,13 @@ namespace Store
 
 		Misc* misc;
 		int init(SBQLConfig* config, LogManager* log);
+		int setTManager(TransactionManager* tm);
 		int start();
 		int stop();
 
 		SBQLConfig* getConfig();
 		LogManager* getLogManager();
+		TransactionManager* getTManager();
 		Buffer* getBuffer();
 		Map* getMap();
 		Roots* getRoots();
