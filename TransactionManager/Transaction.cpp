@@ -281,6 +281,16 @@ namespace TManager
 	    mutex->up();
 	    return copy_of_transactions;  
 	}	
+	vector<int>* TransactionManager::getTransactionsIds()
+	{
+	    /* block creating new transactions */
+	    mutex->down();
+			vector<int>* copy_of_transactions = new vector<int>;
+			for (list<TransactionID*>::iterator i = transactions->begin();	i != transactions->end(); i++)
+				copy_of_transactions->push_back((*i)->getId());
+	    mutex->up();
+	    return copy_of_transactions;  
+	}	
 	int TransactionManager::commit(Transaction* tr)
 	{
 		int errorNumber;
