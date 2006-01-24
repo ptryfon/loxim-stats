@@ -568,7 +568,7 @@ int Server::Run()
 	DBStoreManager* storeManager = new DBStoreManager();
 	storeManager->init(config, logManager);
 	TransactionManager::getHandle()->init(storeManager, logManager);
-	storeManager->setTransactionManager(TransactionManager::getHandle());
+	//storeManager->setTransactionManager(TransactionManager::getHandle());
 	
 	QueryParser *qPa = new QueryParser();
 	QueryExecutor *qEx = new QueryExecutor();
