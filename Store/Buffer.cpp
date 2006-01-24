@@ -1,8 +1,9 @@
 /**
- * $Id: Buffer.cpp,v 1.15 2006-01-23 12:23:28 mk189406 Exp $
+ * $Id: Buffer.cpp,v 1.16 2006-01-24 09:16:43 mk189406 Exp $
  *
  */
 #include "Buffer.h"
+#include "../Log/Logs.h"
 
 #include <iostream>
 
@@ -38,11 +39,17 @@ namespace Store
 
 		::pthread_mutex_init(&dbwriter.mutex, NULL);
 		::pthread_cond_init(&dbwriter.cond, NULL);
+
+		dbwriter.pages = 0;
 		dbwriter.dirty_pages = 0;
-		if (store->getConfig() != NULL)
-			store->getConfig()->getInt("store_buffer_maxdirty", dbwriter.max_dirty);
-		else
-			dbwriter.max_dirty = 16;
+
+		max_pages = 128;
+		max_dirty = 16;
+		if (store->getConfig() != NULL) {
+			store->getConfig()->getInt("store_buffer_maxpages", max_pages);
+			store->getConfig()->getInt("store_buffer_maxdirty", max_dirty);
+		}
+
 		::pthread_create(&tid_dbwriter, NULL, &dbWriterThread, this);
 
 		started = 1;
@@ -60,7 +67,7 @@ namespace Store
 		started = 0;
 		::pthread_cond_signal(&dbwriter.cond);
 		::pthread_mutex_unlock(&dbwriter.mutex);
-		pthread_join(tid_dbwriter, NULL);
+		::pthread_join(tid_dbwriter, NULL);
 		return 0;
 	};
 
@@ -137,7 +144,7 @@ namespace Store
 					buffer_hash.insert(make_pair (make_pair (fileID, i), *n_page));
 				}
 			}
-			if (dbwriter.dirty_pages < dbwriter.max_dirty)
+			if (dbwriter.dirty_pages < max_dirty)
 				::pthread_cond_signal(&dbwriter.cond);
 		}
 
@@ -181,7 +188,7 @@ namespace Store
 		if (it != buffer_hash.end() && (*it).second.haspage) {
 			n_page = &((*it).second);
 
-			if (dbwriter.dirty_pages < dbwriter.max_dirty)
+			if (dbwriter.dirty_pages < max_dirty)
 				::pthread_cond_signal(&dbwriter.cond);
 
 			n_page->lock = 0;
@@ -207,7 +214,7 @@ namespace Store
 		for ( ; ; ) {
 			::pthread_mutex_lock(&dbwriter.mutex);
 
-			while (dbwriter.dirty_pages < dbwriter.max_dirty) {
+			while (dbwriter.dirty_pages < max_dirty) {
 				::pthread_cond_wait(&dbwriter.cond, &dbwriter.mutex);
 				if (started == 0)
 					break;
@@ -234,6 +241,9 @@ namespace Store
 	{
 		buffer_hash_t::iterator it;
 		buffer_page* n_page;
+		unsigned int cid;
+
+		store->getLogManager()->checkpoint(store->getTManager()->getTransactionsIds(), cid);
 
 		it = buffer_hash.begin();
 		while (it != buffer_hash.end()) {
@@ -249,6 +259,8 @@ namespace Store
 
 			it++;
 		}
+
+		store->getLogManager()->endCheckpoint(cid);
 
 		return 0;
 	};

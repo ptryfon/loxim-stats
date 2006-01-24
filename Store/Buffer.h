@@ -29,6 +29,7 @@ namespace Store
 			unsigned char haspage;
 			unsigned char dirty;
 			unsigned char lock;
+			unsigned int id;
 			char* page;
 		} buffer_page;
 
@@ -36,16 +37,19 @@ namespace Store
 		typedef map<buffer_addr_t, buffer_page> buffer_hash_t;
 		buffer_hash_t buffer_hash;
 
-		DBStoreManager* store;
-		File* file;
+		int max_pages;
+		int max_dirty;
 
 		pthread_t tid_dbwriter;
 		struct {
 			pthread_mutex_t mutex;
 			pthread_cond_t cond;
+			int pages;
 			int dirty_pages;
-			int max_dirty;
 		} dbwriter;
+
+		DBStoreManager* store;
+		File* file;
 
 		int started;
 

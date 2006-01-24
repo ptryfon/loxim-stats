@@ -8,6 +8,8 @@
 #include "DBStoreManager.h"
 #include "DBLogicalID.h"
 #include "../Config/SBQLConfig.h"
+#include "../Log/Logs.h"
+#include "../TransactionManager/Transaction.h"
 
 using namespace std;
 using namespace Store;
@@ -16,29 +18,23 @@ int main(int argc, char* argv[])
 {
 	SBQLConfig* config = new SBQLConfig("store");
 	config->init("example.conf");
+	LogManager* log = new LogManager();
+	log->init();
 
 	if (argc > 1 && strcmp(argv[1], "mk") == 0) 
 	{
-		SBQLConfig* config = new SBQLConfig("store");
-		config->init("example.conf");
 		DBStoreManager* store = new DBStoreManager();
-		store->init(config, 0);
+		store->init(config, log);
+		store->setTManager(TransactionManager::getHandle());
 		store->start();
-		PagePointer* p;
-		PagePointer* p2;
+		PagePointer* p[1000];
 
-		for (int i = 0; i < 40; i++) {
-			p = store->getBuffer()->getPagePointer(STORE_FILE_DEFAULT, i);
-			p->aquire();
-			if (i != 37)
-				p->release();
-			else
-				p2 = p;
+		for (int i = 0; i < 1000; i++) {
+			p[i] = store->getBuffer()->getPagePointer(STORE_FILE_DEFAULT, i);
+		//	p->aquire();
+		//	p->release();
 		}
-		p = store->getBuffer()->getPagePointer(STORE_FILE_DEFAULT, 50);
-		p = store->getBuffer()->getPagePointer(STORE_FILE_DEFAULT, 90);
 		sleep(10);
-		p2->release();
 		store->stop();
 		cout << "Po tescie mk" << endl;
 	}
@@ -46,7 +42,8 @@ int main(int argc, char* argv[])
 	if (argc > 1 && strcmp(argv[1], "mo") == 0)
 	{
 		DBStoreManager* store = new DBStoreManager();
-		store->init(config, 0);
+		store->init(config, log);
+		store->setTManager(TransactionManager::getHandle());
 		store->start();
 
 		physical_id* pid = NULL;
@@ -82,7 +79,8 @@ int main(int argc, char* argv[])
 	else
 	{
 		DBStoreManager* store = new DBStoreManager();
-		store->init(config, 0);
+		store->init(config, log);
+		store->setTManager(TransactionManager::getHandle());
 		store->start();
 	
 		LogicalID* lid = new DBLogicalID(175);
