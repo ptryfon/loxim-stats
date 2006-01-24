@@ -278,7 +278,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					}
 				fprintf(stderr, "[QE] Result counted, counting unMinus\n");
 				int argType = tmpResult->type();
-				fprintf(stderr, "[QE] left argument's type taken\n");
+				fprintf(stderr, "[QE] Argument's type taken: %d\n", argType);
 				switch (argType)
 					{
 					case QueryResult::QINT: //argument is a QueryIntResult
@@ -287,6 +287,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 							{
 							return errcode;
 							}
+						break;
 						}
 					case QueryResult::QDOUBLE: //argument is a QueryDoubleResult
 						{
@@ -294,6 +295,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 							{
 							return errcode;
 							}
+						break;
 						}
 					default: //wrong type!
 						{

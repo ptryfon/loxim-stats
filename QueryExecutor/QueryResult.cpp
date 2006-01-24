@@ -318,13 +318,13 @@ int QueryDoubleResult::minus(QueryResult *r, QueryResult *&res){
 }
 
 int QueryIntResult::minus(QueryResult *&res){ 
-	bool tmp_value = - value;
+	int tmp_value = - value;
 	res = new QueryIntResult(tmp_value);
 	return 0; 
 }
 
 int QueryDoubleResult::minus(QueryResult *&res){ 
-	bool tmp_value = - value;
+	double tmp_value = - value;
 	res = new QueryDoubleResult(tmp_value);
 	return 0; 
 }
