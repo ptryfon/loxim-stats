@@ -317,6 +317,7 @@ int  Server::SerializeRec(QueryResult *qr)
 	unsigned long bufBagLen;
 	unsigned int intVal;
 	double doubleVal;
+	bool boolVal;
 	string strVal;
 	int retVal;
 	int i;
@@ -482,12 +483,23 @@ int  Server::SerializeRec(QueryResult *qr)
 		    break; 
 		case QueryResult::QBOOL: //TODO - pass either BOOLTRUE or BOOLFALSE or just BOOL?
 		    printf("[Server.Serialize]--> BOOL type, sending type indicator and value\n");
-		    resType=Result::BOOL;
+		    boolRes=(QueryBoolResult *)qr;
+		    boolVal=boolRes->getValue();
+		    if (boolVal==false)
+		        resType=Result::BOOLFALSE;
+		    else if (boolVal==true)
+			resType=Result::BOOLTRUE;
+		    else {
+			printf("[Server.Serialize]-->Bool result from Executor corrupted: |%d| \n", (int)boolVal);
+			printf("[Server.Serialize]-->Sending FALSE.. \n");
+			resType=Result::BOOLFALSE;
+		    }
 		    serialBuf[0]=(char)resType;
 		    boolRes = (QueryBoolResult *)qr;
 		    serialBuf++;
-		    serialBuf[0]=(char)(boolRes->getValue());
-		    serialBuf++;
+		    serialBuf[0]=(char)(boolVal);
+		    serialBuf++;		    
+		    printf("[Server.Serialize]--> Sending bool: |type=%d|value=%d|\n", (int)resType, (int)boolVal);
 		    break;
 		case QueryResult::QBINDER:
 		    printf("[Server.Serialize]--> BINDER type, sending name(string) and result\n");
