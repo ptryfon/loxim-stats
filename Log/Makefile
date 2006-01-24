@@ -1,5 +1,7 @@
 include ../make.defs
 
+CXXFLAGS=-I./ -I./../ -Wall -fno-exceptions -g
+
 SOURCES	=	Logs.cpp \
 		LogRecord.cpp \
 		LogIO.cpp \
@@ -21,10 +23,12 @@ all: $(STATIC_LIB)
 program: $(PROGRAM)
 
 $(PROGRAM): $(STATIC_LIB)
-	make -C ../Config
+	make -C ../TransactionManager
+	make -C ../Lock
 	make -C ../Errors
 	make -C ../Store
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $@.cpp $< ../Store/Store.a ../Config/Config.a ../Errors/Errors.a -o $@
+	make -C ../Config
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $@.cpp ../Store/Store.a ../TransactionManager/TransactionManager.a ../Lock/Lock.a ../Errors/Errors.a ../Config/Config.a $< -o $@
 
 clean:
 	rm -f $(OBJECTS) $(DEPFILES) $(STATIC_LIB) $(PROGRAM)

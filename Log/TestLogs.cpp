@@ -33,9 +33,9 @@ int main( int argc, char *argv[] )
   logManager.write( tid, new DBLogicalID( 59 ), "mis3", new DBDataValue( "Stary Mis3" ), 0, id );
 
   // write (stary i nowy nie istnieje)
-  logManager.write( tid, new DBLogicalID( 59 ), "mis3", 0, 0, id );
+  logManager.write( tid, new DBLogicalID( 59 ), "mis3", new DBDataValue( "Stary Mis4" ), new DBDataValue( "Nowy Mis4" ), id );
 
-  //logManager.rollbackTransaction( tid, new DBStoreManager(), id );
+  logManager.rollbackTransaction( tid, new DBStoreManager(), id );
 
   logManager.shutdown( id );
   ::sleep( 5 );

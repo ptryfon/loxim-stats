@@ -17,6 +17,8 @@ int LogRecord::initialize()
   new CommitRecord();
   new RollbackRecord();
   new ShutdownRecord();
+  new AddRootRecord();
+  new RemoveRootRecord();
 
   return 0;
 }
@@ -40,9 +42,39 @@ int LogRecord::readLogRecordForward( LogRecord *&result, int fileDes, StoreManag
 
   if( ( errCode = LogIO::getFilePos( fileDes, filePosBegin ) ) ) return errCode;
   if( ( errCode = LogIO::readInt( fileDes, recordType ) ) ) return errCode;
+
   if( !dictionary.count( recordType ) ) return UNKNOWN_LOG_RECORD_TYPE_ERROR;
 
-  if( ( errCode = dictionary[recordType]->instance( result ) ) ) return errCode;
+  switch( recordType ) {
+    case BEGIN_LOG_REC_TYPE:
+      result = new BeginTransactionRecord();
+      break;
+    case COMMIT_LOG_REC_TYPE:
+      result = new CommitRecord();
+      break;
+    case ROLLBACK_LOG_REC_TYPE:
+      result = new RollbackRecord();
+      break;
+    case CKPT_LOG_REC_TYPE:
+      result = new CkptRecord();
+      break;
+    case END_CKPT_LOG_REC_TYPE:
+      result = new EndCkptRecord();
+      break;
+    case WRITE_LOG_REC_TYPE:
+      result = new WriteRecord();
+      break;
+    case SHUTDOWN_LOG_REC_TYPE:
+      result = new ShutdownRecord();
+      break;
+    case ADD_ROOT_LOG_REC_TYPE:
+      result = new AddRootRecord();
+      break;
+    case REMOVE_ROOT_LOG_REC_TYPE:
+      result = new RemoveRootRecord();
+      break;
+  }
+  //if( ( errCode = dictionary[recordType]->instance( result ) ) ) return errCode;
   result->read( fileDes, sm );
 
   if( ( errCode = LogIO::readInt( fileDes, recordLen ) ) ) return errCode;
@@ -131,7 +163,7 @@ int CkptRecord::write( int fileDes ) { return LogIO::writeTransactionIDVector( t
 /* WriteRecord class */
 
 WriteRecord::WriteRecord( int _tid, LogicalID *_lid, string _name, DataValue *_oldVal, DataValue *_newVal )
-: TransactionRecord( _tid, true ), lid( _lid ), name(_name), oldVal( _oldVal ), newVal( _newVal )
+: TransactionRecord( _tid, WRITE_LOG_REC_TYPE ), lid( _lid ), name(_name), oldVal( _oldVal ), newVal( _newVal )
 {
   if( _oldVal == NULL ) oldValS = "";
   else {
@@ -201,11 +233,8 @@ int WriteRecord::write( int fileDes )
   if( ( errCode = TransactionRecord::write( fileDes ) ) ) return errCode;
   if( ( errCode = LogIO::writeLogicalID( lid, fileDes ) ) ) return errCode;
   if( ( errCode = LogIO::writeString( fileDes, (char*) name.data(), name.length() ) ) ) return errCode;
-  printf( "4\n" );
   if( ( errCode = LogIO::writeString( fileDes, oldValS.c_str(), oldValS.length() ) ) ) return errCode;
-  printf( "5\n" );
   if( ( errCode = LogIO::writeString( fileDes, newValS.c_str(), newValS.length() ) ) ) return errCode;
-  printf( "6\n" );
 
   return errCode;
 }

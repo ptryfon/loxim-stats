@@ -91,7 +91,7 @@ namespace Logs
     virtual int instance( LogRecord *&result ) { result = new ShutdownRecord(); return 0; }
 
     public:
-    ShutdownRecord() : LogRecord( SHUTDOWN_LOG_REC_TYPE ) {}
+    ShutdownRecord() : LogRecord( SHUTDOWN_LOG_REC_TYPE ) {dictionary[type] = this;}
     virtual ~ShutdownRecord() {}
 
   };
@@ -111,7 +111,7 @@ namespace Logs
 
     public:
     virtual ~TransactionRecord() { /* delete tid; */ } // TODO
-    TransactionRecord( int _tid, bool whatever ) : LogRecord(), tid( _tid ) {}
+    TransactionRecord( int _tid, int _type ) : LogRecord( _type ), tid( _tid ) {}
   };
 
 
@@ -120,13 +120,13 @@ namespace Logs
     friend class LogRecord;
 
     protected:
-    BeginTransactionRecord() : TransactionRecord( BEGIN_LOG_REC_TYPE ) {}
+    BeginTransactionRecord() : TransactionRecord( BEGIN_LOG_REC_TYPE ) {dictionary[type] = this;}
 
     virtual int instance( LogRecord *&result ) { result = new BeginTransactionRecord(); return 0; }
 
     public:
     virtual int rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm);
-    BeginTransactionRecord( int _tid ) : TransactionRecord( _tid, true ) {}
+    BeginTransactionRecord( int _tid ) : TransactionRecord( _tid, BEGIN_LOG_REC_TYPE ) {}
   };
 
 
@@ -146,7 +146,7 @@ namespace Logs
     DataValue *oldVal;
     DataValue *newVal;
 
-    WriteRecord() : TransactionRecord( WRITE_LOG_REC_TYPE ) {}
+    WriteRecord() : TransactionRecord( WRITE_LOG_REC_TYPE ) {dictionary[type] = this;}
 
     virtual int read( int fileDes, StoreManager* sm );
     virtual int write( int fileDes );
@@ -176,7 +176,7 @@ namespace Logs
     virtual int addRootToStore( StoreManager* sm );
 
     public:
-    RootRecord( int _tid, LogicalID *_lid) : TransactionRecord( _tid, true ), lid(_lid) {}
+    RootRecord( int _tid, LogicalID *_lid, int _type) : TransactionRecord( _tid, _type ), lid(_lid) {}
     virtual ~RootRecord() {  /*delete lid; */ } //
     //virtual int rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm);
   };
@@ -186,11 +186,11 @@ namespace Logs
     friend class LogRecord;
 
     protected:
-    AddRootRecord() : RootRecord(ADD_ROOT_LOG_REC_TYPE) {}
+    AddRootRecord() : RootRecord(ADD_ROOT_LOG_REC_TYPE) {dictionary[type] = this;}
     virtual int instance( LogRecord *&result ) { result = new AddRootRecord(); return 0; }
 
     public:
-    AddRootRecord( int _tid, LogicalID *_lid) : RootRecord( _tid, _lid ) {}
+    AddRootRecord( int _tid, LogicalID *_lid) : RootRecord( _tid, _lid, ADD_ROOT_LOG_REC_TYPE ) {}
     virtual int rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm);
     virtual ~AddRootRecord(){}
   };
@@ -200,11 +200,11 @@ namespace Logs
     friend class LogRecord;
 
     protected:
-    RemoveRootRecord() : RootRecord(REMOVE_ROOT_LOG_REC_TYPE) {}
+    RemoveRootRecord() : RootRecord(REMOVE_ROOT_LOG_REC_TYPE) {dictionary[type] = this;}
     virtual int instance( LogRecord *&result ) { result = new RemoveRootRecord(); return 0; }
 
     public:
-    RemoveRootRecord( int _tid, LogicalID *_lid) : RootRecord( _tid, _lid ) {}
+    RemoveRootRecord( int _tid, LogicalID *_lid) : RootRecord( _tid, _lid, REMOVE_ROOT_LOG_REC_TYPE ) {}
     virtual int rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm);
     virtual ~RemoveRootRecord(){}
   };
@@ -214,12 +214,12 @@ namespace Logs
     friend class LogRecord;
 
     protected:
-    CommitRecord() : TransactionRecord( COMMIT_LOG_REC_TYPE ) {}
+    CommitRecord() : TransactionRecord( COMMIT_LOG_REC_TYPE ) {dictionary[type] = this;}
 
     virtual int instance( LogRecord *&result ) { result = new CommitRecord(); return 0; }
 
     public:
-    CommitRecord( int _tid ) : TransactionRecord( _tid, true ) {}
+    CommitRecord( int _tid ) : TransactionRecord( _tid, COMMIT_LOG_REC_TYPE ) {}
   };
 
 
@@ -228,12 +228,12 @@ namespace Logs
     friend class LogRecord;
 
     protected:
-    RollbackRecord() : TransactionRecord( ROLLBACK_LOG_REC_TYPE ) {}
+    RollbackRecord() : TransactionRecord( ROLLBACK_LOG_REC_TYPE ) {dictionary[type] = this;}
 
     virtual int instance( LogRecord *&result ) { result = new RollbackRecord(); return 0; }
 
     public:
-    RollbackRecord( int _tid ) : TransactionRecord( _tid, true ) {}
+    RollbackRecord( int _tid ) : TransactionRecord( _tid, ROLLBACK_LOG_REC_TYPE ) {}
   };
 
   class CkptRecord : public LogRecord
@@ -243,14 +243,14 @@ namespace Logs
     protected:
     vector< int > *tidVec;
 
-    CkptRecord() : LogRecord( CKPT_LOG_REC_TYPE ) {}
+    CkptRecord() : LogRecord( CKPT_LOG_REC_TYPE ) {dictionary[type] = this;}
 
     virtual int read( int fileDes, StoreManager* sm );
     virtual int write( int fileDes );
     virtual int instance( LogRecord *&result ) { result = new CkptRecord(); return 0; }
 
     public:
-    CkptRecord( vector< int > *_tidVec ) : LogRecord(), tidVec( _tidVec ) {}
+    CkptRecord( vector< int > *_tidVec ) : LogRecord( CKPT_LOG_REC_TYPE ), tidVec( _tidVec ) {}
 
     virtual ~CkptRecord() { delete tidVec; }
   };
@@ -265,7 +265,7 @@ namespace Logs
     virtual int instance( LogRecord *&result ) { result = new EndCkptRecord(); return 0; }
 
     public:
-    EndCkptRecord() : LogRecord( END_CKPT_LOG_REC_TYPE ) {}
+    EndCkptRecord() : LogRecord( END_CKPT_LOG_REC_TYPE ) {dictionary[type] = this;}
   };
 
 };
