@@ -71,6 +71,8 @@ namespace Errors {
 #define ESend			0x1700
 #define EBadResult		0x1800
 
+// plug for h_errno from gethostbyname(3)
+#define ENoHost			0x1900
 }
 
 #endif
