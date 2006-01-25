@@ -150,7 +150,7 @@ int LogManager::rollbackTransaction( int tid, StoreManager *sm, unsigned &id )
   //pętla jest wykonywana dopóki nie znajdzie się begin który usunie tranzakcję ze zbioru
   while(!setOfTIDs.empty())
   {
-    LogRecord* tmp;
+    LogRecord* tmp = 0;
     //wczytywanie rekordu dziennika
     if( (err = LogRecord::readLogRecordBackward(tmp, fd, sm) ) > 0)
     {

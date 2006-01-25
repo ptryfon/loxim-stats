@@ -10,10 +10,10 @@ int LogIO::readInt( int fileDes, int &result )
 
   while( n < sizeof( result ) )
   {
-    unsigned size = ::read( fileDes, ((char *) &result)+n, sizeof( result )-n );
+    int size = ::read( fileDes, ((char *) &result)+n, sizeof( result )-n );
     if( !size ) return UNEXPECTED_EOF_ERROR;
     n += size;
-    if( errno ) return errno;
+    if( size == -1 ) return errno;
   }
 
   return 0;

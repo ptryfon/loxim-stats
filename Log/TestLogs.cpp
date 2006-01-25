@@ -53,7 +53,9 @@ int main( int argc, char *argv[] )
   DBStoreManager* sm = new DBStoreManager();
 
   SBQLConfig *storeConfig = new SBQLConfig( "Store" );
-  storeConfig->init("../Store/example.conf");
+  printf( "ERRNO: %d\n", errno );
+  storeConfig->init("../Config/example.conf");
+  printf( "ERRNO: %d\n", errno );
   sm->init( storeConfig, &logManager );
 
   logManager.init();
