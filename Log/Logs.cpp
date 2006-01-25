@@ -27,6 +27,7 @@ int LogManager::init()
   // otwieramy plik z logami
   if( ( fileDes = ::open( LOG_FILE_PATH, O_WRONLY | O_CREAT | O_APPEND, S_IWUSR | S_IRUSR ) ) < 0 ) return errno;
 
+  ::lseek( fileDes, 0, SEEK_END );
   // odpalamy watek
   logThread = new LogThread( fileDes );
   LogRecord::initialize();

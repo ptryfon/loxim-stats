@@ -23,7 +23,7 @@ void printLog(StoreManager* sm)
   LogRecord* lr;
   WriteRecord* wr;
   fd = ::open(LOG_FILE_PATH, O_RDONLY);
-  while( (err = LogRecord::readLogRecordForward(lr, fd, sm)) == 0 && i++<5)
+  while( (err = LogRecord::readLogRecordForward(lr, fd, sm)) == 0 && i++<50)
   {
     int lt;
     lr->getType(lt);
