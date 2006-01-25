@@ -14,7 +14,6 @@ namespace Errors {
 
 	ErrorConsole::ErrorConsole()
        	{
-//		owner();
 		nObjects++;
 	};
 
@@ -37,56 +36,61 @@ namespace Errors {
 
 	ErrorConsole& ErrorConsole::operator<<(int error)
        	{
-		string modname;
+		string src_mod, dest_mod, str;
 
 		switch(error & ErrAllModules) {
 			case ErrBackup:
-				modname = "Backup: ";
+				src_mod = "Backup";
 				break;
 			case ErrConfig:
-				modname = "Config: ";
+				src_mod = "Config";
 				break;
 			case ErrDriver:
-				modname = "Driver: ";
+				src_mod = "Driver";
 				break;
 			case ErrErrors:
-				modname = "Errors: ";
+				src_mod = "Errors";
 				break;
 			case ErrLockMgr:
-				modname = "LockMgr: ";
+				src_mod = "LockMgr";
 				break;
 			case ErrLogs:
-				modname = "Logs: ";
+				src_mod = "Logs";
 				break;
 			case ErrQExecutor:
-				modname = "QExecutor: ";
+				src_mod = "QExecutor";
 				break;
 			case ErrQParser:
-				modname = "QParser: ";
+				src_mod = "QParser";
 				break;
 			case ErrSBQLCli:
-				modname = "SBQLCli: ";
+				src_mod = "SBQLCli";
 				break;
 			case ErrServer:
-				modname = "Server: ";
+				src_mod = "Server";
 				break;
 			case ErrStore:
-				modname = "Store: ";
+				src_mod = "Store";
 				break;
 			case ErrTManager:
-				modname = "TManager: ";
+				src_mod = "TManager";
 				break;
 			default:
-				if (owner.length() == 0)
-					modname = "Aieeeee! \"Unknown\" returned: ";
-				else
-					modname = owner + ": ";
+				src_mod = "Unknown";
 				break;
 		}
-		*consoleFile << modname << "errno: " << (error & ~ErrAllModules) << "\n";
+		if ((error & ~ErrAllModules) < 0x100) {
+			str = strerror(error & ~ErrAllModules);
+		}
+		if (owner.length() == 0)
+			dest_mod = "Unknown: ";
+		else
+			dest_mod = owner + ": ";
+
+		*consoleFile << dest_mod << src_mod << " said: " << str << " (errno: "<< (error & ~ErrAllModules) << ")\n";
 		consoleFile->flush();
 		if (serr) {
-			cerr << modname << "errno: " << (error & ~ErrAllModules) << "\n";
+			cerr << dest_mod << src_mod << " said: " << str << " (errno: "<< (error & ~ErrAllModules) << ")\n";
 			cerr.flush();
 		}
 		return *this;
@@ -94,21 +98,17 @@ namespace Errors {
 
 	ErrorConsole& ErrorConsole::operator<<(string errorMsg)
        	{
-		*consoleFile << errorMsg;
-		consoleFile->flush();
-		if (serr) {
-			cerr << errorMsg;
-			cerr.flush();
-		}
-		return *this;
-	};
+		string dest_mod;
 
-	ErrorConsole& ErrorConsole::operator<<(ErrorConsole &cons)
-       	{
-		*consoleFile << cons.consoleFile;
+		if (owner.length() == 0)
+			dest_mod = "Unknown: ";
+		else
+			dest_mod = owner + ": ";
+
+		*consoleFile << dest_mod << errorMsg << "\n";
 		consoleFile->flush();
 		if (serr) {
-			cerr << cons.consoleFile;
+			cerr << dest_mod << errorMsg << "\n";
 			cerr.flush();
 		}
 		return *this;
@@ -118,15 +118,21 @@ namespace Errors {
 	{
 		char str[1024];
 		va_list ap;
+		string dest_mod;
 
 		va_start(ap, format);
 		vsnprintf(str, 1024, format, ap);
 		va_end(ap);
 
-		*consoleFile << str;
+		if (owner.length() == 0)
+			dest_mod = "Unknown: ";
+		else
+			dest_mod = owner + ": ";
+
+		*consoleFile << dest_mod << str;
 		consoleFile->flush();
 		if (serr) {
-			cerr << str;
+			cerr << dest_mod << str;
 			cerr.flush();
 		}
 		return *this;

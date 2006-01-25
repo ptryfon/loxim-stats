@@ -11,13 +11,14 @@ int main(int argc, char *argv[])
 
 	ec.init(1);
 // przyklady uzycia
-	ec << "aaaa\n";
-	ec << "dupa1 " << " xxx\n";
-	ec << "dupa2 \n" << ENoFile;
-	ec << "dupa3 \n" << ENoFile << " xxx\n";
+	ec << "aaaa";
+	ec << "dupa1 " << " xxx";
+	ec << "dupa2 " << ENoFile;
+	ec << "dupa3 " << ENoFile << " xxx";
 // to dzialac nie bedzie (i tak jest zle bo endl robi flush)
 //	ec << endl;
 	ec << (EBadFile | ErrStore);
 	ec << (ENoFile);
+	ec << (ENOMEM | ErrLogs);
 	ec.printf("1: %d, ptr: %p\n", 1, NULL);
 }
