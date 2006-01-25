@@ -73,6 +73,7 @@ namespace Store
 
 			store->getMap()->initializeFile(this);
 			store->getRoots()->initializeFile(this);
+			store->getPageManager()->initializeFile(this);
 		}
 
 		started = 1;

@@ -21,7 +21,7 @@ int main(int argc, char* argv[])
 	LogManager* log = new LogManager();
 	log->init();
 
-	if (argc == 0) 
+	if (argc == 1)
 	{
 		DBStoreManager* store = new DBStoreManager();
 		store->init(config, log);

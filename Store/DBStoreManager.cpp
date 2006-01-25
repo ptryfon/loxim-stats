@@ -108,6 +108,11 @@ namespace Store
 		return roots;
 	};
 
+	PageManager* DBStoreManager::getPageManager()
+	{
+		return pagemgr;
+	};
+
 #ifdef VIRTUAL
 	int DBStoreManager::getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object)
 	{

@@ -51,6 +51,7 @@ namespace Store
 		Buffer* getBuffer();
 		Map* getMap();
 		Roots* getRoots();
+		PageManager* getPageManager();
 
 		virtual int getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object);
 		virtual int createObject(TransactionID* tid, string name, DataValue* value, ObjectPointer*& object);
