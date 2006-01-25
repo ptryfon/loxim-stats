@@ -192,6 +192,7 @@ int WriteRecord::deleteFromStore(StoreManager* sm, DataValue *dv)
 //UWAGA to zle dziala  TODO createObject, trzeba zamienic na cos co robi undo delete
 int WriteRecord::addToStore(StoreManager* sm, DataValue *dv)
 {
+  printf( "createObjectPointer( lid=%d, name='%s', dv='%s' )\n", lid->toInteger(), name.c_str(), dv->toString().c_str() );
   ObjectPointer* op = sm->createObjectPointer( lid, name, dv);
   return sm->createObject( NULL, name, dv, op );
 }

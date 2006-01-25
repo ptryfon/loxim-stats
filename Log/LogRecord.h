@@ -144,7 +144,7 @@ namespace Logs
 
     public://do testow
     // do odczytu
-    LogicalID *lid;// trzeba miec tu bytearray
+    LogicalID *lid;
     DataValue *oldVal;
     DataValue *newVal;
 

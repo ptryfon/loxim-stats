@@ -10,6 +10,7 @@
 #include "../Store/DBLogicalID.h"
 #include "../Store/DBStoreManager.h"
 #include "LogsGlobals.cpp"
+#include "../TransactionManager/Transaction.h"
 
 
 using namespace Store;
@@ -52,31 +53,31 @@ int main( int argc, char *argv[] )
   int tid = 1234;
   DBStoreManager* sm = new DBStoreManager();
 
-  SBQLConfig *storeConfig = new SBQLConfig( "Store" );
-  printf( "ERRNO: %d\n", errno );
-  storeConfig->init("../Config/example.conf");
-  printf( "ERRNO: %d\n", errno );
-  sm->init( storeConfig, &logManager );
-
   logManager.init();
   logManager.beginTransaction( tid, id );
 
-  // write (stary i nowy istnieje)
-  {
-    DataValue *oldDataValue = new DBDataValue( "Stary Mis" );
-    DataValue *newDataValue = new DBDataValue( "Nowy Mis" );
+  SBQLConfig *storeConfig = new SBQLConfig( "Store" );
+  storeConfig->init("../Config/example.conf");
+  sm->init( storeConfig, &logManager );
+  sm->setTManager(TransactionManager::getHandle());
+  sm->start();
 
-    logManager.write( tid, new DBLogicalID( 57 ), "mis", oldDataValue, newDataValue, id );
-  }
+//   // write (stary i nowy istnieje)
+//   {
+//     DataValue *oldDataValue = new DBDataValue( "Stary Mis" );
+//     DataValue *newDataValue = new DBDataValue( "Nowy Mis" );
 
-  // write (stary nie istnieje)
-  logManager.write( tid, new DBLogicalID( 58 ), "mis2", 0, new DBDataValue( "Nowy Mis2" ), id );
+//     logManager.write( tid, new DBLogicalID( 57 ), "mis", oldDataValue, newDataValue, id );
+//   }
+
+//   // write (stary nie istnieje)
+//   logManager.write( tid, new DBLogicalID( 58 ), "mis2", 0, new DBDataValue( "Nowy Mis2" ), id );
 
   // write (nowy nie istnieje)
   logManager.write( tid, new DBLogicalID( 59 ), "mis3", new DBDataValue( "Stary Mis3" ), 0, id );
 
-  // write (stary i nowy istnieje)
-  logManager.write( tid, new DBLogicalID( 59 ), "mis3", new DBDataValue( "Stary Mis4" ), new DBDataValue( "Nowy Mis4" ), id );
+//   // write (stary i nowy istnieje)
+//   logManager.write( tid, new DBLogicalID( 59 ), "mis3", new DBDataValue( "Stary Mis4" ), new DBDataValue( "Nowy Mis4" ), id );
 
 
   logManager.rollbackTransaction( tid, sm, id );
