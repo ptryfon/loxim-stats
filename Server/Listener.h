@@ -30,8 +30,10 @@
 		int CreateSocket(int port, int* created_socket);
 				
 	private:
+	#define limit 5	// default max number of incomming connections at the same time
+	
 	// TCP methods
-		int ListenOnSocket(int sock, int* newSocket);
+		int ListenOnSocket(int sock, int* newSocket, int queueLength=limit);
 		int CloseSocket(int sock);
 		
 	

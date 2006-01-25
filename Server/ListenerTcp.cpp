@@ -5,7 +5,9 @@
 #include <netinet/in.h> 
 #include <netdb.h> 
 #include <arpa/inet.h>
+#include <errno.h>
 
+#include "../Errors/Errors.h"
 #include "Listener.h"
 
 using namespace std;
@@ -19,9 +21,9 @@ int Listener::CreateSocket(int port, int* created_socket) {
     int sock;
     cerr << "entering CreateSocket" << endl;
     sock = socket( PF_INET, SOCK_STREAM, 0 );
-    if (sock < 0) {
+    if (sock == -1) {
     	cerr << "problem z socketem" << endl;
-    	return 1;
+    	return errno | ErrTCPProto;
     }
     
     char nazwa[30];
@@ -29,7 +31,7 @@ int Listener::CreateSocket(int port, int* created_socket) {
     
     if (0 != gethostname( nazwa, dl_nazwy )) {
        cerr << "nie mam nazwy hosta" << endl;
-       return 1;
+       return errno | ErrTCPProto;
     }
     cout <<  nazwa << endl;
     
@@ -41,11 +43,11 @@ int Listener::CreateSocket(int port, int* created_socket) {
 	// zerujemy resztê struktury
 	memset( Addr.sin_zero , 0, 8 );
     
-    if (0 > bind (sock, (sockaddr*)&Addr, sizeof( sockaddr ) )) {
+    if (0 != bind (sock, (sockaddr*)&Addr, sizeof( sockaddr ) )) {
        cerr << "blad przy bindowaniu" << endl;
-       return 1;
+       return errno | ErrTCPProto;
     }
-    
+    //TODO reszte tej funkcji mozna wyrzucic, jest tylko do celow diagnostycznych
    //string s(Addr.sin_addr);
    
    //zeby wiedziec jaki adres ma server
@@ -55,7 +57,7 @@ int Listener::CreateSocket(int port, int* created_socket) {
   if (hp == 0)
     {
       fprintf (stderr, "%s : unknown host\n", nazwa);
-      exit (2);
+      return ENoHost | ErrTCPProto;
     }
   memcpy ((char *) &Addr.sin_addr, (char *) hp->h_addr, hp->h_length); 
    
@@ -72,13 +74,13 @@ int Listener::CreateSocket(int port, int* created_socket) {
  * w wyniku bedzie wskazywal na nowy socket do ktorego przylaczyl sie nowy klient
  */
 
-int Listener::ListenOnSocket(int sock, int* newSocket) 
+int Listener::ListenOnSocket(int sock, int* newSocket, int queueLength) 
 {
 
 	printf("ListenerTcp: Listening on socket number %d \n", sock);
-    if (0 != listen( sock, 1 )) {
+    if (0 != listen( sock, queueLength )) {
        cerr << "blad w listen" << endl;
-       return 1;
+       return errno | ErrTCPProto;
     }
     
     int nowy;
@@ -99,7 +101,7 @@ int Listener::CloseSocket(int sock) {
 	if (0 == close(sock)) return 0;
 	else {
 		cerr << "blad przy zamykaniu gniazda" << endl;
-		return 1;
+		return errno | ErrTCPProto;
 	}
 }
 
