@@ -19,8 +19,8 @@ namespace TManager
 /*______Transaction_________________________________________*/
 	Transaction::Transaction(TransactionID* tid, Semaphore* _sem)
 	{
-		err = ErrorConsole(); 
-		err << "Transaction started, id: \n";	
+		err = ErrorConsole("TransactionManager"); 
+		err << "Transaction started, id: ";	
 		sem = _sem;
 		this->tid = tid;
 		tm = TransactionManager::getHandle();
@@ -48,7 +48,7 @@ namespace TManager
 	{
 		int errorNumber;
 	
-		err << "Transaction: getObjectPointer\n";
+		err << "Transaction: getObjectPointer";
 		errorNumber = lm->lock(lid, tid, mode);
 
 		sem->lock_read();
@@ -64,7 +64,7 @@ namespace TManager
 	{
 		int errorNumber;
 	    
-		err << "Transaction: createObject\n";
+		err << "Transaction: createObject";
 
 		sem->lock_write();
 			errorNumber = sm->createObject( tid, name, value, p);	    
@@ -82,16 +82,16 @@ namespace TManager
 	{
 		int errorNumber;
 
-		err << "Transaction: deleteObject\n";		
+		err << "Transaction: deleteObject";
 		/* exclusive lock for this object */
 		errorNumber = lm->lock(object->getLogicalID(), tid, Write);
 		
 		sem->lock_write();		
 		
-		printf("Before store delete\n");fflush(stdout);
+		err << "Before store delete";
 			if (errorNumber == 0)
 				errorNumber = sm->deleteObject(tid, object);		
-		printf("After store delete\n");fflush(stdout);
+		err << "After store delete";
 		sem->unlock();
 		
 		return errorNumber;
@@ -208,7 +208,7 @@ namespace TManager
 		int errorNumber;
 		unsigned id;
 	    
-		err << "Transaction: commit\n";
+		err << "Transaction: commit";
 		errorNumber = logm->commitTransaction(tid->getId(), id);  //need to process error
 		return tm->commit(this);
 	}
@@ -218,7 +218,7 @@ namespace TManager
 		int errorNumber;
 		unsigned id;
 	    
-		err << "Transaction: abort\n";
+		err << "Transaction: abort";
 		errorNumber = logm->rollbackTransaction(tid->getId(), sm, id);  //need to process error
 		return tm->abort(this);
 	}

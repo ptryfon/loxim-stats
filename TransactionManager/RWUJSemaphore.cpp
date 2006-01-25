@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <pthread.h>
 #include "RWUJSemaphore.h"
+#include "Errors/ErrorConsole.h"
+
+using namespace Errors;
 
 namespace SemaphoreLib {
 
@@ -156,13 +159,14 @@ namespace SemaphoreLib {
 
 	int RWUJSemaphore::status()
 	{
-	    printf("Inside %d\n", inside);
-	    printf("Readers waiting %d\n", wait_readers);
-	    printf("Upgraders waiting %d\n", wait_upgraders);
-	    printf("Writers waintin %d\n", wait_writers);
-	    printf("Best upgrader %d\n", best_upgrader);
-	    printf("Current mode %d\n", current_mode);
-	    fflush(stdout);
+	    ErrorConsole ec("TransactionManager");
+
+	    ec.printf("Inside %d\n", inside);
+	    ec.printf("Readers waiting %d\n", wait_readers);
+	    ec.printf("Upgraders waiting %d\n", wait_upgraders);
+	    ec.printf("Writers waintin %d\n", wait_writers);
+	    ec.printf("Best upgrader %d\n", best_upgrader);
+	    ec.printf("Current mode %d\n", current_mode);
 	    return 0;
 	}
 
