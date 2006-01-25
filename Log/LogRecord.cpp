@@ -169,13 +169,16 @@ WriteRecord::WriteRecord( int _tid, LogicalID *_lid, string _name, DataValue *_o
   else {
     Serialized serial1 = _oldVal->serialize();
     oldValS = string( (const char*) serial1.bytes, serial1.size );
+    printf("s1 = %d ",serial1.size);
   }
 
   if( _newVal == NULL ) newValS = "";
   else {
     Serialized serial2 = _newVal->serialize();
     newValS = string( (const char*) serial2.bytes, serial2.size );
+    printf("s2 = %d\n",serial2.size);
   }
+  
 }
 
 int WriteRecord::deleteFromStore(StoreManager* sm, DataValue *dv)
