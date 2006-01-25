@@ -33,7 +33,7 @@ namespace Store
 		int getFreePage();
 		int getFreePage(int space);
 		int updateFreeMap(PagePointer *ptr);
-		static void printPage(PagePointer *ptr);
+		static void printPage(PagePointer *ptr, int lines=4);
 	private:
 		DBStoreManager* store;
 		Buffer* buffer;

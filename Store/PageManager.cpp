@@ -257,13 +257,13 @@ namespace Store
 		return 0;
 	}
 	
-	void printPage(PagePointer* ptr)
+	void printPage(PagePointer* ptr, int lines=4)
 	{
 		ErrorConsole ec("Store");
 		unsigned char* bytes = reinterpret_cast<unsigned char*>(ptr->getPage());
 		string tmpstr = "";
 		
-		for(int l=0; l<4; l++) {
+		for(int l=0; l<lines; l++) {
 			tmpstr = "";
 			for(int i=0;i<16;i++) {
 				if((i!=0) && (i%4==0))
