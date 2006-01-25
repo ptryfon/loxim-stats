@@ -24,6 +24,8 @@ namespace QExecutor {
 
 class QueryResult
 {
+protected:
+	ErrorConsole *ec;
 public:
 	enum QueryResultType {
 		QRESULT   = 0,
@@ -75,6 +77,7 @@ public:
 		if ((seq.size()) > 0) {
 			for (unsigned int i = 0; i < (seq.size()); i++ ) { delete (seq.at(i)); };
 		}; 
+		if (ec != NULL) delete ec;
 	};
 	int type();
 	bool collection();
@@ -113,6 +116,7 @@ public:
 		if ((bag.size()) > 0) {
 			for (unsigned int i = 0; i < (bag.size()); i++ ) { delete (bag.at(i)); };
 		}; 
+		if (ec != NULL) delete ec;
 	};
 	int type();
 	bool collection();
@@ -152,6 +156,7 @@ public:
 		if ((str.size()) > 0) {
 			for (unsigned int i = 0; i < (str.size()); i++ ) { delete (str.at(i)); };
 		}; 
+		if (ec != NULL) delete ec;
 	};
 	int type();
 	bool collection();
@@ -185,7 +190,7 @@ public:
 	QueryBinderResult();
 	QueryBinderResult(string n, QueryResult* r);
 	QueryResult* clone();
-	virtual ~QueryBinderResult() { if (item != NULL) delete item; };
+	virtual ~QueryBinderResult() { if (item != NULL) delete item; if (ec != NULL) delete ec; };
 	string getName();
 	void setName(string n);
 	QueryResult* getItem();
@@ -217,7 +222,7 @@ public:
 	QueryStringResult();
 	QueryStringResult(string  v);
 	QueryResult* clone();
-	virtual ~QueryStringResult() {};
+	virtual ~QueryStringResult() { if (ec != NULL) delete ec; };
 	string getValue();
 	void setValue(string v);
 	int type();
@@ -247,7 +252,7 @@ public:
 	QueryIntResult();
 	QueryIntResult(int  v);
 	QueryResult* clone();
-	virtual ~QueryIntResult() {};
+	virtual ~QueryIntResult() { if (ec != NULL) delete ec; };
 	int getValue();
 	void setValue(int v);
 	int type();
@@ -282,7 +287,7 @@ public:
 	QueryDoubleResult();
 	QueryDoubleResult(double v);
 	QueryResult* clone();
-	virtual ~QueryDoubleResult() {};
+	virtual ~QueryDoubleResult() { if (ec != NULL) delete ec; };
 	double getValue();
 	void setValue(double v);
 	int type();
@@ -316,7 +321,7 @@ public:
 	QueryBoolResult();
 	QueryBoolResult(bool v);
 	QueryResult* clone();
-	virtual ~QueryBoolResult() {};
+	virtual ~QueryBoolResult() { if (ec != NULL) delete ec; };
 	bool getValue();
 	void setValue(bool v);
 	int type();
@@ -349,7 +354,7 @@ public:
 	QueryReferenceResult();
 	QueryReferenceResult(LogicalID* v);
 	QueryResult* clone();
-	virtual ~QueryReferenceResult() { if (value != NULL) delete value; };
+	virtual ~QueryReferenceResult() { if (value != NULL) delete value; if (ec != NULL) delete ec; };
 	LogicalID* getValue();
 	void setValue(LogicalID* v);
 	int type();
@@ -376,7 +381,7 @@ class QueryNothingResult : public QueryResult
 public:
 	QueryNothingResult();
 	QueryResult* clone();
-	virtual ~QueryNothingResult() {};
+	virtual ~QueryNothingResult() { if (ec != NULL) delete ec; };
 	int type();
 	bool collection();
 	bool isEmpty();

@@ -21,25 +21,25 @@ using namespace std;
 namespace QExecutor {
 
 //constructors
-QuerySequenceResult::QuerySequenceResult() 			{}
+QuerySequenceResult::QuerySequenceResult() 			{ ec = new ErrorConsole("QueryExecutor"); }
 QuerySequenceResult::QuerySequenceResult(vector<QueryResult*> s){ seq = s; }
-QueryBagResult::QueryBagResult() 				{}
+QueryBagResult::QueryBagResult() 				{ ec = new ErrorConsole("QueryExecutor"); }
 QueryBagResult::QueryBagResult(vector<QueryResult*> b)		{ bag = b; }
-QueryStructResult::QueryStructResult() 				{}
+QueryStructResult::QueryStructResult() 				{ ec = new ErrorConsole("QueryExecutor"); }
 QueryStructResult::QueryStructResult(vector<QueryResult*> s)	{ str = s; }
-QueryBinderResult::QueryBinderResult()				{}
+QueryBinderResult::QueryBinderResult()				{ ec = new ErrorConsole("QueryExecutor"); }
 QueryBinderResult::QueryBinderResult(string n, QueryResult* r) 	{ name=n; item=r; }
-QueryStringResult::QueryStringResult()				{}
+QueryStringResult::QueryStringResult()				{ ec = new ErrorConsole("QueryExecutor"); }
 QueryStringResult::QueryStringResult(string v) 			{ value=v; }
-QueryIntResult::QueryIntResult()				{}
+QueryIntResult::QueryIntResult()				{ ec = new ErrorConsole("QueryExecutor"); }
 QueryIntResult::QueryIntResult(int v) 				{ value=v; }
-QueryDoubleResult::QueryDoubleResult()				{}
+QueryDoubleResult::QueryDoubleResult()				{ ec = new ErrorConsole("QueryExecutor"); }
 QueryDoubleResult::QueryDoubleResult(double v) 			{ value=v; }
-QueryBoolResult::QueryBoolResult()				{}
+QueryBoolResult::QueryBoolResult()				{ ec = new ErrorConsole("QueryExecutor"); }
 QueryBoolResult::QueryBoolResult(bool v) 			{ value=v; }
-QueryReferenceResult::QueryReferenceResult()			{}
+QueryReferenceResult::QueryReferenceResult()			{ ec = new ErrorConsole("QueryExecutor"); }
 QueryReferenceResult::QueryReferenceResult(LogicalID* v) 	{ value=v; }
-QueryNothingResult::QueryNothingResult() 			{}
+QueryNothingResult::QueryNothingResult() 			{ ec = new ErrorConsole("QueryExecutor"); }
 
 //function clone()
 QueryResult* QuerySequenceResult::clone()	{ return new QuerySequenceResult(seq); }
@@ -277,7 +277,7 @@ void QueryReferenceResult::setValue(LogicalID* v)	{ value = v; }
 int QueryIntResult::plus(QueryResult *r, QueryResult *&res){ 
 	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
 		res = new QueryNothingResult();
-		fprintf (stderr, "[QE] ERROR! + arguments must be INT or DOUBLE\n");
+		*ec << "[QE] ERROR! + arguments must be INT or DOUBLE";
 		return -1; 
 	}
 	if (r->type() == QueryResult::QINT) {
@@ -294,7 +294,7 @@ int QueryIntResult::plus(QueryResult *r, QueryResult *&res){
 int QueryDoubleResult::plus(QueryResult *r, QueryResult *&res){
 	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
 		res = new QueryNothingResult();
-		fprintf (stderr, "[QE] ERROR! + arguments must be INT or DOUBLE\n");
+		*ec << "[QE] ERROR! + arguments must be INT or DOUBLE";
 		return -1; 
 	}
 	if (r->type() == QueryResult::QINT) {
@@ -312,7 +312,7 @@ int QueryDoubleResult::plus(QueryResult *r, QueryResult *&res){
 int QueryIntResult::minus(QueryResult *r, QueryResult *&res){
 	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
 		res = new QueryNothingResult();
-		fprintf (stderr, "[QE] ERROR! - arguments must be INT or DOUBLE\n");
+		*ec << "[QE] ERROR! - arguments must be INT or DOUBLE";
 		return -1; 
 	} 
 	if (r->type() == QueryResult::QINT) {
@@ -329,7 +329,7 @@ int QueryIntResult::minus(QueryResult *r, QueryResult *&res){
 int QueryDoubleResult::minus(QueryResult *r, QueryResult *&res){ 
 	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
 		res = new QueryNothingResult();
-		fprintf (stderr, "[QE] ERROR! - arguments must be INT or DOUBLE\n");
+		*ec << "[QE] ERROR! - arguments must be INT or DOUBLE";
 		return -1; 
 	}
 	if (r->type() == QueryResult::QINT) {
@@ -359,7 +359,7 @@ int QueryDoubleResult::minus(QueryResult *&res){
 int QueryIntResult::times(QueryResult *r, QueryResult *&res){ 
 	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
 		res = new QueryNothingResult();
-		fprintf (stderr, "[QE] ERROR! * arguments must be INT or DOUBLE\n");
+		*ec << "[QE] ERROR! * arguments must be INT or DOUBLE";
 		return -1; 
 	}
 	if (r->type() == QueryResult::QINT) {
@@ -376,7 +376,7 @@ int QueryIntResult::times(QueryResult *r, QueryResult *&res){
 int QueryDoubleResult::times(QueryResult *r, QueryResult *&res){ 
 	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
 		res = new QueryNothingResult();
-		fprintf (stderr, "[QE] ERROR! * arguments must be INT or DOUBLE\n");
+		*ec << "[QE] ERROR! * arguments must be INT or DOUBLE";
 		return -1; 
 	}
 	if (r->type() == QueryResult::QINT) {
@@ -394,13 +394,13 @@ int QueryDoubleResult::times(QueryResult *r, QueryResult *&res){
 int QueryIntResult::divide_by(QueryResult *r, QueryResult *&res){
 	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
 		res = new QueryNothingResult();
-		fprintf (stderr, "[QE] ERROR! / arguments must be INT or DOUBLE\n");
+		*ec << "[QE] ERROR! / arguments must be INT or DOUBLE";
 		return -1; 
 	}
 	if (r->type() == QueryResult::QINT) {
 		if (((QueryIntResult*) r)->getValue() == 0) {
 			res = new QueryNothingResult();
-			fprintf (stderr, "[QE] Division by 0 error!\n");
+			*ec << "[QE] Division by 0 error!";
 			return -2; //devide by 0 error 
 		}
 		int tmp_value = value / ((QueryIntResult*) r)->getValue();
@@ -409,7 +409,7 @@ int QueryIntResult::divide_by(QueryResult *r, QueryResult *&res){
 	else { //QDOUBLE
 		if (((QueryDoubleResult*) r)->getValue() == 0) {
 			res = new QueryNothingResult();
-			fprintf (stderr, "[QE] Division by 0 error!\n");
+			*ec << "[QE] Division by 0 error!";
 			return -2; //devide by 0 error 
 		}
 		double tmp_value = (double)value / ((QueryDoubleResult*) r)->getValue();
@@ -421,13 +421,13 @@ int QueryIntResult::divide_by(QueryResult *r, QueryResult *&res){
 int QueryDoubleResult::divide_by(QueryResult *r, QueryResult *&res){ 
 	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
 		res = new QueryNothingResult();
-		fprintf (stderr, "[QE] ERROR! / arguments must be INT or DOUBLE\n");
+		*ec << "[QE] ERROR! / arguments must be INT or DOUBLE";
 		return -1; 
 	}
 	if (r->type() == QueryResult::QINT) {
 		if (((QueryIntResult*) r)->getValue() == 0) {
 			res = new QueryNothingResult();
-			fprintf (stderr, "[QE] Division by 0 error!\n");
+			*ec << "[QE] Division by 0 error!";
 			return -2; //devide by 0 error 
 		}
 		double tmp_value = value / (double)(((QueryIntResult*) r)->getValue());
@@ -436,7 +436,7 @@ int QueryDoubleResult::divide_by(QueryResult *r, QueryResult *&res){
 	else { //QDOUBLE
 		if (((QueryDoubleResult*) r)->getValue() == 0) {
 			res = new QueryNothingResult();
-			fprintf (stderr, "[QE] Division by 0 error!\n");
+			*ec << "[QE] Division by 0 error!";
 			return -2; //devide by 0 error 
 		}
 		double tmp_value = value / ((QueryDoubleResult*) r)->getValue();
@@ -449,7 +449,7 @@ int QueryDoubleResult::divide_by(QueryResult *r, QueryResult *&res){
 int QueryBoolResult::bool_and(QueryResult *r, QueryResult *&res){ 
 	if (r->type() != QueryResult::QBOOL ) {
 		res = new QueryNothingResult();
-		fprintf (stderr, "[QE] ERROR! AND arguments must be BOOLEAN\n");
+		*ec << "[QE] ERROR! AND arguments must be BOOLEAN";
 		return -1; 
 	}
 	bool tmp_value = value && ((QueryBoolResult*) r)->getValue();
@@ -460,7 +460,7 @@ int QueryBoolResult::bool_and(QueryResult *r, QueryResult *&res){
 int QueryBoolResult::bool_or(QueryResult *r, QueryResult *&res){ 
 	if (r->type() != QueryResult::QBOOL ) {
 		res = new QueryNothingResult();
-		fprintf (stderr, "[QE] ERROR! OR arguments must be BOOLEAN\n");
+		*ec << "[QE] ERROR! OR arguments must be BOOLEAN";
 		return -1; 
 	}
 	bool tmp_value = value || ((QueryBoolResult*) r)->getValue();
@@ -803,17 +803,17 @@ bool QueryReferenceResult::less_eq(QueryResult *r){
 // nested function returns bag of binders, which will be pushed on the environment stack
 
 int QuerySequenceResult::nested(Transaction *tr, QueryResult *&r) {
-	fprintf(stderr, "[QE] nested(): ERROR! QuerySequenceResult shouldn't be nested\n");
+	*ec << "[QE] nested(): ERROR! QuerySequenceResult shouldn't be nested";
 	return -1; // nested () function is applied to rows of a QueryResult and so, it shouldn't be applied to sequences and bags
 }
 
 int QueryBagResult::nested(Transaction *tr, QueryResult *&r) {
-	fprintf(stderr, "[QE] nested(): ERROR! QueryBagResult shouldn't be nested\n");
+	*ec << "[QE] nested(): ERROR! QueryBagResult shouldn't be nested";
 	return -1; // nested () function is applied to rows of a QueryResult and so, it shouldn't be applied to sequences and bags
 }
 
 int QueryStructResult::nested(Transaction *tr, QueryResult *&r) {
-	fprintf(stderr, "[QE] nested(): QueryStructResult\n");
+	*ec << "[QE] nested(): QueryStructResult";
 	int errcode;
 	for (unsigned int i = 0; i < str.size(); i++) {
 		if ((str.at(i))->type() == QueryResult::QSTRUCT)
@@ -827,35 +827,34 @@ int QueryStructResult::nested(Transaction *tr, QueryResult *&r) {
 }
 
 int QueryStringResult::nested(Transaction *tr, QueryResult *&r) {
-	fprintf(stderr, "[QE] nested(): QueryStringResult can't be nested\n");
+	*ec << "[QE] nested(): QueryStringResult can't be nested";
 	return 0;
 }
 
 int QueryIntResult::nested(Transaction *tr, QueryResult *&r) {
-	fprintf(stderr, "[QE] nested(): QueryIntResult can't be nested\n");
+	*ec << "[QE] nested(): QueryIntResult can't be nested";
 	return 0;
 }
 
 int QueryDoubleResult::nested(Transaction *tr, QueryResult *&r) {
-	fprintf(stderr, "[QE] nested(): QueryDoubleResult can't be nested\n");
+	*ec << "[QE] nested(): QueryDoubleResult can't be nested";
 	return 0;
 }
 
 int QueryBoolResult::nested(Transaction *tr, QueryResult *&r) {
-	fprintf(stderr, "[QE] nested(): QueryBoolResult can't be nested\n");
+	*ec << "[QE] nested(): QueryBoolResult can't be nested";
 	return 0;
 }
 
 int QueryNothingResult::nested(Transaction *tr, QueryResult *&r) {
-	fprintf(stderr, "[QE] nested(): QueryNothingResult can't be nested\n");
+	*ec << "[QE] nested(): QueryNothingResult can't be nested";
 	return 0;
 }
 
 int QueryBinderResult::nested(Transaction *tr, QueryResult *&r) {
 	if (item != NULL) {
 		QueryBinderResult *tmp_value = new QueryBinderResult(name,item);
-		fprintf(stderr, "[QE] nested(): QueryBinderResult copy returned name: ");
-		cout << name << endl;
+		ec->printf("[QE] nested(): QueryBinderResult copy returned name: %s\n", name.c_str());
 		r->addResult(tmp_value);
 	}
 	return 0;
@@ -867,47 +866,46 @@ int QueryReferenceResult::nested(Transaction *tr, QueryResult *&r) {
 	ObjectPointer *optr;
 	if (value != NULL) {
 		if ((errcode = tr->getObjectPointer(value, Store::Read, optr)) != 0) {
-			fprintf(stderr, "[QE] Error in getObjectPointer\n");
+			*ec << "[QE] Error in getObjectPointer";
 			return errcode;
 		}
 		tmp_data_value = optr->getValue();
 		int vType = tmp_data_value->getType();
 		switch (vType) {
 			case Store::Integer: {
-				fprintf(stderr, "[QE] nested(): QueryReferenceResult pointing integer value - can't be nested\n");
+				*ec << "[QE] nested(): QueryReferenceResult pointing integer value - can't be nested";
 				break;
 			}
 			case Store::Double: {
-				fprintf(stderr, "[QE] nested(): QueryReferenceResult pointing double value - can't be nested\n");
+				*ec << "[QE] nested(): QueryReferenceResult pointing double value - can't be nested";
 				break;
 			}
 			case Store::String: {
-				fprintf(stderr, "[QE] nested(): QueryReferenceResult pointing string value - can't be nested\n");
+				*ec << "[QE] nested(): QueryReferenceResult pointing string value - can't be nested";
 				break;
 			}
 			case Store::Pointer: {
 				LogicalID *tmp_logID = (tmp_data_value->getPointer());
 				if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, optr)) != 0) {
-				fprintf(stderr, "[QE] Error in getObjectPointer\n");
+				*ec << "[QE] Error in getObjectPointer";
 					return errcode;
 				}
 				string tmp_name = optr->getName();
 				QueryReferenceResult *final_ref = new QueryReferenceResult(tmp_logID);
 				QueryBinderResult *final_binder = new QueryBinderResult(tmp_name, final_ref);
-				fprintf(stderr, "[QE] nested(): QueryReferenceResult pointing reference value\n");
+				*ec << "[QE] nested(): QueryReferenceResult pointing reference value";
 				r->addResult(final_binder);
-				fprintf(stderr, "[QE] nested(): new QueryBinderResult returned name: ");
-				cout << tmp_name << endl;
+				ec->printf("[QE] nested(): new QueryBinderResult returned name: %s\n", tmp_name.c_str());
 				break;
 			}
 			case Store::Vector: {
 				vector<LogicalID*>* tmp_vec = (tmp_data_value->getVector());
-				fprintf(stderr, "[QE] nested(): QueryReferenceResult pointing vector value\n");
+				*ec << "[QE] nested(): QueryReferenceResult pointing vector value";
 				int vec_size = tmp_vec->size();
 				for (int i = 0; i < vec_size; i++ ) {
 					LogicalID *tmp_logID = tmp_vec->at(i);
 					if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, optr)) != 0) {
-					fprintf(stderr, "[QE] Error in getObjectPointer\n");
+					*ec << "[QE] Error in getObjectPointer";
 						return errcode;
 					}
 					string tmp_name = optr->getName();
@@ -915,13 +913,12 @@ int QueryReferenceResult::nested(Transaction *tr, QueryResult *&r) {
 					QueryBinderResult *final_binder = new QueryBinderResult(tmp_name, final_ref);
 					fprintf(stderr, "[QE] nested(): vector element number %d\n", i);
 					r->addResult(final_binder);
-					fprintf(stderr, "[QE] nested(): new QueryBinderResult returned name: ");
-					cout << tmp_name << endl;
+					ec->printf("[QE] nested(): new QueryBinderResult returned name: %s\n", tmp_name.c_str());
 				}
 				break;
 			}
 			default : {
-				fprintf(stderr, "[QE] nested(): ERROR! QueryReferenceResult pointing unknown format value\n");
+				*ec << "[QE] nested(): ERROR! QueryReferenceResult pointing unknown format value";
 				return -1;
 				break;
 			}
@@ -1403,7 +1400,7 @@ int QueryNothingResult::comma(QueryResult *arg, QueryResult *&score) {
 }
 
 int QueryBagResult::divideBag(QueryResult *&left, QueryResult *&right) {
-	fprintf(stderr, "[QE] divideBag()\n");
+	*ec << "[QE] divideBag()";
 	unsigned int bagSize = bag.size();
 	div_t temp;
 	temp = div (bagSize,2);
@@ -1421,7 +1418,7 @@ int QueryBagResult::divideBag(QueryResult *&left, QueryResult *&right) {
 }
 
 int QuerySequenceResult::sortCollection(QueryResult *r) {
-	fprintf(stderr, "[QE] sortCollection()\n");
+	*ec << "[QE] sortCollection()";
 	int errcode;
 	unsigned int bagSize = r->size();
 	switch (bagSize) {
@@ -1443,7 +1440,7 @@ int QuerySequenceResult::sortCollection(QueryResult *r) {
 			errcode = r->getResult(second);
 			if (errcode != 0) return errcode;
 			if ((first->type() != QueryResult::QSTRUCT) || (second->type() != QueryResult::QSTRUCT)) {
-				fprintf(stderr, "[QE] sortCollection() ERROR - sorted elements must be struct type\n");
+				*ec << "[QE] sortCollection() ERROR - sorted elements must be struct type";
 			}
 			QueryResult *first_sorting;
 			QueryResult *second_sorting;
@@ -1485,7 +1482,7 @@ int QuerySequenceResult::sortCollection(QueryResult *r) {
 			// now (i hope) first_seq and second_seq are sorted sequences
 			unsigned int seq_size = (first_seq->size()) + (second_seq->size());
 			if (seq_size != bagSize) {
-				fprintf(stderr, "[QE] sortCollection() ERROR! - i lost some elements somewhere...\n");
+				*ec << "[QE] sortCollection() ERROR! - i lost some elements somewhere...";
 				return -2; // something is wrong, those sizes should be equal
 			}
 			for (unsigned int i = 0; i < seq_size; i++) {
@@ -1507,7 +1504,7 @@ int QuerySequenceResult::sortCollection(QueryResult *r) {
 					errcode = ((QuerySequenceResult *) second_seq)->at(0,second_elem);
 					if (errcode != 0) return errcode;
 					if ((first_elem->type() != QueryResult::QSTRUCT) || (second_elem->type() != QueryResult::QSTRUCT)) {
-						fprintf(stderr, "[QE] sortCollection() ERROR - sorted elements must be struct type\n");
+						*ec << "[QE] sortCollection() ERROR - sorted elements must be struct type";
 					}
 					QueryResult *first_sorting;
 					QueryResult *second_sorting;

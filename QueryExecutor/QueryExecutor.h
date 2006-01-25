@@ -26,6 +26,7 @@ namespace QExecutor
 	class EnvironmentStack
 	{
 	protected: 
+		ErrorConsole *ec;
 		vector<QueryBagResult*> es;
 	public:
 		EnvironmentStack();
@@ -42,6 +43,7 @@ namespace QExecutor
 	class QueryExecutor
 	{
 	protected:
+		ErrorConsole *ec;
 		Transaction *tr;
 		EnvironmentStack stack;
 		int combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryResult *lRes, QueryResult *&partial);
@@ -51,7 +53,7 @@ namespace QExecutor
 		int derefQuery(QueryResult *arg, QueryResult *&res);
 		int isIncluded(QueryResult *elem, QueryResult *set, bool &score);
 	public:
-		QueryExecutor() { tr = NULL; };
+		QueryExecutor() { tr = NULL; ec = new ErrorConsole("QueryExecutor"); };
 		~QueryExecutor();
 		int executeQuery(TreeNode *tree, QueryResult **result);
 	};
