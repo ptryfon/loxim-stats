@@ -21,6 +21,7 @@ namespace Errors {
 			virtual ErrorConsole& operator<<(int error);
 			virtual ErrorConsole& operator<<(string errorMsg);
 			virtual ErrorConsole& operator<<(ErrorConsole &cons);
+			virtual ErrorConsole& printf(const char *format, ...);
 			virtual ~ErrorConsole();
 	};
 

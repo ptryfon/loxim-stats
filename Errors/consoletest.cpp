@@ -19,4 +19,5 @@ int main(int argc, char *argv[])
 //	ec << endl;
 	ec << (EBadFile | ErrStore);
 	ec << (ENoFile);
+	ec.printf("1: %d, ptr: %p\n", 1, NULL);
 }

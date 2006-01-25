@@ -1,3 +1,4 @@
+#include <stdarg.h>
 #include <fstream>
 #include <iostream>
 #include <ios>
@@ -108,6 +109,24 @@ namespace Errors {
 		consoleFile->flush();
 		if (serr) {
 			cerr << cons.consoleFile;
+			cerr.flush();
+		}
+		return *this;
+	};
+
+	ErrorConsole& ErrorConsole::printf(const char *format, ...)
+	{
+		char str[1024];
+		va_list ap;
+
+		va_start(ap, format);
+		vsnprintf(str, 1024, format, ap);
+		va_end(ap);
+
+		*consoleFile << str;
+		consoleFile->flush();
+		if (serr) {
+			cerr << str;
 			cerr.flush();
 		}
 		return *this;
