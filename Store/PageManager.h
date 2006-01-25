@@ -19,6 +19,7 @@ namespace Store
 	} BinaryObject;
 
 	class PageManager
+	// note: all methods require aquired PagePointers (ptr->aquire() first!)
 	{
 	public:
 		PageManager(DBStoreManager* store);
@@ -32,6 +33,7 @@ namespace Store
 		int getFreePage();
 		int getFreePage(int space);
 		int updateFreeMap(PagePointer *ptr);
+		static void printPage(PagePointer *ptr);
 	private:
 		DBStoreManager* store;
 		Buffer* buffer;

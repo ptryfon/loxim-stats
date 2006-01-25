@@ -250,4 +250,29 @@ namespace Store
 		return 0;
 	}
 	
+	void printPage(PagePointer* ptr)
+	{
+		unsigned char* bytes = reinterpret_cast<unsigned char*>(ptr->getPage());
+		
+		for(int l=0; l<4; l++) {
+			for(int i=0;i<16;i++) {
+				if((i!=0) && (i%4==0))
+					cout << "| ";
+					unsigned char AX = bytes[l*16+i];
+					char AL = (AX%16>9 ? AX%16-10+'A' : AX%16+'0');
+					AX /= 16;
+					char AH = (AX%16>9 ? AX%16-10+'A' : AX%16+'0');
+				cout << AH << AL << " ";
+			}
+			cout << " ";
+			for(int i=0;i<16;i++) {
+				if(bytes[l*16+i] > 31)
+					cout << bytes[l*16+i];
+				else
+					cout << ".";
+			}
+			cout << endl;
+		}
+	}
+	
 }
