@@ -139,6 +139,15 @@ int QuerySequenceResult::at(unsigned int i, QueryResult *&r){
 	return 0;
 }
 
+int QuerySequenceResult::lastElem(QueryResult *&r){ 
+	int s = seq.size();
+	if ( s == 0 ) {
+		return -1;
+	}
+	r=(seq.at(s - 1));
+	return 0;
+}
+
 vector<QueryResult*> QuerySequenceResult::getVector() {
 	return seq;
 }
@@ -184,6 +193,15 @@ int QueryBagResult::at(unsigned int i, QueryResult *&r){
 	return 0;
 }
 
+int QueryBagResult::lastElem(QueryResult *&r){ 
+	int s = bag.size();
+	if ( s == 0 ) {
+		return -1;
+	}
+	r=(bag.at(s - 1));
+	return 0;
+}
+
 vector<QueryResult*> QueryBagResult::getVector() {
 	return bag;
 }
@@ -222,6 +240,14 @@ int QueryStructResult::at(unsigned int i, QueryResult *&r){
 	return 0;
 }
 
+int QueryStructResult::lastElem(QueryResult *&r){ 
+	int s = str.size();
+	if ( s == 0 ) {
+		return -1;
+	}
+	r=(str.at(s - 1));
+	return 0;
+}
 
 //accesors for single value type result classes - binder, string, int, double, bool, reference
 QueryResult* QueryBinderResult::getItem()		{ return item; }
@@ -1370,6 +1396,149 @@ int QueryNothingResult::comma(QueryResult *arg, QueryResult *&score) {
 			((QueryStructResult *) tmp_res)->addResult(current);
 			((QueryStructResult *) tmp_res)->addResult(arg);
 			((QueryBagResult *) score)->addResult(tmp_res);
+			break;
+		}
+	}
+	return 0;
+}
+
+int QueryBagResult::divideBag(QueryResult *&left, QueryResult *&right) {
+	fprintf(stderr, "[QE] divideBag()\n");
+	unsigned int bagSize = bag.size();
+	div_t temp;
+	temp = div (bagSize,2);
+	unsigned int bagHalf = temp.quot;
+	fprintf(stderr, "[QE] divideBag(): bag size is: %d, divsion first size is: %d, second: %d\n", bagSize, bagHalf, (bagSize - bagHalf));
+	left = new QueryBagResult();
+	right = new QueryBagResult();
+	for (unsigned int i = 0; i < bagHalf; i++) {
+		left->addResult(bag.at(i));
+	}
+	for (unsigned int i = bagHalf; i < bagSize; i++) {
+		right->addResult(bag.at(i));
+	}
+	return 0;
+}
+
+int QuerySequenceResult::sortCollection(QueryResult *r) {
+	fprintf(stderr, "[QE] sortCollection()\n");
+	int errcode;
+	unsigned int bagSize = r->size();
+	switch (bagSize) {
+		case 0: { 
+			break; 
+		}
+		case 1: {
+			QueryResult *current;
+			errcode = r->getResult(current);
+			if (errcode != 0) return errcode;
+			seq.push_back(current);
+			break;
+		}
+		case 2: {
+			QueryResult *first;
+			QueryResult *second;
+			errcode = r->getResult(first);
+			if (errcode != 0) return errcode;
+			errcode = r->getResult(second);
+			if (errcode != 0) return errcode;
+			if ((first->type() != QueryResult::QSTRUCT) || (second->type() != QueryResult::QSTRUCT)) {
+				fprintf(stderr, "[QE] sortCollection() ERROR - sorted elements must be struct type\n");
+			}
+			QueryResult *first_sorting;
+			QueryResult *second_sorting;
+			errcode = ((QueryStructResult *) first)->lastElem(first_sorting);
+			if (errcode != 0) return errcode;
+			errcode = ((QueryStructResult *) second)->lastElem(second_sorting);
+			if (errcode != 0) return errcode;
+			int first_type = first_sorting->type();
+			int second_type = second_sorting->type();
+			if (first_type < second_type) {
+				seq.push_back(first);
+				seq.push_back(second);
+			} 
+			else if (second_type < first_type) {
+				seq.push_back(second);
+				seq.push_back(first);
+			} 
+			else if (first_sorting->less_eq(second_sorting)) { 
+				seq.push_back(first);
+				seq.push_back(second);
+			} 
+			else {
+				seq.push_back(second);
+				seq.push_back(first);
+			}
+			break;
+		}
+		default: {
+			QueryResult *first_seq = new QuerySequenceResult();
+			QueryResult *second_seq = new QuerySequenceResult();
+			QueryResult *first_bag;
+			QueryResult *second_bag;
+			errcode = ((QueryBagResult *) r)->divideBag(first_bag, second_bag);
+			if (errcode != 0) return errcode;
+			errcode = ((QuerySequenceResult *) first_seq)->sortCollection(first_bag);
+			if (errcode != 0) return errcode;
+			errcode = ((QuerySequenceResult *) second_seq)->sortCollection(second_bag);
+			if (errcode != 0) return errcode;
+			// now (i hope) first_seq and second_seq are sorted sequences
+			unsigned int seq_size = (first_seq->size()) + (second_seq->size());
+			if (seq_size != bagSize) {
+				fprintf(stderr, "[QE] sortCollection() ERROR! - i lost some elements somewhere...\n");
+				return -2; // something is wrong, those sizes should be equal
+			}
+			for (unsigned int i = 0; i < seq_size; i++) {
+				QueryResult *first_elem;
+				QueryResult *second_elem;
+				if (first_seq->size()) { // first sequence ended
+					errcode = second_seq->getResult(second_elem);
+					if (errcode != 0) return errcode;
+					seq.push_back(second_elem);
+				} 
+				else if (second_seq->size()) { // second sequence ended
+					errcode = first_seq->getResult(first_elem);
+					if (errcode != 0) return errcode;
+					seq.push_back(first_elem);
+				} 
+				else {
+					errcode = ((QuerySequenceResult *) first_seq)->at(0,first_elem);
+					if (errcode != 0) return errcode;
+					errcode = ((QuerySequenceResult *) second_seq)->at(0,second_elem);
+					if (errcode != 0) return errcode;
+					if ((first_elem->type() != QueryResult::QSTRUCT) || (second_elem->type() != QueryResult::QSTRUCT)) {
+						fprintf(stderr, "[QE] sortCollection() ERROR - sorted elements must be struct type\n");
+					}
+					QueryResult *first_sorting;
+					QueryResult *second_sorting;
+					errcode = ((QueryStructResult *) first_elem)->lastElem(first_sorting);
+					if (errcode != 0) return errcode;
+					errcode = ((QueryStructResult *) second_elem)->lastElem(second_sorting);
+					if (errcode != 0) return errcode;
+					int first_type = first_sorting->type();
+					int second_type = second_sorting->type();
+					if (first_type < second_type) {
+						seq.push_back(first_elem);
+						errcode = first_seq->getResult(first_elem);
+						if (errcode != 0) return errcode;
+					} 
+					else if (second_type < first_type) {
+						seq.push_back(second_elem);
+						errcode = second_seq->getResult(second_elem);
+						if (errcode != 0) return errcode;
+					} 
+					else if (first_sorting->less_eq(second_sorting)) { 
+						seq.push_back(first_elem);
+						errcode = first_seq->getResult(first_elem);
+						if (errcode != 0) return errcode;
+					} 
+					else {
+						seq.push_back(second_elem);
+						errcode = second_seq->getResult(second_elem);
+						if (errcode != 0) return errcode;
+					}
+				}
+			}
 			break;
 		}
 	}

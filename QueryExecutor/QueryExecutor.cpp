@@ -1100,7 +1100,9 @@ int QueryExecutor::combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryRe
 			break;
 		}
 		case NonAlgOpNode::join: {
-			fprintf(stderr, "[QE] combine(): NonAlgebraic operator <join> not imlemented yet\n");
+			fprintf(stderr, "[QE] combine(): NonAlgebraic operator <join>\n");
+			errcode = curr->comma(lRes,partial);
+			if (errcode != 0) return errcode;
 			break;
 		}
 		case NonAlgOpNode::where: {
@@ -1135,7 +1137,14 @@ int QueryExecutor::combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryRe
 			break;
 		}
 		case NonAlgOpNode::orderBy: {
-			fprintf(stderr, "[QE] combine(): NonAlgebraic operator <orderBy> not imlemented yet\n");
+			fprintf(stderr, "[QE] combine(): NonAlgebraic operator <orderBy>\n");
+			QueryResult *derefR;
+			errcode = this->derefQuery(lRes,derefR);
+			if (errcode != 0) return errcode;
+			QueryResult *currRow = new QueryStructResult();
+			currRow->addResult(curr);
+			currRow->addResult(derefR);
+			partial->addResult(currRow);
 			break;
 		}
 		case NonAlgOpNode::exists: {
@@ -1154,7 +1163,7 @@ int QueryExecutor::combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryRe
 			break;
 		}
 		case NonAlgOpNode::forAll: {
-			fprintf(stderr, "[QE] combine(): NonAlgebraic operator <forAll> not imlemented yet\n");
+			fprintf(stderr, "[QE] combine(): NonAlgebraic operator <forAll>\n");
 			if (lRes->isBool()) {
 				bool tmp_bool_value;
 				errcode = (lRes->getBoolValue(tmp_bool_value));
@@ -1187,7 +1196,8 @@ int QueryExecutor::merge(NonAlgOpNode::nonAlgOp op, QueryResult *partial, QueryR
 			break;
 		}
 		case NonAlgOpNode::join: {
-			fprintf(stderr, "[QE] merge(): NonAlgebraic operator <join> not imlemented yet\n");
+			fprintf(stderr, "[QE] merge(): NonAlgebraic operator <join>\n");
+			final = partial;
 			break;
 		}
 		case NonAlgOpNode::where: {
@@ -1212,7 +1222,10 @@ int QueryExecutor::merge(NonAlgOpNode::nonAlgOp op, QueryResult *partial, QueryR
 			break;
 		}
 		case NonAlgOpNode::orderBy: {
-			fprintf(stderr, "[QE] merge(): NonAlgebraic operator <orderBy> not imlemented yet\n");
+			fprintf(stderr, "[QE] merge(): NonAlgebraic operator <orderBy>\n");
+			final = new QuerySequenceResult();
+			errcode = ((QuerySequenceResult *) final)->sortCollection(partial);
+			if (errcode != 0) return errcode;
 			break;
 		}
 		case NonAlgOpNode::exists: {
@@ -1245,7 +1258,7 @@ int QueryExecutor::merge(NonAlgOpNode::nonAlgOp op, QueryResult *partial, QueryR
 				errcode = (((QueryBagResult *) partial)->at(i,tmp_result));
 				if (errcode != 0) return errcode;
 				if (not (tmp_result->isBool())) {
-					fprintf(stderr, "[QE] merge(): ERROR! operator <exists> expects boolean type arguments\n");
+					fprintf(stderr, "[QE] merge(): ERROR! operator <forAll> expects boolean type arguments\n");
 					return -1; //something went odd, partial results should be boolean type
 				}
 				errcode = (tmp_result->getBoolValue(current_bool));

@@ -84,6 +84,7 @@ public:
 	int getResult(QueryResult *&r);
 	int at(unsigned int i, QueryResult *&r);
 	vector<QueryResult*> getVector();
+	int lastElem(QueryResult *&r);
 	bool equal(QueryResult *r);
 	bool not_equal(QueryResult *r);
 	bool greater_than(QueryResult *r) { return false; };
@@ -96,6 +97,7 @@ public:
 	bool isSingleValue();
 	int getSingleValue(QueryResult *&r);
 	int comma(QueryResult *arg, QueryResult *&score);
+	int sortCollection(QueryResult *r);
 };
 
 class QueryBagResult : public QueryResult
@@ -120,6 +122,7 @@ public:
 	int getResult(QueryResult *&r);
 	int at(unsigned int i, QueryResult *&r);
 	vector<QueryResult*> getVector();
+	int lastElem(QueryResult *&r);
 	bool equal(QueryResult *r);
 	bool not_equal(QueryResult *r);
 	bool greater_than(QueryResult *r) { return false; };
@@ -132,6 +135,7 @@ public:
 	bool isSingleValue();
 	int getSingleValue(QueryResult *&r);
 	int comma(QueryResult *arg, QueryResult *&score);
+	int divideBag(QueryResult *&left, QueryResult *&right);
 };
 
 
@@ -156,6 +160,7 @@ public:
 	void addResult(QueryResult *r);
 	int getResult(QueryResult *&r);
 	int at(unsigned int i, QueryResult *&r);
+	int lastElem(QueryResult *&r);
 	bool equal(QueryResult *r);
 	bool not_equal(QueryResult *r);
 	bool greater_than(QueryResult *r) { return false; };
