@@ -1195,7 +1195,7 @@ int QueryExecutor::combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryRe
 			}
 			break;
 		}
-		case /*NonAlgOpNode::assign:*/ 6666: {
+		case NonAlgOpNode::assign: {
 			*ec << "[QE] combine(): NonAlgebraic operator <assign>";
 			if (not ((curr->isSingleValue()) && (lRes->isSingleValue()))) {
 				*ec << "[QE] combine() ERROR! operator <assign> needs single type arguments, not collections";
@@ -1203,7 +1203,72 @@ int QueryExecutor::combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryRe
 				partial->addResult(sth);
 				return -1;
 			}
-			
+			QueryResult* old_value;
+			errcode = curr->getSingleValue(old_value);
+			if (errcode != 0) return errcode;
+			QueryResult* new_value;
+			errcode = lRes->getSingleValue(new_value);
+			if (errcode != 0) return errcode;
+			int oldType = old_value->type();
+			int newType = new_value->type();
+			if (oldType != QueryResult::QREFERENCE) {
+				*ec << "[QE] combine() ERROR! operator <assign> expects that left argument is REFERENCE";
+				QueryResult *sth = new QueryNothingResult();
+				partial->addResult(sth);
+				return -1;
+			}
+			LogicalID *old_lid = ((QueryReferenceResult *) old_value)->getValue();
+			ObjectPointer *old_optr;
+			errcode = tr->getObjectPointer (old_lid, Store::Write, old_optr);
+			if (errcode != 0) {
+				*ec << "[QE] combine() operator <assign>: error in getObjectPointer()";
+				return errcode;
+			}
+			*ec << "[QE] combine() operator <assign>: getObjectPointer on left argument done";
+			DBDataValue *dbValue = new DBDataValue();
+			switch (newType) {
+				case QueryResult::QINT: {
+					int intValue = ((QueryIntResult *) new_value)->getValue();
+					dbValue->setInt(intValue);
+					*ec << "[QE] < query := ('integer'); > operation";
+					break;
+				}
+				case QueryResult::QDOUBLE: {
+					double doubleValue = ((QueryDoubleResult *) new_value)->getValue();
+					dbValue->setDouble(doubleValue);
+					*ec << "[QE] < query := ('double'); > operation";
+					break;
+				}
+				case QueryResult::QSTRING: {
+					string stringValue = ((QueryStringResult *) new_value)->getValue();
+					dbValue->setString(stringValue);
+					*ec << "[QE] < query := ('string'); > operation";
+					break;
+				}
+				case QueryResult::QREFERENCE: {
+					LogicalID* refValue = ((QueryReferenceResult *) new_value)->getValue();
+					dbValue->setPointer(refValue);
+					*ec << "[QE] < query := ('reference'); > operation";
+					break;
+				}
+				case QueryResult::QNOTHING: {
+					vector<LogicalID*> emptyVector;
+					dbValue->setVector(&emptyVector);
+					*ec << "[QE] < query := {}; > operation";
+					break;
+				}
+				default: {
+					*ec << "[QE] combine() operator <assign>: error, bad type right argument evaluated by executeQuery";
+					*ec << (EBadType | ErrQExecutor);
+					QueryResult *sth = new QueryNothingResult();
+					partial->addResult(sth);
+					return EBadType | ErrQExecutor;
+				}
+			}
+			DataValue* value;
+			value = dbValue;
+			old_optr->setValue(value);
+			*ec << "[QE] combine() operator <assign>: value of the object was changed";
 			QueryResult *sth = new QueryNothingResult();
 			partial->addResult(sth);
 			break;
@@ -1301,7 +1366,7 @@ int QueryExecutor::merge(NonAlgOpNode::nonAlgOp op, QueryResult *partial, QueryR
 			final->addResult(tmp_bool_res);
 			break;
 		}
-		case /*NonAlgOpNode::assign:*/ 6666: {
+		case NonAlgOpNode::assign: {
 			*ec << "[QE] merge(): NonAlgebraic operator <assign>";
 			QueryResult *sth = new QueryNothingResult();
 			final->addResult(sth);
