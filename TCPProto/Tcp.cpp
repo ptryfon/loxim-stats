@@ -28,16 +28,16 @@ int bufferSend(const char* buf, int buf_size, int sock) {
    	
 	while (lengthBufSize > 0) { //if 0, the size was sent
 		if (-1 ==  (ile = send(sock, lengthBuf, lengthBufSize, 0))) {
-			cerr << "blad wysylania" << endl;
+			cerr << "blad wysylania 1: " << strerror(errno) << endl;
 			return errno | ErrTCPProto;
 		}
 		lengthBufSize -= ile;
 		lengthBuf += ile;	
 	}
-	
+	cerr << "<TCP::bufferSedn> znacznik przesylania, ile: " << ile << endl;
 	while (buf_size > 0) {
 	if (-1 == (ile = send(sock, buf, buf_size, 0))) {
-		cerr << "blad wysylania" << endl;
+		cerr << "blad wysylania 2" << strerror(errno) << endl;
 		return errno | ErrTCPProto;
 	}
 	
