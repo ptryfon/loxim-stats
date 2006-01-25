@@ -50,19 +50,16 @@ int LogIO::readLogicalID( LogicalID *&lid, int fileDes, StoreManager* sm )
 
 int LogIO::writeLogicalID( LogicalID *lid, int fileDes ) 
 { 
-  unsigned char *buffer;
-  int len;
-  int result;
+  int result = 0;
   
   //gdy lid = NULL zapisujemy długość łańcucha = 0
   if( lid == NULL)
     return writeInt(fileDes, 0);
     
-  lid->toByteArray( 0, &len );
-  buffer = new unsigned char[len];
-  lid->toByteArray( &buffer, &len );
-  result = writeString( fileDes, (char *) buffer, len );
-  delete buffer;
+
+  Serialized serial1 = lid->serialize();
+  string lidS = string( (const char*) serial1.bytes, serial1.size );
+  result = writeString( fileDes, (char *) lidS.c_str(), lidS.length() );
 
   return result;
 }
