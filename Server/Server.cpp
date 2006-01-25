@@ -616,8 +616,13 @@ while (!signalReceived) {
 	if (res != 0) {
 	    printf("[Server.Run--> Receive returned error code %d\n", res);
 	    sendError(res);
-	    return ErrServer+EReceive;
+	    return ErrServer | EReceive;
 	}    
+	if (messgBuff==NULL) {
+	    printf("[Server.Run]--> Error in receive, client terminated??\n");
+	    printf("[Server.Run]--> Assuming client loss for that thread - TERMINATING thread\n");
+	    return ErrServer | EClientLost; //TODO Error
+	}
 
 	printf("[Server.Run]--> Blocking sigint again.. \n");
 	sigprocmask(SIG_BLOCK, &block_cc, NULL);	
