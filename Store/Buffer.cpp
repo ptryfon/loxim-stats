@@ -1,5 +1,5 @@
 /**
- * $Id: Buffer.cpp,v 1.16 2006-01-24 09:16:43 mk189406 Exp $
+ * $Id: Buffer.cpp,v 1.17 2006-01-25 02:39:16 md243003 Exp $
  *
  */
 #include "Buffer.h"
@@ -50,7 +50,7 @@ namespace Store
 			store->getConfig()->getInt("store_buffer_maxdirty", max_dirty);
 		}
 
-		::pthread_create(&tid_dbwriter, NULL, &dbWriterThread, this);
+	//	::pthread_create(&tid_dbwriter, NULL, &dbWriterThread, this);
 
 		started = 1;
 		return 0;

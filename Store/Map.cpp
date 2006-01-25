@@ -52,7 +52,7 @@ namespace Store
 	{
 		unsigned int last;
 
-		if (!header)
+//		if (!header)
 			header = store->getBuffer()->getPagePointer(STORE_FILE_MAP, 0);
 
 		header->aquire();
@@ -64,7 +64,7 @@ namespace Store
 
 	void Map::setLastAssigned(unsigned int last)
 	{
-		if (!header)
+//		if (!header)
 			header = store->getBuffer()->getPagePointer(STORE_FILE_MAP, 0);
 
 		header->aquire();
@@ -121,8 +121,8 @@ namespace Store
 
 		unsigned int last = getLastAssigned();
 
-		if (last > logicalID)
-			return 2;
+//		if (last > logicalID)
+//			return 2;
 
 		PagePointer* page = store->getBuffer()->getPagePointer(STORE_FILE_MAP, STORE_MAP_MAPPAGE(logicalID));
 		page->aquire();

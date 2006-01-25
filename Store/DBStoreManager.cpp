@@ -3,7 +3,7 @@
 #include "DBStoreManager.h"
 #include "DBDataValue.h"
 
-#define VIRTUAL
+//#define VIRTUAL
 
 namespace Store
 {
@@ -282,8 +282,8 @@ namespace Store
 
 		roots = new vector<ObjectPointer*>(0);
 
-		for(unsigned int i=0; i<misc->vect.size(); i++){
-			roots->push_back(misc->vect[i]);
+		for(unsigned int i=0; i<misc->roots.size(); i++){
+			roots->push_back(misc->roots[i]);
 		}
 
 		cout << "Store::Manager::getRoots(ALL) done\n";
@@ -294,9 +294,9 @@ namespace Store
 	{
 		roots = new vector<ObjectPointer*>(0);
 
-		for(unsigned int i=0; i<misc->vect.size(); i++){
-			if(misc->vect[i]->getName() == p_name)
-				roots->push_back(misc->vect[i]);
+		for(unsigned int i=0; i<misc->roots.size(); i++){
+			if(misc->roots[i]->getName() == p_name)
+				roots->push_back(misc->roots[i]);
 		}
 
 		cout << "Store::Manager::getRoots(BY NAME) done\n";
@@ -306,7 +306,7 @@ namespace Store
 	int DBStoreManager::addRoot(TransactionID* tid, ObjectPointer* object)
 	{
 		for(unsigned int i=0; i<misc->roots.size(); i++){
-			if(misc->vect[i]->getName() == object->getName())
+			if(misc->roots[i] == object)
 			  return 0;
 		}
 		
