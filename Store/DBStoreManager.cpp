@@ -179,7 +179,8 @@ namespace Store
 		Serialized sObj = object->serialize();
 
 		int freepage = pagemgr->getFreePage(); // strona z wystaraczajaca iloscia miejsca na nowy obiekt
-
+		//*ec << "Store::Manager::createObject freepage = " + freepage;
+		cout << "Store::Manager::createObject freepage = " << freepage << endl;
 		PagePointer* pPtr = buffer->getPagePointer(STORE_FILE_DEFAULT, freepage);
 
 		pPtr->aquire();
@@ -188,6 +189,7 @@ namespace Store
 
 		pagemgr->updateFreeMap(pPtr);
 		
+		PageManager::printPage(pPtr, 1024/16);
 		pPtr->release();
 		
 		ec->printf("Store::Manager::createObject done: %s\n", object->toString().c_str());

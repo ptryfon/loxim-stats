@@ -1,5 +1,5 @@
 /**
- * $Id: Buffer.cpp,v 1.19 2006-01-25 21:40:36 md243003 Exp $
+ * $Id: Buffer.cpp,v 1.20 2006-01-25 23:00:28 md243003 Exp $
  *
  */
 #include "Buffer.h"
@@ -108,6 +108,7 @@ namespace Store
 		if (it != buffer_hash.end() && (*it).second.haspage) {
 			n_page = &((*it).second);
 			::pthread_mutex_unlock(&dbwriter.mutex);
+				cout << "no to zmoczka\n";
 			return new PagePointer(fileID, pageID, n_page->page, this);
 		}
 
@@ -122,12 +123,12 @@ namespace Store
 			for (unsigned int i = pnum; i <= pageID; i++) {
 				it = buffer_hash.find(make_pair(fileID, i));
 				if (it == buffer_hash.end() || !(*it).second.haspage) {
-				
+				cout << "zaraz bedzie nowa strona\n";
 					n_page = new buffer_page;
 					n_page->page = new char[STORE_PAGESIZE];
 					switch (fileID) {
 						case STORE_FILE_DEFAULT: 
-							PageManager::initializePage(i, n_page->page); 
+							store->getPageManager()->initializePage(i, n_page->page); 
 							break;
 
 						case STORE_FILE_MAP: 

@@ -224,15 +224,17 @@ namespace Store
 			
 			for(int i=0; i<p->object_count; i++) {
 				if(p->object_offset[i] >= space) {
+					int rid = pPtr->getPageID()+i+1;
 					pPtr->release();
 					ec << "Store::PageManager::getFreePage done";
-					return (pPtr->getPageID()+i+1);
+					return (rid);
 				}
 			}
 			if(p->object_count < static_cast<int>(MAX_OBJECT_COUNT)) {
+				int rid = pPtr->getPageID()+p->object_count+1;
 				pPtr->release();
 				ec << "Store::PageManager::getFreePage done";
-				return (pPtr->getPageID()+p->object_count+1);
+				return (rid);
 			}
 			
 			pPtr->release();
@@ -265,32 +267,40 @@ namespace Store
 		return 0;
 	}
 	
-	void printPage(PagePointer* ptr, int lines=4)
+	void PageManager::printPage(PagePointer* ptr, int lines)
 	{
-		ErrorConsole ec("Store");
-		ec.init(2); //ectw
+		// DOBRA INTERPRETACJA ALE wypisuje jakies teksty:
+		// "Store: create string wit null pointercreate string with null pointercreate...." itd
+		//ErrorConsole ec("Store");
+		//ec.init(2); //ectw
 		unsigned char* bytes = reinterpret_cast<unsigned char*>(ptr->getPage());
-		string tmpstr = "";
+		//string tmpstr = "";
 		
 		for(int l=0; l<lines; l++) {
-			tmpstr = "";
+			//tmpstr = "";
 			for(int i=0;i<16;i++) {
 				if((i!=0) && (i%4==0))
-					tmpstr += "| ";
+					//tmpstr += "| ";
+					cout << "| ";
 					unsigned char AX = bytes[l*16+i];
 					char AL = (AX%16>9 ? AX%16-10+'A' : AX%16+'0');
 					AX /= 16;
 					char AH = (AX%16>9 ? AX%16-10+'A' : AX%16+'0');
-				tmpstr += AH + AL + " ";
+				//tmpstr += AH + AL + " ";
+				cout << AH << AL << " ";
 			}
-			tmpstr += " ";
+			//tmpstr += " ";
+			cout << " ";
 			for(int i=0;i<16;i++) {
 				if(bytes[l*16+i] > 31)
-					tmpstr += bytes[l*16+i];
+					//tmpstr += bytes[l*16+i];
+					cout << bytes[l*16+i];
 				else
-					tmpstr += ".";
+					//tmpstr += ".";
+					cout << ".";
 			}
-			ec << tmpstr;
+			//ec << tmpstr;
+			cout << endl;
 		}
 	}
 	
