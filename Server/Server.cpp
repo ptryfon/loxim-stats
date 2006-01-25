@@ -469,6 +469,7 @@ int  Server::SerializeRec(QueryResult *qr)
 		    printf("[Server.Serialize]--> .. followed by int value (%d) \n", intVal);
 		    intVal=htonl(intVal);
 		    memcpy((void *)serialBuf, (const void *)&intVal, sizeof(intVal));
+		    serialBuf=serialBuf+sizeof(intVal);
 		    printf("[Server.Serialize]--> buffer written \n");
 		    break; 
 		case QueryResult::QDOUBLE:
@@ -659,14 +660,16 @@ while (!signalReceived) {
 	    return ErrServer+ESerialize;
 	}
 	
-	printf("[Server.Run]--> Sending results to client.. Result type=|%d|\n", (int)serializedMessg[0]); 
+	printf("[Server.Run]--> Sending results to client.. Result type=|%d|\n", (int)serialBufBegin[0]);
+	//printf("Buf: |%d|%d|%d|%d|%d|%d|%d|\n", (int)serialBufBegin[0], (int)serialBufBegin[1], (int)serialBufBegin[2],
+	//(int)serialBufBegin[3], (int)serialBufBegin[4], (int)serialBufBegin[5], (int)serialBufBegin[6]);
 	res=(Send(&*serialBufBegin, serialBufSize));
 	if (res != 0) {
 	    printf("[Server.Run]--> Send returned error code %d\n", res);
 	    printf("[SERVER]--> ends with ERROR\n");
 	    return ErrServer+ESend;
 	}
-	//setjmp(j);	
+		
 }
 	printf("[Server.Run]--> Releasing message buffers \n");
 	free(messgBuff);

@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <setjmp.h>
 #include "Listener.h"
 #include "Server.h"
 
@@ -9,11 +10,14 @@
 
 pthread_t pthreads[MAX_CLIENTS];
 int threads_count;
+Listener *ls;
+jmp_buf j;
 
 Listener::Listener()
 {
     memset(thread_sockets, '\0', MAX_CLIENTS);
     threads_count=0;
+    ls=this;
 }
 
 Listener::~Listener()
@@ -39,7 +43,7 @@ void sigHandler(int sig) {
     pself=pthread_self();
     printf("Listener-sigHandler: my pthread_id is %d and ", pself);
     if (pself==pthread_master_id) {
-	printf(".. i a the Listener thread \n");
+	printf(".. I am the Listener thread \n");
 	for (i=0;i<threads_count;i++) {
 		    if ((errorCode=pthread_join(pthreads[i], (void **)&status))!=0) { //STATUS !!
 			printf("Listener-sigHandler-Master: ERROR - failed to join thread: %s\n", strerror(errorCode));
@@ -50,11 +54,12 @@ void sigHandler(int sig) {
 			exit(1);
 		    }
 		    else {
-			printf("Listener-sigHandler-Master: JOINED thread nr.|%d| with pthread_id |%d|\n", i, pthreads[i]);
+			printf("Listener-sigHandler-Master: JOINED thread nr.|%d| with pthread_id |%d|\n", i, (int)pthreads[i]);
 		    } 
 	}
-	printf("Listener-sigHandler-Master: All threads joined - SUCCESS! Quitting now.. \n");
-	exit(0); 
+	printf("Listener-sigHandler-Master: All threads joined - SUCCESS! Quitting now.. Preparing to JUMP \n");
+	longjmp(j, 1);
+	return; 
     }
     else {
 	printf(".. I am a Server thread\n");
@@ -68,7 +73,7 @@ void *createServ(void *arg) {
     int res;
     printf("Listener-createServ: New server thread reporting. My socket number is |%d|\n", socket);
     if (socket<0) {
-	("Listener-createServ: .. which is really unfortunate. I must quit now\n");
+	printf("Listener-createServ: .. which is really unfortunate. I must quit now\n");
 	pthread_exit((void *)socket);
     }	
     Server *srv = new Server(socket);
@@ -92,10 +97,19 @@ int Listener::Start(int port) {
 	sigaddset(&lBlock_cc, SIGINT);	
 	
 	pthread_master_id=pthread_self();
-	sigprocmask(SIG_BLOCK, &lBlock_cc, NULL);
 	threads_count=0;
-	CreateSocket(port, &sock);
+	if ((errorCode=CreateSocket(port, &sock))!=0) {
+	    printf("Listener: Error in Create Socket: %d\n", errorCode);
+	    return errorCode;
+	}
 	signal(SIGINT, sigHandler);
+	
+	if (setjmp(j)!=0) {
+	    printf("Listener: Jumped.. closing socket and ");
+	    errorCode=CloseSocket(sock);
+	    printf(" returning with %d\n", errorCode);
+	    return errorCode;
+	} 
 	
 	while ((isEnd==0) && (threads_count<MAX_CLIENTS)) {
 	
@@ -141,9 +155,7 @@ int Listener::Start(int port) {
 	    } 
 	}  
 	printf("Listener: All threads terminated normally.. returning..\n");
-
-//	    return CreateServer(newSock);
-	    //CloseSocket(sock);
+	CloseSocket(sock);
 	
 	return 0;
 
