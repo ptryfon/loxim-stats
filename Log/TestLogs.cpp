@@ -23,7 +23,7 @@ void printLog(StoreManager* sm)
   LogRecord* lr;
   WriteRecord* wr;
   fd = ::open(LOG_FILE_PATH, O_RDONLY);
-  while( (err = LogRecord::readLogRecordForward(lr, fd, sm)) == 0 && i++<50)
+  while( (err = LogRecord::readLogRecordForward(lr, fd, sm)) == 0 && i++<50000)
   {
     int lt;
     lr->getType(lt);
@@ -65,10 +65,6 @@ int main( int argc, char *argv[] )
 
   // write (stary nie istnieje)
   logManager.write( tid, new DBLogicalID( 58 ), "mis2", 0, new DBDataValue( "Nowy Mis2" ), id );
-
-  logManager.flushLog();
-  printLog(sm);
-  exit( 0 );
 
   // write (nowy nie istnieje)
   logManager.write( tid, new DBLogicalID( 59 ), "mis3", new DBDataValue( "Stary Mis3" ), 0, id );
