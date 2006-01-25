@@ -8,10 +8,12 @@ namespace Logs
 
 #include <string>
 #include <stdio.h>
+#include "../Errors/ErrorConsole.h"
 #include "../Store/Store.h"
 #include "LogThread.h"
 #include "LogRecord.h"
 
+using namespace Errors;
 using namespace Store;
 
 
@@ -27,13 +29,14 @@ namespace Logs
     protected:
     LogThread *logThread;
     int fileDes; // deskryptor pliku dziennika
+    ErrorConsole *ec;
 
     //jesli tid == NULL to do logow nie jest nic zapisywane
     void pushLogable( int tid, LogRecord *record);
 
     public:
 
-    LogManager() {}
+    LogManager() { ec = new ErrorConsole("Logs"); }
 
     int init();
 

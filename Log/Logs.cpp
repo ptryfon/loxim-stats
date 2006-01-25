@@ -31,7 +31,7 @@ int LogManager::init()
   logThread = new LogThread( fileDes );
   LogRecord::initialize();
 
-  printf( "LogManager: initialize()\n" );
+  *ec << "LogManager: initialize()";
 
   return 0;
 }
@@ -43,7 +43,7 @@ int LogManager::destroy()
 
   ::close( fileDes );
 
-  printf( "LogManager: destroy()\n" );
+  *ec << "LogManager: destroy()";
 
   return 0;
 }
@@ -54,7 +54,7 @@ int LogManager::beginTransaction( int tid, unsigned &id )
   logThread->push( record );
   record->getId( id );
 
-  printf( "LogManager: beginTransaction\n");
+  *ec << "LogManager: beginTransaction";
 
   return 0;
 }
@@ -66,7 +66,7 @@ int LogManager::write( int tid, LogicalID *lid, string name, DataValue *oldVal, 
   pushLogable( tid, record );
   record->getId( id );
 
-  printf( "LogManager: write\n" );
+  *ec << "LogManager: write";
 
   return 0;
 }
@@ -77,7 +77,7 @@ int LogManager::addRoot( int tid, LogicalID *lid, unsigned &id )
   pushLogable( tid, record );
   record->getId( id );
 
-  printf( "LogManager: addRoot\n" );
+  *ec << "LogManager: addRoot";
   return 0;
 }
 
@@ -87,7 +87,7 @@ int LogManager::removeRoot( int tid, LogicalID *lid, unsigned &id )
   pushLogable( tid, record );
   record->getId( id );
 
-  printf( "LogManager: addRoot\n" );
+  *ec << "LogManager: addRoot";
   return 0;
 }
 
@@ -97,7 +97,7 @@ int LogManager::checkpoint( vector<int> *tids, unsigned &id )
   logThread->push( record );
   record->getId( id );
 
-  printf( "LogManager: checkpoint\n");
+  *ec << "LogManager: checkpoint";
 
   return 0;
 }
@@ -108,7 +108,7 @@ int LogManager::endCheckpoint( unsigned &id )
   logThread->push( record );
   record->getId( id );
 
-  printf( "LogManager: end checkpoint\n");
+  *ec << "LogManager: end checkpoint";
 
   return 0;
 }
@@ -125,7 +125,7 @@ int LogManager::commitTransaction( int tid, unsigned &id )
   //sk
   err = flushLog();
   
-  printf( "LogManager: commitTransaction\n" );
+  *ec << "LogManager: commitTransaction";
 
   //sk
   return err;
@@ -168,7 +168,7 @@ int LogManager::rollbackTransaction( int tid, StoreManager *sm, unsigned &id )
   logThread->push( record );
   record->getId( id );
 
-  printf( "LogManager: rollbackTransaction\n" );
+  *ec << "LogManager: rollbackTransaction";
 
   return 0;
 }
@@ -180,7 +180,7 @@ int LogManager::shutdown( unsigned &id )
   flushLog();
   record->getId( id );
 
-  printf( "LogManager: shutdown\n" );
+  *ec << "LogManager: shutdown";
 
   return 0;
 }
