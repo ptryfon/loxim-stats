@@ -43,7 +43,7 @@ int LogIO::readLogicalID( LogicalID *&lid, int fileDes, StoreManager* sm )
   }
   else
   {
-    return sm->logicalIDFromByteArray((unsigned char*) (s.data()), lid);
+    sm->logicalIDFromByteArray((unsigned char*) (s.data()), lid);
   }
   return 0;
 }
@@ -70,34 +70,16 @@ int LogIO::readDataValue( DataValue *&dv, int fileDes, StoreManager* sm )
   int errCode;
 
   if( ( errCode = readString( fileDes, s ) ) ) return errCode;
+
   if(s.empty())
   {
     dv=NULL;
   }
   else
   {
-    return sm->dataValueFromByteArray((unsigned char*) (s.data()), dv);
+    sm->dataValueFromByteArray((unsigned char*) (s.data()), dv);
   }
   return 0;
-}
-
-int LogIO::writeDataValue( DataValue *dv, int fileDes )
-{
-  unsigned char *buffer;
-  int len;
-  int result;
-
-  //gdy dv = NULL zapisujemy długość łańcucha = 0
-  if( dv == NULL)
-    return writeInt(fileDes, 0);
-    
-  dv->toByteArray( 0, &len );
-  buffer = new unsigned char[len];
-  dv->toByteArray( &buffer, &len );
-  result = writeString( fileDes, (char *) buffer, len );
-  delete buffer;
-
-  return result;
 }
 
 int LogIO::readTransactionIDVector( vector<int> *&tidVec, int fileDes )

@@ -75,7 +75,7 @@ int LogRecord::readLogRecordForward( LogRecord *&result, int fileDes, StoreManag
       break;
   }
   //if( ( errCode = dictionary[recordType]->instance( result ) ) ) return errCode;
-  result->read( fileDes, sm );
+  if( ( errCode = result->read( fileDes, sm ) ) ) return errCode;
 
   if( ( errCode = LogIO::readInt( fileDes, recordLen ) ) ) return errCode;
   if( ( errCode = LogIO::getFilePos( fileDes, filePosEnd ) ) ) return errCode;
@@ -163,20 +163,22 @@ int CkptRecord::write( int fileDes ) { return LogIO::writeTransactionIDVector( t
 /* WriteRecord class */
 
 WriteRecord::WriteRecord( int _tid, LogicalID *_lid, string _name, DataValue *_oldVal, DataValue *_newVal )
-: TransactionRecord( _tid, WRITE_LOG_REC_TYPE ), lid( _lid ), name(_name), oldVal( _oldVal ), newVal( _newVal )
+: TransactionRecord( _tid, WRITE_LOG_REC_TYPE )
 {
+  lid = _lid;
+  name = _name;
+  oldVal = _oldVal;
+  newVal = _newVal;
   if( _oldVal == NULL ) oldValS = "";
   else {
     Serialized serial1 = _oldVal->serialize();
     oldValS = string( (const char*) serial1.bytes, serial1.size );
-    printf("s1 = %d ",serial1.size);
   }
 
   if( _newVal == NULL ) newValS = "";
   else {
     Serialized serial2 = _newVal->serialize();
     newValS = string( (const char*) serial2.bytes, serial2.size );
-    printf("s2 = %d\n",serial2.size);
   }
   
 }

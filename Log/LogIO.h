@@ -35,7 +35,6 @@ namespace Logs
     static int readLogicalID( LogicalID *&lid, int fileDes, StoreManager* sm );
     static int writeLogicalID( LogicalID *lid, int fileDes );
     static int readDataValue( DataValue *&dv, int fileDes, StoreManager* sm );
-    static int writeDataValue( DataValue *dv, int fileDes );
     static int readTransactionIDVector( vector< int > *&tidVec, int fileDes );
     static int writeTransactionIDVector( vector< int > *tidVec, int fileDes );
 

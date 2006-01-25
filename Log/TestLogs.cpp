@@ -55,7 +55,6 @@ int main( int argc, char *argv[] )
   logManager.init();
   logManager.beginTransaction( tid, id );
 
-
   // write (stary i nowy istnieje)
   {
     DataValue *oldDataValue = new DBDataValue( "Stary Mis" );
@@ -66,6 +65,10 @@ int main( int argc, char *argv[] )
 
   // write (stary nie istnieje)
   logManager.write( tid, new DBLogicalID( 58 ), "mis2", 0, new DBDataValue( "Nowy Mis2" ), id );
+
+  logManager.flushLog();
+  printLog(sm);
+  exit( 0 );
 
   // write (nowy nie istnieje)
   logManager.write( tid, new DBLogicalID( 59 ), "mis3", new DBDataValue( "Stary Mis3" ), 0, id );
