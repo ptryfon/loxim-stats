@@ -577,6 +577,7 @@ int Server::Run()
 	config->init();
 	ErrorConsole con("Server");
 	con.init(1);
+	
 	LogManager* logManager = new LogManager();
 	logManager->init();
 	DBStoreManager* storeManager = new DBStoreManager();
@@ -592,7 +593,7 @@ int Server::Run()
 	QueryResult *qResult;
 	
 	printf("[Server.Run]--> Creating message buffers.. \n");
-	char *messgBuff;
+	//char *messgBuff;
 	char *serializedMessg;
 	messgBuff=(char*) malloc(MAX_MESSG);
 	serializedMessg=(char*) malloc(MAX_MESSG);
@@ -718,6 +719,16 @@ while (!signalReceived) {
 	
 	return 0;	
 }		
+
+int Server::SExit(int code) {
+    printf("[Server.SExit]--> Server thread freeing buffers and disconnecting %d\n", code);
+    free(serialBufBegin);
+    free(messgBuff);
+    Disconnect();
+    return code;
+}
+
+
 /*
 void Server::sigHandler(int sig) {
 	int err;	

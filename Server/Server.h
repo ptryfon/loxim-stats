@@ -26,13 +26,13 @@ extern void sigHandler(int arg);
 		int Serialize(QueryResult *qr, char **buffer, char **bufferStart);
 		//static void sigHandler(int sig);
 			
-		//DEVELOPING - NOT YET USED
+		int SExit(int code);
 		int SerializeRec(QueryResult *qr);		
 		double htonDouble(double in);
-		//int BExit();
 	private:
 		char *bigBuf;
 		int Sock;
+		char *messgBuff;
 		char *serialBuf;
 		char *serialBufBegin;
 		char *serialBufEnd;

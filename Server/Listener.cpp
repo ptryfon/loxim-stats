@@ -8,10 +8,13 @@
 
 //using namespace Listener;
 
+//Server *srvs[MAX_CLIENTS];
 pthread_t pthreads[MAX_CLIENTS];
 int threads_count;
 Listener *ls;
 jmp_buf j;
+
+pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
 
 Listener::Listener()
 {
@@ -25,14 +28,34 @@ Listener::~Listener()
 }
 
 int Listener::CreateServer(int sock) {
-	Server *srv = new Server(sock); 
+	Server *srv = new Server(sock); 	
 	printf("Listener: running new server thread \n");
 	return srv->Run();
 }
 
 void *exitPoint() {
+    //pthread_lock(&mut);
+	//TODO Update threads_count etc
+    //pthread_unlock(&mut);
     pthread_exit((void *) 0);
 }
+
+    
+//LOCK MUTEX BEFORE USING THIS ONE!
+int getMyIndex(int pt_id) {
+    int i;
+    
+    while (i<threads_count) {
+	if (((int)(pthreads[i]))==pt_id) {
+	    printf("[Listener.getMyIndex]-->Found index\n");
+	    return i;
+	}
+	i++;
+    }
+    printf("[Listener.getMyIndex]--> ERROR: missing entry in ptreads for this thread!\n");
+    return -1;    
+}
+
 
 void sigHandler(int sig) {
     pthread_t pself; //piotrek
@@ -41,7 +64,7 @@ void sigHandler(int sig) {
     int status;
     
     pself=pthread_self();
-    printf("Listener-sigHandler: my pthread_id is %d and ", pself);
+    printf("Listener-sigHandler: my pthread_id is %d and ", (int)pself);
     if (pself==pthread_master_id) {
 	printf(".. I am the Listener thread \n");
 	for (i=0;i<threads_count;i++) {
@@ -63,11 +86,22 @@ void sigHandler(int sig) {
     }
     else {
 	printf(".. I am a Server thread\n");
-	printf("Listener-sigHandler-Thread%d: Exiting \n", pself); 
+	/* TODO clean mess
+	pthread_mutex_lock(&mut);
+	
+	status=getMyIndex(int(pself));
+	if (status<0) {    
+	    pthread_mutex_unlock(&mut);
+	    exitPoint(); //TODO args!
+	}
+	srvs[status]->SExit(0);	
+	pthread_mutex_unlock(&mut);
+	*/
+	printf("Listener-sigHandler-Thread%d: Exiting \n", (int)pself); 
 	exitPoint();
     }	
 }    
-    
+
 void *createServ(void *arg) {
     int socket=*(int *)arg;
     int res;
@@ -77,6 +111,17 @@ void *createServ(void *arg) {
 	pthread_exit((void *)socket);
     }	
     Server *srv = new Server(socket);
+    
+    /* TODO update thread global data
+    pthread_mutex_lock(&mut);
+	if ((res=getMyIndex((int)pthread_self()))<0) {
+	    pthread_mutex_unlock(&mut);
+	    pthread_exit((void *)res);
+	}
+	printf("Listener-createServ: Putting my server object into global table..\n");
+	srvs[res]=srv;
+    pthread_mutex_unlock(&mut);	
+    */
     printf("Listener-createServ: Executing server code now.. \n");
     res=srv->Run();
     printf("Listener-createServ: Server returned |%d|, exiting \n", res); 
