@@ -53,9 +53,8 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 		switch (nodeType) 
 		{
 		case TreeNode::TNNAME: {
-			string name = tree->getName();
 			*ec << "[QE] Type: TNNAME";
-			
+			string name = tree->getName();
 			if ((stack.size()) == 1) {
 			    errcode = (stack.pop());
 			    if (errcode != 0) { return errcode; };
@@ -91,71 +90,62 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 		}//case TNNAME
 
 		case TreeNode::TNCREATE: {
-			// TNCREATE jest do poprawki, postaram sie to dzis zrobic
-			// bo obecnie nie da sie dodac do bazy danych obiektu <i0, NAZWA, i1>
-			// a powinno sie dac np zapytaniem:
-			// CREATE cos(cos_innego where cos_jeszcze_innego = jakas_wartosc)
-			string name = tree->getName();
-			DataValue* value;
 			*ec << "[QE] Type: TNCREATE";
-			tree = tree->getArg();
-			*ec << "[QE] Getting node arguments";
-			QueryResult* nextResult; 
-			if ((errcode = executeQuery (tree, &nextResult)) != 0)
-				{
-				return errcode;
-				}
-			
-			DBDataValue *dbValue = new DBDataValue;
-			
-			if (tree != NULL)
-				{
-				nodeType = tree->type();
-				*ec << "[QE] Node type recognized.";
-
-				switch (nodeType) 
-				{
-				case TreeNode::TNINT:
-					{
-					int intValue = ((IntNode *) tree)->getValue();
+			string name = tree->getName();
+			QueryResult *tmp_result;
+			errcode = executeQuery (tree->getArg(), &tmp_result);
+			if (errcode != 0) return errcode;
+			if (not (tmp_result->isSingleValue())) {
+				*ec << "[QE] ERROR! Create operation, argument must be single value type";
+				*result = new QueryNothingResult();
+				*ec << "[QE] QueryNothingResult created";
+				return -1;
+			}
+			QueryResult *single;
+			errcode = tmp_result->getSingleValue(single);
+			if (errcode != 0) return errcode;
+			DBDataValue *dbValue = new DBDataValue();
+			switch (single->type()) {
+				case QueryResult::QINT: {
+					int intValue = ((QueryIntResult *) single)->getValue();
 					dbValue->setInt(intValue);
-					*ec << "[QE] It's 'integer'.";
+					*ec << "[QE] < CREATE NAME ('integer'); > operation";
 					break;
-					}
-			
-				case TreeNode::TNSTRING: 
-					{
-					string stringValue = ((StringNode *) tree)->getValue();
-					dbValue->setString(stringValue);
-					*ec << "[QE] It's 'string'.";
-					break;
-					}
-
-				case TreeNode::TNDOUBLE: 
-					{
-					double doubleValue = ((DoubleNode *) tree)->getValue();
-					dbValue->setDouble(doubleValue);
-					*ec << "[QE] It's 'double'.";
-					break;
-					} 
-				default:
-					{
-					*ec << (EBadType | ErrQExecutor);
-					*ec << "[QE] Error - incorrect node type.";
-					return EBadType | ErrQExecutor;
-					}
-			
-				}//switch
-				value = dbValue;
-				*ec << "[QE] Value set";
-				} //if
-			else
-				{
-				vector<LogicalID*> emptyVector;
-				dbValue->setVector(&emptyVector);
-				value = dbValue;
-				*ec << "[QE] No arguments (value = NULL)";
 				}
+				case QueryResult::QDOUBLE: {
+					double doubleValue = ((QueryDoubleResult *) single)->getValue();
+					dbValue->setDouble(doubleValue);
+					*ec << "[QE] < CREATE NAME ('double'); > operation";
+					break;
+				}
+				case QueryResult::QSTRING: {
+					string stringValue = ((QueryStringResult *) single)->getValue();
+					dbValue->setString(stringValue);
+					*ec << "[QE] < CREATE NAME ('string'); > operation";
+					break;
+				}
+				case QueryResult::QREFERENCE: {
+					LogicalID* refValue = ((QueryReferenceResult *) single)->getValue();
+					dbValue->setPointer(refValue);
+					*ec << "[QE] < CREATE NAME ('reference'); > operation";
+					break;
+				}
+				case QueryResult::QNOTHING: {
+					vector<LogicalID*> emptyVector;
+					dbValue->setVector(&emptyVector);
+					*ec << "[QE] < CREATE NAME; > operation";
+					break;
+				}
+				default: {
+					*ec << "[QE] ERROR! Create operation, bad type argument evaluated by executeQuery";
+					*ec << (EBadType | ErrQExecutor);
+					*result = new QueryNothingResult();
+					*ec << "[QE] QueryNothingResult created";
+					return EBadType | ErrQExecutor;
+				}
+			}
+			DataValue* value;
+			value = dbValue;
 			ObjectPointer *optr;
 			if ((errcode = tr->createObject(name, value, optr)) != 0)
 				{
@@ -167,11 +157,10 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 				*ec << "[QE] Error in addRoot";
 				return errcode;
 				}
-			*result = new QueryBagResult;
-			*ec << "[QE] QueryBagResult created";
+			*result = new QueryBagResult();
 			QueryReferenceResult *lidres = new QueryReferenceResult(optr->getLogicalID());
 			(*result)->addResult (lidres);
-			*ec << "[QE] Object added to QueryResult. Done!";
+			*ec << "[QE] CREATE Done!";
 			return 0;
 		} //case TNCREATE
 
@@ -323,7 +312,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 
 		default:
 			{
-			*ec << "Unknow node type";
+			*ec << "Unknown node type";
 			*ec << (ENoType | ErrQExecutor);
 			*result = new QueryNothingResult();
 			*ec << "[QE] QueryNothingResult created";

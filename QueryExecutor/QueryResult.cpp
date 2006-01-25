@@ -1490,6 +1490,8 @@ int QuerySequenceResult::sortCollection(QueryResult *r) {
 			if (errcode != 0) return errcode;
 			int first_type = first_sorting->type();
 			int second_type = second_sorting->type();
+			if (first_type == QueryResult::QINT) first_type = QueryResult::QDOUBLE;
+			if (second_type == QueryResult::QINT) second_type = QueryResult::QDOUBLE;
 			if (first_type < second_type) {
 				seq.push_back(first);
 				seq.push_back(second);
@@ -1554,6 +1556,8 @@ int QuerySequenceResult::sortCollection(QueryResult *r) {
 					if (errcode != 0) return errcode;
 					int first_type = first_sorting->type();
 					int second_type = second_sorting->type();
+					if (first_type == QueryResult::QINT) first_type = QueryResult::QDOUBLE;
+					if (second_type == QueryResult::QINT) second_type = QueryResult::QDOUBLE;
 					if (first_type < second_type) {
 						seq.push_back(first_elem);
 						errcode = first_seq->getResult(first_elem);
