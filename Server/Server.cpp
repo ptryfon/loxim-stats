@@ -329,8 +329,8 @@ int  Server::SerializeRec(QueryResult *qr)
 	resType=(Result::ResultType)qr->type();
 	rT=qr->type();
 	
-	printf("[Server.Serialize]--> Starting \n");
-	printf("[Server.Serialize]--> Serializing object of type: %d \n",  rT);
+	//printf("[Server.Serialize]--> Starting \n");
+	printf("[Server.Serialize]--> Now serializing object of type: %d \n",  rT);
 	
 	switch (rT) {
 		case QueryResult::QBAG:
@@ -346,7 +346,7 @@ int  Server::SerializeRec(QueryResult *qr)
 				return -1;
 			} 
 			bagRes = (QueryBagResult *)qr;	
-			printf("[Server.Serialize]--> Adding bag header \n");
+			//printf("[Server.Serialize]--> Adding bag header \n");
 			serialBuf[0]=(char)resType;
 			//printf("\n SerialBuf[0] |%c|%d| \n\n", serialBuf[0], (int)serialBuf[0]);
 			//printf("\n SerialBufBegin[0] |%c|%d| \n\n", serialBufBegin[0], (int)serialBufBegin[0]);
@@ -362,7 +362,10 @@ int  Server::SerializeRec(QueryResult *qr)
 			for (i=0;i<bagSize;i++) {
 				printf("[Server.Serialize]--> Serializing collection item %d \n", i);
 				retVal=bagRes->getResult(collItem);
-				printf("[Server.Serialize]--> getResult returned %d \n", retVal);
+				if (retVal!=0) {
+				    printf("[Server.Serialize]--> getResult failed with %d, returning.. \n", retVal);
+				    return retVal;
+				}
 				SerializeRec(collItem);
 			}
 			break;
@@ -383,14 +386,17 @@ int  Server::SerializeRec(QueryResult *qr)
 			serialBuf[0]=(char)resType;
 			serialBuf++;
 			memcpy((void *)serialBuf, (const void *)&bufBagLen, sizeof(bufBagLen));
-			printf("[Server.Serialize]--> Sequence header: |(type)=%d|(size)=%lu|\n", (int)serialBufBegin[0], ntohl(*(unsigned long *)serialBuf));
+			//printf("[Server.Serialize]--> Sequence header: |(type)=%d|(size)=%lu|\n", (int)serialBufBegin[0], ntohl(*(unsigned long *)serialBuf));
 			serialBuf=serialBuf+sizeof(bufBagLen);
 						
 			//TODO DEPTH
 			for (i=0;i<bagSize;i++) {
 				printf("[Server.Serialize]--> Serializing collection item %d \n", i);
 				retVal=bagRes->getResult(collItem);
-				printf("[Server.Serialize]--> getResult returned %d \n", retVal);
+				if (retVal!=0) {
+				    printf("[Server.Serialize]--> getResult failed with %d, returning.. \n", retVal);
+				    return retVal;
+				}
 				SerializeRec(collItem);
 			}
 				
@@ -411,14 +417,17 @@ int  Server::SerializeRec(QueryResult *qr)
 			serialBuf[0]=(char)resType;
 			serialBuf++;
 			memcpy((void *)serialBuf, (const void *)&bufBagLen, sizeof(bufBagLen));
-			printf("[Server.Serialize]--> Struct header: |(type)=%d|(size)=%lu|\n", (int)serialBufBegin[0], ntohl(*(unsigned long *)serialBuf));
+			//printf("[Server.Serialize]--> Struct header: |(type)=%d|(size)=%lu|\n", (int)serialBufBegin[0], ntohl(*(unsigned long *)serialBuf));
 			serialBuf=serialBuf+sizeof(bufBagLen);
 						
 			//TODO DEPTH
 			for (i=0;i<bagSize;i++) {
 				printf("[Server.Serialize]--> Serializing collection item %d \n", i);
 				retVal=bagRes->getResult(collItem);
-				printf("[Server.Serialize]--> getResult returned %d \n", retVal);
+				if (retVal!=0) {
+				    printf("[Server.Serialize]--> getResult failed with %d, returning.. \n", retVal);
+				    return retVal;
+				}
 				SerializeRec(collItem);
 			}
 				
@@ -430,7 +439,7 @@ int  Server::SerializeRec(QueryResult *qr)
 		    refRes = (QueryReferenceResult *)qr;
 		    intVal=(refRes->getValue())->toInteger();
 		    serialBuf++;
-		    printf("Reference integer value: intVal=%d \n", intVal);
+		    printf("[Server.Serialize]--> Reference integer value: intVal=%d \n", intVal);
 		    memcpy((void *)serialBuf, (const void *)&intVal, sizeof(intVal));
 		    serialBuf=serialBuf+sizeof(intVal);
 		    break;	
@@ -443,7 +452,7 @@ int  Server::SerializeRec(QueryResult *qr)
 		    printf("[Server.Serialize]--> Adding string header, string size=%d \n", valSize);
 		    serialBuf[0]=(char)resType;
 		    serialBuf++;
-		    printf("[Server.Serialize]--> String header complete \n");
+		    //printf("[Server.Serialize]--> String header complete \n");
 		    strcpy(serialBuf, strVal.c_str());  
 		    printf("[Server.Serialize]--> String serialized to: %s \n", serialBuf);
 		    serialBuf=serialBuf+valSize+1;
@@ -470,7 +479,7 @@ int  Server::SerializeRec(QueryResult *qr)
 		    intVal=htonl(intVal);
 		    memcpy((void *)serialBuf, (const void *)&intVal, sizeof(intVal));
 		    serialBuf=serialBuf+sizeof(intVal);
-		    printf("[Server.Serialize]--> buffer written \n");
+		    //printf("[Server.Serialize]--> buffer written \n");
 		    break; 
 		case QueryResult::QDOUBLE:
 		    printf("[Server.Serialize]--> DOUBLE type \n");
@@ -480,7 +489,7 @@ int  Server::SerializeRec(QueryResult *qr)
 		    doubleRes = (QueryDoubleResult *)qr;
 		    doubleVal = doubleRes->getValue();
 		    printf("[Server.Serialize]--> double value is %lf \n", doubleVal);
-		    printf("[Server.Serialize]--> Switching double byte order.. \n");
+		    //printf("[Server.Serialize]--> Switching double byte order.. \n");
 		    doubleVal = htonDouble(doubleVal);
 		    printf("[Server.Serialize]--> Splitting and byte order change complete \n");
 		    memcpy((void *)serialBuf, (const void *)&doubleVal, sizeof(doubleVal));
@@ -560,7 +569,7 @@ int Server::Run()
 //	signal(SIGINT, (Server::sigHandler));
 	
 	//Set process signal mask
-	printf("[Server.Run]--> Blocking SIGINT for now.. \n");
+	//printf("[Server.Run]--> Blocking SIGINT for now.. \n");
 	sigprocmask(SIG_BLOCK, &block_cc, NULL);
 
 	printf("[Server.Run]--> Initializing objects.. \n");
@@ -606,7 +615,7 @@ while (!signalReceived) {
 	printf("[Server.Run]--> Blocking SIGINT for now.. \n");
 	sigprocmask(SIG_BLOCK, &block_cc, NULL);
 	
-	printf("[Server.Run]--> Cleaning buffers \n");
+	//printf("[Server.Run]--> Cleaning buffers \n");
 	memset(serializedMessg, '\0', MAX_MESSG); 
 	
 	//Get string from client
@@ -665,6 +674,8 @@ while (!signalReceived) {
 	    printf("[SERVER]--> ends with ERROR\n");
 	    return ErrServer+ESerialize;
 	}
+	
+	printf("[Server.Run]--> *****SERIALIZE complete***** \n");
 	
 	printf("[Server.Run]--> Sending results to client.. Result type=|%d|\n", (int)serialBufBegin[0]);
 	//printf("Buf: |%d|%d|%d|%d|%d|%d|%d|\n", (int)serialBufBegin[0], (int)serialBufBegin[1], (int)serialBufBegin[2],
