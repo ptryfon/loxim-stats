@@ -37,6 +37,7 @@ namespace QExecutor
 		bool empty();
 		int size();
 		int bindName(string name, QueryResult *&r);
+		int bindName(string name, int es_section, QueryResult *&r);
 		void deleteAll();
 	};
 

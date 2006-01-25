@@ -31,8 +31,8 @@ using namespace std;
 namespace QExecutor {
 
 int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
+	
 	int errcode;
-
 	*ec << "[QE] executeQuery()";
 	
 	if (tree != NULL)
@@ -202,9 +202,39 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 		} //case TNVECTOR
 		
 		case TreeNode::TNAS: {
-			*ec << "[QE] AS operator: not implemented yet";
-			*result = new QueryNothingResult();
-			*ec << "[QE] QueryNothingResult created";
+			*ec << "[QE] AS/GROUP_AS operation recognized";
+			string name = tree->getName();
+			QueryResult *tmp_result;
+			errcode = executeQuery(tree->getArg(), &tmp_result);
+			if (errcode != 0) return errcode;
+			bool grouped = ((NameAsNode *) tree)->isGrouped();
+			QueryResult *final_result = new QueryBagResult();
+			if (grouped) {
+				*ec << "[QE] GROUP AS operation";
+				QueryResult *tmp_binder = new QueryBinderResult(name, tmp_result);
+				*ec << "[QE] GROUP AS: new binder created and added to final result";
+				final_result->addResult(tmp_binder);
+			}
+			else {
+				*ec << "[QE] AS operation";
+				QueryResult *partial_result;
+				if (((tmp_result->type()) != QueryResult::QSEQUENCE) && ((tmp_result->type()) != QueryResult::QBAG)) {
+					partial_result = new QueryBagResult();
+					partial_result->addResult(tmp_result);
+				}
+				else
+					partial_result = tmp_result;
+				for (unsigned int i = 0; i < partial_result->size(); i++) {
+					QueryResult *nextResult;
+					errcode = ((QueryBagResult *) partial_result)->at(i, nextResult);
+					if (errcode != 0) return errcode;
+					QueryResult *tmp_binder = new QueryBinderResult(name, nextResult);
+					*ec << "[QE] GROUP AS: new binder created and added to final result";
+					final_result->addResult(tmp_binder);
+				}
+			}
+			*result = final_result;
+			*ec << "[QE] AS operation Done!";
 			return 0;
 		} //case TNAS
 	
@@ -212,9 +242,8 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			UnOpNode::unOp op = ((UnOpNode *) tree)->getOp();
 			*ec << "[QE] Unary operator - type recognized";
 			QueryResult *tmp_result;
-			if ((errcode = executeQuery (tree->getArg(), &tmp_result)) != 0) {
-				return errcode;
-			}
+			errcode = executeQuery(tree->getArg(), &tmp_result);
+			if (errcode != 0) return errcode;
 			QueryResult *op_result;
 			errcode = this->unOperate(op, tmp_result, op_result);
 			if (errcode != 0) return errcode;
@@ -229,12 +258,10 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			AlgOpNode::algOp op = ((AlgOpNode *) tree)->getOp();
 			*ec << "[QE] Algebraic operator - type recognized";
 			QueryResult *lResult, *rResult;
-			if ((errcode = executeQuery (((AlgOpNode *) tree)->getLArg(), &lResult)) != 0) {
-				return errcode;
-			}
-			if ((errcode = executeQuery (((AlgOpNode *) tree)->getRArg(), &rResult)) != 0) {
-				return errcode;
-			}
+			errcode = executeQuery(((AlgOpNode *) tree)->getLArg(), &lResult);
+			if (errcode != 0) return errcode;
+			errcode = executeQuery (((AlgOpNode *) tree)->getRArg(), &rResult);
+			if (errcode != 0) return errcode;
 			QueryResult *op_result;
 			errcode = this->algOperate(op, lResult, rResult, op_result);
 			if (errcode != 0) return errcode;
@@ -249,9 +276,8 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			NonAlgOpNode::nonAlgOp op = ((NonAlgOpNode *) tree)->getOp();
 			*ec << "[QE] NonAlgebraic operator - type recognized";
 			QueryResult *l_tmp_Result;
-			if ((errcode = executeQuery (((NonAlgOpNode *) tree)->getLArg(), &l_tmp_Result)) != 0) {
-				return errcode;
-			}
+			errcode = executeQuery (((NonAlgOpNode *) tree)->getLArg(), &l_tmp_Result);
+			if (errcode != 0) return errcode;
 			QueryResult *lResult;
 			if (((l_tmp_Result->type()) != QueryResult::QSEQUENCE) && ((l_tmp_Result->type()) != QueryResult::QBAG)) {
 				lResult = new QueryBagResult();
@@ -278,9 +304,8 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 						return -1; //this would be very strange, this function can only return 0
 					}
 					QueryResult *rResult;
-					if ((errcode = executeQuery (((NonAlgOpNode *) tree)->getRArg(), &rResult)) != 0) {
-						return errcode;
-					}
+					errcode = executeQuery (((NonAlgOpNode *) tree)->getRArg(), &rResult);
+					if (errcode != 0) return errcode;
 					*ec << "[QE] Computing left Argument with a new scope of ES";
 					errcode = this->combine(op,currentResult,rResult,partial_result);
 					if (errcode != 0) return errcode;
@@ -1334,6 +1359,7 @@ bool EnvironmentStack::empty() { return es.empty(); }
 int EnvironmentStack::size() { return es.size(); }
 
 int EnvironmentStack::bindName(string name, QueryResult *&r) {
+	int errcode;
 	*ec << "[QE] Name binding on ES";
 	unsigned int number = (es.size());
 	ec->printf("[QE] bindName: ES got %u sections\n", number);
@@ -1348,8 +1374,8 @@ int EnvironmentStack::bindName(string name, QueryResult *&r) {
 		sectionSize = (section->size());
 		ec->printf("[QE] bindName: ES section %u got %u elements\n", (i - 1), sectionSize);
 		for (unsigned int j = 0; j < sectionSize; j++) {
-			int errNo = (section->at(j,sth));
-			if (errNo != 0) { return errNo; };
+			errcode = (section->at(j,sth));
+			if (errcode != 0) return errcode;
 			if ((sth->type()) == (QueryResult::QBINDER)) {
 				current = (((QueryBinderResult *) sth)->getName());
 				ec->printf("[QE] bindName: current %u name is: %s\n", j, current.c_str());
@@ -1357,13 +1383,46 @@ int EnvironmentStack::bindName(string name, QueryResult *&r) {
 					found_one = true;
 					*ec << "[QE] bindName: Object added to Result";
 					r->addResult(((QueryBinderResult *) sth)->getItem());
-				};
-			};
-		};
+				}
+			}
+		}
 		if (found_one) {
 			return 0;
-		};
-	};
+		}
+	}
+	return 0;
+}
+
+int EnvironmentStack::bindName(string name, int es_section, QueryResult *&r) {
+	*ec << "[QE] Name binding on ES";
+	int errcode;
+	unsigned int number = (es.size());
+	ec->printf("[QE] bindName: ES got %u sections\n", number);
+	r = new QueryBagResult();
+	QueryBagResult *section;
+	unsigned int sectionSize;
+	if ((es_section < 0) || (es_section >= number)) {
+		*ec << "[QE] bindName ERROR: ES section number given by optimalizator is wrong!";
+		return -1;
+	}
+	*ec << "[QE] bindName: searching section number %d - optimalizator said, that i should search there";
+	QueryResult *sth;
+	string current;
+	section = (es.at(es_section));
+	sectionSize = (section->size());
+	ec->printf("[QE] bindName: ES section %u got %u elements\n", es_section, sectionSize);
+	for (unsigned int j = 0; j < sectionSize; j++) {
+		errcode = (section->at(j,sth));
+		if (errcode != 0) return errcode;
+		if ((sth->type()) == (QueryResult::QBINDER)) {
+			current = (((QueryBinderResult *) sth)->getName());
+			ec->printf("[QE] bindName: current %u name is: %s\n", j, current.c_str());
+			if (current == name) {
+				*ec << "[QE] bindName: Object added to Result";
+				r->addResult(((QueryBinderResult *) sth)->getItem());
+			}
+		}
+	}
 	return 0;
 }
 
