@@ -1,5 +1,7 @@
 include ../make.defs
 
+CXXFLAGS=-I./ -I./../ -Wall -fno-exceptions -g
+
 SOURCES	=	Buffer.cpp \
 		DBDataValue.cpp \
 		DBLogicalID.cpp \
