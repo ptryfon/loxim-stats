@@ -439,14 +439,14 @@ int  Server::SerializeRec(QueryResult *qr)
 		    resType=Result::STRING;
 		    stringRes=(QueryStringResult *)qr;
 		    strVal=stringRes->getValue();
-		    valSize=stringRes->size();
-		    printf("[Server.Serialize]--> Adding string header \n");
+		    valSize=strVal.length();
+		    printf("[Server.Serialize]--> Adding string header, string size=%d \n", valSize);
 		    serialBuf[0]=(char)resType;
 		    serialBuf++;
 		    printf("[Server.Serialize]--> String header complete \n");
 		    strcpy(serialBuf, strVal.c_str());  
 		    printf("[Server.Serialize]--> String serialized to: %s \n", serialBuf);
-		    serialBuf=serialBuf+valSize;
+		    serialBuf=serialBuf+valSize+1;
 		    break;
 		case QueryResult::QRESULT:
 		    printf("[Server.Serialize]--> Getting RESULT (ERROR!)\n");
