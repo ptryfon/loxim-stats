@@ -236,8 +236,8 @@ int WriteRecord::write( int fileDes )
   if( ( errCode = TransactionRecord::write( fileDes ) ) ) return errCode;
   if( ( errCode = LogIO::writeLogicalID( lid, fileDes ) ) ) return errCode;
   if( ( errCode = LogIO::writeString( fileDes, (char*) name.data(), name.length() ) ) ) return errCode;
-  if( ( errCode = LogIO::writeString( fileDes, oldValS.c_str(), oldValS.length() ) ) ) return errCode;
-  if( ( errCode = LogIO::writeString( fileDes, newValS.c_str(), newValS.length() ) ) ) return errCode;
+  if( ( errCode = LogIO::writeString( fileDes, oldValS.data(), oldValS.length() ) ) ) return errCode;
+  if( ( errCode = LogIO::writeString( fileDes, newValS.data(), newValS.length() ) ) ) return errCode;
 
   return errCode;
 }

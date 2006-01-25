@@ -135,17 +135,20 @@ namespace Logs
     friend class LogRecord;
 
     protected:
-    LogicalID *lid;// trzeba miec tu bytearray
+
     string name;
 
     // do zapisu
     string oldValS;
     string newValS;
 
+    public://do testow
     // do odczytu
+    LogicalID *lid;// trzeba miec tu bytearray
     DataValue *oldVal;
     DataValue *newVal;
 
+    protected:
     WriteRecord() : TransactionRecord( WRITE_LOG_REC_TYPE ) {dictionary[type] = this;}
 
     virtual int read( int fileDes, StoreManager* sm );
