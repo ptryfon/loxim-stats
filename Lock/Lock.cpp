@@ -34,13 +34,15 @@ namespace LockMgr
     int LockManager::lock(LogicalID* lid, TransactionID* tid, AccessMode mode)
     {  
 		int errorNumber = 0;
+		ErrorConsole ec("Lock");
+
 		mutex->down();
 	    	DBPhysicalID* phid = lid->getPhysicalID();
 	    	DBPhysicalIdMap::iterator pos = map_of_locks->find(*phid);
 	    
 	    	if (pos == map_of_locks->end())
 	    	{
-			printf("TID new lock: %d\n", tid->getId() );fflush(stdout);
+			ec.printf("TID new lock: %d\n", tid->getId() );
 			/* creating new single lock */
 			SingleLock* lock = new SingleLock(tid, mode, new RWUJSemaphore(), single_lock_id);
 
@@ -52,7 +54,7 @@ namespace LockMgr
 	    	}
 	    	else
 	    	{
-			printf("TID wait lock: %d\n", tid->getId() );fflush(stdout);			
+			ec.printf("TID wait lock: %d\n", tid->getId() );
 			/* modifying existing single lock for this PhysicalID */
 			mutex->up();
 			SingleLock* lock = pos->second;

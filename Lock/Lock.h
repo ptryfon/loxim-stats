@@ -19,6 +19,7 @@ namespace LockMgr { class LockManager; }
 #include "../TransactionManager/Transaction.h"
 #include "../TransactionManager/SemHeaders.h"
 #include "../Errors/ErrorConsole.h"
+#include "../Errors/Errors.h"
 
 
 
