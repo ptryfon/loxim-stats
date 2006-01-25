@@ -91,6 +91,10 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 		}//case TNNAME
 
 		case TreeNode::TNCREATE: {
+			// TNCREATE jest do poprawki, postaram sie to dzis zrobic
+			// bo obecnie nie da sie dodac do bazy danych obiektu <i0, NAZWA, i1>
+			// a powinno sie dac np zapytaniem:
+			// CREATE cos(cos_innego where cos_jeszcze_innego = jakas_wartosc)
 			string name = tree->getName();
 			DataValue* value;
 			*ec << "[QE] Type: TNCREATE";

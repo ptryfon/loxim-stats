@@ -22,23 +22,23 @@ namespace QExecutor {
 
 //constructors
 QuerySequenceResult::QuerySequenceResult() 			{ ec = new ErrorConsole("QueryExecutor"); }
-QuerySequenceResult::QuerySequenceResult(vector<QueryResult*> s){ seq = s; }
+QuerySequenceResult::QuerySequenceResult(vector<QueryResult*> s){ seq = s; ec = new ErrorConsole("QueryExecutor"); }
 QueryBagResult::QueryBagResult() 				{ ec = new ErrorConsole("QueryExecutor"); }
-QueryBagResult::QueryBagResult(vector<QueryResult*> b)		{ bag = b; }
+QueryBagResult::QueryBagResult(vector<QueryResult*> b)		{ bag = b; ec = new ErrorConsole("QueryExecutor");}
 QueryStructResult::QueryStructResult() 				{ ec = new ErrorConsole("QueryExecutor"); }
-QueryStructResult::QueryStructResult(vector<QueryResult*> s)	{ str = s; }
+QueryStructResult::QueryStructResult(vector<QueryResult*> s)	{ str = s; ec = new ErrorConsole("QueryExecutor"); }
 QueryBinderResult::QueryBinderResult()				{ ec = new ErrorConsole("QueryExecutor"); }
-QueryBinderResult::QueryBinderResult(string n, QueryResult* r) 	{ name=n; item=r; }
+QueryBinderResult::QueryBinderResult(string n, QueryResult* r) 	{ name=n; item=r; ec = new ErrorConsole("QueryExecutor"); }
 QueryStringResult::QueryStringResult()				{ ec = new ErrorConsole("QueryExecutor"); }
-QueryStringResult::QueryStringResult(string v) 			{ value=v; }
+QueryStringResult::QueryStringResult(string v) 			{ value=v; ec = new ErrorConsole("QueryExecutor"); }
 QueryIntResult::QueryIntResult()				{ ec = new ErrorConsole("QueryExecutor"); }
-QueryIntResult::QueryIntResult(int v) 				{ value=v; }
+QueryIntResult::QueryIntResult(int v) 				{ value=v; ec = new ErrorConsole("QueryExecutor"); }
 QueryDoubleResult::QueryDoubleResult()				{ ec = new ErrorConsole("QueryExecutor"); }
-QueryDoubleResult::QueryDoubleResult(double v) 			{ value=v; }
+QueryDoubleResult::QueryDoubleResult(double v) 			{ value=v; ec = new ErrorConsole("QueryExecutor"); }
 QueryBoolResult::QueryBoolResult()				{ ec = new ErrorConsole("QueryExecutor"); }
-QueryBoolResult::QueryBoolResult(bool v) 			{ value=v; }
+QueryBoolResult::QueryBoolResult(bool v) 			{ value=v; ec = new ErrorConsole("QueryExecutor"); }
 QueryReferenceResult::QueryReferenceResult()			{ ec = new ErrorConsole("QueryExecutor"); }
-QueryReferenceResult::QueryReferenceResult(LogicalID* v) 	{ value=v; }
+QueryReferenceResult::QueryReferenceResult(LogicalID* v) 	{ value=v; ec = new ErrorConsole("QueryExecutor"); }
 QueryNothingResult::QueryNothingResult() 			{ ec = new ErrorConsole("QueryExecutor"); }
 
 //function clone()
@@ -548,18 +548,26 @@ bool QueryStringResult::equal(QueryResult *r){
 }
 
 bool QueryIntResult::equal(QueryResult *r){
-	if (r->type() != QueryResult::QINT ) {
+	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
 		return false; 
 	}
-	bool tmp_value = (value == ((QueryIntResult*) r)->getValue());
+	bool tmp_value;
+	if (r->type() == QueryResult::QINT)
+		tmp_value = (value == ((QueryIntResult*) r)->getValue());
+	else
+		tmp_value = ((double)value == ((QueryDoubleResult*) r)->getValue());
 	return tmp_value;
 }
 
 bool QueryDoubleResult::equal(QueryResult *r){
-	if (r->type() != QueryResult::QDOUBLE ) {
+	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
 		return false; 
 	}
-	bool tmp_value = (value == ((QueryDoubleResult*) r)->getValue());
+	bool tmp_value;
+	if (r->type() == QueryResult::QINT)
+		tmp_value = (value == (double)(((QueryIntResult*) r)->getValue()));
+	else
+		tmp_value = (value == ((QueryDoubleResult*) r)->getValue());
 	return tmp_value;
 }
 
@@ -648,18 +656,26 @@ bool QueryStringResult::greater_than(QueryResult *r){
 }
 
 bool QueryIntResult::greater_than(QueryResult *r){
-	if (r->type() != QueryResult::QINT ) {
+	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
 		return false; 
 	}
-	bool tmp_value = (value > ((QueryIntResult*) r)->getValue());
+	bool tmp_value;
+	if (r->type() == QueryResult::QINT)
+		tmp_value = (value > ((QueryIntResult*) r)->getValue());
+	else
+		tmp_value = ((double)value > ((QueryDoubleResult*) r)->getValue());
 	return tmp_value;
 }
 
 bool QueryDoubleResult::greater_than(QueryResult *r){
-	if (r->type() != QueryResult::QDOUBLE ) {
+	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
 		return false; 
 	}
-	bool tmp_value = (value > ((QueryDoubleResult*) r)->getValue());
+	bool tmp_value;
+	if (r->type() == QueryResult::QINT)
+		tmp_value = (value > (double)(((QueryIntResult*) r)->getValue()));
+	else
+		tmp_value = (value > ((QueryDoubleResult*) r)->getValue());
 	return tmp_value;
 }
 
@@ -688,18 +704,26 @@ bool QueryStringResult::less_than(QueryResult *r){
 }
 
 bool QueryIntResult::less_than(QueryResult *r){
-	if (r->type() != QueryResult::QINT ) {
+	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
 		return false; 
 	}
-	bool tmp_value = (value < ((QueryIntResult*) r)->getValue());
+	bool tmp_value;
+	if (r->type() == QueryResult::QINT)
+		tmp_value = (value < ((QueryIntResult*) r)->getValue());
+	else
+		tmp_value = ((double)value < ((QueryDoubleResult*) r)->getValue());
 	return tmp_value;
 }
 
 bool QueryDoubleResult::less_than(QueryResult *r){
-	if (r->type() != QueryResult::QDOUBLE ) {
+	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
 		return false; 
 	}
-	bool tmp_value = (value < ((QueryDoubleResult*) r)->getValue());
+	bool tmp_value;
+	if (r->type() == QueryResult::QINT)
+		tmp_value = (value < (double)(((QueryIntResult*) r)->getValue()));
+	else
+		tmp_value = (value < ((QueryDoubleResult*) r)->getValue());
 	return tmp_value;
 }
 
@@ -728,18 +752,26 @@ bool QueryStringResult::greater_eq(QueryResult *r){
 }
 
 bool QueryIntResult::greater_eq(QueryResult *r){
-	if (r->type() != QueryResult::QINT ) {
+	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
 		return false; 
 	}
-	bool tmp_value = (value >= ((QueryIntResult*) r)->getValue());
+	bool tmp_value;
+	if (r->type() == QueryResult::QINT)
+		tmp_value = (value >= ((QueryIntResult*) r)->getValue());
+	else
+		tmp_value = ((double)value >= ((QueryDoubleResult*) r)->getValue());
 	return tmp_value;
 }
 
 bool QueryDoubleResult::greater_eq(QueryResult *r){
-	if (r->type() != QueryResult::QDOUBLE ) {
+	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
 		return false; 
 	}
-	bool tmp_value = (value >= ((QueryDoubleResult*) r)->getValue());
+	bool tmp_value;
+	if (r->type() == QueryResult::QINT)
+		tmp_value = (value >= (double)(((QueryIntResult*) r)->getValue()));
+	else
+		tmp_value = (value >= ((QueryDoubleResult*) r)->getValue());
 	return tmp_value;
 }
 
@@ -768,18 +800,26 @@ bool QueryStringResult::less_eq(QueryResult *r){
 }
 
 bool QueryIntResult::less_eq(QueryResult *r){
-	if (r->type() != QueryResult::QINT ) {
+	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
 		return false; 
 	}
-	bool tmp_value = (value <= ((QueryIntResult*) r)->getValue());
+	bool tmp_value;
+	if (r->type() == QueryResult::QINT)
+		tmp_value = (value <= ((QueryIntResult*) r)->getValue());
+	else
+		tmp_value = ((double)value <= ((QueryDoubleResult*) r)->getValue());
 	return tmp_value;
 }
 
 bool QueryDoubleResult::less_eq(QueryResult *r){
-	if (r->type() != QueryResult::QDOUBLE ) {
+	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
 		return false; 
 	}
-	bool tmp_value = (value <= ((QueryDoubleResult*) r)->getValue());
+	bool tmp_value;
+	if (r->type() == QueryResult::QINT)
+		tmp_value = (value <= (double)(((QueryIntResult*) r)->getValue()));
+	else
+		tmp_value = (value <= ((QueryDoubleResult*) r)->getValue());
 	return tmp_value;
 }
 
