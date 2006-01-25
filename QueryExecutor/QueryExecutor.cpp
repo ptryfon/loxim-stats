@@ -1171,7 +1171,7 @@ int QueryExecutor::combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryRe
 				bool tmp_bool_value;
 				errcode = (lRes->getBoolValue(tmp_bool_value));
 				if (errcode != 0) return errcode;
-				QueryBoolResult *tmp_result = new QueryBoolResult(tmp_bool_value); 
+				QueryResult *tmp_result = new QueryBoolResult(tmp_bool_value); 
 				partial->addResult(tmp_result);
 			}
 			else {
@@ -1186,13 +1186,26 @@ int QueryExecutor::combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryRe
 				bool tmp_bool_value;
 				errcode = (lRes->getBoolValue(tmp_bool_value));
 				if (errcode != 0) return errcode;
-				QueryBoolResult *tmp_result = new QueryBoolResult(tmp_bool_value); 
+				QueryResult *tmp_result = new QueryBoolResult(tmp_bool_value); 
 				partial->addResult(tmp_result);
 			}
 			else {
 				*ec << "[QE] combine(): ERROR! Right argument of operator <forAll> is not boolean!";
 				return -1; // second argument of the <forAll> operator must be boolean type
 			}
+			break;
+		}
+		case /*NonAlgOpNode::assign:*/ 6666: {
+			*ec << "[QE] combine(): NonAlgebraic operator <assign>";
+			if (not ((curr->isSingleValue()) && (lRes->isSingleValue()))) {
+				*ec << "[QE] combine() ERROR! operator <assign> needs single type arguments, not collections";
+				QueryResult *sth = new QueryNothingResult();
+				partial->addResult(sth);
+				return -1;
+			}
+			
+			QueryResult *sth = new QueryNothingResult();
+			partial->addResult(sth);
 			break;
 		}
 		default: {
@@ -1286,6 +1299,12 @@ int QueryExecutor::merge(NonAlgOpNode::nonAlgOp op, QueryResult *partial, QueryR
 			}
 			QueryBoolResult *tmp_bool_res = new QueryBoolResult(tmp_bool);
 			final->addResult(tmp_bool_res);
+			break;
+		}
+		case /*NonAlgOpNode::assign:*/ 6666: {
+			*ec << "[QE] merge(): NonAlgebraic operator <assign>";
+			QueryResult *sth = new QueryNothingResult();
+			final->addResult(sth);
 			break;
 		}
 		default: {
@@ -1396,7 +1415,7 @@ int EnvironmentStack::bindName(string name, QueryResult *&r) {
 int EnvironmentStack::bindName(string name, int es_section, QueryResult *&r) {
 	*ec << "[QE] Name binding on ES";
 	int errcode;
-	unsigned int number = (es.size());
+	int number = (es.size());
 	ec->printf("[QE] bindName: ES got %u sections\n", number);
 	r = new QueryBagResult();
 	QueryBagResult *section;
