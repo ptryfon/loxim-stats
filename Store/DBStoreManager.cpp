@@ -13,6 +13,7 @@ namespace Store
 	{
 		misc = new Misc();
 		StoreManager::theStore = this;
+		ec = new ErrorConsole("Store");
 	};
 
 	DBStoreManager::~DBStoreManager()
@@ -29,6 +30,10 @@ namespace Store
 		if(pagemgr) {
 			delete pagemgr;
 			pagemgr = NULL;
+		}
+		if(ec) {
+			delete ec;
+			ec = NULL;
 		}
 		StoreManager::theStore = NULL;
 	};
@@ -115,13 +120,13 @@ namespace Store
 				break;
 			}
 		}
-		cout << "Store::Manager::getObject done: " + object->toString() + "\n";
+		ec->printf("Store::Manager::getObject done: %s\n", object->toString().c_str());
 		return 0;
 	};
 #else
 	int DBStoreManager::getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object)
 	{
-		cout << "Store::Manager::getObject started..\n";
+		*ec << "Store::Manager::getObject started...";
 		
 		physical_id *p_id;
 		map->getPhysicalID(lid->toInteger(), &p_id);
@@ -134,10 +139,10 @@ namespace Store
 		pPtr->release();
 		
 		if(rval) {
-			cout << "Store::Manager::getObject failed\n";
+			*ec << "Store::Manager::getObject failed";
 			return -1;
 		}
-		cout << "Store::Manager::getObject done: " + object->toString();
+		ec->printf("Store::Manager::getObject done: %s\n", object->toString().c_str());
 		return 0;	
 	};
 #endif
@@ -145,7 +150,7 @@ namespace Store
 #ifdef VIRTUAL
 	int DBStoreManager::createObject(TransactionID* tid, string name, DataValue* value, ObjectPointer*& object)
 	{
-		cout << "Store::Manager::createObject start..\n";
+		*ec << "Store::Manager::createObject start...";
 		
 		LogicalID* lid = new DBLogicalID(misc->lastlid++);
 		
@@ -153,13 +158,13 @@ namespace Store
 		
 		misc->vect.push_back(object);
 		
-		cout << "Store::Manager::createObject done: " + object->toString() + "\n";
+		ec->printf("Store::Manager::createObject done: %s\n", object->toString().c_str());
 		return 0;
 	};
 #else
 	int DBStoreManager::createObject(TransactionID* tid, string name, DataValue* value, ObjectPointer*& object)
 	{
-		cout << "Store::Manager::createObject start..\n";
+		*ec << "Store::Manager::createObject start...";
 		
 		LogicalID* lid = new DBLogicalID(map->createLogicalID());
 		
@@ -179,7 +184,7 @@ namespace Store
 		
 		pPtr->release();
 		
-		cout << "Store::Manager::createObject done: " + object->toString() + "\n";
+		ec->printf("Store::Manager::createObject done: %s\n", object->toString().c_str());
 		return 0;
 	};
 #endif
@@ -192,7 +197,7 @@ namespace Store
 #else
 	int DBStoreManager::deleteObject(TransactionID* tid, ObjectPointer* object)
 	{
-		cout << "Store::Manager::deleteObject start..\n";
+		*ec << "Store::Manager::deleteObject start...";
 		
 		//zapisane do Log
 		unsigned *id;
@@ -253,7 +258,7 @@ namespace Store
 		
 		pPtr->release();
 
-		cout << "Store::Manager::deleteObject done: " + object->toString() + "\n";
+		ec->printf("Store::Manager::deleteObject done: %s\n", object->toString().c_str());
 		
 		return 0;
 	};
@@ -289,7 +294,7 @@ namespace Store
 		//		return -1;
 		//}
 
-		cout << "Store::Manager::getRoots(ALL) done\n";
+		*ec << "Store::Manager::getRoots(ALL) done";
 		return 0;
 	};
 
@@ -317,7 +322,7 @@ namespace Store
 		//		return -1;
 		//}
 
-		cout << "Store::Manager::getRoots(BY NAME) done\n";
+		*ec << "Store::Manager::getRoots(BY NAME) done";
 		return 0;
 	};
 
@@ -333,7 +338,7 @@ namespace Store
 		// REAL:
 		//roots->addRoot(object->getLogicalID()->toString());
 		
-		cout << "Store::Manager::addRoot done: " + object->toString() + "\n";
+		ec->printf("Store::Manager::addRoot done: %s\n", object->toString().c_str());
 		return 0;
 	};
 

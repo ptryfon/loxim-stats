@@ -13,6 +13,7 @@ namespace Store
 #include "DBObjectPointer.h"
 #include "PageManager.h"
 #include "Misc.h"
+#include "Errors/ErrorConsole.h"
 
 using namespace std;
 using namespace Config;
@@ -32,6 +33,7 @@ namespace Store
 		Roots* roots;
 		PageManager* pagemgr;
 		unsigned timer;
+		ErrorConsole *ec;
 
 	public:
 		DBStoreManager();

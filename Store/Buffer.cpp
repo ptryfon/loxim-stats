@@ -1,9 +1,9 @@
 /**
- * $Id: Buffer.cpp,v 1.17 2006-01-25 02:39:16 md243003 Exp $
+ * $Id: Buffer.cpp,v 1.18 2006-01-25 16:30:03 baggins Exp $
  *
  */
 #include "Buffer.h"
-#include "../Log/Logs.h"
+#include "Log/Logs.h"
 
 #include <iostream>
 
@@ -16,6 +16,7 @@ namespace Store
 		this->store = store;
 		this->file = new File(store);
 		this->started = 0;
+		this->ec = new ErrorConsole("Store");
 	};
 
 	Buffer::~Buffer()
@@ -28,6 +29,9 @@ namespace Store
 			delete file;
 			file = 0;
 		}
+
+		if (ec)
+			delete ec;
 	};
 
 	int Buffer::start()
@@ -221,11 +225,9 @@ namespace Store
 			}
 
 			if (started == 1) {
-				cout << "Store::Buffer : dbWriter start dirty(" << dbwriter.dirty_pages <<
-					")" << endl;
+				ec->printf("Store::Buffer : dbWriter start dirty(%d)\n", dbwriter.dirty_pages);
 				dbWriterWrite();
-				cout << "Store::Buffer : dbWriter finish dirty(" << dbwriter.dirty_pages <<
-					")" << endl;
+				ec->printf("Store::Buffer : dbWriter finish dirty(%d)\n", dbwriter.dirty_pages);
 			} else {
 				::pthread_mutex_unlock(&dbwriter.mutex);
 				break;
@@ -250,8 +252,7 @@ namespace Store
 			n_page = &((*it).second);
 
 			if (n_page->haspage && (!n_page->lock) && n_page->dirty) {
-				cout << "Store::Buffer : writing(" << (*it).first.first <<
-					", " << (*it).first.second << ")" << endl;
+				ec->printf("Store::Buffer : writing(%d, %d)\n", (*it).first.first, (*it).first.second);
 				file->writePage((*it).first.first, (*it).first.second, n_page->page);
 				n_page->dirty = 0;
 				dbwriter.dirty_pages--;

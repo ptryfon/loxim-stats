@@ -10,6 +10,7 @@ namespace Store
 #include "File.h"
 #include "PagePointer.h"
 #include "Struct.h"
+#include "Errors/ErrorConsole.h"
 
 #include <pthread.h>
 
@@ -50,6 +51,7 @@ namespace Store
 
 		DBStoreManager* store;
 		File* file;
+		ErrorConsole *ec;
 
 		int started;
 

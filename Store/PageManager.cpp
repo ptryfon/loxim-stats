@@ -10,6 +10,7 @@
 #include "DBLogicalID.h"
 #include "DBObjectPointer.h"
 #include "DBDataValue.h"
+#include "Errors/ErrorConsole.h"
 
 #define MAX_FREE_SPACE   (STORE_PAGESIZE-sizeof(page_data))
 #define MAX_OBJECT_SIZE  (STORE_PAGESIZE-sizeof(page_data)-sizeof(int))
@@ -101,11 +102,12 @@ namespace Store
 */	
 	int PageManager::insertObject(PagePointer *pPtr, Serialized& obj)
 	{
-		cout << "Store::PageManager::insertObject begin.." << endl;
+		ErrorConsole ec("Store");
+		ec << "Store::PageManager::insertObject begin...";
 		page_data *page = reinterpret_cast<page_data*>(pPtr->getPage());
 		
 		if(page->free_space < static_cast<int>(obj.size + sizeof(int))){
-			cout << "Store::PageManager::insertObject not enough free space on page\n";
+			ec << "Store::PageManager::insertObject not enough free space on page";
 			return -1;
 		}
 		int lastoffset = page->object_count > 0 ?
@@ -117,13 +119,14 @@ namespace Store
 			page->bytes[newoffset+i] = obj.bytes[i];
 		page->object_count++;
 
-		cout << "Store::PageManager::insertObject done" << endl;
+		ec << "Store::PageManager::insertObject done";
 		return 0;
 	}
 	
 	int PageManager::deserialize(PagePointer *ptr, int objindex, ObjectPointer*& newobj)
 	{
-		cout << "Store::PageManager::deserializeObj begin.." << endl;
+		ErrorConsole ec("Store");
+		ec << "Store::PageManager::deserializeObj begin...";
 		page_data *p = reinterpret_cast<page_data*>(ptr->getPage());
 		int osize = objindex > 0 ?
 			p->object_offset[objindex-1] - p->object_offset[objindex] :
@@ -151,13 +154,14 @@ namespace Store
 		
 		newobj = new DBObjectPointer(name, value, lid);
 		
-		cout << "Store::PageManager::deserializeObj done" << endl;
+		ec << "Store::PageManager::deserializeObj done";
 		return 0;
 	}
 	
 	int PageManager::initializeFile(File* file)
 	{
-		cout << "Store::PageManager::initializeFile begin.." << endl;		
+		ErrorConsole ec("Store");
+		ec << "Store::PageManager::initializeFile begin...";
 		char* rawpage = new char[STORE_PAGESIZE];
 		page_data* p = reinterpret_cast<page_data*>(rawpage);
 		
@@ -170,13 +174,14 @@ namespace Store
 		file->writePage(STORE_FILE_DEFAULT, 0, rawpage);
 		
 		delete[] rawpage;
-		cout << "Store::PageManager::initializeFile done" << endl;
+		ec << "Store::PageManager::initializeFile done";
 		return 0;
 	}
 
 	int PageManager::initializePage(unsigned int page_num, char* page)
 	{
-		cout << "Store::PageManager::initializePage begin.." << endl;
+		ErrorConsole ec("Store");
+		ec << "Store::PageManager::initializePage begin...";
 		bool isFreeMapPage = (page_num%(MAX_OBJECT_COUNT+1) == 0);
 	
 		page_data *p = reinterpret_cast<page_data*>(page);
@@ -193,7 +198,7 @@ namespace Store
 			p->header.page_type = STORE_PAGE_DATAPAGE;
 			p->free_space = MAX_FREE_SPACE;
 		}
-		cout << "Store::PageManager::initializePage done" << endl;
+		ec << "Store::PageManager::initializePage done";
 		return 0;
 	}
 
@@ -204,7 +209,8 @@ namespace Store
 	
 	int PageManager::getFreePage(int space)
 	{
-		cout << "Store::PageManager::getFreePage begin.." << endl;
+		ErrorConsole ec("Store");
+		ec << "Store::PageManager::getFreePage begin...";
 		int pii = 0;
 		do	{
 			PagePointer* pPtr = buffer->getPagePointer(STORE_FILE_DEFAULT, pii);
@@ -226,13 +232,14 @@ namespace Store
 			pii += MAX_OBJECT_COUNT+1;
 		} while(pii > 0);
 		
-		cout << "Store::PageManager::getFreePage done" << endl;
+		ec << "Store::PageManager::getFreePage done";
 		return 0;
 	}
 
 	int PageManager::updateFreeMap(PagePointer *pPtr)
 	{
-		cout << "Store::PageManager::updateFreeMap begin.." << endl;
+		ErrorConsole ec("Store");
+		ec << "Store::PageManager::updateFreeMap begin...";
 		page_data* p = reinterpret_cast<page_data*>(pPtr->getPage());
 
 		int pii = p->header.page_id - (p->header.page_id%MAX_OBJECT_COUNT);
@@ -246,32 +253,35 @@ namespace Store
 		
 		pFree->release();
 
-		cout << "Store::PageManager::updateFreeMap done" << endl;
+		ec << "Store::PageManager::updateFreeMap done";
 		return 0;
 	}
 	
 	void printPage(PagePointer* ptr)
 	{
+		ErrorConsole ec("Store");
 		unsigned char* bytes = reinterpret_cast<unsigned char*>(ptr->getPage());
+		string tmpstr = "";
 		
 		for(int l=0; l<4; l++) {
+			tmpstr = "";
 			for(int i=0;i<16;i++) {
 				if((i!=0) && (i%4==0))
-					cout << "| ";
+					tmpstr += "| ";
 					unsigned char AX = bytes[l*16+i];
 					char AL = (AX%16>9 ? AX%16-10+'A' : AX%16+'0');
 					AX /= 16;
 					char AH = (AX%16>9 ? AX%16-10+'A' : AX%16+'0');
-				cout << AH << AL << " ";
+				tmpstr += AH + AL + " ";
 			}
-			cout << " ";
+			tmpstr += " ";
 			for(int i=0;i<16;i++) {
 				if(bytes[l*16+i] > 31)
-					cout << bytes[l*16+i];
+					tmpstr += bytes[l*16+i];
 				else
-					cout << ".";
+					tmpstr += ".";
 			}
-			cout << endl;
+			ec << tmpstr;
 		}
 	}
 	
