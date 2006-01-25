@@ -103,6 +103,7 @@ namespace Store
 	int PageManager::insertObject(PagePointer *pPtr, Serialized& obj)
 	{
 		ErrorConsole ec("Store");
+		ec.init(2); //ectw
 		ec << "Store::PageManager::insertObject begin...";
 		page_data *page = reinterpret_cast<page_data*>(pPtr->getPage());
 		
@@ -126,6 +127,7 @@ namespace Store
 	int PageManager::deserialize(PagePointer *ptr, int objindex, ObjectPointer*& newobj)
 	{
 		ErrorConsole ec("Store");
+		ec.init(2); //ectw
 		ec << "Store::PageManager::deserializeObj begin...";
 		page_data *p = reinterpret_cast<page_data*>(ptr->getPage());
 		int osize = objindex > 0 ?
@@ -161,6 +163,7 @@ namespace Store
 	int PageManager::initializeFile(File* file)
 	{
 		ErrorConsole ec("Store");
+		ec.init(2); //ectw
 		ec << "Store::PageManager::initializeFile begin...";
 		char* rawpage = new char[STORE_PAGESIZE];
 		page_data* p = reinterpret_cast<page_data*>(rawpage);
@@ -181,6 +184,7 @@ namespace Store
 	int PageManager::initializePage(unsigned int page_num, char* page)
 	{
 		ErrorConsole ec("Store");
+		ec.init(2); //ectw
 		ec << "Store::PageManager::initializePage begin...";
 		bool isFreeMapPage = (page_num%(MAX_OBJECT_COUNT+1) == 0);
 	
@@ -210,6 +214,7 @@ namespace Store
 	int PageManager::getFreePage(int space)
 	{
 		ErrorConsole ec("Store");
+		ec.init(2); //ectw
 		ec << "Store::PageManager::getFreePage begin...";
 		int pii = 0;
 		do	{
@@ -220,11 +225,13 @@ namespace Store
 			for(int i=0; i<p->object_count; i++) {
 				if(p->object_offset[i] >= space) {
 					pPtr->release();
+					ec << "Store::PageManager::getFreePage done";
 					return (pPtr->getPageID()+i+1);
 				}
 			}
 			if(p->object_count < static_cast<int>(MAX_OBJECT_COUNT)) {
 				pPtr->release();
+				ec << "Store::PageManager::getFreePage done";
 				return (pPtr->getPageID()+p->object_count+1);
 			}
 			
@@ -239,6 +246,7 @@ namespace Store
 	int PageManager::updateFreeMap(PagePointer *pPtr)
 	{
 		ErrorConsole ec("Store");
+		ec.init(2); //ectw
 		ec << "Store::PageManager::updateFreeMap begin...";
 		page_data* p = reinterpret_cast<page_data*>(pPtr->getPage());
 
@@ -260,6 +268,7 @@ namespace Store
 	void printPage(PagePointer* ptr, int lines=4)
 	{
 		ErrorConsole ec("Store");
+		ec.init(2); //ectw
 		unsigned char* bytes = reinterpret_cast<unsigned char*>(ptr->getPage());
 		string tmpstr = "";
 		

@@ -14,6 +14,7 @@ namespace Store
 		misc = new Misc();
 		StoreManager::theStore = this;
 		ec = new ErrorConsole("Store");
+		ec->init(2); //ectw
 	};
 
 	DBStoreManager::~DBStoreManager()
