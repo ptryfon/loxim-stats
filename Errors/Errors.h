@@ -70,7 +70,7 @@ namespace Errors {
 #define ESerialize		0x1600
 #define ESend			0x1700
 #define EBadResult		0x1800
-#define EClienLost		0x1A00
+#define EClientLost		0x1A00
 
 // plug for h_errno from gethostbyname(3)
 #define ENoHost			0x1900
