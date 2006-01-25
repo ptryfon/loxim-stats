@@ -68,9 +68,58 @@ namespace QParser {
 	}
 
 */
+
+
+	string zap = "EMP where SAL = (EMP where NAME=\"KUBA\").SAL;";
+	
+	if (false && (query != zap)){
+	    cout << "TEST START---------------------------------------------------------------------------------" << endl;
+	    stringstream ss (stringstream::in | stringstream::out);
+	    ss << zap;
+	    lexer = new yyFlexLexer(&ss); 
+	    int res = yyparse();	
+	    delete lexer;
+	    TreeNode *tree = d;
+
+	    printf( "po parsowaniu treeNode: %d. \n", tree);
+	    cout << "Odczyt z drzewka, ktore przekazuje:" << endl;
+	    cout << "--------------------------------------" << endl;
+	    tree->putToString();
+	    cout << "\n--------------------------------------" << endl;
+    	    QParser::Optimiser *opt = new QParser::Optimiser();
+	    int reslt;
+	    cout << "now the following tree will be evaluated statically.." << endl;
+	    TreeNode *nt = d->clone();
+	    nt->putToString();
+	    if ((reslt = opt->stEvalTest(nt)) != 0)
+		fprintf (stderr, "static evaluation did not work out...\n");
+	    else {
+		cout << "static evaluatioin OK, result: "<< reslt << endl;
+	    
+    
+		fprintf (stderr, "now I will try to optimise the tree..\n");
+
+		cout << "OPTYMALIZUJE--------------------------------------------------------"<< endl;
+		//cout << "przed optymalizacjia" << endl;
+		//nt->putToString();
+		//cout << "-----------" << endl;
+		
+		int optres = nt->optimizeTree();
+		cout << "KONIEC OPTYMALIZACJI--------------------------------------------------------"<< endl;
+		fprintf (stderr, "__%d__", optres);
+
+		cout << "po optymalizacji" << endl;
+		nt->putToString();
+		cout << "-----------" << endl;
+		fprintf (stderr, "end of optimisation.\n");
+	    }
+	    cout << "TEST END__---------------------------------------------------------------------------------" << endl;
+	}
+
 		cout << "koniec parseIt\n";
 		return 0;
 	}  
+
 
 }
 

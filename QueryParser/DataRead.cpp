@@ -5,13 +5,13 @@
 #include "TreeNode.h"
 #include "DataRead.h"
 #include "Stack.h"
-//#include "ClassNames.h"
-//#include "QueryExecutor/QueryResult.h"
-//#include "QueryExecutor/QueryExecutor.h"
-//#include "Store/Store.h"
-//#include "Store/DBStoreManager.h"
-//#include "Store/DBObjectPointer.h"
-//#include "TransactionManager/Transaction.h"
+#include "ClassNames.h"
+#include "QueryExecutor/QueryResult.h"
+#include "QueryExecutor/QueryExecutor.h"
+#include "Store/Store.h"
+#include "Store/DBStoreManager.h"
+#include "Store/DBObjectPointer.h"
+#include "TransactionManager/Transaction.h"
 
 using namespace std;
 //using namespace QExecutor;
@@ -72,11 +72,10 @@ namespace QParser {
 
 
 int DataScheme::readData(){
-
     // ????????????         co zrobic zebym mogl tu wywolac executora i stora?        ??????????
     cout << "-------------------readData START--------------------------------------" << endl;
     // QueryExecutor * ecec = new QueryExecutor();		// ??????????????????????????
-//    vector<ObjectPointer *> * roots;
+    vector<ObjectPointer *> * roots;
 /*		nie wiem dlaczego ale to nie dziala
     StoreManager * sm = new DBStoreManager();
     sm->getRoots(0, "dupa", roots);
@@ -85,14 +84,19 @@ int DataScheme::readData(){
     cout << "odebral " << roots->size() << " obiektow"<< endl;
 */
     
-//    Transaction * tr;     
-//    if (TransactionManager::getHandle()->createTransaction(tr))
-//	cout << "nie udalo sie zrobic tranzakcji" << endl;
-    
-    
-//    tr->getRoots("dupa", roots);	
-//    cout << "odebral " << roots->size() << " obiektow"<< endl;
-    
+    Transaction * tr;     
+    if (TransactionManager::getHandle()->createTransaction(tr))
+	cout << "nie udalo sie zrobic tranzakcji" << endl;
+        
+	
+    tr->getRoots("MDN", roots);	
+    cout << "odebral " << roots->size() << " obiektow"<< endl;
+    for (int i = 0; i < roots->size(); i++){
+	cout << "id " << (*roots)[i]->getLogicalID()->toInteger() << endl;
+	cout << "name " << (*roots)[i]->getName() << endl;
+	cout << "to string : " << (*roots)[i]->toString() << endl;
+	
+    }
     /* teraz to obrabiam w 2 podejciach, najpierw tworze obiekty, wstawiam do
 	this->baseObjects i this->refTable
 	oraz ustawiam pola rozne od owner i target

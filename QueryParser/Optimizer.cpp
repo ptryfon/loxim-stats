@@ -5,16 +5,33 @@ namespace QParser{
 
 
     TreeNode * Optymalizator::getIndependant(TreeNode *niealg){
+	cout << "GETINDEPENDANT START" << endl;
 	int min = ((NonAlgOpNode* ) niealg)->getFirstOpenSect();
 	int max = ((NonAlgOpNode* ) niealg)->getLastOpenSect();
 	int depth = 0;	
+	cout << "drzewko oper niealg" << endl;
+	niealg->putToString();
+	cout << "------------------------" << endl;
+	
+	cout << "szuka niezaleznego w" << endl;
+	(((TwoArgsNode *) niealg)->getRArg())->putToString();
+	cout << "------------------------" << endl;
+	
 	TreeNode * tree = doGetIndep(((TwoArgsNode *) niealg)->getRArg(), min, max, depth);
+	
 	printf(" drzewko: %d, na glebokosci %d\n", (int) tree, depth);
+	cout << "getIndependant zwraca takie cos: " << endl;
+	if (tree != NULL)
+		tree->putToString();
+	else 
+	    cout << "nie znalazl niezaleznego zapytania" << endl;
+	cout << "GETINDEPENDANT END" << endl;
 	return tree;
     }
 
     
     bool Optymalizator::isIndependent(TreeNode * tree, int min, int max){
+	cout << "ISINDEPENDENT START" << endl;
 	if (tree->type() == TreeNode::TNNAME){		// jezeli wezel z nazwa to sprawdzam w ktorej sekcji wiarze
 	    NameNode *nnode = (NameNode *) tree;
 	    if (nnode->getBindSect() < min || nnode->getBindSect() > max)
@@ -34,8 +51,10 @@ namespace QParser{
     
     TreeNode * Optymalizator::doGetIndep(TreeNode * tree, int min, int max, int &depth){
 	if ((tree->type() == TreeNode::TNNONALGOP) && this->isIndependent(tree, min, max)){
+	    cout << "TNNONALGOP jsi" << endl;
 	    return tree;
 	} else if (tree->type() == TreeNode::TNALGOP){
+	    cout << "TNALGOP jsi" << endl;
 	    TreeNode *larg = ((TwoArgsNode *) tree)->getLArg();
 	    TreeNode *rarg = ((TwoArgsNode *) tree)->getRArg();
 	    int dl = depth + 1;
@@ -56,10 +75,14 @@ namespace QParser{
 		return rind;
 	    }
 	} else if(tree->type() == TreeNode::TNUNOP) {
+	    cout << "TNUNOP jsi" << endl;
 	    TreeNode *arg = ((UnOpNode *)tree)->getArg();
 	    depth++;
 	    return doGetIndep(arg, min, max, depth);
-	} else return NULL;
+	} else {
+	    cout << "ELSE ZWRACA NULL !!!! jsi" << endl;
+	    return NULL;
+	}    
     }
 }
 
