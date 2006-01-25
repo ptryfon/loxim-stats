@@ -1,6 +1,7 @@
 #ifndef SERVER_H_
 #define SERVER_H_
 #include <sys/socket.h>
+#include <pthread.h>
 
 #define MAX_MESSG 4096
 #define MAX_MESSG_HEADER_LEN 1
@@ -8,6 +9,9 @@
 
 #include "../QueryExecutor/QueryResult.h"
 using namespace QExecutor;
+
+extern pthread_t pthread_master_id;
+extern void sigHandler(int arg);
 
 //namespace Server {
 	class Server
@@ -20,7 +24,8 @@ using namespace QExecutor;
 	// Made public for testing
 		int Send(char* buf, int buf_size);
 		int Serialize(QueryResult *qr, char **buffer, char **bufferStart);
-		
+		//static void sigHandler(int sig);
+			
 		//DEVELOPING - NOT YET USED
 		int SerializeRec(QueryResult *qr);		
 		double htonDouble(double in);
@@ -34,7 +39,7 @@ using namespace QExecutor;
 		int serialBufSize;
 		
 		int sendError(int errNo);
-		//void sigHandler(int sig);
+		
 	//TCP methods
 		int Receive(char** buffer, int* receiveDataSize);
 		int Disconnect();

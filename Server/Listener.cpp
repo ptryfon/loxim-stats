@@ -1,13 +1,19 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <pthread.h>
 #include "Listener.h"
 #include "Server.h"
 
 //using namespace Listener;
 
+pthread_t pthreads[MAX_CLIENTS];
+int threads_count;
+
 Listener::Listener()
 {
+    memset(thread_sockets, '\0', MAX_CLIENTS);
+    threads_count=0;
 }
 
 Listener::~Listener()
@@ -20,18 +26,126 @@ int Listener::CreateServer(int sock) {
 	return srv->Run();
 }
 
+void *exitPoint() {
+    pthread_exit((void *) 0);
+}
+
+void sigHandler(int sig) {
+    unsigned int pself;
+    int i;
+    int errorCode;
+    int status;
+    
+    pself=pthread_self();
+    printf("Listener-sigHandler: my pthread_id is %d and ", pself);
+    if (pself==pthread_master_id) {
+	printf(".. i a the Listener thread \n");
+	for (i=0;i<threads_count;i++) {
+		    if ((errorCode=pthread_join(pthreads[i], (void **)&status))!=0) { //STATUS !!
+			printf("Listener-sigHandler-Master: ERROR - failed to join thread: %s\n", strerror(errorCode));
+			exit(errorCode);
+		    }   
+		    if (status!=0) {
+			printf("Listener-sigHandler-Master: Server thread nr. |%d| terminated with error\n", i);
+			exit(1);
+		    }
+		    else {
+			printf("Listener-sigHandler-Master: JOINED thread nr.|%d| with pthread_id |%d|\n", i, pthreads[i]);
+		    } 
+	}
+	printf("Listener-sigHandler-Master: All threads joined - SUCCESS! Quitting now.. \n");
+	exit(0); 
+    }
+    else {
+	printf(".. I am a Server thread\n");
+	printf("Listener-sigHandler-Thread%d: Exiting \n", pself); 
+	exitPoint();
+    }	
+}    
+    
+void *createServ(void *arg) {
+    int socket=*(int *)arg;
+    int res;
+    printf("Listener-createServ: New server thread reporting. My socket number is |%d|\n", socket);
+    if (socket<0) {
+	("Listener-createServ: .. which is really unfortunate. I must quit now\n");
+	pthread_exit((void *)socket);
+    }	
+    Server *srv = new Server(socket);
+    printf("Listener-createServ: Executing server code now.. \n");
+    res=srv->Run();
+    printf("Listener-createServ: Server returned |%d|, exiting \n", res); 
+    pthread_exit((void *)res);
+}
 
 int Listener::Start(int port) {
 	
 	int sock;
-	int newSock;
+	int newSock=-1;
+	int isEnd=0;
+	int errorCode=0;
+	int i=0;
+	int status;
+
+	sigset_t lBlock_cc;
+	sigemptyset(&lBlock_cc);
+	sigaddset(&lBlock_cc, SIGINT);	
 	
+	pthread_master_id=pthread_self();
+	sigprocmask(SIG_BLOCK, &lBlock_cc, NULL);
+	threads_count=0;
 	CreateSocket(port, &sock);
-	ListenOnSocket(sock, &newSock);
-	return CreateServer(newSock);
-	//CloseSocket(sock);
+	signal(SIGINT, sigHandler);
 	
-	//return 0;
+	while ((isEnd==0) && (threads_count<MAX_CLIENTS)) {
+	
+	    ListenOnSocket(sock, &newSock);
+	    printf("Listener: Got connection! Connection number |%d| \n", threads_count+1);
+	    sigprocmask(SIG_BLOCK, &lBlock_cc, NULL);
+	    thread_sockets[threads_count]=newSock;
+	
+	    if ((errorCode=pthread_create(&pthreads[threads_count], NULL, createServ, &thread_sockets[threads_count]))!=0) {
+		printf("Listener: THREAD creation FAILED. Failed thread number=|%d|\n", threads_count);
+		printf("Listener: pthread_create failed with %s\n", strerror(errorCode)); 
+		for (i=0;i<threads_count;i++) {
+		    if ((errorCode=pthread_join(pthreads[i], (void **)&status))!=0) { //STATUS !!
+			printf("Listener: ERROR - failed to join thread: %s\n", strerror(errorCode));
+			exit(errorCode);
+		    }   
+		    if (status!=0) {
+			printf("Listener: Server thread nr. |%d| terminated with error\n", i);
+			exit(1);
+		    }
+		    else {
+			printf("Listener: JOINED thread nr. |%d|\n", i);
+		    } 
+		}  		 	    
+	    }
+	    else {
+		printf("Listener: THREAD creation SUCCESSFUL -> thread nr. |%d|\n", i);
+		threads_count++;
+	    }
+	    printf("Listener: THREAD handled\n");
+	    sigprocmask(SIG_UNBLOCK, &lBlock_cc, NULL);
+	}
+	//TODO - join some, create some new - MANAGE THREADS
+	
+	for (i=0;i<threads_count;i++) {
+	    if ((errorCode=pthread_join(pthreads[threads_count], (void **)&status))!=0) { //STATUS !!
+		printf("Listener: ERROR - failed to join thread: %s\n", strerror(errorCode));
+		exit(errorCode);
+	    }   
+	    if (status!=0) {
+		printf("Listener: Server thread nr. |%d| terminated with error\n", status);
+		exit(1);
+	    } 
+	}  
+	printf("Listener: All threads terminated normally.. returning..\n");
+
+//	    return CreateServer(newSock);
+	    //CloseSocket(sock);
+	
+	return 0;
 
 }
 

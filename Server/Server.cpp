@@ -4,10 +4,12 @@
 #include <sys/socket.h>
 #include <stdio.h>
 //#include <stdlib.h>
+//#include <setjmp.h>
 #include <iostream>
 #include <string>
 #include <netinet/in.h>
 #include <signal.h>
+#include <pthread.h>
 
 #include "../Config/SBQLConfig.h"
 #include "../Log/Logs.h"
@@ -44,7 +46,9 @@ using namespace QExecutor;
 using namespace TManager;
 using namespace Driver;
 
+//pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
 volatile sig_atomic_t signalReceived = 0;
+pthread_t pthread_master_id;
 
 void sigHandler(int sig);
 
@@ -548,11 +552,11 @@ int Server::Run()
 	sigset_t block_cc;
 	
 	printf("[Server.Run]--> Starts \n");
-
+	
 	//Signal Handling
 	sigemptyset(&block_cc);
 	sigaddset(&block_cc, SIGINT);
-	signal(SIGINT, sigHandler);
+//	signal(SIGINT, (Server::sigHandler));
 	
 	//Set process signal mask
 	printf("[Server.Run]--> Blocking SIGINT for now.. \n");
@@ -662,7 +666,7 @@ while (!signalReceived) {
 	    printf("[SERVER]--> ends with ERROR\n");
 	    return ErrServer+ESend;
 	}
-	
+	//setjmp(j);	
 }
 	printf("[Server.Run]--> Releasing message buffers \n");
 	free(messgBuff);
@@ -694,23 +698,34 @@ while (!signalReceived) {
 	
 	return 0;	
 }		
-
-int BExit() {
-	printf("[Server.BExit]-->destroying TM\n");	
-	TransactionManager::getHandle()->~TransactionManager();
-	printf("[Server.BExit]-->destroying LM\n");
-	LockManager::getHandle()->~LockManager();		
-	//printf("[Server.BExit]-->disconnecting\n");
-	//Disconnect();
-	printf("[Server.BExit]-->exiting\n");
-	exit(0);
-	return 0;
-}
-
-void sigHandler(int sig) {
-	printf("[Server]--> Signal intercepted \n");
+/*
+void Server::sigHandler(int sig) {
+	int err;	
+	int pself;
+	pself=pthread_self();
+	
+	printf("[Server.sigHandler]--> Signal intercepted by thread %d, setting flag \n", pself);
 	signalReceived = 1;    
-	signal(sig, sigHandler);
-	printf("[Server]--> Quitting signal handler, calling BExit function \n");
+	signal(sig, (Server::sigHandler));
+*/
+	/*
+	err=pthread_mutex_lock(&mut);
+	if (err!=0) {
+	    printf("[Server]--> Cannot lock mutex, exiting\n");
+	    exit(1);
+	}
+	*/
+	
+	/*
+	err=pthread_mutex_unlock(&mut);
+	if (err!=0) {
+	    printf("[Server]--> Cannot unlock mutex, exiting\n");
+	    exit(1);
+	}
+	*/
+/*	
+	printf("[Server.sigHandler]--> Returning.. \n");
+	exit(1);
+	return;
 }
-
+*/
