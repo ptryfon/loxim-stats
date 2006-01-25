@@ -63,7 +63,8 @@ namespace Store
 	};
 
 	void DBObjectPointer::setValue(DataValue* val)
-	{
+	{ // czy to nie jest ta funkcja ktora mialaby wywlywac
+	  // deleteObject + createObject hmmmmm
 		this->value = val; //pointer copy?
 	};
 

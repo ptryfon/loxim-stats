@@ -161,18 +161,7 @@ namespace Store
 	{
 		cout << "Store::Manager::createObject start..\n";
 		
-		if( (value->getType()!=Store::Integer) &&
-			(value->getType()!=Store::Double) &&
-			(value->getType()!=Store::String) )
-		{
-			cout << "Store::createObject: Illegal or not implemented value type\n";
-			return -1;
-		}
-
-		//mapa sie wywala
-		cout << "create LID.." << endl;
-		LogicalID* lid = new DBLogicalID(map->createLogicalID()/*misc->lastlid++*/);
-		cout << "create LID OK:)" << endl;
+		LogicalID* lid = new DBLogicalID(map->createLogicalID());
 		
 		object = new DBObjectPointer(name, value, lid);
 
@@ -342,7 +331,7 @@ namespace Store
 		misc->roots.push_back(object);
 
 		// REAL:
-		//roots->addRoot(object->gerLogicalID()->toString());
+		//roots->addRoot(object->getLogicalID()->toString());
 		
 		cout << "Store::Manager::addRoot done: " + object->toString() + "\n";
 		return 0;
