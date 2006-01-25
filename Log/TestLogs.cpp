@@ -50,7 +50,11 @@ int main( int argc, char *argv[] )
   Logs::LogManager logManager;
   unsigned id;
   int tid = 1234;
-  StoreManager* sm = new DBStoreManager();
+  DBStoreManager* sm = new DBStoreManager();
+
+  SBQLConfig *storeConfig = new SBQLConfig( "Store" );
+  storeConfig->init("../Store/example.conf");
+  sm->init( storeConfig, &logManager );
 
   logManager.init();
   logManager.beginTransaction( tid, id );
