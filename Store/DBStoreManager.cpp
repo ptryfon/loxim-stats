@@ -270,21 +270,35 @@ namespace Store
 	};
 #endif
 
-	int DBStoreManager::getRoots(TransactionID* tid, vector<ObjectPointer*>*& roots)
+	int DBStoreManager::getRoots(TransactionID* tid, vector<ObjectPointer*>*& p_roots)
 	{
-		//roots = new vector<ObjectPointer*>(0);
+		//p_roots = new vector<ObjectPointer*>(0);
 
-		//(roots)->push_back(new DBObjectPointer());
-		//(roots)->push_back(new DBObjectPointer());
-		//(roots)->push_back(new DBObjectPointer());
+		//(p_roots)->push_back(new DBObjectPointer());
+		//(p_roots)->push_back(new DBObjectPointer());
+		//(p_roots)->push_back(new DBObjectPointer());
 
-//		roots = &(misc->roots);
+//		p_roots = &(misc->roots);
 
-		roots = new vector<ObjectPointer*>(0);
+		p_roots = new vector<ObjectPointer*>(0);
 
 		for(unsigned int i=0; i<misc->roots.size(); i++){
-			roots->push_back(misc->roots[i]);
+			p_roots->push_back(misc->roots[i]);
 		}
+		
+		// REAL:
+		//vector<int>* rvec;
+		//rvec = roots->getRoots();
+		//
+		//vector<int>::iterator obj_iter;
+		//for(obj_iter=rvec->begin(); obj_iter!=rvec->end(); obj_iter++) {
+		//	ObjectPointer* optr = NULL;
+		//	getObject(tid, *(*obj_iter), 0, optr);
+		//	if(optr)
+		//		p_roots->push_back(optr);
+		//	else
+		//		return -1;
+		//}
 
 		cout << "Store::Manager::getRoots(ALL) done\n";
 		return 0;
@@ -299,6 +313,21 @@ namespace Store
 				roots->push_back(misc->roots[i]);
 		}
 
+		// REAL:
+		//vector<int>* rvec;
+		//rvec = roots->getRoots();
+		//
+		//vector<int>::iterator obj_iter;
+		//for(obj_iter=rvec->begin(); obj_iter!=rvec->end(); obj_iter++) {
+		//	ObjectPointer* optr = NULL;
+		//	getObject(tid, *(*obj_iter), 0, optr);
+		//	if(optr) {
+		//		if(optr->getName() == p_name)
+		//			p_roots->push_back(optr);
+		//	} else
+		//		return -1;
+		//}
+
 		cout << "Store::Manager::getRoots(BY NAME) done\n";
 		return 0;
 	};
@@ -311,6 +340,9 @@ namespace Store
 		}
 		
 		misc->roots.push_back(object);
+
+		// REAL:
+		//roots->addRoot(object->gerLogicalID()->toString());
 		
 		cout << "Store::Manager::addRoot done: " + object->toString() + "\n";
 		return 0;
