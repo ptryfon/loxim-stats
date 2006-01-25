@@ -575,7 +575,7 @@ int Server::Run()
 	printf("[Server.Run]--> Initializing objects.. \n");
 	SBQLConfig* config = new SBQLConfig("Server");
 	config->init();
-	ErrorConsole con;
+	ErrorConsole con("Server");
 	con.init(1);
 	LogManager* logManager = new LogManager();
 	logManager->init();
