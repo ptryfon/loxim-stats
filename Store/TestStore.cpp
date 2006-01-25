@@ -21,6 +21,29 @@ int main(int argc, char* argv[])
 	LogManager* log = new LogManager();
 	log->init();
 
+	if (argc == 0) 
+	{
+		DBStoreManager* store = new DBStoreManager();
+		store->init(config, log);
+		store->setTManager(TransactionManager::getHandle());
+		store->start();
+		cout << "Store started" << endl;
+		
+		TransactionID tid(1);
+		cout << "TID ok" << endl;
+		DataValue* dv = store->createIntValue(7);
+		cout << "Create INT" << endl;
+		ObjectPointer* op;
+		
+		cout << "Odpalam createObject" << endl;
+		store->createObject(&tid, "kilof", dv, op);
+		
+		
+		store->stop();
+		cout << "END" << endl;
+		return 0;
+	}
+
 	if (argc > 1 && strcmp(argv[1], "mk") == 0) 
 	{
 		DBStoreManager* store = new DBStoreManager();
