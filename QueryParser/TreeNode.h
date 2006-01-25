@@ -333,7 +333,7 @@ namespace QParser {
     {
     public:
 	enum nonAlgOp { dot, join, where, closeBy, closeUniqueBy, leavesBy,
-                  leavesUniqueBy, orderBy, exists, forAll };
+                  leavesUniqueBy, orderBy, exists, forAll, assign };
     protected:
 	QueryNode* larg;
 	QueryNode* rarg;
@@ -383,7 +383,8 @@ lastOpenSect = 0; }
 	    if (op == 6) return "leavesUniqueBy";
 	    if (op == 7) return "orderBy";	    
 	    if (op == 8) return "exists";	    
-	    if (op == 9) return "forAll";	    
+	    if (op == 9) return "forAll";
+	    if (op == 10) return "assign";	    
 	    return "~~~";	}
 	virtual int staticEval (StatQResStack *&qres, StatEnvStack *&envs);	
 	virtual int optimizeTree();	

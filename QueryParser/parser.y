@@ -29,7 +29,7 @@
 %right ASSIGN
 %left UNION EXCEPT
 %left INTERSECT
-%left WHERE JOIN CLOSE_BY CLOSE_UNIQUE LEAVES_BY LEAVES_UNIQUE ORDER_BY
+%left WHERE JOIN CLOSE_BY CLOSE_UNIQUE LEAVES_BY LEAVES_UNIQUE ORDER_BY ASSIGN
 %left OR
 %left AND
 %nonassoc NOT
@@ -96,4 +96,5 @@ query	    : NAME { char *s = $1; $$ = new NameNode(s); delete s; }
 	    | CREATE NAME  { $$ = new CreateNode($2); }
 	    | INSERT query INTO query { $$ = new AlgOpNode($2,$4,AlgOpNode::insert); }
 	    | DELETE query  { $$ = new UnOpNode($2,UnOpNode::deleteOp); }
+	    | query ASSIGN query { $$ = new NonAlgOpNode($1,$3,NonAlgOpNode::assign); }
 	    ;
