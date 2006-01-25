@@ -35,7 +35,7 @@ void *exitPoint() {
 }
 
 void sigHandler(int sig) {
-    unsigned int pself;
+    pthread_t pself; //piotrek
     int i;
     int errorCode;
     int status;
