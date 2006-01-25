@@ -21,7 +21,7 @@ namespace QParser
     called eg. for node  nd = nonalgop (where) ... 
     newTree = nd->factorSubQuery(subT, "randName")    
     (!!!) when used for optimization purposes, should not be called when 
-	  subT is a NameNode, because this does not help optimise a query.. */
+	  subT is a NameNode, because this does not help optimise a query.. */ 
     TreeNode* TreeNode::factorSubQuery(TreeNode *subT, string newName) {
     
 		subT->getParent()->swapSon((QueryNode *) subT, new NameNode(newName));
@@ -265,6 +265,11 @@ namespace QParser
 		return 0;
 	}
 
+	string TreeNode::randomString(){
+	    int a = 9999;
+	    string s("newName");
+	    return s;
+	}
 		
 /*TODO: what about ... TransactNode, CreateNode .. ? */
 

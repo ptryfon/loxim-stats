@@ -39,6 +39,7 @@ namespace QParser {
 	virtual int swapSon (TreeNode *oldSon, TreeNode *newSon) {
 	/*should call an error. Subclasses that have at least 1 arg override this method.*/
 	    return -1;}
+	virtual string randomString();
 	virtual int staticEval (StatQResStack *&qres, StatEnvStack *&envs) {return -1;}	
 	virtual int optimizeTree () {fprintf (stderr, "type: %d.", type());	return 0;}
 	/* should overridden in subclasses...*/
