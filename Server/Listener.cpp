@@ -202,8 +202,9 @@ int Listener::Start(int port) {
 	
 	*lCons << "[Listener.Start]--> Initializing objects..";
 	
-	Lock();
-	//Lock();
+	if ((errorCode=Lock())!=0)
+	    exit(errorCode);
+	
 	
 	sigset_t lBlock_cc;
 	sigemptyset(&lBlock_cc);
