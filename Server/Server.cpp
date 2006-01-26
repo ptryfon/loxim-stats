@@ -206,11 +206,13 @@ int  Server::SerializeRec(QueryResult *qr)
 		    resType=Result::REFERENCE;
 		    serialBuf[0]=(char)resType;
 		    refRes = (QueryReferenceResult *)qr;
-		    intVal=(refRes->getValue())->toInteger();
+		    strVal=(refRes->getValue())->toString();
 		    serialBuf++;
-		    ec->printf("[Server.Serialize]--> Reference integer value: intVal=%d \n", intVal);
-		    memcpy((void *)serialBuf, (const void *)&intVal, sizeof(intVal));
-		    serialBuf=serialBuf+sizeof(intVal);
+		    valSize=strVal.length();
+		    ec->printf("[Server.Serialize]--> Reference value: strVal=%s \n", strVal.c_str());
+		    strcpy(serialBuf, strVal.c_str());  
+		    ec->printf("[Server.Serialize]--> Reference string serialized to: %s \n", serialBuf);
+		    serialBuf=serialBuf+valSize+1;
 		    break;	
 		case QueryResult::QSTRING:
 		    *ec << "[Server.Serialize]--> Getting STRING";
