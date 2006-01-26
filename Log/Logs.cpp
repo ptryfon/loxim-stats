@@ -26,7 +26,11 @@ int LogManager::init()
 {
   // nie wykonujecie tej metody!
   // jedyne miejsce gdzie ec->init ma prawo wystapic to main()
-  // ec->init(2);
+
+  // no kurde! A gdzie jest wolane LogManager::init()? Nie w MAIN()?!
+  // i skad ja w main() wezme ec, jesli to jest chronione pole LogManagera?
+  ec->init(2); // baggins, prosze - nie kasuj!
+
   // otwieramy plik z logami
   if( ( fileDes = ::open( LOG_FILE_PATH, O_WRONLY | O_CREAT | O_APPEND, S_IWUSR | S_IRUSR ) ) < 0 ) return errno;
 
