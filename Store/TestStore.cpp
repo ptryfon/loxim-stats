@@ -43,6 +43,9 @@ int main(int argc, char* argv[])
 		cout << "Odpalam createObject" << endl;
 		store->createObject(&tid, "kilof", dv, op_kilof);
 
+		store->addRoot(&tid, op_kilof);
+		
+
 		dv = store->createStringValue("ala ma kota");
 		cout << "Created String" << endl;
 
@@ -55,6 +58,9 @@ int main(int argc, char* argv[])
 		store->getObject(&tid, lid, Store::Write, op_kilof);
 		cout << op_kilof->toString() << endl;
 		
+		store->addRoot(&tid, op_motyka);
+
+
 		lid = op_motyka->getLogicalID();
 		op_motyka = NULL;
 		
@@ -62,6 +68,14 @@ int main(int argc, char* argv[])
 		store->getObject(&tid, lid, Store::Write, op_motyka);
 		cout << op_motyka->toString() << endl;
 		
+		
+		vector<ObjectPointer*>* vec;
+		cout << "Odpalam getRoots(ALL)" << endl;
+		store->getRoots(&tid, vec);
+		
+		vector<ObjectPointer*>::iterator oi;
+		for(oi=vec->begin(); oi!=vec->end(); oi++)
+			cout << (*oi)->toString() << endl;
 		
 		store->stop();
 		cout << "END" << endl;

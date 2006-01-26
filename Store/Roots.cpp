@@ -52,7 +52,7 @@ namespace Store
 	{
 		unsigned int last;
 
-		if (!header)
+//		if (!header)
 			header = store->getBuffer()->getPagePointer(STORE_FILE_ROOTS, 0);
 
 		header->aquire();
@@ -64,7 +64,7 @@ namespace Store
 
 	void Roots::setLastAssigned(unsigned int last)
 	{
-		if (!header)
+//		if (!header)
 			header = store->getBuffer()->getPagePointer(STORE_FILE_ROOTS, 0);
 
 		header->aquire();

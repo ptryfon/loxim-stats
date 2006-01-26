@@ -119,10 +119,7 @@ namespace Store
 		*ec << "Store::Manager::getObject started...";
 		
 		physical_id *p_id = NULL;
-		*ec << "get ph id";
 		if( (map->getPhysicalID(lid->toInteger(),&p_id)) == 2 ) return 2; //out of range
-		if(p_id == NULL) cout << "osz ty w morde\n";
-		*ec << "get page poin";
 		cout << "file: " << p_id->file_id << ", page: " << p_id->page_id << ", off: " << p_id->offset <<endl;
 		PagePointer *pPtr = buffer->getPagePointer(p_id->file_id, p_id->page_id);
 		
@@ -251,61 +248,32 @@ namespace Store
 
 	int DBStoreManager::getRoots(TransactionID* tid, vector<ObjectPointer*>*& p_roots)
 	{
-		//p_roots = new vector<ObjectPointer*>(0);
+		*ec << "Store::Manager::getRoots(ALL) begin..";
 
-		//(p_roots)->push_back(new DBObjectPointer());
-		//(p_roots)->push_back(new DBObjectPointer());
-		//(p_roots)->push_back(new DBObjectPointer());
-
-//		p_roots = &(misc->roots);
-
-		p_roots = new vector<ObjectPointer*>(0);
-
-		for(unsigned int i=0; i<misc->roots.size(); i++){
-			p_roots->push_back(misc->roots[i]);
-		}
-		
-		// REAL:
-		//vector<int>* rvec;
-		//rvec = roots->getRoots();
-		//
-		//vector<int>::iterator obj_iter;
-		//for(obj_iter=rvec->begin(); obj_iter!=rvec->end(); obj_iter++) {
-		//	ObjectPointer* optr = NULL;
-		//	getObject(tid, *(*obj_iter), 0, optr);
-		//	if(optr)
-		//		p_roots->push_back(optr);
-		//	else
-		//		return -1;
-		//}
+		int rval = getRoots(tid, "", p_roots);
 
 		*ec << "Store::Manager::getRoots(ALL) done";
-		return 0;
+		return rval;
 	};
 
-	int DBStoreManager::getRoots(TransactionID* tid, string p_name, vector<ObjectPointer*>*& roots)
+	int DBStoreManager::getRoots(TransactionID* tid, string p_name, vector<ObjectPointer*>*& p_roots)
 	{
-		roots = new vector<ObjectPointer*>(0);
-
-		for(unsigned int i=0; i<misc->roots.size(); i++){
-			if(misc->roots[i]->getName() == p_name)
-				roots->push_back(misc->roots[i]);
+		*ec << "Store::Manager::getRoots(BY NAME) begin..";
+		p_roots = new vector<ObjectPointer*>(0);
+		vector<int>* rvec;
+		rvec = roots->getRoots();
+		
+		vector<int>::iterator obj_iter;
+		for(obj_iter=rvec->begin(); obj_iter!=rvec->end(); obj_iter++) {
+			ObjectPointer* optr = NULL;
+			LogicalID* lid = new DBLogicalID((*obj_iter));
+			getObject(tid, lid, Store::Write, optr);
+			if(optr) {
+				if( (optr->getName() == p_name) || (p_name == "") )
+					p_roots->push_back(optr);
+			} else
+				return -1;
 		}
-
-		// REAL:
-		//vector<int>* rvec;
-		//rvec = roots->getRoots();
-		//
-		//vector<int>::iterator obj_iter;
-		//for(obj_iter=rvec->begin(); obj_iter!=rvec->end(); obj_iter++) {
-		//	ObjectPointer* optr = NULL;
-		//	getObject(tid, *(*obj_iter), 0, optr);
-		//	if(optr) {
-		//		if(optr->getName() == p_name)
-		//			p_roots->push_back(optr);
-		//	} else
-		//		return -1;
-		//}
 
 		*ec << "Store::Manager::getRoots(BY NAME) done";
 		return 0;
@@ -313,15 +281,9 @@ namespace Store
 
 	int DBStoreManager::addRoot(TransactionID* tid, ObjectPointer* object)
 	{
-		for(unsigned int i=0; i<misc->roots.size(); i++){
-			if(misc->roots[i] == object)
-			  return 0;
-		}
-		
-		misc->roots.push_back(object);
-
-		// REAL:
-		//roots->addRoot(object->getLogicalID()->toString());
+		*ec << "Store::Manager::addRoot begin..";
+		int lid = object->getLogicalID()->toInteger();
+		roots->addRoot(lid);
 		
 		ec->printf("Store::Manager::addRoot done: %s\n", object->toString().c_str());
 		return 0;
