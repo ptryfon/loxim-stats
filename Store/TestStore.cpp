@@ -10,14 +10,18 @@
 #include "../Config/SBQLConfig.h"
 #include "../Log/Logs.h"
 #include "../TransactionManager/Transaction.h"
+#include "Errors/ErrorConsole.h"
 
 using namespace std;
 using namespace Store;
+using namespace Errors;
 
 int main(int argc, char* argv[])
 {
 	SBQLConfig* config = new SBQLConfig("store");
 	config->init("example.conf");
+	ErrorConsole* ec = new ErrorConsole("Store");
+	ec->init(1);
 	LogManager* log = new LogManager();
 	log->init();
 
