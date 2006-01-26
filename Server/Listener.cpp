@@ -76,7 +76,7 @@ void sigHandler(int sig) {
 		    }   
 		    if (status!=0) {
 			printf("Listener-sigHandler-Master: Server thread nr. |%d| terminated with error\n", i);
-			exit(1);
+			exit(1); //TODO!!!
 		    }
 		    else {
 			printf("Listener-sigHandler-Master: JOINED thread nr.|%d| with pthread_id |%d|\n", i, (int)pthreads[i]);
@@ -112,6 +112,7 @@ void *createServ(void *arg) {
 	printf("Listener-createServ: .. which is really unfortunate. I must quit now\n");
 	pthread_exit((void *)socket);
     }	
+    
     Server *srv = new Server(socket);
     
     // TODO update thread global data
@@ -138,7 +139,17 @@ int Listener::Start(int port) {
 	int errorCode=0;
 	int i=0;
 	int status;
-
+	
+	/*
+	printf("[]--> Initializing objects.. \n");
+	SBQLConfig* config = new SBQLConfig("Server");
+	config->init();
+	ErrorConsole con("Server");
+	con.init(1);
+	lCons=con;
+	lConf=config;	
+	*/
+	
 	sigset_t lBlock_cc;
 	sigemptyset(&lBlock_cc);
 	sigaddset(&lBlock_cc, SIGINT);	
@@ -275,6 +286,7 @@ int main(int argc, char* argv[]) {
 */
 	int res;
 	Listener *ls = new Listener();
+	
 	if ((res=(ls->Start(port)))!=0) {
 	    printf("Listener: ends with ERROR: %d \n", res);
 	    return res;

@@ -347,7 +347,8 @@ int Server::Run()
 	config->init();
 	ErrorConsole con("Server");
 	con.init(1);
-	
+
+		
 	LogManager* logManager = new LogManager();
 	logManager->init();
 	DBStoreManager* storeManager = new DBStoreManager();
@@ -414,7 +415,7 @@ while (!signalReceived) {
 	    printf("[Server.Run]--> Parser returned error code %d\n", res);
 	    sendError(res);
 	    ncError=1;
-	    //continue;
+	    continue;
 	    printf("[SERVER]--> ends with ERROR\n");
 	    return ErrServer+EParse;
 	}
@@ -425,7 +426,7 @@ while (!signalReceived) {
 	    printf("[Server.Run]--> Executor returned error code %d\n", res);
 	    sendError(res);
 	    ncError=1;
-	    //continue;
+	    continue;
 	    printf("[SERVER]--> ends with ERROR\n");
 	    return ErrServer+EExecute;
 	} 
