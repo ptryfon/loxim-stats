@@ -1,11 +1,9 @@
 /**
- * $Id: Buffer.cpp,v 1.24 2006-01-26 15:48:11 mk189406 Exp $
+ * $Id: Buffer.cpp,v 1.25 2006-01-26 16:02:05 mk189406 Exp $
  *
  */
 #include "Buffer.h"
 #include "Log/Logs.h"
-
-#include <iostream>
 
 using namespace std;
 
@@ -101,16 +99,8 @@ namespace Store
 			return 0;
 		
 		::pthread_mutex_lock(&dbwriter.mutex);
-		buffer_addr_t buffer_addr = make_pair(fileID, pageID);
 
-		/*
-		cout << "Get Page Poiner, Request: file: "<<fileID<<", page: "<<pageID<<endl;
-			buffer_hash_t::iterator oi;
-			for(oi = buffer_hash.begin();
-				oi != buffer_hash.end(); oi++){
-				cout << "BH: " << (*oi).first.first <<","<< (*oi).first.second << endl;
-				
-			}*/
+		buffer_addr_t buffer_addr = make_pair(fileID, pageID);
 		buffer_hash_t::iterator it = buffer_hash.find(buffer_addr);
 		if (it != buffer_hash.end() && (*it).second.haspage) {
 			n_page = &((*it).second);
@@ -119,7 +109,6 @@ namespace Store
 		}
 
 		if ((pnum = file->hasPage(fileID, pageID)) > pageID) {
-			cout << "Aktualna wartosc pnum = " << pnum << endl;
 			if (readPage(fileID, pageID, n_page) < 0) {
 				::pthread_mutex_unlock(&dbwriter.mutex);
 				return NULL;
@@ -161,7 +150,6 @@ namespace Store
 		}
 
 		::pthread_mutex_unlock(&dbwriter.mutex);
-		cout << "Page from buffer, out" <<endl;
 		return new PagePointer(fileID, pageID, n_page->page, this);
 	};
 
@@ -237,9 +225,9 @@ namespace Store
 			}
 
 			if (started == 1) {
-				ec->printf("Store::Buffer : dbWriter start dirty(%d)\n", dbwriter.dirty_pages);
+				ec->printf("Store::Buffer: dbwriter start with dirty(%d)\n", dbwriter.dirty_pages);
 				dbWriterWrite();
-				ec->printf("Store::Buffer : dbWriter finish dirty(%d)\n", dbwriter.dirty_pages);
+				ec->printf("Store::Buffer: dbwriter finish with dirty(%d)\n", dbwriter.dirty_pages);
 			} else {
 				::pthread_mutex_unlock(&dbwriter.mutex);
 				break;
@@ -264,7 +252,7 @@ namespace Store
 			n_page = &((*it).second);
 
 			if (n_page->haspage && (!n_page->lock) && n_page->dirty) {
-				ec->printf("Store::Buffer : writing(%d, %d)\n", (*it).first.first, (*it).first.second);
+				ec->printf("Store::Buffer: dbwriter writing(file:%d, page:%d)\n", (*it).first.first, (*it).first.second);
 				file->writePage((*it).first.first, (*it).first.second, n_page->page);
 				n_page->dirty = 0;
 				dbwriter.dirty_pages--;
