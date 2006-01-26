@@ -9,7 +9,6 @@ using namespace std;
 using namespace Errors;
 
 namespace Config {
-	int SBQLConfig::nObjects = 0;
 	struct ModuleOptions *SBQLConfig::config = NULL;
 
 	SBQLConfig::SBQLConfig(string module)
@@ -69,7 +68,7 @@ namespace Config {
 				// Module name
 				c2 = strchr(c1, ']');
 				if (c2 == NULL) {
-					freeConfig();
+					free();
 					configFile.close();
 					return ErrConfig | ENotParsed;
 				}
@@ -83,7 +82,7 @@ namespace Config {
 				if (mod == NULL) {
 					mod = (struct ModuleOptions *)malloc(sizeof(struct ModuleOptions));
 					if (mod == NULL) {
-						freeConfig();
+						free();
 						configFile.close();
 						return ErrConfig | ENOMEM;
 					}
@@ -117,14 +116,14 @@ namespace Config {
 				}
 			}
 			if (strlen(n) == 0) {
-				freeConfig();
+				free();
 				configFile.close();
 				return ErrConfig | ENotParsed;
 			}
 			while ((strlen(v) > 0) && (*v == ' ' || *v == '\t' || *v == '='))
 				v++;
 			if (strlen(v) == 0 || config == NULL) {
-				freeConfig();
+				free();
 				configFile.close();
 				return ErrConfig | ENotParsed;
 			}
@@ -137,7 +136,7 @@ namespace Config {
 			if (opt == NULL) {
 				opt = (struct ConfOpt *)malloc(sizeof(struct ConfOpt));
 				if (opt == NULL) {
-					freeConfig();
+					free();
 					configFile.close();
 					return ErrConfig | ENOMEM;
 				}
@@ -209,26 +208,6 @@ namespace Config {
 			cout << endl;
 			mod = mod->nextMod;
 		}
-	};
-
-	void SBQLConfig::freeConfig(void)
-	{
-		struct ModuleOptions *mod, *pmod;
-		struct ConfOpt *opt, *popt;
-
-		mod = config;		
-		while (mod != NULL) {
-			opt = mod->options;
-			while (opt != NULL) {
-				popt = opt;
-				opt = opt->nextOpt;
-				free(popt);
-			}
-			pmod = mod;
-			mod = mod->nextMod;
-			free(pmod);
-		}
-		config = NULL;
 	};
 
 	int SBQLConfig::getBool(string param, bool& value)
@@ -330,10 +309,27 @@ namespace Config {
 		return 0;
 	};
 	
+	void SBQLConfig::free(void)
+	{
+		struct ModuleOptions *mod, *pmod;
+		struct ConfOpt *opt, *popt;
+
+		mod = config;		
+		while (mod != NULL) {
+			opt = mod->options;
+			while (opt != NULL) {
+				popt = opt;
+				opt = opt->nextOpt;
+				free(popt);
+			}
+			pmod = mod;
+			mod = mod->nextMod;
+			free(pmod);
+		}
+		config = NULL;
+	};
+
 	SBQLConfig::~SBQLConfig()
 	{
-		nObjects--;
-		if (nObjects == 0)
-			freeConfig();
 	};
 }

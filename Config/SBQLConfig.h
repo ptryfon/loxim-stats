@@ -21,12 +21,10 @@ namespace Config {
 
 	class SBQLConfig {
 		private:
-			static int nObjects;
 			static struct ModuleOptions *config;
 			string callerModule;
 			struct ModuleOptions *callerModuleOpts;
 
-			void freeConfig(void);
 			struct ModuleOptions *findConfigModule(string module);
 			struct ConfOpt *findConfigOption(string option);
 		public:
@@ -34,6 +32,7 @@ namespace Config {
 
 			int init(void);
 			int init(string file);
+			void free(void);
 			int getBool(string param, bool& value);
 			int getInt(string param, int& value);
 			int getLong(string param, long long& value);
