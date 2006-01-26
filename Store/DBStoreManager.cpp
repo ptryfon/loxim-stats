@@ -138,11 +138,15 @@ namespace Store
 		return 0;	
 	};
 
-	int DBStoreManager::createObject(TransactionID* tid, string name, DataValue* value, ObjectPointer*& object)
+	int DBStoreManager::createObject(TransactionID* tid, string name, DataValue* value, ObjectPointer*& object, LogicalID* p_lid)
 	{
 		*ec << "Store::Manager::createObject start...";
 		
-		LogicalID* lid = new DBLogicalID(map->createLogicalID());
+		LogicalID* lid;
+		if(p_lid == NULL)
+			lid = new DBLogicalID(map->createLogicalID());
+		else
+			lid = p_lid;
 		
 		object = new DBObjectPointer(name, value, lid);
 
