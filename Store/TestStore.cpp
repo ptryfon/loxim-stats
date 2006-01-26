@@ -18,7 +18,8 @@ using namespace Errors;
 
 int main(int argc, char* argv[])
 {
-	//config->init("example.conf");
+	SBQLConfig* config = new SBQLConfig("Store");
+	config->init("example.conf");
 	ErrorConsole* ec = new ErrorConsole("Store");
 	ec->init(1);
 	LogManager* log = new LogManager();
