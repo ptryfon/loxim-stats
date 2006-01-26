@@ -37,6 +37,7 @@ class BackupManager
     configPath = aConfigPath;
     verboseLevel = aVerboseLevel;
     config = new SBQLConfig( "Backup" );
+    errno = 0;
   }
 
   int init()
@@ -58,12 +59,8 @@ class BackupManager
   int lock( SBQLConfig *config );
   int unlock( SBQLConfig *config );
 
-  int copyFile( string fromPath, string toPath )
-  {
-    // TODO
-
-    return 0;
-  }
+  int copyFile( string fromPath, string toPath );
+  int eraseFile( string path );
 
   /**
    * Tworzy backup bazy danych w pliku o nazwie pobranym z Configa.
@@ -74,7 +71,12 @@ class BackupManager
    * Odtwarza baze danych z backupu i logow.  Zakladamy ze przez ten czas
    * baza nie wykonuje zadnych innych dzialan.
    */
-  int restore() { return copyFile( backupPath, dbPath ); }
+  int restore()
+  {
+    copyFile( backupPath, dbPath );
+    eraseFile( logsPath );
+    return 0;
+  }
 
   string dump();
 

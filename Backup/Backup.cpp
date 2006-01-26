@@ -27,6 +27,71 @@ static void printUsage( int exitCode, string message = "" )
   exit( exitCode );
 }
 
+int BackupManager::copyFile( string fromPath, string toPath )
+{
+  int fdFrom;
+  int fdTo;
+  unsigned char buffer[65536];
+  int size;
+
+  printf( "Kopiuje '%s' do '%s'\n", fromPath.c_str(), toPath.c_str() );
+  if( ( fdTo = ::open( toPath.c_str(), O_WRONLY | O_CREAT, S_IWUSR | S_IRUSR ) ) < 0 ) {
+    printf( "Nie moge otworzyc pliku '%s' do zapisu: %s\n", toPath.c_str(), strerror( errno ) );
+    unlock( config );
+    exit( 1 );
+  }
+
+  if( ( fdFrom = ::open( fromPath.c_str(), O_RDONLY ) ) < 0 ) {
+    printf( "Nie moge otworzyc pliku '%s' do odczytu: %s\n", fromPath.c_str(), strerror( errno ) );
+    unlock( config );
+    exit( 1 );
+  }
+
+  while( ( size = ::read( fdFrom, buffer, 65536 ) ) > 0 )
+  {
+    int index = 0;
+
+    while( index < size )
+    {
+      int sz = ::write( fdTo, buffer + index, size-index );
+
+      if( sz < 0 )
+      {
+        printf( "Blad zapisu pliku '%s': %s\n", toPath.c_str(), strerror( errno ) );
+        unlock( config );
+        exit( 1 );
+      }
+
+      index += sz;
+    }
+  }
+
+  if( size < 0 )
+  {
+    printf( "Blad odczytu pliku '%s': %s\n", fromPath.c_str(), strerror( errno ) );
+    unlock( config );
+    exit( 1 );
+  }
+
+  ::close( fdFrom );
+  ::close( fdTo );
+  printf( "Skopiowane.\n" );
+
+  return 0;
+}
+
+int BackupManager::eraseFile( string path )
+{
+  printf( "Usuwam plik '%s'\n", path.c_str() );
+  if( ( ::unlink( path.c_str() ) < 0 ) )
+  {
+    printf( "Nie moge usunac pliku '%s': %s\n", path.c_str(), strerror( errno ) );
+  } else
+    printf( "Skasowany.\n" );
+
+  return 0;
+}
+
 int BackupManager::lock( SBQLConfig *config )
 {
   string lockPath;
@@ -52,6 +117,7 @@ int BackupManager::lock( SBQLConfig *config )
     }
   }
   // plik blokady utworzony
+  errno = 0;
 
   ::close( fileDes );
 
