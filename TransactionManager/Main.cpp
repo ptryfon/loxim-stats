@@ -47,7 +47,7 @@ int main()
 		arg[i] = i;
 		if (i < 2)
     		    pthread_create(&threads[i], NULL, &read, &arg[i]);
-		else if (i < 5)
+		else if (i  < 5)
 		    pthread_create(&threads[i], NULL, &upgrade, &arg[i]);
 		else
 		    pthread_create(&threads[i], NULL, &write, &arg[i]);
@@ -58,7 +58,7 @@ int main()
 	{
 	    pthread_join(threads[i], NULL);
 	}
-	
+	//sem->status();
 	delete sem;
 	return 0;
 }
@@ -95,7 +95,7 @@ void* upgrade(void* v)
     else
     {
 	printf("Upgrader %d aborted on upgrading\n", id); fflush(stdout);
-	sem->status();
+	//sem->status();
     }
     return NULL;
 }

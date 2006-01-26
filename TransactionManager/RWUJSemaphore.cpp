@@ -112,9 +112,9 @@ namespace SemaphoreLib {
 
 		if (inside == 0)
 		    return -10;		/* error: lock_upgrade without having a lock */
-		else if (inside > 1)
+		else if (inside - wait_upgraders > 1)
 		{
-		    inside--;	/* not last */
+		    //inside--;	/* not last */
 
 		    /* there can be only one;) */
 		    /* primary selection */
@@ -128,28 +128,39 @@ namespace SemaphoreLib {
 		        /* secondary selection */
 		        if (id == best_upgrader)		/* maybe better come meanwhile */
 		        {
-    			    inside++;		/* is already inside */
+    			    //inside++;		/* is already inside */
 			    best_upgrader = -1;
 			}
 			else 
 			{
+			    inside--;
 			    errorCode = -2;	/* i am worse, abort transaction */
 			    if (inside == 0 || wait_upgraders == 0)
-				this->unlock();
+			    {
+				this->_unlock();
+			    }
 			}
 		    }
-		    else errorCode = -1;	/* i am worse, abort transaction */
+		    else
+		    {
+			inside--;
+			errorCode = -1;	/* i am worse, abort transaction */
+		    }
 		}
 		else		/* last */
 		{
-		    inside--;
+		    //inside--;		//its cannot be lower to 0 because then writer or reader can get inside
 		    if (current_mode == None)	current_mode = Upgrade;
 		    if (best_upgrader == -1 || id < best_upgrader)
 		    {
-			inside++;
+			//inside++;
 			best_upgrader = -1;	/* iam the best */
 		    }
-		    else errorCode = -3;
+		    else
+		    {
+			inside--;
+			errorCode = -3;
+		    }
 		    if (wait_upgraders)
     			pthread_cond_broadcast( &upgrader_cond );	/* should be signal after one-upgrader-waiting optimization */
 		}
@@ -157,25 +168,35 @@ namespace SemaphoreLib {
 		return errorCode;
 	}
 
-	int RWUJSemaphore::status()
+	int RWUJSemaphore::status()	//Test routine
 	{
 	    ErrorConsole ec("TransactionManager");
 
-	    ec.printf("Inside %d\n", inside);
-	    ec.printf("Readers waiting %d\n", wait_readers);
-	    ec.printf("Upgraders waiting %d\n", wait_upgraders);
-	    ec.printf("Writers waintin %d\n", wait_writers);
-	    ec.printf("Best upgrader %d\n", best_upgrader);
-	    ec.printf("Current mode %d\n", current_mode);
+	    printf("Inside %d\n", inside);
+	    printf("Readers waiting %d\n", wait_readers);
+	    printf("Upgraders waiting %d\n", wait_upgraders);
+	    printf("Writers waintin %d\n", wait_writers);
+	    printf("Best upgrader %d\n", best_upgrader);
+	    printf("Current mode %d\n", current_mode);
 	    return 0;
 	}
 
 	int RWUJSemaphore::unlock()
 	{
 		pthread_mutex_lock( &mutex );
+		int errorCode = this->_unlock();
+		pthread_mutex_unlock( &mutex );
+		return errorCode;
+	}
+
+	int RWUJSemaphore::_unlock()
+	/* guaranteed having mutex */
+	{
+//		pthread_mutex_lock( &mutex );
 		
 		inside--;
-		if (current_mode == Read && inside == 0)
+		if (current_mode == Read && inside == wait_upgraders)
+		//if (current_mode == Read && inside == 0)
 		/* last reader exits */
 		{
 			if (wait_upgraders)
@@ -189,12 +210,17 @@ namespace SemaphoreLib {
 				pthread_cond_signal( &writer_cond );
 			}
 			else
-			/* no one is waiting */
-			current_mode = None;
+			    /* no one is waiting */
+			    current_mode = None;
 		}
 		else if ( current_mode == Upgrade)
-		/* guaranteed inside = 0 and wait_upgraders = 0 */
+		/* guaranteed inside = 0 */
 		{
+			if (wait_upgraders)
+			{
+				/* Fix for elsewhere bug */
+				pthread_cond_broadcast( &upgrader_cond );	/* should be signal after one-upgrader-waiting optimization */
+			}
 			if (wait_writers)
 			{
 				current_mode = Write;
@@ -226,7 +252,7 @@ namespace SemaphoreLib {
 			else 
 				current_mode = None;
 		}
-		pthread_mutex_unlock( &mutex );
+//		pthread_mutex_unlock( &mutex );
 		return 0;
 	}
 } /* namespace SemaphoreLib */

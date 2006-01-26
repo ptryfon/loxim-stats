@@ -34,6 +34,7 @@ class RWUJSemaphore: public Semaphore
 					   here: Transactions provide TransactionID */
 	
 		int inside;
+		int _unlock();
 	public:
 		RWUJSemaphore();
 		virtual ~RWUJSemaphore();
