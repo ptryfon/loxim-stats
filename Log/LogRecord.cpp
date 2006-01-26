@@ -80,7 +80,7 @@ int LogRecord::readLogRecordForward( LogRecord *&result, int fileDes, StoreManag
   if( ( errCode = LogIO::readInt( fileDes, recordLen ) ) ) return errCode;
   if( ( errCode = LogIO::getFilePos( fileDes, filePosEnd ) ) ) return errCode;
 
-  printf("\n[type=%d, begin=%d,%d,%d]\n", recordType ,filePosBegin,(filePosEnd - filePosBegin), recordLen );
+  printf("\n[type=%d, begin=%ld,%ld,%d]\n", recordType ,filePosBegin,(filePosEnd - filePosBegin), recordLen );
   if( filePosEnd - filePosBegin != recordLen ) return LOG_RECORD_LENGTH_MISMATCH_ERROR;
 
   return 0;

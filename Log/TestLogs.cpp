@@ -21,7 +21,6 @@ using namespace Logs;
 void printLog(StoreManager* sm)
 {
   int fd;
-  int i=0;
   off_t fpos;
   int err=0;
   LogRecord* lr;
@@ -30,7 +29,7 @@ void printLog(StoreManager* sm)
 
   ::lseek(fd, 0 ,SEEK_SET);
   LogIO::getFilePos( fd, fpos );
-  printf("\npocztaek czytania : %d\n",fpos);
+  printf("\npocztaek czytania : %ld\n",fpos);
 
   while( (err = LogRecord::readLogRecordForward(lr, fd, sm)) == 0 )
   {
@@ -69,9 +68,15 @@ int main( int argc, char *argv[] )
   storeConfig->init("../Config/example.conf");
   ErrorConsole *ec = new ErrorConsole("Store");
   ec->init(1);
-  sm->init( storeConfig, &logManager );
+  sm->init( &logManager );
   sm->setTManager(TransactionManager::getHandle());
   sm->start();
+
+  LogicalID *lid = new DBLogicalID( 58 );
+  string name = "mis2";
+  DataValue *dv = new DBDataValue( "Nowy Mis2" );
+  ObjectPointer *op = sm->createObjectPointer( lid, name, dv );
+  sm->createObject( NULL, name, dv, op );
 
 //   // write (stary i nowy istnieje)
 //   {
@@ -80,8 +85,8 @@ int main( int argc, char *argv[] )
 //     logManager.write( tid, new DBLogicalID( 57 ), "mis", oldDataValue, newDataValue, id );
 //   }
 
-//   // write (stary nie istnieje)
-//   logManager.write( tid, new DBLogicalID( 58 ), "mis2", 0, new DBDataValue( "Nowy Mis2" ), id );
+  // write (stary nie istnieje)
+  logManager.write( tid, new DBLogicalID( 58 ), "mis2", 0, new DBDataValue( "Nowy Mis2" ), id );
 
   // write (nowy nie istnieje)
   logManager.write( tid, new DBLogicalID( 59 ), "mis3", new DBDataValue( "Stary Mis3" ), 0, id );
