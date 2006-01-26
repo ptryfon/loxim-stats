@@ -124,7 +124,7 @@ void sigHandler(int sig) {
 		    }   
 		    if (status!=0) {
 			printf("[Listener-sigHandler-Master]--> Server thread nr. |%d| terminated with error\n", i);
-			exit(1); //TODO!!!
+			longjmp(j,1); //TODO!!!
 		    }
 		    else {
 			printf("[Listener-sigHandler-Master]--> JOINED thread nr.|%d| with pthread_id |%d|\n", i, (int)pthreads[i]);
