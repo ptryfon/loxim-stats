@@ -76,15 +76,16 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 		case TreeNode::TNNAME: {
 			*ec << "[QE] Type: TNNAME";
 			string name = tree->getName();
+			int sectionNumber = ((NameNode *) tree)->getBindSect();
 			if ((stack.size()) == 1) {
 			    errcode = (stack.pop());
-			    if (errcode != 0) { return errcode; };
-			};
+			    if (errcode != 0) { return errcode; }
+			}
 			if (stack.empty()) {
 				vector<ObjectPointer*>* vec;
 				if ((errcode = tr->getRoots(vec)) != 0) {
 					return errcode;
-				};
+				}
 				int vecSize = vec->size();
 				ec->printf("[QE] All %d Roots taken\n", vecSize);
 				QueryBagResult *stackSection = new QueryBagResult();
@@ -98,14 +99,19 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					QueryReferenceResult *lidres = new QueryReferenceResult(lid);
 					QueryBinderResult *newBinding = new QueryBinderResult(optrName, lidres);
 					stackSection->addResult(newBinding);
-				};
+				}
 				if ( (stack.push(stackSection)) != 0 ) {
 					return -1;
-				};
-			};			
-			if ((stack.bindName(name, *result)) != 0) {
-				return -1;
-			};
+				}
+			}
+			if (sectionNumber == 0) {
+				errcode = stack.bindName(name, *result);
+				if (errcode != 0) return errcode;
+			}
+			else {
+				errcode = stack.bindName(name, (sectionNumber - 1), *result);
+				if (errcode != 0) return errcode;
+			}
 			*ec << "[QE] Done!";
 			return 0;
 		}//case TNNAME
