@@ -1,5 +1,5 @@
 /**
- * $Id: Buffer.cpp,v 1.22 2006-01-26 13:26:50 md243003 Exp $
+ * $Id: Buffer.cpp,v 1.23 2006-01-26 15:12:46 mk189406 Exp $
  *
  */
 #include "Buffer.h"
@@ -17,9 +17,6 @@ namespace Store
 		this->file = new File(store);
 		this->started = 0;
 		this->ec = new ErrorConsole("Store");
-  // nie wykonujecie tej metody!
-  // jedyne miejsce gdzie ec->init ma prawo wystapic to main()
-//		this->ec->init(2); //ectw
 	};
 
 	Buffer::~Buffer()
@@ -57,7 +54,7 @@ namespace Store
 			store->getConfig()->getInt("store_buffer_maxdirty", max_dirty);
 		}
 
-	//	::pthread_create(&tid_dbwriter, NULL, &dbWriterThread, this);
+		::pthread_create(&tid_dbwriter, NULL, &dbWriterThread, this);
 
 		started = 1;
 		return 0;
@@ -106,24 +103,23 @@ namespace Store
 		::pthread_mutex_lock(&dbwriter.mutex);
 		buffer_addr_t buffer_addr = make_pair(fileID, pageID);
 
-		//
-			cout << "Get Page Poiner, Request: file: "<<fileID<<", page: "<<pageID<<endl;
+		/*
+		cout << "Get Page Poiner, Request: file: "<<fileID<<", page: "<<pageID<<endl;
 			buffer_hash_t::iterator oi;
 			for(oi = buffer_hash.begin();
 				oi != buffer_hash.end(); oi++){
 				cout << "BH: " << (*oi).first.first <<","<< (*oi).first.second << endl;
 				
-			}
-		//
+			}*/
 		buffer_hash_t::iterator it = buffer_hash.find(buffer_addr);
 		if (it != buffer_hash.end() && (*it).second.haspage) {
 			n_page = &((*it).second);
 			::pthread_mutex_unlock(&dbwriter.mutex);
-				cout << "Page found, out\n";
 			return new PagePointer(fileID, pageID, n_page->page, this);
 		}
 
-		if ((pnum = file->hasPage(fileID, pageID)) >= pageID) {
+		if ((pnum = file->hasPage(fileID, pageID)) > pageID) {
+			cout << "Aktualna wartosc pnum = " << pnum << endl;
 			if (readPage(fileID, pageID, n_page) < 0) {
 				::pthread_mutex_unlock(&dbwriter.mutex);
 				return NULL;
@@ -134,7 +130,6 @@ namespace Store
 			for (unsigned int i = pnum; i <= pageID; i++) {
 				it = buffer_hash.find(make_pair(fileID, i));
 				if (it == buffer_hash.end() || !(*it).second.haspage) {
-				cout << "Creatin new page\n";
 					n_page = new buffer_page;
 					n_page->page = new char[STORE_PAGESIZE];
 					switch (fileID) {
