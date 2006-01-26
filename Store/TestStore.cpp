@@ -47,6 +47,13 @@ int main(int argc, char* argv[])
 
 		store->createObject(&tid, "motyka", dv, op_motyka);
 		
+		LogicalID* lid = op_kilof->getLogicalID();
+		op_kilof = NULL;
+		
+		cout << "Odpalam getObject" << endl;
+		store->getObject(&tid, lid, Store::Write, op_kilof);
+		cout << op_kilof->toString() << endl;
+		
 		
 		
 		store->stop();

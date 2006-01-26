@@ -3,8 +3,6 @@
 #include "DBStoreManager.h"
 #include "DBDataValue.h"
 
-//#define VIRTUAL
-
 namespace Store
 {
 	StoreManager* StoreManager::theStore = NULL;
@@ -15,9 +13,6 @@ namespace Store
 		StoreManager::theStore = this;
 		ec = new ErrorConsole("Store");
 		config = new SBQLConfig("Store");
-  // nie wykonujecie tej metody!
-  // jedyne miejsce gdzie ec->init ma prawo wystapic to main()
-//		ec->init(2); //ectw
 	};
 
 	DBStoreManager::~DBStoreManager()
@@ -119,23 +114,6 @@ namespace Store
 		return pagemgr;
 	};
 
-#ifdef VIRTUAL
-	int DBStoreManager::getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object)
-	{
-		object = NULL;
-		LogicalID* l;
-		for(unsigned int i=0; i<misc->vect.size(); i++)
-		{
-			l = (misc->vect[i])->getLogicalID();
-			if( (*l) == (*lid) ) {
-				object = misc->vect[i];
-				break;
-			}
-		}
-		ec->printf("Store::Manager::getObject done: %s\n", object->toString().c_str());
-		return 0;
-	};
-#else
 	int DBStoreManager::getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object)
 	{
 		*ec << "Store::Manager::getObject started...";
@@ -157,23 +135,7 @@ namespace Store
 		ec->printf("Store::Manager::getObject done: %s\n", object->toString().c_str());
 		return 0;	
 	};
-#endif
 
-#ifdef VIRTUAL
-	int DBStoreManager::createObject(TransactionID* tid, string name, DataValue* value, ObjectPointer*& object)
-	{
-		*ec << "Store::Manager::createObject start...";
-		
-		LogicalID* lid = new DBLogicalID(misc->lastlid++);
-		
-		object = new DBObjectPointer(name, value, lid);
-		
-		misc->vect.push_back(object);
-		
-		ec->printf("Store::Manager::createObject done: %s\n", object->toString().c_str());
-		return 0;
-	};
-#else
 	int DBStoreManager::createObject(TransactionID* tid, string name, DataValue* value, ObjectPointer*& object)
 	{
 		*ec << "Store::Manager::createObject start...";
@@ -206,14 +168,7 @@ namespace Store
 		ec->printf("Store::Manager::createObject done: %s\n", object->toString().c_str());
 		return 0;
 	};
-#endif
 
-#ifdef VIRTUAL
-	int DBStoreManager::deleteObject(TransactionID* tid, ObjectPointer* object)
-	{
-		return 0;
-	};
-#else
 	int DBStoreManager::deleteObject(TransactionID* tid, ObjectPointer* object)
 	{
 		*ec << "Store::Manager::deleteObject start...";
@@ -281,7 +236,6 @@ namespace Store
 		
 		return 0;
 	};
-#endif
 
 	int DBStoreManager::getRoots(TransactionID* tid, vector<ObjectPointer*>*& p_roots)
 	{
