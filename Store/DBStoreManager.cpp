@@ -120,7 +120,7 @@ namespace Store
 		
 		physical_id *p_id = NULL;
 		*ec << "get ph id";
-		map->getPhysicalID(lid->toInteger(), &p_id);
+		if( (map->getPhysicalID(lid->toInteger(),&p_id)) == 2 ) return 2; //out of range
 		if(p_id == NULL) cout << "osz ty w morde\n";
 		*ec << "get page poin";
 		cout << "file: " << p_id->file_id << ", page: " << p_id->page_id << ", off: " << p_id->offset <<endl;
