@@ -58,14 +58,14 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					}
 				}
 				else {
-					*ec << "[QE] Transction not opened, type < BEGIN; > first";
+					*ec << "[QE] Transction not opened, type < begin; > first";
 					*result = new QueryNothingResult();
 					*ec << "[QE] nothing to do: QueryNothingResult created";
 					return 0;
 				}
 			}
 			else {
-				*ec << "[QE] Transction not opened, type < BEGIN; > first";
+				*ec << "[QE] Transction not opened, type < begin; > first";
 				*result = new QueryNothingResult();
 				*ec << "[QE] nothing to do: QueryNothingResult created";
 				return 0;
@@ -354,6 +354,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			switch (op) {
 				case TransactNode::begin: {
 					*ec << "[QE] ERROR! Transaction already opened. It can't be opened once more!";
+					*ec << "[QE] maybe someday, when nested transactions will be implemented...";
 					*result = new QueryNothingResult();
 					return -1;
 				}
