@@ -8,6 +8,8 @@
 using namespace std;
 
 namespace Errors {
+	extern char *ErrorMsg[];
+
 	ofstream* ErrorConsole::consoleFile = NULL;
 	int ErrorConsole::serr = 0;
 
@@ -78,6 +80,10 @@ namespace Errors {
 		}
 		if ((error & ~ErrAllModules) < 0x100) {
 			str = strerror(error & ~ErrAllModules);
+		} else {
+			int erridx = (error & ~ErrAllModules);
+			erridx = erridx < EUnknown ? erridx / 0x100 : EUnknown / 0x100;
+			str = ErrorMsg[erridx];
 		}
 		if (owner.length() == 0)
 			dest_mod = "Unknown: ";

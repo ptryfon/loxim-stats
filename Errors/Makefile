@@ -1,6 +1,7 @@
 include ../make.defs
 
-SOURCES	=	ErrorConsole.cpp
+SOURCES	=	ErrorConsole.cpp \
+		ErrorMsg.cpp
 
 HEADERS	=	ErrorConsole.h \
 		Errors.h
