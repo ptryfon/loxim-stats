@@ -342,6 +342,7 @@ int Server::Run()
 	//printf("[Server.Run]--> Blocking SIGINT for now.. \n");
 	sigprocmask(SIG_BLOCK, &block_cc, NULL);
 
+	//TODO same objects as Listener 
 	printf("[Server.Run]--> Initializing objects.. \n");
 	SBQLConfig* config = new SBQLConfig("Server");
 	config->init();
@@ -364,11 +365,8 @@ int Server::Run()
 	QueryResult *qResult;
 	
 	printf("[Server.Run]--> Creating message buffers.. \n");
-	//char *messgBuff;
-	char *serializedMessg;
+	
 	messgBuff=(char*) malloc(MAX_MESSG);
-	serializedMessg=(char*) malloc(MAX_MESSG);
-
 
 	serialBufBegin=(char *)malloc(MAX_MESSG);
 	serialBufEnd=serialBufBegin+MAX_MESSG;
@@ -388,7 +386,7 @@ while (!signalReceived) {
 	sigprocmask(SIG_BLOCK, &block_cc, NULL);
 	
 	//printf("[Server.Run]--> Cleaning buffers \n");
-	memset(serializedMessg, '\0', MAX_MESSG); 
+	//memset(serializedMessg, '\0', MAX_MESSG); 
 	
 	//Get string from client
 	printf("[Server.Run]--> Unblocking sigint and receiving query from client \n");
@@ -398,12 +396,12 @@ while (!signalReceived) {
 	if (res != 0) {
 	    printf("[Server.Run--> Receive returned error code %d\n", res);
 	    sendError(res);
-	    return ErrServer | EReceive;
+	    return res;
 	}    
 	if (messgBuff==NULL) {
 	    printf("[Server.Run]--> Error in receive, client terminated??\n");
 	    printf("[Server.Run]--> Assuming client loss for that thread - TERMINATING thread\n");
-	    return ErrServer | EClientLost; //TODO Error
+	    return ErrServer + EClientLost; //TODO Error
 	}
 
 	printf("[Server.Run]--> Blocking sigint again.. \n");
@@ -417,7 +415,7 @@ while (!signalReceived) {
 	    ncError=1;
 	    continue;
 	    printf("[SERVER]--> ends with ERROR\n");
-	    return ErrServer+EParse;
+	    return res;
 	}
 	
 	printf("[Server.Run]--> Requesting EXECUTE on tree node: |%d| \n", (int) tNode);
@@ -462,7 +460,6 @@ while (!signalReceived) {
 }
 	printf("[Server.Run]--> Releasing message buffers \n");
 	free(messgBuff);
-	free(serializedMessg);
 	
 	//TODO DESTROY ALL OBJECTS
 	printf("[Server.Run]--> Destroying Objects \n");
@@ -496,39 +493,7 @@ int Server::SExit(int code) {
     free(serialBufBegin);
     free(messgBuff);
     Disconnect();
-    printf("[Server.SExit]--> Server THREAD nr |%d| CLEANUP COMPLETE, returning\n");
+    printf("[Server.SExit]--> Server THREAD nr |%d| CLEANUP COMPLETE, returning\n", pthread_self());
     return code;
 }
 
-
-/*
-void Server::sigHandler(int sig) {
-	int err;	
-	int pself;
-	pself=pthread_self();
-	
-	printf("[Server.sigHandler]--> Signal intercepted by thread %d, setting flag \n", pself);
-	signalReceived = 1;    
-	signal(sig, (Server::sigHandler));
-*/
-	/*
-	err=pthread_mutex_lock(&mut);
-	if (err!=0) {
-	    printf("[Server]--> Cannot lock mutex, exiting\n");
-	    exit(1);
-	}
-	*/
-	
-	/*
-	err=pthread_mutex_unlock(&mut);
-	if (err!=0) {
-	    printf("[Server]--> Cannot unlock mutex, exiting\n");
-	    exit(1);
-	}
-	*/
-/*	
-	printf("[Server.sigHandler]--> Returning.. \n");
-	exit(1);
-	return;
-}
-*/

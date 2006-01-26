@@ -3,8 +3,14 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <setjmp.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include "Listener.h"
 #include "Server.h"
+
+#define LOCK_PATH_KEY "lockpath"
 
 //using namespace Listener;
 
@@ -27,6 +33,48 @@ Listener::~Listener()
 {
 }
 
+int Listener::Lock(SBQLConfig *config)
+{
+  string lockPath;
+  int errCode = 0;
+  struct stat statBuf;
+  int fileDes;
+
+  if( ( errCode = config->getString( LOCK_PATH_KEY, lockPath ) ) ) {
+  	printf("[Listener.Lock]-->Error while reading config\n"); 
+  	return errCode;
+  }
+
+  if( ::stat( lockPath.c_str(), &statBuf ) == 0 ) {
+    printf( "[Listener.Lock]-->ERROR: Can't run server - backup is running. If not, delete file '%s'.\n", lockPath.c_str());
+    return -1; //TODO Error
+  } else { 
+    if( ( fileDes = ::open( lockPath.c_str(), O_WRONLY | O_CREAT, S_IWUSR | S_IRUSR ) ) < 0 )
+    {
+      printf( "[Listener.Lock]-->Can't create file '%s': %s\n", lockPath.c_str(), strerror( errno ) );
+      return -1; //TODO Error
+    }
+  }
+  ::close( fileDes );
+  return errCode;
+}
+
+int Listener::Unlock(SBQLConfig *config)
+{
+  string lockPath;
+  int errCode = 0;
+
+  config->getString( LOCK_PATH_KEY, lockPath );
+
+  if( ::unlink( lockPath.c_str() ) < 0 )
+  {
+    printf( "[Listener.Unlock]-->Can't delete lock file '%s': %s\n", lockPath.c_str(), strerror( errno ) );
+    return errno;
+  }
+
+  return errCode;
+}
+
 int Listener::CreateServer(int sock) {
 	Server *srv = new Server(sock); 	
 	printf("Listener: running new server thread \n");
@@ -47,7 +95,7 @@ int getMyIndex(int pt_id) {
     i=0;
     
     while (i<threads_count) {
-    	printf("INDEX: %d, Value %d, my pt_id %d\n", i, (int)(pthreads[i]), pt_id );
+    	//printf("INDEX: %d, Value %d, my pt_id %d\n", i, (int)(pthreads[i]), pt_id );
 	if (((int)(pthreads[i]))==pt_id) {
 	    printf("[Listener.getMyIndex]-->Found index\n");
 	    return i;
@@ -60,29 +108,29 @@ int getMyIndex(int pt_id) {
 
 
 void sigHandler(int sig) {
-    pthread_t pself; //piotrek
+    pthread_t pself; 
     int i;
     int errorCode;
     int status;
     
     pself=pthread_self();
-    printf("Listener-sigHandler: my pthread_id is %d and ", (int)pself);
+    printf("[Listener-sigHandler]--> my pthread_id is %d and ", (int)pself);
     if (pself==pthread_master_id) {
 	printf(".. I am the Listener thread \n");
 	for (i=0;i<threads_count;i++) {
 		    if ((errorCode=pthread_join(pthreads[i], (void **)&status))!=0) { //STATUS !!
-			printf("Listener-sigHandler-Master: ERROR - failed to join thread: %s\n", strerror(errorCode));
+			printf("[Listener-sigHandler-Master]--> ERROR - failed to join thread: %s\n", strerror(errorCode));
 			exit(errorCode);
 		    }   
 		    if (status!=0) {
-			printf("Listener-sigHandler-Master: Server thread nr. |%d| terminated with error\n", i);
+			printf("[Listener-sigHandler-Master]--> Server thread nr. |%d| terminated with error\n", i);
 			exit(1); //TODO!!!
 		    }
 		    else {
-			printf("Listener-sigHandler-Master: JOINED thread nr.|%d| with pthread_id |%d|\n", i, (int)pthreads[i]);
+			printf("[Listener-sigHandler-Master]--> JOINED thread nr.|%d| with pthread_id |%d|\n", i, (int)pthreads[i]);
 		    } 
 	}
-	printf("Listener-sigHandler-Master: All threads joined - SUCCESS! Quitting now.. Preparing to JUMP \n");
+	printf("[Listener-sigHandler-Master]--> All threads joined - SUCCESS! Quitting now.. Preparing to JUMP \n");
 	longjmp(j, 1);
 	return; 
     }
@@ -99,7 +147,7 @@ void sigHandler(int sig) {
 	srvs[status]->SExit(0);	
 	pthread_mutex_unlock(&mut);
 	
-	printf("Listener-sigHandler-Thread%d: Exiting \n", (int)pself); 
+	printf("[Listener-sigHandler-Thread%d]--> Exiting \n", (int)pself); 
 	exitPoint();
     }	
 }    
@@ -107,9 +155,9 @@ void sigHandler(int sig) {
 void *createServ(void *arg) {
     int socket=*(int *)arg;
     int res;
-    printf("Listener-createServ: New server thread reporting. My socket number is |%d|\n", socket);
+    printf("[Listener-createServ]--> New server thread reporting. My socket number is |%d|\n", socket);
     if (socket<0) {
-	printf("Listener-createServ: .. which is really unfortunate. I must quit now\n");
+	printf("[Listener-createServ]--> .. which is really unfortunate. I must quit now\n");
 	pthread_exit((void *)socket);
     }	
     
@@ -121,13 +169,13 @@ void *createServ(void *arg) {
 	    pthread_mutex_unlock(&mut);
 	    pthread_exit((void *)res);
 	}
-	printf("Listener-createServ: Putting my server object into global table..(index=%d)\n", res);
+	printf("[Listener-createServ]--> Putting my server object into global table..(index=%d)\n", res);
 	srvs[res]=srv;
     pthread_mutex_unlock(&mut);	
   
-    printf("Listener-createServ: Executing server code now.. \n");
+    printf("[Listener-createServ]--> Executing server code now.. \n");
     res=srv->Run();
-    printf("Listener-createServ: Server returned |%d|, exiting \n", res); 
+    printf("[Listener-createServ]--> Server returned |%d|, exiting \n", res); 
     pthread_exit((void *)res);
 }
 
@@ -140,15 +188,16 @@ int Listener::Start(int port) {
 	int i=0;
 	int status;
 	
-	/*
-	printf("[]--> Initializing objects.. \n");
+	
+	printf("[Listener.Start]--> Initializing objects.. \n");
 	SBQLConfig* config = new SBQLConfig("Server");
 	config->init();
 	ErrorConsole con("Server");
 	con.init(1);
-	lCons=con;
+	lCons=&con;
 	lConf=config;	
-	*/
+	
+	Lock(lConf);
 	
 	sigset_t lBlock_cc;
 	sigemptyset(&lBlock_cc);
@@ -157,141 +206,87 @@ int Listener::Start(int port) {
 	pthread_master_id=pthread_self();
 	threads_count=0;
 	if ((errorCode=CreateSocket(port, &sock))!=0) {
-	    printf("Listener: Error in Create Socket: %d\n", errorCode);
+	    printf("[Listener.Start]--> Error in Create Socket: %d\n", errorCode);
 	    return errorCode;
 	}
 	signal(SIGINT, sigHandler);
 	
 	if (setjmp(j)!=0) {
-	    printf("Listener: Jumped.. closing socket and ");
+	    printf("[Listener.Start]--> Jumped.. closing socket..\n");
+	    Unlock(lConf);
 	    errorCode=CloseSocket(sock);
-	    printf(" returning with %d\n", errorCode);
+	    printf("[Listener.Start]--> Returning with %d\n", errorCode);
 	    return errorCode;
 	} 
 	
 	while ((isEnd==0) && (threads_count<MAX_CLIENTS)) {
 	
 	    ListenOnSocket(sock, &newSock);
-	    printf("Listener: Got connection! Connection number |%d| \n", threads_count+1);
+	    printf("[Listener.Start]--> Got connection! Connection number |%d| \n", threads_count+1);
 	    sigprocmask(SIG_BLOCK, &lBlock_cc, NULL);
 	    pthread_mutex_lock(&mut);
 	    thread_sockets[threads_count]=newSock;
 	
 	    if ((errorCode=pthread_create(&pthreads[threads_count], NULL, createServ, &thread_sockets[threads_count]))!=0) {
-		printf("Listener: THREAD creation FAILED. Failed thread number=|%d|\n", threads_count);
-		printf("Listener: pthread_create failed with %s\n", strerror(errorCode)); 
+		printf("[Listener.Start]--> THREAD creation FAILED. Failed thread number=|%d|\n", threads_count);
+		printf("[Listener.Start]--> PTHREAD_CREATE FAILED with %s\n", strerror(errorCode)); 
 		for (i=0;i<threads_count;i++) {
 		    if ((errorCode=pthread_join(pthreads[i], (void **)&status))!=0) { //STATUS !!
-			printf("Listener: ERROR - failed to join thread: %s\n", strerror(errorCode));
+			printf("[Listener.Start]--> ERROR - failed to join thread: %s\n", strerror(errorCode));
 			pthread_mutex_unlock(&mut);
 			exit(errorCode);
 		    }   
 		    if (status!=0) {
-			printf("Listener: Server thread nr. |%d| terminated with error\n", i);
+			printf("[Listener.Start]--> Server thread nr. |%d| terminated with error\n", i);
 			pthread_mutex_unlock(&mut);
 			exit(status);
 		    }
 		    else {
-			printf("Listener: JOINED thread nr. |%d|\n", i);
+			printf("[Listener.Start]--> JOINED thread nr. |%d|\n", i);
 		    } 
 		}  		 	    
 	    }
 	    else {
-		printf("Listener: THREAD creation SUCCESSFUL -> thread nr. |%d|\n", i);
+		printf("[Listener.Start]--> THREAD creation SUCCESSFUL -> thread nr. |%d|\n", i);
 		threads_count++;
 	    }
 	    pthread_mutex_unlock(&mut);
-	    printf("Listener: THREAD handled\n");
+	    printf("[Listener.Start]--> THREAD handled\n");
 	    sigprocmask(SIG_UNBLOCK, &lBlock_cc, NULL);
 	}
 	//TODO - join some, create some new - MANAGE THREADS
 	
 	for (i=0;i<threads_count;i++) {
 	    if ((errorCode=pthread_join(pthreads[threads_count], (void **)&status))!=0) { //STATUS !!
-		printf("Listener: ERROR - failed to join thread: %s\n", strerror(errorCode));
+		printf("[Listener.Start]--> ERROR - failed to join thread: %s\n", strerror(errorCode));
 		exit(errorCode);
 	    }   
 	    if (status!=0) {
-		printf("Listener: Server thread nr. |%d| terminated with error\n", status);
-		exit(1);
+		printf("[Listener.Start]--> Server thread nr. |%d| terminated with error\n", status);
+		exit(1); //TODO ERROR ?
 	    } 
 	}  
-	printf("Listener: All threads terminated normally.. returning..\n");
+	printf("[Listener.Start]--> All threads terminated normally.. returning..\n");
 	CloseSocket(sock);
 	
 	return 0;
 
 }
 
-
-//char *bufB;
-//char *buf;
-//int counter;
-
-//TESTING
-/* 
-int recWrite() {
-    char mapa[4]="DUP";
-    char mapa2[2]="2";
-    char **bufL=&buf;
-    char type='X';
-
-    printf("%c \n", bufB[0]);
-    buf[0]=type;
-    *bufL++;
-    printf("Inside..");
-    memcpy(*bufL, mapa, 4);
-    *bufL=*bufL+3;
-    printf("buf: |%s|, bufL: |%s|, bufB: |%s| \n", buf,* bufL, bufB);
-    memcpy(*bufL, mapa2, 2);
-    *bufL=*bufL+1;
-    printf("buf: |%s|, bufL: |%s|, bufB: |%s| \n", buf,* bufL, bufB);
-    counter++;    
-    printf("counter %d\n", counter);
-    if (counter<3)
-	recWrite();
-    return 0;
-}
-*/
 int main(int argc, char* argv[]) {
-	//return 0;
 	int port = 6543;
 	if (argc>1) 
 		port = atoi(argv[1]);
-	printf("Listener: running port ----> %d\n", port);
-/*
-	int size=4096;
-	bufB =(char *)malloc(size);
-	char dupa[3]="AB";
-	char pupa[3]="CD";
-	buf=bufB;
-	char *bufE=bufB+size;
-	counter=0;	
-	
-	memcpy(buf, dupa, 3);
-	printf("buffer is %s\n", buf);
-	printf("bufB is %s\n", bufB);
-	buf++;
-	buf++;
-	printf("buffer is %s \n", buf);
-	printf("bufB is %s \n", bufB);
-	memcpy(buf, pupa, 3);
-	printf("buffer is %s \n bufB is %s \n", buf, bufB);
-	buf++;
-	buf++;
-	printf("Entering recWrite");
-	recWrite();
-	printf("buf is %s \n bufB is %s \n", buf, bufB);
-	return 0;
-*/
+	printf("[Listener.MAIN] Running port ----> %d\n", port);
+
 	int res;
 	Listener *ls = new Listener();
 	
 	if ((res=(ls->Start(port)))!=0) {
-	    printf("Listener: ends with ERROR: %d \n", res);
+	    printf("[Listener.MAIN]--> ends with ERROR: %d \n", res);
 	    return res;
 	}
-	printf("Listener: ends \n");
+	printf("[Listener.MAIN]--> ends \n");
 	return 0;	
 }
 
