@@ -18,8 +18,7 @@ using namespace Errors;
 
 int main(int argc, char* argv[])
 {
-	SBQLConfig* config = new SBQLConfig("store");
-	config->init("example.conf");
+	//config->init("example.conf");
 	ErrorConsole* ec = new ErrorConsole("Store");
 	ec->init(1);
 	LogManager* log = new LogManager();
@@ -28,7 +27,7 @@ int main(int argc, char* argv[])
 	if (argc == 1)
 	{
 		DBStoreManager* store = new DBStoreManager();
-		store->init(config, log);
+		store->init(log);
 		store->setTManager(TransactionManager::getHandle());
 		store->start();
 		cout << "Store started" << endl;
@@ -53,7 +52,7 @@ int main(int argc, char* argv[])
 	if (argc > 1 && strcmp(argv[1], "mk") == 0) 
 	{
 		DBStoreManager* store = new DBStoreManager();
-		store->init(config, log);
+		store->init(log);
 		store->setTManager(TransactionManager::getHandle());
 		store->start();
 		PagePointer* p[1000];
@@ -71,7 +70,7 @@ int main(int argc, char* argv[])
 	if (argc > 1 && strcmp(argv[1], "mo") == 0)
 	{
 		DBStoreManager* store = new DBStoreManager();
-		store->init(config, log);
+		store->init(log);
 		store->setTManager(TransactionManager::getHandle());
 		store->start();
 
@@ -108,7 +107,7 @@ int main(int argc, char* argv[])
 	else
 	{
 		DBStoreManager* store = new DBStoreManager();
-		store->init(config, log);
+		store->init(log);
 		store->setTManager(TransactionManager::getHandle());
 		store->start();
 	
