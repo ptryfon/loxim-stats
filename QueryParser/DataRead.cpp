@@ -89,30 +89,188 @@ int DataScheme::readData(){
 	cout << "nie udalo sie zrobic tranzakcji" << endl;
         
 	
-    tr->getRoots("MDN", roots);	
+    tr->getRoots("MetaDataNode", roots);	
     cout << "odebral " << roots->size() << " obiektow"<< endl;
     for (int i = 0; i < roots->size(); i++){
-	cout << "id " << (*roots)[i]->getLogicalID()->toInteger() << endl;
-	cout << "name " << (*roots)[i]->getName() << endl;
-	cout << "to string : " << (*roots)[i]->toString() << endl;
+	ObjectPointer * mainOp = (*roots)[i];
+	DataObjectDef * datObDef = new DataObjectDef();	// ten obiekt wypelniam 
+	cout << "id " << mainOp->getLogicalID()->toInteger() << endl;
+	cout << "name (wydaje mi sie zer powinno byc MetaDataNode) jesli co iinego to ???? " << mainOp->getName() << endl;
+	cout << "to string : " << mainOp->toString() << endl;
+	// wydaje mi sie ze tu sa same obiekty zlozone
+	DataValue *dv = mainOp->getValue();	// zakladam ze tu jest wektor wskaznikow do logicalId
+	vector<LogicalID*>* v = dv->getVector();
+	/*	zakladam ze w tym wektorze sa wskazniki do logicalID obiektow:
+		o nazwie name kind card type owner target subobject 
+	*/
+	datObDef->setMyId(mainOp->getLogicalID()->toInteger());
 	
-    }
-    /* teraz to obrabiam w 2 podejciach, najpierw tworze obiekty, wstawiam do
-	this->baseObjects i this->refTable
-	oraz ustawiam pola rozne od owner i target
+	ObjectPointer *op = NULL;
+	// ----------------------------------------------------- name
+	for (int j = 0; j < v->size(); j++){
+	    // czy acces mode sie robi w ten sposob?
+	    tr->getObjectPointer( (*v)[j], Store::Read, op);
+	    // moze tak nie mozna porownywac getName zwraca stringa **
+	    if (op->getName() == "name")
+		j = v->size();	// break
+	}
+	if (op == NULL)
+	    cout << "ERROR w readData nie moze ustalic nazwy obiektu " << endl;
 	
-	potem przechodze jeszcze raz i moge ustawic pola owner i target
-    */
-    
-    // a moze  w owner i target zamiast wskaznika dac id - int
-    // moze listy zamienic listami stl'a i refTable hashMapem'
-    
-    //tr->getRoots(roots);	// nie wiem dlaczego ale tto tez nie dziala
-    //cout << "odebral " << roots->size() << " obiektow"<< endl;
-    
-//    for (int i = 0; i < roots->size(); i++){
+	cout << "wyluskal taka nazwa obiektu " << op->getValue()->getString();    
+	datObDef->setName(op->getValue()->getString());    
 	
-//    }
+	// ----------------------------------------		kind
+	
+	op = NULL;
+	for (int j = 0; j < v->size(); j++){
+	    // czy acces mode sie robi w ten sposob?
+	    tr->getObjectPointer( (*v)[j], Store::Read, op);
+	    // moze tak nie mozna porownywac getName zwraca stringa **
+	    if (op->getName() == "kind")
+		j = v->size();	// break
+	}
+	if (op == NULL)
+	    cout << "ERROR w readData nie moze ustalic kind obiektu " << endl;
+	
+	cout << "wyluskal taka kind obiektu " << op->getValue()->getString();    
+	datObDef->setKind(op->getValue()->getString());    
+	
+	// ----------------------------------------		card
+	
+	op = NULL;
+	for (int j = 0; j < v->size(); j++){
+	    // czy acces mode sie robi w ten sposob?
+	    tr->getObjectPointer( (*v)[j], Store::Read, op);
+	    // moze tak nie mozna porownywac getName zwraca stringa **
+	    if (op->getName() == "card")
+		j = v->size();	// break
+	}
+	if (op == NULL)
+	    cout << "ERROR w readData nie moze ustalic card obiektu " << endl;
+	
+	cout << "wyluskal taka card obiektu " << op->getValue()->getString();    
+	datObDef->setCard(op->getValue()->getString());    
+	
+	// ----------------------------------------		card
+	cout << "sprawdza czy obiekt jest atomowy - byc moze w zly sposob " << endl;
+	// FIXME nie wiem czy tak mozna getKind zwraca stringa    
+	if (datObDef->getKind() == "atomic"){
+	    op = NULL;
+	    for (int j = 0; j < v->size(); j++){
+		// czy acces mode sie robi w ten sposob?
+	        tr->getObjectPointer( (*v)[j], Store::Read, op);
+		// moze tak nie mozna porownywac getName zwraca stringa **
+	        if (op->getName() == "type")
+			j = v->size();	// break
+		else op = NULL;	
+		}
+	    if (op == NULL)
+		cout << "ERROR w readData nie moze ustalic card obiektu " << endl;
+	
+	    cout << "wyluskal taki type obiektu " << op->getValue()->getString();    
+	    datObDef->setType(op->getValue()->getString());    
+	}
+	
+	// ----------------------------------------		owner - nie wypelniam tylko sprawdzam czy ustawiony/jest
+						    // jezeli jest tzn. ze obiekt jest bazowy 
+	op = NULL;
+	for (int j = 0; j < v->size(); j++){
+	    // czy acces mode sie robi w ten sposob?
+	    tr->getObjectPointer( (*v)[j], Store::Read, op);
+	    // moze tak nie mozna porownywac getName zwraca stringa **
+	    if (op->getName() == "owner")
+		j = v->size()+10;	// break
+	    else op = NULL;	
+	}
+	if (op == NULL){
+	    cout << "readData nie moze ustalic owner - czyli obiekt nei jest bazowy" << endl;
+	    this->addBaseObj(datObDef);
+	} else {
+	    this->addObj(datObDef);
+	}
+	
+	// ---------------------- pozostaje jeszcze ustawic owner, target, subobject
+	
+    }	// end for dla kazdego obiektu MetaDataNode
+    
+    
+    
+    
+    // teraz jeszcze raz tak samo wczytuje i ustawiam obiektom pola owner, target, subobject
+    // kazdy podobiekt 
+    
+    
+    
+        
+    for (int i = 0; i < roots->size(); i++){
+	ObjectPointer * mainOp = (*roots)[i];
+	DataObjectDef * datObDef = getObjById(mainOp->getLogicalID()->toInteger());// ten obiekt wypelniam 
+
+	DataValue *dv = mainOp->getValue();	// zakladam ze tu jest wektor wskaznikow do logicalId
+	vector<LogicalID*>* v = dv->getVector();
+	/*	zakladam ze w tym wektorze sa wskazniki do logicalID obiektow:
+		o nazwie owner target subobject 
+	*/
+	ObjectPointer *op = NULL;
+		
+	// ----------------------------------------		owner - nie wypelniam tylko sprawdzam czy ustawiony/jest
+						    // jezeli jest tzn. ze obiekt jest bazowy 
+	op = NULL;
+	for (int j = 0; j < v->size(); j++){
+	    // czy acces mode sie robi w ten sposob?
+	    tr->getObjectPointer( (*v)[j], Store::Read, op);
+	    // moze tak nie mozna porownywac getName zwraca stringa **
+	    if (op->getName() == "owner")
+		j = v->size();	// break
+	    else op = NULL;
+	}
+	if (op == NULL){
+	    cout << "readData nie moze ustalic owner - czyli obiekt nei jest bazowy" << endl;
+	    datObDef->setOwner(NULL);
+	} else {
+	    datObDef->setOwner(getObjById(op->getValue()->getPointer()->toInteger()));
+	}
+
+	// -------------------------------------------		target ustawiamy jesli to obiekt typu link
+
+	if (datObDef->getKind()=="link"){
+	    
+	    op = NULL;
+	    for (int j = 0; j < v->size(); j++){
+		// czy acces mode sie robi w ten sposob?
+	        tr->getObjectPointer( (*v)[j], Store::Read, op);
+		// moze tak nie mozna porownywac getName zwraca stringa **
+	        if (op->getName() == "target");
+		    j = v->size();	// break
+	    }
+	    
+	    datObDef->setTarget(getObjById(op->getValue()->getPointer()->toInteger()));
+	
+	}
+	
+	// -------------------------------------------		suboject y ustawiamy jesli to obiekt typu complex
+	
+	if (datObDef->getKind() == "complex"){
+	    
+	    op = NULL;
+	    for (int j = 0; j < v->size(); j++){
+		// czy acces mode sie robi w ten sposob?
+	        tr->getObjectPointer( (*v)[j], Store::Read, op);
+		// moze tak nie mozna porownywac getName zwraca stringa **
+	        if (op->getName() == "subobject"){
+		    DataObjectDef * subobj = getObjById(op->getLogicalID()->toInteger());  
+		    subobj->getOwner()->addSubObject(subobj);
+		}
+	    }
+	    
+//	    dataObDef->setTarget(getObjById(op->getValue()->getPointer()->toInteger()));
+	
+	}
+	
+    }	// end for dla kazdego obiektu MetaDataNode
+    
+    
     
     // -----------------------------------------------------------------------
     // recznie tworze przykladowy schemat
