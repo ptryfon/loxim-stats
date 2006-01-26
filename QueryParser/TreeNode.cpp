@@ -2,6 +2,8 @@
 #include "Stack.h"
 #include "DataRead.h"
 #include "Optymalizator.h"
+#include "stdio.h"
+#include "stdlib.h"
 
 namespace QParser 
 {
@@ -56,7 +58,7 @@ namespace QParser
 			else return rarg->optimizeTree();
 		} else hInd->putToString();
 		TreeNode *prt = this->parent;
-		prt-> swapSon (this, this->factorSubQuery(hInd, "newName"));/*TODO: to */
+		prt-> swapSon (this, this->factorSubQuery(hInd, randomString()));/*TODO: to */
 		return -2;	/*found ind. subquery and factored it. restart the whole procedure.. */
 	}
 
@@ -266,8 +268,14 @@ namespace QParser
 	}
 
 	string TreeNode::randomString(){
-	    int a = 9999;
-	    string s("newName");
+	    char buf[21];
+	    buf[20] = 0;
+	    for (int i = 0; i < 20; i++){
+		int z = rand() % 22;
+		buf[i] = (char) ('a' + z);
+	    } 
+	    string s(buf);
+	    cout << "-----------------------------------funkcja randomString zwraca 20 literowy napis: " << s << endl;
 	    return s;
 	}
 		
