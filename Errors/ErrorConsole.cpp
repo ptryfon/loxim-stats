@@ -9,18 +9,15 @@ using namespace std;
 
 namespace Errors {
 	ofstream* ErrorConsole::consoleFile = NULL;
-	int ErrorConsole::nObjects = 0;
 	int ErrorConsole::serr = 0;
 
 	ErrorConsole::ErrorConsole()
        	{
-		nObjects++;
 	};
 
 	ErrorConsole::ErrorConsole(string module)
 	{
 		owner = module;
-		nObjects++;
 	};
 
 //	int ErrorConsole::init(void)
@@ -138,12 +135,15 @@ namespace Errors {
 		return *this;
 	};
 
-	ErrorConsole::~ErrorConsole()
+	void ErrorConsole::free(void)
        	{
-		nObjects--;
-		if (nObjects == 0) {
+		if (consoleFile != NULL) {
 			delete consoleFile;
 			consoleFile = NULL;
 		}
+	};
+
+	ErrorConsole::~ErrorConsole()
+       	{
 	};
 }

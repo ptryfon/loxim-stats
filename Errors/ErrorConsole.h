@@ -10,7 +10,6 @@ namespace Errors {
 	class ErrorConsole {
 		private:
 			static ofstream* consoleFile;
-			static int nObjects;
 			static int serr;
 			string owner;
 		public:
@@ -18,6 +17,7 @@ namespace Errors {
 			ErrorConsole(string module);
 
 			int init(int tostderr);
+			void free(void);
 			virtual ErrorConsole& operator<<(int error);
 			virtual ErrorConsole& operator<<(string errorMsg);
 			virtual ErrorConsole& printf(const char *format, ...);
