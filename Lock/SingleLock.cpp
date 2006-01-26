@@ -13,13 +13,17 @@ namespace LockMgr
 	sem 	= _sem;		
 	tid	= _tid;
 	waiting = 0;
-	
+
 	if ( _mode == Read ) sem->lock_read();
 	if ( _mode == Write) sem->lock_write();
 
 	/* set of transactions that locked an object */
-	current = new TransactionIdSet;
-	current->insert(*tid);
+	currentRead = new TransactionIdSet;
+	currentWrite = new TransactionIdSet;
+	if (_mode == Read)
+	    currentRead->insert(*tid);
+	else
+	    currentWrite->insert(*tid);
 
 	mutex = new Mutex();
 	mutex->init();
@@ -27,48 +31,57 @@ namespace LockMgr
 
     SingleLock::~SingleLock()
     {
-	delete current;
+	delete currentRead;
+	delete currentWrite;
     }
 
     int SingleLock::wait_for_lock(TransactionID *_tid, AccessMode _mode)
     {
+	int errorCode;
+	errorCode = 0;
 	/* prevention against deadlocks: strategy wait - die */
-	mutex->down();		
-		if ( tid->getId() < _tid->getId() ) 
+	mutex->down();
+		if ( tid->getId() < _tid->getId() )
 		/* younger dies ( younger = higher id ) */
 		{
 			mutex->up();
 			return -1; // error abort (rollback) transction
 		}
-		
-	int isCurrent = current->find(*_tid) != current->end();
+
+	int isCurrentRead = currentRead->find(*_tid) != currentRead->end();
+	int isCurrentWrite = currentWrite->find(*_tid) != currentWrite->end();
 	waiting++;
-	
+
 	mutex->up();
-	
-	if (_mode == Read && !isCurrent) 
+
+	if (_mode == Read && !isCurrentRead)
 	{		
-		sem->lock_read();
+		errorCode = sem->lock_read();
 	}
-	else if (_mode == Write && isCurrent)
+	else if (_mode == Write && isCurrentRead && !isCurrentWrite)
 	{
-		sem->lock_upgrade(_tid->getId());
+		errorCode = sem->lock_upgrade(_tid->getId());
 	}
-	else if (_mode == Write && !isCurrent)
+	else if (_mode == Write && !isCurrentWrite)
 	{
-		sem->lock_write();
+		errorCode = sem->lock_write();
 	}
 
-	mutex->down();
+	if (errorCode == 0)
+	{
+	    mutex->down();
 	
-		waiting--;	
-		current->insert(*_tid);
+		waiting--;
+		if (_mode == Read)
+		    currentRead->insert(*_tid);
+		else
+		    currentWrite->insert(*_tid);
 		tid = _tid;
 		inside++;
 
-	mutex->up();
-	
-   	return 0;
+	    mutex->up();
+	}
+   	return errorCode;
     }
 
     int SingleLock::unlock(TransactionID* tid)
@@ -78,9 +91,12 @@ namespace LockMgr
 	mutex->down();
 
 		inside--;
-		current->erase(*tid);
+		if (currentRead->find(*tid) != currentRead->end())
+		    currentRead->erase(*tid);
+		if (currentWrite->find(*tid) != currentWrite->end())
+		    currentWrite->erase(*tid);
 		
-		if (inside == 0 && waiting == 0)	
+		if (inside == 0 && waiting == 0)
 		    delete_lock = 1;
 		
 	mutex->up();

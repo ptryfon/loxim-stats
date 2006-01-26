@@ -39,7 +39,8 @@ class SingleLock
 		 * (if the mode is for reading there may be many transactions that hold on object )
 	     	 */
 	    	typedef set<TransactionID ,TransactionIDCmp> TransactionIdSet;
-	    	TransactionIdSet* current; 
+	    	TransactionIdSet* currentRead;
+		TransactionIdSet* currentWrite;
 
 		/* how many transactions lock an object */
 	    	int inside;
