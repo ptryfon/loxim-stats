@@ -40,7 +40,7 @@ int Listener::Lock(SBQLConfig *config)
   struct stat statBuf;
   int fileDes;
 
-  if( ( errCode = config->getString( LOCK_PATH_KEY, lockPath ) ) ) {
+  if((errCode=config->getString( LOCK_PATH_KEY, lockPath ))!=0) {
   	printf("[Listener.Lock]-->Error while reading config\n"); 
   	return errCode;
   }
@@ -142,13 +142,15 @@ void sigHandler(int sig) {
 	status=getMyIndex(int(pself));
 	if (status<0) {    
 	    pthread_mutex_unlock(&mut);
-	    exitPoint(); //TODO args!
+	    printf("[Listener-sigHandler-Thread%d]-->index not found \n", (int)pself); //TODO args!
+	    exitPoint();
 	}
 	srvs[status]->SExit(0);	
 	pthread_mutex_unlock(&mut);
 	
 	printf("[Listener-sigHandler-Thread%d]--> Exiting \n", (int)pself); 
-	exitPoint();
+	return;
+	//exitPoint();
     }	
 }    
 
@@ -190,14 +192,21 @@ int Listener::Start(int port) {
 	
 	
 	printf("[Listener.Start]--> Initializing objects.. \n");
-	SBQLConfig* config = new SBQLConfig("Server");
-	config->init();
+	
+	SBQLConfig* config = new SBQLConfig("Server.conf");
+	errorCode=config->init();
+	if (errorCode!=0) 
+		printf("Listener.Start]--> Config init failed with %d\n", errorCode);
+	
 	ErrorConsole con("Server");
-	con.init(1);
+	errorCode=con.init(1);
+	if (errorCode!=0) 
+		printf("Listener.Start]--> ErrorConsole init failed with %d\n", errorCode);
+	
 	lCons=&con;
 	lConf=config;	
-	
-	Lock(lConf);
+	Lock(config);
+	//Lock(lConf);
 	
 	sigset_t lBlock_cc;
 	sigemptyset(&lBlock_cc);

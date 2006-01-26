@@ -395,7 +395,7 @@ while (!signalReceived) {
 	res = (Receive(&messgBuff, &size));
 	if (res != 0) {
 	    printf("[Server.Run--> Receive returned error code %d\n", res);
-	    sendError(res);
+	    //sendError(res);
 	    return res;
 	}    
 	if (messgBuff==NULL) {
