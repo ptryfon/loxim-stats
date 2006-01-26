@@ -13,7 +13,6 @@ namespace Config {
 
 	SBQLConfig::SBQLConfig(string module)
 	{
-		nObjects++;
 		callerModule = module;
 		callerModuleOpts = findConfigModule(callerModule);
 	};
@@ -320,11 +319,11 @@ namespace Config {
 			while (opt != NULL) {
 				popt = opt;
 				opt = opt->nextOpt;
-				free(popt);
+				std::free(popt);
 			}
 			pmod = mod;
 			mod = mod->nextMod;
-			free(pmod);
+			std::free(pmod);
 		}
 		config = NULL;
 	};
