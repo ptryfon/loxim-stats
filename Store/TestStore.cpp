@@ -35,13 +35,18 @@ int main(int argc, char* argv[])
 		TransactionID tid(1);
 		cout << "TID ok" << endl;
 		DataValue* dv = store->createIntValue(7);
-		cout << "Create INT" << endl;
-		ObjectPointer* op;
+		cout << "Created INT" << endl;
+		ObjectPointer* op_kilof;
+		ObjectPointer* op_motyka;
 		
 		cout << "Odpalam createObject" << endl;
-		store->createObject(&tid, "kilof", dv, op);
+		store->createObject(&tid, "kilof", dv, op_kilof);
 
-//		store->createObject(&tid, "motyka", dv, op);
+		dv = store->createStringValue("ala ma kota");
+		cout << "Created String" << endl;
+
+		store->createObject(&tid, "motyka", dv, op_motyka);
+		
 		
 		
 		store->stop();

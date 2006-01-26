@@ -154,8 +154,7 @@ namespace Store
 		switch(type) {
 			case Store::Integer: s += *value.int_value; break;
 			case Store::Double:  s += *value.double_value; break;
-			case Store::String:  s += static_cast<int>(value.string_value->size());
-				s += *value.string_value; break;
+			case Store::String:  s += *value.string_value; break;
 			case Store::Pointer: s += *value.pointer_value; break;
 			case Store::Vector: {
 				vector<LogicalID*>::iterator obj_iter;
