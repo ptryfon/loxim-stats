@@ -58,7 +58,21 @@ namespace QParser
 			else return rarg->optimizeTree();
 		} else hInd->putToString();
 		TreeNode *prt = this->parent;
-		prt-> swapSon (this, this->factorSubQuery(hInd, randomString()));/*TODO: to */
+		if (prt == NULL) fprintf(stderr, "parent is NULL ! \n");
+		else {
+		    fprintf (stderr, "parent is ... NOT NULL ! \n");
+		    prt->putToString();
+		    fprintf (stderr, "it was put to string here, huh? \n");
+		    }
+		TreeNode *fctrd = this->factorSubQuery(hInd, randomString());
+		fprintf(stderr,"\noo\n");
+		fctrd->putToString();
+		fprintf(stderr,"\noo\n");
+		fprintf(stderr, "zrobilem pomyslnie factor\n");
+		if (prt != NULL)
+			prt-> swapSon (this, this->factorSubQuery(hInd, randomString()));/*TODO: to */
+		
+		fprintf (stderr, "zrobilem swap'a, na factorSubQuery\n");
 		return -2;	/*found ind. subquery and factored it. restart the whole procedure.. */
 	}
 

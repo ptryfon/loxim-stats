@@ -72,7 +72,7 @@ namespace QParser {
 
 	string zap = "EMP where SAL = (EMP where NAME=\"KUBA\").SAL;";
 	
-	if (false && (query != zap)){
+	if (false || (query == zap)){
 	    cout << "TEST START---------------------------------------------------------------------------------" << endl;
 	    stringstream ss (stringstream::in | stringstream::out);
 	    ss << zap;
@@ -105,7 +105,10 @@ namespace QParser {
 		//cout << "-----------" << endl;
 		
 		int optres = nt->optimizeTree();
-		cout << "KONIEC OPTYMALIZACJI--------------------------------------------------------"<< endl;
+		cout << "KONIEC OPTYMALIZACJI-------------------------------------------------------"<< endl;
+		cout << "przewijanie ... " << endl;
+		while (nt->getParent() != NULL) nt = nt->getParent();
+		cout << "po przewijaniu, mamy raczej dobre poddrzewko... " << endl;
 		fprintf (stderr, "__%d__", optres);
 
 		cout << "po optymalizacji" << endl;
