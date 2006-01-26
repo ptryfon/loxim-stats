@@ -8,7 +8,7 @@
 
 //using namespace Listener;
 
-//Server *srvs[MAX_CLIENTS];
+Server *srvs[MAX_CLIENTS];
 pthread_t pthreads[MAX_CLIENTS];
 int threads_count;
 Listener *ls;
@@ -44,8 +44,10 @@ void *exitPoint() {
 //LOCK MUTEX BEFORE USING THIS ONE!
 int getMyIndex(int pt_id) {
     int i;
+    i=0;
     
     while (i<threads_count) {
+    	printf("INDEX: %d, Value %d, my pt_id %d\n", i, (int)(pthreads[i]), pt_id );
 	if (((int)(pthreads[i]))==pt_id) {
 	    printf("[Listener.getMyIndex]-->Found index\n");
 	    return i;
@@ -86,7 +88,7 @@ void sigHandler(int sig) {
     }
     else {
 	printf(".. I am a Server thread\n");
-	/* TODO clean mess
+	// TODO clean mess
 	pthread_mutex_lock(&mut);
 	
 	status=getMyIndex(int(pself));
@@ -96,7 +98,7 @@ void sigHandler(int sig) {
 	}
 	srvs[status]->SExit(0);	
 	pthread_mutex_unlock(&mut);
-	*/
+	
 	printf("Listener-sigHandler-Thread%d: Exiting \n", (int)pself); 
 	exitPoint();
     }	
@@ -112,16 +114,16 @@ void *createServ(void *arg) {
     }	
     Server *srv = new Server(socket);
     
-    /* TODO update thread global data
+    // TODO update thread global data
     pthread_mutex_lock(&mut);
 	if ((res=getMyIndex((int)pthread_self()))<0) {
 	    pthread_mutex_unlock(&mut);
 	    pthread_exit((void *)res);
 	}
-	printf("Listener-createServ: Putting my server object into global table..\n");
+	printf("Listener-createServ: Putting my server object into global table..(index=%d)\n", res);
 	srvs[res]=srv;
     pthread_mutex_unlock(&mut);	
-    */
+  
     printf("Listener-createServ: Executing server code now.. \n");
     res=srv->Run();
     printf("Listener-createServ: Server returned |%d|, exiting \n", res); 
@@ -161,6 +163,7 @@ int Listener::Start(int port) {
 	    ListenOnSocket(sock, &newSock);
 	    printf("Listener: Got connection! Connection number |%d| \n", threads_count+1);
 	    sigprocmask(SIG_BLOCK, &lBlock_cc, NULL);
+	    pthread_mutex_lock(&mut);
 	    thread_sockets[threads_count]=newSock;
 	
 	    if ((errorCode=pthread_create(&pthreads[threads_count], NULL, createServ, &thread_sockets[threads_count]))!=0) {
@@ -169,11 +172,13 @@ int Listener::Start(int port) {
 		for (i=0;i<threads_count;i++) {
 		    if ((errorCode=pthread_join(pthreads[i], (void **)&status))!=0) { //STATUS !!
 			printf("Listener: ERROR - failed to join thread: %s\n", strerror(errorCode));
+			pthread_mutex_unlock(&mut);
 			exit(errorCode);
 		    }   
 		    if (status!=0) {
 			printf("Listener: Server thread nr. |%d| terminated with error\n", i);
-			exit(1);
+			pthread_mutex_unlock(&mut);
+			exit(status);
 		    }
 		    else {
 			printf("Listener: JOINED thread nr. |%d|\n", i);
@@ -184,6 +189,7 @@ int Listener::Start(int port) {
 		printf("Listener: THREAD creation SUCCESSFUL -> thread nr. |%d|\n", i);
 		threads_count++;
 	    }
+	    pthread_mutex_unlock(&mut);
 	    printf("Listener: THREAD handled\n");
 	    sigprocmask(SIG_UNBLOCK, &lBlock_cc, NULL);
 	}
