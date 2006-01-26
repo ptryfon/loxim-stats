@@ -2,6 +2,8 @@
 #define __STORE_MISC_H_
 
 #include "Store.h"
+#include <iostream>
+using namespace std;
 
 namespace Store
 {

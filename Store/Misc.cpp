@@ -23,7 +23,7 @@ namespace Store
 	}
 	
 	Serialized& Serialized::operator=(const Serialized& s)
-	{
+	{s.info();
 		if(this != &s) {
 			if(bytes) delete[] bytes;
 			bytes = new unsigned char[realsize = size = s.size];
@@ -68,7 +68,8 @@ namespace Store
 	{
 		int slen = s.length();
 		Serialized z(sizeof(int)+slen);
-		for(int i=0; i<slen; i++) z.bytes[i] = s[i];
+		*(reinterpret_cast<int*>(z.bytes)) = slen;
+		for(int i=0; i<slen; i++) z.bytes[i+sizeof(int)] = s[i];
 		return ((*this) += z);
 	}
 
@@ -93,6 +94,11 @@ namespace Store
 		Serialized z(sizeof(T));
 		*(reinterpret_cast<T*>(z.bytes)) = s;
 		return z;
+	}
+
+	void Serialized::info() const
+	{
+		cout << "SRLZobj: size: " <<size<<"/"<<realsize<<endl;
 	}
 
 }

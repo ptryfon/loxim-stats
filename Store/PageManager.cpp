@@ -116,12 +116,13 @@ namespace Store
 		int lastoffset = page->object_count > 0 ?
 			page->object_offset[page->object_count-1] : STORE_PAGESIZE;
 		page->free_space -= obj.size + sizeof(int);
-		int newoffset = lastoffset - obj.size - sizeof(int);
+		int newoffset = lastoffset - obj.size;
 		page->object_offset[page->object_count] = newoffset;
 		for(int i=0; i<obj.size; i++)
 			page->bytes[newoffset+i] = obj.bytes[i];
 		page->object_count++;
-
+		printPage((unsigned char*)obj.bytes, obj.size/16);
+		
 		ec << "Store::PageManager::insertObject done";
 		return 0;
 	}
@@ -210,6 +211,7 @@ namespace Store
 			p->header.page_type = STORE_PAGE_DATAPAGE;
 			p->free_space = MAX_FREE_SPACE;
 		}
+		printPage(reinterpret_cast<unsigned char*>(page), 3);
 		ec << "Store::PageManager::initializePage done";
 		return 0;
 	}
@@ -270,9 +272,18 @@ namespace Store
 		pFree->aquire();
 		page_data* f = reinterpret_cast<page_data*>(pFree->getPage());
 
-		f->object_offset[(p->header.page_id%MAX_OBJECT_COUNT)-1] =
-			f->free_space;
+		int offset = (p->header.page_id%MAX_OBJECT_COUNT)-1;
+		if(f->object_count < offset) {
+			ec << "Store::PageManager::updateFreeMap ERROR: HEADER PAGE FAULT";
+			return -1;
+		}
+		if(f->object_count == offset) {
+			f->object_count++;
+			f->free_space--;
+		}
+		f->object_offset[offset] =	p->free_space;
 		
+		//printPage(pPtr, 3);
 		pFree->release();
 
 		ec << "Store::PageManager::updateFreeMap done";
@@ -281,13 +292,18 @@ namespace Store
 	
 	void PageManager::printPage(PagePointer* ptr, int lines)
 	{
+		unsigned char* bytes = reinterpret_cast<unsigned char*>(ptr->getPage());
+		return printPage(bytes, lines);
+	}
+
+	void PageManager::printPage(unsigned char* bytes, int lines)
+	{
 		// DOBRA INTERPRETACJA ALE wypisuje jakies teksty:
 		// "Store: create string wit null pointercreate string with null pointercreate...." itd
 		//ErrorConsole ec("Store");
   // nie wykonujecie tej metody!
   // jedyne miejsce gdzie ec->init ma prawo wystapic to main()
 		//ec.init(2); //ectw
-		unsigned char* bytes = reinterpret_cast<unsigned char*>(ptr->getPage());
 		//string tmpstr = "";
 		
 		for(int l=0; l<lines; l++) {
@@ -316,6 +332,7 @@ namespace Store
 			//ec << tmpstr;
 			cout << endl;
 		}
+	
 	}
 	
 }

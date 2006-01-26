@@ -183,6 +183,7 @@ namespace Store
 		object = new DBObjectPointer(name, value, lid);
 
 		Serialized sObj = object->serialize();
+		sObj.info();
 
 		int freepage = pagemgr->getFreePage(); // strona z wystaraczajaca iloscia miejsca na nowy obiekt
 		//*ec << "Store::Manager::createObject freepage = " + freepage;
@@ -191,11 +192,15 @@ namespace Store
 
 		pPtr->aquire();
 
+		//cout << "przed:\n";
+		//pagemgr->printPage(pPtr, 1024/16);
 		PageManager::insertObject(pPtr, sObj);
+		//cout << "po:\n";
+		//pagemgr->printPage(pPtr, 1024/16);
 
 		pagemgr->updateFreeMap(pPtr);
 		
-		PageManager::printPage(pPtr, 1024/16);
+		//PageManager::printPage(pPtr, 1024/16);
 		pPtr->release();
 		
 		ec->printf("Store::Manager::createObject done: %s\n", object->toString().c_str());

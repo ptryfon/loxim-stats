@@ -84,14 +84,14 @@ namespace Store
 		//LogicalID
 		s += *(getLogicalID());
 		//Random
-		s += static_cast<int>((rand()%0x100) << 24 +
-			(rand()%0x100) << 16 + (rand()%0x100) << 8 + (rand()%0x100));
+		s += static_cast<int>(0x78563412);//((rand()%0x100) << 24 +
+			//(rand()%0x100) << 16 + (rand()%0x100) << 8 + (rand()%0x100));
 		//Name
 		s += getName();
 		//Value
 		s += *(getValue());
 		
-		return Serialized();
+		return s;
 	};
 
 	bool DBObjectPointer::operator==(ObjectPointer& dv)

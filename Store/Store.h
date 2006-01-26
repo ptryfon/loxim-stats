@@ -193,6 +193,7 @@ namespace Store
 		Serialized& operator+=(const LogicalID&);
 		Serialized& operator+=(const DataValue&);
 		template <typename T> Serialized& operator+=(const T&);
+		void info() const;
 		
 		unsigned char* bytes;
 		int size;

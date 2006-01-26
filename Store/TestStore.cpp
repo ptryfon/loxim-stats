@@ -41,6 +41,8 @@ int main(int argc, char* argv[])
 		
 		cout << "Odpalam createObject" << endl;
 		store->createObject(&tid, "kilof", dv, op);
+
+//		store->createObject(&tid, "motyka", dv, op);
 		
 		
 		store->stop();
