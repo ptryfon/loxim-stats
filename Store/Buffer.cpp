@@ -1,5 +1,5 @@
 /**
- * $Id: Buffer.cpp,v 1.23 2006-01-26 15:12:46 mk189406 Exp $
+ * $Id: Buffer.cpp,v 1.24 2006-01-26 15:48:11 mk189406 Exp $
  *
  */
 #include "Buffer.h"
@@ -205,8 +205,11 @@ namespace Store
 				::pthread_cond_signal(&dbwriter.cond);
 
 			n_page->lock = 0;
-			n_page->dirty = 1;
-			dbwriter.dirty_pages++;
+
+			if (n_page->dirty != 1) {
+				n_page->dirty = 1;
+				dbwriter.dirty_pages++;
+			}
 
 			::pthread_mutex_unlock(&dbwriter.mutex);
 			return 0;
