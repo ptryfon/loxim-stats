@@ -1,5 +1,5 @@
 /**
- * $Id: Buffer.cpp,v 1.21 2006-01-26 09:28:45 baggins Exp $
+ * $Id: Buffer.cpp,v 1.22 2006-01-26 13:26:50 md243003 Exp $
  *
  */
 #include "Buffer.h"
@@ -106,11 +106,20 @@ namespace Store
 		::pthread_mutex_lock(&dbwriter.mutex);
 		buffer_addr_t buffer_addr = make_pair(fileID, pageID);
 
+		//
+			cout << "Get Page Poiner, Request: file: "<<fileID<<", page: "<<pageID<<endl;
+			buffer_hash_t::iterator oi;
+			for(oi = buffer_hash.begin();
+				oi != buffer_hash.end(); oi++){
+				cout << "BH: " << (*oi).first.first <<","<< (*oi).first.second << endl;
+				
+			}
+		//
 		buffer_hash_t::iterator it = buffer_hash.find(buffer_addr);
 		if (it != buffer_hash.end() && (*it).second.haspage) {
 			n_page = &((*it).second);
 			::pthread_mutex_unlock(&dbwriter.mutex);
-				cout << "no to zmoczka\n";
+				cout << "Page found, out\n";
 			return new PagePointer(fileID, pageID, n_page->page, this);
 		}
 
@@ -125,7 +134,7 @@ namespace Store
 			for (unsigned int i = pnum; i <= pageID; i++) {
 				it = buffer_hash.find(make_pair(fileID, i));
 				if (it == buffer_hash.end() || !(*it).second.haspage) {
-				cout << "zaraz bedzie nowa strona\n";
+				cout << "Creatin new page\n";
 					n_page = new buffer_page;
 					n_page->page = new char[STORE_PAGESIZE];
 					switch (fileID) {
@@ -157,6 +166,7 @@ namespace Store
 		}
 
 		::pthread_mutex_unlock(&dbwriter.mutex);
+		cout << "Page from buffer, out" <<endl;
 		return new PagePointer(fileID, pageID, n_page->page, this);
 	};
 
