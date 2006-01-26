@@ -55,6 +55,12 @@ int main(int argc, char* argv[])
 		store->getObject(&tid, lid, Store::Write, op_kilof);
 		cout << op_kilof->toString() << endl;
 		
+		lid = op_motyka->getLogicalID();
+		op_motyka = NULL;
+		
+		cout << "Odpalam getObject" << endl;
+		store->getObject(&tid, lid, Store::Write, op_motyka);
+		cout << op_motyka->toString() << endl;
 		
 		
 		store->stop();

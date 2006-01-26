@@ -118,12 +118,17 @@ namespace Store
 	{
 		*ec << "Store::Manager::getObject started...";
 		
-		physical_id *p_id;
+		physical_id *p_id = NULL;
+		*ec << "get ph id";
 		map->getPhysicalID(lid->toInteger(), &p_id);
+		if(p_id == NULL) cout << "osz ty w morde\n";
+		*ec << "get page poin";
+		cout << "file: " << p_id->file_id << ", page: " << p_id->page_id << ", off: " << p_id->offset <<endl;
 		PagePointer *pPtr = buffer->getPagePointer(p_id->file_id, p_id->page_id);
 		
 		pPtr->aquire();
 		
+		*ec << "odpalam deserialize";
 		int rval = PageManager::deserialize(pPtr, p_id->offset, object);
 		
 		pPtr->release();
@@ -156,7 +161,8 @@ namespace Store
 
 		//cout << "przed:\n";
 		//pagemgr->printPage(pPtr, 1024/16);
-		PageManager::insertObject(pPtr, sObj);
+		int pidoffset;
+		PageManager::insertObject(pPtr, sObj, &pidoffset);
 		//cout << "po:\n";
 		//pagemgr->printPage(pPtr, 1024/16);
 
@@ -164,6 +170,12 @@ namespace Store
 		
 		//PageManager::printPage(pPtr, 1024/16);
 		pPtr->release();
+		
+		physical_id pid;
+		pid.page_id = freepage;
+		pid.file_id = STORE_FILE_DEFAULT;
+		pid.offset = pidoffset;
+		map->setPhysicalID(lid->toInteger(), &pid);
 		
 		ec->printf("Store::Manager::createObject done: %s\n", object->toString().c_str());
 		return 0;

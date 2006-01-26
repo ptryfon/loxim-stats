@@ -100,12 +100,9 @@ namespace Store
 		return 0;
 	}
 */	
-	int PageManager::insertObject(PagePointer *pPtr, Serialized& obj)
+	int PageManager::insertObject(PagePointer *pPtr, Serialized& obj, int* pidoffset)
 	{
 		ErrorConsole ec("Store");
-  // nie wykonujecie tej metody!
-  // jedyne miejsce gdzie ec->init ma prawo wystapic to main()
-//		ec.init(2); //ectw
 		ec << "Store::PageManager::insertObject begin...";
 		page_data *page = reinterpret_cast<page_data*>(pPtr->getPage());
 		
@@ -118,10 +115,10 @@ namespace Store
 		page->free_space -= obj.size + sizeof(int);
 		int newoffset = lastoffset - obj.size;
 		page->object_offset[page->object_count] = newoffset;
+		*pidoffset = page->object_count;
 		for(int i=0; i<obj.size; i++)
 			page->bytes[newoffset+i] = obj.bytes[i];
 		page->object_count++;
-		printPage((unsigned char*)obj.bytes, obj.size/16);
 		
 		ec << "Store::PageManager::insertObject done";
 		return 0;
@@ -130,22 +127,22 @@ namespace Store
 	int PageManager::deserialize(PagePointer *ptr, int objindex, ObjectPointer*& newobj)
 	{
 		ErrorConsole ec("Store");
-  // nie wykonujecie tej metody!
-  // jedyne miejsce gdzie ec->init ma prawo wystapic to main()
-//		ec.init(2); //ectw
 		ec << "Store::PageManager::deserializeObj begin...";
 		page_data *p = reinterpret_cast<page_data*>(ptr->getPage());
 		int osize = objindex > 0 ?
 			p->object_offset[objindex-1] - p->object_offset[objindex] :
 			STORE_PAGESIZE - p->object_offset[objindex];
 		unsigned char *startpos =
-			reinterpret_cast<unsigned char*>(p->bytes[p->object_offset[objindex]]);
+			reinterpret_cast<unsigned char*>(&(p->bytes[p->object_offset[objindex]]));
 		int usedbytes;
 		unsigned char *curpos = startpos;
 
 		DBLogicalID *lid;
 		usedbytes = DBLogicalID::deserialize(curpos, lid);
 		if(usedbytes > 0 ) curpos = curpos + usedbytes; else return -1;
+		
+		int random = *(reinterpret_cast<int*>(curpos));
+		curpos += sizeof(int);
 		
 		int slen = *(reinterpret_cast<int*>(curpos));
 		curpos += sizeof(int);
@@ -168,9 +165,6 @@ namespace Store
 	int PageManager::initializeFile(File* file)
 	{
 		ErrorConsole ec("Store");
-  // nie wykonujecie tej metody!
-  // jedyne miejsce gdzie ec->init ma prawo wystapic to main()
-//		ec.init(2); //ectw
 		ec << "Store::PageManager::initializeFile begin...";
 		char* rawpage = new char[STORE_PAGESIZE];
 		page_data* p = reinterpret_cast<page_data*>(rawpage);
@@ -191,9 +185,6 @@ namespace Store
 	int PageManager::initializePage(unsigned int page_num, char* page)
 	{
 		ErrorConsole ec("Store");
-  // nie wykonujecie tej metody!
-  // jedyne miejsce gdzie ec->init ma prawo wystapic to main()
-//		ec.init(2); //ectw
 		ec << "Store::PageManager::initializePage begin...";
 		bool isFreeMapPage = (page_num%(MAX_OBJECT_COUNT+1) == 0);
 	
@@ -211,7 +202,6 @@ namespace Store
 			p->header.page_type = STORE_PAGE_DATAPAGE;
 			p->free_space = MAX_FREE_SPACE;
 		}
-		printPage(reinterpret_cast<unsigned char*>(page), 3);
 		ec << "Store::PageManager::initializePage done";
 		return 0;
 	}
@@ -224,9 +214,6 @@ namespace Store
 	int PageManager::getFreePage(int space)
 	{
 		ErrorConsole ec("Store");
-  // nie wykonujecie tej metody!
-  // jedyne miejsce gdzie ec->init ma prawo wystapic to main()
-//		ec.init(2); //ectw
 		ec << "Store::PageManager::getFreePage begin...";
 		int pii = 0;
 		do	{
@@ -260,9 +247,6 @@ namespace Store
 	int PageManager::updateFreeMap(PagePointer *pPtr)
 	{
 		ErrorConsole ec("Store");
-  // nie wykonujecie tej metody!
-  // jedyne miejsce gdzie ec->init ma prawo wystapic to main()
-//		ec.init(2); //ectw
 		ec << "Store::PageManager::updateFreeMap begin...";
 		page_data* p = reinterpret_cast<page_data*>(pPtr->getPage());
 
@@ -283,7 +267,6 @@ namespace Store
 		}
 		f->object_offset[offset] =	p->free_space;
 		
-		//printPage(pPtr, 3);
 		pFree->release();
 
 		ec << "Store::PageManager::updateFreeMap done";
@@ -301,9 +284,6 @@ namespace Store
 		// DOBRA INTERPRETACJA ALE wypisuje jakies teksty:
 		// "Store: create string wit null pointercreate string with null pointercreate...." itd
 		//ErrorConsole ec("Store");
-  // nie wykonujecie tej metody!
-  // jedyne miejsce gdzie ec->init ma prawo wystapic to main()
-		//ec.init(2); //ectw
 		//string tmpstr = "";
 		
 		for(int l=0; l<lines; l++) {

@@ -26,7 +26,7 @@ namespace Store
 //		static int binarizeSize(ObjectPointer *obj);
 //		static int binarize(ObjectPointer *obj, BinaryObject*& binobj);
 //		static int writeNewHeader(PagePointer *ptr);
-		static int insertObject(PagePointer *ptr, Serialized& obj);
+		static int insertObject(PagePointer *ptr, Serialized& obj, int* pidoffset);
 		static int deserialize(PagePointer *ptr, int objindex, ObjectPointer*& newobj);
 		static int initializeFile(File* file);
 		static int initializePage(unsigned int page_num, char* page);

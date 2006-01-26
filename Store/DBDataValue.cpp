@@ -178,11 +178,11 @@ namespace Store
 		switch(type) {
 			case Store::Integer:
 				value = new DBDataValue(*(reinterpret_cast<int*>(curpos)));
-				return ((bytes-curpos)+sizeof(int));
+				return ((curpos-bytes)+sizeof(int));
 				break;
 			case Store::Double:
 				value = new DBDataValue(*(reinterpret_cast<double*>(curpos)));
-				return ((bytes-curpos)+sizeof(double));
+				return ((curpos-bytes)+sizeof(double));
 				break;
 			case Store::String: {
 				int slen = *(reinterpret_cast<int*>(curpos));
@@ -191,14 +191,14 @@ namespace Store
 				for(int i=0; i<slen; i++)
 					s += *(reinterpret_cast<char*>(curpos++));
 				value = new DBDataValue(s);
-				return (bytes-curpos);
+				return (curpos-bytes);
 			} break;
 			case Store::Pointer: {
 				DBLogicalID *lid;
 				int ub = DBLogicalID::deserialize(curpos, lid);
 				value = new DBDataValue();
 				value->setPointer(lid);
-				return ((bytes-curpos)+ub);
+				return ((curpos-bytes)+ub);
 			} break;
 			case Store::Vector: {
 				int vlen = *(reinterpret_cast<int*>(curpos));
@@ -213,7 +213,7 @@ namespace Store
 				}
 				value = new DBDataValue();
 				value->setVector(v);
-				return (bytes-curpos);
+				return (curpos-bytes);
 			} break;
 			default:
 				break;
