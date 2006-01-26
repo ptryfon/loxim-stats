@@ -2,6 +2,11 @@
 #define LISTENER_H_
 #define MAX_CLIENTS 16
 #include <signal.h>
+#include "../Errors/ErrorConsole.h"
+#include "../Config/SBQLConfig.h"
+
+using namespace Errors;
+using namespace Config;
 
 //namespace Listener 
 //{
@@ -28,13 +33,17 @@
 		int Start(int port);
 	// Made public for testing	
 		int CreateSocket(int port, int* created_socket);
+		int Lock(SBQLConfig *conf);
+		int Unlock(SBQLConfig *conf);
 				
 	private:
 	#define limit 5	// default max number of incomming connections at the same time
-	
+		SBQLConfig* lConf;
+		ErrorConsole* lCons;
 	// TCP methods
 		int ListenOnSocket(int sock, int* newSocket, int queueLength=limit);
 		int CloseSocket(int sock);
+		
 		
 	
 	// Creates Server class object for given connection
