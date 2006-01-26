@@ -37,7 +37,6 @@ class BackupManager
     configPath = aConfigPath;
     verboseLevel = aVerboseLevel;
     config = new SBQLConfig( "Backup" );
-    errno = 0;
   }
 
   int init()
