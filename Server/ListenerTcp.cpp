@@ -44,7 +44,7 @@ int Listener::CreateSocket(int port, int* created_socket) {
 	memset( Addr.sin_zero , 0, 8 );
     
     if (0 != bind (sock, (sockaddr*)&Addr, sizeof( sockaddr ) )) {
-       cerr << "blad przy bindowaniu" << endl;
+       cerr << "blad przy bindowaniu: " << strerror(errno) << endl;
        return errno | ErrTCPProto;
     }
     //TODO reszte tej funkcji mozna wyrzucic, jest tylko do celow diagnostycznych
@@ -98,7 +98,10 @@ int Listener::ListenOnSocket(int sock, int* newSocket, int queueLength)
 }
 
 int Listener::CloseSocket(int sock) {
-	if (0 == close(sock)) return 0;
+	if (0 == close(sock)) {
+	cerr << "gniazdo: " << sock << " zamkniete pomyslnie" << endl;
+	return 0;
+	}
 	else {
 		cerr << "blad przy zamykaniu gniazda" << endl;
 		return errno | ErrTCPProto;
