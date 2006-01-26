@@ -1,5 +1,5 @@
 /**
- * $Id: Buffer.cpp,v 1.20 2006-01-25 23:00:28 md243003 Exp $
+ * $Id: Buffer.cpp,v 1.21 2006-01-26 09:28:45 baggins Exp $
  *
  */
 #include "Buffer.h"
@@ -17,7 +17,9 @@ namespace Store
 		this->file = new File(store);
 		this->started = 0;
 		this->ec = new ErrorConsole("Store");
-		this->ec->init(2); //ectw
+  // nie wykonujecie tej metody!
+  // jedyne miejsce gdzie ec->init ma prawo wystapic to main()
+//		this->ec->init(2); //ectw
 	};
 
 	Buffer::~Buffer()

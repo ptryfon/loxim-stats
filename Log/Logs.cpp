@@ -24,7 +24,9 @@ int LogManager::flushLog()
 
 int LogManager::init()
 {
-  ec->init(2);
+  // nie wykonujecie tej metody!
+  // jedyne miejsce gdzie ec->init ma prawo wystapic to main()
+  // ec->init(2);
   // otwieramy plik z logami
   if( ( fileDes = ::open( LOG_FILE_PATH, O_WRONLY | O_CREAT | O_APPEND, S_IWUSR | S_IRUSR ) ) < 0 ) return errno;
 

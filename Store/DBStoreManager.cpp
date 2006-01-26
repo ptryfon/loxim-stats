@@ -14,7 +14,9 @@ namespace Store
 		misc = new Misc();
 		StoreManager::theStore = this;
 		ec = new ErrorConsole("Store");
-		ec->init(2); //ectw
+  // nie wykonujecie tej metody!
+  // jedyne miejsce gdzie ec->init ma prawo wystapic to main()
+//		ec->init(2); //ectw
 	};
 
 	DBStoreManager::~DBStoreManager()
