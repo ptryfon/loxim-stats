@@ -73,17 +73,25 @@ int bufferReceive (char** buffer, int* receiveDataSize, int sock) {
          
          char lengthBuffTable[3];
          char* lengthBuff = lengthBuffTable;
-         
+
           while (rest > 0) {
+	        cerr << "<tcp::receive> zaczynam recv" << endl;
          	ile = recv (sock, lengthBuff, rest, 0);
-         	
-         	if (ile < 0) return errno | ErrTCPProto;
-         	if (ile == 0) return 0; //disconnect
- 
+         	cerr << "<tcp::receive> recv zakonczone" << endl;
+         	if (ile < 0) {
+		cerr << "<tcp::receive> blad czytania tcp: " <<
+		strerror (errno) << endl;
+		return errno | ErrTCPProto;
+		}
+         	if (ile == 0) {
+		cerr << "<tcp::receive> zamknieto gniazdo podczas czytania" << endl;
+		return 0; //disconnect
+		}
+         cerr << "<tcp::receive> po czytaniu w petli, ile = " << ile << endl; 
          	rest -= ile;
          	lengthBuff += ile;
          }
-         
+         cerr << "<tcp::receive> po czytaniu poza petla" << endl;
          if (rest != 0) {
          	//TODO wyrzucic to
          	cerr << "<Tcp::bufferReceive> to sie nie moze zdazyc!!!" << endl;
@@ -106,10 +114,13 @@ int bufferReceive (char** buffer, int* receiveDataSize, int sock) {
         	
         	if (ile < 0) {
         		int error = errno;
+			cerr << "<tcp::receive> blad czytania tcp: " <<
+		strerror (errno) << endl;
         		free(messgBuffBeg);
         		return error | ErrTCPProto;
         	}
         	if (ile == 0) {
+				cerr << "<tcp::receive> zamknieto gniazdo podczas czytania" << endl;
         		free(messgBuffBeg);
         		return 0; //disconnect
         	}

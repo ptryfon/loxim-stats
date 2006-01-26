@@ -31,6 +31,14 @@ return 0;
 
 int Server::Disconnect(){
 	printf("ServerTcp: disconnecting \n");
-	return close(Sock);
+	int res = close(Sock);
+	if (res != 0) {
+	cerr << "blad zamykania gniazda watku, gzniado: " << Sock <<
+	" blad nr: "<< strerror(errno) << endl;
+	} else {
+	cerr << "<ServerTcp::disconnect> gniazdo watku: "<<Sock <<
+	" zamknieto pomyslnie" << endl;
+	return 0;
+	}
 }
 

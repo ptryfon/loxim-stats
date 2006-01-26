@@ -26,6 +26,9 @@ int Listener::CreateSocket(int port, int* created_socket) {
     	return errno | ErrTCPProto;
     }
     
+    cerr << "<ListenerTcp::createSocket> utworzone gniazdo nasluchu: " <<
+    sock << endl;
+    
     char nazwa[30];
     int dl_nazwy = 29;
     
@@ -91,7 +94,8 @@ int Listener::ListenOnSocket(int sock, int* newSocket, int queueLength)
         	return 1;
         } else
         { 
-		printf("ListenerTcp: accepted \n");
+		cerr << "<ListenerTcp> accepted, nowe gniazdo watku: "
+		<< nowy << endl;
 			*newSocket = nowy;
 			    return 0;
 	}
