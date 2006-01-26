@@ -211,7 +211,8 @@ int Listener::Start(int port) {
 	
 	pthread_master_id=pthread_self();
 	threads_count=0;
-	if ((errorCode=CreateSocket(port, &sock))!=0) {
+	// createSocket(...true) -> reuse address. useful for testing
+	if ((errorCode=CreateSocket(port, &sock, true))!=0) {
 	    lCons->printf("[Listener.Start]--> Error in Create Socket: %d\n", errorCode);
 	    return errorCode;
 	}

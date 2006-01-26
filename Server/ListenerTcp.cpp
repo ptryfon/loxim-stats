@@ -28,7 +28,7 @@ int Listener::CreateSocket(int port, int* created_socket, bool reuse) {
     
     lCons->printf("<ListenerTcp::createSocket> utworzone gniazdo nasluchu: %d\n", sock);
   
-  /*   
+     
    if (reuse)
     {
       int on = 1;
@@ -37,9 +37,10 @@ int Listener::CreateSocket(int port, int* created_socket, bool reuse) {
         {
           //setsockopt failed but maybe server can run without it -> don't shutdown yet
            // perror("setsockopt(SO_REUSEADDR) failed");
+	   cerr << "blad setsockopt: " << strerror(errno) << endl;
         }
     }
-    */
+    
     
     char nazwa[30];
     int dl_nazwy = 29;
