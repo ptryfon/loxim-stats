@@ -16,7 +16,7 @@ using namespace std;
  * parametr socket musi byc przekazany przez referencje
  */
 
-int Listener::CreateSocket(int port, int* created_socket) {
+int Listener::CreateSocket(int port, int* created_socket, bool reuse) {
 	
     int sock;
     *lCons << "entering CreateSocket";
@@ -27,6 +27,19 @@ int Listener::CreateSocket(int port, int* created_socket) {
     }
     
     lCons->printf("<ListenerTcp::createSocket> utworzone gniazdo nasluchu: %d\n", sock);
+  
+  /*   
+   if (reuse)
+    {
+      int on = 1;
+      printf("setsockopt(SO_REUSEADDR)\n");
+      if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) != 0)
+        {
+          //setsockopt failed but maybe server can run without it -> don't shutdown yet
+           // perror("setsockopt(SO_REUSEADDR) failed");
+        }
+    }
+    */
     
     char nazwa[30];
     int dl_nazwy = 29;

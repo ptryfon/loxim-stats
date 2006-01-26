@@ -32,7 +32,7 @@ using namespace Config;
 	// Run Listener - start listening and do stuff
 		int Start(int port);
 	// Made public for testing	
-		int CreateSocket(int port, int* created_socket);
+		int CreateSocket(int port, int* created_socket, bool reuse = false);
 		int Lock(void);
 		int Unlock(void);
 
