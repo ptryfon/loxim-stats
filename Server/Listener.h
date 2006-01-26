@@ -33,14 +33,11 @@ using namespace Config;
 		int Start(int port);
 	// Made public for testing	
 		int CreateSocket(int port, int* created_socket);
-		int Lock(SBQLConfig *conf);
-		int Unlock(SBQLConfig *conf);
-		int getConsole(ErrorConsole *&cons);
-		int getConfig(SBQLConfig *&conf);
-				
+		int Lock(void);
+		int Unlock(void);
+
 	private:
 	#define limit 5	// default max number of incomming connections at the same time
-		SBQLConfig* lConf;
 		ErrorConsole* lCons;
 	// TCP methods
 		int ListenOnSocket(int sock, int* newSocket, int queueLength=limit);

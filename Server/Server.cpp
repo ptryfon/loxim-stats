@@ -12,7 +12,6 @@
 #include <pthread.h>
 
 #include "../Server/Listener.h"
-#include "../Config/SBQLConfig.h"
 #include "../Log/Logs.h"
 #include "../QueryParser/QueryParser.h"
 #include "../QueryParser/TreeNode.h"
@@ -39,7 +38,6 @@ typedef char TREE_NODE_TYPE;
 
 using namespace Errors;
 using namespace std;
-using namespace Config;
 using namespace Logs;
 using namespace Store;
 using namespace QParser;
@@ -56,10 +54,13 @@ void sigHandler(int sig);
 Server::Server(int newSock)
 {
 	Sock = newSock;
+    ec = new ErrorConsole("Server");
 }
 
 Server::~Server()
 {
+	if (ec != NULL)
+		delete ec;
 }
 
 double Server::htonDouble(double inD) {
@@ -100,72 +101,70 @@ int  Server::SerializeRec(QueryResult *qr)
 	resType=(Result::ResultType)qr->type();
 	rT=qr->type();
 	
-	//printf("[Server.Serialize]--> Starting \n");
-	printf("[Server.Serialize]--> Now serializing object of type: %d \n",  rT);
+	//*ec << "[Server.Serialize]--> Starting";
+	ec->printf("[Server.Serialize]--> Now serializing object of type: %d \n",  rT);
 	
 	switch (rT) {
 		case QueryResult::QBAG:
-			printf("[Server.Serialize]--> Received BAG ");
 			resType=Result::BAG;
 			bagSize=qr->size();
 			bufBagLen=(unsigned long) bagSize;
-			printf(" of size %lu \n", bufBagLen);
+			ec->printf("[Server.Serialize]--> Received BAG of size %lu \n", bufBagLen);
 			bufBagLen=htonl(bufBagLen);
 			if (qr->collection() != true) {
-				printf("[Server.Serialize]-->QueryResult shows type of BAG and says it is no collection\n");
+				*ec << "[Server.Serialize]-->QueryResult shows type of BAG and says it is no collection";
 				return ErrServer+EBadResult;
 				return -1;
 			} 
 			bagRes = (QueryBagResult *)qr;	
-			//printf("[Server.Serialize]--> Adding bag header \n");
+			//*ec << "[Server.Serialize]--> Adding bag header";
 			serialBuf[0]=(char)resType;
-			//printf("\n SerialBuf[0] |%c|%d| \n\n", serialBuf[0], (int)serialBuf[0]);
-			//printf("\n SerialBufBegin[0] |%c|%d| \n\n", serialBufBegin[0], (int)serialBufBegin[0]);
+			//ec->printf("\n SerialBuf[0] |%c|%d| \n\n", serialBuf[0], (int)serialBuf[0]);
+			//ec->printf("\n SerialBufBegin[0] |%c|%d| \n\n", serialBufBegin[0], (int)serialBufBegin[0]);
 			serialBuf++;
-			//printf("\n SerialBuf[0] |%s|%d| \n\n", serialBuf[0], (int)serialBuf[0]);
-			//printf("\n SerialBufBegin[0] |%c|%d| \n\n", serialBufBegin[0], (int)serialBufBegin[0]);
+			//ec->printf("\n SerialBuf[0] |%s|%d| \n\n", serialBuf[0], (int)serialBuf[0]);
+			//ec->printf("\n SerialBufBegin[0] |%c|%d| \n\n", serialBufBegin[0], (int)serialBufBegin[0]);
 			
 			memcpy((void *)serialBuf, (const void *)&bufBagLen, sizeof(bufBagLen));
-			printf("[Server.Serialize]--> Bag header: |(type)=%d|(size)=%lu|\n", (int)serialBufBegin[0], ntohl(*(unsigned long *)serialBuf));
+			ec->printf("[Server.Serialize]--> Bag header: |(type)=%d|(size)=%lu|\n", (int)serialBufBegin[0], ntohl(*(unsigned long *)serialBuf));
 			serialBuf=serialBuf+sizeof(bufBagLen);
 						
 			//TODO DEPTH
 			for (i=0;i<bagSize;i++) {
-				printf("[Server.Serialize]--> Serializing collection item %d \n", i);
+				ec->printf("[Server.Serialize]--> Serializing collection item %d \n", i);
 				retVal=bagRes->getResult(collItem);
 				if (retVal!=0) {
-				    printf("[Server.Serialize]--> getResult failed with %d, returning.. \n", retVal);
+				    ec->printf("[Server.Serialize]--> getResult failed with %d, returning.. \n", retVal);
 				    return retVal;
 				}
 				SerializeRec(collItem);
 			}
 			break;
 		case QueryResult::QSEQUENCE: //TODO CZYM SIE ROZNI SEQUENCE OD BAGA??
-			printf("[Server.Serialize]--> Received SEQUENCE ");
 			resType=Result::SEQUENCE;
 			bagSize=qr->size();
 			bufBagLen=(unsigned long) bagSize;
-			printf(" of size %lu \n", bufBagLen);
+			ec->printf("[Server.Serialize]--> Received SEQUENCE of size %lu \n", bufBagLen);
 			bufBagLen=htonl(bufBagLen);
 			if (qr->collection() != true) {
-				printf("[Server.Serialize]-->QueryResult shows type of SEQUENCE and says it is no collection\n");
+				*ec << "[Server.Serialize]-->QueryResult shows type of SEQUENCE and says it is no collection";
 				return ErrServer+EBadResult;
 				return -1;
 			} 
 			bagRes = (QueryBagResult *)qr;
-			printf("[Server.Serialize]--> Adding sequence header \n");
+			*ec << "[Server.Serialize]--> Adding sequence header";
 			serialBuf[0]=(char)resType;
 			serialBuf++;
 			memcpy((void *)serialBuf, (const void *)&bufBagLen, sizeof(bufBagLen));
-			//printf("[Server.Serialize]--> Sequence header: |(type)=%d|(size)=%lu|\n", (int)serialBufBegin[0], ntohl(*(unsigned long *)serialBuf));
+			//ec->printf("[Server.Serialize]--> Sequence header: |(type)=%d|(size)=%lu|\n", (int)serialBufBegin[0], ntohl(*(unsigned long *)serialBuf));
 			serialBuf=serialBuf+sizeof(bufBagLen);
 						
 			//TODO DEPTH
 			for (i=0;i<bagSize;i++) {
-				printf("[Server.Serialize]--> Serializing collection item %d \n", i);
+				ec->printf("[Server.Serialize]--> Serializing collection item %d \n", i);
 				retVal=bagRes->getResult(collItem);
 				if (retVal!=0) {
-				    printf("[Server.Serialize]--> getResult failed with %d, returning.. \n", retVal);
+				    ec->printf("[Server.Serialize]--> getResult failed with %d, returning.. \n", retVal);
 				    return retVal;
 				}
 				SerializeRec(collItem);
@@ -173,30 +172,29 @@ int  Server::SerializeRec(QueryResult *qr)
 				
 			break;
 		case QueryResult::QSTRUCT: //TODO CZYM SIE ROZNI STRUCT OD BAGA??
-			printf("[Server.Serialize]--> Received STRUCT ");
 			resType=Result::STRUCT;
 			bagSize=qr->size();
 			bufBagLen=(unsigned long) bagSize;
-			printf(" of size %lu \n", bufBagLen);
+			ec->printf("[Server.Serialize]--> Received STRUCT of size %lu \n", bufBagLen);
 			bufBagLen=htonl(bufBagLen);
 			if (qr->collection() != true) {
-				printf("[Server.Serialize]-->QueryResult shows type of STRUCT and says it is no collection\n");
+				*ec << "[Server.Serialize]-->QueryResult shows type of STRUCT and says it is no collection";
 				return ErrServer+EBadResult;
 			} 
 			bagRes = (QueryBagResult *)qr;
-			printf("[Server.Serialize]--> Adding struct header \n");
+			*ec << "[Server.Serialize]--> Adding struct header";
 			serialBuf[0]=(char)resType;
 			serialBuf++;
 			memcpy((void *)serialBuf, (const void *)&bufBagLen, sizeof(bufBagLen));
-			//printf("[Server.Serialize]--> Struct header: |(type)=%d|(size)=%lu|\n", (int)serialBufBegin[0], ntohl(*(unsigned long *)serialBuf));
+			//ec->printf("[Server.Serialize]--> Struct header: |(type)=%d|(size)=%lu|\n", (int)serialBufBegin[0], ntohl(*(unsigned long *)serialBuf));
 			serialBuf=serialBuf+sizeof(bufBagLen);
 						
 			//TODO DEPTH
 			for (i=0;i<bagSize;i++) {
-				printf("[Server.Serialize]--> Serializing collection item %d \n", i);
+				ec->printf("[Server.Serialize]--> Serializing collection item %d \n", i);
 				retVal=bagRes->getResult(collItem);
 				if (retVal!=0) {
-				    printf("[Server.Serialize]--> getResult failed with %d, returning.. \n", retVal);
+				    ec->printf("[Server.Serialize]--> getResult failed with %d, returning.. \n", retVal);
 				    return retVal;
 				}
 				SerializeRec(collItem);
@@ -204,70 +202,70 @@ int  Server::SerializeRec(QueryResult *qr)
 				
 			break;
 		case QueryResult::QREFERENCE:
-		    printf("[Server.Serialize]--> Getting reference \n");
+		    *ec << "[Server.Serialize]--> Getting reference";
 		    resType=Result::REFERENCE;
 		    serialBuf[0]=(char)resType;
 		    refRes = (QueryReferenceResult *)qr;
 		    intVal=(refRes->getValue())->toInteger();
 		    serialBuf++;
-		    printf("[Server.Serialize]--> Reference integer value: intVal=%d \n", intVal);
+		    ec->printf("[Server.Serialize]--> Reference integer value: intVal=%d \n", intVal);
 		    memcpy((void *)serialBuf, (const void *)&intVal, sizeof(intVal));
 		    serialBuf=serialBuf+sizeof(intVal);
 		    break;	
 		case QueryResult::QSTRING:
-		    printf("[Server.Serialize]--> Getting STRING \n");
+		    *ec << "[Server.Serialize]--> Getting STRING";
 		    resType=Result::STRING;
 		    stringRes=(QueryStringResult *)qr;
 		    strVal=stringRes->getValue();
 		    valSize=strVal.length();
-		    printf("[Server.Serialize]--> Adding string header, string size=%d \n", valSize);
+		    ec->printf("[Server.Serialize]--> Adding string header, string size=%d \n", valSize);
 		    serialBuf[0]=(char)resType;
 		    serialBuf++;
-		    //printf("[Server.Serialize]--> String header complete \n");
+		    //*ec << "[Server.Serialize]--> String header complete";
 		    strcpy(serialBuf, strVal.c_str());  
-		    printf("[Server.Serialize]--> String serialized to: %s \n", serialBuf);
+		    ec->printf("[Server.Serialize]--> String serialized to: %s \n", serialBuf);
 		    serialBuf=serialBuf+valSize+1;
 		    break;
 		case QueryResult::QRESULT:
-		    printf("[Server.Serialize]--> Getting RESULT (ERROR!)\n");
+		    *ec << "[Server.Serialize]--> Getting RESULT (ERROR!)";
 		    return -1; //TODO ERRORCODE
 		    break;    
 		 case QueryResult::QNOTHING:
-		    printf("[Server.Serialize]--> VOID type, sending type indicator only\n");
+		    *ec << "[Server.Serialize]--> VOID type, sending type indicator only";
 		    resType=Result::VOID;
 		    serialBuf[0]=(char)resType;
-		    printf("[Server.Serialize]--> VOID type written \n");
+		    *ec << "[Server.Serialize]--> VOID type written";
 		    serialBuf++;
 		    break;
 		case QueryResult::QINT:
-		    printf("[Server.Serialize]--> INT type, sending type indicator.. \n");
+		    *ec << "[Server.Serialize]--> INT type, sending type indicator..";
 		    resType=Result::INT;
 		    serialBuf[0]=(char)resType;
 		    serialBuf++;
 		    intRes = (QueryIntResult *)qr;
 		    intVal = intRes->getValue();
-		    printf("[Server.Serialize]--> .. followed by int value (%d) \n", intVal);
+		    ec->printf("[Server.Serialize]--> .. followed by int value (%d) \n", intVal);
 		    intVal=htonl(intVal);
 		    memcpy((void *)serialBuf, (const void *)&intVal, sizeof(intVal));
 		    serialBuf=serialBuf+sizeof(intVal);
-		    //printf("[Server.Serialize]--> buffer written \n");
+		    //*ec << "[Server.Serialize]--> buffer written";
 		    break; 
 		case QueryResult::QDOUBLE:
-		    printf("[Server.Serialize]--> DOUBLE type \n");
+		    *ec << "[Server.Serialize]--> DOUBLE type";
 		    resType=Result::DOUBLE;
 		    serialBuf[0]=(char)resType;
 		    serialBuf++;
 		    doubleRes = (QueryDoubleResult *)qr;
 		    doubleVal = doubleRes->getValue();
-		    printf("[Server.Serialize]--> double value is %lf \n", doubleVal);
-		    //printf("[Server.Serialize]--> Switching double byte order.. \n");
+		    ec->printf("[Server.Serialize]--> double value is %lf \n", doubleVal);
+		    //*ec << "[Server.Serialize]--> Switching double byte order..";
 		    doubleVal = htonDouble(doubleVal);
-		    printf("[Server.Serialize]--> Splitting and byte order change complete \n");
+		    *ec << "[Server.Serialize]--> Splitting and byte order change complete";
 		    memcpy((void *)serialBuf, (const void *)&doubleVal, sizeof(doubleVal));
 		    serialBuf = serialBuf + sizeof(doubleVal);		        
 		    break; 
 		case QueryResult::QBOOL: //TODO - pass either BOOLTRUE or BOOLFALSE or just BOOL?
-		    printf("[Server.Serialize]--> BOOL type, sending type indicator and value\n");
+		    *ec << "[Server.Serialize]--> BOOL type, sending type indicator and value";
 		    boolRes=(QueryBoolResult *)qr;
 		    boolVal=boolRes->getValue();
 		    if (boolVal==false)
@@ -275,8 +273,8 @@ int  Server::SerializeRec(QueryResult *qr)
 		    else if (boolVal==true)
 			resType=Result::BOOLTRUE;
 		    else {
-			printf("[Server.Serialize]-->Bool result from Executor corrupted: |%d| \n", (int)boolVal);
-			printf("[Server.Serialize]-->Sending FALSE.. \n");
+			ec->printf("[Server.Serialize]-->Bool result from Executor corrupted: |%d| \n", (int)boolVal);
+			*ec << "[Server.Serialize]-->Sending FALSE..";
 			resType=Result::BOOLFALSE;
 		    }
 		    serialBuf[0]=(char)resType;
@@ -284,10 +282,10 @@ int  Server::SerializeRec(QueryResult *qr)
 		    serialBuf++;
 		    serialBuf[0]=(char)(boolVal);
 		    serialBuf++;		    
-		    printf("[Server.Serialize]--> Sending bool: |type=%d|value=%d|\n", (int)resType, (int)boolVal);
+		    ec->printf("[Server.Serialize]--> Sending bool: |type=%d|value=%d|\n", (int)resType, (int)boolVal);
 		    break;
 		case QueryResult::QBINDER:
-		    printf("[Server.Serialize]--> BINDER type, sending name(string) and result\n");
+		    *ec << "[Server.Serialize]--> BINDER type, sending name(string) and result";
 		    resType=Result::BINDER;
 		    serialBuf[0]=(char)resType;
 		    serialBuf++;
@@ -299,7 +297,7 @@ int  Server::SerializeRec(QueryResult *qr)
 		    SerializeRec(qres);
 		    break;
 		default:
-		    printf("[Server.Serialize]--> object UNRECOGNIZED ! \n");
+		    *ec << "[Server.Serialize]--> object UNRECOGNIZED !";
 		    return -1; //TODO ERROR
 		    break;
 	}
@@ -332,7 +330,7 @@ int Server::Run()
 	
 	sigset_t block_cc;
 	
-	printf("[Server.Run]--> Starts \n");
+	*ec << "[Server.Run]--> Starts";
 	
 	//Signal Handling
 	sigemptyset(&block_cc);
@@ -340,23 +338,15 @@ int Server::Run()
 //	signal(SIGINT, (Server::sigHandler));
 	
 	//Set process signal mask
-	//printf("[Server.Run]--> Blocking SIGINT for now.. \n");
+	//*ec << "[Server.Run]--> Blocking SIGINT for now...";
 	sigprocmask(SIG_BLOCK, &block_cc, NULL);
 
-	 
-	printf("[Server.Run]--> Getting console and config from Server.. \n");
-	SBQLConfig* config;
-	ErrorConsole *con;
-	ls->getConfig(config);
-	ls->getConsole(con);	
-	
-	
-	printf("[Server.Run]--> Initializing objects \n");
+	*ec << "[Server.Run]--> Initializing objects";
 		
 	LogManager* logManager = new LogManager();
 	logManager->init();
 	DBStoreManager* storeManager = new DBStoreManager();
-	storeManager->init(config, logManager);
+	storeManager->init(logManager);
 	TransactionManager::getHandle()->init(storeManager, logManager);
 	storeManager->start();
 	//storeManager->setTransactionManager(TransactionManager::getHandle());
@@ -367,7 +357,7 @@ int Server::Run()
 	TreeNode *tNode;
 	QueryResult *qResult;
 	
-	printf("[Server.Run]--> Creating message buffers.. \n");
+	*ec << "[Server.Run]--> Creating message buffers.. \n";
 	
 	messgBuff=(char*) malloc(MAX_MESSG);
 
@@ -380,122 +370,118 @@ int Server::Run()
 while (!signalReceived) {
 
 	if (ncError==1)
-	    printf("[Server.Run]-> a non-critical error occured during the previous session \n");
+	    *ec << "[Server.Run]-> a non-critical error occured during the previous session";
     	memset(serialBufBegin, '\0', MAX_MESSG);
 	serialBuf=serialBufBegin;	
 	ncError=0;
 
-	printf("[Server.Run]--> Blocking SIGINT for now.. \n");
+	*ec << "[Server.Run]--> Blocking SIGINT for now..";
 	sigprocmask(SIG_BLOCK, &block_cc, NULL);
 	
-	//printf("[Server.Run]--> Cleaning buffers \n");
+	//*ec << "[Server.Run]--> Cleaning buffers";
 	//memset(serializedMessg, '\0', MAX_MESSG); 
 	
 	//Get string from client
-	printf("[Server.Run]--> Unblocking sigint and receiving query from client \n");
+	*ec << "[Server.Run]--> Unblocking sigint and receiving query from client";
 	sigprocmask(SIG_UNBLOCK, &block_cc, NULL);
 	
 	res = (Receive(&messgBuff, &size));
 	if (res != 0) {
-	    printf("[Server.Run]--> Receive returned error code %d\n", res);
+	    ec->printf("[Server.Run]--> Receive returned error code %d\n", res);
 	    return res;
 	}    
 	if (messgBuff==NULL) {
-	    printf("[Server.Run]--> Error in receive, client terminated??\n");
-	    printf("[Server.Run]--> Assuming client loss for that thread - TERMINATING thread\n");
+	    *ec << "[Server.Run]--> Error in receive, client terminated??";
+	    *ec << "[Server.Run]--> Assuming client loss for that thread - TERMINATING thread";
 	    return ErrServer + EClientLost; //TODO Error
 	}
 
-	printf("[Server.Run]--> Blocking sigint again.. \n");
+	*ec << "[Server.Run]--> Blocking sigint again..";
 	sigprocmask(SIG_BLOCK, &block_cc, NULL);	
 	
-	printf("[Server.Run]--> Requesting PARSE: |%s| \n", messgBuff);
+	ec->printf("[Server.Run]--> Requesting PARSE: |%s| \n", messgBuff);
 	res = (qPa->parseIt((string) messgBuff, tNode));
 	if (res != 0) {
-	    printf("[Server.Run]--> Parser returned error code %d\n", res);
+	    ec->printf("[Server.Run]--> Parser returned error code %d\n", res);
 	    sendError(res);
 	    ncError=1;
 	    continue;
-	    printf("[SERVER]--> ends with ERROR\n");
+	    *ec << "[SERVER]--> ends with ERROR";
 	    return res;
 	}
 	
-	printf("[Server.Run]--> Requesting EXECUTE on tree node: |%d| \n", (int) tNode);
+	ec->printf("[Server.Run]--> Requesting EXECUTE on tree node: |%d| \n", (int) tNode);
 	res = (qEx->executeQuery(tNode, &qResult)); 
 	if (res != 0) {
-	    printf("[Server.Run]--> Executor returned error code %d\n", res);
+	    ec->printf("[Server.Run]--> Executor returned error code %d\n", res);
 	    sendError(res);
 	    ncError=1;
 	    continue;
-	    printf("[SERVER]--> ends with ERROR\n");
+	    *ec << "[SERVER]--> ends with ERROR";
 	    return ErrServer+EExecute;
 	} 
 	
-	printf("[Server.Run]--> EXECUTE complete, checking results.. \n");
-	printf("[Server.Run]--> Got qResult=|%d| of size: qResult->size()=|%d| :\n",  (int)qResult, qResult->size());
+	*ec << "[Server.Run]--> EXECUTE complete, checking results..";
+	ec->printf("[Server.Run]--> Got qResult=|%d| of size: qResult->size()=|%d| :\n",  (int)qResult, qResult->size());
 	
 	if (qResult == 0) {//TODO ERROR
 	 return 0;} 
 	
-	printf("[Server.Run]--> *****SERIALIZE starts***** \n");
+	*ec << "[Server.Run]--> *****SERIALIZE starts*****";
 	
 	res = (SerializeRec(qResult)); 
 	if (res != 0) {
-	    printf("[Server.Run--> Serialize returned error code %d\n", res);
+	    ec->printf("[Server.Run--> Serialize returned error code %d\n", res);
 	    sendError(res);
-	    printf("[SERVER]--> ends with ERROR\n");
+	    *ec << "[SERVER]--> ends with ERROR";
 	    return ErrServer+ESerialize;
 	}
 	
-	printf("[Server.Run]--> *****SERIALIZE complete***** \n");
+	*ec << "[Server.Run]--> *****SERIALIZE complete*****";
 	
-	printf("[Server.Run]--> Sending results to client.. Result type=|%d|\n", (int)serialBufBegin[0]);
-	//printf("Buf: |%d|%d|%d|%d|%d|%d|%d|\n", (int)serialBufBegin[0], (int)serialBufBegin[1], (int)serialBufBegin[2],
+	ec->printf("[Server.Run]--> Sending results to client.. Result type=|%d|\n", (int)serialBufBegin[0]);
+	//ec->printf("Buf: |%d|%d|%d|%d|%d|%d|%d|\n", (int)serialBufBegin[0], (int)serialBufBegin[1], (int)serialBufBegin[2],
 	//(int)serialBufBegin[3], (int)serialBufBegin[4], (int)serialBufBegin[5], (int)serialBufBegin[6]);
 	res=(Send(&*serialBufBegin, serialBufSize));
 	if (res != 0) {
-	    printf("[Server.Run]--> Send returned error code %d\n", res);
-	    printf("[SERVER]--> ends with ERROR\n");
+	    ec->printf("[Server.Run]--> Send returned error code %d\n", res);
+	    *ec << "[SERVER]--> ends with ERROR";
 	    return ErrServer+ESend;
 	}
 		
 }
-	printf("[Server.Run]--> Releasing message buffers \n");
+	*ec << "[Server.Run]--> Releasing message buffers";
 	free(messgBuff);
 	
 	//TODO DESTROY ALL OBJECTS
-	printf("[Server.Run]--> Destroying Objects \n");
+	*ec << "[Server.Run]--> Destroying Objects";
 	//qEx->~QueryExecutor(); //segfault
-	//printf("Past Executor\n");
+	//*ec << "Past Executor";
 	/*qPa->~QueryParser();
-	printf("Past Parser\n");
+	*ec << "Past Parser";
 	TransactionManager::getHandle()->~TransactionManager();
-	printf("Past Transaction Manager\n");
+	*ec << "Past Transaction Manager";
 	LockManager::getHandle()->~LockManager();
-	printf("Past LockManager\n");
+	*ec << "Past LockManager";
 	//storeManager->~DBStoreManager(); //segfault
-	//printf("Past DBStoreManager\n");
+	// *ec << "Past DBStoreManager";
 	logManager->~LogManager();
-	printf("Past LogManager\n");
-	con.~ErrorConsole();
-	printf("Past ErrorConsole\n");
-	config->~SBQLConfig();
-	printf("Past SBQLConfig\n");
+	*ec << "Past LogManager";
 	*/
-	printf("[Server.Run]--> Disconnecting \n");
+	*ec << "[Server.Run]--> Disconnecting";
 	Disconnect();
 	
-	printf("[Server.Run]--> <><><>End<><><> \n"); 
+	*ec << "[Server.Run]--> <><><>End<><><>"; 
 	
 	return 0;	
 }		
 
 int Server::SExit(int code) {
-    printf("[Server.SExit]--> Server thread freeing buffers and disconnecting - returning code |%d|\n", code);
+    ec->printf("[Server.SExit]--> Server thread freeing buffers and disconnecting - returning code |%d|\n", code);
     free(serialBufBegin);
     free(messgBuff);
     Disconnect();
-    printf("[Server.SExit]--> Server THREAD nr |%d| CLEANUP COMPLETE, returning\n", pthread_self());
+    ec->printf("[Server.SExit]--> Server THREAD nr |%d| CLEANUP COMPLETE, returning\n", pthread_self());
     return code;
 }
 

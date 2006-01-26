@@ -14,6 +14,7 @@ namespace Store
 		misc = new Misc();
 		StoreManager::theStore = this;
 		ec = new ErrorConsole("Store");
+		config = new SBQLConfig("Store");
   // nie wykonujecie tej metody!
   // jedyne miejsce gdzie ec->init ma prawo wystapic to main()
 //		ec->init(2); //ectw
@@ -38,12 +39,15 @@ namespace Store
 			delete ec;
 			ec = NULL;
 		}
+		if(config) {
+			delete config;
+			config = NULL;
+		}
 		StoreManager::theStore = NULL;
 	};
 
-	int DBStoreManager::init(SBQLConfig* config, LogManager* log)
+	int DBStoreManager::init(LogManager* log)
 	{
-		this->config = config;
 		this->log = log;
 		this->buffer = new Buffer(this);
 		this->map = new Map(this);

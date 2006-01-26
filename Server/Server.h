@@ -37,7 +37,8 @@ extern void sigHandler(int arg);
 		char *serialBufBegin;
 		char *serialBufEnd;
 		int serialBufSize;
-		
+		ErrorConsole *ec;
+
 		int sendError(int errNo);
 		
 	//TCP methods

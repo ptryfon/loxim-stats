@@ -19,24 +19,23 @@ using namespace std;
 int Listener::CreateSocket(int port, int* created_socket) {
 	
     int sock;
-    cerr << "entering CreateSocket" << endl;
+    *lCons << "entering CreateSocket";
     sock = socket( PF_INET, SOCK_STREAM, 0 );
     if (sock == -1) {
-    	cerr << "problem z socketem" << endl;
+    	*lCons << "problem z socketem";
     	return errno | ErrTCPProto;
     }
     
-    cerr << "<ListenerTcp::createSocket> utworzone gniazdo nasluchu: " <<
-    sock << endl;
+    lCons->printf("<ListenerTcp::createSocket> utworzone gniazdo nasluchu: %d\n", sock);
     
     char nazwa[30];
     int dl_nazwy = 29;
     
     if (0 != gethostname( nazwa, dl_nazwy )) {
-       cerr << "nie mam nazwy hosta" << endl;
+       *lCons << "nie mam nazwy hosta";
        return errno | ErrTCPProto;
     }
-    cout <<  nazwa << endl;
+    *lCons << nazwa;
     
     sockaddr_in Addr;
 
@@ -47,7 +46,7 @@ int Listener::CreateSocket(int port, int* created_socket) {
 	memset( Addr.sin_zero , 0, 8 );
     
     if (0 != bind (sock, (sockaddr*)&Addr, sizeof( sockaddr ) )) {
-       cerr << "blad przy bindowaniu: " << strerror(errno) << endl;
+       lCons->printf("blad przy bindowaniu: %s\n", strerror(errno));
        return errno | ErrTCPProto;
     }
     //TODO reszte tej funkcji mozna wyrzucic, jest tylko do celow diagnostycznych
@@ -59,16 +58,16 @@ int Listener::CreateSocket(int port, int* created_socket) {
    hp = gethostbyname (nazwa);
   if (hp == 0)
     {
-      fprintf (stderr, "%s : unknown host\n", nazwa);
+      lCons->printf("%s : unknown host\n", nazwa);
       return ENoHost | ErrTCPProto;
     }
   memcpy ((char *) &Addr.sin_addr, (char *) hp->h_addr, hp->h_length); 
    
-   printf ("%s \n", inet_ntoa(Addr.sin_addr));
+   lCons->printf ("%s \n", inet_ntoa(Addr.sin_addr));
  
 	*created_socket = sock;
 
-	cerr << "End CreateSocket" << endl;
+	*lCons << "End CreateSocket";
     return 0;
 }
 
@@ -80,9 +79,9 @@ int Listener::CreateSocket(int port, int* created_socket) {
 int Listener::ListenOnSocket(int sock, int* newSocket, int queueLength) 
 {
 
-	printf("ListenerTcp: Listening on socket number %d \n", sock);
+	lCons->printf("ListenerTcp: Listening on socket number %d \n", sock);
     if (0 != listen( sock, queueLength )) {
-       cerr << "blad w listen" << endl;
+       *lCons << "blad w listen";
        return errno | ErrTCPProto;
     }
     
@@ -90,12 +89,11 @@ int Listener::ListenOnSocket(int sock, int* newSocket, int queueLength)
 
     	if ((nowy = accept( sock, (sockaddr*) 0, 0 )) == -1)
         {
-        	cerr << "blad w accept " << endl;	
+        	*lCons << "blad w accept";	
         	return 1;
         } else
         { 
-		cerr << "<ListenerTcp> accepted, nowe gniazdo watku: "
-		<< nowy << endl;
+		lCons->printf("<ListenerTcp> accepted, nowe gniazdo watku: %d\n", nowy);
 			*newSocket = nowy;
 			    return 0;
 	}
@@ -103,11 +101,11 @@ int Listener::ListenOnSocket(int sock, int* newSocket, int queueLength)
 
 int Listener::CloseSocket(int sock) {
 	if (0 == close(sock)) {
-	cerr << "gniazdo: " << sock << " zamkniete pomyslnie" << endl;
+	lCons->printf("gniazdo: %d zamkniete pomyslnie\n", sock);
 	return 0;
 	}
 	else {
-		cerr << "blad przy zamykaniu gniazda" << endl;
+		*lCons << "blad przy zamykaniu gniazda";
 		return errno | ErrTCPProto;
 	}
 }

@@ -40,7 +40,7 @@ namespace Store
 		~DBStoreManager();
 
 		Misc* misc;
-		int init(SBQLConfig* config, LogManager* log);
+		int init(LogManager* log);
 		int setTManager(TransactionManager* tm);
 		int start();
 		int stop();
