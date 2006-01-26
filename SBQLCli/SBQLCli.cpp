@@ -46,32 +46,41 @@ int main(int argc, char *argv[]) {
 
   printMsg("SBQLCli ver 0.0.0.1 \n");
   printMsg(" > ");
-  
-  try { //Piotrek
 
     while (getline(cin, line)) {
-      if (line.find(";",0) == string::npos) {
-	input.append(line);
-	printMsg(" \\ ");
-      } else {
+    
+      try { //Piotrek
+    
+	if (line.find(";",0) == string::npos) {
+	  input.append(line);
+	  printMsg(" \\ ");
+	} else {
+
 	input.append(line);
 	cerr << "<SBQLCli> Zapytanie :" << input << endl;
-	Result* result = con->execute(input.c_str());
-	if (result != 0) { //Piotrek - mam nadzieje ze sie nie obrazisz :)
-	                   //Czarek  - no jak¿e bym móg³ :)
-	                   //Adam - ;-)
-	  cout << *result;
-	} else {cerr << "zapytanie nie powiodlo sie" << endl;}
-	cout << endl;
+
+	Result* result = NULL;
+
+	try {
+	  result = con->execute(input.c_str());
+	  cout << *result << endl;
+	} catch (ConnectionServerException e) {
+	  cerr << "Blad: " << strerror (e.getError() & 0xFFFF) << endl;
+	}  
+	
 	input.clear();
 	printMsg(" > ");
       }
-    }
+    
 
-  } catch (ConnectionException e) { //Piotrek
+
+  } catch (ConnectionErrnoException e) { //Piotrek
+    cerr << "Polaczeie przerwane: " << strerror (e.getError() & 0xFFFF) << endl;
+    exit(1);
+  } catch (ConnectionException e) {
     cerr << e << endl;
     exit(1);
   }
-  
+  } //while
   return 0;		
 }
