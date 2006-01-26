@@ -35,6 +35,8 @@ using namespace Config;
 		int CreateSocket(int port, int* created_socket);
 		int Lock(SBQLConfig *conf);
 		int Unlock(SBQLConfig *conf);
+		int getConsole(ErrorConsole *&cons);
+		int getConfig(SBQLConfig *&conf);
 				
 	private:
 	#define limit 5	// default max number of incomming connections at the same time
@@ -56,5 +58,7 @@ using namespace Config;
 		//int threads_count;
 		
 	};
+	
+	extern Listener *ls;
 //}
 #endif /*LISTENER_H_*/

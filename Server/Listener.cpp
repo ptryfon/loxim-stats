@@ -41,21 +41,22 @@ int Listener::Lock(SBQLConfig *config)
   int fileDes;
 
   if((errCode=config->getString( LOCK_PATH_KEY, lockPath ))!=0) {
-  	printf("[Listener.Lock]-->Error while reading config\n"); 
+  	printf("[Listener.Lock]-->Error while reading config: %d\n", errCode); 
   	return errCode;
   }
 
-  if( ::stat( lockPath.c_str(), &statBuf ) == 0 ) {
-    printf( "[Listener.Lock]-->ERROR: Can't run server - backup is running. If not, delete file '%s'.\n", lockPath.c_str());
+  if( ::stat( lockPath.c_str(), &statBuf)==0) {
+    printf("[Listener.Lock]-->ERROR: Can't run server - backup is running. If not, delete file '%s'.\n", lockPath.c_str());
     return -1; //TODO Error
   } else { 
-    if( ( fileDes = ::open( lockPath.c_str(), O_WRONLY | O_CREAT, S_IWUSR | S_IRUSR ) ) < 0 )
+    if((fileDes = ::open( lockPath.c_str(), O_WRONLY | O_CREAT, S_IWUSR | S_IRUSR))<0)
     {
-      printf( "[Listener.Lock]-->Can't create file '%s': %s\n", lockPath.c_str(), strerror( errno ) );
+      printf("[Listener.Lock]-->Can't create file '%s': %s\n", lockPath.c_str(), strerror(errno));
       return -1; //TODO Error
     }
   }
-  ::close( fileDes );
+  ::close(fileDes);
+  printf("[Listener.Lock]-->Done\n");
   return errCode;
 }
 
@@ -64,14 +65,14 @@ int Listener::Unlock(SBQLConfig *config)
   string lockPath;
   int errCode = 0;
 
-  config->getString( LOCK_PATH_KEY, lockPath );
+  config->getString(LOCK_PATH_KEY, lockPath);
 
-  if( ::unlink( lockPath.c_str() ) < 0 )
+  if(::unlink(lockPath.c_str())<0)
   {
-    printf( "[Listener.Unlock]-->Can't delete lock file '%s': %s\n", lockPath.c_str(), strerror( errno ) );
+    printf("[Listener.Unlock]-->Can't delete lock file '%s': %s\n", lockPath.c_str(), strerror(errno));
     return errno;
   }
-
+  printf("[Listener.Unlock]-->Done\n");
   return errCode;
 }
 
@@ -124,13 +125,13 @@ void sigHandler(int sig) {
 		    }   
 		    if (status!=0) {
 			printf("[Listener-sigHandler-Master]--> Server thread nr. |%d| terminated with error\n", i);
-			longjmp(j,1); //TODO!!!
+			longjmp(j,1); 
 		    }
 		    else {
 			printf("[Listener-sigHandler-Master]--> JOINED thread nr.|%d| with pthread_id |%d|\n", i, (int)pthreads[i]);
 		    } 
 	}
-	printf("[Listener-sigHandler-Master]--> All threads joined - SUCCESS! Quitting now.. Preparing to JUMP \n");
+	printf("[Listener-sigHandler-Master]--> All threads joined - SUCCESS! Preparing to JUMP \n");
 	longjmp(j, 1);
 	return; 
     }
@@ -193,8 +194,8 @@ int Listener::Start(int port) {
 	
 	printf("[Listener.Start]--> Initializing objects.. \n");
 	
-	SBQLConfig* config = new SBQLConfig("Server.conf");
-	errorCode=config->init();
+	SBQLConfig* config = new SBQLConfig("Server");
+	errorCode=config->init("Server.conf");
 	if (errorCode!=0) 
 		printf("Listener.Start]--> Config init failed with %d\n", errorCode);
 	
@@ -224,7 +225,7 @@ int Listener::Start(int port) {
 	    printf("[Listener.Start]--> Jumped.. closing socket..\n");
 	    Unlock(lConf);
 	    errorCode=CloseSocket(sock);
-	    printf("[Listener.Start]--> Returning with %d\n", errorCode);
+	    //printf("[Listener.Start]--> Returning with %d\n", errorCode);
 	    return errorCode;
 	} 
 	
@@ -282,6 +283,18 @@ int Listener::Start(int port) {
 
 }
 
+int Listener::getConsole(ErrorConsole *&cons) {
+	cons=lCons;
+	return 0;
+}
+
+int Listener::getConfig(SBQLConfig *&conf) {
+	conf=lConf;
+	return 0;
+}
+
+
+
 int main(int argc, char* argv[]) {
 	int port = 6543;
 	if (argc>1) 
@@ -295,7 +308,7 @@ int main(int argc, char* argv[]) {
 	    printf("[Listener.MAIN]--> ends with ERROR: %d \n", res);
 	    return res;
 	}
-	printf("[Listener.MAIN]--> ends \n");
+	printf("[Listener.MAIN]--> *********END********* \n");
 	return 0;	
 }
 

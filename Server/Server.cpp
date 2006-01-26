@@ -11,6 +11,7 @@
 #include <signal.h>
 #include <pthread.h>
 
+#include "../Server/Listener.h"
 #include "../Config/SBQLConfig.h"
 #include "../Log/Logs.h"
 #include "../QueryParser/QueryParser.h"
@@ -342,13 +343,15 @@ int Server::Run()
 	//printf("[Server.Run]--> Blocking SIGINT for now.. \n");
 	sigprocmask(SIG_BLOCK, &block_cc, NULL);
 
-	//TODO same objects as Listener 
-	printf("[Server.Run]--> Initializing objects.. \n");
-	SBQLConfig* config = new SBQLConfig("Server");
-	config->init();
-	ErrorConsole con("Server");
-	con.init(1);
-
+	 
+	printf("[Server.Run]--> Getting console and config from Server.. \n");
+	SBQLConfig* config;
+	ErrorConsole *con;
+	ls->getConfig(config);
+	ls->getConsole(con);	
+	
+	
+	printf("[Server.Run]--> Initializing objects \n");
 		
 	LogManager* logManager = new LogManager();
 	logManager->init();
