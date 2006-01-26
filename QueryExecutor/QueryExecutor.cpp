@@ -35,21 +35,42 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 	int errcode;
 	*ec << "[QE] executeQuery()";
 	
-	if (tree != NULL)
-	{
-		if (tr == NULL) {
-			*ec << "[QE] Asking TransactionManager for a new transaction";
-			if ((errcode = TransactionManager::getHandle()->createTransaction(tr)) != 0) {
-				*ec << "Error in createTransaction";
-    				return errcode;	
-			}
-			else {
-				*ec << "[QE] Transaction opened";
-			}
-		}
+	if (tree != NULL) {
 		int nodeType = tree->type();
 		*ec << "[QE] TreeType taken";
-	
+		if (tr == NULL) {
+			if (nodeType == TreeNode::TNTRANS) {
+				if (((TransactNode *) tree)->getOp() == TransactNode::begin) {
+					*ec << "[QE] Asking TransactionManager for a new transaction";
+					errcode = TransactionManager::getHandle()->createTransaction(tr);
+					if (errcode != 0) {
+						*ec << "[QE] Error in createTransaction";
+						*ec << "[QE] Transction not opened";
+						*result = new QueryNothingResult();
+						*ec << "[QE] nothing to do: QueryNothingResult created";
+						return errcode;
+					}
+					else {
+						*ec << "[QE] Transction opened";
+						*result = new QueryNothingResult();
+						*ec << "[QE] nothing else to do: QueryNothingResult created";
+						return 0;
+					}
+				}
+				else {
+					*ec << "[QE] Transction not opened, type < BEGIN; > first";
+					*result = new QueryNothingResult();
+					*ec << "[QE] nothing to do: QueryNothingResult created";
+					return 0;
+				}
+			}
+			else {
+				*ec << "[QE] Transction not opened, type < BEGIN; > first";
+				*result = new QueryNothingResult();
+				*ec << "[QE] nothing to do: QueryNothingResult created";
+				return 0;
+			}
+		}
 		switch (nodeType) 
 		{
 		case TreeNode::TNNAME: {
@@ -329,9 +350,43 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 		} //case TNNONALGOP
 
 		case TreeNode::TNTRANS: {
-			// begin, abort and commit
+			TransactNode::transactionOp op = ((TransactNode *) tree)->getOp();
+			switch (op) {
+				case TransactNode::begin: {
+					*ec << "[QE] ERROR! Transaction already opened. It can't be opened once more!";
+					*result = new QueryNothingResult();
+					return -1;
+				}
+				case TransactNode::end: {
+					errcode = tr->commit();
+					if (errcode != 0) {
+						*ec << "[QE] error in transaction->commit()";
+						*result = new QueryNothingResult();
+						return errcode;
+					}
+					*ec << "[QE] Transaction commited succesfully";
+					tr = NULL;
+					break;
+				}
+				case TransactNode::abort: {
+					errcode = tr->abort();
+					if (errcode != 0) {
+						*ec << "[QE] error in transaction->abort()";
+						*result = new QueryNothingResult();
+						return errcode;
+					}
+					*ec << "[QE] Transaction aborted succesfully";
+					tr = NULL;
+					break;
+				}
+				default: {
+					*ec << "[QE] ERROR! unknown transaction operator";
+					*result = new QueryNothingResult();
+					return -1;
+				}
+			}
 			*result = new QueryNothingResult();
-			*ec << "[QE] QueryNothingResult created";
+			*ec << "[QE] Nothing else to do. QueryNothingResult created";
 			return 0;
 		} //case TNTRANS
 
