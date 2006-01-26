@@ -11,8 +11,9 @@
 #include "../Store/DBStoreManager.h"
 #include "LogsGlobals.cpp"
 #include "../TransactionManager/Transaction.h"
+#include "Errors/ErrorConsole.h"
 
-
+using namespace Errors;
 using namespace Store;
 using namespace Logs;
 
@@ -58,6 +59,8 @@ int main( int argc, char *argv[] )
 
   SBQLConfig *storeConfig = new SBQLConfig( "Store" );
   storeConfig->init("../Config/example.conf");
+  ErrorConsole *ec = new ErrorConsole("Store");
+  ec->init(1);
   sm->init( storeConfig, &logManager );
   sm->setTManager(TransactionManager::getHandle());
   sm->start();
