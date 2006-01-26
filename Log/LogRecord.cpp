@@ -80,6 +80,7 @@ int LogRecord::readLogRecordForward( LogRecord *&result, int fileDes, StoreManag
   if( ( errCode = LogIO::readInt( fileDes, recordLen ) ) ) return errCode;
   if( ( errCode = LogIO::getFilePos( fileDes, filePosEnd ) ) ) return errCode;
 
+  printf("\n[type=%d, begin=%d,%d,%d]\n", recordType ,filePosBegin,(filePosEnd - filePosBegin), recordLen );
   if( filePosEnd - filePosBegin != recordLen ) return LOG_RECORD_LENGTH_MISMATCH_ERROR;
 
   return 0;
@@ -180,21 +181,48 @@ WriteRecord::WriteRecord( int _tid, LogicalID *_lid, string _name, DataValue *_o
     Serialized serial2 = _newVal->serialize();
     newValS = string( (const char*) serial2.bytes, serial2.size );
   }
-  
+
 }
 
 int WriteRecord::deleteFromStore(StoreManager* sm, DataValue *dv)
 {
+  int err=0;
   ObjectPointer* op = sm->createObjectPointer( lid, name, dv);
-  return sm->deleteObject( NULL, op );
+  err=sm->deleteObject( NULL, op );
+  delete op;
+  return err;
 }
 
 //UWAGA to zle dziala  TODO createObject, trzeba zamienic na cos co robi undo delete
 int WriteRecord::addToStore(StoreManager* sm, DataValue *dv)
 {
+  int err = 0;
   printf( "createObjectPointer( lid=%d, name='%s', dv='%s' )\n", lid->toInteger(), name.c_str(), dv->toString().c_str() );
   ObjectPointer* op = sm->createObjectPointer( lid, name, dv);
-  return sm->createObject( NULL, name, dv, op );
+  err=sm->createObject( NULL, name, dv, op );
+  delete op;
+  return err;
+}
+
+int WriteRecord::changeValue(StoreManager* sm, DataValue* dv)
+//moze ta metoda nie bedzie potrzebna to zalezy od tego jak bedzie dzialac to undoDelete
+{
+  int err = 0;
+  ObjectPointer* op=NULL;
+  //trzeba okreslic dokladnie jakie ma byc to err
+  if( (err = sm->getObject(NULL,lid,Write,op)) == 0)
+  {
+    //Nie ma żadnej pewności, że to będzie działać z sensem
+    //bo w virtual void setValue(DataValue* val) nie ma miejsca na tid
+    op->setValue(dv);
+  }
+  else
+  {
+    //nie ma obiektu wiec nalezy go odtworzyc
+    err = addToStore(sm, dv);
+  }
+  delete op;// choc nie wiem czy to dobry pomysl??
+  return err;
 }
 
 int WriteRecord::rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm)
@@ -214,7 +242,10 @@ int WriteRecord::rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm)
     if(newVal == NULL)
       return addToStore( sm, oldVal);
 
-    return 0;
+    //sa obie wartosci trzeba przywrocic stara
+    return changeValue(sm, oldVal);//mozliwe ze mozna addToStore
+
+    //return 0;
   }
   return 0;
 }
@@ -253,16 +284,22 @@ int WriteRecord::write( int fileDes )
 //Jesli Store nie jest na to odporny trzeba sie przejechac dwa razy po logu zeby cos wycofac.
 int RootRecord::removeRootFromStore( StoreManager* sm )
 {
+  int err=0;
   ObjectPointer* op = sm->createObjectPointer( lid );
-  return sm->removeRoot( NULL, op );
+  err = sm->removeRoot( NULL, op );
+  delete op;
+  return err;
 }
 
 //Uwaga może działać bez sensu, jeśli przy odtwarzaniu obiektu bedzie przydzielane nowe lid
 //to wtedy jako root moze byc wstawiane cos czego juz nie ma
 int RootRecord::addRootToStore( StoreManager* sm )
 {
+  int err = 0;
   ObjectPointer* op = sm->createObjectPointer( lid );
-  return sm->addRoot( NULL, op );
+  err = sm->addRoot( NULL, op );
+  delete op;
+  return err;
 }
 
 

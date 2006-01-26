@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <string>
+#include "LogIO.h"
 #include "Logs.h"
 #include "../Store/DBDataValue.h"
 #include "../Store/DBLogicalID.h"
@@ -21,11 +22,17 @@ void printLog(StoreManager* sm)
 {
   int fd;
   int i=0;
+  off_t fpos;
   int err=0;
   LogRecord* lr;
   WriteRecord* wr;
   fd = ::open(LOG_FILE_PATH, O_RDONLY);
-  while( (err = LogRecord::readLogRecordForward(lr, fd, sm)) == 0 && i++<50000)
+
+  ::lseek(fd, 0 ,SEEK_SET);
+  LogIO::getFilePos( fd, fpos );
+  printf("\npocztaek czytania : %d\n",fpos);
+
+  while( (err = LogRecord::readLogRecordForward(lr, fd, sm)) == 0 )
   {
     int lt;
     lr->getType(lt);
@@ -43,6 +50,7 @@ void printLog(StoreManager* sm)
     }
     delete lr;
   }
+  close(fd);
   printf("\nerr=%d\n",err);
 }
 
@@ -69,7 +77,6 @@ int main( int argc, char *argv[] )
 //   {
 //     DataValue *oldDataValue = new DBDataValue( "Stary Mis" );
 //     DataValue *newDataValue = new DBDataValue( "Nowy Mis" );
-
 //     logManager.write( tid, new DBLogicalID( 57 ), "mis", oldDataValue, newDataValue, id );
 //   }
 

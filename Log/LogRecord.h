@@ -7,6 +7,7 @@ namespace Logs
   class BeginTransactionRecord;
   class WriteRecord;
   class CkptRecord;
+  class ShutdownRecord;
   class EndCkptRecord;
   class CommitRecord;
   class RollbackRecord;
@@ -156,6 +157,7 @@ namespace Logs
     virtual int instance( LogRecord *&result ) { result = new WriteRecord(); return 0; }
     virtual int deleteFromStore(StoreManager* sm, DataValue *dv);
     virtual int addToStore(StoreManager* sm, DataValue *dv);
+    virtual int changeValue(StoreManager* sm, DataValue* dv);//mozliwe ze niepotrzebne
 
     public:
     WriteRecord( int _tid, LogicalID *_lid, string _name, DataValue *_oldVal, DataValue *_newVal );
