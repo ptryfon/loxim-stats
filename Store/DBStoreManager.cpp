@@ -148,6 +148,10 @@ namespace Store
 		else
 			lid = p_lid;
 		
+		unsigned log_id;
+		int itid = tid==NULL ? -1 : tid->getId();
+		log->write(itid, lid, name, NULL, value, log_id);
+		
 		object = new DBObjectPointer(name, value, lid);
 
 		Serialized sObj = object->serialize();
@@ -163,7 +167,7 @@ namespace Store
 		//cout << "przed:\n";
 		//pagemgr->printPage(pPtr, 1024/16);
 		int pidoffset;
-		PageManager::insertObject(pPtr, sObj, &pidoffset);
+		PageManager::insertObject(pPtr, sObj, &pidoffset, log_id);
 		//cout << "po:\n";
 		//pagemgr->printPage(pPtr, 1024/16);
 

@@ -100,7 +100,7 @@ namespace Store
 		return 0;
 	}
 */	
-	int PageManager::insertObject(PagePointer *pPtr, Serialized& obj, int* pidoffset)
+	int PageManager::insertObject(PagePointer *pPtr, Serialized& obj, int* pidoffset, unsigned log_id)
 	{
 		ErrorConsole ec("Store");
 		ec << "Store::PageManager::insertObject begin...";
@@ -119,6 +119,8 @@ namespace Store
 		for(int i=0; i<obj.size; i++)
 			page->bytes[newoffset+i] = obj.bytes[i];
 		page->object_count++;
+		
+		page->header.timestamp = static_cast<int>(log_id);
 		
 		ec << "Store::PageManager::insertObject done";
 		return 0;

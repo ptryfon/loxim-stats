@@ -77,6 +77,10 @@ int main(int argc, char* argv[])
 		for(oi=vec->begin(); oi!=vec->end(); oi++)
 			cout << (*oi)->toString() << endl;
 		
+		
+		ObjectPointer* op_wiadro;
+		
+		
 		store->stop();
 		cout << "END" << endl;
 		return 0;
