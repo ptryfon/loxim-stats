@@ -139,6 +139,13 @@ int LogManager::commitTransaction( int tid, unsigned &id )
   return err;
 }
 
+int LogManager::printRollbackSign(int tid)
+{
+  LogRecord *record = new RollbackRecord( tid );
+  logThread->push( record );
+  return 0;
+}
+
 int LogManager::rollbackTransaction( int tid, StoreManager *sm, unsigned &id )
 {
   int fd;

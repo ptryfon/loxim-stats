@@ -73,6 +73,11 @@ namespace Logs
     int commitTransaction( int tid, unsigned &id );
 
     /**
+    * Zapisuje tylko znak rollback (dla CrashRecovery)
+    */
+    int printRollbackSign(int tid);
+
+    /**
      * Zapisuje do dziennika <ABORT tid>.
      */
     int rollbackTransaction( int tid, StoreManager *sm, unsigned &id );

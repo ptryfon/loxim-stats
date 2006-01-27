@@ -20,6 +20,7 @@ namespace Logs
 #include <set>
 #include <stdio.h>
 #include "../Store/Store.h"
+#include "CrashRecovery.h"
 
 using namespace Store;
 using namespace std;
@@ -77,6 +78,11 @@ namespace Logs
     lub usuwa transakcję ze zbioru (begin) lub nie robi nic.
     */
     virtual int rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm) {return 0;}
+    virtual int ckptStart(CrashRecovery* cr) {return 0;}
+    virtual int ckptEnd(CrashRecovery* cr) {return 0;}
+    virtual int modifySetsBackDir(CrashRecovery* cr) {return 0;}
+    virtual int commit(SetOfTransactionIDS* setOfTIDs, StoreManager* sm) {return 0;}
+    virtual int shutDown(CrashRecovery* cr) {return 0;}
   };
 
 

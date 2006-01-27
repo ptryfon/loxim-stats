@@ -6,12 +6,14 @@ SOURCES	=	Logs.cpp \
 		LogRecord.cpp \
 		LogIO.cpp \
 		LogThread.cpp \
-		LogsGlobals.cpp
+		LogsGlobals.cpp \
+		CrashRecovery.cpp
 
 HEADERS	=	Logs.h \
 		LogRecord.h \
 		LogIO.h \
-		LogThread.h
+		LogThread.h \
+		CrashRecovery.h
 
 STATIC_LIB =	Logs.a
 PROGRAM	=	TestLogs
