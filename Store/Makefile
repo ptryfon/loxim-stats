@@ -39,7 +39,7 @@ DEPFILES =	$(OBJECTS:.o=.d)
 all: $(STATIC_LIB)
 test: $(PROGRAM)
 
-$(PROGRAM): $(STATIC_LIB)
+$(PROGRAM): $(STATIC_LIB) $(PROGRAM).cpp
 	make -C ../TransactionManager
 	make -C ../Lock
 	make -C ../Errors
