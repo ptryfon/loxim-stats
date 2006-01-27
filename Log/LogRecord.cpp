@@ -210,6 +210,7 @@ int WriteRecord::changeValue(StoreManager* sm, DataValue* dv)
   int err = 0;
   ObjectPointer* op=NULL;
   //trzeba okreslic dokladnie jakie ma byc to err
+  printf( "LID: %d\n", lid->toInteger() );
   if( (err = sm->getObject(NULL,lid,Write,op)) == 0)
   {
     //Nie ma żadnej pewności, że to będzie działać z sensem

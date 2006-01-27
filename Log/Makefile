@@ -31,7 +31,7 @@ $(PROGRAM): $(STATIC_LIB)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $@.cpp ../Store/Store.a ../TransactionManager/TransactionManager.a ../Lock/Lock.a ../Errors/Errors.a ../Config/Config.a $< -o $@
 
 clean:
-	rm -f $(OBJECTS) $(DEPFILES) $(STATIC_LIB) $(PROGRAM)
+	rm -f $(OBJECTS) $(DEPFILES) $(STATIC_LIB) $(PROGRAM) core*
 
 $(STATIC_LIB): $(OBJECTS)
 	$(AR) r $(STATIC_LIB) $(OBJECTS)
