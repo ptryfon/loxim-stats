@@ -54,8 +54,8 @@ namespace LockMgr
 
 	mutex->up();
 
-	if (_mode == Read && !isCurrentRead)
-	{		
+	if (_mode == Read && !isCurrentRead && !isCurrentWrite)
+	{
 		errorCode = sem->lock_read();
 	}
 	else if (_mode == Write && isCurrentRead && !isCurrentWrite)
