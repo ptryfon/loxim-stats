@@ -24,20 +24,20 @@ int bufferSend(const char* buf, int buf_size, int sock) {
 	int msg_size = htonl(buf_size);
 	lengthBuf = (char*)(& msg_size); //contains the size of the message
 
-   	cerr << "<Tcp::bufferSend()> ile bajtow wysylam: " << buf_size << endl;
+   	//cerr << "<Tcp::bufferSend()> ile bajtow wysylam: " << buf_size << endl;
    	
 	while (lengthBufSize > 0) { //if 0, the size was sent
 		if (-1 ==  (ile = send(sock, lengthBuf, lengthBufSize, MSG_NOSIGNAL))) {
-			cerr << "blad wysylania 1: " << strerror(errno) << endl;
+		//	cerr << "blad wysylania 1: " << strerror(errno) << endl;
 			return errno | ErrTCPProto;
 		}
 		lengthBufSize -= ile;
 		lengthBuf += ile;	
 	}
-	cerr << "<TCP::bufferSedn> znacznik przesylania, ile: " << ile << endl;
+//	cerr << "<TCP::bufferSedn> znacznik przesylania, ile: " << ile << endl;
 	while (buf_size > 0) {
 	if (-1 == (ile = send(sock, buf, buf_size, MSG_NOSIGNAL))) {
-		cerr << "blad wysylania 2" << strerror(errno) << endl;
+	//	cerr << "blad wysylania 2" << strerror(errno) << endl;
 		return errno | ErrTCPProto;
 	}
 	
@@ -75,31 +75,31 @@ int bufferReceive (char** buffer, int* receiveDataSize, int sock) {
          char* lengthBuff = lengthBuffTable;
 
           while (rest > 0) {
-	        cerr << "<tcp::receive> zaczynam recv" << endl;
+	  //      cerr << "<tcp::receive> zaczynam recv" << endl;
          	ile = recv (sock, lengthBuff, rest, 0);
-         	cerr << "<tcp::receive> recv zakonczone" << endl;
+       //  	cerr << "<tcp::receive> recv zakonczone" << endl;
          	if (ile < 0) {
-		cerr << "<tcp::receive> blad czytania tcp: " <<
-		strerror (errno) << endl;
+	//	cerr << "<tcp::receive> blad czytania tcp: " <<
+	//	strerror (errno) << endl;
 		return errno | ErrTCPProto;
 		}
          	if (ile == 0) {
-		cerr << "<tcp::receive> zamknieto gniazdo podczas czytania" << endl;
+	//	cerr << "<tcp::receive> zamknieto gniazdo podczas czytania" << endl;
 		return 0; //disconnect
 		}
-         cerr << "<tcp::receive> po czytaniu w petli, ile = " << ile << endl; 
+     //    cerr << "<tcp::receive> po czytaniu w petli, ile = " << ile << endl; 
          	rest -= ile;
          	lengthBuff += ile;
          }
-         cerr << "<tcp::receive> po czytaniu poza petla" << endl;
+      /*   cerr << "<tcp::receive> po czytaniu poza petla" << endl;
          if (rest != 0) {
          	//TODO wyrzucic to
          	cerr << "<Tcp::bufferReceive> to sie nie moze zdazyc!!!" << endl;
          	return 1;	
-         } 
+         } */ 
          		// mamy juz cala liczbe okreslajaca dlugosc
          	msgSize = ntohl(*((unsigned long int*) lengthBuffTable));
-         	cerr << "<Tcp::bufferSend()> ile bajtow dostane: " << msgSize << endl;	
+         //	cerr << "<Tcp::bufferSend()> ile bajtow dostane: " << msgSize << endl;	
          	
          
          messgBuffBeg = messgBuff = (char*) malloc(msgSize + 1); //+1 protection from reading outside the buffer
@@ -114,13 +114,13 @@ int bufferReceive (char** buffer, int* receiveDataSize, int sock) {
         	
         	if (ile < 0) {
         		int error = errno;
-			cerr << "<tcp::receive> blad czytania tcp: " <<
-		strerror (errno) << endl;
+		//	cerr << "<tcp::receive> blad czytania tcp: " <<
+	//	strerror (errno) << endl;
         		free(messgBuffBeg);
         		return error | ErrTCPProto;
         	}
         	if (ile == 0) {
-				cerr << "<tcp::receive> zamknieto gniazdo podczas czytania" << endl;
+		//		cerr << "<tcp::receive> zamknieto gniazdo podczas czytania" << endl;
         		free(messgBuffBeg);
         		return 0; //disconnect
         	}
