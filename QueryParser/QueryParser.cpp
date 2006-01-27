@@ -8,7 +8,7 @@
 #include "QueryParser.h"
 //#include "../Errors/ErrorConsole.h"
 //#include "../Errors/Errors.h"
-
+#include "../Config/SBQLConfig.h"
 
 yyFlexLexer* lexer;
 extern QParser::TreeNode *d;
@@ -16,7 +16,7 @@ int yyparse();
 
 // using namespace std;
 //using namespace Errors;	
-
+using namespace Config;
 namespace QParser {
 
 	int QueryParser::parseIt(string query, TreeNode *&qTree)
@@ -43,15 +43,16 @@ namespace QParser {
 		delete lexer;
 		qTree = d;
 		
-		printf( "po parsowaniu treeNode: %d. \n", qTree);
+
+		printf( "po parsowaniu treeNode: %d. \n", qTree);
 		cout << "Odczyt z drzewka, ktore przekazuje:" << endl;
 		cout << "--------------------------------------" << endl;
 		qTree->putToString();
 		cout << "\n--------------------------------------" << endl;
 //		*ec << "PARSER::parseIt end\n";
 
-			QParser::Optimiser *opt = new QParser::Optimiser();
-	int reslt;
+//			QParser::Optimiser *opt = new QParser::Optimiser();
+//	int reslt;
 /*	cout << "now the following tree will be evaluated statically.." << endl;
 	TreeNode *nt = d->clone();
 	nt->putToString();
@@ -68,16 +69,46 @@ namespace QParser {
 	}
 
 */
-
+	
+	int optres = -2;
+	int stat_ev_res;
+	QParser::Optimiser *opt = new QParser::Optimiser();
+	TreeNode *nt = d->clone();
+	
+//	/* The main optimisation loop - factor out single independent subqueries *
+//	 * as long as ... such exist !                                           */
+//	while (optres == -2) {
+	bool shouldOptimize;
+	SBQLConfig conf("QueryParser");
+	conf.getBool("optimisation", shouldOptimize);
+	if ( shouldOptimize	) {
+		fprintf (stderr, " optimisation is set ON !\n");
+		if ((stat_ev_res = opt->stEvalTest(nt)) != 0) {
+		fprintf (stderr, "static evaluation did not work out ... \n");
+		optres == -1;
+	    } else {
+		optres = nt->optimizeTree();
+		while (nt->getParent() != NULL) nt = nt->getParent();
+		}
+	} else fprintf (stderr, " optimisation is set OFF !\n");
+			
+//	
+//	    }
+//	}
+	
+	if (optres != -1) {fprintf(stderr, "I'll return optimized tree\n"); qTree = nt;}
+	else { fprintf (stderr, "I'll return the tree from before static eval..\n");}
+//	
 
 	string zap = "EMP where SAL = (EMP where NAME=\"KUBA\").SAL;";
 	
-	if (false || (query == zap)){
+	if (false && (query == zap)){
 	    cout << "TEST START---------------------------------------------------------------------------------" << endl;
 	    stringstream ss (stringstream::in | stringstream::out);
 	    ss << zap;
 	    lexer = new yyFlexLexer(&ss); 
-	    int res = yyparse();	
+	    int res = yyparse();
+	
 	    delete lexer;
 	    TreeNode *tree = d;
 
@@ -90,7 +121,7 @@ namespace QParser {
 	    int reslt;
 	    cout << "now the following tree will be evaluated statically.." << endl;
 	    TreeNode *nt = d->clone();
-	    nt->putToString();
+
 	    if ((reslt = opt->stEvalTest(nt)) != 0)
 		fprintf (stderr, "static evaluation did not work out...\n");
 	    else {
@@ -104,14 +135,15 @@ namespace QParser {
 		//nt->putToString();
 		//cout << "-----------" << endl;
 		
-		int optres = nt->optimizeTree();
+		optres = nt->optimizeTree();
 		cout << "KONIEC OPTYMALIZACJI-------------------------------------------------------"<< endl;
-		cout << "przewijanie ... " << endl;
+		/*the nt tree needs to be 'rolled' up: (in case the nonalgopnode
+		  we were operating on was the root... */
 		while (nt->getParent() != NULL) nt = nt->getParent();
-		cout << "po przewijaniu, mamy raczej dobre poddrzewko... " << endl;
+
 		fprintf (stderr, "__%d__", optres);
 
-		cout << "po optymalizacji" << endl;
+		cout << "po JEDNYM PRZEBIEGU optymalizacji" << endl;
 		nt->putToString();
 		cout << "-----------" << endl;
 		fprintf (stderr, "end of optimisation.\n");
