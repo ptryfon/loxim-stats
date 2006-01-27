@@ -310,6 +310,9 @@ namespace Store
 	{
 		*ec << "Store::Manager::addRoot begin..";
 		int lid = object->getLogicalID()->toInteger();
+		unsigned log_id;
+		int itid = tid==NULL ? -1 : tid->getId();
+		log->addRoot(itid, object->getLogicalID(), log_id);
 		roots->addRoot(lid);
 		
 		ec->printf("Store::Manager::addRoot done: %s\n", object->toString().c_str());
@@ -320,6 +323,9 @@ namespace Store
 	{
 		*ec << "Store::Manager::removeRoot begin..";
 		int lid = object->getLogicalID()->toInteger();
+		unsigned log_id;
+		int itid = tid==NULL ? -1 : tid->getId();
+		log->removeRoot(itid, object->getLogicalID(), log_id);
 		roots->removeRoot(lid);
 		
 		ec->printf("Store::Manager::removeRoot done: %s\n", object->toString().c_str());
