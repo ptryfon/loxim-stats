@@ -78,6 +78,10 @@ int main(int argc, char* argv[])
 			cout << (*oi)->toString() << endl;
 		
 		
+		cout << "Odpalam deleteObject" << endl;
+		store->deleteObject(&tid, *(vec->begin()));
+		store->removeRoot(&tid, *(vec->begin()));
+		
 		ObjectPointer* op_wiadro;
 		
 		

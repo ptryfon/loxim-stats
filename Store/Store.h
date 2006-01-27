@@ -95,8 +95,8 @@ namespace Store
 	public:
 		// Class functions
 		virtual DataType getType() = 0;
-		virtual void toByteArray(unsigned char** buff, int* length) = 0;
-		virtual void toFullByteArray(unsigned char** buff, int* length) = 0;
+//		virtual void toByteArray(unsigned char** buff, int* length) = 0;
+//		virtual void toFullByteArray(unsigned char** buff, int* length) = 0;
 		virtual string toString() = 0;
 		virtual Serialized serialize() const = 0;
 

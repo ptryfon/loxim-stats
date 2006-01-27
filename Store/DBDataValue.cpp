@@ -4,7 +4,7 @@ using namespace std;
 
 namespace Store
 {
-	DBDataValue::DBDataValue()
+	DBDataValue::DBDataValue() // konstruktory DV robia deep-copy
 	{
 		p_init();
 	};
@@ -30,15 +30,31 @@ namespace Store
 		value.string_value = new string(val);
 	};
 
-
-
-	
-	DBDataValue::DBDataValue(unsigned char *fbArray)
+	DBDataValue::DBDataValue(LogicalID* val)
 	{
 		p_init();
-		//type = odczytanyzpierwszegointa;
-		//value. = ;
+		type = Store::Pointer;
+		value.pointer_value = new DBLogicalID();
+		*(value.pointer_value) = *val;
 	};
+
+	DBDataValue::DBDataValue(vector<LogicalID*>* val)
+	{
+		p_init();
+		type = Store::Vector;
+		value.vector_value = new vector<LogicalID*>(0);
+		vector<LogicalID*>::iterator oi;
+		for(oi=val->begin(); oi!=val->end(); oi++)
+			value.vector_value->push_back(new DBLogicalID((*oi)->toInteger()));
+	};
+
+	
+	//DBDataValue::DBDataValue(unsigned char *fbArray)
+	//{
+	//	p_init();
+	//	//type = odczytanyzpierwszegointa;
+	//	//value. = ;
+	//};
 
 	DBDataValue::~DBDataValue()
 	{
@@ -50,7 +66,7 @@ namespace Store
 		return type;
 	};
 
-	int DBDataValue::fullBinarySize() const
+/*	int DBDataValue::fullBinarySize() const
 	{
 		int size = sizeof(int);
 		switch(type) {
@@ -74,7 +90,7 @@ namespace Store
 	void DBDataValue::toFullByteArray(unsigned char** buff, int* length)
 	{
 		//full czyli type + value
-/*		int etyp = static_cast<int>(type);
+		int etyp = static_cast<int>(type);
 		int size = sizeof(int);
 		unsigned char *barray;
 		vector<pair<unsigned char*,int> > vecbarray;
@@ -127,9 +143,9 @@ namespace Store
 			   break;
 			default: break;
 		};
-*/		
+		
 	};
-
+*/
 	string DBDataValue::toString()
 	{
 		ostringstream str;

@@ -122,6 +122,8 @@ namespace Store
 		if( (map->getPhysicalID(lid->toInteger(),&p_id)) == 2 ) return 2; //out of range
 		cout << "file: " << p_id->file_id << ", page: " << p_id->page_id << ", off: " << p_id->offset <<endl;
 		if((!p_id->file_id) && (!p_id->page_id) && (!p_id->offset)) return 2;
+		if(p_id->offset > 1000) return 2;
+		if(p_id->page_id > 1000) return 2;
 		PagePointer *pPtr = buffer->getPagePointer(p_id->file_id, p_id->page_id);
 		
 		pPtr->aquire();
@@ -252,6 +254,8 @@ namespace Store
 		// uaktualnienie info na stronie
 		p->object_count--;
 		p->free_space = p->free_space + object_size;
+
+		pagemgr->updateFreeMap(pPtr);
 		
 		pPtr->release();
 
@@ -290,8 +294,8 @@ namespace Store
 		for(obj_iter=rvec->begin(); obj_iter!=rvec->end(); obj_iter++) {
 			ObjectPointer* optr = NULL;
 			LogicalID* lid = new DBLogicalID((*obj_iter));
-			getObject(tid, lid, Store::Write, optr);
-			if(optr) {
+			int rval = getObject(tid, lid, Store::Write, optr);
+			if(optr || rval) {
 				if( (optr->getName() == p_name) || (p_name == "") )
 					p_roots->push_back(optr);
 			} else
@@ -314,6 +318,11 @@ namespace Store
 
 	int DBStoreManager::removeRoot(TransactionID* tid, ObjectPointer* object)
 	{
+		*ec << "Store::Manager::removeRoot begin..";
+		int lid = object->getLogicalID()->toInteger();
+		roots->removeRoot(lid);
+		
+		ec->printf("Store::Manager::removeRoot done: %s\n", object->toString().c_str());
 		return 0;
 	};
 
@@ -344,14 +353,12 @@ namespace Store
 
 	DataValue* DBStoreManager::createPointerValue(LogicalID* value)
 	{
-//		return new DBDataValue(value);
-		return 0;
+		return new DBDataValue(value);
 	};
 
 	DataValue* DBStoreManager::createVectorValue(vector<LogicalID*>* value)
 	{
-//		return new DBDataValue(value);
-		return 0;
+		return new DBDataValue(value);
 	};
 
 	ObjectPointer* DBStoreManager::createObjectPointer(LogicalID* lid)

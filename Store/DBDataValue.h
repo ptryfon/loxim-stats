@@ -27,14 +27,16 @@ namespace Store
 		DBDataValue(int value);
 		DBDataValue(double value);
 		DBDataValue(string value);
+		DBDataValue(LogicalID* value);
+		DBDataValue(vector<LogicalID*>* value);
 		
-		DBDataValue(unsigned char* fullByteArray);
+//		DBDataValue(unsigned char* fullByteArray);
 		~DBDataValue();
 
 		virtual DataType getType();
-		virtual int fullBinarySize() const;
-		virtual void toByteArray(unsigned char** buff, int* length);
-		virtual void toFullByteArray(unsigned char** buff, int* length);
+//		virtual int fullBinarySize() const;
+//		virtual void toByteArray(unsigned char** buff, int* length);
+//		virtual void toFullByteArray(unsigned char** buff, int* length);
 		virtual string toString();
 		virtual Serialized serialize() const;
 		static int deserialize(unsigned char* bytes, DBDataValue*& value);
