@@ -12,7 +12,7 @@ PROGRAM	=	consoletest
 OBJECTS	=	$(SOURCES:.cpp=.o)
 DEPFILES =	$(OBJECTS:.o=.d) $(PROGRAM).d
 
-all: $(STATIC_LIB) $(PROGRAM)
+all: $(STATIC_LIB)
 
 $(PROGRAM): $(STATIC_LIB) ../Config/Config.a $(PROGRAM).cpp
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $@.cpp $< ../Config/Config.a -o $@
