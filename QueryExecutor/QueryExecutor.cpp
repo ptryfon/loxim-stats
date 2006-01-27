@@ -1065,8 +1065,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 			if (errcode != 0) return errcode;
 			switch (op) {
 				case AlgOpNode::bagUnion: {
-					if (not isIncl)
-						final->addResult(tmp_res);
+					final->addResult(tmp_res);
 					break;
 				}
 				case AlgOpNode::bagIntersect: {
@@ -1488,7 +1487,7 @@ int EnvironmentStack::pop(){
 	else {
 		es.pop_back();
 	};
-	*ec << "[QE] Environment Stack poped"; 
+	*ec << "[QE] Environment Stack popped"; 
 	return 0;
 }
 
