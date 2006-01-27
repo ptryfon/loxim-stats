@@ -91,7 +91,7 @@ int DataScheme::readData(){
 	
     tr->getRoots("MetaDataNode", roots);	
     cout << "odebral " << roots->size() << " obiektow"<< endl;
-    for (int i = 0; i < roots->size(); i++){
+    for (unsigned int i = 0; i < roots->size(); i++){
 	ObjectPointer * mainOp = (*roots)[i];
 	DataObjectDef * datObDef = new DataObjectDef();	// ten obiekt wypelniam 
 	cout << "id " << mainOp->getLogicalID()->toInteger() << endl;
@@ -107,7 +107,7 @@ int DataScheme::readData(){
 	
 	ObjectPointer *op = NULL;
 	// ----------------------------------------------------- name
-	for (int j = 0; j < v->size(); j++){
+	for (unsigned   int j = 0; j < v->size(); j++){
 	    // czy acces mode sie robi w ten sposob?
 	    tr->getObjectPointer( (*v)[j], Store::Read, op);
 	    // moze tak nie mozna porownywac getName zwraca stringa **
@@ -123,7 +123,7 @@ int DataScheme::readData(){
 	// ----------------------------------------		kind
 	
 	op = NULL;
-	for (int j = 0; j < v->size(); j++){
+	for (unsigned  int j = 0; j < v->size(); j++){
 	    // czy acces mode sie robi w ten sposob?
 	    tr->getObjectPointer( (*v)[j], Store::Read, op);
 	    // moze tak nie mozna porownywac getName zwraca stringa **
@@ -139,7 +139,7 @@ int DataScheme::readData(){
 	// ----------------------------------------		card
 	
 	op = NULL;
-	for (int j = 0; j < v->size(); j++){
+	for (unsigned  int j = 0; j < v->size(); j++){
 	    // czy acces mode sie robi w ten sposob?
 	    tr->getObjectPointer( (*v)[j], Store::Read, op);
 	    // moze tak nie mozna porownywac getName zwraca stringa **
@@ -157,7 +157,7 @@ int DataScheme::readData(){
 	// FIXME nie wiem czy tak mozna getKind zwraca stringa    
 	if (datObDef->getKind() == "atomic"){
 	    op = NULL;
-	    for (int j = 0; j < v->size(); j++){
+	    for (unsigned  int j = 0; j < v->size(); j++){
 		// czy acces mode sie robi w ten sposob?
 	        tr->getObjectPointer( (*v)[j], Store::Read, op);
 		// moze tak nie mozna porownywac getName zwraca stringa **
@@ -175,7 +175,7 @@ int DataScheme::readData(){
 	// ----------------------------------------		owner - nie wypelniam tylko sprawdzam czy ustawiony/jest
 						    // jezeli jest tzn. ze obiekt jest bazowy 
 	op = NULL;
-	for (int j = 0; j < v->size(); j++){
+	for (unsigned  int j = 0; j < v->size(); j++){
 	    // czy acces mode sie robi w ten sposob?
 	    tr->getObjectPointer( (*v)[j], Store::Read, op);
 	    // moze tak nie mozna porownywac getName zwraca stringa **
@@ -203,7 +203,7 @@ int DataScheme::readData(){
     
     
         
-    for (int i = 0; i < roots->size(); i++){
+    for (unsigned  int i = 0; i < roots->size(); i++){
 	ObjectPointer * mainOp = (*roots)[i];
 	DataObjectDef * datObDef = getObjById(mainOp->getLogicalID()->toInteger());// ten obiekt wypelniam 
 
@@ -217,7 +217,7 @@ int DataScheme::readData(){
 	// ----------------------------------------		owner - nie wypelniam tylko sprawdzam czy ustawiony/jest
 						    // jezeli jest tzn. ze obiekt jest bazowy 
 	op = NULL;
-	for (int j = 0; j < v->size(); j++){
+	for (unsigned  int j = 0; j < v->size(); j++){
 	    // czy acces mode sie robi w ten sposob?
 	    tr->getObjectPointer( (*v)[j], Store::Read, op);
 	    // moze tak nie mozna porownywac getName zwraca stringa **
@@ -237,7 +237,7 @@ int DataScheme::readData(){
 	if (datObDef->getKind()=="link"){
 	    
 	    op = NULL;
-	    for (int j = 0; j < v->size(); j++){
+	    for (unsigned  int j = 0; j < v->size(); j++){
 		// czy acces mode sie robi w ten sposob?
 	        tr->getObjectPointer( (*v)[j], Store::Read, op);
 		// moze tak nie mozna porownywac getName zwraca stringa **
@@ -254,7 +254,7 @@ int DataScheme::readData(){
 	if (datObDef->getKind() == "complex"){
 	    
 	    op = NULL;
-	    for (int j = 0; j < v->size(); j++){
+	    for (unsigned  int j = 0; j < v->size(); j++){
 		// czy acces mode sie robi w ten sposob?
 	        tr->getObjectPointer( (*v)[j], Store::Read, op);
 		// moze tak nie mozna porownywac getName zwraca stringa **
