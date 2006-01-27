@@ -120,7 +120,7 @@ Result* Connection::deserialize() {
 		case Result::ERROR:
 			cerr << "<Connection::deserialize> tworze obiekt ERROR\n";
 			getULong(number); //by reference
-			throw ConnectionServerException(number); 
+			throw ConnectionServerException((int)number); 
 			//return new ResultError(number);
 			
 		
