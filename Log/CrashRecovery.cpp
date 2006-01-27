@@ -125,6 +125,7 @@ int CrashRecovery::init(LogManager* lm, StoreManager* sm)
 
 int CrashRecovery::Recover()
   {
+    printf( "CrashRecovery::Recover!\n" );
     int err=0;
     bool isEnd=false;
     actualFaze = new CRStart();
