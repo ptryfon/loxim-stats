@@ -19,14 +19,14 @@ using namespace std;
 int Listener::CreateSocket(int port, int* created_socket, bool reuse) {
 	
     int sock;
-    *lCons << "entering CreateSocket";
+  //  *lCons << "entering CreateSocket";
     sock = socket( PF_INET, SOCK_STREAM, 0 );
     if (sock == -1) {
     	*lCons << "problem z socketem";
     	return errno | ErrTCPProto;
     }
     
-    lCons->printf("<ListenerTcp::createSocket> utworzone gniazdo nasluchu: %d\n", sock);
+  //  lCons->printf("<ListenerTcp::createSocket> utworzone gniazdo nasluchu: %d\n", sock);
   
      
    if (reuse)
@@ -80,7 +80,7 @@ int Listener::CreateSocket(int port, int* created_socket, bool reuse) {
  
 	*created_socket = sock;
 
-	*lCons << "End CreateSocket";
+//	*lCons << "End CreateSocket";
     return 0;
 }
 
@@ -92,7 +92,7 @@ int Listener::CreateSocket(int port, int* created_socket, bool reuse) {
 int Listener::ListenOnSocket(int sock, int* newSocket, int queueLength) 
 {
 
-	lCons->printf("ListenerTcp: Listening on socket number %d \n", sock);
+//	lCons->printf("ListenerTcp: Listening on socket number %d \n", sock);
     if (0 != listen( sock, queueLength )) {
        *lCons << "blad w listen";
        return errno | ErrTCPProto;
@@ -106,7 +106,7 @@ int Listener::ListenOnSocket(int sock, int* newSocket, int queueLength)
         	return 1;
         } else
         { 
-		lCons->printf("<ListenerTcp> accepted, nowe gniazdo watku: %d\n", nowy);
+	//	lCons->printf("<ListenerTcp> accepted, nowe gniazdo watku: %d\n", nowy);
 			*newSocket = nowy;
 			    return 0;
 	}
@@ -114,7 +114,7 @@ int Listener::ListenOnSocket(int sock, int* newSocket, int queueLength)
 
 int Listener::CloseSocket(int sock) {
 	if (0 == close(sock)) {
-	lCons->printf("gniazdo: %d zamkniete pomyslnie\n", sock);
+	//lCons->printf("gniazdo: %d zamkniete pomyslnie\n", sock);
 	return 0;
 	}
 	else {

@@ -176,13 +176,13 @@ Result* Connection::execute(const char* query) throw (ConnectionException) {
       }
       //bufferHandler will free memory pointed by ptr at the end of a scope
       BufferHandler bufferPtr(ptr); //needed only during deserializing (exception possible)
-      cerr << "<Connection::execute> driver przyszlo bajtow: " << ile << endl;
+//      cerr << "<Connection::execute> driver przyszlo bajtow: " << ile << endl;
       bufferBegin = ptr;
       bufferEnd = ptr+ile;
       
       Result* rs = deserialize();
 
-      cerr << "<Connection::execute> obiekt Result stworzony -> procedura zakonczona sukcesem" << endl;
+//      cerr << "<Connection::execute> obiekt Result stworzony -> procedura zakonczona sukcesem" << endl;
       return rs;
 }
 

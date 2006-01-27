@@ -30,12 +30,12 @@ return 0;
 }
 
 int Server::Disconnect(){
-	*ec << "ServerTcp: disconnecting";
+//	*ec << "ServerTcp: disconnecting";
 	int res = close(Sock);
 	if (res != 0) {
 		ec->printf("blad zamykania gniazda watku, gzniado: %d, blad: %s\n", Sock, strerror(errno));
 	} else {
-		ec->printf("<ServerTcp::disconnect> gniazdo watku: %d zamknieto pomyslnie\n", Sock);
+	//	ec->printf("<ServerTcp::disconnect> gniazdo watku: %d zamknieto pomyslnie\n", Sock);
 	return 0;
 	}
 }
