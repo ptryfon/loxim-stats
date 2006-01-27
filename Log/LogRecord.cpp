@@ -96,6 +96,7 @@ int RemoveRootRecord::commit(SetOfTransactionIDS* setOfTIDs, StoreManager* sm)
 int CommitRecord::modifySetsBackDir(CrashRecovery* cr)
   {
     cr->tidsToCommit.insert(tid);
+    return 0;
   }
 
 int CommitRecord::commit(SetOfTransactionIDS* setOfTIDs, StoreManager* sm)

@@ -44,6 +44,20 @@ int LogManager::init()
   return 0;
 }
 
+int LogManager::start( StoreManager *store )
+{
+  CrashRecovery *cr = new CrashRecovery();
+  int errCode = 0;
+
+  errCode = cr->init( this, store );
+  if( errCode == 0 )
+    errCode = cr->Recover();
+
+  delete cr;
+
+  return errCode;
+}
+
 int LogManager::destroy()
 {
   LogRecord::initialize();

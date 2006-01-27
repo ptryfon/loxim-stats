@@ -39,6 +39,7 @@ namespace Logs
     LogManager() { ec = new ErrorConsole("Logs"); }
 
     int init();
+    int start( StoreManager *store );
 
     /**
     Robi flush Logów;

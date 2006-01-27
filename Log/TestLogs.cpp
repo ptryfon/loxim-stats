@@ -72,6 +72,10 @@ int main( int argc, char *argv[] )
   sm->setTManager(TransactionManager::getHandle());
   sm->start();
 
+  int errCode = logManager.start( sm );
+
+  printf( "Recovery errcode: %d\n", errCode );
+
   DataValue *dv = sm->createStringValue( "Nowy Mis" );
   ObjectPointer* op;
   sm->createObject( NULL, "mis", dv, op );
@@ -110,7 +114,9 @@ int main( int argc, char *argv[] )
 //   logManager.write( tid, new DBLogicalID( 59 ), "mis3", new DBDataValue( "Stary Mis4" ), new DBDataValue( "Nowy Mis4" ), id );
 
 
-  //abort();
+  logManager.flushLog();
+  abort();
+
   logManager.rollbackTransaction( tid, sm, id );
   logManager.shutdown( id );
   logManager.flushLog();
