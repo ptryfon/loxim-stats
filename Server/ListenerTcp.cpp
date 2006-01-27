@@ -10,6 +10,8 @@
 #include "../Errors/Errors.h"
 #include "Listener.h"
 
+#define REUSE_ADDRESS "reuse_address"
+
 using namespace std;
 
 /*
@@ -18,7 +20,19 @@ using namespace std;
 
 int Listener::CreateSocket(int port, int* created_socket, bool reuse) {
 	
+    int errCode;
     int sock;
+//    bool reuse;
+    
+    SBQLConfig config("Server");
+      
+    if((errCode=config.getBool( REUSE_ADDRESS, reuse ))!=0) {
+    	*lCons << "Listener::CreateSocket error while reading config";
+    	return errCode | ErrServer;
+    }
+    
+    lCons->printf("listenerTcp::wczytuje wartosc reuse: %d\n", reuse);
+    
   //  *lCons << "entering CreateSocket";
     sock = socket( PF_INET, SOCK_STREAM, 0 );
     if (sock == -1) {

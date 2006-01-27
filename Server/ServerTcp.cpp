@@ -34,6 +34,7 @@ int Server::Disconnect(){
 	int res = close(Sock);
 	if (res != 0) {
 		ec->printf("blad zamykania gniazda watku, gzniado: %d, blad: %s\n", Sock, strerror(errno));
+		return res | ErrServer;
 	} else {
 	//	ec->printf("<ServerTcp::disconnect> gniazdo watku: %d zamknieto pomyslnie\n", Sock);
 	return 0;
