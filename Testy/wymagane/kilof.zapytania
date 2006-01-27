@@ -1,4 +1,7 @@
+begin;
+
 kilof;
 
 deref(kilof);
 
+end;
