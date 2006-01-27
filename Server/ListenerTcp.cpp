@@ -36,7 +36,7 @@ int Listener::CreateSocket(int port, int* created_socket, bool reuse) {
         {
           //setsockopt failed but maybe server can run without it -> don't shutdown yet
            // perror("setsockopt(SO_REUSEADDR) failed");
-	   *lCons << "blad setsockopt: " << strerror(errno) << endl;
+//	   *lCons << "blad setsockopt: " << strerror(errno) << endl;
         }
     }
     
