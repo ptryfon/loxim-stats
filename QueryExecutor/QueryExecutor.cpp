@@ -521,6 +521,7 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 					break;
 				}
 			}
+			break;
 		}
 		case QueryResult::QNOTHING: {
 			res = arg;
