@@ -5,6 +5,121 @@
 #include <errno.h>
 
 
+int BeginTransactionRecord::modifySetsBackDir(CrashRecovery* cr)
+    {
+      if(cr->tidsToCommit.find(tid) == cr->tidsToCommit.end())
+      {
+        (cr->tidsToRollback).insert(tid);
+        (cr->rollbackedTids).insert(tid);
+      }
+      return 0;
+    } 
+
+int ShutdownRecord::shutDown(CrashRecovery* cr) { cr->shutDown(); return 0;}
+
+int WriteRecord::modifySetsBackDir(CrashRecovery* cr)
+    {
+      //wrzucamy do wycofania tylko to czego nie ma w commit
+      if(cr->tidsToCommit.find(tid) == cr->tidsToCommit.end())
+      {
+        cr->tidsToRollback.insert(tid);
+      }
+      return 0;
+    }
+
+int WriteRecord::commit(SetOfTransactionIDS* setOfTIDs, StoreManager* sm)
+    {
+      //sprawdzamy czy zapis dotyczy jednej z tranzakcji do commitowania.
+      if(setOfTIDs->find(tid) != setOfTIDs->end())
+      {
+        //zła postać rekordu w logach
+        if(oldVal == NULL && newVal == NULL )
+          return LOG_INCORRECT_RECORD_FORMAT;
+  
+        //Commitowana transakcja stworzyla obiekt, nalezy go odtworzyć.
+        if(oldVal == NULL)
+          return addToStore(sm, newVal);
+  
+        //Commitowana transakcja usunela obiekt nalezy go usunac.
+        if(newVal == NULL)
+          return deleteFromStore( sm, oldVal);
+        
+        //Commitowana tranzakcja zmienila wartosc na nową - ustawiamy nową wartość  
+        return changeValue( sm, newVal);//mozliwe ze mozna add tu store
+  
+        //return 0;
+      }
+      return 0;
+    }
+    
+    
+   int AddRootRecord::modifySetsBackDir(CrashRecovery* cr)
+    {
+      //wrzucamy do wycofania tylko to czego nie ma w commit
+      if(cr->tidsToCommit.find(tid) == cr->tidsToCommit.end())
+      {
+        cr->tidsToRollback.insert(tid);
+      }
+      return 0;
+    }
+    
+int AddRootRecord::commit(SetOfTransactionIDS* setOfTIDs, StoreManager* sm)
+    {
+      //sprawdzamy czy zapis dotyczy jednej z tranzakcji do zatwierdzenia.
+      if(setOfTIDs->find(tid) != setOfTIDs->end())
+        //Zatwierdzana tranzakcja dodała roota, więc go dodajemy.
+        return addRootToStore( sm );
+      return 0;
+    }
+    
+    
+int RemoveRootRecord::modifySetsBackDir(CrashRecovery* cr)
+    {
+      //wrzucamy do wycofania tylko to czego nie ma w commit
+      if(cr->tidsToCommit.find(tid) == cr->tidsToCommit.end())
+      {
+        cr->tidsToRollback.insert(tid);
+      }
+      return 0;
+    }
+  
+int RemoveRootRecord::commit(SetOfTransactionIDS* setOfTIDs, StoreManager* sm)
+    {  
+      //sprawdzamy czy zapis dotyczy jednej z tranzakcji do zatwierdzenia.
+      if(setOfTIDs->find(tid) != setOfTIDs->end())
+        //Zatwierdzana tranzakcja usunęła roota więc go usuwamy.
+        return removeRootFromStore( sm );
+      return 0;
+    }
+
+
+int CommitRecord::modifySetsBackDir(CrashRecovery* cr)
+  {
+    cr->tidsToCommit.insert(tid);
+  }
+
+int CommitRecord::commit(SetOfTransactionIDS* setOfTIDs, StoreManager* sm)
+  {
+    //usuwamy tranzakcje ze zbioru tranzakcji do zatwierdzenia
+    setOfTIDs->erase(tid);
+    return 0;
+  }
+  
+  
+
+int RollbackRecord::modifySetsBackDir(CrashRecovery* cr)
+    {
+      (cr->tidsToRollback).insert(tid);
+      return 0;
+    } 
+
+int CkptRecord::ckptStart(CrashRecovery* cr) { cr->CkptStart(); return 0;}
+
+
+int EndCkptRecord::ckptEnd(CrashRecovery* cr) {cr->CkptEnd(); return 0;}
+
+
+
 /* LogRecord class */
 
 int LogRecord::initialize()

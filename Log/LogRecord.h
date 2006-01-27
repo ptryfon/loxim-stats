@@ -99,6 +99,7 @@ namespace Logs
 
     public:
     ShutdownRecord() : LogRecord( SHUTDOWN_LOG_REC_TYPE ) {dictionary[type] = this;}
+    virtual int shutDown(CrashRecovery* cr);
     virtual ~ShutdownRecord() {}
 
   };
@@ -132,6 +133,7 @@ namespace Logs
     virtual int instance( LogRecord *&result ) { result = new BeginTransactionRecord(); return 0; }
 
     public:
+    virtual int modifySetsBackDir(CrashRecovery* cr);
     virtual int rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm);
     BeginTransactionRecord( int _tid ) : TransactionRecord( _tid, BEGIN_LOG_REC_TYPE ) {}
   };
@@ -169,6 +171,11 @@ namespace Logs
     WriteRecord( int _tid, LogicalID *_lid, string _name, DataValue *_oldVal, DataValue *_newVal );
     virtual ~WriteRecord() {  /*delete lid; delete oldVal; delete newVal;*/ } //
     virtual int rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm);
+    
+    virtual int modifySetsBackDir(CrashRecovery* cr);
+    
+    virtual int commit(SetOfTransactionIDS* setOfTIDs, StoreManager* sm);
+    
   };
 
   class RootRecord : public TransactionRecord
@@ -204,6 +211,10 @@ namespace Logs
     AddRootRecord( int _tid, LogicalID *_lid) : RootRecord( _tid, _lid, ADD_ROOT_LOG_REC_TYPE ) {}
     virtual int rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm);
     virtual ~AddRootRecord(){}
+    
+    virtual int modifySetsBackDir(CrashRecovery* cr);
+    
+    virtual int commit(SetOfTransactionIDS* setOfTIDs, StoreManager* sm);
   };
 
   class RemoveRootRecord : public RootRecord
@@ -217,6 +228,10 @@ namespace Logs
     public:
     RemoveRootRecord( int _tid, LogicalID *_lid) : RootRecord( _tid, _lid, REMOVE_ROOT_LOG_REC_TYPE ) {}
     virtual int rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm);
+    
+    virtual int modifySetsBackDir(CrashRecovery* cr);
+  
+    virtual int commit(SetOfTransactionIDS* setOfTIDs, StoreManager* sm);
     virtual ~RemoveRootRecord(){}
   };
 
@@ -230,6 +245,8 @@ namespace Logs
     virtual int instance( LogRecord *&result ) { result = new CommitRecord(); return 0; }
 
     public:
+    virtual int modifySetsBackDir(CrashRecovery* cr);
+    virtual int commit(SetOfTransactionIDS* setOfTIDs, StoreManager* sm);
     CommitRecord( int _tid ) : TransactionRecord( _tid, COMMIT_LOG_REC_TYPE ) {}
   };
 
@@ -245,6 +262,7 @@ namespace Logs
 
     public:
     RollbackRecord( int _tid ) : TransactionRecord( _tid, ROLLBACK_LOG_REC_TYPE ) {}
+    virtual int modifySetsBackDir(CrashRecovery* cr);
   };
 
   class CkptRecord : public LogRecord
@@ -262,7 +280,7 @@ namespace Logs
 
     public:
     CkptRecord( vector< int > *_tidVec ) : LogRecord( CKPT_LOG_REC_TYPE ), tidVec( _tidVec ) {}
-
+    virtual int ckptStart(CrashRecovery* cr);
     virtual ~CkptRecord() { delete tidVec; }
   };
 
@@ -276,6 +294,7 @@ namespace Logs
     virtual int instance( LogRecord *&result ) { result = new EndCkptRecord(); return 0; }
 
     public:
+    virtual int ckptEnd(CrashRecovery* cr);
     EndCkptRecord() : LogRecord( END_CKPT_LOG_REC_TYPE ) {dictionary[type] = this;}
   };
 
