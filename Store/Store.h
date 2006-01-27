@@ -147,6 +147,8 @@ namespace Store
 		virtual int createObject(TransactionID* tid, string name, DataValue* value, ObjectPointer*& object, LogicalID* lid=NULL) = 0;
 		virtual int deleteObject(TransactionID* tid, ObjectPointer* object) = 0;
 
+		virtual int replaceDV(ObjectPointer* obj, DataValue* dv) = 0;
+
 		// Roots
 		virtual int getRoots(TransactionID* tid, vector<ObjectPointer*>*& roots) = 0;
 		virtual int getRoots(TransactionID* tid, string name, vector<ObjectPointer*>*& roots) = 0;

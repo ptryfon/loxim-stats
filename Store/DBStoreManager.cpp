@@ -191,17 +191,22 @@ namespace Store
 	{
 		*ec << "Store::Manager::deleteObject start...";
 		
-		//zapisane do Log
-		unsigned *id;
-//		Log::write(tid, object->getLogicalID(), object->getValue(), NULL, &id);
+		unsigned log_id;
+		int itid = tid==NULL ? -1 : tid->getId();
+		log->write(itid, object->getLogicalID(), object->getName(), object->getValue(), NULL, log_id);
 
-
-		physical_id *p_id;
-		map->getPhysicalID(object->getLogicalID()->toInteger(), &p_id);
+		physical_id *p_id = NULL;
+		if( (map->getPhysicalID(object->getLogicalID()->toInteger(),&p_id)) == 2 ) return 2; //out of range
+		cout << "file: " << p_id->file_id << ", page: " << p_id->page_id << ", off: " << p_id->offset <<endl;
+		if((!p_id->file_id) && (!p_id->page_id) && (!p_id->offset)) return 2;
 		PagePointer *pPtr = buffer->getPagePointer(p_id->file_id, p_id->page_id);
+
 		pPtr->aquire();
+		
 		page_data *p = reinterpret_cast<page_data*>(pPtr->getPage());
-		p->header.timestamp = *id;		
+		p->header.timestamp = log_id;		
+
+// tr do konca
 
 		int pos_table = p_id->offset;
 		int end_of_object;
@@ -252,6 +257,15 @@ namespace Store
 
 		ec->printf("Store::Manager::deleteObject done: %s\n", object->toString().c_str());
 		
+		return 0;
+	};
+	
+	int DBStoreManager::replaceDV(ObjectPointer* object, DataValue* dv)
+	{
+		TransactionID t(99999);
+		deleteObject(&t, object);
+		ObjectPointer* newobj;
+		createObject(&t, object->getName(), dv, newobj);
 		return 0;
 	};
 
