@@ -1,17 +1,18 @@
 #include "Optymalizator.h"
 #include "TreeNode.h"
+#include "Deb.h"
 
 namespace QParser{
 
 
     TreeNode * Optymalizator::getIndependant(TreeNode *niealg){
-	cout << "GETINDEPENDANT START" << endl;
+	Deb::ug("GETINDEPENDANT START");
 	int min = ((NonAlgOpNode* ) niealg)->getFirstOpenSect();
 	int max = ((NonAlgOpNode* ) niealg)->getLastOpenSect();
 	int depth = 0;	
-	cout << "drzewko oper niealg" << endl;
+	Deb::ug("drzewko oper niealg");
 	niealg->putToString();
-	cout << "------------------------" << endl;
+	Deb::ug("------------------------");
 	
 	cout << "szuka niezaleznego w" << endl;
 	(((TwoArgsNode *) niealg)->getRArg())->putToString();

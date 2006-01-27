@@ -6,6 +6,7 @@
 #include "QueryParser.h"
 #include "TreeNode.h"
 #include "DataRead.h"
+#include "Deb.h"
 
 using namespace std;
 
@@ -44,14 +45,13 @@ namespace QParser {
 		return ns;
 		}
 	BinderWrap* SigRef::statNested() {
-		fprintf (stderr, "doing statNested on DATA SCHEME ! \n");
+		Deb::ug("doing statNested on DATA SCHEME ! "); 
 		return DataScheme::dScheme()->statNested(refNo);
 		}		
 	BinderWrap* StatBinder::statNested() { return new BinderList((StatBinder *) this);};
 
 	BinderWrap* SigColl::statNested() {
-//		Signature *elt = myList;
-		cout << "statNested::sigColl -- should not be evoked..." << endl;	
+		Deb::ug( "statNested::sigColl -- should not be evoked...");	
 		return NULL;
 		}						
   
@@ -62,10 +62,8 @@ namespace QParser {
 
 
 	int Optimiser::simpleTest() {
-		cout << 1 <<endl;
 		setEnvs(new StatEnvStack());
 		setQres(new StatQResStack());
-		cout << 3 <<endl;
 		StatBinder *b1 = new StatBinder ("PRAC", new SigRef (221));
 		StatBinder *b2 = new StatBinder ("DEPT", new SigRef (322));
 		StatBinder *b3 = new StatBinder ("PRAC", new SigRef (423));
@@ -78,8 +76,6 @@ namespace QParser {
 			sec2->addBinder(new BinderList(b4)); sec2->addBinder(new BinderList(b6));
 		StatEnvSection *sec3 = new StatEnvSection (new BinderList (b2));
 			sec3->addBinder(new BinderList (b5));
-		
-		cout << 6 <<endl;
 		this->sEnvs->push(sec1);
 		this->sEnvs->push(sec2);
 		this->sEnvs->push(sec3);
@@ -100,26 +96,14 @@ namespace QParser {
 		
 		/* set the first section of the ENVS stack with binders to 
 		   definitions of base objects ... */
-    	sEnvs->pushBinders(DataScheme::dScheme()->bindBaseObjects());	
+        	sEnvs->pushBinders(DataScheme::dScheme()->bindBaseObjects());	
 		sEnvs->putToString();
 		
 		/* modify the tree setting special info in nameNodes and NonAlgOpNodes */
 		cout << "no, mam envs gotowy ze startowymi obiektami w pierwszej sekcji .. " << endl;
 		int res = tn->staticEval (sQres, sEnvs);
 		tn->putToString();
-//		cout <<endl << "qres: " << endl;
-//		sQres->topSig()->putToString(); cout << endl;
-//		delete sQres;
-//		fprintf (stderr, "==============\n");
-//		sEnvs->putToString();
-//		fprintf (stderr, "==============\n");
-		
-
-		
-//		delete sEnvs;
-		/*UWAGA! tego ponizej chyba normalnie nie robimy my, nie? kto niszczy schemat danych ?*/
-		//if (DataScheme::dScheme() != NULL) delete (DataScheme::dScheme());
-
+	
 		return 0;	
 	}
 		

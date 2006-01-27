@@ -6,100 +6,114 @@
 #include "Stack.h"
 #include "DataRead.h"
 #include "QueryParser.h"
-//#include "../Errors/ErrorConsole.h"
-//#include "../Errors/Errors.h"
+#include "../Errors/ErrorConsole.h"
+#include "../Errors/Errors.h"
 #include "../Config/SBQLConfig.h"
-
+#include "Deb.h"
 yyFlexLexer* lexer;
 extern QParser::TreeNode *d;
 int yyparse();
 
 // using namespace std;
-//using namespace Errors;	
+using namespace Errors;	
 using namespace Config;
+
 namespace QParser {
 
-	int QueryParser::parseIt(string query, TreeNode *&qTree)
-	{
-//		ErrorConsole *ec = new ErrorConsole("Parser");
-		// ec->init(1);
-//		cerr << "stworzyl errConsole \n";
-//		*ec << "PARSER::parseIt start\n";
-//		cerr << "uzyl errCons\n";
-				
-		stringstream ss (stringstream::in | stringstream::out);
-		ss << query;
-		lexer = new yyFlexLexer(&ss); 
-	        int res = yyparse();
-		if (res != 0){
-//		    *ec << "zapytanie nie sparsowane robi return...\n";
-//		    *ec << (ErrQParser | ENotParsed);	 
-		    cout << "zapytanie nie sparsowane robi return .. \n";
-		    return -1;		    
-//		    return (ErrQParser | ENotParsed);
-		} else
-//			    *ec << "zapytanie sparsowane chyba ok\n";
-		    cout << "zapuytanie sparsowane chyba ok \n";
-		delete lexer;
-		qTree = d;
+
+    void QueryParser::setQres(StatQResStack *nq) {this->sQres = nq;}
+    void QueryParser::setEnvs(StatEnvStack *nq) {this->sEnvs = nq;}
+    QueryParser::~QueryParser() {if (sQres != NULL) delete sQres;
+				if (sEnvs != NULL) delete sEnvs;}
+
+    int QueryParser::statEvaluate(TreeNode *&tn) {
+	/* init the both static stacks. The data model is available as	 *
+	 * DataRead::dScheme()						 */
+	setEnvs(new StatEnvStack());
+	setQres(new StatQResStack());
 		
+	/* set the first section of the ENVS stack with binders to *
+	 * definitions of base (i.e. root) objects ...             */
+    	sEnvs->pushBinders(DataScheme::dScheme()->bindBaseObjects());	
+	if (Deb::ugOn()) {
+	    sEnvs->putToString();
+	    cout << endl;
+	}	
+	Deb::ug("OK, the ENVS is ready with root objects on the bottom.");
+	/* evoke static_eval, which will fill in special info in nameNodes and NonAlgOpNodes */
+	int res = tn->staticEval (sQres, sEnvs);
+	if (Deb::ugOn()) {tn->putToString(); cout << endl; }
+	
+	return res;	
+    }
 
-		printf( "po parsowaniu treeNode: %d. \n", qTree);
-		cout << "Odczyt z drzewka, ktore przekazuje:" << endl;
-		cout << "--------------------------------------" << endl;
-		qTree->putToString();
-		cout << "\n--------------------------------------" << endl;
-//		*ec << "PARSER::parseIt end\n";
 
-//			QParser::Optimiser *opt = new QParser::Optimiser();
-//	int reslt;
-/*	cout << "now the following tree will be evaluated statically.." << endl;
-	TreeNode *nt = d->clone();
-	nt->putToString();
-	if ((reslt = opt->stEvalTest(d)) != 0)
-	    fprintf (stderr, "static evaluation did not work out...\n");
-	else {
-	    cout << "static evaluatioin OK, result: "<< reslt << endl;
-*/	    /*tu bedzie optymalizacja... */    
-/*	    	fprintf (stderr, "now I will try to optimise the tree..\n");
-		int optres = nt->optimizeTree();
-		fprintf (stderr, "__%d__", optres);
-
-		fprintf (stderr, "end of optimisation.\n");
+    int QueryParser::parseIt(string query, TreeNode *&qTree) {
+    
+	ErrorConsole ec("QueryParser");
+	
+	/* check if this is debug mode or not... */	
+	Deb::setWriteDebugs();		
+	Deb::ug("debug mode is ON! you can change it in the configuration file");
+	stringstream ss (stringstream::in | stringstream::out);
+	ss << query;
+	lexer = new yyFlexLexer(&ss); 
+	int res = yyparse();
+	if (res != 0){
+    	    ec << "zapytanie nie sparsowane robi return...\n";
+	    ec << (ErrQParser | ENotParsed);	 
+    	    return (ErrQParser | ENotParsed);
+//	Deb::ug("zapytanie nie sparsowane robi return .. \n");
+//	return -1;		    
+	} else {
+//			    *ec << "zapytanie sparsowane chyba ok\n";
+	    Deb::ug("zapuytanie sparsowane chyba ok ");
+	}	
+	delete lexer;
+	qTree = d;
+	
+	Deb::ug("Odczyt z drzewka, ktore przekazuje:");
+	Deb::ug("--------------------------------------");
+	if (Deb::ugOn()) {
+	    qTree->putToString(); cout << endl;
 	}
+	Deb::ug("--------------------------------------");
 
-*/
-	
-	int optres = -2;
 	int stat_ev_res;
-	QParser::Optimiser *opt = new QParser::Optimiser();
 	TreeNode *nt = d->clone();
-	
-//	/* The main optimisation loop - factor out single independent subqueries *
-//	 * as long as ... such exist !                                           */
-//	while (optres == -2) {
+
 	bool shouldOptimize;
 	SBQLConfig conf("QueryParser");
 	conf.getBool("optimisation", shouldOptimize);
-	if ( shouldOptimize	) {
-		fprintf (stderr, " optimisation is set ON !\n");
-		if ((stat_ev_res = opt->stEvalTest(nt)) != 0) {
-		fprintf (stderr, "static evaluation did not work out ... \n");
-		optres == -1;
+	if (shouldOptimize) {
+	    Deb::ug(" optimisation is set ON !");
+	    int optres = 0;
+	    if ((stat_ev_res = this->statEvaluate(nt)) != 0) {
+		Deb::ug("static evaluation did not work out ...");
+		optres = -1;
 	    } else {
-		optres = nt->optimizeTree();
-		while (nt->getParent() != NULL) nt = nt->getParent();
+    		int optres = -2;
+		/* The main optimisation loop - factor out single independent subqueries *
+		 * as long as ... such exist !                                           */
+    		while (optres == -2) {
+    		    optres = nt->optimizeTree();
+    		    while (nt->getParent() != NULL) nt = nt->getParent();
+    		    /*one more static eval, to make sure nodes have the right info.. */
+    		    fprintf (stderr, "one more stat eval..\n");
+	    	    if (this->statEvaluate(nt) != 0) optres = -1;
 		}
-	} else fprintf (stderr, " optimisation is set OFF !\n");
-			
-//	
-//	    }
-//	}
-	
-	if (optres != -1) {fprintf(stderr, "I'll return optimized tree\n"); qTree = nt;}
-	else { fprintf (stderr, "I'll return the tree from before static eval..\n");}
-//	
+	    }
+	    if (optres != -1) {
+		Deb::ug("I'll return optimized tree\n"); 
+		qTree = nt;
+	    } else { Deb::ug("I'll return the tree from before static eval..");}
+	} else Deb::ug(" optimisation is set OFF !\n");
 
+	Deb::ug(" ParseIt() ends successfully!");
+	return 0;
+    }
+
+    int QueryParser::testParse (string query, TreeNode *&qTree) {
 	string zap = "EMP where SAL = (EMP where NAME=\"KUBA\").SAL;";
 	
 	if (false && (query == zap)){
@@ -108,7 +122,7 @@ namespace QParser {
 	    ss << zap;
 	    lexer = new yyFlexLexer(&ss); 
 	    int res = yyparse();
-	
+		cout << "parse result: " << res << endl;
 	    delete lexer;
 	    TreeNode *tree = d;
 
@@ -135,13 +149,13 @@ namespace QParser {
 		//nt->putToString();
 		//cout << "-----------" << endl;
 		
-		optres = nt->optimizeTree();
+		int ooptres = nt->optimizeTree();
 		cout << "KONIEC OPTYMALIZACJI-------------------------------------------------------"<< endl;
 		/*the nt tree needs to be 'rolled' up: (in case the nonalgopnode
 		  we were operating on was the root... */
 		while (nt->getParent() != NULL) nt = nt->getParent();
 
-		fprintf (stderr, "__%d__", optres);
+		fprintf (stderr, "__%d__", ooptres);
 
 		cout << "po JEDNYM PRZEBIEGU optymalizacji" << endl;
 		nt->putToString();
@@ -154,7 +168,6 @@ namespace QParser {
 		cout << "koniec parseIt\n";
 		return 0;
 	}  
-
 
 }
 
@@ -184,7 +197,6 @@ int main (int argc, char* argv[]) {
 }
 
 */
-
 
 
 

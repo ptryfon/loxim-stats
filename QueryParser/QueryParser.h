@@ -12,13 +12,22 @@ namespace QParser
 
     class QueryParser 
     {
+    	protected:
+	    StatQResStack *sQres;
+	    StatEnvStack *sEnvs;
 	public:
-
+	QueryParser() {sQres = NULL; sEnvs = NULL;}
 	virtual int parseIt (string s, TreeNode *&aTree);
-	virtual ~QueryParser() {}
+	
+	virtual int testParse (string s, TreeNode *&aTree);
+	virtual void setQres(StatQResStack *nq);
+	virtual void setEnvs(StatEnvStack *ne);
+        virtual int statEvaluate(TreeNode *&tn);	
+	virtual ~QueryParser();
     };
-	
-	
+		
 }
 
 #endif
+
+

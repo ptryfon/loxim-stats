@@ -41,7 +41,7 @@ namespace QParser {
 	    return -1;}
 	virtual string randomString();
 	virtual int staticEval (StatQResStack *&qres, StatEnvStack *&envs) {return -1;}	
-	virtual int optimizeTree () {fprintf (stderr, "type: %d.", type());	return 0;}
+	virtual int optimizeTree () {Deb::ug( "type: %d.", type());	return 0;}
 	/* should overridden in subclasses...*/
 	/* AND should have an argument for the data scheme ... ??? !!! */
     };

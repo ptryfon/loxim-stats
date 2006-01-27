@@ -12,7 +12,7 @@
 #include "Store/DBStoreManager.h"
 #include "Store/DBObjectPointer.h"
 #include "TransactionManager/Transaction.h"
-
+#include "Deb.h"
 using namespace std;
 //using namespace QExecutor;
 //using namespace Store;
@@ -28,11 +28,10 @@ namespace QParser {
 			if (candidate == NULL)	
 				return bindersCol; //<pusta kolekcja chyba ... >;
 			/*dalej zakladamy ze znalezlismy taki objekt w metabazie... */
-			
-			fprintf(stderr, "i found object nr %d.\n", candidate->getMyId());
+			Deb::ug("i found object nr %d.\n", candidate->getMyId());
 			if (candidate->getKind() == "atomic") return bindersCol;	//<pusta kolekcja>;
 			if (candidate->getKind() == "link") {
-				fprintf(stderr, "object is a link !\n");
+				Deb::ug("object is a link !\n");
 				pom = candidate->getTarget(); /*now pom points to the target object. */
 				StatBinder * sb = new StatBinder (pom->getName(), new SigRef (pom->getMyId()));				
 				//bindersCol.push_back(sb);
@@ -40,10 +39,10 @@ namespace QParser {
 				return bindersCol;	//<kolekcja 1-eltowa zawierajaca sb>;				
 			};
 			/*dalej zakladamy ze kind == "complex" -- objekt zlozony. */
-			fprintf(stderr, "the object is a complex one ! \n");
+			Deb::ug("the object is a complex one ! \n");
 			pom = candidate->getSubObjects();
 				// <kolekcja statBinderow> *binders = new <pusta kolekcja>;	
-			fprintf (stderr, "one sub - nr: %d.\n", pom->getMyId());
+			Deb::ug("one sub - nr: %d.\n", pom->getMyId());
 			while (pom != NULL) {
 				StatBinder * sb = new StatBinder (pom->getName(), new SigRef (pom->getMyId()));
 				//binders->addBinder(sb);
@@ -73,7 +72,7 @@ namespace QParser {
 
 int DataScheme::readData(){
     // ????????????         co zrobic zebym mogl tu wywolac executora i stora?        ??????????
-    cout << "-------------------readData START--------------------------------------" << endl;
+    Deb::ug("-------------------readData START--------------------------------------");
     // QueryExecutor * ecec = new QueryExecutor();		// ??????????????????????????
     vector<ObjectPointer *> * roots;
 /*		nie wiem dlaczego ale to nie dziala
@@ -83,20 +82,24 @@ int DataScheme::readData(){
     sm->getRoots(0, roots);
     cout << "odebral " << roots->size() << " obiektow"<< endl;
 */
-    
+    /*TODO: !!! wywalic tego if z tego kawalka kodu, kiedy wszystko bedzie dzialac.*/
+if (false) {
+
     Transaction * tr;     
     if (TransactionManager::getHandle()->createTransaction(tr))
-	cout << "nie udalo sie zrobic tranzakcji" << endl;
+	Deb::ug("nie udalo sie zrobic tranzakcji");
         
 	
     tr->getRoots("MetaDataNode", roots);	
-    cout << "odebral " << roots->size() << " obiektow"<< endl;
+    if (Deb::ugOn()) cout << "odebral " << roots->size() << " obiektow"<< endl;
     for (unsigned int i = 0; i < roots->size(); i++){
 	ObjectPointer * mainOp = (*roots)[i];
 	DataObjectDef * datObDef = new DataObjectDef();	// ten obiekt wypelniam 
+      if (Deb::ugOn()) {
 	cout << "id " << mainOp->getLogicalID()->toInteger() << endl;
 	cout << "name (wydaje mi sie zer powinno byc MetaDataNode) jesli co iinego to ???? " << mainOp->getName() << endl;
 	cout << "to string : " << mainOp->toString() << endl;
+      }
 	// wydaje mi sie ze tu sa same obiekty zlozone
 	DataValue *dv = mainOp->getValue();	// zakladam ze tu jest wektor wskaznikow do logicalId
 	vector<LogicalID*>* v = dv->getVector();
@@ -114,10 +117,12 @@ int DataScheme::readData(){
 	    if (op->getName() == "name")
 		j = v->size();	// break
 	}
+	if (Deb::ugOn()) {
 	if (op == NULL)
 	    cout << "ERROR w readData nie moze ustalic nazwy obiektu " << endl;
 	
 	cout << "wyluskal taka nazwa obiektu " << op->getValue()->getString();    
+	}
 	datObDef->setName(op->getValue()->getString());    
 	
 	// ----------------------------------------		kind
@@ -130,10 +135,12 @@ int DataScheme::readData(){
 	    if (op->getName() == "kind")
 		j = v->size();	// break
 	}
-	if (op == NULL)
-	    cout << "ERROR w readData nie moze ustalic kind obiektu " << endl;
+	if (Deb::ugOn()){
+	    if (op == NULL)
+		cout << "ERROR w readData nie moze ustalic kind obiektu " << endl;
 	
-	cout << "wyluskal taka kind obiektu " << op->getValue()->getString();    
+	    cout << "wyluskal taka kind obiektu " << op->getValue()->getString();    
+	}
 	datObDef->setKind(op->getValue()->getString());    
 	
 	// ----------------------------------------		card
@@ -146,14 +153,15 @@ int DataScheme::readData(){
 	    if (op->getName() == "card")
 		j = v->size();	// break
 	}
-	if (op == NULL)
-	    cout << "ERROR w readData nie moze ustalic card obiektu " << endl;
+	if (Deb::ugOn()) {
+	    if (op == NULL)
+		cout << "ERROR w readData nie moze ustalic card obiektu " << endl;
 	
-	cout << "wyluskal taka card obiektu " << op->getValue()->getString();    
+	    cout << "wyluskal taka card obiektu " << op->getValue()->getString();    
+	}
 	datObDef->setCard(op->getValue()->getString());    
 	
 	// ----------------------------------------		card
-	cout << "sprawdza czy obiekt jest atomowy - byc moze w zly sposob " << endl;
 	// FIXME nie wiem czy tak mozna getKind zwraca stringa    
 	if (datObDef->getKind() == "atomic"){
 	    op = NULL;
@@ -270,7 +278,7 @@ int DataScheme::readData(){
 	
     }	// end for dla kazdego obiektu MetaDataNode
     
-    
+}/*end if (false) - do wywalenia jak bedzie ok. */
     
     // -----------------------------------------------------------------------
     // recznie tworze przykladowy schemat
@@ -342,7 +350,7 @@ int DataScheme::readData(){
     obj30->addSubObject(getObjById(37));
     obj30->addSubObject(getObjById(38));
 
-cout << "-------------------readData END--------------------------------------" << endl;
+Deb::ug("-------------------readData END--------------------------------------");
 	return 0;
 };
 
@@ -356,13 +364,15 @@ cout << "-------------------readData END--------------------------------------" 
 			datScheme->readData();
 		}		
 		DataObjectDef *pom = datScheme->getBaseObjects();
-		//cout << "i read my Data:" << pom->getMyId() <<  endl;
-		fprintf(stderr, "DataScheme has these base objects: ");
+		Deb::ug("DataScheme has these base objects: ");
+	    if (Deb::ugOn()) {
 		while (pom != NULL) {			
 			fprintf(stderr, "[%d]", pom->getMyId());	
 			pom = pom->getNextBase();
-		} cout << endl;
-		return datScheme;
+		} 
+		cout << endl;
+	    }
+	    return datScheme;
 	};
 
 }

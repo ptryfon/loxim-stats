@@ -4,6 +4,7 @@
 #include "Optymalizator.h"
 #include "stdio.h"
 #include "stdlib.h"
+#include "Deb.h"
 
 namespace QParser 
 {
@@ -38,7 +39,7 @@ namespace QParser
 						      powtorzyc static eval i znow te procedure ... */
 
 	int AlgOpNode::optimizeTree() {
-			fprintf (stderr, "alg: %d.", op);
+		Deb::ug("alg: %d.", op);
 		int pRes = larg->optimizeTree();	/*partial result*/
 		if (pRes < 0) return pRes;
 		else return rarg->optimizeTree();		
@@ -51,52 +52,51 @@ namespace QParser
 		
 		TreeNode *hInd = optimiser->getIndependant(this);
 		//LL; //this->getHighestIndependant();
-			fprintf (stderr, "NONalg: %d.\n", op);
+			Deb::ug("NONalg: %d.\n", op);
 		if (hInd == NULL) {
-			fprintf(stderr, "hInd is NULL\n");
+			Deb::ug("hInd is NULL\n");
 			if ((pRes = larg->optimizeTree()) < 0) return pRes;
 			else return rarg->optimizeTree();
-		} else hInd->putToString();
-		TreeNode *prt = this->parent;
-		if (prt == NULL) fprintf(stderr, "parent is NULL ! \n");
-		else {
-		    fprintf (stderr, "parent is ... NOT NULL ! \n");
-		    prt->putToString();
-		    fprintf (stderr, "it was put to string here, huh? \n");
+		} else {
+		    if (Deb::ugOn()) { cout << "found an indep. subtree: " << endl;
+			hInd->putToString(); cout << endl;
 		    }
-		TreeNode *fctrd = this->factorSubQuery(hInd, randomString());
-		fprintf(stderr,"\noo\n");
-		fctrd->putToString();
-		fprintf(stderr,"\noo\n");
-		fprintf(stderr, "zrobilem pomyslnie factor\n");
-		if (prt != NULL)
-			prt-> swapSon (this, this->factorSubQuery(hInd, randomString()));/*TODO: to */
-		
-		fprintf (stderr, "zrobilem swap'a, na factorSubQuery\n");
-		return -2;	/*found ind. subquery and factored it. restart the whole procedure.. */
+		}
+		TreeNode *prt = this->parent;
+		if (Deb::ugOn()) {
+    		    if (prt == NULL) fprintf(stderr, "parent is NULL ! \n");
+		    else {
+		        fprintf (stderr, "parent is ... NOT NULL ! \n");
+			prt->putToString(); cout << endl;
+			fprintf (stderr, "this was the parent, huh? \n");
+		    }
+		}
+		//TreeNode *fctrd = this->factorSubQuery(hInd, randomString());
+		if (prt != NULL) {
+			prt-> swapSon (this, this->factorSubQuery(hInd, randomString()));
+		        Deb::ug("swapped old son with factoredSubQuery\n");
+		} else this->factorSubQuery(hInd, randomString());
+		return -2;	
+		/*found ind. subq and factored it. restart the whole stEval & optimisation procedure. */
 	}
 
 	int NameNode::staticEval (StatQResStack *&qres, StatEnvStack *&envs) {
-		fprintf (stderr, "staticEval(Name) - start\n");
+		Deb::ug("staticEval(Name) \n");
 		
 		BinderWrap *bw = envs->bindName(this->name);
-		cout << name << endl;
-		if (bw == NULL) { fprintf (stderr, "name could NOT be bound ! will exit..\n"); return -1;}
-		fprintf (stderr, "name bound on envs, ");
+		if (Deb::ugOn()) cout << name << endl;
+		if (bw == NULL) { Deb::ug("name could NOT be bound ! will exit..\n"); return -1;}
 		this->setBindSect(bw->getSectNumb());
-		fprintf (stderr, "section nr set %d, ", bw->getSectNumb());
 		this->setStackSize(envs->getSize());
-		fprintf (stderr, "stack size set, ");
-		if (bw->getBinder()->getName() == "EMP") fprintf(stderr, "ok");
-		else fprintf (stderr, "not EMP, ");
-		fprintf(stderr, "ok:%d, ", ((SigRef *) (bw->getBinder()->getValue()))->getRefNo());
+		Deb::ug("name bound on envs, section nr set to %d, ", bw->getSectNumb());
+		//Deb::ug("ok:%d, ", ((SigRef *) (bw->getBinder()->getValue()))->getRefNo());
 		
 		qres->pushSig (bw->getBinder()->getValue()->clone());
-		fprintf (stderr, "result pushed on qres\n");
+		Deb::ug("result pushed on qres\n");
 		return 0;
 	}
 	int ValueNode::staticEval (StatQResStack *&qres, StatEnvStack *&envs) {
-		fprintf(stderr, "staticEval:value - starting... ");
+		Deb::ug("staticEval:value node ");
 		switch (this->type()) {
 	    	case TreeNode::TNINT: {
 		    	qres->pushSig (new SigAtomType ("int"));
@@ -113,47 +113,44 @@ namespace QParser
 	}
 	int NameAsNode::staticEval (StatQResStack *&qres, StatEnvStack *&envs) {
 		/*zrob staticEval dla this->arg. potem sprawdz top na qres, zrob pop, zrob z tego bindera, wsadz spowrotem.*/
-		fprintf(stderr, "staticEval(nameas) starting.. \n");
+		Deb::ug( "staticEval(nameas) starting.. \n");
 		if (this->arg->staticEval(qres, envs) == -1 ) return -1;
-		fprintf(stderr, "staticEval(nas) - done with arg\n");
+		Deb::ug( "staticEval(nas) - done with arg\n");
 		Signature *topSig = qres->topSig();
 		qres->pop();
 		if (((Signature *)topSig)->type() == Signature::SBINDER) {/* We simply change the name in the binder..?*/
 			((StatBinder *) topSig)->setName(this->name);
-			fprintf(stderr, "about to push modified binder on qres\n");
 			qres->pushSig (topSig->clone());
 		}
-		
-		else {fprintf(stderr, "about to push sth on qres\n");
-		qres->pushSig (new StatBinder (this->name, topSig->clone()));}
-		return 0;
+		else qres->pushSig (new StatBinder (this->name, topSig->clone()));
+    		return 0;
 	}
 	
 	int UnOpNode::staticEval (StatQResStack *&qres, StatEnvStack *&envs) {
 //	enum unOp { unMinus, count, sum, avg, min, max, distinct, boolNot, deleteOp, deref };		 
 		if (this->arg->staticEval(qres, envs) == -1) return -1;
 		Signature *topSig = qres->topSig();
-		cout << "eval::UNOP -- finished with arg" << endl;
+		Deb::ug("eval::UNOP -- finished with ARG.");
 		qres->pop();
 
 		switch (op) {
 /*TODO: deleteOp, distinct *//* DONE: unMinus, boolNot, deref, count */
 			case UnOpNode::unMinus:	{
-				cout << "static_eval::UNOP::unMinus -- starting" << endl;
+				Deb::ug("static_eval::UNOP::unMinus -- starting");
 				if (!topSig->isAtom() || topSig->type() == Signature::SSTRING) {return -1;} /* TODO: or should I insert a deref here?*/
 				/*if topSig is a value signature, the type doesn't change.. */
 				qres->pushSig (topSig->clone());
 				return 0;
 				}//case unMinus
 			case UnOpNode::boolNot:	{
-				cout << "static_eval::UNOP::boolNot -- starting" << endl;
+				Deb::ug("static_eval::UNOP::boolNot -- starting");
 				if (topSig->type() != Signature::SBOOL) {return 0;}
 				/*if topSig is a value signature, the type doesn't change.. */				
 				qres->pushSig (topSig->clone());									
 				return 0;
 				}//case boolNOT				
 			case UnOpNode::deref: {
-				cout << "static_eval::UNOP::deref -- starting" << endl;				
+				Deb::ug("static_eval::UNOP::deref -- starting");
 				int argType = topSig->type();
 				if (argType != Signature::SREF) {return -1;}
 				/*TODO: should also allow topSig to be a bag or sequence, huh? what about struct? */
@@ -163,7 +160,7 @@ namespace QParser
 				/*error: invalid object def id. */
 				string objKind = obj->getKind();
 				if (objKind == "complex") {
-					cout << "eval::UNOP::deref -- can't handle deref(complex object) yet..." <<endl;
+					Deb::ug("eval::UNOP::deref -- can't handle deref(complex)");
 					return -1;}
 				if (objKind == "atomic") qres->pushSig (new SigAtomType (obj->getType()));
 				else if (objKind == "link") qres->pushSig (new SigRef (obj->getTarget()->getMyId()));
@@ -172,8 +169,8 @@ namespace QParser
 			default: break; // not implemented yet. or in {count, sum, avg, min, max}
 		}/*switch*/
 		if (op == UnOpNode::count || op == UnOpNode::sum || op == UnOpNode::avg || op == UnOpNode::min || op == UnOpNode::max) {
-			cout << "static_eval::UNOP::simpleIntUnOp -- starting" << endl;				
-			/*TODO: check, if this is really independant of topSig ? ...*/
+			Deb::ug("static_eval::UNOP::simpleIntUnOp -- starting");
+			/*TODO: check, if this is really independent of topSig ? ...*/
 			qres->pushSig (new SigAtomType ("int"));
 			return 0;
 		}
@@ -181,16 +178,15 @@ namespace QParser
 	}
 	
 	int AlgOpNode::staticEval (StatQResStack *&qres, StatEnvStack *&envs) {
-//	TODO: {insert}
 //  DONE:  {eq, neq, lt, gt, le, ge, boolAnd, boolOr, plus, minus, 
 //			times, divide, bagUnion, bagIntersect, bagMinus }; 	
-		fprintf(stderr, "staticEval(algOp) - starting\n");
+		Deb::ug("staticEval(algOp) - starting\n");
 		if (this->larg->staticEval(qres, envs) == -1) return -1;
 		Signature *lSig = qres->topSig();
-		cout << "static_eval::AlgOP:: -- finished with LEFT arg" << endl;
+		Deb::ug("static_eval::AlgOP:: -- finished with LEFT arg");
 		if (this->rarg->staticEval(qres, envs) == -1) return -1;
 		Signature *rSig = qres->topSig();
-		cout << "static_eval::AlgOP -- finished with RIGHT arg" << endl;
+		Deb::ug("static_eval::AlgOP -- finished with RIGHT arg");
 		qres->pop();
 		qres->pop();
 		if (op == AlgOpNode::eq || op == AlgOpNode::neq || op == AlgOpNode::lt || 
@@ -207,11 +203,13 @@ namespace QParser
 			return 0;
 		}
 		if (op == AlgOpNode::bagUnion || op == AlgOpNode::bagIntersect || op == AlgOpNode::bagMinus) {
-			cout << "can't handle Union,intersect and Minus on bags yet ... " << endl;
-			return 0;	
+			Deb::ug("can't handle Union,intersect and Minus now.. ");
+			return -1;	
 		}
 		if (op == AlgOpNode::comma) {
-			lSig->putToString(); cout << "/^\\"; rSig->putToString(); cout << endl;
+			if (Deb::ugOn()) {
+			    lSig->putToString(); cout << "/^\\"; rSig->putToString(); cout << endl;
+			}
 			if (lSig->type() == Signature::SSTRUCT) {
 				((SigColl *) lSig)->addToMyList (rSig);
 				qres->pushSig (lSig);
@@ -221,10 +219,9 @@ namespace QParser
 				qres->pushSig(s);
 				
 			}
-			return 0; //change to return 0 when this case is implemented. 
+			return 0; 
 		}
 		if (op == AlgOpNode::insert) {
-			cout << "static_eval::AlgOp -- can't handle insert ... " << endl;
 			return -1; //change to return 0 when this case is implemented. 
 		}
 		return 0;	
@@ -232,41 +229,39 @@ namespace QParser
 	
 	int NonAlgOpNode::staticEval (StatQResStack *&qres, StatEnvStack *&envs) {
 /*TODO: !!! first do dot, join and where, the rest will follow ... */
-		fprintf (stderr, "staticEval(nonalg) - start\n");
+		Deb::ug( "staticEval(nonalg) - start\n");
 		if (this->larg->staticEval(qres, envs) == -1) return -1;
 		Signature *lSig = qres->topSig();
-		fprintf (stderr, "static_eval::NON ALG OP -- finished with LEFT arg\n");
-		//fprintf(stderr, "refno: %d.\n", ((SigRef *) lSig)->getRefNo());
+		Deb::ug("static_eval::NON ALG OP -- finished with LEFT arg\n");
 		this->setFirstOpenSect(1 + envs->getSize());
 		/*TODO: this below is temporary, as it does not handle eg. struct{struct{a,b}, c}...*/
 		int sToPop = 0;
 		Signature *toPush = lSig->clone();
-		fprintf (stderr, "just before push/statNested loop\n");
+		Deb::ug("just before push/statNested loop\n");
 		if (toPush->isColl()) {
 			Signature *pt = ((SigColl *) toPush)->getMyList();
 			while (pt != NULL) { if (envs->pushBinders(pt->statNested()) == 0) sToPop++; pt = pt->getNext();}
 		} else 	{if (envs->pushBinders(toPush->statNested()) == 0) sToPop = 1; else sToPop = 0;}
-		fprintf(stderr, "pushed static nested result on envs\n");
+		Deb::ug("pushed static nested result on envs\n");
 		this->setLastOpenSect(envs->getSize());
 		if (this->rarg->staticEval(qres, envs) == -1) return -1;
 		Signature *rSig = qres->topSig();
 		
-		fprintf (stderr, "static_eval::NON ALG OP -- finished with RIGHT arg\n");
-		envs->putToString();
-		fprintf (stderr, "static_eval(nonalg): will pop 2 off qres, %d off envs\n", sToPop);
+		Deb::ug("static_eval::NON ALG OP -- finished with RIGHT arg\n");
+		Deb::ug( "static_eval(nonalg): will pop 2 off qres, %d off envs\n", sToPop);
 
 		for (;sToPop > 0; sToPop--){envs->pop();}
 		qres->pop();	/*pop rSig*/
-		fprintf (stderr, "popped 1off qres. ");
 		qres->pop();	/*pop lSig*/
-		fprintf (stderr, "static_eval(nonalg): popped'em. \n");
+		Deb::ug("static_eval(nonalg): popped'em. \n");
 		switch (op) {
 			case NonAlgOpNode::dot :{/*we just take the part to the right of the dot*/
 				qres->pushSig(rSig->clone());
-				fprintf (stderr, "dot: pushed rSig on qres\n");
+				Deb::ug("dot: pushed rSig on qres\n");
 				break;}
 			case NonAlgOpNode::where: {/*TODO: do we assume the <where> condition is fulfilled ?? */
-				if (rSig->type() != Signature::SBOOL) {cout <<"no bool after 'where' !" << endl; return -1;}
+				if (rSig->type() != Signature::SBOOL) {
+				Deb::ug("no bool after 'where' !"); return -1;}
 				qres->pushSig(lSig->clone());				
 				break;} 
 			case NonAlgOpNode::join: {/* eg. EMP.SAL --> push (struct(EMP, SAL)) ... */
@@ -274,10 +269,10 @@ namespace QParser
 				s->setElts(lSig); s->addToMyList(rSig);
 				qres->pushSig(s->clone());
 				break;}
-			default: {cout << "statEval::nonalg operator not handled yet.." << endl; return -1;}
+			default: {Deb::ug("statEval::nonalg operator not handled yet.."); return -1;}
 		
 		}
-		fprintf(stderr, "will return 0\n");
+		Deb::ug("stEv will return 0\n");
 		return 0;
 	}
 
@@ -289,11 +284,11 @@ namespace QParser
 		buf[i] = (char) ('a' + z);
 	    } 
 	    string s(buf);
-	    cout << "-----------------------------------funkcja randomString zwraca 20 literowy napis: " << s << endl;
+	    if (Deb::ugOn()) {
+		cout << "funkcja randomString zwraca 20 literowy napis: " << s << endl;
+	    }
 	    return s;
 	}
-		
-/*TODO: what about ... TransactNode, CreateNode .. ? */
 
 }
 

@@ -6,7 +6,7 @@
 #include <vector>
 #include <string>
 #include <list>
-//#include "DataRead.h"
+#include "Deb.h"
 #include "ClassNames.h"
 
 
@@ -217,7 +217,7 @@ namespace QParser {
 			cout << "ref(" << refNo << ") ";
 			if (next != NULL) next->putToString();
 		}
-		virtual ~SigRef() {fprintf (stderr, "killing ref\n");if (next != NULL) delete next;fprintf (stderr, "killed 1 ref\n");}
+		virtual ~SigRef() {if (next != NULL) delete next; Deb::ug("killed 1 ref\n");}
 		
 	};
 	class StatBinder : public Signature
@@ -243,9 +243,9 @@ namespace QParser {
 			cout << ") ";
 			if (next != NULL) next->putToString();
 		}
-		virtual ~StatBinder() {if (value != NULL) {fprintf (stderr, "value to kil\n");delete value; }
-							if (next != NULL){fprintf (stderr, "next binder to kil\n"); delete next;}
-							fprintf (stderr, "killed a binder\n");};
+		virtual ~StatBinder() {if (value != NULL) {Deb::ug( "value to kil\n");delete value; }
+							if (next != NULL){ Deb::ug("next binder to kil\n"); delete next;}
+							Deb::ug("killed a binder\n");};
 	};
 	
 	class BinderWrap : public ElemContent	/* abstract superclass... */
@@ -299,7 +299,7 @@ namespace QParser {
 				binder->putToString(); cout << "] ";}
 			if (this->next != NULL) this->next->putToString();
 		}
-		virtual ~BinderList() {if (next != NULL) {fprintf (stderr, "next bdList to kil\n");delete next;} if (binder != NULL){fprintf (stderr, "binder to kil\n"); delete binder;} fprintf (stderr, "kiled 1 bList\n");}
+		virtual ~BinderList() {if (next != NULL) {Deb::ug("next bdList to kil\n");delete next;} if (binder != NULL){Deb::ug("binder to kil\n"); delete binder;} Deb::ug("kiled 1 bList\n");}
 	};
 
 	class ListQStackElem : public QStackElem 
@@ -311,7 +311,6 @@ namespace QParser {
 		virtual void setNext (ListQStackElem *newNext) {this->next = newNext;}
 		
 		virtual ListQStackElem *getElt(int sectNo) {
-			cout << "ja: " << myNumber << ", szukane: " << sectNo << endl;
 			if (this->myNumber == sectNo) return this;
 			else if (this->myNumber < sectNo) return NULL;
 			else if (this->next == NULL) return NULL;
@@ -372,11 +371,10 @@ namespace QParser {
 			if (this->next != NULL) this->next->putToString();
 		}
 		virtual ~StatEnvSection () { 
-			fprintf (stderr, "killing elts..\n");
-			if (content != NULL) {fprintf (stderr, "content to kil\n");delete (this->content);} 
-			fprintf (stderr, "will ask for next section\n");
-			if (next != NULL) {fprintf (stderr, "next section to kil\n");delete (this->next);}
-			fprintf (stderr, "killed a section\n");};
+			Deb::ug( "killing elts..\n");
+			if (content != NULL) {delete (this->content);} 
+			if (next != NULL) {delete (this->next);}
+			Deb::ug("killed a section\n");};
 	};
 	
 	class StatEnvStack : public QStack 
@@ -393,13 +391,13 @@ namespace QParser {
 		}
 		virtual BinderWrap *bindNameHere (string aName, int sectNo) {
 			QStackElem *s = this->getElt(sectNo);
-			cout << "znalazlem getElt"<< endl;
-			if (s == NULL) { cout << "NULL" << endl; return NULL;}
+			Deb::ug("znalazlem getElt");
+			if (s == NULL) { Deb::ug("bndNameHere-zwracam NULL"); return NULL;}
 			else return ((StatEnvSection *) s)->bindName(aName);
 			return NULL;
 		}
 		virtual int pushBinders (BinderWrap *bw) {/* a collection of binders, not packed in a section yet... */
-			if (bw == NULL) {fprintf (stderr, "null binders not pushed on envs\n"); return -1;};
+			if (bw == NULL) {Deb::ug("null binders not pushed on envs\n"); return -1;};
 			ListQStackElem *newSect = new StatEnvSection (bw);
 			if (this->isEmpty()) this->setElts (newSect);
 			else this->setElts (elts->push (newSect));
@@ -419,7 +417,7 @@ namespace QParser {
 		};	
 		
 		virtual ~StatEnvStack() { 
-		if (elts != NULL) {fprintf (stderr, "elts to kil\n"); delete this->elts;} fprintf (stderr, "killed elts\n");};
+		if (elts != NULL) { delete this->elts;} Deb::ug("killed elts\n");};
 	};
 
 	
