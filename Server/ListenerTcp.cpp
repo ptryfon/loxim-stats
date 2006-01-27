@@ -32,12 +32,11 @@ int Listener::CreateSocket(int port, int* created_socket, bool reuse) {
    if (reuse)
     {
       int on = 1;
-      printf("setsockopt(SO_REUSEADDR)\n");
       if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) != 0)
         {
           //setsockopt failed but maybe server can run without it -> don't shutdown yet
            // perror("setsockopt(SO_REUSEADDR) failed");
-	   cerr << "blad setsockopt: " << strerror(errno) << endl;
+	   *lCons << "blad setsockopt: " << strerror(errno) << endl;
         }
     }
     
