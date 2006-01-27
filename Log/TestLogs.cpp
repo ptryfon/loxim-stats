@@ -56,17 +56,13 @@ void printLog( const char *path, StoreManager* sm)
 
 int main( int argc, char *argv[] )
 {
-  printf( "a\n" );
   Logs::LogManager logManager;
   unsigned id;
   int tid = 1234;
   DBStoreManager* sm = new DBStoreManager();
 
-  printf( "b\n" );
   logManager.init();
-  printf( "c\n" );
   logManager.beginTransaction( tid, id );
-  printf( "d\n" );
 
   SBQLConfig *storeConfig = new SBQLConfig( "Store" );
   storeConfig->init("../Config/example.conf");
@@ -107,12 +103,9 @@ int main( int argc, char *argv[] )
     DataValue *newDataValue = new DBDataValue( "Nowy Mis" );
     logManager.write( tid, op->getLogicalID(), "mis", oldDataValue, newDataValue, id );
   }
-  printf( "g\n" );
 
   logManager.flushLog();
-  printf( "h\n" );
   printLog( logManager.getLogFilePath().c_str(), sm);
-  printf( "i\n" );
   exit( 0 );
 
   // write (stary nie istnieje)

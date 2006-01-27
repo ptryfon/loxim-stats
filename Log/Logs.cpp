@@ -27,7 +27,7 @@ int LogManager::init()
   int errCode = 0;
 
   config = new SBQLConfig( "Log" );
-  //config->init( "../Server/Server.conf" );
+  config->init( "../Server/Server.conf" );
   if( ( errCode = config->getString( "logspath", logFilePath ) ) ) return errCode;
 
   printf( "LogsPath: %s\n", logFilePath.c_str() );

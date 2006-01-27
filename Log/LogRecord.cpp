@@ -156,15 +156,11 @@ int LogRecord::readLogRecordForward( LogRecord *&result, int fileDes, StoreManag
   off_t filePosBegin, filePosEnd;
   int recordLen;
 
-  printf( "1\n" );
   if( ( errCode = LogIO::getFilePos( fileDes, filePosBegin ) ) ) return errCode;
-  printf( "2: file_pos_begin: %ld\n", filePosBegin );
   if( ( errCode = LogIO::readInt( fileDes, recordType ) ) ) return errCode;
 
-  printf( "3: record_type: %d\n", recordType );
   if( !dictionary.count( recordType ) ) return UNKNOWN_LOG_RECORD_TYPE_ERROR;
 
-  printf( "4\n" );
   switch( recordType ) {
     case BEGIN_LOG_REC_TYPE:
       result = new BeginTransactionRecord();
@@ -194,13 +190,10 @@ int LogRecord::readLogRecordForward( LogRecord *&result, int fileDes, StoreManag
       result = new RemoveRootRecord();
       break;
   }
-  printf( "5\n" );
   //if( ( errCode = dictionary[recordType]->instance( result ) ) ) return errCode;
   if( ( errCode = result->read( fileDes, sm ) ) ) return errCode;
 
-  printf( "6\n" );
   if( ( errCode = LogIO::readInt( fileDes, recordLen ) ) ) return errCode;
-  printf( "7: record_len: %d\n", recordLen );
   if( ( errCode = LogIO::getFilePos( fileDes, filePosEnd ) ) ) return errCode;
 
   printf("\n[type=%d, begin=%ld,%ld,%d]\n", recordType ,filePosBegin,(filePosEnd - filePosBegin), recordLen );
