@@ -351,6 +351,7 @@ int Server::Run()
 	storeManager->init(logManager);
 	TransactionManager::getHandle()->init(storeManager, logManager);
 	storeManager->start();
+        logManager->start( storeManager );
 	//storeManager->setTransactionManager(TransactionManager::getHandle());
 	
 	QueryParser *qPa = new QueryParser();
