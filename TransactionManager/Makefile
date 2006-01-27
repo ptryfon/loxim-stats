@@ -24,7 +24,8 @@ $(PROGRAM): $(STATIC_LIB)
 	make -C ../Lock
 	make -C ../Store	
 	make -C ../Log
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $@.cpp $< ../Log/Logs.a ../Lock/Lock.a ../Errors/Errors.a ../Store/Store.a -o $@
+	make -C ../Config
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $@.cpp $< ../Log/Logs.a ../Lock/Lock.a ../Errors/Errors.a ../Config/Config.a ../Store/Store.a -o $@
 
 clean:
 	rm -f $(OBJECTS) $(DEPFILES) $(STATIC_LIB) $(PROGRAM)
