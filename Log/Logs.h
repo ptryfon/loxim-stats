@@ -12,16 +12,16 @@ namespace Logs
 #include "../Store/Store.h"
 #include "LogThread.h"
 #include "LogRecord.h"
+#include "../Config/SBQLConfig.h"
 
 using namespace Errors;
 using namespace Store;
+using namespace Config;
 
 
 namespace Logs
 {
 
-// tymczasowo - pozniej sie wezmie z configa
-#define LOG_FILE_PATH "szbd_logs"
 #define LOG_UNINITIALIZED_LOG_THREAD 200004
 
   class LogManager
@@ -30,13 +30,17 @@ namespace Logs
     LogThread *logThread;
     int fileDes; // deskryptor pliku dziennika
     ErrorConsole *ec;
+    SBQLConfig *config;
+    string logFilePath;
 
     //jesli tid == NULL to do logow nie jest nic zapisywane
     void pushLogable( int tid, LogRecord *record);
 
     public:
 
-    LogManager() { ec = new ErrorConsole("Logs"); }
+    string getLogFilePath() { return logFilePath; }
+
+    LogManager() { ec = new ErrorConsole("Log"); }
 
     int init();
     int start( StoreManager *store );

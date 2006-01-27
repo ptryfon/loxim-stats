@@ -24,6 +24,14 @@ int LogManager::flushLog()
 
 int LogManager::init()
 {
+  int errCode = 0;
+
+  config = new SBQLConfig( "Log" );
+  //config->init( "../Server/Server.conf" );
+  if( ( errCode = config->getString( "logspath", logFilePath ) ) ) return errCode;
+
+  printf( "LogsPath: %s\n", logFilePath.c_str() );
+
   // nie wykonujecie tej metody!
   // jedyne miejsce gdzie ec->init ma prawo wystapic to main()
 
@@ -32,7 +40,7 @@ int LogManager::init()
   ec->init(2); // baggins, prosze - nie kasuj!
 
   // otwieramy plik z logami
-  if( ( fileDes = ::open( LOG_FILE_PATH, O_WRONLY | O_CREAT | O_APPEND, S_IWUSR | S_IRUSR ) ) < 0 ) return errno;
+  if( ( fileDes = ::open( logFilePath.c_str(), O_WRONLY | O_CREAT | O_APPEND, S_IWUSR | S_IRUSR ) ) < 0 ) return errno;
 
   ::lseek( fileDes, 0, SEEK_END );
   // odpalamy watek
@@ -167,7 +175,7 @@ int LogManager::rollbackTransaction( int tid, StoreManager *sm, unsigned &id )
   SetOfTransactionIDS setOfTIDs;
   if( ( err = flushLog() ) > 0 )
     return err;
-  if( ( fd = ::open(LOG_FILE_PATH, O_RDONLY) ) < 0 ) return errno;
+  if( ( fd = ::open( logFilePath.c_str(), O_RDONLY) ) < 0 ) return errno;
   //przesunięcie na koniec bo czytamy od końca.
   //UWAGA! jeśli może być tak, że  rozmiar pliku zmienia się o część zapisanych w pliku danych, to będzie źle
   //ale mam wrażenie, że tak niejest.

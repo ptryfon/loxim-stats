@@ -18,14 +18,14 @@ using namespace Errors;
 using namespace Store;
 using namespace Logs;
 
-void printLog(StoreManager* sm)
+void printLog( const char *path, StoreManager* sm)
 {
   int fd;
   off_t fpos;
   int err=0;
   LogRecord* lr;
   WriteRecord* wr;
-  fd = ::open(LOG_FILE_PATH, O_RDONLY);
+  fd = ::open( path, O_RDONLY);
 
   ::lseek(fd, 0 ,SEEK_SET);
   LogIO::getFilePos( fd, fpos );
@@ -56,13 +56,17 @@ void printLog(StoreManager* sm)
 
 int main( int argc, char *argv[] )
 {
+  printf( "a\n" );
   Logs::LogManager logManager;
   unsigned id;
   int tid = 1234;
   DBStoreManager* sm = new DBStoreManager();
 
+  printf( "b\n" );
   logManager.init();
+  printf( "c\n" );
   logManager.beginTransaction( tid, id );
+  printf( "d\n" );
 
   SBQLConfig *storeConfig = new SBQLConfig( "Store" );
   storeConfig->init("../Config/example.conf");
@@ -103,6 +107,13 @@ int main( int argc, char *argv[] )
     DataValue *newDataValue = new DBDataValue( "Nowy Mis" );
     logManager.write( tid, op->getLogicalID(), "mis", oldDataValue, newDataValue, id );
   }
+  printf( "g\n" );
+
+  logManager.flushLog();
+  printf( "h\n" );
+  printLog( logManager.getLogFilePath().c_str(), sm);
+  printf( "i\n" );
+  exit( 0 );
 
   // write (stary nie istnieje)
   logManager.write( tid, op2->getLogicalID(), "mis2", 0, new DBDataValue( "Nowy Mis2" ), id );
@@ -120,7 +131,7 @@ int main( int argc, char *argv[] )
   logManager.rollbackTransaction( tid, sm, id );
   logManager.shutdown( id );
   logManager.flushLog();
-  printLog(sm);
+  printLog(logManager.getLogFilePath().c_str(), sm);
 //  ::sleep( 2 );
   logManager.destroy();
 }

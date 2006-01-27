@@ -119,7 +119,7 @@ int CrashRecovery::init(LogManager* lm, StoreManager* sm)
     int err=0;
     this->lm=lm;
     this->sm=sm;
-    if((fd = ::open(LOG_FILE_PATH, O_RDONLY)) < 0 ) return errno;
+    if((fd = ::open( lm->getLogFilePath().c_str(), O_RDONLY)) < 0 ) return errno;
     return err;
   }
 
