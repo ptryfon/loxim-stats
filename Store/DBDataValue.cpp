@@ -174,6 +174,7 @@ namespace Store
 			case Store::Pointer: s += *value.pointer_value; break;
 			case Store::Vector: {
 				vector<LogicalID*>::iterator obj_iter;
+				s += static_cast<int>(value.vector_value->size());
 				for(obj_iter = value.vector_value->begin();
 						obj_iter != value.vector_value->end(); obj_iter++)
 					s += *(*obj_iter);

@@ -39,7 +39,7 @@ int main(int argc, char* argv[])
 		cout << "Created INT" << endl;
 		ObjectPointer* op_kilof;
 		ObjectPointer* op_motyka;
-		
+		/*
 		cout << "Odpalam createObject" << endl;
 		store->createObject(&tid, "kilof", dv, op_kilof);
 
@@ -82,7 +82,22 @@ int main(int argc, char* argv[])
 		store->deleteObject(&tid, *(vec->begin()));
 		store->removeRoot(&tid, *(vec->begin()));
 		
+
+		cout << "Odpalam obiekty zlozone" << endl;
+		ObjectPointer* op_woda;
+		dv = store->createDoubleValue(3.7);
+		store->createObject(&tid, "woda", dv, op_woda);
+		*/
 		ObjectPointer* op_wiadro;
+		dv = store->createVectorValue(new vector<LogicalID*>(0));
+		store->createObject(&tid, "wiadro", dv, op_wiadro);
+
+		store->getObject(&tid, op_wiadro->getLogicalID(), Store::Write, op_wiadro);
+		cout << op_wiadro->toString() << endl;
+		
+	//	vector<LogicalID*>* lvec = dv->getVectorValue();
+	//	lvec->push_back(op_woda->getLogicalID());
+	//	op_wiadro->setValue(
 		
 		
 		store->stop();
