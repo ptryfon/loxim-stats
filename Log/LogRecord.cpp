@@ -139,7 +139,7 @@ int LogRecord::writeLogRecord( LogRecord *recordPtr, int fileDes )
 
 /* TransactionRecord class */
 
-int TransactionRecord::read( int fileDes, StoreManager* sm ) { return LogIO::readTransactionID( tid, fileDes ); }
+int TransactionRecord::read( int fileDes, StoreManager* sm ) { int result = LogIO::readTransactionID( tid, fileDes ); return result;}
 
 int TransactionRecord::write( int fileDes ) { return LogIO::writeTransactionID( tid, fileDes ); }
 

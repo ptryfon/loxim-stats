@@ -132,10 +132,10 @@ int LogIO::readString( int fileDes, string &str )
 
   while( n < (unsigned) len )
   {
-    unsigned size = ::read( fileDes, buffer+n, len-n );
+    int size = ::read( fileDes, buffer+n, len-n );
     if( !size ) return UNEXPECTED_EOF_ERROR;
     n += size;
-    if( errno ) return errno;
+    if( size == -1 ) return errno;
   }
 
   str.clear();
@@ -154,10 +154,10 @@ int LogIO::writeString( int fileDes, const char *buffer, unsigned len )
 
   while( n < len )
   {
-    unsigned size = ::write( fileDes, buffer+n, len-n );
+    int size = ::write( fileDes, buffer+n, len-n );
     if( !size ) return UNEXPECTED_EOF_ERROR;
     n += size;
-    if( errno ) return errno;
+    if( size == -1 ) return errno;
   }
 
   return 0;

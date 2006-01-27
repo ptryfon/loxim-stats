@@ -72,20 +72,28 @@ int main( int argc, char *argv[] )
   sm->setTManager(TransactionManager::getHandle());
   sm->start();
 
-  LogicalID *lid = new DBLogicalID( 57 );
   string name = "mis";
-  DataValue *dv = new DBDataValue( "Nowy Mis" );
-  ObjectPointer *op = sm->createObjectPointer( lid, name, dv );
+  DataValue *dv = sm->createStringValue( "Nowy Mis" );
+  ObjectPointer* op;
   sm->createObject( NULL, name, dv, op );
-  ObjectPointer* op2=NULL;
-  sm->getObject(NULL,lid,Write,op2);
-  exit( 0 );
+//   ObjectPointer* op2=NULL;
+//   sm->getObject(NULL,op->getLogicalID(),Write,op2);
+//   exit( 0 );
+
+//   LogicalID *lid = new DBLogicalID( 57 );
+//   string name = "mis";
+//   DataValue *dv = new DBDataValue( "Nowy Mis" );
+//   ObjectPointer *op = sm->createObjectPointer( lid, name, dv );
+//   sm->createObject( NULL, name, dv, op );
+//   ObjectPointer* op2=NULL;
+//   sm->getObject(NULL,lid,Write,op2);
+//   exit( 0 );
 
   // write (stary i nowy istnieje)
   {
     DataValue *oldDataValue = new DBDataValue( "Stary Mis" );
     DataValue *newDataValue = new DBDataValue( "Nowy Mis" );
-    logManager.write( tid, new DBLogicalID( 57 ), "mis", oldDataValue, newDataValue, id );
+    logManager.write( tid, op->getLogicalID(), "mis", oldDataValue, newDataValue, id );
   }
 
 //   // write (stary nie istnieje)
