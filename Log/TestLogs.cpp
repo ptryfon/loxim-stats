@@ -72,10 +72,14 @@ int main( int argc, char *argv[] )
   sm->setTManager(TransactionManager::getHandle());
   sm->start();
 
-  string name = "mis";
   DataValue *dv = sm->createStringValue( "Nowy Mis" );
   ObjectPointer* op;
-  sm->createObject( NULL, name, dv, op );
+  sm->createObject( NULL, "mis", dv, op );
+
+  DataValue *dv2 = sm->createStringValue( "Nowy Mis2" );
+  ObjectPointer* op2;
+  sm->createObject( NULL, "mis2", dv2, op2 );
+
 //   ObjectPointer* op2=NULL;
 //   sm->getObject(NULL,op->getLogicalID(),Write,op2);
 //   exit( 0 );
@@ -96,8 +100,8 @@ int main( int argc, char *argv[] )
     logManager.write( tid, op->getLogicalID(), "mis", oldDataValue, newDataValue, id );
   }
 
-//   // write (stary nie istnieje)
-//   logManager.write( tid, new DBLogicalID( 58 ), "mis2", 0, new DBDataValue( "Nowy Mis2" ), id );
+  // write (stary nie istnieje)
+  logManager.write( tid, op2->getLogicalID(), "mis2", 0, new DBDataValue( "Nowy Mis2" ), id );
 
   // write (nowy nie istnieje)
   logManager.write( tid, new DBLogicalID( 59 ), "mis3", new DBDataValue( "Stary Mis3" ), 0, id );
@@ -106,6 +110,7 @@ int main( int argc, char *argv[] )
 //   logManager.write( tid, new DBLogicalID( 59 ), "mis3", new DBDataValue( "Stary Mis4" ), new DBDataValue( "Nowy Mis4" ), id );
 
 
+  //abort();
   logManager.rollbackTransaction( tid, sm, id );
   logManager.shutdown( id );
   logManager.flushLog();

@@ -190,6 +190,7 @@ int WriteRecord::deleteFromStore(StoreManager* sm, DataValue *dv)
   ObjectPointer* op = sm->createObjectPointer( lid, name, dv);
   err=sm->deleteObject( NULL, op );
   delete op;
+  printf( "Delete... (err=%d)\n", err );
   return err;
 }
 
