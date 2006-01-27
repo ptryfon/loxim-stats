@@ -48,8 +48,12 @@ namespace LockMgr
 
 			single_lock_id++;
 			(*map_of_locks)[*phid] = lock;	
-			(*transaction_locks)[*tid] = new SingleLockSet;
+			lock->setPHID(phid);
+			if ((*transaction_locks)[*tid] == 0 )
+			    (*transaction_locks)[*tid] = new SingleLockSet;
+			    
 			((*transaction_locks)[*tid])->insert(*lock);
+			
 			mutex->up();	
 	    	}
 	    	else
@@ -75,8 +79,11 @@ namespace LockMgr
 		        iter != locks->end(); iter++)
 		    {
 				int delete_lock = unlock((*iter), transaction_id);
-				if (delete_lock)
-					delete &(*iter);
+				if (delete_lock) 
+				{
+				    DBPhysicalID* phid = (*iter).getPHID();
+				    map_of_locks->erase( *phid );
+				}
 		    }
 		}	
 	

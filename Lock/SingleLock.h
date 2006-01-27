@@ -67,11 +67,15 @@ class SingleLock
 		 * Protection if shared data
 		 */
 		Mutex *mutex;
+		DBPhysicalID *phid;
 	public:
 	    	SingleLock(TransactionID* tid, AccessMode mode, Semaphore *_sem, int id);	
 	    	~SingleLock();     
    	    	int wait_for_lock(TransactionID* tid, AccessMode mode);
    	    	int unlock(TransactionID*);
+		
+		void setPHID(DBPhysicalID *dbid);
+		DBPhysicalID* getPHID() const; 
 };
 
 

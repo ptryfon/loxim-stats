@@ -20,7 +20,7 @@ namespace TManager
 	Transaction::Transaction(TransactionID* tid, Semaphore* _sem)
 	{
 		err = ErrorConsole("TransactionManager"); 
-		err << "Transaction started, id: ";	
+		err.printf("Transaction started, id: %d\n", tid->getId());	
 		sem = _sem;
 		this->tid = tid;
 		tm = TransactionManager::getHandle();
@@ -67,16 +67,16 @@ namespace TManager
 		err << "Transaction: createObject";
 
 		sem->lock_write();
-			errorNumber = sm->createObject( tid, name, value, p);	    
+			errorNumber = sm->createObject( tid, name, value, p);
 			
 			if (errorNumber == 0)
 			/* quaranteed not wait for lock */			
 			    errorNumber = lm->lock(p->getLogicalID(), tid, Write);
 			    
-		sem->unlock();	
+		sem->unlock();
 
 		return errorNumber;
-	}
+	};
 
 	int Transaction::deleteObject(ObjectPointer* object)
 	{

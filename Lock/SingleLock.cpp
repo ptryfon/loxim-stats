@@ -18,7 +18,7 @@ namespace LockMgr
 	if ( _mode == Write) sem->lock_write();
 
 	/* set of transactions that locked an object */
-	currentRead = new TransactionIdSet;
+	currentRead  = new TransactionIdSet;
 	currentWrite = new TransactionIdSet;
 	if (_mode == Read)
 	    currentRead->insert(*tid);
@@ -31,8 +31,8 @@ namespace LockMgr
 
     SingleLock::~SingleLock()
     {
-	delete currentRead;
-	delete currentWrite;
+	//delete currentRead;
+	//delete currentWrite;
     }
 
     int SingleLock::wait_for_lock(TransactionID *_tid, AccessMode _mode)
@@ -111,5 +111,13 @@ namespace LockMgr
     	return id;
     }
     
+    void SingleLock::setPHID(DBPhysicalID* dbid)
+    {
+	this->phid = dbid;
+    }
+    DBPhysicalID* SingleLock::getPHID() const
+    {
+	return phid;
+    }
 }  /* namespace LockMgr */
 
