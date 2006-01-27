@@ -4,8 +4,10 @@
 #include <ios>
 #include "ErrorConsole.h"
 #include "Errors.h"
+#include "Config/SBQLConfig.h"
 
 using namespace std;
+using namespace Config;
 
 namespace Errors {
 	extern char *ErrorMsg[];
@@ -25,11 +27,17 @@ namespace Errors {
 //	int ErrorConsole::init(void)
 	int ErrorConsole::init(int tostderr)
 	{
+		SBQLConfig c("Errors");
+		string f;
+
+		c.getInt("stderr", serr);
+		if (c.getString("logfile", f) != 0)
+			f = "sbqlerror.log";
 		serr = tostderr;
 		if (consoleFile == NULL)
-			consoleFile = new ofstream("sbqlerror.log", ios::app);
-//		if (!consoleFile->is_open())
-//			return EOPEN;
+			consoleFile = new ofstream(f.c_str(), ios::app);
+		if (!consoleFile->is_open())
+			return ENoFile | ErrErrors;
 		return 0;
 	};
 

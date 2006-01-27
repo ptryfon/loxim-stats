@@ -1,14 +1,18 @@
 #include <iostream>
 #include "ErrorConsole.h"
 #include "Errors.h"
+#include "Config/SBQLConfig.h"
 
 using namespace std;
 using namespace Errors;
+using namespace Config;
 
 int main(int argc, char *argv[])
 {
 	ErrorConsole ec("Config");
+	SBQLConfig c("Errors");
 
+	c.init("../Server/Server.conf");
 	ec.init(1);
 // przyklady uzycia
 	ec << "aaaa";

@@ -14,8 +14,8 @@ DEPFILES =	$(OBJECTS:.o=.d) $(PROGRAM).d
 
 all: $(STATIC_LIB) $(PROGRAM)
 
-$(PROGRAM): $(STATIC_LIB) $(PROGRAM).cpp
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $@.cpp $< -o $@
+$(PROGRAM): $(STATIC_LIB) ../Config/Config.a $(PROGRAM).cpp
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $@.cpp $< ../Config/Config.a -o $@
 
 clean:
 	rm -f $(OBJECTS) $(DEPFILES) $(STATIC_LIB) $(PROGRAM)
