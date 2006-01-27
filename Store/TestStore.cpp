@@ -82,22 +82,39 @@ int main(int argc, char* argv[])
 		store->deleteObject(&tid, *(vec->begin()));
 		store->removeRoot(&tid, *(vec->begin()));
 		
-
+*/
+/*
 		cout << "Odpalam obiekty zlozone" << endl;
 		ObjectPointer* op_woda;
 		dv = store->createDoubleValue(3.7);
 		store->createObject(&tid, "woda", dv, op_woda);
-		*/
+
 		ObjectPointer* op_wiadro;
-		dv = store->createVectorValue(new vector<LogicalID*>(0));
+		vector<LogicalID*>* lvec = new vector<LogicalID*>(0);
+		lvec->push_back(op_woda->getLogicalID());
+		dv = store->createVectorValue(lvec);
 		store->createObject(&tid, "wiadro", dv, op_wiadro);
 
 		store->getObject(&tid, op_wiadro->getLogicalID(), Store::Write, op_wiadro);
 		cout << op_wiadro->toString() << endl;
-		
-	//	vector<LogicalID*>* lvec = dv->getVectorValue();
-	//	lvec->push_back(op_woda->getLogicalID());
-	//	op_wiadro->setValue(
+*/
+
+
+/*		
+		dv = op_wiadro->getValue();
+		lvec = dv->getVector();
+		cout << (*lvec)[0]->toString() << endl;
+
+		store->getObject(&tid, (*lvec)[0], Store::Write, op_woda);
+		cout << op_woda->toString() << endl;
+*/		
+/*		vector<LogicalID*>* lvec = dv->getVector();
+		lvec->push_back(op_woda->getLogicalID());
+		dv->setVector(lvec);
+*/		
+		//cout << "USTAWIAM OP VAL\n";
+		//op_wiadro->setValue(dv);
+		//cout << "DONEEEE\n";
 		
 		
 		store->stop();

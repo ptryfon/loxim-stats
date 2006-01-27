@@ -150,15 +150,19 @@ namespace Store
 			lid = new DBLogicalID(map->createLogicalID());
 		else
 			lid = p_lid;
-		
+		cout << "c 1\n";
 		unsigned log_id;
 		int itid = tid==NULL ? -1 : tid->getId();
-		log->write(itid, lid, name, NULL, value, log_id);
+		cout << "c 2\n";
+		//log->write(itid, lid, name, NULL, value, log_id);
+		cout << "c 3\n";
 		
 		object = new DBObjectPointer(name, value, lid);
+		cout << "c 4\n";
 
 		Serialized sObj = object->serialize();
 		sObj.info();
+		cout << "c 5\n";
 
 		int freepage = pagemgr->getFreePage(); // strona z wystaraczajaca iloscia miejsca na nowy obiekt
 		//*ec << "Store::Manager::createObject freepage = " + freepage;

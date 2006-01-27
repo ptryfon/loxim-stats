@@ -37,8 +37,11 @@ namespace Store
 
 	Serialized DBLogicalID::serialize() const
 	{
+		cout << "l 1\n";
 		Serialized s(sizeof(unsigned int));
+		cout << "l 2\n";
 		*(reinterpret_cast<unsigned int*>(s.bytes)) = value;
+		cout << "l 3\n";
 		return s;
 	};
 

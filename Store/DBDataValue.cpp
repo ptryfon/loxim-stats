@@ -1,4 +1,5 @@
 #include "DBDataValue.h"
+#include <stdio.h>
 
 using namespace std;
 
@@ -42,10 +43,20 @@ namespace Store
 	{
 		p_init();
 		type = Store::Vector;
-		value.vector_value = new vector<LogicalID*>(0);
+		value.vector_value = new vector<LogicalID*>;
+		cout << "dd 1\n";
 		vector<LogicalID*>::iterator oi;
-		for(oi=val->begin(); oi!=val->end(); oi++)
-			value.vector_value->push_back(new DBLogicalID((*oi)->toInteger()));
+		for(oi=val->begin(); oi!=val->end(); oi++){
+				cout << "dd 2\n";
+				cout << *((int*)(&oi)) << endl;
+				if((*oi) == NULL) cout << "dd 2aa\n";
+				cout << "gggg" << endl;
+				int ilid= (*oi)->toInteger();
+				cout << "dd 2bb\n";
+			LogicalID* lid = new DBLogicalID(ilid);
+			value.vector_value->push_back(lid);
+					cout << "dd 3\n";
+			}
 	};
 
 	
@@ -166,7 +177,7 @@ namespace Store
 	{
 		Serialized s;
 		s += static_cast<int>(type);
-
+cout << "d 1 " << type << endl;
 		switch(type) {
 			case Store::Integer: s += *value.int_value; break;
 			case Store::Double:  s += *value.double_value; break;
@@ -174,10 +185,13 @@ namespace Store
 			case Store::Pointer: s += *value.pointer_value; break;
 			case Store::Vector: {
 				vector<LogicalID*>::iterator obj_iter;
+				cout << "d 2 \n";
 				s += static_cast<int>(value.vector_value->size());
+				cout << "d 3 \n";
 				for(obj_iter = value.vector_value->begin();
 						obj_iter != value.vector_value->end(); obj_iter++)
-					s += *(*obj_iter);
+					{cout << "d 4 \n";
+					s += *(*obj_iter);}
 				} break;
 			default:
 				break;
