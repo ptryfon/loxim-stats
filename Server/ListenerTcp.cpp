@@ -18,11 +18,11 @@ using namespace std;
  * parametr socket musi byc przekazany przez referencje
  */
 
-int Listener::CreateSocket(int port, int* created_socket, bool reuse) {
+int Listener::CreateSocket(int port, int* created_socket) {
 	
     int errCode;
     int sock;
-//    bool reuse;
+    bool reuse;
     
     SBQLConfig config("Server");
       
