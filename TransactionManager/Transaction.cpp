@@ -247,7 +247,7 @@ namespace TManager
 
 	TransactionManager::TransactionManager() 
 	{
-		err = ErrorConsole();
+		err = ErrorConsole("TransactionManager");
 		sem = new RWUJSemaphore();
 		sem->init();
 		mutex = new Mutex();
@@ -320,7 +320,7 @@ namespace TManager
 	int TransactionManager::commit(Transaction* tr)
 	{
 		int errorNumber;
-		err.printf("Transaction: commit");
+		err.printf("Transaction: commit\n");
 		unsigned id;
 		errorNumber = logMgr->commitTransaction(tr->getId()->getId(), id); 
 		errorNumber = LockManager::getHandle()->unlockAll(tr->getId());
@@ -331,7 +331,7 @@ namespace TManager
 	int TransactionManager::abort(Transaction* tr)
 	{
 		int errorNumber;
-		err.printf("Transaction: commit");
+		err.printf("Transaction: abort\n");
 		unsigned id;
 		errorNumber = logMgr->rollbackTransaction(tr->getId()->getId(), storeMgr, id); 
 		errorNumber = LockManager::getHandle()->unlockAll(tr->getId());
