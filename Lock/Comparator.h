@@ -36,7 +36,7 @@ class TransactionIDCmp
 class SingleLockCmp
 {
        	public:
-		bool operator() (const SingleLock& , const SingleLock& ) const;
+		bool operator() (const SingleLock *, const SingleLock *) const;
 }; 
 
 } /* namespace LockMgr */

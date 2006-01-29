@@ -20,6 +20,7 @@ namespace LockMgr
 	/* set of transactions that locked an object */
 	currentRead  = new TransactionIdSet;
 	currentWrite = new TransactionIdSet;
+	
 	if (_mode == Read)
 	    currentRead->insert(*tid);
 	else
@@ -33,8 +34,14 @@ namespace LockMgr
 
     SingleLock::~SingleLock()
     {
-	//delete currentRead;
-	//delete currentWrite;
+	err.printf("SingleLock destructor\n");
+	delete mutex;
+	delete sem;
+	
+	err.printf("SingleLock destructor - free structures memory \n");
+	/* quaranteed to be empty */
+	delete currentRead;
+	delete currentWrite;
     }
 
     int SingleLock::wait_for_lock(TransactionID *_tid, AccessMode _mode)
@@ -57,7 +64,8 @@ namespace LockMgr
 	waiting++;
 
 	mutex->up();
-
+	
+	err.printf("Wait for lock, tid = %d, mode = %d\n", _tid->getId(), _mode);
 	if (_mode == Read && !isCurrentRead && !isCurrentWrite)
 	{
 		errorCode = sem->lock_read();
@@ -89,17 +97,23 @@ namespace LockMgr
 	{
 		errorCode = sem->lock_upgrade(_tid->getId());
 	}
-
+	
+	err.printf("Locking object, tid = %d\n", _tid->getId());
 	if (errorCode == 0)
 	{
 	    mutex->down();
 	
 		waiting--;
 		if (_mode == Read)
+		{
+		    err.printf("New Reader, tid = %d\n", _tid->getId());
 		    currentRead->insert(*_tid);
+		}
 		else
+		{
+		    err.printf("New Writer, tid = %d\n", _tid->getId());
 		    currentWrite->insert(*_tid);
-		
+		}
 		/* keep original (youngest) transaction id */
 		/* tid = _tid; */
 		inside++;

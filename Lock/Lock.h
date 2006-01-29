@@ -55,7 +55,7 @@ class LockManager
 	    	 * map from transactionId to list of PhysicalIds locked 
 	    	 */
 	    	typedef set<DBPhysicalID, DBPhysicalIDCmp> DBPhysicalIdSet;
-   	    	typedef set<SingleLock, SingleLockCmp> SingleLockSet;
+   	    	typedef set<SingleLock*, SingleLockCmp> SingleLockSet;
 	    	typedef map<TransactionID , SingleLockSet*, TransactionIDCmp> TransactionIdMap;
 	    	TransactionIdMap* transaction_locks;
 	    
@@ -63,7 +63,7 @@ class LockManager
 	    	 * transaction released object 
 	    	 * ( hovewer it can be locked by other tranasactions if share_lock was used )
 	    	 */
-	    	int unlock(SingleLock, TransactionID*);
+	    	int unlock(SingleLock* , TransactionID*);
 	    
 	    	int single_lock_id;
 	    	Mutex *mutex;

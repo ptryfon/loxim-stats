@@ -37,12 +37,12 @@ namespace LockMgr
    }
    
    /* returns true if sl_1 > sl_2 */
-   bool SingleLockCmp::operator() (const SingleLock& sl1, const SingleLock& sl2) const 
+   bool SingleLockCmp::operator() (const SingleLock *sl1, const SingleLock *sl2) const 
    {
-	if (&sl1 == 0)	return (&sl2 == 0);
-	if (&sl2 == 0)  return (&sl1 == 0);
+	if (sl1 == 0)	return (sl2 == 0);
+	if (sl2 == 0)	return (sl1 == 0);
 	
-	return ( sl1.getId() > sl2.getId() );
+	return ( sl1->getId() > sl2->getId() );
    }
    
 } /* namespace LockMgr */
