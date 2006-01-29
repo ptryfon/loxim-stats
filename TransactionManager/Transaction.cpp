@@ -51,12 +51,17 @@ namespace TManager
 		err << "Transaction: getObjectPointer";
 		errorNumber = lm->lock(lid, tid, mode);
 
-		sem->lock_read();
-
-			if (errorNumber == 0)
-    				errorNumber = sm->getObject( tid, lid, mode, p);
-		sem->unlock();
-
+		if (errorNumber == 0)
+		{
+		    sem->lock_read();
+		    
+		    	errorNumber = sm->getObject( tid, lid, mode, p);
+			
+		    sem->unlock();
+		}
+		
+		if (errorNumber) abort();
+    
 		return errorNumber; 
 	};
 
@@ -74,7 +79,9 @@ namespace TManager
 			    errorNumber = lm->lock(p->getLogicalID(), tid, Write);
 			    
 		sem->unlock();
-
+		
+		if (errorNumber) abort();
+		    
 		return errorNumber;
 	};
 
@@ -86,14 +93,19 @@ namespace TManager
 		/* exclusive lock for this object */
 		errorNumber = lm->lock(object->getLogicalID(), tid, Write);
 		
-		sem->lock_write();		
+		if (errorNumber == 0)
+		{		
+		    sem->lock_write();				
+		    err << "Before store delete";
+		    
+			errorNumber = sm->deleteObject(tid, object);		
+		    
+		    err << "After store delete";
+		    sem->unlock();
+		}
 		
-		err << "Before store delete";
-			if (errorNumber == 0)
-				errorNumber = sm->deleteObject(tid, object);		
-		err << "After store delete";
-		sem->unlock();
-		
+		if (errorNumber) abort();
+		    
 		return errorNumber;
 	}
 
@@ -109,8 +121,12 @@ namespace TManager
 		for (vector<ObjectPointer*>::iterator iter = p->begin();
 	    	     iter != p->end(); iter++ ) 
 		{     
-		    int ret = lm->lock( (*iter)->getLogicalID(), tid, Read);
-		    errorNumber = ret;
+		    errorNumber = lm->lock( (*iter)->getLogicalID(), tid, Read);
+		    		    
+		    if (errorNumber) 
+		    {
+			abort(); break;
+		    }
 		}
 			
 		return errorNumber;
@@ -127,8 +143,11 @@ namespace TManager
 		for (vector<ObjectPointer*>::iterator iter = p->begin();
 	    	     iter != p->end(); iter++ ) 
 		{     
-		    int ret = lm->lock( (*iter)->getLogicalID(), tid, Read);
-		    errorNumber = ret;
+		    int errorNumber = lm->lock( (*iter)->getLogicalID(), tid, Read);
+		    if (errorNumber) 
+		    {
+			abort(); break;
+		    }
 		}
 		return errorNumber;
 	}
@@ -142,7 +161,11 @@ namespace TManager
 			if (errorNumber == 0)	
 			    errorNumber = lm->lock( p->getLogicalID(), tid, Write);
 		sem->unlock();
-			    
+		
+		if (errorNumber) 
+		{
+		    abort();
+		}	    
 		return errorNumber;
 	}
 
@@ -152,10 +175,17 @@ namespace TManager
 		
 		errorNumber = lm->lock( p->getLogicalID(), tid, Write);
 		
-		sem->lock_write();		
+		if (errorNumber == 0)
+		{
+		    sem->lock_write();		
 			errorNumber = sm->removeRoot(tid, p);		
-		sem->unlock();
-			   
+		    sem->unlock();
+		}
+				
+		if (errorNumber) 
+		{
+		    abort();
+		}	    	   
 		return errorNumber;
 	}
 
@@ -201,26 +231,15 @@ namespace TManager
 		sem->unlock();
 		return 0;
 	}
-
-
+	
 	int Transaction::commit()
-	{
-		int errorNumber;
-		unsigned id;
-	    
-		err << "Transaction: commit";
-		errorNumber = logm->commitTransaction(tid->getId(), id);  //need to process error
-		return tm->commit(this);
+	{		
+	    return tm->commit(this);
 	}
 
 	int Transaction::abort()
-	{
-		int errorNumber;
-		unsigned id;
-	    
-		err << "Transaction: abort";
-		errorNumber = logm->rollbackTransaction(tid->getId(), sm, id);  //need to process error
-		return tm->abort(this);
+	{	
+	    return tm->abort(this);
 	}
 
 	    
@@ -242,6 +261,9 @@ namespace TManager
 	
 	TransactionManager::~TransactionManager()
 	{
+		/* unlock all unfinished transactions */
+		for (list<TransactionID*>::iterator i = transactions->begin();	i != transactions->end(); i++)
+		    LockManager::getHandle()->unlockAll(*i);
 		delete sem;
 		delete mutex;
 		delete transactions;
@@ -257,7 +279,7 @@ namespace TManager
 	    mutex->up();
 	    	    
 	    tr = new Transaction(tid, sem);	
-	    return tr->init(tranMgr->storeMgr, tranMgr->logMgr);
+	    return tr->init(storeMgr, logMgr);
 	}              
 
 	int TransactionManager::init(StoreManager *strMgr, LogManager *logsMgr)
@@ -276,7 +298,9 @@ namespace TManager
 	    /* block creating new transactions */
 	    mutex->down();
 			list<TransactionID*>* copy_of_transactions = new list<TransactionID*>;
-			for (list<TransactionID*>::iterator i = transactions->begin();	i != transactions->end(); i++)
+			for (list<TransactionID*>::iterator i = transactions->begin();	
+				i != transactions->end(); i++)
+				
 				copy_of_transactions->push_back((*i)->clone());
 	    mutex->up();
 	    return copy_of_transactions;  
@@ -286,7 +310,9 @@ namespace TManager
 	    /* block creating new transactions */
 	    mutex->down();
 			vector<int>* copy_of_transactions = new vector<int>;
-			for (list<TransactionID*>::iterator i = transactions->begin();	i != transactions->end(); i++)
+			for (list<TransactionID*>::iterator i = transactions->begin();	
+				i != transactions->end(); i++)
+				
 				copy_of_transactions->push_back((*i)->getId());
 	    mutex->up();
 	    return copy_of_transactions;  
@@ -294,6 +320,9 @@ namespace TManager
 	int TransactionManager::commit(Transaction* tr)
 	{
 		int errorNumber;
+		err.printf("Transaction: commit");
+		unsigned id;
+		errorNumber = logMgr->commitTransaction(tr->getId()->getId(), id); 
 		errorNumber = LockManager::getHandle()->unlockAll(tr->getId());
 	    	remove_from_list(tr->getId());
 	    	delete tr;
@@ -301,12 +330,16 @@ namespace TManager
 	}	
 	int TransactionManager::abort(Transaction* tr)
 	{
-	    	remove_from_list(tr->getId());	
 		int errorNumber;
-		// handle rollback operation in colaboration with LogManager
+		err.printf("Transaction: commit");
+		unsigned id;
+		errorNumber = logMgr->rollbackTransaction(tr->getId()->getId(), storeMgr, id); 
+		errorNumber = LockManager::getHandle()->unlockAll(tr->getId());
+	    	remove_from_list(tr->getId());
 	    	delete tr;
-	    	return errorNumber;
+	    	return errorNumber;		
 	}
+	
 	int TransactionManager::remove_from_list(TransactionID* tid)
 	{
 	    	mutex->down();
