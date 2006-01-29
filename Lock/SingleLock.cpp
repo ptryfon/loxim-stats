@@ -27,6 +27,8 @@ namespace LockMgr
 
 	mutex = new Mutex();
 	mutex->init();
+	
+	err = ErrorConsole("LockManager");
     }
 
     SingleLock::~SingleLock()
@@ -45,10 +47,12 @@ namespace LockMgr
 		/* younger dies ( younger = higher id ) */
 		{
 			mutex->up();
-			return -1; // error abort (rollback) transction
+			/* deadlock exception - rollback transaction */
+			err.printf("Deadlock exception\n");
+			return EDeadlock; 
 		}
 
-	int isCurrentRead = currentRead->find(*_tid) != currentRead->end();
+	int isCurrentRead  = currentRead->find(*_tid)  != currentRead->end();
 	int isCurrentWrite = currentWrite->find(*_tid) != currentWrite->end();
 	waiting++;
 
@@ -58,13 +62,32 @@ namespace LockMgr
 	{
 		errorCode = sem->lock_read();
 	}
-	else if (_mode == Write && isCurrentRead && !isCurrentWrite)
+	else if (_mode == Read && isCurrentRead)
+	/* reader inside */
 	{
-		errorCode = sem->lock_upgrade(_tid->getId());
+		waiting--;
+		return 0;
 	}
-	else if (_mode == Write && !isCurrentWrite)
+	else if (_mode == Read && isCurrentWrite)
+	/* this transaction holds object in exclusive access mode */
+	{
+		waiting--;
+		return 0;
+	}
+	else if (_mode == Write && !isCurrentRead && !isCurrentWrite)
 	{
 		errorCode = sem->lock_write();
+	}
+	else if (_mode == Write && isCurrentWrite)
+	/* this transaction holds object in exclusive access mode */
+	{
+		waiting--;
+		return 0;
+	}
+	else if (_mode == Write && isCurrentRead)
+	/* upgrade lock from read to write */
+	{
+		errorCode = sem->lock_upgrade(_tid->getId());
 	}
 
 	if (errorCode == 0)
@@ -76,7 +99,9 @@ namespace LockMgr
 		    currentRead->insert(*_tid);
 		else
 		    currentWrite->insert(*_tid);
-		tid = _tid;
+		
+		/* keep original (youngest) transaction id */
+		/* tid = _tid; */
 		inside++;
 
 	    mutex->up();

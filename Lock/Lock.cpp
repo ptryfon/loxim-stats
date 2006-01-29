@@ -14,7 +14,7 @@ namespace LockMgr
 
     LockManager::LockManager() 
     {
-		err = ErrorConsole();
+		err = ErrorConsole("LockManager");
 		transaction_locks = new TransactionIdMap;
 		map_of_locks      = new DBPhysicalIdMap; 
 		single_lock_id	  = 0;
@@ -45,10 +45,11 @@ namespace LockMgr
 			ec.printf("TID new lock: %d\n", tid->getId() );
 			/* creating new single lock */
 			SingleLock* lock = new SingleLock(tid, mode, new RWUJSemaphore(), single_lock_id);
-
+			lock->setPHID(phid);
+			
 			single_lock_id++;
 			(*map_of_locks)[*phid] = lock;	
-			lock->setPHID(phid);
+			
 			if ((*transaction_locks)[*tid] == 0 )
 			    (*transaction_locks)[*tid] = new SingleLockSet;
 			    

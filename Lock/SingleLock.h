@@ -17,6 +17,7 @@ namespace LockMgr { class SingleLock; };
 #include "../TransactionManager/Transaction.h"
 #include "../TransactionManager/SemHeaders.h"
 #include "../Errors/ErrorConsole.h"
+#include "../Errors/Errors.h"
 
 using namespace Store;
 using namespace TManager;
@@ -68,6 +69,8 @@ class SingleLock
 		 */
 		Mutex *mutex;
 		DBPhysicalID *phid;
+		
+		ErrorConsole err;
 	public:
 	    	SingleLock(TransactionID* tid, AccessMode mode, Semaphore *_sem, int id);	
 	    	~SingleLock();     
