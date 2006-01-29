@@ -86,6 +86,7 @@ namespace LockMgr
 				    map_of_locks->erase( *phid );
 				}
 		    }
+		    transaction_locks->erase(*transaction_id);
 		}	
 	
 		mutex->up();
