@@ -1,7 +1,10 @@
 /**
- * $Id: Buffer.cpp,v 1.26 2006-01-26 20:01:10 mk189406 Exp $
+ * $Id: Buffer.cpp,v 1.27 2006-01-29 15:48:41 md243003 Exp $
  *
  * $Log: not supported by cvs2svn $
+ * Revision 1.26  2006/01/26 20:01:10  mk189406
+ * Komentarz.
+ *
  *
  */
 #include "Buffer.h"
@@ -64,11 +67,15 @@ namespace Store
 	{
 		if (!started)
 			return 0;
-
+cout << "s 1\n";
 		::pthread_mutex_lock(&dbwriter.mutex);
+cout << "s 2\n";
 		dbWriterWrite();
+cout << "s 3\n";
 		file->stop();
+cout << "s 4\n";
 		started = 0;
+cout << "s 5\n";
 		::pthread_cond_signal(&dbwriter.cond);
 		::pthread_mutex_unlock(&dbwriter.mutex);
 		::pthread_join(tid_dbwriter, NULL);
@@ -246,8 +253,8 @@ namespace Store
 		buffer_hash_t::iterator it;
 		buffer_page* n_page;
 		unsigned int cid;
-
-		store->getLogManager()->checkpoint(store->getTManager()->getTransactionsIds(), cid);
+		//store->getLogManager()->checkpoint(store->getTManager()->getTransactionsIds(), cid);
+		store->checkpoint(cid);
 
 		it = buffer_hash.begin();
 		while (it != buffer_hash.end()) {
@@ -263,7 +270,8 @@ namespace Store
 			it++;
 		}
 
-		store->getLogManager()->endCheckpoint(cid);
+		//store->getLogManager()->endCheckpoint(cid);
+		store->endCheckpoint(cid);
 
 		return 0;
 	};

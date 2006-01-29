@@ -176,6 +176,8 @@ namespace Store
 		
 		// Misc
 		virtual DBPhysicalID* getPhysicalID(LogicalID* lid) = 0;
+		virtual int checkpoint(unsigned int& cid) = 0;
+		virtual int endCheckpoint(unsigned int& cid) = 0;
 		
 		// Operators
 		virtual ~StoreManager() {};

@@ -80,6 +80,8 @@ namespace Store
 		virtual int dataValueFromByteArray(unsigned char* buffer, DataValue*& value);
 		
 		virtual DBPhysicalID* getPhysicalID(LogicalID* lid);
+		virtual int checkpoint(unsigned int& cid);
+		virtual int endCheckpoint(unsigned int& cid);
 	};
 };
 

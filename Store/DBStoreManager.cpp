@@ -3,6 +3,8 @@
 #include "DBStoreManager.h"
 #include "DBDataValue.h"
 
+#define LOGS
+
 namespace Store
 {
 	StoreManager* StoreManager::theStore = NULL;
@@ -13,7 +15,7 @@ namespace Store
 		StoreManager::theStore = this;
 		ec = new ErrorConsole("Store");
 		config = new SBQLConfig("Store");
-	};
+	}
 
 	DBStoreManager::~DBStoreManager()
 	{
@@ -39,7 +41,7 @@ namespace Store
 			config = NULL;
 		}
 		StoreManager::theStore = NULL;
-	};
+	}
 
 	int DBStoreManager::init(LogManager* log)
 	{
@@ -50,14 +52,14 @@ namespace Store
 		this->pagemgr = new PageManager(this);
 
 		return 0;
-	};
+	}
 
 	int DBStoreManager::setTManager(TransactionManager* tm)
 	{
 		this->tm = tm;
 
 		return 0;
-	};
+	}
 
 	int DBStoreManager::start()
 	{
@@ -67,7 +69,7 @@ namespace Store
 			return retval;
 
 		return 0;
-	};
+	}
 
 	int DBStoreManager::stop()
 	{
@@ -77,22 +79,22 @@ namespace Store
 			return retval;
 
 		return 0;
-	};
+	}
 
 	SBQLConfig* DBStoreManager::getConfig()
 	{
 		return config;
-	};
+	}
 
 	LogManager* DBStoreManager::getLogManager()
 	{
 		return log;
-	};
+	}
 
 	TransactionManager* DBStoreManager::getTManager()
 	{
 		return tm;
-	};
+	}
 
 	Buffer* DBStoreManager::getBuffer()
 	{
@@ -102,17 +104,17 @@ namespace Store
 	Map* DBStoreManager::getMap()
 	{
 		return map;
-	};
+	}
 	
 	Roots* DBStoreManager::getRoots()
 	{
 		return roots;
-	};
+	}
 
 	PageManager* DBStoreManager::getPageManager()
 	{
 		return pagemgr;
-	};
+	}
 
 	int DBStoreManager::getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object)
 	{
@@ -139,7 +141,7 @@ namespace Store
 		}
 		ec->printf("Store::Manager::getObject done: %s\n", object->toString().c_str());
 		return 0;	
-	};
+	}
 
 	int DBStoreManager::createObject(TransactionID* tid, string name, DataValue* value, ObjectPointer*& object, LogicalID* p_lid)
 	{
@@ -150,19 +152,16 @@ namespace Store
 			lid = new DBLogicalID(map->createLogicalID());
 		else
 			lid = p_lid;
-		cout << "c 1\n";
 		unsigned log_id;
 		int itid = tid==NULL ? -1 : tid->getId();
-		cout << "c 2\n";
-		//log->write(itid, lid, name, NULL, value, log_id);
-		cout << "c 3\n";
+#ifdef LOGS
+		log->write(itid, lid, name, NULL, value, log_id);
+#endif
 		
 		object = new DBObjectPointer(name, value, lid);
-		cout << "c 4\n";
 
 		Serialized sObj = object->serialize();
 		sObj.info();
-		cout << "c 5\n";
 
 		int freepage = pagemgr->getFreePage(); // strona z wystaraczajaca iloscia miejsca na nowy obiekt
 		//*ec << "Store::Manager::createObject freepage = " + freepage;
@@ -191,7 +190,7 @@ namespace Store
 		
 		ec->printf("Store::Manager::createObject done: %s\n", object->toString().c_str());
 		return 0;
-	};
+	}
 
 	int DBStoreManager::deleteObject(TransactionID* tid, ObjectPointer* object)
 	{
@@ -199,8 +198,9 @@ namespace Store
 		
 		unsigned log_id;
 		int itid = tid==NULL ? -1 : tid->getId();
+#ifdef LOGS
 		log->write(itid, object->getLogicalID(), object->getName(), object->getValue(), NULL, log_id);
-
+#endif
 		physical_id *p_id = NULL;
 		if( (map->getPhysicalID(object->getLogicalID()->toInteger(),&p_id)) == 2 ) return 2; //out of range
 		cout << "file: " << p_id->file_id << ", page: " << p_id->page_id << ", off: " << p_id->offset <<endl;
@@ -266,7 +266,7 @@ namespace Store
 		ec->printf("Store::Manager::deleteObject done: %s\n", object->toString().c_str());
 		
 		return 0;
-	};
+	}
 	
 	int DBStoreManager::replaceDV(ObjectPointer* object, DataValue* dv)
 	{
@@ -275,7 +275,7 @@ namespace Store
 		ObjectPointer* newobj;
 		createObject(&t, object->getName(), dv, newobj);
 		return 0;
-	};
+	}
 
 	int DBStoreManager::getRoots(TransactionID* tid, vector<ObjectPointer*>*& p_roots)
 	{
@@ -285,7 +285,7 @@ namespace Store
 
 		*ec << "Store::Manager::getRoots(ALL) done";
 		return rval;
-	};
+	}
 
 	int DBStoreManager::getRoots(TransactionID* tid, string p_name, vector<ObjectPointer*>*& p_roots)
 	{
@@ -308,7 +308,7 @@ namespace Store
 
 		*ec << "Store::Manager::getRoots(BY NAME) done";
 		return 0;
-	};
+	}
 
 	int DBStoreManager::addRoot(TransactionID* tid, ObjectPointer* object)
 	{
@@ -316,12 +316,14 @@ namespace Store
 		int lid = object->getLogicalID()->toInteger();
 		unsigned log_id;
 		int itid = tid==NULL ? -1 : tid->getId();
+#ifdef LOGS
 		log->addRoot(itid, object->getLogicalID(), log_id);
+#endif
 		roots->addRoot(lid);
 		
 		ec->printf("Store::Manager::addRoot done: %s\n", object->toString().c_str());
 		return 0;
-	};
+	}
 
 	int DBStoreManager::removeRoot(TransactionID* tid, ObjectPointer* object)
 	{
@@ -329,57 +331,59 @@ namespace Store
 		int lid = object->getLogicalID()->toInteger();
 		unsigned log_id;
 		int itid = tid==NULL ? -1 : tid->getId();
+#ifdef LOGS
 		log->removeRoot(itid, object->getLogicalID(), log_id);
+#endif
 		roots->removeRoot(lid);
 		
 		ec->printf("Store::Manager::removeRoot done: %s\n", object->toString().c_str());
 		return 0;
-	};
+	}
 
 	int DBStoreManager::abortTransaction(TransactionID* tid)
 	{
 		return 0;
-	};
+	}
 
 	int DBStoreManager::commitTransaction(TransactionID* tid)
 	{
 		return 0;
-	};
+	}
 
 	DataValue* DBStoreManager::createIntValue(int value)
 	{
 		return new DBDataValue(value);
-	};
+	}
 
 	DataValue* DBStoreManager::createDoubleValue(double value)
 	{
 		return new DBDataValue(value);
-	};
+	}
 
 	DataValue* DBStoreManager::createStringValue(string value)
 	{
 		return new DBDataValue(value);
-	};
+	}
 
 	DataValue* DBStoreManager::createPointerValue(LogicalID* value)
 	{
 		return new DBDataValue(value);
-	};
+	}
 
 	DataValue* DBStoreManager::createVectorValue(vector<LogicalID*>* value)
 	{
 		return new DBDataValue(value);
-	};
+	}
 
 	ObjectPointer* DBStoreManager::createObjectPointer(LogicalID* lid)
 	{
 		return new DBObjectPointer(lid);
-	};
+	}
 
 	ObjectPointer* DBStoreManager::createObjectPointer(LogicalID* lid, string name, DataValue* dv)
 	{
 		return new DBObjectPointer(name, dv, lid);
-	};
+	}
 
 	int DBStoreManager::logicalIDFromByteArray(unsigned char* buffer, LogicalID*& lid)
 	{
@@ -387,7 +391,7 @@ namespace Store
 		int rval = DBLogicalID::deserialize(buffer, dlid);
 		lid = dlid;
 		return rval;
-	};
+	}
 
 	int DBStoreManager::dataValueFromByteArray(unsigned char* buffer, DataValue*& value)
 	{
@@ -395,13 +399,31 @@ namespace Store
 		int rval = DBDataValue::deserialize(buffer, dvalue);
 		value = dvalue;
 		return rval;
-	};
+	}
 
 	DBPhysicalID* DBStoreManager::getPhysicalID(LogicalID* lid)
 	{
 		physical_id* pid;
 		map->getPhysicalID(lid->toInteger(), &pid);
 		return new DBPhysicalID(*pid);
-	};
+	}
+	
+	int DBStoreManager::checkpoint(unsigned int& cid)
+	{
+#ifdef LOGS
+		return getLogManager()->checkpoint(getTManager()->getTransactionsIds(), cid);
+#else
+		return 0;
+#endif
+	}
+	
+	int DBStoreManager::endCheckpoint(unsigned int& cid)
+	{
+#ifdef LOGS
+		return getLogManager()->endCheckpoint(cid);
+#else
+		return 0;
+#endif
+	}
 	
 }

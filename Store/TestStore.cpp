@@ -33,13 +33,13 @@ int main(int argc, char* argv[])
 		store->start();
 		cout << "Store started" << endl;
 		
-		TransactionID tid(1);
+	/*	TransactionID tid(1);
 		cout << "TID ok" << endl;
 		DataValue* dv = store->createIntValue(7);
 		cout << "Created INT" << endl;
 		ObjectPointer* op_kilof;
 		ObjectPointer* op_motyka;
-		/*
+		
 		cout << "Odpalam createObject" << endl;
 		store->createObject(&tid, "kilof", dv, op_kilof);
 
