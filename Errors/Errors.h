@@ -72,6 +72,9 @@ namespace Errors {
 #define EBadResult		0x1800
 #define EClientLost		0x1900
 
+// Transaction
+#define EDeadlock		0x2002
+
 // plug for h_errno from gethostbyname(3)
 #define ENoHost			0x1A00
 
