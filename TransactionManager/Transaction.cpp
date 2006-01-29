@@ -48,7 +48,7 @@ namespace TManager
 	{
 		int errorNumber;
 	
-		err << "Transaction: getObjectPointer";
+		err.printf("Transaction: getObjectPointer\n");
 		errorNumber = lm->lock(lid, tid, mode);
 
 		if (errorNumber == 0)
@@ -69,7 +69,7 @@ namespace TManager
 	{
 		int errorNumber;
 	    
-		err << "Transaction: createObject";
+		err.printf("Transaction: createObject\n");
 
 		sem->lock_write();
 			errorNumber = sm->createObject( tid, name, value, p);
@@ -89,18 +89,16 @@ namespace TManager
 	{
 		int errorNumber;
 
-		err << "Transaction: deleteObject";
+		err.printf("Transaction: deleteObject\n");
 		/* exclusive lock for this object */
 		errorNumber = lm->lock(object->getLogicalID(), tid, Write);
 		
 		if (errorNumber == 0)
 		{		
 		    sem->lock_write();				
-		    err << "Before store delete";
-		    
+		    		    
 			errorNumber = sm->deleteObject(tid, object);		
-		    
-		    err << "After store delete";
+		    		    
 		    sem->unlock();
 		}
 		
@@ -118,17 +116,19 @@ namespace TManager
 			errorNumber = sm->getRoots(tid, p);			
 		sem->unlock();
 		
-		for (vector<ObjectPointer*>::iterator iter = p->begin();
-	    	     iter != p->end(); iter++ ) 
-		{     
-		    errorNumber = lm->lock( (*iter)->getLogicalID(), tid, Read);
+		if (errorNumber == 0)
+		{
+		    for (vector<ObjectPointer*>::iterator iter = p->begin();
+	    	        iter != p->end(); iter++ ) 
+		    {     
+			errorNumber = lm->lock( (*iter)->getLogicalID(), tid, Read);
 		    		    
-		    if (errorNumber) 
-		    {
-			abort(); break;
+			if (errorNumber) 
+			{
+			    abort(); break;
+			}
 		    }
-		}
-			
+		}	
 		return errorNumber;
 	}
 
@@ -140,13 +140,17 @@ namespace TManager
 			errorNumber = sm->getRoots(tid, name, p);
 		sem->unlock();
 		
-		for (vector<ObjectPointer*>::iterator iter = p->begin();
-	    	     iter != p->end(); iter++ ) 
-		{     
-		    int errorNumber = lm->lock( (*iter)->getLogicalID(), tid, Read);
-		    if (errorNumber) 
-		    {
-			abort(); break;
+		if (errorNumber == 0)
+		{
+		    for (vector<ObjectPointer*>::iterator iter = p->begin();
+	    	        iter != p->end(); iter++ ) 
+		    {     
+			errorNumber = lm->lock( (*iter)->getLogicalID(), tid, Read);
+			
+			if (errorNumber) 
+			{
+			    abort(); break;
+			}
 		    }
 		}
 		return errorNumber;
@@ -162,10 +166,8 @@ namespace TManager
 			    errorNumber = lm->lock( p->getLogicalID(), tid, Write);
 		sem->unlock();
 		
-		if (errorNumber) 
-		{
-		    abort();
-		}	    
+		if (errorNumber) abort();
+			    
 		return errorNumber;
 	}
 
@@ -182,10 +184,8 @@ namespace TManager
 		    sem->unlock();
 		}
 				
-		if (errorNumber) 
-		{
-		    abort();
-		}	    	   
+		if (errorNumber) abort();
+			    	   
 		return errorNumber;
 	}
 
@@ -233,12 +233,14 @@ namespace TManager
 	}
 	
 	int Transaction::commit()
-	{		
+	{	
+	    err.printf("Transaction commit, tid = %d\n", tid->getId());
 	    return tm->commit(this);
 	}
 
 	int Transaction::abort()
 	{	
+	    err.printf("Transaction abort, tid = %d\n", tid->getId());
 	    return tm->abort(this);
 	}
 
@@ -319,25 +321,45 @@ namespace TManager
 	}	
 	int TransactionManager::commit(Transaction* tr)
 	{
-		int errorNumber;
-		err.printf("Transaction: commit\n");
+		int errorNumber;		
 		unsigned id;
+		
+		/* commit record in logs*/
 		errorNumber = logMgr->commitTransaction(tr->getId()->getId(), id); 
+		err.printf("Transaction commit, tid = %d, logs errno = %d\n", tr->getId()->getId(), errorNumber);
+		
+		/* unlock all objects hold by transaction */
 		errorNumber = LockManager::getHandle()->unlockAll(tr->getId());
+		err.printf("Transaction commit, tid = %d, lock errno = %d\n", tr->getId()->getId(), errorNumber);
+		
+		/* remove transaction from active transactions list */
 	    	remove_from_list(tr->getId());
+		
+		/* free memory */
 	    	delete tr;
+		
 	    	return errorNumber;
 	}	
 	int TransactionManager::abort(Transaction* tr)
-	{
-		int errorNumber;
-		err.printf("Transaction: abort\n");
+	{		
+		int errorNumber;		
 		unsigned id;
+		
+		/* rollback record in logs plus perform rollback operation */
 		errorNumber = logMgr->rollbackTransaction(tr->getId()->getId(), storeMgr, id); 
+		err.printf("Transaction abort, tid = %d, logs errno = %d\n", tr->getId()->getId(), errorNumber);
+		
+		/* unlock all objects hold by transaction */
 		errorNumber = LockManager::getHandle()->unlockAll(tr->getId());
+		err.printf("Transaction abort, tid = %d, lock errno = %d\n", tr->getId()->getId(), errorNumber);
+		
+		/* remove transaction from active transactions list */
 	    	remove_from_list(tr->getId());
+		
+		/* free memory */
 	    	delete tr;
-	    	return errorNumber;		
+		
+	    	return errorNumber;
 	}
 	
 	int TransactionManager::remove_from_list(TransactionID* tid)
