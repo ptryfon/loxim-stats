@@ -75,15 +75,17 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 		{
 		case TreeNode::TNNAME: {
 			*ec << "[QE] Type: TNNAME";
-			string name = tree->getName();
-			int sectionNumber = ((NameNode *) tree)->getBindSect();
+			string name = tree->getName();			
+			int sectionNumber = ((NameNode *) tree)->getBindSect();			
 			if ((stack.size()) == 1) {
-			    errcode = (stack.pop());
-			    if (errcode != 0) { return errcode; }
+			    errcode = (stack.pop());			    
+			    if (errcode != 0) { tr = NULL; return errcode; }
 			}
 			if (stack.empty()) {
 				vector<ObjectPointer*>* vec;
 				if ((errcode = tr->getRoots(vec)) != 0) {
+					
+					tr = NULL;
 					return errcode;
 				}
 				int vecSize = vec->size();
@@ -177,11 +179,13 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			if ((errcode = tr->createObject(name, value, optr)) != 0)
 				{
 				*ec << "[QE] Error in createObject";
+				tr = NULL;
 				return errcode;
 				}
 			if ((errcode = tr->addRoot(optr)) != 0)
 				{
 				*ec << "[QE] Error in addRoot";
+				tr = NULL;
 				return errcode;
 				}
 			*result = new QueryBagResult();
@@ -368,7 +372,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					errcode = tr->commit();
 					if (errcode != 0) {
 						*ec << "[QE] error in transaction->commit()";
-						*result = new QueryNothingResult();
+						*result = new QueryNothingResult();					
 						return errcode;
 					}
 					*ec << "[QE] Transaction commited succesfully";
@@ -490,8 +494,9 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 			*ec << "[QE] derefQuery() - dereferencing Object";
 			ObjectPointer *optr;
 			errcode = tr->getObjectPointer(ref_value, Store::Read, optr);
-			if (errcode != 0) {
+			if (errcode != 0) {			
 				*ec << "[QE] Error in getObjectPointer";
+				tr = NULL;
 				return errcode;
 			}
 			DataValue* value = optr->getValue();
@@ -843,15 +848,18 @@ int QueryExecutor::unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&
 				ObjectPointer *optr;
 				if ((errcode = tr->getObjectPointer (lid, Store::Write, optr)) !=0) {
 					*ec << "[QE] Error in getObjectPointer.";
+					tr = NULL;
 					return errcode;
 				}
-				if ((errcode = tr->removeRoot(optr)) != 0) {
+				if ((errcode = tr->removeRoot(optr)) != 0) {				
 					*ec << "[QE] Error in removeRoot.";
+					tr = NULL;
 					return errcode;
 				}
 				*ec << "[QE] Root removed";
 				if ((errcode = tr->deleteObject(optr)) != 0) {
 					*ec << "[QE] Error in deleteObject.";
+					tr = NULL;
 					return errcode;
 				}
 				*ec << "[QE] Object deleted";
@@ -1120,6 +1128,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 				errcode = tr->getObjectPointer (lidIn, Store::Write, optrIn);
 				if (errcode != 0) {
 					*ec << "[QE] insert operation - Error in getObjectPointer.";
+					tr = NULL;
 					return errcode;
 				}
 				*ec << "[QE] insert operation - getObjectPointer on leftArg done";
@@ -1127,6 +1136,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 				errcode = tr->getObjectPointer (lidOut, Store::Write, optrOut);
 				if (errcode != 0) {
 					*ec << "[QE] insert operation - Error in getObjectPointer.";
+					tr = NULL;
 					return errcode;
 				}
 				*ec << "[QE] insert operation - getObjectPointer on rightArg done";
@@ -1134,6 +1144,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 				errcode = tr->removeRoot(optrIn);
 				if (errcode != 0) {
 					*ec << "[QE] insert operation - Error in removeRoot.";
+					tr = NULL;
 					return errcode;
 				}
 				*ec << "[QE] insert operation - Root removed";
@@ -1284,6 +1295,7 @@ int QueryExecutor::combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryRe
 			errcode = tr->getObjectPointer (old_lid, Store::Write, old_optr);
 			if (errcode != 0) {
 				*ec << "[QE] combine() operator <assign>: error in getObjectPointer()";
+				tr = NULL;
 				return errcode;
 			}
 			*ec << "[QE] combine() operator <assign>: getObjectPointer on left argument done";
