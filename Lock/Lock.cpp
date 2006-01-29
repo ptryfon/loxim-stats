@@ -47,7 +47,7 @@ namespace LockMgr
 
 		mutex->down();
 	    	DBPhysicalID* phid = lid->getPhysicalID();
-	    	DBPhysicalIdMap::iterator pos = map_of_locks->find(*phid);
+	    	DBPhysicalIdMap::iterator pos = map_of_locks->find(phid);
 	    
 		SingleLock* lock = NULL;
 		
@@ -59,7 +59,7 @@ namespace LockMgr
 			lock->setPHID(phid);
 			
 			single_lock_id++;
-			(*map_of_locks)[*phid] = lock;	
+			(*map_of_locks)[phid] = lock;	
 	    	}
 	    	else
 	    	{
@@ -74,10 +74,10 @@ namespace LockMgr
 			mutex->down();
 		}
 
-		if ((*transaction_locks)[*tid] == 0 )
-		    (*transaction_locks)[*tid] = new SingleLockSet;
+		if ((*transaction_locks)[tid] == 0 )
+		    (*transaction_locks)[tid] = new SingleLockSet;
 			    
-		((*transaction_locks)[*tid])->insert(lock);
+		((*transaction_locks)[tid])->insert(lock);
 			
 		mutex->up();			    
 		
@@ -88,7 +88,7 @@ namespace LockMgr
     {
 		err.printf("UnlockAll, tid = %d\n", transaction_id->getId());
 		mutex->down();
-		TransactionIdMap::iterator pos = transaction_locks->find(*transaction_id);
+		TransactionIdMap::iterator pos = transaction_locks->find(transaction_id);
 		if (pos != transaction_locks->end())
 		{
 		    SingleLockSet* locks = pos->second;
@@ -101,12 +101,12 @@ namespace LockMgr
 				if (delete_lock) 
 				{
 				    DBPhysicalID* phid = (*iter)->getPHID();
-				    map_of_locks->erase( *phid );
+				    map_of_locks->erase( phid );
 				    
 				    delete (*iter);				    
 				}
 		    }
-		    transaction_locks->erase(*transaction_id);		    
+		    transaction_locks->erase(transaction_id);		    
 		    delete locks;
 		}	
 	

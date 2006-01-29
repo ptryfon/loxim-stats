@@ -39,7 +39,7 @@ class SingleLock
 		 * current transaction ids that locked an object 
 		 * (if the mode is for reading there may be many transactions that hold on object )
 	     	 */
-	    	typedef set<TransactionID ,TransactionIDCmp> TransactionIdSet;
+	    	typedef set<TransactionID* ,TransactionIDCmp> TransactionIdSet;
 	    	TransactionIdSet* currentRead;
 		TransactionIdSet* currentWrite;
 

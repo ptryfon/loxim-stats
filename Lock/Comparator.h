@@ -22,21 +22,21 @@ namespace LockMgr
 class DBPhysicalIDCmp
 {
        	public:
-		bool operator() (const DBPhysicalID& , const DBPhysicalID& ) const;
+		bool operator() (const DBPhysicalID* , const DBPhysicalID* ) const;
 }; 
 
 /* class to compare TransactionID's */
 class TransactionIDCmp
 {
        	public:
-		bool operator() (const TransactionID& , const TransactionID& ) const;
+		bool operator() (const TransactionID* , const TransactionID* ) const;
 }; 
 
 /* class to compare SingleLocks objects */
 class SingleLockCmp
 {
        	public:
-		bool operator() (const SingleLock *, const SingleLock *) const;
+		bool operator() (const SingleLock* , const SingleLock* ) const;
 }; 
 
 } /* namespace LockMgr */

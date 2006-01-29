@@ -5,35 +5,35 @@ namespace LockMgr
 {
 
     /* returns true if db1 > db2  */
-   bool DBPhysicalIDCmp::operator() (const DBPhysicalID& db1, const DBPhysicalID& db2) const 
+   bool DBPhysicalIDCmp::operator() (const DBPhysicalID* db1, const DBPhysicalID* db2) const 
    {
-	if (&db1 == 0)	return (&db2 == 0);
-	if (&db2 == 0)  return (&db1 == 0);
+	if (db1 == 0)	return (db2 == 0);
+	if (db2 == 0)	return (db1 == 0);
 	
 	unsigned short f1, f2, p1, p2, o1, o2;
-	f1 = db1.getFile();
-	f2 = db2.getFile();
+	f1 = db1->getFile();
+	f2 = db2->getFile();
 	
 	if (f1 != f2) return f1<f2;
 		    
-	p1 = db1.getPage();
-	p2 = db2.getPage();
+	p1 = db1->getPage();
+	p2 = db2->getPage();
 		    
 	if (p1 != p2) return p1<p2;
 	    
-	o1 = db1.getOffset();
-	o2 = db2.getOffset();
+	o1 = db1->getOffset();
+	o2 = db2->getOffset();
 	    
 	return o1<o2;	
    }
 
     /* returns true if tid1 > tid2 */
-   bool TransactionIDCmp::operator() (const TransactionID& tid1, const TransactionID& tid2) const 
+   bool TransactionIDCmp::operator() (const TransactionID* tid1, const TransactionID* tid2) const 
    {
-	if (&tid1 == 0)	return (&tid2 == 0);
-	if (&tid2 == 0) return (&tid1 == 0);
+	if (tid1 == 0)	return (tid2 == 0);
+	if (tid2 == 0)	return (tid1 == 0);
 	
-	return ( tid1.getId() > tid2.getId());
+	return ( tid1->getId() > tid2->getId());
    }
    
    /* returns true if sl_1 > sl_2 */

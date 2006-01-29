@@ -48,15 +48,15 @@ class LockManager
 	    	/* 
 	    	 * map from PhysicalId to SingleLock, 
 	    	 */
-	    	typedef map<Store::DBPhysicalID , SingleLock* , DBPhysicalIDCmp> DBPhysicalIdMap;
+	    	typedef map<Store::DBPhysicalID* , SingleLock* , DBPhysicalIDCmp> DBPhysicalIdMap;
 	    	DBPhysicalIdMap* map_of_locks;
 	    
 	    	/* 
 	    	 * map from transactionId to list of PhysicalIds locked 
 	    	 */
-	    	typedef set<DBPhysicalID, DBPhysicalIDCmp> DBPhysicalIdSet;
+	    	typedef set<DBPhysicalID*, DBPhysicalIDCmp> DBPhysicalIdSet;
    	    	typedef set<SingleLock*, SingleLockCmp> SingleLockSet;
-	    	typedef map<TransactionID , SingleLockSet*, TransactionIDCmp> TransactionIdMap;
+	    	typedef map<TransactionID* , SingleLockSet*, TransactionIDCmp> TransactionIdMap;
 	    	TransactionIdMap* transaction_locks;
 	    
 	    	/*

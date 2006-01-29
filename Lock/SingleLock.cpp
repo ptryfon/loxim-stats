@@ -22,9 +22,9 @@ namespace LockMgr
 	currentWrite = new TransactionIdSet;
 	
 	if (_mode == Read)
-	    currentRead->insert(*tid);
+	    currentRead->insert(tid);
 	else
-	    currentWrite->insert(*tid);
+	    currentWrite->insert(tid);
 
 	mutex = new Mutex();
 	mutex->init();
@@ -59,8 +59,8 @@ namespace LockMgr
 			return EDeadlock; 
 		}
 
-	int isCurrentRead  = currentRead->find(*_tid)  != currentRead->end();
-	int isCurrentWrite = currentWrite->find(*_tid) != currentWrite->end();
+	int isCurrentRead  = currentRead->find(_tid)  != currentRead->end();
+	int isCurrentWrite = currentWrite->find(_tid) != currentWrite->end();
 	waiting++;
 
 	mutex->up();
@@ -107,12 +107,12 @@ namespace LockMgr
 		if (_mode == Read)
 		{
 		    err.printf("New Reader, tid = %d\n", _tid->getId());
-		    currentRead->insert(*_tid);
+		    currentRead->insert(_tid);
 		}
 		else
 		{
 		    err.printf("New Writer, tid = %d\n", _tid->getId());
-		    currentWrite->insert(*_tid);
+		    currentWrite->insert(_tid);
 		}
 		/* keep original (youngest) transaction id */
 		/* tid = _tid; */
@@ -130,10 +130,10 @@ namespace LockMgr
 	mutex->down();
 
 		inside--;
-		if (currentRead->find(*tid) != currentRead->end())
-		    currentRead->erase(*tid);
-		if (currentWrite->find(*tid) != currentWrite->end())
-		    currentWrite->erase(*tid);
+		if (currentRead->find(tid) != currentRead->end())
+		    currentRead->erase(tid);
+		if (currentWrite->find(tid) != currentWrite->end())
+		    currentWrite->erase(tid);
 		
 		if (inside == 0 && waiting == 0)
 		    delete_lock = 1;
