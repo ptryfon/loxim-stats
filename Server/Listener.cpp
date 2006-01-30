@@ -218,13 +218,26 @@ int Listener::Start(int port) {
 	}
 	signal(SIGINT, sigHandler);
 	
+	lCons->printf("[Listener.Start]--> Initializing Log manager and Store manager \n");
+	LogManager *lm = new LogManager();
+	lm->init();
+	DBStoreManager *sm = new DBStoreManager();
+	sm->init(lm);
+	TransactionManager::getHandle()->init(sm, lm);
+	lCons->printf("[Listener.Start]--> Starting Store manager.. \n");
+	sm->start();
+	lCons->printf("[Listener.Start]--> Starting Log manager.. \n");
+	lm->start(sm);
+	
 	if (setjmp(j)!=0) {
-	    *lCons << "[Listener.Start]--> Jumped.. closing socket..";
+	    *lCons << "[Listener.Start]--> Jumped.. Stopping Store manager and  closing socket..";
+	    sm->stop();
 	    Unlock();
 	    errorCode=CloseSocket(sock);
 	    //lCons->printf("[Listener.Start]--> Returning with %d\n", errorCode);
 	    return errorCode;
 	} 
+	
 	
 	while ((isEnd==0) && (threads_count<MAX_CLIENTS)) {
 	

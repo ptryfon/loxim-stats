@@ -295,7 +295,7 @@ int  Server::SerializeRec(QueryResult *qr)
 		    strVal=bindRes->getName();
 		    qres=bindRes->getItem();
 		    strcpy(serialBuf, strVal.c_str());
-		    serialBuf=serialBuf+(strVal.length());
+		    serialBuf=serialBuf+(strVal.length())+1;
 		    SerializeRec(qres);
 		    break;
 		default:
@@ -344,7 +344,7 @@ int Server::Run()
 	sigprocmask(SIG_BLOCK, &block_cc, NULL);
 
 	*ec << "[Server.Run]--> Initializing objects";
-		
+	/*
 	LogManager* logManager = new LogManager();
 	logManager->init();
 	DBStoreManager* storeManager = new DBStoreManager();
@@ -353,6 +353,7 @@ int Server::Run()
 	storeManager->start();
         //logManager->start( storeManager );
 	//storeManager->setTransactionManager(TransactionManager::getHandle());
+	*/
 	
 	QueryParser *qPa = new QueryParser();
 	QueryExecutor *qEx = new QueryExecutor();
