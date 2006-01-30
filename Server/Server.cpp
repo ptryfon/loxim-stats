@@ -316,6 +316,7 @@ int Server::sendError(int errNo) {
     b=bB;
     b[0]=(char)rT;
     b++;
+    errNo=htonl(errNo);
     memcpy((void *)b, (const void *)&errNo, sizeof(errNo));
     Send(*&bB, errMesLen);
     return 0;
@@ -407,6 +408,7 @@ while (!signalReceived) {
 	res = (qPa->parseIt((string) messgBuff, tNode));
 	if (res != 0) {
 	    ec->printf("[Server.Run]--> Parser returned error code %d\n", res);
+	    printf("\n %d \n", res);
 	    sendError(res);
 	    ncError=1;
 	    continue;
