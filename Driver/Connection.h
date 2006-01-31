@@ -95,6 +95,9 @@ class ConnectionServerException : public ConnectionErrnoException {
 	      break; 
 	    case ErrTCPProto:
 	      msg += string ("Protocol Error");
+	      break;
+	    default:
+	      msg += string ("Undefined error ");
 	    }
 	  }
 	
