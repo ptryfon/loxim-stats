@@ -1481,7 +1481,13 @@ int QueryExecutor::isIncluded(QueryResult *elem, QueryResult *set, bool &score) 
 	return 0;
 }
 
-QueryExecutor::~QueryExecutor() { tr->abort(); stack.deleteAll(); delete ec; }
+QueryExecutor::~QueryExecutor()
+{
+    if (tr)
+	tr->abort();
+    stack.deleteAll();
+    *ec << "[QE] QueryExecutor shutting down\n";
+    delete ec; }
 
 EnvironmentStack::EnvironmentStack() { ec = new ErrorConsole("QueryExecutor"); }
 EnvironmentStack::~EnvironmentStack() { delete ec; }
