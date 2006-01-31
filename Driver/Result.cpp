@@ -20,6 +20,18 @@ void   ResultCollection::toStream(ostream& os) const
 	os << "} ";
 }
 
+
+void   ResultStruct::toStream(ostream& os) const 
+{
+	os << "< ";  
+	for(unsigned int i=0; i<col.size(); i++) 
+	{
+		os << *(col.at(i)) << " ";
+	} 
+	os << "> ";
+}
+
+
 /**
  * ResultReference
  */

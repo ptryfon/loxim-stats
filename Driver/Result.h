@@ -32,11 +32,10 @@ public:
 
 class ResultCollection : public Result 
 {
-private:	
+protected:
 	vector<Result*> col;
-
 public:
-	ResultCollection() : col(0)  {} 
+	ResultCollection() : col(0) {} 
 
 	virtual bool    operator==(Result& r){ return false;       }
   	virtual Result* clone()              { return NULL;        }
@@ -72,6 +71,7 @@ public:
 	bool    operator==(Result& r){ return false;          }
   	Result* clone()              { return NULL;           }
   	int 	getType()            { return Result::STRUCT; }      
+	void   toStream(ostream& os)   const ;
 		
 	virtual ~ResultStruct()   {}
 };//class ResultStruct : ResultCollection

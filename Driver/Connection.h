@@ -2,6 +2,7 @@
 #define _CONNECTION_H_
 
 #include "Result.h"
+#include "../Errors/Errors.h"
 
 namespace Driver {
 
@@ -24,7 +25,13 @@ class ConnectionErrnoException : public ConnectionException {
  protected:
 	int error;
  public:
-	ConnectionErrnoException(int err): ConnectionException(), error(err) {}
+	ConnectionErrnoException(int err): ConnectionException(), error(err) 
+	  { 
+	    char cherr[256];
+	    sprintf(cherr, "Error nr: 0x%x , ", err);
+	    msg = string(cherr);
+	    msg += string(strerror (err & 0xFFFF)); 
+	  }
 	virtual int getError() { return error; }
 	virtual ~ConnectionErrnoException() {}
 };
@@ -42,8 +49,55 @@ class ConnectionMemoryException : public ConnectionErrnoException {
 
 class ConnectionServerException : public ConnectionErrnoException {
  public:
-	ConnectionServerException(int err): ConnectionErrnoException(err){}
-
+	ConnectionServerException(int err): ConnectionErrnoException(err)
+	  { 
+	    char cherr[256];
+	    sprintf(cherr, "Error nr: 0x%x , ", err);
+	    msg = string(cherr);
+	    
+	    int module = err & 0xFF00000;
+	    switch (module) {
+	    case ErrBackup:
+	      msg += string ("Parser Error");
+	      break; 
+	    case ErrConfig:
+	      msg += string ("Config Error");
+	      break; 
+	    case ErrDriver:
+	      msg += string ("Driver Error");
+	      break; 
+	    case ErrErrors:
+	      msg += string ("Errors Error");
+	      break; 
+	    case ErrLockMgr:
+	      msg += string ("Lock Manager Error");
+	      break; 
+	    case ErrLogs:
+	      msg += string ("Logs Error");
+	      break; 
+	    case ErrQExecutor:
+	      msg += string ("Query Executor Error");
+	      break; 
+	    case ErrQParser:
+	      msg += string ("Query Parser Error");
+	      break; 
+	    case ErrSBQLCli:
+	      msg += string ("SBQL Client Error");
+	      break; 
+	    case ErrServer:
+	      msg += string ("Server Error");
+	      break; 
+	    case ErrStore:
+	      msg += string ("Store Error");
+	      break; 
+	    case ErrTManager:
+	      msg += string ("Transaction Manager Error");
+	      break; 
+	    case ErrTCPProto:
+	      msg += string ("Protocol Error");
+	    }
+	  }
+	
 };
 
 
