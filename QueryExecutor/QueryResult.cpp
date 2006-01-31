@@ -842,17 +842,17 @@ bool QueryReferenceResult::less_eq(QueryResult *r){
 
 // nested function returns bag of binders, which will be pushed on the environment stack
 
-int QuerySequenceResult::nested(Transaction *tr, QueryResult *&r) {
+int QuerySequenceResult::nested(Transaction *&tr, QueryResult *&r) {
 	*ec << "[QE] nested(): ERROR! QuerySequenceResult shouldn't be nested";
 	return -1; // nested () function is applied to rows of a QueryResult and so, it shouldn't be applied to sequences and bags
 }
 
-int QueryBagResult::nested(Transaction *tr, QueryResult *&r) {
+int QueryBagResult::nested(Transaction *&tr, QueryResult *&r) {
 	*ec << "[QE] nested(): ERROR! QueryBagResult shouldn't be nested";
 	return -1; // nested () function is applied to rows of a QueryResult and so, it shouldn't be applied to sequences and bags
 }
 
-int QueryStructResult::nested(Transaction *tr, QueryResult *&r) {
+int QueryStructResult::nested(Transaction *&tr, QueryResult *&r) {
 	*ec << "[QE] nested(): QueryStructResult";
 	int errcode;
 	for (unsigned int i = 0; i < str.size(); i++) {
@@ -866,32 +866,32 @@ int QueryStructResult::nested(Transaction *tr, QueryResult *&r) {
 	return 0;
 }
 
-int QueryStringResult::nested(Transaction *tr, QueryResult *&r) {
+int QueryStringResult::nested(Transaction *&tr, QueryResult *&r) {
 	*ec << "[QE] nested(): QueryStringResult can't be nested";
 	return 0;
 }
 
-int QueryIntResult::nested(Transaction *tr, QueryResult *&r) {
+int QueryIntResult::nested(Transaction *&tr, QueryResult *&r) {
 	*ec << "[QE] nested(): QueryIntResult can't be nested";
 	return 0;
 }
 
-int QueryDoubleResult::nested(Transaction *tr, QueryResult *&r) {
+int QueryDoubleResult::nested(Transaction *&tr, QueryResult *&r) {
 	*ec << "[QE] nested(): QueryDoubleResult can't be nested";
 	return 0;
 }
 
-int QueryBoolResult::nested(Transaction *tr, QueryResult *&r) {
+int QueryBoolResult::nested(Transaction *&tr, QueryResult *&r) {
 	*ec << "[QE] nested(): QueryBoolResult can't be nested";
 	return 0;
 }
 
-int QueryNothingResult::nested(Transaction *tr, QueryResult *&r) {
+int QueryNothingResult::nested(Transaction *&tr, QueryResult *&r) {
 	*ec << "[QE] nested(): QueryNothingResult can't be nested";
 	return 0;
 }
 
-int QueryBinderResult::nested(Transaction *tr, QueryResult *&r) {
+int QueryBinderResult::nested(Transaction *&tr, QueryResult *&r) {
 	if (item != NULL) {
 		QueryBinderResult *tmp_value = new QueryBinderResult(name,item);
 		ec->printf("[QE] nested(): QueryBinderResult copy returned name: %s\n", name.c_str());
@@ -900,13 +900,14 @@ int QueryBinderResult::nested(Transaction *tr, QueryResult *&r) {
 	return 0;
 }
 
-int QueryReferenceResult::nested(Transaction *tr, QueryResult *&r) {
+int QueryReferenceResult::nested(Transaction *&tr, QueryResult *&r) {
 	DataValue* tmp_data_value;
 	int errcode;
 	ObjectPointer *optr;
 	if (value != NULL) {
 		if ((errcode = tr->getObjectPointer(value, Store::Read, optr)) != 0) {
 			*ec << "[QE] Error in getObjectPointer";
+			tr = NULL;
 			return errcode;
 		}
 		tmp_data_value = optr->getValue();
@@ -928,6 +929,7 @@ int QueryReferenceResult::nested(Transaction *tr, QueryResult *&r) {
 				LogicalID *tmp_logID = (tmp_data_value->getPointer());
 				if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, optr)) != 0) {
 				*ec << "[QE] Error in getObjectPointer";
+					tr = NULL;
 					return errcode;
 				}
 				string tmp_name = optr->getName();
@@ -946,6 +948,7 @@ int QueryReferenceResult::nested(Transaction *tr, QueryResult *&r) {
 					LogicalID *tmp_logID = tmp_vec->at(i);
 					if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, optr)) != 0) {
 					*ec << "[QE] Error in getObjectPointer";
+						tr = NULL;
 						return errcode;
 					}
 					string tmp_name = optr->getName();

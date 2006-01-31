@@ -55,7 +55,7 @@ public:
 	virtual bool less_than(QueryResult *r)=0;
 	virtual bool greater_eq(QueryResult *r)=0;
 	virtual bool less_eq(QueryResult *r)=0;
-	virtual int nested(Transaction *tr, QueryResult *&r)=0;
+	virtual int nested(Transaction *&tr, QueryResult *&r)=0;
 	virtual bool isBool()=0;
 	virtual int getBoolValue(bool &b)=0;
 	virtual bool isSingleValue()=0;
@@ -94,7 +94,7 @@ public:
 	bool less_than(QueryResult *r) { return false; };
 	bool greater_eq(QueryResult *r) { return false; };
 	bool less_eq(QueryResult *r) { return false; };
-	int nested(Transaction *tr, QueryResult *&r);
+	int nested(Transaction *&tr, QueryResult *&r);
 	bool isBool();
 	int getBoolValue(bool &b);
 	bool isSingleValue();
@@ -133,7 +133,7 @@ public:
 	bool less_than(QueryResult *r) { return false; };
 	bool greater_eq(QueryResult *r) { return false; };
 	bool less_eq(QueryResult *r) { return false; };
-	int nested(Transaction *tr, QueryResult *&r);
+	int nested(Transaction *&tr, QueryResult *&r);
 	bool isBool();
 	int getBoolValue(bool &b);
 	bool isSingleValue();
@@ -172,7 +172,7 @@ public:
 	bool less_than(QueryResult *r) { return false; };
 	bool greater_eq(QueryResult *r) { return false; };
 	bool less_eq(QueryResult *r) { return false; };
-	int nested(Transaction *tr, QueryResult *&r);
+	int nested(Transaction *&tr, QueryResult *&r);
 	bool isBool();
 	int getBoolValue(bool &b);
 	bool isSingleValue();
@@ -205,7 +205,7 @@ public:
 	bool less_than(QueryResult *r) { return false; };
 	bool greater_eq(QueryResult *r) { return false; };
 	bool less_eq(QueryResult *r) { return false; };
-	int nested(Transaction *tr, QueryResult *&r);
+	int nested(Transaction *&tr, QueryResult *&r);
 	bool isBool();
 	int getBoolValue(bool &b);
 	bool isSingleValue();
@@ -235,7 +235,7 @@ public:
 	bool less_than(QueryResult *r);
 	bool greater_eq(QueryResult *r);
 	bool less_eq(QueryResult *r);
-	int nested(Transaction *tr, QueryResult *&r);
+	int nested(Transaction *&tr, QueryResult *&r);
 	bool isBool();
 	int getBoolValue(bool &b);
 	bool isSingleValue();
@@ -270,7 +270,7 @@ public:
 	bool less_than(QueryResult *r);
 	bool greater_eq(QueryResult *r);
 	bool less_eq(QueryResult *r);
-	int nested(Transaction *tr, QueryResult *&r);
+	int nested(Transaction *&tr, QueryResult *&r);
 	bool isBool();
 	int getBoolValue(bool &b);
 	bool isSingleValue();
@@ -305,7 +305,7 @@ public:
 	bool less_than(QueryResult *r);
 	bool greater_eq(QueryResult *r);
 	bool less_eq(QueryResult *r);
-	int nested(Transaction *tr, QueryResult *&r);
+	int nested(Transaction *&tr, QueryResult *&r);
 	bool isBool();
 	int getBoolValue(bool &b);
 	bool isSingleValue();
@@ -337,7 +337,7 @@ public:
 	bool less_than(QueryResult *r);
 	bool greater_eq(QueryResult *r);
 	bool less_eq(QueryResult *r);
-	int nested(Transaction *tr, QueryResult *&r);
+	int nested(Transaction *&tr, QueryResult *&r);
 	bool isBool();
 	int getBoolValue(bool &b);
 	bool isSingleValue();
@@ -367,7 +367,7 @@ public:
 	bool less_than(QueryResult *r);
 	bool greater_eq(QueryResult *r);
 	bool less_eq(QueryResult *r);
-	int nested(Transaction *tr, QueryResult *&r);
+	int nested(Transaction *&tr, QueryResult *&r);
 	bool isBool();
 	int getBoolValue(bool &b);
 	bool isSingleValue();
@@ -392,7 +392,7 @@ public:
 	bool less_than(QueryResult *r) { return false; };
 	bool greater_eq(QueryResult *r) { return false; };
 	bool less_eq(QueryResult *r) { return false; };
-	int nested(Transaction *tr, QueryResult *&r);
+	int nested(Transaction *&tr, QueryResult *&r);
 	bool isBool();
 	int getBoolValue(bool &b);
 	bool isSingleValue();

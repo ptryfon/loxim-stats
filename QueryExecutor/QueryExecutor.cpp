@@ -76,11 +76,11 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 		{
 		case TreeNode::TNNAME: {
 			*ec << "[QE] Type: TNNAME";
-			string name = tree->getName();			
+			string name = tree->getName();
 			int sectionNumber = ((NameNode *) tree)->getBindSect();
 			if ((stack.size()) == 1) {
 			    errcode = (stack.pop());
-			    if (errcode != 0) { tr = NULL; return errcode; }
+			    if (errcode != 0) return errcode;
 			}
 			if (stack.empty()) {
 				vector<ObjectPointer*>* vec;
@@ -1486,30 +1486,29 @@ int QueryExecutor::isIncluded(QueryResult *elem, QueryResult *set, bool &score) 
 	return 0;
 }
 
-int QueryExecutor::abort()
-{
-    *ec << "[QE] abort()\n";
-    if (tr) {
-        int errcode = tr->abort();
-	if (errcode) {
-	    *ec << "[QE] Error in abort()";
-    	    return errcode;
-        }
-        *ec << "[QE] Transaction aborted succesfully. Done!";
-	tr = NULL;
-    }
-    else
-	*ec << "[QE] Transaction not opened. Closing nevertheless. Done!\n";
-    return 0;
+int QueryExecutor::abort() {
+	*ec << "[QE] abort()\n";
+	if (tr != NULL) {
+		int errcode = tr->abort();
+		tr = NULL;
+		if (errcode != 0) {
+			*ec << "[QE] Error in abort()";
+			return errcode;
+		}
+		*ec << "[QE] Transaction aborted succesfully. Done!";
+	}
+	else
+		*ec << "[QE] Transaction not opened. Closing nevertheless. Done!\n";
+	return 0;
 }
 
-QueryExecutor::~QueryExecutor()
-{
-    if (tr)
-	tr->abort();
-    stack.deleteAll();
-    *ec << "[QE] QueryExecutor shutting down\n";
-    delete ec; }
+QueryExecutor::~QueryExecutor() {
+	if (tr != NULL)
+		tr->abort();
+	stack.deleteAll();
+	*ec << "[QE] QueryExecutor shutting down\n";
+	delete ec;
+}
 
 EnvironmentStack::EnvironmentStack() { ec = new ErrorConsole("QueryExecutor"); }
 EnvironmentStack::~EnvironmentStack() { delete ec; }
