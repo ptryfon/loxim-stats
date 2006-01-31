@@ -48,7 +48,7 @@ namespace TManager
 	{
 		int errorNumber;
 	
-		err.printf("Transaction: getObjectPointer\n");
+		err.printf("Transaction: %d getObjectPointer, mode %d\n", tid->getId(), mode);
 		errorNumber = lm->lock(lid, tid, mode);
 
 		if (errorNumber == 0)
@@ -69,7 +69,7 @@ namespace TManager
 	{
 		int errorNumber;
 	    
-		err.printf("Transaction: createObject\n");
+		err.printf("Transaction: %d createObject\n", tid->getId());
 
 		sem->lock_write();
 			errorNumber = sm->createObject( tid, name, value, p);
@@ -89,7 +89,7 @@ namespace TManager
 	{
 		int errorNumber;
 
-		err.printf("Transaction: deleteObject\n");
+		err.printf("Transaction: %d deleteObject\n", tid->getId());
 		/* exclusive lock for this object */
 		errorNumber = lm->lock(object->getLogicalID(), tid, Write);
 		
@@ -273,11 +273,13 @@ namespace TManager
 
 	int TransactionManager::createTransaction(Transaction* &tr)
 	{
+	    err.printf("Creating new transaction");
 	    mutex->down();
 			int currentId = transactionId;
 			transactionId++;
 			TransactionID* tid = new TransactionID(currentId);	    	
 			addTransaction(tid);
+			err.printf("Transaction created -> number %d", tid->getId());
 	    mutex->up();
 	    	    
 	    tr = new Transaction(tid, sem);	
