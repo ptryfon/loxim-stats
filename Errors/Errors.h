@@ -74,6 +74,9 @@ namespace Errors {
 
 // Transaction
 #define EDeadlock		0x2002
+#define ESemaphoreInit		0x2004
+#define EUpgradeLock		0x2006
+#define EMutexInit		0x2008
 
 // plug for h_errno from gethostbyname(3)
 #define ENoHost			0x1A00
