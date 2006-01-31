@@ -56,7 +56,7 @@ namespace LockMgr
 			mutex->up();
 			/* deadlock exception - rollback transaction */
 			err.printf("Deadlock exception\n");
-			return EDeadlock; 
+			return ErrTManager | EDeadlock; 
 		}
 
 	int isCurrentRead  = currentRead->find(_tid)  != currentRead->end();
