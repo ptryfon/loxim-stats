@@ -83,6 +83,7 @@ namespace Store
 		virtual string toString() const = 0;
 		virtual unsigned int toInteger() const = 0;
 		virtual Serialized serialize() const = 0;
+		virtual LogicalID* clone() const = 0;
 
 		// Operators
 		virtual bool operator==(LogicalID& lid) = 0;

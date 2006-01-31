@@ -13,6 +13,11 @@ namespace Store
 	{
 		value = v;
 	};
+
+	DBLogicalID::DBLogicalID(LogicalID& lid)
+	{
+		value = lid.toInteger();
+	};
 	
 	DBPhysicalID* DBLogicalID::getPhysicalID()
 	{
@@ -49,6 +54,11 @@ namespace Store
 	{
 		lid = new DBLogicalID(*(reinterpret_cast<unsigned int*>(bytes)));
 		return sizeof(unsigned int);
+	};
+	
+	LogicalID* DBLogicalID::clone() const
+	{
+		return new DBLogicalID(*this);
 	};
 
 	bool DBLogicalID::operator==(LogicalID& lid)
