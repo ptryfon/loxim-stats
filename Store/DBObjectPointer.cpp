@@ -16,7 +16,7 @@ namespace Store
 
 	DBObjectPointer::DBObjectPointer(LogicalID* p_lid)
 	{
-		lid = p_lid;
+		lid = p_lid->clone();
 		name = "NoName";
 		value = NULL;
 	};
@@ -26,14 +26,14 @@ namespace Store
 	{
 		lid = NULL;
 		name = p_name;
-		value = dv;
+		value = dv->clone();
 	};
 
-	DBObjectPointer::DBObjectPointer(string p_name, DataValue* dv, LogicalID* ld)
+	DBObjectPointer::DBObjectPointer(string p_name, DataValue* dv, LogicalID* p_lid)
 	{
-		lid = ld;
+		lid = p_lid->clone();
 		name = p_name;
-		value = dv;
+		value = dv->clone();
 	};
 	
 	DBObjectPointer::~DBObjectPointer()
@@ -83,20 +83,15 @@ namespace Store
 	{
 		Serialized s;
 		//LogicalID
-		cout << "s 1\n";
 		s += *(getLogicalID());
 		//Random
-		cout << "s 2\n";
 		s += static_cast<int>(0x78563412);//((rand()%0x100) << 24 +
 			//(rand()%0x100) << 16 + (rand()%0x100) << 8 + (rand()%0x100));
 		//Name
-		cout << "s 3\n";
 		s += getName();
 		//Value
-		cout << "s 4\n";
 		s += *(getValue());
 		
-		cout << "s 6\n";
 		return s;
 	};
 

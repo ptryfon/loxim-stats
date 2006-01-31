@@ -1,7 +1,10 @@
 /**
- * $Id: Buffer.cpp,v 1.27 2006-01-29 15:48:41 md243003 Exp $
+ * $Id: Buffer.cpp,v 1.28 2006-01-31 18:52:53 md243003 Exp $
  *
  * $Log: not supported by cvs2svn $
+ * Revision 1.27  2006/01/29 15:48:41  md243003
+ * Logi sie segmentuja z niewiadomych przyczyn, dodalem w pliku DBStoreManager.cpp #define LOGS, dzieki ktoremu logi mozna wylaczyc
+ *
  * Revision 1.26  2006/01/26 20:01:10  mk189406
  * Komentarz.
  *
@@ -67,15 +70,10 @@ namespace Store
 	{
 		if (!started)
 			return 0;
-cout << "s 1\n";
 		::pthread_mutex_lock(&dbwriter.mutex);
-cout << "s 2\n";
 		dbWriterWrite();
-cout << "s 3\n";
 		file->stop();
-cout << "s 4\n";
 		started = 0;
-cout << "s 5\n";
 		::pthread_cond_signal(&dbwriter.cond);
 		::pthread_mutex_unlock(&dbwriter.mutex);
 		::pthread_join(tid_dbwriter, NULL);

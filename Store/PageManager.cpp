@@ -142,8 +142,9 @@ namespace Store
 		DBLogicalID *lid;
 		usedbytes = DBLogicalID::deserialize(curpos, lid);
 		if(usedbytes > 0 ) curpos = curpos + usedbytes; else return -1;
-		
+
 		int random = *(reinterpret_cast<int*>(curpos));
+		random = random;
 		curpos += sizeof(int);
 		
 		int slen = *(reinterpret_cast<int*>(curpos));

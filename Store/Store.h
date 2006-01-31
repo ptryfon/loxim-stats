@@ -95,24 +95,23 @@ namespace Store
 	{
 	public:
 		// Class functions
-		virtual DataType getType() = 0;
-//		virtual void toByteArray(unsigned char** buff, int* length) = 0;
-//		virtual void toFullByteArray(unsigned char** buff, int* length) = 0;
+		virtual DataType getType() const = 0;
 		virtual string toString() = 0;
 		virtual Serialized serialize() const = 0;
+		virtual DataValue* clone() const = 0;
 
 		// Specific type accessors
-		virtual int getInt() = 0;
-		virtual double getDouble() = 0;
-		virtual string getString() = 0;
-		virtual LogicalID* getPointer() = 0;
-		virtual vector<LogicalID*>* getVector() = 0;				// Good or bad idea??
+		virtual int getInt() const = 0;
+		virtual double getDouble() const = 0;
+		virtual string getString() const = 0;
+		virtual LogicalID* getPointer() const = 0;
+		virtual vector<LogicalID*>* getVector() const = 0;
 
 		virtual void setInt(int value) = 0;
 		virtual void setDouble(double value) = 0;
 		virtual void setString(string value) = 0;
 		virtual void setPointer(LogicalID* value) = 0;
-		virtual void setVector(vector<LogicalID*>* value) = 0;		// Good or bad idea??
+		virtual void setVector(vector<LogicalID*>* value) = 0;
 
 		// Operators
 		virtual bool operator==(DataValue& dv) = 0;

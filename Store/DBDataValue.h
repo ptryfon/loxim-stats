@@ -29,23 +29,20 @@ namespace Store
 		DBDataValue(string value);
 		DBDataValue(LogicalID* value);
 		DBDataValue(vector<LogicalID*>* value);
-		
-//		DBDataValue(unsigned char* fullByteArray);
+		DBDataValue(const DataValue& value);
 		~DBDataValue();
 
-		virtual DataType getType();
-//		virtual int fullBinarySize() const;
-//		virtual void toByteArray(unsigned char** buff, int* length);
-//		virtual void toFullByteArray(unsigned char** buff, int* length);
+		virtual DataType getType() const;
 		virtual string toString();
 		virtual Serialized serialize() const;
 		static int deserialize(unsigned char* bytes, DBDataValue*& value);
+		virtual DataValue* clone() const;
 
-		virtual int getInt();
-		virtual double getDouble();
-		virtual string getString();
-		virtual LogicalID* getPointer();
-		virtual vector<LogicalID*>* getVector();
+		virtual int getInt() const;
+		virtual double getDouble() const;
+		virtual string getString() const;
+		virtual LogicalID* getPointer() const;
+		virtual vector<LogicalID*>* getVector() const;
 
 		virtual void setInt(int value);
 		virtual void setDouble(double value);

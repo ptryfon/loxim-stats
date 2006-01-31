@@ -5,6 +5,7 @@ using namespace std;
 
 namespace Store
 {
+//jest leakage przez p_init :>
 	DBDataValue::DBDataValue() // konstruktory DV robia deep-copy
 	{
 		p_init();
@@ -43,45 +44,32 @@ namespace Store
 	{
 		p_init();
 		type = Store::Vector;
-		value.vector_value = new vector<LogicalID*>;
-		cout << "dd 1\n";
+		value.vector_value = new vector<LogicalID*>(0);
 		vector<LogicalID*>::iterator oi;
-		for(oi=val->begin(); oi!=val->end(); oi++){
-				cout << "dd 2\n";
-				cout << *((int*)(&oi)) << endl;
-				if((*oi) == NULL) cout << "dd 2aa\n";
-				cout << "gggg" << endl;
-				int ilid= (*oi)->toInteger();
-				cout << "dd 2bb\n";
-			LogicalID* lid = new DBLogicalID(ilid);
-			value.vector_value->push_back(lid);
-					cout << "dd 3\n";
-			}
+		for(oi=val->begin(); oi!=val->end(); oi++)
+			value.vector_value->push_back((*oi)->clone());
 	};
 
-/*	DBDataValue::DBDataValue(DataValue& dv)
+	DBDataValue::DBDataValue(const DataValue& dv)
 	{
 		p_init();
-		type = dv.getType();
-		switch(type) {
-			case Store::Integer:
-				str << *(value.int_value); break;
-			case Store::Double:
-				str << *(value.double_value); break;
-			case Store::String:
-				str << *(value.string_value); break;
+		switch(dv.getType()) {
+			case Store::Integer:	setInt(dv.getInt()); break;
+			case Store::Double:  setDouble(dv.getDouble()); break;
+			case Store::String:  setString(dv.getString()); break;
+			case Store::Pointer:	setPointer(dv.getPointer()); break;
+			case Store::Vector:  setVector(dv.getVector()); break; 
 			default:
-				str << "ptr_or_vect"; break;
+				cout << "DV ERROR\n"; break;
 		}
-		value = ;
 	};
-*/
+
 	DBDataValue::~DBDataValue()
 	{
 		p_destroyVal();
 	};
 	 
-	DataType DBDataValue::getType()
+	DataType DBDataValue::getType() const
 	{
 		return type;
 	};
@@ -95,9 +83,23 @@ namespace Store
 			case Store::Double:
 				str << *(value.double_value); break;
 			case Store::String:
-				str << *(value.string_value); break;
+				str << '"' << *(value.string_value) << '"'; break;
+			case Store::Pointer:
+				str << value.pointer_value->toString(); break;
+			case Store::Vector: {
+				vector<LogicalID*>::iterator oi;
+				str << "{";
+				bool wasfirst = false;
+				for(oi=value.vector_value->begin();
+					oi!=value.vector_value->end(); oi++)
+				{
+					if(wasfirst) str << ','; else wasfirst = true;
+					str << (*oi)->toString();
+				}
+				str << "}";
+				} break;
 			default:
-				str << "ptr_or_vect"; break;
+				str << "DV ERROR"; break;
 		}
 		return str.str();
 	};
@@ -106,7 +108,6 @@ namespace Store
 	{
 		Serialized s;
 		s += static_cast<int>(type);
-cout << "d 1 " << type << endl;
 		switch(type) {
 			case Store::Integer: s += *value.int_value; break;
 			case Store::Double:  s += *value.double_value; break;
@@ -114,13 +115,10 @@ cout << "d 1 " << type << endl;
 			case Store::Pointer: s += *value.pointer_value; break;
 			case Store::Vector: {
 				vector<LogicalID*>::iterator obj_iter;
-				cout << "d 2 \n";
 				s += static_cast<int>(value.vector_value->size());
-				cout << "d 3 \n";
 				for(obj_iter = value.vector_value->begin();
 						obj_iter != value.vector_value->end(); obj_iter++)
-					{cout << "d 4 \n";
-					s += *(*obj_iter);}
+					s += *(*obj_iter);
 				} break;
 			default:
 				break;
@@ -181,35 +179,40 @@ cout << "d 1 " << type << endl;
 		return -1;
 	};
 
-	int DBDataValue::getInt()
+	DataValue* DBDataValue::clone() const
+	{
+		return new DBDataValue((DataValue&)(*this));
+	};
+
+	int DBDataValue::getInt() const
 	{
 		if( type == Store::Integer )
 			return *(value.int_value);
 		return 0;    	
 	};
 
-	double DBDataValue::getDouble()
+	double DBDataValue::getDouble() const
 	{
 		if( type == Store::Double )
 			return *(value.double_value);
 		return 0;
 	};
 
-	string DBDataValue::getString()
+	string DBDataValue::getString() const
 	{
 		if( type == Store::String )
 			return *(value.string_value);
 		return "";
 	};
 
-	LogicalID* DBDataValue::getPointer()
+	LogicalID* DBDataValue::getPointer() const
 	{
 		if( type == Store::Pointer )
 			return value.pointer_value;
 		return NULL;
 	};
 
-	vector<LogicalID*>* DBDataValue::getVector()
+	vector<LogicalID*>* DBDataValue::getVector() const
 	{
 		if( type == Store::Vector )
 			return value.vector_value;
@@ -241,14 +244,17 @@ cout << "d 1 " << type << endl;
 	{
 		p_destroyVal();
 		type = Store::Pointer;
-		value.pointer_value = val;
+		value.pointer_value = val->clone();
 	};
 
 	void DBDataValue::setVector(vector<LogicalID*>* val)
 	{
 		p_destroyVal();
 		type = Store::Vector;
-		value.vector_value = val;
+		value.vector_value = new vector<LogicalID*>(0);
+		vector<LogicalID*>::iterator oi;
+		for(oi=val->begin();	oi!=val->end(); oi++)
+			value.vector_value->push_back((*oi)->clone());
 	};
 
 	bool DBDataValue::operator==(DataValue& dv)

@@ -33,12 +33,12 @@ int main(int argc, char* argv[])
 		store->start();
 		cout << "Store started" << endl;
 		
-	/*	TransactionID tid(1);
+		TransactionID tid(1);
 		cout << "TID ok" << endl;
-		DataValue* dv = store->createIntValue(7);
+/*		DataValue* dv = store->createIntValue(7);
 		cout << "Created INT" << endl;
 		ObjectPointer* op_kilof;
-		ObjectPointer* op_motyka;
+	//	ObjectPointer* op_motyka;
 		
 		cout << "Odpalam createObject" << endl;
 		store->createObject(&tid, "kilof", dv, op_kilof);
@@ -46,15 +46,18 @@ int main(int argc, char* argv[])
 		store->addRoot(&tid, op_kilof);
 		
 
-		dv = store->createStringValue("ala ma kota");
-		cout << "Created String" << endl;
+	//	dv = store->createStringValue("ala ma kota");
+	//	cout << "Created String" << endl;
 
-		store->createObject(&tid, "motyka", dv, op_motyka);
+	//	store->createObject(&tid, "motyka", dv, op_motyka);
 		
-		LogicalID* lid = op_kilof->getLogicalID();
+		LogicalID* lid =op_kilof->getLogicalID()->clone();
+		cout << lid->toString() << endl;
+		delete op_kilof;
 		op_kilof = NULL;
 		
 		cout << "Odpalam getObject" << endl;
+		cout << lid->toString() << endl;
 		store->getObject(&tid, lid, Store::Write, op_kilof);
 		cout << op_kilof->toString() << endl;
 		
@@ -83,24 +86,44 @@ int main(int argc, char* argv[])
 		store->removeRoot(&tid, *(vec->begin()));
 		
 */
-/*
+
 		cout << "Odpalam obiekty zlozone" << endl;
 		ObjectPointer* op_woda;
-		dv = store->createDoubleValue(3.7);
+
+		DataValue* dv = store->createDoubleValue(3.7);
+		cout << dv->toString() << endl;
 		store->createObject(&tid, "woda", dv, op_woda);
+//		delete dv;
+		cout << op_woda->toString() << endl;
 
 		ObjectPointer* op_wiadro;
 		vector<LogicalID*>* lvec = new vector<LogicalID*>(0);
-		lvec->push_back(op_woda->getLogicalID());
+//		lvec->push_back(op_woda->getLogicalID()->clone());
 		dv = store->createVectorValue(lvec);
+		cout << dv->toString() << endl;
 		store->createObject(&tid, "wiadro", dv, op_wiadro);
-
-		store->getObject(&tid, op_wiadro->getLogicalID(), Store::Write, op_wiadro);
+//		delete dv;
 		cout << op_wiadro->toString() << endl;
-*/
+		
+		store->addRoot(&tid, op_wiadro);
 
 
-/*		
+		lvec->push_back(op_woda->getLogicalID()/*->clone()*/);
+		dv = store->createVectorValue(lvec);
+		op_wiadro->setValue(dv);
+
+
+		
+//		delete op_woda;
+		
+/*		LogicalID* lid = op_wiadro->getLogicalID()->clone();
+		delete op_wiadro; // bez clone, lid wskazywalby teraz na usuniety lid
+		cout << lid->toString() << endl;
+		op_wiadro = NULL;
+
+		store->getObject(&tid, lid, Store::Write, op_wiadro);
+		cout << op_wiadro->toString() << endl;
+
 		dv = op_wiadro->getValue();
 		lvec = dv->getVector();
 		cout << (*lvec)[0]->toString() << endl;
@@ -108,15 +131,25 @@ int main(int argc, char* argv[])
 		store->getObject(&tid, (*lvec)[0], Store::Write, op_woda);
 		cout << op_woda->toString() << endl;
 */		
-/*		vector<LogicalID*>* lvec = dv->getVector();
-		lvec->push_back(op_woda->getLogicalID());
-		dv->setVector(lvec);
+//		vector<LogicalID*>* lvec = dv->getVector();
+/*		lvec->push_back(op_woda->getLogicalID());
+cout << "DZIWNY KOD ---------\n";
+		cout << op_woda->getLogicalID()->toInteger() << endl;
+		*dv = *lvec;
+		cout << op_woda->getLogicalID()->toInteger() << endl;
+		
+		cout << "USTAWIAM OP VAL\n";
+//		op_wiadro->setValue(dv);
+		cout << "DONEEEE\n";
+		
+		store->deleteObject(&tid, op_wiadro);
+//		store->createObject(&tid, op_wiadro->getName(), dv, op_wiadro);
+		vector<LogicalID*>* xvec = new vector<LogicalID*>(0);
+//		cout << op_woda->getLogicalID()->toInteger() << endl;
+//		xvec->push_back(op_woda->getLogicalID());
+//		dv = store->createVectorValue(xvec);
+//		store->createObject(&tid, op_wiadro->getName(), dv, op_wiadro);
 */		
-		//cout << "USTAWIAM OP VAL\n";
-		//op_wiadro->setValue(dv);
-		//cout << "DONEEEE\n";
-		
-		
 		store->stop();
 		cout << "END" << endl;
 		return 0;

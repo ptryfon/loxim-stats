@@ -14,7 +14,7 @@ namespace Store
 	public:
 		DBLogicalID();
 		DBLogicalID(unsigned int value);
-		DBLogicalID(LogicalID& lid);
+		DBLogicalID(const LogicalID& lid);
 
 		virtual DBPhysicalID* getPhysicalID();
 		virtual void toByteArray(unsigned char** lid, int* length);
@@ -27,8 +27,8 @@ namespace Store
 		virtual bool operator==(LogicalID& lid);
 		virtual DBLogicalID& operator=(const LogicalID& lid);
 
-	private:
 		unsigned int value;
+	private:
 	};
 }
 

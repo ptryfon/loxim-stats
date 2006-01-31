@@ -14,7 +14,7 @@ namespace Store
 		value = v;
 	};
 
-	DBLogicalID::DBLogicalID(LogicalID& lid)
+	DBLogicalID::DBLogicalID(const LogicalID& lid)
 	{
 		value = lid.toInteger();
 	};
@@ -42,11 +42,8 @@ namespace Store
 
 	Serialized DBLogicalID::serialize() const
 	{
-		cout << "l 1\n";
 		Serialized s(sizeof(unsigned int));
-		cout << "l 2\n";
 		*(reinterpret_cast<unsigned int*>(s.bytes)) = value;
-		cout << "l 3\n";
 		return s;
 	};
 
@@ -58,7 +55,7 @@ namespace Store
 	
 	LogicalID* DBLogicalID::clone() const
 	{
-		return new DBLogicalID(*this);
+		return new DBLogicalID((LogicalID&)(*this));
 	};
 
 	bool DBLogicalID::operator==(LogicalID& lid)

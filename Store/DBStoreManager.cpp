@@ -157,7 +157,6 @@ namespace Store
 #ifdef LOGS
 		log->write(itid, lid, name, NULL, value, log_id);
 #endif
-		
 		object = new DBObjectPointer(name, value, lid);
 
 		Serialized sObj = object->serialize();
@@ -273,7 +272,8 @@ namespace Store
 		TransactionID t(99999);
 		deleteObject(&t, object);
 		ObjectPointer* newobj;
-		createObject(&t, object->getName(), dv, newobj);
+		createObject(&t, object->getName(), dv, newobj, object->getLogicalID());
+		delete newobj;
 		return 0;
 	}
 
