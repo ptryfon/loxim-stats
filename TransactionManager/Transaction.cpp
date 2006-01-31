@@ -269,6 +269,8 @@ namespace TManager
 		delete sem;
 		delete mutex;
 		delete transactions;
+		
+		delete LockManager::getHandle();
 	}
 
 	int TransactionManager::createTransaction(Transaction* &tr)

@@ -1,5 +1,6 @@
 #include <pthread.h>
 #include "RWSemaphore.h"
+#include "../Errors/Errors.h"
 
 namespace SemaphoreLib {
 
@@ -23,17 +24,17 @@ namespace SemaphoreLib {
 		ret = pthread_mutex_init(&mutex, NULL);
 		if (ret)
 		{
-			return -1;	// Error code 
+			return ErrTManager | ESemaphoreInit;
 		}
 		ret = pthread_cond_init(&reader_cond, NULL);
 		if (ret)
 		{
-			return -1;	// Error code
+			return ErrTManager | ESemaphoreInit;
 		}
 		ret = pthread_cond_init(&writer_cond, NULL);
 		if (ret)
 		{
-			return -1;	//Error code
+			return ErrTManager | ESemaphoreInit;
 		}
 		return ret;
 	}
@@ -129,6 +130,6 @@ namespace SemaphoreLib {
 
 	int RWSemaphore::lock_upgrade(int id)
 	{
-	    return -1;
+	    return ErrTManager | EUpgradeLock;
 	}
 } /* namespace SemaphoreLib */

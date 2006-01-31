@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <pthread.h>
 #include "RWUJSemaphore.h"
-#include "Errors/ErrorConsole.h"
+#include "../Errors/ErrorConsole.h"
+#include "../Errors/Errors.h"
 
 using namespace Errors;
 
@@ -30,22 +31,22 @@ namespace SemaphoreLib {
 		ret = pthread_mutex_init(&mutex, NULL);
 		if (ret)
 		{
-			return -1;	// Error code 
+			return ErrTManager | ESemaphoreInit;	
 		}
 		ret = pthread_cond_init(&reader_cond, NULL);
 		if (ret)
 		{
-			return -1;	// Error code
+			return ErrTManager | ESemaphoreInit;
 		}
 		ret = pthread_cond_init(&writer_cond, NULL);
 		if (ret)
 		{
-			return -1;	//Error code
+			return ErrTManager | ESemaphoreInit;	
 		}
 		ret = pthread_cond_init(&upgrader_cond, NULL);
 		if (ret)
 		{
-			return -1;	//Error code
+			return ErrTManager | ESemaphoreInit;	
 		}
 		return ret;
 	}
@@ -111,7 +112,7 @@ namespace SemaphoreLib {
 		pthread_mutex_lock( &mutex );
 
 		if (inside == 0)
-		    return -10;		/* error: lock_upgrade without having a lock */
+		    return ErrTManager | EUpgradeLock;		/* error: lock_upgrade without having a lock */
 		else if (inside - wait_upgraders > 1)
 		{
 		    //inside--;	/* not last */
@@ -134,7 +135,7 @@ namespace SemaphoreLib {
 			else 
 			{
 			    inside--;
-			    errorCode = -2;	/* i am worse, abort transaction */
+			    errorCode = ErrTManager | EUpgradeLock;	/* i am worse, abort transaction */
 			    if (inside == 0 || wait_upgraders == 0)
 			    {
 				this->_unlock();
@@ -144,7 +145,7 @@ namespace SemaphoreLib {
 		    else
 		    {
 			inside--;
-			errorCode = -1;	/* i am worse, abort transaction */
+			errorCode = ErrTManager | EUpgradeLock;	/* i am worse, abort transaction */
 		    }
 		}
 		else		/* last */
@@ -159,7 +160,7 @@ namespace SemaphoreLib {
 		    else
 		    {
 			inside--;
-			errorCode = -3;
+			errorCode = ErrTManager | EUpgradeLock;
 		    }
 		    if (wait_upgraders)
     			pthread_cond_broadcast( &upgrader_cond );	/* should be signal after one-upgrader-waiting optimization */

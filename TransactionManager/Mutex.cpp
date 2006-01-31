@@ -1,7 +1,8 @@
 #include <pthread.h>
 
 #include "Mutex.h"
-
+#include "../Errors/ErrorConsole.h"
+#include "../Errors/Errors.h"
 
 namespace SemaphoreLib {
 
@@ -17,6 +18,7 @@ namespace SemaphoreLib {
 	int Mutex::init()
 	{
 		int ret = pthread_mutex_init( &mutex, NULL);
+		if (ret) return ErrTManager | EMutexInit;
 		return ret;
 	}
 
