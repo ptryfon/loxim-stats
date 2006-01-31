@@ -48,6 +48,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 						*ec << "[QE] Transction not opened";
 						*result = new QueryNothingResult();
 						*ec << "[QE] nothing to do: QueryNothingResult created";
+						tr = NULL;
 						return errcode;
 					}
 					else {
@@ -76,15 +77,14 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 		case TreeNode::TNNAME: {
 			*ec << "[QE] Type: TNNAME";
 			string name = tree->getName();			
-			int sectionNumber = ((NameNode *) tree)->getBindSect();			
+			int sectionNumber = ((NameNode *) tree)->getBindSect();
 			if ((stack.size()) == 1) {
-			    errcode = (stack.pop());			    
+			    errcode = (stack.pop());
 			    if (errcode != 0) { tr = NULL; return errcode; }
 			}
 			if (stack.empty()) {
 				vector<ObjectPointer*>* vec;
 				if ((errcode = tr->getRoots(vec)) != 0) {
-					
 					tr = NULL;
 					return errcode;
 				}
@@ -329,7 +329,10 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 						errcode = (((QueryBagResult *) lResult)->at(i, currentResult));
 					if (errcode != 0) return errcode;
 					errcode = (currentResult)->nested(tr, newStackSection);
-					if (errcode != 0) return errcode;
+					if (errcode != 0) {
+						tr = NULL;
+						return errcode;
+					}
 					ec->printf("[QE] nested(): function calculated for current row number %d\n", i);
 					if ( (stack.push((QueryBagResult *) newStackSection)) != 0 ) {
 						return -1; //this would be very strange, this function can only return 0
@@ -370,24 +373,24 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 				}
 				case TransactNode::end: {
 					errcode = tr->commit();
+					tr = NULL;
 					if (errcode != 0) {
 						*ec << "[QE] error in transaction->commit()";
-						*result = new QueryNothingResult();					
+						*result = new QueryNothingResult();
 						return errcode;
 					}
 					*ec << "[QE] Transaction commited succesfully";
-					tr = NULL;
 					break;
 				}
 				case TransactNode::abort: {
 					errcode = tr->abort();
+					tr = NULL;
 					if (errcode != 0) {
 						*ec << "[QE] error in transaction->abort()";
 						*result = new QueryNothingResult();
 						return errcode;
 					}
 					*ec << "[QE] Transaction aborted succesfully";
-					tr = NULL;
 					break;
 				}
 				default: {
@@ -494,7 +497,8 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 			*ec << "[QE] derefQuery() - dereferencing Object";
 			ObjectPointer *optr;
 			errcode = tr->getObjectPointer(ref_value, Store::Read, optr);
-			if (errcode != 0) {			
+			if (errcode != 0) {
+			
 				*ec << "[QE] Error in getObjectPointer";
 				tr = NULL;
 				return errcode;
@@ -851,7 +855,8 @@ int QueryExecutor::unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&
 					tr = NULL;
 					return errcode;
 				}
-				if ((errcode = tr->removeRoot(optr)) != 0) {				
+				if ((errcode = tr->removeRoot(optr)) != 0) {
+				
 					*ec << "[QE] Error in removeRoot.";
 					tr = NULL;
 					return errcode;
@@ -1481,13 +1486,13 @@ int QueryExecutor::isIncluded(QueryResult *elem, QueryResult *set, bool &score) 
 	return 0;
 }
 
-QueryExecutor::~QueryExecutor()
-{
-    if (tr)
-	tr->abort();
-    stack.deleteAll();
-    *ec << "[QE] QueryExecutor shutting down\n";
-    delete ec; }
+QueryExecutor::~QueryExecutor() {
+	if (tr != NULL)
+		tr->abort();
+	stack.deleteAll();
+	*ec << "[QE] QueryExecutor shutting down\n";
+	delete ec;
+}
 
 EnvironmentStack::EnvironmentStack() { ec = new ErrorConsole("QueryExecutor"); }
 EnvironmentStack::~EnvironmentStack() { delete ec; }
