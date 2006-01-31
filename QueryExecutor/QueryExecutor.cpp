@@ -1486,13 +1486,30 @@ int QueryExecutor::isIncluded(QueryResult *elem, QueryResult *set, bool &score) 
 	return 0;
 }
 
-QueryExecutor::~QueryExecutor() {
-	if (tr != NULL)
-		tr->abort();
-	stack.deleteAll();
-	*ec << "[QE] QueryExecutor shutting down\n";
-	delete ec;
+int QueryExecutor::abort()
+{
+    *ec << "[QE] abort()\n";
+    if (tr) {
+        int errcode = tr->abort();
+	if (errcode) {
+	    *ec << "[QE] Error in abort()";
+    	    return errcode;
+        }
+        *ec << "[QE] Transaction aborted succesfully. Done!";
+	tr = NULL;
+    }
+    else
+	*ec << "[QE] Transaction not opened. Closing nevertheless. Done!\n";
+    return 0;
 }
+
+QueryExecutor::~QueryExecutor()
+{
+    if (tr)
+	tr->abort();
+    stack.deleteAll();
+    *ec << "[QE] QueryExecutor shutting down\n";
+    delete ec; }
 
 EnvironmentStack::EnvironmentStack() { ec = new ErrorConsole("QueryExecutor"); }
 EnvironmentStack::~EnvironmentStack() { delete ec; }

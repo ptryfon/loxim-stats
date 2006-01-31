@@ -57,6 +57,7 @@ namespace QExecutor
 		QueryExecutor() { tr = NULL; ec = new ErrorConsole("QueryExecutor"); };
 		~QueryExecutor();
 		int executeQuery(TreeNode *tree, QueryResult **result);
+		int abort();
 	};
 	
 }
