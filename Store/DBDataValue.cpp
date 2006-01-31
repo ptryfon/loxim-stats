@@ -59,14 +59,23 @@ namespace Store
 			}
 	};
 
-	
-	//DBDataValue::DBDataValue(unsigned char *fbArray)
-	//{
-	//	p_init();
-	//	//type = odczytanyzpierwszegointa;
-	//	//value. = ;
-	//};
-
+/*	DBDataValue::DBDataValue(DataValue& dv)
+	{
+		p_init();
+		type = dv.getType();
+		switch(type) {
+			case Store::Integer:
+				str << *(value.int_value); break;
+			case Store::Double:
+				str << *(value.double_value); break;
+			case Store::String:
+				str << *(value.string_value); break;
+			default:
+				str << "ptr_or_vect"; break;
+		}
+		value = ;
+	};
+*/
 	DBDataValue::~DBDataValue()
 	{
 		p_destroyVal();
@@ -77,86 +86,6 @@ namespace Store
 		return type;
 	};
 
-/*	int DBDataValue::fullBinarySize() const
-	{
-		int size = sizeof(int);
-		switch(type) {
-			case Store::Integer:
-				return (size + sizeof(value.int_value)); break;
-			case Store::Double:
-				return (size + sizeof(value.double_value)); break;
-			case Store::String:
-				return (size + value.string_value->length()); break;
-			default:
-// NOT IMPLEMENTED
-				return -1; break;
-		}
-	};
-
-	void DBDataValue::toByteArray(unsigned char** buff, int* length)
-	{
-		return toFullByteArray(buff, length);
-	};
-
-	void DBDataValue::toFullByteArray(unsigned char** buff, int* length)
-	{
-		//full czyli type + value
-		int etyp = static_cast<int>(type);
-		int size = sizeof(int);
-		unsigned char *barray;
-		vector<pair<unsigned char*,int> > vecbarray;
-		vector<ObjectPointer*>::iterator ovec_iter;
-		int basize;
-		switch(type) {
-			case Store::Integer: size+= sizeof(int); break;
-			case Store::Double:  size+= sizeof(double); break;
-			case Store::String:  size+= sizeof(int) +
-				value.string_value->length(); break;
-			case Store::Pointer:
-				value.pointer_value->toByteArray(&barray, &basize);
-				size+= basize; break;
-			case Store::Vector:
-				for(ovec_iter = value.vector_value->begin();
-					ovec_iter != value.vector_value->end(); ovec_iter++)
-				{
-//					lvec_iter.toByteArray(&barray, &basize);
-
-//NIE-ZAIMPLEMENTOWANE
-
-					vecbarray.push_back(make_pair(barray, basize));
-				}
-				break;
-			default: break;
-		};
-		
-		*buff = new unsigned char[size];
-		*(reinterpret_cast<int*>(*buff)) = etyp;
-		int wpos = sizeof(int);
-		switch(type) {
-			case Store::Integer:
-				*(reinterpret_cast<int*>((*buff)+wpos)) = *(value.int_value);
-				break;
-			case Store::Double:
-				*(reinterpret_cast<double*>((*buff)+wpos)) = *(value.double_value);
-				break;
-			case Store::String: {
-				int l = value.string_value->length();
-				for(int i=0; i<l; i++)
-					*(reinterpret_cast<char*>((*buff)+wpos++)) =
-						(*(value.string_value))[i];
-			} break;
-			case Store::Pointer:
-				for(int i=0; i<basize; i++)
-					(*buff)[wpos++] = barray[i];
-				break;
-			case Store::Vector:
-//NIE-ZAIMPLEMENTOWANE			
-			   break;
-			default: break;
-		};
-		
-	};
-*/
 	string DBDataValue::toString()
 	{
 		ostringstream str;
@@ -341,7 +270,50 @@ cout << "d 1 " << type << endl;
 		return false;
 	};
 	
-	
+	DataValue& DBDataValue::operator=(const int& val)
+	{
+		p_destroyVal();
+		type = Store::Integer;
+		value.int_value = new int(val);
+		return *this;
+	};
+
+	DataValue& DBDataValue::operator=(const double& val)
+	{
+		p_destroyVal();
+		type = Store::Double;
+		value.double_value = new double(val);
+		return *this;
+	};
+
+	DataValue& DBDataValue::operator=(const string& val)
+	{
+		p_destroyVal();
+		type = Store::String;
+		value.string_value = new string(val);
+		return *this;
+	};
+
+	DataValue& DBDataValue::operator=(const LogicalID& val)
+	{
+		p_destroyVal();
+		type = Store::Pointer;
+		value.pointer_value = val.clone();
+		return *this;
+	};
+
+	DataValue& DBDataValue::operator=(const vector<LogicalID*>& val)
+	{
+		p_destroyVal();
+		type = Store::Vector;
+		value.vector_value = new vector<LogicalID*>(0);
+		vector<LogicalID*>::iterator oi;
+		vector<LogicalID*>* pval = const_cast<vector<LogicalID*>*>(&val);
+		for(oi=pval->begin();oi!=pval->end(); oi++);
+			value.vector_value->push_back((*oi)->clone());
+		return *this;
+	};
+
 	void DBDataValue::p_init()
 	{
 		p_clearPtr();

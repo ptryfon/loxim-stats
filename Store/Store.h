@@ -116,6 +116,11 @@ namespace Store
 
 		// Operators
 		virtual bool operator==(DataValue& dv) = 0;
+		virtual DataValue& operator=(const int& val) = 0;
+		virtual DataValue& operator=(const double& val) = 0;
+		virtual DataValue& operator=(const string& val) = 0;
+		virtual DataValue& operator=(const LogicalID& val) = 0;
+		virtual DataValue& operator=(const vector<LogicalID*>& val) = 0;
 		virtual ~DataValue() {};
 	};
 

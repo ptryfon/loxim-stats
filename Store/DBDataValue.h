@@ -54,6 +54,11 @@ namespace Store
 		virtual void setVector(vector<LogicalID*>* value);
 
 		virtual bool operator==(DataValue& dv);
+		virtual DataValue& operator=(const int& val);
+		virtual DataValue& operator=(const double& val);
+		virtual DataValue& operator=(const string& val);
+		virtual DataValue& operator=(const LogicalID& val);
+		virtual DataValue& operator=(const vector<LogicalID*>& val);
 		
 	private:
 		DataType type;
