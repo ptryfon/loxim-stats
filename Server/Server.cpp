@@ -344,7 +344,7 @@ int Server::Run()
 	//*ec << "[Server.Run]--> Blocking SIGINT for now...";
 	sigprocmask(SIG_BLOCK, &block_cc, NULL);
 
-	*ec << "[Server.Run]--> Initializing objects";
+	//*ec << "[Server.Run]--> Initializing objects";
 	/*
 	LogManager* logManager = new LogManager();
 	logManager->init();
@@ -398,6 +398,9 @@ while (!signalReceived) {
 	if (messgBuff==NULL) {
 	    *ec << "[Server.Run]--> Error in receive, client terminated??";
 	    *ec << "[Server.Run]--> Assuming client loss for that thread - TERMINATING thread";
+	    qEx->abort();
+	    qPa->QueryParser::~QueryParser();
+	    qEx->QueryExecutor::~QueryExecutor();
 	    return ErrServer + EClientLost; //TODO Error
 	}
 
@@ -408,7 +411,6 @@ while (!signalReceived) {
 	res = (qPa->parseIt((string) messgBuff, tNode));
 	if (res != 0) {
 	    ec->printf("[Server.Run]--> Parser returned error code %d\n", res);
-	    printf("\n %d \n", res);
 	    sendError(res);
 	    ncError=1;
 	    continue;
