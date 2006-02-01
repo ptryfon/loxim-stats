@@ -426,8 +426,8 @@ int QueryIntResult::divide_by(QueryResult *r, QueryResult *&res){
 			*ec << (ErrQExecutor | EDivBy0);
 			return ErrQExecutor | EDivBy0;
 		}
-		int tmp_value = value / ((QueryIntResult*) r)->getValue();
-		res = new QueryIntResult(tmp_value);
+		double tmp_value = (double)value / (double)(((QueryIntResult*) r)->getValue());
+		res = new QueryDoubleResult(tmp_value);
 	}
 	else { //QDOUBLE
 		if (((QueryDoubleResult*) r)->getValue() == 0) {
