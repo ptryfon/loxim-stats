@@ -63,8 +63,23 @@ namespace TManager
 		if (errorNumber) abort();
     
 		return errorNumber; 
-	};
-
+	}
+	
+	int Transaction::modifyObject(ObjectPointer* op, DataValue* dv)
+	{
+	    int errorNumber;
+	    
+	    err.printf("Transaction: %d modifyObjectPointer\n", tid->getId());
+	    
+	    sem->lock_write();
+	    
+		errorNumber = sm->modifyObject(tid, op, dv);
+	    
+	    sem->unlock();
+	        
+	    return errorNumber;
+	}
+	
 	int Transaction::createObject(string name, DataValue* value, ObjectPointer* &p)
 	{
 		int errorNumber;
