@@ -318,45 +318,172 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 				lResult = l_tmp_Result;
 			*ec << "[QE] Left argument of NonAlgebraic query has been computed";
 			QueryResult *partial_result = new QueryBagResult();
-			if (((lResult->type()) == QueryResult::QSEQUENCE) || ((lResult->type()) == QueryResult::QBAG)) {
-				*ec << "[QE] For each row of this score, the right argument will be computed";
-				for (unsigned int i = 0; i < (lResult->size()); i++) {
+			QueryResult *visited_result = new QueryBagResult();
+			QueryResult *final_result = new QueryBagResult();
+			if ((op == NonAlgOpNode::closeBy) || (op == NonAlgOpNode::closeUniqueBy) || (op == NonAlgOpNode::leavesBy) || (op == NonAlgOpNode::leavesUniqueBy)) {
+				switch (op) {
+					case NonAlgOpNode::closeBy: {
+						*ec << "[QE] NonAlgebraic recursive operator <closeBy>";
+						partial_result->addResult(lResult);
+						final_result->addResult(lResult);
+						break;
+					}
+					case NonAlgOpNode::closeUniqueBy: {
+						*ec << "[QE] NonAlgebraic recursive operator <closeUniqueBy>";
+						partial_result->addResult(lResult);
+						final_result->addResult(lResult);
+						break;
+					}
+					case NonAlgOpNode::leavesBy: {
+						*ec << "[QE] NonAlgebraic recursive operator <leavesBy>";
+						partial_result->addResult(lResult);
+						visited_result->addResult(lResult);
+						break;
+					}
+					case NonAlgOpNode::leavesUniqueBy: {
+						*ec << "[QE] NonAlgebraic recursive operator <leavesUniqueBy>";
+						partial_result->addResult(lResult);
+						visited_result->addResult(lResult);
+						break;
+					}
+					default: {
+						break;
+					}
+				}//switch
+				while (not (partial_result->isEmpty())) {
 					QueryResult *currentResult;
-					QueryResult *newStackSection = new QueryBagResult();
-					if ((lResult->type()) == QueryResult::QSEQUENCE)
-						errcode = (((QuerySequenceResult *) lResult)->at(i, currentResult));
-					else
-						errcode = (((QueryBagResult *) lResult)->at(i, currentResult));
+					errcode = partial_result->getResult(currentResult);
 					if (errcode != 0) return errcode;
+					QueryResult *newStackSection = new QueryBagResult();
 					errcode = (currentResult)->nested(tr, newStackSection);
 					if (errcode != 0) {
 						tr = NULL;
 						return errcode;
 					}
-					ec->printf("[QE] nested(): function calculated for current row number %d\n", i);
 					if ( (stack.push((QueryBagResult *) newStackSection)) != 0 ) {
 						return -1; //this would be very strange, this function can only return 0
 					}
-					QueryResult *rResult;
-					errcode = executeQuery (((NonAlgOpNode *) tree)->getRArg(), &rResult);
+					QueryResult *newResult;
+					errcode = executeQuery (((NonAlgOpNode *) tree)->getRArg(), &newResult);
 					if (errcode != 0) return errcode;
-					*ec << "[QE] Computing left Argument with a new scope of ES";
-					errcode = this->combine(op,currentResult,rResult,partial_result);
-					if (errcode != 0) return errcode;
-					*ec << "[QE] Combined partial results";
+					*ec << "[QE] Computing right Argument with a new scope of ES";
 					errcode = stack.pop();
 					if (errcode != 0) return errcode;
+					switch (op) {
+						case NonAlgOpNode::closeBy: {
+							partial_result->addResult(newResult); // this can cause an infinite loop !
+							final_result->addResult(newResult);
+							break;
+						}
+						case NonAlgOpNode::closeUniqueBy: {
+							QueryResult *new_bag_result;
+							if (((newResult->type()) != QueryResult::QSEQUENCE) && ((newResult->type()) != QueryResult::QBAG)) {
+								new_bag_result = new QueryBagResult();
+								new_bag_result->addResult(newResult);
+							}
+							else
+								new_bag_result = newResult;
+							for (unsigned int i = 0; i < (new_bag_result->size()); i++) {
+								QueryResult *current_new_result;
+								if ((lResult->type()) == QueryResult::QSEQUENCE)
+									errcode = (((QuerySequenceResult *) lResult)->at(i, current_new_result));
+								else
+									errcode = (((QueryBagResult *) lResult)->at(i, current_new_result));
+								if (errcode != 0) return errcode;
+								bool isIncl;
+								errcode = this->isIncluded(current_new_result, final_result, isIncl);
+								if (errcode != 0) return errcode;
+								if (not (isIncl)) { // occur check
+									partial_result->addResult(current_new_result);
+									final_result->addResult(current_new_result);
+								}
+							}
+							break;
+						}
+						case NonAlgOpNode::leavesBy: {
+							if (newResult->isNothing())
+								final_result->addResult(currentResult);
+							else {
+								partial_result->addResult(newResult);
+								visited_result->addResult(newResult);
+							}
+							break;
+						}
+						case NonAlgOpNode::leavesUniqueBy: {
+							if (newResult->isNothing())
+								final_result->addResult(currentResult);
+							else {
+								QueryResult *new_bag_result;
+								if (((newResult->type()) != QueryResult::QSEQUENCE) && ((newResult->type()) != QueryResult::QBAG)) {
+									new_bag_result = new QueryBagResult();
+									new_bag_result->addResult(newResult);
+								}
+								else
+									new_bag_result = newResult;
+								for (unsigned int i = 0; i < (new_bag_result->size()); i++) {
+									QueryResult *c_result;
+									if ((lResult->type()) == QueryResult::QSEQUENCE)
+										errcode = (((QuerySequenceResult *) lResult)->at(i, c_result));
+									else
+										errcode = (((QueryBagResult *) lResult)->at(i, c_result));
+									if (errcode != 0) return errcode;
+									bool isIncl;
+									errcode = this->isIncluded(c_result, visited_result, isIncl);
+									if (errcode != 0) return errcode;
+									if (not (isIncl)) { // occur check
+										partial_result->addResult(c_result);
+										visited_result->addResult(c_result);
+									}
+								}
+							}
+							break;
+						}
+						default: {
+							break;
+						}
+					}//switch
+				}//while
+			}//if
+			else { // this is normal (not recursive) non algebraic operation
+				if (((lResult->type()) == QueryResult::QSEQUENCE) || ((lResult->type()) == QueryResult::QBAG)) {
+					*ec << "[QE] For each row of this score, the right argument will be computed";
+					for (unsigned int i = 0; i < (lResult->size()); i++) {
+						QueryResult *currentResult;
+						QueryResult *newStackSection = new QueryBagResult();
+						if ((lResult->type()) == QueryResult::QSEQUENCE)
+							errcode = (((QuerySequenceResult *) lResult)->at(i, currentResult));
+						else
+							errcode = (((QueryBagResult *) lResult)->at(i, currentResult));
+						if (errcode != 0) return errcode;
+						errcode = (currentResult)->nested(tr, newStackSection);
+						if (errcode != 0) {
+							tr = NULL;
+							return errcode;
+						}
+						ec->printf("[QE] nested(): function calculated for current row number %d\n", i);
+						if ( (stack.push((QueryBagResult *) newStackSection)) != 0 ) {
+							return -1; //this would be very strange, this function can only return 0
+						}
+						QueryResult *rResult;
+						errcode = executeQuery (((NonAlgOpNode *) tree)->getRArg(), &rResult);
+						if (errcode != 0) return errcode;
+						*ec << "[QE] Computing right Argument with a new scope of ES";
+						errcode = this->combine(op,currentResult,rResult,partial_result);
+						if (errcode != 0) return errcode;
+						*ec << "[QE] Combined partial results";
+						errcode = stack.pop();
+						if (errcode != 0) return errcode;
+					}
 				}
+				else {
+					*ec << "[QE] ERROR! NonAlgebraic operation, bad left argument";
+					*result = new QueryNothingResult();
+					return -1;
+				}
+				errcode = this->merge(op,partial_result, final_result);
+				if (errcode != 0) return errcode;
+				*ec << "[QE] Merged partial results into final result";
 			}
-			else {
-				*ec << "[QE] ERROR! NonAlgebraic operation, bad left argument";
-				*result = new QueryNothingResult();
-				return -1;
-			}
-			QueryResult *final_result = new QueryBagResult();
-			errcode = this->merge(op,partial_result, final_result);
-			if (errcode != 0) return errcode;
-			*ec << "[QE] Merged partial results into final result";
 			*result = final_result;
 			*ec << "[QE] NonAlgebraic operation Done!";
 			return 0;
@@ -1216,22 +1343,6 @@ int QueryExecutor::combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryRe
 			}
 			break;
 		}
-		case NonAlgOpNode::closeBy: {
-			*ec << "[QE] combine(): NonAlgebraic operator <closeBy> not imlemented yet";
-			break;
-		}
-		case NonAlgOpNode::closeUniqueBy: {
-			*ec << "[QE] combine(): NonAlgebraic operator <closeUniqueBy> not imlemented yet";
-			break;
-		}
-		case NonAlgOpNode::leavesBy: {
-			*ec << "[QE] combine(): NonAlgebraic operator <leavesBy> not imlemented yet";
-			break;
-		}
-		case NonAlgOpNode::leavesUniqueBy: {
-			*ec << "[QE] combine(): NonAlgebraic operator <leavesUniqueBy> not imlemented yet";
-			break;
-		}
 		case NonAlgOpNode::orderBy: {
 			*ec << "[QE] combine(): NonAlgebraic operator <orderBy>";
 			QueryResult *derefR;
@@ -1378,22 +1489,6 @@ int QueryExecutor::merge(NonAlgOpNode::nonAlgOp op, QueryResult *partial, QueryR
 		case NonAlgOpNode::where: {
 			*ec << "[QE] merge(): NonAlgebraic operator <where>";
 			final = partial;
-			break;
-		}
-		case NonAlgOpNode::closeBy: {
-			*ec << "[QE] merge(): NonAlgebraic operator <closeBy> not imlemented yet";
-			break;
-		}
-		case NonAlgOpNode::closeUniqueBy: {
-			*ec << "[QE] merge(): NonAlgebraic operator <closeUniqueBy> not imlemented yet";
-			break;
-		}
-		case NonAlgOpNode::leavesBy: {
-			*ec << "[QE] merge(): NonAlgebraic operator <leavesBy> not imlemented yet";
-			break;
-		}
-		case NonAlgOpNode::leavesUniqueBy: {
-			*ec << "[QE] merge(): NonAlgebraic operator <leavesUniqueBy> not imlemented yet";
 			break;
 		}
 		case NonAlgOpNode::orderBy: {

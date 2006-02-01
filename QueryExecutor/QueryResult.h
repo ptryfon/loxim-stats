@@ -57,6 +57,7 @@ public:
 	virtual bool less_eq(QueryResult *r)=0;
 	virtual int nested(Transaction *&tr, QueryResult *&r)=0;
 	virtual bool isBool()=0;
+	virtual bool isNothing()=0;
 	virtual int getBoolValue(bool &b)=0;
 	virtual bool isSingleValue()=0;
 	virtual int getSingleValue(QueryResult *&r)=0;
@@ -96,6 +97,7 @@ public:
 	bool less_eq(QueryResult *r) { return false; };
 	int nested(Transaction *&tr, QueryResult *&r);
 	bool isBool();
+	bool isNothing();
 	int getBoolValue(bool &b);
 	bool isSingleValue();
 	int getSingleValue(QueryResult *&r);
@@ -135,6 +137,7 @@ public:
 	bool less_eq(QueryResult *r) { return false; };
 	int nested(Transaction *&tr, QueryResult *&r);
 	bool isBool();
+	bool isNothing();
 	int getBoolValue(bool &b);
 	bool isSingleValue();
 	int getSingleValue(QueryResult *&r);
@@ -174,6 +177,7 @@ public:
 	bool less_eq(QueryResult *r) { return false; };
 	int nested(Transaction *&tr, QueryResult *&r);
 	bool isBool();
+	bool isNothing();
 	int getBoolValue(bool &b);
 	bool isSingleValue();
 	int getSingleValue(QueryResult *&r);
@@ -207,6 +211,7 @@ public:
 	bool less_eq(QueryResult *r) { return false; };
 	int nested(Transaction *&tr, QueryResult *&r);
 	bool isBool();
+	bool isNothing();
 	int getBoolValue(bool &b);
 	bool isSingleValue();
 	int getSingleValue(QueryResult *&r);
@@ -237,6 +242,7 @@ public:
 	bool less_eq(QueryResult *r);
 	int nested(Transaction *&tr, QueryResult *&r);
 	bool isBool();
+	bool isNothing();
 	int getBoolValue(bool &b);
 	bool isSingleValue();
 	int getSingleValue(QueryResult *&r);
@@ -272,6 +278,7 @@ public:
 	bool less_eq(QueryResult *r);
 	int nested(Transaction *&tr, QueryResult *&r);
 	bool isBool();
+	bool isNothing();
 	int getBoolValue(bool &b);
 	bool isSingleValue();
 	int getSingleValue(QueryResult *&r);
@@ -307,6 +314,7 @@ public:
 	bool less_eq(QueryResult *r);
 	int nested(Transaction *&tr, QueryResult *&r);
 	bool isBool();
+	bool isNothing();
 	int getBoolValue(bool &b);
 	bool isSingleValue();
 	int getSingleValue(QueryResult *&r);
@@ -339,6 +347,7 @@ public:
 	bool less_eq(QueryResult *r);
 	int nested(Transaction *&tr, QueryResult *&r);
 	bool isBool();
+	bool isNothing();
 	int getBoolValue(bool &b);
 	bool isSingleValue();
 	int getSingleValue(QueryResult *&r);
@@ -369,6 +378,7 @@ public:
 	bool less_eq(QueryResult *r);
 	int nested(Transaction *&tr, QueryResult *&r);
 	bool isBool();
+	bool isNothing();
 	int getBoolValue(bool &b);
 	bool isSingleValue();
 	int getSingleValue(QueryResult *&r);
@@ -394,6 +404,7 @@ public:
 	bool less_eq(QueryResult *r) { return false; };
 	int nested(Transaction *&tr, QueryResult *&r);
 	bool isBool();
+	bool isNothing();
 	int getBoolValue(bool &b);
 	bool isSingleValue();
 	int getSingleValue(QueryResult *&r);

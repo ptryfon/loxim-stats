@@ -110,11 +110,13 @@ void QuerySequenceResult::addResult(QueryResult *r){
 			int errcode;
 			QueryResult *tmp_res;
 			errcode = (r->getResult(tmp_res));
-			seq.push_back(tmp_res);
+			if (not (tmp_res->isNothing()))
+				seq.push_back(tmp_res);
 		}
 	}
 	else {
-		seq.push_back(r);
+		if (not (r->isNothing()))
+			seq.push_back(r);
 	}
 	//this->orderBy() 
 }
@@ -166,12 +168,14 @@ void QueryBagResult::addResult(QueryResult *r){
 				int errcode;
 				QueryResult *tmp_res;
 				errcode = (r->getResult(tmp_res));
-				bag.push_back(tmp_res);
+				if (not (tmp_res->isNothing()))
+					bag.push_back(tmp_res);
 			}
 		}
 	}
 	else
-		bag.push_back(r); 
+		if (not (r->isNothing()))
+			bag.push_back(r); 
 }
 int QueryBagResult::getResult(QueryResult *&r){
 	if (bag.empty()) { 
@@ -213,11 +217,13 @@ if ((r->type()) == (QueryResult::QSTRUCT)) {
 			int errcode;
 			QueryResult *tmp_res;
 			errcode = (r->getResult(tmp_res));
-			str.push_back(tmp_res);
+			if (not (tmp_res->isNothing()))
+				str.push_back(tmp_res);
 		}
 	}
 	else
-		str.push_back(r); 
+		if (not (r->isNothing()))
+			str.push_back(r); 
 }
 
 int QueryStructResult::getResult(QueryResult *&r){ 
@@ -996,6 +1002,39 @@ bool QueryDoubleResult::isBool()	{ return false; }
 bool QueryBoolResult::isBool()		{ return true; }
 bool QueryReferenceResult::isBool()	{ return false; }
 bool QueryNothingResult::isBool()	{ return false; }
+
+//function isNothing() - returns true if result is void (also if it is table 1x1 containing void), false if not
+bool QuerySequenceResult::isNothing() { 
+	if (seq.size() == 1)
+		return ((seq.at(0))->isNothing());
+	else if (seq.size() == 0)
+		return true;
+	else
+		return false; 
+}
+bool QueryBagResult::isNothing() { 
+	if (bag.size() == 1)
+		return ((bag.at(0))->isNothing());
+	else if (bag.size() == 0)
+		return true;
+	else
+		return false; 
+}
+bool QueryStructResult::isNothing() { 
+	if (str.size() == 1)
+		return ((str.at(0))->isNothing());
+	else if (str.size() == 0)
+		return true;
+	else
+		return false; 
+}
+bool QueryBinderResult::isNothing()	{ return false; }
+bool QueryStringResult::isNothing()	{ return false; }
+bool QueryIntResult::isNothing()		{ return false; }
+bool QueryDoubleResult::isNothing()	{ return false; }
+bool QueryBoolResult::isNothing()		{ return false; }
+bool QueryReferenceResult::isNothing()	{ return false; }
+bool QueryNothingResult::isNothing()	{ return true; }
 
 // function getBoolValue returns a boolean value if the object is a bollean
 int QuerySequenceResult::getBoolValue(bool &b) { 
