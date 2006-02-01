@@ -989,7 +989,7 @@ int QueryReferenceResult::nested(Transaction *&tr, QueryResult *&r) {
 					string tmp_name = optr->getName();
 					QueryReferenceResult *final_ref = new QueryReferenceResult(tmp_logID);
 					QueryBinderResult *final_binder = new QueryBinderResult(tmp_name, final_ref);
-					fprintf(stderr, "[QE] nested(): vector element number %d\n", i);
+					ec->printf("[QE] nested(): vector element number %d\n", i);
 					r->addResult(final_binder);
 					ec->printf("[QE] nested(): new QueryBinderResult returned name: %s\n", tmp_name.c_str());
 				}
@@ -1541,7 +1541,7 @@ int QueryBagResult::divideBag(QueryResult *&left, QueryResult *&right) {
 	div_t temp;
 	temp = div (bagSize,2);
 	unsigned int bagHalf = temp.quot;
-	fprintf(stderr, "[QE] divideBag(): bag size is: %d, divsion first size is: %d, second: %d\n", bagSize, bagHalf, (bagSize - bagHalf));
+	ec->printf("[QE] divideBag(): bag size is: %d, divsion first size is: %d, second: %d\n", bagSize, bagHalf, (bagSize - bagHalf));
 	left = new QueryBagResult();
 	right = new QueryBagResult();
 	for (unsigned int i = 0; i < bagHalf; i++) {

@@ -1342,9 +1342,13 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 				dbDataVal->setVector(insVector);
 				*ec << "[QE] dataValue: setVector done";
 				db_value = dbDataVal;
-				optrOut->setValue(db_value);
-				*ec << "[QE] optrOut setValue done";
-				
+				errcode = tr->modifyObject(optrOut, db_value);
+				if (errcode != 0) {
+					*ec << "[QE] insert operation - Error in modifyObject.";
+					tr = NULL;
+					return errcode;
+				}
+				*ec << "[QE] insert operation - Object modified";
 				ec->printf("[QE] %d element of leftArg INSERTED INTO %d element of rightArg SUCCESFULLY\n", i, j);
 				
 			}
@@ -1510,9 +1514,13 @@ int QueryExecutor::combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryRe
 					return ErrQExecutor | EOtherResExp;
 				}
 			}
-			DataValue* value;
-			value = dbValue;
-			old_optr->setValue(value);
+			DataValue* value = dbValue;
+			errcode = tr->modifyObject(old_optr, value);
+			if (errcode != 0) {
+				*ec << "[QE] combine() operator <assign>: error in modifyObject()";
+				tr = NULL;
+				return errcode;
+			}
 			*ec << "[QE] combine() operator <assign>: value of the object was changed";
 			QueryResult *sth = new QueryNothingResult();
 			partial->addResult(sth);
