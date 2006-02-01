@@ -80,7 +80,8 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					*ec << "[QE] ERROR! Transaction already opened. It can't be opened once more!";
 					*ec << "[QE] maybe someday, when nested transactions will be implemented...";
 					*result = new QueryNothingResult();
-					return -1;
+					*ec << (ErrQExecutor | EQEUnexpectedErr);
+					return ErrQExecutor | EQEUnexpectedErr;
 				}
 				case TransactNode::end: {
 					errcode = tr->commit();
@@ -107,7 +108,8 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 				default: {
 					*ec << "[QE] ERROR! unknown transaction operator";
 					*result = new QueryNothingResult();
-					return -1;
+					*ec << (ErrQExecutor | EUnknownNode);
+					return ErrQExecutor | EUnknownNode;
 				}
 			}
 			*result = new QueryNothingResult();
@@ -134,9 +136,8 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 				QueryBinderResult *newBinding = new QueryBinderResult(optrName, lidres);
 				stackSection->addResult(newBinding);
 			}
-			if ( (stack.push(stackSection)) != 0 ) {
-				return -1;
-			}
+			errcode = stack.push(stackSection);
+			if (errcode != 0) return errcode;
 			QueryResult *tmp_result;
 			errcode = this->executeRecQuery(tree, &tmp_result);
 			int errcode2 = (stack.pop());
@@ -194,7 +195,8 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, QueryResult **result) {
 				*ec << "[QE] ERROR! Create operation, argument must be single value type";
 				*result = new QueryNothingResult();
 				*ec << "[QE] QueryNothingResult created";
-				return -1;
+				*ec << (ErrQExecutor | EOtherResExp);
+				return ErrQExecutor | EOtherResExp;
 			}
 			QueryResult *single;
 			errcode = tmp_result->getSingleValue(single);
@@ -233,10 +235,10 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, QueryResult **result) {
 				}
 				default: {
 					*ec << "[QE] ERROR! Create operation, bad type argument evaluated by executeRecQuery";
-					*ec << (EBadType | ErrQExecutor);
 					*result = new QueryNothingResult();
 					*ec << "[QE] QueryNothingResult created";
-					return EBadType | ErrQExecutor;
+					*ec << (ErrQExecutor | EOtherResExp);
+					return ErrQExecutor | EOtherResExp;
 				}
 			}
 			DataValue* value;
@@ -426,9 +428,8 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, QueryResult **result) {
 						tr = NULL;
 						return errcode;
 					}
-					if ( (stack.push((QueryBagResult *) newStackSection)) != 0 ) {
-						return -1; //this would be very strange, this function can only return 0
-					}
+					errcode = stack.push((QueryBagResult *) newStackSection);
+					if (errcode != 0) return errcode;
 					QueryResult *newResult;
 					errcode = executeRecQuery (((NonAlgOpNode *) tree)->getRArg(), &newResult);
 					if (errcode != 0) return errcode;
@@ -527,9 +528,8 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, QueryResult **result) {
 							return errcode;
 						}
 						ec->printf("[QE] nested(): function calculated for current row number %d\n", i);
-						if ( (stack.push((QueryBagResult *) newStackSection)) != 0 ) {
-							return -1; //this would be very strange, this function can only return 0
-						}
+						errcode = stack.push((QueryBagResult *) newStackSection);
+						if (errcode != 0) return errcode;
 						QueryResult *rResult;
 						errcode = executeRecQuery (((NonAlgOpNode *) tree)->getRArg(), &rResult);
 						if (errcode != 0) return errcode;
@@ -544,7 +544,8 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, QueryResult **result) {
 				else {
 					*ec << "[QE] ERROR! NonAlgebraic operation, bad left argument";
 					*result = new QueryNothingResult();
-					return -1;
+					*ec << (ErrQExecutor | EOtherResExp);
+					return ErrQExecutor | EOtherResExp;
 				}
 				errcode = this->merge(op,partial_result, final_result);
 				if (errcode != 0) return errcode;
@@ -561,7 +562,8 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, QueryResult **result) {
 			*ec << (ENoType | ErrQExecutor);
 			*result = new QueryNothingResult();
 			*ec << "[QE] QueryNothingResult created";
-			return ENoType | ErrQExecutor;
+			*ec << (ErrQExecutor | EUnknownNode);
+			return ErrQExecutor | EUnknownNode;
 			}
 
 		} // end of switch
@@ -691,7 +693,8 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 			*ec << "[QE] ERROR in derefQuery() - unknown result type";
 			res = new QueryNothingResult();
 			*ec << "[QE] QueryNothingResult created";
-			return -1;
+			*ec << (ErrQExecutor | EOtherResExp);
+			return ErrQExecutor | EOtherResExp;
 		}
 	}
 	if (res->isSingleValue()) {
@@ -726,7 +729,8 @@ int QueryExecutor::unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&
 			else {
 				*ec << "[QE] ERROR! UN_MINUS argument must be INT or DOUBLE";
 				final = new QueryNothingResult();
-				return -1;
+				*ec << (ErrQExecutor | ENumberExpected);
+				return ErrQExecutor | ENumberExpected;
 			}
 			break;
 		}
@@ -741,7 +745,8 @@ int QueryExecutor::unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&
 			else {
 				*ec << "[QE] ERROR! NOT argument must be BOOLEAN";
 				final = new QueryNothingResult();
-				return -1;
+				*ec << (ErrQExecutor | EBoolExpected);
+				return ErrQExecutor | EBoolExpected;
 			}
 			break;
 		}
@@ -997,7 +1002,8 @@ int QueryExecutor::unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&
 				if (toDeleteType != QueryResult::QREFERENCE) {
 					*ec << "[QE] ERROR! DELETE argument must consist of QREFERENCE";
 					final = new QueryNothingResult();
-					return -1;
+					*ec << (ErrQExecutor | ERefExpected);
+					return ErrQExecutor | ERefExpected;
 				}
 				LogicalID *lid = ((QueryReferenceResult *) toDelete)->getValue();
 				ObjectPointer *optr;
@@ -1027,7 +1033,8 @@ int QueryExecutor::unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&
 		default: { // unOperation type not known
 			*ec << "[QE] ERROR! Unary operation type not known";
 			final = new QueryNothingResult();
-			return -1;
+			*ec << (ErrQExecutor | EUnknownNode);
+			return ErrQExecutor | EUnknownNode;
 		}
 	}
 	return 0;
@@ -1087,22 +1094,26 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 				case AlgOpNode::plus: {
 					final = new QueryNothingResult();
 					*ec << "[QE] ERROR! + arguments must be INT or DOUBLE";
-					return -1;
+					*ec << (ErrQExecutor | ENumberExpected);
+					return ErrQExecutor | ENumberExpected;
 				}
 				case AlgOpNode::minus: {
 					final = new QueryNothingResult();
 					*ec << "[QE] ERROR! - arguments must be INT or DOUBLE";
-					return -1;
+					*ec << (ErrQExecutor | ENumberExpected);
+					return ErrQExecutor | ENumberExpected;
 				}
 				case AlgOpNode::times: {
 					final = new QueryNothingResult();
 					*ec << "[QE] ERROR! * arguments must be INT or DOUBLE";
-					return -1;
+					*ec << (ErrQExecutor | ENumberExpected);
+					return ErrQExecutor | ENumberExpected;
 				}
 				case AlgOpNode::divide: {
 					final = new QueryNothingResult();
 					*ec << "[QE] ERROR! / arguments must be INT or DOUBLE";
-					return -1;
+					*ec << (ErrQExecutor | ENumberExpected);
+					return ErrQExecutor | ENumberExpected;
 				}
 				default: { break; }
 			}
@@ -1185,12 +1196,14 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 				case AlgOpNode::boolOr: {
 					*ec << "[QE] ERROR! OR arguments must be BOOLEAN";
 					final = new QueryNothingResult();
-					return -1;
+					*ec << (ErrQExecutor | EBoolExpected);
+					return ErrQExecutor | EBoolExpected;
 				}
 				case AlgOpNode::boolAnd: {
 					*ec << "[QE] ERROR! AND arguments must be BOOLEAN";
 					final = new QueryNothingResult();
-					return -1;
+					*ec << (ErrQExecutor | EBoolExpected);
+					return ErrQExecutor | EBoolExpected;
 				}
 				default : { break; }
 			}
@@ -1276,7 +1289,8 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 				if ((leftResultType != QueryResult::QREFERENCE) || (rightResultType != QueryResult::QREFERENCE)) {
 					*ec << "[QE] ERROR! both arguments of insert operation must consist of QREFERENCE";
 					final = new QueryNothingResult();
-					return -1;
+					*ec << (ErrQExecutor | ERefExpected);
+					return ErrQExecutor | ERefExpected;
 				}
 				LogicalID *lidIn = ((QueryReferenceResult *) toInsert)->getValue();
 				LogicalID *lidOut = ((QueryReferenceResult *) outer)->getValue();
@@ -1311,12 +1325,14 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 				*ec << "[QE] insert operation - Type of this value taken";
 				if (vType != Store::Vector) {
 					*ec << "[QE] insert operation - ERROR! the Value has to be a Vector";
-					return -1;
+					*ec << (ErrQExecutor | EOtherResExp);
+					return ErrQExecutor | EOtherResExp;
 				}
 				insVector = db_value->getVector();
 				if (insVector == NULL) {
 					*ec << "[QE] insert operation - insVector == NULL";
-					return -1;
+					*ec << (ErrQExecutor | EQEUnexpectedErr);
+					return ErrQExecutor | EQEUnexpectedErr;
 				}
 				*ec << "[QE] Vector taken";
 				ec->printf("[QE] Vec.size = %d\n", insVector->size());
@@ -1341,7 +1357,8 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 	else { // algOperation type not known
 		*ec << "[QE] ERROR! Algebraic operation type not known";
 		final = new QueryNothingResult();
-		return -1;
+		*ec << (ErrQExecutor | EUnknownNode);
+		return ErrQExecutor | EUnknownNode;
 	}
 	return 0;
 }
@@ -1372,7 +1389,8 @@ int QueryExecutor::combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryRe
 			}
 			else {
 				*ec << "[QE] combine(): ERROR! Right argument of operator <where> is not boolean!";
-				return -1; // second argument of the <where> operator must be boolean type
+				*ec << (ErrQExecutor | EBoolExpected);
+				return ErrQExecutor | EBoolExpected;
 			}
 			break;
 		}
@@ -1398,7 +1416,8 @@ int QueryExecutor::combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryRe
 			}
 			else {
 				*ec << "[QE] combine(): ERROR! Right argument of operator <exists> is not boolean!";
-				return -1; // second argument of the <exists> operator must be boolean type
+				*ec << (ErrQExecutor | EBoolExpected);
+				return ErrQExecutor | EBoolExpected;
 			}
 			break;
 		}
@@ -1413,7 +1432,8 @@ int QueryExecutor::combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryRe
 			}
 			else {
 				*ec << "[QE] combine(): ERROR! Right argument of operator <forAll> is not boolean!";
-				return -1; // second argument of the <forAll> operator must be boolean type
+				*ec << (ErrQExecutor | EBoolExpected);
+				return ErrQExecutor | EBoolExpected;
 			}
 			break;
 		}
@@ -1423,7 +1443,8 @@ int QueryExecutor::combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryRe
 				*ec << "[QE] combine() ERROR! operator <assign> needs single type arguments, not collections";
 				QueryResult *sth = new QueryNothingResult();
 				partial->addResult(sth);
-				return -1;
+				*ec << (ErrQExecutor | EOtherResExp);
+				return ErrQExecutor | EOtherResExp;
 			}
 			QueryResult* old_value;
 			errcode = curr->getSingleValue(old_value);
@@ -1437,7 +1458,8 @@ int QueryExecutor::combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryRe
 				*ec << "[QE] combine() ERROR! operator <assign> expects that left argument is REFERENCE";
 				QueryResult *sth = new QueryNothingResult();
 				partial->addResult(sth);
-				return -1;
+				*ec << (ErrQExecutor | ERefExpected);
+				return ErrQExecutor | ERefExpected;
 			}
 			LogicalID *old_lid = ((QueryReferenceResult *) old_value)->getValue();
 			ObjectPointer *old_optr;
@@ -1482,10 +1504,10 @@ int QueryExecutor::combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryRe
 				}
 				default: {
 					*ec << "[QE] combine() operator <assign>: error, bad type right argument evaluated by executeRecQuery";
-					*ec << (EBadType | ErrQExecutor);
 					QueryResult *sth = new QueryNothingResult();
 					partial->addResult(sth);
-					return EBadType | ErrQExecutor;
+					*ec << (ErrQExecutor | EOtherResExp);
+					return ErrQExecutor | EOtherResExp;
 				}
 			}
 			DataValue* value;
@@ -1498,7 +1520,8 @@ int QueryExecutor::combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryRe
 		}
 		default: {
 			*ec << "[QE] combine(): unknown NonAlgebraic operator!";
-			return -1;
+			*ec << (ErrQExecutor | EUnknownNode);
+			return ErrQExecutor | EUnknownNode;
 			break;
 		}
 	}
@@ -1541,7 +1564,8 @@ int QueryExecutor::merge(NonAlgOpNode::nonAlgOp op, QueryResult *partial, QueryR
 				if (errcode != 0) return errcode;
 				if (not (tmp_result->isBool())) {
 					*ec << "[QE] merge(): ERROR! operator <exists> expects boolean type arguments";
-					return -1; //something went odd, partial results should be boolean type
+					*ec << (ErrQExecutor | EBoolExpected);
+					return ErrQExecutor | EBoolExpected;
 				}
 				errcode = (tmp_result->getBoolValue(current_bool));
 				if (errcode != 0) return errcode;
@@ -1562,7 +1586,8 @@ int QueryExecutor::merge(NonAlgOpNode::nonAlgOp op, QueryResult *partial, QueryR
 				if (errcode != 0) return errcode;
 				if (not (tmp_result->isBool())) {
 					*ec << "[QE] merge(): ERROR! operator <forAll> expects boolean type arguments";
-					return -1; //something went odd, partial results should be boolean type
+					*ec << (ErrQExecutor | EBoolExpected);
+					return ErrQExecutor | EBoolExpected;
 				}
 				errcode = (tmp_result->getBoolValue(current_bool));
 				if (errcode != 0) return errcode;
@@ -1581,7 +1606,8 @@ int QueryExecutor::merge(NonAlgOpNode::nonAlgOp op, QueryResult *partial, QueryR
 		}
 		default: {
 			*ec << "[QE] merge(): unknown NonAlgebraic operator!";
-			return -1;
+			*ec << (ErrQExecutor | EUnknownNode);
+			return ErrQExecutor | EUnknownNode;
 			break;
 		}
 	}
@@ -1593,7 +1619,8 @@ int QueryExecutor::isIncluded(QueryResult *elem, QueryResult *set, bool &score) 
 	int errcode;
 	if (set->type() != QueryResult::QBAG) {
 		*ec << "[QE] isIncluded(): ERROR! set argument must be BAG";
-		return -1;
+		*ec << (ErrQExecutor | EOtherResExp);
+		return ErrQExecutor | EOtherResExp;
 	}
 	QueryResult *derefElem;
 	errcode = this->derefQuery(elem,derefElem);
@@ -1649,7 +1676,8 @@ int EnvironmentStack::push(QueryBagResult *r) {
 
 int EnvironmentStack::pop(){ 
 	if (es.empty()) { 
-		return -1; 
+		*ec << (ErrQExecutor | EQEmptySet);
+		return ErrQExecutor | EQEmptySet;
 	} 
 	else {
 		es.pop_back();
@@ -1660,7 +1688,8 @@ int EnvironmentStack::pop(){
 
 int EnvironmentStack::top(QueryBagResult *&r) {
 	if (es.empty()) {
-		return -1;
+		*ec << (ErrQExecutor | EQEmptySet);
+		return ErrQExecutor | EQEmptySet;
 	}
 	else {
 		r=(es.back());
@@ -1716,7 +1745,8 @@ int EnvironmentStack::bindName(string name, int es_section, QueryResult *&r) {
 	unsigned int sectionSize;
 	if ((es_section < 0) || (es_section >= number)) {
 		*ec << "[QE] bindName ERROR: ES section number given by optimalizator is wrong!";
-		return -1;
+		*ec << (ErrQExecutor | EQEUnexpectedErr);
+		return ErrQExecutor | EQEUnexpectedErr;
 	}
 	*ec << "[QE] bindName: searching section number %d - optimalizator said, that i should search there";
 	QueryResult *sth;

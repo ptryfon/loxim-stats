@@ -15,10 +15,16 @@ namespace Errors {
 	// Parse error
 		"Parse error",
 	// Executor
-		"Unknown unOp node",
-		"Unknown algOp node",
-		"Wrong algOp (arithmetical) argument",
-		"Wrong deref argument",
+		"NumberResult expected",
+		"BoolResult expected",
+		"RefResult expected",
+		"Some Other Result Type expected",
+		"Unknown Value Type",
+		"Unknown Tree Node",
+		"Empty Set",
+		"Division by 0"
+		"Unexpected QE Error"
+
 	// Config
 		"ENotInit",
 		"ENoValue",

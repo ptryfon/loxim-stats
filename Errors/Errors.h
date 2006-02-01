@@ -49,14 +49,25 @@ namespace Errors {
 #define ENotParsed		0xB00
 
 // Executor
-// - unknown unOp node
-#define EUNodeUNOP		0xC00
-// - unknown algOp node
-#define EUNodeALGOP		0xD00
-// - wrong algOp (arithmetical) argument
-#define EBadALGOPArg		0xE00
-// - wrong deref argument
-#define EBadDerefArg		0xF00
+
+// jesli operacja arytmetyczna napotkala nie int/double
+#define ENumberExpected		0xC01
+// jesli operacje boolowskie napotkaja nie bool
+#define EBoolExpected		0xC02
+// jesli potrzebne jest LogicalID a jest cos innego
+#define ERefExpected		0xC03
+// pozostae przypadki niezgodnosci typow
+#define EOtherResExp		0xC04
+// kiedy otrzymalismy Value typu innego niz zdefiniowane w Store
+#define EUnknownValue		0xC05
+// kiedy nie wiemy jak obsluzyc dany wezel z drzewa od parsera
+#define EUnknownNode		0xC06
+// kiedy chcemy pobrac wartosc z pustego zbioru/stosu
+#define EQEmptySet		0xC07
+// blad dzielenia przez 0
+#define EDivBy0			0xC08
+// wszystkie pozostale sytuacje bledne (te najrzadsze)
+#define EQEUnexpectedErr	0xC09
 
 // Config
 #define ENotInit		0x1000
