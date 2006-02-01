@@ -24,7 +24,6 @@ namespace Errors {
 		"Empty Set",
 		"Division by 0"
 		"Unexpected QE Error"
-
 	// Config
 		"ENotInit",
 		"ENoValue",
@@ -37,6 +36,11 @@ namespace Errors {
 		"ESend",
 		"EBadResult",
 		"EClientLost",
+	// Transaction
+		"EDeadlock",
+		"ESemaphoreInit",
+		"EUpgradeLock",
+		"EMutexInit",
 	// plug for h_errno from gethostbyname(3)
 		"Host not found",
 		"Unknown error"

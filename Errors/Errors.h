@@ -51,49 +51,49 @@ namespace Errors {
 // Executor
 
 // jesli operacja arytmetyczna napotkala nie int/double
-#define ENumberExpected		0xC01
+#define ENumberExpected		0xC00
 // jesli operacje boolowskie napotkaja nie bool
-#define EBoolExpected		0xC02
+#define EBoolExpected		0xD00
 // jesli potrzebne jest LogicalID a jest cos innego
-#define ERefExpected		0xC03
+#define ERefExpected		0xE00
 // pozostae przypadki niezgodnosci typow
-#define EOtherResExp		0xC04
+#define EOtherResExp		0xF00
 // kiedy otrzymalismy Value typu innego niz zdefiniowane w Store
-#define EUnknownValue		0xC05
+#define EUnknownValue		0x1000
 // kiedy nie wiemy jak obsluzyc dany wezel z drzewa od parsera
-#define EUnknownNode		0xC06
+#define EUnknownNode		0x1100
 // kiedy chcemy pobrac wartosc z pustego zbioru/stosu
-#define EQEmptySet		0xC07
+#define EQEmptySet		0x1200
 // blad dzielenia przez 0
-#define EDivBy0			0xC08
+#define EDivBy0			0x1300
 // wszystkie pozostale sytuacje bledne (te najrzadsze)
-#define EQEUnexpectedErr	0xC09
+#define EQEUnexpectedErr	0x1400
 
 // Config
-#define ENotInit		0x1000
-#define ENoValue		0x1100
-#define EBadValue		0x1200
+#define ENotInit		0x1500
+#define ENoValue		0x1600
+#define EBadValue		0x1700
 
 // Server
-#define EReceive		0x1300
-#define EParse			0x1400
-#define EExecute		0x1500
-#define ESerialize		0x1600
-#define ESend			0x1700
-#define EBadResult		0x1800
-#define EClientLost		0x1900
+#define EReceive		0x1800
+#define EParse			0x1900
+#define EExecute		0x1A00
+#define ESerialize		0x1B00
+#define ESend			0x1C00
+#define EBadResult		0x1D00
+#define EClientLost		0x1E00
 
 // Transaction
-#define EDeadlock		0x2002
-#define ESemaphoreInit		0x2004
-#define EUpgradeLock		0x2006
-#define EMutexInit		0x2008
+#define EDeadlock		0x1F00
+#define ESemaphoreInit		0x2000
+#define EUpgradeLock		0x2100
+#define EMutexInit		0x2200
 
 // plug for h_errno from gethostbyname(3)
-#define ENoHost			0x1A00
+#define ENoHost			0x2300
 
 // stopper
-#define EUnknown		0x1B00
+#define EUnknown		0x2400
 }
 
 #endif
