@@ -18,11 +18,6 @@ int CRStart::nextStep(bool* itsRcEnd)
     }
     return err;
   }
-  if( lr == NULL )
-  {
-    *itsRcEnd = true;
-    return 0;
-  }
 
   if( (err = (lr->shutDown(cr)) ) != 0 )
     return err;

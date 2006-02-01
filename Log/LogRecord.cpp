@@ -209,11 +209,6 @@ int LogRecord::readLogRecordBackward( LogRecord *&result, int fileDes, StoreMana
   off_t filePos;
 
   if( ( errCode = LogIO::getFilePos( fileDes, filePos ) ) ) return errCode;
-  if( !filePos )
-  {
-    result = NULL;
-    return 0;
-  }
 
   // cofamy sie o rozmiar int'a do tylu
   if( ::lseek( fileDes, - sizeof( int ), SEEK_CUR ) < 0 ) return errno;
