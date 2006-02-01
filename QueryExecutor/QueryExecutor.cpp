@@ -1321,8 +1321,16 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 				*ec << "[QE] Vector taken";
 				ec->printf("[QE] Vec.size = %d\n", insVector->size());
 				insVector->push_back(lidIn); // Inserting of the object
-				ec->printf("[QE] %d element of leftArg INSERTED INTO %d element of rightArg SUCCESFULLY\n", i, j);
 				ec->printf("[QE] New Vec.size = %d\n", insVector->size());
+				DBDataValue *dbDataVal = new DBDataValue();
+				dbDataVal->setVector(insVector);
+				*ec << "[QE] dataValue: setVector done";
+				db_value = dbDataVal;
+				optrOut->setValue(db_value);
+				*ec << "[QE] optrOut setValue done";
+				
+				ec->printf("[QE] %d element of leftArg INSERTED INTO %d element of rightArg SUCCESFULLY\n", i, j);
+				
 			}
 		}
 		*ec << "[QE] INSERT operation Done";
