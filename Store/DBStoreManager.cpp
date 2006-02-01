@@ -251,7 +251,7 @@ namespace Store
 		    p->object_offset[i] = p->object_offset[i] + object_size;    
 
 		// nagrobek 
-		p->object_offset[i] = -1;		
+		p->object_offset[pos_table] = -1;		
 
 		// poinformowanie mapy o usunieciu obiektu
 		memset(p_id, 0xFF, sizeof(p_id));
