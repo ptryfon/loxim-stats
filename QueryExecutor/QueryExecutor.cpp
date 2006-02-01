@@ -31,13 +31,12 @@ using namespace std;
 namespace QExecutor {
 
 int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
-	
+
 	int errcode;
 	*ec << "[QE] executeQuery()";
 	
 	if (tree != NULL) {
 		int nodeType = tree->type();
-		*ec << "[QE] TreeType taken";
 		if (tr == NULL) {
 			if (nodeType == TreeNode::TNTRANS) {
 				if (((TransactNode *) tree)->getOp() == TransactNode::begin) {
@@ -72,40 +71,107 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 				return 0;
 			}
 		}
+		switch (nodeType) // tr != NULL
+		{
+		case TreeNode::TNTRANS: {
+			TransactNode::transactionOp op = ((TransactNode *) tree)->getOp();
+			switch (op) {
+				case TransactNode::begin: {
+					*ec << "[QE] ERROR! Transaction already opened. It can't be opened once more!";
+					*ec << "[QE] maybe someday, when nested transactions will be implemented...";
+					*result = new QueryNothingResult();
+					return -1;
+				}
+				case TransactNode::end: {
+					errcode = tr->commit();
+					tr = NULL;
+					if (errcode != 0) {
+						*ec << "[QE] error in transaction->commit()";
+						*result = new QueryNothingResult();
+						return errcode;
+					}
+					*ec << "[QE] Transaction commited succesfully";
+					break;
+				}
+				case TransactNode::abort: {
+					errcode = tr->abort();
+					tr = NULL;
+					if (errcode != 0) {
+						*ec << "[QE] error in transaction->abort()";
+						*result = new QueryNothingResult();
+						return errcode;
+					}
+					*ec << "[QE] Transaction aborted succesfully";
+					break;
+				}
+				default: {
+					*ec << "[QE] ERROR! unknown transaction operator";
+					*result = new QueryNothingResult();
+					return -1;
+				}
+			}
+			*result = new QueryNothingResult();
+			*ec << "[QE] Nothing else to do. QueryNothingResult created";
+			return 0;
+		} //case TNTRANS
+
+		default: {
+			vector<ObjectPointer*>* vec;
+			if ((errcode = tr->getRoots(vec)) != 0) {
+				tr = NULL;
+				return errcode;
+			}
+			int vecSize = vec->size();
+			ec->printf("[QE] All %d Roots taken\n", vecSize);
+			QueryBagResult *stackSection = new QueryBagResult();
+			for (int i = 0; i < vecSize; i++ ) {
+				ObjectPointer *optr = vec->at(i);
+				LogicalID *lid = optr->getLogicalID();
+				*ec << "[QE] LogicalID received";
+				string optrName = (optr->getName());
+				*ec << "[QE] Name received";
+				QueryReferenceResult *lidres = new QueryReferenceResult(lid);
+				QueryBinderResult *newBinding = new QueryBinderResult(optrName, lidres);
+				stackSection->addResult(newBinding);
+			}
+			if ( (stack.push(stackSection)) != 0 ) {
+				return -1;
+			}
+			QueryResult *tmp_result;
+			errcode = this->executeRecQuery(tree, &tmp_result);
+			int errcode2 = (stack.pop());
+			if (errcode != 0) return errcode;
+			if (errcode2 != 0) return errcode2;
+			*result = tmp_result;
+			*ec << "[QE] Done!";
+			return 0;
+			}
+
+		} // end of switch
+		
+	} // if tree!=Null
+	else { // tree == NULL; return empty result
+		*ec << "[QE] empty tree, nothing to do";
+		*result = new QueryNothingResult();
+		*ec << "[QE] QueryNothingResult created";
+	}
+	return 0;
+}
+
+int QueryExecutor::executeRecQuery(TreeNode *tree, QueryResult **result) {
+	
+	int errcode;
+	*ec << "[QE] executeRecQuery()";
+	
+	if (tree != NULL) {
+		int nodeType = tree->type();
+		*ec << "[QE] TreeType taken";
 		switch (nodeType) 
 		{
 		case TreeNode::TNNAME: {
 			*ec << "[QE] Type: TNNAME";
 			string name = tree->getName();
 			int sectionNumber = ((NameNode *) tree)->getBindSect();
-			if ((stack.size()) == 1) {
-			    errcode = (stack.pop());
-			    if (errcode != 0) return errcode;
-			}
-			if (stack.empty()) {
-				vector<ObjectPointer*>* vec;
-				if ((errcode = tr->getRoots(vec)) != 0) {
-					tr = NULL;
-					return errcode;
-				}
-				int vecSize = vec->size();
-				ec->printf("[QE] All %d Roots taken\n", vecSize);
-				QueryBagResult *stackSection = new QueryBagResult();
-				for (int i = 0; i < vecSize; i++ )
-					{
-   					ObjectPointer *optr = vec->at(i);
-					LogicalID *lid = optr->getLogicalID();
-					*ec << "[QE] LogicalID received";
-					string optrName = (optr->getName());
-					*ec << "[QE] Name received";
-					QueryReferenceResult *lidres = new QueryReferenceResult(lid);
-					QueryBinderResult *newBinding = new QueryBinderResult(optrName, lidres);
-					stackSection->addResult(newBinding);
-				}
-				if ( (stack.push(stackSection)) != 0 ) {
-					return -1;
-				}
-			}
 			if (sectionNumber == 0) {
 				errcode = stack.bindName(name, *result);
 				if (errcode != 0) return errcode;
@@ -122,7 +188,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			*ec << "[QE] Type: TNCREATE";
 			string name = tree->getName();
 			QueryResult *tmp_result;
-			errcode = executeQuery (tree->getArg(), &tmp_result);
+			errcode = executeRecQuery (tree->getArg(), &tmp_result);
 			if (errcode != 0) return errcode;
 			if (not (tmp_result->isSingleValue())) {
 				*ec << "[QE] ERROR! Create operation, argument must be single value type";
@@ -166,7 +232,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					break;
 				}
 				default: {
-					*ec << "[QE] ERROR! Create operation, bad type argument evaluated by executeQuery";
+					*ec << "[QE] ERROR! Create operation, bad type argument evaluated by executeRecQuery";
 					*ec << (EBadType | ErrQExecutor);
 					*result = new QueryNothingResult();
 					*ec << "[QE] QueryNothingResult created";
@@ -218,7 +284,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 		case TreeNode::TNDOUBLE: {
 			double doubleValue = ((DoubleNode *) tree)->getValue();
 			ec->printf("[QE] TNDOUBLE: %f\n", doubleValue);
-			*result = new QueryBagResult;
+			*result = new QueryBagResult();
 			QueryDoubleResult *tmpResult = new QueryDoubleResult(doubleValue);
 			(*result)->addResult(tmpResult);
 			ec->printf("[QE] QueryDoubleResult (%f) created\n", doubleValue);
@@ -236,7 +302,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			*ec << "[QE] AS/GROUP_AS operation recognized";
 			string name = tree->getName();
 			QueryResult *tmp_result;
-			errcode = executeQuery(tree->getArg(), &tmp_result);
+			errcode = executeRecQuery(tree->getArg(), &tmp_result);
 			if (errcode != 0) return errcode;
 			bool grouped = ((NameAsNode *) tree)->isGrouped();
 			QueryResult *final_result = new QueryBagResult();
@@ -260,7 +326,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					errcode = ((QueryBagResult *) partial_result)->at(i, nextResult);
 					if (errcode != 0) return errcode;
 					QueryResult *tmp_binder = new QueryBinderResult(name, nextResult);
-					*ec << "[QE] GROUP AS: new binder created and added to final result";
+					*ec << "[QE] AS: new binder created and added to final result";
 					final_result->addResult(tmp_binder);
 				}
 			}
@@ -273,7 +339,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			UnOpNode::unOp op = ((UnOpNode *) tree)->getOp();
 			*ec << "[QE] Unary operator - type recognized";
 			QueryResult *tmp_result;
-			errcode = executeQuery(tree->getArg(), &tmp_result);
+			errcode = executeRecQuery(tree->getArg(), &tmp_result);
 			if (errcode != 0) return errcode;
 			QueryResult *op_result;
 			errcode = this->unOperate(op, tmp_result, op_result);
@@ -289,9 +355,9 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			AlgOpNode::algOp op = ((AlgOpNode *) tree)->getOp();
 			*ec << "[QE] Algebraic operator - type recognized";
 			QueryResult *lResult, *rResult;
-			errcode = executeQuery(((AlgOpNode *) tree)->getLArg(), &lResult);
+			errcode = executeRecQuery(((AlgOpNode *) tree)->getLArg(), &lResult);
 			if (errcode != 0) return errcode;
-			errcode = executeQuery (((AlgOpNode *) tree)->getRArg(), &rResult);
+			errcode = executeRecQuery (((AlgOpNode *) tree)->getRArg(), &rResult);
 			if (errcode != 0) return errcode;
 			QueryResult *op_result;
 			errcode = this->algOperate(op, lResult, rResult, op_result);
@@ -307,7 +373,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			NonAlgOpNode::nonAlgOp op = ((NonAlgOpNode *) tree)->getOp();
 			*ec << "[QE] NonAlgebraic operator - type recognized";
 			QueryResult *l_tmp_Result;
-			errcode = executeQuery (((NonAlgOpNode *) tree)->getLArg(), &l_tmp_Result);
+			errcode = executeRecQuery (((NonAlgOpNode *) tree)->getLArg(), &l_tmp_Result);
 			if (errcode != 0) return errcode;
 			QueryResult *lResult;
 			if (((l_tmp_Result->type()) != QueryResult::QSEQUENCE) && ((l_tmp_Result->type()) != QueryResult::QBAG)) {
@@ -364,7 +430,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 						return -1; //this would be very strange, this function can only return 0
 					}
 					QueryResult *newResult;
-					errcode = executeQuery (((NonAlgOpNode *) tree)->getRArg(), &newResult);
+					errcode = executeRecQuery (((NonAlgOpNode *) tree)->getRArg(), &newResult);
 					if (errcode != 0) return errcode;
 					*ec << "[QE] Computing right Argument with a new scope of ES";
 					errcode = stack.pop();
@@ -465,7 +531,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 							return -1; //this would be very strange, this function can only return 0
 						}
 						QueryResult *rResult;
-						errcode = executeQuery (((NonAlgOpNode *) tree)->getRArg(), &rResult);
+						errcode = executeRecQuery (((NonAlgOpNode *) tree)->getRArg(), &rResult);
 						if (errcode != 0) return errcode;
 						*ec << "[QE] Computing right Argument with a new scope of ES";
 						errcode = this->combine(op,currentResult,rResult,partial_result);
@@ -488,48 +554,6 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			*ec << "[QE] NonAlgebraic operation Done!";
 			return 0;
 		} //case TNNONALGOP
-
-		case TreeNode::TNTRANS: {
-			TransactNode::transactionOp op = ((TransactNode *) tree)->getOp();
-			switch (op) {
-				case TransactNode::begin: {
-					*ec << "[QE] ERROR! Transaction already opened. It can't be opened once more!";
-					*ec << "[QE] maybe someday, when nested transactions will be implemented...";
-					*result = new QueryNothingResult();
-					return -1;
-				}
-				case TransactNode::end: {
-					errcode = tr->commit();
-					tr = NULL;
-					if (errcode != 0) {
-						*ec << "[QE] error in transaction->commit()";
-						*result = new QueryNothingResult();
-						return errcode;
-					}
-					*ec << "[QE] Transaction commited succesfully";
-					break;
-				}
-				case TransactNode::abort: {
-					errcode = tr->abort();
-					tr = NULL;
-					if (errcode != 0) {
-						*ec << "[QE] error in transaction->abort()";
-						*result = new QueryNothingResult();
-						return errcode;
-					}
-					*ec << "[QE] Transaction aborted succesfully";
-					break;
-				}
-				default: {
-					*ec << "[QE] ERROR! unknown transaction operator";
-					*result = new QueryNothingResult();
-					return -1;
-				}
-			}
-			*result = new QueryNothingResult();
-			*ec << "[QE] Nothing else to do. QueryNothingResult created";
-			return 0;
-		} //case TNTRANS
 
 		default:
 			{
@@ -1301,8 +1325,9 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 				ec->printf("[QE] New Vec.size = %d\n", insVector->size());
 			}
 		}
-		*ec << "[QE] INSERT operation Done. QueryNothingResult created.";
-		final = new QueryNothingResult();
+		*ec << "[QE] INSERT operation Done";
+		final = new QueryBagResult();
+		final->addResult(rBag);
 		return 0;
 	}
 	else { // algOperation type not known
@@ -1448,7 +1473,7 @@ int QueryExecutor::combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryRe
 					break;
 				}
 				default: {
-					*ec << "[QE] combine() operator <assign>: error, bad type right argument evaluated by executeQuery";
+					*ec << "[QE] combine() operator <assign>: error, bad type right argument evaluated by executeRecQuery";
 					*ec << (EBadType | ErrQExecutor);
 					QueryResult *sth = new QueryNothingResult();
 					partial->addResult(sth);

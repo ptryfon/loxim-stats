@@ -47,6 +47,7 @@ namespace QExecutor
 		ErrorConsole *ec;
 		Transaction *tr;
 		EnvironmentStack stack;
+		int executeRecQuery(TreeNode *tree, QueryResult **result);
 		int combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryResult *lRes, QueryResult *&partial);
 		int merge(NonAlgOpNode::nonAlgOp op, QueryResult *partial, QueryResult *&final);
 		int unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&final);
