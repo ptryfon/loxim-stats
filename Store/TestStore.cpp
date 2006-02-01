@@ -151,6 +151,7 @@ cout << "DZIWNY KOD ---------\n";
 //		store->createObject(&tid, op_wiadro->getName(), dv, op_wiadro);
 */		
 		store->stop();
+		log->shutdown();
 		cout << "END" << endl;
 		return 0;
 	}

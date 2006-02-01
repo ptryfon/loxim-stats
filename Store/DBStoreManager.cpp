@@ -125,7 +125,10 @@ namespace Store
 		cout << "file: " << p_id->file_id << ", page: " << p_id->page_id << ", off: " << p_id->offset <<endl;
 		if((!p_id->file_id) && (!p_id->page_id) && (!p_id->offset)) return 2;
 		if(p_id->offset > 1000) return 2;
-		if(p_id->page_id > 1000) return 2;
+		if(p_id->page_id > 1000) {
+			*ec << "Store::Manager::getObject done: Object not found\n(brak ustalonego kodu bledu dla tej operacji, default -> return 2;";
+			return 2;	
+		}
 		PagePointer *pPtr = buffer->getPagePointer(p_id->file_id, p_id->page_id);
 		
 		pPtr->aquire();
