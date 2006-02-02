@@ -35,6 +35,7 @@ public:
   virtual int init(CrashRecovery* cr) {this->cr = cr; return 0;}
   virtual int CkptReached(){return 0;};
   virtual int nextStep(bool* itsRcEnd){ *itsRcEnd = false; return 0; };
+  virtual int storeReadingPossible( bool* possible ){ *possible = false; return 0;}
   virtual int properlyShut(){return 0;};
   virtual ~CRState(){}
 };
@@ -65,6 +66,7 @@ class CRRollback : public CRState
 {
 public:
   virtual int nextStep(bool* itsRcEnd);
+  virtual int storeReadingPossible( bool* possible ){ *possible = true; return 0;}
   virtual ~CRRollback(){}
 };
 
@@ -98,7 +100,7 @@ friend class CRCommit;
 friend class CRSaveRollback;
 
 protected:
-  unsigned long ckptStart;
+  unsigned long ckptStart;//chyba niepotrzebne -> ckptPos
   bool afterCkptEnd;
   LogManager* lm;
   StoreManager*sm;
@@ -111,7 +113,7 @@ public:
   SetOfTransactionIDS rollbackedTids;
   SetOfTransactionIDS tidsToCommit;
 
-  CrashRecovery():afterCkptEnd(false), actualFaze(NULL){}
+  CrashRecovery():afterCkptEnd(false), actualFaze(NULL), ckptPos(0){}
   
   virtual int init(LogManager* lm, StoreManager* sm);
   
@@ -120,6 +122,8 @@ public:
   virtual int CkptEnd() { afterCkptEnd = true; return 0;}
   
   virtual int CkptStart();
+
+  virtual int storeReadingPossible( bool *possible ){ return actualFaze->storeReadingPossible(possible); }
 
   virtual int shutDown() { actualFaze->properlyShut(); return 0; }
   

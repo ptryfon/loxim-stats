@@ -18,10 +18,12 @@ int CRStart::nextStep(bool* itsRcEnd)
     }
     return err;
   }
-
   if( (err = (lr->shutDown(cr)) ) != 0 )
     return err;
   *itsRcEnd = isShutDownProper;
+  if( !isShutDownProper )//jesli to nie byl dobry rekord to nalezy go przeczytac
+	  		 //jako cos innego
+    if( ::lseek(cr->fd,0,SEEK_END) < 0 ) return errno;
   return 0;
 }
 
@@ -30,10 +32,10 @@ int CRNoteAndRollback::nextStep(bool* itsRcEnd)
   LogRecord* lr=NULL;
   int err=0;
   *itsRcEnd = false;
-  while( !isCkptReached && ((err = LogRecord::readLogRecordBackward(lr, cr->fd, cr->sm)) != 0) )
+  while( !isCkptReached && ((err = LogRecord::readLogRecordBackward(lr, cr->fd, cr->sm)) == 0) )
   {
     lr->modifySetsBackDir(cr);
-    lr->rollBack(&(cr->tidsToRollback), cr->sm);
+    lr->rollBack(&(cr->tidsToRollback), cr->sm, cr);
     lr->ckptEnd(cr);
     lr->ckptStart(cr);
     delete lr;
@@ -62,9 +64,9 @@ int CRRollback::nextStep(bool* itsRcEnd)
   int err=0;
   *itsRcEnd = false;
   printf( "Here: %d\n", cr->tidsToRollback.size() );
-  while( !(cr->tidsToRollback).empty() && ((err = LogRecord::readLogRecordBackward(lr, cr->fd, cr->sm)) != 0) )//potrzebne skrócone wyliczanie
+  while( !(cr->tidsToRollback).empty() && ((err = LogRecord::readLogRecordBackward(lr, cr->fd, cr->sm)) == 0) )//potrzebne skrócone wyliczanie
   {
-    lr->rollBack(&(cr->tidsToRollback), cr->sm);
+    lr->rollBack(&(cr->tidsToRollback), cr->sm, cr);
     delete lr;
     lr=NULL;
   }
@@ -79,7 +81,7 @@ int CRCommit::nextStep(bool* itsRcEnd)
   int err=0;
   *itsRcEnd = false;
   if( ::lseek(cr->fd,cr->ckptPos,SEEK_SET) < 0 ) return errno;//ustawiamy sie na checkpoincie
-  while( !(cr->tidsToCommit).empty() && ((err = LogRecord::readLogRecordForward(lr, cr->fd, cr->sm)) != 0) )//do przodu
+  while( !(cr->tidsToCommit).empty() && ((err = LogRecord::readLogRecordForward(lr, cr->fd, cr->sm)) == 0) )//do przodu
   {
     lr->commit(&(cr->tidsToCommit), cr->sm);
     delete lr;
@@ -107,15 +109,12 @@ int CRSaveRollback::nextStep(bool* itsRcEnd)
   return err;
 }
 
-
-
-
 int CrashRecovery::init(LogManager* lm, StoreManager* sm)
   {
     int err=0;
     this->lm=lm;
     this->sm=sm;
-    if((fd = ::open( lm->getLogFilePath().c_str(), O_RDONLY)) < 0 ) return errno;
+    if((fd = ::open( lm->getLogFilePath().c_str(), O_RDWR)) < 0 ) return errno;
     return err;
   }
 

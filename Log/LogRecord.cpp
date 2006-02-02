@@ -9,7 +9,7 @@ int BeginTransactionRecord::modifySetsBackDir(CrashRecovery* cr)
     {
       if(cr->tidsToCommit.find(tid) == cr->tidsToCommit.end())
       {
-        (cr->tidsToRollback).insert(tid);
+        (cr->tidsToRollback).erase(tid);//bylo insert chyba bez sensu
         (cr->rollbackedTids).insert(tid);
       }
       return 0;
@@ -47,6 +47,7 @@ int WriteRecord::commit(SetOfTransactionIDS* setOfTIDs, StoreManager* sm)
           return deleteFromStore( sm, oldVal);
         
         //Commitowana tranzakcja zmienila wartosc na nową - ustawiamy nową wartość  
+	//sytuacja nie zachodzi tak nam obiecal store
         return changeValue( sm, newVal);//mozliwe ze mozna add tu store
   
         //return 0;
@@ -116,8 +117,18 @@ int RollbackRecord::modifySetsBackDir(CrashRecovery* cr)
       return 0;
     } 
 
-int CkptRecord::ckptStart(CrashRecovery* cr) { cr->CkptStart(); return 0;}
-
+int CkptRecord::ckptStart(CrashRecovery* cr) 
+{
+  for(unsigned i = 0; i < tidVec->size() ; i++)
+  {
+    if( (cr->tidsToCommit).find( (*tidVec)[i] ) == (cr->tidsToCommit).end() )
+    {
+      (cr->tidsToRollback).insert( (*tidVec)[i] );
+    }
+  }
+  cr->CkptStart();
+  return 0;
+}
 
 int EndCkptRecord::ckptEnd(CrashRecovery* cr) {cr->CkptEnd(); return 0;}
 
@@ -258,7 +269,7 @@ int TransactionRecord::write( int fileDes ) { return LogIO::writeTransactionID( 
 
 /* BeginTransactionRecord class */
 
-int BeginTransactionRecord::rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm)
+int BeginTransactionRecord::rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm, CrashRecovery* cr )
 {
   // Ponieważ się cofamy, to po napotkaniu poczatku tranzakcji 
   // mozemy ja usunac ze spisu transakcji do wycofania.
@@ -323,7 +334,7 @@ int WriteRecord::addToStore(StoreManager* sm, DataValue *dv)
     else if( newVal == dv ) freeNewValFlag = false;
   }
   ObjectPointer* op = sm->createObjectPointer( (lid ? lid->clone() : NULL), name, dv);
-  err=sm->createObject( NULL, name, dv, op );
+  err=sm->createObject( NULL, name, dv, op, (lid ? lid->clone() : NULL));
   delete op;
   return err;
 }
@@ -350,8 +361,17 @@ int WriteRecord::changeValue(StoreManager* sm, DataValue* dv)
   return err;
 }
 
-int WriteRecord::rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm)
+int WriteRecord::rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm, CrashRecovery* cr )
 {
+  if(cr != NULL)
+  {
+    int err=0;
+    bool possible;
+    if( (err=cr->storeReadingPossible(&possible)) !=0 )
+      return err;
+    if( !possible )
+      return 0;
+  }
   //sprawdzamy czy zapis dotyczy jednej z tranzakcji do wycofania.
   if(setOfTIDs->find(tid) != setOfTIDs->end())
   {
@@ -448,8 +468,17 @@ int RootRecord::read( int fileDes, StoreManager* sm )
 }
 
 /* AddRootRecord class */
-int AddRootRecord::rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm)
+int AddRootRecord::rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm, CrashRecovery* cr )
 {
+  if(cr != NULL)
+  {
+    int err=0;
+    bool possible;
+    if( (err=cr->storeReadingPossible(&possible)) !=0 )
+      return err;
+    if( !possible )
+      return 0;
+  }
   //sprawdzamy czy zapis dotyczy jednej z tranzakcji do wycofania.
   if(setOfTIDs->find(tid) != setOfTIDs->end())
     //Wycofywana tranzakcja dodała roota więc go usuwamy.
@@ -458,8 +487,17 @@ int AddRootRecord::rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm)
 }
 
 /* RemoveRootRecord class */
-int RemoveRootRecord::rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm)
+int RemoveRootRecord::rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm, CrashRecovery* cr )
 {
+  if(cr != NULL)
+  {
+    int err=0;
+    bool possible;
+    if( (err=cr->storeReadingPossible(&possible)) !=0 )
+      return err;
+    if( !possible )
+      return 0;
+  }
   //sprawdzamy czy zapis dotyczy jednej z tranzakcji do wycofania.
   if(setOfTIDs->find(tid) != setOfTIDs->end())
     //Wycofywana tranzakcja usunęła roota więc go dodajemy.

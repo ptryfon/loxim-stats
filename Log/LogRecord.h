@@ -77,7 +77,7 @@ namespace Logs
     Metoda bierze zbiór tranzakcji do wycofania i jeśli rekord dotyczy tej tranzakcji to dokonuje wycofania w sm
     lub usuwa transakcję ze zbioru (begin) lub nie robi nic.
     */
-    virtual int rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm) {return 0;}
+    virtual int rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm, CrashRecovery* cr = NULL) {return 0;}
     virtual int ckptStart(CrashRecovery* cr) {return 0;}
     virtual int ckptEnd(CrashRecovery* cr) {return 0;}
     virtual int modifySetsBackDir(CrashRecovery* cr) {return 0;}
@@ -134,7 +134,7 @@ namespace Logs
 
     public:
     virtual int modifySetsBackDir(CrashRecovery* cr);
-    virtual int rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm);
+    virtual int rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm, CrashRecovery* cr = NULL);
     BeginTransactionRecord( int _tid ) : TransactionRecord( _tid, BEGIN_LOG_REC_TYPE ) {}
   };
 
@@ -172,7 +172,7 @@ namespace Logs
     public:
     WriteRecord( int _tid, LogicalID *_lid, string _name, DataValue *_oldVal, DataValue *_newVal );
     virtual ~WriteRecord();
-    virtual int rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm);
+    virtual int rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm, CrashRecovery* cr = NULL);
     
     virtual int modifySetsBackDir(CrashRecovery* cr);
     
@@ -211,7 +211,7 @@ namespace Logs
 
     public:
     AddRootRecord( int _tid, LogicalID *_lid) : RootRecord( _tid, _lid, ADD_ROOT_LOG_REC_TYPE ) {}
-    virtual int rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm);
+    virtual int rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm, CrashRecovery* cr = NULL);
     virtual ~AddRootRecord(){}
     
     virtual int modifySetsBackDir(CrashRecovery* cr);
@@ -229,7 +229,7 @@ namespace Logs
 
     public:
     RemoveRootRecord( int _tid, LogicalID *_lid) : RootRecord( _tid, _lid, REMOVE_ROOT_LOG_REC_TYPE ) {}
-    virtual int rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm);
+    virtual int rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm, CrashRecovery* cr = NULL);
     
     virtual int modifySetsBackDir(CrashRecovery* cr);
   

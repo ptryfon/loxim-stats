@@ -76,6 +76,7 @@ int main( int argc, char *argv[] )
 
   printf( "Recovery errcode: %d\n", errCode );
 
+/*
   DataValue *dv = sm->createStringValue( "Nowy Mis" );
   ObjectPointer* op;
   sm->createObject( NULL, "mis", dv, op );
@@ -83,7 +84,7 @@ int main( int argc, char *argv[] )
   DataValue *dv2 = sm->createStringValue( "Nowy Mis2" );
   ObjectPointer* op2;
   sm->createObject( NULL, "mis2", dv2, op2 );
-
+*/
 //   ObjectPointer* op2=NULL;
 //   sm->getObject(NULL,op->getLogicalID(),Write,op2);
 //   exit( 0 );
@@ -99,20 +100,20 @@ int main( int argc, char *argv[] )
 
   // write (stary i nowy istnieje)
   {
-    DataValue *oldDataValue = new DBDataValue( "Stary Mis" );
+/*    DataValue *oldDataValue = new DBDataValue( "Stary Mis" );
     DataValue *newDataValue = new DBDataValue( "Nowy Mis" );
     logManager.write( tid, op->getLogicalID(), "mis", oldDataValue, newDataValue, id );
-  }
+*/  }
 
   logManager.flushLog();
   printLog( logManager.getLogFilePath().c_str(), sm);
   exit( 0 );
 
   // write (stary nie istnieje)
-  logManager.write( tid, op2->getLogicalID(), "mis2", 0, new DBDataValue( "Nowy Mis2" ), id );
+  //logManager.write( tid, op2->getLogicalID(), "mis2", 0, new DBDataValue( "Nowy Mis2" ), id );
 
   // write (nowy nie istnieje)
-  logManager.write( tid, new DBLogicalID( 59 ), "mis3", new DBDataValue( "Stary Mis3" ), 0, id );
+  //logManager.write( tid, new DBLogicalID( 59 ), "mis3", new DBDataValue( "Stary Mis3" ), 0, id );
 
 //   // write (stary i nowy istnieje)
 //   logManager.write( tid, new DBLogicalID( 59 ), "mis3", new DBDataValue( "Stary Mis4" ), new DBDataValue( "Nowy Mis4" ), id );
