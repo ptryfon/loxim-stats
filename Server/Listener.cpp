@@ -224,6 +224,7 @@ int Listener::Start(int port) {
 	DBStoreManager *sm = new DBStoreManager();
 	sm->init(lm);
 	TransactionManager::getHandle()->init(sm, lm);
+	sm->setTManager(TransactionManager::getHandle());
 	lCons->printf("[Listener.Start]--> Starting Store manager.. \n");
 	sm->start();
 	lCons->printf("[Listener.Start]--> Starting Log manager.. \n");
