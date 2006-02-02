@@ -1627,12 +1627,12 @@ int QuerySequenceResult::sortCollection(QueryResult *r) {
 			for (unsigned int i = 0; i < seq_size; i++) {
 				QueryResult *first_elem;
 				QueryResult *second_elem;
-				if (first_seq->size()) { // first sequence ended
+				if ((first_seq->size()) == 0) { // first sequence ended
 					errcode = second_seq->getResult(second_elem);
 					if (errcode != 0) return errcode;
 					seq.push_back(second_elem);
 				} 
-				else if (second_seq->size()) { // second sequence ended
+				else if ((second_seq->size()) == 0) { // second sequence ended
 					errcode = first_seq->getResult(first_elem);
 					if (errcode != 0) return errcode;
 					seq.push_back(first_elem);
