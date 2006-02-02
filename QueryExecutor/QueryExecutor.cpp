@@ -443,19 +443,19 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, QueryResult **result) {
 							break;
 						}
 						case NonAlgOpNode::closeUniqueBy: {
-							QueryResult *new_bag_result;
+							QueryResult *nResult;
 							if (((newResult->type()) != QueryResult::QSEQUENCE) && ((newResult->type()) != QueryResult::QBAG)) {
-								new_bag_result = new QueryBagResult();
-								new_bag_result->addResult(newResult);
+								nResult = new QueryBagResult();
+								nResult->addResult(newResult);
 							}
 							else
-								new_bag_result = newResult;
-							for (unsigned int i = 0; i < (new_bag_result->size()); i++) {
+								nResult = newResult;
+							for (unsigned int i = 0; i < (nResult->size()); i++) {
 								QueryResult *current_new_result;
-								if ((lResult->type()) == QueryResult::QSEQUENCE)
-									errcode = (((QuerySequenceResult *) lResult)->at(i, current_new_result));
+								if ((nResult->type()) == QueryResult::QSEQUENCE)
+									errcode = (((QuerySequenceResult *) nResult)->at(i, current_new_result));
 								else
-									errcode = (((QueryBagResult *) lResult)->at(i, current_new_result));
+									errcode = (((QueryBagResult *) nResult)->at(i, current_new_result));
 								if (errcode != 0) return errcode;
 								bool isIncl;
 								errcode = this->isIncluded(current_new_result, final_result, isIncl);
@@ -480,19 +480,19 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, QueryResult **result) {
 							if (newResult->isNothing())
 								final_result->addResult(currentResult);
 							else {
-								QueryResult *new_bag_result;
+								QueryResult *nResult;
 								if (((newResult->type()) != QueryResult::QSEQUENCE) && ((newResult->type()) != QueryResult::QBAG)) {
-									new_bag_result = new QueryBagResult();
-									new_bag_result->addResult(newResult);
+									nResult = new QueryBagResult();
+									nResult->addResult(newResult);
 								}
 								else
-									new_bag_result = newResult;
-								for (unsigned int i = 0; i < (new_bag_result->size()); i++) {
+									nResult = newResult;
+								for (unsigned int i = 0; i < (nResult->size()); i++) {
 									QueryResult *c_result;
-									if ((lResult->type()) == QueryResult::QSEQUENCE)
-										errcode = (((QuerySequenceResult *) lResult)->at(i, c_result));
+									if ((nResult->type()) == QueryResult::QSEQUENCE)
+										errcode = (((QuerySequenceResult *) nResult)->at(i, c_result));
 									else
-										errcode = (((QueryBagResult *) lResult)->at(i, c_result));
+										errcode = (((QueryBagResult *) nResult)->at(i, c_result));
 									if (errcode != 0) return errcode;
 									bool isIncl;
 									errcode = this->isIncluded(c_result, visited_result, isIncl);
