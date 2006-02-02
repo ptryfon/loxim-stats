@@ -117,8 +117,13 @@ int main(int argc, char* argv[])
 		delete dv;
 		cout << op_wiadro->toString() << endl;
 
+		vector<ObjectPointer*>* ov;
+		store->getRoots(&tid, ov);
+		cout << ov->size() << endl;
+		store->removeRoot(&tid, (*ov)[0]);
+		store->getRoots(&tid, ov);
+		cout << ov->size() << endl;
 
-		
 		delete op_woda;
 //		delete op_wiadro;
 				

@@ -325,7 +325,7 @@ namespace Store
 				return -1;
 		}
 
-		*ec << "Store::Manager::getRoots(BY NAME) done";
+		ec->printf("Store::Manager::getRoots(BY NAME) done: size=%d\n", p_roots->size());
 		return 0;
 	}
 
