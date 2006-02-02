@@ -127,6 +127,8 @@ namespace TManager
 	{
 		int errorNumber;
 
+		err.printf("Transaction: %d getRoots\n", tid->getId());
+		
 		sem->lock_read();
 			errorNumber = sm->getRoots(tid, p);			
 		sem->unlock();
@@ -150,6 +152,8 @@ namespace TManager
 	int Transaction::getRoots(string name, vector<ObjectPointer*>* &p)
 	{
 		int errorNumber;
+		
+		err.printf("Transaction: %d getRoots by name \n", tid->getId());
 
 		sem->lock_read();
 			errorNumber = sm->getRoots(tid, name, p);
@@ -175,6 +179,8 @@ namespace TManager
 	{
 		int errorNumber;
 		
+		err.printf("Transaction: %d addRoot\n", tid->getId());
+		
 		sem->lock_write();
 			errorNumber = sm->addRoot(tid, p);
 			if (errorNumber == 0)	
@@ -189,6 +195,8 @@ namespace TManager
 	int Transaction::removeRoot(ObjectPointer* &p)
 	{
 		int errorNumber;
+		
+		err.printf("Transaction: %d removeRoot\n", tid->getId());
 		
 		errorNumber = lm->lock( p->getLogicalID(), tid, Write);
 		
@@ -290,13 +298,13 @@ namespace TManager
 
 	int TransactionManager::createTransaction(Transaction* &tr)
 	{
-	    err.printf("Creating new transaction");
+	    err.printf("Creating new transaction\n");
 	    mutex->down();
 			int currentId = transactionId;
 			transactionId++;
 			TransactionID* tid = new TransactionID(currentId);	    	
 			addTransaction(tid);
-			err.printf("Transaction created -> number %d", tid->getId());
+			err.printf("Transaction created -> number %d\n", tid->getId());
 	    mutex->up();
 	    	    
 	    tr = new Transaction(tid, sem);	
@@ -305,8 +313,10 @@ namespace TManager
 
 	int TransactionManager::init(StoreManager *strMgr, LogManager *logsMgr)
 	{
+	    err.printf("Transaction Manager starting .... ");
 	    storeMgr = strMgr;
 	    logMgr = logsMgr;
+	    err.printf("DONE\n");
 	    return 0;
 	}
 
