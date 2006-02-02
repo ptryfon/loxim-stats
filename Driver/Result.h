@@ -108,7 +108,7 @@ public:
 	string  getName()            { return name;     } 
 	Result* getValue()	     { return value;    }
 	void   toStream(ostream& os) const 
-	  { os << name << "(" << value << ") "; }		
+	  { os << name << "(" << *value << ") "; }		
 	virtual ~ResultBinder()      { }
 };//class ResultBinder : Result
 
