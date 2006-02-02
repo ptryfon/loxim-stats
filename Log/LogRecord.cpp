@@ -17,6 +17,8 @@ int BeginTransactionRecord::modifySetsBackDir(CrashRecovery* cr)
 
 int ShutdownRecord::shutDown(CrashRecovery* cr) { cr->shutDown(); return 0;}
 
+WriteRecord::~WriteRecord() { delete lid; if( freeOldValFlag ) delete oldVal; if( freeNewValFlag ) delete newVal; }
+
 int WriteRecord::modifySetsBackDir(CrashRecovery* cr)
     {
       //wrzucamy do wycofania tylko to czego nie ma w commit
@@ -298,7 +300,12 @@ WriteRecord::WriteRecord( int _tid, LogicalID *_lid, string _name, DataValue *_o
 int WriteRecord::deleteFromStore(StoreManager* sm, DataValue *dv)
 {
   int err=0;
-  ObjectPointer* op = sm->createObjectPointer( lid, name, dv);
+  if( dv != NULL )
+  {
+    if( oldVal == dv ) freeOldValFlag = false;
+    else if( newVal == dv ) freeNewValFlag = false;
+  }
+  ObjectPointer* op = sm->createObjectPointer( (lid ? lid->clone() : NULL), name, dv);
   err=sm->deleteObject( NULL, op );
   delete op;
   printf( "Delete... (err=%d)\n", err );
@@ -310,7 +317,12 @@ int WriteRecord::addToStore(StoreManager* sm, DataValue *dv)
 {
   int err = 0;
   printf( "createObjectPointer( lid=%d, name='%s', dv='%s' )\n", lid->toInteger(), name.c_str(), dv->toString().c_str() );
-  ObjectPointer* op = sm->createObjectPointer( lid, name, dv);
+  if( dv != NULL )
+  {
+    if( oldVal == dv ) freeOldValFlag = false;
+    else if( newVal == dv ) freeNewValFlag = false;
+  }
+  ObjectPointer* op = sm->createObjectPointer( (lid ? lid->clone() : NULL), name, dv);
   err=sm->createObject( NULL, name, dv, op );
   delete op;
   return err;
@@ -323,7 +335,7 @@ int WriteRecord::changeValue(StoreManager* sm, DataValue* dv)
   ObjectPointer* op=NULL;
   //trzeba okreslic dokladnie jakie ma byc to err
   printf( "LID: %d\n", lid->toInteger() );
-  if( (err = sm->getObject(NULL,lid,Write,op)) == 0)
+  if( (err = sm->getObject(NULL,(lid ? lid->clone() : NULL),Write,op)) == 0)
   {
     //Nie ma żadnej pewności, że to będzie działać z sensem
     //bo w virtual void setValue(DataValue* val) nie ma miejsca na tid
@@ -398,7 +410,7 @@ int WriteRecord::write( int fileDes )
 int RootRecord::removeRootFromStore( StoreManager* sm )
 {
   int err=0;
-  ObjectPointer* op = sm->createObjectPointer( lid );
+  ObjectPointer* op = sm->createObjectPointer( lid ? lid->clone() : NULL );
   err = sm->removeRoot( NULL, op );
   delete op;
   return err;
@@ -409,12 +421,13 @@ int RootRecord::removeRootFromStore( StoreManager* sm )
 int RootRecord::addRootToStore( StoreManager* sm )
 {
   int err = 0;
-  ObjectPointer* op = sm->createObjectPointer( lid );
+  ObjectPointer* op = sm->createObjectPointer( lid ? lid->clone() : NULL );
   err = sm->addRoot( NULL, op );
   delete op;
   return err;
 }
 
+RootRecord::~RootRecord() {  delete lid; }
 
 int RootRecord::write( int fileDes )
 {

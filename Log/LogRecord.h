@@ -154,11 +154,13 @@ namespace Logs
     public://do testow
     // do odczytu
     LogicalID *lid;
+    bool freeOldValFlag;
     DataValue *oldVal;
+    bool freeNewValFlag;
     DataValue *newVal;
 
     protected:
-    WriteRecord() : TransactionRecord( WRITE_LOG_REC_TYPE ) {dictionary[type] = this;}
+    WriteRecord() : TransactionRecord( WRITE_LOG_REC_TYPE ), freeOldValFlag( true ), freeNewValFlag( true ) {dictionary[type] = this;}
 
     virtual int read( int fileDes, StoreManager* sm );
     virtual int write( int fileDes );
@@ -169,7 +171,7 @@ namespace Logs
 
     public:
     WriteRecord( int _tid, LogicalID *_lid, string _name, DataValue *_oldVal, DataValue *_newVal );
-    virtual ~WriteRecord() {  /*delete lid; delete oldVal; delete newVal;*/ } //
+    virtual ~WriteRecord();
     virtual int rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm);
     
     virtual int modifySetsBackDir(CrashRecovery* cr);
@@ -195,7 +197,7 @@ namespace Logs
 
     public:
     RootRecord( int _tid, LogicalID *_lid, int _type) : TransactionRecord( _tid, _type ), lid(_lid) {}
-    virtual ~RootRecord() {  /*delete lid; */ } //
+    virtual ~RootRecord();
     //virtual int rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm);
   };
 
