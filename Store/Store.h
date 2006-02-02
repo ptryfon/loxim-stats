@@ -151,6 +151,7 @@ namespace Store
 		virtual int getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object) = 0;
 		virtual int createObject(TransactionID* tid, string name, DataValue* value, ObjectPointer*& object, LogicalID* lid=NULL) = 0;
 		virtual int deleteObject(TransactionID* tid, ObjectPointer* object) = 0;
+		virtual int modifyObject(TransactionID* tid, ObjectPointer*& object, DataValue* value) = 0;
 
 		virtual int replaceDV(ObjectPointer* obj, DataValue* dv) = 0;
 

@@ -93,29 +93,35 @@ int main(int argc, char* argv[])
 		DataValue* dv = store->createDoubleValue(3.7);
 		cout << dv->toString() << endl;
 		store->createObject(&tid, "woda", dv, op_woda);
-//		delete dv;
+		delete dv;
 		cout << op_woda->toString() << endl;
 
 		ObjectPointer* op_wiadro;
 		vector<LogicalID*>* lvec = new vector<LogicalID*>(0);
-//		lvec->push_back(op_woda->getLogicalID()->clone());
+//		lvec->push_back(op_woda->getLogicalID()/*->clone()*/);
 		dv = store->createVectorValue(lvec);
+		delete lvec;
 		cout << dv->toString() << endl;
 		store->createObject(&tid, "wiadro", dv, op_wiadro);
-//		delete dv;
+		delete dv;
 		cout << op_wiadro->toString() << endl;
 		
 		store->addRoot(&tid, op_wiadro);
 
-
+		lvec = new vector<LogicalID*>(0);
 		lvec->push_back(op_woda->getLogicalID()/*->clone()*/);
 		dv = store->createVectorValue(lvec);
-		op_wiadro->setValue(dv);
+		delete lvec;
+		store->modifyObject(&tid, op_wiadro, dv);
+		//delete op_wiadro;
+		delete dv;
+		cout << op_wiadro->toString() << endl;
 
 
 		
-//		delete op_woda;
-		
+		delete op_woda;
+//		delete op_wiadro;
+				
 /*		LogicalID* lid = op_wiadro->getLogicalID()->clone();
 		delete op_wiadro; // bez clone, lid wskazywalby teraz na usuniety lid
 		cout << lid->toString() << endl;
@@ -151,7 +157,7 @@ cout << "DZIWNY KOD ---------\n";
 //		store->createObject(&tid, op_wiadro->getName(), dv, op_wiadro);
 */		
 		store->stop();
-		log->shutdown();
+	//	log->shutdown();
 		cout << "END" << endl;
 		return 0;
 	}

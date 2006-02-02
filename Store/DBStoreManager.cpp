@@ -158,7 +158,8 @@ namespace Store
 		unsigned log_id;
 		int itid = tid==NULL ? -1 : tid->getId();
 #ifdef LOGS
-		log->write(itid, lid, name, NULL, value, log_id);
+		// klon lida dla logow
+		log->write(itid, lid->clone(), name, NULL, value, log_id);
 #endif
 		object = new DBObjectPointer(name, value, lid);
 
@@ -201,7 +202,8 @@ namespace Store
 		unsigned log_id;
 		int itid = tid==NULL ? -1 : tid->getId();
 #ifdef LOGS
-		log->write(itid, object->getLogicalID(), object->getName(), object->getValue(), NULL, log_id);
+		// klony dla logow
+		log->write(itid, object->getLogicalID()->clone(), object->getName(), object->getValue(), NULL, log_id);
 #endif
 		physical_id *p_id = NULL;
 		if( (map->getPhysicalID(object->getLogicalID()->toInteger(),&p_id)) == 2 ) return 2; //out of range
@@ -270,6 +272,20 @@ namespace Store
 		return 0;
 	}
 	
+	int DBStoreManager::modifyObject(TransactionID* tid, ObjectPointer*& object, DataValue* dv)
+	{
+		*ec << "Store::Manager::modifyObject start...";
+		
+		deleteObject(tid, object);
+		ObjectPointer* newobj;
+		createObject(tid, object->getName(), dv, newobj, object->getLogicalID());
+		delete object;
+		object = newobj;
+		
+		*ec << "Store::Manager::modifyObject done";
+		return 0;
+	}
+	
 	int DBStoreManager::replaceDV(ObjectPointer* object, DataValue* dv)
 	{
 		TransactionID t(99999);
@@ -320,7 +336,8 @@ namespace Store
 		unsigned log_id;
 		int itid = tid==NULL ? -1 : tid->getId();
 #ifdef LOGS
-		log->addRoot(itid, object->getLogicalID(), log_id);
+		// klon dla logow
+		log->addRoot(itid, object->getLogicalID()->clone(), log_id);
 #endif
 		roots->addRoot(lid);
 		
@@ -335,7 +352,8 @@ namespace Store
 		unsigned log_id;
 		int itid = tid==NULL ? -1 : tid->getId();
 #ifdef LOGS
-		log->removeRoot(itid, object->getLogicalID(), log_id);
+		// klon dla logow
+		log->removeRoot(itid, object->getLogicalID()->clone(), log_id);
 #endif
 		roots->removeRoot(lid);
 		
