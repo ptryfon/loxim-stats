@@ -65,7 +65,7 @@ namespace TManager
 		return errorNumber; 
 	}
 	
-	int Transaction::modifyObject(ObjectPointer* op, DataValue* dv)
+	int Transaction::modifyObject(ObjectPointer*& op, DataValue* dv)
 	{
 	    int errorNumber;
 	    

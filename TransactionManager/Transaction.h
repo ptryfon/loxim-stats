@@ -66,7 +66,7 @@ namespace TManager
 	    	
 	     	 	/* Executor calls: */
 		    	int getObjectPointer(LogicalID* lid, AccessMode mode, ObjectPointer* &p);
-			int modifyObject(ObjectPointer* op, DataValue* dv);
+			int modifyObject(ObjectPointer* &op, DataValue* dv);
 		    	int createObject(string name, DataValue* value, ObjectPointer* &p);
 		    	int deleteObject(ObjectPointer* object);
 		    
