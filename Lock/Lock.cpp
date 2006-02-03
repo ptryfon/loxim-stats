@@ -73,7 +73,7 @@ namespace LockMgr
 			
 			mutex->down();
 		}
-
+		err.printf("Lock received\n");
 		if ((*transaction_locks)[tid] == 0 )
 		    (*transaction_locks)[tid] = new SingleLockSet;
 			    

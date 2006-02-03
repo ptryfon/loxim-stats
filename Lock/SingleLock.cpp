@@ -50,14 +50,6 @@ namespace LockMgr
 	errorCode = 0;
 	/* prevention against deadlocks: strategy wait - die */
 	mutex->down();
-		if ( tid->getId() < _tid->getId() )
-		/* younger dies ( younger = higher id ) */
-		{
-			mutex->up();
-			/* deadlock exception - rollback transaction */
-			err.printf("Deadlock exception\n");
-			return ErrTManager | EDeadlock; 
-		}
 
 	int isCurrentRead  = currentRead->find(_tid)  != currentRead->end();
 	int isCurrentWrite = currentWrite->find(_tid) != currentWrite->end();
@@ -79,6 +71,16 @@ namespace LockMgr
 	else if (_mode == Read && isCurrentWrite)
 	/* this transaction holds object in exclusive access mode */
 	{
+
+//		if ( tid->getId() < _tid->getId() )
+		/* younger dies ( younger = higher id ) */
+//		{
+//			mutex->up();
+//			/* deadlock exception - rollback transaction */
+//			err.printf("Deadlock exception\n");
+//			return ErrTManager | EDeadlock; 
+//		}
+
 		waiting--;
 		return 0;
 	}
