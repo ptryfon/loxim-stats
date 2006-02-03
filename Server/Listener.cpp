@@ -173,7 +173,10 @@ void *createServ(void *arg) {
     }	
     
     Server *srv = new Server(socket);
-    
+
+    // watek zaczynal sie wykonywac zanim thread_index zostal zwiekszony
+    // wiec myslal ze go nie ma, sleep(1) wystarcza w wiekszosci przypadkow
+    sleep(1);    
     // TODO update thread global data
     pthread_mutex_lock(&mut);
 	if ((res=getMyIndex((int)pthread_self(),&ec))<0) {
