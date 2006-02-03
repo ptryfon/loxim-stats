@@ -73,10 +73,12 @@ namespace TManager
 	    
 	    sem->lock_write();
 	    
-		errorNumber = sm->modifyObject(tid, op, dv);
+		errorNumber = lm->lock(op->getLogicalID(), tid, Write);
+		if (errorNumber == 0)
+		    errorNumber = sm->modifyObject(tid, op, dv);
 	    
 	    sem->unlock();
-	        
+
 	    return errorNumber;
 	}
 	
