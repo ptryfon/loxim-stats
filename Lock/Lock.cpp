@@ -57,7 +57,7 @@ namespace LockMgr
 			/* creating new single lock */
 			RWUJSemaphore* rwsem = new RWUJSemaphore();
 			rwsem->init();
-			lock = new SingleLock(tid, mode, new RWUJSemaphore(), single_lock_id);
+			lock = new SingleLock(tid, mode, rwsem, single_lock_id);
 			lock->setPHID(phid);
 			
 			single_lock_id++;
