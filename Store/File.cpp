@@ -67,9 +67,12 @@ namespace Store
 			if (froots > 0) close(froots);
 			if (fdefault > 0) close(fdefault);
 
-			fmap = ::open(smap.c_str(), O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
-			froots = ::open(sroots.c_str(), O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
-			fdefault = ::open(sdefault.c_str(), O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
+			if ((fmap = ::open(smap.c_str(), O_CREAT | O_RDWR, S_IRUSR | S_IWUSR)) == -1)
+				return 0;
+			if ((froots = ::open(sroots.c_str(), O_CREAT | O_RDWR, S_IRUSR | S_IWUSR)) == -1)
+				return 0;
+			if ((fdefault = ::open(sdefault.c_str(), O_CREAT | O_RDWR, S_IRUSR | S_IWUSR)) == -1)
+				return 0;
 
 			store->getMap()->initializeFile(this);
 			store->getRoots()->initializeFile(this);
