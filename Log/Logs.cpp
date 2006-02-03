@@ -125,9 +125,10 @@ int LogManager::checkpoint( vector<int> *tids, unsigned &id )
 {
   LogRecord *record = new CkptRecord( tids );
   logThread->push( record );
+  //flushLog();
   record->getId( id );
 
-  printf( "LogManager: checkpoint\n" );
+  printf( "LogManager: checkpoint!!\n" );
 
   return 0;
 }
@@ -136,6 +137,7 @@ int LogManager::endCheckpoint( unsigned &id )
 {
   LogRecord *record = new EndCkptRecord();
   logThread->push( record );
+  //flushLog();
   record->getId( id );
 
   printf( "LogManager: end checkpoint\n");
@@ -153,7 +155,7 @@ int LogManager::commitTransaction( int tid, unsigned &id )
   record->getId( id );
   
   //sk
-  err = flushLog();
+  //err = flushLog();
   
   printf( "LogManager: commitTransaction\n" );
 
@@ -173,8 +175,8 @@ int LogManager::rollbackTransaction( int tid, StoreManager *sm, unsigned &id )
   int fd;
   int err=0;
   SetOfTransactionIDS setOfTIDs;
-  if( ( err = flushLog() ) > 0 )
-    return err;
+  //if( ( err = flushLog() ) > 0 )
+   // return err;
   if( ( fd = ::open( logFilePath.c_str(), O_RDONLY) ) < 0 ) return errno;
   //przesunięcie na koniec bo czytamy od końca.
   //UWAGA! jeśli może być tak, że  rozmiar pliku zmienia się o część zapisanych w pliku danych, to będzie źle
@@ -214,7 +216,7 @@ int LogManager::shutdown( unsigned &id )
 {
   LogRecord *record = new ShutdownRecord();
   logThread->push( record );
-  flushLog();
+  //flushLog();
   record->getId( id );
 
   printf( "LogManager: shutdown\n" );

@@ -107,12 +107,12 @@ int errCode;
     logManager.write( tid, op->getLogicalID(), "mis", oldDataValue, newDataValue, id );
 */  }
 
-  vector<int> vec;
-  vec.push_back( 10 );
-  vec.push_back( 20 );
+  vector<int> *vec = new vector<int>();
+  vec->push_back( 10 );
+  vec->push_back( 20 );
   unsigned idx;
   
-  logManager.checkpoint( &vec, idx);
+  //logManager.checkpoint( vec, idx);
   logManager.flushLog();
   printLog( logManager.getLogFilePath().c_str(), sm);
   exit( 0 );
