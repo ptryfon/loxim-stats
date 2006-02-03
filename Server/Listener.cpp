@@ -248,6 +248,7 @@ int Listener::Start(int port) {
 	    sigprocmask(SIG_BLOCK, &lBlock_cc, NULL);
 	    pthread_mutex_lock(&mut);
 	    thread_sockets[threads_count]=newSock;
+	    pthread_mutex_unlock(&mut);    
 	
 	    if ((errorCode=pthread_create(&pthreads[threads_count], NULL, createServ, &thread_sockets[threads_count]))!=0) {
 		lCons->printf("[Listener.Start]--> THREAD creation FAILED. Failed thread number=|%d|\n", threads_count);
@@ -255,12 +256,10 @@ int Listener::Start(int port) {
 		for (i=0;i<threads_count;i++) {
 		    if ((errorCode=pthread_join(pthreads[i], (void **)&status))!=0) { //STATUS !!
 			lCons->printf("[Listener.Start]--> ERROR - failed to join thread: %s\n", strerror(errorCode));
-			pthread_mutex_unlock(&mut);
 			exit(errorCode);
 		    }   
 		    if (status!=0) {
 			lCons->printf("[Listener.Start]--> Server thread nr. |%d| terminated with error\n", i);
-			pthread_mutex_unlock(&mut);
 			exit(status);
 		    }
 		    else {
@@ -272,7 +271,7 @@ int Listener::Start(int port) {
 		lCons->printf("[Listener.Start]--> THREAD creation SUCCESSFUL -> thread nr. |%d|\n", i);
 		threads_count++;
 	    }
-	    pthread_mutex_unlock(&mut);
+
 	    *lCons << "[Listener.Start]--> THREAD handled";
 	    sigprocmask(SIG_UNBLOCK, &lBlock_cc, NULL);
 	}
