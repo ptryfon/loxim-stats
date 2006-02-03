@@ -92,5 +92,16 @@ int main(int argc, char *argv[]) {
     }
   } //while
 
+  
+  cerr << endl << "<SBQLCli> auto abort on exit " << endl;
+  Result* result = NULL; 
+  try {
+    result = con->execute("abort;");
+    cout << *result << endl;
+  } catch (ConnectionServerException e) {
+    cerr << e << endl;
+  }  
+  
+
   return 0;		
 }
