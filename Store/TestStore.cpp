@@ -124,6 +124,17 @@ int main(int argc, char* argv[])
 		store->getRoots(&tid, ov);
 		cout << ov->size() << endl;
 
+		cout << "Getting roots:\n";
+		vector<int>* rv = store->getRoots()->getRoots();
+		if (rv)
+		{
+			vector<int>::iterator ri;
+			for (ri = rv->begin(); ri != rv->end(); ri++)
+				cout << (int) *ri << "\n";
+			delete rv;
+		}
+
+
 		delete op_woda;
 //		delete op_wiadro;
 				
@@ -192,6 +203,7 @@ cout << "DZIWNY KOD ---------\n";
 		store->setTManager(TransactionManager::getHandle());
 		store->start();
 
+/*
 		physical_id* pid = NULL;
 		Map* map = store->getMap();
 		unsigned int lid = map->createLogicalID();
@@ -200,13 +212,13 @@ cout << "DZIWNY KOD ---------\n";
 		cout << map->setPhysicalID(lid, pid) << "\n";
 		if (pid)
 			delete pid;
-/*
+*/
 		Roots* roots = store->getRoots();
 
-		cout << "addRoot(0x32) = " << roots->addRoot(0x32) << "\n";
+//		cout << "addRoot(0x32) = " << roots->addRoot(0x32) << "\n";
 		cout << "addRoot(0x31) = " << roots->addRoot(0x31) << "\n";
-		cout << "addRoot(0x30) = " << roots->addRoot(0x30) << "\n";
-		cout << "addRoot(0x33) = " << roots->addRoot(0x33) << "\n";
+//		cout << "addRoot(0x30) = " << roots->addRoot(0x30) << "\n";
+//		cout << "addRoot(0x33) = " << roots->addRoot(0x33) << "\n";
 		cout << "removeRoot(0x31) = " << roots->removeRoot(0x31) << "\n";
 
 		cout << "Getting roots:\n";
@@ -218,7 +230,6 @@ cout << "DZIWNY KOD ---------\n";
 				cout << (int) *ri << "\n";
 			delete rv;
 		}
-*/
 
 		store->stop();
 	}
