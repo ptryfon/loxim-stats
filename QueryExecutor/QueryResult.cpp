@@ -612,7 +612,9 @@ bool QueryReferenceResult::equal(QueryResult *r){
 	if (r->type() != QueryResult::QREFERENCE ) {
 		return false; 
 	}
-	bool tmp_value = ((int)value == (int)(((QueryReferenceResult*) r)->getValue()));
+	unsigned int first = value->toInteger();
+	unsigned int second = (((QueryReferenceResult*) r)->getValue())->toInteger();
+	bool tmp_value = (first == second);
 	return tmp_value;
 }
 
