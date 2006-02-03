@@ -102,7 +102,7 @@ namespace Store
 		PagePointer* page = 0;
 		int found = 0;
 
-		for (unsigned int i = 0; i < last && !found; i++)
+		for (unsigned int i = 0; i <= last && !found; i++)
 		{
 			unsigned int pageid = STORE_ROOTS_ROOTPAGE(i);
 
