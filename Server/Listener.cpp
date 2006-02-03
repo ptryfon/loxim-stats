@@ -236,6 +236,8 @@ int Listener::Start(int port) {
 	if (setjmp(j)!=0) {
 	    *lCons << "[Listener.Start]--> Jumped.. Stopping Store manager and  closing socket..";
 	    sm->stop();
+	    unsigned idx;
+	    lm->shutdown(idx);
 	    delete TransactionManager::getHandle();
 	    Unlock();
 	    errorCode=CloseSocket(sock);
