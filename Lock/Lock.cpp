@@ -55,6 +55,8 @@ namespace LockMgr
 	    	{
 			err.printf("New lock, tid = %d\n", tid->getId() );
 			/* creating new single lock */
+			RWUJSemaphore* rwsem = new RWUJSemaphore();
+			rwsem->init();
 			lock = new SingleLock(tid, mode, new RWUJSemaphore(), single_lock_id);
 			lock->setPHID(phid);
 			
