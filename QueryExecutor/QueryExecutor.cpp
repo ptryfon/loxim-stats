@@ -677,6 +677,25 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 					res = new QueryStringResult(tmp_value);
 					break;
 				}
+				case Store::Pointer: {
+					*ec << "[QE] derefQuery() - ObjectValue = Pointer";
+					LogicalID *tmp_value = value->getPointer();
+					res = new QueryReferenceResult(tmp_value);
+					break;
+				}
+				case Store::Vector: {
+					*ec << "[QE] derefQuery() - ObjectValue = Vector";
+					vector<LogicalID*>* tmp_vec = value->getVector();
+					res = new QueryStructResult();
+					int tmp_vec_size = tmp_vec->size();
+					for (int i = 0; i < tmp_vec_size; i++) {
+						QueryResult *currIDRes;
+						LogicalID *currID = tmp_vec->at(i);
+						currIDRes = new QueryReferenceResult(currID);
+						res->addResult(currIDRes);
+					}
+					break;
+				}
 				default: {
 					*ec << "[QE] derefQuery() - wrong argument type";
 					res = new QueryNothingResult();
