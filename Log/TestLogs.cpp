@@ -72,7 +72,9 @@ int main( int argc, char *argv[] )
   sm->setTManager(TransactionManager::getHandle());
   sm->start();
 
-  int errCode = logManager.start( sm );
+//  int errCode = logManager.start( sm );
+int errCode;
+
 
   printf( "Recovery errcode: %d\n", errCode );
 
@@ -105,6 +107,12 @@ int main( int argc, char *argv[] )
     logManager.write( tid, op->getLogicalID(), "mis", oldDataValue, newDataValue, id );
 */  }
 
+  vector<int> vec;
+  vec.push_back( 10 );
+  vec.push_back( 20 );
+  unsigned idx;
+  
+  logManager.checkpoint( &vec, idx);
   logManager.flushLog();
   printLog( logManager.getLogFilePath().c_str(), sm);
   exit( 0 );
