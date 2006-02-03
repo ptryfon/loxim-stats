@@ -71,13 +71,18 @@ namespace TManager
 	    
 	    err.printf("Transaction: %d modifyObjectPointer\n", tid->getId());
 	    
-	    sem->lock_write();
+	    errorNumber = lm->lock(op->getLogicalID(), tid, Write);
 	    
-		errorNumber = lm->lock(op->getLogicalID(), tid, Write);
-		if (errorNumber == 0)
+	    if (errorNumber == 0)
+	    {
+		sem->lock_write();
+
 		    errorNumber = sm->modifyObject(tid, op, dv);
 	    
-	    sem->unlock();
+		sem->unlock();
+	    }
+
+	    if (errorNumber) abort();
 
 	    return errorNumber;
 	}
@@ -185,7 +190,8 @@ namespace TManager
 		
 		sem->lock_write();
 			errorNumber = sm->addRoot(tid, p);
-			if (errorNumber == 0)	
+			/* GUARANTEED no waiting */
+			if (errorNumber == 0)
 			    errorNumber = lm->lock( p->getLogicalID(), tid, Write);
 		sem->unlock();
 		
@@ -204,7 +210,7 @@ namespace TManager
 		
 		if (errorNumber == 0)
 		{
-		    sem->lock_write();		
+		    sem->lock_write();
 			errorNumber = sm->removeRoot(tid, p);		
 		    sem->unlock();
 		}
@@ -288,6 +294,7 @@ namespace TManager
 	
 	TransactionManager::~TransactionManager()
 	{
+		err.printf("Niszcze TransactionManagera\n");
 		/* unlock all unfinished transactions */
 		for (list<TransactionID*>::iterator i = transactions->begin();	i != transactions->end(); i++)
 		    LockManager::getHandle()->unlockAll(*i);
