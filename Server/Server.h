@@ -7,6 +7,8 @@
 #define MAX_MESSG_HEADER_LEN 1
 #define SERIALIZE_DEPTH 1
 
+#include "../QueryExecutor/QueryExecutor.h"
+#include "../QueryParser/QueryParser.h"
 #include "../QueryExecutor/QueryResult.h"
 using namespace QExecutor;
 
@@ -40,6 +42,8 @@ extern void sigHandler(int arg);
 		ErrorConsole *ec;
 
 		int sendError(int errNo);
+		QueryExecutor *qEx;
+		QueryParser *qPa;
 		
 	//TCP methods
 		int Receive(char** buffer, int* receiveDataSize);

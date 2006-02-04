@@ -356,8 +356,8 @@ int Server::Run()
 	//storeManager->setTransactionManager(TransactionManager::getHandle());
 	*/
 	
-	QueryParser *qPa = new QueryParser();
-	QueryExecutor *qEx = new QueryExecutor();
+	qPa = new QueryParser();
+	qEx = new QueryExecutor();
 		
 	TreeNode *tNode;
 	QueryResult *qResult;
@@ -485,9 +485,12 @@ while (!signalReceived) {
 }		
 
 int Server::SExit(int code) {
-    ec->printf("[Server.SExit]--> Server thread freeing buffers and disconnecting - returning code |%d|\n", code);
+    ec->printf("[Server.SExit]--> Server thread freeing buffers, destroying QE, QP and disconnecting - returning code |%d|\n", code);
     free(serialBufBegin);
     free(messgBuff);
+    qPa->QueryParser::~QueryParser();
+    qEx->abort();
+    qEx->QueryExecutor::~QueryExecutor();
     Disconnect();
     ec->printf("[Server.SExit]--> Server THREAD nr |%d| CLEANUP COMPLETE, returning\n", pthread_self());
     return code;
