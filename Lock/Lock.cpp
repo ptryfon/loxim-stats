@@ -98,7 +98,7 @@ namespace LockMgr
 		        iter != locks->end(); iter++)
 		    {
 				err.printf("Unlock single, tid = %d\n", transaction_id->getId());
-				int delete_lock = unlock((*iter), transaction_id);				
+				int delete_lock = unlock((*iter), transaction_id);
 				
 				if (delete_lock) 
 				{
@@ -114,6 +114,30 @@ namespace LockMgr
 	
 		mutex->up();
 		return 0;
+    }
+
+    int LockManager::modifyLockLID(DBPhysicalID* oldPHID, LogicalID* newLID, TransactionID* tid)
+    {
+	int errorNumber = 0;
+
+	err.printf("modifyLockLID, tid = %d\n", tid->getId());
+
+	mutex->down();
+	    DBPhysicalID* newPHID = newLID->getPhysicalID();
+	    DBPhysicalIdMap::iterator pos = map_of_locks->find(oldPHID);
+	    if (pos != map_of_locks->end())
+	    {
+		    SingleLock* lock = pos->second;
+		    map_of_locks->erase(oldPHID);
+		    lock->setPHID(newPHID);
+		    (*map_of_locks)[newPHID] = lock;	
+		    //map_of_locks->insert(lock);
+	    }
+	    else errorNumber = -1;
+	
+	mutex->up();
+
+	return errorNumber;
     }
     
     int LockManager::unlock(SingleLock* lock, TransactionID* tid)

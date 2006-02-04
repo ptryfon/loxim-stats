@@ -90,6 +90,12 @@ class LockManager
 	    	 * to unlock all objects related with this transaction
 	     	*/
 	    	int unlockAll(TransactionID* );
+
+	    	/*
+		 * object modification is implemented as deleting the old and creating the new one
+		 * so we must also modify lock to be seen as old one with new value
+	     	*/
+	    	int modifyLockLID(DBPhysicalID* , LogicalID* , TransactionID*); 
 };
 
 } /* namespace LockMgr */
