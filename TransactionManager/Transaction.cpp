@@ -71,13 +71,15 @@ namespace TManager
 	    
 	    err.printf("Transaction: %d modifyObjectPointer\n", tid->getId());
 	    
-	    errorNumber = lm->lock(op->getLogicalID(), tid, Write);
-	    
 	    if (errorNumber == 0)
 	    {
 		sem->lock_write();
 
 		    errorNumber = sm->modifyObject(tid, op, dv);
+
+		    if (errorNumber == 0)
+		    /* guaranteed not wait for lock */
+			errorNumber = lm->lock(op->getLogicalID(), tid, Write);
 	    
 		sem->unlock();
 	    }
