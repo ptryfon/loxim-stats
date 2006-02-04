@@ -42,7 +42,9 @@ namespace QParser {
 		DataObjectDef *subObjects;	/* TYLKO U COMPLEX */
 		//list<DataObjectDef *> subObjects;	/* TYLKO U COMPLEX */
 		DataObjectDef *target;		/* TYLKO U LINK */
+		int		targetId;
 		DataObjectDef *owner;		/* o ile to nie ob. bazowy. wtedy null. */
+		int 		ownerId;
 		
 	public:
 		DataObjectDef() {subObjects = NULL; target = NULL; owner = NULL; nextBase = NULL; nextSub = NULL; nextHash = NULL;}
