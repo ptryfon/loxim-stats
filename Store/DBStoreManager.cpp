@@ -206,8 +206,12 @@ namespace Store
 		log->write(itid, object->getLogicalID()->clone(), object->getName(), object->getValue()->clone(), NULL, log_id);
 #endif
 		physical_id *p_id = NULL;
-		if( (map->getPhysicalID(object->getLogicalID()->toInteger(),&p_id)) == 2 ) return 2; //out of range
-		cout << "file: " << p_id->file_id << ", page: " << p_id->page_id << ", off: " << p_id->offset <<endl;
+		if( (map->getPhysicalID(object->getLogicalID()->toInteger(),&p_id)) == 2 ) {
+			ec->printf("Store::Manager::deleteObject failed: LID=%d out of range\n(brak ustalonego kodu bledu dla tej operacji, default -> return 2;\n", object->getLogicalID()->toInteger());
+			return 2; //out of range
+		}
+		//cout << "file: " << p_id->file_id << ", page: " << p_id->page_id << ", off: " << p_id->offset <<endl;
+		ec->printf("file: %d, page: %d, offset: %d\n", p_id->file_id, p_id->page_id, p_id->offset);
 		if((!p_id->file_id) && (!p_id->page_id) && (!p_id->offset)) return 2;
 		PagePointer *pPtr = buffer->getPagePointer(p_id->file_id, p_id->page_id);
 
@@ -217,7 +221,8 @@ namespace Store
 		p->header.timestamp = log_id;		
 
 // tr do konca
-
+		
+		int ooff = p_id->offset;
 		int pos_table = p_id->offset;
 		int end_of_object;
 	
@@ -260,8 +265,11 @@ namespace Store
 		map->setPhysicalID(object->getLogicalID()->toInteger(), p_id);
 
 		// uaktualnienie info na stronie
-		p->object_count--;
-		p->free_space = p->free_space + object_size;
+		if(p->object_count-1 == ooff) {
+			p->object_count--;
+			p->free_space = p->free_space + object_size + sizeof(int);
+		} else
+			p->free_space = p->free_space + object_size;
 
 		pagemgr->updateFreeMap(pPtr);
 		

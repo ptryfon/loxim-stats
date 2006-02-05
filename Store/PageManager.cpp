@@ -26,80 +26,7 @@ namespace Store
 		store = p_store;
 		buffer = store->getBuffer();
 	}
-/*
-	BinaryObject::BinaryObject(int psize)
-	{
-		bytes = new unsigned char[psize];
-		size = psize; 
-	}
 
-	int PageManager::binarizeSize(ObjectPointer *obj)
-	{
-		return 0;
-	}
-	
-	int PageManager::binarize(ObjectPointer *obj, BinaryObject*& binobj)
-	{
-		binobj = new BinaryObject(binarizeSize(obj));
-		int writePosition = 0;
-		int asize = 0;
-		unsigned char* adata = NULL;
-		unsigned int tmp = 0;
-		
-		//LogicalID
-		obj->getLogicalID()->toByteArray(&adata, &asize);
-		for(int i=0; i<asize; i++)
-			binobj->bytes[writePosition++] = adata[i];
-		if(adata) delete[] adata;
-		adata = NULL;
-		
-		//random
-		tmp = (rand()%0x100) << 24 + (rand()%0x100) << 16 +
-			(rand()%0x100) << 8 + (rand()%0x100);
-		adata = reinterpret_cast<unsigned char*>(&tmp);
-		for(unsigned int i=0; i<sizeof(unsigned int); i++)
-			binobj->bytes[writePosition++] = adata[i];
-		adata = NULL;
-		
-		string name = obj->getName();
-		//namesize
-		tmp = static_cast<unsigned int>(name.length());
-		adata = reinterpret_cast<unsigned char*>(&tmp);
-		for(unsigned int i=0; i<sizeof(unsigned int); i++)
-			binobj->bytes[writePosition++] = adata[i];
-		adata = NULL;
-
-		//name
-		asize = name.length();
-		for(int i=0; i<asize; i++)
-			binobj->bytes[writePosition++] =
-				static_cast<unsigned char>(name[i]);
-		
-		//value
-		obj->getValue()->toFullByteArray(&adata, &asize);
-		for(int i=0; i<asize; i++)
-			binobj->bytes[writePosition++] = adata[i];
-		if(adata) delete[] adata;
-		adata = NULL;
-
-	
-		return 0;
-	}
-*/	
-/*	int PageManager::writeNewHeader(PagePointer *pPtr)
-	{
-		page_data *page = reinterpret_cast<page_data*>(pPtr->getPage());
-		
-		page->header.file_id = pPtr->getFileID();
-		page->header.page_id = pPtr->getPageID();
-		page->header.page_type = 0;
-		page->header.timestamp = 0;
-		page->object_count = 0;
-		page->free_space = STORE_PAGESIZE - sizeof(page_header);
-		
-		return 0;
-	}
-*/	
 	int PageManager::insertObject(PagePointer *pPtr, Serialized& obj, int* pidoffset, unsigned log_id)
 	{
 		ErrorConsole ec("Store");
@@ -217,7 +144,7 @@ namespace Store
 	int PageManager::getFreePage(int space)
 	{
 		ErrorConsole ec("Store");
-		ec << "Store::PageManager::getFreePage begin...";
+		ec.printf("Store::PageManager::getFreePage(%i) begin...\n", space);
 		int pii = 0;
 		do	{
 			PagePointer* pPtr = buffer->getPagePointer(STORE_FILE_DEFAULT, pii);
