@@ -231,7 +231,7 @@ int Listener::Start(int port) {
 	lCons->printf("[Listener.Start]--> Starting Store manager.. \n");
 	sm->start();
 	lCons->printf("[Listener.Start]--> Starting Log manager.. \n");
-	//lm->start(sm);
+	lm->start(sm);
 	
 	if (setjmp(j)!=0) {
 	    *lCons << "[Listener.Start]--> Jumped.. Stopping Store manager and  closing socket..";
