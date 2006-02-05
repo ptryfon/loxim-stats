@@ -68,11 +68,11 @@ namespace Store
 			if (fdefault > 0) close(fdefault);
 
 			if ((fmap = ::open(smap.c_str(), O_CREAT | O_RDWR, S_IRUSR | S_IWUSR)) == -1)
-				return 0;
+				return EBadFile;
 			if ((froots = ::open(sroots.c_str(), O_CREAT | O_RDWR, S_IRUSR | S_IWUSR)) == -1)
-				return 0;
+				return EBadFile;
 			if ((fdefault = ::open(sdefault.c_str(), O_CREAT | O_RDWR, S_IRUSR | S_IWUSR)) == -1)
-				return 0;
+				return EBadFile;
 
 			store->getMap()->initializeFile(this);
 			store->getRoots()->initializeFile(this);

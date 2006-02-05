@@ -1,7 +1,10 @@
 /**
- * $Id: Buffer.cpp,v 1.29 2006-02-02 08:05:59 mk189406 Exp $
+ * $Id: Buffer.cpp,v 1.30 2006-02-05 21:24:48 mk189406 Exp $
  *
  * $Log: not supported by cvs2svn $
+ * Revision 1.29  2006/02/02 08:05:59  mk189406
+ * Modyfikacja stop()
+ *
  * Revision 1.28  2006/01/31 18:52:53  md243003
  * Poprawione zarzadzanie pamiecia, dodane klonowanie DV i LID, zrobione wektory, pewnie cos jeszcze ale nie pamietam
  *
@@ -45,10 +48,13 @@ namespace Store
 
 	int Buffer::start()
 	{
+		int retval;
+
 		if (started)
 			return 0;
 
-		file->start();
+		if ((retval = file->start()) != 0)
+			return retval;
 
 		::pthread_mutex_init(&dbwriter.mutex, NULL);
 		::pthread_cond_init(&dbwriter.cond, NULL);
