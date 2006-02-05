@@ -27,17 +27,17 @@ int LogManager::init()
   int errCode = 0;
 
   config = new SBQLConfig( "Log" );
-  config->init( "../Server/Server.conf" );
+//  config->init( "../Server/Server.conf" );
   if( ( errCode = config->getString( "logspath", logFilePath ) ) ) return errCode;
 
-  printf( "LogsPath: %s\n", logFilePath.c_str() );
+  ec->printf( "LogsPath: %s\n", logFilePath.c_str() );
 
   // nie wykonujecie tej metody!
   // jedyne miejsce gdzie ec->init ma prawo wystapic to main()
 
   // no kurde! A gdzie jest wolane LogManager::init()? Nie w MAIN()?!
   // i skad ja w main() wezme ec, jesli to jest chronione pole LogManagera?
-  ec->init(2); // baggins, prosze - nie kasuj!
+  //ec->init(2); // baggins, prosze - nie kasuj!
 
   // otwieramy plik z logami
   if( ( fileDes = ::open( logFilePath.c_str(), O_WRONLY | O_CREAT | O_APPEND, S_IWUSR | S_IRUSR ) ) < 0 ) return errno;
@@ -73,7 +73,7 @@ int LogManager::destroy()
 
   ::close( fileDes );
 
-  printf( "LogManager: destroy()\n" );
+  *ec << "LogManager: destroy()";
 
   return 0;
 }
@@ -84,7 +84,7 @@ int LogManager::beginTransaction( int tid, unsigned &id )
   logThread->push( record );
   record->getId( id );
 
-  printf( "LogManager: beginTransaction\n" );
+  *ec << "LogManager: beginTransaction";
 
   return 0;
 }
@@ -96,7 +96,7 @@ int LogManager::write( int tid, LogicalID *lid, string name, DataValue *oldVal, 
   pushLogable( tid, record );
   record->getId( id );
 
-  printf( "LogManager: write\n" );
+  *ec << "LogManager: write";
 
   return 0;
 }
@@ -107,7 +107,7 @@ int LogManager::addRoot( int tid, LogicalID *lid, unsigned &id )
   pushLogable( tid, record );
   record->getId( id );
 
-  printf( "LogManager: addRoot\n");
+  *ec << "LogManager: addRoot";
   return 0;
 }
 
@@ -117,7 +117,7 @@ int LogManager::removeRoot( int tid, LogicalID *lid, unsigned &id )
   pushLogable( tid, record );
   record->getId( id );
 
-  printf( "LogManager: addRoot\n" );
+  *ec << "LogManager: addRoot";
   return 0;
 }
 
@@ -128,7 +128,7 @@ int LogManager::checkpoint( vector<int> *tids, unsigned &id )
   flushLog();
   record->getId( id );
 
-  printf( "LogManager: checkpoint!!\n" );
+  *ec << "LogManager: checkpoint!!";
 
   return 0;
 }
@@ -140,7 +140,7 @@ int LogManager::endCheckpoint( unsigned &id )
   flushLog();
   record->getId( id );
 
-  printf( "LogManager: end checkpoint\n");
+  *ec << "LogManager: end checkpoint";
 
   return 0;
 }
@@ -157,7 +157,7 @@ int LogManager::commitTransaction( int tid, unsigned &id )
   //sk
   err = flushLog();
   
-  printf( "LogManager: commitTransaction\n" );
+  *ec << "LogManager: commitTransaction";
 
   //sk
   return err;
@@ -207,7 +207,7 @@ int LogManager::rollbackTransaction( int tid, StoreManager *sm, unsigned &id )
   logThread->push( record );
   record->getId( id );
 
-  printf( "LogManager: rollbackTransaction\n" );
+  *ec << "LogManager: rollbackTransaction";
 
   return 0;
 }
@@ -219,7 +219,7 @@ int LogManager::shutdown( unsigned &id )
   flushLog();
   record->getId( id );
 
-  printf( "LogManager: shutdown\n" );
+  *ec << "LogManager: shutdown";
 
   return 0;
 }
