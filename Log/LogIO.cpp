@@ -140,7 +140,7 @@ int LogIO::readString( int fileDes, string &str )
 
   str.clear();
   str.append(buffer, len);
-  delete buffer;
+  delete[] buffer;
 
   return 0;
 }

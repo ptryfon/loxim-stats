@@ -1,5 +1,6 @@
 #include "LogThread.h"
 #include <string.h>
+#include <signal.h>
 
 
 /* LogThread class */
@@ -50,6 +51,12 @@ void LogThread::main() {
   int errCode;
   LogRecord *logRecord;
 
+  sigset_t mask;
+
+  sigemptyset( &mask );
+  sigaddset( &mask, SIGINT );
+  pthread_sigmask( SIG_BLOCK, &mask, NULL );
+
   while( !( errCode = pop( logRecord ) ) )
   {
     if( ( errCode = LogRecord::writeLogRecord( logRecord, fileDes ) ) )
@@ -71,14 +78,14 @@ void LogThread::main() {
 int LogThread::flush() {
   int err = 0;
 
-  ::pthread_mutex_lock( &threadFlagMutex );
-  while( !queue.empty() || err ) {
-    err = ::pthread_cond_wait( &threadFlagCV, &threadFlagMutex );
-  }
-  //sk
-  if(fsync(fileDes) < 0) err = errno;
+//   ::pthread_mutex_lock( &threadFlagMutex );
+//   while( !queue.empty() || err ) {
+//     err = ::pthread_cond_wait( &threadFlagCV, &threadFlagMutex );
+//   }
+//   //sk
+//   if(fsync(fileDes) < 0) err = errno;
   
-  ::pthread_mutex_unlock( &threadFlagMutex );
+//   ::pthread_mutex_unlock( &threadFlagMutex );
 
   return err;
 }
