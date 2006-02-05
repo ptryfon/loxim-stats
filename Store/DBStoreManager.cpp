@@ -158,8 +158,8 @@ namespace Store
 		unsigned log_id;
 		int itid = tid==NULL ? -1 : tid->getId();
 #ifdef LOGS
-		// klon lida dla logow
-		log->write(itid, lid->clone(), name, NULL, value, log_id);
+		// klony lida dla logow
+		log->write(itid, lid->clone(), name, NULL, value->clone(), log_id);
 #endif
 		object = new DBObjectPointer(name, value, lid);
 
@@ -203,7 +203,7 @@ namespace Store
 		int itid = tid==NULL ? -1 : tid->getId();
 #ifdef LOGS
 		// klony dla logow
-		log->write(itid, object->getLogicalID()->clone(), object->getName(), object->getValue(), NULL, log_id);
+		log->write(itid, object->getLogicalID()->clone(), object->getName(), object->getValue()->clone(), NULL, log_id);
 #endif
 		physical_id *p_id = NULL;
 		if( (map->getPhysicalID(object->getLogicalID()->toInteger(),&p_id)) == 2 ) return 2; //out of range
