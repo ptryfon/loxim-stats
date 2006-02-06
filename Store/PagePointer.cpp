@@ -24,12 +24,12 @@ namespace Store
 
 	int PagePointer::aquire()
 	{
-		return buffer->aquirePage(fileID, pageID);
+		return buffer->acquirePage(this);
 	};
 
 	int PagePointer::release()
 	{
-		return buffer->releasePage(fileID, pageID);
+		return buffer->releasePage(this);
 	};
 
 	char* PagePointer::getPage()

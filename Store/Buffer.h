@@ -63,8 +63,8 @@ namespace Store
 
 		PagePointer* getPagePointer(unsigned short fileID, unsigned int pageID);
 		int readPage(unsigned short fileID, unsigned int pageID, buffer_page*& n_page);
-		int aquirePage(unsigned short fileID, unsigned int pageID);
-		int releasePage(unsigned short fileID, unsigned int pageID);
+		int acquirePage(PagePointer* pp);
+		int releasePage(PagePointer* pp);
 		static void* dbWriterThread(void* arg);
 		void* dbWriterMain(void);
 		int dbWriterWrite(void);

@@ -1,19 +1,5 @@
 /**
- * $Id: Buffer.cpp,v 1.30 2006-02-05 21:24:48 mk189406 Exp $
- *
- * $Log: not supported by cvs2svn $
- * Revision 1.29  2006/02/02 08:05:59  mk189406
- * Modyfikacja stop()
- *
- * Revision 1.28  2006/01/31 18:52:53  md243003
- * Poprawione zarzadzanie pamiecia, dodane klonowanie DV i LID, zrobione wektory, pewnie cos jeszcze ale nie pamietam
- *
- * Revision 1.27  2006/01/29 15:48:41  md243003
- * Logi sie segmentuja z niewiadomych przyczyn, dodalem w pliku DBStoreManager.cpp #define LOGS, dzieki ktoremu logi mozna wylaczyc
- *
- * Revision 1.26  2006/01/26 20:01:10  mk189406
- * Komentarz.
- *
+ * $Id: Buffer.cpp,v 1.31 2006-02-06 09:45:52 mk189406 Exp $
  *
  */
 #include "Buffer.h"
@@ -96,13 +82,15 @@ namespace Store
 
 	int Buffer::readPage(unsigned short fileID, unsigned int pageID, buffer_page*& n_page)
 	{
+		int retval;
+
 		n_page = new buffer_page;
 		n_page->page = new char[STORE_PAGESIZE];
 
-		if (file->readPage(fileID, pageID, n_page->page) != 0) {
+		if ((retval = file->readPage(fileID, pageID, n_page->page)) != 0) {
 			delete n_page->page;
 			delete n_page;
-			return -1;
+			return retval;
 		}
 		n_page->haspage = 1;
 		n_page->dirty = 0;
@@ -174,20 +162,32 @@ namespace Store
 		return new PagePointer(fileID, pageID, n_page->page, this);
 	};
 
-	int Buffer::aquirePage(unsigned short fileID, unsigned int pageID)
+	int Buffer::acquirePage(PagePointer* pp)
 	{
+		int retval;
+
 		if (!started)
 			return -1;
 
 		::pthread_mutex_lock(&dbwriter.mutex);
-		buffer_addr_t buffer_addr = make_pair(fileID, pageID);
+		buffer_addr_t buffer_addr = make_pair(pp->getFileID(), pp->getPageID());
 		buffer_hash_t::iterator it = buffer_hash.find(buffer_addr);
 		buffer_page* n_page;
 
 		if (it != buffer_hash.end() && (*it).second.haspage) {
 			n_page = &((*it).second);
+			n_page->lock++;
 
-			n_page->lock = 1;
+			::pthread_mutex_unlock(&dbwriter.mutex);
+			return 0;
+		} else if (it != buffer_hash.end()) {
+			if ((retval = readPage(pp->getFileID(), pp->getPageID(), n_page)) != 0) {
+				::pthread_mutex_unlock(&dbwriter.mutex);
+				return retval;
+			}
+
+			n_page->lock++;
+			(*it).second = *n_page;
 
 			::pthread_mutex_unlock(&dbwriter.mutex);
 			return 0;
@@ -197,25 +197,25 @@ namespace Store
 		}
 	};
 
-	int Buffer::releasePage(unsigned short fileID, unsigned int pageID)
+	int Buffer::releasePage(PagePointer* pp)
 	{
 		if (!started)
 			return -1;
 
 		::pthread_mutex_lock(&dbwriter.mutex);
-		buffer_addr_t buffer_addr = make_pair(fileID, pageID);
+		buffer_addr_t buffer_addr = make_pair(pp->getFileID(), pp->getPageID());
 		buffer_hash_t::iterator it = buffer_hash.find(buffer_addr);
 		buffer_page* n_page;
 
 		if (it != buffer_hash.end() && (*it).second.haspage) {
 			n_page = &((*it).second);
 
-			if (dbwriter.dirty_pages < max_dirty)
-				::pthread_cond_signal(&dbwriter.cond);
-
-			n_page->lock = 0;
+			n_page->lock--;
 
 			if (n_page->dirty != 1) {
+				if (dbwriter.dirty_pages < max_dirty)
+					::pthread_cond_signal(&dbwriter.cond);
+
 				n_page->dirty = 1;
 				dbwriter.dirty_pages++;
 			}
@@ -265,14 +265,14 @@ namespace Store
 		buffer_hash_t::iterator it;
 		buffer_page* n_page;
 		unsigned int cid;
-		//store->getLogManager()->checkpoint(store->getTManager()->getTransactionsIds(), cid);
+
 		store->checkpoint(cid);
 
 		it = buffer_hash.begin();
 		while (it != buffer_hash.end()) {
 			n_page = &((*it).second);
 
-			if (n_page->haspage && (!n_page->lock) && n_page->dirty) {
+			if (n_page->haspage && (n_page->lock == 0) && n_page->dirty) {
 				ec->printf("Store::Buffer: dbwriter writing(file:%d, page:%d)\n", (*it).first.first, (*it).first.second);
 				file->writePage((*it).first.first, (*it).first.second, n_page->page);
 				n_page->dirty = 0;
@@ -282,7 +282,6 @@ namespace Store
 			it++;
 		}
 
-		//store->getLogManager()->endCheckpoint(cid);
 		store->endCheckpoint(cid);
 
 		return 0;
