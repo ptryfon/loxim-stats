@@ -10,8 +10,14 @@ using namespace std;
 using namespace Config;
 
 // nazwy opcji w pliku konfiguracyjnym
-#define DBPATH_KEY "dbpath"
-#define BACKUP_PATH_KEY "backuppath"
+#define DB_DEFAULT_KEY "store_file_default"
+#define DB_MAP_KEY "store_file_map"
+#define DB_ROOTS_KEY "store_file_roots"
+
+#define BACKUP_DEFAULT_KEY "backup_file_default"
+#define BACKUP_MAP_KEY "backup_file_map"
+#define BACKUP_ROOTS_KEY "backup_file_roots"
+
 #define LOGS_PATH_KEY "logspath"
 #define LOCK_PATH_KEY "lockpath"
 
@@ -21,8 +27,17 @@ class BackupManager
   string configPath;
   int verboseLevel;
   SBQLConfig *config;
-  string dbPath;
-  string backupPath;
+  SBQLConfig *serverConfig;
+  SBQLConfig *logConfig;
+  SBQLConfig *storeConfig;
+
+  string dbDefaultPath;
+  string dbMapPath;
+  string dbRootsPath;
+  string backupDefaultPath;
+  string backupMapPath;
+  string backupRootsPath;
+
   string logsPath;
   string lockPath;
 
@@ -37,6 +52,9 @@ class BackupManager
     configPath = aConfigPath;
     verboseLevel = aVerboseLevel;
     config = new SBQLConfig( "Backup" );
+    serverConfig = new SBQLConfig( "Server" );
+    logConfig = new SBQLConfig( "Log" );
+    storeConfig = new SBQLConfig( "Store" );
   }
 
   int init()
@@ -44,13 +62,26 @@ class BackupManager
     int errCode = 0;
 
     config->init( configPath );
+    serverConfig->init( configPath );
+    logConfig->init( configPath );
+    storeConfig->init( configPath );
 
-    if( ( errCode = config->getString( DBPATH_KEY, dbPath ) ) ) return errCode;
-    if( ( errCode = config->getString( BACKUP_PATH_KEY, backupPath ) ) ) return errCode;
-    if( ( errCode = config->getString( LOGS_PATH_KEY, logsPath ) ) ) return errCode;
-    if( ( errCode = config->getString( LOCK_PATH_KEY, lockPath ) ) ) return errCode;
+    if( !errCode ) errCode = config->getString( BACKUP_DEFAULT_KEY, backupDefaultPath );
+    if( !errCode ) errCode = config->getString( BACKUP_MAP_KEY, backupMapPath );
+    if( !errCode ) errCode = config->getString( BACKUP_ROOTS_KEY, backupRootsPath );
+    if( errCode )
+      printf( "Aby Backup mogl dzialac, w pliku konfiguracyjnym musza w sekcji [Backup] istniec wpisy 'backup_file_default',\n"
+              "'backup_file_map' i 'backup_file_roots' odpowiadajace wpisom 'store_file_default', 'store_file_map' i \n"
+              "'store_file_roots' sekcji [Store]!\n" );
 
-    errCode = lock( config );
+    if( !errCode ) errCode = storeConfig->getString( DB_DEFAULT_KEY, dbDefaultPath );
+    if( !errCode ) errCode = storeConfig->getString( DB_MAP_KEY, dbMapPath );
+    if( !errCode ) errCode = storeConfig->getString( DB_ROOTS_KEY, dbRootsPath );
+
+    if( !errCode ) errCode = logConfig->getString( LOGS_PATH_KEY, logsPath );
+    if( !errCode ) errCode = serverConfig->getString( LOCK_PATH_KEY, lockPath );
+
+    if( !errCode ) errCode = lock( serverConfig );
 
     return errCode;
   }
@@ -64,7 +95,13 @@ class BackupManager
   /**
    * Tworzy backup bazy danych w pliku o nazwie pobranym z Configa.
    */
-  int makeBackup() { return copyFile( dbPath, backupPath ); }
+  int makeBackup()
+  {
+    return
+      copyFile( dbDefaultPath, backupDefaultPath ) ||
+      copyFile( dbMapPath, backupMapPath ) ||
+      copyFile( dbRootsPath, backupRootsPath );
+  }
 
   /**
    * Odtwarza baze danych z backupu i logow.  Zakladamy ze przez ten czas
@@ -72,17 +109,22 @@ class BackupManager
    */
   int restore()
   {
-    copyFile( backupPath, dbPath );
-    eraseFile( logsPath );
-    return 0;
+    return
+      copyFile( backupDefaultPath, dbDefaultPath ) ||
+      copyFile( backupMapPath, dbMapPath ) ||
+      copyFile( backupRootsPath, dbRootsPath ) ||
+      eraseFile( logsPath );
   }
-
+  
   string dump();
 
   int done()
   {
-    unlock( config );
+    unlock( serverConfig );
     delete config;
+    delete storeConfig;
+    delete logConfig;
+    delete serverConfig;
 
     return 0;
   }

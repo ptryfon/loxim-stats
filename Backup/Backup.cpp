@@ -211,8 +211,12 @@ int main( int argc, char *argv[] )
 string BackupManager::dump()
 {
   return
-    string( "      dbPath: " ) + dbPath + string( "\n" ) +
-    string( "  backupPath: " ) + backupPath + string( "\n" ) +
+    string( "      dbDefaultPath: " ) + dbDefaultPath + string( "\n" ) +
+    string( "      dbMapPath: " ) + dbMapPath + string( "\n" ) +
+    string( "      dbRootsPath: " ) + dbRootsPath + string( "\n" ) +
+    string( "      backupDefaultPath: " ) + backupDefaultPath + string( "\n" ) +
+    string( "      backupMapPath: " ) + backupMapPath + string( "\n" ) +
+    string( "      backupRootsPath: " ) + backupRootsPath + string( "\n" ) +
     string( "    logsPath: " ) + logsPath + string( "\n" ) +
     string( "    lockPath: " ) + lockPath + string( "\n" ) +
     string( "  configPath: " ) + configPath + string( "\n" );
