@@ -20,6 +20,7 @@ namespace Store
 		int aquire();
 		int release();
 		char* getPage();
+		void setPage(char* pagePointer);
 	};
 };
 

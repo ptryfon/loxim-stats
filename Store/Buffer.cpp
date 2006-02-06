@@ -1,5 +1,5 @@
 /**
- * $Id: Buffer.cpp,v 1.31 2006-02-06 09:45:52 mk189406 Exp $
+ * $Id: Buffer.cpp,v 1.32 2006-02-06 09:54:27 mk189406 Exp $
  *
  */
 #include "Buffer.h"
@@ -188,6 +188,7 @@ namespace Store
 
 			n_page->lock++;
 			(*it).second = *n_page;
+			pp->setPage(n_page->page);
 
 			::pthread_mutex_unlock(&dbwriter.mutex);
 			return 0;

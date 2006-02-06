@@ -36,4 +36,8 @@ namespace Store
 	{
 		return pagePointer;
 	};
+
+	void PagePointer::setPage(char *pagePointer) {
+		this->pagePointer = pagePointer;
+	};
 };
