@@ -28,6 +28,7 @@ namespace Logs
     pthread_t thread;
     bool threadFlag;
     pthread_cond_t threadFlagCV;
+    pthread_cond_t threadFlagCV2;
     pthread_mutex_t threadFlagMutex;
     int fileDes;
     int counter;

@@ -18,7 +18,7 @@ void *LogThread::threadMain( void *arg )
 int LogThread::pop( LogRecord *&record )
 {
   ::pthread_mutex_lock( &threadFlagMutex );
-  while( queue.empty() )
+  while( counter == 0 )
   {
     int err = ::pthread_cond_wait( &threadFlagCV, &threadFlagMutex );
     if( err ) return err;
@@ -35,6 +35,7 @@ LogThread::LogThread( int _fileDes ) : fileDes( _fileDes )
   counter = 0;
   ::pthread_mutex_init( &threadFlagMutex, NULL );
   ::pthread_cond_init( &threadFlagCV, NULL );
+  ::pthread_cond_init( &threadFlagCV2, NULL );
   threadFlag = false;
   ::pthread_create( &thread, NULL, &threadMain, this );
 }
@@ -69,12 +70,15 @@ void LogThread::main() {
       return;
     }
 
-    counter--;
     delete logRecord;
 
     ::pthread_mutex_lock( &threadFlagMutex );
-    if( queue.empty() )
-      ::pthread_cond_signal( &threadFlagCV );
+    counter--;
+    if( counter <= 0 )
+    {
+      ::pthread_cond_signal( &threadFlagCV2 );
+      counter = 0;
+    }
     ::pthread_mutex_unlock( &threadFlagMutex );
 
   }
@@ -83,8 +87,14 @@ void LogThread::main() {
 int LogThread::flush() {
   int err = 0;
 
-  while( counter > 0 )
-    ::sleep( 1 );
+  ::pthread_mutex_lock( &threadFlagMutex );
+  while( counter > 0 || err ) {
+    err = ::pthread_cond_wait( &threadFlagCV2, &threadFlagMutex );
+  }
+  //sk
+  if(fsync(fileDes) < 0) err = errno;
+  
+  ::pthread_mutex_unlock( &threadFlagMutex );
 
   return err;
 }
