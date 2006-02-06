@@ -63,7 +63,6 @@ int CRRollback::nextStep(bool* itsRcEnd)
   LogRecord* lr=NULL;
   int err=0;
   *itsRcEnd = false;
-  printf( "Here: %d\n", cr->tidsToRollback.size() );
   while( !(cr->tidsToRollback).empty() && ((err = LogRecord::readLogRecordBackward(lr, cr->fd, cr->sm)) == 0) )//potrzebne skrócone wyliczanie
   {
     lr->rollBack(&(cr->tidsToRollback), cr->sm, cr);
@@ -120,7 +119,6 @@ int CrashRecovery::init(LogManager* lm, StoreManager* sm)
 
 int CrashRecovery::Recover()
   {
-    printf( "CrashRecovery::Recover!\n" );
     int err=0;
     bool isEnd=false;
     actualFaze = new CRStart();

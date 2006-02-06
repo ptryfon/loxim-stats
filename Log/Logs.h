@@ -32,6 +32,7 @@ namespace Logs
     ErrorConsole *ec;
     SBQLConfig *config;
     string logFilePath;
+    bool crashRecoveryInProgress;
 
     //jesli tid == NULL to do logow nie jest nic zapisywane
     void pushLogable( int tid, LogRecord *record);
@@ -40,10 +41,11 @@ namespace Logs
 
     string getLogFilePath() { return logFilePath; }
 
-    LogManager() { ec = new ErrorConsole("Log"); }
+    LogManager() { ec = new ErrorConsole("Log"); crashRecoveryInProgress = false; }
 
     int init();
     int start( StoreManager *store );
+    bool getCrashRecoveryInProgress() { return crashRecoveryInProgress; }
 
     /**
     Robi flush Logów;

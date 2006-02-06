@@ -3,6 +3,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <errno.h>
+#include "Store/DBStoreManager.h"
 
 
 int BeginTransactionRecord::modifySetsBackDir(CrashRecovery* cr)
@@ -326,6 +327,7 @@ int WriteRecord::deleteFromStore(StoreManager* sm, DataValue *dv)
 //UWAGA to zle dziala  TODO createObject, trzeba zamienic na cos co robi undo delete
 int WriteRecord::addToStore(StoreManager* sm, DataValue *dv)
 {
+  LogicalID *lidCopy = NULL;
   int err = 0;
   printf( "createObjectPointer( lid=%d, name='%s', dv='%s' )\n", lid->toInteger(), name.c_str(), dv->toString().c_str() );
   if( dv != NULL )
@@ -334,7 +336,9 @@ int WriteRecord::addToStore(StoreManager* sm, DataValue *dv)
     else if( newVal == dv ) freeNewValFlag = false;
   }
   ObjectPointer* op = sm->createObjectPointer( (lid ? lid->clone() : NULL), name, dv);
-  err=sm->createObject( NULL, name, dv, op, (lid ? lid->clone() : NULL));
+  if( ! ( sm->getLogManager()->getCrashRecoveryInProgress() ) )
+    lidCopy = (lid ? lid->clone() : NULL );
+  err=sm->createObject( NULL, name, dv, op, lidCopy);
   delete op;
   return err;
 }

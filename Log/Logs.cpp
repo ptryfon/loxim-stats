@@ -54,15 +54,21 @@ int LogManager::init()
 
 int LogManager::start( StoreManager *store )
 {
+  crashRecoveryInProgress = true;
   CrashRecovery *cr = new CrashRecovery();
   int errCode = 0;
 
   errCode = cr->init( this, store );
   if( errCode == 0 )
+  {
+    printf( "CrashRecovery::Recover BEGIN !\n" );
     errCode = cr->Recover();
+    printf( "CrashRecovery::Recover END !\n" );
+  }
 
   delete cr;
 
+  crashRecoveryInProgress = false;
   return errCode;
 }
 
