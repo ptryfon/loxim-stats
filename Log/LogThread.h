@@ -30,6 +30,7 @@ namespace Logs
     pthread_cond_t threadFlagCV;
     pthread_mutex_t threadFlagMutex;
     int fileDes;
+    int counter;
 
     static void *threadMain( void *arg );
 
@@ -37,7 +38,6 @@ namespace Logs
 
     public:
     LogThread( int _fileDes );
-    ~LogThread() { flush(); }
     int push( LogRecord *record );
     void main();
     int flush();

@@ -1,6 +1,7 @@
 #include "LogThread.h"
 #include <string.h>
 #include <signal.h>
+#include <unistd.h>
 
 
 /* LogThread class */
@@ -31,6 +32,7 @@ int LogThread::pop( LogRecord *&record )
 
 LogThread::LogThread( int _fileDes ) : fileDes( _fileDes )
 {
+  counter = 0;
   ::pthread_mutex_init( &threadFlagMutex, NULL );
   ::pthread_cond_init( &threadFlagCV, NULL );
   threadFlag = false;
@@ -41,6 +43,7 @@ int LogThread::push( LogRecord *record )
 {
   ::pthread_mutex_lock( &threadFlagMutex );
   queue.push( record );
+  counter++;
   ::pthread_cond_signal( &threadFlagCV );
   ::pthread_mutex_unlock( &threadFlagMutex );
 
@@ -62,9 +65,11 @@ void LogThread::main() {
     if( ( errCode = LogRecord::writeLogRecord( logRecord, fileDes ) ) )
     {
       printf( "LogThread err_code: %d (%s)\n", errCode, strerror( errCode ) );
+      counter = 0;
       return;
     }
 
+    counter--;
     delete logRecord;
 
     ::pthread_mutex_lock( &threadFlagMutex );
@@ -78,14 +83,8 @@ void LogThread::main() {
 int LogThread::flush() {
   int err = 0;
 
-//   ::pthread_mutex_lock( &threadFlagMutex );
-//   while( !queue.empty() || err ) {
-//     err = ::pthread_cond_wait( &threadFlagCV, &threadFlagMutex );
-//   }
-//   //sk
-//   if(fsync(fileDes) < 0) err = errno;
-  
-//   ::pthread_mutex_unlock( &threadFlagMutex );
+  while( counter > 0 )
+    ::sleep( 1 );
 
   return err;
 }
