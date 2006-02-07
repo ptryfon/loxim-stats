@@ -104,7 +104,11 @@ namespace QParser {
 	DataObjectDef *createDataObjectDef(ObjectPointer *op, Transaction * tr);
 	
 	public:
-		DataScheme(){this->baseObjects = NULL;};
+		DataScheme(){
+		    this->baseObjects = NULL;
+		    for (int i = 0; i < 100; i++)
+			refTable[i] = NULL;
+		};
 		virtual ~DataScheme() {delete baseObjects;};
 		int readData();	
 	    	
@@ -144,15 +148,32 @@ namespace QParser {
 		
 		
 		virtual DataObjectDef *getObjById (int objId) {
+			cerr << "getObjById start\n";
 			int itsPlace = this->hashFun (objId);
+			cerr << "itsPlace " << itsPlace << endl;
 			DataObjectDef *point = refTable [itsPlace];
+			
+			if (point != NULL){
+			    cerr << "moze trzeba wyzerowac tablice, point != NULL " << endl;
+			} else 
+			    cerr << " point == NULL"<< endl;
+			
 			bool halt = false;
 			while (not halt) {
 				if (point == NULL) {halt = true;}
-				else if (point->getMyId() == objId) 
+				else { cerr << "point != NULL, spr Id" << endl;
+				    if (point->getMyId() == objId) {
+					cerr << "halt \n";
 					halt = true;
-				else point = point->getNextHash();		
+				    }
+				    else {
+					cerr << "bierze nast \n";
+					point = point->getNextHash();
+					cerr << "wzial nast \n";
+				    }	
+				}
 			};
+			cerr << "getObjById end\n";
 			return point; /*UWAGA to moze byc NULLem (jesli nie znalazl. )*/
 			
 		};
