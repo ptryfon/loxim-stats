@@ -8,6 +8,9 @@
 #include <string>
 //#include "Stack.h"
 #include "ClassNames.h"
+#include "TransactionManager/Transaction.h"
+#include "Store/DBStoreManager.h"
+#include "Store/DBObjectPointer.h"
 
 
 using namespace std;
@@ -84,6 +87,10 @@ namespace QParser {
 		virtual string getType(){return type;}
 		virtual void setOwner(DataObjectDef * o){owner = o;}
 		virtual DataObjectDef * getOwner(){return owner;} 
+		virtual void setOwnerId(int id){ownerId = id;};
+		virtual int getOwnerId(){return ownerId;};
+		virtual void setTargetId(int id){targetId = id;};
+		virtual int getTargetId(){return targetId;};
 	};
 	
 	class DataScheme 
@@ -94,6 +101,7 @@ namespace QParser {
 	DataObjectDef *baseObjects;
 	DataObjectDef *refTable[100]; /*TODO: czy tak sie deklaruje tablice wskaznikow???*/
 
+	DataObjectDef *createDataObjectDef(ObjectPointer *op, Transaction * tr);
 	
 	public:
 		DataScheme(){this->baseObjects = NULL;};
