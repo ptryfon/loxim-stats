@@ -85,7 +85,7 @@ namespace Store
 			case Store::String:
 				str << '"' << *(value.string_value) << '"'; break;
 			case Store::Pointer:
-				str << value.pointer_value->toString(); break;
+				str << "*" << value.pointer_value->toString(); break;
 			case Store::Vector: {
 				vector<LogicalID*>::iterator oi;
 				str << "{";

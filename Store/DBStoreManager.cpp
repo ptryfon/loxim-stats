@@ -159,7 +159,7 @@ namespace Store
 		int itid = tid==NULL ? -1 : tid->getId();
 #ifdef LOGS
 		// klony lida dla logow
-		log->write(itid, lid->clone(), name, NULL, value->clone(), log_id);
+		log->write(itid, lid->clone(), name, NULL, value->clone(), log_id, p_lid?false:true);
 #endif
 		object = new DBObjectPointer(name, value, lid);
 
