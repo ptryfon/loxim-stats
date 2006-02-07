@@ -342,6 +342,8 @@ int WriteRecord::addToStore(StoreManager* sm, DataValue *dv)
     lidCopy = NULL;
   else
     lidCopy = (lid ? lid->clone() : NULL );
+
+  lidCopy = (lid ? lid->clone() : NULL );
   err=sm->createObject( NULL, name, dv, op, lidCopy);
   delete op;
   return err;
