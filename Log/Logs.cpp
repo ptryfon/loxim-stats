@@ -96,9 +96,9 @@ int LogManager::beginTransaction( int tid, unsigned &id )
 }
 
 //jeśli tid == NULL to do logów nie jest nic zapisywane
-int LogManager::write( int tid, LogicalID *lid, string name, DataValue *oldVal, DataValue *newVal, unsigned &id )
+int LogManager::write( int tid, LogicalID *lid, string name, DataValue *oldVal, DataValue *newVal, unsigned &id, bool newLID )
 {
-  LogRecord *record = new WriteRecord( tid, lid, name, oldVal, newVal );
+  LogRecord *record = new WriteRecord( tid, lid, name, oldVal, newVal, newLID );
   pushLogable( tid, record );
   record->getId( id );
 

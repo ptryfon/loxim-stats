@@ -288,10 +288,11 @@ int CkptRecord::write( int fileDes ) { return LogIO::writeTransactionIDVector( t
 
 /* WriteRecord class */
 
-WriteRecord::WriteRecord( int _tid, LogicalID *_lid, string _name, DataValue *_oldVal, DataValue *_newVal )
+WriteRecord::WriteRecord( int _tid, LogicalID *_lid, string _name, DataValue *_oldVal, DataValue *_newVal, bool _newLID )
 : TransactionRecord( _tid, WRITE_LOG_REC_TYPE )
 {
   lid = _lid;
+  newLID = _newLID;
   name = _name;
   oldVal = _oldVal;
   newVal = _newVal;
@@ -336,7 +337,10 @@ int WriteRecord::addToStore(StoreManager* sm, DataValue *dv)
     else if( newVal == dv ) freeNewValFlag = false;
   }
   ObjectPointer* op = sm->createObjectPointer( (lid ? lid->clone() : NULL), name, dv);
-  if( ! ( sm->getLogManager()->getCrashRecoveryInProgress() ) )
+
+  if( ( sm->getLogManager()->getCrashRecoveryInProgress() ) && newLID )
+    lidCopy = NULL;
+  else
     lidCopy = (lid ? lid->clone() : NULL );
   err=sm->createObject( NULL, name, dv, op, lidCopy);
   delete op;
@@ -402,12 +406,16 @@ int WriteRecord::rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm, Cras
 int WriteRecord::read( int fileDes, StoreManager* sm )
 {
   int errCode;
+  int flag;
 
   if( ( errCode = TransactionRecord::read( fileDes, sm ) ) ) return errCode;
   if( ( errCode = LogIO::readLogicalID( lid, fileDes, sm ) ) ) return errCode;
   if( ( errCode = LogIO::readString( fileDes, name ) ) ) return errCode;
   if( ( errCode = LogIO::readDataValue( oldVal, fileDes, sm ) ) ) return errCode;
   if( ( errCode = LogIO::readDataValue( newVal, fileDes, sm ) ) ) return errCode;
+  if( ( errCode = LogIO::readInt( fileDes, flag ) ) ) return errCode;
+
+  newLID = ( flag > 0 ) ? true : false;
 
   return errCode;
 }
@@ -421,6 +429,7 @@ int WriteRecord::write( int fileDes )
   if( ( errCode = LogIO::writeString( fileDes, (char*) name.data(), name.length() ) ) ) return errCode;
   if( ( errCode = LogIO::writeString( fileDes, oldValS.data(), oldValS.length() ) ) ) return errCode;
   if( ( errCode = LogIO::writeString( fileDes, newValS.data(), newValS.length() ) ) ) return errCode;
+  if( ( errCode = LogIO::writeInt( fileDes, ( newLID ? 1 : 0 ) ) ) ) return errCode;
 
   return errCode;
 }

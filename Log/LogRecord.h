@@ -146,6 +146,7 @@ namespace Logs
     protected:
 
     string name;
+    bool newLID;
 
     // do zapisu
     string oldValS;
@@ -170,7 +171,7 @@ namespace Logs
     virtual int changeValue(StoreManager* sm, DataValue* dv);//mozliwe ze niepotrzebne
 
     public:
-    WriteRecord( int _tid, LogicalID *_lid, string _name, DataValue *_oldVal, DataValue *_newVal );
+    WriteRecord( int _tid, LogicalID *_lid, string _name, DataValue *_oldVal, DataValue *_newVal, bool _newLID );
     virtual ~WriteRecord();
     virtual int rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm, CrashRecovery* cr = NULL);
     

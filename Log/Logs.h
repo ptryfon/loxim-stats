@@ -61,7 +61,7 @@ namespace Logs
      * Nakazuje zapisac w logach informacje o starej i nowej wartosci
      * zmodyfikowanego atrybutu.
      */
-    int write( int tid, LogicalID *lid, string name, DataValue *oldVal, DataValue *newVal, unsigned &id );
+    int write( int tid, LogicalID *lid, string name, DataValue *oldVal, DataValue *newVal, unsigned &id, bool newLID = false );
 
     /**
      * Rozpoczyna tworzenie bezkonfliktowego punktu kontrolnego.
