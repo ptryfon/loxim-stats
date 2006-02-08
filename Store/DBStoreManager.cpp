@@ -159,7 +159,7 @@ namespace Store
 		int itid = tid==NULL ? -1 : tid->getId();
 #ifdef LOGS
 		// klony lida dla logow
-		log->write(itid, lid->clone(), name, NULL, value->clone(), log_id, p_lid?false:true);
+		log->write(itid, lid->clone(), name, NULL, value->clone(), log_id/*, p_lid?false:true*/);
 #endif
 		object = new DBObjectPointer(name, value, lid);
 
@@ -320,6 +320,16 @@ namespace Store
 		p_roots = new vector<ObjectPointer*>(0);
 		vector<int>* rvec;
 		rvec = roots->getRoots();
+		
+		cout << "Getting roots:\n";
+		vector<int>* rv = roots->getRoots();
+		if (rv)
+		{
+			vector<int>::iterator ri;
+			for (ri = rv->begin(); ri != rv->end(); ri++)
+				cout << (int) *ri << "\n";
+				delete rv;
+		}
 		
 		vector<int>::iterator obj_iter;
 		for(obj_iter=rvec->begin(); obj_iter!=rvec->end(); obj_iter++) {

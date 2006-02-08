@@ -121,8 +121,19 @@ namespace Store
 
 		unsigned int last = getLastAssigned();
 
-		if (last < logicalID)
-			return 2;
+		if (logicalID > 10000000) // md
+			return 2;              // md
+
+		if (last < logicalID) {
+			int ll;                                   // md
+			physical_id pp;                           // md
+			memset(&pp, 0xFF, sizeof pp);             // md
+			while(getLastAssigned() < logicalID) {    // md
+				ll = createLogicalID();                // md
+				setPhysicalID(ll, &pp);                // md
+			}                                         // md
+		//	return 2;
+		}
 
 		PagePointer* page = store->getBuffer()->getPagePointer(STORE_FILE_MAP, STORE_MAP_MAPPAGE(logicalID));
 		page->aquire();
