@@ -4,190 +4,58 @@
 using namespace XMLIO;
 namespace XMLIO {
 	
-int QuerySequenceExporter::produce(DOMElement* parent)
+int XMLExporter::printObject(ObjectPointer* obj, DOMElement* parent)
 {
 	DOMDocument* doc = parent->getOwnerDocument();
-	DOMElement* elem = doc->createElement(X("sequence"));
-	for (int i = 0; i < result->size(); i++) 
-	{
-		QueryExporterFactory f;
-		QueryExporter* exporter = f.makeExporter(result->get(i));
-		exporter->produce(elem);
-		delete exporter;
-	}
-	parent->appendChild(elem);
-	return 0;
-}
-
-int QueryBagExporter::produce(DOMElement* parent)
-{
-	DOMDocument* doc = parent->getOwnerDocument();
-	DOMElement* elem = doc->createElement(X("bag"));
-	for (int i = 0; i < result->size(); i++) 
-	{
-		QueryExporterFactory f;
-		QueryExporter* exporter = f.makeExporter(result->get(i));
-		exporter->produce(elem);
-		delete exporter;
-	}
-	parent->appendChild(elem);
-	return 0;
-}
-
-int QueryStructExporter::produce(DOMElement* parent)
-{
-	DOMDocument* doc = parent->getOwnerDocument();
-	DOMElement* elem = doc->createElement(X("struct"));
-	for (int i = 0; i < result->size(); i++) 
-	{
-		QueryExporterFactory f;
-		QueryExporter* exporter = f.makeExporter(result->get(i));
-		exporter->produce(elem);
-		delete exporter;
-	}
-	parent->appendChild(elem);
-	return 0;
-}
-
-/* TODO - zalezne od postepow w Driverze
-int QueryBinderExporter::produce(DOMElement* parent)
-{
-	DOMDocument* doc = parent->getOwnerDocument();
-	DOMElement* elem = doc->createElement(X("binder"));
-	elem->setAttribute(X("name"),X(qr->getName()));
+	DOMElement* elem = doc->createElement(X(obj->getName().c_str()));
 	
-	QueryExporterFactory f;
-	QueryExporter* exporter = f.makeExporter(qr[i]);
-	exporter->produce(elem);
-	delete exporter;
-
-	parent->appendChild(elem);
-	return 0;
-}
-*/
-
-int QueryStringExporter::produce(DOMElement* parent)
-{
-	DOMDocument* doc = parent->getOwnerDocument();
-	DOMElement* elem = doc->createElement(X("string"));
-	DOMCDATASection* data = doc->createCDATASection(X(result->getValue()));
-	elem->appendChild(data);
-	parent->appendChild(elem);
-	return 0;
-}
-
-int QueryIntExporter::produce(DOMElement* parent)
-{	
-	DOMDocument* doc = parent->getOwnerDocument();
-	DOMElement* elem = doc->createElement(X("int"));
-	stringstream s;
-	result->toStream(s);
-	DOMText* data = doc->createTextNode(X(s.str()));
-	elem->appendChild(data);
-	parent->appendChild(elem);	
-	return 0;
-}
-/*
-int QueryDoubleExporter::produce(DOMElement* parent)
-{
-	DOMDocument* doc = parent->getOwnerDocument();
-	DOMElement* elem = doc->createElement(X("double"));
-	stringstream s;
-	result->toStream(s);
-	DOMText* data = doc->createTextNode(X(s));
-	elem->appendChild(data);
-	parent->appendChild(elem);	
-	return 0;
-}
-*/
-int QueryBoolExporter::produce(DOMElement* parent)
-{
-	DOMDocument* doc = parent->getOwnerDocument();
-	DOMElement* elem = doc->createElement(X("bool"));
-	stringstream s;
-	result->toStream(s);
-	DOMText* data = doc->createTextNode(X(s.str()));
-	elem->appendChild(data);
-	parent->appendChild(elem);	
-	return 0;	
-}
-
-int QueryReferenceExporter::produce(DOMElement* parent)
-{
-	DOMDocument* doc = parent->getOwnerDocument();
-	DOMElement* elem = doc->createElement(X("reference"));
-	stringstream s;
-	result->toStream(s);
-	DOMText* data = doc->createTextNode(X(s.str()));
-	elem->appendChild(data);
-	parent->appendChild(elem);	
-	return 0;		
-	return 0;
-}
-
-int QueryVoidExporter::produce(DOMElement* parent)
-{
-	DOMDocument* doc = parent->getOwnerDocument();
-	DOMElement* elem = doc->createElement(X("void"));
-	parent->appendChild(elem);	
-	return 0;
-}
-
-QueryExporter* QueryExporterFactory::makeExporter(Result* result) 
-{
-	switch (result->getType()) 
-	{			
-		case Result::SEQUENCE:		
-			return new QuerySequenceExporter(dynamic_cast<ResultSequence*>(result));	
+	DataValue* val = obj->getValue();
+	switch (val->getType()) {
+		case Store::Integer:
+		case Store::Double:
+		case Store::String:
+			{
+				DOMText* data = doc->createTextNode(X(val->toString().c_str())); 
+				elem->appendChild(data);
+			}
 			break;
-		case Result::BAG:		
-			return new QueryBagExporter(dynamic_cast<ResultBag*>(result));
+		case Store::Pointer:
+			/* TODO */
+			{
+				DOMText* data = doc->createTextNode(X(val->toString().c_str())); 
+				elem->appendChild(data);
+			}
 			break;
-		
-		case Result::STRUCT:
-			return new QueryStructExporter(dynamic_cast<ResultStruct*>(result));
+		case Store::Vector:
+			{
+				vector<LogicalID*>::iterator pi;
+				for(pi=val->getVector()->begin(); pi!=val->getVector()->end(); pi++)
+				{
+					ObjectPointer* obj;
+					store->getObject(tid, (*pi), Read, obj);
+					if (obj != NULL) printObject(obj, elem);
+					else cerr << "ERR\n";
+				}
+			}							
 			break;
-/*		
-		case Result::BINDER:
-			return new QueryBinderExporter(dynamic_cast<ResultBinder*>(result));
-			break;
-*/		
-		case Result::STRING:
-			return new QueryStringExporter(dynamic_cast<ResultString*>(result));
-			break;		
-			
-		case Result::INT:
-			return new QueryIntExporter(dynamic_cast<ResultInt*>(result));
-			break;				
-/*		
-		case Result::DOUBLE:
-			return new QueryDoubleExporter(dynamic_cast<QueryDoubleResult*>(result));
-			break;				
-*/		
-		case Result::BOOL:
-			return new QueryBoolExporter(dynamic_cast<ResultBool*>(result));
-			break;						
-		
-		case Result::REFERENCE:
-			return new QueryReferenceExporter(dynamic_cast<ResultReference*>(result));
-			break;						
-		
-		case Result::VOID:
-			return new QueryVoidExporter(dynamic_cast<ResultVoid*>(result));
-			break;						
-		
 		default:
-			return NULL;
-	}
-}	
+			break;
+	}		
+	parent->appendChild(elem);	
+	return 0;
+}
 
-int XMLExporter::produceXMLfile(Result *result, string xmlPath)
+int XMLExporter::make(string xmlPath)
 {
 	int returnVal = 0;
+	cerr << "[DEBUG] Producing XML file\n";
 	try
-    {
+    {    	
+		cerr << "[DEBUG] Initializing XMLPlatfomUtils\n";    	
         XMLPlatformUtils::Initialize();
+        cerr << "[DEBUG] Initializing DOM\n";
 		DOMImplementation* impl =  DOMImplementationRegistry::getDOMImplementation(X("Core"));
+		cerr << "[DEBUG] Createing DOMWriter\n";
         DOMWriter *serializer = impl->createDOMWriter();	
         /* TODO - moze trzeba ustalic jakies opcje serializera? */
 		if (impl == NULL) {
@@ -195,23 +63,31 @@ int XMLExporter::produceXMLfile(Result *result, string xmlPath)
 		} else {
 			try
 			{
+				cerr << "[DEBUG] Creating document\n";
             	DOMDocument* doc = impl->createDocument(
-                	0,                    // root element namespace URI. /* TODO - ustalic */
+                	0,                    // root element namespace URI. 
                     X("data"),	          // root element name
-                    0);                   // document type object (DTD). /* TODO - ustalic */
+                    0);                   // document type object (DTD).
 	        	DOMElement* rootElem = doc->getDocumentElement();
-				QueryExporterFactory factory;
-			    QueryExporter* rootExporter = factory.makeExporter(result);
-				if (rootExporter == NULL) {
-					returnVal = ERR_UNKNOWN_RESULT;
-				} else {
-					returnVal = rootExporter->produce(rootElem);
-					if (returnVal == 0) {
-			            XMLFormatTarget* formatTarget = new LocalFileFormatTarget(xmlPath.c_str());
-						serializer->writeNode(formatTarget, *doc);
-						delete formatTarget;
-					}
-				}               
+	        	
+	        	vector<ObjectPointer*>* vec;
+				cerr << "[DEBUG] getRoots(ALL)" << endl;
+				store->getRoots(tid, vec);
+	
+				vector<ObjectPointer*>::iterator oi;
+				for(oi=vec->begin(); oi!=vec->end(); oi++) {
+					returnVal = printObject(*oi, rootElem);
+					if (returnVal > 0) break;
+				}
+	        	delete vec;
+	        	
+				if (returnVal == 0) {
+					cerr << "[DEBUG] Serializing XML\n";
+		            XMLFormatTarget* formatTarget = new LocalFileFormatTarget(xmlPath.c_str());
+					serializer->writeNode(formatTarget, *doc);						
+					delete formatTarget;
+					cerr << "[DEBUG] Done.\n";
+				}
 			}
 			catch(...)
 			{
@@ -227,30 +103,6 @@ int XMLExporter::produceXMLfile(Result *result, string xmlPath)
         return ERR_XERCES;
     }
 	return returnVal;
-}
-
-int XMLExporter::doExport(string query, string xmlPath)
-{
-	int returnVal = 0;
-	char cHost[255];
-	char cQuery[255];
-	strcpy(cHost, host.c_str());
-	strcpy(cQuery, host.c_str());
-	
-	Connection* con;
-	con = DriverManager::getConnection(cHost, port);	
-	if (con == NULL) {
-		returnVal = ERR_CONNECTION;
-	} else {
-	    Result* result = con->execute(query.c_str());
-	    if (result == NULL) {
-	    	returnVal = ERR_NULL_RESULT;
-	    } else {
-			returnVal = produceXMLfile(result, xmlPath);	    	
-	    }
-	    con->disconnect();	    
-    }
-    return returnVal;
 }
 
 };

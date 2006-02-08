@@ -2,107 +2,113 @@
 #include <getopt.h>
 #include "XMLimport.h"
 #include "XMLexport.h"
+#include "StoreLock.h"
+
 
 using namespace std;
+using namespace XMLIO;
 
-void printHelp() {
-	cerr << "Uzycie: XMLIO [OPCJE] PLIK_XML\n";
+enum FileFormat {
+	FORMAT_SIMPLE = 0,
+	FORMAT_EXTENDED = 1
+};		
+
+enum Function {
+	IMPORT = 0,
+	EXPORT = 1
+};
+		
+void printHelp(string err) {
+	cerr << "Uzycie: XMLimport [OPCJE] PLIK_KONFIG PLIK_XML\n";
 	cerr << "\n";
 	cerr << "Dostepne opcje:\n";
 	cerr << "-i       - import danych\n";
-	cerr << "-e QUERY - eksport danych bedacych wynikiem zapytania QUERY\n";
-	cerr << "-s host  - adres serwera bazy danych (domyslnie 127.0.0.1)\n";
-	cerr << "-p port  - port serwera bazy danych (domyslnie 6543)\n";
+	cerr << "-e       - eksport danych (domyslnie)\n";
 	cerr << "-v       - wyswietlanie dodatkowych informacji diagnostycznych na wyjsciu stderr\n";
-	cerr << "-f db    - obsluga danych w wewnetrznym formacie (domyslnie)\n";
-	cerr << "-f pure  - obsluga dowolnych danych XML\n";
+	cerr << "-f ext   - obsluga danych w formacie rozszerzonym\n";
+	cerr << "-f pure  - obsluga dowolnych danych XML (domyslnie) \n";
 	cerr << "-h       - wyswietla informacje o sposobie uzycia\n";
 	cerr << "\n";
 	
+	cerr << err << '\n';
 }
 
-enum FileFormat {
-	FORMAT_PLAIN = 0,
-	FORMAT_XML = 1
-};
-
 int main(int argc, char* argv[]) {
-	bool isImport = false;
-	bool isExport = false;
 	int verboseLevel = 0;
-	string host = "127.0.0.1";
-	string fileName = "";
-	string query;
-	int port = 6543;
-	FileFormat format;
+	Function function = EXPORT;
+	FileFormat fileFormat = FORMAT_SIMPLE;
+	string xmlPath;
+	string configFileName;	
+	
+	if (argc < 2) {
+		printHelp("Za malo parametrow");
+		return -1;
+	}
 	
 	int nextOption;
 	
-	string shortOptions = "ies:p:vf:"; // Litery prawidlowych krotkich opcji
+	string shortOptions = "ie:s:p:vf:h"; // Litery prawidlowych krotkich opcji
 	do
 	{
 	    nextOption = ::getopt( argc, argv, shortOptions.c_str());
 	    switch( nextOption )
-	    {
-	      case 'i': // import danych
-	      	isImport = true;
-	      	break;
-	
-	      case 'e': // eksport danych
-	      	isExport = true;
-	      	query = optarg;
-	        break;
-	
-	      case 's': // adres serwera
-	        host = optarg;
-	        break;
-	
-	      case 'p': // port serwera
-	      	port = atoi(optarg);
-	        break;
-	
-	      case 'v' : // restore flag
+	    {	
+	      case 'i' : //import
+		      function = IMPORT;
+		      break;
+	      case 'e' : //export
+			function = EXPORT;	
+			break;
+	      case 'v' : //verbose
 	      	verboseLevel++;
 	        break;
 	
 	      case 'f': // verbose
-	      	if (optarg == "db") format = FORMAT_PLAIN;
-	      	else if (optarg == "pure") format = FORMAT_XML;
+	      	if (optarg == "ext") fileFormat = FORMAT_EXTENDED;
+	      	else if (optarg == "pure") fileFormat = FORMAT_SIMPLE;
 	        break;
 	
 	      case 'h': // nieprawidlowa opcja
-	        printHelp();
+	        printHelp("");
 	        return -1;
 	
 	      case -1: // koniec opcji
 	        break;
 	
 	      default: // cos innego, niespodziewane
-	      	printHelp();
+	      	printHelp("");
 	      	return -1;
 	    }
-    } while( nextOption != -1 );
-    
-    if (argc > 1) (fileName = argv[argc - 1]);
-    
-    /* TODO - weryfikacja danych */
-      
-    if (isImport) {
-		XMLIO::XMLImporter *importer;
-		importer = new XMLIO::XMLImporter(fileName, verboseLevel);
-		// int result = importer->dumpToServer(host, port); - TESTY
-		int result = importer->dumpToFile(host+".out");
-		delete importer;
-		return result;    	
-    }
-    
-    if (isExport) {
-    	XMLIO::XMLExporter *exporter;
-    	exporter = new XMLIO::XMLExporter(host, port, verboseLevel);
-    	int result = exporter->doExport(query, fileName);
-    	delete exporter;
-    	return result;
-    }
+    } while( nextOption != -1 );	
 	
-	return 0;	
+	configFileName = argv[argc - 2];
+	xmlPath = argv[argc - 1];
+	
+	SBQLConfig* config = new SBQLConfig("Store");
+	config->init(configFileName);
+	ErrorConsole* ec = new ErrorConsole("Store");
+	ec->init(1);
+	LogManager* log = new LogManager();
+	log->init();
+	
+	StoreLock storeLock(configFileName);
+	
+	if (storeLock.lock() != 0) return 0;
+	
+	DBStoreManager* store = new DBStoreManager();
+	store->init(log);
+	store->setTManager(TransactionManager::getHandle());
+	store->start();		
+	
+	if (function == IMPORT) {
+		XMLImporter* imp = new XMLImporter(store, verboseLevel);
+		imp->make(xmlPath);
+	} else {
+		XMLExporter* exp = new XMLExporter(store, verboseLevel);
+		exp->make(xmlPath);
+	}
+	
+	if (storeLock.unlock() != 0) return 0;
+	store->stop();
+	return 0;
 }

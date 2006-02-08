@@ -8,51 +8,40 @@
 #include <xercesc/sax/HandlerBase.hpp>
 #include <string>
 #include <stack>
-#include "../Driver/Connection.h"
-#include "../Driver/Result.h"
-#include "../Driver/DriverManager.h"
+
+#include "../Store/Store.h"
+#include "../Store/Roots.h"
+#include "../Store/Map.h"
+#include "../Store/DBStoreManager.h"
+#include "../Store/DBLogicalID.h"
+#include "../Config/SBQLConfig.h"
+#include "../Log/Logs.h"
+#include "../TransactionManager/Transaction.h"
+#include "../Errors/ErrorConsole.h"
 
 using namespace std;
+using namespace Store;
+using namespace Errors;
 
 XERCES_CPP_NAMESPACE_USE
 
 namespace XMLIO {
-	class QueryExecutor {
-		public:
-		virtual int execute(const string &query) {return -1;};		
-		virtual ~QueryExecutor() {};
-	};
 	
-	class QueryExecutorFile : public QueryExecutor {
-		ofstream *fileStream;
-		public:
-		QueryExecutorFile(const string &fileName);
-		virtual ~QueryExecutorFile();
-		int execute(const string &query);
+    class XMLImporter
+    {
+	protected:
+		DBStoreManager* store;
+		int verboseLevel;	
+	public:
+		XMLImporter(DBStoreManager* _store, int aVerboseLevel)
+		{
+			store = _store;
+		    verboseLevel = aVerboseLevel;
+		}	
+		int make(string xmlPath);		
 	};
-	
-	class QueryExecutorDatabase : public QueryExecutor {
-		Driver::Connection *con;
-		public:
-		QueryExecutorDatabase(const string &host, unsigned int port);
-		virtual ~QueryExecutorDatabase();
-		int execute(const string &query);
-	};
-	
-	class XMLImporter {
-		private:
-			string inputFile;
-			int verboseLevel;
-			QueryExecutor* executor;			
-			int dump();
-		public:
-			XMLImporter(string _inputFile, int _verboseLevel = 0) {
-				inputFile = _inputFile;
-				verboseLevel = _verboseLevel;
-			}
-			int dumpToFile(string outPath);
-			int dumpToServer(string host, unsigned int port);
-	};
+			
 };
+
 
 #endif /*XMLIMPORT_H_*/

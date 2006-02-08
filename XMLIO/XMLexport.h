@@ -3,10 +3,17 @@
 
 #include <string>
 #include <sstream>
-#include "../Driver/Connection.h"
-#include "../Driver/DriverManager.h"
-#include "../Driver/Result.h"
+
 #include "../Store/Store.h"
+#include "../Store/Roots.h"
+#include "../Store/Map.h"
+#include "../Store/DBStoreManager.h"
+#include "../Store/DBLogicalID.h"
+#include "../Config/SBQLConfig.h"
+#include "../Log/Logs.h"
+#include "../TransactionManager/Transaction.h"
+#include "../Errors/ErrorConsole.h"
+
 #include <xercesc/util/PlatformUtils.hpp>
 #include <xercesc/util/XMLString.hpp>
 #include <xercesc/dom/DOM.hpp>
@@ -19,11 +26,12 @@
 #endif
 #include <xercesc/util/OutOfMemoryException.hpp>
 
-
 using namespace std;
+using namespace Store;
+using namespace Errors;
+
 XERCES_CPP_NAMESPACE_USE
 
-using namespace Driver;
 
 /*
  *  Ponizsza klasa to copy&paste z przykladow do Xerces'a - przejrzec
@@ -84,168 +92,25 @@ namespace XMLIO
 	static int ERR_NULL_RESULT = -2;
 	static int ERR_UNKNOWN_RESULT = -3;
 	static int ERR_XERCES = -4;
-	
-	class QueryExporter
-	{
-		public:
-			virtual int produce(DOMElement* parent) = 0;
-	};
-
-	class QuerySequenceExporter : public QueryExporter
-	{
-	protected:
-		ResultSequence *result;
-	public:
-		QuerySequenceExporter(ResultSequence* _result) 
-		{
-				result = _result;
-		}
-		
-		int produce(DOMElement* parent);
-	};
-
-	class QueryBagExporter : public QueryExporter
-	{
-	protected:
-		ResultBag* result;
-	public:
-		QueryBagExporter(ResultBag* _result) 
-		{
-				result = _result;
-		}
-		
-		int produce(DOMElement* parent);			
-	};
-
-	class QueryStructExporter : public QueryExporter
-	{
-	protected:
-		ResultStruct* result;
-	public:
-		QueryStructExporter(ResultStruct* _result) 
-		{
-				result = _result;
-		}
-		
-		int produce(DOMElement* parent);
-	};
-/*
-	class QueryBinderExporter : public QueryExporter
-	{
-	protected:
-		ResultBinder* result;
-	public:
-		QueryBinderExporter(ResultBinder* _result)
-		{
-				result = _result;
-		}
-		
-		int produce(DOMElement* parent);
-	};
-*/
-	class QueryStringExporter : public QueryExporter
-	{
-	protected:
-		ResultString* result;
-	public:
-		QueryStringExporter(ResultString* _result)
-		{
-				result = _result;
-		}
-		
-		int produce(DOMElement* parent);
-	};
-
-	class QueryIntExporter : public QueryExporter
-	{
-	protected:
-		ResultInt *result;
-	public:
-		QueryIntExporter(ResultInt* _result)
-		{
-				result = _result;
-		}
-		
-		int produce(DOMElement* parent);			
-	};
-/*
-	class QueryDoubleExporter : public QueryExporter
-	{
-	protected:
-		ResultDouble *result;
-	public:
-		QueryDoubleExporter(ResultDouble* _result)
-		{
-				result = _result;
-		}
-		
-		int produce(DOMElement* parent);			
-	};
-*/	
-	class QueryBoolExporter : public QueryExporter
-	{
-	protected:
-		ResultBool *result;
-	public:
-		QueryBoolExporter(ResultBool* _result)
-		{
-				result = _result;
-		}
-		
-		int produce(DOMElement* parent);			
-	};
-
-	class QueryReferenceExporter : public QueryExporter
-	{
-	protected:
-		ResultReference *result;
-	public:
-		QueryReferenceExporter(ResultReference *_result)
-		{
-				result = _result;
-		}
-		
-		int produce(DOMElement* parent);			
-	};
-
-	class QueryVoidExporter : public QueryExporter
-	{
-	protected:
-		ResultVoid *result;
-	public:
-		QueryVoidExporter(ResultVoid *_result)
-		{
-				result = _result;
-		}
-		
-		int produce(DOMElement* parent);			
-	};
-
-	class QueryExporterFactory
-	{
-	public:
-		QueryExporter* makeExporter(Result* result);
-	};
-
 
     class XMLExporter
     {
 	protected:
+		DBStoreManager* store;
+		TransactionID* tid;
 		string host;
 		unsigned int port;
 		int verboseLevel;
-	
-		int produceXMLfile(Result *result, string xmlPath);
+		int printObject(ObjectPointer* obj, DOMElement* parent);
 	public:
-
-		XMLExporter(string aHost, unsigned int aPort, int aVerboseLevel)
+		int make(string xmlPath);
+		XMLExporter(DBStoreManager* _store, int aVerboseLevel)
 		{
-			host = aHost;
-			port = aPort;
-		    verboseLevel = aVerboseLevel;
+			store = _store;
+			tid = new TransactionID(1);
+		    	verboseLevel = aVerboseLevel;
 		}	
-	
-		int doExport(string query, string xmlPath);
+		
 	};
 };
 
