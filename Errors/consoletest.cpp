@@ -26,4 +26,6 @@ int main(int argc, char *argv[])
 	ec << 0xFF00;
 	ec << (ENOMEM | ErrLogs);
 	ec.printf("1: %d, ptr: %p\n", 1, NULL);
+	cerr << SBQLstrerror(EBadFile | ErrStore)->c_str() << "\n";
+	cerr << SBQLstrerror(0xFF00)->c_str() << "\n";
 }

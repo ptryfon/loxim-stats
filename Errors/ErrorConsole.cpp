@@ -59,16 +59,16 @@ namespace Errors {
 				src_mod = "Errors";
 				break;
 			case ErrLockMgr:
-				src_mod = "LockMgr";
+				src_mod = "Lock Manager";
 				break;
 			case ErrLogs:
 				src_mod = "Logs";
 				break;
 			case ErrQExecutor:
-				src_mod = "QExecutor";
+				src_mod = "Query Executor";
 				break;
 			case ErrQParser:
-				src_mod = "QParser";
+				src_mod = "Query Parser";
 				break;
 			case ErrSBQLCli:
 				src_mod = "SBQLCli";
@@ -80,7 +80,7 @@ namespace Errors {
 				src_mod = "Store";
 				break;
 			case ErrTManager:
-				src_mod = "TManager";
+				src_mod = "Transaction Manager";
 				break;
 			default:
 				src_mod = "Unknown";

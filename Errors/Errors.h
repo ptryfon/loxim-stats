@@ -1,7 +1,10 @@
 #ifndef _ERRORS_H
 #define _ERRORS_H
 
+#include <string>
 #include <errno.h>
+
+using namespace std;
 
 // Sposob uzycia:
 // return ENoFile | ErrLogs
@@ -94,6 +97,8 @@ namespace Errors {
 
 // stopper
 #define EUnknown		0x2400
+
+string *SBQLstrerror(int error);
 }
 
 #endif
