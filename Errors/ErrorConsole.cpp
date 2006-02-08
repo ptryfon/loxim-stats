@@ -10,7 +10,10 @@ using namespace std;
 using namespace Config;
 
 namespace Errors {
-	extern char *ErrorMsg[];
+	extern struct {
+		int e;
+		char *s;
+	} ErrorMsg[];
 
 	ofstream* ErrorConsole::consoleFile = NULL;
 	int ErrorConsole::serr = 0;
@@ -90,8 +93,13 @@ namespace Errors {
 			str = strerror(error & ~ErrAllModules);
 		} else {
 			int erridx = (error & ~ErrAllModules);
-			erridx = erridx < EUnknown ? erridx / 0x100 : EUnknown / 0x100;
-			str = ErrorMsg[erridx];
+			int i = 0;
+			while (ErrorMsg[i].e != EUnknown) {
+				if (ErrorMsg[i].e == erridx)
+					break;
+				i++;
+			}
+			str = ErrorMsg[i].s;
 		}
 		if (owner.length() == 0)
 			dest_mod = "Unknown: ";

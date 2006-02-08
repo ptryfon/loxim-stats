@@ -28,6 +28,7 @@ namespace Errors {
 #define ErrAllModules		0xFF00000
 
 // error codes 1-255 (0x01 - 0xFF) reserved for system errno.h
+#define ENoError		0x0
 
 #define ENoFile			0x100
 //- Nieobslugiwany/niewlasciwy typ wartosci w CREATE

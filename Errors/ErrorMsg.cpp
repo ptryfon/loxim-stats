@@ -4,52 +4,58 @@
 using namespace std;
 
 namespace Errors {
-	char *ErrorMsg[] = {
-		"No error",
-		"No such file",
-		"Not supported or incorrect type in CREATE",
-		"Error creating object",
-		"Error adding root",
-		"Unknown query tree node type",
-		"Set empty",
-		"Error geting root",
-	// Store
-		"Incorrect file",
-		"Page not valid",
-		"Page not aquired",
-	// Parse error
-		"Parse error",
-	// Executor
-		"NumberResult expected",
-		"BoolResult expected",
-		"RefResult expected",
-		"Some Other Result Type expected",
-		"Unknown Value Type",
-		"Unknown Tree Node",
-		"Empty Set",
-		"Division by 0",
-		"Unexpected QE Error",
-	// Config
-		"ENotInit",
-		"ENoValue",
-		"EBadValue",
-	// Server
-		"EReceive",
-		"EParse",
-		"EExecute",
-		"ESerialize",
-		"ESend",
-		"EBadResult",
-		"EClientLost",
-	// Transaction
-		"EDeadlock",
-		"ESemaphoreInit",
-		"EUpgradeLock",
-		"EMutexInit",
-	// plug for h_errno from gethostbyname(3)
-		"Host not found",
-		"Unknown error",
-	};
+
+struct {
+	int e;
+	char *s;
+} ErrorMsg[] = {
+	{ENoError,         "No error"},
+	{ENoFile,          "No such file"},
+	{EBadType,         "Not supported or incorrect type in CREATE"},
+	{EObjCreate,       "Error creating object"},
+	{ERootAdd,         "Error adding root"},
+	{ENoType,          "Unknown query tree node type"},
+	{EEmptySet,        "Set empty"},
+	{EGetRoot,         "Error geting root"},
+// Store
+	{EBadFile,         "Incorrect file"},
+	{EPageNotValid,    "Page not valid"},
+	{EPageNotAquired,  "Page not aquired"},
+// Parse error
+	{ENotParsed,       "Parse error"},
+// Executor
+	{ENumberExpected,  "NumberResult expected"},
+	{EBoolExpected,    "BoolResult expected"},
+	{ERefExpected,     "RefResult expected"},
+	{EOtherResExp,     "Some Other Result Type expected"},
+	{EUnknownValue,    "Unknown Value Type"},
+	{EUnknownNode,     "Unknown Tree Node"},
+	{EQEmptySet,       "Empty Set"},
+	{EDivBy0	,  "Division by 0"},
+	{EQEUnexpectedErr, "Unexpected QE Error"},
+// Config
+	{ENotInit,         "ENotInit"},
+	{ENoValue,         "ENoValue"},
+	{EBadValue,        "EBadValue"},
+// Server
+	{EReceive,         "EReceive"},
+	{EParse,           "EParse"},
+	{EExecute,         "EExecute"},
+	{ESerialize,       "ESerialize"},
+	{ESend,            "ESend"},
+	{EBadResult,       "EBadResult"},
+	{EClientLost,      "EClientLost"},
+// Transaction
+	{EDeadlock,        "EDeadlock"},
+	{ESemaphoreInit,   "ESemaphoreInit"},
+	{EUpgradeLock,     "EUpgradeLock"},
+	{EMutexInit,       "EMutexInit"},
+// plug for h_errno from gethostbyname(3)
+	{ENoHost,          "Host not found"},
+
+// THIS MUST BE THE LAST ENTRY
+	{EUnknown,         "Unknown error"}
+};
 
 	string *SBQLstrerror(int error)
 	{
@@ -100,8 +106,13 @@ namespace Errors {
 			str = strerror(error & ~ErrAllModules);
 		} else {
 			int erridx = (error & ~ErrAllModules);
-			erridx = erridx < EUnknown ? erridx / 0x100 : EUnknown / 0x100;
-			str = ErrorMsg[erridx];
+			int i = 0;
+			while (ErrorMsg[i].e != EUnknown) {
+				if (ErrorMsg[i].e == erridx)
+					break;
+				i++;
+			}
+			str = ErrorMsg[i].s;
 		}
 
 		return new string(src_mod + ": " + str);
