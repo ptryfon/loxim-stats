@@ -13,7 +13,8 @@ OBJECTS	=	$(SOURCES:.cpp=.o)
 DEPFILES =	$(SOURCES:.cpp=.d) $(PROGRAM).d
 
 LIBS	=	../Driver/Driver.a \
-			../TCPProto/TCPProto.a
+		../TCPProto/TCPProto.a \
+		../Errors/Errors.a
 
 all: $(STATIC_LIB) $(PROGRAM)
 
