@@ -9,6 +9,7 @@ using namespace std;
 using namespace Driver;
 
 
+
 void printMsg(string str) {
   if (isatty(0))
     cout << str;
@@ -46,21 +47,22 @@ int main(int argc, char *argv[]) {
   printMsg("SBQLCli ver 1.0 \n");
   printMsg("Ctrl-d exits \n");
 
-  string input;
-  string line;
+  string line;  // one line of a query
+  string input; // whole query (possibly multi line)
+
 
   printMsg(" > ");
 
-  while (getline(cin, line)) {
-    
-    try { //Piotrek
+  try { 
+
+    while (getline(cin, line)) {
       
       if (line.find(";",0) == string::npos) {
 
 	input.append(line);
 	printMsg(" \\ ");
 
-      } else {
+      } else { // execute query, because  ";" found 
 	
 	input.append(line);
 	cerr << "<SBQLCli> Zapytanie: " << input << endl;
@@ -68,10 +70,11 @@ int main(int argc, char *argv[]) {
 	Result* result = NULL;
 	
 	try {
+	
 	  result = con->execute(input.c_str());
 	  cout << *result << endl;
-	} catch (ConnectionServerException e) {
-	  //cerr << "Blad: " << strerror (e.getError() & 0xFFFF) << endl;
+	
+	} catch (ConnectionServerException e) { //parse error, or smth.
 	  cerr << e << endl;
 	}  
 	
@@ -79,20 +82,15 @@ int main(int argc, char *argv[]) {
 	printMsg(" > ");
       }
       
-      
-      
-      /*} catch (ConnectionErrnoException e) { //Piotrek
-      cerr << "Polaczenie przerwane: " 
-	//<< strerror (e.getError() & 0xFFFF) << endl;
-	   << e << endl;
-	   exit(1);*/
-    } catch (ConnectionException e) {
-      cerr << e << endl;
-      exit(1);
-    }
-  } //while
-
+    } //while
+    
+  } catch (ConnectionException e) {
+    cerr << e << endl;
+    exit(1);
+  }
   
+  
+  /* sending abort on exit */
   cerr << endl << "<SBQLCli> auto abort on exit " << endl;
   Result* result = NULL; 
   try {
