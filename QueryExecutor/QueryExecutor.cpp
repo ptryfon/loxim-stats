@@ -1294,83 +1294,86 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 		QueryResult *rBag = new QueryBagResult();
 		lBag->addResult(lArg);
 		rBag->addResult(rArg);
+		if (rBag->size() != 1) {
+			*ec << "[QE] ERROR! Right argument of insert operation must have size 1 and consist of QREFERENCE";
+			final = new QueryNothingResult();
+			*ec << (ErrQExecutor | ERefExpected);
+			return ErrQExecutor | ERefExpected;
+		}
 		for (unsigned int i = 0; i < lBag->size(); i++) {
-			for (unsigned int j = 0; j < rBag->size(); j++) {
-				ec->printf("[QE] trying to INSERT %d element of leftArg into %d element of rightArg\n", i, j);
-				QueryResult* toInsert;  //the object to be inserted
-				errcode = ((QueryBagResult *) lBag)->at(i, toInsert);
-				if (errcode != 0) return errcode;
-				QueryResult* outer;  //the object into which the left agument will be inserted
-				errcode = ((QueryBagResult *) rBag)->at(j, outer);
-				if (errcode != 0) return errcode;
-				int leftResultType = toInsert->type();
-				int rightResultType = outer->type();
-				if ((leftResultType != QueryResult::QREFERENCE) || (rightResultType != QueryResult::QREFERENCE)) {
-					*ec << "[QE] ERROR! both arguments of insert operation must consist of QREFERENCE";
-					final = new QueryNothingResult();
-					*ec << (ErrQExecutor | ERefExpected);
-					return ErrQExecutor | ERefExpected;
-				}
-				LogicalID *lidIn = ((QueryReferenceResult *) toInsert)->getValue();
-				LogicalID *lidOut = ((QueryReferenceResult *) outer)->getValue();
-				ObjectPointer *optrIn;
-				errcode = tr->getObjectPointer (lidIn, Store::Write, optrIn);
-				if (errcode != 0) {
-					*ec << "[QE] insert operation - Error in getObjectPointer.";
-					tr = NULL;
-					return errcode;
-				}
-				*ec << "[QE] insert operation - getObjectPointer on leftArg done";
-				ObjectPointer *optrOut;
-				errcode = tr->getObjectPointer (lidOut, Store::Write, optrOut);
-				if (errcode != 0) {
-					*ec << "[QE] insert operation - Error in getObjectPointer.";
-					tr = NULL;
-					return errcode;
-				}
-				*ec << "[QE] insert operation - getObjectPointer on rightArg done";
-				// we have to cut left argument from the roots
-				errcode = tr->removeRoot(optrIn);
-				if (errcode != 0) {
-					*ec << "[QE] insert operation - Error in removeRoot.";
-					tr = NULL;
-					return errcode;
-				}
-				*ec << "[QE] insert operation - Root removed";
-				// now we have to modify right argument's value
-				db_value = optrOut->getValue();
-				*ec << "[QE] insert operation - Value taken";
-				int vType = db_value->getType();
-				*ec << "[QE] insert operation - Type of this value taken";
-				if (vType != Store::Vector) {
-					*ec << "[QE] insert operation - ERROR! the Value has to be a Vector";
-					*ec << (ErrQExecutor | EOtherResExp);
-					return ErrQExecutor | EOtherResExp;
-				}
-				insVector = db_value->getVector();
-				if (insVector == NULL) {
-					*ec << "[QE] insert operation - insVector == NULL";
-					*ec << (ErrQExecutor | EQEUnexpectedErr);
-					return ErrQExecutor | EQEUnexpectedErr;
-				}
-				*ec << "[QE] Vector taken";
-				ec->printf("[QE] Vec.size = %d\n", insVector->size());
-				insVector->push_back(lidIn); // Inserting of the object
-				ec->printf("[QE] New Vec.size = %d\n", insVector->size());
-				DBDataValue *dbDataVal = new DBDataValue();
-				dbDataVal->setVector(insVector);
-				*ec << "[QE] dataValue: setVector done";
-				db_value = dbDataVal;
-				errcode = tr->modifyObject(optrOut, db_value);
-				if (errcode != 0) {
-					*ec << "[QE] insert operation - Error in modifyObject.";
-					tr = NULL;
-					return errcode;
-				}
-				*ec << "[QE] insert operation - Object modified";
-				ec->printf("[QE] %d element of leftArg INSERTED INTO %d element of rightArg SUCCESFULLY\n", i, j);
-				
+			ec->printf("[QE] trying to INSERT %d element of leftArg into rightArg\n", i);
+			QueryResult* toInsert;  //the object to be inserted
+			errcode = ((QueryBagResult *) lBag)->at(i, toInsert);
+			if (errcode != 0) return errcode;
+			QueryResult* outer;  //the object into which the left agument will be inserted
+			errcode = ((QueryBagResult *) rBag)->at(0, outer);
+			if (errcode != 0) return errcode;
+			int leftResultType = toInsert->type();
+			int rightResultType = outer->type();
+			if ((leftResultType != QueryResult::QREFERENCE) || (rightResultType != QueryResult::QREFERENCE)) {
+				*ec << "[QE] ERROR! both arguments of insert operation must consist of QREFERENCE";
+				final = new QueryNothingResult();
+				*ec << (ErrQExecutor | ERefExpected);
+				return ErrQExecutor | ERefExpected;
 			}
+			LogicalID *lidIn = ((QueryReferenceResult *) toInsert)->getValue();
+			LogicalID *lidOut = ((QueryReferenceResult *) outer)->getValue();
+			ObjectPointer *optrIn;
+			errcode = tr->getObjectPointer (lidIn, Store::Write, optrIn);
+			if (errcode != 0) {
+				*ec << "[QE] insert operation - Error in getObjectPointer.";
+				tr = NULL;
+				return errcode;
+			}
+			*ec << "[QE] insert operation - getObjectPointer on leftArg done";
+			ObjectPointer *optrOut;
+			errcode = tr->getObjectPointer (lidOut, Store::Write, optrOut);
+			if (errcode != 0) {
+				*ec << "[QE] insert operation - Error in getObjectPointer.";
+				tr = NULL;
+				return errcode;
+			}
+			*ec << "[QE] insert operation - getObjectPointer on rightArg done";
+			// we have to cut left argument from the roots
+			errcode = tr->removeRoot(optrIn);
+			if (errcode != 0) {
+				*ec << "[QE] insert operation - Error in removeRoot.";
+				tr = NULL;
+				return errcode;
+			}
+			*ec << "[QE] insert operation - Root removed";
+			// now we have to modify right argument's value
+			db_value = optrOut->getValue();
+			*ec << "[QE] insert operation - Value taken";
+			int vType = db_value->getType();
+			*ec << "[QE] insert operation - Type of this value taken";
+			if (vType != Store::Vector) {
+				*ec << "[QE] insert operation - ERROR! the Value has to be a Vector";
+				*ec << (ErrQExecutor | EOtherResExp);
+				return ErrQExecutor | EOtherResExp;
+			}
+			insVector = db_value->getVector();
+			if (insVector == NULL) {
+				*ec << "[QE] insert operation - insVector == NULL";
+				*ec << (ErrQExecutor | EQEUnexpectedErr);
+				return ErrQExecutor | EQEUnexpectedErr;
+			}
+			*ec << "[QE] Vector taken";
+			ec->printf("[QE] Vec.size = %d\n", insVector->size());
+			insVector->push_back(lidIn); // Inserting of the object
+			ec->printf("[QE] New Vec.size = %d\n", insVector->size());
+			DBDataValue *dbDataVal = new DBDataValue();
+			dbDataVal->setVector(insVector);
+			*ec << "[QE] dataValue: setVector done";
+			db_value = dbDataVal;
+			errcode = tr->modifyObject(optrOut, db_value);
+			if (errcode != 0) {
+				*ec << "[QE] insert operation - Error in modifyObject.";
+				tr = NULL;
+				return errcode;
+			}
+			*ec << "[QE] insert operation - Object modified";
+			ec->printf("[QE] %d element of leftArg INSERTED INTO rightArg SUCCESFULLY\n", i);
 		}
 		*ec << "[QE] INSERT operation Done";
 		final = new QueryBagResult();
