@@ -1,5 +1,6 @@
 #include <iostream>
 #include <getopt.h>
+#include "XMLcommon.h"
 #include "XMLimport.h"
 #include "XMLexport.h"
 #include "StoreLock.h"
@@ -7,11 +8,6 @@
 
 using namespace std;
 using namespace XMLIO;
-
-enum FileFormat {
-	FORMAT_SIMPLE = 0,
-	FORMAT_EXTENDED = 1
-};		
 
 enum Function {
 	IMPORT = 0,
@@ -47,7 +43,7 @@ int main(int argc, char* argv[]) {
 	
 	int nextOption;
 	
-	string shortOptions = "ie:s:p:vf:h"; // Litery prawidlowych krotkich opcji
+	string shortOptions = "ievf:h"; // Litery prawidlowych krotkich opcji
 	do
 	{
 	    nextOption = ::getopt( argc, argv, shortOptions.c_str());
@@ -62,10 +58,13 @@ int main(int argc, char* argv[]) {
 	      case 'v' : //verbose
 	      	verboseLevel++;
 	        break;
-	
 	      case 'f': // verbose
-	      	if (optarg == "ext") fileFormat = FORMAT_EXTENDED;
-	      	else if (optarg == "pure") fileFormat = FORMAT_SIMPLE;
+	      	cerr << "B!" << optarg << "!\n";
+	      	if (strcmp(optarg, "ext") == 0) {
+	      		fileFormat = FORMAT_EXTENDED;
+	      		cerr << "!!!!\n";
+	      	}
+	      	else if (strcmp(optarg, "pure") == 0) fileFormat = FORMAT_SIMPLE;
 	        break;
 	
 	      case 'h': // nieprawidlowa opcja
@@ -101,10 +100,10 @@ int main(int argc, char* argv[]) {
 	store->start();		
 	
 	if (function == IMPORT) {
-		XMLImporter* imp = new XMLImporter(store, verboseLevel);
+		XMLImporter* imp = new XMLImporter(store, verboseLevel, fileFormat);
 		imp->make(xmlPath);
 	} else {
-		XMLExporter* exp = new XMLExporter(store, verboseLevel);
+		XMLExporter* exp = new XMLExporter(store, verboseLevel, fileFormat);
 		exp->make(xmlPath);
 	}
 	

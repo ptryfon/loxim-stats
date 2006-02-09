@@ -13,6 +13,7 @@
 #include "../Log/Logs.h"
 #include "../TransactionManager/Transaction.h"
 #include "../Errors/ErrorConsole.h"
+#include "XMLcommon.h"
 
 #include <xercesc/util/PlatformUtils.hpp>
 #include <xercesc/util/XMLString.hpp>
@@ -98,17 +99,17 @@ namespace XMLIO
 	protected:
 		DBStoreManager* store;
 		TransactionID* tid;
-		string host;
-		unsigned int port;
+		FileFormat fileFormat;		
 		int verboseLevel;
 		int printObject(ObjectPointer* obj, DOMElement* parent);
 	public:
 		int make(string xmlPath);
-		XMLExporter(DBStoreManager* _store, int aVerboseLevel)
+		XMLExporter(DBStoreManager* _store, int _VerboseLevel, FileFormat _fileFormat)
 		{
 			store = _store;
 			tid = new TransactionID(1);
-		    	verboseLevel = aVerboseLevel;
+		    verboseLevel = _VerboseLevel;
+		    fileFormat = _fileFormat;
 		}	
 		
 	};

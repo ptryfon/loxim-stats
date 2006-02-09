@@ -7,16 +7,40 @@ namespace XMLIO {
 int XMLExporter::printObject(ObjectPointer* obj, DOMElement* parent)
 {
 	DOMDocument* doc = parent->getOwnerDocument();
-	DOMElement* elem = doc->createElement(X(obj->getName().c_str()));
+	DOMElement* elem;
+	switch (fileFormat) {
+		case FORMAT_SIMPLE:
+			elem = doc->createElement(X(obj->getName().c_str()));		
+			break;
+		case FORMAT_EXTENDED:
+			elem = doc->createElement(X("NODE"));
+			elem->setAttribute(X("name"), X(obj->getName().c_str()));			
+			break;
+		default:
+			return -1;
+	}
 	
 	DataValue* val = obj->getValue();
 	switch (val->getType()) {
 		case Store::Integer:
-		case Store::Double:
-		case Store::String:
 			{
 				DOMText* data = doc->createTextNode(X(val->toString().c_str())); 
 				elem->appendChild(data);
+				if (fileFormat == FORMAT_EXTENDED) elem->setAttribute(X("type"), X("integer"));
+			}
+			break;		
+		case Store::Double:
+			{
+				DOMText* data = doc->createTextNode(X(val->toString().c_str())); 
+				elem->appendChild(data);
+				if (fileFormat == FORMAT_EXTENDED) elem->setAttribute(X("type"), X("double"));
+			}
+			break;		
+		case Store::String:
+			{
+				DOMText* data = doc->createTextNode(X(val->getString().c_str())); 
+				elem->appendChild(data);
+				if (fileFormat == FORMAT_EXTENDED) elem->setAttribute(X("type"), X("string"));				
 			}
 			break;
 		case Store::Pointer:
@@ -24,6 +48,7 @@ int XMLExporter::printObject(ObjectPointer* obj, DOMElement* parent)
 			{
 				DOMText* data = doc->createTextNode(X(val->toString().c_str())); 
 				elem->appendChild(data);
+				if (fileFormat == FORMAT_EXTENDED) elem->setAttribute(X("type"), X("pointer"));					
 			}
 			break;
 		case Store::Vector:
@@ -34,8 +59,9 @@ int XMLExporter::printObject(ObjectPointer* obj, DOMElement* parent)
 					ObjectPointer* obj;
 					store->getObject(tid, (*pi), Read, obj);
 					if (obj != NULL) printObject(obj, elem);
-					else cerr << "ERR\n";
+					else return -2;
 				}
+				if (fileFormat == FORMAT_EXTENDED) elem->setAttribute(X("type"), X("vector"));
 			}							
 			break;
 		default:
@@ -66,7 +92,7 @@ int XMLExporter::make(string xmlPath)
 				cerr << "[DEBUG] Creating document\n";
             	DOMDocument* doc = impl->createDocument(
                 	0,                    // root element namespace URI. 
-                    X("data"),	          // root element name
+                    X("DATA"),	          // root element name
                     0);                   // document type object (DTD).
 	        	DOMElement* rootElem = doc->getDocumentElement();
 	        	

@@ -18,6 +18,7 @@
 #include "../Log/Logs.h"
 #include "../TransactionManager/Transaction.h"
 #include "../Errors/ErrorConsole.h"
+#include "XMLcommon.h"
 
 using namespace std;
 using namespace Store;
@@ -31,12 +32,14 @@ namespace XMLIO {
     {
 	protected:
 		DBStoreManager* store;
+		FileFormat fileFormat;
 		int verboseLevel;	
 	public:
-		XMLImporter(DBStoreManager* _store, int aVerboseLevel)
+		XMLImporter(DBStoreManager* _store, int _VerboseLevel, FileFormat _fileFormat)
 		{
 			store = _store;
-		    verboseLevel = aVerboseLevel;
+		    verboseLevel = _VerboseLevel;
+		    fileFormat = _fileFormat;
 		}	
 		int make(string xmlPath);		
 	};
