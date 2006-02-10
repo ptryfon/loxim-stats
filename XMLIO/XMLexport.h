@@ -25,7 +25,6 @@
 #else
 #include <iostream.h>
 #endif
-#include <xercesc/util/OutOfMemoryException.hpp>
 
 using namespace std;
 using namespace Store;
