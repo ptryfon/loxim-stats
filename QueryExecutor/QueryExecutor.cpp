@@ -405,7 +405,6 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, QueryResult **result) {
 					case NonAlgOpNode::leavesBy: {
 						*ec << "[QE] NonAlgebraic recursive operator <leavesBy>";
 						partial_result->addResult(lResult);
-						visited_result->addResult(lResult);
 						break;
 					}
 					case NonAlgOpNode::leavesUniqueBy: {
@@ -438,8 +437,24 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, QueryResult **result) {
 					if (errcode != 0) return errcode;
 					switch (op) {
 						case NonAlgOpNode::closeBy: {
-							partial_result->addResult(newResult); // this can cause an infinite loop !
-							final_result->addResult(newResult);
+							QueryResult *nResult;
+							if (((newResult->type()) != QueryResult::QSEQUENCE) && ((newResult->type()) != QueryResult::QBAG)) {
+								nResult = new QueryBagResult();
+								nResult->addResult(newResult);
+							}
+							else
+								nResult = newResult;
+							for (unsigned int i = 0; i < (nResult->size()); i++) {
+								QueryResult *current_new_result;
+								if ((nResult->type()) == QueryResult::QSEQUENCE)
+									errcode = (((QuerySequenceResult *) nResult)->at(i, current_new_result));
+								else
+									errcode = (((QueryBagResult *) nResult)->at(i, current_new_result));
+								if (errcode != 0) return errcode;
+								partial_result->addResult(current_new_result); // this can cause an infinite loop !
+								final_result->addResult(current_new_result);
+								
+							}
 							break;
 						}
 						case NonAlgOpNode::closeUniqueBy: {
@@ -471,8 +486,22 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, QueryResult **result) {
 							if (newResult->isNothing())
 								final_result->addResult(currentResult);
 							else {
-								partial_result->addResult(newResult);
-								visited_result->addResult(newResult);
+								QueryResult *nResult;
+								if (((newResult->type()) != QueryResult::QSEQUENCE) && ((newResult->type()) != QueryResult::QBAG)) {
+									nResult = new QueryBagResult();
+									nResult->addResult(newResult);
+								}
+								else
+									nResult = newResult;
+								for (unsigned int i = 0; i < (nResult->size()); i++) {
+									QueryResult *c_result;
+									if ((nResult->type()) == QueryResult::QSEQUENCE)
+										errcode = (((QuerySequenceResult *) nResult)->at(i, c_result));
+									else
+										errcode = (((QueryBagResult *) nResult)->at(i, c_result));
+									if (errcode != 0) return errcode;
+									partial_result->addResult(c_result); // this can cause an infinite loop !
+								}
 							}
 							break;
 						}
