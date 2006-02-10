@@ -12,19 +12,20 @@ DEPFILES =	$(OBJECTS:.o=.d) $(PROGRAM).d
 
 LIBS =		../Store/Store.a ../Log/Logs.a ../Config/Config.a ../Errors/Errors.a ../TransactionManager/TransactionManager.a ../Lock/Lock.a
 
-#STATIC_LIB =	XMLexport.a 
 CXXFLAGS +=  -fexceptions
 LDFLAGS =	-lxerces-c
 
 
 all: $(PROGRAM) 
 
+test_xerces :
+	./test_xerces.sh
+
 $(PROGRAM): $(OBJECTS) $(LIBS) $(STATIC_LIB)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $^ -o $@
 
-	
 clean:
-	rm -f $(OBJECTS) $(DEPFILES) $(STATIC_LIB) $(PROGRAM)
+	rm -f $(OBJECTS) $(DEPFILES) $(PROGRAM)
 
 $(STATIC_LIB): $(OBJECTS)
 	$(AR) r $(STATIC_LIB) $(OBJECTS)
