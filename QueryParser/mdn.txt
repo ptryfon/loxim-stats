@@ -1,0 +1,76 @@
+begin;
+
+insert (create name("DEPT")) into (create __MDN__);
+insert (create name("EMP")) into (create __MDN__);
+insert (create card("0..*")) into (__MDN__ where name="EMP");
+insert (create kind("complex")) into (__MDN__ where name="EMP");
+
+insert (create name("NAME")) into (create subobject);
+insert (create card("1..1")) into (subobject where name="NAME");
+insert (create kind("atomic")) into (subobject where name="NAME");
+insert (create type("string")) into (subobject where name="NAME");
+insert (create owner(__MDN__ where name="EMP")) into (subobject where name="NAME");
+
+insert (subobject where name="NAME") into (__MDN__ where name="EMP");
+
+insert (create name("SAL")) into (create subobject);
+insert (create card("1..1")) into (subobject where name="SAL");
+insert (create kind("atomic")) into (subobject where name="SAL");
+insert (create type("int")) into (subobject where name="SAL");
+insert (create owner(__MDN__ where name="EMP")) into (subobject where name="SAL");
+
+insert (subobject where name="SAL") into (__MDN__ where name="EMP");
+
+insert (create name("WORKS_IN")) into (create subobject);
+insert (create card("1..1")) into (subobject where name="WORKS_IN");
+insert (create kind("atomic")) into (subobject where name="WORKS_IN");
+insert (create type("string")) into (subobject where name="WORKS_IN");
+insert (create target(__MDN__ where name="DEPT")) into (subobject where name="WORKS_IN");
+insert (create owner(__MDN__ where name="EMP")) into (subobject where name="WORKS_IN");
+
+insert (subobject where name="WORKS_IN") into (__MDN__ where name="EMP");
+
+insert (create name("ADRESS")) into (create subobject);
+insert (create card("0..*")) into (subobject where name="ADRESS");
+insert (create kind("complex")) into (subobject where name="ADRESS");
+
+insert (create name("STREET")) into (create subobject);
+insert (create card("1..1")) into (subobject where name="STREET");
+insert (create kind("atomic")) into (subobject where name="STREET");
+insert (create type("string")) into (subobject where name="STREET");
+insert (create owner(subobject where name="ADRESS")) into (subobject where name="STREET");
+
+insert (subobject where name="STREET") into (subobject where name="ADRESS");
+
+
+insert (create name("NO")) into (create subobject);
+insert (create card("1..1")) into (subobject where name="NO");
+insert (create kind("atomic")) into (subobject where name="NO");
+insert (create type("int")) into (subobject where name="NO");
+insert (create owner(subobject where name="ADRESS")) into (subobject where name="NO");
+
+insert (subobject where name="NO") into (subobject where name="ADRESS");
+
+
+
+
+insert (create card("0..*")) into (__MDN__ where name="EMP");
+insert (create kind("complex")) into (__MDN__ where name="EMP");
+
+insert (create name("DNAME")) into (create subobject);
+insert (create card("1..1")) into (subobject where name="DNAME");
+insert (create kind("atomic")) into (subobject where name="DNAME");
+insert (create type("string")) into (subobject where name="DNAME");
+insert (create owner(__MDN__ where name="DEPT")) into (subobject where name="DNAME");
+
+insert (subobject where name="DNAME") into (__MDN__ where name="DEPT");
+
+
+insert (create name("LOC")) into (create subobject);
+insert (create card("1..*")) into (subobject where name="LOC");
+insert (create kind("atomic")) into (subobject where name="LOC");
+insert (create type("string")) into (subobject where name="LOC");
+insert (create owner(__MDN__ where name="DEPT")) into (subobject where name="LOC");
+
+insert (subobject where name="LOC") into (__MDN__ where name="DEPT");
+end;
