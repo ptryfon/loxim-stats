@@ -151,7 +151,7 @@ namespace SemaphoreLib {
 		else		/* last */
 		{
 		    //inside--;		//its cannot be lower to 0 because then writer or reader can get inside
-		    if (current_mode == None)	current_mode = Upgrade;
+		    if (current_mode == Read)	current_mode = Upgrade;
 		    if (best_upgrader == -1 || id < best_upgrader)
 		    {
 			//inside++;

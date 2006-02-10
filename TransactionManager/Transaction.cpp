@@ -69,7 +69,7 @@ namespace TManager
 	{
 	    int errorNumber;
 
-	    DBPhysicalID oldId = (*((op->getLogicalID())->getPhysicalID()));
+//	    DBPhysicalID oldId = (*((op->getLogicalID())->getPhysicalID()));
 
 	    err.printf("Transaction: %d modifyObject\n", tid->getId());
 	    
@@ -82,8 +82,9 @@ namespace TManager
 		    errorNumber = sm->modifyObject(tid, op, dv);
 
 		    if (errorNumber == 0)
+			errorNumber = lm->lock(op->getLogicalID(), tid, Write);
 		    /* we want new object to be seen as old with new value */
-			errorNumber = lm->modifyLockLID(&oldId, op->getLogicalID(), tid);
+//			errorNumber = lm->modifyLockLID(&oldId, op->getLogicalID(), tid);
 		    /* in case of error old object would be released after abort() */
 
 		sem->unlock();
