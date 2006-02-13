@@ -71,6 +71,10 @@ class SingleLock
 		DBPhysicalID *phid;
 		
 		ErrorConsole err;
+
+		/* deadlock prevention - wait-die strategy */
+		int preventDeadlock(TransactionID* _tid);
+
 	public:
 	    	SingleLock(TransactionID* tid, AccessMode mode, Semaphore *_sem, int id);	
 	    	~SingleLock();     

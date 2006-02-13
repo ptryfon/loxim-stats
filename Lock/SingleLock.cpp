@@ -44,6 +44,18 @@ namespace LockMgr
 	delete currentWrite;
     }
 
+    int SingleLock::preventDeadlock(TransactionID* _tid)
+    {
+	if ( tid->getId() < _tid->getId() )
+	/* younger dies ( younger = higher id ) */
+	{
+	    /* deadlock exception - rollback transaction */
+	    err.printf("Deadlock exception\n");
+	    return ErrTManager | EDeadlock; 
+	}
+	else return 0;
+    }
+
     int SingleLock::wait_for_lock(TransactionID *_tid, AccessMode _mode)
     {
 	int errorCode;
@@ -56,11 +68,13 @@ namespace LockMgr
 	waiting++;
 
 	mutex->up();
-	
+	/* here we lost control on _mode, should be fixed later!!! */
+
 	err.printf("Wait for lock, tid = %d, mode = %d\n", _tid->getId(), _mode);
 	if (_mode == Read && !isCurrentRead && !isCurrentWrite)
 	{
-		errorCode = sem->lock_read();
+		if ((errorCode = preventDeadlock(_tid)) == 0)
+		    errorCode = sem->lock_read();
 	}
 	else if (_mode == Read && isCurrentRead)
 	/* reader inside */
@@ -71,22 +85,13 @@ namespace LockMgr
 	else if (_mode == Read && isCurrentWrite)
 	/* this transaction holds object in exclusive access mode */
 	{
-
-//		if ( tid->getId() < _tid->getId() )
-		/* younger dies ( younger = higher id ) */
-//		{
-//			mutex->up();
-//			/* deadlock exception - rollback transaction */
-//			err.printf("Deadlock exception\n");
-//			return ErrTManager | EDeadlock; 
-//		}
-
 		waiting--;
 		return 0;
 	}
 	else if (_mode == Write && !isCurrentRead && !isCurrentWrite)
 	{
-		errorCode = sem->lock_write();
+		if ((errorCode = preventDeadlock(_tid)) == 0)
+		    errorCode = sem->lock_write();
 	}
 	else if (_mode == Write && isCurrentWrite)
 	/* this transaction holds object in exclusive access mode */
@@ -97,7 +102,8 @@ namespace LockMgr
 	else if (_mode == Write && isCurrentRead)
 	/* upgrade lock from read to write */
 	{
-		errorCode = sem->lock_upgrade(_tid->getId());
+		if ((errorCode = preventDeadlock(_tid)) == 0)
+		    errorCode = sem->lock_upgrade(_tid->getId());
 	}
 	
 	err.printf("Locking object, tid = %d\n", _tid->getId());
@@ -117,7 +123,7 @@ namespace LockMgr
 		    currentWrite->insert(_tid);
 		}
 		/* keep original (youngest) transaction id */
-		/* tid = _tid; */
+		tid = _tid;
 		inside++;
 
 	    mutex->up();
