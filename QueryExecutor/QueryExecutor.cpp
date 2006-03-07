@@ -118,31 +118,9 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 		} //case TNTRANS
 
 		default: {
-			vector<ObjectPointer*>* vec;
-			if ((errcode = tr->getRoots(vec)) != 0) {
-				tr = NULL;
-				return errcode;
-			}
-			int vecSize = vec->size();
-			ec->printf("[QE] All %d Roots taken\n", vecSize);
-			QueryBagResult *stackSection = new QueryBagResult();
-			for (int i = 0; i < vecSize; i++ ) {
-				ObjectPointer *optr = vec->at(i);
-				LogicalID *lid = optr->getLogicalID();
-				*ec << "[QE] LogicalID received";
-				string optrName = (optr->getName());
-				*ec << "[QE] Name received";
-				QueryReferenceResult *lidres = new QueryReferenceResult(lid);
-				QueryBinderResult *newBinding = new QueryBinderResult(optrName, lidres);
-				stackSection->addResult(newBinding);
-			}
-			errcode = stack.push(stackSection);
-			if (errcode != 0) return errcode;
 			QueryResult *tmp_result;
 			errcode = this->executeRecQuery(tree, &tmp_result);
-			int errcode2 = (stack.pop());
 			if (errcode != 0) return errcode;
-			if (errcode2 != 0) return errcode2;
 			*result = tmp_result;
 			*ec << "[QE] Done!";
 			return 0;
@@ -177,9 +155,27 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, QueryResult **result) {
 				errcode = stack.bindName(name, *result);
 				if (errcode != 0) return errcode;
 			}
-			else {
+			else {  // ten numer sekcji jest do uzgodnienia
 				errcode = stack.bindName(name, (sectionNumber - 1), *result);
 				if (errcode != 0) return errcode;
+			}
+			if (((*result)->size()) == 0) {
+				vector<ObjectPointer*>* vec;
+				if ((errcode = tr->getRoots(name, vec)) != 0) {
+					tr = NULL;
+					return errcode;
+				}
+				int vecSize = vec->size();
+				ec->printf("[QE] %d Roots by name taken\n", vecSize);
+				QueryBagResult *tmp_result = new QueryBagResult();
+				for (int i = 0; i < vecSize; i++ ) {
+					ObjectPointer *optr = vec->at(i);
+					LogicalID *lid = optr->getLogicalID();
+					*ec << "[QE] LogicalID received";
+					QueryReferenceResult *lidres = new QueryReferenceResult(lid);
+					tmp_result->addResult(lidres);
+				}
+				*result = tmp_result;
 			}
 			*ec << "[QE] Done!";
 			return 0;
