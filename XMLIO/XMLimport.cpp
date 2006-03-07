@@ -195,9 +195,13 @@ namespace XMLIO {
 			handler = new SAXExtendedHandler(store, tid);
 		}		
 		SAXParser* parser = new SAXParser();
-		parser->setDocumentHandler(handler);				
+		parser->setDocumentHandler(handler);
+		ErrorHandler* errorHandler = new HandlerBase();
+		parser->setErrorHandler(errorHandler);
 		try {
 			parser->parse(xmlPath.c_str());
+		} catch (const SAXParseException& e) {
+			cerr << "[ERROR] Parse exception (line " << e.getLineNumber() << " /column "<< e.getColumnNumber() << " )\n";
 		} catch (const SAXException& e) {
 			cerr << "[ERROR] Parse exception: " << e.getMessage() << "\n";
 		} catch (const XMLException& e) {
@@ -208,6 +212,7 @@ namespace XMLIO {
 		};
 		delete parser;
 		delete handler;
+		delete errorHandler;
 		XMLPlatformUtils::Terminate();
 		return 0;		
 	}	

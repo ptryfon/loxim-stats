@@ -96,8 +96,10 @@ int main(int argc, char* argv[]) {
 	
 	DBStoreManager* store = new DBStoreManager();
 	store->init(log);
+	TransactionManager::getHandle()->init(store, log);	
 	store->setTManager(TransactionManager::getHandle());
 	store->start();		
+	log->start(store);
 	
 	if (function == IMPORT) {
 		XMLImporter* imp = new XMLImporter(store, verboseLevel, fileFormat);
@@ -109,5 +111,8 @@ int main(int argc, char* argv[]) {
 	
 	if (storeLock.unlock() != 0) return 0;
 	store->stop();
+	unsigned idx;
+	log->shutdown(idx);
+	delete TransactionManager::getHandle();
 	return 0;
 }
