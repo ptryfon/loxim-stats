@@ -469,7 +469,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, QueryResult **result) {
 									errcode = (((QueryBagResult *) nResult)->at(i, current_new_result));
 								if (errcode != 0) return errcode;
 								bool isIncl;
-								errcode = this->isIncluded(current_new_result, final_result, isIncl);
+								errcode = this->isIncluded_unique(current_new_result, final_result, isIncl);
 								if (errcode != 0) return errcode;
 								if (not (isIncl)) { // occur check
 									partial_result->addResult(current_new_result);
@@ -520,7 +520,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, QueryResult **result) {
 										errcode = (((QueryBagResult *) nResult)->at(i, c_result));
 									if (errcode != 0) return errcode;
 									bool isIncl;
-									errcode = this->isIncluded(c_result, visited_result, isIncl);
+									errcode = this->isIncluded_unique(c_result, visited_result, isIncl);
 									if (errcode != 0) return errcode;
 									if (not (isIncl)) { // occur check
 										partial_result->addResult(c_result);
@@ -1029,8 +1029,11 @@ int QueryExecutor::unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&
 				bool is_incl;
 				errcode = this->isIncluded(current, bagArg, is_incl);
 				if (errcode != 0) return errcode;
-				if (not is_incl)
-					final->addResult(current);
+				if (not is_incl) {
+					QueryResult *derefedCurrent;
+					errcode = derefQuery(current, derefedCurrent);
+					final->addResult(derefedCurrent);
+				}
 			}
 			break;
 		}
@@ -1692,6 +1695,46 @@ int QueryExecutor::isIncluded(QueryResult *elem, QueryResult *set, bool &score) 
 		if (eq) 
 			tmp_bool = true;
 	} 
+	score = tmp_bool;
+	return 0;
+}
+
+int QueryExecutor::isIncluded_unique(QueryResult *elem, QueryResult *set, bool &score) {
+	*ec << "[QE] isIncluded_unique()";
+	int errcode;
+	if (set->type() != QueryResult::QBAG) {
+		*ec << "[QE] isIncluded_unique(): ERROR! set argument must be BAG";
+		*ec << (ErrQExecutor | EOtherResExp);
+		return ErrQExecutor | EOtherResExp;
+	}
+	QueryResult *derefElem;
+	errcode = this->derefQuery(elem,derefElem);
+	if (errcode != 0) return errcode;
+	bool tmp_bool = false;
+	for (unsigned int i = 0; i < set->size(); i++) {
+		QueryResult *tmp_res;
+		errcode = ((QueryBagResult *) set)->at(i, tmp_res);
+		if (errcode != 0) return errcode;
+		if ((elem->isReferenceValue()) && (tmp_res->isReferenceValue())) {
+			QueryResult *refElem;
+			QueryResult *refSetElem;
+			errcode = elem->getReferenceValue(refElem);
+			if (errcode != 0) return errcode;
+			errcode = tmp_res->getReferenceValue(refSetElem);
+			if (errcode != 0) return errcode;
+			bool eq = refElem->equal(refSetElem);
+			if (eq)
+				tmp_bool = eq;
+		}
+		else {
+			QueryResult *derefSetElem;
+			errcode = this->derefQuery(tmp_res, derefSetElem);
+			if (errcode != 0) return errcode;
+			bool eq = derefElem->equal(derefSetElem);
+			if (eq)
+				tmp_bool = eq;
+		}
+	}
 	score = tmp_bool;
 	return 0;
 }

@@ -61,6 +61,8 @@ public:
 	virtual int getBoolValue(bool &b)=0;
 	virtual bool isSingleValue()=0;
 	virtual int getSingleValue(QueryResult *&r)=0;
+	virtual bool isReferenceValue()=0;
+	virtual int getReferenceValue(QueryResult *&r)=0;
 	virtual int comma(QueryResult *arg, QueryResult *&score)=0;
 };
 
@@ -101,6 +103,8 @@ public:
 	int getBoolValue(bool &b);
 	bool isSingleValue();
 	int getSingleValue(QueryResult *&r);
+	bool isReferenceValue();
+	int getReferenceValue(QueryResult *&r);
 	int comma(QueryResult *arg, QueryResult *&score);
 	int sortCollection(QueryResult *r);
 };
@@ -141,6 +145,8 @@ public:
 	int getBoolValue(bool &b);
 	bool isSingleValue();
 	int getSingleValue(QueryResult *&r);
+	bool isReferenceValue();
+	int getReferenceValue(QueryResult *&r);
 	int comma(QueryResult *arg, QueryResult *&score);
 	int divideBag(QueryResult *&left, QueryResult *&right);
 };
@@ -181,6 +187,8 @@ public:
 	int getBoolValue(bool &b);
 	bool isSingleValue();
 	int getSingleValue(QueryResult *&r);
+	bool isReferenceValue();
+	int getReferenceValue(QueryResult *&r);
 	int comma(QueryResult *arg, QueryResult *&score);
 };
 
@@ -215,6 +223,8 @@ public:
 	int getBoolValue(bool &b);
 	bool isSingleValue();
 	int getSingleValue(QueryResult *&r);
+	bool isReferenceValue();
+	int getReferenceValue(QueryResult *&r);
 	int comma(QueryResult *arg, QueryResult *&score);
 };
 
@@ -246,6 +256,8 @@ public:
 	int getBoolValue(bool &b);
 	bool isSingleValue();
 	int getSingleValue(QueryResult *&r);
+	bool isReferenceValue();
+	int getReferenceValue(QueryResult *&r);
 	int comma(QueryResult *arg, QueryResult *&score);
 };
 
@@ -282,6 +294,8 @@ public:
 	int getBoolValue(bool &b);
 	bool isSingleValue();
 	int getSingleValue(QueryResult *&r);
+	bool isReferenceValue();
+	int getReferenceValue(QueryResult *&r);
 	int comma(QueryResult *arg, QueryResult *&score);
 };
 
@@ -318,6 +332,8 @@ public:
 	int getBoolValue(bool &b);
 	bool isSingleValue();
 	int getSingleValue(QueryResult *&r);
+	bool isReferenceValue();
+	int getReferenceValue(QueryResult *&r);
 	int comma(QueryResult *arg, QueryResult *&score);
 };
 
@@ -351,6 +367,8 @@ public:
 	int getBoolValue(bool &b);
 	bool isSingleValue();
 	int getSingleValue(QueryResult *&r);
+	bool isReferenceValue();
+	int getReferenceValue(QueryResult *&r);
 	int comma(QueryResult *arg, QueryResult *&score);
 };
 
@@ -382,6 +400,8 @@ public:
 	int getBoolValue(bool &b);
 	bool isSingleValue();
 	int getSingleValue(QueryResult *&r);
+	bool isReferenceValue();
+	int getReferenceValue(QueryResult *&r);
 	int comma(QueryResult *arg, QueryResult *&score);
 };
 
@@ -408,6 +428,8 @@ public:
 	int getBoolValue(bool &b);
 	bool isSingleValue();
 	int getSingleValue(QueryResult *&r);
+	bool isReferenceValue();
+	int getReferenceValue(QueryResult *&r);
 	int comma(QueryResult *arg, QueryResult *&score);
 };
 

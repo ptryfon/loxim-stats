@@ -1027,13 +1027,51 @@ bool QueryStructResult::isBool() {
 	else
 		return false; 
 }
-bool QueryBinderResult::isBool()	{ return false; }
+bool QueryBinderResult::isBool() {
+if (item != NULL)
+		return (item->isBool());
+	else
+		return false; 
+}
 bool QueryStringResult::isBool()	{ return false; }
 bool QueryIntResult::isBool()		{ return false; }
 bool QueryDoubleResult::isBool()	{ return false; }
 bool QueryBoolResult::isBool()		{ return true; }
 bool QueryReferenceResult::isBool()	{ return false; }
 bool QueryNothingResult::isBool()	{ return false; }
+
+
+//function isReferenceValue() - returns true if result is a reference, false if not
+bool QuerySequenceResult::isReferenceValue() { 
+	if (seq.size() == 1)
+		return ((seq.at(0))->isReferenceValue());
+	else
+		return false; 
+}
+bool QueryBagResult::isReferenceValue() { 
+	if (bag.size() == 1)
+		return ((bag.at(0))->isReferenceValue());
+	else
+		return false; 
+}
+bool QueryStructResult::isReferenceValue() { 
+	if (str.size() == 1)
+		return ((str.at(0))->isReferenceValue());
+	else
+		return false; 
+}
+bool QueryBinderResult::isReferenceValue() {
+if (item != NULL)
+		return (item->isReferenceValue());
+	else
+		return false; 
+}
+bool QueryStringResult::isReferenceValue()	{ return false; }
+bool QueryIntResult::isReferenceValue()		{ return false; }
+bool QueryDoubleResult::isReferenceValue()	{ return false; }
+bool QueryBoolResult::isReferenceValue()	{ return false; }
+bool QueryReferenceResult::isReferenceValue()	{ return true; }
+bool QueryNothingResult::isReferenceValue()	{ return false; }
 
 //function isNothing() - returns true if result is void (also if it is table 1x1 containing void), false if not
 bool QuerySequenceResult::isNothing() { 
@@ -1060,7 +1098,12 @@ bool QueryStructResult::isNothing() {
 	else
 		return false; 
 }
-bool QueryBinderResult::isNothing()	{ return false; }
+bool QueryBinderResult::isNothing() {
+if (item != NULL)
+		return (item->isNothing());
+	else
+		return false; 
+}
 bool QueryStringResult::isNothing()	{ return false; }
 bool QueryIntResult::isNothing()	{ return false; }
 bool QueryDoubleResult::isNothing()	{ return false; }
@@ -1090,9 +1133,12 @@ int QueryStructResult::getBoolValue(bool &b) {
 		*ec << (ErrQExecutor | EBoolExpected);
 		return ErrQExecutor | EBoolExpected;
 }
-int QueryBinderResult::getBoolValue(bool &b) { 
-	*ec << (ErrQExecutor | EBoolExpected);
-	return ErrQExecutor | EBoolExpected;
+int QueryBinderResult::getBoolValue(bool &b) {
+	if (item != NULL)
+		return (item->getBoolValue(b));
+	else
+		*ec << (ErrQExecutor | EBoolExpected);
+		return ErrQExecutor | EBoolExpected;
 }
 int QueryStringResult::getBoolValue(bool &b) { 
 	*ec << (ErrQExecutor | EBoolExpected);
@@ -1117,6 +1163,60 @@ int QueryReferenceResult::getBoolValue(bool &b) {
 int QueryNothingResult::getBoolValue(bool &b) { 
 	*ec << (ErrQExecutor | EBoolExpected);
 	return ErrQExecutor | EBoolExpected;
+}
+
+// function getReferenceValue returns reference value if the object is a reference
+int QuerySequenceResult::getReferenceValue(QueryResult *&r) {
+	if (seq.size() == 1)
+		return ((seq.at(0))->getReferenceValue(r));
+	else
+		*ec << (ErrQExecutor | ERefExpected);
+		return ErrQExecutor | ERefExpected;
+}
+int QueryBagResult::getReferenceValue(QueryResult *&r) {
+	if (bag.size() == 1)
+		return ((bag.at(0))->getReferenceValue(r));
+	else
+		*ec << (ErrQExecutor | ERefExpected);
+		return ErrQExecutor | ERefExpected;
+}
+int QueryStructResult::getReferenceValue(QueryResult *&r) { 
+	if (str.size() == 1)
+		return ((str.at(0))->getReferenceValue(r));
+	else
+		*ec << (ErrQExecutor | ERefExpected);
+		return ErrQExecutor | ERefExpected;
+}
+int QueryBinderResult::getReferenceValue(QueryResult *&r) {
+	if (item != NULL)
+		return (item->getReferenceValue(r));
+	else
+		*ec << (ErrQExecutor | ERefExpected);
+		return ErrQExecutor | ERefExpected;
+}
+int QueryStringResult::getReferenceValue(QueryResult *&r) { 
+	*ec << (ErrQExecutor | ERefExpected);
+	return ErrQExecutor | ERefExpected;
+}
+int QueryIntResult::getReferenceValue(QueryResult *&r) { 
+	*ec << (ErrQExecutor | ERefExpected);
+	return ErrQExecutor | ERefExpected;
+}
+int QueryDoubleResult::getReferenceValue(QueryResult *&r) { 
+	*ec << (ErrQExecutor | ERefExpected);
+	return ErrQExecutor | ERefExpected;
+}
+int QueryBoolResult::getReferenceValue(QueryResult *&r) { 
+	*ec << (ErrQExecutor | ERefExpected);
+	return ErrQExecutor | ERefExpected;
+}
+int QueryReferenceResult::getReferenceValue(QueryResult *&r) { 
+	r = new QueryReferenceResult(value);
+	return 0;
+}
+int QueryNothingResult::getReferenceValue(QueryResult *&r) { 
+	*ec << (ErrQExecutor | ERefExpected);
+	return ErrQExecutor | ERefExpected;
 }
 
 //function isSingleValue() - returns true if result is a boolean,int,double,string,reference or nothing 

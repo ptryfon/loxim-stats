@@ -54,6 +54,7 @@ namespace QExecutor
 		int algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResult *rArg, QueryResult *&final);
 		int derefQuery(QueryResult *arg, QueryResult *&res);
 		int isIncluded(QueryResult *elem, QueryResult *set, bool &score);
+		int isIncluded_unique(QueryResult *elem, QueryResult *set, bool &score);
 	public:
 		QueryExecutor() { tr = NULL; ec = new ErrorConsole("QueryExecutor"); };
 		~QueryExecutor();
