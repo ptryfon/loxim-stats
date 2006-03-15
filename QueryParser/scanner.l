@@ -59,6 +59,7 @@ extern int szbderrno;
 "and"			return AND;
 "not"			return NOT;
 "="			return EQUAL;
+"=="		return REFEQUAL;
 "!="			return NOT_EQUAL;
 ">"			return GREATER_THAN;
 "<"			return LESS_THAN;

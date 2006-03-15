@@ -33,7 +33,7 @@
 %left OR
 %left AND
 %nonassoc NOT
-%nonassoc EQUAL NOT_EQUAL GREATER_THAN LESS_THAN GREATER_EQ LESS_EQ
+%nonassoc EQUAL REFEQUAL NOT_EQUAL GREATER_THAN LESS_THAN GREATER_EQ LESS_EQ
 %left PLUS MINUS
 %left TIMES DIVIDE_BY
 %nonassoc UMINUS
@@ -75,6 +75,7 @@ query	    : NAME { char *s = $1; $$ = new NameNode(s); delete s; }
 	    | query TIMES query { $$ = new AlgOpNode($1,$3,AlgOpNode::times); }
 	    | query DIVIDE_BY query { $$ = new AlgOpNode($1,$3,AlgOpNode::divide); }
 	    | query EQUAL query { $$ = new AlgOpNode($1,$3,AlgOpNode::eq); }
+	    | query REFEQUAL query { $$ = new AlgOpNode($1, $3, AlgOpNode::refeq); }
 	    | query NOT_EQUAL query { $$ = new AlgOpNode($1,$3,AlgOpNode::neq); }
 	    | query GREATER_THAN query { $$ = new AlgOpNode($1,$3,AlgOpNode::gt); }
 	    | query LESS_THAN query { $$ = new AlgOpNode($1,$3,AlgOpNode::lt); }

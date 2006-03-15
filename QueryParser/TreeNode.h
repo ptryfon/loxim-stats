@@ -273,7 +273,7 @@ namespace QParser {
     {
     public:
 	enum algOp { bagUnion, bagIntersect, bagMinus, plus, minus, times, divide,
-   	         eq, neq, lt, gt, le, ge, boolAnd, boolOr, comma, insert }; 
+   	         eq, refeq, neq, lt, gt, le, ge, boolAnd, boolOr, comma, insert }; 
     protected:
 	QueryNode* larg;
 	QueryNode* rarg;
@@ -312,15 +312,16 @@ namespace QParser {
 	    if (op == 5) return "times";
 	    if (op == 6) return "divide";
 	    if (op == 7) return " = ";	    
-	    if (op == 8) return " != ";	    
-	    if (op == 9) return " < ";	    
-	    if (op == 10) return " > ";	    
-	    if (op == 11) return " <= ";
-	    if (op == 12) return " >= ";
-	    if (op == 13) return " && ";
-	    if (op == 14) return " || ";
-	    if (op == 15) return " , ";	    
-	    if (op == 16) return "insert";
+	    if (op == 8) return " == ";
+	    if (op == 9) return " != ";	    
+	    if (op == 10) return " < ";	    
+	    if (op == 11) return " > ";	    
+	    if (op == 12) return " <= ";
+	    if (op == 13) return " >= ";
+	    if (op == 14) return " && ";
+	    if (op == 15) return " || ";
+	    if (op == 16) return " , ";	    
+	    if (op == 17) return "insert";
 	    return "~~~";
 	}
 	virtual int staticEval (StatQResStack *&qres, StatEnvStack *&envs);	
@@ -340,7 +341,7 @@ namespace QParser {
 	QueryNode* rarg;
 	nonAlgOp op;
 	int firstOpenSect;   /* nrs of the ENV section which was open by this operator */	
-	int lastOpenSect;	
+	int lastOpenSect;	
     public:
 	NonAlgOpNode(QueryNode* _larg, QueryNode* _rarg, nonAlgOp _op)
                 : larg(_larg), rarg(_rarg), op(_op)
