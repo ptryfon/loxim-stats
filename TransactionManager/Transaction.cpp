@@ -274,13 +274,17 @@ namespace TManager
 	int Transaction::commit()
 	{	
 	    err.printf("Transaction commit, tid = %d\n", tid->getId());
-	    return tm->commit(this);
+	    int retval = tm->commit(this);
+	    sm->commitTransaction(tid);
+	    return retval;
 	}
 
 	int Transaction::abort()
 	{	
 	    err.printf("Transaction abort, tid = %d\n", tid->getId());
-	    return tm->abort(this);
+	    int retval = tm->abort(this);
+	    sm->abortTransaction(tid);
+	    return retval;
 	}
 
 	    
