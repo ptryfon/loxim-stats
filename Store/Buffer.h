@@ -30,6 +30,7 @@ namespace Store
 			unsigned char haspage;
 			unsigned char dirty;
 			unsigned char lock;
+			unsigned int rlock;
 			unsigned int id;
 			char* page;
 		} buffer_page;
@@ -40,6 +41,8 @@ namespace Store
 
 		int max_pages;
 		int max_dirty;
+
+		pthread_mutex_t** p_mutex;
 
 		pthread_t tid_dbwriter;
 		struct {
@@ -63,8 +66,13 @@ namespace Store
 
 		PagePointer* getPagePointer(unsigned short fileID, unsigned int pageID);
 		int readPage(unsigned short fileID, unsigned int pageID, buffer_page*& n_page);
+
 		int acquirePage(PagePointer* pp);
+		int acquirePageRead(PagePointer* pp);
+
 		int releasePage(PagePointer* pp);
+		int releasePageSync(PagePointer* pp);
+
 		static void* dbWriterThread(void* arg);
 		void* dbWriterMain(void);
 		int dbWriterWrite(void);

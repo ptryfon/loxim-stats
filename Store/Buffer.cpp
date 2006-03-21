@@ -1,5 +1,5 @@
 /**
- * $Id: Buffer.cpp,v 1.32 2006-02-06 09:54:27 mk189406 Exp $
+ * $Id: Buffer.cpp,v 1.33 2006-03-21 08:54:46 mk189406 Exp $
  *
  */
 #include "Buffer.h"
@@ -198,6 +198,27 @@ namespace Store
 		}
 	};
 
+	int Buffer::acquirePageRead(PagePointer* pp)
+	{
+		return -1;
+/*		int retval;
+
+		if (!started)
+			return -1; 
+
+		::pthread_mutex_lock(&dbwriter.mutex);
+		buffer_addr_t buffer_addr = make_pair(pp->getFileID(), pp->getPageID());
+		buffer_hash_t::iterator it = buffer_hash.find(buffer_addr);
+		buffer_page* n_page;
+
+		if (it != buffer_hash.end() && (*it).second.haspage) {
+		} else if (it != buffer_hash.end()) {
+		} else {
+			::pthread_mutex_unlock(&dbwriter.mutex);
+			return -1;
+		}*/
+	};
+
 	int Buffer::releasePage(PagePointer* pp)
 	{
 		if (!started)
@@ -229,6 +250,31 @@ namespace Store
 		}
 	};
 
+	int Buffer::releasePageSync(PagePointer* pp)
+	{
+		if (!started)
+			return -1;
+
+		::pthread_mutex_lock(&dbwriter.mutex);
+		buffer_addr_t buffer_addr = make_pair(pp->getFileID(), pp->getPageID());
+		buffer_hash_t::iterator it = buffer_hash.find(buffer_addr);
+		buffer_page* n_page;
+
+		if (it != buffer_hash.end() && (*it).second.haspage) {
+			n_page = &((*it).second);
+
+			file->writePage((*it).first.first, (*it).first.second, n_page->page);
+			n_page->dirty = 0;
+			dbwriter.dirty_pages--;
+
+			::pthread_mutex_unlock(&dbwriter.mutex);
+			return 0;
+		} else {
+			::pthread_mutex_unlock(&dbwriter.mutex);
+			return -1;
+		}
+	};
+
 	void* Buffer::dbWriterThread(void* arg)
 	{
 		Buffer* b = (Buffer*) arg;
@@ -247,9 +293,9 @@ namespace Store
 			}
 
 			if (started == 1) {
-				ec->printf("Store::Buffer: dbwriter start with dirty(%d)\n", dbwriter.dirty_pages);
+				ec->printf("Store::Buffer: dbwriter started with dirty(%d)\n", dbwriter.dirty_pages);
 				dbWriterWrite();
-				ec->printf("Store::Buffer: dbwriter finish with dirty(%d)\n", dbwriter.dirty_pages);
+				ec->printf("Store::Buffer: dbwriter finished with dirty(%d)\n", dbwriter.dirty_pages);
 			} else {
 				::pthread_mutex_unlock(&dbwriter.mutex);
 				break;
