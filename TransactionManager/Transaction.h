@@ -37,10 +37,13 @@ namespace TManager
 			friend class Transaction;
 			friend class TransactionManager;
 			TransactionID* clone();
-		        int id;	
+		        int id;
+			unsigned timeStamp;
 
 	      public:
-			int getId() const;	      
+			int getId() const;
+			unsigned getTimeStamp() const;
+			void setTimeStamp(unsigned t);	      
 		        TransactionID(int n);
 	};
 

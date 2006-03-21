@@ -10,6 +10,8 @@ namespace TManager
 		this->id = id;
 	};
 	int TransactionID::getId() const { return id; };
+	unsigned TransactionID::getTimeStamp() const { return timeStamp; };
+	void TransactionID::setTimeStamp(unsigned t) { timeStamp = t; };
 
 	TransactionID* TransactionID::clone()
 	{
@@ -37,11 +39,14 @@ namespace TManager
 	int Transaction::init(StoreManager *stmg, LogManager *lgmg)
 	{
 		unsigned id;
+		int errorNumer;
 		sm = stmg;
 		logm = lgmg;
 		
 		/* message to Logs */
-	    	return logm->beginTransaction(tid->getId(), id);
+	    	errorNumer = logm->beginTransaction(tid->getId(), id);
+		tid->setTimeStamp(id);
+		return errorNumer;
 	}
 				
 	int Transaction::getObjectPointer(LogicalID* lid, AccessMode mode, ObjectPointer* &p)
