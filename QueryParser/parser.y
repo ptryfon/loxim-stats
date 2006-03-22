@@ -18,11 +18,11 @@
 
 %token	<num> INTEGER
 %token	<dbl> DOUBLE 
-%token	<str> NAME STRING SEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT INSERT INTO  DEREF BEGINTR END ABORT CREATE
+%token	<str> NAME STRING SEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT INSERT INTO  DEREF REF BEGINTR END ABORT CREATE
 
 %start statement
 
-%nonassoc DELETE CREATE INTO
+%nonassoc DELETE CREATE INTO INSERTINTO
 %left COMMA
 %right EXISTS FOR_ALL
 %left GROUP_AS AS
@@ -63,6 +63,7 @@ query	    : NAME { char *s = $1; $$ = new NameNode(s); delete s; }
 	    | MIN LEFTPAR  query RIGHTPAR { $$ = new UnOpNode($3,UnOpNode::min); }
 	    | MAX LEFTPAR  query RIGHTPAR { $$ = new UnOpNode($3,UnOpNode::max); }
 	    | DEREF LEFTPAR  query RIGHTPAR  { $$ = new UnOpNode($3,UnOpNode::deref); }
+	    | REF LEFTPAR query RIGHTPAR { $$ = new UnOpNode($3, UnOpNode::ref); }
 	    | DISTINCT LEFTPAR  query RIGHTPAR { $$ = new UnOpNode($3,UnOpNode::distinct); }
 	    | MINUS query 				%prec UMINUS  { $$ = new UnOpNode($2,UnOpNode::unMinus); }
 	    | NOT query { $$ = new UnOpNode($2,UnOpNode::boolNot); }
@@ -75,7 +76,8 @@ query	    : NAME { char *s = $1; $$ = new NameNode(s); delete s; }
 	    | query TIMES query { $$ = new AlgOpNode($1,$3,AlgOpNode::times); }
 	    | query DIVIDE_BY query { $$ = new AlgOpNode($1,$3,AlgOpNode::divide); }
 	    | query EQUAL query { $$ = new AlgOpNode($1,$3,AlgOpNode::eq); }
-	    | query REFEQUAL query { $$ = new AlgOpNode($1, $3, AlgOpNode::refeq); }
+	    | query REFEQUAL query {
+	      $$ = new AlgOpNode(new UnOpNode($1,UnOpNode::ref),new UnOpNode($3,UnOpNode::ref),AlgOpNode::eq);}
 	    | query NOT_EQUAL query { $$ = new AlgOpNode($1,$3,AlgOpNode::neq); }
 	    | query GREATER_THAN query { $$ = new AlgOpNode($1,$3,AlgOpNode::gt); }
 	    | query LESS_THAN query { $$ = new AlgOpNode($1,$3,AlgOpNode::lt); }
@@ -95,7 +97,8 @@ query	    : NAME { char *s = $1; $$ = new NameNode(s); delete s; }
 	    | query FOR_ALL query { $$ = new NonAlgOpNode($1,$3,NonAlgOpNode::forAll); }
 	    | CREATE NAME LEFTPAR query RIGHTPAR { $$ = new CreateNode($2,$4); }
 	    | CREATE NAME  { $$ = new CreateNode($2); }
-	    | INSERT query INTO query { $$ = new AlgOpNode($2,$4,AlgOpNode::insert); }
+	    | query INSERTINTO query { $$ = new AlgOpNode($1,$3,AlgOpNode::insert); }
+	    | INSERT query INTO query { $$ = new AlgOpNode($2, $4, AlgOpNode::insert);}
 	    | DELETE query  { $$ = new UnOpNode($2,UnOpNode::deleteOp); }
 	    | query ASSIGN query { $$ = new NonAlgOpNode($1,$3,NonAlgOpNode::assign); }
 	    ;

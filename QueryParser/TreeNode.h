@@ -220,7 +220,7 @@ namespace QParser {
     class UnOpNode : public QueryNode 
     {
     public:
-	enum unOp { unMinus, count, sum, avg, min, max, distinct, boolNot, deleteOp, deref };
+	enum unOp { unMinus, count, sum, avg, min, max, distinct, boolNot, deleteOp, deref, ref};
     protected:
 	QueryNode* arg;
 	unOp op;
@@ -256,6 +256,7 @@ namespace QParser {
 	    if (op == 7) return "boolNot";	    
 	    if (op == 8) return "deleteOp";	    
 	    if (op == 9) return "deref";	    
+		if (op == 10) return "ref";
 	    return "~~~";
 	}
 
@@ -273,7 +274,7 @@ namespace QParser {
     {
     public:
 	enum algOp { bagUnion, bagIntersect, bagMinus, plus, minus, times, divide,
-   	         eq, refeq, neq, lt, gt, le, ge, boolAnd, boolOr, comma, insert }; 
+   	         eq, refeq, neq, lt, gt, le, ge, boolAnd, boolOr, comma, insert, insertInto }; 
     protected:
 	QueryNode* larg;
 	QueryNode* rarg;
@@ -322,6 +323,7 @@ namespace QParser {
 	    if (op == 15) return " || ";
 	    if (op == 16) return " , ";	    
 	    if (op == 17) return "insert";
+	    if (op == 18) return ":<";
 	    return "~~~";
 	}
 	virtual int staticEval (StatQResStack *&qres, StatEnvStack *&envs);	
@@ -341,7 +343,7 @@ namespace QParser {
 	QueryNode* rarg;
 	nonAlgOp op;
 	int firstOpenSect;   /* nrs of the ENV section which was open by this operator */	
-	int lastOpenSect;	
+	int lastOpenSect;	
     public:
 	NonAlgOpNode(QueryNode* _larg, QueryNode* _rarg, nonAlgOp _op)
                 : larg(_larg), rarg(_rarg), op(_op)
