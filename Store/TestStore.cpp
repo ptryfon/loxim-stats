@@ -2,10 +2,9 @@
 
 #include <unistd.h>
 
-#include "Store.h"
-#include "Roots.h"
-#include "Map.h"
 #include "DBStoreManager.h"
+#include "Store.h"
+#include "Map.h"
 #include "DBLogicalID.h"
 #include "../Config/SBQLConfig.h"
 #include "../Log/Logs.h"
@@ -125,7 +124,7 @@ int main(int argc, char* argv[])
 		cout << ov->size() << endl;
 
 		cout << "Getting roots:\n";
-		vector<int>* rv = store->getRoots()->getRoots();
+		vector<int>* rv = store->getRoots()->getRoots(0, 123456789);
 		if (rv)
 		{
 			vector<int>::iterator ri;
@@ -213,16 +212,62 @@ cout << "DZIWNY KOD ---------\n";
 		if (pid)
 			delete pid;
 */
-		Roots* roots = store->getRoots();
+		NamedRoots* roots = store->getRoots();
 
-//		cout << "addRoot(0x32) = " << roots->addRoot(0x32) << "\n";
-		cout << "addRoot(0x31) = " << roots->addRoot(0x31) << "\n";
-//		cout << "addRoot(0x30) = " << roots->addRoot(0x30) << "\n";
-//		cout << "addRoot(0x33) = " << roots->addRoot(0x33) << "\n";
-		cout << "removeRoot(0x31) = " << roots->removeRoot(0x31) << "\n";
+		cout << "addRoot(1, \"aaa\", 1, 123456789) = " << roots->addRoot(1, "aaa", 1, 123456789) << "\n";
+		cout << "addRoot(2, \"aaa\", 1, 123456789) = " << roots->addRoot(2, "aaa", 1, 123456789) << "\n";
+		cout << "addRoot(0, \"bbb\", 1, 123456789) = " << roots->addRoot(0, "bbb", 1, 123456789) << "\n";
+		cout << "addRoot(3, \"aaa\", 2, 123456790) = " << roots->addRoot(3, "aaa", 2, 123456790) << "\n";
+		cout << "removeRoot(1, 1, 123456789) = " << roots->removeRoot(1, 1, 123456789) << "\n";
 
-		cout << "Getting roots:\n";
-		vector<int>* rv = roots->getRoots();
+		vector<int>* rv = 0;
+
+		cout << "Getting roots (1):\n";
+		rv = roots->getRoots(1, 123456789);
+		if (rv)
+		{
+			vector<int>::iterator ri;
+			for (ri = rv->begin(); ri != rv->end(); ri++)
+				cout << (int) *ri << "\n";
+			delete rv;
+		}
+
+		cout << "Getting roots (2):\n";
+		rv = roots->getRoots(2, 123456790);
+		if (rv)
+		{
+			vector<int>::iterator ri;
+			for (ri = rv->begin(); ri != rv->end(); ri++)
+				cout << (int) *ri << "\n";
+			delete rv;
+		}
+
+		cout << "Getting roots (3):\n";
+		rv = roots->getRoots(3, 123456791);
+		if (rv)
+		{
+			vector<int>::iterator ri;
+			for (ri = rv->begin(); ri != rv->end(); ri++)
+				cout << (int) *ri << "\n";
+			delete rv;
+		}
+
+		roots->commitTransaction(1);
+
+		cout << "Getting roots (3):\n";
+		rv = roots->getRoots(3, 123456791);
+		if (rv)
+		{
+			vector<int>::iterator ri;
+			for (ri = rv->begin(); ri != rv->end(); ri++)
+				cout << (int) *ri << "\n";
+			delete rv;
+		}
+
+		roots->abortTransaction(2);
+
+		cout << "Getting roots (3):\n";
+		rv = roots->getRoots("aaa", 3, 123456791);
 		if (rv)
 		{
 			vector<int>::iterator ri;

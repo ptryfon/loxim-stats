@@ -9,7 +9,7 @@ namespace Store
 #include "Store.h"
 #include "Buffer.h"
 #include "Map.h"
-#include "Roots.h"
+#include "NamedRoots.h"
 #include "DBObjectPointer.h"
 #include "PageManager.h"
 #include "Misc.h"
@@ -30,7 +30,7 @@ namespace Store
 		TransactionManager* tm;
 		Buffer* buffer;
 		Map* map;
-		Roots* roots;
+		NamedRoots* roots;
 		PageManager* pagemgr;
 		unsigned timer;
 		ErrorConsole *ec;
@@ -50,7 +50,7 @@ namespace Store
 		TransactionManager* getTManager();
 		Buffer* getBuffer();
 		Map* getMap();
-		Roots* getRoots();
+		NamedRoots* getRoots();
 		PageManager* getPageManager();
 
 		virtual int getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object);
