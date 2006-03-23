@@ -315,7 +315,7 @@ namespace Store
 		ec->printf("getRoots(transactionID=%i)\n", transactionID);
 #endif
 
-		return getRoots(0, transactionID, transactionTimeStamp);
+		return getRoots("", transactionID, transactionTimeStamp);
 	}
 
 	vector<int>* NamedRoots::getRoots(const char* name, int transactionID, int transactionTimeStamp)
@@ -354,7 +354,7 @@ namespace Store
 
 					if
 					(
-						(!name || strcasecmp(name, entry->name) == 0)
+						(strlen(name) == 0 || strcasecmp(name, entry->name) == 0)
 						&& entry->add_t <= transactionTimeStamp
 						&& entry->del_t == STORE_IXR_NULLVALUE
 						&& (entry->cur_tran == STORE_IXR_NULLVALUE || entry->cur_tran == transactionID)

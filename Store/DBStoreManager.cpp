@@ -323,25 +323,15 @@ namespace Store
 		vector<int>* rvec;
 		rvec = roots->getRoots(p_name.c_str(), tid->getId(), 123456789);
 		
-		cout << "Getting roots:\n";
-		vector<int>* rv = roots->getRoots(p_name.c_str(), tid->getId(), 123456789);
-		if (rv)
-		{
-			vector<int>::iterator ri;
-			for (ri = rv->begin(); ri != rv->end(); ri++)
-				cout << (int) *ri << "\n";
-				delete rv;
-		}
-		
 		vector<int>::iterator obj_iter;
-		for(obj_iter=rvec->begin(); obj_iter!=rvec->end(); obj_iter++) {
+		for(obj_iter=rvec->begin(); obj_iter!=rvec->end(); obj_iter++)
+		{
 			ObjectPointer* optr = NULL;
 			LogicalID* lid = new DBLogicalID((*obj_iter));
 			int rval = getObject(tid, lid, Store::Write, optr);
-			if(optr || rval) {
-				if( (optr->getName() == p_name) || (p_name == "") )
-					p_roots->push_back(optr);
-			} else
+			if(optr || rval)
+				p_roots->push_back(optr);
+			else
 				return -1;
 		}
 
@@ -353,8 +343,8 @@ namespace Store
 	{
 		*ec << "Store::Manager::addRoot begin..";
 		int lid = object->getLogicalID()->toInteger();
-		unsigned log_id;
-		int itid = tid==NULL ? -1 : tid->getId();
+//		unsigned log_id;
+//		int itid = tid==NULL ? -1 : tid->getId();
 #ifdef LOGS
 		// klon dla logow
 //		log->addRoot(itid, object->getLogicalID()->clone(), log_id);
@@ -369,8 +359,8 @@ namespace Store
 	{
 		*ec << "Store::Manager::removeRoot begin..";
 		int lid = object->getLogicalID()->toInteger();
-		unsigned log_id;
-		int itid = tid==NULL ? -1 : tid->getId();
+//		unsigned log_id;
+//		int itid = tid==NULL ? -1 : tid->getId();
 #ifdef LOGS
 		// klon dla logow
 //		log->removeRoot(itid, object->getLogicalID()->clone(), log_id);
