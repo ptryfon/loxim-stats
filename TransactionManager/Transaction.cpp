@@ -279,17 +279,13 @@ namespace TManager
 	int Transaction::commit()
 	{	
 	    err.printf("Transaction commit, tid = %d\n", tid->getId());
-	    int retval = tm->commit(this);
-	    sm->commitTransaction(tid);
-	    return retval;
+	    return tm->commit(this);
 	}
 
 	int Transaction::abort()
 	{	
 	    err.printf("Transaction abort, tid = %d\n", tid->getId());
-	    int retval = tm->abort(this);
-	    sm->abortTransaction(tid);
-	    return retval;
+	    return tm->abort(this);
 	}
 
 	    
@@ -386,7 +382,10 @@ namespace TManager
 		/* unlock all objects hold by transaction */
 		errorNumber = LockManager::getHandle()->unlockAll(tr->getId());
 		err.printf("Transaction commit, tid = %d, lock errno = %d\n", tr->getId()->getId(), errorNumber);
-		
+
+		/* commit transaction in store */
+		storeMgr->commitTransaction(tr->getId());
+
 		/* remove transaction from active transactions list */
 	    	remove_from_list(tr->getId());
 		
@@ -407,7 +406,10 @@ namespace TManager
 		/* unlock all objects hold by transaction */
 		errorNumber = LockManager::getHandle()->unlockAll(tr->getId());
 		err.printf("Transaction abort, tid = %d, lock errno = %d\n", tr->getId()->getId(), errorNumber);
-		
+
+		/* abort transaction in store */		
+		storeMgr->abortTransaction(tr->getId());
+
 		/* remove transaction from active transactions list */
 	    	remove_from_list(tr->getId());
 		

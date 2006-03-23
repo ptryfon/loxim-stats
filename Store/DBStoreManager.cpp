@@ -48,7 +48,7 @@ namespace Store
 		this->log = log;
 		this->buffer = new Buffer(this);
 		this->map = new Map(this);
-		this->roots = new Roots(this);
+		this->roots = new NamedRoots(this);
 		this->pagemgr = new PageManager(this);
 
 		return 0;
@@ -106,7 +106,7 @@ namespace Store
 		return map;
 	}
 	
-	Roots* DBStoreManager::getRoots()
+	NamedRoots* DBStoreManager::getRoots()
 	{
 		return roots;
 	}
@@ -319,10 +319,10 @@ namespace Store
 		*ec << "Store::Manager::getRoots(BY NAME) begin..";
 		p_roots = new vector<ObjectPointer*>(0);
 		vector<int>* rvec;
-		rvec = roots->getRoots();
+		rvec = roots->getRoots(p_name.c_str(), tid->getId(), 123456789);
 		
 		cout << "Getting roots:\n";
-		vector<int>* rv = roots->getRoots();
+		vector<int>* rv = roots->getRoots(p_name.c_str(), tid->getId(), 123456789);
 		if (rv)
 		{
 			vector<int>::iterator ri;
@@ -355,9 +355,9 @@ namespace Store
 		int itid = tid==NULL ? -1 : tid->getId();
 #ifdef LOGS
 		// klon dla logow
-		log->addRoot(itid, object->getLogicalID()->clone(), log_id);
+//		log->addRoot(itid, object->getLogicalID()->clone(), log_id);
 #endif
-		roots->addRoot(lid);
+		roots->addRoot(lid, object->getName().c_str(), tid->getId(), 123456789);
 		
 		ec->printf("Store::Manager::addRoot done: %s\n", object->toString().c_str());
 		return 0;
@@ -371,9 +371,9 @@ namespace Store
 		int itid = tid==NULL ? -1 : tid->getId();
 #ifdef LOGS
 		// klon dla logow
-		log->removeRoot(itid, object->getLogicalID()->clone(), log_id);
+//		log->removeRoot(itid, object->getLogicalID()->clone(), log_id);
 #endif
-		roots->removeRoot(lid);
+		roots->removeRoot(lid, tid->getId(), 123456789);
 		
 		ec->printf("Store::Manager::removeRoot done: %s\n", object->toString().c_str());
 		return 0;
@@ -381,12 +381,12 @@ namespace Store
 
 	int DBStoreManager::abortTransaction(TransactionID* tid)
 	{
-		return 0;
+		return roots->abortTransaction(tid->getId());
 	}
 
 	int DBStoreManager::commitTransaction(TransactionID* tid)
 	{
-		return 0;
+		return roots->commitTransaction(tid->getId());
 	}
 
 	DataValue* DBStoreManager::createIntValue(int value)
