@@ -15,6 +15,36 @@ using namespace std;
 using namespace Store;
 using namespace Errors;
 
+void dump_roots(NamedRoots* roots, int t_id, int t_timestamp)
+{
+	cout << "   getRoots(" << t_id << ", " << t_timestamp << ")\n";
+	vector<int>* rv = roots->getRoots(t_id, t_timestamp);
+
+	cout << "   = {";
+	if (rv)
+	{
+		for (vector<int>::iterator ri = rv->begin(); ri != rv->end(); ri++)
+			cout << " " << (int) *ri;
+		delete rv;
+	}
+	cout << " }\n";
+}
+
+void dump_roots(NamedRoots* roots, char* name, int t_id, int t_timestamp)
+{
+	cout << "   getRoots(\"" << name << "\", " << t_id << ", " << t_timestamp << ")\n";
+	vector<int>* rv = roots->getRoots(name, t_id, t_timestamp);
+
+	cout << "   = {";
+	if (rv)
+	{
+		for (vector<int>::iterator ri = rv->begin(); ri != rv->end(); ri++)
+			cout << " " << (int) *ri;
+		delete rv;
+	}
+	cout << " }\n";
+}
+
 int main(int argc, char* argv[])
 {
 	SBQLConfig* config = new SBQLConfig("Store");
@@ -202,81 +232,29 @@ cout << "DZIWNY KOD ---------\n";
 		store->setTManager(TransactionManager::getHandle());
 		store->start();
 
-/*
-		physical_id* pid = NULL;
-		Map* map = store->getMap();
-		unsigned int lid = map->createLogicalID();
-		cout << "createLogicalID() = " << lid << "\n";
-		cout << map->getPhysicalID(lid, &pid) << "\n";
-		cout << map->setPhysicalID(lid, pid) << "\n";
-		if (pid)
-			delete pid;
-*/
 		NamedRoots* roots = store->getRoots();
 
-		cout << "addRoot(1, \"aaa\", 1, 123456789) = " << roots->addRoot(1, "aaa", 1, 123456789) << "\n";
-		cout << "addRoot(2, \"aaa\", 1, 123456789) = " << roots->addRoot(2, "aaa", 1, 123456789) << "\n";
-		cout << "addRoot(0, \"bbb\", 1, 123456789) = " << roots->addRoot(0, "bbb", 1, 123456789) << "\n";
-		cout << "addRoot(3, \"aaa\", 2, 123456790) = " << roots->addRoot(3, "aaa", 2, 123456790) << "\n";
-		cout << "removeRoot(1, 1, 123456789) = " << roots->removeRoot(1, 1, 123456789) << "\n";
-
-		vector<int>* rv = 0;
-
-		cout << "Getting roots (1):\n";
-		rv = roots->getRoots(1, 123456789);
-		if (rv)
-		{
-			vector<int>::iterator ri;
-			for (ri = rv->begin(); ri != rv->end(); ri++)
-				cout << (int) *ri << "\n";
-			delete rv;
-		}
-
-		cout << "Getting roots (2):\n";
-		rv = roots->getRoots(2, 123456790);
-		if (rv)
-		{
-			vector<int>::iterator ri;
-			for (ri = rv->begin(); ri != rv->end(); ri++)
-				cout << (int) *ri << "\n";
-			delete rv;
-		}
-
-		cout << "Getting roots (3):\n";
-		rv = roots->getRoots(3, 123456791);
-		if (rv)
-		{
-			vector<int>::iterator ri;
-			for (ri = rv->begin(); ri != rv->end(); ri++)
-				cout << (int) *ri << "\n";
-			delete rv;
-		}
-
+		roots->addRoot(256, "aaa", 1, 123456789);
+		roots->addRoot(257, "aaa", 1, 123456789);
 		roots->commitTransaction(1);
 
-		cout << "Getting roots (3):\n";
-		rv = roots->getRoots(3, 123456791);
-		if (rv)
-		{
-			vector<int>::iterator ri;
-			for (ri = rv->begin(); ri != rv->end(); ri++)
-				cout << (int) *ri << "\n";
-			delete rv;
-		}
+		for (int m = 0; m < 256; m++)
+			roots->addRoot(m, "ccc", 2, 123456789);
 
-		roots->abortTransaction(2);
+		dump_roots(roots, 2, 123456794);
 
-		cout << "Getting roots (3):\n";
-		rv = roots->getRoots("aaa", 3, 123456791);
-		if (rv)
-		{
-			vector<int>::iterator ri;
-			for (ri = rv->begin(); ri != rv->end(); ri++)
-				cout << (int) *ri << "\n";
-			delete rv;
-		}
+		for (int m = 16; m < 128; m++)
+			roots->removeRoot(m, 2, 123456789);
+		dump_roots(roots, 2, 123456789);
+
+		roots->abortTransaction(1);
+
+		dump_roots(roots, 2, 123456789);
 
 		store->stop();
+
+		string aaaa;
+		cin >> aaaa;
 	}
 	else
 	{

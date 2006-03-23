@@ -48,8 +48,10 @@ namespace Store
 		this->log = log;
 		this->buffer = new Buffer(this);
 		this->map = new Map(this);
-		this->roots = new NamedRoots(this);
+		this->roots = new NamedRoots();
 		this->pagemgr = new PageManager(this);
+
+		this->roots->init(this->buffer, this->log);
 
 		return 0;
 	}

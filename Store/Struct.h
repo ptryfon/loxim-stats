@@ -29,7 +29,7 @@ namespace Store
 		unsigned int page_id;
 		unsigned short file_id;
 		unsigned short page_type;
-		unsigned int timestamp;
+		int timestamp;
 	} page_header;
 	
 	typedef struct map_header

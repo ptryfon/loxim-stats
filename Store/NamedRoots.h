@@ -1,9 +1,11 @@
-#ifndef __STORE_NAMEDROOTS_H__
-#define __STORE_NAMEDROOTS_H__
+#ifndef __STORE_IXR_H__
+#define __STORE_IXR_H__
 
-#define STORE_ROOTS_INITIALPAGECOUNT	16
-#define STORE_ROOTS_NAMEMAXLEN			100
-#define STORE_ROOTS_NULLVALUE			0
+#define IXR_DEBUG	1
+
+#define STORE_IXR_INITIALPAGECOUNT		16
+#define STORE_IXR_NAMEMAXLEN			100
+#define STORE_IXR_NULLVALUE				-1
 
 namespace Store
 {
@@ -11,33 +13,43 @@ namespace Store
 };
 
 #include <stdlib.h>
+#include <string.h>
 #include <vector>
-#include "Store.h"
+
 #include "Struct.h"
-#include "DBStoreManager.h"
 #include "File.h"
+#include "Buffer.h"
 #include "PagePointer.h"
+#include "Log/Logs.h"
+#ifdef IXR_DEBUG
 #include "Errors/ErrorConsole.h"
+#endif
 
 using namespace std;
+using namespace Logs; 
 
 namespace Store
 {
 	class NamedRoots
 	{
 	private:
-		typedef struct namedroots_header
+		typedef struct ixr_header
 		{
 			page_header page_hdr;
-		} namedroots_header;
+			int last_page;
+			int list_head;
+		} ixr_header;
 
-		typedef struct namedroots_page
+		typedef struct ixr_page
 		{
 			page_header page_hdr;
 			int free;
-		} namedroots_page;
+			int entries;
+			int list_prev;
+			int list_next;
+		} ixr_page;
 
-		typedef struct namedroots_entry
+		typedef struct ixr_entry
 		{
 			int size;
 			int l_id;
@@ -45,17 +57,21 @@ namespace Store
 			int add_t;
 			int del_t;
 			char name[];
-		} namedroots_entry;
+		} ixr_entry;
 
-		DBStoreManager* store;
+		Buffer* buffer;
+		LogManager* log;
+#ifdef IXR_DEBUG
 		ErrorConsole* ec;
+#endif
 
-		int modifyTransaction(int transactionID, char mode);
+		int modifyTransaction(int transactionID, int mode);
 
 	public:
-		NamedRoots(DBStoreManager* storemgr);
+		NamedRoots();
 		~NamedRoots();
 
+		void init(Buffer* buffer, LogManager* log);
 		int initializeFile(File* file);
 		int initializePage(unsigned int pageID, char* page);
 
@@ -70,4 +86,4 @@ namespace Store
 	};
 };
 
-#endif // __STORE_NAMEDROOTS_H__
+#endif // __STORE_IXR_H__
