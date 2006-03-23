@@ -198,10 +198,10 @@ namespace Store
 					}
 					else
 						offset += entry->size;
-
-					if (i > 0)
-						i++;
 				}
+
+				if (i > 0)
+						i++;
 			}
 
 			page_pointer->release();

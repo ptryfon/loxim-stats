@@ -247,9 +247,9 @@ cout << "DZIWNY KOD ---------\n";
 			roots->removeRoot(m, 2, 123456789);
 		dump_roots(roots, 2, 123456789);
 
-		roots->abortTransaction(1);
+		roots->abortTransaction(2);
 
-		dump_roots(roots, 2, 123456789);
+		dump_roots(roots, 3, 123456789);
 
 		store->stop();
 
