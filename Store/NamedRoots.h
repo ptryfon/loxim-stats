@@ -36,8 +36,6 @@ namespace Store
 		typedef struct ixr_header
 		{
 			page_header page_hdr;
-			int last_page;
-			int list_head;
 		} ixr_header;
 
 		typedef struct ixr_page
@@ -45,8 +43,6 @@ namespace Store
 			page_header page_hdr;
 			int free;
 			int entries;
-			int list_prev;
-			int list_next;
 		} ixr_page;
 
 		typedef struct ixr_entry

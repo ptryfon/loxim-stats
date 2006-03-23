@@ -37,8 +37,6 @@ namespace Store
 		header->page_hdr.file_id = STORE_FILE_ROOTS;
 		header->page_hdr.page_type = STORE_PAGE_ROOTSHEADER;
 		header->page_hdr.timestamp = 0;
-		header->last_page = 1;
-		header->list_head = 1;
 		file->writePage(STORE_FILE_ROOTS, 0, buf);
 
 		memset(buf, 0, STORE_PAGESIZE);
@@ -46,8 +44,6 @@ namespace Store
 		page->page_hdr.page_type = STORE_PAGE_ROOTSPAGE;
 		page->free = STORE_PAGESIZE - sizeof(ixr_page);
 		page->entries = 0;
-		page->list_prev = STORE_IXR_NULLVALUE;
-		page->list_next = STORE_IXR_NULLVALUE;
 
 		for (unsigned int i = 1; i < STORE_IXR_INITIALPAGECOUNT; i++)
 		{
@@ -75,8 +71,6 @@ namespace Store
 		page->page_hdr.timestamp = STORE_IXR_NULLVALUE;
 		page->page_hdr.page_id = pageID;
 		page->free = STORE_PAGESIZE - sizeof(ixr_page);
-		page->list_prev = STORE_IXR_NULLVALUE;
-		page->list_next = STORE_IXR_NULLVALUE;
 
 		return 0;
 	}
