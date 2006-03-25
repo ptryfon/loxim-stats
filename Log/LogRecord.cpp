@@ -137,7 +137,7 @@ int EndCkptRecord::ckptEnd(CrashRecovery* cr) {cr->CkptEnd(); return 0;}
 
 /* LogRecord class */
 
-int LogRecord::initialize()
+int LogRecord::initialize( int fd )
 {
   idSeq = 0;
   new BeginTransactionRecord();
@@ -149,6 +149,22 @@ int LogRecord::initialize()
   new ShutdownRecord();
   new AddRootRecord();
   new RemoveRootRecord();
+
+  if( fd )
+  {
+    LogRecord* lr=NULL;
+    int err = 0;
+
+    if( ::lseek( fd,0,SEEK_END ) < 0 ) return errno;
+    if( (err = LogRecord::readLogRecordBackward(lr, fd, NULL)) == 0)
+    {
+      lr->getId( idSeq );
+      idSeq++;
+    }
+    delete lr;
+    if( ::lseek( fd,0,SEEK_END ) < 0 ) return errno;
+    printf( "IDSeq: %d\n", idSeq );
+  }
 
   return 0;
 }
@@ -169,6 +185,7 @@ int LogRecord::readLogRecordForward( LogRecord *&result, int fileDes, StoreManag
   int errCode;
   off_t filePosBegin, filePosEnd;
   int recordLen;
+  int recordId;
 
   if( ( errCode = LogIO::getFilePos( fileDes, filePosBegin ) ) ) return errCode;
   if( ( errCode = LogIO::readInt( fileDes, recordType ) ) ) return errCode;
@@ -205,7 +222,9 @@ int LogRecord::readLogRecordForward( LogRecord *&result, int fileDes, StoreManag
       break;
   }
   //if( ( errCode = dictionary[recordType]->instance( result ) ) ) return errCode;
+  if( ( errCode = LogIO::readInt( fileDes, recordId ) ) ) return errCode;
   if( ( errCode = result->read( fileDes, sm ) ) ) return errCode;
+  result->setId( recordId );
 
   if( ( errCode = LogIO::readInt( fileDes, recordLen ) ) ) return errCode;
   if( ( errCode = LogIO::getFilePos( fileDes, filePosEnd ) ) ) return errCode;
@@ -244,12 +263,17 @@ int LogRecord::writeLogRecord( LogRecord *recordPtr, int fileDes )
   int errCode;
   off_t filePosBegin, filePosEnd;
   int recordType;
+  unsigned int recordId;
 
   if( ( errCode = recordPtr->getType( recordType ) ) ) return errCode;
+  if( ( errCode = recordPtr->getId( recordId ) ) ) return errCode;
   if( ( errCode = LogIO::getFilePos( fileDes, filePosBegin ) ) ) return errCode;
 
   // zapisujemy typ rekordu
   if( ( errCode = LogIO::writeInt( fileDes, recordType ) ) ) return errCode;
+
+  // zapisujemy id rekordu
+  if( ( errCode = LogIO::writeInt( fileDes, (int) recordId ) ) ) return errCode;
 
   // zapisujemy rekord
   if( ( errCode = recordPtr->write( fileDes ) ) ) return errCode;

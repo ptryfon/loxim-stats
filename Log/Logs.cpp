@@ -45,7 +45,15 @@ int LogManager::init()
   ::lseek( fileDes, 0, SEEK_END );
   // odpalamy watek
   logThread = new LogThread( fileDes );
-  LogRecord::initialize();
+
+  {
+    int fd = ::open( logFilePath.c_str(), O_RDONLY, S_IWUSR | S_IRUSR );
+
+    if( fd < 0 ) return errno;
+    LogRecord::initialize( fd );
+
+    ::close( fd );
+  }
 
   *ec << "LogManager: initialize()";
 
@@ -74,7 +82,7 @@ int LogManager::start( StoreManager *store )
 
 int LogManager::destroy()
 {
-  LogRecord::initialize();
+  LogRecord::initialize( 0 );
   delete logThread;
 
   ::close( fileDes );
@@ -230,5 +238,8 @@ int LogManager::shutdown( unsigned &id )
   return 0;
 }
 
-
+unsigned int LogManager::getLogicalTimerValue()
+{
+  return LogRecord::getIdSeq();
+}
 

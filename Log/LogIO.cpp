@@ -43,7 +43,8 @@ int LogIO::readLogicalID( LogicalID *&lid, int fileDes, StoreManager* sm )
   }
   else
   {
-    sm->logicalIDFromByteArray((unsigned char*) (s.data()), lid);
+    if( sm )
+      sm->logicalIDFromByteArray((unsigned char*) (s.data()), lid);
   }
   return 0;
 }
@@ -77,7 +78,8 @@ int LogIO::readDataValue( DataValue *&dv, int fileDes, StoreManager* sm )
   }
   else
   {
-    sm->dataValueFromByteArray((unsigned char*) (s.data()), dv);
+    if( sm )
+      sm->dataValueFromByteArray((unsigned char*) (s.data()), dv);
   }
   return 0;
 }

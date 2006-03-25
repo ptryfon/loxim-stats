@@ -62,14 +62,16 @@ namespace Logs
     virtual int instance( LogRecord *&result ) = 0;
 
     public:
-    static int initialize();
+    static int initialize( int fd );
     static int readLogRecordForward( LogRecord *&result, int fileDes, StoreManager* sm );
     static int readLogRecordBackward( LogRecord *&result, int fileDes, StoreManager* sm );
     static int writeLogRecord( LogRecord *recordPtr, int fileDes ); // zakladamy ze wskaznik biezacej pozycji w pliku jest na koncu pliku
     static int destroy();
+    static unsigned int getIdSeq() { return idSeq; }
 
     virtual ~LogRecord() {}
     int getId( unsigned int &result ) { result = id; return 0; }
+    void setId( unsigned int _id) { id = _id; }
     int getType( int &result ) { result = type; return 0; }
 
     /*

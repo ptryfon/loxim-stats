@@ -104,6 +104,11 @@ namespace Logs
      */
     int removeRoot( int tid, LogicalID *lid, unsigned &id );
 
+    /**
+     * Zwraca biezaca wartosc zegara logicznego.
+     */
+    unsigned int getLogicalTimerValue();
+
     int destroy();
   };
 
