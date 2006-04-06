@@ -321,7 +321,7 @@ namespace Store
 		*ec << "Store::Manager::getRoots(BY NAME) begin..";
 		p_roots = new vector<ObjectPointer*>(0);
 		vector<int>* rvec;
-		rvec = roots->getRoots(p_name.c_str(), tid->getId(), 123456789);
+		rvec = roots->getRoots(p_name.c_str(), tid->getId(), log->getLogicalTimerValue());
 		
 		vector<int>::iterator obj_iter;
 		for(obj_iter=rvec->begin(); obj_iter!=rvec->end(); obj_iter++)
@@ -349,7 +349,7 @@ namespace Store
 		// klon dla logow
 //		log->addRoot(itid, object->getLogicalID()->clone(), log_id);
 #endif
-		roots->addRoot(lid, object->getName().c_str(), tid->getId(), 123456789);
+		roots->addRoot(lid, object->getName().c_str(), tid->getId(), log->getLogicalTimerValue());
 		
 		ec->printf("Store::Manager::addRoot done: %s\n", object->toString().c_str());
 		return 0;
@@ -365,7 +365,7 @@ namespace Store
 		// klon dla logow
 //		log->removeRoot(itid, object->getLogicalID()->clone(), log_id);
 #endif
-		roots->removeRoot(lid, tid->getId(), 123456789);
+		roots->removeRoot(lid, tid->getId(), log->getLogicalTimerValue());
 		
 		ec->printf("Store::Manager::removeRoot done: %s\n", object->toString().c_str());
 		return 0;

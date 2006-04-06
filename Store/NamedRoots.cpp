@@ -120,7 +120,7 @@ namespace Store
 				memcpy(page_buf + (STORE_PAGESIZE - page->free), entry_buf, size_needed);
 				page->free -= size_needed;
 				page->entries++;
-				page->page_hdr.timestamp = 123456789;
+				page->page_hdr.timestamp = log->getLogicalTimerValue();
 
 				i = 0;
 			}
@@ -186,7 +186,7 @@ namespace Store
 							memset(page_buf + (STORE_PAGESIZE - page->free), 0, page->free);
 						}
 
-						page->page_hdr.timestamp = 123456789;
+						page->page_hdr.timestamp = log->getLogicalTimerValue();
 						offset = STORE_PAGESIZE + 1;
 						i = 0;
 					}
@@ -268,13 +268,13 @@ namespace Store
 						// Commiting remove
 						if (entry->del_t != STORE_IXR_NULLVALUE && mode == 0)
 						{
-							entry->del_t = 123456789;
+							entry->del_t = log->getLogicalTimerValue();
 							entry->cur_tran = STORE_IXR_NULLVALUE;
 						}
 						// Commiting add
 						else if (entry->del_t == STORE_IXR_NULLVALUE && mode == 0)
 						{
-							entry->add_t = 123456789;
+							entry->add_t = log->getLogicalTimerValue();
 							entry->cur_tran = STORE_IXR_NULLVALUE;
 						}
 						// Aborting remove
@@ -293,7 +293,7 @@ namespace Store
 							entry_size = 0;
 						}
 
-						page->page_hdr.timestamp = 123456789;
+						page->page_hdr.timestamp = log->getLogicalTimerValue();
 					}
 
 					offset += entry_size;
