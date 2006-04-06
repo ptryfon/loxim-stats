@@ -78,7 +78,7 @@ namespace Store
 	int NamedRoots::addRoot(int logicalID, const char* name, int transactionID, int transactionTimeStamp)
 	{
 #ifdef IXR_DEBUG
-		ec->printf("addRoot(logicalID=%i, name=\"%s\", transactionID=%i)\n", logicalID, name, transactionID);
+		ec->printf("addRoot(logicalID=%i, name=\"%s\", transactionID=%i, transactionTimeStamp=%i)\n", logicalID, name, transactionID, transactionTimeStamp);
 #endif
 
 		int i = 0;
@@ -139,7 +139,7 @@ namespace Store
 	int NamedRoots::removeRoot(int logicalID, int transactionID, int transactionTimeStamp)
 	{
 #ifdef IXR_DEBUG
-		ec->printf("removeRoot(logicalID=%i, transactionID=%i)\n", logicalID, transactionID);
+		ec->printf("removeRoot(logicalID=%i, transactionID=%i, transactionTimeStamp=%i)\n", logicalID, transactionID, transactionTimeStamp);
 #endif
 
 		int i = 0;
@@ -312,7 +312,7 @@ namespace Store
 	vector<int>* NamedRoots::getRoots(int transactionID, int transactionTimeStamp)
 	{
 #ifdef IXR_DEBUG
-		ec->printf("getRoots(transactionID=%i)\n", transactionID);
+		ec->printf("getRoots(transactionID=%i, transactionTimeStamp=%i)\n", transactionID, transactionTimeStamp);
 #endif
 
 		return getRoots("", transactionID, transactionTimeStamp);
@@ -321,7 +321,7 @@ namespace Store
 	vector<int>* NamedRoots::getRoots(const char* name, int transactionID, int transactionTimeStamp)
 	{
 #ifdef IXR_DEBUG
-		ec->printf("getRoots(name=\"%s\", transactionID=%i)\n", name, transactionID);
+		ec->printf("getRoots(name=\"%s\", transactionID=%i, transactionTimeStamp=%i)\n", name, transactionID, transactionTimeStamp);
 #endif
 
 		vector<int>* roots = new vector<int>();

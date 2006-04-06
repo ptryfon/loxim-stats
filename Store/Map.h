@@ -8,9 +8,10 @@ namespace Store
 
 #include "Store.h"
 #include "Struct.h"
-#include "DBStoreManager.h"
 #include "File.h"
+#include "Buffer.h"
 #include "PagePointer.h"
+#include "Log/Logs.h"
 
 #define STORE_MAP_PERPAGE			((STORE_PAGESIZE - sizeof(map_page)) / sizeof(physical_id))
 #define STORE_MAP_MAPPAGE(i)		(1 + ((i) / STORE_MAP_PERPAGE))
@@ -23,16 +24,18 @@ namespace Store
 	class Map
 	{
 	private:
-		DBStoreManager* store;
+		Buffer* buffer;
+		LogManager* log;
 		PagePointer* header;
 
 		unsigned int getLastAssigned();
 		void setLastAssigned(unsigned int);
 
 	public:
-		Map(DBStoreManager* storemgr);
+		Map();
 		~Map();
 
+		void init(Buffer* buffer, LogManager* log);
 		int initializeFile(File* file);
 		int initializePage(unsigned int pageID, char* page);
 

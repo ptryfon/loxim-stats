@@ -47,11 +47,12 @@ namespace Store
 	{
 		this->log = log;
 		this->buffer = new Buffer(this);
-		this->map = new Map(this);
+		this->map = new Map();
 		this->roots = new NamedRoots();
 		this->pagemgr = new PageManager(this);
 
 		this->roots->init(this->buffer, this->log);
+		this->map->init(this->buffer, this->log);
 
 		return 0;
 	}
@@ -321,7 +322,7 @@ namespace Store
 		*ec << "Store::Manager::getRoots(BY NAME) begin..";
 		p_roots = new vector<ObjectPointer*>(0);
 		vector<int>* rvec;
-		rvec = roots->getRoots(p_name.c_str(), tid->getId(), log->getLogicalTimerValue());
+		rvec = roots->getRoots(p_name.c_str(), tid->getId(), tid->getTimeStamp());
 		
 		vector<int>::iterator obj_iter;
 		for(obj_iter=rvec->begin(); obj_iter!=rvec->end(); obj_iter++)
@@ -349,7 +350,7 @@ namespace Store
 		// klon dla logow
 //		log->addRoot(itid, object->getLogicalID()->clone(), log_id);
 #endif
-		roots->addRoot(lid, object->getName().c_str(), tid->getId(), log->getLogicalTimerValue());
+		roots->addRoot(lid, object->getName().c_str(), tid->getId(), tid->getTimeStamp());
 		
 		ec->printf("Store::Manager::addRoot done: %s\n", object->toString().c_str());
 		return 0;
@@ -365,7 +366,7 @@ namespace Store
 		// klon dla logow
 //		log->removeRoot(itid, object->getLogicalID()->clone(), log_id);
 #endif
-		roots->removeRoot(lid, tid->getId(), log->getLogicalTimerValue());
+		roots->removeRoot(lid, tid->getId(), tid->getTimeStamp());
 		
 		ec->printf("Store::Manager::removeRoot done: %s\n", object->toString().c_str());
 		return 0;

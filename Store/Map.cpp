@@ -2,15 +2,20 @@
 
 namespace Store
 {
-	Map::Map(DBStoreManager* store)
+	Map::Map()
 	{
-		this->store = store;
 	};
 
 	Map::~Map()
 	{
 		if (header)
 			delete header;
+	}
+
+	void Map::init(Buffer* buffer, LogManager* log)
+	{
+		this->buffer = buffer;
+		this->log = log;
 	}
 
 	int Map::initializeFile(File* file)
@@ -53,7 +58,7 @@ namespace Store
 		unsigned int last;
 
 //		if (!header)
-			header = store->getBuffer()->getPagePointer(STORE_FILE_MAP, 0);
+			header = buffer->getPagePointer(STORE_FILE_MAP, 0);
 
 		header->aquire();
 		last = ((map_header*) header->getPage())->last_assigned;
@@ -64,10 +69,11 @@ namespace Store
 
 	void Map::setLastAssigned(unsigned int last)
 	{
-//		if (!header)
-			header = store->getBuffer()->getPagePointer(STORE_FILE_MAP, 0);
+		if (!header)
+			header = buffer->getPagePointer(STORE_FILE_MAP, 0);
 
 		header->aquire();
+		((page_header*) header->getPage())->timestamp = log->getLogicalTimerValue();
 		((map_header*) header->getPage())->last_assigned = last;
 		header->release();
 	};
@@ -75,11 +81,12 @@ namespace Store
 	unsigned int Map::createLogicalID()
 	{
 		unsigned int last = getLastAssigned();
-		PagePointer* page = store->getBuffer()->getPagePointer(STORE_FILE_MAP, STORE_MAP_MAPPAGE(last + 1));
+		PagePointer* page = buffer->getPagePointer(STORE_FILE_MAP, STORE_MAP_MAPPAGE(last + 1));
 
 		page->aquire();
 
 		memset(page->getPage() + STORE_MAP_MAPOFFSET(last + 1), 0xFF, sizeof(physical_id));
+		((page_header*) page->getPage())->timestamp = log->getLogicalTimerValue();
 
 		page->release();
 
@@ -101,7 +108,7 @@ namespace Store
 		if (last < logicalID)
 			return 2;
 
-		PagePointer* page = store->getBuffer()->getPagePointer(STORE_FILE_MAP, STORE_MAP_MAPPAGE(logicalID));
+		PagePointer* page = buffer->getPagePointer(STORE_FILE_MAP, STORE_MAP_MAPPAGE(logicalID));
 
 		page->aquire();
 
@@ -135,10 +142,11 @@ namespace Store
 		//	return 2;
 		}
 
-		PagePointer* page = store->getBuffer()->getPagePointer(STORE_FILE_MAP, STORE_MAP_MAPPAGE(logicalID));
+		PagePointer* page = buffer->getPagePointer(STORE_FILE_MAP, STORE_MAP_MAPPAGE(logicalID));
 		page->aquire();
 
 		memcpy(page->getPage() + STORE_MAP_MAPOFFSET(logicalID), physicalID, sizeof(physical_id));
+		((page_header*) page->getPage())->timestamp = log->getLogicalTimerValue();
 
 		page->release();
 		delete page;
