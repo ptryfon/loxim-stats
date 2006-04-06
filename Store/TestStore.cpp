@@ -232,6 +232,46 @@ cout << "DZIWNY KOD ---------\n";
 		store->setTManager(TransactionManager::getHandle());
 		store->start();
 
+		TransactionID* tid = new TransactionID(0);
+		tid->setTimeStamp(log->getLogicalTimerValue());
+
+		int m_i;
+
+		for (m_i = 1; m_i <= 12345; m_i++)
+		{
+			ObjectPointer* op = 0;
+			DataValue* dv = store->createIntValue(m_i);
+			store->createObject(tid, "kilof", dv, op);
+			store->addRoot(tid, op);
+			delete dv;
+			delete op;
+		}
+
+		vector<ObjectPointer*>* vec;
+		store->getRoots(tid, "kilof", vec);
+
+		vector<ObjectPointer*>::iterator oi;
+		for (oi = vec->begin(); oi != vec->end(); oi++)
+			cout << (*oi)->toString() << endl;
+
+/*
+		vector<int>* rv = store->getRoots()->getRoots("kilof", tid->getId(), tid->getTimeStamp());
+
+		if (rv)
+		{
+			for (vector<int>::iterator ri = rv->begin(); ri != rv->end(); ri++)
+			{
+				DBLogicalID* lid = new DBLogicalID((int) *ri);
+				ObjectPointer* op = 0;
+				store->getObject(tid, lid, Store::Read, op);
+				cout << op->toString() << endl;
+				delete op;
+				delete lid;
+			}
+
+			delete rv;
+		}
+
 		NamedRoots* roots = store->getRoots();
 
 		roots->addRoot(256, "aaa", 1, 123456789);
@@ -250,6 +290,7 @@ cout << "DZIWNY KOD ---------\n";
 		roots->abortTransaction(2);
 
 		dump_roots(roots, 3, 123456789);
+*/
 
 		store->stop();
 
