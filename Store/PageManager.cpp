@@ -116,8 +116,10 @@ namespace Store
 	{
 		ErrorConsole ec("Store");
 		ec << "Store::PageManager::initializePage begin...";
+
 		bool isFreeMapPage = (page_num%(MAX_OBJECT_COUNT+1) == 0);
-	
+
+		memset(page, 0, STORE_PAGESIZE);	
 		page_data *p = reinterpret_cast<page_data*>(page);
 		
 		p->header.file_id = STORE_FILE_DEFAULT;
@@ -180,13 +182,16 @@ namespace Store
 		ec << "Store::PageManager::updateFreeMap begin...";
 		page_data* p = reinterpret_cast<page_data*>(pPtr->getPage());
 
-		int pii = p->header.page_id - (p->header.page_id%MAX_OBJECT_COUNT);
+		int pii = p->header.page_id - (p->header.page_id % (MAX_OBJECT_COUNT + 1));
 
 		PagePointer* pFree = buffer->getPagePointer(STORE_FILE_DEFAULT, pii);
 		pFree->aquire();
 		page_data* f = reinterpret_cast<page_data*>(pFree->getPage());
 
-		int offset = (p->header.page_id%MAX_OBJECT_COUNT)-1;
+		int offset = (p->header.page_id % (MAX_OBJECT_COUNT + 1)) - 1;
+
+		ec.printf("p->header.page_id = %i, pii = %i, offset = %i\n", p->header.page_id, pii, offset);
+	
 		if(f->object_count < offset) {
 			ec << "Store::PageManager::updateFreeMap ERROR: HEADER PAGE FAULT";
 			return -1;
