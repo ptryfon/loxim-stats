@@ -426,6 +426,8 @@ lastOpenSect = 0; }
     public:
 		CreateNode(string _name, QueryNode* _arg = NULL)
 	            : arg(_arg), name(_name)  {}
+		
+		CreateNode(QueryNode* _arg) : arg(_arg) {name = "";}
 		virtual TreeNode* clone();
 		virtual int type() { return TreeNode::TNCREATE; }
 		string getName() { return name; }
@@ -443,6 +445,8 @@ lastOpenSect = 0; }
 	
         virtual ~CreateNode() { if (arg != NULL) delete arg; }
     };  
+
+
 
 }
     

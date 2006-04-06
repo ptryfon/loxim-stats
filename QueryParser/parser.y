@@ -97,7 +97,7 @@ query	    : NAME { char *s = $1; $$ = new NameNode(s); delete s; }
 	    | query FOR_ALL query { $$ = new NonAlgOpNode($1,$3,NonAlgOpNode::forAll); }
 	    | CREATE NAME LEFTPAR query RIGHTPAR { $$ = new CreateNode($2,$4); }
 	    | CREATE NAME  { $$ = new CreateNode($2); }
-	    | CREATE query { $$ = new CreateNode("", $2); }
+	    | CREATE query { $$ = new CreateNode($2); }
 	    | query INSERTINTO query { $$ = new AlgOpNode($3,$1,AlgOpNode::insert); }
 	    | INSERT query INTO query { $$ = new AlgOpNode($2, $4, AlgOpNode::insert);}
 	    | DELETE query  { $$ = new UnOpNode($2,UnOpNode::deleteOp); }
