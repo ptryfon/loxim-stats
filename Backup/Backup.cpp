@@ -223,6 +223,62 @@ int main( int argc, char *argv[] )
 }
 
 
+int BackupManager::readInt( int fileDes, int &result )
+{
+  unsigned int n = 0;
+
+  while( n < sizeof( result ) )
+  {
+    int size = ::read( fileDes, ((char *) &result)+n, sizeof( result )-n );
+    if( !size ) return 2000002;
+    n += size;
+    if( size == -1 ) return errno;
+  }
+
+  return 0;
+}
+
+int BackupManager::writeInt( int fileDes, int val )
+{
+  return ( ::write( fileDes, &val, sizeof( val ) ) < (int) sizeof( val ) ) ? errno : 0;
+}
+
+int BackupManager::getFilePos( int fileDes, off_t &result )
+{
+  result = ::lseek( fileDes, 0, SEEK_CUR );
+
+  return ( result < 0 ) ? errno : 0;
+}
+
+int BackupManager::logRedoLogsRecord()
+{
+  int timer = 0;
+  int fileDes = ::open( logsPath.c_str(), O_RDWR, S_IWUSR | S_IRUSR );
+
+  if( fileDes < 0 ) return errno;
+
+  // ustalamy wartosc zegara logicznego
+  ::lseek( fileDes, 0, SEEK_END ); // na koniec pliku
+  if( ::lseek( fileDes, 0, SEEK_CUR ) >= 12 ) {
+    int len; // rozmiar rekordu
+    ::lseek( fileDes, - sizeof( int ), SEEK_CUR ); // o 4 bajty do tylu
+    readInt( fileDes, len );
+    ::lseek( fileDes, - (len-4), SEEK_CUR );
+    readInt( fileDes, timer );
+    timer++;
+  }
+
+  // zapisujemy rekord REDO_LOGS
+  ::lseek( fileDes, 0, SEEK_END ); // na koniec pliku
+  writeInt( fileDes, 10 ); // typ rekordu (REDO_LOGS)
+  writeInt( fileDes, timer );
+  writeInt( fileDes, 12 ); // dlugosc rekordu
+
+  close( fileDes );
+
+  return 0;
+}
+
 string BackupManager::dump()
 {
   return

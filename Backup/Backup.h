@@ -93,6 +93,10 @@ class BackupManager
 
   int copyFile( string fromPath, string toPath );
   int eraseFile( string path );
+  int readInt( int fileDes, int &result );
+  int writeInt( int fileDes, int val );
+  int getFilePos( int fileDes, off_t &result );
+  int logRedoLogsRecord();
 
   /**
    * Tworzy backup bazy danych w pliku o nazwie pobranym z Configa.
@@ -128,9 +132,12 @@ class BackupManager
     } else
       printf( "There are no backup files to restore.\n" );
 
+    if( fileExists( logsPath ) )
+      logRedoLogsRecord();
+
     return result;
   }
-  
+
   string dump();
 
   int done()
