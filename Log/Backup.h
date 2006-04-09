@@ -95,10 +95,15 @@ class BackupManager
    */
   int makeBackup()
   {
-    return
+    int result = 0;
+
+    result =
       copyFile( dbDefaultPath, backupDefaultPath ) ||
       copyFile( dbMapPath, backupMapPath ) ||
       copyFile( dbRootsPath, backupRootsPath );
+    if( result == 0) eraseFile( logsPath );
+
+    return result;
   }
 
   /**
@@ -115,21 +120,20 @@ class BackupManager
       result =
         copyFile( backupDefaultPath, dbDefaultPath ) ||
         copyFile( backupMapPath, dbMapPath ) ||
-        copyFile( backupRootsPath, dbRootsPath ) ||
-        eraseFile( logsPath );
-
-      if( fileExists( logsPath ) )
-      {
-        LogRecord *lr = new RedoLogsRecord();
-        int fileDes = ::open( logsPath.c_str(), O_WRONLY, S_IWUSR | S_IRUSR );
-
-        ::lseek( fileDes, 0, SEEK_END );
-        LogRecord::writeLogRecord( lr, fileDes );
-
-        close( fileDes );
-      }
+        copyFile( backupRootsPath, dbRootsPath );
     } else
       printf( "There are no backup files to restore.\n" );
+
+    if( fileExists( logsPath ) )
+    {
+      LogRecord *lr = new RedoLogsRecord();
+      int fileDes = ::open( logsPath.c_str(), O_WRONLY, S_IWUSR | S_IRUSR );
+
+      ::lseek( fileDes, 0, SEEK_END );
+      int err = LogRecord::writeLogRecord( lr, fileDes );
+
+      close( fileDes );
+    }
 
     return result;
   }

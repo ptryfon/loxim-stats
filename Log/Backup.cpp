@@ -20,6 +20,8 @@ bool BackupManager::fileExists( string filePath )
 
   fd = ::open( filePath.c_str(), O_RDONLY );
 
+  // printf( "FileExists( %s ): fd=%d, errno=%d\n", filePath.c_str(), fd, errno );
+
   if( fd < 0 )
     result = false;
   else

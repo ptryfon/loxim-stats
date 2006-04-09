@@ -95,14 +95,11 @@ int LogManager::checkForBackup()
   SBQLConfig *cfg = new SBQLConfig( "Log" );
   string logsPath;
 
-  printf( "1\n" );
   if( ( err = cfg->getString( "logspath", logsPath ) ) ) return err;
 
-  printf( "2\n" );
   // otwieramy plik logow
   fileDes = ::open( logsPath.c_str(), O_RDWR, S_IWUSR | S_IRUSR );
 
-  printf( "3\n" );
   if( fileDes < 0 )
   {
     if( errno == 2 ) // plik logow nie istnieje
@@ -111,37 +108,30 @@ int LogManager::checkForBackup()
       return errno;
   }
 
-  printf( "4\n" );
   // sprawdzamy czy na koncu jest rekord SHUTDOWN
   if( ::lseek( fileDes, 0, SEEK_END ) < 0 ) return errno;
-  printf( "5\n" );
   if( (err = LogRecord::readLogRecordBackward(lr, fileDes, NULL)) == 0)
   {
     int type;
 
-  printf( "6\n" );
     lr->getType( type );
 
     if( type != SHUTDOWN_LOG_REC_TYPE )
     {
       int result;
-
-  printf( "7\n" );
-      printf( "Server wasn't stopped clear last time, restoring backup...\n" );
-
-      // odtwarzamy backup (jesli jest) i wstawiamy na koniec logow REDO_LOGS
       BackupManager manager; // na koncu logow umieszcza REDO_LOGS
 
-  printf( "8\n" );
+      // odtwarzamy backup (jesli jest) i wstawiamy na koniec logow REDO_LOGS
+      ::lseek( fileDes, 0, SEEK_END );
+      LogRecord::initialize( fileDes );
+      printf( "Server wasn't stopped clear last time, restoring backup...\n" );
+      manager.init();
       result = manager.restore();
-
-  printf( "9\n" );
       manager.done();
     }
   }
   delete lr;
 
-  printf( "10: %d\n", err );
   close( fileDes );
 
   return result;

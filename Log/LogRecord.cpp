@@ -191,7 +191,8 @@ int LogRecord::readLogRecordForward( LogRecord *&result, int fileDes, StoreManag
   if( ( errCode = LogIO::getFilePos( fileDes, filePosBegin ) ) ) return errCode;
   if( ( errCode = LogIO::readInt( fileDes, recordType ) ) ) return errCode;
 
-  if( !dictionary.count( recordType ) ) return UNKNOWN_LOG_RECORD_TYPE_ERROR;
+  //printf( "recordType: %d\n", recordType );
+  //if( !dictionary.count( recordType ) ) return UNKNOWN_LOG_RECORD_TYPE_ERROR;
 
   switch( recordType ) {
     case BEGIN_LOG_REC_TYPE:
