@@ -13,6 +13,21 @@
 /// Nazwa tego programu
 static string programName;
 
+bool BackupManager::fileExists( string filePath )
+{
+  int fd;
+  bool result = true;
+
+  fd = ::open( filePath.c_str(), O_RDONLY );
+
+  if( fd < 0 )
+    result = false;
+  else
+    close( fd );
+
+  return result;
+}
+
 static void printUsage( int exitCode, string message = "" )
 {
   if( message.length() > 0 )

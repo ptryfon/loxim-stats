@@ -89,6 +89,8 @@ class BackupManager
   int lock( SBQLConfig *config );
   int unlock( SBQLConfig *config );
 
+  bool fileExists( string filePath );
+
   int copyFile( string fromPath, string toPath );
   int eraseFile( string path );
 
@@ -97,10 +99,16 @@ class BackupManager
    */
   int makeBackup()
   {
-    return
+    int result = 0;
+
+    result =
       copyFile( dbDefaultPath, backupDefaultPath ) ||
       copyFile( dbMapPath, backupMapPath ) ||
       copyFile( dbRootsPath, backupRootsPath );
+
+    if( result == 0) eraseFile( logsPath );
+
+    return result;
   }
 
   /**
@@ -109,11 +117,18 @@ class BackupManager
    */
   int restore()
   {
-    return
-      copyFile( backupDefaultPath, dbDefaultPath ) ||
-      copyFile( backupMapPath, dbMapPath ) ||
-      copyFile( backupRootsPath, dbRootsPath ) ||
-      eraseFile( logsPath );
+    int result = 0;
+
+    if( fileExists( backupDefaultPath ) )
+    {
+      result =
+        copyFile( backupDefaultPath, dbDefaultPath ) ||
+        copyFile( backupMapPath, dbMapPath ) ||
+        copyFile( backupRootsPath, dbRootsPath );
+    } else
+      printf( "There are no backup files to restore.\n" );
+
+    return result;
   }
   
   string dump();
