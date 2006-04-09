@@ -45,6 +45,7 @@ namespace Logs
 
     int init();
     int start( StoreManager *store );
+    static int checkForBackup();
     bool getCrashRecoveryInProgress() { return crashRecoveryInProgress; }
 
     /**
