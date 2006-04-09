@@ -159,7 +159,8 @@ int LogRecord::initialize( int fd )
     if( ::lseek( fd,0,SEEK_END ) < 0 ) return errno;
     if( (err = LogRecord::readLogRecordBackward(lr, fd, NULL)) == 0)
     {
-      lr->getId( idSeq );
+      if( lr )
+        lr->getId( idSeq );
       idSeq++;
     }
     delete lr;

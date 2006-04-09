@@ -112,9 +112,10 @@ int LogManager::checkForBackup()
   if( ::lseek( fileDes, 0, SEEK_END ) < 0 ) return errno;
   if( (err = LogRecord::readLogRecordBackward(lr, fileDes, NULL)) == 0)
   {
-    int type;
+    int type = 1;
 
-    lr->getType( type );
+    if( lr ) // jesli plik logow jest niepusty
+      lr->getType( type );
 
     if( type != SHUTDOWN_LOG_REC_TYPE )
     {
