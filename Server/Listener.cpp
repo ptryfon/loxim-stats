@@ -202,7 +202,7 @@ int Listener::Start(int port) {
 	int i=0;
 	int status;
 	
-	
+        LogManager::checkForBackup();
 	*lCons << "[Listener.Start]--> Initializing objects..";
 	
 	if ((errorCode=Lock())!=0)
