@@ -43,6 +43,7 @@ namespace Logs
 #define SHUTDOWN_LOG_REC_TYPE     7
 #define ADD_ROOT_LOG_REC_TYPE     8
 #define REMOVE_ROOT_LOG_REC_TYPE  9
+#define REDO_LOGS_LOG_REC_TYPE   10
 
   typedef set<int> SetOfTransactionIDS;
 
@@ -302,6 +303,23 @@ namespace Logs
     virtual int ckptEnd(CrashRecovery* cr);
     EndCkptRecord() : LogRecord( END_CKPT_LOG_REC_TYPE ) {dictionary[type] = this;}
   };
+
+  class RedoLogsRecord : public LogRecord
+  {
+    friend class LogRecord;
+
+    protected:
+
+    virtual int read( int fileDes, StoreManager* sm ) { return 0; }
+    virtual int write( int fileDes ) { return 0; }
+
+    virtual int instance( LogRecord *&result ) { result = new RedoLogsRecord(); return 0; }
+
+    public:
+    RedoLogsRecord() : LogRecord( REDO_LOGS_LOG_REC_TYPE ) {dictionary[type] = this;}
+    virtual ~RedoLogsRecord() {}
+  };
+
 
 };
 

@@ -149,6 +149,7 @@ int LogRecord::initialize( int fd )
   new ShutdownRecord();
   new AddRootRecord();
   new RemoveRootRecord();
+  new RedoLogsRecord();
 
   if( fd )
   {
@@ -219,6 +220,9 @@ int LogRecord::readLogRecordForward( LogRecord *&result, int fileDes, StoreManag
       break;
     case REMOVE_ROOT_LOG_REC_TYPE:
       result = new RemoveRootRecord();
+      break;
+    case REDO_LOGS_LOG_REC_TYPE:
+      result = new RedoLogsRecord();
       break;
   }
   //if( ( errCode = dictionary[recordType]->instance( result ) ) ) return errCode;
