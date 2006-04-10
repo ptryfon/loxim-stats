@@ -344,6 +344,36 @@ namespace Store
 		return 0;
 	}
 
+	int DBStoreManager::getRootsLID(TransactionID* tid, vector<LogicalID*>*& p_roots)
+	{
+		*ec << "Store::Manager::getRootsLID(ALL) begin..";
+
+		int rval = getRootsLID(tid, "", p_roots);
+
+		*ec << "Store::Manager::getRootsLID(ALL) done";
+		return rval;
+	}
+
+	int DBStoreManager::getRootsLID(TransactionID* tid, string p_name, vector<LogicalID*>*& p_roots)
+	{
+		*ec << "Store::Manager::getRootsLID(BY NAME) begin..";
+		p_roots = new vector<LogicalID*>(0);
+		vector<int>* rvec;
+		rvec = roots->getRoots(p_name.c_str(), tid->getId(), tid->getTimeStamp());
+		
+		vector<int>::iterator obj_iter;
+		for(obj_iter=rvec->begin(); obj_iter!=rvec->end(); obj_iter++)
+		{
+			LogicalID* lid = new DBLogicalID((*obj_iter));
+			p_roots->push_back(lid);
+		}
+
+		delete rvec;
+		ec->printf("Store::Manager::getRootsLID(BY NAME) done: size=%d\n", p_roots->size());
+		return 0;
+	}
+
+
 	int DBStoreManager::addRoot(TransactionID* tid, ObjectPointer* object)
 	{
 		*ec << "Store::Manager::addRoot begin..";

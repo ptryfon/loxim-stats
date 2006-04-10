@@ -143,7 +143,7 @@ namespace TManager
 	}
 
 
-    	int Transaction::getRoots(vector<ObjectPointer*>* &p)
+	int Transaction::getRoots(vector<ObjectPointer*>* &p)
 	{
 		int errorNumber;
 
@@ -194,6 +194,33 @@ namespace TManager
 		}
 		return errorNumber;
 	}
+
+	int Transaction::getRootsLID(vector<LogicalID*>* &p)
+	{
+		int errorNumber;
+
+		err.printf("Transaction: %d getRootsLID\n", tid->getId());
+		
+		sem->lock_read();
+		errorNumber = sm->getRootsLID(tid, p);			
+		sem->unlock();
+		
+		return errorNumber;
+	}
+
+	int Transaction::getRootsLID(string name, vector<LogicalID*>* &p)
+	{
+		int errorNumber;
+		
+		err.printf("Transaction: %d getRootsLID by name \n", tid->getId());
+
+		sem->lock_read();
+		errorNumber = sm->getRootsLID(tid, name, p);
+		sem->unlock();
+		
+		return errorNumber;
+	}
+
 
 	int Transaction::addRoot(ObjectPointer* &p)
 	{

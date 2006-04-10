@@ -174,22 +174,47 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, QueryResult **result) {
 				if (errcode != 0) return errcode;
 			}
 			if (((*result)->size()) == 0) {
-				vector<ObjectPointer*>* vec;
-				if ((errcode = tr->getRoots(name, vec)) != 0) {
+//
+//	Zmiana: Sciaganie rootow po LogicalID a nie ObjectPointer
+//
+//				vector<ObjectPointer*>* vec;
+//				if ((errcode = tr->getRoots(name, vec)) != 0) {
+//					tr = NULL;
+//					return errcode;
+//				}
+//				int vecSize = vec->size();
+//				ec->printf("[QE] %d Roots by name taken\n", vecSize);
+//				QueryBagResult *tmp_result = new QueryBagResult();
+//				for (int i = 0; i < vecSize; i++ ) {
+//					ObjectPointer *optr = vec->at(i);
+//					LogicalID *lid = optr->getLogicalID();
+//					*ec << "[QE] LogicalID received";
+//					QueryReferenceResult *lidres = new QueryReferenceResult(lid);
+//					tmp_result->addResult(lidres);
+//				}
+//				*result = tmp_result;
+//
+				vector<LogicalID*>* vec;
+				if ((errcode = tr->getRootsLID(name, vec)) != 0) {
 					tr = NULL;
 					return errcode;
 				}
 				int vecSize = vec->size();
-				ec->printf("[QE] %d Roots by name taken\n", vecSize);
+				ec->printf("[QE] %d Roots LID by name taken\n", vecSize);
 				QueryBagResult *tmp_result = new QueryBagResult();
 				for (int i = 0; i < vecSize; i++ ) {
-					ObjectPointer *optr = vec->at(i);
-					LogicalID *lid = optr->getLogicalID();
+					LogicalID *lid = vec->at(i);
 					*ec << "[QE] LogicalID received";
 					QueryReferenceResult *lidres = new QueryReferenceResult(lid);
 					tmp_result->addResult(lidres);
 				}
+				
+				delete vec;
 				*result = tmp_result;
+//
+//	Zmiana: Koniec
+//
+
 			}
 			*ec << "[QE] Done!";
 			return 0;

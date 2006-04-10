@@ -158,6 +158,8 @@ namespace Store
 		// Roots
 		virtual int getRoots(TransactionID* tid, vector<ObjectPointer*>*& roots) = 0;
 		virtual int getRoots(TransactionID* tid, string name, vector<ObjectPointer*>*& roots) = 0;
+		virtual int getRootsLID(TransactionID* tid, vector<LogicalID*>*& roots) = 0;
+		virtual int getRootsLID(TransactionID* tid, string name, vector<LogicalID*>*& roots) = 0;
 		virtual int addRoot(TransactionID* tid, ObjectPointer* object) = 0;
 		virtual int removeRoot(TransactionID* tid, ObjectPointer* object) = 0;
 

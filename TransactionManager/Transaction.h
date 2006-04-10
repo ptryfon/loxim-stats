@@ -75,6 +75,8 @@ namespace TManager
 		    
 		    	int getRoots(vector<ObjectPointer*>* &p);
 		    	int getRoots(string name, vector<ObjectPointer*>* &p);
+		    	int getRootsLID(vector<LogicalID*>* &p);
+		    	int getRootsLID(string name, vector<LogicalID*>* &p);
 		    	int addRoot(ObjectPointer* &p);
 		    	int removeRoot(ObjectPointer* &p);
 
