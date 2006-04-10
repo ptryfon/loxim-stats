@@ -243,6 +243,21 @@ int BackupManager::writeInt( int fileDes, int val )
   return ( ::write( fileDes, &val, sizeof( val ) ) < (int) sizeof( val ) ) ? errno : 0;
 }
 
+int BackupManager::writeString( int fileDes, const char *buffer, unsigned len )
+{
+  unsigned int n = 0;
+
+  while( n < len )
+  {
+    int size = ::write( fileDes, buffer+n, len-n );
+    if( !size ) return 200002;
+    n += size;
+    if( size == -1 ) return errno;
+  }
+
+  return 0;
+}
+
 int BackupManager::getFilePos( int fileDes, off_t &result )
 {
   result = ::lseek( fileDes, 0, SEEK_CUR );
@@ -277,6 +292,38 @@ int BackupManager::logRedoLogsRecord()
   close( fileDes );
 
   return 0;
+}
+
+string BackupManager::logGetLastRecord()
+{
+  string result = "";
+  int fileDes = ::open( logsPath.c_str(), O_RDONLY, S_IWUSR | S_IRUSR );
+  int len; // rozmiar rekordu
+  char *buffer;
+  unsigned int n = 0;
+
+  if( fileDes < 0 ) return "";
+
+  ::lseek( fileDes, 0, SEEK_END ); // na koniec pliku
+  if( ::lseek( fileDes, 0, SEEK_CUR ) < 12 ) { close(fileDes); return ""; }
+  ::lseek( fileDes, - sizeof( int ), SEEK_CUR ); // o 4 bajty do tylu
+  readInt( fileDes, len );
+  ::lseek( fileDes, - len, SEEK_CUR );
+
+  buffer = new char[len];
+  while( n < (unsigned) len )
+  {
+    int size = ::read( fileDes, buffer+n, len-n );
+    if( !size ) { close(fileDes); return ""; }
+    n += size;
+    if( size == -1 ) { close( fileDes); return ""; }
+  }
+
+  result = string(buffer, len);
+
+  close( fileDes );
+
+  return result;
 }
 
 string BackupManager::dump()

@@ -3,6 +3,11 @@
 
 #include <string>
 #include <string.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <errno.h>
 
 #include "../Config/SBQLConfig.h"
 
@@ -95,8 +100,10 @@ class BackupManager
   int eraseFile( string path );
   int readInt( int fileDes, int &result );
   int writeInt( int fileDes, int val );
+  int writeString( int fileDes, const char *buffer, unsigned len );
   int getFilePos( int fileDes, off_t &result );
   int logRedoLogsRecord();
+  string logGetLastRecord();
 
   /**
    * Tworzy backup bazy danych w pliku o nazwie pobranym z Configa.
@@ -105,12 +112,38 @@ class BackupManager
   {
     int result = 0;
 
+    // sprawdzamy czy na koncu pliku logow jest SHUTDOWN; jesli nie ma, to nie
+    // pozwalamy na zrobienie backupu
+
+    if( fileExists( logsPath ) )
+    {
+      string logRecord = logGetLastRecord();
+
+      if( ( logRecord.length() == 0 ) || ( logRecord[4] != 0x7 ) )
+      {
+        printf( "Database was not stopped clear (there is no SHUTDOWN log record at end of log file)" );
+        return -1;
+      }
+    }
+
     result =
       copyFile( dbDefaultPath, backupDefaultPath ) ||
       copyFile( dbMapPath, backupMapPath ) ||
       copyFile( dbRootsPath, backupRootsPath );
 
-    if( result == 0) eraseFile( logsPath );
+    // jesli istnieje plik logow, to usuwamy z niego wszystkie rekordy z
+    // wyjatkiem ostatniego
+    if( (result == 0) && fileExists( logsPath) )
+    {
+      string logRecord = logGetLastRecord();
+
+      eraseFile( logsPath );
+
+      int fileDes = ::open( logsPath.c_str(), O_WRONLY | O_CREAT, S_IWUSR | S_IRUSR );
+
+      writeString( fileDes, logRecord.c_str(), logRecord.length() );
+      close(fileDes);
+    }
 
     return result;
   }
