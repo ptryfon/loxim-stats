@@ -47,6 +47,8 @@ namespace QExecutor
 		ErrorConsole *ec;
 		Transaction *tr;
 		EnvironmentStack stack;
+		int stop;
+		int evalStopped() { return stop; };
 		int executeRecQuery(TreeNode *tree, QueryResult **result);
 		int combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryResult *lRes, QueryResult *&partial);
 		int merge(NonAlgOpNode::nonAlgOp op, QueryResult *partial, QueryResult *&final);
@@ -56,9 +58,10 @@ namespace QExecutor
 		int isIncluded(QueryResult *elem, QueryResult *set, bool &score);
 		int isIncluded_unique(QueryResult *elem, QueryResult *set, bool &score);
 	public:
-		QueryExecutor() { tr = NULL; ec = new ErrorConsole("QueryExecutor"); };
+		QueryExecutor() { tr = NULL; ec = new ErrorConsole("QueryExecutor"); stop = 0; };
 		~QueryExecutor();
 		int executeQuery(TreeNode *tree, QueryResult **result);
+		void stopExecuting() { stop = 65535; };
 		int abort();
 	};
 	

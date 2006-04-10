@@ -142,6 +142,20 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, QueryResult **result) {
 	int errcode;
 	*ec << "[QE] executeRecQuery()";
 	
+	
+	if ((this->evalStopped()) != 0) {
+		*ec << "[QE] query evaluating Stopped by Server, aborting transaction ";
+		errcode = tr->abort();
+		tr = NULL;
+		*result = new QueryNothingResult();
+		if (errcode != 0) {
+			*ec << "[QE] error in transaction->abort()";
+			return errcode;
+		}
+		*ec << "[QE] Transaction aborted succesfully";
+		return 0;
+	}
+	
 	if (tree != NULL) {
 		int nodeType = tree->type();
 		*ec << "[QE] TreeType taken";
