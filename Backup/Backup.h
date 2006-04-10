@@ -119,9 +119,9 @@ class BackupManager
     {
       string logRecord = logGetLastRecord();
 
-      if( ( logRecord.length() == 0 ) || ( logRecord[4] != 0x7 ) )
+      if( ( logRecord.length() == 0 ) || ( logRecord[0] != 0x7 ) )
       {
-        printf( "Database was not stopped clear (there is no SHUTDOWN log record at end of log file)" );
+        printf( "Database was not stopped clear (there is no SHUTDOWN log record at end of log file)\n" );
         return -1;
       }
     }
