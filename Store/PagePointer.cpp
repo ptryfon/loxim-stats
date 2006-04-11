@@ -32,6 +32,11 @@ namespace Store
 		return buffer->releasePage(this);
 	};
 
+	int PagePointer::releaseSync()
+	{
+		return buffer->releasePageSync(this);
+	};
+
 	char* PagePointer::getPage()
 	{
 		return pagePointer;

@@ -19,6 +19,7 @@ namespace Store
 		unsigned int getPageID();
 		int aquire();
 		int release();
+		int releaseSync();
 		char* getPage();
 		void setPage(char* pagePointer);
 	};
