@@ -16,6 +16,7 @@ namespace Store
 		virtual unsigned short getFile() const;
 		virtual unsigned int getPage() const;
 		virtual unsigned short getOffset() const;		
+		virtual long long getLockAddress() const;
 
 	private:
 		unsigned short file;

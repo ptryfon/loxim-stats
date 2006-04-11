@@ -68,6 +68,7 @@ namespace Store
 		virtual unsigned short getFile() = 0;
 		virtual unsigned int getPage() = 0;
 		virtual unsigned short getOffset() = 0;
+		virtual long long getLockAddress() = 0;
 
 		// Operators
 		virtual ~PhysicalID() {};

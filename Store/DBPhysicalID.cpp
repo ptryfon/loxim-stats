@@ -25,6 +25,10 @@ namespace Store
 	{
 		return offset;
 	};
-	
+
+	long long DBPhysicalID::getLockAddress() const
+	{
+		return (((long long) page) << 32) + (((long long) file) << 16) + 0;
+	};	
 }
 
