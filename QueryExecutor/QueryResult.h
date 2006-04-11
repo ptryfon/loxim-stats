@@ -64,6 +64,7 @@ public:
 	virtual bool isReferenceValue()=0;
 	virtual int getReferenceValue(QueryResult *&r)=0;
 	virtual int comma(QueryResult *arg, QueryResult *&score)=0;
+	virtual bool sorting_less_eq(QueryResult *arg);
 };
 
 
@@ -377,6 +378,7 @@ class QueryReferenceResult : public QueryResult
 {
 protected:
 	LogicalID *value;
+	bool refed;
 public:
 	QueryReferenceResult();
 	QueryReferenceResult(LogicalID* v);
@@ -384,6 +386,8 @@ public:
 	virtual ~QueryReferenceResult() { if (value != NULL) delete value; if (ec != NULL) delete ec; };
 	LogicalID* getValue();
 	void setValue(LogicalID* v);
+	bool wasRefed();
+	void setRef();
 	int type();
 	bool collection();
 	bool isEmpty();

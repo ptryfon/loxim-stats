@@ -37,8 +37,8 @@ QueryDoubleResult::QueryDoubleResult()				{ ec = new ErrorConsole("QueryExecutor
 QueryDoubleResult::QueryDoubleResult(double v) 			{ value=v; ec = new ErrorConsole("QueryExecutor"); }
 QueryBoolResult::QueryBoolResult()				{ ec = new ErrorConsole("QueryExecutor"); }
 QueryBoolResult::QueryBoolResult(bool v) 			{ value=v; ec = new ErrorConsole("QueryExecutor"); }
-QueryReferenceResult::QueryReferenceResult()			{ ec = new ErrorConsole("QueryExecutor"); }
-QueryReferenceResult::QueryReferenceResult(LogicalID* v) 	{ value=v; ec = new ErrorConsole("QueryExecutor"); }
+QueryReferenceResult::QueryReferenceResult()			{ ec = new ErrorConsole("QueryExecutor"); refed = false; }
+QueryReferenceResult::QueryReferenceResult(LogicalID* v) 	{ value=v; ec = new ErrorConsole("QueryExecutor"); refed = false; }
 QueryNothingResult::QueryNothingResult() 			{ ec = new ErrorConsole("QueryExecutor"); }
 
 //function clone()
@@ -284,7 +284,8 @@ void QueryBoolResult::setValue(bool v)			{ value = v; }
 
 LogicalID* QueryReferenceResult::getValue()		{ return value; }
 void QueryReferenceResult::setValue(LogicalID* v)	{ value = v; }
-
+bool QueryReferenceResult::wasRefed()			{ return refed; }
+void QueryReferenceResult::setRef()			{ refed = true; }
 
 //algebraic operations plus, minus, times, divide_by, and, or.
 
@@ -1635,6 +1636,21 @@ int QueryNothingResult::comma(QueryResult *arg, QueryResult *&score) {
 		}
 	}
 	return 0;
+}
+
+bool QueryResult::sorting_less_eq(QueryResult *arg) {
+	if (((this->type()) == (arg->type())) || 
+	(((this->type()) == (QueryResult::QINT)) && ((arg->type()) == (QueryResult::QDOUBLE))) || 
+	(((arg->type()) == (QueryResult::QINT)) && ((this->type()) == (QueryResult::QDOUBLE)))) {
+		if (this->less_eq(arg))
+			return true;
+		else 
+			return false;
+	}
+	else if ((this->type()) < (arg->type())) {
+			return true;
+	}
+	return false;
 }
 
 int QueryBagResult::divideBag(QueryResult *&left, QueryResult *&right) {

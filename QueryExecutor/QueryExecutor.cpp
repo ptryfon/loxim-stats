@@ -1,12 +1,3 @@
-/* Query Executor
-   10.2005 - 01.2006
-
-   Authors:
-   Beata Golichowska
-   Dariusz Gryglas
-   Adam Michalik
-   Maja Perycz */
-   
 #include <stdio.h>
 #include <string>
 #include <vector>
@@ -143,8 +134,8 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, QueryResult **result) {
 	*ec << "[QE] executeRecQuery()";
 	
 	
-	if ((this->evalStopped()) != 0) {
-		*ec << "[QE] query evaluating Stopped by Server, aborting transaction ";
+	if (this->evalStopped()) {
+		*ec << "[QE] query evaluating stopped by Server, aborting transaction ";
 		errcode = tr->abort();
 		tr = NULL;
 		*result = new QueryNothingResult();
@@ -164,36 +155,10 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, QueryResult **result) {
 		case TreeNode::TNNAME: {
 			*ec << "[QE] Type: TNNAME";
 			string name = tree->getName();
-			int sectionNumber = ((NameNode *) tree)->getBindSect();
-			if (sectionNumber == 0) {
-				errcode = stack.bindName(name, *result);
-				if (errcode != 0) return errcode;
-			}
-			else {  // ten numer sekcji jest do uzgodnienia
-				errcode = stack.bindName(name, (sectionNumber - 1), *result);
-				if (errcode != 0) return errcode;
-			}
+			//int sectionNumber = ((NameNode *) tree)->getBindSect();
+			errcode = stack.bindName(name, *result);
+			if (errcode != 0) return errcode;
 			if (((*result)->size()) == 0) {
-//
-//	Zmiana: Sciaganie rootow po LogicalID a nie ObjectPointer
-//
-//				vector<ObjectPointer*>* vec;
-//				if ((errcode = tr->getRoots(name, vec)) != 0) {
-//					tr = NULL;
-//					return errcode;
-//				}
-//				int vecSize = vec->size();
-//				ec->printf("[QE] %d Roots by name taken\n", vecSize);
-//				QueryBagResult *tmp_result = new QueryBagResult();
-//				for (int i = 0; i < vecSize; i++ ) {
-//					ObjectPointer *optr = vec->at(i);
-//					LogicalID *lid = optr->getLogicalID();
-//					*ec << "[QE] LogicalID received";
-//					QueryReferenceResult *lidres = new QueryReferenceResult(lid);
-//					tmp_result->addResult(lidres);
-//				}
-//				*result = tmp_result;
-//
 				vector<LogicalID*>* vec;
 				if ((errcode = tr->getRootsLID(name, vec)) != 0) {
 					tr = NULL;
@@ -211,10 +176,6 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, QueryResult **result) {
 				
 				delete vec;
 				*result = tmp_result;
-//
-//	Zmiana: Koniec
-//
-
 			}
 			*ec << "[QE] Done!";
 			return 0;
@@ -226,12 +187,27 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, QueryResult **result) {
 			QueryResult *tmp_result;
 			errcode = executeRecQuery (tree->getArg(), &tmp_result);
 			if (errcode != 0) return errcode;
+			if (tmp_result->isSingleValue()) {
+				QueryResult *tmp_single;
+				errcode = tmp_result->getSingleValue(tmp_single);
+				if (errcode != 0) return errcode;
+				if ((tmp_single->type()) == QueryResult::QBINDER) {
+					name = ((QueryBinderResult *) tmp_single)->getName();
+					*ec << "[QE]";
+					*ec << name;
+					*ec << "[QE]";
+					tmp_result = ((QueryBinderResult *) tmp_single)->getItem();
+				}
+			}
 			if (not (tmp_result->isSingleValue())) {
-				*ec << "[QE] ERROR! Create operation, argument must be single value type";
-				*result = new QueryNothingResult();
-				*ec << "[QE] QueryNothingResult created";
-				*ec << (ErrQExecutor | EOtherResExp);
-				return ErrQExecutor | EOtherResExp;
+				if (((tmp_result->type()) == QueryResult::QBAG) && ((tmp_result->size()) == 0))
+					tmp_result = new QueryNothingResult();
+				else {
+					*ec << "[QE] ERROR! Create operation, argument must be single value type";
+					*result = new QueryNothingResult();
+					*ec << (ErrQExecutor | EOtherResExp);
+					return ErrQExecutor | EOtherResExp;
+				}
 			}
 			QueryResult *single;
 			errcode = tmp_result->getSingleValue(single);
@@ -508,7 +484,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, QueryResult **result) {
 									errcode = (((QueryBagResult *) nResult)->at(i, current_new_result));
 								if (errcode != 0) return errcode;
 								bool isIncl;
-								errcode = this->isIncluded_unique(current_new_result, final_result, isIncl);
+								errcode = this->isIncluded(current_new_result, final_result, isIncl);
 								if (errcode != 0) return errcode;
 								if (not (isIncl)) { // occur check
 									partial_result->addResult(current_new_result);
@@ -559,7 +535,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, QueryResult **result) {
 										errcode = (((QueryBagResult *) nResult)->at(i, c_result));
 									if (errcode != 0) return errcode;
 									bool isIncl;
-									errcode = this->isIncluded_unique(c_result, visited_result, isIncl);
+									errcode = this->isIncluded(c_result, visited_result, isIncl);
 									if (errcode != 0) return errcode;
 									if (not (isIncl)) { // occur check
 										partial_result->addResult(c_result);
@@ -710,6 +686,10 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 			break;
 		}
 		case QueryResult::QREFERENCE: {
+			if (((QueryReferenceResult *) arg)->wasRefed()) {
+				res = arg;
+				break;
+			}
 			LogicalID *ref_value = ((QueryReferenceResult *) arg)->getValue();
 			*ec << "[QE] derefQuery() - dereferencing Object";
 			ObjectPointer *optr;
@@ -789,12 +769,106 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 	return 0;
 }
 
+int QueryExecutor::refQuery(QueryResult *arg, QueryResult *&res) {
+	*ec << "[QE] refQuery()";
+	int errcode;
+	int argType = arg->type();
+	switch (argType) {
+		case QueryResult::QSEQUENCE: {
+			res = new QuerySequenceResult();
+			for (unsigned int i = 0; i < (arg->size()); i++) {
+				QueryResult *tmp_item;
+				errcode = ((QuerySequenceResult *) arg)->at(i, tmp_item);
+				if (errcode != 0) return errcode;
+				QueryResult *tmp_res;
+				errcode = this->refQuery(tmp_item, tmp_res);
+				if (errcode != 0) return errcode;
+				res->addResult(tmp_res);
+			}
+			break;
+		}
+		case QueryResult::QBAG: {
+			res = new QueryBagResult();
+			for (unsigned int i = 0; i < (arg->size()); i++) {
+				QueryResult *tmp_item;
+				errcode = ((QueryBagResult *) arg)->at(i, tmp_item);
+				if (errcode != 0) return errcode;
+				QueryResult *tmp_res;
+				errcode = this->refQuery(tmp_item, tmp_res);
+				if (errcode != 0) return errcode;
+				res->addResult(tmp_res);
+			}
+			break;
+		}
+		case QueryResult::QSTRUCT: {
+			res = new QueryStructResult();
+			for (unsigned int i = 0; i < (arg->size()); i++) {
+				QueryResult *tmp_item;
+				errcode = ((QueryStructResult *) arg)->at(i, tmp_item);
+				if (errcode != 0) return errcode;
+				QueryResult *tmp_res;
+				errcode = this->refQuery(tmp_item, tmp_res);
+				if (errcode != 0) return errcode;
+				res->addResult(tmp_res);
+			}
+			break;
+		}
+		case QueryResult::QBINDER: {
+			string tmp_name = ((QueryBinderResult *) arg)->getName();
+			QueryResult *tmp_item;
+			errcode = this->refQuery(((QueryBinderResult *) arg)->getItem(), tmp_item);
+			if (errcode != 0) return errcode;
+			res = new QueryBinderResult(tmp_name, tmp_item);
+			break;
+		}
+		case QueryResult::QBOOL: {
+			res = arg;
+			break;
+		}
+		case QueryResult::QINT: {
+			res = arg;
+			break;
+		}
+		case QueryResult::QDOUBLE: {
+			res = arg;
+			break;
+		}
+		case QueryResult::QSTRING: {
+			res = arg;
+			break;
+		}
+		case QueryResult::QREFERENCE: {
+			res = arg;
+			((QueryReferenceResult *) res)->setRef();
+			break;
+		}
+		case QueryResult::QNOTHING: {
+			res = arg;
+			break;
+		}
+		default: {
+			*ec << "[QE] ERROR in refQuery() - unknown result type";
+			res = new QueryNothingResult();
+			*ec << "[QE] QueryNothingResult created";
+			*ec << (ErrQExecutor | EOtherResExp);
+			return ErrQExecutor | EOtherResExp;
+		}
+	}
+	return 0;
+}
+
 int QueryExecutor::unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&final) {
 	int errcode;
 	switch (op) {
 		case UnOpNode::deref: {
 			*ec << "[QE] DEREF operation";
-			errcode = derefQuery(arg, final);
+			errcode = this->derefQuery(arg, final);
+			if (errcode != 0) return errcode;
+			break;
+		}
+		case UnOpNode::ref: {
+			*ec << "[QE] REF operation";
+			errcode = this->refQuery(arg, final);
 			if (errcode != 0) return errcode;
 			break;
 		}
@@ -1060,18 +1134,22 @@ int QueryExecutor::unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&
 			final = new QueryBagResult();
 			QueryResult *bagArg = new QueryBagResult();
 			bagArg->addResult(arg);
-			unsigned int bag_size = bagArg->size();
-			for (unsigned int i = 0; i < bag_size; i++) {
-				QueryResult *current;
-				errcode = bagArg->getResult(current);
+			if ((bagArg->size()) == 0) 
+				break;
+			QueryBagResult *argSorted;
+			errcode = this->sortBag((QueryBagResult *) bagArg, argSorted);
+			if (errcode != 0) return errcode;
+			QueryResult *current;
+			errcode = argSorted->getResult(current);
+			if (errcode != 0) return errcode;
+			final->addResult(current);
+			while ((argSorted->size()) > 0) { 
+				QueryResult *next;
+				errcode = argSorted->getResult(next);
 				if (errcode != 0) return errcode;
-				bool is_incl;
-				errcode = this->isIncluded(current, bagArg, is_incl);
-				if (errcode != 0) return errcode;
-				if (not is_incl) {
-					QueryResult *derefedCurrent;
-					errcode = derefQuery(current, derefedCurrent);
-					final->addResult(derefedCurrent);
+				if (next->not_equal(current)) {
+					current = next;
+					final->addResult(current);
 				}
 			}
 			break;
@@ -1299,52 +1377,64 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 	else if ((op == AlgOpNode::bagUnion) || (op == AlgOpNode::bagIntersect) || (op == AlgOpNode::bagMinus)) {
 		QueryResult *leftBag = new QueryBagResult();
 		QueryResult *rightBag = new QueryBagResult();
+		final = new QueryBagResult();
 		leftBag->addResult(lArg);
 		rightBag->addResult(rArg);
-		switch (op) {
-			case AlgOpNode::bagUnion: {
-				*ec << "[QE] BAG_UNION operation";
-				final = rightBag;
-				break;
-			}
-			case AlgOpNode::bagIntersect: {
+		if (op == (AlgOpNode::bagUnion)) {
+			*ec << "[QE] BAG_UNION operation";
+			((QueryBagResult *) final)->addResult(leftBag);
+			((QueryBagResult *) final)->addResult(rightBag);
+			return 0;
+		} else {
+			if (op == (AlgOpNode::bagIntersect)) 
 				*ec << "[QE] BAG_INTERSECT operation";
-				final = new QueryBagResult();
-				break;
-			}
-			case AlgOpNode::bagMinus: {
+			if (op == (AlgOpNode::bagMinus)) 
 				*ec << "[QE] BAG_MINUS operation";
-				final = new QueryBagResult();
-				break;
-			}
-			default: { break; }
-		}
-		for (unsigned int i = 0; i < leftBag->size(); i++) {
-			QueryResult *tmp_res;
-			errcode = ((QueryBagResult *) leftBag)->at(i, tmp_res);
+			final = new QueryBagResult();
+			QueryBagResult *firstSorted;
+			errcode = this->sortBag((QueryBagResult *) leftBag, firstSorted);
 			if (errcode != 0) return errcode;
-			bool isIncl;
-			errcode = this->isIncluded(tmp_res, rightBag, isIncl);
+			QueryBagResult *secondSorted;
+			errcode = this->sortBag((QueryBagResult *) rightBag, secondSorted);
 			if (errcode != 0) return errcode;
-			switch (op) {
-				case AlgOpNode::bagUnion: {
-					final->addResult(tmp_res);
-					break;
+			while ((firstSorted->size()) != 0) {
+				QueryResult *first_elem;
+				QueryResult *second_elem;
+				if ((secondSorted->size()) != 0) {
+					errcode = firstSorted->at(0,first_elem);
+					if (errcode != 0) return errcode;
+					errcode = secondSorted->at(0,second_elem);
+					if (errcode != 0) return errcode;
+					if (first_elem->equal(second_elem)) {
+						if (op == (AlgOpNode::bagIntersect))
+							((QueryBagResult *) final)->addResult(first_elem);
+						errcode = firstSorted->getResult(first_elem);
+						if (errcode != 0) return errcode;
+						errcode = secondSorted->getResult(second_elem);
+						if (errcode != 0) return errcode;
+					}
+					else if (first_elem->sorting_less_eq(second_elem)) {
+						if (op == (AlgOpNode::bagMinus))
+							((QueryBagResult *) final)->addResult(first_elem);
+						errcode = firstSorted->getResult(first_elem);
+						if (errcode != 0) return errcode;
+					}
+					else {
+						errcode = secondSorted->getResult(second_elem);
+						if (errcode != 0) return errcode;
+					}
 				}
-				case AlgOpNode::bagIntersect: {
-					if (isIncl)
-						final->addResult(tmp_res);
-					break;
+				else {
+					errcode = firstSorted->at(0,first_elem);
+					if (errcode != 0) return errcode;
+					if (op == (AlgOpNode::bagMinus))
+						((QueryBagResult *) final)->addResult(first_elem);
+					errcode = firstSorted->getResult(first_elem);
+					if (errcode != 0) return errcode;
 				}
-				case AlgOpNode::bagMinus: {
-					if (not isIncl)
-						final->addResult(tmp_res);
-					break;
-				}
-				default: { break; }
 			}
+			return 0;
 		}
-		return 0;
 	}
 	else if (op == AlgOpNode::comma) {
 		*ec << "[QE] COMMA operation";
@@ -1362,7 +1452,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 		lBag->addResult(lArg);
 		rBag->addResult(rArg);
 		if (rBag->size() != 1) {
-			*ec << "[QE] ERROR! Right argument of insert operation must have size 1 and consist of QREFERENCE";
+			*ec << "[QE] ERROR! Right argument of insert operation must have size 1";
 			final = new QueryNothingResult();
 			*ec << (ErrQExecutor | ERefExpected);
 			return ErrQExecutor | ERefExpected;
@@ -1377,22 +1467,93 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 			if (errcode != 0) return errcode;
 			int leftResultType = toInsert->type();
 			int rightResultType = outer->type();
-			if ((leftResultType != QueryResult::QREFERENCE) || (rightResultType != QueryResult::QREFERENCE)) {
-				*ec << "[QE] ERROR! both arguments of insert operation must consist of QREFERENCE";
+			if (rightResultType != QueryResult::QREFERENCE) {
+				*ec << "[QE] ERROR! Right argument of insert operation must consist of QREFERENCE";
 				final = new QueryNothingResult();
 				*ec << (ErrQExecutor | ERefExpected);
 				return ErrQExecutor | ERefExpected;
 			}
-			LogicalID *lidIn = ((QueryReferenceResult *) toInsert)->getValue();
-			LogicalID *lidOut = ((QueryReferenceResult *) outer)->getValue();
-			ObjectPointer *optrIn;
-			errcode = tr->getObjectPointer (lidIn, Store::Write, optrIn);
-			if (errcode != 0) {
-				*ec << "[QE] insert operation - Error in getObjectPointer.";
-				tr = NULL;
-				return errcode;
+			if ((leftResultType != QueryResult::QREFERENCE) && (leftResultType != QueryResult::QBINDER)) {
+				*ec << "[QE] ERROR! Left argument of insert operation must consist of QREFERENCE or QBINDER";
+				final = new QueryNothingResult();
+				*ec << (ErrQExecutor | ERefExpected);
+				return ErrQExecutor | ERefExpected;
 			}
-			*ec << "[QE] insert operation - getObjectPointer on leftArg done";
+			bool leftArgBind = false;
+			LogicalID *lidIn;
+			ObjectPointer *optrIn;
+			if (leftResultType == QueryResult::QBINDER) {
+				leftArgBind = true;
+				string name = ((QueryBinderResult *)toInsert)->getName();
+				QueryResult *tmp_result = ((QueryBinderResult *)toInsert)->getItem();
+				if (not (tmp_result->isSingleValue())) {
+					*ec << "[QE] ERROR! Create operation, argument must be single value type";
+					final = new QueryNothingResult();
+					*ec << (ErrQExecutor | EOtherResExp);
+					return ErrQExecutor | EOtherResExp;
+				}
+				QueryResult *single;
+				errcode = tmp_result->getSingleValue(single);
+				if (errcode != 0) return errcode;
+				DBDataValue *dbValue = new DBDataValue();
+				switch (single->type()) {
+					case QueryResult::QINT: {
+						int intValue = ((QueryIntResult *) single)->getValue();
+						dbValue->setInt(intValue);
+						*ec << "[QE] < CREATE NAME ('integer'); > operation";
+						break;
+					}
+					case QueryResult::QDOUBLE: {
+						double doubleValue = ((QueryDoubleResult *) single)->getValue();
+						dbValue->setDouble(doubleValue);
+						*ec << "[QE] < CREATE NAME ('double'); > operation";
+						break;
+					}
+					case QueryResult::QSTRING: {
+						string stringValue = ((QueryStringResult *) single)->getValue();
+						dbValue->setString(stringValue);
+						*ec << "[QE] < CREATE NAME ('string'); > operation";
+						break;
+					}
+					case QueryResult::QREFERENCE: {
+						LogicalID* refValue = ((QueryReferenceResult *) single)->getValue();
+						dbValue->setPointer(refValue);
+						*ec << "[QE] < CREATE NAME ('reference'); > operation";
+						break;
+					}
+					case QueryResult::QNOTHING: {
+						vector<LogicalID*> emptyVector;
+						dbValue->setVector(&emptyVector);
+						*ec << "[QE] < CREATE NAME; > operation";
+						break;
+					}
+					default: {
+						*ec << "[QE] ERROR! Create operation, bad type argument evaluated by executeRecQuery";
+						final = new QueryNothingResult();
+						*ec << (ErrQExecutor | EOtherResExp);
+						return ErrQExecutor | EOtherResExp;
+					}
+				}
+				DataValue* value;
+				value = dbValue;
+				if ((errcode = tr->createObject(name, value, optrIn)) != 0) {
+					*ec << "[QE] Error in createObject";
+					tr = NULL;
+					return errcode;
+				}
+				lidIn = optrIn->getLogicalID();
+			}
+			else {
+				lidIn = ((QueryReferenceResult *) toInsert)->getValue();
+				errcode = tr->getObjectPointer (lidIn, Store::Write, optrIn);
+				if (errcode != 0) {
+					*ec << "[QE] insert operation - Error in getObjectPointer.";
+					tr = NULL;
+					return errcode;
+				}
+				*ec << "[QE] insert operation - getObjectPointer on leftArg done";
+			}
+			LogicalID *lidOut = ((QueryReferenceResult *) outer)->getValue();
 			ObjectPointer *optrOut;
 			errcode = tr->getObjectPointer (lidOut, Store::Write, optrOut);
 			if (errcode != 0) {
@@ -1402,13 +1563,15 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 			}
 			*ec << "[QE] insert operation - getObjectPointer on rightArg done";
 			// we have to cut left argument from the roots
-			errcode = tr->removeRoot(optrIn);
-			if (errcode != 0) {
-				*ec << "[QE] insert operation - Error in removeRoot.";
-				tr = NULL;
-				return errcode;
+			if (not (leftArgBind)) {
+				errcode = tr->removeRoot(optrIn);
+				if (errcode != 0) {
+					*ec << "[QE] insert operation - Error in removeRoot.";
+					tr = NULL;
+					return errcode;
+				}
+				*ec << "[QE] insert operation - Root removed";
 			}
-			*ec << "[QE] insert operation - Root removed";
 			// now we have to modify right argument's value
 			db_value = optrOut->getValue();
 			*ec << "[QE] insert operation - Value taken";
@@ -1543,7 +1706,7 @@ int QueryExecutor::combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryRe
 			errcode = curr->getSingleValue(old_value);
 			if (errcode != 0) return errcode;
 			QueryResult* new_value;
-			errcode = lRes->getSingleValue(new_value);
+			errcode = this->derefQuery(lRes, new_value);
 			if (errcode != 0) return errcode;
 			int oldType = old_value->type();
 			int newType = new_value->type();
@@ -1719,18 +1882,12 @@ int QueryExecutor::isIncluded(QueryResult *elem, QueryResult *set, bool &score) 
 		*ec << (ErrQExecutor | EOtherResExp);
 		return ErrQExecutor | EOtherResExp;
 	}
-	QueryResult *derefElem;
-	errcode = this->derefQuery(elem,derefElem);
-	if (errcode != 0) return errcode;
 	bool tmp_bool = false;
 	for (unsigned int i = 0; i < set->size(); i++) {
 		QueryResult *tmp_res;
 		errcode = ((QueryBagResult *) set)->at(i, tmp_res);
 		if (errcode != 0) return errcode;
-		QueryResult *derefSetElem;
-		errcode = this->derefQuery(tmp_res, derefSetElem);
-		if (errcode != 0) return errcode;
-		bool eq = derefElem->equal(derefSetElem);
+		bool eq = elem->equal(tmp_res);
 		if (eq) 
 			tmp_bool = true;
 	} 
@@ -1738,43 +1895,76 @@ int QueryExecutor::isIncluded(QueryResult *elem, QueryResult *set, bool &score) 
 	return 0;
 }
 
-int QueryExecutor::isIncluded_unique(QueryResult *elem, QueryResult *set, bool &score) {
-	*ec << "[QE] isIncluded_unique()";
+int QueryExecutor::sortBag(QueryBagResult *inBag, QueryBagResult *&outBag) {
 	int errcode;
-	if (set->type() != QueryResult::QBAG) {
-		*ec << "[QE] isIncluded_unique(): ERROR! set argument must be BAG";
-		*ec << (ErrQExecutor | EOtherResExp);
-		return ErrQExecutor | EOtherResExp;
+	outBag = new QueryBagResult();
+	if ((inBag->size()) == 1) { 
+		outBag->addResult(inBag);
 	}
-	QueryResult *derefElem;
-	errcode = this->derefQuery(elem,derefElem);
-	if (errcode != 0) return errcode;
-	bool tmp_bool = false;
-	for (unsigned int i = 0; i < set->size(); i++) {
-		QueryResult *tmp_res;
-		errcode = ((QueryBagResult *) set)->at(i, tmp_res);
+	else if ((inBag->size()) == 2) {
+		QueryResult *first;
+		QueryResult *second;
+		errcode = inBag->at(0, first);
 		if (errcode != 0) return errcode;
-		if ((elem->isReferenceValue()) && (tmp_res->isReferenceValue())) {
-			QueryResult *refElem;
-			QueryResult *refSetElem;
-			errcode = elem->getReferenceValue(refElem);
-			if (errcode != 0) return errcode;
-			errcode = tmp_res->getReferenceValue(refSetElem);
-			if (errcode != 0) return errcode;
-			bool eq = refElem->equal(refSetElem);
-			if (eq)
-				tmp_bool = eq;
+		errcode = inBag->at(1, second);
+		if (errcode != 0) return errcode;
+		if (first->sorting_less_eq(second)) {
+			outBag->addResult(first);
+			outBag->addResult(second);
 		}
 		else {
-			QueryResult *derefSetElem;
-			errcode = this->derefQuery(tmp_res, derefSetElem);
-			if (errcode != 0) return errcode;
-			bool eq = derefElem->equal(derefSetElem);
-			if (eq)
-				tmp_bool = eq;
+			outBag->addResult(second);
+			outBag->addResult(first);
 		}
 	}
-	score = tmp_bool;
+	else { //inBag size = 2+
+		QueryResult *firstHalf;
+		QueryResult *secondHalf;
+		errcode = inBag->divideBag(firstHalf, secondHalf);
+		if (errcode != 0) return errcode;
+		QueryBagResult *firstHalfSorted;
+		QueryBagResult *secondHalfSorted;
+		errcode = this->sortBag((QueryBagResult *)firstHalf, firstHalfSorted);
+		if (errcode != 0) return errcode;
+		errcode = this->sortBag((QueryBagResult *)secondHalf, secondHalfSorted);
+		if (errcode != 0) return errcode;
+		unsigned int total_size = (firstHalfSorted->size()) + (secondHalfSorted->size());
+		if (total_size != (inBag->size())) {
+			*ec << "[QE] sortCollection() ERROR! - i lost some elements somewhere...";
+			*ec << (ErrQExecutor | EQEUnexpectedErr);
+			return ErrQExecutor | EQEUnexpectedErr; // something is wrong, those sizes should be equal
+		}
+		for (unsigned int i = 0; i < total_size; i++) {
+			QueryResult *first_elem;
+			QueryResult *second_elem;
+			if ((firstHalfSorted->size()) == 0) { // first half ended
+				errcode = secondHalfSorted->getResult(second_elem);
+				if (errcode != 0) return errcode;
+				outBag->addResult(second_elem);
+			} 
+			else if ((secondHalfSorted->size()) == 0) { // second sequence ended
+				errcode = firstHalfSorted->getResult(first_elem);
+				if (errcode != 0) return errcode;
+				outBag->addResult(first_elem);
+			} 
+			else {
+				errcode = firstHalfSorted->at(0,first_elem);
+				if (errcode != 0) return errcode;
+				errcode = secondHalfSorted->at(0,second_elem);
+				if (errcode != 0) return errcode;
+				if (first_elem->sorting_less_eq(second_elem)) {
+					outBag->addResult(first_elem);
+					errcode = firstHalfSorted->getResult(first_elem);
+					if (errcode != 0) return errcode;
+				}
+				else {
+					outBag->addResult(second_elem);
+					errcode = secondHalfSorted->getResult(second_elem);
+					if (errcode != 0) return errcode;
+				}
+			}
+		}
+	}
 	return 0;
 }
 
@@ -1867,40 +2057,6 @@ int EnvironmentStack::bindName(string name, QueryResult *&r) {
 		}
 		if (found_one) {
 			return 0;
-		}
-	}
-	return 0;
-}
-
-int EnvironmentStack::bindName(string name, int es_section, QueryResult *&r) {
-	*ec << "[QE] Name binding on ES";
-	int errcode;
-	int number = (es.size());
-	ec->printf("[QE] bindName: ES got %u sections\n", number);
-	r = new QueryBagResult();
-	QueryBagResult *section;
-	unsigned int sectionSize;
-	if ((es_section < 0) || (es_section >= number)) {
-		*ec << "[QE] bindName ERROR: ES section number given by optimalizator is wrong!";
-		*ec << (ErrQExecutor | EQEUnexpectedErr);
-		return ErrQExecutor | EQEUnexpectedErr;
-	}
-	*ec << "[QE] bindName: searching section number %d - optimalizator said, that i should search there";
-	QueryResult *sth;
-	string current;
-	section = (es.at(es_section));
-	sectionSize = (section->size());
-	ec->printf("[QE] bindName: ES section %u got %u elements\n", es_section, sectionSize);
-	for (unsigned int j = 0; j < sectionSize; j++) {
-		errcode = (section->at(j,sth));
-		if (errcode != 0) return errcode;
-		if ((sth->type()) == (QueryResult::QBINDER)) {
-			current = (((QueryBinderResult *) sth)->getName());
-			ec->printf("[QE] bindName: current %u name is: %s\n", j, current.c_str());
-			if (current == name) {
-				*ec << "[QE] bindName: Object added to Result";
-				r->addResult(((QueryBinderResult *) sth)->getItem());
-			}
 		}
 	}
 	return 0;
