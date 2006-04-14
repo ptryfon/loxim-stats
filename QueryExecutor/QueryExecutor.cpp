@@ -134,7 +134,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, QueryResult **result) {
 	*ec << "[QE] executeRecQuery()";
 	
 	
-	if (this->evalStopped()) {
+	/*if (this->evalStopped()) {
 		*ec << "[QE] query evaluating stopped by Server, aborting transaction ";
 		errcode = tr->abort();
 		tr = NULL;
@@ -145,7 +145,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, QueryResult **result) {
 		}
 		*ec << "[QE] Transaction aborted succesfully";
 		return 0;
-	}
+	}*/
 	
 	if (tree != NULL) {
 		int nodeType = tree->type();
@@ -187,86 +187,53 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, QueryResult **result) {
 			QueryResult *tmp_result;
 			errcode = executeRecQuery (tree->getArg(), &tmp_result);
 			if (errcode != 0) return errcode;
-			if (tmp_result->isSingleValue()) {
-				QueryResult *tmp_single;
-				errcode = tmp_result->getSingleValue(tmp_single);
-				if (errcode != 0) return errcode;
-				if ((tmp_single->type()) == QueryResult::QBINDER) {
-					name = ((QueryBinderResult *) tmp_single)->getName();
-					*ec << "[QE]";
-					*ec << name;
-					*ec << "[QE]";
-					tmp_result = ((QueryBinderResult *) tmp_single)->getItem();
-				}
-			}
-			if (not (tmp_result->isSingleValue())) {
-				if (((tmp_result->type()) == QueryResult::QBAG) && ((tmp_result->size()) == 0))
-					tmp_result = new QueryNothingResult();
-				else {
-					*ec << "[QE] ERROR! Create operation, argument must be single value type";
-					*result = new QueryNothingResult();
-					*ec << (ErrQExecutor | EOtherResExp);
-					return ErrQExecutor | EOtherResExp;
-				}
-			}
-			QueryResult *single;
-			errcode = tmp_result->getSingleValue(single);
-			if (errcode != 0) return errcode;
-			DBDataValue *dbValue = new DBDataValue();
-			switch (single->type()) {
-				case QueryResult::QINT: {
-					int intValue = ((QueryIntResult *) single)->getValue();
-					dbValue->setInt(intValue);
-					*ec << "[QE] < CREATE NAME ('integer'); > operation";
+			QueryResult *binder;
+			switch (tmp_result->type()) {
+				case QueryResult::QBINDER: {
+					binder = tmp_result;
 					break;
 				}
-				case QueryResult::QDOUBLE: {
-					double doubleValue = ((QueryDoubleResult *) single)->getValue();
-					dbValue->setDouble(doubleValue);
-					*ec << "[QE] < CREATE NAME ('double'); > operation";
+				case QueryResult::QBAG: {
+					if ((tmp_result->size()) == 1) {
+						errcode = ((QueryBagResult *) tmp_result)->at(0, binder);
+						if (errcode != 0) return errcode;
+					}
+					else {
+						*ec << "[QE] Error in CREATE operation, value must be a binder";
+						*result = new QueryNothingResult();
+						*ec << (ErrQExecutor | EOtherResExp);
+						return ErrQExecutor | EOtherResExp;
+					}
 					break;
 				}
-				case QueryResult::QSTRING: {
-					string stringValue = ((QueryStringResult *) single)->getValue();
-					dbValue->setString(stringValue);
-					*ec << "[QE] < CREATE NAME ('string'); > operation";
-					break;
-				}
-				case QueryResult::QREFERENCE: {
-					LogicalID* refValue = ((QueryReferenceResult *) single)->getValue();
-					dbValue->setPointer(refValue);
-					*ec << "[QE] < CREATE NAME ('reference'); > operation";
-					break;
-				}
-				case QueryResult::QNOTHING: {
-					vector<LogicalID*> emptyVector;
-					dbValue->setVector(&emptyVector);
-					*ec << "[QE] < CREATE NAME; > operation";
+				case QueryResult::QSEQUENCE: {
+					if ((tmp_result->size()) == 1) {
+						errcode = ((QuerySequenceResult *) tmp_result)->at(0, binder);
+						if (errcode != 0) return errcode;
+					}
+					else {
+						*ec << "[QE] Error in CREATE operation, value must be a binder";
+						*result = new QueryNothingResult();
+						*ec << (ErrQExecutor | EOtherResExp);
+						return ErrQExecutor | EOtherResExp;
+					}
 					break;
 				}
 				default: {
-					*ec << "[QE] ERROR! Create operation, bad type argument evaluated by executeRecQuery";
+					*ec << "[QE] Error in CREATE operation, value must be a binder";
 					*result = new QueryNothingResult();
-					*ec << "[QE] QueryNothingResult created";
 					*ec << (ErrQExecutor | EOtherResExp);
 					return ErrQExecutor | EOtherResExp;
 				}
 			}
-			DataValue* value;
-			value = dbValue;
 			ObjectPointer *optr;
-			if ((errcode = tr->createObject(name, value, optr)) != 0)
-				{
-				*ec << "[QE] Error in createObject";
-				tr = NULL;
-				return errcode;
-				}
-			if ((errcode = tr->addRoot(optr)) != 0)
-				{
+			errcode = this->objectFromBinder(binder, optr);
+			if (errcode != 0) return errcode;
+			if ((errcode = tr->addRoot(optr)) != 0) {
 				*ec << "[QE] Error in addRoot";
 				tr = NULL;
 				return errcode;
-				}
+			}
 			*result = new QueryBagResult();
 			QueryReferenceResult *lidres = new QueryReferenceResult(optr->getLogicalID());
 			(*result)->addResult (lidres);
@@ -1984,6 +1951,78 @@ int QueryExecutor::abort() {
 	return 0;
 }
 
+int QueryExecutor::objectFromBinder(QueryResult *res, ObjectPointer *&newObject) {
+	int errcode;
+	*ec << "[QE] objectFromBinder()";
+	if ((res->type()) != QueryResult::QBINDER) {
+		*ec << "[QE] objectFromBinder() expected a binder, got something else";
+		*ec << (ErrQExecutor | EOtherResExp);
+		return ErrQExecutor | EOtherResExp;
+	}
+	string binderName = ((QueryBinderResult *) res)->getName();
+	QueryResult *binderItem = ((QueryBinderResult *) res)->getItem();
+	DBDataValue *dbValue = new DBDataValue();
+	int binderItemType = binderItem->type();
+	switch (binderItemType) {
+		case QueryResult::QINT: {
+			int intValue = ((QueryIntResult *) binderItem)->getValue();
+			dbValue->setInt(intValue);
+			*ec << "[QE] objectFromBinder(): value is INT type";
+			break;
+		}
+		case QueryResult::QDOUBLE: {
+			double doubleValue = ((QueryDoubleResult *) binderItem)->getValue();
+			dbValue->setDouble(doubleValue);
+			*ec << "[QE] objectFromBinder(): value is DOUBLE type";
+			break;
+		}
+		case QueryResult::QSTRING: {
+			string stringValue = ((QueryStringResult *) binderItem)->getValue();
+			dbValue->setString(stringValue);
+			*ec << "[QE] objectFromBinder(): value is STRING type";
+			break;
+		}
+		case QueryResult::QREFERENCE: {
+			LogicalID* refValue = ((QueryReferenceResult *) binderItem)->getValue();
+			dbValue->setPointer(refValue);
+			*ec << "[QE] objectFromBinder(): value is REFERENCE type";
+			break;
+		}
+		case QueryResult::QSTRUCT: {
+			vector<LogicalID*> vectorValue;
+			for (unsigned int i=0; i < (binderItem->size()); i++) {
+				QueryResult *curr;
+				errcode = ((QueryStructResult *) binderItem)->at(i, curr);
+				if (errcode != 0) return errcode;
+				ObjectPointer *optr;
+				errcode = this->objectFromBinder(curr, optr);
+				if (errcode != 0) return errcode;
+				LogicalID *lid = optr->getLogicalID();
+				*ec << "[QE] objectFromBinder(): logical ID received";
+				vectorValue.push_back(lid);
+				*ec << "[QE] objectFromBinder(): added to a vector";
+			}
+			dbValue->setVector(&vectorValue);
+			*ec << "[QE] objectFromBinder(): value is STRUCT type";
+			break;
+		}
+		default: {
+			*ec << "[QE] objectFromBinder(): bad type item in a binder";
+			*ec << (ErrQExecutor | EOtherResExp);
+			return ErrQExecutor | EOtherResExp;
+		}
+	}
+	DataValue* value;
+	value = dbValue;
+	if ((errcode = tr->createObject(binderName, value, newObject)) != 0) {
+		*ec << "[QE] Error in createObject";
+		tr = NULL;
+		return errcode;
+	}
+	return 0;
+}
+
+
 QueryExecutor::~QueryExecutor() {
 	if (tr != NULL)
 		tr->abort();
@@ -1991,6 +2030,11 @@ QueryExecutor::~QueryExecutor() {
 	*ec << "[QE] QueryExecutor shutting down\n";
 	delete ec;
 }
+
+
+
+/* ENVIRONMENT STACK */
+
 
 EnvironmentStack::EnvironmentStack() { ec = new ErrorConsole("QueryExecutor"); }
 EnvironmentStack::~EnvironmentStack() { delete ec; }

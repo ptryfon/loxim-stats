@@ -57,6 +57,7 @@ namespace QExecutor
 		int refQuery(QueryResult *arg, QueryResult *&res);
 		int isIncluded(QueryResult *elem, QueryResult *set, bool &score);
 		int sortBag(QueryBagResult *inBag, QueryBagResult *&outBag);
+		int objectFromBinder(QueryResult *res, ObjectPointer *&newObject);
 	public:
 		QueryExecutor() { tr = NULL; ec = new ErrorConsole("QueryExecutor"); stop = 0; };
 		~QueryExecutor();
