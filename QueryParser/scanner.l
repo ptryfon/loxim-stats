@@ -73,8 +73,6 @@ extern int szbderrno;
 "."			return DOT;
 ","			return COMMA;
 ":<"		return INSERTINTO;
-"insert"		return INSERT;
-"into"			return INTO;
 "delete"		return DELETE;
 ":="			return ASSIGN;
 "deref"			return DEREF;

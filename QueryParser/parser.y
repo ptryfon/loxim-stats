@@ -18,11 +18,11 @@
 
 %token	<num> INTEGER
 %token	<dbl> DOUBLE 
-%token	<str> NAME STRING SEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT INSERT INTO  DEREF REF BEGINTR END ABORT CREATE
+%token	<str> NAME STRING SEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT DEREF REF BEGINTR END ABORT CREATE
 
 %start statement
 
-%nonassoc DELETE CREATE INTO INSERTINTO
+%nonassoc DELETE CREATE INSERTINTO
 %left COMMA
 %right EXISTS FOR_ALL
 %left GROUP_AS AS
@@ -95,11 +95,8 @@ query	    : NAME { char *s = $1; $$ = new NameNode(s); delete s; }
 	    | query ORDER_BY query { $$ = new NonAlgOpNode($1,$3,NonAlgOpNode::orderBy); }
 	    | query EXISTS query { $$ = new NonAlgOpNode($1,$3,NonAlgOpNode::exists); }
 	    | query FOR_ALL query { $$ = new NonAlgOpNode($1,$3,NonAlgOpNode::forAll); }
-	    | CREATE NAME LEFTPAR query RIGHTPAR { $$ = new CreateNode($2,$4); }
-	    | CREATE NAME  { $$ = new CreateNode($2); }
 	    | CREATE query { $$ = new CreateNode($2); }
 	    | query INSERTINTO query { $$ = new AlgOpNode($3,$1,AlgOpNode::insert); }
-	    | INSERT query INTO query { $$ = new AlgOpNode($2, $4, AlgOpNode::insert);}
 	    | DELETE query  { $$ = new UnOpNode($2,UnOpNode::deleteOp); }
 	    | query ASSIGN query { $$ = new NonAlgOpNode($1,$3,NonAlgOpNode::assign); }
 	    ;
