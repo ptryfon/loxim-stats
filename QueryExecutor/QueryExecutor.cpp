@@ -133,8 +133,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, QueryResult **result) {
 	int errcode;
 	*ec << "[QE] executeRecQuery()";
 	
-	
-	/*if (this->evalStopped()) {
+	if (this->evalStopped()) {
 		*ec << "[QE] query evaluating stopped by Server, aborting transaction ";
 		errcode = tr->abort();
 		tr = NULL;
@@ -144,8 +143,12 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, QueryResult **result) {
 			return errcode;
 		}
 		*ec << "[QE] Transaction aborted succesfully";
-		return 0;
-	}*/
+		*ec << (ErrQExecutor | EQEUnexpectedErr);
+		return ErrQExecutor | EQEUnexpectedErr;
+	}
+	else {
+		*ec << "[QE] query evaluating NOT stopped by Server (RECURSIVE CHECK) ";
+	}
 	
 	if (tree != NULL) {
 		int nodeType = tree->type();
@@ -364,6 +367,24 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, QueryResult **result) {
 					}
 				}//switch
 				while (not (partial_result->isEmpty())) {
+				
+					if (this->evalStopped()) {
+						*ec << "[QE] query evaluating stopped by Server, aborting transaction ";
+						errcode = tr->abort();
+						tr = NULL;
+						*result = new QueryNothingResult();
+						if (errcode != 0) {
+							*ec << "[QE] error in transaction->abort()";
+							return errcode;
+						}
+						*ec << "[QE] Transaction aborted succesfully";
+						*ec << (ErrQExecutor | EQEUnexpectedErr);
+						return ErrQExecutor | EQEUnexpectedErr;
+					}
+					else {
+						*ec << "[QE] query evaluating NOT stopped by Server (LOOP CHECK) ";
+					}
+					
 					QueryResult *currentResult;
 					errcode = partial_result->getResult(currentResult);
 					if (errcode != 0) return errcode;
