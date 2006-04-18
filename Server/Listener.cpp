@@ -16,7 +16,10 @@
 
 Server *srvs[MAX_CLIENTS];
 pthread_t pthreads[MAX_CLIENTS];
+pthread_t pulseThreads[MAX_CLIENTS];
 int threads_count;
+int running_threads_count;
+int pulseThread_index;
 Listener *ls;
 jmp_buf j;
 
@@ -108,6 +111,15 @@ int getMyIndex(int pt_id, ErrorConsole *ec) {
 	}
 	i++;
     }
+    i=0;
+    while (i<pulseThread_index) {
+    	//lCons->printf("INDEX: %d, Value %d, my pt_id %d\n", i, (int)(pthreads[i]), pt_id );
+	if (((int)(pulseThreads[i]))==pt_id) {
+	    *ec << "[Listener.getMyIndex]-->Found index (pulseChecker thread)";
+	    return MAX_CLIENTS+i;
+	}
+	i++;
+    }
     *ec << "[Listener.getMyIndex]--> ERROR: missing entry in ptreads for this thread!";
     return -1;    
 }
@@ -152,7 +164,13 @@ void sigHandler(int sig) {
 	    ec.printf("[Listener-sigHandler-Thread%d]-->index not found \n", (int)pself); //TODO args!
 	    exitPoint();
 	}
-	srvs[status]->SExit(0);	
+	if (status>MAX_CLIENTS-1) {
+	    pthread_mutex_unlock(&mut);
+	    ec.printf("[Listener-sigHandler-Thread%d]-->I am a pulsechecker thread\n", (int)pself);
+	    exitPoint();
+	}
+	else
+	    srvs[status]->SExit(0);	
 	pthread_mutex_unlock(&mut);
 	
 	ec.printf("[Listener-sigHandler-Thread%d]--> Exiting \n", (int)pself); 
@@ -215,6 +233,8 @@ int Listener::Start(int port) {
 	
 	pthread_master_id=pthread_self();
 	threads_count=0;
+	running_threads_count=0;
+	pulseThread_index=0;
 	if ((errorCode=CreateSocket(port, &sock))!=0) {
 	    lCons->printf("[Listener.Start]--> Error in Create Socket: %d\n", errorCode);
 	    return errorCode;
@@ -253,10 +273,11 @@ int Listener::Start(int port) {
 	    sigprocmask(SIG_BLOCK, &lBlock_cc, NULL);
 	    pthread_mutex_lock(&mut);
 	    thread_sockets[threads_count]=newSock;
+	    int nr=threads_count;
 	    pthread_mutex_unlock(&mut);    
 	
 	    if ((errorCode=pthread_create(&pthreads[threads_count], NULL, createServ, &thread_sockets[threads_count]))!=0) {
-		lCons->printf("[Listener.Start]--> THREAD creation FAILED. Failed thread number=|%d|\n", threads_count);
+		lCons->printf("[Listener.Start]--> THREAD creation FAILED. Failed thread number=|%d|\n", nr);
 		lCons->printf("[Listener.Start]--> PTHREAD_CREATE FAILED with %s\n", strerror(errorCode)); 
 		for (i=0;i<threads_count;i++) {
 		    if ((errorCode=pthread_join(pthreads[i], (void **)&status))!=0) { //STATUS !!
@@ -274,7 +295,10 @@ int Listener::Start(int port) {
 	    }
 	    else {
 		lCons->printf("[Listener.Start]--> THREAD creation SUCCESSFUL -> thread nr. |%d|\n", i);
+		pthread_mutex_lock(&mut);
 		threads_count++;
+		running_threads_count++;
+		pthread_mutex_unlock(&mut);
 	    }
 
 	    *lCons << "[Listener.Start]--> THREAD handled";

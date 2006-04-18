@@ -12,10 +12,22 @@
 #include "../QueryExecutor/QueryResult.h"
 using namespace QExecutor;
 
+extern pthread_mutex_t mut;
 extern pthread_t pthread_master_id;
 extern void sigHandler(int arg);
+extern int threads_count;
+extern int running_threads_count;
+extern int pulseThread_index;
+extern pthread_t pthreads[];
+extern pthread_t pulseThreads[];
 
 //namespace Server {
+	enum SERVER_OPERATION_STATUS {
+	    SRV_DEFAULT,
+	    SRV_PROCESSING_QUERY,
+	    SRV_INITIALIZING
+	};
+
 	class Server
 	{
 	public:
@@ -23,30 +35,38 @@ extern void sigHandler(int arg);
 		virtual ~Server();
 		
 		int Run();
-	// Made public for testing
 		int Send(char* buf, int buf_size);
 		int Serialize(QueryResult *qr, char **buffer, char **bufferStart);
+		int Receive(char** buffer, int* receiveDataSize);
+		void Test();
+		
+		QueryExecutor* getQEx();		
+		int getSocket();
+		int getFdContact();
+		int pulseCheckerNotify();
 		//static void sigHandler(int sig);
 			
+		SERVER_OPERATION_STATUS srvStatus;
+		
 		int SExit(int code);
 		int SerializeRec(QueryResult *qr);		
 		double htonDouble(double in);
 	private:
 		char *bigBuf;
 		int Sock;
+		int fdContact;
 		char *messgBuff;
 		char *serialBuf;
 		char *serialBufBegin;
 		char *serialBufEnd;
 		int serialBufSize;
 		ErrorConsole *ec;
+		pthread_t pulseChecker_id;
 
 		int sendError(int errNo);
 		QueryExecutor *qEx;
 		QueryParser *qPa;
 		
-	//TCP methods
-		int Receive(char** buffer, int* receiveDataSize);
 		int Disconnect();
 	};
 //}

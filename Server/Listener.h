@@ -33,6 +33,7 @@ using namespace Config;
 		int Start(int port);
 	// Made public for testing	
 		int CreateSocket(int port, int* created_socket);
+		static int CreateSocketStatic(int port, int* created_socket);
 		int Lock(void);
 		int Unlock(void);
 
