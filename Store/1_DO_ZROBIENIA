@@ -1,3 +1,5 @@
+1. Stworzenie lokalnych obiektów, widocznych tylko w jednej
+sesji u¿ytkownika, nie zapisywanych na dysk.
 
 DBDataVaule : Serializable
 
