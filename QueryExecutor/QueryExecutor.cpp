@@ -158,8 +158,8 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, QueryResult **result) {
 		case TreeNode::TNNAME: {
 			*ec << "[QE] Type: TNNAME";
 			string name = tree->getName();
-			//int sectionNumber = ((NameNode *) tree)->getBindSect();
-			errcode = stack.bindName(name, *result);
+			int sectionNumber = ((NameNode *) tree)->getBindSect();
+			errcode = stack.bindName(name, sectionNumber, *result);
 			if (errcode != 0) return errcode;
 			if (((*result)->size()) == 0) {
 				vector<LogicalID*>* vec;
@@ -689,10 +689,20 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 					res = new QueryStructResult();
 					int tmp_vec_size = tmp_vec->size();
 					for (int i = 0; i < tmp_vec_size; i++) {
-						QueryResult *currIDRes;
 						LogicalID *currID = tmp_vec->at(i);
-						currIDRes = new QueryReferenceResult(currID);
-						res->addResult(currIDRes);
+						ObjectPointer *currOptr;
+						errcode = tr->getObjectPointer(currID, Store::Read, currOptr);
+						if (errcode != 0) {
+							*ec << "[QE] Error in getObjectPointer";
+							tr = NULL;
+							return errcode;
+						}
+						string currName = currOptr->getName();
+						QueryResult *currIDRes = new QueryReferenceResult(currID);
+						QueryResult *currInside;
+						this->derefQuery(currIDRes, currInside);
+						QueryResult *currBinder = new QueryBinderResult(currName, currInside);
+						res->addResult(currBinder);
 					}
 					break;
 				}
@@ -716,11 +726,19 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 			return ErrQExecutor | EOtherResExp;
 		}
 	}
-	if (res->isSingleValue()) {
-		QueryResult *single;
-		errcode = res->getSingleValue(single);
-		if (errcode != 0) return errcode;
-		res = single;
+	QueryResult *tmp_res = res;
+	int tmp_resType = tmp_res->type();
+	if (tmp_resType == QueryResult::QBAG) {
+		if (tmp_res->size() == 1) {
+			errcode = ((QueryBagResult *) tmp_res)->at(0, res);
+			if (errcode != 0) return errcode;
+		}
+	}
+	else if (tmp_resType == QueryResult::QSEQUENCE) {
+		if (tmp_res->size() == 1) {
+			errcode = ((QuerySequenceResult *) tmp_res)->at(0, res);
+			if (errcode != 0) return errcode;
+		}
 	}
 	return 0;
 }
@@ -1607,43 +1625,41 @@ int QueryExecutor::combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryRe
 				return errcode;
 			}
 			*ec << "[QE] combine() operator <assign>: getObjectPointer on left argument done";
-			QueryResult *new_value;
-			int rightResultType = rRes->type();
-			if (rightResultType == QueryResult::QBAG) {
-				if (rRes->size() == 1) {
-					errcode = ((QueryBagResult *) rRes)->at(0, new_value);
-					if (errcode != 0) return errcode;
-				}
-				else {
-					*ec << "[QE] combine() operator <assign> right argument is a collection";
-					QueryResult *sth = new QueryNothingResult();
-					partial->addResult(sth);
-					*ec << (ErrQExecutor | EOtherResExp);
-					return ErrQExecutor | EOtherResExp;
-				}
-			}
-			else if (rightResultType == QueryResult::QSEQUENCE) {
-				if (rRes->size() == 1) {
-					errcode = ((QuerySequenceResult *) rRes)->at(0, new_value);
-					if (errcode != 0) return errcode;
-				}
-				else {
-					*ec << "[QE] combine() operator <assign> right argument is a collection";
-					QueryResult *sth = new QueryNothingResult();
-					partial->addResult(sth);
-					*ec << (ErrQExecutor | EOtherResExp);
-					return ErrQExecutor | EOtherResExp;
-				}
-			}
-			else new_value = rRes;
 			DBDataValue *dbValue = new DBDataValue();
-			rightResultType = new_value->type();
-			switch (rightResultType) {
+			QueryResult *derefed;
+			errcode = this->derefQuery(rRes, derefed);
+			if (errcode != 0) return errcode;
+			int derefed_type = derefed->type();
+			switch (derefed_type) {
+				case QueryResult::QINT: {
+					int intValue = ((QueryIntResult *) derefed)->getValue();
+					dbValue->setInt(intValue);
+					*ec << "[QE] < query := ('integer'); > operation";
+					break;
+				}
+				case QueryResult::QDOUBLE: {
+					double doubleValue = ((QueryDoubleResult *) derefed)->getValue();
+					dbValue->setDouble(doubleValue);
+					*ec << "[QE] < query := ('double'); > operation";
+					break;
+				}
+				case QueryResult::QSTRING: {
+					string stringValue = ((QueryStringResult *) derefed)->getValue();
+					dbValue->setString(stringValue);
+					*ec << "[QE] < query := ('string'); > operation";
+					break;
+				}
+				case QueryResult::QREFERENCE: {
+					LogicalID* refValue = ((QueryReferenceResult *) derefed)->getValue();
+					dbValue->setPointer(refValue);
+					*ec << "[QE] < query := ('reference'); > operation";
+					break;
+				}
 				case QueryResult::QSTRUCT: {
 					vector<LogicalID*> vectorValue;
-					for (unsigned int i=0; i < (new_value->size()); i++) {
+					for (unsigned int i=0; i < (derefed->size()); i++) {
 						QueryResult *tmp_res;
-						errcode = ((QueryStructResult *) new_value)->at(i, tmp_res);
+						errcode = ((QueryStructResult *) derefed)->at(i, tmp_res);
 						if (errcode != 0) return errcode;
 						ObjectPointer *optr_tmp;
 						errcode = this->objectFromBinder(tmp_res, optr_tmp);
@@ -1652,57 +1668,26 @@ int QueryExecutor::combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryRe
 						vectorValue.push_back(lid_tmp);
 					}
 					dbValue->setVector(&vectorValue);
+					*ec << "[QE] < query := ('struct'); > operation";
 					break;
 				}
 				case QueryResult::QBINDER: {
 					vector<LogicalID*> vectorValue;
 					ObjectPointer *optr_tmp;
-					errcode = this->objectFromBinder(new_value, optr_tmp);
+					errcode = this->objectFromBinder(derefed, optr_tmp);
 					if (errcode != 0) return errcode;
 					LogicalID *lid_tmp = optr_tmp->getLogicalID();
 					vectorValue.push_back(lid_tmp);
 					dbValue->setVector(&vectorValue);
+					*ec << "[QE] < query := ('binder'); > operation";
 					break;
 				}
 				default: {
-					QueryResult *derefed;
-					errcode = this->derefQuery(new_value, derefed);
-					if (errcode != 0) return errcode;
-					int derefed_type = derefed->type();
-					switch (derefed_type) {
-						case QueryResult::QINT: {
-							int intValue = ((QueryIntResult *) derefed)->getValue();
-							dbValue->setInt(intValue);
-							*ec << "[QE] < query := ('integer'); > operation";
-							break;
-						}
-						case QueryResult::QDOUBLE: {
-							double doubleValue = ((QueryDoubleResult *) derefed)->getValue();
-							dbValue->setDouble(doubleValue);
-							*ec << "[QE] < query := ('double'); > operation";
-							break;
-						}
-						case QueryResult::QSTRING: {
-							string stringValue = ((QueryStringResult *) derefed)->getValue();
-							dbValue->setString(stringValue);
-							*ec << "[QE] < query := ('string'); > operation";
-							break;
-						}
-						case QueryResult::QREFERENCE: {
-							LogicalID* refValue = ((QueryReferenceResult *) derefed)->getValue();
-							dbValue->setPointer(refValue);
-							*ec << "[QE] < query := ('reference'); > operation";
-							break;
-						}
-						default: {
-							*ec << "[QE] combine() operator <assign>: error, bad type right argument evaluated by executeRecQuery";
-							QueryResult *sth = new QueryNothingResult();
-							partial->addResult(sth);
-							*ec << (ErrQExecutor | EOtherResExp);
-							return ErrQExecutor | EOtherResExp;
-						}
-					}
-					break;
+					*ec << "[QE] combine() operator <assign>: error, bad type right argument evaluated by executeRecQuery";
+					QueryResult *sth = new QueryNothingResult();
+					partial->addResult(sth);
+					*ec << (ErrQExecutor | EOtherResExp);
+					return ErrQExecutor | EOtherResExp;
 				}
 			}
 			DataValue* value = dbValue;
@@ -2055,7 +2040,7 @@ int EnvironmentStack::top(QueryBagResult *&r) {
 bool EnvironmentStack::empty() { return es.empty(); }
 int EnvironmentStack::size() { return es.size(); }
 
-int EnvironmentStack::bindName(string name, QueryResult *&r) {
+int EnvironmentStack::bindName(string name, int sectionNo, QueryResult *&r) {
 	int errcode;
 	*ec << "[QE] Name binding on ES";
 	unsigned int number = (es.size());
@@ -2069,7 +2054,7 @@ int EnvironmentStack::bindName(string name, QueryResult *&r) {
 	for (unsigned int i = number; i >= 1; i--) {
 		section = (es.at(i - 1));
 		sectionSize = (section->size());
-		ec->printf("[QE] bindName: ES section %u got %u elements\n", (i - 1), sectionSize);
+		ec->printf("[QE] bindName: ES section %u got %u elements\n", i, sectionSize);
 		for (unsigned int j = 0; j < sectionSize; j++) {
 			errcode = (section->at(j,sth));
 			if (errcode != 0) return errcode;
@@ -2084,9 +2069,11 @@ int EnvironmentStack::bindName(string name, QueryResult *&r) {
 			}
 		}
 		if (found_one) {
+			ec->printf("[QE] bindName: bind at %d section, Parser said it should be binded at %d\n", i, sectionNo);
 			return 0;
 		}
 	}
+	ec->printf("[QE] bindName: name not binded on ES, Parser said it should be binded at %d\n", sectionNo);
 	return 0;
 }
 

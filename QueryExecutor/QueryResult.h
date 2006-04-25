@@ -59,8 +59,6 @@ public:
 	virtual bool isBool()=0;
 	virtual bool isNothing()=0;
 	virtual int getBoolValue(bool &b)=0;
-	virtual bool isSingleValue()=0;
-	virtual int getSingleValue(QueryResult *&r)=0;
 	virtual bool isReferenceValue()=0;
 	virtual int getReferenceValue(QueryResult *&r)=0;
 	virtual int comma(QueryResult *arg, QueryResult *&score)=0;
@@ -102,8 +100,6 @@ public:
 	bool isBool();
 	bool isNothing();
 	int getBoolValue(bool &b);
-	bool isSingleValue();
-	int getSingleValue(QueryResult *&r);
 	bool isReferenceValue();
 	int getReferenceValue(QueryResult *&r);
 	int comma(QueryResult *arg, QueryResult *&score);
@@ -144,8 +140,6 @@ public:
 	bool isBool();
 	bool isNothing();
 	int getBoolValue(bool &b);
-	bool isSingleValue();
-	int getSingleValue(QueryResult *&r);
 	bool isReferenceValue();
 	int getReferenceValue(QueryResult *&r);
 	int comma(QueryResult *arg, QueryResult *&score);
@@ -186,8 +180,6 @@ public:
 	bool isBool();
 	bool isNothing();
 	int getBoolValue(bool &b);
-	bool isSingleValue();
-	int getSingleValue(QueryResult *&r);
 	bool isReferenceValue();
 	int getReferenceValue(QueryResult *&r);
 	int comma(QueryResult *arg, QueryResult *&score);
@@ -222,8 +214,6 @@ public:
 	bool isBool();
 	bool isNothing();
 	int getBoolValue(bool &b);
-	bool isSingleValue();
-	int getSingleValue(QueryResult *&r);
 	bool isReferenceValue();
 	int getReferenceValue(QueryResult *&r);
 	int comma(QueryResult *arg, QueryResult *&score);
@@ -255,8 +245,6 @@ public:
 	bool isBool();
 	bool isNothing();
 	int getBoolValue(bool &b);
-	bool isSingleValue();
-	int getSingleValue(QueryResult *&r);
 	bool isReferenceValue();
 	int getReferenceValue(QueryResult *&r);
 	int comma(QueryResult *arg, QueryResult *&score);
@@ -293,8 +281,6 @@ public:
 	bool isBool();
 	bool isNothing();
 	int getBoolValue(bool &b);
-	bool isSingleValue();
-	int getSingleValue(QueryResult *&r);
 	bool isReferenceValue();
 	int getReferenceValue(QueryResult *&r);
 	int comma(QueryResult *arg, QueryResult *&score);
@@ -331,8 +317,6 @@ public:
 	bool isBool();
 	bool isNothing();
 	int getBoolValue(bool &b);
-	bool isSingleValue();
-	int getSingleValue(QueryResult *&r);
 	bool isReferenceValue();
 	int getReferenceValue(QueryResult *&r);
 	int comma(QueryResult *arg, QueryResult *&score);
@@ -366,8 +350,6 @@ public:
 	bool isBool();
 	bool isNothing();
 	int getBoolValue(bool &b);
-	bool isSingleValue();
-	int getSingleValue(QueryResult *&r);
 	bool isReferenceValue();
 	int getReferenceValue(QueryResult *&r);
 	int comma(QueryResult *arg, QueryResult *&score);
@@ -402,14 +384,12 @@ public:
 	bool isBool();
 	bool isNothing();
 	int getBoolValue(bool &b);
-	bool isSingleValue();
-	int getSingleValue(QueryResult *&r);
 	bool isReferenceValue();
 	int getReferenceValue(QueryResult *&r);
 	int comma(QueryResult *arg, QueryResult *&score);
 };
 
-/* You get this, as a result of non-select query like create, insert etc. */
+/* You get this, as a result of non-select query like delete or if anb error accurs */
 class QueryNothingResult : public QueryResult
 {
 public:
@@ -430,8 +410,6 @@ public:
 	bool isBool();
 	bool isNothing();
 	int getBoolValue(bool &b);
-	bool isSingleValue();
-	int getSingleValue(QueryResult *&r);
 	bool isReferenceValue();
 	int getReferenceValue(QueryResult *&r);
 	int comma(QueryResult *arg, QueryResult *&score);

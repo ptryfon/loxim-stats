@@ -36,7 +36,7 @@ namespace QExecutor
 		int top(QueryBagResult *&r);
 		bool empty();
 		int size();
-		int bindName(string name, QueryResult *&r);
+		int bindName(string name, int sectionNo, QueryResult *&r);
 		void deleteAll();
 	};
 
