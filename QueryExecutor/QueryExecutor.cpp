@@ -1402,7 +1402,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 	else if (op == AlgOpNode::insert) {
 		*ec << "[QE] INSERT operation";
 		QueryResult *lBag = new QueryBagResult();
-		lBag->addResult(rArg);
+		lBag->addResult(lArg);
 		if (lBag->size() != 1) {
 			*ec << "[QE] ERROR! Right argument of insert operation must have size 1";
 			final = new QueryNothingResult();
@@ -1445,7 +1445,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 		*ec << "[QE] Vector taken";
 		ec->printf("[QE] Vec.size = %d\n", insVector->size());
 		QueryResult *rBag = new QueryBagResult();
-		rBag->addResult(lArg);
+		rBag->addResult(rArg);
 		for (unsigned int i = 0; i < rBag->size(); i++) {
 			ec->printf("[QE] trying to INSERT %d element of rightArg into leftArg\n", i);
 			QueryResult *toInsert;
