@@ -17,7 +17,8 @@
 Server *srvs[MAX_CLIENTS];
 pthread_t pthreads[MAX_CLIENTS];
 pthread_t pulseThreads[MAX_CLIENTS];
-int threads_count;
+int takenFields[MAX_CLIENTS];
+int max_thread_index;
 int running_threads_count;
 int pulseThread_index;
 Listener *ls;
@@ -29,7 +30,12 @@ Listener::Listener()
 {
     lCons = new ErrorConsole("Server");
     memset(thread_sockets, '\0', MAX_CLIENTS);
-    threads_count=0;
+    memset(takenFields, 0, MAX_CLIENTS);
+    memset(pulseThreads, 0, MAX_CLIENTS);
+    memset(pthreads, 0, MAX_CLIENTS);
+    max_thread_index=-1;
+    running_threads_count=0;
+    pulseThread_index=0;
     ls=this;
 }
 
@@ -103,7 +109,7 @@ int getMyIndex(int pt_id, ErrorConsole *ec) {
     int i;
     i=0;
     
-    while (i<threads_count) {
+    while (i<max_thread_index+1) {
     	//lCons->printf("INDEX: %d, Value %d, my pt_id %d\n", i, (int)(pthreads[i]), pt_id );
 	if (((int)(pthreads[i]))==pt_id) {
 	    *ec << "[Listener.getMyIndex]-->Found index";
@@ -112,7 +118,7 @@ int getMyIndex(int pt_id, ErrorConsole *ec) {
 	i++;
     }
     i=0;
-    while (i<pulseThread_index) {
+    while (i<max_thread_index+1) {
     	//lCons->printf("INDEX: %d, Value %d, my pt_id %d\n", i, (int)(pthreads[i]), pt_id );
 	if (((int)(pulseThreads[i]))==pt_id) {
 	    *ec << "[Listener.getMyIndex]-->Found index (pulseChecker thread)";
@@ -124,6 +130,38 @@ int getMyIndex(int pt_id, ErrorConsole *ec) {
     return -1;    
 }
 
+int getPTindex(pthread_t pt_id) {
+    int i=0;
+    while (i<max_thread_index+1) {
+	if ((int)pthreads[i] == (int)pt_id)
+	    return i;
+    }
+    return -1;    
+}
+
+int emptyPocket() {
+    pthread_t pself;
+    pself = pthread_self();
+    int res;
+    res=getPTindex(pself);
+    if (res==-1)
+	return -1;
+    takenFields[res]=0;
+    if (res==max_thread_index)
+	max_thread_index--;
+    return res;	
+}
+
+int pickPocket() {
+    int i=0;
+    for (i=0;i<max_thread_index+1;i++) {
+	if (takenFields[i]==0) {
+	    takenFields[i]=1;
+	    return i;
+	}
+    }
+    return max_thread_index+1;
+}
 
 void sigHandler(int sig) {
     pthread_t pself; 
@@ -133,10 +171,11 @@ void sigHandler(int sig) {
     ErrorConsole ec("Server");
     
     pself=pthread_self();
-    ec.printf("[Listener-sigHandler]--> my pthread_id is %d and ", (int)pself);
+    ec.printf("[Listener-sigHandler]--> my pthread_id is %d and \n", (int)pself);
     if (pself==pthread_master_id) {
 	ec << ".. I am the Listener thread";
-	for (i=0;i<threads_count;i++) {
+	for (i=0;i<max_thread_index+1;i++) {
+		    ec.printf("[Listenr-sigHandler-Master]--> Joining thread at %d (max %d)\n",  i, max_thread_index);
 		    if ((errorCode=pthread_join(pthreads[i], (void **)&status))!=0) { //STATUS !!
 			ec.printf("[Listener-sigHandler-Master]--> ERROR - failed to join thread: %s\n", strerror(errorCode));
 			exit(errorCode);
@@ -154,7 +193,7 @@ void sigHandler(int sig) {
 	return; 
     }
     else {
-	ec << ".. I am a Server thread";
+	ec << ".. I am a Server/PulseChecker thread";
 	// TODO clean mess
 	pthread_mutex_lock(&mut);
 	
@@ -171,6 +210,8 @@ void sigHandler(int sig) {
 	}
 	else
 	    srvs[status]->SExit(0);	
+	int ecNo=emptyPocket();
+	ec.printf("[Listener-sighandler-Thread%d]--> ... %d\n", (int)pself, ecNo);
 	pthread_mutex_unlock(&mut);
 	
 	ec.printf("[Listener-sigHandler-Thread%d]--> Exiting \n", (int)pself); 
@@ -207,7 +248,11 @@ void *createServ(void *arg) {
   
     ec << "[Listener-createServ]--> Executing server code now..";
     res=srv->Run();
-    ec.printf("[Listener-createServ]--> Server returned |%d|, exiting \n", res); 
+    ec.printf("[Listener-createServ]--> Server returned |%d|, exiting \n", res);
+    pthread_mutex_lock(&mut);
+    int res2=emptyPocket();
+    ec.printf("[Listener-createServ]--> Server cleared at index %d \n", res2);
+    pthread_mutex_unlock(&mut); 
     pthread_exit((void *)res);
 }
 
@@ -232,7 +277,7 @@ int Listener::Start(int port) {
 	sigaddset(&lBlock_cc, SIGINT);	
 	
 	pthread_master_id=pthread_self();
-	threads_count=0;
+	max_thread_index=-1;
 	running_threads_count=0;
 	pulseThread_index=0;
 	if ((errorCode=CreateSocket(port, &sock))!=0) {
@@ -266,20 +311,21 @@ int Listener::Start(int port) {
 	} 
 	
 	
-	while ((isEnd==0) && (threads_count<MAX_CLIENTS)) {
+	while ((isEnd==0) && (max_thread_index<MAX_CLIENTS)) {
 	
 	    ListenOnSocket(sock, &newSock);
-	    lCons->printf("[Listener.Start]--> Got connection! Connection number |%d| \n", threads_count+1);
+	    lCons->printf("[Listener.Start]--> Got connection!\n");
 	    sigprocmask(SIG_BLOCK, &lBlock_cc, NULL);
 	    pthread_mutex_lock(&mut);
-	    thread_sockets[threads_count]=newSock;
-	    int nr=threads_count;
+	    int ff_index=pickPocket();
+	    lCons->printf("[Listener.Start]--> Max=%d, Current=%d\n", max_thread_index, ff_index);
+	    thread_sockets[ff_index]=newSock;
 	    pthread_mutex_unlock(&mut);    
 	
-	    if ((errorCode=pthread_create(&pthreads[threads_count], NULL, createServ, &thread_sockets[threads_count]))!=0) {
-		lCons->printf("[Listener.Start]--> THREAD creation FAILED. Failed thread number=|%d|\n", nr);
+	    if ((errorCode=pthread_create(&pthreads[ff_index], NULL, createServ, &thread_sockets[ff_index]))!=0) {
+		lCons->printf("[Listener.Start]--> THREAD creation FAILED. Failed thread number=|%d|\n", ff_index);
 		lCons->printf("[Listener.Start]--> PTHREAD_CREATE FAILED with %s\n", strerror(errorCode)); 
-		for (i=0;i<threads_count;i++) {
+		for (i=0;i<max_thread_index+1;i++) {
 		    if ((errorCode=pthread_join(pthreads[i], (void **)&status))!=0) { //STATUS !!
 			lCons->printf("[Listener.Start]--> ERROR - failed to join thread: %s\n", strerror(errorCode));
 			exit(errorCode);
@@ -296,7 +342,8 @@ int Listener::Start(int port) {
 	    else {
 		lCons->printf("[Listener.Start]--> THREAD creation SUCCESSFUL -> thread nr. |%d|\n", i);
 		pthread_mutex_lock(&mut);
-		threads_count++;
+		if (ff_index>max_thread_index)
+		    max_thread_index=ff_index;
 		running_threads_count++;
 		pthread_mutex_unlock(&mut);
 	    }
@@ -306,8 +353,8 @@ int Listener::Start(int port) {
 	}
 	//TODO - join some, create some new - MANAGE THREADS
 	
-	for (i=0;i<threads_count;i++) {
-	    if ((errorCode=pthread_join(pthreads[threads_count], (void **)&status))!=0) { //STATUS !!
+	for (i=0;i<max_thread_index+1;i++) {
+	    if ((errorCode=pthread_join(pthreads[i], (void **)&status))!=0) { //STATUS !!
 		lCons->printf("[Listener.Start]--> ERROR - failed to join thread: %s\n", strerror(errorCode));
 		exit(errorCode);
 	    }   

@@ -12,10 +12,12 @@
 #include "../QueryExecutor/QueryResult.h"
 using namespace QExecutor;
 
+extern int getPTindex(pthread_t p);
+extern int emptyPocket();
 extern pthread_mutex_t mut;
 extern pthread_t pthread_master_id;
 extern void sigHandler(int arg);
-extern int threads_count;
+extern int max_thread_index;
 extern int running_threads_count;
 extern int pulseThread_index;
 extern pthread_t pthreads[];
@@ -39,6 +41,7 @@ extern pthread_t pulseThreads[];
 		int Serialize(QueryResult *qr, char **buffer, char **bufferStart);
 		int Receive(char** buffer, int* receiveDataSize);
 		void Test();
+		void cancelPC(pthread_t p);
 		
 		QueryExecutor* getQEx();		
 		int getSocket();

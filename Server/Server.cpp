@@ -77,6 +77,27 @@ void Server::Test() {
     return;
 }
 
+void Server::cancelPC(pthread_t pulseId) {
+    ErrorConsole ec("Server_cancelPC");
+    ec.printf("Cancelling PC..");	
+    pthread_mutex_lock(&mut);
+    if ((int)pulseId == 0) {
+	ec.printf("Bad id!");
+	pthread_mutex_unlock(&mut);
+	return;
+    }
+    int res;
+    res = pthread_cancel(pulseId);
+    if (res!=0)
+	ec.printf("[Server.cancelPC]--> pulseChecker cancellation failed!! (%d)\n", res);	
+    else {	
+	running_threads_count--;
+    }
+    pthread_mutex_unlock(&mut);
+    ec.printf("[Server.cancelPC]--> pulseChecker cancelled..\n");	
+    return;
+}
+
 int Server::getSocket() {
 	return Sock;
 }
@@ -93,7 +114,7 @@ void *clientPulseCheck(void *arg) {
     int fdCli;
     int fdSer;
     int maxFd;
-    int size=MAX_MESSG;
+    //int size=MAX_MESSG;
     char ghostBuff[2000];
     memset(ghostBuff, 0, 2000);
     ErrorConsole ec("Server_PulseCheck");
@@ -567,10 +588,7 @@ while (!signalReceived) {
 #ifdef PULSE_CHECKER_ACTIVE
 	//Create PulseChecker thread
 	pthread_mutex_lock(&mut);
-	if (pulseChecker_id==0) {
-	    pulseChecker_index=pulseThread_index;    
-	    pulseThread_index++;
-	}
+	pulseChecker_index=getPTindex(pthread_self()); //Taki sam index w pulseThreads jak serwer w pthreads    
 	res = pthread_create(&pulseThreads[pulseChecker_index], NULL, clientPulseCheck, this);
 	ec->printf("[Server.Run]--> Pulse-checker created with code %d \n", res);
 	if (res!=0) {
@@ -578,7 +596,7 @@ while (!signalReceived) {
 	    //ec->printf("[Server.Run]--> Server continues to run anyway, but performance could be lowered\n");
 	}
 	else {
-	    ec->printf("[Server.Run]--> Pulse-checker CREATED and running \n");
+	    ec->printf("[Server.Run]--> Pulse-checker CREATED and running at index %d \n", pulseChecker_index);
 	    pulseChecker_id=pulseThreads[pulseChecker_index];
 	    running_threads_count++;    
 	}
@@ -593,6 +611,7 @@ while (!signalReceived) {
 	    ncError=1;
 	    continue;
 	    *ec << "[SERVER]--> ends with ERROR";
+	    cancelPC(pulseChecker_id);
 	    return ErrServer+EExecute;
 	} 
 	
@@ -604,7 +623,9 @@ while (!signalReceived) {
 	ec->printf("[Server.Run]--> Got qResult=|%d| of size: qResult->size()=|%d| :\n",  (int)qResult, qResult->size());
 	
 	if (qResult == 0) {//TODO ERROR
-	 return 0;} 
+	    cancelPC(pulseChecker_id);
+	    return 0;
+	} 
 	
 	*ec << "[Server.Run]--> *****SERIALIZE starts*****";
 	
@@ -613,6 +634,7 @@ while (!signalReceived) {
 	    ec->printf("[Server.Run--> Serialize returned error code %d\n", res);
 	    sendError(res);
 	    *ec << "[SERVER]--> ends with ERROR";
+	    cancelPC(pulseChecker_id);
 	    return ErrServer+ESerialize;
 	}
 	
@@ -634,7 +656,7 @@ while (!signalReceived) {
     	*/
 	//select(0, NULL, NULL, NULL, 1000);
 	//sleep(2);
-	
+	/*
 	pthread_mutex_lock(&mut);
 	    res = pthread_cancel(pulseChecker_id);
 	    if (res!=0)
@@ -646,6 +668,8 @@ while (!signalReceived) {
 	ec->printf("[Server.Run]--> pulseChecker cancelled..\n");	
     	
 	//}
+	*/
+	cancelPC(pulseChecker_id);
 #endif
 	
 	
@@ -685,6 +709,9 @@ while (!signalReceived) {
 	
 	*ec << "[Server.Run]--> <><><>End<><><>"; 
 	
+	//pthread_mutex_lock(&mut);
+	//emptyPocket();
+	//pthread_mutex_unlock(&mut);
 	return 0;	
 }		
 
@@ -708,9 +735,7 @@ void sigHupPC(int sig) {
 }
 
 int Server::pulseCheckerNotify() {
-
 	return 0;
-
 }
 
 
