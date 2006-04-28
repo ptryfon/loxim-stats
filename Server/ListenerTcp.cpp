@@ -6,6 +6,7 @@
 #include <netdb.h> 
 #include <arpa/inet.h>
 #include <errno.h>
+#include <unistd.h>
 
 #include "../Errors/Errors.h"
 #include "Listener.h"

@@ -8,6 +8,7 @@
 #include <memory.h>
 #include <errno.h>
 #include "../Errors/Errors.h"
+#include "unistd.h"
 
 #include "../TCPProto/Tcp.h"
 #include "Connection.h"

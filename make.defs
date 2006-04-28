@@ -1,7 +1,7 @@
 AR=ar
 RANLIB=ranlib
 CC=gcc
-CXX=g++
+CXX=g++32
 # CXXFLAGS=-I./ -I./../ -Wall -fno-exceptions
 # wersja z wlaczonym debug info dla gdb
 CXXFLAGS=-I./ -I./../ -Wall -fno-exceptions -g
