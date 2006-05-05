@@ -1582,7 +1582,6 @@ int QueryBagResult::divideBag(QueryResult *&left, QueryResult *&right) {
 	div_t temp;
 	temp = div (bagSize,2);
 	unsigned int bagHalf = temp.quot;
-	ec->printf("[QE] divideBag(): bag size is: %d, divsion first size is: %d, second: %d\n", bagSize, bagHalf, (bagSize - bagHalf));
 	left = new QueryBagResult();
 	right = new QueryBagResult();
 	for (unsigned int i = 0; i < bagHalf; i++) {

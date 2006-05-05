@@ -1150,13 +1150,16 @@ int QueryExecutor::unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&
 					tr = NULL;
 					return errcode;
 				}
-				// tu jest problem :( z removeRoot
-				if ((errcode = tr->removeRoot(optr)) != 0) {
-					*ec << "[QE] Error in removeRoot.";
-					tr = NULL;
-					return errcode;
+				/********************************************************/
+				if (optr->isRoot()) {
+					if ((errcode = tr->removeRoot(optr)) != 0) {
+						*ec << "[QE] Error in removeRoot.";
+						tr = NULL;
+						return errcode;
+					}
+					*ec << "[QE] Root removed";
 				}
-				*ec << "[QE] Root removed";
+				/********************************************************/
 				if ((errcode = tr->deleteObject(optr)) != 0) {
 					*ec << "[QE] Error in deleteObject.";
 					tr = NULL;
@@ -1422,7 +1425,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 		QueryResult *lBag = new QueryBagResult();
 		lBag->addResult(lArg);
 		if (lBag->size() != 1) {
-			*ec << "[QE] ERROR! Right argument of insert operation must have size 1";
+			*ec << "[QE] ERROR! Left argument of insert operation must have size 1";
 			final = new QueryNothingResult();
 			*ec << (ErrQExecutor | ERefExpected);
 			return ErrQExecutor | ERefExpected;
@@ -1482,13 +1485,22 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 						return errcode;
 					}
 					ec->printf("[QE] getObjectPointer on %d element of rightArg done\n", i);
-					errcode = tr->removeRoot(optrIn);
-					if (errcode != 0) {
-						*ec << "[QE] insert operation - Error in removeRoot.";
-						tr = NULL;
-						return errcode;
+					/***************************************************/
+					if (optrIn->isRoot()) {
+						errcode = tr->removeRoot(optrIn);
+						if (errcode != 0) {
+							*ec << "[QE] insert operation - Error in removeRoot.";
+							tr = NULL;
+							return errcode;
+						}
+						*ec << "[QE] insert operation - Root removed";
 					}
-					*ec << "[QE] insert operation - Root removed";
+					else {
+						*ec << "[QE] ERROR in insert operation - right argument must be Root";
+						*ec << (ErrQExecutor | EQEUnexpectedErr);
+						return ErrQExecutor | EQEUnexpectedErr;
+					}
+					/***************************************************/
 					break;
 				}
 				case QueryResult::QBINDER: {
@@ -1519,10 +1531,115 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 			return errcode;
 		}
 		*ec << "[QE] INSERT operation Done";
-		final = new QueryBagResult();
-		final->addResult(lBag);
+		final = new QueryNothingResult();
 		return 0;
 	}
+	/***************************************************/
+	else if (op == AlgOpNode::assign) {
+		*ec << "[QE] ASSIGN operation";
+		QueryResult *lBag = new QueryBagResult();
+		lBag->addResult(lArg);
+		if (lBag->size() != 1) {
+			*ec << "[QE] ERROR! operator <assign> expects that left argument is single REFERENCE";
+			final = new QueryNothingResult();
+			*ec << (ErrQExecutor | ERefExpected);
+			return ErrQExecutor | ERefExpected;
+		}
+		errcode = ((QueryBagResult *) lBag)->at(0, lArg);
+		if (errcode != 0) return errcode;
+		int leftResultType = lArg->type();
+		if (leftResultType != QueryResult::QREFERENCE) {
+			*ec << "[QE] ERROR! operator <assign> expects that left argument is REFERENCE";
+			final = new QueryNothingResult();
+			*ec << (ErrQExecutor | ERefExpected);
+			return ErrQExecutor | ERefExpected;
+		}
+		LogicalID *old_lid = ((QueryReferenceResult *) lArg)->getValue();
+		ObjectPointer *old_optr;
+		errcode = tr->getObjectPointer (old_lid, Store::Write, old_optr);
+		if (errcode != 0) {
+			*ec << "[QE] operator <assign>: error in getObjectPointer()";
+			tr = NULL;
+			return errcode;
+		}
+		*ec << "[QE] operator <assign>: getObjectPointer on left argument done";
+		DBDataValue *dbValue = new DBDataValue();
+		QueryResult *derefed;
+		errcode = this->derefQuery(rArg, derefed);
+		if (errcode != 0) return errcode;
+		int derefed_type = derefed->type();
+		switch (derefed_type) {
+			case QueryResult::QINT: {
+				int intValue = ((QueryIntResult *) derefed)->getValue();
+				dbValue->setInt(intValue);
+				*ec << "[QE] < query := ('integer'); > operation";
+				break;
+			}
+			case QueryResult::QDOUBLE: {
+				double doubleValue = ((QueryDoubleResult *) derefed)->getValue();
+				dbValue->setDouble(doubleValue);
+				*ec << "[QE] < query := ('double'); > operation";
+				break;
+			}
+			case QueryResult::QSTRING: {
+				string stringValue = ((QueryStringResult *) derefed)->getValue();
+				dbValue->setString(stringValue);
+				*ec << "[QE] < query := ('string'); > operation";
+				break;
+			}
+			case QueryResult::QREFERENCE: {
+				LogicalID* refValue = ((QueryReferenceResult *) derefed)->getValue();
+				dbValue->setPointer(refValue);
+				*ec << "[QE] < query := ('reference'); > operation";
+				break;
+			}
+			case QueryResult::QSTRUCT: {
+				vector<LogicalID*> vectorValue;
+				for (unsigned int i=0; i < (derefed->size()); i++) {
+					QueryResult *tmp_res;
+					errcode = ((QueryStructResult *) derefed)->at(i, tmp_res);
+					if (errcode != 0) return errcode;
+					ObjectPointer *optr_tmp;
+					errcode = this->objectFromBinder(tmp_res, optr_tmp);
+					if (errcode != 0) return errcode;
+					LogicalID *lid_tmp = optr_tmp->getLogicalID();
+					vectorValue.push_back(lid_tmp);
+				}
+				dbValue->setVector(&vectorValue);
+				*ec << "[QE] < query := ('struct'); > operation";
+				break;
+			}
+			case QueryResult::QBINDER: {
+				vector<LogicalID*> vectorValue;
+				ObjectPointer *optr_tmp;
+				errcode = this->objectFromBinder(derefed, optr_tmp);
+				if (errcode != 0) return errcode;
+				LogicalID *lid_tmp = optr_tmp->getLogicalID();
+				vectorValue.push_back(lid_tmp);
+				dbValue->setVector(&vectorValue);
+				*ec << "[QE] < query := ('binder'); > operation";
+				break;
+			}
+			default: {
+				*ec << "[QE] operator <assign>: error, bad type right argument evaluated by executeRecQuery";
+				final = new QueryNothingResult();
+				*ec << (ErrQExecutor | EOtherResExp);
+				return ErrQExecutor | EOtherResExp;
+			}
+		}
+		DataValue* value = dbValue;
+		errcode = tr->modifyObject(old_optr, value);
+		if (errcode != 0) {
+			*ec << "[QE] operator <assign>: error in modifyObject()";
+			tr = NULL;
+			return errcode;
+		}
+		*ec << "[QE] operator <assign>: value of the object was changed";
+		*ec << "[QE] ASSIGN operation Done";
+		final = new QueryNothingResult();
+		return 0;
+	}
+	/***************************************************/
 	else { // algOperation type not known
 		*ec << "[QE] ERROR! Algebraic operation type not known";
 		final = new QueryNothingResult();
@@ -1606,6 +1723,9 @@ int QueryExecutor::combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryRe
 			}
 			break;
 		}
+		
+		/***************************************************/
+		/* DO USUNIECIA */
 		case NonAlgOpNode::assign: {
 			*ec << "[QE] combine(): NonAlgebraic operator <assign>";
 			int leftResultType = curr->type();
@@ -1702,6 +1822,8 @@ int QueryExecutor::combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryRe
 			partial->addResult(sth);
 			break;
 		}
+		/***************************************************/
+		
 		default: {
 			*ec << "[QE] combine(): unknown NonAlgebraic operator!";
 			*ec << (ErrQExecutor | EUnknownNode);
@@ -1782,11 +1904,16 @@ int QueryExecutor::merge(NonAlgOpNode::nonAlgOp op, QueryResult *partial, QueryR
 			final->addResult(tmp_bool_res);
 			break;
 		}
+		
+		/***************************************************/
+		/* DO USUNIECIA */
 		case NonAlgOpNode::assign: {
 			*ec << "[QE] merge(): NonAlgebraic operator <assign>";
 			final = partial;
 			break;
 		}
+		/***************************************************/
+		
 		default: {
 			*ec << "[QE] merge(): unknown NonAlgebraic operator!";
 			*ec << (ErrQExecutor | EUnknownNode);

@@ -98,5 +98,5 @@ query	    : NAME { char *s = $1; $$ = new NameNode(s); delete s; }
 	    | CREATE query { $$ = new CreateNode($2); }
 	    | query INSERTINTO query { $$ = new AlgOpNode($1,$3,AlgOpNode::insert); }
 	    | DELETE query  { $$ = new UnOpNode($2,UnOpNode::deleteOp); }
-	    | query ASSIGN query { $$ = new NonAlgOpNode($1,$3,NonAlgOpNode::assign); }
+	    | query ASSIGN query { $$ = new AlgOpNode($1,$3,AlgOpNode::assign); }
 	    ;

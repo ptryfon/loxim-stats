@@ -140,6 +140,7 @@ namespace Store
 		// Operators
 		virtual bool operator==(ObjectPointer& dv) {
 			return (this->getLogicalID() == dv.getLogicalID()); }
+		virtual bool isRoot() { return true; }
 		virtual ~ObjectPointer() {};
 	};
 
