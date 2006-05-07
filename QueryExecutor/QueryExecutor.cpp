@@ -1150,7 +1150,6 @@ int QueryExecutor::unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&
 					tr = NULL;
 					return errcode;
 				}
-				/********************************************************/
 				if (optr->isRoot()) {
 					if ((errcode = tr->removeRoot(optr)) != 0) {
 						*ec << "[QE] Error in removeRoot.";
@@ -1159,7 +1158,6 @@ int QueryExecutor::unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&
 					}
 					*ec << "[QE] Root removed";
 				}
-				/********************************************************/
 				if ((errcode = tr->deleteObject(optr)) != 0) {
 					*ec << "[QE] Error in deleteObject.";
 					tr = NULL;
@@ -1485,7 +1483,6 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 						return errcode;
 					}
 					ec->printf("[QE] getObjectPointer on %d element of rightArg done\n", i);
-					/***************************************************/
 					if (optrIn->isRoot()) {
 						errcode = tr->removeRoot(optrIn);
 						if (errcode != 0) {
@@ -1500,7 +1497,6 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 						*ec << (ErrQExecutor | EQEUnexpectedErr);
 						return ErrQExecutor | EQEUnexpectedErr;
 					}
-					/***************************************************/
 					break;
 				}
 				case QueryResult::QBINDER: {
@@ -1534,7 +1530,6 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 		final = new QueryNothingResult();
 		return 0;
 	}
-	/***************************************************/
 	else if (op == AlgOpNode::assign) {
 		*ec << "[QE] ASSIGN operation";
 		QueryResult *lBag = new QueryBagResult();
@@ -1639,7 +1634,6 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 		final = new QueryNothingResult();
 		return 0;
 	}
-	/***************************************************/
 	else { // algOperation type not known
 		*ec << "[QE] ERROR! Algebraic operation type not known";
 		final = new QueryNothingResult();
@@ -1685,9 +1679,7 @@ int QueryExecutor::combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryRe
 			QueryResult *derefR;
 			errcode = this->derefQuery(rRes,derefR);
 			if (errcode != 0) return errcode;
-			QueryResult *currRow = new QueryStructResult();
-			currRow->addResult(curr);
-			currRow->addResult(derefR);
+			QueryResult *currRow = new QueryStructResult(curr, derefR);
 			partial->addResult(currRow);
 			break;
 		}
@@ -1723,9 +1715,7 @@ int QueryExecutor::combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryRe
 			}
 			break;
 		}
-		
-		/***************************************************/
-		/* DO USUNIECIA */
+		/* DO USUNIECIA
 		case NonAlgOpNode::assign: {
 			*ec << "[QE] combine(): NonAlgebraic operator <assign>";
 			int leftResultType = curr->type();
@@ -1822,8 +1812,7 @@ int QueryExecutor::combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryRe
 			partial->addResult(sth);
 			break;
 		}
-		/***************************************************/
-		
+		*/
 		default: {
 			*ec << "[QE] combine(): unknown NonAlgebraic operator!";
 			*ec << (ErrQExecutor | EUnknownNode);
@@ -1855,8 +1844,10 @@ int QueryExecutor::merge(NonAlgOpNode::nonAlgOp op, QueryResult *partial, QueryR
 		}
 		case NonAlgOpNode::orderBy: {
 			*ec << "[QE] merge(): NonAlgebraic operator <orderBy>";
-			final = new QuerySequenceResult();
-			errcode = ((QuerySequenceResult *) final)->sortCollection(partial);
+			QueryResult *tmp_seq = new QuerySequenceResult();
+			errcode = ((QuerySequenceResult *) tmp_seq)->sortCollection(partial);
+			if (errcode != 0) return errcode;
+			errcode = ((QuerySequenceResult *) tmp_seq)->postSort(final);
 			if (errcode != 0) return errcode;
 			break;
 		}
@@ -1904,16 +1895,13 @@ int QueryExecutor::merge(NonAlgOpNode::nonAlgOp op, QueryResult *partial, QueryR
 			final->addResult(tmp_bool_res);
 			break;
 		}
-		
-		/***************************************************/
-		/* DO USUNIECIA */
+		/* DO USUNIECIA
 		case NonAlgOpNode::assign: {
 			*ec << "[QE] merge(): NonAlgebraic operator <assign>";
 			final = partial;
 			break;
 		}
-		/***************************************************/
-		
+		*/
 		default: {
 			*ec << "[QE] merge(): unknown NonAlgebraic operator!";
 			*ec << (ErrQExecutor | EUnknownNode);

@@ -104,6 +104,7 @@ public:
 	int getReferenceValue(QueryResult *&r);
 	int comma(QueryResult *arg, QueryResult *&score);
 	int sortCollection(QueryResult *r);
+	int postSort(QueryResult *&f);
 };
 
 class QueryBagResult : public QueryResult
@@ -155,6 +156,7 @@ protected:
 public:
 	QueryStructResult ();
 	QueryStructResult (vector<QueryResult*> s);
+	QueryStructResult (QueryResult *elem, QueryResult *value);
 	QueryResult* clone();
 	virtual ~QueryStructResult() {
 		if ((str.size()) > 0) {

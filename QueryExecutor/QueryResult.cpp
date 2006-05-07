@@ -27,6 +27,8 @@ QueryBagResult::QueryBagResult() 				{ ec = new ErrorConsole("QueryExecutor"); }
 QueryBagResult::QueryBagResult(vector<QueryResult*> b)		{ bag = b; ec = new ErrorConsole("QueryExecutor");}
 QueryStructResult::QueryStructResult() 				{ ec = new ErrorConsole("QueryExecutor"); }
 QueryStructResult::QueryStructResult(vector<QueryResult*> s)	{ str = s; ec = new ErrorConsole("QueryExecutor"); }
+QueryStructResult::QueryStructResult(QueryResult *elem, QueryResult *value) { 
+	str.push_back(elem); str.push_back(value); ec = new ErrorConsole("QueryExecutor"); }
 QueryBinderResult::QueryBinderResult()				{ ec = new ErrorConsole("QueryExecutor"); }
 QueryBinderResult::QueryBinderResult(string n, QueryResult* r) 	{ name=n; item=r; ec = new ErrorConsole("QueryExecutor"); }
 QueryStringResult::QueryStringResult()				{ ec = new ErrorConsole("QueryExecutor"); }
@@ -879,144 +881,6 @@ bool QueryReferenceResult::less_eq(QueryResult *r){
 	return tmp_value;
 }
 
-
-// nested function returns bag of binders, which will be pushed on the environment stack
-
-int QuerySequenceResult::nested(Transaction *&tr, QueryResult *&r) {
-	*ec << "[QE] nested(): ERROR! QuerySequenceResult shouldn't be nested";
-	*ec << (ErrQExecutor | EOtherResExp);
-	return ErrQExecutor | EOtherResExp; 
-	// nested () function is applied to rows of a QueryResult and so, it shouldn't be applied to sequences and bags
-}
-
-int QueryBagResult::nested(Transaction *&tr, QueryResult *&r) {
-	*ec << "[QE] nested(): ERROR! QueryBagResult shouldn't be nested";
-	*ec << (ErrQExecutor | EOtherResExp);
-	return ErrQExecutor | EOtherResExp; 
-	// nested () function is applied to rows of a QueryResult and so, it shouldn't be applied to sequences and bags
-}
-
-int QueryStructResult::nested(Transaction *&tr, QueryResult *&r) {
-	*ec << "[QE] nested(): QueryStructResult";
-	int errcode;
-	for (unsigned int i = 0; i < str.size(); i++) {
-		if ((str.at(i))->type() == QueryResult::QSTRUCT) {
-			*ec << (ErrQExecutor | EOtherResExp);
-			return ErrQExecutor | EOtherResExp; // one row shouldn't contain another row;
-		}
-		else {
-			errcode = ((str.at(i))->nested(tr, r));
-			if (errcode != 0) return errcode;
-		}
-	}
-	return 0;
-}
-
-int QueryStringResult::nested(Transaction *&tr, QueryResult *&r) {
-	*ec << "[QE] nested(): QueryStringResult can't be nested";
-	return 0;
-}
-
-int QueryIntResult::nested(Transaction *&tr, QueryResult *&r) {
-	*ec << "[QE] nested(): QueryIntResult can't be nested";
-	return 0;
-}
-
-int QueryDoubleResult::nested(Transaction *&tr, QueryResult *&r) {
-	*ec << "[QE] nested(): QueryDoubleResult can't be nested";
-	return 0;
-}
-
-int QueryBoolResult::nested(Transaction *&tr, QueryResult *&r) {
-	*ec << "[QE] nested(): QueryBoolResult can't be nested";
-	return 0;
-}
-
-int QueryNothingResult::nested(Transaction *&tr, QueryResult *&r) {
-	*ec << "[QE] nested(): QueryNothingResult can't be nested";
-	return 0;
-}
-
-int QueryBinderResult::nested(Transaction *&tr, QueryResult *&r) {
-	if (item != NULL) {
-		QueryBinderResult *tmp_value = new QueryBinderResult(name,item);
-		ec->printf("[QE] nested(): QueryBinderResult copy returned name: %s\n", name.c_str());
-		r->addResult(tmp_value);
-	}
-	return 0;
-}
-
-int QueryReferenceResult::nested(Transaction *&tr, QueryResult *&r) {
-	DataValue* tmp_data_value;
-	int errcode;
-	ObjectPointer *optr;
-	if (value != NULL) {
-		if ((errcode = tr->getObjectPointer(value, Store::Read, optr)) != 0) {
-			*ec << "[QE] Error in getObjectPointer";
-			tr = NULL;
-			return errcode;
-		}
-		tmp_data_value = optr->getValue();
-		int vType = tmp_data_value->getType();
-		switch (vType) {
-			case Store::Integer: {
-				*ec << "[QE] nested(): QueryReferenceResult pointing integer value - can't be nested";
-				break;
-			}
-			case Store::Double: {
-				*ec << "[QE] nested(): QueryReferenceResult pointing double value - can't be nested";
-				break;
-			}
-			case Store::String: {
-				*ec << "[QE] nested(): QueryReferenceResult pointing string value - can't be nested";
-				break;
-			}
-			case Store::Pointer: {
-				LogicalID *tmp_logID = (tmp_data_value->getPointer());
-				if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, optr)) != 0) {
-				*ec << "[QE] Error in getObjectPointer";
-					tr = NULL;
-					return errcode;
-				}
-				string tmp_name = optr->getName();
-				QueryReferenceResult *final_ref = new QueryReferenceResult(tmp_logID);
-				QueryBinderResult *final_binder = new QueryBinderResult(tmp_name, final_ref);
-				*ec << "[QE] nested(): QueryReferenceResult pointing reference value";
-				r->addResult(final_binder);
-				ec->printf("[QE] nested(): new QueryBinderResult returned name: %s\n", tmp_name.c_str());
-				break;
-			}
-			case Store::Vector: {
-				vector<LogicalID*>* tmp_vec = (tmp_data_value->getVector());
-				*ec << "[QE] nested(): QueryReferenceResult pointing vector value";
-				int vec_size = tmp_vec->size();
-				for (int i = 0; i < vec_size; i++ ) {
-					LogicalID *tmp_logID = tmp_vec->at(i);
-					if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, optr)) != 0) {
-					*ec << "[QE] Error in getObjectPointer";
-						tr = NULL;
-						return errcode;
-					}
-					string tmp_name = optr->getName();
-					QueryReferenceResult *final_ref = new QueryReferenceResult(tmp_logID);
-					QueryBinderResult *final_binder = new QueryBinderResult(tmp_name, final_ref);
-					ec->printf("[QE] nested(): vector element number %d\n", i);
-					r->addResult(final_binder);
-					ec->printf("[QE] nested(): new QueryBinderResult returned name: %s\n", tmp_name.c_str());
-				}
-				break;
-			}
-			default : {
-				*ec << "[QE] nested(): ERROR! QueryReferenceResult pointing unknown format value";
-				*ec << (ErrQExecutor | EUnknownValue);
-				return ErrQExecutor | EUnknownValue;
-				break;
-			}
-		}
-	}
-	return 0;
-}
-
 //function isBool() - returns true if result is a boolean (also if it is table 1x1 containing one bollean), false if not
 bool QuerySequenceResult::isBool() { 
 	if (seq.size() == 1)
@@ -1608,61 +1472,22 @@ int QuerySequenceResult::sortCollection(QueryResult *r) {
 			seq.push_back(current);
 			break;
 		}
-		case 2: {
-			QueryResult *first;
-			QueryResult *second;
-			errcode = r->getResult(first);
-			if (errcode != 0) return errcode;
-			errcode = r->getResult(second);
-			if (errcode != 0) return errcode;
-			if ((first->type() != QueryResult::QSTRUCT) || (second->type() != QueryResult::QSTRUCT)) {
-				*ec << "[QE] sortCollection() ERROR - sorted elements must be struct type";
-			}
-			QueryResult *first_sorting;
-			QueryResult *second_sorting;
-			errcode = ((QueryStructResult *) first)->lastElem(first_sorting);
-			if (errcode != 0) return errcode;
-			errcode = ((QueryStructResult *) second)->lastElem(second_sorting);
-			if (errcode != 0) return errcode;
-			int first_type = first_sorting->type();
-			int second_type = second_sorting->type();
-			if (first_type == QueryResult::QINT) first_type = QueryResult::QDOUBLE;
-			if (second_type == QueryResult::QINT) second_type = QueryResult::QDOUBLE;
-			if (first_type < second_type) {
-				seq.push_back(first);
-				seq.push_back(second);
-			} 
-			else if (second_type < first_type) {
-				seq.push_back(second);
-				seq.push_back(first);
-			} 
-			else if (first_sorting->less_eq(second_sorting)) { 
-				seq.push_back(first);
-				seq.push_back(second);
-			} 
-			else {
-				seq.push_back(second);
-				seq.push_back(first);
-			}
-			break;
-		}
 		default: {
-			QueryResult *first_seq = new QuerySequenceResult();
-			QueryResult *second_seq = new QuerySequenceResult();
 			QueryResult *first_bag;
 			QueryResult *second_bag;
 			errcode = ((QueryBagResult *) r)->divideBag(first_bag, second_bag);
 			if (errcode != 0) return errcode;
+			QueryResult *first_seq = new QuerySequenceResult();
 			errcode = ((QuerySequenceResult *) first_seq)->sortCollection(first_bag);
 			if (errcode != 0) return errcode;
+			QueryResult *second_seq = new QuerySequenceResult();
 			errcode = ((QuerySequenceResult *) second_seq)->sortCollection(second_bag);
 			if (errcode != 0) return errcode;
-			// now (i hope) first_seq and second_seq are sorted sequences
 			unsigned int seq_size = (first_seq->size()) + (second_seq->size());
 			if (seq_size != bagSize) {
 				*ec << "[QE] sortCollection() ERROR! - i lost some elements somewhere...";
 				*ec << (ErrQExecutor | EQEUnexpectedErr);
-				return ErrQExecutor | EQEUnexpectedErr; // something is wrong, those sizes should be equal
+				return ErrQExecutor | EQEUnexpectedErr;
 			}
 			for (unsigned int i = 0; i < seq_size; i++) {
 				QueryResult *first_elem;
@@ -1684,40 +1509,224 @@ int QuerySequenceResult::sortCollection(QueryResult *r) {
 					if (errcode != 0) return errcode;
 					if ((first_elem->type() != QueryResult::QSTRUCT) || (second_elem->type() != QueryResult::QSTRUCT)) {
 						*ec << "[QE] sortCollection() ERROR - sorted elements must be struct type";
+						*ec << (ErrQExecutor | EQEUnexpectedErr);
+						return ErrQExecutor | EQEUnexpectedErr;
 					}
 					QueryResult *first_sorting;
 					QueryResult *second_sorting;
-					errcode = ((QueryStructResult *) first_elem)->lastElem(first_sorting);
+					errcode = ((QueryStructResult *) first_elem)->at(1, first_sorting);
 					if (errcode != 0) return errcode;
-					errcode = ((QueryStructResult *) second_elem)->lastElem(second_sorting);
+					errcode = ((QueryStructResult *) second_elem)->at(1, second_sorting);
 					if (errcode != 0) return errcode;
-					int first_type = first_sorting->type();
-					int second_type = second_sorting->type();
-					if (first_type == QueryResult::QINT) first_type = QueryResult::QDOUBLE;
-					if (second_type == QueryResult::QINT) second_type = QueryResult::QDOUBLE;
-					if (first_type < second_type) {
-						seq.push_back(first_elem);
-						errcode = first_seq->getResult(first_elem);
-						if (errcode != 0) return errcode;
-					} 
-					else if (second_type < first_type) {
-						seq.push_back(second_elem);
-						errcode = second_seq->getResult(second_elem);
-						if (errcode != 0) return errcode;
-					} 
-					else if (first_sorting->less_eq(second_sorting)) { 
-						seq.push_back(first_elem);
-						errcode = first_seq->getResult(first_elem);
-						if (errcode != 0) return errcode;
-					} 
+					QueryResult *first_sStr;
+					if ((first_sorting->type()) == QueryResult::QSTRUCT) {
+					    first_sStr = first_sorting;
+					}
 					else {
-						seq.push_back(second_elem);
-						errcode = second_seq->getResult(second_elem);
+					    first_sStr = new QueryStructResult;
+					    first_sStr->addResult(first_sorting);
+					}
+					QueryResult *second_sStr;
+					if ((second_sorting->type()) == QueryResult::QSTRUCT) {
+					    second_sStr = second_sorting;
+					}
+					else {
+					    second_sStr = new QueryStructResult;
+					    second_sStr->addResult(second_sorting);
+					}
+					if ((first_sStr->size()) != (second_sStr->size())) {
+						*ec << "[QE] sortCollection() ERROR - sorted elements must have equal number of elements";
+						*ec << (ErrQExecutor | EQEUnexpectedErr);
+						return ErrQExecutor | EQEUnexpectedErr;
+					}
+					QueryResult *first_sElem;
+					QueryResult *second_sElem;
+					bool first_lessEQ = false;
+					bool second_lessEQ = false;
+					unsigned int jj = 0;
+					while ((jj < first_sStr->size()) && (first_lessEQ == second_lessEQ)) {
+						errcode = ((QueryStructResult*)first_sStr)->at(jj, first_sElem);
 						if (errcode != 0) return errcode;
+						errcode = ((QueryStructResult*)second_sStr)->at(jj, second_sElem);
+						if (errcode != 0) return errcode;
+						first_lessEQ = first_sElem->sorting_less_eq(second_sElem);
+						second_lessEQ = second_sElem->sorting_less_eq(first_sElem);
+						if ((first_lessEQ) && (not(second_lessEQ))) {
+							errcode = first_seq->getResult(first_elem);
+							if (errcode != 0) return errcode;
+							seq.push_back(first_elem);
+						}
+						else if ((second_lessEQ) && (not(first_lessEQ))) {
+							errcode = second_seq->getResult(second_elem);
+							if (errcode != 0) return errcode;
+							seq.push_back(second_elem);
+						}
+						jj++;
+					}
+					if ((first_lessEQ) == (second_lessEQ)) {
+						errcode = first_seq->getResult(first_elem);
+						if (errcode != 0) return errcode;
+						seq.push_back(first_elem);
 					}
 				}
 			}
 			break;
+		}
+	}
+	return 0;
+}
+
+int QuerySequenceResult::postSort(QueryResult *&f) {
+	*ec << "[QE] postSort()";
+	int errcode;
+	f = new QuerySequenceResult();
+	for (unsigned int i = 0; i < seq.size(); i++) {
+		QueryResult *tmp_res = seq.at(i);
+		QueryResult *elem;
+		errcode = ((QueryStructResult *)tmp_res)->at(0,elem);
+		if (errcode != 0) return errcode;
+		f->addResult(elem);
+	}
+	return 0;
+};
+
+
+
+/*****************************************************/
+/* ENVIRONMENT STACK - NESTED FUNCTION */
+
+// nested function returns bag of binders, which will be pushed on the environment stack
+
+int QuerySequenceResult::nested(Transaction *&tr, QueryResult *&r) {
+	*ec << "[QE] nested(): ERROR! QuerySequenceResult shouldn't be nested";
+	*ec << (ErrQExecutor | EOtherResExp);
+	return ErrQExecutor | EOtherResExp; 
+	// nested () function is applied to rows of a QueryResult and so, it shouldn't be applied to sequences and bags
+}
+
+int QueryBagResult::nested(Transaction *&tr, QueryResult *&r) {
+	*ec << "[QE] nested(): ERROR! QueryBagResult shouldn't be nested";
+	*ec << (ErrQExecutor | EOtherResExp);
+	return ErrQExecutor | EOtherResExp; 
+	// nested () function is applied to rows of a QueryResult and so, it shouldn't be applied to sequences and bags
+}
+
+int QueryStructResult::nested(Transaction *&tr, QueryResult *&r) {
+	*ec << "[QE] nested(): QueryStructResult";
+	int errcode;
+	for (unsigned int i = 0; i < str.size(); i++) {
+		if ((str.at(i))->type() == QueryResult::QSTRUCT) {
+			*ec << (ErrQExecutor | EOtherResExp);
+			return ErrQExecutor | EOtherResExp; // one row shouldn't contain another row;
+		}
+		else {
+			errcode = ((str.at(i))->nested(tr, r));
+			if (errcode != 0) return errcode;
+		}
+	}
+	return 0;
+}
+
+int QueryStringResult::nested(Transaction *&tr, QueryResult *&r) {
+	*ec << "[QE] nested(): QueryStringResult can't be nested";
+	return 0;
+}
+
+int QueryIntResult::nested(Transaction *&tr, QueryResult *&r) {
+	*ec << "[QE] nested(): QueryIntResult can't be nested";
+	return 0;
+}
+
+int QueryDoubleResult::nested(Transaction *&tr, QueryResult *&r) {
+	*ec << "[QE] nested(): QueryDoubleResult can't be nested";
+	return 0;
+}
+
+int QueryBoolResult::nested(Transaction *&tr, QueryResult *&r) {
+	*ec << "[QE] nested(): QueryBoolResult can't be nested";
+	return 0;
+}
+
+int QueryNothingResult::nested(Transaction *&tr, QueryResult *&r) {
+	*ec << "[QE] nested(): QueryNothingResult can't be nested";
+	return 0;
+}
+
+int QueryBinderResult::nested(Transaction *&tr, QueryResult *&r) {
+	if (item != NULL) {
+		QueryBinderResult *tmp_value = new QueryBinderResult(name,item);
+		ec->printf("[QE] nested(): QueryBinderResult copy returned name: %s\n", name.c_str());
+		r->addResult(tmp_value);
+	}
+	return 0;
+}
+
+int QueryReferenceResult::nested(Transaction *&tr, QueryResult *&r) {
+	DataValue* tmp_data_value;
+	int errcode;
+	ObjectPointer *optr;
+	if (value != NULL) {
+		if ((errcode = tr->getObjectPointer(value, Store::Read, optr)) != 0) {
+			*ec << "[QE] Error in getObjectPointer";
+			tr = NULL;
+			return errcode;
+		}
+		tmp_data_value = optr->getValue();
+		int vType = tmp_data_value->getType();
+		switch (vType) {
+			case Store::Integer: {
+				*ec << "[QE] nested(): QueryReferenceResult pointing integer value - can't be nested";
+				break;
+			}
+			case Store::Double: {
+				*ec << "[QE] nested(): QueryReferenceResult pointing double value - can't be nested";
+				break;
+			}
+			case Store::String: {
+				*ec << "[QE] nested(): QueryReferenceResult pointing string value - can't be nested";
+				break;
+			}
+			case Store::Pointer: {
+				LogicalID *tmp_logID = (tmp_data_value->getPointer());
+				if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, optr)) != 0) {
+				*ec << "[QE] Error in getObjectPointer";
+					tr = NULL;
+					return errcode;
+				}
+				string tmp_name = optr->getName();
+				QueryReferenceResult *final_ref = new QueryReferenceResult(tmp_logID);
+				QueryBinderResult *final_binder = new QueryBinderResult(tmp_name, final_ref);
+				*ec << "[QE] nested(): QueryReferenceResult pointing reference value";
+				r->addResult(final_binder);
+				ec->printf("[QE] nested(): new QueryBinderResult returned name: %s\n", tmp_name.c_str());
+				break;
+			}
+			case Store::Vector: {
+				vector<LogicalID*>* tmp_vec = (tmp_data_value->getVector());
+				*ec << "[QE] nested(): QueryReferenceResult pointing vector value";
+				int vec_size = tmp_vec->size();
+				for (int i = 0; i < vec_size; i++ ) {
+					LogicalID *tmp_logID = tmp_vec->at(i);
+					if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, optr)) != 0) {
+					*ec << "[QE] Error in getObjectPointer";
+						tr = NULL;
+						return errcode;
+					}
+					string tmp_name = optr->getName();
+					QueryReferenceResult *final_ref = new QueryReferenceResult(tmp_logID);
+					QueryBinderResult *final_binder = new QueryBinderResult(tmp_name, final_ref);
+					ec->printf("[QE] nested(): vector element number %d\n", i);
+					r->addResult(final_binder);
+					ec->printf("[QE] nested(): new QueryBinderResult returned name: %s\n", tmp_name.c_str());
+				}
+				break;
+			}
+			default : {
+				*ec << "[QE] nested(): ERROR! QueryReferenceResult pointing unknown format value";
+				*ec << (ErrQExecutor | EUnknownValue);
+				return ErrQExecutor | EUnknownValue;
+				break;
+			}
 		}
 	}
 	return 0;
