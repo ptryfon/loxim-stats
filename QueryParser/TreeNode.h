@@ -20,7 +20,7 @@ namespace QParser {
 
     public:
 	enum TreeNodeType { TNINT, TNSTRING, TNDOUBLE, TNVECTOR, TNNAME, 
-	    TNAS, TNUNOP, TNALGOP, TNNONALGOP, TNTRANS, TNCREATE};
+	    TNAS, TNUNOP, TNALGOP, TNNONALGOP, TNTRANS, TNCREATE, TNCOND, TNLINK};
 	TreeNode() : parent(NULL) {}
 	TreeNode* getParent() { return parent; }
 	void setParent(TreeNode* _parent) { parent = _parent; }
@@ -338,7 +338,7 @@ namespace QParser {
     {
     public:
 	enum nonAlgOp { dot, join, where, closeBy, closeUniqueBy, leavesBy,
-                  leavesUniqueBy, orderBy, exists, forAll, assign };
+                  leavesUniqueBy, orderBy, exists, forAll, forEach };
     protected:
 	QueryNode* larg;
 	QueryNode* rarg;
@@ -389,7 +389,7 @@ lastOpenSect = 0; }
 	    if (op == 7) return "orderBy";	    
 	    if (op == 8) return "exists";	    
 	    if (op == 9) return "forAll";
-	    if (op == 10) return "assign";	    
+	    if (op == 10) return "forEach";	    
 	    return "~~~";	}
 	virtual int staticEval (StatQResStack *&qres, StatEnvStack *&envs);	
 	virtual int optimizeTree();	
@@ -446,6 +446,81 @@ lastOpenSect = 0; }
 	
         virtual ~CreateNode() { if (arg != NULL) delete arg; }
     };  
+
+
+// query := WHILE q DO q  |  IF-THEN  |  IF-THEN-ELSE ...
+    class CondNode : public QueryNode
+    {
+    public:
+	enum condOp { ifElsee, iff, whilee };
+
+    protected: 
+	QueryNode* condition;
+	QueryNode* larg;   /* if c then __QUERY__ (else q2) fi | while c do __QUERY__ od */
+	QueryNode* rarg;   /* if c then q else __QUERY__ fi   (w p.p. rarg== NULL) */
+	condOp op;
+    public:
+	CondNode (QueryNode* _condition, QueryNode* _larg, QueryNode* _rarg, condOp _op) 
+	    : condition(_condition), larg(_larg), rarg(_rarg), op(_op)    
+    	    {larg->setParent(this); rarg->setParent(this); }
+
+	CondNode (QueryNode* _condition, QueryNode* _larg, condOp _op)
+	    : condition(_condition), larg(_larg), op(_op)
+	    {larg->setParent(this); rarg = NULL; }    
+	virtual TreeNode* clone();
+	virtual int type() {return TreeNode::TNCOND;}
+	virtual QueryNode* getCondition() {return this->condition;}
+	
+	virtual int putToString() {
+	    cout << "(";
+	    if (op == 0 || op == 1) {
+		cout << "if ";
+		if (condition != NULL) condition->putToString(); else cout << "_/conditiion/_";
+		cout << " then ";
+		if (larg != NULL) larg->putToString(); else cout << "_/query1/_";
+		if (op == 0) {	cout << " else ";
+    		    if (rarg != NULL) rarg->putToString(); else cout << "_/query2/_";
+		}
+		cout << " fi";
+	    } else if (op == 2) { /*while*/
+		cout << "while ";
+		if (condition != NULL) condition->putToString(); else cout << "_/conditiion/_";
+		cout << " do ";
+		if (larg != NULL) larg->putToString(); else cout << "_/query1/_";
+		cout << " od";	    
+	    }
+	    cout << ")";
+	    return 0;
+	}
+	
+	virtual ~CondNode() {if (larg != NULL) delete larg; if (rarg != NULL) delete rarg; }
+    };
+
+// query := np.: link "Gdansk" "violet255" 3360 
+    class LinkNode : public QueryNode
+    {
+    protected:
+	string nodeName;	/* np. "Gdansk"*/
+	string ip;		/* np. "125.100.100..." albo "yellow12"*/
+	int port;		
+    
+    public: 
+	LinkNode (string _nodeName, string _ip, int _port)
+	    : nodeName(_nodeName), ip(_ip), port(_port) {}
+	
+	virtual TreeNode* clone();
+	virtual int type() {return TreeNode::TNLINK;};
+	virtual string getNodeName() {return this->nodeName;}
+	virtual string getIp() {return this->ip;}
+	virtual int getPort() {return this->port;}	
+	
+	virtual int putToString() {
+	    cout << "( link " << this->getNodeName() << " - " << this->getIp()<< " - " << this->getPort() << " )";
+	    return 0;	
+	}
+	virtual ~LinkNode() {}
+	
+    };
 
 
 

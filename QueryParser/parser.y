@@ -18,7 +18,7 @@
 
 %token	<num> INTEGER
 %token	<dbl> DOUBLE 
-%token	<str> NAME STRING SEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT DEREF REF BEGINTR END ABORT CREATE
+%token	<str> NAME STRING SEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT DEREF REF BEGINTR END ABORT CREATE IF FI DO OD ELSE WHILE LINK FOREACH THEN
 
 %start statement
 
@@ -99,4 +99,9 @@ query	    : NAME { char *s = $1; $$ = new NameNode(s); delete s; }
 	    | query INSERTINTO query { $$ = new AlgOpNode($1,$3,AlgOpNode::insert); }
 	    | DELETE query  { $$ = new UnOpNode($2,UnOpNode::deleteOp); }
 	    | query ASSIGN query { $$ = new AlgOpNode($1,$3,AlgOpNode::assign); }
+	    | IF query THEN query ELSE query FI { $$ = new CondNode($2, $4, $6,CondNode::ifElsee); }
+	    | IF query THEN query FI { $$ = new CondNode($2, $4, CondNode::iff); }
+	    | WHILE query DO query OD { $$ = new CondNode($2, $4, CondNode::whilee); }
+	    | FOREACH query DO query OD { $$ = new NonAlgOpNode($2, $4, NonAlgOpNode::forEach); }
+	    | LINK STRING STRING INTEGER { $$ = new LinkNode($2, $3, $4); }
 	    ;

@@ -21,6 +21,11 @@ namespace QParser
     TreeNode* CreateNode::clone()   { 
 	if (arg != NULL) return new CreateNode(name, (QueryNode*)arg->clone()); 
 	else return new CreateNode(name, NULL);}
+    TreeNode* LinkNode::clone() {return new LinkNode(nodeName, ip, port); }
+    TreeNode* CondNode::clone() {
+	if (rarg != NULL) return new CondNode((QueryNode*)condition->clone(), (QueryNode*)larg->clone(), (QueryNode*)rarg->clone(), op);
+	else return new CondNode((QueryNode*)condition->clone(), (QueryNode*)larg->clone(), op);
+    }
     
 /*  to be used when subT is an subTree independant of (this) and (this) is a non-alg operator.
     called eg. for node  nd = nonalgop (where) ... 

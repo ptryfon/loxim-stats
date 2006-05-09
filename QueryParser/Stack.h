@@ -103,7 +103,7 @@ namespace QParser {
 			else { cout <<" < my size: " << currSize << "||" << endl; elts->putToString(); cout << " >";}
 			cout << endl;
 		}
-		virtual ~QStack() {if (this->elts != NULL) delete this->elts;}
+//		virtual ~QStack() {if (this->elts != NULL) delete this->elts;}
     };
 	
 
