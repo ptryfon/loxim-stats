@@ -551,6 +551,104 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, QueryResult **result) {
 			*ec << "[QE] NonAlgebraic operation Done!";
 			return 0;
 		} //case TNNONALGOP
+		
+		case TreeNode::TNCOND: {
+			CondNode::condOp op = ((CondNode *) tree)->getOp();
+			*ec << "[QE] Conditional operator - type recognized";
+			switch (op) {
+				case CondNode::iff: {
+					*ec << "[QE] IF <q1> THEN <q2> FI";
+					QueryResult *tmp_result;
+					errcode = executeRecQuery(((CondNode *) tree)->getCondition(), &tmp_result);
+					if (errcode != 0) return errcode;
+					bool bool_val;
+					if (tmp_result->isBool()) {
+						errcode = tmp_result->getBoolValue(bool_val);
+						if (errcode != 0) return errcode;
+					}
+					else {
+						*ec << "[QE] ERROR! <q1> must be BOOLEAN ";
+						*result = new QueryNothingResult();
+						*ec << (ErrQExecutor | EBoolExpected);
+						return ErrQExecutor | EBoolExpected;
+					}
+					if (bool_val) {
+						errcode = executeRecQuery(((CondNode *) tree)->getLArg(), &tmp_result);
+						if (errcode != 0) return errcode;
+					}
+					break;
+				}
+				case CondNode::ifElsee: {
+					*ec << "[QE] IF <q1> THEN <q2> ELSE <q3> FI";
+					QueryResult *tmp_result;
+					errcode = executeRecQuery(((CondNode *) tree)->getCondition(), &tmp_result);
+					if (errcode != 0) return errcode;
+					bool bool_val;
+					if (tmp_result->isBool()) {
+						errcode = tmp_result->getBoolValue(bool_val);
+						if (errcode != 0) return errcode;
+					}
+					else {
+						*ec << "[QE] ERROR! <q1> must be BOOLEAN ";
+						*result = new QueryNothingResult();
+						*ec << (ErrQExecutor | EBoolExpected);
+						return ErrQExecutor | EBoolExpected;
+					}
+					if (bool_val) {
+						errcode = executeRecQuery(((CondNode *) tree)->getLArg(), &tmp_result);
+						if (errcode != 0) return errcode;
+					}
+					else {
+						errcode = executeRecQuery(((CondNode *) tree)->getRArg(), &tmp_result);
+						if (errcode != 0) return errcode;
+					}
+					break;
+				}
+				case CondNode::whilee: {
+					*ec << "[QE] WHILE <q1> DO <q2> OD";
+					QueryResult *tmp_result;
+					errcode = executeRecQuery(((CondNode *) tree)->getCondition(), &tmp_result);
+					if (errcode != 0) return errcode;
+					bool bool_val;
+					if (tmp_result->isBool()) {
+						errcode = tmp_result->getBoolValue(bool_val);
+						if (errcode != 0) return errcode;
+					}
+					else {
+						*ec << "[QE] ERROR! <q1> must be BOOLEAN ";
+						*result = new QueryNothingResult();
+						*ec << (ErrQExecutor | EBoolExpected);
+						return ErrQExecutor | EBoolExpected;
+					}
+					while (bool_val) {
+						errcode = executeRecQuery(((CondNode *) tree)->getLArg(), &tmp_result);
+						if (errcode != 0) return errcode;
+						errcode = executeRecQuery(((CondNode *) tree)->getCondition(), &tmp_result);
+						if (errcode != 0) return errcode;
+						if (tmp_result->isBool()) {
+							errcode = tmp_result->getBoolValue(bool_val);
+							if (errcode != 0) return errcode;
+						}
+						else {
+							*ec << "[QE] ERROR! <q1> must be BOOLEAN ";
+							*result = new QueryNothingResult();
+							*ec << (ErrQExecutor | EBoolExpected);
+							return ErrQExecutor | EBoolExpected;
+						}
+					}
+					break;
+				}
+				default: {
+					*ec << "[QE] ERROR! Condition operation type not known";
+					*result = new QueryNothingResult();
+					*ec << (ErrQExecutor | EUnknownNode);
+					return ErrQExecutor | EUnknownNode;
+				}
+			}
+			*result = new QueryBagResult();
+			*ec << "[QE] Condition operation Done!";
+			return 0;
+		} //case TNCOND 
 
 		default:
 			{
@@ -1715,104 +1813,10 @@ int QueryExecutor::combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryRe
 			}
 			break;
 		}
-		/* DO USUNIECIA
-		case NonAlgOpNode::assign: {
-			*ec << "[QE] combine(): NonAlgebraic operator <assign>";
-			int leftResultType = curr->type();
-			if (leftResultType != QueryResult::QREFERENCE) {
-				*ec << "[QE] combine() ERROR! operator <assign> expects that left argument is REFERENCE";
-				QueryResult *sth = new QueryNothingResult();
-				partial->addResult(sth);
-				*ec << (ErrQExecutor | ERefExpected);
-				return ErrQExecutor | ERefExpected;
-			}
-			LogicalID *old_lid = ((QueryReferenceResult *) curr)->getValue();
-			ObjectPointer *old_optr;
-			errcode = tr->getObjectPointer (old_lid, Store::Write, old_optr);
-			if (errcode != 0) {
-				*ec << "[QE] combine() operator <assign>: error in getObjectPointer()";
-				tr = NULL;
-				return errcode;
-			}
-			*ec << "[QE] combine() operator <assign>: getObjectPointer on left argument done";
-			DBDataValue *dbValue = new DBDataValue();
-			QueryResult *derefed;
-			errcode = this->derefQuery(rRes, derefed);
-			if (errcode != 0) return errcode;
-			int derefed_type = derefed->type();
-			switch (derefed_type) {
-				case QueryResult::QINT: {
-					int intValue = ((QueryIntResult *) derefed)->getValue();
-					dbValue->setInt(intValue);
-					*ec << "[QE] < query := ('integer'); > operation";
-					break;
-				}
-				case QueryResult::QDOUBLE: {
-					double doubleValue = ((QueryDoubleResult *) derefed)->getValue();
-					dbValue->setDouble(doubleValue);
-					*ec << "[QE] < query := ('double'); > operation";
-					break;
-				}
-				case QueryResult::QSTRING: {
-					string stringValue = ((QueryStringResult *) derefed)->getValue();
-					dbValue->setString(stringValue);
-					*ec << "[QE] < query := ('string'); > operation";
-					break;
-				}
-				case QueryResult::QREFERENCE: {
-					LogicalID* refValue = ((QueryReferenceResult *) derefed)->getValue();
-					dbValue->setPointer(refValue);
-					*ec << "[QE] < query := ('reference'); > operation";
-					break;
-				}
-				case QueryResult::QSTRUCT: {
-					vector<LogicalID*> vectorValue;
-					for (unsigned int i=0; i < (derefed->size()); i++) {
-						QueryResult *tmp_res;
-						errcode = ((QueryStructResult *) derefed)->at(i, tmp_res);
-						if (errcode != 0) return errcode;
-						ObjectPointer *optr_tmp;
-						errcode = this->objectFromBinder(tmp_res, optr_tmp);
-						if (errcode != 0) return errcode;
-						LogicalID *lid_tmp = optr_tmp->getLogicalID();
-						vectorValue.push_back(lid_tmp);
-					}
-					dbValue->setVector(&vectorValue);
-					*ec << "[QE] < query := ('struct'); > operation";
-					break;
-				}
-				case QueryResult::QBINDER: {
-					vector<LogicalID*> vectorValue;
-					ObjectPointer *optr_tmp;
-					errcode = this->objectFromBinder(derefed, optr_tmp);
-					if (errcode != 0) return errcode;
-					LogicalID *lid_tmp = optr_tmp->getLogicalID();
-					vectorValue.push_back(lid_tmp);
-					dbValue->setVector(&vectorValue);
-					*ec << "[QE] < query := ('binder'); > operation";
-					break;
-				}
-				default: {
-					*ec << "[QE] combine() operator <assign>: error, bad type right argument evaluated by executeRecQuery";
-					QueryResult *sth = new QueryNothingResult();
-					partial->addResult(sth);
-					*ec << (ErrQExecutor | EOtherResExp);
-					return ErrQExecutor | EOtherResExp;
-				}
-			}
-			DataValue* value = dbValue;
-			errcode = tr->modifyObject(old_optr, value);
-			if (errcode != 0) {
-				*ec << "[QE] combine() operator <assign>: error in modifyObject()";
-				tr = NULL;
-				return errcode;
-			}
-			*ec << "[QE] combine() operator <assign>: value of the object was changed";
-			QueryResult *sth = new QueryReferenceResult(old_lid);
-			partial->addResult(sth);
+		case NonAlgOpNode::forEach: {
+			*ec << "[QE] combine(): NonAlgebraic operator <forEach>";
 			break;
 		}
-		*/
 		default: {
 			*ec << "[QE] combine(): unknown NonAlgebraic operator!";
 			*ec << (ErrQExecutor | EUnknownNode);
@@ -1895,13 +1899,11 @@ int QueryExecutor::merge(NonAlgOpNode::nonAlgOp op, QueryResult *partial, QueryR
 			final->addResult(tmp_bool_res);
 			break;
 		}
-		/* DO USUNIECIA
-		case NonAlgOpNode::assign: {
-			*ec << "[QE] merge(): NonAlgebraic operator <assign>";
+		case NonAlgOpNode::forEach: {
+			*ec << "[QE] merge(): NonAlgebraic operator <forEach>";
 			final = partial;
 			break;
 		}
-		*/
 		default: {
 			*ec << "[QE] merge(): unknown NonAlgebraic operator!";
 			*ec << (ErrQExecutor | EUnknownNode);

@@ -469,7 +469,10 @@ lastOpenSect = 0; }
 	    {larg->setParent(this); rarg = NULL; }    
 	virtual TreeNode* clone();
 	virtual int type() {return TreeNode::TNCOND;}
-	virtual QueryNode* getCondition() {return this->condition;}
+	virtual QueryNode* getCondition() { return condition; }
+	QueryNode* getLArg() { return larg; }
+	QueryNode* getRArg() { return rarg; }
+	condOp getOp() { return op; }
 	
 	virtual int putToString() {
 	    cout << "(";
