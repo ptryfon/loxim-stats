@@ -18,18 +18,18 @@
 
 %token	<num> INTEGER
 %token	<dbl> DOUBLE 
-%token	<str> NAME STRING SEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT DEREF REF BEGINTR END ABORT CREATE IF FI DO OD ELSE WHILE LINK FOREACH THEN
+%token	<str> NAME STRING SEMICOLON DOUBLESEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT DEREF REF BEGINTR END ABORT CREATE IF FI DO OD ELSE WHILE LINK FOREACH THEN
 
 %start statement
 
 %nonassoc DELETE CREATE INSERTINTO
-%left COMMA
+%left COMMA 
 %right EXISTS FOR_ALL
 %left GROUP_AS AS
 %right ASSIGN
 %left UNION EXCEPT
 %left INTERSECT
-%left WHERE JOIN CLOSE_BY CLOSE_UNIQUE LEAVES_BY LEAVES_UNIQUE ORDER_BY 
+%right WHERE JOIN CLOSE_BY CLOSE_UNIQUE LEAVES_BY LEAVES_UNIQUE ORDER_BY 
 %left OR
 %left AND
 %nonassoc NOT
@@ -37,17 +37,17 @@
 %left PLUS MINUS
 %left TIMES DIVIDE_BY
 %nonassoc UMINUS
-%left DOT
+%right DOT
 
 %type <tree> statement
 %type <qtree> query
 
 %%
 
-statement   : query   SEMICOLON { d=$1; }
-	    | BEGINTR SEMICOLON { d=new TransactNode(TransactNode::begin); }
-	    | ABORT   SEMICOLON { d=new TransactNode(TransactNode::abort); }
-	    | END     SEMICOLON { d=new TransactNode(TransactNode::end); }
+statement   : query   DOUBLESEMICOLON { d=$1; }
+	    | BEGINTR DOUBLESEMICOLON { d=new TransactNode(TransactNode::begin); }
+	    | ABORT   DOUBLESEMICOLON { d=new TransactNode(TransactNode::abort); }
+	    | END     DOUBLESEMICOLON { d=new TransactNode(TransactNode::end); }
             ;
 
 query	    : NAME { char *s = $1; $$ = new NameNode(s); delete s; }
@@ -104,4 +104,5 @@ query	    : NAME { char *s = $1; $$ = new NameNode(s); delete s; }
 	    | WHILE query DO query OD { $$ = new CondNode($2, $4, CondNode::whilee); }
 	    | FOREACH query DO query OD { $$ = new NonAlgOpNode($2, $4, NonAlgOpNode::forEach); }
 	    | LINK STRING STRING INTEGER { $$ = new LinkNode($2, $3, $4); }
+	    | query SEMICOLON query { $$ = new AlgOpNode ($1, $3, AlgOpNode::semicolon); }
 	    ;

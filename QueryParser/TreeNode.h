@@ -274,7 +274,7 @@ namespace QParser {
     {
     public:
 	enum algOp { bagUnion, bagIntersect, bagMinus, plus, minus, times, divide,
-   	         eq, refeq, neq, lt, gt, le, ge, boolAnd, boolOr, comma, insert, insertInto, assign }; 
+   	         eq, refeq, neq, lt, gt, le, ge, boolAnd, boolOr, comma, insert, insertInto, assign, semicolon }; 
     protected:
 	QueryNode* larg;
 	QueryNode* rarg;
@@ -325,6 +325,7 @@ namespace QParser {
 	    if (op == 17) return "insert";
 	    if (op == 18) return ":<";
 	    if (op == 19) return ":=";
+	    if (op == 20) return " ; ";
 	    return "~~~";
 	}
 	virtual int staticEval (StatQResStack *&qres, StatEnvStack *&envs);	

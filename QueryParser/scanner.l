@@ -36,6 +36,7 @@ extern int szbderrno;
 "("			return LEFTPAR;
 ")"			return RIGHTPAR;
 ";"			return SEMICOLON;
+";;"			return DOUBLESEMICOLON;
 "sum"			return SUM;
 "count"			return COUNT;
 "avg"			return AVG;
