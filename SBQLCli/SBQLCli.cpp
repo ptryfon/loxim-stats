@@ -57,15 +57,15 @@ int main(int argc, char *argv[]) {
   try { 
 
     while (getline(cin, line)) {
-      
-      if (line.find(";",0) == string::npos) {
+
+      if (line[0] != '/') {
+	//      if (line.find(";",0) == string::npos) {
 
 	input.append(line);
 	printMsg(" \\ ");
-
       } else { // execute query, because  ";" found 
 	
-	input.append(line);
+	//input.append(line);
 	cerr << "<SBQLCli> Zapytanie: " << input << endl;
 	
 	Result* result = NULL;
