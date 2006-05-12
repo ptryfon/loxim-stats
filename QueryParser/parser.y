@@ -44,11 +44,13 @@
 
 %%
 
-statement   : query   SEMICOLON { d=$1; }
+statement   : query  { d=$1; }
 	    | BEGINTR SEMICOLON { d=new TransactNode(TransactNode::begin); }
 	    | BEGINTR { d=new TransactNode(TransactNode::begin); }
 	    | ABORT   SEMICOLON { d=new TransactNode(TransactNode::abort); }
+	    | ABORT { d=new TransactNode(TransactNode::abort); }
 	    | END     SEMICOLON { d=new TransactNode(TransactNode::end); }
+	    | END   { d=new TransactNode(TransactNode::end); }
             ;
 
 query	    : NAME { char *s = $1; $$ = new NameNode(s); delete s; }
@@ -56,6 +58,7 @@ query	    : NAME { char *s = $1; $$ = new NameNode(s); delete s; }
             | STRING { char *s = $1; $$ = new StringNode(s); delete s; }
 	    | DOUBLE { $$ = new DoubleNode($1); }
             | LEFTPAR query RIGHTPAR { $$ = $2; }
+	    | query SEMICOLON {$$ = $1; }
             | query AS NAME { $$ = new NameAsNode($1,$3,false); }
 	    | query GROUP_AS NAME { $$ = new NameAsNode($1,$3,true); }
             | COUNT LEFTPAR  query RIGHTPAR { $$ = new UnOpNode($3,UnOpNode::count); }
