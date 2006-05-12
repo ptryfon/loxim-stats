@@ -44,10 +44,11 @@
 
 %%
 
-statement   : query   DOUBLESEMICOLON { d=$1; }
-	    | BEGINTR DOUBLESEMICOLON { d=new TransactNode(TransactNode::begin); }
-	    | ABORT   DOUBLESEMICOLON { d=new TransactNode(TransactNode::abort); }
-	    | END     DOUBLESEMICOLON { d=new TransactNode(TransactNode::end); }
+statement   : query   SEMICOLON { d=$1; }
+	    | BEGINTR SEMICOLON { d=new TransactNode(TransactNode::begin); }
+	    | BEGINTR { d=new TransactNode(TransactNode::begin); }
+	    | ABORT   SEMICOLON { d=new TransactNode(TransactNode::abort); }
+	    | END     SEMICOLON { d=new TransactNode(TransactNode::end); }
             ;
 
 query	    : NAME { char *s = $1; $$ = new NameNode(s); delete s; }
