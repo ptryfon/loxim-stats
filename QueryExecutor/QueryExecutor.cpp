@@ -1516,6 +1516,11 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 		if (errcode != 0) return errcode;
 		return 0;
 	}
+	else if (op == AlgOpNode::semicolon) {
+		*ec << "[QE] SEMICOLON operation";
+		final = rArg;
+		return 0;
+	}
 	else if (op == AlgOpNode::insert) {
 		*ec << "[QE] INSERT operation";
 		QueryResult *lBag = new QueryBagResult();
