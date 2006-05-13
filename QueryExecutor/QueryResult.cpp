@@ -1520,19 +1520,19 @@ int QuerySequenceResult::sortCollection(QueryResult *r) {
 					if (errcode != 0) return errcode;
 					QueryResult *first_sStr;
 					if ((first_sorting->type()) == QueryResult::QSTRUCT) {
-					    first_sStr = first_sorting;
+						first_sStr = first_sorting;
 					}
 					else {
-					    first_sStr = new QueryStructResult;
-					    first_sStr->addResult(first_sorting);
+						first_sStr = new QueryStructResult;
+						first_sStr->addResult(first_sorting);
 					}
 					QueryResult *second_sStr;
 					if ((second_sorting->type()) == QueryResult::QSTRUCT) {
-					    second_sStr = second_sorting;
+						second_sStr = second_sorting;
 					}
 					else {
-					    second_sStr = new QueryStructResult;
-					    second_sStr->addResult(second_sorting);
+						second_sStr = new QueryStructResult;
+						second_sStr->addResult(second_sorting);
 					}
 					if ((first_sStr->size()) != (second_sStr->size())) {
 						*ec << "[QE] sortCollection() ERROR - sorted elements must have equal number of elements";

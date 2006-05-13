@@ -39,16 +39,32 @@ namespace QExecutor
 		int bindName(string name, int sectionNo, QueryResult *&r);
 		void deleteAll();
 	};
+	
+	class ResultStack
+	{
+	protected: 
+		ErrorConsole *ec;
+		vector<QueryResult*> rs;
+	public:
+		ResultStack();
+		~ResultStack();
+		int push(QueryResult *r);
+		int pop(QueryResult *&r);
+		bool empty();
+		int size();
+		void deleteAll();
+	};
 
 	class QueryExecutor
 	{
 	protected:
 		ErrorConsole *ec;
 		Transaction *tr;
-		EnvironmentStack stack;
+		EnvironmentStack envs;
+		ResultStack qres;
 		int stop;
 		bool evalStopped() { return ( stop != 0 ); };
-		int executeRecQuery(TreeNode *tree, QueryResult **result);
+		int executeRecQuery(TreeNode *tree);
 		int combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryResult *lRes, QueryResult *&partial);
 		int merge(NonAlgOpNode::nonAlgOp op, QueryResult *partial, QueryResult *&final);
 		int unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&final);
