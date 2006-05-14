@@ -6,6 +6,7 @@
 #include <vector>
    
 #include "QueryResult.h"
+#include "EnvironmentStack.h"
 #include "TransactionManager/Transaction.h"
 #include "Store/Store.h"
 #include "Store/DBDataValue.h"
@@ -23,22 +24,6 @@ using namespace std;
 
 namespace QExecutor
 {
-	class EnvironmentStack
-	{
-	protected: 
-		ErrorConsole *ec;
-		vector<QueryBagResult*> es;
-	public:
-		EnvironmentStack();
-		~EnvironmentStack();
-		int push(QueryBagResult *r);
-		int pop();
-		int top(QueryBagResult *&r);
-		bool empty();
-		int size();
-		int bindName(string name, int sectionNo, QueryResult *&r);
-		void deleteAll();
-	};
 	
 	class ResultStack
 	{
