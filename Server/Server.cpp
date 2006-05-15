@@ -160,6 +160,7 @@ void *clientPulseCheck(void *arg) {
 		}
 		else if (res>0) {
 			ec.printf("Server.clientPulseCheck]--> Desc. change. (%d)  \n", res);
+			pthread_exit((void *) res);
 			/*	if (FD_ISSET(fdCli, &setExc)) {
 					ec.printf("Server.clientPulseCheck]--> Exception on socket caught - client assumed MIA (%d)  \n", res);
 					srv.getQEx()->stopExecuting();
@@ -583,7 +584,7 @@ while (!signalReceived) {
 	    *ec << "[SERVER]--> ends with ERROR";
 	    return res;
 	}
-
+	
 	
 #ifdef PULSE_CHECKER_ACTIVE
 	//Create PulseChecker thread
