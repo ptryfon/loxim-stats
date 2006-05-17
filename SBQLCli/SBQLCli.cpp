@@ -61,8 +61,12 @@ int main(int argc, char *argv[]) {
       if (line[0] != '/') {
 	//      if (line.find(";",0) == string::npos) {
 
-	input.append(line);
+	if (!((line.length() >= 2) 
+	      && (line[0] == '-') && (line[1] == '-'))) {
+	  input.append(line + " ");
+	}
 	printMsg(" \\ ");
+	
       } else { // execute query, because  ";" found 
 	
 	//input.append(line);
