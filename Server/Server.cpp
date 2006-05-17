@@ -3,8 +3,6 @@
 #include <iostream>
 #include <sys/socket.h>
 #include <stdio.h>
-//#include <stdlib.h>
-//#include <setjmp.h>
 #include <iostream>
 #include <string>
 #include <netinet/in.h>
@@ -34,11 +32,6 @@
 typedef char TREE_NODE_TYPE;
 
 
-
-// TODO 
-// 4-Lepsza diagnostyka
-
-
 using namespace Errors;
 using namespace std;
 using namespace Logs;
@@ -48,7 +41,6 @@ using namespace QExecutor;
 using namespace TManager;
 using namespace Driver;
 
-//pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
 volatile sig_atomic_t signalReceived = 0;
 pthread_t pthread_master_id;
 
@@ -108,13 +100,10 @@ int Server::getFdContact() {
     
 void *clientPulseCheck(void *arg) {
     Server srv=*(Server *)arg;
-    //fd_set set;
-    //fd_set setExc;
     int res;
     int fdCli;
     int fdSer;
     int maxFd;
-    //int size=MAX_MESSG;
     char ghostBuff[2000];
     memset(ghostBuff, 0, 2000);
     ErrorConsole ec("Server_PulseCheck");
@@ -126,32 +115,14 @@ void *clientPulseCheck(void *arg) {
 	else 
 		maxFd=fdSer;
 	
-    //sigset_t st;
-    //sigemptyset(&st);
-    //sigaddset(&st, SIGINT);	
-    //pthread_sigmask(SIG_UNBLOCK, &st, NULL);
     pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
     pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
-    //char *ghostBuff=(char *)malloc(MAX_MESSG);
-    //signal(SIGHUP, sigHupPC);
     ec.printf("[Server.clientPulseCheck]--> Start..  \n", res);
-    //SERVER_OPERATION_STATUS stat;    
-    //srv.Test();
-    //ec.printf("!!!!!%d!!!!!\n", fdCli);
     while (1) {
-	//stat=srv.srvStatus;
-	//if (stat==SRV_PROCESSING_QUERY) {
-		//FD_ZERO(&set);
-		//FD_ZERO(&setExc);
-   		//FD_SET(fdSer, &set);
-   		//FD_SET(fdCli, &setExc); 
-		///ec.printf("DUPA");
-		//res=select(maxFd, NULL, NULL, &setExc, NULL);
 		res = recv(fdCli, ghostBuff, 1, 0);
 		ec.printf("RECEIVEEND");
 		if (res<1) {
 			ec.printf("Server.clientPulseCheck]--> Error with select..(%d)  \n", res);
-		//	ec.printf("!!!!!%d!!!!!\n", fdCli);
 			perror("recv");
 			ec.printf("PULSECHECK - DEAD - stopExecuting!\n");
 			srv.getQEx()->stopExecuting();
@@ -161,37 +132,13 @@ void *clientPulseCheck(void *arg) {
 		else if (res>0) {
 			ec.printf("Server.clientPulseCheck]--> Desc. change. (%d)  \n", res);
 			pthread_exit((void *) res);
-			/*	if (FD_ISSET(fdCli, &setExc)) {
-					ec.printf("Server.clientPulseCheck]--> Exception on socket caught - client assumed MIA (%d)  \n", res);
-					srv.getQEx()->stopExecuting();
-				}
-				else if (FD_ISSET(fdSer, &set)) {
-					ec.printf("Server.clientPulseCheck]--> Server got me sth. to stop selecting \n", res);
-				}
-			*/
 		}
 			
 					
-	//	}
 	}
 
-	//ec.printf("[][]--> |%d|\n", stat);
-	//res = (srv.Receive(&ghostBuff, &size));
-	//TODO!!! PING_CLIENT
-	/*
-	if (res != 0) {
-	    ec.printf("[Server.clientPulseCheck]--> Client is KIA or MIA! Receive failed with %d \n", res);
-    	    //TODO Executor call - kills query and exits (this thread is no longer needed as client is dead)	
-	    //srv.getQex()->stopExecuting();
-	    //pthread_exit((void *)res);	
-	}
-	if (res == 0)
-	    ec.printf("[Server.clientPulseCheck]--> PING!!! (Client's alive)  \n");
-	    */
-    
-        
+	        
     ec.printf("[Server.clientPulseCheck]--> Freeing buffer and returning  \n");
-    //free(ghostBuff);
     pthread_exit((void *)res);
 }
 
@@ -204,7 +151,6 @@ double Server::htonDouble(double inD) {
     return res;
 }
 
-//DEVELOPING - NOT YET USED
 int  Server::SerializeRec(QueryResult *qr) 
 {
 	QueryResult *qres;
@@ -249,14 +195,8 @@ int  Server::SerializeRec(QueryResult *qr)
 				return -1;
 			} 
 			bagRes = (QueryBagResult *)qr;	
-			//*ec << "[Server.Serialize]--> Adding bag header";
 			serialBuf[0]=(char)resType;
-			//ec->printf("\n SerialBuf[0] |%c|%d| \n\n", serialBuf[0], (int)serialBuf[0]);
-			//ec->printf("\n SerialBufBegin[0] |%c|%d| \n\n", serialBufBegin[0], (int)serialBufBegin[0]);
-			serialBuf++;
-			//ec->printf("\n SerialBuf[0] |%s|%d| \n\n", serialBuf[0], (int)serialBuf[0]);
-			//ec->printf("\n SerialBufBegin[0] |%c|%d| \n\n", serialBufBegin[0], (int)serialBufBegin[0]);
-			
+			serialBuf++;			
 			memcpy((void *)serialBuf, (const void *)&bufBagLen, sizeof(bufBagLen));
 			ec->printf("[Server.Serialize]--> Bag header: |(type)=%d|(size)=%lu|\n", (int)serialBufBegin[0], ntohl(*(unsigned long *)serialBuf));
 			serialBuf=serialBuf+sizeof(bufBagLen);
@@ -272,7 +212,7 @@ int  Server::SerializeRec(QueryResult *qr)
 				SerializeRec(collItem);
 			}
 			break;
-		case QueryResult::QSEQUENCE: //TODO CZYM SIE ROZNI SEQUENCE OD BAGA??
+		case QueryResult::QSEQUENCE: 
 			resType=Result::SEQUENCE;
 			bagSize=qr->size();
 			bufBagLen=(unsigned long) bagSize;
@@ -288,7 +228,6 @@ int  Server::SerializeRec(QueryResult *qr)
 			serialBuf[0]=(char)resType;
 			serialBuf++;
 			memcpy((void *)serialBuf, (const void *)&bufBagLen, sizeof(bufBagLen));
-			//ec->printf("[Server.Serialize]--> Sequence header: |(type)=%d|(size)=%lu|\n", (int)serialBufBegin[0], ntohl(*(unsigned long *)serialBuf));
 			serialBuf=serialBuf+sizeof(bufBagLen);
 						
 			//TODO DEPTH
@@ -303,7 +242,7 @@ int  Server::SerializeRec(QueryResult *qr)
 			}
 				
 			break;
-		case QueryResult::QSTRUCT: //TODO CZYM SIE ROZNI STRUCT OD BAGA??
+		case QueryResult::QSTRUCT: 
 			resType=Result::STRUCT;
 			bagSize=qr->size();
 			bufBagLen=(unsigned long) bagSize;
@@ -318,7 +257,6 @@ int  Server::SerializeRec(QueryResult *qr)
 			serialBuf[0]=(char)resType;
 			serialBuf++;
 			memcpy((void *)serialBuf, (const void *)&bufBagLen, sizeof(bufBagLen));
-			//ec->printf("[Server.Serialize]--> Struct header: |(type)=%d|(size)=%lu|\n", (int)serialBufBegin[0], ntohl(*(unsigned long *)serialBuf));
 			serialBuf=serialBuf+sizeof(bufBagLen);
 						
 			//TODO DEPTH
@@ -355,7 +293,6 @@ int  Server::SerializeRec(QueryResult *qr)
 		    ec->printf("[Server.Serialize]--> Adding string header, string size=%d \n", valSize);
 		    serialBuf[0]=(char)resType;
 		    serialBuf++;
-		    //*ec << "[Server.Serialize]--> String header complete";
 		    strcpy(serialBuf, strVal.c_str());  
 		    ec->printf("[Server.Serialize]--> String serialized to: %s \n", serialBuf);
 		    serialBuf=serialBuf+valSize+1;
@@ -398,7 +335,7 @@ int  Server::SerializeRec(QueryResult *qr)
 		    memcpy((void *)serialBuf, (const void *)&doubleVal, sizeof(doubleVal));
 		    serialBuf = serialBuf + sizeof(doubleVal);		        
 		    break; 
-		case QueryResult::QBOOL: //TODO - pass either BOOLTRUE or BOOLFALSE or just BOOL?
+		case QueryResult::QBOOL: 
 		    *ec << "[Server.Serialize]--> BOOL type, sending type indicator and value";
 		    boolRes=(QueryBoolResult *)qr;
 		    boolVal=boolRes->getValue();
@@ -472,23 +409,8 @@ int Server::Run()
 	//Signal Handling
 	sigemptyset(&block_cc);
 	sigaddset(&block_cc, SIGINT);
-//	signal(SIGINT, (Server::sigHandler));
 	
-	//Set process signal mask
-	//*ec << "[Server.Run]--> Blocking SIGINT for now...";
 	sigprocmask(SIG_BLOCK, &block_cc, NULL);
-
-	//*ec << "[Server.Run]--> Initializing objects";
-	/*
-	LogManager* logManager = new LogManager();
-	logManager->init();
-	DBStoreManager* storeManager = new DBStoreManager();
-	storeManager->init(logManager);
-	TransactionManager::getHandle()->init(storeManager, logManager);
-	storeManager->start();
-        //logManager->start( storeManager );
-	//storeManager->setTransactionManager(TransactionManager::getHandle());
-	*/
 	
 	qPa = new QueryParser();
 	qEx = new QueryExecutor();
@@ -506,34 +428,10 @@ int Server::Run()
 	serialBuf=serialBufBegin;
 	pulseChecker_id=0;
 	
-	//Run pulse-checking thread to kill query running for dead client
-	//sigprocmask(SIG_BLOCK, &block_cc, NULL);
-	/*
-	pthread_mutex_lock(&mut);
-	res = pthread_create(&pthreads[threads_count], NULL, clientPulseCheck, this);
-	ec->printf("[Server.Run]--> Pulse-checker created with code %d \n", res);
-	if (res!=0) {
-	    ec->printf("[Server.Run]--> Pulse-checker thread creation failed with %d \n",  res);
-	    ec->printf("[Server.Run]--> Server continues to run anyway, but performance could be lowered\n");
-	}
-	else {
-	    ec->printf("[Server.Run]--> Pulse-checker created and running \n");
-	    pulseChecker_id=pthreads[threads_count];
-	    threads_count++;    
-	}
-	pthread_mutex_unlock(&mut);
-	
-	*/		    	
-	//sigprocmask(SIG_UNBLOCK, &block_cc, NULL);
-	
-	//pthread_mutex_lock(&mut);
 	srvStatus=SRV_DEFAULT;
-	//pthread_mutex_unlock(&mut);
 	
 while (!signalReceived) {
 
-
-	//ec->printf("!!!!RRR%dRRR!!!!\n", Sock);
 	if (ncError==1)
 	    *ec << "[Server.Run]-> a non-critical error occured during the previous session";
     	memset(serialBufBegin, '\0', MAX_MESSG);
@@ -544,16 +442,12 @@ while (!signalReceived) {
 	sigprocmask(SIG_BLOCK, &block_cc, NULL);
 	
 	//*ec << "[Server.Run]--> Cleaning buffers";
-	//memset(serializedMessg, '\0', MAX_MESSG); 
-	
+
 	//Get string from client
 	*ec << "[Server.Run]--> Unblocking sigint and receiving query from client";
 	sigprocmask(SIG_UNBLOCK, &block_cc, NULL);
 	
 	res = (Receive(&messgBuff, &size));
-	//printf("%d\n", res);
-	//res = (Receive(&messgBuff, &size));
-	//printf("%d\n", res);
 	if (res != 0) {
 	    ec->printf("[Server.Run]--> Receive returned error code %d\n", res);
 	    return res;
@@ -567,9 +461,7 @@ while (!signalReceived) {
 	    return ErrServer + EClientLost; //TODO Error
 	}
 	
-	//pthread_mutex_lock(&mut);
 	srvStatus=SRV_PROCESSING_QUERY;
-	//pthread_mutex_unlock(&mut);
 
 	*ec << "[Server.Run]--> Blocking sigint again..";
 	sigprocmask(SIG_BLOCK, &block_cc, NULL);	
@@ -610,21 +502,19 @@ while (!signalReceived) {
 	    ec->printf("[Server.Run]--> Executor returned error code %d\n", res);
 	    sendError(res);
 	    ncError=1;
-	    continue;
 	    *ec << "[SERVER]--> ends with ERROR";
 	    cancelPC(pulseChecker_id);
+	    continue;
 	    return ErrServer+EExecute;
 	} 
 	
-	//pthread_mutex_lock(&mut);
+	cancelPC(pulseChecker_id);
 	srvStatus=SRV_DEFAULT;
-	//pthread_mutex_unlock(&mut);
 	
 	*ec << "[Server.Run]--> EXECUTE complete, checking results..";
 	ec->printf("[Server.Run]--> Got qResult=|%d| of size: qResult->size()=|%d| :\n",  (int)qResult, qResult->size());
 	
-	if (qResult == 0) {//TODO ERROR
-	    cancelPC(pulseChecker_id);
+	if (qResult == 0) {//TODO
 	    return 0;
 	} 
 	
@@ -635,50 +525,13 @@ while (!signalReceived) {
 	    ec->printf("[Server.Run--> Serialize returned error code %d\n", res);
 	    sendError(res);
 	    *ec << "[SERVER]--> ends with ERROR";
-	    cancelPC(pulseChecker_id);
 	    return ErrServer+ESerialize;
 	}
 	
-	
-	
-#ifdef PULSE_CHECKER_ACTIVE
-	//Interrupt pulseChecker thread so it doesn't receive what's not meant for it to receive
-	/*
-	ec->printf("[Server.Run]--> Hanging up pulse-checker thread\n");
-	res = pthread_kill(pulseChecker_id, SIGHUP);
-	if (res != 0) {
-	   ec->printf("[Server.Run]--> Killing pulseChecker\n");
-	    if (0!=pthread_kill(pulseChecker_id, SIGINT)) {
-		ec->printf("[Server.Run]--> Signal sending error, Server returning with error\n");
-		//TODO ERROR
-		return -1;
-	    }
-	ec->printf("[Server.Run]--> pulseChecker cancellation.. \n");	
-    	*/
-	//select(0, NULL, NULL, NULL, 1000);
-	//sleep(2);
-	/*
-	pthread_mutex_lock(&mut);
-	    res = pthread_cancel(pulseChecker_id);
-	    if (res!=0)
-		ec->printf("[Server.Run]--> pulseChecker cancellation failed!! (%d)\n", res);	
-    	    else {	
-		running_threads_count--;
-	    }
-	pthread_mutex_unlock(&mut);
-	ec->printf("[Server.Run]--> pulseChecker cancelled..\n");	
-    	
-	//}
-	*/
-	cancelPC(pulseChecker_id);
-#endif
-	
-	
+		
 	*ec << "[Server.Run]--> *****SERIALIZE complete*****";
 	
 	ec->printf("[Server.Run]--> Sending results to client.. Result type=|%d|\n", (int)serialBufBegin[0]);
-	//ec->printf("Buf: |%d|%d|%d|%d|%d|%d|%d|\n", (int)serialBufBegin[0], (int)serialBufBegin[1], (int)serialBufBegin[2],
-	//(int)serialBufBegin[3], (int)serialBufBegin[4], (int)serialBufBegin[5], (int)serialBufBegin[6]);
 	res=(Send(&*serialBufBegin, serialBufSize));
 	if (res != 0) {
 	    ec->printf("[Server.Run]--> Send returned error code %d\n", res);
@@ -692,27 +545,10 @@ while (!signalReceived) {
 	
 	//TODO DESTROY ALL OBJECTS
 	*ec << "[Server.Run]--> Destroying Objects";
-	//qEx->~QueryExecutor(); //segfault
-	//*ec << "Past Executor";
-	/*qPa->~QueryParser();
-	*ec << "Past Parser";
-	TransactionManager::getHandle()->~TransactionManager();
-	*ec << "Past Transaction Manager";
-	LockManager::getHandle()->~LockManager();
-	*ec << "Past LockManager";
-	//storeManager->~DBStoreManager(); //segfault
-	// *ec << "Past DBStoreManager";
-	logManager->~LogManager();
-	*ec << "Past LogManager";
-	*/
 	*ec << "[Server.Run]--> Disconnecting";
 	Disconnect();
 	
 	*ec << "[Server.Run]--> <><><>End<><><>"; 
-	
-	//pthread_mutex_lock(&mut);
-	//emptyPocket();
-	//pthread_mutex_unlock(&mut);
 	return 0;	
 }		
 
