@@ -12,8 +12,6 @@
 
 #define LOCK_PATH_KEY "lockpath"
 
-//using namespace Listener;
-
 Server *srvs[MAX_CLIENTS];
 pthread_t pthreads[MAX_CLIENTS];
 pthread_t pulseThreads[MAX_CLIENTS];
@@ -97,9 +95,6 @@ int Listener::CreateServer(int sock) {
 }
 
 void *exitPoint() {
-    //pthread_lock(&mut);
-	//TODO Update threads_count etc
-    //pthread_unlock(&mut);
     pthread_exit((void *) 0);
 }
 

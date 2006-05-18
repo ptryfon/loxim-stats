@@ -49,7 +49,7 @@ extern pthread_t pulseThreads[];
 		int pulseCheckerNotify();
 		//static void sigHandler(int sig);
 			
-		SERVER_OPERATION_STATUS srvStatus;
+		//SERVER_OPERATION_STATUS srvStatus;
 		
 		int SExit(int code);
 		int SerializeRec(QueryResult *qr);		

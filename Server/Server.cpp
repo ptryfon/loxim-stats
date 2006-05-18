@@ -31,7 +31,6 @@
 
 typedef char TREE_NODE_TYPE;
 
-
 using namespace Errors;
 using namespace std;
 using namespace Logs;
@@ -102,24 +101,16 @@ void *clientPulseCheck(void *arg) {
     Server srv=*(Server *)arg;
     int res;
     int fdCli;
-    int fdSer;
-    int maxFd;
-    char ghostBuff[2000];
-    memset(ghostBuff, 0, 2000);
+    char ghostBuff;
     ErrorConsole ec("Server_PulseCheck");
    
     fdCli=srv.getSocket();
-    fdSer=srv.getFdContact();
-	if (fdCli>fdSer)
-    		maxFd=fdCli;
-	else 
-		maxFd=fdSer;
-	
+    
     pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
     pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
     ec.printf("[Server.clientPulseCheck]--> Start..  \n", res);
     while (1) {
-		res = recv(fdCli, ghostBuff, 1, 0);
+		res = recv(fdCli, &ghostBuff, 1, 0);
 		ec.printf("RECEIVEEND");
 		if (res<1) {
 			ec.printf("Server.clientPulseCheck]--> Error with select..(%d)  \n", res);
@@ -137,9 +128,6 @@ void *clientPulseCheck(void *arg) {
 					
 	}
 
-	        
-    ec.printf("[Server.clientPulseCheck]--> Freeing buffer and returning  \n");
-    pthread_exit((void *)res);
 }
 
 double Server::htonDouble(double inD) {
@@ -403,7 +391,6 @@ int Server::Run()
 	
 	sigset_t block_cc;
 	
-	srvStatus=SRV_INITIALIZING;
 	*ec << "[Server.Run]--> Starts";
 	
 	//Signal Handling
@@ -428,8 +415,7 @@ int Server::Run()
 	serialBuf=serialBufBegin;
 	pulseChecker_id=0;
 	
-	srvStatus=SRV_DEFAULT;
-	
+		
 while (!signalReceived) {
 
 	if (ncError==1)
@@ -461,8 +447,7 @@ while (!signalReceived) {
 	    return ErrServer + EClientLost; //TODO Error
 	}
 	
-	srvStatus=SRV_PROCESSING_QUERY;
-
+	
 	*ec << "[Server.Run]--> Blocking sigint again..";
 	sigprocmask(SIG_BLOCK, &block_cc, NULL);	
 	
@@ -473,8 +458,6 @@ while (!signalReceived) {
 	    sendError(res);
 	    ncError=1;
 	    continue;
-	    *ec << "[SERVER]--> ends with ERROR";
-	    return res;
 	}
 	
 	
@@ -498,18 +481,16 @@ while (!signalReceived) {
 	
 	ec->printf("[Server.Run]--> Requesting EXECUTE on tree node: |%d| \n", (int) tNode);
 	res = (qEx->executeQuery(tNode, &qResult)); 
+#ifdef PULSE_CHECKER_ACTIVE
+	cancelPC(pulseChecker_id);
+#endif
 	if (res != 0) {
 	    ec->printf("[Server.Run]--> Executor returned error code %d\n", res);
 	    sendError(res);
 	    ncError=1;
 	    *ec << "[SERVER]--> ends with ERROR";
-	    cancelPC(pulseChecker_id);
 	    continue;
-	    return ErrServer+EExecute;
 	} 
-	
-	cancelPC(pulseChecker_id);
-	srvStatus=SRV_DEFAULT;
 	
 	*ec << "[Server.Run]--> EXECUTE complete, checking results..";
 	ec->printf("[Server.Run]--> Got qResult=|%d| of size: qResult->size()=|%d| :\n",  (int)qResult, qResult->size());
