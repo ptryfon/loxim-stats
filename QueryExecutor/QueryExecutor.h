@@ -45,8 +45,8 @@ namespace QExecutor
 	protected:
 		ErrorConsole *ec;
 		Transaction *tr;
-		EnvironmentStack envs;
-		ResultStack qres;
+		EnvironmentStack *envs;
+		ResultStack *qres;
 		int stop;
 		bool evalStopped() { return ( stop != 0 ); };
 		int executeRecQuery(TreeNode *tree);
@@ -60,7 +60,7 @@ namespace QExecutor
 		int sortBag(QueryBagResult *inBag, QueryBagResult *&outBag);
 		int objectFromBinder(QueryResult *res, ObjectPointer *&newObject);
 	public:
-		QueryExecutor() { tr = NULL; ec = new ErrorConsole("QueryExecutor"); stop = 0; };
+		QueryExecutor() { envs = new EnvironmentStack(); qres = new ResultStack(); tr = NULL; ec = new ErrorConsole("QueryExecutor"); stop = 0; };
 		~QueryExecutor();
 		int executeQuery(TreeNode *tree, QueryResult **result);
 		void stopExecuting() { stop = 65535; };

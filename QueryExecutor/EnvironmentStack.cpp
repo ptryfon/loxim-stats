@@ -35,9 +35,7 @@ int EnvironmentStack::pop(){
 		*ec << (ErrQExecutor | EQEmptySet);
 		return ErrQExecutor | EQEmptySet;
 	} 
-	else {
-		es.pop_back();
-	};
+	es.pop_back();
 	*ec << "[QE] Environment Stack popped"; 
 	return 0;
 }
@@ -47,9 +45,7 @@ int EnvironmentStack::top(QueryBagResult *&r) {
 		*ec << (ErrQExecutor | EQEmptySet);
 		return ErrQExecutor | EQEmptySet;
 	}
-	else {
-		r=(es.back());
-	};
+	r=(es.back());
 	return 0;
 }
 
@@ -176,6 +172,7 @@ int QueryReferenceResult::nested(Transaction *&tr, QueryResult *&r) {
 	if (value != NULL) {
 		if ((errcode = tr->getObjectPointer(value, Store::Read, optr)) != 0) {
 			*ec << "[QE] Error in getObjectPointer";
+			tr->abort();
 			tr = NULL;
 			return errcode;
 		}
@@ -198,6 +195,7 @@ int QueryReferenceResult::nested(Transaction *&tr, QueryResult *&r) {
 				LogicalID *tmp_logID = (tmp_data_value->getPointer());
 				if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, optr)) != 0) {
 				*ec << "[QE] Error in getObjectPointer";
+					tr->abort();
 					tr = NULL;
 					return errcode;
 				}
@@ -217,6 +215,7 @@ int QueryReferenceResult::nested(Transaction *&tr, QueryResult *&r) {
 					LogicalID *tmp_logID = tmp_vec->at(i);
 					if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, optr)) != 0) {
 					*ec << "[QE] Error in getObjectPointer";
+						tr->abort();
 						tr = NULL;
 						return errcode;
 					}

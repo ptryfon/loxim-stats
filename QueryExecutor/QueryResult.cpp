@@ -294,7 +294,6 @@ void QueryReferenceResult::setRef()			{ refed = true; }
 //function plus()
 int QueryIntResult::plus(QueryResult *r, QueryResult *&res){ 
 	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
-		res = new QueryNothingResult();
 		*ec << "[QE] ERROR! + arguments must be INT or DOUBLE";
 		*ec << (ErrQExecutor | ENumberExpected);
 		return ErrQExecutor | ENumberExpected;
@@ -312,7 +311,6 @@ int QueryIntResult::plus(QueryResult *r, QueryResult *&res){
 
 int QueryDoubleResult::plus(QueryResult *r, QueryResult *&res){
 	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
-		res = new QueryNothingResult();
 		*ec << "[QE] ERROR! + arguments must be INT or DOUBLE";
 		*ec << (ErrQExecutor | ENumberExpected);
 		return ErrQExecutor | ENumberExpected; 
@@ -331,7 +329,6 @@ int QueryDoubleResult::plus(QueryResult *r, QueryResult *&res){
 //function minus()
 int QueryIntResult::minus(QueryResult *r, QueryResult *&res){
 	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
-		res = new QueryNothingResult();
 		*ec << "[QE] ERROR! - arguments must be INT or DOUBLE";
 		*ec << (ErrQExecutor | ENumberExpected);
 		return ErrQExecutor | ENumberExpected; 
@@ -349,7 +346,6 @@ int QueryIntResult::minus(QueryResult *r, QueryResult *&res){
 
 int QueryDoubleResult::minus(QueryResult *r, QueryResult *&res){ 
 	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
-		res = new QueryNothingResult();
 		*ec << "[QE] ERROR! - arguments must be INT or DOUBLE";
 		*ec << (ErrQExecutor | ENumberExpected);
 		return ErrQExecutor | ENumberExpected;
@@ -380,7 +376,6 @@ int QueryDoubleResult::minus(QueryResult *&res){
 //function times()
 int QueryIntResult::times(QueryResult *r, QueryResult *&res){ 
 	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
-		res = new QueryNothingResult();
 		*ec << "[QE] ERROR! * arguments must be INT or DOUBLE";
 		*ec << (ErrQExecutor | ENumberExpected);
 		return ErrQExecutor | ENumberExpected;
@@ -398,7 +393,6 @@ int QueryIntResult::times(QueryResult *r, QueryResult *&res){
 
 int QueryDoubleResult::times(QueryResult *r, QueryResult *&res){ 
 	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
-		res = new QueryNothingResult();
 		*ec << "[QE] ERROR! * arguments must be INT or DOUBLE";
 		*ec << (ErrQExecutor | ENumberExpected);
 		return ErrQExecutor | ENumberExpected;
@@ -417,14 +411,12 @@ int QueryDoubleResult::times(QueryResult *r, QueryResult *&res){
 //function divide_by()
 int QueryIntResult::divide_by(QueryResult *r, QueryResult *&res){
 	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
-		res = new QueryNothingResult();
 		*ec << "[QE] ERROR! / arguments must be INT or DOUBLE";
 		*ec << (ErrQExecutor | ENumberExpected);
 		return ErrQExecutor | ENumberExpected;
 	}
 	if (r->type() == QueryResult::QINT) {
 		if (((QueryIntResult*) r)->getValue() == 0) {
-			res = new QueryNothingResult();
 			*ec << "[QE] Division by 0 error!";
 			*ec << (ErrQExecutor | EDivBy0);
 			return ErrQExecutor | EDivBy0;
@@ -434,7 +426,6 @@ int QueryIntResult::divide_by(QueryResult *r, QueryResult *&res){
 	}
 	else { //QDOUBLE
 		if (((QueryDoubleResult*) r)->getValue() == 0) {
-			res = new QueryNothingResult();
 			*ec << "[QE] Division by 0 error!";
 			*ec << (ErrQExecutor | EDivBy0);
 			return ErrQExecutor | EDivBy0;
@@ -447,14 +438,12 @@ int QueryIntResult::divide_by(QueryResult *r, QueryResult *&res){
 
 int QueryDoubleResult::divide_by(QueryResult *r, QueryResult *&res){ 
 	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
-		res = new QueryNothingResult();
 		*ec << "[QE] ERROR! / arguments must be INT or DOUBLE";
 		*ec << (ErrQExecutor | ENumberExpected);
 		return ErrQExecutor | ENumberExpected;
 	}
 	if (r->type() == QueryResult::QINT) {
 		if (((QueryIntResult*) r)->getValue() == 0) {
-			res = new QueryNothingResult();
 			*ec << "[QE] Division by 0 error!";
 			*ec << (ErrQExecutor | EDivBy0);
 			return ErrQExecutor | EDivBy0;
@@ -464,7 +453,6 @@ int QueryDoubleResult::divide_by(QueryResult *r, QueryResult *&res){
 	}
 	else { //QDOUBLE
 		if (((QueryDoubleResult*) r)->getValue() == 0) {
-			res = new QueryNothingResult();
 			*ec << "[QE] Division by 0 error!";
 			*ec << (ErrQExecutor | EDivBy0);
 			return ErrQExecutor | EDivBy0;
@@ -478,7 +466,6 @@ int QueryDoubleResult::divide_by(QueryResult *r, QueryResult *&res){
 // boolean functions
 int QueryBoolResult::bool_and(QueryResult *r, QueryResult *&res){ 
 	if (r->type() != QueryResult::QBOOL ) {
-		res = new QueryNothingResult();
 		*ec << "[QE] ERROR! AND arguments must be BOOLEAN";
 		*ec << (ErrQExecutor | EBoolExpected);
 		return ErrQExecutor | EBoolExpected;
@@ -490,7 +477,6 @@ int QueryBoolResult::bool_and(QueryResult *r, QueryResult *&res){
 
 int QueryBoolResult::bool_or(QueryResult *r, QueryResult *&res){ 
 	if (r->type() != QueryResult::QBOOL ) {
-		res = new QueryNothingResult();
 		*ec << "[QE] ERROR! OR arguments must be BOOLEAN";
 		*ec << (ErrQExecutor | EBoolExpected);
 		return ErrQExecutor | EBoolExpected;
@@ -1479,9 +1465,11 @@ int QuerySequenceResult::sortCollection(QueryResult *r) {
 			if (errcode != 0) return errcode;
 			QueryResult *first_seq = new QuerySequenceResult();
 			errcode = ((QuerySequenceResult *) first_seq)->sortCollection(first_bag);
+			delete first_bag;
 			if (errcode != 0) return errcode;
 			QueryResult *second_seq = new QuerySequenceResult();
 			errcode = ((QuerySequenceResult *) second_seq)->sortCollection(second_bag);
+			delete second_bag;
 			if (errcode != 0) return errcode;
 			unsigned int seq_size = (first_seq->size()) + (second_seq->size());
 			if (seq_size != bagSize) {
@@ -1523,7 +1511,7 @@ int QuerySequenceResult::sortCollection(QueryResult *r) {
 						first_sStr = first_sorting;
 					}
 					else {
-						first_sStr = new QueryStructResult;
+						first_sStr = new QueryStructResult();
 						first_sStr->addResult(first_sorting);
 					}
 					QueryResult *second_sStr;
@@ -1531,7 +1519,7 @@ int QuerySequenceResult::sortCollection(QueryResult *r) {
 						second_sStr = second_sorting;
 					}
 					else {
-						second_sStr = new QueryStructResult;
+						second_sStr = new QueryStructResult();
 						second_sStr->addResult(second_sorting);
 					}
 					if ((first_sStr->size()) != (second_sStr->size())) {
@@ -1568,8 +1556,12 @@ int QuerySequenceResult::sortCollection(QueryResult *r) {
 						if (errcode != 0) return errcode;
 						seq.push_back(first_elem);
 					}
+					if ((first_sorting->type()) != QueryResult::QSTRUCT) delete first_sStr;
+					if ((second_sorting->type()) != QueryResult::QSTRUCT) delete second_sStr;
 				}
 			}
+			delete first_seq;
+			delete second_seq;
 			break;
 		}
 	}
