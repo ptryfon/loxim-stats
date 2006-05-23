@@ -4,12 +4,21 @@ namespace Store
 {
 	Map::Map()
 	{
+		RIP = (physical_id*) new char[sizeof(physical_id)];
+		memset(RIP, 0xFF, sizeof(physical_id));
 	};
 
 	Map::~Map()
 	{
+		delete RIP;
+	
 		if (header)
 			delete header;
+	}
+
+	bool Map::equal(physical_id* a, physical_id* b)
+	{
+		return memcmp(a, b, sizeof(physical_id)) == 0;
 	}
 
 	void Map::init(Buffer* buffer, LogManager* log)

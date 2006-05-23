@@ -35,6 +35,9 @@ namespace Store
 		Map();
 		~Map();
 
+		physical_id* RIP;
+		bool equal(physical_id* a, physical_id* b);
+
 		void init(Buffer* buffer, LogManager* log);
 		int initializeFile(File* file);
 		int initializePage(unsigned int pageID, char* page);

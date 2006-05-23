@@ -122,10 +122,17 @@ namespace Store
 	int DBStoreManager::getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object)
 	{
 		*ec << "Store::Manager::getObject started...";
-		
+
 		physical_id *p_id = NULL;
 		if( (map->getPhysicalID(lid->toInteger(),&p_id)) == 2 ) return 2; //out of range
 		cout << "file: " << p_id->file_id << ", page: " << p_id->page_id << ", off: " << p_id->offset <<endl;
+
+		if (map->equal(p_id, map->RIP))
+		{
+			*ec << "Store::Manager::getObject done: Object not found\n(brak ustalonego kodu bledu dla tej operacji, default -> return 2;";
+			return 2;	
+		}
+
 //
 // Ty co tu jest?!
 //
@@ -268,8 +275,7 @@ namespace Store
 		p->object_offset[pos_table] = -1;		
 
 		// poinformowanie mapy o usunieciu obiektu
-		memset(p_id, 0xFF, sizeof(p_id));
-		map->setPhysicalID(object->getLogicalID()->toInteger(), p_id);
+		map->setPhysicalID(object->getLogicalID()->toInteger(), map->RIP);
 
 		// uaktualnienie info na stronie
 		if(p->object_count-1 == ooff) {

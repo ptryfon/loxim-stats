@@ -1,4 +1,5 @@
 #include "DBDataValue.h"
+#include "DBStoreManager.h"
 #include <stdio.h>
 
 using namespace std;
@@ -185,8 +186,14 @@ namespace Store
 				int ub;
 				for(int i=0; i<vlen; i++) {
 					ub = DBLogicalID::deserialize(curpos, lid);
+
+					physical_id *p_id = 0;
+					((DBStoreManager*) DBStoreManager::theStore)->getMap()->getPhysicalID(lid->toInteger(), &p_id);
+					if (!((DBStoreManager*) DBStoreManager::theStore)->getMap()->equal(p_id, ((DBStoreManager*) DBStoreManager::theStore)->getMap()->RIP))
+						v->push_back(lid);
+					delete p_id;
+
 					curpos += ub;
-					v->push_back(lid);
 				}
 				value = new DBDataValue();
 				value->setSubtype(subtype);
