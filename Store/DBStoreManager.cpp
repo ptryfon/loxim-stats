@@ -209,6 +209,57 @@ namespace Store
 		return 0;
 	}
 
+	int DBStoreManager::createObject(TransactionID* tid, string name, DataValue* value, ObjectPointer*& object, LogicalID* p_lid, bool isRoot)
+	{
+		*ec << "Store::Manager::createObject start...";
+		
+		LogicalID* lid;
+		if(p_lid == NULL)
+			lid = new DBLogicalID(map->createLogicalID());
+		else
+			lid = p_lid;
+		unsigned log_id;
+		int itid = tid==NULL ? -1 : tid->getId();
+#ifdef LOGS
+		// klony lida dla logow
+		log->write(itid, lid->clone(), name, NULL, value->clone(), log_id/*, p_lid?false:true*/);
+#endif
+		object = new DBObjectPointer(name, value, lid);
+		object->setIsRoot(isRoot);
+
+		Serialized sObj = object->serialize();
+		sObj.info();
+
+		int freepage = pagemgr->getFreePage(); // strona z wystaraczajaca iloscia miejsca na nowy obiekt
+		//*ec << "Store::Manager::createObject freepage = " + freepage;
+		cout << "Store::Manager::createObject freepage = " << freepage << endl;
+		PagePointer* pPtr = buffer->getPagePointer(STORE_FILE_DEFAULT, freepage);
+
+		pPtr->aquire();
+
+		//cout << "przed:\n";
+		//pagemgr->printPage(pPtr, 1024/16);
+		int pidoffset;
+		PageManager::insertObject(pPtr, sObj, &pidoffset, log_id);
+		//cout << "po:\n";
+		//pagemgr->printPage(pPtr, 1024/16);
+
+		pagemgr->updateFreeMap(pPtr);
+		
+		//PageManager::printPage(pPtr, 1024/16);
+		pPtr->release();
+		
+		physical_id pid;
+		pid.page_id = freepage;
+		pid.file_id = STORE_FILE_DEFAULT;
+		pid.offset = pidoffset;
+		map->setPhysicalID(lid->toInteger(), &pid);
+		
+		ec->printf("Store::Manager::createObject done: %s\n", object->toString().c_str());
+		return 0;
+	}
+
+
 	int DBStoreManager::deleteObject(TransactionID* tid, ObjectPointer* object)
 	{
 		*ec << "Store::Manager::deleteObject start...";
@@ -390,10 +441,17 @@ namespace Store
 		// klon dla logow
 //		log->addRoot(itid, object->getLogicalID()->clone(), log_id);
 #endif
-		roots->addRoot(lid, object->getName().c_str(), tid->getId(), tid->getTimeStamp());
+		*ec << "Store::Manager::modifyObject start...";
+		
+		deleteObject(tid, object);
+		ObjectPointer* newobj;
+		createObject(tid, object->getName(), object->getValue(), newobj, object->getLogicalID(), true);
+		delete object;
+		object = newobj;
+		
+		*ec << "Store::Manager::modifyObject done";
 
-		object->setIsRoot(true);
-		modifyObject(tid, object, object->getValue());
+		roots->addRoot(lid, object->getName().c_str(), tid->getId(), tid->getTimeStamp());
 
 		ec->printf("Store::Manager::addRoot done: %s\n", object->toString().c_str());
 		return 0;
@@ -409,11 +467,18 @@ namespace Store
 		// klon dla logow
 //		log->removeRoot(itid, object->getLogicalID()->clone(), log_id);
 #endif
+		*ec << "Store::Manager::modifyObject start...";
+		
+		deleteObject(tid, object);
+		ObjectPointer* newobj;
+		createObject(tid, object->getName(), object->getValue(), newobj, object->getLogicalID(), false);
+		delete object;
+		object = newobj;
+		
+		*ec << "Store::Manager::modifyObject done";
+		
 		roots->removeRoot(lid, tid->getId(), tid->getTimeStamp());
 
-		object->setIsRoot(false);
-		modifyObject(tid, object, object->getValue());
-		
 		ec->printf("Store::Manager::removeRoot done: %s\n", object->toString().c_str());
 		return 0;
 	}
