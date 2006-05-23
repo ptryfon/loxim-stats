@@ -1265,7 +1265,7 @@ int QueryExecutor::unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&
 					tr = NULL;
 					return errcode;
 				}
-				if (optr->isRoot()) {
+				if (optr->getIsRoot()) {
 					if ((errcode = tr->removeRoot(optr)) != 0) {
 						*ec << "[QE] Error in removeRoot.";
 						tr->abort();
@@ -1598,7 +1598,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 						return errcode;
 					}
 					ec->printf("[QE] getObjectPointer on %d element of rightArg done\n", i);
-					if (optrIn->isRoot()) {
+					if (optrIn->getIsRoot()) {
 						errcode = tr->removeRoot(optrIn);
 						if (errcode != 0) {
 							*ec << "[QE] insert operation - Error in removeRoot.";
