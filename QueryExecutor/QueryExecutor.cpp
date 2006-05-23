@@ -62,14 +62,11 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 				return 0;
 			}
 		}
-		switch (nodeType) // tr != NULL
-		{
-		case TreeNode::TNTRANS: {
+		if (nodeType == (TreeNode::TNTRANS)) {
 			TransactNode::transactionOp op = ((TransactNode *) tree)->getOp();
 			switch (op) {
 				case TransactNode::begin: {
 					*ec << "[QE] ERROR! Transaction already opened. It can't be opened once more!";
-					*ec << "[QE] maybe someday, when nested transactions will be implemented...";
 					*result = new QueryNothingResult();
 					*ec << (ErrQExecutor | EQEUnexpectedErr);
 					return ErrQExecutor | EQEUnexpectedErr;
@@ -106,22 +103,17 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			*result = new QueryNothingResult();
 			*ec << "[QE] Nothing else to do. QueryNothingResult created";
 			return 0;
-		} //case TNTRANS
-
-		default: {
-			QueryResult *tmp_result;
+		} //if node == TNTRANS
+		else {
 			errcode = this->executeRecQuery(tree);
 			if (errcode != 0) return errcode;
-			errcode = qres->pop(tmp_result);
+			errcode = qres->pop(*result);
 			if (errcode != 0) return errcode;
-			*result = tmp_result;
 			*ec << "[QE] Done!";
 			return 0;
-			}
+		}
 
-		} // end of switch
-		
-	} // if tree!=Null
+	} //if tr != NULL
 	else { // tree == NULL; return empty result
 		*ec << "[QE] empty tree, nothing to do";
 		*result = new QueryNothingResult();
@@ -146,9 +138,6 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		*ec << "[QE] Transaction aborted succesfully";
 		*ec << (ErrQExecutor | EQEUnexpectedErr);
 		return ErrQExecutor | EQEUnexpectedErr;
-	}
-	else {
-		*ec << "[QE] query evaluating NOT stopped by Server (RECURSIVE CHECK) ";
 	}
 	
 	if (tree != NULL) {
@@ -178,7 +167,6 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 					QueryReferenceResult *lidres = new QueryReferenceResult(lid);
 					result->addResult(lidres);
 				}
-				
 				delete vec;
 			}
 			errcode = qres->push(result);
@@ -190,21 +178,21 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		case TreeNode::TNCREATE: {
 			*ec << "[QE] Type: TNCREATE";
 			QueryResult *result = new QueryBagResult();
-			string name = tree->getName();
-			QueryResult *tmp_result;
 			errcode = executeRecQuery (tree->getArg());
 			if (errcode != 0) return errcode;
+			QueryResult *tmp_result;
 			errcode = qres->pop(tmp_result);
 			if (errcode != 0) return errcode;
 			QueryResult *bagRes = new QueryBagResult();
 			bagRes->addResult(tmp_result);
 			for (unsigned int i = 0; i < bagRes->size(); i++) {
 				QueryResult *binder;
-				errcode = ((QueryBagResult *) tmp_result)->at(i, binder);
+				errcode = ((QueryBagResult *) bagRes)->at(i, binder);
 				if (errcode != 0) return errcode;
 				ObjectPointer *optr;
 				errcode = this->objectFromBinder(binder, optr);
 				if (errcode != 0) return errcode;
+				//delete binder;
 				if ((errcode = tr->addRoot(optr)) != 0) {
 					*ec << "[QE] Error in addRoot";
 					tr->abort();
@@ -212,8 +200,10 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 					return errcode;
 				}
 				QueryReferenceResult *lidres = new QueryReferenceResult(optr->getLogicalID());
-				((QueryBagResult *)result)->addResult (lidres);
+				((QueryBagResult *) result)->addResult (lidres);
 			}
+			//delete tmp_result;
+			//delete bagRes;
 			errcode = qres->push(result);
 			if (errcode != 0) return errcode;
 			*ec << "[QE] CREATE Done!";
@@ -223,9 +213,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		case TreeNode::TNINT: {
 			int intValue = ((IntNode *) tree)->getValue();
 			ec->printf("[QE] TNINT: %d\n", intValue);
-			QueryResult *result = new QueryBagResult();
-			QueryIntResult *tmpResult = new QueryIntResult(intValue);
-			((QueryBagResult *)result)->addResult(tmpResult);
+			QueryResult *result = new QueryIntResult(intValue);
 			errcode = qres->push(result);
 			if (errcode != 0) return errcode;
 			ec->printf("[QE] QueryIntResult (%d) created\n",intValue);
@@ -234,10 +222,8 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		
 		case TreeNode::TNSTRING: {
 			string stringValue = ((StringNode *) tree)->getValue();
-			*ec << "[QE] QueryStringResult created";
-			QueryResult *result = new QueryBagResult();
-			QueryStringResult *tmpResult = new QueryStringResult(stringValue);
-			((QueryBagResult *) result)->addResult(tmpResult);
+			*ec << "[QE] TNSTRING: " << stringValue;
+			QueryResult *result = new QueryStringResult(stringValue);
 			errcode = qres->push(result);
 			if (errcode != 0) return errcode;
 			*ec << "[QE] QueryStringResult created";
@@ -247,9 +233,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		case TreeNode::TNDOUBLE: {
 			double doubleValue = ((DoubleNode *) tree)->getValue();
 			ec->printf("[QE] TNDOUBLE: %f\n", doubleValue);
-			QueryResult *result = new QueryBagResult();
-			QueryDoubleResult *tmpResult = new QueryDoubleResult(doubleValue);
-			((QueryBagResult *)result)->addResult(tmpResult);
+			QueryResult *result = new QueryDoubleResult(doubleValue);
 			errcode = qres->push(result);
 			if (errcode != 0) return errcode;
 			ec->printf("[QE] QueryDoubleResult (%f) created\n", doubleValue);
@@ -268,9 +252,9 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		case TreeNode::TNAS: {
 			*ec << "[QE] AS/GROUP_AS operation recognized";
 			string name = tree->getName();
-			QueryResult *tmp_result;
 			errcode = executeRecQuery(tree->getArg());
 			if (errcode != 0) return errcode;
+			QueryResult *tmp_result;
 			errcode = qres->pop(tmp_result);
 			if (errcode != 0) return errcode;
 			bool grouped = ((NameAsNode *) tree)->isGrouped();
@@ -288,8 +272,9 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 					partial_result = new QueryBagResult();
 					partial_result->addResult(tmp_result);
 				}
-				else
+				else {
 					partial_result = tmp_result;
+				}
 				for (unsigned int i = 0; i < partial_result->size(); i++) {
 					QueryResult *nextResult;
 					errcode = ((QueryBagResult *) partial_result)->at(i, nextResult);
@@ -298,6 +283,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 					*ec << "[QE] AS: new binder created and added to final result";
 					final_result->addResult(tmp_binder);
 				}
+				//delete partial_result;
 			}
 			errcode = qres->push(final_result);
 			if (errcode != 0) return errcode;
@@ -308,17 +294,16 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		case TreeNode::TNUNOP: {
 			UnOpNode::unOp op = ((UnOpNode *) tree)->getOp();
 			*ec << "[QE] Unary operator - type recognized";
-			QueryResult *tmp_result;
 			errcode = executeRecQuery(tree->getArg());
 			if (errcode != 0) return errcode;
+			QueryResult *tmp_result;
 			errcode = qres->pop(tmp_result);
 			if (errcode != 0) return errcode;
 			QueryResult *op_result;
 			errcode = this->unOperate(op, tmp_result, op_result);
 			if (errcode != 0) return errcode;
-			QueryResult *final_result = new QueryBagResult();
-			final_result->addResult(op_result);
-			errcode = qres->push(final_result);
+			//delete tmp_result;
+			errcode = qres->push(op_result);
 			if (errcode != 0) return errcode;
 			*ec << "[QE] Unary operation Done!";
 			return 0;
@@ -339,9 +324,9 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			QueryResult *op_result;
 			errcode = this->algOperate(op, lResult, rResult, op_result);
 			if (errcode != 0) return errcode;
-			QueryResult *final_result = new QueryBagResult();
-			final_result->addResult(op_result);
-			errcode = qres->push(final_result);
+			//delete lResult;
+			//delete rResult;
+			errcode = qres->push(op_result);
 			if (errcode != 0) return errcode;
 			*ec << "[QE] Algebraic operation Done!";
 			return 0;
@@ -408,9 +393,6 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 						*ec << "[QE] Transaction aborted succesfully";
 						*ec << (ErrQExecutor | EQEUnexpectedErr);
 						return ErrQExecutor | EQEUnexpectedErr;
-					}
-					else {
-						*ec << "[QE] query evaluating NOT stopped by Server (LOOP CHECK) ";
 					}
 					
 					QueryResult *currentResult;
@@ -696,7 +678,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			return ErrQExecutor | EUnknownNode;
 			}
 
-		} // end of switch
+		} // end of switch(nodeType)
 		
 	} // if tree!=Null
 	else { // tree == NULL; return empty result
@@ -707,7 +689,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		*ec << "[QE] QueryNothingResult created";
 	}
 	return 0;
-    }//executeQuerry
+}//executeQuerry
 
 int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 	*ec << "[QE] derefQuery()";
@@ -1283,7 +1265,7 @@ int QueryExecutor::unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&
 					tr = NULL;
 					return errcode;
 				}
-				if (optr->getIsRoot()) {
+				if (optr->isRoot()) {
 					if ((errcode = tr->removeRoot(optr)) != 0) {
 						*ec << "[QE] Error in removeRoot.";
 						tr->abort();
@@ -1616,7 +1598,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 						return errcode;
 					}
 					ec->printf("[QE] getObjectPointer on %d element of rightArg done\n", i);
-					if (optrIn->getIsRoot()) {
+					if (optrIn->isRoot()) {
 						errcode = tr->removeRoot(optrIn);
 						if (errcode != 0) {
 							*ec << "[QE] insert operation - Error in removeRoot.";
