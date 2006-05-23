@@ -95,6 +95,8 @@ namespace Store
 		virtual unsigned int toInteger() const = 0;
 		virtual Serialized serialize() const = 0;
 		virtual LogicalID* clone() const = 0;
+		virtual string getServer() const = 0;
+		virtual void setServer(string server) = 0;
 
 		// Operators
 		virtual bool operator==(LogicalID& lid) = 0;

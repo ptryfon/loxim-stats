@@ -23,12 +23,15 @@ namespace Store
 		virtual Serialized serialize() const;
 		static int deserialize(unsigned char* bytes, DBLogicalID*& lid);
 		virtual LogicalID* clone() const;
+        virtual string getServer() const;
+        virtual void setServer(string server);
 
 		virtual bool operator==(LogicalID& lid);
 		virtual DBLogicalID& operator=(const LogicalID& lid);
 
 		unsigned int value;
 	private:
+		string server;
 	};
 }
 

@@ -6,16 +6,19 @@ namespace Store
 {
 	DBLogicalID::DBLogicalID()
 	{
+		server = "";
 		value = 0;
 	};
 
 	DBLogicalID::DBLogicalID(unsigned int v)
 	{
+		server = "";
 		value = v;
 	};
 
 	DBLogicalID::DBLogicalID(const LogicalID& lid)
 	{
+		server = lid.getServer();
 		value = lid.toInteger();
 	};
 	
@@ -33,6 +36,16 @@ namespace Store
 		ostringstream str;
 		str << value;
 		return str.str();
+	};
+	
+	string DBLogicalID::getServer() const
+	{
+		return server;
+	};
+	
+	void DBLogicalID::setServer(string s)
+	{
+		server = s;
 	};
 	
 	unsigned int DBLogicalID::toInteger() const
@@ -60,12 +73,13 @@ namespace Store
 
 	bool DBLogicalID::operator==(LogicalID& lid)
 	{
-		return (this->toInteger() == lid.toInteger());
+		return (this->toInteger() == lid.toInteger() && this->getServer() == lid.getServer());
 	};
 
 	DBLogicalID& DBLogicalID::operator=(const LogicalID& lid)
 	{
-		value = lid.toInteger();;
+		value = lid.toInteger();
+		server = lid.getServer();
 		return *this;
 	};
 }
