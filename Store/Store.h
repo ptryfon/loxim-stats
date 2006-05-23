@@ -21,6 +21,16 @@ namespace Store
 		Vector		= 0xF0,
 	};
 
+	// TODO
+	enum ExtendedType
+	{
+		None = 0,
+		Link = 1,		// String?
+		Class = 2,		// Vector
+		Procedure = 3,	// Vector
+		View = 4,		// Vector
+	};
+
 	enum AccessMode
 	{
 		Read	= 0x01,
@@ -97,6 +107,8 @@ namespace Store
 	public:
 		// Class functions
 		virtual DataType getType() const = 0;
+		virtual ExtendedType getSubtype() const = 0;
+		virtual void setSubtype(ExtendedType type) = 0;
 		virtual string toString() = 0;
 		virtual Serialized serialize() const = 0;
 		virtual DataValue* clone() const = 0;
@@ -136,6 +148,8 @@ namespace Store
 		virtual void setValue(DataValue* val) = 0;
 		virtual string toString() = 0;
 		virtual Serialized serialize() const = 0;
+		virtual bool getIsRoot() const = 0;
+		virtual void setIsRoot(bool isRoot) = 0;
 
 		// Operators
 		virtual bool operator==(ObjectPointer& dv) {
@@ -162,8 +176,8 @@ namespace Store
 		virtual int getRoots(TransactionID* tid, string name, vector<ObjectPointer*>*& roots) = 0;
 		virtual int getRootsLID(TransactionID* tid, vector<LogicalID*>*& roots) = 0;
 		virtual int getRootsLID(TransactionID* tid, string name, vector<LogicalID*>*& roots) = 0;
-		virtual int addRoot(TransactionID* tid, ObjectPointer* object) = 0;
-		virtual int removeRoot(TransactionID* tid, ObjectPointer* object) = 0;
+		virtual int addRoot(TransactionID* tid, ObjectPointer*& object) = 0;
+		virtual int removeRoot(TransactionID* tid, ObjectPointer*& object) = 0;
 
 		// Transactions
 		virtual int abortTransaction(TransactionID* tid) = 0;

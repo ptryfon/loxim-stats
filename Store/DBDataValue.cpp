@@ -53,6 +53,7 @@ namespace Store
 	DBDataValue::DBDataValue(const DataValue& dv)
 	{
 		p_init();
+		setSubtype(dv.getSubtype());
 		switch(dv.getType()) {
 			case Store::Integer:	setInt(dv.getInt()); break;
 			case Store::Double:  setDouble(dv.getDouble()); break;
@@ -72,6 +73,16 @@ namespace Store
 	DataType DBDataValue::getType() const
 	{
 		return type;
+	};
+
+	ExtendedType DBDataValue::getSubtype() const
+	{
+		return subtype;
+	};
+
+	void DBDataValue::setSubtype(ExtendedType subtype)
+	{
+		this->subtype = subtype;
 	};
 
 	string DBDataValue::toString()
@@ -108,6 +119,7 @@ namespace Store
 	{
 		Serialized s;
 		s += static_cast<int>(type);
+		s += static_cast<int>(subtype);
 		switch(type) {
 			case Store::Integer: s += *value.int_value; break;
 			case Store::Double:  s += *value.double_value; break;
@@ -129,17 +141,22 @@ namespace Store
 	int DBDataValue::deserialize(unsigned char* bytes, DBDataValue*& value)
 	{
 		unsigned char *curpos = bytes;
-		DataType type = static_cast<DataType>(
-			*(reinterpret_cast<int*>(curpos)) );
+
+		DataType type = static_cast<DataType>(*(reinterpret_cast<int*>(curpos)));
+		curpos += sizeof(int);
+
+		ExtendedType subtype = static_cast<ExtendedType>(*(reinterpret_cast<int*>(curpos)));
 		curpos += sizeof(int);
 		
 		switch(type) {
 			case Store::Integer:
 				value = new DBDataValue(*(reinterpret_cast<int*>(curpos)));
+				value->setSubtype(subtype);
 				return ((curpos-bytes)+sizeof(int));
 				break;
 			case Store::Double:
 				value = new DBDataValue(*(reinterpret_cast<double*>(curpos)));
+				value->setSubtype(subtype);
 				return ((curpos-bytes)+sizeof(double));
 				break;
 			case Store::String: {
@@ -149,12 +166,14 @@ namespace Store
 				for(int i=0; i<slen; i++)
 					s += *(reinterpret_cast<char*>(curpos++));
 				value = new DBDataValue(s);
+				value->setSubtype(subtype);
 				return (curpos-bytes);
 			} break;
 			case Store::Pointer: {
 				DBLogicalID *lid;
 				int ub = DBLogicalID::deserialize(curpos, lid);
 				value = new DBDataValue();
+				value->setSubtype(subtype);
 				value->setPointer(lid);
 				return ((curpos-bytes)+ub);
 			} break;
@@ -170,6 +189,7 @@ namespace Store
 					v->push_back(lid);
 				}
 				value = new DBDataValue();
+				value->setSubtype(subtype);
 				value->setVector(v);
 				return (curpos-bytes);
 			} break;
@@ -324,6 +344,7 @@ namespace Store
 	{
 		p_clearPtr();
 		type = Store::Integer;
+		subtype = Store::None;
 		value.int_value = new int(0);
 	};
 	

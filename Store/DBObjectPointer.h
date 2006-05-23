@@ -23,6 +23,8 @@ namespace Store
 		virtual void setValue(DataValue* val);
 		virtual string toString();
 		virtual Serialized serialize() const;
+		virtual bool getIsRoot() const;
+		virtual void setIsRoot(bool isRoot);
 
 		virtual bool operator==(ObjectPointer& dv);
 	
@@ -31,6 +33,7 @@ namespace Store
 		string name;
 		DataValue* value;	
 		LogicalID* lid;
+		bool isRoot;
 	};
 }
 

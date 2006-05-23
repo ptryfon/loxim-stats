@@ -84,6 +84,8 @@ namespace Store
 		Serialized s;
 		//LogicalID
 		s += *(getLogicalID());
+		//IsRoot
+		s += (int) (getIsRoot() ? 1 : 0);
 		//Random
 		s += static_cast<int>(0x78563412);//((rand()%0x100) << 24 +
 			//(rand()%0x100) << 16 + (rand()%0x100) << 8 + (rand()%0x100));
@@ -98,5 +100,15 @@ namespace Store
 	bool DBObjectPointer::operator==(ObjectPointer& dv)
 	{
 		return (this->getLogicalID() == dv.getLogicalID());
+	};
+	
+	bool DBObjectPointer::getIsRoot() const
+	{
+		return isRoot;
+	};
+	
+	void DBObjectPointer::setIsRoot(bool isRoot)
+	{
+		this->isRoot = isRoot;
 	};
 }

@@ -33,6 +33,8 @@ namespace Store
 		~DBDataValue();
 
 		virtual DataType getType() const;
+		virtual ExtendedType getSubtype() const;
+		virtual void setSubtype(ExtendedType subtype);
 		virtual string toString();
 		virtual Serialized serialize() const;
 		static int deserialize(unsigned char* bytes, DBDataValue*& value);
@@ -59,6 +61,7 @@ namespace Store
 		
 	private:
 		DataType type;
+		ExtendedType subtype;
 		complex_value value;
 
 		void p_init();

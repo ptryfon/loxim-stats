@@ -1,7 +1,7 @@
 #ifndef __STORE_STRUCT_H__
 #define __STORE_STRUCT_H__
 
-#define STORE_PAGESIZE					0x0400	// 1024
+#define STORE_PAGESIZE					0x4000	// 16384
 
 #define STORE_FILE_NONE					0x0000
 #define STORE_FILE_DEFAULT				0x0001

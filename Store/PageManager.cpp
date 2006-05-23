@@ -70,8 +70,11 @@ namespace Store
 		usedbytes = DBLogicalID::deserialize(curpos, lid);
 		if(usedbytes > 0 ) curpos = curpos + usedbytes; else return -1;
 
+		int isRoot = *(reinterpret_cast<int*>(curpos));
+		curpos += sizeof(int);
+
 		int random = *(reinterpret_cast<int*>(curpos));
-		random = random;
+		random = random;	// Warning suspenser
 		curpos += sizeof(int);
 		
 		int slen = *(reinterpret_cast<int*>(curpos));
@@ -87,6 +90,7 @@ namespace Store
 		if(curpos-startpos > osize) return -1;
 		
 		newobj = new DBObjectPointer(name, value, lid);
+		newobj->setIsRoot(isRoot == 1);
 		
 		ec << "Store::PageManager::deserializeObj done";
 		return 0;

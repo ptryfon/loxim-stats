@@ -374,7 +374,7 @@ namespace Store
 	}
 
 
-	int DBStoreManager::addRoot(TransactionID* tid, ObjectPointer* object)
+	int DBStoreManager::addRoot(TransactionID* tid, ObjectPointer*& object)
 	{
 		*ec << "Store::Manager::addRoot begin..";
 		int lid = object->getLogicalID()->toInteger();
@@ -385,12 +385,15 @@ namespace Store
 //		log->addRoot(itid, object->getLogicalID()->clone(), log_id);
 #endif
 		roots->addRoot(lid, object->getName().c_str(), tid->getId(), tid->getTimeStamp());
-		
+
+		object->setIsRoot(true);
+		modifyObject(tid, object, object->getValue());
+
 		ec->printf("Store::Manager::addRoot done: %s\n", object->toString().c_str());
 		return 0;
 	}
 
-	int DBStoreManager::removeRoot(TransactionID* tid, ObjectPointer* object)
+	int DBStoreManager::removeRoot(TransactionID* tid, ObjectPointer*& object)
 	{
 		*ec << "Store::Manager::removeRoot begin..";
 		int lid = object->getLogicalID()->toInteger();
@@ -401,6 +404,9 @@ namespace Store
 //		log->removeRoot(itid, object->getLogicalID()->clone(), log_id);
 #endif
 		roots->removeRoot(lid, tid->getId(), tid->getTimeStamp());
+
+		object->setIsRoot(false);
+		modifyObject(tid, object, object->getValue());
 		
 		ec->printf("Store::Manager::removeRoot done: %s\n", object->toString().c_str());
 		return 0;
