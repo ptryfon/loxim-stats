@@ -22,6 +22,7 @@
 
 %start statement
 
+%right SEMICOLON
 %nonassoc DELETE CREATE INSERTINTO
 %left COMMA 
 %right EXISTS FOR_ALL
