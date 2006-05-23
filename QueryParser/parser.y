@@ -18,7 +18,7 @@
 
 %token	<num> INTEGER
 %token	<dbl> DOUBLE 
-%token	<str> NAME STRING SEMICOLON DOUBLESEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT DEREF REF BEGINTR END ABORT CREATE IF FI DO OD ELSE WHILE LINK FOREACH THEN
+%token	<str> PARAMNAME NAME STRING SEMICOLON DOUBLESEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT DEREF REF BEGINTR END ABORT CREATE IF FI DO OD ELSE WHILE LINK FOREACH THEN
 
 %start statement
 
@@ -55,6 +55,7 @@ statement   : query  { d=$1; }
             ;
 
 query	    : NAME { char *s = $1; $$ = new NameNode(s); delete s; }
+	    | PARAMNAME { char *s = $1; $$ = new ParamNode(s); delete s; }
             | INTEGER { $$ = new IntNode($1); }
             | STRING { char *s = $1; $$ = new StringNode(s); delete s; }
 	    | DOUBLE { $$ = new DoubleNode($1); }

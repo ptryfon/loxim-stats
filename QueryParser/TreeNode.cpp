@@ -10,6 +10,7 @@ namespace QParser
 {
 
     TreeNode* NameNode::clone()     { return new NameNode(name); }
+    TreeNode* ParamNode::clone()    { return new ParamNode(name); }
     TreeNode* IntNode::clone()      { return new IntNode(value); }
     TreeNode* StringNode::clone()   { return new StringNode(value); }
     TreeNode* DoubleNode::clone()   { return new DoubleNode(value); }

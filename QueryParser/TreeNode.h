@@ -20,7 +20,7 @@ namespace QParser {
 
     public:
 	enum TreeNodeType { TNINT, TNSTRING, TNDOUBLE, TNVECTOR, TNNAME, 
-	    TNAS, TNUNOP, TNALGOP, TNNONALGOP, TNTRANS, TNCREATE, TNCOND, TNLINK};
+	    TNAS, TNUNOP, TNALGOP, TNNONALGOP, TNTRANS, TNCREATE, TNCOND, TNLINK, TNPARAM};
 	TreeNode() : parent(NULL) {}
 	TreeNode* getParent() { return parent; }
 	void setParent(TreeNode* _parent) { parent = _parent; }
@@ -120,6 +120,37 @@ namespace QParser {
 	virtual ~NameNode() {}
 	
     };  
+
+
+// query := name
+    class ParamNode : public QueryNode 
+    {
+    protected:
+	string name;
+	int bindSect;
+	int stackSize;
+    public:
+	ParamNode(string _name) : name(_name) {bindSect = 0; stackSize = 0;}
+
+	virtual int getBindSect() { return this->bindSect;}
+	virtual int getStackSize() {return this->stackSize;}
+	virtual void setBindSect(int newBSect) { this->bindSect = newBSect;}
+	virtual void setStackSize(int newSize) { this->stackSize = newSize;}
+	
+	virtual TreeNode* clone();
+	virtual int type() { return TreeNode::TNPARAM; }
+	virtual string getName() { return name; }
+	virtual int putToString() {
+	    cout << "("<< this->getName() <<"["<<bindSect << "," << stackSize << "])";    
+	    return 0;
+	}
+	//virtual int staticEval (StatQResStack *&qres, StatEnvStack *&envs);	
+	
+	virtual ~ParamNode() {}
+	
+    };  
+
+
 
 // query := integer
     class IntNode : public ValueNode 
