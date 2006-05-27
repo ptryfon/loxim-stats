@@ -3,11 +3,13 @@
 
 #include "Result.h"
 #include "Errors/Errors.h"
+#include "../TCPProto/Package.h"
 
 namespace Driver {
 
 using namespace std;
 using namespace Errors;
+using namespace TCPProto;
 
 	
 class ConnectionException {
@@ -146,6 +148,9 @@ public:
 	int disconnect();
 	virtual ~Connection();
 	Result* execute(const char* query) throw (ConnectionException);
+	Result* newExecute(const char* query) throw (ConnectionException);
+	Result* execute(StatementPackage* stmt) throw (ConnectionException);
+	StatementPackage* parse(const char* query) throw (ConnectionException);
 private:
 	int sock;
 	char* bufferBegin;

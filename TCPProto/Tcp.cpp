@@ -6,6 +6,7 @@
 
 #include "Tcp.h"
 #include "../Errors/Errors.h"
+#include "Package.h"
 
 namespace TCPProto {
 
@@ -133,6 +134,50 @@ int bufferReceive (char** buffer, int* receiveDataSize, int sock) {
         *buffer = messgBuffBeg;
         *receiveDataSize = msgSize;
         return 0;               
+}
+
+int packageReceive(Package** package, int sock) {
+	
+	char* ptr;
+	int size, error;
+	error = bufferReceive(&ptr, &size, sock);
+	if (error != 0) return error;	
+
+	if (size < 1) return -2; //TODO
+	switch (ptr[0]) {
+		case Package::SIMPLEQUERY:
+			//*package = new SimpleQueryPackage();
+			break;
+		case Package::PARAMQUERY:
+			//*package = new ParamQueryPackage();
+			break;
+		case Package::STATEMENT:
+			//*package = new StatementPackage();
+			break;
+		case Package::SIMPLERESULT:
+			//*package = new SimpleResultPackage();
+			break;
+		default:
+			//TODO error
+			return -2;
+	}
+	
+	if (0 != (error = (*package)->deserialize(ptr, size)))
+	{
+		return error;
+	}
+	return 0;
+}
+
+int packageSend(Package* package, int sock) {
+	int error;
+	char* buffer;
+	int   size;
+	error = package->serialize(&buffer, &size); // t allocs memory...
+	if (error != 0) {
+		return error;
+	}
+	return bufferSend(buffer, size, sock);
 }
 
 } //namespace

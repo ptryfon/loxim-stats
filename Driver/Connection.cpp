@@ -13,6 +13,7 @@
 #include "../TCPProto/Tcp.h"
 #include "Connection.h"
 #include "Result.h"
+#include "../TCPProto/Package.h"
 
 namespace Driver {
 
@@ -185,6 +186,50 @@ Result* Connection::execute(const char* query) throw (ConnectionException) {
 
 //      cerr << "<Connection::execute> obiekt Result stworzony -> procedura zakonczona sukcesem" << endl;
       return rs;
+}
+
+Result* Connection::newExecute(const char* query) throw (ConnectionException) {
+	SimpleQueryPackage spackage;
+	spackage.setQuery(query);
+	int error;
+    error = packageSend(&spackage, sock);
+    //TODO lepsza diagnostyka bledow
+	if (error != 0) throw ConnectionIOException(error);
+	Package* package;
+    error = packageReceive(&package, sock);
+	if (error != 0) throw ConnectionIOException(error);
+
+	if (package->getType() != Package::SIMPLERESULT) throw ConnectionException("incorrect data received");
+	 SimpleResultPackage* srp = dynamic_cast<SimpleResultPackage*> (package);
+	return srp->getResult();
+}
+
+Result* Connection::execute(StatementPackage* stmt) throw (ConnectionException) {
+	int error;
+    error = packageSend(stmt, sock);
+	if (error != 0) throw ConnectionIOException(error);
+	Package* package;
+    error = packageReceive(&package, sock);
+	if (error != 0) throw ConnectionIOException(error);
+	if (package->getType() != Package::SIMPLERESULT) throw ConnectionException("incorrect data received");
+	 SimpleResultPackage* srp = dynamic_cast<SimpleResultPackage*> (package);
+	return srp->getResult();
+}
+
+
+StatementPackage* Connection::parse(const char* query) throw (ConnectionException) {
+	int error;
+	ParamQueryPackage t;
+	t.setQuery(query);
+	error = packageSend(&t, sock);
+	if (error != 0) throw ConnectionIOException(error);
+
+	Package* package;
+	error = packageReceive(&package, sock);
+	if (error != 0) throw ConnectionIOException(error);
+
+	if (package->getType() != Package::STATEMENT) throw ConnectionException("incorrect data received");
+	return dynamic_cast<StatementPackage*> (package);
 }
 
 int Connection::disconnect() {
