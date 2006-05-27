@@ -27,6 +27,19 @@ namespace QParser
 	if (rarg != NULL) return new CondNode((QueryNode*)condition->clone(), (QueryNode*)larg->clone(), (QueryNode*)rarg->clone(), op);
 	else return new CondNode((QueryNode*)condition->clone(), (QueryNode*)larg->clone(), op);
     }
+    TreeNode* FixPointNode::clone() {
+	vector<QueryNode*> q;
+	vector<string> n;
+	FixPointNode *fn = new FixPointNode();
+	for (int i = 0; i < partsNumb; i++) {
+	    q.push_back((QueryNode*) queries.at(i)->clone());
+	    n.push_back(names.at(i));	    
+	} 
+	fn->setQueries(q);
+	fn->setNames(n);
+	fn->setPartsNumb(partsNumb);
+	return fn;    
+    }
     
 /*  to be used when subT is an subTree independant of (this) and (this) is a non-alg operator.
     called eg. for node  nd = nonalgop (where) ... 

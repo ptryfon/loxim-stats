@@ -91,6 +91,8 @@ extern int szbderrno;
 "fi"			return FI;
 "while"			return WHILE;
 "link"			return LINK;
+"fixpoint"		return FIXPOINT;
+":-"			return FIX_OP;
 
 [_a-zA-Z][_a-zA-Z0-9]* 	yylval.str = new char[strlen(yytext) + 1]; yylval.str = strcpy(yylval.str,yytext); return NAME;
 $[_a-zA-Z][_a-zA-Z0-9]* yylval.str = new char[strlen(yytext) + 1]; yylval.str = strcpy(yylval.str,yytext); return PARAMNAME;

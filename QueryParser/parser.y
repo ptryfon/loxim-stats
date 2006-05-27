@@ -14,14 +14,16 @@
   double dbl;
   QParser::TreeNode* tree;
   QParser::QueryNode* qtree;
+  QParser::FixPointNode* fxtree;
 }
 
 %token	<num> INTEGER
 %token	<dbl> DOUBLE 
-%token	<str> PARAMNAME NAME STRING SEMICOLON DOUBLESEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT DEREF REF BEGINTR END ABORT CREATE IF FI DO OD ELSE WHILE LINK FOREACH THEN
+%token	<str> PARAMNAME NAME STRING SEMICOLON DOUBLESEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT DEREF REF BEGINTR END ABORT CREATE IF FI DO OD ELSE WHILE LINK FOREACH THEN FIX_OP FIXPOINT
 
 %start statement
 
+%right FIX_OP
 %right SEMICOLON
 %nonassoc DELETE CREATE INSERTINTO
 %left COMMA 
@@ -42,6 +44,7 @@
 
 %type <tree> statement
 %type <qtree> query
+%type <fxtree> querylist
 
 %%
 
@@ -111,4 +114,10 @@ query	    : NAME { char *s = $1; $$ = new NameNode(s); delete s; }
 	    | FOREACH query DO query OD { $$ = new NonAlgOpNode($2, $4, NonAlgOpNode::forEach); }
 	    | LINK STRING STRING INTEGER { $$ = new LinkNode($2, $3, $4); }
 	    | query SEMICOLON query { $$ = new AlgOpNode ($1, $3, AlgOpNode::semicolon); }
+	    | FIXPOINT LEFTPAR querylist RIGHTPAR { $$ = $3; }
 	    ;
+	    
+querylist   : NAME FIX_OP query { $$ = new FixPointNode ($1, $3); }
+	    | querylist NAME FIX_OP query {$$ = new FixPointNode ($2, $4, $1); }
+	    ;
+	    

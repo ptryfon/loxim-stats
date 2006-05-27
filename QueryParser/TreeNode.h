@@ -20,7 +20,7 @@ namespace QParser {
 
     public:
 	enum TreeNodeType { TNINT, TNSTRING, TNDOUBLE, TNVECTOR, TNNAME, 
-	    TNAS, TNUNOP, TNALGOP, TNNONALGOP, TNTRANS, TNCREATE, TNCOND, TNLINK, TNPARAM};
+	    TNAS, TNUNOP, TNALGOP, TNNONALGOP, TNTRANS, TNCREATE, TNCOND, TNLINK, TNPARAM, TNFIX};
 	TreeNode() : parent(NULL) {}
 	TreeNode* getParent() { return parent; }
 	void setParent(TreeNode* _parent) { parent = _parent; }
@@ -555,6 +555,53 @@ lastOpenSect = 0; }
 	}
 	virtual ~LinkNode() {}
 	
+    };
+
+    class FixPointNode : public QueryNode
+    {
+    protected:	
+	vector<QueryNode*> queries;
+	vector<string>  names;
+	int partsNumb;
+    public:
+	FixPointNode () {}
+	FixPointNode ( string singleName, QueryNode* singleQuery) {
+	    queries.push_back(singleQuery);
+	    names.push_back(singleName);
+	    partsNumb = 1;
+	}
+	
+	FixPointNode (string singleName, QueryNode* singleQuery, FixPointNode *tail) {
+	    queries = tail->getQueries();
+	    names = tail->getNames();
+	    queries.push_back(singleQuery);
+	    names.push_back(singleName);
+	    partsNumb = 1 + tail->howManyParts();
+	    	    // ... should I delete tail here...?
+	}
+	virtual TreeNode* clone();
+	virtual int type() {return TreeNode::TNFIX;};
+	virtual vector<QueryNode*> getQueries() {return this->queries;}
+	virtual QueryNode* getQuery(int i) {return this->queries.at(i);}
+	virtual vector<string> getNames() {return this->names;}
+	virtual string getName(int i) {return this->names.at(i); }
+	virtual int howManyParts() {return this->partsNumb;}
+	virtual void setQueries(vector<QueryNode*> q) {queries = q;}
+	virtual void setNames(vector<string> n) {names = n;}
+	virtual void setPartsNumb(int n) {partsNumb = n;}
+	virtual int putToString() {
+	    cout << " Fixpoint {";
+	    for (int i = 0; i < partsNumb; i++) {
+		cout << "[" << names.at(i) << " :- ";
+		queries.at(i)->putToString();
+		cout << "] ";
+	    }
+	    cout << "} ";
+	    return 0;
+	}
+	
+	virtual ~FixPointNode() {}
+    
     };
 
 
