@@ -159,7 +159,31 @@ Result* Connection::deserialize() {
 	} // switch
 } // deserialize
 
-Result* Connection::execute(const char* query) throw (ConnectionException) {
+Result* Connection::oldReceive() throw (ConnectionException) {
+	int error;
+	char* ptr = NULL;
+      int ile;
+      error = bufferReceive(&ptr, &ile, sock); //create buffer and set ptr to point at it
+
+      if (error != 0) { //ptr was free
+     	throw ConnectionIOException(error);
+      }
+      if (ile == 0) { //no error but also no data -> server was closed
+      	throw ConnectionClosedException();
+      }
+      //bufferHandler will free memory pointed by ptr at the end of a scope
+      BufferHandler bufferPtr(ptr); //needed only during deserializing (exception possible)
+//      cerr << "<Connection::execute> driver przyszlo bajtow: " << ile << endl;
+      bufferBegin = ptr;
+      bufferEnd = ptr+ile;
+      
+      Result* rs = deserialize();
+
+//      cerr << "<Connection::execute> obiekt Result stworzony -> procedura zakonczona sukcesem" << endl;
+      return rs;
+}
+
+Result* Connection::oldExecute(const char* query) throw (ConnectionException) {
 	
 	int error;
       error = bufferSend(query, strlen(query)+1, sock);
@@ -188,15 +212,19 @@ Result* Connection::execute(const char* query) throw (ConnectionException) {
       return rs;
 }
 
-Result* Connection::newExecute(const char* query) throw (ConnectionException) {
+Result* Connection::execute(const char* query) throw (ConnectionException) {
 	SimpleQueryPackage spackage;
+	//cerr << "zaczynam execute\n";
 	spackage.setQuery(query);
 	int error;
     error = packageSend(&spackage, sock);
+    //cerr << "kod bledu wysylania: "<< error << endl;
     //TODO lepsza diagnostyka bledow
 	if (error != 0) throw ConnectionIOException(error);
 	Package* package;
+	return oldReceive();
     error = packageReceive(&package, sock);
+    //cerr << "kod bledu odbioru: "<< error << endl;
 	if (error != 0) throw ConnectionIOException(error);
 
 	if (package->getType() != Package::SIMPLERESULT) throw ConnectionException("incorrect data received");

@@ -24,6 +24,10 @@ using namespace std;
 		return -1;
 	}
 
+	void SimpleResultPackage::setResult(Result *r) {
+		tmpRes = r;
+	}
+	
 	Result * SimpleResultPackage::getResult() {
 		return tmpRes;
 	}
@@ -85,6 +89,7 @@ int SimpleResultPackage::grabElements(ResultCollection* col) {
 		return error;
 	}
 	tmpRes = r;
+	free (buffer);
 	return 0;
  }
   

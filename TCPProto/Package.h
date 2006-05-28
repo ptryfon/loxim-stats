@@ -45,21 +45,20 @@ public:
 };
 
 class SimpleQueryPackage : public Package {
-public:
-	packageType getType() {
-		return SIMPLEQUERY;
-	}
-	
-	int serialize(char** buffer, int* size) {
-		return -1;
-	}
-	
-	int deserialize(char* buffer, int size) {
-		return -1;
-	}
 
-	void setQuery(const char* query) {
-	}
+	public:
+		packageType getType() { return SIMPLEQUERY; }
+		int serialize(char** buffer, int* size);
+		int deserialize(char* buffer, int size);
+		void setQuery(const char* query);
+		char* getQuery();
+		int getQuerySize();
+
+	private:
+		const char* tmpBuffer;
+		char* buf;
+		int querySize;
+
 };
 
 class SimpleResultPackage : public Package {
@@ -69,6 +68,7 @@ class SimpleResultPackage : public Package {
 		int serialize(char** buffer, int* size);
 		int deserialize(char* buffer, int size);
 		Result * getResult();
+		void setResult(Result *r);
 	
 	private:
 		Result* tmpRes;

@@ -2,9 +2,14 @@ include ../make.defs
 
 CXXFLAGS=-I./ -I./../ -Wall
 
-SOURCES	=	SimpleResultPackage.cpp Tcp.cpp ../Driver/Result.cpp
+SOURCES	=	SimpleResultPackage.cpp \
+				SimpleQueryPackage.cpp \
+				Tcp.cpp \
+				../Driver/Result.cpp
 
-HEADERS	=	Tcp.h Package.h ../Driver/Result.h
+HEADERS	=	Tcp.h \
+				Package.h \
+				../Driver/Result.h
 
 STATIC_LIB =	TCPProto.a
 PROGRAM =	
@@ -12,7 +17,7 @@ PROGRAM =
 OBJECTS	=	$(SOURCES:.cpp=.o)
 DEPFILES =	$(OBJECTS:.o=.d)
 
-all: $(STATIC_LIB) $(PROGRAM)
+all: $(STATIC_LIB) $(PROGRAM) $(HEADERS)
 
 #$(PROGRAM): $(STATIC_LIB)
 #	$(CXX) $(CXXFLAGS) $(LDFLAGS) $@.cpp $< -o $@

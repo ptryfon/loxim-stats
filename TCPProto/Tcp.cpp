@@ -95,15 +95,9 @@ int bufferReceive (char** buffer, int* receiveDataSize, int sock) {
          	rest -= ile;
          	lengthBuff += ile;
          }
-      /*   cerr << "<tcp::receive> po czytaniu poza petla" << endl;
-         if (rest != 0) {
-         	//TODO wyrzucic to
-         	cerr << "<Tcp::bufferReceive> to sie nie moze zdazyc!!!" << endl;
-         	return 1;	
-         } */ 
          		// mamy juz cala liczbe okreslajaca dlugosc
          	msgSize = ntohl(*((unsigned long int*) lengthBuffTable));
-         //	cerr << "<Tcp::bufferSend()> ile bajtow dostane: " << msgSize << endl;	
+         	//cerr << "<Tcp::bufferReceive()> ile bajtow dostane: " << msgSize << endl;	
          	
          
          messgBuffBeg = messgBuff = (char*) malloc(msgSize + 1); //+1 protection from reading outside the buffer
@@ -144,9 +138,15 @@ int packageReceive(Package** package, int sock) {
 	char* ptr;
 	int size, error;
 	error = bufferReceive(&ptr, &size, sock);
-	if (error != 0) return error;	
+	if (error != 0) {
+		//cerr << "buffer receive failed\n";
+		return error;	
+	}
 
-	if (size < 1) return -2; //TODO
+	if (size < 1) {
+		//cerr << "rozmiar < 1, rowny: "<<size <<"\n";
+		return -2; //TODO
+	}
 	switch (ptr[0]) {
 		case Package::SIMPLEQUERY:
 			*package = new SimpleQueryPackage();
@@ -163,6 +163,7 @@ int packageReceive(Package** package, int sock) {
 		default:
 			//TODO error
 			return -2;
+		//	cerr << "bledny typ package::type\n";
 	}
 	
 	if (0 != (error = (*package)->deserialize(ptr, size)))
@@ -180,6 +181,7 @@ int packageSend(Package* package, int sock) {
 	if (error != 0) {
 		return error;
 	}
+	//cerr << "po serializacji: |" << buffer << "| rozmiar: "<<size << endl;
 	return bufferSend(buffer, size, sock);
 }
 

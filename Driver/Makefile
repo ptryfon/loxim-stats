@@ -18,7 +18,7 @@ PROGRAM =	ResultTest
 OBJECTS	=	$(SOURCES:.cpp=.o)
 DEPFILES =	$(OBJECTS:.o=.d)
 
-all: $(STATIC_LIB) $(PROGRAM)
+all: $(STATIC_LIB) $(PROGRAM) $(HEADERS)
 
 #$(PROGRAM): $(STATIC_LIB)
 #	$(CXX) $(CXXFLAGS) $(LDFLAGS) $@.cpp $< -o $@

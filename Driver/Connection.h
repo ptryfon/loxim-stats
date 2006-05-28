@@ -160,6 +160,9 @@ private:
 	int stringCopy(char* &newBuffer);
 	Result* grabElements(ResultCollection* col);
 	Result* deserialize();
+	
+	Result* oldExecute(const char* query) throw (ConnectionException);
+	Result* oldReceive() throw (ConnectionException);
 };
 
 class BufferHandler

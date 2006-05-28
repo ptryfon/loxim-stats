@@ -26,6 +26,8 @@
 #include "Server.h"
 #include "../Driver/Result.h"
 #include "../Errors/Errors.h"
+#include "../TCPProto/Package.h"
+#include "../TCPProto/Tcp.h"
 
 #define PULSE_CHECKER_ACTIVE
 
@@ -39,6 +41,7 @@ using namespace QParser;
 using namespace QExecutor;
 using namespace TManager;
 using namespace Driver;
+using namespace TCPProto;
 
 volatile sig_atomic_t signalReceived = 0;
 pthread_t pthread_master_id;
@@ -433,11 +436,24 @@ while (!signalReceived) {
 	*ec << "[Server.Run]--> Unblocking sigint and receiving query from client";
 	sigprocmask(SIG_UNBLOCK, &block_cc, NULL);
 	
-	res = (Receive(&messgBuff, &size));
+	// res = (Receive(&messgBuff, &size));
+	Package* package;
+	res = packageReceive(&package, Sock);
+	
 	if (res != 0) {
 	    ec->printf("[Server.Run]--> Receive returned error code %d\n", res);
 	    return res;
-	}    
+	}
+	
+	if (package->getType() != Package::SIMPLEQUERY) {
+		//TODO error
+		return -1;
+	}
+	SimpleQueryPackage* sqp = (SimpleQueryPackage*) package;
+	messgBuff = sqp->getQuery();
+	size = sqp->getQuerySize();
+	delete package;
+	
 	if (messgBuff==NULL) {
 	    *ec << "[Server.Run]--> Error in receive, client terminated??";
 	    *ec << "[Server.Run]--> Assuming client loss for that thread - TERMINATING thread";
