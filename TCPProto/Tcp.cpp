@@ -12,6 +12,9 @@ namespace TCPProto {
 
 using namespace std;
 
+
+
+
 int bufferSend(const char* buf, int buf_size, int sock) {
 	//printf("ServerTcp: sending data on socket %d \n", sock);
 	
@@ -146,16 +149,16 @@ int packageReceive(Package** package, int sock) {
 	if (size < 1) return -2; //TODO
 	switch (ptr[0]) {
 		case Package::SIMPLEQUERY:
-			//*package = new SimpleQueryPackage();
+			*package = new SimpleQueryPackage();
 			break;
 		case Package::PARAMQUERY:
-			//*package = new ParamQueryPackage();
+			*package = new ParamQueryPackage();
 			break;
 		case Package::STATEMENT:
-			//*package = new StatementPackage();
+			*package = new StatementPackage();
 			break;
 		case Package::SIMPLERESULT:
-			//*package = new SimpleResultPackage();
+			*package = new SimpleResultPackage();
 			break;
 		default:
 			//TODO error

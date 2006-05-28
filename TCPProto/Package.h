@@ -6,6 +6,7 @@
 namespace TCPProto {
 
 using namespace Driver;
+using namespace std;
 
 class Package {
 public:
@@ -62,22 +63,22 @@ public:
 };
 
 class SimpleResultPackage : public Package {
-public:
-	packageType getType() {
-		return SIMPLEQUERY;
-	}
 	
-	int serialize(char** buffer, int* size) {
-		return -1;
-	}
+	public:
+		packageType getType() { return SIMPLERESULT; }
+		int serialize(char** buffer, int* size);
+		int deserialize(char* buffer, int size);
+		Result * getResult();
 	
-	int deserialize(char* buffer, int size) {
-		return -1;
-	}
-
-	Result * getResult() {
-		return 0;
-	}
+	private:
+		Result* tmpRes;
+		char* bufferBegin;
+		char* bufferEnd;
+		
+		int dataDeserialize(Result** r);
+		int grabElements(ResultCollection* col);
+		int getULong(unsigned long &val);
+		int stringCopy(char* &newBuffer);
 };
 
 class ParamQueryPackage : public Package {

@@ -2,9 +2,9 @@ include ../make.defs
 
 CXXFLAGS=-I./ -I./../ -Wall
 
-SOURCES	=	Tcp.cpp
+SOURCES	=	SimpleResultPackage.cpp Tcp.cpp ../Driver/Result.cpp
 
-HEADERS	=	Tcp.h
+HEADERS	=	Tcp.h Package.h ../Driver/Result.h
 
 STATIC_LIB =	TCPProto.a
 PROGRAM =	
