@@ -4,7 +4,7 @@
   PAGE = <HEADER><EX><OFFSETTABLE><FREESPACE><OBJECTS>
   OFFSETTABLE = tablica mowiaca, gdzie zaczyna sie obiekt o indeksie i
   OBJECTS = obiekty ukladane sa od konca, sa posortowane od najmlodszego
-  do najstarszego
+  do najstarszego tzn offsety 0 1 2 odpowiadaja obiektom <2.1.0.KONIECSTRONY>
 */
 #include <iostream>
 #include "DBLogicalID.h"
@@ -32,20 +32,74 @@ namespace Store
 		ErrorConsole ec("Store");
 		ec << "Store::PageManager::insertObject begin...";
 		page_data *page = reinterpret_cast<page_data*>(pPtr->getPage());
+		int roffset = -1;
 		
-		if(page->free_space < static_cast<int>(obj.size + sizeof(int))){
+		if( page->free_space < static_cast<int>(obj.size) ) {
 			ec << "Store::PageManager::insertObject not enough free space on page";
 			return -1;
 		}
-		int lastoffset = page->object_count > 0 ?
-			page->object_offset[page->object_count-1] : STORE_PAGESIZE;
-		page->free_space -= obj.size + sizeof(int);
-		int newoffset = lastoffset - obj.size;
-		page->object_offset[page->object_count] = newoffset;
-		*pidoffset = page->object_count;
-		for(int i=0; i<obj.size; i++)
-			page->bytes[newoffset+i] = obj.bytes[i];
-		page->object_count++;
+
+		// przeszukac tablice offsetow czy jest pusty obiekt
+		// pusty obiekt to taki obiekt, ktorego poprzednik posiada wskaznik
+		// taki sam jak pusty obiekt
+		// wartosc wskaznika dla poprzednika obiektu zerowego jest STORE_PAGESIZE
+		if( page->object_count > 0 ) {
+			// sprawdzenie zerowego obiektu
+			if( page->object_offset[0] == STORE_PAGESIZE )
+				roffset = 0;
+			// sprawdzanie pozostalych
+			else
+				for(int i=0; i<page->object_count-1; i++) {
+					if( page->object_offset[i] <= page->object_offset[i+1] ) {
+						if( page->object_offset[i] < page->object_offset[i+1] ) {
+							ec << "Store::PageManager::insertObject corrupted page offsets detected";
+							return -11;
+						}
+						else {
+							roffset = i+1;
+							break;
+						}
+					}
+				}
+		}
+
+		if( page->free_space < static_cast<int>(obj.size + sizeof(int)) )
+			if( roffset == -1 ) {
+				ec << "Store::PageManager::insertObject not enough free space on page";
+				return -2;
+			}
+		
+		if( roffset == -1 ) {
+		// dokladamy nowy obiekt na koncu
+			int lastoffset = page->object_count > 0 ?
+				page->object_offset[page->object_count-1] : STORE_PAGESIZE;
+			page->free_space -= obj.size + sizeof(int);
+			int newoffset = lastoffset - obj.size;
+			page->object_offset[page->object_count] = newoffset;
+			*pidoffset = page->object_count;
+			for(int i=0; i<obj.size; i++)
+				page->bytes[newoffset+i] = obj.bytes[i];
+			page->object_count++;
+		}
+		else {
+		// wstawiamy nowy obiekt w miejsce wyszukanego obiektu pustego
+		// nalezy przesunac wszystkie obiekty wieksze od pustego
+			int i;
+			for(i = page->object_offset[page->object_count-1];
+				i < page->object_offset[roffset]; i++)
+				page->bytes[i-obj.size] = page->bytes[i];
+		// dopisac nowy obiekt
+			i-= obj.size;
+			for(int j=0; j<obj.size; j++)
+				page->bytes[i+j] = obj.bytes[j];
+		// od wskaznikow odjac rozmiar nowego obiektu
+			for(i = roffset; i<page->object_count; i++)
+				page->object_offset[i]-= obj.size;
+		// zmniejszyc free_space
+			page->free_space-= obj.size;
+		// ustawic pidoffset dla mapy
+			*pidoffset = roffset;
+		}
 		
 		page->header.timestamp = static_cast<int>(log_id);
 		
@@ -144,13 +198,16 @@ namespace Store
 
 	int PageManager::getFreePage()
 	{
-		return getFreePage(MAX_FREE_SPACE);
+		return getFreePage(MAX_FREE_SPACE-sizeof(int));
 	}
 	
-	int PageManager::getFreePage(int space)
+	int PageManager::getFreePage(int objsize)
 	{
+	// objsize to rozmiar obiektu jaki StoreManager chce umiescic na stronie
+	// w ogolnosci trzeba wyszukac strone ktora bedzie miala dodatkowo
+	// sizeof(int) miejsca, aby dodaj pole do tablicy offsetow
 		ErrorConsole ec("Store");
-		ec.printf("Store::PageManager::getFreePage(%i) begin...\n", space);
+		ec.printf("Store::PageManager::getFreePage(%i) begin...\n", objsize);
 		int pii = 0;
 		do	{
 			PagePointer* pPtr = buffer->getPagePointer(STORE_FILE_DEFAULT, pii);
@@ -158,7 +215,7 @@ namespace Store
 			page_data* p = reinterpret_cast<page_data*>(pPtr->getPage());
 			
 			for(int i=0; i<p->object_count; i++) {
-				if(p->object_offset[i] >= space) {
+				if( p->object_offset[i] >= static_cast<int>(objsize+sizeof(int)) ) {
 					int rid = pPtr->getPageID()+i+1;
 					pPtr->release();
 					ec << "Store::PageManager::getFreePage done";
@@ -220,38 +277,30 @@ namespace Store
 
 	void PageManager::printPage(unsigned char* bytes, int lines)
 	{
-		// DOBRA INTERPRETACJA ALE wypisuje jakies teksty:
-		// "Store: create string wit null pointercreate string with null pointercreate...." itd
-		//ErrorConsole ec("Store");
-		//string tmpstr = "";
-		
+		ErrorConsole ec("Store");
+		ec << "Store::PageManager::printPage...";
+		ostringstream ostr;
+		ostr << endl;
 		for(int l=0; l<lines; l++) {
-			//tmpstr = "";
 			for(int i=0;i<16;i++) {
 				if((i!=0) && (i%4==0))
-					//tmpstr += "| ";
-					cout << "| ";
+					ostr << "| ";
 					unsigned char AX = bytes[l*16+i];
 					char AL = (AX%16>9 ? AX%16-10+'A' : AX%16+'0');
 					AX /= 16;
 					char AH = (AX%16>9 ? AX%16-10+'A' : AX%16+'0');
-				//tmpstr += AH + AL + " ";
-				cout << AH << AL << " ";
+				ostr << AH << AL << " ";
 			}
-			//tmpstr += " ";
-			cout << " ";
+			ostr << " ";
 			for(int i=0;i<16;i++) {
 				if(bytes[l*16+i] > 31)
-					//tmpstr += bytes[l*16+i];
-					cout << bytes[l*16+i];
+					ostr << bytes[l*16+i];
 				else
-					//tmpstr += ".";
-					cout << ".";
+					ostr << ".";
 			}
-			//ec << tmpstr;
-			cout << endl;
+			ostr << endl;
 		}
-	
+		ec << ostr.str();
 	}
 	
 }

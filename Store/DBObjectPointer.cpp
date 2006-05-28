@@ -76,7 +76,8 @@ namespace Store
 				this->getLogicalID()->toString() : "NoLogicalID") +
 			", \"" + this->getName() + "\", " + 
 			(this->getValue() ?
-				this->getValue()->toString() : "NoValue") + ">";
+				this->getValue()->toString() : "NoValue") + ", " +
+			(this->isRoot ? "root" : "chld") + ">";
 	};
 
 	Serialized DBObjectPointer::serialize() const

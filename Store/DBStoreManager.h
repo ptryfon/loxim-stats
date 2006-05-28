@@ -35,8 +35,6 @@ namespace Store
 		unsigned timer;
 		ErrorConsole *ec;
 
-		virtual int createObject(TransactionID* tid, string name, DataValue* value, ObjectPointer*& object, LogicalID* lid, bool isRoot);
-
 	public:
 		DBStoreManager();
 		~DBStoreManager();
@@ -57,6 +55,7 @@ namespace Store
 
 		virtual int getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object);
 		virtual int createObject(TransactionID* tid, string name, DataValue* value, ObjectPointer*& object, LogicalID* lid = NULL);
+		virtual int createObject(TransactionID* tid, string name, DataValue* value, ObjectPointer*& object, LogicalID* lid, bool isRoot);
 		virtual int deleteObject(TransactionID* tid, ObjectPointer* object);
 		virtual int modifyObject(TransactionID* tid, ObjectPointer*& object, DataValue* value);
 

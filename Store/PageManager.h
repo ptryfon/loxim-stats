@@ -31,7 +31,7 @@ namespace Store
 		static int initializeFile(File* file);
 		static int initializePage(unsigned int page_num, char* page);
 		int getFreePage();
-		int getFreePage(int space);
+		int getFreePage(int objsize);
 		int updateFreeMap(PagePointer *ptr);
 		static void printPage(PagePointer *ptr, int lines=4);
 		static void printPage(unsigned char* bytes, int lines);

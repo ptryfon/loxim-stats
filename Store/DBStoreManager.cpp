@@ -121,7 +121,7 @@ namespace Store
 
 	int DBStoreManager::getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object)
 	{
-		*ec << "Store::Manager::getObject started...";
+		ec->printf("Store::Manager::getObject (LID=%d) started...", lid->toInteger());
 
 		physical_id *p_id = NULL;
 		if( (map->getPhysicalID(lid->toInteger(),&p_id)) == 2 ) return 2; //out of range
@@ -133,21 +133,10 @@ namespace Store
 			return 2;	
 		}
 
-//
-// Ty co tu jest?!
-//
-//		if((!p_id->file_id) && (!p_id->page_id) && (!p_id->offset)) return 2;
-//		if(p_id->offset > 1000) return 2;
-//		if(p_id->page_id > 1000) {
-//			*ec << "Store::Manager::getObject done: Object not found\n(brak ustalonego kodu bledu dla tej operacji, default -> return 2;";
-//			return 2;	
-//		}
-//
 		PagePointer *pPtr = buffer->getPagePointer(p_id->file_id, p_id->page_id);
 		
 		pPtr->aquire();
 		
-		*ec << "odpalam deserialize";
 		int rval = PageManager::deserialize(pPtr, p_id->offset, object);
 		
 		pPtr->release();
@@ -162,51 +151,7 @@ namespace Store
 
 	int DBStoreManager::createObject(TransactionID* tid, string name, DataValue* value, ObjectPointer*& object, LogicalID* p_lid)
 	{
-		*ec << "Store::Manager::createObject start...";
-		
-		LogicalID* lid;
-		if(p_lid == NULL)
-			lid = new DBLogicalID(map->createLogicalID());
-		else
-			lid = p_lid;
-		unsigned log_id;
-		int itid = tid==NULL ? -1 : tid->getId();
-#ifdef LOGS
-		// klony lida dla logow
-		log->write(itid, lid->clone(), name, NULL, value->clone(), log_id/*, p_lid?false:true*/);
-#endif
-		object = new DBObjectPointer(name, value, lid);
-
-		Serialized sObj = object->serialize();
-		sObj.info();
-
-		int freepage = pagemgr->getFreePage(); // strona z wystaraczajaca iloscia miejsca na nowy obiekt
-		//*ec << "Store::Manager::createObject freepage = " + freepage;
-		cout << "Store::Manager::createObject freepage = " << freepage << endl;
-		PagePointer* pPtr = buffer->getPagePointer(STORE_FILE_DEFAULT, freepage);
-
-		pPtr->aquire();
-
-		//cout << "przed:\n";
-		//pagemgr->printPage(pPtr, 1024/16);
-		int pidoffset;
-		PageManager::insertObject(pPtr, sObj, &pidoffset, log_id);
-		//cout << "po:\n";
-		//pagemgr->printPage(pPtr, 1024/16);
-
-		pagemgr->updateFreeMap(pPtr);
-		
-		//PageManager::printPage(pPtr, 1024/16);
-		pPtr->release();
-		
-		physical_id pid;
-		pid.page_id = freepage;
-		pid.file_id = STORE_FILE_DEFAULT;
-		pid.offset = pidoffset;
-		map->setPhysicalID(lid->toInteger(), &pid);
-		
-		ec->printf("Store::Manager::createObject done: %s\n", object->toString().c_str());
-		return 0;
+		return createObject(tid, name, value, object, p_lid, false);
 	}
 
 	int DBStoreManager::createObject(TransactionID* tid, string name, DataValue* value, ObjectPointer*& object, LogicalID* p_lid, bool isRoot)
@@ -230,7 +175,7 @@ namespace Store
 		Serialized sObj = object->serialize();
 		sObj.info();
 
-		int freepage = pagemgr->getFreePage(); // strona z wystaraczajaca iloscia miejsca na nowy obiekt
+		int freepage = pagemgr->getFreePage(sObj.size); // strona z wystaraczajaca iloscia miejsca na nowy obiekt
 		//*ec << "Store::Manager::createObject freepage = " + freepage;
 		cout << "Store::Manager::createObject freepage = " << freepage << endl;
 		PagePointer* pPtr = buffer->getPagePointer(STORE_FILE_DEFAULT, freepage);
@@ -263,7 +208,6 @@ namespace Store
 	int DBStoreManager::deleteObject(TransactionID* tid, ObjectPointer* object)
 	{
 		*ec << "Store::Manager::deleteObject start...";
-		
 		unsigned log_id;
 		int itid = tid==NULL ? -1 : tid->getId();
 #ifdef LOGS
@@ -278,6 +222,10 @@ namespace Store
 		//cout << "file: " << p_id->file_id << ", page: " << p_id->page_id << ", off: " << p_id->offset <<endl;
 		ec->printf("file: %d, page: %d, offset: %d\n", p_id->file_id, p_id->page_id, p_id->offset);
 		if((!p_id->file_id) && (!p_id->page_id) && (!p_id->offset)) return 2;
+		if( p_id->offset > STORE_PAGESIZE/4 ) {
+			*ec << "Store::Manager::deleteObject failed: invalid offset";
+			return 3;
+		}
 		PagePointer *pPtr = buffer->getPagePointer(p_id->file_id, p_id->page_id);
 
 		pPtr->aquire();
@@ -285,8 +233,6 @@ namespace Store
 		page_data *p = reinterpret_cast<page_data*>(pPtr->getPage());
 		p->header.timestamp = log_id;		
 
-// tr do konca
-		
 		int ooff = p_id->offset;
 		int pos_table = p_id->offset;
 		int end_of_object;
@@ -300,7 +246,7 @@ namespace Store
 		int object_size = end_of_object - p->object_offset[pos_table];
 		
 		char* page = pPtr->getPage();
-		
+
 		// przesuniecie obiektow na stronie
 		int i;
 		for(i = pos_table+1; i <= p->object_count-1; i++)
@@ -313,17 +259,16 @@ namespace Store
 		    int start = p->object_offset[i];
 		    
 		    memmove(pom, page + start  , size);
-		    memmove(page + start + object_size, pom, size);
-		    
+		    memmove(page + start + object_size, pom, size);		    
 		};
 		
 		// uaktualnienie tablicy offsetow
 		// oraz dodanie do starego offsetu rozmiaru usuwanego obiektu
 		for(i = pos_table+1; i <= p->object_count-1; i++)
 		    p->object_offset[i] = p->object_offset[i] + object_size;    
-
-		// nagrobek 
-		p->object_offset[pos_table] = -1;		
+		// md243003: nie moze byc nagrobka ze wzgledu na uzywane
+		// powyzej algorytym wykorzystujace sasiadujace offsety
+		p->object_offset[pos_table] += object_size; // = -1;		
 
 		// poinformowanie mapy o usunieciu obiektu
 		map->setPhysicalID(object->getLogicalID()->toInteger(), map->RIP);
@@ -335,6 +280,36 @@ namespace Store
 		} else
 			p->free_space = p->free_space + object_size;
 
+		// wyczyszczenie koncowki pustych obiektow
+		// pusty obiekt to taki ktorego wskaznik jest rowny
+		// wskaznikowi poprzednika
+		for(i = p->object_count-1; i > 0; i--)
+			if( p->object_offset[i] >= p->object_offset[i-1] )
+				if( p->object_offset[i] > p->object_offset[i-1] ) {
+					*ec << "Store::Manager::deleteObject corrupted page offsets detected";
+					break;
+				}
+				else {
+					p->object_count--;
+					p->free_space+= sizeof(int);
+				}
+			else
+				break;
+		// sprawdzenie zerowego obiektu
+		if( p->object_count == 1 )
+			if( p->object_offset[0] == STORE_PAGESIZE ) {
+				p->object_count--;
+				p->free_space+= sizeof(int);
+				// efektem wykonania tego powinna byc pusta strona
+				// z prawidlowymi wartosciami sterujacymi np. free_space
+			}
+		
+		memset( &(p->object_offset[p->object_count]), 0,
+			( (p->object_count <= 0) ? 
+			(unsigned)&(p->bytes[STORE_PAGESIZE]) :
+			(unsigned)&(p->bytes[p->object_offset[p->object_count-1]]) ) -
+			(unsigned)&(p->object_offset[p->object_count]) );
+		
 		pagemgr->updateFreeMap(pPtr);
 		
 		pPtr->release();
@@ -350,7 +325,7 @@ namespace Store
 		
 		deleteObject(tid, object);
 		ObjectPointer* newobj;
-		createObject(tid, object->getName(), dv, newobj, object->getLogicalID());
+		createObject(tid, object->getName(), dv, newobj, object->getLogicalID(), object->getIsRoot());
 		delete object;
 		object = newobj;
 		
@@ -441,15 +416,19 @@ namespace Store
 		// klon dla logow
 //		log->addRoot(itid, object->getLogicalID()->clone(), log_id);
 #endif
-		*ec << "Store::Manager::modifyObject start...";
-		
-		deleteObject(tid, object);
-		ObjectPointer* newobj;
-		createObject(tid, object->getName(), object->getValue(), newobj, object->getLogicalID(), true);
-		delete object;
-		object = newobj;
-		
-		*ec << "Store::Manager::modifyObject done";
+
+		object->setIsRoot(true);
+		modifyObject(tid, object, object->getValue());
+
+//		*ec << "Store::Manager::modifyObject start...";
+//		
+//		deleteObject(tid, object);
+//		ObjectPointer* newobj;
+//		createObject(tid, object->getName(), object->getValue(), newobj, object->getLogicalID(), true);
+//		delete object;
+//		object = newobj;
+//				
+//		*ec << "Store::Manager::modifyObject done";
 
 		roots->addRoot(lid, object->getName().c_str(), tid->getId(), tid->getTimeStamp());
 
@@ -467,15 +446,19 @@ namespace Store
 		// klon dla logow
 //		log->removeRoot(itid, object->getLogicalID()->clone(), log_id);
 #endif
-		*ec << "Store::Manager::modifyObject start...";
-		
-		deleteObject(tid, object);
-		ObjectPointer* newobj;
-		createObject(tid, object->getName(), object->getValue(), newobj, object->getLogicalID(), false);
-		delete object;
-		object = newobj;
-		
-		*ec << "Store::Manager::modifyObject done";
+
+		object->setIsRoot(false);
+		modifyObject(tid, object, object->getValue());
+
+//		*ec << "Store::Manager::modifyObject start...";
+//		
+//		deleteObject(tid, object);
+//		ObjectPointer* newobj;
+//		createObject(tid, object->getName(), object->getValue(), newobj, object->getLogicalID(), false);
+//		delete object;
+//		object = newobj;
+//		
+//		*ec << "Store::Manager::modifyObject done";
 		
 		roots->removeRoot(lid, tid->getId(), tid->getTimeStamp());
 
