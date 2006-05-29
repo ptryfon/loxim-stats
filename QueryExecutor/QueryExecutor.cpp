@@ -331,7 +331,70 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			*ec << "[QE] Algebraic operation Done!";
 			return 0;
 		} // TNALGOP
-
+		
+		case TreeNode::TNFIX: {
+			*ec << "[QE] FIXPOINT operation recognized";
+			QueryResult *final = new QueryStructResult();
+			int howManyOps = ((FixPointNode *) tree)->howManyParts();
+			for (int i = 0; i<howManyOps; i++) {
+				string currName = ((FixPointNode *) tree)->getName(i);
+				QueryResult *currRes = new QueryBagResult();
+				QueryResult *currBinder = new QueryBinderResult(currName, currRes);
+				final->addResult(currBinder);
+			}
+			bool looping = true;
+			while (looping) {
+				if (this->evalStopped()) {
+					*ec << "[QE] query evaluating stopped by Server, aborting transaction ";
+					errcode = tr->abort();
+					tr = NULL;
+					if (errcode != 0) {
+						*ec << "[QE] error in transaction->abort()";
+						return errcode;
+					}
+					*ec << "[QE] Transaction aborted succesfully";
+					*ec << (ErrQExecutor | EQEUnexpectedErr);
+					return ErrQExecutor | EQEUnexpectedErr;
+				}	
+				QueryResult *next_final = new QueryStructResult();
+				QueryResult *newStackSection = new QueryBagResult();
+				errcode = (final)->nested(tr, newStackSection);
+				if (errcode != 0) return errcode;
+				errcode = envs->push((QueryBagResult *) newStackSection);
+				if (errcode != 0) return errcode;
+				for (int i = 0; i<howManyOps; i++) {
+					string currName = ((FixPointNode *) tree)->getName(i);
+					errcode = executeRecQuery (((FixPointNode *) tree)->getQuery(i));
+					if (errcode != 0) return errcode;
+					QueryResult *currRes;
+					errcode = qres->pop(currRes);
+					if (errcode != 0) return errcode;
+					QueryResult *currBinder = new QueryBinderResult(currName, currRes);
+					next_final->addResult(currBinder);	
+				}
+				errcode = envs->pop();
+				if (errcode != 0) return errcode;
+				if (not (final->equal(next_final))) {
+					//delete final;
+					final = next_final;
+				}
+				else looping = false;
+			}
+			errcode = qres->push(final);
+			if (errcode != 0) return errcode;
+			*ec << "[QE] Fixpoint operation Done!";
+			return 0;
+		} // TNFIX
+		
+		case TreeNode::TNPARAM: {
+			*ec << "[QE] Parametr opeartion";
+			QueryResult *res = new QueryNothingResult();
+			errcode = qres->push(res);
+			if (errcode != 0) return errcode;
+			*ec << "[QE] Parametr operation Done!";
+			return 0;
+		} // TNPARAM
+		
 		case TreeNode::TNNONALGOP: {
 			NonAlgOpNode::nonAlgOp op = ((NonAlgOpNode *) tree)->getOp();
 			*ec << "[QE] NonAlgebraic operator - type recognized";

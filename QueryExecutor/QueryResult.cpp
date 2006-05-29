@@ -957,12 +957,7 @@ bool QueryStructResult::isNothing() {
 	else
 		return false; 
 }
-bool QueryBinderResult::isNothing() {
-if (item != NULL)
-		return (item->isNothing());
-	else
-		return false; 
-}
+bool QueryBinderResult::isNothing()	{ return false; }
 bool QueryStringResult::isNothing()	{ return false; }
 bool QueryIntResult::isNothing()	{ return false; }
 bool QueryDoubleResult::isNothing()	{ return false; }
