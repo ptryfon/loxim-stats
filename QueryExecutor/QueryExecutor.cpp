@@ -647,7 +647,10 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 					if (bool_val) {
 						errcode = executeRecQuery(((CondNode *) tree)->getLArg());
 						if (errcode != 0) return errcode;
-						errcode = qres->pop(tmp_result);
+					}
+					else {
+						QueryResult *result = new QueryNothingResult();
+						errcode = qres->push(result);
 						if (errcode != 0) return errcode;
 					}
 					break;
@@ -672,13 +675,9 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 					if (bool_val) {
 						errcode = executeRecQuery(((CondNode *) tree)->getLArg());
 						if (errcode != 0) return errcode;
-						errcode = qres->pop(tmp_result);
-						if (errcode != 0) return errcode;
 					}
 					else {
 						errcode = executeRecQuery(((CondNode *) tree)->getRArg());
-						if (errcode != 0) return errcode;
-						errcode = qres->pop(tmp_result);
 						if (errcode != 0) return errcode;
 					}
 					break;
@@ -719,6 +718,9 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 							return ErrQExecutor | EBoolExpected;
 						}
 					}
+					QueryResult *result = new QueryNothingResult();
+					errcode = qres->push(result);
+					if (errcode != 0) return errcode;
 					break;
 				}
 				default: {
@@ -727,9 +729,6 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 					return ErrQExecutor | EUnknownNode;
 				}
 			}
-			QueryResult *result = new QueryBagResult();
-			errcode = qres->push(result);
-			if (errcode != 0) return errcode;
 			*ec << "[QE] Condition operation Done!";
 			return 0;
 		} //case TNCOND 
