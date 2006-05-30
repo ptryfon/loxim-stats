@@ -18,7 +18,13 @@ int BeginTransactionRecord::modifySetsBackDir(CrashRecovery* cr)
 
 int ShutdownRecord::shutDown(CrashRecovery* cr) { cr->shutDown(); return 0;}
 
-WriteRecord::~WriteRecord() { delete lid; if( freeOldValFlag ) delete oldVal; if( freeNewValFlag ) delete newVal; }
+WriteRecord::~WriteRecord() {
+//	delete lid;
+//	if( freeOldValFlag )
+//		delete oldVal;    // ZAKOMENTED BY Store::md243003
+//	if( freeNewValFlag )
+//	delete newVal;
+}
 
 int WriteRecord::modifySetsBackDir(CrashRecovery* cr)
     {
