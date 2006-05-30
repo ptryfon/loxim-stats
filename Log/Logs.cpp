@@ -153,8 +153,8 @@ int LogManager::destroy()
 int LogManager::beginTransaction( int tid, unsigned &id )
 {
   LogRecord *record = new BeginTransactionRecord( tid );
-  logThread->push( record );
   record->getId( id );
+  logThread->push( record );
 
   *ec << "LogManager: beginTransaction";
 
@@ -165,8 +165,8 @@ int LogManager::beginTransaction( int tid, unsigned &id )
 int LogManager::write( int tid, LogicalID *lid, string name, DataValue *oldVal, DataValue *newVal, unsigned &id, bool newLID )
 {
   LogRecord *record = new WriteRecord( tid, lid, name, oldVal, newVal, newLID );
-  pushLogable( tid, record );
   record->getId( id );
+  pushLogable( tid, record );
 
   *ec << "LogManager: write";
 
@@ -176,8 +176,8 @@ int LogManager::write( int tid, LogicalID *lid, string name, DataValue *oldVal, 
 int LogManager::addRoot( int tid, LogicalID *lid, unsigned &id )
 {
   LogRecord *record = new AddRootRecord( tid, lid);
-  pushLogable( tid, record );
   record->getId( id );
+  pushLogable( tid, record );
 
   *ec << "LogManager: addRoot";
   return 0;
@@ -186,8 +186,8 @@ int LogManager::addRoot( int tid, LogicalID *lid, unsigned &id )
 int LogManager::removeRoot( int tid, LogicalID *lid, unsigned &id )
 {
   LogRecord *record = new RemoveRootRecord( tid, lid);
-  pushLogable( tid, record );
   record->getId( id );
+  pushLogable( tid, record );
 
   *ec << "LogManager: addRoot";
   return 0;
@@ -196,9 +196,9 @@ int LogManager::removeRoot( int tid, LogicalID *lid, unsigned &id )
 int LogManager::checkpoint( vector<int> *tids, unsigned &id )
 {
   LogRecord *record = new CkptRecord( tids );
+  record->getId( id );
   logThread->push( record );
   flushLog();
-  record->getId( id );
 
   *ec << "LogManager: checkpoint!!";
 
@@ -208,9 +208,9 @@ int LogManager::checkpoint( vector<int> *tids, unsigned &id )
 int LogManager::endCheckpoint( unsigned &id )
 {
   LogRecord *record = new EndCkptRecord();
+  record->getId( id );
   logThread->push( record );
   flushLog();
-  record->getId( id );
 
   *ec << "LogManager: end checkpoint";
 
@@ -223,8 +223,8 @@ int LogManager::commitTransaction( int tid, unsigned &id )
   int err=0;
   
   LogRecord *record = new CommitRecord( tid );
-  logThread->push( record );
   record->getId( id );
+  logThread->push( record );
   
   //sk
   err = flushLog();
@@ -276,8 +276,8 @@ int LogManager::rollbackTransaction( int tid, StoreManager *sm, unsigned &id )
   }
   close(fd);
   LogRecord *record = new RollbackRecord( tid );
-  logThread->push( record );
   record->getId( id );
+  logThread->push( record );
 
   *ec << "LogManager: rollbackTransaction";
 
@@ -287,9 +287,9 @@ int LogManager::rollbackTransaction( int tid, StoreManager *sm, unsigned &id )
 int LogManager::shutdown( unsigned &id )
 {
   LogRecord *record = new ShutdownRecord();
+  record->getId( id );
   logThread->push( record );
   flushLog();
-  record->getId( id );
 
   *ec << "LogManager: shutdown";
 
