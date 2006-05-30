@@ -436,23 +436,23 @@ while (!signalReceived) {
 	*ec << "[Server.Run]--> Unblocking sigint and receiving query from client";
 	sigprocmask(SIG_UNBLOCK, &block_cc, NULL);
 
-	 res = (Receive(&messgBuff, &size));
-//	Package* package;
-//	res = packageReceive(&package, Sock);
+	 //res = (Receive(&messgBuff, &size));
+	Package* package;
+	res = packageReceive(&package, Sock);
 
 	if (res != 0) {
 	    ec->printf("[Server.Run]--> Receive returned error code %d\n", res);
 	    return res;
 	}
 
-//	if (package->getType() != Package::SIMPLEQUERY) {
+	if (package->getType() != Package::SIMPLEQUERY) {
 		//TODO error
-//		return -1;
-//	}
-//	SimpleQueryPackage* sqp = (SimpleQueryPackage*) package;
-//	messgBuff = sqp->getQuery();
-//	size = sqp->getQuerySize();
-//	delete package;
+		return -1;
+	}
+	SimpleQueryPackage* sqp = (SimpleQueryPackage*) package;
+	messgBuff = sqp->getQuery();
+	size = sqp->getQuerySize();
+	delete package;
 
 	if (messgBuff==NULL) {
 	    *ec << "[Server.Run]--> Error in receive, client terminated??";

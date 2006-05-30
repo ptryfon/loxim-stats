@@ -183,7 +183,7 @@ Result* Connection::oldReceive() throw (ConnectionException) {
       return rs;
 }
 
-Result* Connection::execute(const char* query) throw (ConnectionException) {
+Result* Connection::oldExecute(const char* query) throw (ConnectionException) {
 
 	int error;
       error = bufferSend(query, strlen(query)+1, sock);
@@ -212,7 +212,7 @@ Result* Connection::execute(const char* query) throw (ConnectionException) {
       return rs;
 }
 
-Result* Connection::newExecute(const char* query) throw (ConnectionException) {
+Result* Connection::execute(const char* query) throw (ConnectionException) {
 	SimpleQueryPackage spackage;
 	//cerr << "zaczynam execute\n";
 	spackage.setQuery(query);
