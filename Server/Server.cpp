@@ -73,7 +73,7 @@ void Server::Test() {
 
 void Server::cancelPC(pthread_t pulseId) {
     ErrorConsole ec("Server_cancelPC");
-    ec.printf("Cancelling PC..");	
+    ec.printf("Cancelling PC..");
     pthread_mutex_lock(&mut);
     if ((int)pulseId == 0) {
 	ec.printf("Bad id!");
@@ -83,12 +83,12 @@ void Server::cancelPC(pthread_t pulseId) {
     int res;
     res = pthread_cancel(pulseId);
     if (res!=0)
-	ec.printf("[Server.cancelPC]--> pulseChecker cancellation failed!! (%d)\n", res);	
-    else {	
+	ec.printf("[Server.cancelPC]--> pulseChecker cancellation failed!! (%d)\n", res);
+    else {
 	running_threads_count--;
     }
     pthread_mutex_unlock(&mut);
-    ec.printf("[Server.cancelPC]--> pulseChecker cancelled..\n");	
+    ec.printf("[Server.cancelPC]--> pulseChecker cancelled..\n");
     return;
 }
 
@@ -99,16 +99,16 @@ int Server::getSocket() {
 int Server::getFdContact() {
 	return fdContact;
 }
-    
+
 void *clientPulseCheck(void *arg) {
     Server srv=*(Server *)arg;
     int res;
     int fdCli;
     char ghostBuff;
     ErrorConsole ec("Server_PulseCheck");
-   
+
     fdCli=srv.getSocket();
-    
+
     pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
     pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
     ec.printf("[Server.clientPulseCheck]--> Start..  \n", res);
@@ -127,8 +127,8 @@ void *clientPulseCheck(void *arg) {
 			ec.printf("Server.clientPulseCheck]--> Desc. change. (%d)  \n", res);
 			pthread_exit((void *) res);
 		}
-			
-					
+
+
 	}
 
 }
@@ -142,7 +142,7 @@ double Server::htonDouble(double inD) {
     return res;
 }
 
-int  Server::SerializeRec(QueryResult *qr) 
+int  Server::SerializeRec(QueryResult *qr)
 {
 	QueryResult *qres;
 	QueryResult *collItem;
@@ -153,7 +153,7 @@ int  Server::SerializeRec(QueryResult *qr)
 	QueryBoolResult *boolRes;
 	QueryDoubleResult *doubleRes;
 	QueryBinderResult *bindRes;
-	
+
 	int rT;
 	Result::ResultType resType;
 
@@ -166,13 +166,13 @@ int  Server::SerializeRec(QueryResult *qr)
 	string strVal;
 	int retVal;
 	int i;
-	
+
 	resType=(Result::ResultType)qr->type();
 	rT=qr->type();
-	
+
 	//*ec << "[Server.Serialize]--> Starting";
 	ec->printf("[Server.Serialize]--> Now serializing object of type: %d \n",  rT);
-	
+
 	switch (rT) {
 		case QueryResult::QBAG:
 			resType=Result::BAG;
@@ -184,14 +184,14 @@ int  Server::SerializeRec(QueryResult *qr)
 				*ec << "[Server.Serialize]-->QueryResult shows type of BAG and says it is no collection";
 				return ErrServer+EBadResult;
 				return -1;
-			} 
-			bagRes = (QueryBagResult *)qr;	
+			}
+			bagRes = (QueryBagResult *)qr;
 			serialBuf[0]=(char)resType;
-			serialBuf++;			
+			serialBuf++;
 			memcpy((void *)serialBuf, (const void *)&bufBagLen, sizeof(bufBagLen));
 			ec->printf("[Server.Serialize]--> Bag header: |(type)=%d|(size)=%lu|\n", (int)serialBufBegin[0], ntohl(*(unsigned long *)serialBuf));
 			serialBuf=serialBuf+sizeof(bufBagLen);
-						
+
 			//TODO DEPTH
 			for (i=0;i<bagSize;i++) {
 				ec->printf("[Server.Serialize]--> Serializing collection item %d \n", i);
@@ -203,7 +203,7 @@ int  Server::SerializeRec(QueryResult *qr)
 				SerializeRec(collItem);
 			}
 			break;
-		case QueryResult::QSEQUENCE: 
+		case QueryResult::QSEQUENCE:
 			resType=Result::SEQUENCE;
 			bagSize=qr->size();
 			bufBagLen=(unsigned long) bagSize;
@@ -213,14 +213,14 @@ int  Server::SerializeRec(QueryResult *qr)
 				*ec << "[Server.Serialize]-->QueryResult shows type of SEQUENCE and says it is no collection";
 				return ErrServer+EBadResult;
 				return -1;
-			} 
+			}
 			bagRes = (QueryBagResult *)qr;
 			*ec << "[Server.Serialize]--> Adding sequence header";
 			serialBuf[0]=(char)resType;
 			serialBuf++;
 			memcpy((void *)serialBuf, (const void *)&bufBagLen, sizeof(bufBagLen));
 			serialBuf=serialBuf+sizeof(bufBagLen);
-						
+
 			//TODO DEPTH
 			for (i=0;i<bagSize;i++) {
 				ec->printf("[Server.Serialize]--> Serializing collection item %d \n", i);
@@ -231,9 +231,9 @@ int  Server::SerializeRec(QueryResult *qr)
 				}
 				SerializeRec(collItem);
 			}
-				
+
 			break;
-		case QueryResult::QSTRUCT: 
+		case QueryResult::QSTRUCT:
 			resType=Result::STRUCT;
 			bagSize=qr->size();
 			bufBagLen=(unsigned long) bagSize;
@@ -242,14 +242,14 @@ int  Server::SerializeRec(QueryResult *qr)
 			if (qr->collection() != true) {
 				*ec << "[Server.Serialize]-->QueryResult shows type of STRUCT and says it is no collection";
 				return ErrServer+EBadResult;
-			} 
+			}
 			bagRes = (QueryBagResult *)qr;
 			*ec << "[Server.Serialize]--> Adding struct header";
 			serialBuf[0]=(char)resType;
 			serialBuf++;
 			memcpy((void *)serialBuf, (const void *)&bufBagLen, sizeof(bufBagLen));
 			serialBuf=serialBuf+sizeof(bufBagLen);
-						
+
 			//TODO DEPTH
 			for (i=0;i<bagSize;i++) {
 				ec->printf("[Server.Serialize]--> Serializing collection item %d \n", i);
@@ -260,7 +260,7 @@ int  Server::SerializeRec(QueryResult *qr)
 				}
 				SerializeRec(collItem);
 			}
-				
+
 			break;
 		case QueryResult::QREFERENCE:
 		    *ec << "[Server.Serialize]--> Getting reference";
@@ -271,10 +271,10 @@ int  Server::SerializeRec(QueryResult *qr)
 		    serialBuf++;
 		    valSize=strVal.length();
 		    ec->printf("[Server.Serialize]--> Reference value: strVal=%s \n", strVal.c_str());
-		    strcpy(serialBuf, strVal.c_str());  
+		    strcpy(serialBuf, strVal.c_str());
 		    ec->printf("[Server.Serialize]--> Reference string serialized to: %s \n", serialBuf);
 		    serialBuf=serialBuf+valSize+1;
-		    break;	
+		    break;
 		case QueryResult::QSTRING:
 		    *ec << "[Server.Serialize]--> Getting STRING";
 		    resType=Result::STRING;
@@ -284,14 +284,14 @@ int  Server::SerializeRec(QueryResult *qr)
 		    ec->printf("[Server.Serialize]--> Adding string header, string size=%d \n", valSize);
 		    serialBuf[0]=(char)resType;
 		    serialBuf++;
-		    strcpy(serialBuf, strVal.c_str());  
+		    strcpy(serialBuf, strVal.c_str());
 		    ec->printf("[Server.Serialize]--> String serialized to: %s \n", serialBuf);
 		    serialBuf=serialBuf+valSize+1;
 		    break;
 		case QueryResult::QRESULT:
 		    *ec << "[Server.Serialize]--> Getting RESULT (ERROR!)";
 		    return -1; //TODO ERRORCODE
-		    break;    
+		    break;
 		 case QueryResult::QNOTHING:
 		    *ec << "[Server.Serialize]--> VOID type, sending type indicator only";
 		    resType=Result::VOID;
@@ -311,7 +311,7 @@ int  Server::SerializeRec(QueryResult *qr)
 		    memcpy((void *)serialBuf, (const void *)&intVal, sizeof(intVal));
 		    serialBuf=serialBuf+sizeof(intVal);
 		    //*ec << "[Server.Serialize]--> buffer written";
-		    break; 
+		    break;
 		case QueryResult::QDOUBLE:
 		    *ec << "[Server.Serialize]--> DOUBLE type";
 		    resType=Result::DOUBLE;
@@ -324,9 +324,9 @@ int  Server::SerializeRec(QueryResult *qr)
 		    doubleVal = htonDouble(doubleVal);
 		    *ec << "[Server.Serialize]--> Splitting and byte order change complete";
 		    memcpy((void *)serialBuf, (const void *)&doubleVal, sizeof(doubleVal));
-		    serialBuf = serialBuf + sizeof(doubleVal);		        
-		    break; 
-		case QueryResult::QBOOL: 
+		    serialBuf = serialBuf + sizeof(doubleVal);
+		    break;
+		case QueryResult::QBOOL:
 		    *ec << "[Server.Serialize]--> BOOL type, sending type indicator and value";
 		    boolRes=(QueryBoolResult *)qr;
 		    boolVal=boolRes->getValue();
@@ -343,7 +343,7 @@ int  Server::SerializeRec(QueryResult *qr)
 		    boolRes = (QueryBoolResult *)qr;
 		    serialBuf++;
 		    serialBuf[0]=(char)(boolVal);
-		    serialBuf++;		    
+		    serialBuf++;
 		    ec->printf("[Server.Serialize]--> Sending bool: |type=%d|value=%d|\n", (int)resType, (int)boolVal);
 		    break;
 		case QueryResult::QBINDER:
@@ -380,7 +380,7 @@ int Server::sendError(int errNo) {
     memcpy((void *)b, (const void *)&errNo, sizeof(errNo));
     Send(*&bB, errMesLen);
     return 0;
-}    
+}
 
 
 int Server::Run()
@@ -388,28 +388,28 @@ int Server::Run()
 	int size=MAX_MESSG;
 	int res=0;
 	int pulseChecker_index=0;
-	
+
 	//Non-critical error occured?
 	int ncError=0;
-	
+
 	sigset_t block_cc;
-	
+
 	*ec << "[Server.Run]--> Starts";
-	
+
 	//Signal Handling
 	sigemptyset(&block_cc);
 	sigaddset(&block_cc, SIGINT);
-	
+
 	sigprocmask(SIG_BLOCK, &block_cc, NULL);
-	
+
 	qPa = new QueryParser();
 	qEx = new QueryExecutor();
-		
+
 	TreeNode *tNode;
 	QueryResult *qResult;
-	
+
 	*ec << "[Server.Run]--> Creating message buffers.. \n";
-	
+
 	messgBuff=(char*) malloc(MAX_MESSG);
 
 	serialBufBegin=(char *)malloc(MAX_MESSG);
@@ -417,43 +417,43 @@ int Server::Run()
 	serialBufSize=MAX_MESSG;
 	serialBuf=serialBufBegin;
 	pulseChecker_id=0;
-	
-		
+
+
 while (!signalReceived) {
 
 	if (ncError==1)
 	    *ec << "[Server.Run]-> a non-critical error occured during the previous session";
     	memset(serialBufBegin, '\0', MAX_MESSG);
-	serialBuf=serialBufBegin;	
+	serialBuf=serialBufBegin;
 	ncError=0;
 
 	*ec << "[Server.Run]--> Blocking SIGINT for now..";
 	sigprocmask(SIG_BLOCK, &block_cc, NULL);
-	
+
 	//*ec << "[Server.Run]--> Cleaning buffers";
 
 	//Get string from client
 	*ec << "[Server.Run]--> Unblocking sigint and receiving query from client";
 	sigprocmask(SIG_UNBLOCK, &block_cc, NULL);
-	
-	// res = (Receive(&messgBuff, &size));
-	Package* package;
-	res = packageReceive(&package, Sock);
-	
+
+	 res = (Receive(&messgBuff, &size));
+//	Package* package;
+//	res = packageReceive(&package, Sock);
+
 	if (res != 0) {
 	    ec->printf("[Server.Run]--> Receive returned error code %d\n", res);
 	    return res;
 	}
-	
-	if (package->getType() != Package::SIMPLEQUERY) {
+
+//	if (package->getType() != Package::SIMPLEQUERY) {
 		//TODO error
-		return -1;
-	}
-	SimpleQueryPackage* sqp = (SimpleQueryPackage*) package;
-	messgBuff = sqp->getQuery();
-	size = sqp->getQuerySize();
-	delete package;
-	
+//		return -1;
+//	}
+//	SimpleQueryPackage* sqp = (SimpleQueryPackage*) package;
+//	messgBuff = sqp->getQuery();
+//	size = sqp->getQuerySize();
+//	delete package;
+
 	if (messgBuff==NULL) {
 	    *ec << "[Server.Run]--> Error in receive, client terminated??";
 	    *ec << "[Server.Run]--> Assuming client loss for that thread - TERMINATING thread";
@@ -462,11 +462,11 @@ while (!signalReceived) {
 	    qEx->QueryExecutor::~QueryExecutor();
 	    return ErrServer + EClientLost; //TODO Error
 	}
-	
-	
+
+
 	*ec << "[Server.Run]--> Blocking sigint again..";
-	sigprocmask(SIG_BLOCK, &block_cc, NULL);	
-	
+	sigprocmask(SIG_BLOCK, &block_cc, NULL);
+
 	ec->printf("[Server.Run]--> Requesting PARSE: |%s| \n", messgBuff);
 	res = (qPa->parseIt((string) messgBuff, tNode));
 	if (res != 0) {
@@ -475,12 +475,12 @@ while (!signalReceived) {
 	    ncError=1;
 	    continue;
 	}
-	
-	
+
+
 #ifdef PULSE_CHECKER_ACTIVE
 	//Create PulseChecker thread
 	pthread_mutex_lock(&mut);
-	pulseChecker_index=getPTindex(pthread_self()); //Taki sam index w pulseThreads jak serwer w pthreads    
+	pulseChecker_index=getPTindex(pthread_self()); //Taki sam index w pulseThreads jak serwer w pthreads
 	res = pthread_create(&pulseThreads[pulseChecker_index], NULL, clientPulseCheck, this);
 	ec->printf("[Server.Run]--> Pulse-checker created with code %d \n", res);
 	if (res!=0) {
@@ -490,13 +490,13 @@ while (!signalReceived) {
 	else {
 	    ec->printf("[Server.Run]--> Pulse-checker CREATED and running at index %d \n", pulseChecker_index);
 	    pulseChecker_id=pulseThreads[pulseChecker_index];
-	    running_threads_count++;    
+	    running_threads_count++;
 	}
 	pthread_mutex_unlock(&mut);
 #endif
-	
+
 	ec->printf("[Server.Run]--> Requesting EXECUTE on tree node: |%d| \n", (int) tNode);
-	res = (qEx->executeQuery(tNode, &qResult)); 
+	res = (qEx->executeQuery(tNode, &qResult));
 #ifdef PULSE_CHECKER_ACTIVE
 	cancelPC(pulseChecker_id);
 #endif
@@ -506,28 +506,28 @@ while (!signalReceived) {
 	    ncError=1;
 	    *ec << "[SERVER]--> ends with ERROR";
 	    continue;
-	} 
-	
+	}
+
 	*ec << "[Server.Run]--> EXECUTE complete, checking results..";
 	ec->printf("[Server.Run]--> Got qResult=|%d| of size: qResult->size()=|%d| :\n",  (int)qResult, qResult->size());
-	
+
 	if (qResult == 0) {//TODO
 	    return 0;
-	} 
-	
+	}
+
 	*ec << "[Server.Run]--> *****SERIALIZE starts*****";
-	
-	res = (SerializeRec(qResult)); 
+
+	res = (SerializeRec(qResult));
 	if (res != 0) {
 	    ec->printf("[Server.Run--> Serialize returned error code %d\n", res);
 	    sendError(res);
 	    *ec << "[SERVER]--> ends with ERROR";
 	    return ErrServer+ESerialize;
 	}
-	
-		
+
+
 	*ec << "[Server.Run]--> *****SERIALIZE complete*****";
-	
+
 	ec->printf("[Server.Run]--> Sending results to client.. Result type=|%d|\n", (int)serialBufBegin[0]);
 	res=(Send(&*serialBufBegin, serialBufSize));
 	if (res != 0) {
@@ -535,19 +535,19 @@ while (!signalReceived) {
 	    *ec << "[SERVER]--> ends with ERROR";
 	    return ErrServer+ESend;
 	}
-		
+
 }
 	*ec << "[Server.Run]--> Releasing message buffers";
 	free(messgBuff);
-	
+
 	//TODO DESTROY ALL OBJECTS
 	*ec << "[Server.Run]--> Destroying Objects";
 	*ec << "[Server.Run]--> Disconnecting";
 	Disconnect();
-	
-	*ec << "[Server.Run]--> <><><>End<><><>"; 
-	return 0;	
-}		
+
+	*ec << "[Server.Run]--> <><><>End<><><>";
+	return 0;
+}
 
 int Server::SExit(int code) {
     ec->printf("[Server.SExit]--> Server thread freeing buffers, destroying QE, QP and disconnecting - returning code |%d|\n", code);
@@ -564,7 +564,7 @@ int Server::SExit(int code) {
 void sigHupPC(int sig) {
     ErrorConsole ec("Server_PulseCheck");
     ec.printf("[sigHupPC]--> pulseChecker received sighup signal\n");
-    signal(SIGHUP, sigHupPC); 
+    signal(SIGHUP, sigHupPC);
     return;
 }
 

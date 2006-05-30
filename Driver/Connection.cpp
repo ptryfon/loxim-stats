@@ -2,8 +2,8 @@
 #include <iostream>
 #include <sys/socket.h>
 #include <sys/types.h>
-#include <netinet/in.h> 
-#include <netdb.h> 
+#include <netinet/in.h>
+#include <netdb.h>
 #include <string.h>
 #include <memory.h>
 #include <errno.h>
@@ -32,14 +32,14 @@ Connection::~Connection()
 
 int Connection::stringCopy(char* &newBuffer) { // od bufferBegin
 		int len = strlen(bufferBegin)+1; //including NULL
-		
+
 		if (bufferBegin + len > bufferEnd) {
 			cerr << "<Serialize::StringCopy> proba czytania poza buforem" << endl;
 			throw ConnectionProtocolException();
 		}
-		
+
 		newBuffer = (char*)malloc (len);
-		
+
 		if (NULL == newBuffer) {
 			throw ConnectionMemoryException(errno | ErrDriver);
 		}
@@ -49,14 +49,14 @@ int Connection::stringCopy(char* &newBuffer) { // od bufferBegin
 }
 
 unsigned long Connection::getULong(unsigned long &val) {
-	
+
 	char* tmpPtr = bufferBegin + sizeof(long);
-	
+
 	if (tmpPtr > bufferEnd) {
 		cerr << "<Connetion::getULong> proba czytania poza odebranym buforem" << endl;
 		throw ConnectionProtocolException();
 	}
-	
+
 		val = ntohl(*((unsigned long*) bufferBegin));
 		bufferBegin = tmpPtr; //skip the number of elements (long)
 		return val;
@@ -64,94 +64,94 @@ unsigned long Connection::getULong(unsigned long &val) {
 
 
 Result* Connection::grabElements(ResultCollection* col) {
-			
+
 			auto_ptr<Result> resultPtr(col); //it's the root of the subtree
-			
+
 			unsigned long number;
 			getULong(number);
 //			col->setSize(getULong(number)); //by reference
 			for (unsigned long i = 1; i <= number; i++) {
 				col->add(deserialize());
 			}
-			
+
 			resultPtr.release(); // the subtree has been built, don't destroy it.
 			//if anything fails it will be destroyed by the parent
-			return col;	
+			return col;
 }
 
 
 Result* Connection::deserialize() {
 //	int error;
 //	ResultBag *brs;
-//	Result* result;	
+//	Result* result;
 	char* id;
 	unsigned long number;
 //	unsigned long i;
 	unsigned long* lptr;
 	double db;
 	char df;
-		
+
 	switch (*(bufferBegin++)) {
 		case Result::BAG:
 			cerr << "<Connection::deserialize> tworze obiekt BAG\n";
 			return grabElements(new ResultBag());
-			
+
 		case Result::SEQUENCE:
 			cerr << "<Connection::deserialize> tworze obiekt SEQUENCE\n";
 			return grabElements(new ResultSequence());
-		
+
 		case Result::STRUCT:
 			cerr << "<Connection::deserialize> tworze obiekt STRUCT\n";
 			return grabElements(new ResultStruct());
-		
-		
+
+
 		case Result::REFERENCE:
 			cerr << "<Connection::deserialize> tworze obiekt REFERENCE\n";
 			stringCopy(id); //by reference
 			return new ResultReference(string (id));
-		
+
 		case Result::VOID:
 		cerr << "<Connection::deserialize> tworze obiekt VOID\n";
-			return new ResultVoid(); 
-		
+			return new ResultVoid();
+
 	        case Result::STRING:
 		  cerr << "<Connection::deserialize> tworze obiekt STRING\n " ;
 			stringCopy(id); // by reference
 			return new ResultString(string (id));
-		
+
 		case Result::ERROR:
 			cerr << "<Connection::deserialize> tworze obiekt ERROR\n";
 			getULong(number); //by reference
-			throw ConnectionServerException((int)number); 
+			throw ConnectionServerException((int)number);
 			//return new ResultError(number);
-			
-		
+
+
 		case Result::INT:
 					cerr << "<Connection::deserialize> tworze obiekt INT\n";
 			getULong(number); //by reference
 			return new ResultInt((int) number);
-		
+
 		case Result::BOOLTRUE:
 					cerr << "<Connection::deserialize> tworze obiekt BOOL (true)\n";
 			return new ResultBool(true);
-		
+
 		case Result::BOOLFALSE:
 					cerr << "<Connection::deserialize> tworze obiekt BOOL (false)\n";
 			return new ResultBool(false);
-		
+
 		case Result::DOUBLE:
 					cerr << "<Connection::deserialize> tworze obiekt DOUBLE\n";
 			lptr = (unsigned long*) &db;
 			getULong(*lptr); //higher word
 			getULong(*(lptr+1)); //lower word
 			return new ResultDouble(db);
-		
+
 		case Result::BINDER:
 			cerr << "<Connection::deserialize> tworze obiekt BINDER\n";
 			stringCopy(id); // by reference
 			//TODO stringi robic jako new i puszczac jako referencja - wtedy trzeba miec pewnosc ze jak konstruktor sie posypie to zostana usuniete
 			return new ResultBinder(string(id), deserialize());
-		
+
 		default:
 			df = *(bufferBegin-1);
 			cerr << "<Connection::deserialize> obiekt nieznany, nr: " << (int) df << endl;
@@ -176,15 +176,15 @@ Result* Connection::oldReceive() throw (ConnectionException) {
 //      cerr << "<Connection::execute> driver przyszlo bajtow: " << ile << endl;
       bufferBegin = ptr;
       bufferEnd = ptr+ile;
-      
+
       Result* rs = deserialize();
 
 //      cerr << "<Connection::execute> obiekt Result stworzony -> procedura zakonczona sukcesem" << endl;
       return rs;
 }
 
-Result* Connection::oldExecute(const char* query) throw (ConnectionException) {
-	
+Result* Connection::execute(const char* query) throw (ConnectionException) {
+
 	int error;
       error = bufferSend(query, strlen(query)+1, sock);
       if (0 != error) {
@@ -205,14 +205,14 @@ Result* Connection::oldExecute(const char* query) throw (ConnectionException) {
 //      cerr << "<Connection::execute> driver przyszlo bajtow: " << ile << endl;
       bufferBegin = ptr;
       bufferEnd = ptr+ile;
-      
+
       Result* rs = deserialize();
 
 //      cerr << "<Connection::execute> obiekt Result stworzony -> procedura zakonczona sukcesem" << endl;
       return rs;
 }
 
-Result* Connection::execute(const char* query) throw (ConnectionException) {
+Result* Connection::newExecute(const char* query) throw (ConnectionException) {
 	SimpleQueryPackage spackage;
 	//cerr << "zaczynam execute\n";
 	spackage.setQuery(query);
