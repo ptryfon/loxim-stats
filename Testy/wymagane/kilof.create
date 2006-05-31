@@ -1,9 +1,0 @@
-begin;
-
-create kilof(1);
-
-create kilof(2);
-
-create kilof(10);
-
-end;
