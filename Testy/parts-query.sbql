@@ -1,0 +1,27 @@
+begin
+/
+
+((((Part where name="whole") as p), 1 as ile)
+close by
+(p.Component.(leadsTo.Part as p, ile * amount as ile)))
+.
+(deref(p.name),ile);
+/
+
+(
+  ((((Part where name="whole") as p), 1 as ile)
+  close by
+  (p.Component.(leadsTo.Part as p, ile * amount as ile)))
+group as y
+)
+.
+(
+(distinct(y.p) as czesc)
+.
+(czesc as wynik,  sum((y where p==czesc).ile) as ile)
+)
+.(deref(wynik), ile)
+/
+
+end
+/

@@ -1,0 +1,51 @@
+begin;
+/
+
+create (1 as id, "Gêsiñski" as nazwisko, "Jan" as imie, 
+	"konsultant" as stanowisko) as Prac
+/
+
+create (2 as id, "Malinowski" as nazwisko, "Jan" as imie,
+        "sprzedawca" as stanowisko) as Prac
+/
+
+create (3 as id, "Klacz" as nazwisko, "Anzelm" as imie, "Romuald" as imie,
+	"projektant" as stanowisko) as Prac
+/
+
+create (4 as id, "Kordubski" as nazwisko,  "Kleofas" as imie,
+	"analityk" as stanowisko) as Prac
+/
+
+create (5 as id, "Kaleñ" as nazwisko,  "Jan" as imie,
+	"programista" as stanowisko) as Prac
+/
+
+create (6 as id, "Konrad" as nazwisko, "Krzysztof" as imie, "Pawe³" as imie,
+	"programista" as stanowisko) as Prac
+/
+
+(prac where id = 1) :< (prac where id = 2) as podwladny
+/
+(prac where id = 1) :< (prac where id = 3) as podwladny
+/
+(prac where id = 3) :< (prac where id = 4) as podwladny
+/
+(prac where id = 3) :< (prac where id = 5) as podwladny
+/
+(prac where id = 5) :< (prac where id = 6) as podwladny
+/
+
+(prac where id = 2) :< (prac where id = 1) as szef
+/
+(prac where id = 3) :< (prac where id = 1) as szef
+/
+(prac where id = 4) :< (prac where id = 3) as szef
+/
+(prac where id = 5) :< (prac where id = 3) as szef
+/
+(prac where id = 6) :< (prac where id = 5) as szef
+/
+
+end;
+/
