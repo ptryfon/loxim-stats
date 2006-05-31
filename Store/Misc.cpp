@@ -1,7 +1,38 @@
 #include "Misc.h"
+#include <iostream>
+
+using namespace std;
 
 namespace Store
 {
+	void Misc::MemoryCheck()
+	{
+		cout << "Checking memory..\n";
+		for(int s=1; s<1000; s++) {
+			char* b = new char[s];
+			for(int i=0; i<s; i++) {
+				b[i] = 0;
+				if( b[i] == 0) continue;
+			}
+			delete[] b;
+			s++; s++;
+		}
+		cout << "Memory OK\n";
+	}
+
+	void Misc::MemoryCheck(void* by, unsigned s)
+	{
+		cout << "Checking memory..\n";
+		char* b = (char*)by;
+		cout << "Checking memory ptr..\n";
+		for(int i=0; i<s; i++) {
+			if( b[i] == 0) continue;
+		}
+		cout << "Memory OK\n";
+	}
+	
+	
+
 
 	Serialized::Serialized()
 	{

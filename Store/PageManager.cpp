@@ -138,7 +138,7 @@ namespace Store
 			name += *(reinterpret_cast<char*>(curpos++));
 		
 		DBDataValue *value;
-		usedbytes = DBDataValue::deserialize(curpos, value);
+		usedbytes = DBDataValue::deserialize(curpos, value, true);
 		if(usedbytes > 0 ) curpos = curpos + usedbytes; else return -1;		
 		
 		if(curpos-startpos > osize) return -1;

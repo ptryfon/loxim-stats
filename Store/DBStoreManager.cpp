@@ -11,14 +11,23 @@ namespace Store
 
 	DBStoreManager::DBStoreManager()
 	{
+		ec = new ErrorConsole("Store");
+#ifdef DEBUG_MODE
+		*ec << "Store::StoreManager::Constructor begin";
+#endif
 		misc = new Misc();
 		StoreManager::theStore = this;
-		ec = new ErrorConsole("Store");
 		config = new SBQLConfig("Store");
+#ifdef DEBUG_MODE
+		*ec << "Store::StoreManager::Constructor done";
+#endif
 	}
 
 	DBStoreManager::~DBStoreManager()
 	{
+#ifdef DEBUG_MODE
+		*ec << "Store::StoreManager::Destructor begin";
+#endif
 		if(buffer) {
 			buffer->stop();
 			delete buffer;
@@ -41,10 +50,16 @@ namespace Store
 			config = NULL;
 		}
 		StoreManager::theStore = NULL;
+#ifdef DEBUG_MODE
+		*ec << "Store::StoreManager::Destructor done";
+#endif
 	}
 
 	int DBStoreManager::init(LogManager* log)
 	{
+#ifdef DEBUG_MODE
+		*ec << "Store::StoreManager::init begin";
+#endif
 		this->log = log;
 		this->buffer = new Buffer(this);
 		this->map = new Map();
@@ -54,11 +69,17 @@ namespace Store
 		this->roots->init(this->buffer, this->log);
 		this->map->init(this->buffer, this->log);
 
+#ifdef DEBUG_MODE
+		*ec << "Store::StoreManager::init done";
+#endif
 		return 0;
 	}
 
 	int DBStoreManager::setTManager(TransactionManager* tm)
 	{
+#ifdef DEBUG_MODE
+		*ec << "Store::StoreManager::setTManager";
+#endif
 		this->tm = tm;
 
 		return 0;
@@ -66,6 +87,9 @@ namespace Store
 
 	int DBStoreManager::start()
 	{
+#ifdef DEBUG_MODE
+		*ec << "Store::StoreManager::start";
+#endif
 		int retval = 0;
 
 		if ((retval = buffer->start()) != 0)
@@ -76,6 +100,9 @@ namespace Store
 
 	int DBStoreManager::stop()
 	{
+#ifdef DEBUG_MODE
+		*ec << "Store::StoreManager::stop";
+#endif
 		int retval = 0;
 
 		if ((retval = buffer->stop()) != 0)
@@ -121,15 +148,16 @@ namespace Store
 
 	int DBStoreManager::getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object)
 	{
+#ifdef DEBUG_MODE
 		ec->printf("Store::Manager::getObject (LID=%d) started...", lid->toInteger());
-
+#endif
 		physical_id *p_id = NULL;
 		if( (map->getPhysicalID(lid->toInteger(),&p_id)) == 2 ) return 2; //out of range
 		cout << "file: " << p_id->file_id << ", page: " << p_id->page_id << ", off: " << p_id->offset <<endl;
 
 		if (map->equal(p_id, map->RIP))
 		{
-			*ec << "Store::Manager::getObject done: Object not found\n(brak ustalonego kodu bledu dla tej operacji, default -> return 2;";
+			*ec << "Store::Manager::getObject failed: Object not found\n(brak ustalonego kodu bledu dla tej operacji, default -> return 2;";
 			return 2;	
 		}
 
@@ -145,7 +173,9 @@ namespace Store
 			*ec << "Store::Manager::getObject failed";
 			return -1;
 		}
+#ifdef DEBUG_MODE
 		ec->printf("Store::Manager::getObject done: %s\n", object->toString().c_str());
+#endif
 		return 0;	
 	}
 
@@ -156,8 +186,9 @@ namespace Store
 
 	int DBStoreManager::createObject(TransactionID* tid, string name, DataValue* value, ObjectPointer*& object, LogicalID* p_lid, bool isRoot)
 	{
+#ifdef DEBUG_MODE
 		*ec << "Store::Manager::createObject start...";
-		
+#endif		
 		LogicalID* lid;
 		if(p_lid == NULL)
 			lid = new DBLogicalID(map->createLogicalID());
@@ -176,22 +207,18 @@ namespace Store
 		sObj.info();
 
 		int freepage = pagemgr->getFreePage(sObj.size); // strona z wystaraczajaca iloscia miejsca na nowy obiekt
-		//*ec << "Store::Manager::createObject freepage = " + freepage;
-		cout << "Store::Manager::createObject freepage = " << freepage << endl;
+#ifdef DEBUG_MODE
+		ec->printf("Store::Manager::createObject freepage = %d\n", freepage);
+#endif
 		PagePointer* pPtr = buffer->getPagePointer(STORE_FILE_DEFAULT, freepage);
 
 		pPtr->aquire();
 
-		//cout << "przed:\n";
-		//pagemgr->printPage(pPtr, 1024/16);
 		int pidoffset;
 		PageManager::insertObject(pPtr, sObj, &pidoffset, log_id);
-		//cout << "po:\n";
-		//pagemgr->printPage(pPtr, 1024/16);
 
 		pagemgr->updateFreeMap(pPtr);
 		
-		//PageManager::printPage(pPtr, 1024/16);
 		pPtr->release();
 		
 		physical_id pid;
@@ -200,14 +227,18 @@ namespace Store
 		pid.offset = pidoffset;
 		map->setPhysicalID(lid->toInteger(), &pid);
 		
+#ifdef DEBUG_MODE
 		ec->printf("Store::Manager::createObject done: %s\n", object->toString().c_str());
+#endif
 		return 0;
 	}
 
 
 	int DBStoreManager::deleteObject(TransactionID* tid, ObjectPointer* object)
 	{
+#ifdef DEBUG_MODE
 		*ec << "Store::Manager::deleteObject start...";
+#endif
 		unsigned log_id;
 		int itid = tid==NULL ? -1 : tid->getId();
 #ifdef LOGS
@@ -219,8 +250,9 @@ namespace Store
 			ec->printf("Store::Manager::deleteObject failed: LID=%d out of range\n(brak ustalonego kodu bledu dla tej operacji, default -> return 2;\n", object->getLogicalID()->toInteger());
 			return 2; //out of range
 		}
-		//cout << "file: " << p_id->file_id << ", page: " << p_id->page_id << ", off: " << p_id->offset <<endl;
+#ifdef DEBUG_MODE
 		ec->printf("file: %d, page: %d, offset: %d\n", p_id->file_id, p_id->page_id, p_id->offset);
+#endif
 		if((!p_id->file_id) && (!p_id->page_id) && (!p_id->offset)) return 2;
 		if( p_id->offset > STORE_PAGESIZE/4 ) {
 			*ec << "Store::Manager::deleteObject failed: invalid offset";
@@ -313,23 +345,25 @@ namespace Store
 		pagemgr->updateFreeMap(pPtr);
 		
 		pPtr->release();
-
+#ifdef DEBUG_MODE
 		ec->printf("Store::Manager::deleteObject done: %s\n", object->toString().c_str());
-		
+#endif		
 		return 0;
 	}
 	
 	int DBStoreManager::modifyObject(TransactionID* tid, ObjectPointer*& object, DataValue* dv)
 	{
+#ifdef DEBUG_MODE
 		*ec << "Store::Manager::modifyObject start...";
-		
+#endif		
 		deleteObject(tid, object);
 		ObjectPointer* newobj;
 		createObject(tid, object->getName(), dv, newobj, object->getLogicalID(), object->getIsRoot());
 		delete object;
 		object = newobj;
-		
+#ifdef DEBUG_MODE
 		*ec << "Store::Manager::modifyObject done";
+#endif
 		return 0;
 	}
 	
@@ -345,17 +379,22 @@ namespace Store
 
 	int DBStoreManager::getRoots(TransactionID* tid, vector<ObjectPointer*>*& p_roots)
 	{
+#ifdef DEBUG_MODE
 		*ec << "Store::Manager::getRoots(ALL) begin..";
-
+#endif
 		int rval = getRoots(tid, "", p_roots);
 
+#ifdef DEBUG_MODE
 		*ec << "Store::Manager::getRoots(ALL) done";
+#endif
 		return rval;
 	}
 
 	int DBStoreManager::getRoots(TransactionID* tid, string p_name, vector<ObjectPointer*>*& p_roots)
 	{
+#ifdef DEBUG_MODE
 		*ec << "Store::Manager::getRoots(BY NAME) begin..";
+#endif
 		p_roots = new vector<ObjectPointer*>(0);
 		vector<int>* rvec;
 		rvec = roots->getRoots(p_name.c_str(), tid->getId(), tid->getTimeStamp());
@@ -372,23 +411,30 @@ namespace Store
 				return -1;
 		}
 
+#ifdef DEBUG_MODE
 		ec->printf("Store::Manager::getRoots(BY NAME) done: size=%d\n", p_roots->size());
+#endif
 		return 0;
 	}
 
 	int DBStoreManager::getRootsLID(TransactionID* tid, vector<LogicalID*>*& p_roots)
 	{
+#ifdef DEBUG_MODE
 		*ec << "Store::Manager::getRootsLID(ALL) begin..";
-
+#endif
 		int rval = getRootsLID(tid, "", p_roots);
 
+#ifdef DEBUG_MODE
 		*ec << "Store::Manager::getRootsLID(ALL) done";
+#endif
 		return rval;
 	}
 
 	int DBStoreManager::getRootsLID(TransactionID* tid, string p_name, vector<LogicalID*>*& p_roots)
 	{
+#ifdef DEBUG_MODE
 		*ec << "Store::Manager::getRootsLID(BY NAME) begin..";
+#endif
 		p_roots = new vector<LogicalID*>(0);
 		vector<int>* rvec;
 		rvec = roots->getRoots(p_name.c_str(), tid->getId(), tid->getTimeStamp());
@@ -401,14 +447,18 @@ namespace Store
 		}
 
 		delete rvec;
+#ifdef DEBUG_MODE
 		ec->printf("Store::Manager::getRootsLID(BY NAME) done: size=%d\n", p_roots->size());
+#endif
 		return 0;
 	}
 
 
 	int DBStoreManager::addRoot(TransactionID* tid, ObjectPointer*& object)
 	{
+#ifdef DEBUG_MODE
 		*ec << "Store::Manager::addRoot begin..";
+#endif
 		int lid = object->getLogicalID()->toInteger();
 //		unsigned log_id;
 //		int itid = tid==NULL ? -1 : tid->getId();
@@ -432,13 +482,17 @@ namespace Store
 
 		roots->addRoot(lid, object->getName().c_str(), tid->getId(), tid->getTimeStamp());
 
+#ifdef DEBUG_MODE
 		ec->printf("Store::Manager::addRoot done: %s\n", object->toString().c_str());
+#endif
 		return 0;
 	}
 
 	int DBStoreManager::removeRoot(TransactionID* tid, ObjectPointer*& object)
 	{
+#ifdef DEBUG_MODE
 		*ec << "Store::Manager::removeRoot begin..";
+#endif
 		int lid = object->getLogicalID()->toInteger();
 //		unsigned log_id;
 //		int itid = tid==NULL ? -1 : tid->getId();
@@ -462,7 +516,9 @@ namespace Store
 		
 		roots->removeRoot(lid, tid->getId(), tid->getTimeStamp());
 
+#ifdef DEBUG_MODE
 		ec->printf("Store::Manager::removeRoot done: %s\n", object->toString().c_str());
+#endif
 		return 0;
 	}
 

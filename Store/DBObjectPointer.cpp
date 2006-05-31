@@ -3,12 +3,17 @@
 #include "DBLogicalID.h"
 #include "DBDataValue.h"
 
+//#define DBOP_DEBUG
+
 using namespace std;
 
 namespace Store
 {
 	DBObjectPointer::DBObjectPointer()
 	{
+#ifdef DBOP_DEBUG
+		cout << "DBObjectPointer::Constructor()\n";
+#endif
 		lid = NULL;
 		name = "NoName";
 		value = NULL;
@@ -16,6 +21,9 @@ namespace Store
 
 	DBObjectPointer::DBObjectPointer(LogicalID* p_lid)
 	{
+#ifdef DBOP_DEBUG
+		cout << "DBObjectPointer::Constructor(LID*)\n";
+#endif
 		lid = p_lid->clone();
 		name = "NoName";
 		value = NULL;
@@ -24,6 +32,9 @@ namespace Store
 	
 	DBObjectPointer::DBObjectPointer(string p_name, DataValue* dv)
 	{
+#ifdef DBOP_DEBUG
+		cout << "DBObjectPointer::Constructor(string, DV*)\n";
+#endif
 		lid = NULL;
 		name = p_name;
 		value = dv->clone();
@@ -31,6 +42,9 @@ namespace Store
 
 	DBObjectPointer::DBObjectPointer(string p_name, DataValue* dv, LogicalID* p_lid)
 	{
+#ifdef DBOP_DEBUG
+		cout << "DBObjectPointer::Constructor(string, DV*, LID*)\n";
+#endif
 		lid = p_lid->clone();
 		name = p_name;
 		value = dv->clone();
@@ -38,6 +52,9 @@ namespace Store
 	
 	DBObjectPointer::~DBObjectPointer()
 	{
+#ifdef DBOP_DEBUG
+		cout << "DBObjectPointer::Destructor\n";
+#endif
 		if(lid) delete lid;
 		if(value) delete value;
 	};
@@ -65,6 +82,7 @@ namespace Store
 	void DBObjectPointer::setValue(DataValue* val)
 	{ // czy to nie jest ta funkcja ktora mialaby wywlywac
 	  // deleteObject + createObject hmmmmm
+		cout << "DBObjectPointer::NIELEGALNA FUNKCJA !!!\n";
 		DBStoreManager::theStore->replaceDV(this, val); 
 		this->value = val; //pointer copy
 	};
@@ -82,6 +100,9 @@ namespace Store
 
 	Serialized DBObjectPointer::serialize() const
 	{
+#ifdef DBOP_DEBUG
+		cout << "DBObjectPointer::serialize\n";
+#endif
 		Serialized s;
 		//LogicalID
 		s += *(getLogicalID());

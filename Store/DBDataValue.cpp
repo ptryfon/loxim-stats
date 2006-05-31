@@ -1,6 +1,8 @@
 #include "DBDataValue.h"
 #include "DBStoreManager.h"
-#include <stdio.h>
+//#include <stdio.h>
+
+//#define DBDV_DEBUG
 
 using namespace std;
 
@@ -9,11 +11,17 @@ namespace Store
 //jest leakage przez p_init :>
 	DBDataValue::DBDataValue() // konstruktory DV robia deep-copy
 	{
+#ifdef DBDV_DEBUG
+		cout << "Store::DBDataValue::Constructor()\n";
+#endif
 		p_init();
 	};
 	
 	DBDataValue::DBDataValue(int val)
 	{
+#ifdef DBDV_DEBUG
+		cout << "Store::DBDataValue::Constructor(int)\n";
+#endif
 		p_init();
 		type = Store::Integer;
 		value.int_value = new int(val);
@@ -21,6 +29,9 @@ namespace Store
 
 	DBDataValue::DBDataValue(double val)
 	{
+#ifdef DBDV_DEBUG
+		cout << "Store::DBDataValue::Constructor(double)\n";
+#endif
 		p_init();
 		type = Store::Double;
 		value.double_value = new double(val);
@@ -28,6 +39,9 @@ namespace Store
 
 	DBDataValue::DBDataValue(string val)
 	{
+#ifdef DBDV_DEBUG
+		cout << "Store::DBDataValue::Constructor(string)\n";
+#endif
 		p_init();
 		type = Store::String;
 		value.string_value = new string(val);
@@ -35,6 +49,9 @@ namespace Store
 
 	DBDataValue::DBDataValue(LogicalID* val)
 	{
+#ifdef DBDV_DEBUG
+		cout << "Store::DBDataValue::Constructor(LogicalID*)\n";
+#endif
 		p_init();
 		type = Store::Pointer;
 		value.pointer_value = new DBLogicalID();
@@ -43,6 +60,9 @@ namespace Store
 
 	DBDataValue::DBDataValue(vector<LogicalID*>* val)
 	{
+#ifdef DBDV_DEBUG
+		cout << "Store::DBDataValue::Constructor(vector<LID*>*)\n";
+#endif
 		p_init();
 		type = Store::Vector;
 		value.vector_value = new vector<LogicalID*>(0);
@@ -53,6 +73,9 @@ namespace Store
 
 	DBDataValue::DBDataValue(const DataValue& dv)
 	{
+#ifdef DBDV_DEBUG
+		cout << "Store::DBDataValue::Constructor(DataValue&)\n";
+#endif
 		p_init();
 		setSubtype(dv.getSubtype());
 		switch(dv.getType()) {
@@ -68,6 +91,9 @@ namespace Store
 
 	DBDataValue::~DBDataValue()
 	{
+#ifdef DBDV_DEBUG
+		cout << "Store::DBDataValue::Destructor\n";
+#endif
 		p_destroyVal();
 	};
 	 
@@ -118,6 +144,9 @@ namespace Store
 
 	Serialized DBDataValue::serialize() const
 	{
+#ifdef DBDV_DEBUG
+		cout << "Store::DBDataValue::serialize\n";
+#endif
 		Serialized s;
 		s += static_cast<int>(type);
 		s += static_cast<int>(subtype);
@@ -139,8 +168,11 @@ namespace Store
 		return s;
 	};
 
-	int DBDataValue::deserialize(unsigned char* bytes, DBDataValue*& value)
+	int DBDataValue::deserialize(unsigned char* bytes, DBDataValue*& value, bool AutoRemove)
 	{
+#ifdef DBDV_DEBUG
+		cout << "Store::DBDataValue::deserialize\n";
+#endif
 		unsigned char *curpos = bytes;
 
 		DataType type = static_cast<DataType>(*(reinterpret_cast<int*>(curpos)));
@@ -187,12 +219,23 @@ namespace Store
 				for(int i=0; i<vlen; i++) {
 					ub = DBLogicalID::deserialize(curpos, lid);
 
-					physical_id *p_id = 0;
-					((DBStoreManager*) DBStoreManager::theStore)->getMap()->getPhysicalID(lid->toInteger(), &p_id);
-					if (!((DBStoreManager*) DBStoreManager::theStore)->getMap()->equal(p_id, ((DBStoreManager*) DBStoreManager::theStore)->getMap()->RIP))
+					if( AutoRemove ) {
+						physical_id *p_id = 0;
+						int rval = ((DBStoreManager*) DBStoreManager::theStore)->getMap()->getPhysicalID(lid->toInteger(), &p_id);
+						if( rval > 0 ) {
+							if( rval == 1 )
+								cout << "ERR: bad lid\n";
+							else
+								cout << "ERR: unknown lid\n";
+							exit(1);
+						}
+						if (!((DBStoreManager*) DBStoreManager::theStore)->getMap()->equal(p_id, ((DBStoreManager*) DBStoreManager::theStore)->getMap()->RIP))
+							v->push_back(lid);
+						delete[] (char*)p_id;
+					}
+					else
 						v->push_back(lid);
-					delete p_id;
-
+					
 					curpos += ub;
 				}
 				value = new DBDataValue();

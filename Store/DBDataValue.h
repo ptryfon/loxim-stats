@@ -37,7 +37,7 @@ namespace Store
 		virtual void setSubtype(ExtendedType subtype);
 		virtual string toString();
 		virtual Serialized serialize() const;
-		static int deserialize(unsigned char* bytes, DBDataValue*& value);
+		static int deserialize(unsigned char* bytes, DBDataValue*& value, bool AutoRemove=false);
 		virtual DataValue* clone() const;
 
 		virtual int getInt() const;

@@ -15,6 +15,9 @@ namespace Store
 	   vector <ObjectPointer*> vect;
 		vector <ObjectPointer*> roots;
 		int lastlid;
+		
+		static void MemoryCheck();
+		static void MemoryCheck(void*, unsigned);
 	};
 
 

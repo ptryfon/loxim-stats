@@ -1,6 +1,8 @@
 #ifndef __STORE_H__
 #define __STORE_H__
 
+#define DEBUG_MODE
+
 namespace Store
 {
 //	class PhysicalID;
