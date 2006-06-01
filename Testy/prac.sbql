@@ -25,26 +25,26 @@ create (6 as id, "Konrad" as nazwisko, "Krzysztof" as imie, "Pawe³" as imie,
 	"programista" as stanowisko) as Prac
 /
 
-(prac where id = 1) :< (prac where id = 2) as podwladny
+(Prac where id = 1) :< (Prac where id = 2) as podwladny
 /
-(prac where id = 1) :< (prac where id = 3) as podwladny
+(Prac where id = 1) :< (Prac where id = 3) as podwladny
 /
-(prac where id = 3) :< (prac where id = 4) as podwladny
+(Prac where id = 3) :< (Prac where id = 4) as podwladny
 /
-(prac where id = 3) :< (prac where id = 5) as podwladny
+(Prac where id = 3) :< (Prac where id = 5) as podwladny
 /
-(prac where id = 5) :< (prac where id = 6) as podwladny
+(Prac where id = 5) :< (Prac where id = 6) as podwladny
 /
 
-(prac where id = 2) :< (prac where id = 1) as szef
+(Prac where id = 2) :< (Prac where id = 1) as szef
 /
-(prac where id = 3) :< (prac where id = 1) as szef
+(Prac where id = 3) :< (Prac where id = 1) as szef
 /
-(prac where id = 4) :< (prac where id = 3) as szef
+(Prac where id = 4) :< (Prac where id = 3) as szef
 /
-(prac where id = 5) :< (prac where id = 3) as szef
+(Prac where id = 5) :< (Prac where id = 3) as szef
 /
-(prac where id = 6) :< (prac where id = 5) as szef
+(Prac where id = 6) :< (Prac where id = 5) as szef
 /
 
 end;
