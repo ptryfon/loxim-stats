@@ -136,8 +136,8 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			return errcode;
 		}
 		*ec << "[QE] Transaction aborted succesfully";
-		*ec << (ErrQExecutor | EQEUnexpectedErr);
-		return ErrQExecutor | EQEUnexpectedErr;
+		*ec << (ErrQExecutor | EEvalStopped);
+		return ErrQExecutor | EEvalStopped;
 	}
 	
 	if (tree != NULL) {
@@ -353,8 +353,8 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 						return errcode;
 					}
 					*ec << "[QE] Transaction aborted succesfully";
-					*ec << (ErrQExecutor | EQEUnexpectedErr);
-					return ErrQExecutor | EQEUnexpectedErr;
+					*ec << (ErrQExecutor | EEvalStopped);
+					return ErrQExecutor | EEvalStopped;
 				}	
 				QueryResult *next_final = new QueryStructResult();
 				QueryResult *newStackSection = new QueryBagResult();
@@ -454,8 +454,8 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 							return errcode;
 						}
 						*ec << "[QE] Transaction aborted succesfully";
-						*ec << (ErrQExecutor | EQEUnexpectedErr);
-						return ErrQExecutor | EQEUnexpectedErr;
+						*ec << (ErrQExecutor | EEvalStopped);
+						return ErrQExecutor | EEvalStopped;
 					}
 					
 					QueryResult *currentResult;
