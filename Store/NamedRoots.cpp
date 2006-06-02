@@ -127,7 +127,11 @@ namespace Store
 			else
 				i++;
 
-			page_pointer->release();
+			if (i == 0)
+				page_pointer->releaseSync();
+			else
+				page_pointer->release();
+
 			delete page_pointer;
 		}
 
@@ -198,7 +202,11 @@ namespace Store
 						i++;
 			}
 
-			page_pointer->release();
+			if (i == 0)
+				page_pointer->releaseSync();
+			else
+				page_pointer->release();
+
 			delete page_pointer;
 		}
 
@@ -241,10 +249,12 @@ namespace Store
 		ixr_page* page = 0;
 		ixr_entry* entry = 0;
 		int entry_size = 0;
+		int changed = 0;
 
 		i = 1;
 		while (i > 0)
 		{
+			changed = 0;
 			page_pointer = buffer->getPagePointer(STORE_FILE_ROOTS, (unsigned int) i);
 			page_pointer->aquire();
 
@@ -293,6 +303,7 @@ namespace Store
 							entry_size = 0;
 						}
 
+						changed = 1;
 						page->page_hdr.timestamp = log->getLogicalTimerValue();
 					}
 
@@ -302,7 +313,11 @@ namespace Store
 				i++;
 			}
 
-			page_pointer->release();
+			if (changed != 0)
+				page_pointer->releaseSync();
+			else
+				page_pointer->release();
+
 			delete page_pointer;
 		}
 
@@ -354,7 +369,7 @@ namespace Store
 
 					if
 					(
-						(strlen(name) == 0 || strcasecmp(name, entry->name) == 0)
+						(strlen(name) == 0 || strcmp(name, entry->name) == 0)
 						&& entry->add_t <= transactionTimeStamp
 						&& entry->del_t == STORE_IXR_NULLVALUE
 						&& (entry->cur_tran == STORE_IXR_NULLVALUE || entry->cur_tran == transactionID)

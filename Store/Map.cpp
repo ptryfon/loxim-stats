@@ -84,7 +84,7 @@ namespace Store
 		header->aquire();
 		((page_header*) header->getPage())->timestamp = log->getLogicalTimerValue();
 		((map_header*) header->getPage())->last_assigned = last;
-		header->release();
+		header->releaseSync();
 	};
 
 	unsigned int Map::createLogicalID()
@@ -97,7 +97,7 @@ namespace Store
 		memset(page->getPage() + STORE_MAP_MAPOFFSET(last + 1), 0xFF, sizeof(physical_id));
 		((page_header*) page->getPage())->timestamp = log->getLogicalTimerValue();
 
-		page->release();
+		page->releaseSync();
 
 		setLastAssigned(last + 1);
 		delete page;
@@ -157,7 +157,7 @@ namespace Store
 		memcpy(page->getPage() + STORE_MAP_MAPOFFSET(logicalID), physicalID, sizeof(physical_id));
 		((page_header*) page->getPage())->timestamp = log->getLogicalTimerValue();
 
-		page->release();
+		page->releaseSync();
 		delete page;
 
 		return 0;

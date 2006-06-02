@@ -61,21 +61,28 @@ namespace Store
 		froots = ::open(sroots.c_str(), O_RDWR);
 		fdefault = ::open(sdefault.c_str(), O_RDWR);
 
-		if (fmap == -1 || froots == -1 || fdefault == -1)
+		if (fmap == -1)
 		{
-			if (fmap > 0) close(fmap);
-			if (froots > 0) close(froots);
-			if (fdefault > 0) close(fdefault);
-
 			if ((fmap = ::open(smap.c_str(), O_CREAT | O_RDWR, S_IRUSR | S_IWUSR)) == -1)
-				return EBadFile;
-			if ((froots = ::open(sroots.c_str(), O_CREAT | O_RDWR, S_IRUSR | S_IWUSR)) == -1)
-				return EBadFile;
-			if ((fdefault = ::open(sdefault.c_str(), O_CREAT | O_RDWR, S_IRUSR | S_IWUSR)) == -1)
 				return EBadFile;
 
 			store->getMap()->initializeFile(this);
+		}
+
+		if (froots == -1)
+		{
+			if ((froots = ::open(sroots.c_str(), O_CREAT | O_RDWR, S_IRUSR | S_IWUSR)) == -1)
+				return EBadFile;
+
 			store->getRoots()->initializeFile(this);
+		}
+
+
+		if (fdefault == -1)
+		{
+			if ((fdefault = ::open(sdefault.c_str(), O_CREAT | O_RDWR, S_IRUSR | S_IWUSR)) == -1)
+				return EBadFile;
+
 			store->getPageManager()->initializeFile(this);
 		}
 
