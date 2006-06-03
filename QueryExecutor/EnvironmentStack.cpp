@@ -21,7 +21,7 @@ using namespace std;
 
 namespace QExecutor {
 
-EnvironmentStack::EnvironmentStack() { ec = new ErrorConsole("QueryExecutor"); }
+EnvironmentStack::EnvironmentStack() { sectionDBnumber = 0; ec = new ErrorConsole("QueryExecutor"); }
 EnvironmentStack::~EnvironmentStack() { this->deleteAll(); if (ec != NULL) delete ec; }
 
 int EnvironmentStack::push(QueryBagResult *r) {
@@ -34,9 +34,40 @@ int EnvironmentStack::pop(){
 	if (es.empty()) { 
 		*ec << (ErrQExecutor | EQEmptySet);
 		return ErrQExecutor | EQEmptySet;
-	} 
+	}
+	if (es.size() == sectionDBnumber) {
+		*ec << "error: trying to pop() Data Base section"; 
+		*ec << (ErrQExecutor | EQEUnexpectedErr);
+		return ErrQExecutor | EQEUnexpectedErr;
+	}
+	// delete ??
 	es.pop_back();
 	*ec << "[QE] Environment Stack popped"; 
+	return 0;
+}
+
+int EnvironmentStack::pushDBsection() {
+	QueryResult *r = new QueryBagResult();
+	es.push_back((QueryBagResult *)r);
+	sectionDBnumber = es.size();
+	*ec << "[QE] Data Base section pushed on Environment Stack";
+	return 0;
+}
+
+int EnvironmentStack::popDBsection() {
+	if (es.empty()) { 
+		*ec << (ErrQExecutor | EQEmptySet);
+		return ErrQExecutor | EQEmptySet;
+	}
+	if (es.size() != sectionDBnumber) {
+		*ec << "error: trying to popDBsection() on not Data Base section"; 
+		*ec << (ErrQExecutor | EQEUnexpectedErr);
+		return ErrQExecutor | EQEUnexpectedErr;
+	}
+	// delete ??
+	es.pop_back();
+	sectionDBnumber = 0;
+	*ec << "[QE] Data Base section popped from Environment Stack"; 
 	return 0;
 }
 
@@ -45,6 +76,11 @@ int EnvironmentStack::top(QueryBagResult *&r) {
 		*ec << (ErrQExecutor | EQEmptySet);
 		return ErrQExecutor | EQEmptySet;
 	}
+	if (es.size() == sectionDBnumber) {
+		*ec << "error: trying to top() Data Base section"; 
+		*ec << (ErrQExecutor | EQEUnexpectedErr);
+		return ErrQExecutor | EQEUnexpectedErr;
+	}
 	r=(es.back());
 	return 0;
 }
@@ -52,7 +88,7 @@ int EnvironmentStack::top(QueryBagResult *&r) {
 bool EnvironmentStack::empty() { return es.empty(); }
 int EnvironmentStack::size() { return es.size(); }
 
-int EnvironmentStack::bindName(string name, int sectionNo, QueryResult *&r) {
+int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, QueryResult *&r) {
 	int errcode;
 	*ec << "[QE] Name binding on ES";
 	unsigned int number = (es.size());
@@ -64,19 +100,40 @@ int EnvironmentStack::bindName(string name, int sectionNo, QueryResult *&r) {
 	QueryResult *sth;
 	string current;
 	for (unsigned int i = number; i >= 1; i--) {
-		section = (es.at(i - 1));
-		sectionSize = (section->size());
-		ec->printf("[QE] bindName: ES section %u got %u elements\n", i, sectionSize);
-		for (unsigned int j = 0; j < sectionSize; j++) {
-			errcode = (section->at(j,sth));
-			if (errcode != 0) return errcode;
-			if ((sth->type()) == (QueryResult::QBINDER)) {
-				current = (((QueryBinderResult *) sth)->getName());
-				ec->printf("[QE] bindName: current %u name is: %s\n", j, current.c_str());
-				if (current == name) {
-					found_one = true;
-					*ec << "[QE] bindName: Object added to Result";
-					r->addResult(((QueryBinderResult *) sth)->getItem());
+		if (i == sectionDBnumber) {
+			ec->printf("[QE] bindName: ES section %u is Data Base section\n", i);
+			vector<LogicalID*>* vec;
+			if ((errcode = tr->getRootsLID(name, vec)) != 0) {
+				tr->abort();
+				tr = NULL;
+				return errcode;
+			}
+			int vecSize = vec->size();
+			ec->printf("[QE] %d Roots LID by name taken\n", vecSize);
+			for (int i = 0; i < vecSize; i++ ) {
+				found_one = true;
+				LogicalID *lid = vec->at(i);
+				*ec << "[QE] LogicalID received";
+				QueryReferenceResult *lidres = new QueryReferenceResult(lid);
+				r->addResult(lidres);
+			}
+			delete vec;
+		}
+		else {
+			section = (es.at(i - 1));
+			sectionSize = (section->size());
+			ec->printf("[QE] bindName: ES section %u got %u elements\n", i, sectionSize);
+			for (unsigned int j = 0; j < sectionSize; j++) {
+				errcode = (section->at(j,sth));
+				if (errcode != 0) return errcode;
+				if ((sth->type()) == (QueryResult::QBINDER)) {
+					current = (((QueryBinderResult *) sth)->getName());
+					ec->printf("[QE] bindName: current %u name is: %s\n", j, current.c_str());
+					if (current == name) {
+						found_one = true;
+						*ec << "[QE] bindName: Object added to Result";
+						r->addResult(((QueryBinderResult *) sth)->getItem());
+					}
 				}
 			}
 		}

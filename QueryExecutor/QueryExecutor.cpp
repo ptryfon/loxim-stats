@@ -105,9 +105,13 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			return 0;
 		} //if node == TNTRANS
 		else {
+			errcode = envs->pushDBsection();
+			if (errcode != 0) return errcode;
 			errcode = this->executeRecQuery(tree);
 			if (errcode != 0) return errcode;
 			errcode = qres->pop(*result);
+			if (errcode != 0) return errcode;
+			errcode = envs->popDBsection();
 			if (errcode != 0) return errcode;
 			*ec << "[QE] Done!";
 			return 0;
@@ -150,25 +154,8 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			string name = tree->getName();
 			int sectionNumber = ((NameNode *) tree)->getBindSect();
 			QueryResult *result = new QueryBagResult();
-			errcode = envs->bindName(name, sectionNumber, result);
+			errcode = envs->bindName(name, sectionNumber, tr, result);
 			if (errcode != 0) return errcode;
-			if ((result->size()) == 0) {
-				vector<LogicalID*>* vec;
-				if ((errcode = tr->getRootsLID(name, vec)) != 0) {
-					tr->abort();
-					tr = NULL;
-					return errcode;
-				}
-				int vecSize = vec->size();
-				ec->printf("[QE] %d Roots LID by name taken\n", vecSize);
-				for (int i = 0; i < vecSize; i++ ) {
-					LogicalID *lid = vec->at(i);
-					*ec << "[QE] LogicalID received";
-					QueryReferenceResult *lidres = new QueryReferenceResult(lid);
-					result->addResult(lidres);
-				}
-				delete vec;
-			}
 			errcode = qres->push(result);
 			if (errcode != 0) return errcode;
 			*ec << "[QE] Done!";

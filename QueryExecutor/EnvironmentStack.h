@@ -28,15 +28,18 @@ namespace QExecutor
 	protected: 
 		ErrorConsole *ec;
 		vector<QueryBagResult*> es;
+		unsigned int sectionDBnumber;
 	public:
 		EnvironmentStack();
 		~EnvironmentStack();
 		int push(QueryBagResult *r);
 		int pop();
+		int pushDBsection();
+		int popDBsection();
 		int top(QueryBagResult *&r);
 		bool empty();
 		int size();
-		int bindName(string name, int sectionNo, QueryResult *&r);
+		int bindName(string name, int sectionNo, Transaction *&tr, QueryResult *&r);
 		void deleteAll();
 	};
 	
