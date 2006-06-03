@@ -513,19 +513,30 @@ bool QuerySequenceResult::equal(QueryResult *r){
 }
 
 bool QueryBagResult::equal(QueryResult *r){
+	int errcode;
 	if (r->type() != QueryResult::QBAG ) {
 		return false; 
 	}
 	if (r->size() != bag.size() ) {
 		return false; 
 	}
+	QueryBagResult *thisSorted;
+	errcode = this->sortBag(thisSorted);
+	if (errcode != 0) return false;
+	QueryBagResult *rSorted;
+	errcode = ((QueryBagResult *)r)->sortBag(rSorted);
+	if (errcode != 0) return false;
 	bool tmp_value = true;
 	for (unsigned int i = 0; i < (bag.size()); i++ ) { 
-		QueryResult* tmp_res;
-		if ( ((QueryBagResult*) r)->at(i, tmp_res) != 0 ) {
+		QueryResult* this_tmp_res;
+		if ( ((QueryBagResult*) thisSorted)->at(i, this_tmp_res) != 0 ) {
 			return false;
 		};
-		tmp_value = tmp_value && ( (bag.at(i))->equal(tmp_res) );
+		QueryResult* r_tmp_res;
+		if ( ((QueryBagResult*) rSorted)->at(i, r_tmp_res) != 0 ) {
+			return false;
+		};
+		tmp_value = tmp_value && ( (this_tmp_res)->equal(r_tmp_res) );
 	};
 	return tmp_value;
 }
@@ -665,7 +676,92 @@ bool QueryNothingResult::not_equal(QueryResult *r){
 	return tmp_value;
 }
 
+bool QuerySequenceResult::greater_than(QueryResult *r) {
+	if (r->type() != QueryResult::QSEQUENCE ) {
+		return false; 
+	}
+	if (seq.size() > r->size() ) {
+		return true; 
+	}
+	else if (seq.size() < r->size() ) {
+		return false;
+	}
+	bool tmp_value = false;
+	for (unsigned int i = 0; i < (seq.size()); i++ ) {
+		QueryResult* tmp_res;
+		if ( ((QuerySequenceResult*) r)->at(i, tmp_res) != 0 ) {
+			return false;
+		};
+		tmp_value = ( (seq.at(i))->greater_than(tmp_res) );
+		if (tmp_value) return tmp_value;
+	};
+	return tmp_value;
+}
 
+bool QueryBagResult::greater_than(QueryResult *r) {
+	int errcode;
+	if (r->type() != QueryResult::QBAG ) {
+		return false; 
+	}
+	if (bag.size() > r->size() ) {
+		return true; 
+	}
+	else if (bag.size() < r->size() ) {
+		return false;
+	}
+	QueryBagResult *thisSorted;
+	errcode = this->sortBag(thisSorted);
+	if (errcode != 0) return false;
+	QueryBagResult *rSorted;
+	errcode = ((QueryBagResult *)r)->sortBag(rSorted);
+	if (errcode != 0) return false;
+	bool tmp_value = false;
+	for (unsigned int i = 0; i < (bag.size()); i++ ) { 
+		QueryResult* this_tmp_res;
+		if ( ((QueryBagResult*) thisSorted)->at(i, this_tmp_res) != 0 ) {
+			return false;
+		};
+		QueryResult* r_tmp_res;
+		if ( ((QueryBagResult*) rSorted)->at(i, r_tmp_res) != 0 ) {
+			return false;
+		};
+		tmp_value = ((this_tmp_res)->greater_than(r_tmp_res) );
+		if (tmp_value) return tmp_value;
+	};
+	return tmp_value;
+}
+
+bool QueryStructResult::greater_than(QueryResult *r) {
+	if (r->type() != QueryResult::QSTRUCT ) {
+		return false; 
+	}
+	if (str.size() > r->size() ) {
+		return true; 
+	}
+	else if (str.size() < r->size() ) {
+		return false;
+	}
+	bool tmp_value = false;
+	for (unsigned int i = 0; i < (str.size()); i++ ) {
+		QueryResult* tmp_res;
+		if ( ((QueryStructResult*) r)->at(i, tmp_res) != 0 ) {
+			return false;
+		};
+		tmp_value = ( (str.at(i))->greater_than(tmp_res) );
+		if (tmp_value) return tmp_value;
+	};
+	return tmp_value;
+}
+
+bool QueryBinderResult::greater_than(QueryResult *r) {
+	if (r->type() != QueryResult::QBINDER ) {
+		return false; 
+	}
+	bool tmp_value1 = (name > ((QueryBinderResult*) r)->getName());
+	if (tmp_value1) return tmp_value1;
+	bool tmp_value2 = (item->greater_than(((QueryBinderResult*) r)->getItem()));
+	return tmp_value2;
+}
 
 bool QueryStringResult::greater_than(QueryResult *r){
 	if (r->type() != QueryResult::QSTRING ) {
@@ -715,6 +811,97 @@ bool QueryReferenceResult::greater_than(QueryResult *r){
 	unsigned int second = (((QueryReferenceResult*) r)->getValue())->toInteger();
 	bool tmp_value = (first > second);
 	return tmp_value;
+}
+
+bool QueryNothingResult::greater_than(QueryResult *r) {
+	return false;
+}
+
+bool QuerySequenceResult::less_than(QueryResult *r) {
+	if (r->type() != QueryResult::QSEQUENCE ) {
+		return false; 
+	}
+	if (seq.size() < r->size() ) {
+		return true; 
+	}
+	else if (seq.size() > r->size() ) {
+		return false;
+	}
+	bool tmp_value = false;
+	for (unsigned int i = 0; i < (seq.size()); i++ ) {
+		QueryResult* tmp_res;
+		if ( ((QuerySequenceResult*) r)->at(i, tmp_res) != 0 ) {
+			return false;
+		};
+		tmp_value = ( (seq.at(i))->less_than(tmp_res) );
+		if (tmp_value) return tmp_value;
+	};
+	return tmp_value;
+}
+
+bool QueryBagResult::less_than(QueryResult *r) {
+	int errcode;
+	if (r->type() != QueryResult::QBAG ) {
+		return false; 
+	}
+	if (bag.size() < r->size() ) {
+		return true; 
+	}
+	else if (bag.size() > r->size() ) {
+		return false;
+	}
+	QueryBagResult *thisSorted;
+	errcode = this->sortBag(thisSorted);
+	if (errcode != 0) return false;
+	QueryBagResult *rSorted;
+	errcode = ((QueryBagResult *)r)->sortBag(rSorted);
+	if (errcode != 0) return false;
+	bool tmp_value = false;
+	for (unsigned int i = 0; i < (bag.size()); i++ ) { 
+		QueryResult* this_tmp_res;
+		if ( ((QueryBagResult*) thisSorted)->at(i, this_tmp_res) != 0 ) {
+			return false;
+		};
+		QueryResult* r_tmp_res;
+		if ( ((QueryBagResult*) rSorted)->at(i, r_tmp_res) != 0 ) {
+			return false;
+		};
+		tmp_value = ((this_tmp_res)->less_than(r_tmp_res) );
+		if (tmp_value) return tmp_value;
+	};
+	return tmp_value;
+}
+
+bool QueryStructResult::less_than(QueryResult *r) {
+	if (r->type() != QueryResult::QSTRUCT ) {
+		return false; 
+	}
+	if (str.size() < r->size() ) {
+		return true; 
+	}
+	else if (str.size() > r->size() ) {
+		return false;
+	}
+	bool tmp_value = false;
+	for (unsigned int i = 0; i < (str.size()); i++ ) {
+		QueryResult* tmp_res;
+		if ( ((QueryStructResult*) r)->at(i, tmp_res) != 0 ) {
+			return false;
+		};
+		tmp_value = ( (str.at(i))->less_than(tmp_res) );
+		if (tmp_value) return tmp_value;
+	};
+	return tmp_value;
+}
+
+bool QueryBinderResult::less_than(QueryResult *r) {
+	if (r->type() != QueryResult::QBINDER ) {
+		return false; 
+	}
+	bool tmp_value1 = (name < ((QueryBinderResult*) r)->getName());
+	if (tmp_value1) return tmp_value1;
+	bool tmp_value2 = (item->less_than(((QueryBinderResult*) r)->getItem()));
+	return tmp_value2;
 }
 
 bool QueryStringResult::less_than(QueryResult *r){
@@ -767,6 +954,26 @@ bool QueryReferenceResult::less_than(QueryResult *r){
 	return tmp_value;
 }
 
+bool QueryNothingResult::less_than(QueryResult *r) {
+	return false;
+}
+
+bool QuerySequenceResult::greater_eq(QueryResult *r) {
+	return ((this->greater_than(r)) || (this->equal(r)));
+}
+
+bool QueryBagResult::greater_eq(QueryResult *r) {
+	return ((this->greater_than(r)) || (this->equal(r)));
+}
+
+bool QueryStructResult::greater_eq(QueryResult *r) {
+	return ((this->greater_than(r)) || (this->equal(r)));
+}
+
+bool QueryBinderResult::greater_eq(QueryResult *r) {
+	return ((this->greater_than(r)) || (this->equal(r)));
+}
+
 bool QueryStringResult::greater_eq(QueryResult *r){
 	if (r->type() != QueryResult::QSTRING ) {
 		return false; 
@@ -817,6 +1024,26 @@ bool QueryReferenceResult::greater_eq(QueryResult *r){
 	return tmp_value;
 }
 
+bool QueryNothingResult::greater_eq(QueryResult *r) {
+	return ((this->greater_than(r)) || (this->equal(r)));
+}
+
+bool QuerySequenceResult::less_eq(QueryResult *r) {
+	return ((this->less_than(r)) || (this->equal(r)));
+}
+
+bool QueryBagResult::less_eq(QueryResult *r) {
+	return ((this->less_than(r)) || (this->equal(r)));
+}
+
+bool QueryStructResult::less_eq(QueryResult *r) {
+	return ((this->less_than(r)) || (this->equal(r)));
+}
+
+bool QueryBinderResult::less_eq(QueryResult *r) {
+	return ((this->less_than(r)) || (this->equal(r)));
+}
+
 bool QueryStringResult::less_eq(QueryResult *r){
 	if (r->type() != QueryResult::QSTRING ) {
 		return false; 
@@ -865,6 +1092,10 @@ bool QueryReferenceResult::less_eq(QueryResult *r){
 	unsigned int second = (((QueryReferenceResult*) r)->getValue())->toInteger();
 	bool tmp_value = (first <= second);
 	return tmp_value;
+}
+
+bool QueryNothingResult::less_eq(QueryResult *r) {
+	return ((this->less_than(r)) || (this->equal(r)));
 }
 
 //function isBool() - returns true if result is a boolean (also if it is table 1x1 containing one bollean), false if not
@@ -1434,6 +1665,79 @@ int QueryBagResult::divideBag(QueryResult *&left, QueryResult *&right) {
 	}
 	for (unsigned int i = bagHalf; i < bagSize; i++) {
 		right->addResult(bag.at(i));
+	}
+	return 0;
+}
+
+int QueryBagResult::sortBag(QueryBagResult *&outBag) {
+	int errcode;
+	outBag = new QueryBagResult();
+	if ((this->size()) == 1) { 
+		outBag->addResult(this);
+	}
+	else if ((this->size()) == 2) {
+		QueryResult *first;
+		QueryResult *second;
+		errcode = this->at(0, first);
+		if (errcode != 0) return errcode;
+		errcode = this->at(1, second);
+		if (errcode != 0) return errcode;
+		if (first->sorting_less_eq(second)) {
+			outBag->addResult(first);
+			outBag->addResult(second);
+		}
+		else {
+			outBag->addResult(second);
+			outBag->addResult(first);
+		}
+	}
+	else { //this size = 2+
+		QueryResult *firstHalf;
+		QueryResult *secondHalf;
+		errcode = this->divideBag(firstHalf, secondHalf);
+		if (errcode != 0) return errcode;
+		QueryBagResult *firstHalfSorted;
+		QueryBagResult *secondHalfSorted;
+		errcode = ((QueryBagResult *)firstHalf)->sortBag(firstHalfSorted);
+		if (errcode != 0) return errcode;
+		errcode = ((QueryBagResult *)secondHalf)->sortBag(secondHalfSorted);
+		if (errcode != 0) return errcode;
+		unsigned int total_size = (firstHalfSorted->size()) + (secondHalfSorted->size());
+		if (total_size != (this->size())) {
+			*ec << "[QE] sortCollection() ERROR! - i lost some elements somewhere...";
+			*ec << (ErrQExecutor | EQEUnexpectedErr);
+			return ErrQExecutor | EQEUnexpectedErr; // something is wrong, those sizes should be equal
+		}
+		for (unsigned int i = 0; i < total_size; i++) {
+			QueryResult *first_elem;
+			QueryResult *second_elem;
+			if ((firstHalfSorted->size()) == 0) { // first half ended
+				errcode = secondHalfSorted->getResult(second_elem);
+				if (errcode != 0) return errcode;
+				outBag->addResult(second_elem);
+			} 
+			else if ((secondHalfSorted->size()) == 0) { // second sequence ended
+				errcode = firstHalfSorted->getResult(first_elem);
+				if (errcode != 0) return errcode;
+				outBag->addResult(first_elem);
+			} 
+			else {
+				errcode = firstHalfSorted->at(0,first_elem);
+				if (errcode != 0) return errcode;
+				errcode = secondHalfSorted->at(0,second_elem);
+				if (errcode != 0) return errcode;
+				if (first_elem->sorting_less_eq(second_elem)) {
+					outBag->addResult(first_elem);
+					errcode = firstHalfSorted->getResult(first_elem);
+					if (errcode != 0) return errcode;
+				}
+				else {
+					outBag->addResult(second_elem);
+					errcode = secondHalfSorted->getResult(second_elem);
+					if (errcode != 0) return errcode;
+				}
+			}
+		}
 	}
 	return 0;
 }

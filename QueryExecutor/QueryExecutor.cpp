@@ -1275,7 +1275,7 @@ int QueryExecutor::unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&
 			if ((bagArg->size()) == 0) 
 				break;
 			QueryBagResult *argSorted;
-			errcode = this->sortBag((QueryBagResult *) bagArg, argSorted);
+			errcode = ((QueryBagResult *) bagArg)->sortBag(argSorted);
 			if (errcode != 0) return errcode;
 			QueryResult *current;
 			errcode = argSorted->getResult(current);
@@ -1526,10 +1526,10 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 				*ec << "[QE] BAG_MINUS operation";
 			final = new QueryBagResult();
 			QueryBagResult *firstSorted;
-			errcode = this->sortBag((QueryBagResult *) leftBag, firstSorted);
+			errcode = ((QueryBagResult *) leftBag)->sortBag(firstSorted);
 			if (errcode != 0) return errcode;
 			QueryBagResult *secondSorted;
-			errcode = this->sortBag((QueryBagResult *) rightBag, secondSorted);
+			errcode = ((QueryBagResult *) rightBag)->sortBag(secondSorted);
 			if (errcode != 0) return errcode;
 			while ((firstSorted->size()) != 0) {
 				QueryResult *first_elem;
@@ -1997,79 +1997,6 @@ int QueryExecutor::isIncluded(QueryResult *elem, QueryResult *set, bool &score) 
 			tmp_bool = true;
 	} 
 	score = tmp_bool;
-	return 0;
-}
-
-int QueryExecutor::sortBag(QueryBagResult *inBag, QueryBagResult *&outBag) {
-	int errcode;
-	outBag = new QueryBagResult();
-	if ((inBag->size()) == 1) { 
-		outBag->addResult(inBag);
-	}
-	else if ((inBag->size()) == 2) {
-		QueryResult *first;
-		QueryResult *second;
-		errcode = inBag->at(0, first);
-		if (errcode != 0) return errcode;
-		errcode = inBag->at(1, second);
-		if (errcode != 0) return errcode;
-		if (first->sorting_less_eq(second)) {
-			outBag->addResult(first);
-			outBag->addResult(second);
-		}
-		else {
-			outBag->addResult(second);
-			outBag->addResult(first);
-		}
-	}
-	else { //inBag size = 2+
-		QueryResult *firstHalf;
-		QueryResult *secondHalf;
-		errcode = inBag->divideBag(firstHalf, secondHalf);
-		if (errcode != 0) return errcode;
-		QueryBagResult *firstHalfSorted;
-		QueryBagResult *secondHalfSorted;
-		errcode = this->sortBag((QueryBagResult *)firstHalf, firstHalfSorted);
-		if (errcode != 0) return errcode;
-		errcode = this->sortBag((QueryBagResult *)secondHalf, secondHalfSorted);
-		if (errcode != 0) return errcode;
-		unsigned int total_size = (firstHalfSorted->size()) + (secondHalfSorted->size());
-		if (total_size != (inBag->size())) {
-			*ec << "[QE] sortCollection() ERROR! - i lost some elements somewhere...";
-			*ec << (ErrQExecutor | EQEUnexpectedErr);
-			return ErrQExecutor | EQEUnexpectedErr; // something is wrong, those sizes should be equal
-		}
-		for (unsigned int i = 0; i < total_size; i++) {
-			QueryResult *first_elem;
-			QueryResult *second_elem;
-			if ((firstHalfSorted->size()) == 0) { // first half ended
-				errcode = secondHalfSorted->getResult(second_elem);
-				if (errcode != 0) return errcode;
-				outBag->addResult(second_elem);
-			} 
-			else if ((secondHalfSorted->size()) == 0) { // second sequence ended
-				errcode = firstHalfSorted->getResult(first_elem);
-				if (errcode != 0) return errcode;
-				outBag->addResult(first_elem);
-			} 
-			else {
-				errcode = firstHalfSorted->at(0,first_elem);
-				if (errcode != 0) return errcode;
-				errcode = secondHalfSorted->at(0,second_elem);
-				if (errcode != 0) return errcode;
-				if (first_elem->sorting_less_eq(second_elem)) {
-					outBag->addResult(first_elem);
-					errcode = firstHalfSorted->getResult(first_elem);
-					if (errcode != 0) return errcode;
-				}
-				else {
-					outBag->addResult(second_elem);
-					errcode = secondHalfSorted->getResult(second_elem);
-					if (errcode != 0) return errcode;
-				}
-			}
-		}
-	}
 	return 0;
 }
 

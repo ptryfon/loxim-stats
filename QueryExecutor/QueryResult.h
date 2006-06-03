@@ -92,10 +92,10 @@ public:
 	int lastElem(QueryResult *&r);
 	bool equal(QueryResult *r);
 	bool not_equal(QueryResult *r);
-	bool greater_than(QueryResult *r) { return false; };
-	bool less_than(QueryResult *r) { return false; };
-	bool greater_eq(QueryResult *r) { return false; };
-	bool less_eq(QueryResult *r) { return false; };
+	bool greater_than(QueryResult *r);
+	bool less_than(QueryResult *r);
+	bool greater_eq(QueryResult *r);
+	bool less_eq(QueryResult *r);
 	int nested(Transaction *&tr, QueryResult *&r);
 	bool isBool();
 	bool isNothing();
@@ -133,10 +133,10 @@ public:
 	int lastElem(QueryResult *&r);
 	bool equal(QueryResult *r);
 	bool not_equal(QueryResult *r);
-	bool greater_than(QueryResult *r) { return false; };
-	bool less_than(QueryResult *r) { return false; };
-	bool greater_eq(QueryResult *r) { return false; };
-	bool less_eq(QueryResult *r) { return false; };
+	bool greater_than(QueryResult *r);
+	bool less_than(QueryResult *r);
+	bool greater_eq(QueryResult *r);
+	bool less_eq(QueryResult *r);
 	int nested(Transaction *&tr, QueryResult *&r);
 	bool isBool();
 	bool isNothing();
@@ -145,6 +145,7 @@ public:
 	int getReferenceValue(QueryResult *&r);
 	int comma(QueryResult *arg, QueryResult *&score);
 	int divideBag(QueryResult *&left, QueryResult *&right);
+	int sortBag(QueryBagResult *&outBag);
 };
 
 
@@ -174,10 +175,10 @@ public:
 	int lastElem(QueryResult *&r);
 	bool equal(QueryResult *r);
 	bool not_equal(QueryResult *r);
-	bool greater_than(QueryResult *r) { return false; };
-	bool less_than(QueryResult *r) { return false; };
-	bool greater_eq(QueryResult *r) { return false; };
-	bool less_eq(QueryResult *r) { return false; };
+	bool greater_than(QueryResult *r);
+	bool less_than(QueryResult *r);
+	bool greater_eq(QueryResult *r);
+	bool less_eq(QueryResult *r);
 	int nested(Transaction *&tr, QueryResult *&r);
 	bool isBool();
 	bool isNothing();
@@ -208,10 +209,10 @@ public:
 	unsigned int size();
 	bool equal(QueryResult *r);
 	bool not_equal(QueryResult *r);
-	bool greater_than(QueryResult *r) { return false; };
-	bool less_than(QueryResult *r) { return false; };
-	bool greater_eq(QueryResult *r) { return false; };
-	bool less_eq(QueryResult *r) { return false; };
+	bool greater_than(QueryResult *r);
+	bool less_than(QueryResult *r);
+	bool greater_eq(QueryResult *r);
+	bool less_eq(QueryResult *r);
 	int nested(Transaction *&tr, QueryResult *&r);
 	bool isBool();
 	bool isNothing();
@@ -404,10 +405,10 @@ public:
 	unsigned int size();
 	bool equal(QueryResult *r);
 	bool not_equal(QueryResult *r);
-	bool greater_than(QueryResult *r) { return false; };
-	bool less_than(QueryResult *r) { return false; };
-	bool greater_eq(QueryResult *r) { return false; };
-	bool less_eq(QueryResult *r) { return false; };
+	bool greater_than(QueryResult *r);
+	bool less_than(QueryResult *r);
+	bool greater_eq(QueryResult *r);
+	bool less_eq(QueryResult *r);
 	int nested(Transaction *&tr, QueryResult *&r);
 	bool isBool();
 	bool isNothing();
