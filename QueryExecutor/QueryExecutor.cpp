@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string>
 #include <vector>
-   
+
 #include "QueryResult.h"
 #include "TransactionManager/Transaction.h"
 #include "Store/Store.h"
@@ -25,7 +25,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 
 	int errcode;
 	*ec << "[QE] executeQuery()";
-	
+
 	if (tree != NULL) {
 		int nodeType = tree->type();
 		if (tr == NULL) {
@@ -127,10 +127,10 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 }
 
 int QueryExecutor::executeRecQuery(TreeNode *tree) {
-	
+
 	int errcode;
 	*ec << "[QE] executeRecQuery()";
-	
+
 	if (this->evalStopped()) {
 		*ec << "[QE] query evaluating stopped by Server, aborting transaction ";
 		errcode = tr->abort();
@@ -143,11 +143,11 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		*ec << (ErrQExecutor | EEvalStopped);
 		return ErrQExecutor | EEvalStopped;
 	}
-	
+
 	if (tree != NULL) {
 		int nodeType = tree->type();
 		*ec << "[QE] TreeType taken";
-		switch (nodeType) 
+		switch (nodeType)
 		{
 		case TreeNode::TNNAME: {
 			*ec << "[QE] Type: TNNAME";
@@ -206,7 +206,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			ec->printf("[QE] QueryIntResult (%d) created\n",intValue);
 			return 0;
 		} //case TNINT
-		
+
 		case TreeNode::TNSTRING: {
 			string stringValue = ((StringNode *) tree)->getValue();
 			*ec << "[QE] TNSTRING: " << stringValue;
@@ -216,7 +216,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			*ec << "[QE] QueryStringResult created";
 			return 0;
 		} //case TNSTRING
-		
+
 		case TreeNode::TNDOUBLE: {
 			double doubleValue = ((DoubleNode *) tree)->getValue();
 			ec->printf("[QE] TNDOUBLE: %f\n", doubleValue);
@@ -226,7 +226,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			ec->printf("[QE] QueryDoubleResult (%f) created\n", doubleValue);
 			return 0;
 		} //case TNDOUBLE
-			
+
 		case TreeNode::TNVECTOR: {
 			*ec << "[QE] tree - Vector: not implemented, don't know what to do";
 			QueryResult *result = new QueryNothingResult();
@@ -235,7 +235,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			*ec << "[QE] QueryNothingResult created";
 			return 0;
 		} //case TNVECTOR
-		
+
 		case TreeNode::TNAS: {
 			*ec << "[QE] AS/GROUP_AS operation recognized";
 			string name = tree->getName();
@@ -277,7 +277,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			*ec << "[QE] AS operation Done!";
 			return 0;
 		} //case TNAS
-	
+
 		case TreeNode::TNUNOP: {
 			UnOpNode::unOp op = ((UnOpNode *) tree)->getOp();
 			*ec << "[QE] Unary operator - type recognized";
@@ -294,8 +294,8 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			if (errcode != 0) return errcode;
 			*ec << "[QE] Unary operation Done!";
 			return 0;
-		} //case TNUNOP 
-	
+		} //case TNUNOP
+
 		case TreeNode::TNALGOP: {
 			AlgOpNode::algOp op = ((AlgOpNode *) tree)->getOp();
 			*ec << "[QE] Algebraic operator - type recognized";
@@ -318,7 +318,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			*ec << "[QE] Algebraic operation Done!";
 			return 0;
 		} // TNALGOP
-		
+
 		case TreeNode::TNFIX: {
 			*ec << "[QE] FIXPOINT operation recognized";
 			QueryResult *final = new QueryStructResult();
@@ -342,7 +342,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 					*ec << "[QE] Transaction aborted succesfully";
 					*ec << (ErrQExecutor | EEvalStopped);
 					return ErrQExecutor | EEvalStopped;
-				}	
+				}
 				QueryResult *next_final = new QueryStructResult();
 				QueryResult *newStackSection = new QueryBagResult();
 				errcode = (final)->nested(tr, newStackSection);
@@ -357,7 +357,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 					errcode = qres->pop(currRes);
 					if (errcode != 0) return errcode;
 					QueryResult *currBinder = new QueryBinderResult(currName, currRes);
-					next_final->addResult(currBinder);	
+					next_final->addResult(currBinder);
 				}
 				errcode = envs->pop();
 				if (errcode != 0) return errcode;
@@ -372,7 +372,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			*ec << "[QE] Fixpoint operation Done!";
 			return 0;
 		} // TNFIX
-		
+
 		case TreeNode::TNPARAM: {
 			*ec << "[QE] Parametr opeartion";
 			QueryResult *res = new QueryNothingResult();
@@ -381,7 +381,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			*ec << "[QE] Parametr operation Done!";
 			return 0;
 		} // TNPARAM
-		
+
 		case TreeNode::TNNONALGOP: {
 			NonAlgOpNode::nonAlgOp op = ((NonAlgOpNode *) tree)->getOp();
 			*ec << "[QE] NonAlgebraic operator - type recognized";
@@ -431,7 +431,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 					}
 				}//switch
 				while (not (partial_result->isEmpty())) {
-				
+
 					if (this->evalStopped()) {
 						*ec << "[QE] query evaluating stopped by Server, aborting transaction ";
 						errcode = tr->abort();
@@ -444,7 +444,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 						*ec << (ErrQExecutor | EEvalStopped);
 						return ErrQExecutor | EEvalStopped;
 					}
-					
+
 					QueryResult *currentResult;
 					errcode = partial_result->getResult(currentResult);
 					if (errcode != 0) return errcode;
@@ -479,7 +479,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 								if (errcode != 0) return errcode;
 								partial_result->addResult(current_new_result); // this can cause an infinite loop !
 								final_result->addResult(current_new_result);
-								
+
 							}
 							break;
 						}
@@ -609,7 +609,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			*ec << "[QE] NonAlgebraic operation Done!";
 			return 0;
 		} //case TNNONALGOP
-		
+
 		case TreeNode::TNCOND: {
 			CondNode::condOp op = ((CondNode *) tree)->getOp();
 			*ec << "[QE] Conditional operator - type recognized";
@@ -718,8 +718,43 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			}
 			*ec << "[QE] Condition operation Done!";
 			return 0;
-		} //case TNCOND 
+		} //case TNCOND
+		/*
+		case TreeNode::TNLINK: {
+		*ec << "[QE] Link opeartion";
 
+		LinkNode* link = (LinkNode*) tree;
+		QueryResult* structRes = new QueryStructResult();
+		QueryResult* ipRes = new QueryBinderResult("ip", new QueryStringResult(link->getIp()));
+		QueryResult* portRes = new QueryBinderResult("port", new QueryIntResult(link->getPort()));
+		structRes->addResult(ipRes);
+		structRes->addResult(portRes);
+		QueryResult* bind = new QueryBinderResult(link->getNodeName(), structRes);
+
+		ObjectPointer *optr;
+		errcode = this->objectFromBinder(bind, optr);
+		DataValue* value = optr->getValue();
+		value->setSubtype(Store::Link);
+		if (errcode != 0) return errcode;
+
+		if ((errcode = tr->addRoot(optr)) != 0) {
+		*ec << "[QE] Error in addRoot";
+		tr->abort();
+		tr = NULL;
+		return errcode;
+		}
+
+		QueryReferenceResult *lidres = new QueryReferenceResult(optr->getLogicalID());
+		QueryBagResult * result = new QueryBagResult();
+		result->addResult (lidres);
+
+		errcode = qres->push(result);
+		if (errcode != 0) return errcode;
+
+		*ec << "[QE] Link operation Done!";
+		return 0;
+		}
+		*/
 		default:
 			{
 			*ec << "Unknown node type";
@@ -728,7 +763,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			}
 
 		} // end of switch(nodeType)
-		
+
 	} // if tree!=Null
 	else { // tree == NULL; return empty result
 		*ec << "[QE] empty tree, nothing to do";
@@ -818,7 +853,7 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 			ObjectPointer *optr;
 			errcode = tr->getObjectPointer(ref_value, Store::Read, optr);
 			if (errcode != 0) {
-			
+
 				*ec << "[QE] Error in getObjectPointer";
 				tr->abort();
 				tr = NULL;
@@ -1272,7 +1307,7 @@ int QueryExecutor::unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&
 			final = new QueryBagResult();
 			QueryResult *bagArg = new QueryBagResult();
 			bagArg->addResult(arg);
-			if ((bagArg->size()) == 0) 
+			if ((bagArg->size()) == 0)
 				break;
 			QueryBagResult *argSorted;
 			errcode = ((QueryBagResult *) bagArg)->sortBag(argSorted);
@@ -1281,7 +1316,7 @@ int QueryExecutor::unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&
 			errcode = argSorted->getResult(current);
 			if (errcode != 0) return errcode;
 			final->addResult(current);
-			while ((argSorted->size()) > 0) { 
+			while ((argSorted->size()) > 0) {
 				QueryResult *next;
 				errcode = argSorted->getResult(next);
 				if (errcode != 0) return errcode;
@@ -1420,7 +1455,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 		}
 		return 0;
 	}
-	else if ((op == AlgOpNode::eq) || (op == AlgOpNode::neq) || (op == AlgOpNode::lt) || 
+	else if ((op == AlgOpNode::eq) || (op == AlgOpNode::neq) || (op == AlgOpNode::lt) ||
 	(op == AlgOpNode::gt) || (op == AlgOpNode::le) || (op == AlgOpNode::ge)) {
 		QueryResult *derefL, *derefR;
 		errcode = this->derefQuery(lArg,derefL);
@@ -1467,7 +1502,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 			default : { break; }
 		}
 		return 0;
-	} 
+	}
 	else if ((op == AlgOpNode::boolOr) || (op == AlgOpNode::boolAnd)) {
 		if ((lArg->isBool()) && (rArg->isBool())) {
 			bool bool_l, bool_r;
@@ -1507,7 +1542,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 			}
 		}
 		return 0;
-	} 
+	}
 	else if ((op == AlgOpNode::bagUnion) || (op == AlgOpNode::bagIntersect) || (op == AlgOpNode::bagMinus)) {
 		QueryResult *leftBag = new QueryBagResult();
 		QueryResult *rightBag = new QueryBagResult();
@@ -1520,9 +1555,9 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 			((QueryBagResult *) final)->addResult(rightBag);
 			return 0;
 		} else {
-			if (op == (AlgOpNode::bagIntersect)) 
+			if (op == (AlgOpNode::bagIntersect))
 				*ec << "[QE] BAG_INTERSECT operation";
-			if (op == (AlgOpNode::bagMinus)) 
+			if (op == (AlgOpNode::bagMinus))
 				*ec << "[QE] BAG_MINUS operation";
 			final = new QueryBagResult();
 			QueryBagResult *firstSorted;
@@ -1827,7 +1862,7 @@ int QueryExecutor::combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryRe
 				bool tmp_bool_value;
 				errcode = (rRes->getBoolValue(tmp_bool_value));
 				if (errcode != 0) return errcode;
-				if (tmp_bool_value) 
+				if (tmp_bool_value)
 					partial->addResult(curr);
 			}
 			else {
@@ -1852,7 +1887,7 @@ int QueryExecutor::combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryRe
 				bool tmp_bool_value;
 				errcode = (rRes->getBoolValue(tmp_bool_value));
 				if (errcode != 0) return errcode;
-				QueryResult *tmp_result = new QueryBoolResult(tmp_bool_value); 
+				QueryResult *tmp_result = new QueryBoolResult(tmp_bool_value);
 				partial->addResult(tmp_result);
 			}
 			else {
@@ -1868,7 +1903,7 @@ int QueryExecutor::combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryRe
 				bool tmp_bool_value;
 				errcode = (rRes->getBoolValue(tmp_bool_value));
 				if (errcode != 0) return errcode;
-				QueryResult *tmp_result = new QueryBoolResult(tmp_bool_value); 
+				QueryResult *tmp_result = new QueryBoolResult(tmp_bool_value);
 				partial->addResult(tmp_result);
 			}
 			else {
@@ -1993,9 +2028,9 @@ int QueryExecutor::isIncluded(QueryResult *elem, QueryResult *set, bool &score) 
 		errcode = ((QueryBagResult *) set)->at(i, tmp_res);
 		if (errcode != 0) return errcode;
 		bool eq = elem->equal(tmp_res);
-		if (eq) 
+		if (eq)
 			tmp_bool = true;
-	} 
+	}
 	score = tmp_bool;
 	return 0;
 }
@@ -2125,16 +2160,16 @@ int ResultStack::push(QueryResult *r) {
 	return 0;
 }
 
-int ResultStack::pop(QueryResult *&r){ 
-	if (rs.empty()) { 
+int ResultStack::pop(QueryResult *&r){
+	if (rs.empty()) {
 		*ec << (ErrQExecutor | EQEmptySet);
 		return ErrQExecutor | EQEmptySet;
-	} 
+	}
 	else {
 		r=(rs.back());
 		rs.pop_back();
 	};
-	*ec << "[QE] Result Stack popped"; 
+	*ec << "[QE] Result Stack popped";
 	return 0;
 }
 
