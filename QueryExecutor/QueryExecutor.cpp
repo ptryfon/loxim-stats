@@ -162,6 +162,37 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			return 0;
 		}//case TNNAME
 
+        case TreeNode::TNPROC:
+        {
+            *ec << "[QE] Type: TNPROC";
+            QueryParser* tmpQP = new QueryParser();
+            TreeNode* tmpTN;
+            ProcedureNode* pNode = (ProcedureNode*) tree;
+            string procQuery = "create (\"";
+            procQuery += (pNode->getContent())->getValue()+"\" as ProcBody";
+            for(int i=0; i < pNode->getParNumb(); i++)
+            {
+                procQuery += ",(\"" + pNode->getParam(i) + "\" as ParamName,";
+                procQuery += "\"" + pNode->getInout(i) + "\" as Kind ) as Param";
+            }
+            
+            procQuery += ") as "+pNode->getName();
+            //"create( \"Bla bla bla\" as ProcBody ) as MP";
+            /*
+            proc, (("paramName1" as ParamName, "in" as Kind) as Param, ("paramName2" as ParamName, "out" as Kind) as Param) as Params
+            
+            */
+            errcode = tmpQP->parseIt(procQuery, tmpTN);
+            if (errcode != 0) return errcode;
+            errcode = executeRecQuery (tmpTN);
+            if (errcode != 0) return errcode;
+            *ec << "[QE] TNPROC Done! SBQL = " << procQuery;
+            
+            //delete tmpQP;
+            
+            return 0;
+        }//case TNPROC
+        
 		case TreeNode::TNCREATE: {
 			*ec << "[QE] Type: TNCREATE";
 			QueryResult *result = new QueryBagResult();
