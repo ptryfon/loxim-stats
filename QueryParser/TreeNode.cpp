@@ -40,6 +40,32 @@ namespace QParser
 	fn->setPartsNumb(partsNumb);
 	return fn;    
     }
+    TreeNode* ProcedureNode::clone() {
+	vector<string> p;
+	vector<string> ins;
+	ProcedureNode *pn = new ProcedureNode(name, content);
+	for (int i = 0; i < parNumb; i++) {
+	    p.push_back(params.at(i));
+	    ins.push_back(inouts.at(i));
+	}
+	pn->setParams(p); pn->setInouts(ins);
+	pn->setParNumb(parNumb);
+	return pn;	
+    }
+    TreeNode* CallProcNode::clone() {
+	vector<QueryNode*> q;
+	CallProcNode *cn = new CallProcNode(name);
+	for (int i = 0; i < parNumb; i++) {
+	    q.push_back((QueryNode*) params.at(i)->clone());
+	}
+	cn->setParams(q);
+	cn->setParNumb(parNumb);
+	return cn;
+    }
+    TreeNode* ReturnNode::clone() { return new ReturnNode((QueryNode*) query->clone()); }
+    
+    
+    
     
 /*  to be used when subT is an subTree independant of (this) and (this) is a non-alg operator.
     called eg. for node  nd = nonalgop (where) ... 

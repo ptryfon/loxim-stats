@@ -15,12 +15,16 @@
   QParser::TreeNode* tree;
   QParser::QueryNode* qtree;
   QParser::FixPointNode* fxtree;
+  QParser::StringNode* instree;
+  QParser::ProcedureNode* proctree;
+  QParser::FormPar* onepar;
+  QParser::CallProcNode* calltree;
 }
 
 %token	<num> INTEGER
 %token	<dbl> DOUBLE 
-%token	<str> PARAMNAME NAME STRING SEMICOLON DOUBLESEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT DEREF REF BEGINTR END ABORT CREATE IF FI DO OD ELSE WHILE LINK FOREACH THEN FIX_OP FIXPOINT
-
+%token	<str> PARAMNAME NAME STRING SEMICOLON DOUBLESEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT DEREF REF BEGINTR END ABORT CREATE IF FI DO OD ELSE WHILE LINK FOREACH THEN FIX_OP FIXPOINT IN OUT RETURN
+%token  <str> PROCEDURE LEFTPROCPAR RIGHTPROCPAR
 %start statement
 
 %right FIX_OP
@@ -45,7 +49,10 @@
 %type <tree> statement
 %type <qtree> query
 %type <fxtree> querylist
-
+%type <instree> stringlist
+%type <proctree> formparams
+%type <onepar> formpar
+%type <calltree> actparams
 %%
 
 statement   : query  { d=$1; }
@@ -115,9 +122,31 @@ query	    : NAME { char *s = $1; $$ = new NameNode(s); delete s; }
 	    | LINK STRING STRING INTEGER { $$ = new LinkNode($2, $3, $4); }
 	    | query SEMICOLON query { $$ = new AlgOpNode ($1, $3, AlgOpNode::semicolon); }
 	    | FIXPOINT LEFTPAR querylist RIGHTPAR { $$ = $3; }
+	    | PROCEDURE NAME LEFTPAR RIGHTPAR LEFTPROCPAR stringlist RIGHTPROCPAR {
+		$$ = new ProcedureNode ($2, $6);}
+	    | PROCEDURE NAME LEFTPAR formparams RIGHTPAR LEFTPROCPAR stringlist RIGHTPROCPAR {
+		$$ = $4->addContent ($2, $7);}
+	    | RETURN query {$$ = new ReturnNode ($2); }
+	    | NAME LEFTPAR RIGHTPAR {$$ = new CallProcNode ($1);}
+	    | NAME LEFTPAR actparams RIGHTPAR {$$ = $3->setName($1); }
 	    ;
 	    
 querylist   : NAME FIX_OP query { $$ = new FixPointNode ($1, $3); }
 	    | querylist NAME FIX_OP query {$$ = new FixPointNode ($2, $4, $1); }
 	    ;
 	    
+stringlist  : STRING {char *s = $1; $$ = new StringNode(s); delete s;}
+	    ;
+	    
+formparams  : formpar {$$ = new ProcedureNode ($1); }
+	    | formparams SEMICOLON formpar {$$ = new ProcedureNode ($3, $1); }
+	    ;
+	
+formpar	    : NAME { $$ = new FormPar ($1, "none"); }
+	    | IN NAME { $$ = new FormPar ($2, "in"); }
+	    | OUT NAME {$$ = new FormPar ($2, "out"); }
+	    ;
+
+actparams   : query { $$ = new CallProcNode ($1); }
+	    | actparams SEMICOLON query { $$ = new CallProcNode ($3, $1); }
+	    ;

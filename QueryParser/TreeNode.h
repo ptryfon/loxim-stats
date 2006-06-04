@@ -20,7 +20,8 @@ namespace QParser {
 
     public:
 	enum TreeNodeType { TNINT, TNSTRING, TNDOUBLE, TNVECTOR, TNNAME, 
-	    TNAS, TNUNOP, TNALGOP, TNNONALGOP, TNTRANS, TNCREATE, TNCOND, TNLINK, TNPARAM, TNFIX};
+	    TNAS, TNUNOP, TNALGOP, TNNONALGOP, TNTRANS, TNCREATE, TNCOND, TNLINK, TNPARAM, TNFIX, 
+	    TNPROC, TNCALLPROC, TNRETURN};
 	TreeNode() : parent(NULL) {}
 	TreeNode* getParent() { return parent; }
 	void setParent(TreeNode* _parent) { parent = _parent; }
@@ -603,8 +604,147 @@ lastOpenSect = 0; }
 	virtual ~FixPointNode() {}
     
     };
+    
+    class ReturnNode : public QueryNode
+    {
+    protected:
+	QueryNode* query;
+    public:
+	ReturnNode(QueryNode *q) {this->query = q; }
+	
+	virtual TreeNode* clone();
+	virtual int type() {return TreeNode::TNRETURN;}
+	virtual QueryNode *getQuery() {return this->query;}
+	virtual int putToString() {
+	    cout << " return < ";
+	    if (query != NULL) query->putToString();
+	    else cout << "_no_query_";
+	    cout << ">";
+	    return 0;
+	}
+	
+	virtual ~ReturnNode() {if (query != NULL) delete query;} 
+    };
+    
+    
+    
+    
+    // parametr formalny - nazwa + "in", "out" lub "none"
+    class FormPar
+    {
+    protected:
+	string name;
+	string qualifier;
+    public:
+	FormPar (string n, string q) {
+	    this->name = n; this->qualifier = q; }
+	virtual string getName() {return name;}
+	virtual string getQualifier() {return qualifier;}
+	virtual ~FormPar() {}
+    };    
 
+    class ProcedureNode : public QueryNode
+    {
+    protected:
+	string name;
+	vector<string> params;
+	vector<string> inouts;
+	int parNumb; //liczba parametrow
+	StringNode *content;  // tesc, czyli instrukcje w postaci stringa. (TODO: zmienic to?)
+    public:
+	ProcedureNode (FormPar *par) {		
+	    params.push_back (par->getName());
+	    inouts.push_back (par->getQualifier());
+	    parNumb = 1;
+	}
+	ProcedureNode (FormPar *par, ProcedureNode *tail) {
+	    params = tail->getParams();
+	    inouts = tail->getInouts();
+	    params.push_back (par->getName());
+	    inouts.push_back (par->getQualifier());
+	    parNumb = 1 + tail->getParNumb();
+		//... should I delete tail here ? 
+	}
+	ProcedureNode (string n, StringNode* cont) {
+	    name = n;
+	    content = cont;
+	    parNumb = 0; 
+	}
+	virtual TreeNode* clone();
+	virtual int type() {return TreeNode::TNPROC;};
+	virtual vector<string> getParams() {return this->params;}
+	virtual string getParam(int i) {return this->params.at(i);}
+	virtual vector<string> getInouts() {return this->inouts;}
+	virtual string getInout(int i) {return this->inouts.at(i);}
+	virtual int getParNumb() {return this->parNumb;}
+	virtual string getName() {return this->name;}
+	virtual StringNode *getContent() {return this->content;}
+	virtual void setParNumb(int i) {parNumb = i;}
+	virtual void setParams(vector<string> p) {params = p;}
+	virtual void setInouts(vector<string> i) {inouts = i;}
+	virtual ProcedureNode* addContent (string n, StringNode* cont) {
+	    this->name = n;  this->content = cont;
+	    return this;
+	}
+	virtual int putToString() {
+	    cout << " Procedure " << name << " (";
+	    for (int i = 0; i < parNumb; i++) {
+		cout << "[" << inouts.at(i) << "] " << params.at(i) << "; ";
+	    }
+	    cout << ") { ";
+		content->putToString();
+	    cout << "}";
+	    return 0;
+	}
 
+	virtual ~ProcedureNode() {}	
+    };
+    
+    class CallProcNode : public QueryNode
+    {
+    protected:
+	string name;
+	vector<QueryNode*> params;
+	int parNumb; //liczba parametrow
+    public:
+	CallProcNode (QueryNode *q) {		
+	    params.push_back (q);
+	    parNumb = 1;
+	}
+	CallProcNode (QueryNode *q, CallProcNode *tail) {
+	    params = tail->getParams();
+	    params.push_back (q);
+	    parNumb = 1 + tail->getParNumb();
+		//... should I delete tail here ? 
+	}
+	CallProcNode (string n) {name = n; parNumb = 0;}
+	
+	virtual TreeNode* clone();
+	virtual int type() {return TreeNode::TNCALLPROC;};
+	virtual vector<QueryNode*> getParams() {return this->params;}
+	virtual QueryNode *getParam(int i) {return this->params.at(i);}
+	virtual int getParNumb() {return this->parNumb;}
+	virtual string getName() {return this->name;}
+	virtual void setParNumb(int i) {parNumb = i;}
+	virtual void setParams(vector<QueryNode*> p) {params = p;}
+	virtual CallProcNode* setName (string n) {
+	    this->name = n; return this; }
+	virtual int putToString() {
+	    cout << " callProc " << name << " (";
+	    for (int i = 0; i < parNumb; i++) {
+		cout << "[";
+		params.at(i)->putToString();
+		cout  << "]; ";
+	    }
+	    cout << ") ";
+	    return 0;
+	}
+
+	virtual ~CallProcNode() {}	
+    };
+    
+    
+    
 
 }
     
