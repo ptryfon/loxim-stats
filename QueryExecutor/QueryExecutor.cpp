@@ -162,6 +162,9 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			return 0;
 		}//case TNNAME
 
+        
+//[sk153407, pk167277 - BEGIN]
+        //procedure adding
         case TreeNode::TNPROC:
         {
             *ec << "[QE] Type: TNPROC";
@@ -177,21 +180,198 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
             }
             
             procQuery += ") as "+pNode->getName();
-            //"create( \"Bla bla bla\" as ProcBody ) as MP";
-            /*
-            proc, (("paramName1" as ParamName, "in" as Kind) as Param, ("paramName2" as ParamName, "out" as Kind) as Param) as Params
             
-            */
             errcode = tmpQP->parseIt(procQuery, tmpTN);
             if (errcode != 0) return errcode;
             errcode = executeRecQuery (tmpTN);
             if (errcode != 0) return errcode;
             *ec << "[QE] TNPROC Done! SBQL = " << procQuery;
             
-            //delete tmpQP;
+            delete tmpQP;
             
             return 0;
         }//case TNPROC
+        
+        case TreeNode::TNCALLPROC:
+        {
+            
+            *ec << "[QE] Type: TNCALLPROC";
+            QueryResult *result = new QueryBagResult();
+            
+            CallProcNode* cpNode = (CallProcNode*) tree;
+            
+            errcode = envs->bindName(cpNode->getName(), cpNode->getSectionNum(), tr, result);
+            if (errcode != 0) return errcode;
+            
+            if (result->size() != 1)
+            {
+                *ec << "[QE] Error in TNCALLPROC, more then one procedure with same signature";
+                return 1000000;
+            }
+            
+            QueryResult* procBinder = new QueryBinderResult();
+            errcode = ((QueryBagResult*)result)->lastElem(procBinder);
+            if (errcode != 0) return errcode;
+            QueryResult *procInfosRes = new QueryBagResult();
+            errcode = ((QueryBinderResult*)procBinder)->nested(tr, procInfosRes);
+            if (errcode != 0) return errcode;
+            
+            vector<QueryResult*> procInfos = ((QueryBagResult*)procInfosRes)->getVector();
+
+            bool procCodeFound = false;
+            string code;
+            vector<string> paramNames;
+            for(unsigned i = 0; ( i < procInfos.size() ) ; i++)
+            {
+
+                if( (procInfos.at(i))->type() == QueryResult::QBINDER )
+                {
+                    QueryBinderResult* codeBinder =  (QueryBinderResult*)procInfos.at(i);
+                    printf( "^^^^^^^^^^^ codeBinder->getName(): %s\n", codeBinder->getName().c_str() );
+
+                    if(codeBinder->getName() == "ProcBody")
+                    {
+                        procCodeFound = true;
+                        QueryResult* qr = codeBinder->getItem();
+                        derefQuery(qr, qr);
+                        if(qr->type() != QueryResult::QSTRING)
+                        {
+                            *ec << "[QE] Errror in TNCALLPROC, ProcBody is not string";
+                            return 100000;
+                        }
+                        QueryStringResult* qs = (QueryStringResult *) qr;
+                        
+                        code = qs->getValue();
+                    }
+                    else if(codeBinder->getName() == "Param")
+                    {
+                        QueryResult *paramInfosRes = new QueryBagResult();
+                        errcode = ((QueryBinderResult*)codeBinder)->nested(tr, paramInfosRes);
+                        if (errcode != 0) return errcode;
+                        vector<QueryResult*> paramInfos = ((QueryBagResult*)paramInfosRes)->getVector();
+                        printf( "############## paramInfos.size(): %d\n", paramInfos.size() );
+                        for(unsigned j = 0; j < paramInfos.size() ; j++)
+                        {
+                            if(paramInfos[j]->type() == QueryResult::QBINDER )
+                            {
+                                QueryBinderResult* paramBinder =  (QueryBinderResult*)paramInfos[j];
+                                if(paramBinder->getName() == "ParamName")
+                                {
+                                  printf( "%%%%%%%%%%%%%%%%% Wchodzi!\n" );
+                                    QueryResult* pqr = codeBinder->getItem();
+                                    derefQuery(pqr, pqr);
+                                    if(pqr->type() != QueryResult::QSTRING)
+                                    {
+                                        *ec << "[QE] Errror in TNCALLPROC, ParamName is not string";
+                                        return 100000;
+                                    }
+                                    QueryStringResult* pqs = (QueryStringResult *) pqr;
+                                    paramNames.push_back(pqs->getValue());
+                                }
+                            }
+                        }
+                        printf( "%%%%%%% paramNames begin\n" );
+                        for( unsigned i = 0; i < paramNames.size(); i++ ) {
+                          printf( "%d: %s\n", i, paramNames[i].c_str() );
+                        }
+                        printf( "%%%%%%% paramNames end\n" );
+                    }
+                }
+                
+            }
+            
+            
+            //Uwaga nie sprawdzamy ilosci parametrów
+            //Nie szukamy po sygnaturze tylko po nazwie!!
+            
+            if(!procCodeFound)
+            {
+                *ec << "[QE] Errror in TNCALLPROC, ProcBody is not preasent";
+                return 100000;
+            }
+            
+            
+            //potem trzeba bedzie usunac wszystko do tego poziomu
+            int envsHeight = envs->size();
+            int qresHeight = qres->size();
+            QueryBagResult *paramBagRes = new QueryBagResult();
+            if(cpNode->getParNumb() > paramNames.size())
+            {
+                *ec << "[QE] Errror in TNCALLPROC, to many parameters";
+                return 100000;
+            }
+            for(int i=0; i < cpNode->getParNumb(); i++)
+            {
+                QueryResult* paramRes;
+                errcode= executeRecQuery(cpNode->getParam(i));
+                if (errcode != 0) return errcode;
+                errcode = qres->pop(paramRes);
+                if (errcode != 0) return errcode;
+                QueryBinderResult* paramBind = 
+                  new QueryBinderResult(paramNames[i], paramRes);
+                paramBagRes->addResult(paramBind);
+            }
+            
+            errcode = envs->push(paramBagRes);
+            if (errcode != 0) return errcode;
+            
+            
+            QueryParser* tmpQP = new QueryParser();
+            TreeNode* tmpTN;
+            
+            errcode = tmpQP->parseIt(code, tmpTN);
+            if (errcode != 0) return errcode;
+            errcode = executeRecQuery (tmpTN);
+            if (errcode != 0) return errcode;
+            
+            
+            delete tmpQP;
+            
+            if(qres->size() == qresHeight)
+            {
+                //wkladamy na stos voida jesli niczego nie zwrocil return lub zapytanie
+                QueryResult* qnothing = new QueryNothingResult();
+                errcode = qres->push(qnothing);
+                if (errcode != 0) return errcode;
+            }
+            
+            while(envs->size() > envsHeight)
+            {
+                errcode = envs->pop();
+                if (errcode != 0) return errcode;
+            }
+            
+            //Uwaga nie wiem czy jakies inne obiekty poza result trzeba usuwac
+            //mysle ze sa one rekurencyjnie usuwane wraz z result
+            
+            *ec << "[QE] TNCALLPROC Done! code to do is: " << code;
+            
+            
+            delete result;
+            return 0;
+        }
+        
+        case TreeNode::TNRETURN:
+        {
+           *ec << "[QE] Type: TNRETURN (begin)";
+           ReturnNode *node = (ReturnNode *) tree;
+           QueryNode *query = node->getQuery();
+        
+           // wykonujemy zapytanie (jesli jest)
+           if( query )
+           {
+             errcode = executeRecQuery( query );
+             if( errcode ) return errcode;
+           } else {
+             qres->push( new QueryNothingResult() );
+           }
+           *ec << "[QE] Type: TNRETURN (done)";
+        }
+
+
+        
+//[sk153407, pk167277 - END]
+        
         
 		case TreeNode::TNCREATE: {
 			*ec << "[QE] Type: TNCREATE";
