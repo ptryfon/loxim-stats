@@ -24,6 +24,14 @@ using namespace std;
 
 namespace QExecutor
 {
+    
+    class ProcedureInfo
+    {
+    public:
+        string ProcCode;
+        vector<string> Params;
+        virtual ~ProcedureInfo(){};
+    };
 	
 	class ResultStack
 	{
@@ -69,6 +77,13 @@ nie wiem gdzie zaincjalizowac
 		int isIncluded(QueryResult *elem, QueryResult *set, bool &score);
 		int sortBag(QueryBagResult *inBag, QueryBagResult *&outBag);
 		int objectFromBinder(QueryResult *res, ObjectPointer *&newObject);
+        
+//[sk153407, pk167277 - BEGIN]
+
+        int getProcedureInfo(TreeNode *tree, ProcedureInfo *&pinf);
+
+//[sk153407, pk167277 - END]
+        
 	public:
 		QueryExecutor() { envs = new EnvironmentStack(); qres = new ResultStack(); tr = NULL; ec = new ErrorConsole("QueryExecutor"); stop = 0; };
 		~QueryExecutor();
