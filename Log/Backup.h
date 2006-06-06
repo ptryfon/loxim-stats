@@ -126,8 +126,8 @@ class BackupManager
     {
       printf( "There are no backup files to restore.  I'll remove database files and restore them from logs.\n" );
       eraseFile( dbDefaultPath );
-      eraseFile( dbMapPath );
-      eraseFile( dbRootsPath );
+      //eraseFile( dbMapPath );
+      //eraseFile( dbRootsPath );
     }
 
     if( fileExists( logsPath ) )
