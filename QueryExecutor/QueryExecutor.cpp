@@ -162,7 +162,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			return 0;
 		}//case TNNAME
 
-        
+
 //[sk153407, pk167277 - BEGIN]
         //procedure adding
         case TreeNode::TNPROC:
@@ -178,9 +178,9 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
                 procQuery += ",(\"" + pNode->getParam(i) + "\" as ParamName,";
                 procQuery += "\"" + pNode->getInout(i) + "\" as Kind ) as Param";
             }
-            
+
             procQuery += ") as "+pNode->getName();
-            
+
             errcode = tmpQP->parseIt(procQuery, tmpTN);
             if (errcode != 0) return errcode;
             errcode = executeRecQuery (tmpTN);
@@ -203,35 +203,35 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
             delete procBinder;
 
             *ec << "[QE] TNPROC Done! SBQL = " << procQuery;
-            
+
             delete tmpQP;
-            
+
             return 0;
         }//case TNPROC
-        
+
         case TreeNode::TNCALLPROC:
         {
             *ec << "[QE] Type: TNCALLPROC";
             QueryResult *result = new QueryBagResult();
-            
+
             CallProcNode* cpNode = (CallProcNode*) tree;
-            
+
             errcode = envs->bindName(cpNode->getName(), cpNode->getSectionNum(), tr, result);
             if (errcode != 0) return errcode;
-            
+
             if (result->size() != 1)
             {
                 *ec << "[QE] Error in TNCALLPROC, more then one procedure with same signature";
                 return 1000000;
             }
-            
+
             QueryResult* procBinder = new QueryBinderResult();
             errcode = ((QueryBagResult*)result)->lastElem(procBinder);
             if (errcode != 0) return errcode;
             QueryResult *procInfosRes = new QueryBagResult();
-            errcode = ((QueryBinderResult*)procBinder)->nested(tr, procInfosRes);
+            errcode = ((QueryBinderResult*)procBinder)->nested(tr, procInfosRes, this);
             if (errcode != 0) return errcode;
-            
+
             vector<QueryResult*> procInfos = ((QueryBagResult*)procInfosRes)->getVector();
 
             bool procCodeFound = false;
@@ -256,13 +256,13 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
                             return 100000;
                         }
                         QueryStringResult* qs = (QueryStringResult *) qr;
-                        
+
                         code = qs->getValue();
                     }
                     else if(codeBinder->getName() == "Param")
                     {
                         QueryResult *paramInfosRes = new QueryBagResult();
-                        errcode = ((QueryBinderResult*)codeBinder)->nested(tr, paramInfosRes);
+                        errcode = ((QueryBinderResult*)codeBinder)->nested(tr, paramInfosRes, this);
                         if (errcode != 0) return errcode;
                         vector<QueryResult*> paramInfos = ((QueryBagResult*)paramInfosRes)->getVector();
                         printf( "############## paramInfos.size(): %d\n", paramInfos.size() );
@@ -293,20 +293,20 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
                         printf( "%%%%%%% paramNames end\n" );
                     }
                 }
-                
+
             }
-            
-            
+
+
             //Uwaga nie sprawdzamy ilosci parametrów
             //Nie szukamy po sygnaturze tylko po nazwie!!
-            
+
             if(!procCodeFound)
             {
                 *ec << "[QE] Errror in TNCALLPROC, ProcBody is not preasent";
                 return 100000;
             }
-            
-            
+
+
             //potem trzeba bedzie usunac wszystko do tego poziomu
             int envsHeight = envs->size();
             int qresHeight = qres->size();
@@ -323,26 +323,26 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
                 if (errcode != 0) return errcode;
                 errcode = qres->pop(paramRes);
                 if (errcode != 0) return errcode;
-                QueryBinderResult* paramBind = 
+                QueryBinderResult* paramBind =
                   new QueryBinderResult(paramNames[i], paramRes);
                 paramBagRes->addResult(paramBind);
             }
-            
+
             errcode = envs->push(paramBagRes);
             if (errcode != 0) return errcode;
-            
-            
+
+
             QueryParser* tmpQP = new QueryParser();
             TreeNode* tmpTN;
-            
+
             errcode = tmpQP->parseIt(code, tmpTN);
             if (errcode != 0) return errcode;
             errcode = executeRecQuery (tmpTN);
             if (errcode != 0) return errcode;
-            
-            
+
+
             delete tmpQP;
-            
+
             if(qres->size() == qresHeight)
             {
                 //wkladamy na stos voida jesli niczego nie zwrocil return lub zapytanie
@@ -350,29 +350,29 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
                 errcode = qres->push(qnothing);
                 if (errcode != 0) return errcode;
             }
-            
+
             while(envs->size() > envsHeight)
             {
                 errcode = envs->pop();
                 if (errcode != 0) return errcode;
             }
-            
+
             //Uwaga nie wiem czy jakies inne obiekty poza result trzeba usuwac
             //mysle ze sa one rekurencyjnie usuwane wraz z result
-            
+
             *ec << "[QE] TNCALLPROC Done! code to do is: " << code;
-            
-            
+
+
             delete result;
             return 0;
         }
-        
+
         case TreeNode::TNRETURN:
         {
            *ec << "[QE] Type: TNRETURN (begin)";
            ReturnNode *node = (ReturnNode *) tree;
            QueryNode *query = node->getQuery();
-        
+
            // wykonujemy zapytanie (jesli jest)
            if( query )
            {
@@ -385,10 +385,10 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
         }
 
 
-        
+
 //[sk153407, pk167277 - END]
-        
-        
+
+
 		case TreeNode::TNCREATE: {
 			*ec << "[QE] Type: TNCREATE";
 			QueryResult *result = new QueryBagResult();
@@ -572,7 +572,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				}
 				QueryResult *next_final = new QueryStructResult();
 				QueryResult *newStackSection = new QueryBagResult();
-				errcode = (final)->nested(tr, newStackSection);
+				errcode = (final)->nested(tr, newStackSection, this);
 				if (errcode != 0) return errcode;
 				errcode = envs->push((QueryBagResult *) newStackSection);
 				if (errcode != 0) return errcode;
@@ -676,7 +676,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 					errcode = partial_result->getResult(currentResult);
 					if (errcode != 0) return errcode;
 					QueryResult *newStackSection = new QueryBagResult();
-					errcode = (currentResult)->nested(tr, newStackSection);
+					errcode = (currentResult)->nested(tr, newStackSection, this);
 					if (errcode != 0) return errcode;
 					errcode = envs->push((QueryBagResult *) newStackSection);
 					if (errcode != 0) return errcode;
@@ -804,7 +804,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 						else
 							errcode = (((QueryBagResult *) lResult)->at(i, currentResult));
 						if (errcode != 0) return errcode;
-						errcode = (currentResult)->nested(tr, newStackSection);
+						errcode = (currentResult)->nested(tr, newStackSection, this);
 						if (errcode != 0) return errcode;
 						ec->printf("[QE] nested(): function calculated for current row number %d\n", i);
 						errcode = envs->push((QueryBagResult *) newStackSection);
@@ -946,7 +946,6 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			*ec << "[QE] Condition operation Done!";
 			return 0;
 		} //case TNCOND
-		/*
 		case TreeNode::TNLINK: {
 		*ec << "[QE] Link opeartion";
 
@@ -981,7 +980,6 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		*ec << "[QE] Link operation Done!";
 		return 0;
 		}
-		*/
 		default:
 			{
 			*ec << "Unknown node type";

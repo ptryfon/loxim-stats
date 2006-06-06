@@ -30,19 +30,19 @@ int EnvironmentStack::push(QueryBagResult *r) {
 	return 0;
 }
 
-int EnvironmentStack::pop(){ 
-	if (es.empty()) { 
+int EnvironmentStack::pop(){
+	if (es.empty()) {
 		*ec << (ErrQExecutor | EQEmptySet);
 		return ErrQExecutor | EQEmptySet;
 	}
 	if (es.size() == sectionDBnumber) {
-		*ec << "error: trying to pop() Data Base section"; 
+		*ec << "error: trying to pop() Data Base section";
 		*ec << (ErrQExecutor | EQEUnexpectedErr);
 		return ErrQExecutor | EQEUnexpectedErr;
 	}
 	// delete ??
 	es.pop_back();
-	*ec << "[QE] Environment Stack popped"; 
+	*ec << "[QE] Environment Stack popped";
 	return 0;
 }
 
@@ -55,19 +55,19 @@ int EnvironmentStack::pushDBsection() {
 }
 
 int EnvironmentStack::popDBsection() {
-	if (es.empty()) { 
+	if (es.empty()) {
 		*ec << (ErrQExecutor | EQEmptySet);
 		return ErrQExecutor | EQEmptySet;
 	}
 	if (es.size() != sectionDBnumber) {
-		*ec << "error: trying to popDBsection() on not Data Base section"; 
+		*ec << "error: trying to popDBsection() on not Data Base section";
 		*ec << (ErrQExecutor | EQEUnexpectedErr);
 		return ErrQExecutor | EQEUnexpectedErr;
 	}
 	// delete ??
 	es.pop_back();
 	sectionDBnumber = 0;
-	*ec << "[QE] Data Base section popped from Environment Stack"; 
+	*ec << "[QE] Data Base section popped from Environment Stack";
 	return 0;
 }
 
@@ -77,7 +77,7 @@ int EnvironmentStack::top(QueryBagResult *&r) {
 		return ErrQExecutor | EQEmptySet;
 	}
 	if (es.size() == sectionDBnumber) {
-		*ec << "error: trying to top() Data Base section"; 
+		*ec << "error: trying to top() Data Base section";
 		*ec << (ErrQExecutor | EQEUnexpectedErr);
 		return ErrQExecutor | EQEUnexpectedErr;
 	}
@@ -158,21 +158,21 @@ void EnvironmentStack::deleteAll() {
 
 // nested function returns bag of binders, which will be pushed on the environment stack
 
-int QuerySequenceResult::nested(Transaction *&tr, QueryResult *&r) {
+int QuerySequenceResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe) {
 	*ec << "[QE] nested(): ERROR! QuerySequenceResult shouldn't be nested";
 	*ec << (ErrQExecutor | EOtherResExp);
-	return ErrQExecutor | EOtherResExp; 
+	return ErrQExecutor | EOtherResExp;
 	// nested () function is applied to rows of a QueryResult and so, it shouldn't be applied to sequences and bags
 }
 
-int QueryBagResult::nested(Transaction *&tr, QueryResult *&r) {
+int QueryBagResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe) {
 	*ec << "[QE] nested(): ERROR! QueryBagResult shouldn't be nested";
 	*ec << (ErrQExecutor | EOtherResExp);
-	return ErrQExecutor | EOtherResExp; 
+	return ErrQExecutor | EOtherResExp;
 	// nested () function is applied to rows of a QueryResult and so, it shouldn't be applied to sequences and bags
 }
 
-int QueryStructResult::nested(Transaction *&tr, QueryResult *&r) {
+int QueryStructResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe) {
 	*ec << "[QE] nested(): QueryStructResult";
 	int errcode;
 	for (unsigned int i = 0; i < str.size(); i++) {
@@ -181,39 +181,39 @@ int QueryStructResult::nested(Transaction *&tr, QueryResult *&r) {
 			return ErrQExecutor | EOtherResExp; // one row shouldn't contain another row;
 		}
 		else {
-			errcode = ((str.at(i))->nested(tr, r));
+			errcode = ((str.at(i))->nested(tr, r, qe));
 			if (errcode != 0) return errcode;
 		}
 	}
 	return 0;
 }
 
-int QueryStringResult::nested(Transaction *&tr, QueryResult *&r) {
+int QueryStringResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe) {
 	*ec << "[QE] nested(): QueryStringResult can't be nested";
 	return 0;
 }
 
-int QueryIntResult::nested(Transaction *&tr, QueryResult *&r) {
+int QueryIntResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe) {
 	*ec << "[QE] nested(): QueryIntResult can't be nested";
 	return 0;
 }
 
-int QueryDoubleResult::nested(Transaction *&tr, QueryResult *&r) {
+int QueryDoubleResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe) {
 	*ec << "[QE] nested(): QueryDoubleResult can't be nested";
 	return 0;
 }
 
-int QueryBoolResult::nested(Transaction *&tr, QueryResult *&r) {
+int QueryBoolResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe) {
 	*ec << "[QE] nested(): QueryBoolResult can't be nested";
 	return 0;
 }
 
-int QueryNothingResult::nested(Transaction *&tr, QueryResult *&r) {
+int QueryNothingResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe) {
 	*ec << "[QE] nested(): QueryNothingResult can't be nested";
 	return 0;
 }
 
-int QueryBinderResult::nested(Transaction *&tr, QueryResult *&r) {
+int QueryBinderResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe) {
 	if (item != NULL) {
 		QueryBinderResult *tmp_value = new QueryBinderResult(name,item);
 		ec->printf("[QE] nested(): QueryBinderResult copy returned name: %s\n", name.c_str());
@@ -222,7 +222,7 @@ int QueryBinderResult::nested(Transaction *&tr, QueryResult *&r) {
 	return 0;
 }
 
-int QueryReferenceResult::nested(Transaction *&tr, QueryResult *&r) {
+int QueryReferenceResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe) {
 	DataValue* tmp_data_value;
 	int errcode;
 	ObjectPointer *optr;
@@ -233,7 +233,60 @@ int QueryReferenceResult::nested(Transaction *&tr, QueryResult *&r) {
 			tr = NULL;
 			return errcode;
 		}
+		/* remote ID */
+		LogicalID *lid = optr->getLogicalID();
+		if (lid->getServer() != "") {
+			 *ec << "zdalne logicalID\n";
+
+		return 0;
+		}
+		/* end of remoteID processing */
+
 		tmp_data_value = optr->getValue();
+
+		/* Link */
+		 *ec << "!!!!!!!!!typ data value: |"<< tmp_data_value->getSubtype()<< "|\n";
+		if (tmp_data_value->getSubtype() == Store::Link) {
+			 *ec << "nested wykonuje sie na obiekcie Link\n";
+			 vector<LogicalID*>*  tmp_vec =tmp_data_value->getVector();
+			 int vec_size = tmp_vec->size();
+			 int errcode;
+			 int port;
+			 string ip;
+			 ObjectPointer *optr;
+			 DataValue* value;
+			 for (int i = 0; i < vec_size; i++ ) {
+				 LogicalID *tmp_logID = tmp_vec->at(i);
+				 if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, optr)) != 0) {
+					 *ec << "[QE] Error in getObjectPointer";
+					 tr->abort();
+					 tr = NULL;
+					 return errcode;
+				 }
+				 string tmp_name = optr->getName();
+				 value = optr->getValue();
+				 switch (value->getType()) {
+					 case Store::Integer:
+						 port = value->getInt();
+						 break;
+					 case Store::String:
+						 ip = value->getString();
+						 break;
+					 default:
+						 *ec << "[QE] incorrect Link object structure";
+						 tr->abort();
+						 tr = NULL;
+						 return errcode;
+				 }
+
+			 }
+			 *ec << "a teraz bring!!!!!!!!!!! ip: " <<  ip << " port: " << port <<"\n";
+			 QueryIntResult* qir = new QueryIntResult(5);
+			 r->addResult(qir);
+			 return 0;
+		}
+		/* end of link processing */
+
 		int vType = tmp_data_value->getType();
 		switch (vType) {
 			case Store::Integer: {

@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <string>
 #include <vector>
-   
+
 #include "TransactionManager/Transaction.h"
 #include "Store/Store.h"
 #include "Store/DBDataValue.h"
@@ -21,6 +21,8 @@ using namespace Store;
 using namespace std;
 
 namespace QExecutor {
+
+	class QueryExecutor;
 
 class QueryResult
 {
@@ -40,9 +42,9 @@ public:
 		QREFERENCE= 9,
 		QNOTHING  =10
 		};
-		
+
 	virtual QueryResult* clone()=0;
-	
+
 	virtual int type();
 	virtual bool collection()=0;
 	virtual bool isEmpty()=0;
@@ -55,7 +57,7 @@ public:
 	virtual bool less_than(QueryResult *r)=0;
 	virtual bool greater_eq(QueryResult *r)=0;
 	virtual bool less_eq(QueryResult *r)=0;
-	virtual int nested(Transaction *&tr, QueryResult *&r)=0;
+	virtual int nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe)=0;
 	virtual bool isBool()=0;
 	virtual bool isNothing()=0;
 	virtual int getBoolValue(bool &b)=0;
@@ -78,7 +80,7 @@ public:
 	virtual ~QuerySequenceResult() {
 		if ((seq.size()) > 0) {
 			for (unsigned int i = 0; i < (seq.size()); i++ ) { delete (seq.at(i)); };
-		}; 
+		};
 		if (ec != NULL) delete ec;
 	};
 	int type();
@@ -96,7 +98,7 @@ public:
 	bool less_than(QueryResult *r);
 	bool greater_eq(QueryResult *r);
 	bool less_eq(QueryResult *r);
-	int nested(Transaction *&tr, QueryResult *&r);
+	int nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe);
 	bool isBool();
 	bool isNothing();
 	int getBoolValue(bool &b);
@@ -119,7 +121,7 @@ public:
 	virtual ~QueryBagResult() {
 		if ((bag.size()) > 0) {
 			for (unsigned int i = 0; i < (bag.size()); i++ ) { delete (bag.at(i)); };
-		}; 
+		};
 		if (ec != NULL) delete ec;
 	};
 	int type();
@@ -137,7 +139,7 @@ public:
 	bool less_than(QueryResult *r);
 	bool greater_eq(QueryResult *r);
 	bool less_eq(QueryResult *r);
-	int nested(Transaction *&tr, QueryResult *&r);
+	int nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe);
 	bool isBool();
 	bool isNothing();
 	int getBoolValue(bool &b);
@@ -162,7 +164,7 @@ public:
 	virtual ~QueryStructResult() {
 		if ((str.size()) > 0) {
 			for (unsigned int i = 0; i < (str.size()); i++ ) { delete (str.at(i)); };
-		}; 
+		};
 		if (ec != NULL) delete ec;
 	};
 	int type();
@@ -179,7 +181,7 @@ public:
 	bool less_than(QueryResult *r);
 	bool greater_eq(QueryResult *r);
 	bool less_eq(QueryResult *r);
-	int nested(Transaction *&tr, QueryResult *&r);
+	int nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe);
 	bool isBool();
 	bool isNothing();
 	int getBoolValue(bool &b);
@@ -213,7 +215,7 @@ public:
 	bool less_than(QueryResult *r);
 	bool greater_eq(QueryResult *r);
 	bool less_eq(QueryResult *r);
-	int nested(Transaction *&tr, QueryResult *&r);
+	int nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe);
 	bool isBool();
 	bool isNothing();
 	int getBoolValue(bool &b);
@@ -244,7 +246,7 @@ public:
 	bool less_than(QueryResult *r);
 	bool greater_eq(QueryResult *r);
 	bool less_eq(QueryResult *r);
-	int nested(Transaction *&tr, QueryResult *&r);
+	int nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe);
 	bool isBool();
 	bool isNothing();
 	int getBoolValue(bool &b);
@@ -280,7 +282,7 @@ public:
 	bool less_than(QueryResult *r);
 	bool greater_eq(QueryResult *r);
 	bool less_eq(QueryResult *r);
-	int nested(Transaction *&tr, QueryResult *&r);
+	int nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe);
 	bool isBool();
 	bool isNothing();
 	int getBoolValue(bool &b);
@@ -316,7 +318,7 @@ public:
 	bool less_than(QueryResult *r);
 	bool greater_eq(QueryResult *r);
 	bool less_eq(QueryResult *r);
-	int nested(Transaction *&tr, QueryResult *&r);
+	int nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe);
 	bool isBool();
 	bool isNothing();
 	int getBoolValue(bool &b);
@@ -349,7 +351,7 @@ public:
 	bool less_than(QueryResult *r);
 	bool greater_eq(QueryResult *r);
 	bool less_eq(QueryResult *r);
-	int nested(Transaction *&tr, QueryResult *&r);
+	int nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe);
 	bool isBool();
 	bool isNothing();
 	int getBoolValue(bool &b);
@@ -383,7 +385,7 @@ public:
 	bool less_than(QueryResult *r);
 	bool greater_eq(QueryResult *r);
 	bool less_eq(QueryResult *r);
-	int nested(Transaction *&tr, QueryResult *&r);
+	int nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe);
 	bool isBool();
 	bool isNothing();
 	int getBoolValue(bool &b);
@@ -409,7 +411,7 @@ public:
 	bool less_than(QueryResult *r);
 	bool greater_eq(QueryResult *r);
 	bool less_eq(QueryResult *r);
-	int nested(Transaction *&tr, QueryResult *&r);
+	int nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe);
 	bool isBool();
 	bool isNothing();
 	int getBoolValue(bool &b);
