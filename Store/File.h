@@ -9,6 +9,7 @@ namespace Store
 #include "Store.h"
 #include "Struct.h"
 #include "DBStoreManager.h"
+#include "Errors/ErrorConsole.h"
 
 using namespace std;
 
@@ -24,8 +25,9 @@ namespace Store
 		int froots;
 		int fdefault;
 
-	private:
 		int getStream(unsigned short fileID, int* file);
+
+		ErrorConsole* ec;
 
 	public:
 		File(DBStoreManager* store);

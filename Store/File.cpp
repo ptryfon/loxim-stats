@@ -20,10 +20,13 @@ namespace Store
 		this->fmap = 0;
 		this->froots = 0;
 		this->fdefault = 0;
+
+		this->ec = new ErrorConsole("Store: File");
 	};
 
 	File::~File()
 	{
+		delete this->ec;
 	}
 
 	int File::getStream(unsigned short fileID, int* file)
@@ -58,8 +61,15 @@ namespace Store
 			sdefault = "/tmp/sbdefault";
 
 		fmap = ::open(smap.c_str(), O_RDWR);
+		ec->printf("fmap = %d, errno = %d, errmsg = %s",
+			fmap, errno, strerror(errno));
 		froots = ::open(sroots.c_str(), O_RDWR);
+		ec->printf("froots = %d, errno = %d, errmsg = %s",
+			froots, errno, strerror(errno));
 		fdefault = ::open(sdefault.c_str(), O_RDWR);
+		ec->printf("fdefault = %d, errno = %d, errmsg = %s",
+			fdefault, errno, strerror(errno));
+
 
 		if (fmap == -1)
 		{
