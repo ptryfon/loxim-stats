@@ -43,6 +43,16 @@ namespace QExecutor
 	class QueryExecutor
 	{
 	protected:
+    
+//[sk153407, pk167277 - BEGIN]
+/*
+nie wiem gdzie zaincjalizowac
+        static const std::string ProcBody  = "ProcBody";
+        static const std::string ParamName = "ParamName";
+        static const std::string ParamKind = "Kind";
+*/
+//[sk153407, pk167277 - END]
+    
 		ErrorConsole *ec;
 		Transaction *tr;
 		EnvironmentStack *envs;

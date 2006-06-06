@@ -185,6 +185,23 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
             if (errcode != 0) return errcode;
             errcode = executeRecQuery (tmpTN);
             if (errcode != 0) return errcode;
+
+
+            QueryResult *procBinder;
+            ObjectPointer *objPtr;
+
+            qres->pop( procBinder );
+            qres->push( procBinder );
+
+            derefQuery( procBinder, procBinder );
+
+            procBinder = new QueryBinderResult( "cokolwiekbadz", procBinder );
+            objectFromBinder( procBinder, objPtr );
+            objPtr->getValue()->setSubtype( Procedure );
+
+            ((QueryBinderResult*)procBinder)->setItem( NULL );
+            delete procBinder;
+
             *ec << "[QE] TNPROC Done! SBQL = " << procQuery;
             
             delete tmpQP;
@@ -194,7 +211,6 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
         
         case TreeNode::TNCALLPROC:
         {
-            
             *ec << "[QE] Type: TNCALLPROC";
             QueryResult *result = new QueryBagResult();
             
