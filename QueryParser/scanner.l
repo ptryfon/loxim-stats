@@ -33,6 +33,7 @@ extern int szbderrno;
 
 %}
 %%
+"|"                     return VERTICAL;
 "("			return LEFTPAR;
 ")"			return RIGHTPAR;
 ";"			return SEMICOLON;
