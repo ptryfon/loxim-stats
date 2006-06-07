@@ -9,7 +9,7 @@ class DriverManager
 {
 public:
 	DriverManager();
-	static Connection* getConnection(char* url, int port) 
+	 static Connection* getConnection(char* url, int port)
 	  throw (ConnectionDriverException);
 	virtual ~DriverManager();
 };
