@@ -328,7 +328,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
             int qresHeight = qres->size();
             
             QueryBagResult *paramBagRes = new QueryBagResult();
-            if(cpNode->getParNumb() != (pinf->Params).size())
+            if(cpNode->getParNumb() != (int)((pinf->Params).size()))
             {
                 printf("TTTTTTTTTTTTTVVVVVVVVV node %d, pinf %u\n",cpNode->getParNumb(), (pinf->Params).size() );
                 *ec << "[QE] Errror in TNCALLPROC, to many parameters";
@@ -2343,6 +2343,26 @@ int QueryExecutor::objectFromBinder(QueryResult *res, ObjectPointer *&newObject)
 			*ec << "[QE] objectFromBinder(): added to a vector";
 			dbValue->setVector(&vectorValue);
 			*ec << "[QE] objectFromBinder(): value is BINDER type";
+			break;
+		}
+		case QueryResult::QBAG: {
+			vector<LogicalID*> vectorValue;
+			for (unsigned int i=0; i < (binderItem->size()); i++) {
+				QueryResult *curr;
+				errcode = ((QueryStructResult *) binderItem)->at(i, curr);
+				if (errcode != 0) return errcode;
+				if (curr->type() != QueryResult::QREFERENCE) {
+					*ec << "[QE] objectFromBinder() QueryReference expected";
+					*ec << (ErrQExecutor | ERefExpected);
+					return ErrQExecutor | ERefExpected;
+				}
+				LogicalID *lid = ((QueryReferenceResult *) curr)->getValue();
+				*ec << "[QE] objectFromBinder(): logical ID received";
+				vectorValue.push_back(lid);
+				*ec << "[QE] objectFromBinder(): added to a vector";
+			}
+			dbValue->setVector(&vectorValue);
+			*ec << "[QE] objectFromBinder(): value is BAG type";
 			break;
 		}
 		case QueryResult::QSTRUCT: {
