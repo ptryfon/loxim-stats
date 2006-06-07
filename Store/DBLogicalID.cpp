@@ -8,20 +8,33 @@ namespace Store
 	{
 		server = "";
 		value = 0;
+		remoteID = NULL;
 	};
 
 	DBLogicalID::DBLogicalID(unsigned int v)
 	{
 		server = "";
 		value = v;
+		remoteID = NULL;
 	};
 
 	DBLogicalID::DBLogicalID(const LogicalID& lid)
 	{
 		server = lid.getServer();
 		value = lid.toInteger();
+		remoteID = lid.getRemoteID();
+		if (remoteID != NULL) {
+			remoteID = new DBLogicalID(*lid.getRemoteID());
+		}
 	};
-	
+
+	DBLogicalID::~DBLogicalID()
+	{
+		if (remoteID != NULL) {
+			delete remoteID;
+		}
+	}
+
 	DBPhysicalID* DBLogicalID::getPhysicalID()
 	{
 		return StoreManager::theStore->getPhysicalID(this);
@@ -37,17 +50,27 @@ namespace Store
 		str << value;
 		return str.str();
 	};
-	
+
 	string DBLogicalID::getServer() const
 	{
 		return server;
 	};
-	
+
 	void DBLogicalID::setServer(string s)
 	{
 		server = s;
 	};
-	
+
+	LogicalID* DBLogicalID::getRemoteID()  const
+	{
+		return remoteID;
+	}
+
+	void DBLogicalID::setRemoteID(LogicalID* remoteID)
+	{
+		this->remoteID = remoteID;
+	}
+
 	unsigned int DBLogicalID::toInteger() const
 	{
 		return static_cast<unsigned int>(value);
@@ -65,7 +88,7 @@ namespace Store
 		lid = new DBLogicalID(*(reinterpret_cast<unsigned int*>(bytes)));
 		return sizeof(unsigned int);
 	};
-	
+
 	LogicalID* DBLogicalID::clone() const
 	{
 		return new DBLogicalID((LogicalID&)(*this));

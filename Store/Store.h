@@ -99,6 +99,8 @@ namespace Store
 		virtual LogicalID* clone() const = 0;
 		virtual string getServer() const = 0;
 		virtual void setServer(string server) = 0;
+		virtual LogicalID* getRemoteID()  const = 0;
+		virtual void setRemoteID(LogicalID* remoteID) = 0;
 
 		// Operators
 		virtual bool operator==(LogicalID& lid) = 0;
@@ -166,7 +168,7 @@ namespace Store
 	{
 	public:
 		static StoreManager* theStore;
-		
+
 		// Object
 		virtual int getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object) = 0;
 		virtual int createObject(TransactionID* tid, string name, DataValue* value, ObjectPointer*& object, LogicalID* lid=NULL) = 0;
@@ -193,7 +195,7 @@ namespace Store
 		virtual DataValue* createStringValue(string value) = 0;
 		virtual DataValue* createPointerValue(LogicalID* value) = 0;
 		virtual DataValue* createVectorValue(vector<LogicalID*>* value) = 0;
-		
+
 		// Object Creation for Logs
 		virtual ObjectPointer* createObjectPointer(LogicalID* lid) = 0;
 		virtual ObjectPointer* createObjectPointer(LogicalID* lid, string name, DataValue* dv) = 0;
@@ -201,13 +203,13 @@ namespace Store
 		// Deserialization
 		virtual int logicalIDFromByteArray(unsigned char* buffer, LogicalID*& lid) = 0;
 		virtual int dataValueFromByteArray(unsigned char* buffer, DataValue*& value) = 0;
-		
+
 		// Misc
 		virtual LogManager* getLogManager() = 0;
 		virtual DBPhysicalID* getPhysicalID(LogicalID* lid) = 0;
 		virtual int checkpoint(unsigned int& cid) = 0;
 		virtual int endCheckpoint(unsigned int& cid) = 0;
-		
+
 		// Operators
 		virtual ~StoreManager() {};
 	};
@@ -227,14 +229,14 @@ namespace Store
 		Serialized& operator+=(const DataValue&);
 		template <typename T> Serialized& operator+=(const T&);
 		void info() const;
-		
+
 		unsigned char* bytes;
 		int size;
 	private:
 		int realsize;
 		template <typename T> Serialized p_baseTypeSerialize(const T&);
 	} Serialized;
-	
+
 	//class Misc
 	//{
 	//public:
@@ -243,7 +245,7 @@ namespace Store
 	//	vector <ObjectPointer*> roots;
 	//	int lastlid;
 	//};
-	
+
 };
 
 #endif

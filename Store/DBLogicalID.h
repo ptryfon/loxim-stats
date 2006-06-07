@@ -25,13 +25,18 @@ namespace Store
 		virtual LogicalID* clone() const;
         virtual string getServer() const;
         virtual void setServer(string server);
+	virtual LogicalID* getRemoteID()  const;
+	virtual void setRemoteID(LogicalID* remoteID);
 
 		virtual bool operator==(LogicalID& lid);
 		virtual DBLogicalID& operator=(const LogicalID& lid);
 
+		virtual ~DBLogicalID();
+
 		unsigned int value;
 	private:
 		string server;
+		LogicalID* remoteID;
 	};
 }
 
