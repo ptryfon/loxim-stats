@@ -1,12 +1,16 @@
 #ifndef _PACKAGE_H_
 #define _PACKAGE_H_
 
+#include "../Errors/Errors.h"
 #include "../Driver/Result.h"
+#include "../QueryExecutor/QueryResult.h"
 
 namespace TCPProto {
 
 using namespace Driver;
+using namespace QExecutor;
 using namespace std;
+using namespace Errors;
 
 class Package {
 public:
@@ -65,15 +69,23 @@ class SimpleResultPackage : public Package {
 	
 	public:
 		packageType getType() { return SIMPLERESULT; }
-		int serialize(char** buffer, int* size);
+		int serialize(char** buffer, int *size);
 		int deserialize(char* buffer, int size);
 		Result * getResult();
 		void setResult(Result *r);
-	
+		void setQueryResult(QueryResult *r);
+		void prepareBuffers();
+		void freeBuffers();	
+		double htonDouble(double x);
 	private:
 		Result* tmpRes;
+		
+		QueryResult* qr;
+		int finalSize;
+		char* serialBuf;
 		char* bufferBegin;
 		char* bufferEnd;
+		ErrorConsole *ec;
 		
 		int dataDeserialize(Result** r);
 		int grabElements(ResultCollection* col);
