@@ -30,6 +30,7 @@
 #include "../TCPProto/Tcp.h"
 
 #define PULSE_CHECKER_ACTIVE
+//#define PACKAGE_SENDING
 
 typedef char TREE_NODE_TYPE;
 
@@ -517,6 +518,8 @@ while (!signalReceived) {
 
 	*ec << "[Server.Run]--> *****SERIALIZE starts*****";
 
+#ifndef PACKAGE_SENDING
+	
 	res = (SerializeRec(qResult));
 	if (res != 0) {
 	    ec->printf("[Server.Run--> Serialize returned error code %d\n", res);
@@ -524,10 +527,24 @@ while (!signalReceived) {
 	    *ec << "[SERVER]--> ends with ERROR";
 	    return ErrServer+ESerialize;
 	}
-
-
+	
+#endif
 	*ec << "[Server.Run]--> *****SERIALIZE complete*****";
 
+#ifdef PACKAGE_SENDING	
+	SimpleResultPackage *pack = new SimpleResultPackage();
+	pack->setQueryResult(qResult);
+	pack->prepareBuffers();
+	res = packageSend(pack, Sock);
+	if (res != 0) {
+	    ec->printf("[Server.Run]--> PackageSend returned error code %d\n", res);
+	    return res;
+	}
+	pack->freeBuffers();
+	delete pack;
+#endif
+
+#ifndef PACKAGE_SENDING	
 	ec->printf("[Server.Run]--> Sending results to client.. Result type=|%d|\n", (int)serialBufBegin[0]);
 	res=(Send(&*serialBufBegin, serialBufSize));
 	if (res != 0) {
@@ -535,7 +552,7 @@ while (!signalReceived) {
 	    *ec << "[SERVER]--> ends with ERROR";
 	    return ErrServer+ESend;
 	}
-
+#endif
 }
 	*ec << "[Server.Run]--> Releasing message buffers";
 	free(messgBuff);

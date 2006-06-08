@@ -53,7 +53,7 @@ extern pthread_t pulseThreads[];
 		
 		int SExit(int code);
 		int SerializeRec(QueryResult *qr);		
-		double htonDouble(double in);
+		static double htonDouble(double in);
 	private:
 		char *bigBuf;
 		int Sock;
