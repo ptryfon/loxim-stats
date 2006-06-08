@@ -13,13 +13,25 @@ OBJECTS	=	$(SOURCES:.cpp=.o)
 DEPFILES =	$(SOURCES:.cpp=.d) $(PROGRAM).d
 
 LIBS	=	../Driver/Driver.a \
-		../TCPProto/TCPProto.a \
-		../Errors/Errors.a
+		../Config/Config.a \
+		../Errors/Errors.a \
+		../Log/Logs.a \
+		../QueryParser/QueryParser.a \
+		../Store/Store.a \
+		../TransactionManager/TransactionManager.a \
+		../QueryExecutor/QueryExecutor.a \
+		../Lock/Lock.a \
+		../TCPProto/TCPProto.a
+
+
 
 all: $(STATIC_LIB) $(PROGRAM)
 
+#$(PROGRAM): $(OBJECTS) $(LIBS) $(STATIC_LIB)
+#	$(CXX) $(LDFLAGS) $^ -o $@ 
+
 $(PROGRAM): $(OBJECTS) $(LIBS) $(STATIC_LIB)
-	$(CXX) $(LDFLAGS) $^ -o $@
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -Wl,--start-group $^ -Wl,--end-group -o $@
 
 clean:
 	rm -f $(OBJECTS) $(DEPFILES) $(STATIC_LIB) $(PROGRAM) $(PROGRAM).o
