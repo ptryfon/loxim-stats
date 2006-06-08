@@ -39,6 +39,8 @@ int main(int argc, char *argv[]) {
   /* establishing connection */
   Connection* con;
   try {
+    //Adam - odkomentuj te jedna linijke:
+    //con = DriverManager::getConnection(host, port+1);
     con = DriverManager::getConnection(host, port);
   } catch (ConnectionException e) {
     cerr << e << endl;
