@@ -31,9 +31,14 @@ using namespace QExecutor;
 	    int mesSize = 8192;
 	    bufferBegin = (char *)malloc(mesSize);
 	    bufferEnd = bufferBegin + mesSize;
+	    memset(bufferBegin, '\0', mesSize);
 	    serialBuf = bufferBegin;
 		finalSize = 0;
 		ec = new ErrorConsole("SimpleResultPackage");
+	    
+		serialBuf[0] = (char)Package::SIMPLERESULT;
+		serialBuf++;
+		finalSize = finalSize + 1;
 
 	}
 	
@@ -81,10 +86,6 @@ using namespace QExecutor;
 	    resType=(Result::ResultType)qr->type();
 	    rT=qr->type();
 		
-		serialBuf[0] = (char)Package::SIMPLERESULT;
-		serialBuf++;
-		finalSize = finalSize + 1;
-
 	    ec->printf("[SimpleResultPackage.Serialize]--> Now serializing object of type: %d \n",  rT);
 
 	switch (rT) {
@@ -287,8 +288,9 @@ using namespace QExecutor;
 		    break;
 	}
 	
-	buffer = &bufferBegin;
+	*buffer = &*bufferBegin;
 	*size = 8192; //&finalSize;
+	//ec->printf("Buffer = %s\n", buffer);
 	ec->printf("Buffer set with type = %d\n", (int)(*buffer[0]));;
 
 	return 0;
@@ -345,6 +347,7 @@ int SimpleResultPackage::grabElements(ResultCollection* col) {
 				if (0 != (error = dataDeserialize(&r))) return error;
 				col->add(r);
 			}
+			
 			return 0;
 }
 
@@ -375,7 +378,8 @@ int SimpleResultPackage::dataDeserialize(Result** r ) {
 	unsigned long* lptr;
 	double db;
 	char df;
-		
+	//printf("buffer[0], buffer[1], buffer[2], buffer[3], buffer[4] = |%d|%d|%d|%d|%d\\n",(int)bufferBegin[0], (int)bufferBegin[1], (int)bufferBegin[2], (int)bufferBegin[3], (int)bufferBegin[4]);	
+	
 	switch (*(bufferBegin++)) {
 	
 		case Result::BAG:

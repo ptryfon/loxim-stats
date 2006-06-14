@@ -77,14 +77,14 @@ class SimpleResultPackage : public Package {
 		void prepareBuffers();
 		void freeBuffers();	
 		double htonDouble(double x);
+		char *serialBuf;
+		char *bufferBegin;
+		int finalSize;
+		char * bufferEnd;
 	private:
 		Result* tmpRes;
 		
 		QueryResult* qr;
-		int finalSize;
-		char* serialBuf;
-		char* bufferBegin;
-		char* bufferEnd;
 		ErrorConsole *ec;
 		
 		int dataDeserialize(Result** r);
