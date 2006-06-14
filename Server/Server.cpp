@@ -411,8 +411,6 @@ int Server::Run()
 
 	*ec << "[Server.Run]--> Creating message buffers.. \n";
 
-	messgBuff=(char*) malloc(MAX_MESSG);
-
 	serialBufBegin=(char *)malloc(MAX_MESSG);
 	serialBufEnd=serialBufBegin+MAX_MESSG;
 	serialBufSize=MAX_MESSG;
@@ -426,6 +424,8 @@ while (!signalReceived) {
 	    *ec << "[Server.Run]-> a non-critical error occured during the previous session";
     	memset(serialBufBegin, '\0', MAX_MESSG);
 	serialBuf=serialBufBegin;
+	messgBuff=(char*) malloc(MAX_MESSG);
+
 	ncError=0;
 
 	*ec << "[Server.Run]--> Blocking SIGINT for now..";
@@ -476,7 +476,7 @@ while (!signalReceived) {
 	    ncError=1;
 	    continue;
 	}
-
+	free(messgBuff);
 
 #ifdef PULSE_CHECKER_ACTIVE
 	//Create PulseChecker thread
@@ -536,11 +536,11 @@ while (!signalReceived) {
 	pack->setQueryResult(qResult);
 	pack->prepareBuffers();
 	res = packageSend(pack, Sock);
+	pack->freeBuffers();
 	if (res != 0) {
 	    ec->printf("[Server.Run]--> PackageSend returned error code %d\n", res);
 	    return res;
 	}
-	pack->freeBuffers();
 	delete pack;
 #endif
 
@@ -569,7 +569,7 @@ while (!signalReceived) {
 int Server::SExit(int code) {
     ec->printf("[Server.SExit]--> Server thread freeing buffers, destroying QE, QP and disconnecting - returning code |%d|\n", code);
     free(serialBufBegin);
-    free(messgBuff);
+    //free(messgBuff);
     qPa->QueryParser::~QueryParser();
     qEx->abort();
     qEx->QueryExecutor::~QueryExecutor();
