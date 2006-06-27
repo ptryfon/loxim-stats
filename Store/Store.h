@@ -156,6 +156,8 @@ namespace Store
 		virtual Serialized serialize() const = 0;
 		virtual bool getIsRoot() const = 0;
 		virtual void setIsRoot(bool isRoot) = 0;
+		virtual vector<LogicalID*>* getClasses() const = 0;
+		virtual void setClasses(vector<LogicalID*>* value) = 0;
 
 		// Operators
 		virtual bool operator==(ObjectPointer& dv) {

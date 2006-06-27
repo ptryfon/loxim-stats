@@ -54,11 +54,11 @@ namespace Store
 		string smap, sroots, sdefault;
 
 		if (store->getConfig()->getString("store_file_default", sdefault) != 0)
-			smap = "/tmp/sbmap";
+			sdefault = "/tmp/sbdefault";
 		if (store->getConfig()->getString("store_file_roots", sroots) != 0)
 			sroots = "/tmp/sbroots";
 		if (store->getConfig()->getString("store_file_map", smap) != 0)
-			sdefault = "/tmp/sbdefault";
+			smap = "/tmp/sbmap";
 
 		fmap = ::open(smap.c_str(), O_RDWR);
 		ec->printf("fmap = %d, errno = %d, errmsg = %s",

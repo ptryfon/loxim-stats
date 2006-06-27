@@ -24,6 +24,7 @@ namespace Store
 {
 	class DBStoreManager : public StoreManager
 	{
+	friend class DBObjectPointer;
 	private:
 		SBQLConfig* config;
 		LogManager* log;

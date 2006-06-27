@@ -2,6 +2,7 @@
 #include "DBObjectPointer.h"
 #include "DBLogicalID.h"
 #include "DBDataValue.h"
+#include <map>
 
 //#define DBOP_DEBUG
 
@@ -9,6 +10,8 @@ using namespace std;
 
 namespace Store
 {
+	map<LogicalID*, vector<LogicalID*>*> classes;
+
 	DBObjectPointer::DBObjectPointer()
 	{
 #ifdef DBOP_DEBUG
@@ -132,5 +135,14 @@ namespace Store
 	void DBObjectPointer::setIsRoot(bool isRoot)
 	{
 		this->isRoot = isRoot;
+	};
+	
+	vector<LogicalID*>* DBObjectPointer::getClasses() const
+	{
+		return 0;
+	};
+	
+	void DBObjectPointer::setClasses(vector<LogicalID*>*)
+	{
 	};
 }

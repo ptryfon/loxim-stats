@@ -25,13 +25,15 @@ namespace Store
 		virtual Serialized serialize() const;
 		virtual bool getIsRoot() const;
 		virtual void setIsRoot(bool isRoot);
+		virtual vector<LogicalID*>* getClasses() const;
+		virtual void setClasses(vector<LogicalID*>* value);
 
 		virtual bool operator==(ObjectPointer& dv);
 	
 	private:
 		AccessMode mode;
 		string name;
-		DataValue* value;	
+		DataValue* value;
 		LogicalID* lid;
 		bool isRoot;
 	};
