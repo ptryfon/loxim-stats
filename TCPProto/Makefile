@@ -3,13 +3,15 @@ include ../make.defs
 CXXFLAGS=-I./ -I./../ -Wall
 
 SOURCES	=	SimpleResultPackage.cpp \
-				SimpleQueryPackage.cpp \
-				Tcp.cpp \
-				../Driver/Result.cpp
+			SimpleQueryPackage.cpp \
+			ParamQueryPackage.cpp \
+			StatementPackage.cpp \
+			Tcp.cpp \
+			../Driver/Result.cpp
 
 HEADERS	=	Tcp.h \
-				Package.h \
-				../Driver/Result.h
+			Package.h \
+			../Driver/Result.h
 
 STATIC_LIB =	TCPProto.a
 PROGRAM =	

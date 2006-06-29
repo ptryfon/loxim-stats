@@ -15,10 +15,11 @@ using namespace Errors;
 class Package {
 public:
     enum packageType {
-	SIMPLEQUERY = 0, //String
-	PARAMQUERY = 1,	//String with $var
-	STATEMENT = 2,	//Parser tree
-	SIMPLERESULT = 3 //Result
+	SIMPLEQUERY = 0,   //String
+	PARAMQUERY = 1,	   //String with $var
+	STATEMENT = 2,	   //Parser tree
+	PARAMSTATEMENT = 3,//stmtNr + map
+	SIMPLERESULT = 4   //Result
     };
     
 	virtual packageType getType()=0;
@@ -31,21 +32,6 @@ public:
     //returns error code, gets buffer and it's size
     //it destroys the buffer
     virtual int deserialize(char* buffer, int size)=0;
-};
-
-class StatementPackage : public Package {
-public:
-	packageType getType() {
-		return SIMPLEQUERY;
-	}
-	
-	int serialize(char** buffer, int* size) {
-		return -1;
-	}
-	
-	int deserialize(char* buffer, int size) {
-		return -1;
-	}
 };
 
 class SimpleQueryPackage : public Package {
@@ -93,22 +79,46 @@ class SimpleResultPackage : public Package {
 		int stringCopy(char* &newBuffer);
 };
 
-class ParamQueryPackage : public Package {
+class StatementPackage : public Package {
 public:
-	packageType getType() {
-		return SIMPLEQUERY;
-	}
-	
-	int serialize(char** buffer, int* size) {
-		return -1;
-	}
-	
-	int deserialize(char* buffer, int size) {
-		return -1;
-	}
+	packageType    getType() { return STATEMENT; }
+	int            serialize(char** buffer, int* size);
+	int            deserialize(char* buffer, int size);
+	void           setStmtNr(unsigned long stmtNr);
+	unsigned long  getStmtNr();
+	unsigned long  getSize();
+private:
+	unsigned long stmtNr; //What nr of parsed statment. Server will match TreeNode with this nr
+	char*         bufferBegin;
+	char*         bufferEnd;
 
-	void setQuery(const char* query) {
-	}
+	int           getULong(unsigned long *val, char** buffer);
+	int           getULong(unsigned long *val);
+	int           setULong(unsigned long val,  char** buffer);
+	int           setULong(unsigned long val);
+};
+
+class ParamQueryPackage : public SimpleQueryPackage {
+public:
+	packageType getType() { return PARAMQUERY; }
+	int         serialize(char** buffer, int* size);
+	int         deserialize(char* buffer, int size);
+};
+
+class ParamStatementPackage : public StatementPackage {
+public:
+	packageType getType() { return PARAMSTATEMENT; }
+	int         serialize(char** buffer, int* size)
+		{ return StatementPackage::serialize(buffer, size); }
+	int         deserialize(char* buffer, int size)
+		{ return StatementPackage::deserialize(buffer, size); }
+	void        setParams(map<string*, Result*> params) 
+		{ ParamStatementPackage::params = params; }
+	map<string*, Result*> getParams() 
+		{ return params; }
+	virtual ~ParamStatementPackage() {}
+private:
+	map<string*, Result*> params;
 };
 
 } //namespace

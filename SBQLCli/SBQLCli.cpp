@@ -11,102 +11,122 @@ using namespace Driver;
 
 
 
-void printMsg(string str) {
-  if (isatty(0))
+void printMsg (string str)
+{
+  if (isatty (0))
     cout << str;
 }
 
 
-int main(int argc, char *argv[]) {
-  
-  char* host = "localhost";
-  int   port = 6543;
-  
+int main (int argc, char *argv[])
+{
+
+  char *host = "localhost";
+  int port = 6543;
+
   /* args things */
-  if (argc >= 2) {
-    host = argv[1];
-  }
-  
-  if (argc == 3) {
-    port = atoi(argv[2]);
-  }
-  
-  if (argc > 3) {
-    cout << "usage: " << argv[0] << " host port " << endl;
-    exit (1);
-  }
-  
+  if (argc >= 2)
+    {
+      host = argv[1];
+    }
+
+  if (argc == 3)
+    {
+      port = atoi (argv[2]);
+    }
+
+  if (argc > 3)
+    {
+      cout << "usage: " << argv[0] << " host port " << endl;
+      exit (1);
+    }
+
   /* establishing connection */
-  Connection* con;
-  try {
+  Connection *con;
+  try
+  {
     //Adam - odkomentuj te jedna linijke:
     //con = DriverManager::getConnection(host, port+1);
-    con = DriverManager::getConnection(host, port);
-  } catch (ConnectionException e) {
-    cerr << e << endl;
-    exit(1);
+    con = DriverManager::getConnection (host, port);
   }
-  
-  printMsg("SBQLCli ver 1.0 \n");
-  printMsg("Ctrl-d exits \n");
-
-  string line;  // one line of a query
-  string input; // whole query (possibly multi line)
-
-
-  printMsg(" > ");
-
-  try { 
-
-    while (getline(cin, line)) {
-
-      if (line[0] != '/') {
-	//      if (line.find(";",0) == string::npos) {
-
-	if (!((line.length() >= 2) 
-	      && (line[0] == '-') && (line[1] == '-'))) {
-	  input.append(line + " ");
-	}
-	printMsg(" \\ ");
-	
-      } else { // execute query, because  ";" found 
-	
-	//input.append(line);
-	cerr << "<SBQLCli> Zapytanie: " << input << endl;
-	
-	Result* result = NULL;
-	
-	try {
-	
-	  result = con->execute(input.c_str());
-	  cout << *result << endl;
-	
-	} catch (ConnectionServerException e) { //parse error, or smth.
-	  cerr << e << endl;
-	}  
-	
-	input.clear();
-	printMsg(" > ");
-      }
-      
-    } //while
-    
-  } catch (ConnectionException e) {
+  catch (ConnectionException e)
+  {
     cerr << e << endl;
-    exit(1);
+    exit (1);
   }
-  
-  
+
+  printMsg ("SBQLCli ver 1.0 \n");
+  printMsg ("Ctrl-d exits \n");
+
+  string line;			// one line of a query
+  string input;			// whole query (possibly multi line)
+
+  printMsg (" > ");
+
+  try
+  {
+    while (getline (cin, line))
+      {
+	if (line[0] != '/')
+	  {
+	    if (!((line.length () >= 2)
+		  && (line[0] == '-') && (line[1] == '-')))
+	      {
+		input.append (line + " ");
+	      }
+	    printMsg (" \\ ");
+	  }
+	else
+	  {
+	    cerr << "<SBQLCli> Zapytanie: " << input << endl;
+
+	    Result *result = NULL;
+	    Statement *stmt = NULL;
+	    try
+	    {
+
+	      /*
+	         stmt   = con->parse(input.c_str());
+	         stmt->addParam("ans", result);
+	         cerr << "Executing statement" << endl; 
+	         result = con->execute(stmt);
+	         /* */
+
+	      result = con->execute (input.c_str ());
+	      cout << *result << endl;
+
+	    }
+	    catch (ConnectionServerException e)
+	    {			//parse error, or smth.
+	      cerr << e << endl;
+	    }
+
+	    input.clear ();
+	    printMsg (" > ");
+	  }
+
+      }	//while
+
+  }
+  catch (ConnectionException e)
+  {
+    cerr << e << endl;
+    exit (1);
+  }
+
+
   /* sending abort on exit */
   cerr << endl << "<SBQLCli> auto abort on exit " << endl;
-  Result* result = NULL; 
-  try {
-    result = con->execute("abort;");
+  Result *result = NULL;
+  try
+  {
+    result = con->execute ("abort;");
     cout << *result << endl;
-  } catch (ConnectionServerException e) {
+  }
+  catch (ConnectionServerException e)
+  {
     cerr << e << endl;
-  }  
-  
+  }
 
-  return 0;		
+  return 0;
 }

@@ -141,16 +141,28 @@ public:
 
 #endif
 
+class Statement {
+public:
+	Statement(unsigned long stmtNr) : stmtNr(stmtNr) { }
+	void addParam(string name, Result* result)
+		{ params[new string(name)] = result; }
+	~Statement() { }
+private:
+	unsigned long               stmtNr;
+	map<string*, Result*> params; 
+	friend class Connection;
+};
+
 class Connection
 {
 public:
 	Connection(int socket);
 	int disconnect();
 	virtual ~Connection();
-	Result* execute(const char* query) throw (ConnectionException);
-	Result* newExecute(const char* query) throw (ConnectionException);
-	Result* execute(StatementPackage* stmt) throw (ConnectionException);
-	StatementPackage* parse(const char* query) throw (ConnectionException);
+	Result* execute(const char* query)         throw (ConnectionException);
+	Result* newExecute(const char* query)      throw (ConnectionException);
+	Result* execute(Statement* stmt)           throw (ConnectionException);
+	Statement* parse(const char* query)        throw (ConnectionException);
 private:
 	int sock;
 	char* bufferBegin;
