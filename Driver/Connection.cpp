@@ -235,19 +235,17 @@ Result* Connection::execute(const char* query) throw (ConnectionException) {
 
 Result* Connection::execute(Statement* stmt) throw (ConnectionException) {
 	int error;
-	cerr << "Stmt->nr: " << stmt->stmtNr << endl;
+
 	ParamStatementPackage* psp = new ParamStatementPackage();
 	psp->setStmtNr(stmt->stmtNr);
-	//psp->setParams(stmt->params);
+	psp->setParams(stmt->params);
 	
 	error = packageSend(psp, sock);
 	if (error != 0) throw ConnectionIOException(error);
 	delete psp;
-	cerr << "ParamStatementPackage sent" << endl;
 
 	Package* package;
 	error = packageReceive(&package, sock);
-	cerr << "Package sent received error" <<  error << endl;
 	if (error != 0) throw ConnectionIOException(error);
 	
 	if (package->getType() != Package::SIMPLERESULT) throw ConnectionException("incorrect data received");
@@ -266,8 +264,6 @@ Statement* Connection::parse(const char* query) throw (ConnectionException) {
 	Package* package;
 	error = packageReceive(&package, sock);
 	if (error != 0) throw ConnectionIOException(error);
-	cerr << "StatementPackage received type:" << package->getType() << endl;
-
 
 	if (package->getType() != Package::STATEMENT) throw ConnectionException("incorrect data received");
 	StatementPackage* stmtPkg = dynamic_cast<StatementPackage*> (package);

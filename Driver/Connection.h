@@ -145,11 +145,11 @@ class Statement {
 public:
 	Statement(unsigned long stmtNr) : stmtNr(stmtNr) { }
 	void addParam(string name, Result* result)
-		{ params[new string(name)] = result; }
+		{ params[name] = result; }
 	~Statement() { }
 private:
 	unsigned long               stmtNr;
-	map<string*, Result*> params; 
+	map<string, Result*> params; 
 	friend class Connection;
 };
 

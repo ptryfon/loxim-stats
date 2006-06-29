@@ -16,4 +16,17 @@ int main(int argc, char *argv[])
   ResultReference* rref   = new ResultReference("321");
   ResultVoid*     rvoid   = new ResultVoid();
   ResultError*    rerror  = new ResultError();
+  
+  cout << seq << endl;
+  cout << str << endl;
+  cout << rbinder << endl;
+  cout << rstring << endl;
+  cout << rint << endl;  
+  cout << rdouble << endl;
+  cout << rbool << endl;
+  cout << rref << endl;
+  cout << rvoid << endl;
+  cout << rerror << endl;    
+  
+  return 0;
 }

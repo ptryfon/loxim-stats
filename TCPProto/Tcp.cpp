@@ -163,10 +163,12 @@ int packageReceive(Package** package, int sock) {
 		case Package::SIMPLERESULT:
 			*package = new SimpleResultPackage();
 			break;
+		case Package::PARAMSTATEMENT:
+			*package = new ParamStatementPackage();
+			break;
 		default:
 			//TODO error
 			return -2;
-		//	cerr << "bledny typ package::type\n";
 	}
 
 	if (0 != (error = (*package)->deserialize(ptr, size)))

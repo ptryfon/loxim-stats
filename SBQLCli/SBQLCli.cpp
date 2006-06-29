@@ -61,6 +61,10 @@ int main (int argc, char *argv[])
   string line;			// one line of a query
   string input;			// whole query (possibly multi line)
 
+  Result *result    = NULL;
+  Result *resultTmp = NULL;
+  Statement *stmt   = NULL;
+
   printMsg (" > ");
 
   try
@@ -72,7 +76,7 @@ int main (int argc, char *argv[])
 	    if (!((line.length () >= 2)
 		  && (line[0] == '-') && (line[1] == '-')))
 	      {
-		input.append (line + " ");
+			input.append (line + " ");
 	      }
 	    printMsg (" \\ ");
 	  }
@@ -80,19 +84,20 @@ int main (int argc, char *argv[])
 	  {
 	    cerr << "<SBQLCli> Zapytanie: " << input << endl;
 
-	    Result *result = NULL;
-	    Statement *stmt = NULL;
 	    try
 	    {
-
-	      /*
-	         stmt   = con->parse(input.c_str());
-	         stmt->addParam("ans", result);
-	         cerr << "Executing statement" << endl; 
-	         result = con->execute(stmt);
-	         /* */
+		/*
+		  stmt   = con->parse(input.c_str());
+          stmt->addParam("ans", result);
+          stmt->addParam("empty", NULL);
+          resultTmp = con->execute(stmt);
+          delete stmt;
+          delete result;
+          result = resultTmp;
+        /**/
 
 	      result = con->execute (input.c_str ());
+	    /**/	      
 	      cout << *result << endl;
 
 	    }
@@ -117,7 +122,7 @@ int main (int argc, char *argv[])
 
   /* sending abort on exit */
   cerr << endl << "<SBQLCli> auto abort on exit " << endl;
-  Result *result = NULL;
+  result = NULL;
   try
   {
     result = con->execute ("abort;");
@@ -128,5 +133,6 @@ int main (int argc, char *argv[])
     cerr << e << endl;
   }
 
+  delete con;
   return 0;
 }

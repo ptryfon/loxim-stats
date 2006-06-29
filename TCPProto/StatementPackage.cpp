@@ -10,14 +10,11 @@ namespace TCPProto {
 		if (*buffer == NULL) return -2; //TODO
 		
 		char type = (char) getType();
-		cerr << "Pacgake type: " << (int) type << endl;
 		memcpy(*buffer, &type, sizeof(char));
 		
 		bufferBegin = *buffer + 1;
 		bufferEnd   = *buffer + length;
 		
-		char* tmpBuffer = *buffer + 1;
-
 		int error  = setULong(stmtNr);
 		if (error != 0) return -2;
 
@@ -26,6 +23,7 @@ namespace TCPProto {
 	}
 
 	int StatementPackage::deserialize(char* buffer, int size) {
+
 		char* tmpBuffer;
 		if (buffer[0] != getType()) return -1; //TODO
 		tmpBuffer = buffer + 1;
@@ -57,7 +55,7 @@ namespace TCPProto {
 		if (tmpPtr > bufferEnd) {
 			return -2; //TODO proba czytania poza buforem
 		}
-		cerr << "getULong: " << *((unsigned long*) *(buffer)) << endl;
+
 		*val     = ntohl(*((unsigned long*) *buffer));
 		*buffer = tmpPtr; //skip the number of elements (long)
 		return 0;
@@ -71,7 +69,7 @@ namespace TCPProto {
 			return -2; //TODO proba czytania poza buforem
 		}
 		
-		cerr << "getULong: " << *((unsigned long*) bufferBegin) << endl;
+		// cerr << "getULong: " << *((unsigned long*) bufferBegin) << endl;
 		*val = ntohl(*((unsigned long*) bufferBegin));
 		bufferBegin = tmpPtr; //skip the number of elements (long)
 		return 0;
@@ -82,10 +80,11 @@ namespace TCPProto {
 		if (tmpPtr > bufferEnd) {
 			return -2; //TODO proba czytania poza buforem
 		}
-		cerr << "setULong: " << val << endl;
+		
+		// cerr << "setULong: " << val << endl;
 		val = htonl(val);
 		memcpy(bufferBegin, &val, sizeof(unsigned long));
-		//*bufferBegin = htonl(val);
+
 		bufferBegin  = tmpPtr; //skip the number of elements (long)
 		return 0;
 	}
@@ -95,7 +94,7 @@ namespace TCPProto {
 		if (tmpPtr > bufferEnd) {
 			return -2; //TODO proba czytania poza buforem
 		}
-		cerr << "setULong: " << val << endl;
+
 		val = htonl(val);
 		memcpy(*buffer, &val, sizeof(unsigned long));
 		//**buffer     = htonl(val);

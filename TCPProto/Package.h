@@ -87,7 +87,7 @@ public:
 	void           setStmtNr(unsigned long stmtNr);
 	unsigned long  getStmtNr();
 	unsigned long  getSize();
-private:
+protected:
 	unsigned long stmtNr; //What nr of parsed statment. Server will match TreeNode with this nr
 	char*         bufferBegin;
 	char*         bufferEnd;
@@ -108,17 +108,22 @@ public:
 class ParamStatementPackage : public StatementPackage {
 public:
 	packageType getType() { return PARAMSTATEMENT; }
-	int         serialize(char** buffer, int* size)
-		{ return StatementPackage::serialize(buffer, size); }
-	int         deserialize(char* buffer, int size)
-		{ return StatementPackage::deserialize(buffer, size); }
-	void        setParams(map<string*, Result*> params) 
+	int         serialize(char** buffer, int* size); 
+	int         deserialize(char* buffer, int size);
+	void        setParams(map<string, Result*> params) 
 		{ ParamStatementPackage::params = params; }
-	map<string*, Result*> getParams() 
+	map<string, Result*> getParams() 
 		{ return params; }
 	virtual ~ParamStatementPackage() {}
 private:
-	map<string*, Result*> params;
+	map<string, Result*> params;
+	map<string, QueryResult*> queryParams;
+	int ParamStatementPackage::getString(string* str);	
+	int ParamStatementPackage::getQueryResult(QueryResult** result);	
+	int ParamStatementPackage::setString(string str);	
+	int ParamStatementPackage::setResult(Result* result);
+
+	friend ostream& operator<<(ostream&, ParamStatementPackage&);	
 };
 
 } //namespace
