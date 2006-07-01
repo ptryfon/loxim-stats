@@ -1,3 +1,5 @@
+-- Autor: Maciej Wojciechowski
+
 begin;
 /
 delete Lap;
