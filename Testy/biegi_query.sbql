@@ -1,0 +1,106 @@
+begin;
+/
+
+-- jakie mamy nazwy butów
+(Shoes.name as name).(deref(name));
+/
+
+-- ile wydali¶my na buty
+(sum(Shoes.cost) as cost);
+/
+
+-- ³±czny czas spêdzony na bieganiu
+(sum(Run.runPart.time) as time);
+/
+
+-- ¶redni "pace" dla butów
+(distinct(Shoes) as shoe).(deref(shoe.name), avg(
+	(Run as r).(r.pace as pace, r.shoes as shoes).(pace as pace, deref((deref(shoes)).id) as id).(deref(pace) where id = shoe.id)
+));
+/
+
+-- ³±czny dystans pokonany na bieganiu w rozbiciu na dni (bez pêtli zakrêconych)
+(distinct(Run.date) as xdata)
+.
+(deref(xdata),
+   sum(
+     ((Run where date = xdata).runPart.part as part)
+     .(deref(part) as part)
+     .(part.distance)
+   ) as suma
+);
+/
+
+-- to samo, ale bierzemy pod uwagê zagnie¿d¿enia tras
+(distinct(Run.date) as xdata)
+.(deref(xdata),
+   sum(
+     (
+       (
+          ((Run where date = xdata).runPart.part as part)
+          .(deref(part) as npart)
+        )
+        close by 
+        (deref(npart.runPart) as npart)
+     )
+     .(deref(npart)).distance
+   ) as suma
+);
+/
+
+-- Testowanie wiazania zmiennych
+ 
+((Run as r).(r as r, deref(r.runPart.part).id as id) group as y).(deref(y.r.pace) as pace).(pace where pace = 5)
+!=
+((Run as r).(r as r, deref(r.runPart.part).id as id) group as y).(deref(y.r.pace) where deref(y.r.pace) = 5)
+/
+
+--------------------------------------------------
+-- ile razy przebieg³em dan± trasê (bez close by)
+(distinct(Lap.id) as l).
+(
+  deref(l), 
+  count((Run as r).((deref(r.runPart.part).id as id).(id where id = l)))
+)
+/
+
+
+-- dystans z podzia³em na buty :)
+(distinct(Shoes.name) as name)
+.(deref(name),
+     sum(
+       (
+         (
+             ((Run where deref(shoes).name = name).runPart.part as part)
+             .(deref(part) as npart)
+         )
+         close by
+         (deref(npart.runPart) as npart)
+       ).(deref(npart)).distance
+     ) as suma
+);
+/
+
+-- ¶rednia prêdko¶æ w zale¿no¶ci od butów (to ju¿ jest kosmicznie fajowe :) )
+(distinct(Shoes.name) as xname)
+.(
+   deref(xname) as name, 
+    (
+      ((Run where deref(shoes).name = xname).runPart)
+      .(
+      (
+         (deref(part) as npart, deref(time) as time)
+        close by (deref(npart.runPart) as npart, 0 as time)
+      )
+      .(deref(npart), time as time)
+      )
+    ) group as y
+ )
+ .(
+   name as name, sum(y.time) as time,
+       sum(deref(y.distance)) as distance
+ )
+/
+
+end;
+/

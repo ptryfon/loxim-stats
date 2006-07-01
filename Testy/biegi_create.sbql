@@ -1,0 +1,123 @@
+begin;
+/
+delete Lap;
+/
+delete Shoes;
+/
+delete Run;
+/
+end;
+/
+
+
+begin;
+/
+
+create (
+	"PK" as id,
+	"Petla krotka" as name,
+	1.5 as distance
+) as Lap;
+/
+
+create (
+	"PW" as id,
+	"Petla Witanow" as name,
+	6 as distance
+) as Lap;
+/
+
+create (
+	"DP" as id,
+	"Dwie petle krotkie" as name,
+	(ref (Lap where id = "PK")) as runPart,
+	(ref (Lap where id = "PK")) as runPart
+) as Lap;
+/
+
+create (
+	"PF" as id,
+	"Petla Faszcyce" as name,
+	8 as distance
+) as Lap;
+/
+
+create (
+	"LK" as id,
+	"Las Kabacki" as name,
+	10 as distance
+) as Lap;
+/
+
+
+create (
+	"NB" as id,
+	"New Balance" as name,
+	239 as cost
+) as Shoes;
+/
+
+create (
+	"Ad" as id,
+	"Adidas" as name,
+	309 as cost
+) as Shoes;
+/
+
+create (
+	"2006-06-06" as date,
+	10 as pace,
+	(ref (Shoes where id = "NB")) as shoes,
+	(ref (Lap where id = "PF" as part), 40 as time) as runPart
+) as Run;
+/
+
+create (
+	"2006-06-08" as date,
+	9 as pace,
+	(ref (Shoes where id = "NB")) as shoes,
+	(ref (Lap where id = "PK" as part), 7 as time) as runPart,
+	(ref (Lap where id = "PK" as part), 8 as time) as runPart
+) as Run;
+/
+
+create (
+	"2006-06-09" as date,
+	5 as pace,
+	(ref (Shoes where id = "Ad")) as shoes,
+	(ref (Lap where id = "PF" as part), 39 as time) as runPart,
+	(ref (Lap where id = "PK" as part), 8 as time) as runPart,
+	(ref (Lap where id = "PK" as part), 9 as time) as runPart,
+	(ref (Lap where id = "PW" as part), 31 as time) as runPart
+) as Run;
+/
+
+
+create (
+	"2006-06-10" as date,
+	11 as pace,
+	(ref (Shoes where id = "NB")) as shoes,
+	(ref (Lap where id = "PW" as part), 28 as time) as runPart,
+	(ref (Lap where id = "PW" as part), 29 as time) as runPart
+) as Run;
+/
+
+create (
+	"2006-06-11" as date,
+	15 as pace,
+	"Zawody" as type,
+	(ref (Shoes where id = "Ad")) as shoes,
+	(ref (Lap where id = "LK" as part), 45 as time) as runPart
+) as Run;
+/
+
+create (
+	"2006-06-12" as date,
+	19 as pace,
+	(ref (Shoes where id = "NB")) as shoes,
+	(ref (Lap where id = "DP" as part), 90 as time) as runPart
+) as Run;
+/
+
+end;
+/

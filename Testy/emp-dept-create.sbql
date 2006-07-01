@@ -1,0 +1,46 @@
+begin;
+/
+create (100 as deptno, "CZECHY" as loc) as dept;
+/
+create (200 as deptno, "POLSKA" as loc) as dept;
+/
+create (300 as deptno, "WEGRY" as loc) as dept;
+/
+create (1 as id, 1000 as sal, (dept where deptno = 100) as works_in, "Kowalski" as name) as emp;
+/
+create (3 as id, 3000 as sal, (dept where deptno = 300) as works_in, "Bednarek" as name) as emp;
+/
+create (7 as id, 1500 as sal, (dept where deptno = 100) as works_in, "Felinski" as name) as emp;
+/
+create (15 as id, 1000 as sal, (dept where deptno = 300) as works_in, "Zawada" as name) as emp;
+/
+create (14 as id, 1000 as sal, (dept where deptno = 200) as works_in, "Nitka" as name) as emp;
+/
+create (6 as id, 2000 as sal, (dept where deptno = 300) as works_in, "Sztygar" as name) as emp;
+/
+create (13 as id, 1500 as sal, (dept where deptno = 100) as works_in, "Dzierzynska" as name) as emp;
+/
+create (12 as id, 1000 as sal, (dept where deptno = 300) as works_in, "Grucha" as name) as emp;
+/
+create (2 as id, 1500 as sal, (dept where deptno = 200) as works_in, "Kaminski" as name, (emp where id = 1) as son, (emp where id = 3) as son) as emp;
+/
+create (5 as id, 1000 as sal, (dept where deptno = 200) as works_in, "Poplawski" as name, (emp where id = 7) as son, (emp where id = 15) as son) as emp;
+/
+create (11 as id, 2000 as sal, (dept where deptno = 200) as works_in, "Swoboda" as name, (emp where id = 14) as son, (emp where id = 6) as son) as emp;
+/
+create (10 as id, 2000 as sal, (dept where deptno = 100) as works_in, "Trojanowska" as name, (emp where id = 13) as son, (emp where id = 12) as son) as emp;
+/
+create (4 as id, 1000 as sal, (dept where deptno = 100) as works_in, "Tyszynski" as name, (emp where id = 2) as son, (emp where id = 5) as son) as emp;
+/
+create (9 as id, 1500 as sal, (dept where deptno = 300) as works_in, "Bocian" as name, (emp where id = 11) as son, (emp where id = 10) as son) as emp;
+/
+create (8 as id, 3000 as sal, (dept where deptno = 200) as works_in, "Micun" as name, (emp where id = 4) as son, (emp where id = 9) as son) as emp;
+/
+(dept where deptno = 100) :< (emp where id = 1) as mgr;
+/
+(dept where deptno = 200) :< (emp where id = 2) as mgr;
+/
+(dept where deptno = 300) :< (emp where id = 3) as mgr;
+/
+end;
+/

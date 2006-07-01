@@ -1,0 +1,85 @@
+begin;
+/
+
+delete person;
+/
+
+create ("Kazimierz" as name, "Kolodziejczyk" as surname, 130 as age, "male" as sex) as person;
+/
+
+create ("Janina" as name, "Trzonek" as surname, 90 as age, ("Czerniewice" as city, "Mazowiecka" as street, 49 as no) as address, 800 as salary, "female" as sex) as person;
+/
+
+create ("Barbara" as name, "Sitek" as surname, "Trzonek" as maiden_name, 54 as age, ("Czerniewice" as city, "Mazowiecka" as street, 49 as no) as address, 1500 as salary, "female" as sex) as person;
+/
+
+create ("Wojciech" as name, "Sitek" as surname, 54 as age, ("Czerniewice" as city, "Mazowiecka" as street, 49 as no) as address, 1400 as salary, "male" as sex) as person;
+/
+
+create ("Jakub" as name, "Sitek" as surname, 23 as age, ("Czerniewice" as city, "Mazowiecka" as street, 49 as no) as address, ("Warszawa" as city, "ZwirkiWigury" as street, 97 as no) as address, 600 as salary, "male" as sex) as person;
+/
+
+create ("Anna" as name, "Sitek" as surname, 19 as age, ("Czerniewice" as city, "Mazowiecka" as street, 49 as no) as address, 500 as salary, "female" as sex) as person;
+/
+
+create ("Zdzislaw" as name, "Trzonek" as surname, 57 as age, ("Lodz" as city, "Golebia" as street, 4 as no) as address, 600 as salary, "male" as sex) as person;
+/
+
+create ("Krystyna" as name, "Trzonek" as surname, 57 as age, ("Lodz" as city, "Golebia" as street, 4 as no) as address, 600 as salary, "female" as sex) as person;
+/
+
+create ("Anna2" as name, "Trzonek" as surname, "Xxx" as maiden_name, 30 as age, ("Lodz" as city, "Tatrzanska" as street, 19 as no) as address, 1000 as salary, "female" as sex) as person;
+/
+
+create ("Marcin" as name, "Trzonek" as surname, 31 as age, ("Lodz" as city, "Tatrzanska" as street, 19 as no) as address, 2500 as salary, "male" as sex) as person;
+/
+
+create ("Rafal" as name, "Trzonek" as surname, 1 as age, ("Lodz" as city, "Tatrzanska" as street, 19 as no) as address, 0 as salary, "male" as sex) as person;
+/
+
+create ("Patrycja" as name, "Trzonek" as surname, 3 as age, ("Lodz" as city, "Tatrzanska" as street, 19 as no) as address, 0 as salary, "female" as sex) as person;
+/
+
+
+
+(person where name = "Kazimierz") :< ( (person where name = "Janina") as child);
+/
+
+(person where name = "Janina") :< ( (person where name = "Barbara") as child);
+/
+
+(person where name = "Janina") :< ( (person where name = "Zdzislaw") as child);
+/
+
+(person where name = "Zdzislaw") :< ( (person where name = "Marcin") as child);
+/
+
+(person where name = "Krystyna") :< ( (person where name = "Marcin") as child);
+/
+
+(person where name = "Barbara") :< ( (person where name = "Jakub") as child);
+/
+
+(person where name = "Barbara") :< ( (person where name = "Anna" and surname = "Sitek") as child);
+/
+
+(person where name = "Wojciech") :< ( (person where name = "Jakub") as child);
+/
+
+(person where name = "Wojciech") :< ( (person where name = "Anna" and surname = "Sitek") as child);
+/
+
+(person where name = "Marcin") :< ( (person where name = "Patrycja") as child);
+/
+
+(person where name = "Marcin") :< ( (person where name = "Rafal") as child);
+/
+
+(person where (name = "Anna2" and surname = "Trzonek")) :< ( (person where name = "Patrycja") as child);
+/
+
+(person where (name = "Anna2" and surname = "Trzonek")) :< ( (person where name = "Rafal") as child);
+/
+
+end;
+/

@@ -1,0 +1,35 @@
+begin;
+/
+deref((Miasto where kraj = "Polska").nazwa);	
+/
+
+deref(deref((Liga where deref(nazwa) = "polska" and rok = 2006).uczestnik).Klub.nazwa);
+/
+Klub.(deref(nazwa), deref(deref(siedziba).nazwa));
+/
+(Zawodnik where 
+	count(
+		(
+			(miejsce_gry where pocz <= 2006 and kon >=2006 )
+		union
+			(miejsce_gry where pocz <= 2006 and count(kon) = 0)
+		) where deref(deref(klub).nazwa) = "Legia" and deref(deref(deref(klub).siedziba).nazwa) = "Warszawa"
+	)> 0
+	).(deref(imie), deref(nazwisko))
+	;
+/
+(Zawodnik where 
+	count(
+		miejsce_gry where deref(deref(klub).nazwa) = "Wisla" and 
+			deref(deref(deref(klub).siedziba).nazwa) = "Krakow"
+	)> 0
+	).(deref(imie), deref(nazwisko))
+	;
+/
+deref(deref((Liga where deref(nazwa) = "polska" and rok = 2005).uczestnik order by miejsce).Klub.nazwa);
+/
+deref(deref(Zawodnik where imie = "Grzegorz" and nazwisko = "Bronowicki").miejsce_gry).
+	(pocz, deref(deref(klub).nazwa)) order by pocz ;
+/
+end;
+/

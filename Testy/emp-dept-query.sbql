@@ -1,0 +1,88 @@
+begin
+/
+--obliczenie pierwistka z 25 wykorzystujac close by z licznikiem zaglebienia w rekurencji
+(
+(1 as x, 1 as counter)
+close by 
+(((25/x + x)/2 as x, (counter + 1) as counter) where counter <= 20)
+)
+.
+(x where counter = 20)
+/
+
+
+--pierwistek z 64 wykorzystujac close unique by, wypisanie wszystkich wynikow posrednich
+(
+(1 as x)
+close unique by 
+((64/x + x) / 2 as x))
+.x
+/
+
+
+--zwraca referencje do pracownikow czlonkow rodziny empa o id = 8 poprzez punkt staly
+fixpoint (
+x:-(emp where id = 8)
+y:-x union y.son.emp
+)
+/
+
+
+-- wypisuje dzialy wraz ze srednia zarobkow w nich
+((dept as dzial) join (((emp where works_in.dept = dzial).sal) group as zarobki).avg(zarobki))
+/
+
+
+--wypisuje zarobki pracownikow
+deref(emp.sal)
+/
+
+--jesli srednia zarobkow jest mniejsza niz 1700 to zwieksza wszystkim pracownikom pensie o 30% wpp. zwieksza o 10%
+if avg(emp.sal) < 1700 then
+  for each (emp.sal) as zarobki do zarobki:=zarobki+0.3*zarobki od
+else
+  for each (emp.sal) as zarobki do zarobki:=zarobki+0.1*zarobki od
+fi
+/
+
+--wypisuje zmienione zarobki
+deref(emp.sal)
+/
+
+
+--wypisuje nazwisko szefa pracownika o nazwisku Micun
+(emp where name = "Micun").works_in.dept.mgr.emp.name as nazwisko_szefa
+.
+deref(nazwisko_szefa)
+/
+
+--wypisuje sume zarobkow rodziny pracownika o nazwisku Micun
+((emp where name = "Micun") close by son.emp) group as rodzina
+.sum(rodzina.sal)
+/
+
+--wypisuej pary zarobek szefa dzialu oraz maksymalny zarobek w tym dziale
+((dept as dzial) join ((((emp where works_in.dept = dzial).sal) group as zarobki).max(zarobki) as maxx))
+.
+(((dzial.mgr.emp.sal as szefa).deref(szefa) as zarobki_szefa), (maxx as maksymalne_w_dziale))
+/
+
+
+--imperatywny sposob policzenia sumy zarobkow z wykorzystaniem pomocniczej zmiennej
+create 0 as suma
+/
+for each emp do suma:=suma+sal od
+/
+deref(suma)
+/
+delete suma
+/
+
+
+-- wypisuje w jakich dzialach pracuje rodzina pana Bociana, podajac dzial i ile osob z tej rodziny w nim pracuje
+(((emp where name = "Bocian") close by son.emp).works_in.dept group as dzialy).
+((distinct(dzialy) as d) join count(dzialy where deptno = d.deptno)) 
+/
+
+end
+/
