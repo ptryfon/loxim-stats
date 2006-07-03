@@ -1,3 +1,5 @@
+-- Autor: Dariusz Gryglas
+
 begin
 /
 --obliczenie pierwistka z 25 wykorzystujac close by z licznikiem zaglebienia w rekurencji

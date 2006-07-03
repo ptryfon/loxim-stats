@@ -1,3 +1,5 @@
+-- Autor: Dariusz Gryglas
+
 begin;
 /
 create (100 as deptno, "CZECHY" as loc) as dept;
