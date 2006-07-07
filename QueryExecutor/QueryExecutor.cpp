@@ -21,6 +21,16 @@ using namespace std;
 
 namespace QExecutor {
 
+int QueryExecutor::executeQuery(TreeNode *tree, map<string, QueryResult*> *params, QueryResult **result) {
+	int errcode;
+	prms = params;
+	errcode = executeQuery(tree, result);
+	//delete prms;
+	prms = NULL;
+	return errcode;
+}
+
+
 int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 
 	int errcode;
@@ -621,7 +631,27 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 
 		case TreeNode::TNPARAM: {
 			*ec << "[QE] Parametr opeartion";
-			QueryResult *res = new QueryNothingResult();
+			if (prms == NULL) {
+				*ec << "[QE] error! Parametr operation - params == NULL";
+				*ec << (ErrQExecutor | EQEUnexpectedErr);
+				return ErrQExecutor | EQEUnexpectedErr;
+			}
+			string paramName = ((ParamNode *) tree)->getName();
+			int howMany = prms->count(paramName);
+			if (howMany != 1) {
+				*ec << "[QE] error! Parametr operation - wrong parametr";
+				*ec << (ErrQExecutor | EQEUnexpectedErr);
+				return ErrQExecutor | EQEUnexpectedErr;
+			}
+			map<string, QueryResult*>::iterator pos;
+			QueryResult *res;
+			pos = prms->find(paramName);
+			if (pos != prms->end()) res = pos->second;
+			else {
+				*ec << "[QE] error! Parametr operation - index out of range";
+				*ec << (ErrQExecutor | EQEUnexpectedErr);
+				return ErrQExecutor | EQEUnexpectedErr;
+			} 
 			errcode = qres->push(res);
 			if (errcode != 0) return errcode;
 			*ec << "[QE] Parametr operation Done!";

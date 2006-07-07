@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string>
 #include <vector>
+#include <map>
    
 #include "QueryResult.h"
 #include "EnvironmentStack.h"
@@ -65,6 +66,7 @@ nie wiem gdzie zaincjalizowac
 		Transaction *tr;
 		EnvironmentStack *envs;
 		ResultStack *qres;
+		map<string, QueryResult*> *prms;
 		int stop;
 		bool evalStopped() { return ( stop != 0 ); };
 		int executeRecQuery(TreeNode *tree);
@@ -85,8 +87,9 @@ nie wiem gdzie zaincjalizowac
 //[sk153407, pk167277 - END]
         
 	public:
-		QueryExecutor() { envs = new EnvironmentStack(); qres = new ResultStack(); tr = NULL; ec = new ErrorConsole("QueryExecutor"); stop = 0; };
+		QueryExecutor() { envs = new EnvironmentStack(); qres = new ResultStack(); prms = NULL; tr = NULL; ec = new ErrorConsole("QueryExecutor"); stop = 0; };
 		~QueryExecutor();
+		int executeQuery(TreeNode *tree, map<string, QueryResult*>* params, QueryResult **result);
 		int executeQuery(TreeNode *tree, QueryResult **result);
 		void stopExecuting() { stop = 65535; };
 		int abort();
