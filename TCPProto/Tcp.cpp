@@ -11,6 +11,8 @@
 #include "../Errors/Errors.h"
 #include "Package.h"
 
+//#define PACKAGE_DEBUG
+
 namespace TCPProto {
 
 using namespace std;
@@ -133,6 +135,16 @@ int bufferReceive (char** buffer, int* receiveDataSize, int sock) {
         //return results
         *buffer = messgBuffBeg;
         *receiveDataSize = msgSize;
+
+#ifdef PACKAGE_DEBUG
+	//cerr << "po serializacji: |" << buffer << "| rozmiar: "<<size << endl;
+	cerr << "odebrano paczke: ";
+	for (int i = 0; i < msgSize; i++) {
+	cerr << (int)(*(messgBuffBeg+i)) << "|";
+	}
+	cerr << endl;
+#endif
+
         return 0;
 }
 
@@ -186,7 +198,6 @@ int packageSend(Package* package, int sock) {
 	if (error != 0) {
 		return error;
 	}
-	//cerr << "po serializacji: |" << buffer << "| rozmiar: "<<size << endl;
 	return bufferSend(buffer, size, sock);
 }
 
