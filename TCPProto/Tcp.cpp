@@ -80,7 +80,7 @@ int bufferReceive (char** buffer, int* receiveDataSize, int sock) {
          *receiveDataSize = 0;
          *buffer = NULL;
 
-         char lengthBuffTable[3];
+         char lengthBuffTable[rest];
          char* lengthBuff = lengthBuffTable;
 
           while (rest > 0) {
