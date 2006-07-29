@@ -6,6 +6,7 @@
 #include <iostream>
 #include <string>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #include <signal.h>
 #include <pthread.h>
 #include <sys/select.h>
@@ -112,7 +113,6 @@ void *clientPulseCheck(void *arg) {
 
     pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
     pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
-    ec.printf("[Server.clientPulseCheck]--> Start..  \n", res);
     while (1) {
 		res = recv(fdCli, &ghostBuff, 1, 0);
 		ec.printf("RECEIVEEND");
@@ -406,6 +406,7 @@ int Server::Run()
 	qPa = new QueryParser();
 	qEx = new QueryExecutor();
 
+	qEx->set_priviliged_mode( is_priviliged_mode() );
 	TreeNode *tNode;
 	QueryResult *qResult;
 
@@ -589,4 +590,17 @@ int Server::pulseCheckerNotify() {
 	return 0;
 }
 
+bool Server::is_priviliged_mode() {
+    struct sockaddr_in peer;
+    int peer_len;
+
+    peer_len = sizeof(peer);
+
+    if (getpeername(Sock, (struct sockaddr *) &peer, (socklen_t *) &peer_len) == -1) {
+	return false;
+    }   
+    string ip_address = string(inet_ntoa(peer.sin_addr));
+    
+    return ip_address == "127.0.0.1";
+};
 

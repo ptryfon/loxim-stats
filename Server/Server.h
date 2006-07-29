@@ -71,6 +71,7 @@ extern pthread_t pulseThreads[];
 		QueryParser *qPa;
 		
 		int Disconnect();
+		bool is_priviliged_mode();
 	};
 //}
 
