@@ -93,68 +93,68 @@ Result* Connection::deserialize() {
 
 	switch (*(bufferBegin++)) {
 		case Result::BAG:
-			cerr << "<Connection::deserialize> tworze obiekt BAG\n";
+			if (print_err) cerr << "<Connection::deserialize> tworze obiekt BAG\n";
 			return grabElements(new ResultBag());
 
 		case Result::SEQUENCE:
-			cerr << "<Connection::deserialize> tworze obiekt SEQUENCE\n";
+			if (print_err) cerr << "<Connection::deserialize> tworze obiekt SEQUENCE\n";
 			return grabElements(new ResultSequence());
 
 		case Result::STRUCT:
-			cerr << "<Connection::deserialize> tworze obiekt STRUCT\n";
+			if (print_err) cerr << "<Connection::deserialize> tworze obiekt STRUCT\n";
 			return grabElements(new ResultStruct());
 
 
 		case Result::REFERENCE:
-			cerr << "<Connection::deserialize> tworze obiekt REFERENCE\n";
+			if (print_err) cerr << "<Connection::deserialize> tworze obiekt REFERENCE\n";
 			stringCopy(id); //by reference
 			return new ResultReference(string (id));
 
 		case Result::VOID:
-		cerr << "<Connection::deserialize> tworze obiekt VOID\n";
+			if (print_err) cerr << "<Connection::deserialize> tworze obiekt VOID\n";
 			return new ResultVoid();
 
 	        case Result::STRING:
-		  cerr << "<Connection::deserialize> tworze obiekt STRING\n " ;
+			if (print_err) cerr << "<Connection::deserialize> tworze obiekt STRING\n " ;
 			stringCopy(id); // by reference
 			return new ResultString(string (id));
 
 		case Result::ERROR:
-			cerr << "<Connection::deserialize> tworze obiekt ERROR\n";
+			if (print_err) cerr << "<Connection::deserialize> tworze obiekt ERROR\n";
 			getULong(number); //by reference
 			throw ConnectionServerException((int)number);
 			//return new ResultError(number);
 
 
 		case Result::INT:
-					cerr << "<Connection::deserialize> tworze obiekt INT\n";
+			if (print_err) cerr << "<Connection::deserialize> tworze obiekt INT\n";
 			getULong(number); //by reference
 			return new ResultInt((int) number);
 
 		case Result::BOOLTRUE:
-					cerr << "<Connection::deserialize> tworze obiekt BOOL (true)\n";
+			if (print_err) cerr << "<Connection::deserialize> tworze obiekt BOOL (true)\n";
 			return new ResultBool(true);
 
 		case Result::BOOLFALSE:
-					cerr << "<Connection::deserialize> tworze obiekt BOOL (false)\n";
+			if (print_err) cerr << "<Connection::deserialize> tworze obiekt BOOL (false)\n";
 			return new ResultBool(false);
 
 		case Result::DOUBLE:
-					cerr << "<Connection::deserialize> tworze obiekt DOUBLE\n";
+			if (print_err) cerr << "<Connection::deserialize> tworze obiekt DOUBLE\n";
 			lptr = (unsigned long*) &db;
 			getULong(*lptr); //higher word
 			getULong(*(lptr+1)); //lower word
 			return new ResultDouble(db);
 
 		case Result::BINDER:
-			cerr << "<Connection::deserialize> tworze obiekt BINDER\n";
+			if (print_err) cerr << "<Connection::deserialize> tworze obiekt BINDER\n";
 			stringCopy(id); // by reference
 			//TODO stringi robic jako new i puszczac jako referencja - wtedy trzeba miec pewnosc ze jak konstruktor sie posypie to zostana usuniete
 			return new ResultBinder(string(id), deserialize());
 
 		default:
 			df = *(bufferBegin-1);
-			cerr << "<Connection::deserialize> obiekt nieznany, nr: " << (int) df << endl;
+			if (print_err) cerr << "<Connection::deserialize> obiekt nieznany, nr: " << (int) df << endl;
 			throw ConnectionProtocolException();
 	} // switch
 } // deserialize
@@ -173,7 +173,6 @@ Result* Connection::oldReceive() throw (ConnectionException) {
       }
       //bufferHandler will free memory pointed by ptr at the end of a scope
       BufferHandler bufferPtr(ptr); //needed only during deserializing (exception possible)
-//      cerr << "<Connection::execute> driver przyszlo bajtow: " << ile << endl;
       bufferBegin = ptr;
       bufferEnd = ptr+ile;
 
@@ -232,7 +231,9 @@ Result* Connection::execute(const char* query) throw (ConnectionException) {
 	return srp->getResult();
 }
 
-
+void Connection::set_print_err(bool _print_err) {
+    this->print_err = _print_err;
+}
 Result* Connection::execute(Statement* stmt) throw (ConnectionException) {
 	int error;
 

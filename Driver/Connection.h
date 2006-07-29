@@ -163,10 +163,15 @@ public:
 	Result* newExecute(const char* query)      throw (ConnectionException);
 	Result* execute(Statement* stmt)           throw (ConnectionException);
 	Statement* parse(const char* query)        throw (ConnectionException);
+	
+	/* whether to print message to cerr */
+	void set_print_err(bool _print_err);
 private:
 	int sock;
 	char* bufferBegin;
 	char* bufferEnd;
+	
+	bool print_err;
 	
 	unsigned long getULong(unsigned long &val);
 	int stringCopy(char* &newBuffer);

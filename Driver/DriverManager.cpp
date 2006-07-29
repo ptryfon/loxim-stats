@@ -4,10 +4,13 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#include <string>
 
 #include "DriverManager.h"
 #include "Connection.h"
 #include "../TCPProto/Tcp.h"
+
+using namespace std;
 
 namespace Driver {
 
@@ -17,7 +20,7 @@ DriverManager::DriverManager() {}
 
 DriverManager::~DriverManager() {}
 
-Connection* DriverManager::getConnection(char* url, int port)
+Connection* DriverManager::getConnection(char* url, int port, const char* login, const char* passwd)
   throw (ConnectionDriverException)
 {
 	int newSock, error;
@@ -26,7 +29,33 @@ Connection* DriverManager::getConnection(char* url, int port)
 	{
 		throw ConnectionDriverException(" can't establish connection ");
 	}
-	return new Connection(newSock);
+	Connection *con = new Connection(newSock);
+	/* weryfikacja loginu i hasla */	
+	try {
+	    con->set_print_err(false);
+	    con->execute("begin");
+	    string query = string("validate ") + string(login) + string(" ") + string(passwd) + ";";
+	    Result *result = con->execute(query.c_str());	
+	    con->execute("end");
+	    int i_res = result->getType();
+	    bool b_res = false;
+	    if (i_res == Result::BOOL) {
+		ResultBool *boolResult = (ResultBool *) result;
+		b_res = boolResult->getValue();
+	    }	    
+	    if (b_res == false)
+		throw ConnectionDriverException("user validation failed(check login or password) ");
+
+	    con->set_print_err(true);	
+	} 
+	catch (ConnectionServerException e)
+	{		
+	    con->execute("end");
+	    cerr << e << endl;
+	    throw ConnectionDriverException("user validation failed(check login or password) ");
+	}
+	
+	return con;
 }
 /*
   int main() {
