@@ -15,7 +15,6 @@ using namespace Config;
 		ERROR = -1,
 		SUCCESS 
 	};
-	
 
 /*	
  * A.D.
