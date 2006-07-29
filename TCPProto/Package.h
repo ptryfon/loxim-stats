@@ -118,10 +118,10 @@ public:
 private:
 	map<string, Result*> params;
 	map<string, QueryResult*> queryParams;
-	int ParamStatementPackage::getString(string* str);	
-	int ParamStatementPackage::getQueryResult(QueryResult** result);	
-	int ParamStatementPackage::setString(string str);	
-	int ParamStatementPackage::setResult(Result* result);
+	int getString(string* str);	
+	int getQueryResult(QueryResult** result);	
+	int setString(string str);	
+	int setResult(Result* result);
 
 	friend ostream& operator<<(ostream&, ParamStatementPackage&);	
 };

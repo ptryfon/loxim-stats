@@ -311,7 +311,8 @@ namespace TManager
 
 	int Transaction::abort()
 	{	
-	    err.printf("Transaction abort, tid = %d\n", tid->getId());
+	    //err.printf("Transaction abort, tid = %d\n", tid->getId());
+	    //err.printf("Transaction abort\n");
 	    return tm->abort(this);
 	}
 
