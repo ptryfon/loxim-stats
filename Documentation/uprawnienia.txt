@@ -1,0 +1,73 @@
+Modul uprawnien
+
+Idea modulu jest taka by uzytkownicy mogli nadawac (miec nadawane) uprawnienia do obiektow w bazie danych.
+Uprawnienia te dotycza czytania (Read), modyfikacji (Modify), tworzenia (Create) i usuwania obiektow (Delete).
+Podstawa modulu uprawnien sa uzytkownicy.
+Istnieje predefiniowany uzytkownik "root" majacy uprawnienia absolutne.
+
+Uzytkownik moze tworzyc nowych uzytkownikow:
+	create user scott passwd tiger
+
+jak rowniez ich usuwac:
+	remove user scott
+
+Moze nadawac uprawnienia:
+	grant read, delete on emp, dept to scott with grant option
+	grant modify on emp, dept to scott
+
+i je odbierac (tylko root):
+	revoke create, modify on emp, dept from scott
+
+
+"Jak rozpoczac prace z modulem uprawnien?"
+
+Polacznie lokalne klienta z serwerem uwazane jest jako polaczenie bezpieczne dlatego przy takim polaczeniu nie
+jest weryfikowane haslo uzytkownika.
+Pierwsze polaczenie musi byc polaczeniem lokalnym tak by ustalic hasla dla uzytkownikow by moc potem logowac
+sie z innej maszyny.
+
+Pierwsze logowanie:
+login: root
+password: [dowolne]
+
+dodajemy uzytkownika root ktory bedzie mogl logowac sie z dowolnej maszyny (majac uprawnienia absolutne):
+create user root passwd ...
+
+Teraz mozemy rozpoczac zwyczajna prace na bazie.
+
+
+"Jak dodawac uprawnienia?"
+Uprawnienie do obiektu opiera sie na nazwie obiektu, dlatego przykladowo jezeli jestesmy zalogowani
+jako uzytkownik scott, oraz mamy uprawnienie do czytania obiektow emp z opcja przekazywania uprawnienia,
+i chcemy to uprawnienie przekazac dalej do uzytkownika john to nalezy wykonac:
+
+	grant read on emp to john [with grant option]
+
+ale to nie wszystko, jezeli stworzylismy obiekt:
+
+	create ("ala" as empname) as emp
+
+i chcemy by obiekt emp byl widoczny wraz z podobiektami dla uzytkownika john to nalezy wykonac:
+
+	grant read on emp, empname to john [with grant option]
+
+
+"Kto moze tworzyc uzytkownikow?"
+Metadane trzymane sa w bazie tak jak pozostale obiekty.
+Metadane o uzytkownikach i ich uprawnieniach trzymane sa w obiektach xuser.
+Poczatkowo uprawnienia do obiektow xuser ma tylko root, ale te uprawnienia oczywiscie moze przekazac 
+dalej (nie zalecane).
+
+Aby obejrzec aktualne uprawnienia nalezy wykonac:
+	deref(xuser)
+
+Aby moc utworzyc uzytkownika trzeba miec prawo tworzenia (create) dla obiektow xuser.
+
+
+"Dlaczego tylko root moze odbierac uprawnienia"
+Zaimplementowany modul uprawnien zostal uproszczony. Najwiekszym uproszczeniem jest brak schematow.
+Informacja o tym ze obiekt XXX zostal stworzony przez uzytkownika YYY nie jest pamietana, wiec
+rozstrzygniecie kto moze odbierac nie jest mozliwe. 
+
+
+
