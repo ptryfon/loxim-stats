@@ -4,8 +4,7 @@ CXXFLAGS=-I./ -I./../ -Wall
 
 PROGRAM	=	SBQLCli
 
-SOURCES	=	SBQLCli.cpp
-
+SOURCES	=	SBQLCli.cpp 
 
 HEADERS	= ../Driver/Result.h
 
@@ -34,7 +33,7 @@ $(PROGRAM): $(OBJECTS) $(LIBS) $(STATIC_LIB)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -Wl,--start-group $^ -Wl,--end-group -o $@
 
 clean:
-	rm -f $(OBJECTS) $(DEPFILES) $(STATIC_LIB) $(PROGRAM) $(PROGRAM).o
+	rm -f $(OBJECTS) $(DEPFILES) $(STATIC_LIB) $(PROGRAM) $(PROGRAM).o 
 
 $(STATIC_LIB): $(OBJECTS)
 	$(AR) r $(STATIC_LIB) $(OBJECTS)
