@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include "TreeNode.h"
+#include "Privilige.h"
   using namespace QParser;
   int yylex();
   int yyerror(char* s);
@@ -12,6 +13,7 @@
   char* str;
   int num;
   double dbl;
+  bool	bool_val;
   QParser::TreeNode* tree;
   QParser::QueryNode* qtree;
   QParser::FixPointNode* fxtree;
@@ -19,12 +21,16 @@
   QParser::ProcedureNode* proctree;
   QParser::FormPar* onepar;
   QParser::CallProcNode* calltree;
+  QParser::Privilige *privilige;
+  QParser::PriviligeListNode *priv_list;
+  QParser::NameListNode *name_list;
 }
 
 %token	<num> INTEGER
 %token	<dbl> DOUBLE 
-%token	<str> PARAMNAME NAME STRING SEMICOLON DOUBLESEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT DEREF REF BEGINTR END ABORT CREATE IF FI DO OD ELSE WHILE LINK FOREACH THEN FIX_OP FIXPOINT IN OUT RETURN VERTICAL
+%token	<str> PARAMNAME NAME STRING SEMICOLON DOUBLESEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT DEREF REF BEGINTR END ABORT CREATE IF FI DO OD ELSE WHILE LINK FOREACH THEN FIX_OP FIXPOINT IN OUT RETURN VERTICAL VALIDATE READ MODIFY DELETE PASSWD WITH REVOKE REMOVE TO USER FROM ON GRANT OPTION
 %token  <str> PROCEDURE LEFTPROCPAR RIGHTPROCPAR
+
 %start statement
 
 %right FIX_OP
@@ -46,7 +52,14 @@
 %nonassoc UMINUS
 %right DOT
 
+%type <bool_val> grant_option_opt
 %type <tree> statement
+%type <tree> validate_stmt
+%type <tree> privilige_stmt
+%type <tree> user_stmt
+%type <priv_list> priv_defs
+%type <name_list> name_defs
+%type <privilige> privilige
 %type <qtree> query
 %type <fxtree> querylist
 %type <instree> stringlist
@@ -62,6 +75,9 @@ statement   : query  { d=$1; }
 	    | ABORT { d=new TransactNode(TransactNode::abort); }
 	    | END     SEMICOLON { d=new TransactNode(TransactNode::end); }
 	    | END   { d=new TransactNode(TransactNode::end); }
+	    | validate_stmt  semicolon_opt { d = $1; }
+	    | privilige_stmt semicolon_opt { d = $1; }
+	    | user_stmt	     semicolon_opt { d = $1; }
             ;
 
 query	    : NAME { char *s = $1; $$ = new NameNode(s); delete s; }
@@ -149,4 +165,37 @@ formpar	    : NAME { $$ = new FormPar ($1, "none"); }
 
 actparams   : query { $$ = new CallProcNode ($1); }
 	    | actparams VERTICAL query { $$ = new CallProcNode ($3, $1); }
+	    ;
+
+validate_stmt: VALIDATE NAME NAME  { $$ = new ValidationNode($2, $3); }
+	    ;
+
+privilige_stmt: GRANT priv_defs ON name_defs TO NAME grant_option_opt 	{ $$ = new GrantPrivNode($2, $4, $6, $7);  } 
+	    |	REVOKE priv_defs ON name_defs FROM NAME			{ $$ = new RevokePrivNode($2, $4, $6); }
+	    ;
+
+grant_option_opt: /* empty */		{ $$ = false; }
+	    |	  WITH GRANT OPTION	{ $$ = true;  }
+	    ;
+	    
+privilige:	READ				{ $$ = new Privilige(Privilige::Read);   }
+	    |	MODIFY				{ $$ = new Privilige(Privilige::Modify); }
+	    |	CREATE				{ $$ = new Privilige(Privilige::Create); }
+	    |	DELETE				{ $$ = new Privilige(Privilige::Delete); }
+	    ;
+
+priv_defs:	privilige			{ $$ = new PriviligeListNode($1);	}
+	    |	priv_defs COMMA privilige	{ $$ = new PriviligeListNode($3, $1);	}
+	    ;
+
+name_defs:	NAME				{ $$ = new NameListNode($1); 	}
+	    |	name_defs COMMA NAME		{ $$ = new NameListNode($3, $1);    }
+	    ;
+	    	    	    
+user_stmt:	CREATE USER NAME PASSWD NAME	{ $$ = new CreateUserNode($3, $5); }
+	    |	REMOVE USER NAME		{ $$ = new RemoveUserNode($3); 	   }
+	    ;
+	    
+semicolon_opt:  /* empty */	{}
+	    |	SEMICOLON	{}
 	    ;

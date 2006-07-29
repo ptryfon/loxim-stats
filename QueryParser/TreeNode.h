@@ -7,6 +7,7 @@
 #include <string>
 #include "Stack.h"
 #include "ClassNames.h"
+#include "Privilige.h"
 //using namespace std;
 
 namespace QParser {
@@ -21,14 +22,17 @@ namespace QParser {
     public:
 	enum TreeNodeType { TNINT, TNSTRING, TNDOUBLE, TNVECTOR, TNNAME, 
 	    TNAS, TNUNOP, TNALGOP, TNNONALGOP, TNTRANS, TNCREATE, TNCOND, TNLINK, TNPARAM, TNFIX, 
-	    TNPROC, TNCALLPROC, TNRETURN};
+	    TNPROC, TNCALLPROC, TNRETURN, TNVALIDATION, TNCREATEUSER, TNREMOVEUSER, TNPRIVLIST, TNNAMELIST,
+	    TNGRANTPRIV, TNREVOKEPRIV};
 	TreeNode() : parent(NULL) {}
 	TreeNode* getParent() { return parent; }
 	void setParent(TreeNode* _parent) { parent = _parent; }
+	virtual ~TreeNode() {};
+
 	virtual TreeNode* clone()=0;
 	virtual int type()=0;
-	virtual ~TreeNode() {}
 	virtual int putToString()=0;
+
     // na wniosek Executora:
 	virtual string getName() {return (string) NULL;}
 	virtual TreeNode* getArg() {return (TreeNode *) NULL;}
@@ -56,6 +60,142 @@ namespace QParser {
 	virtual int putToString()=0;
 
     };
+    
+    class NameNode;
+    
+    class ValidationNode: public TreeNode {
+	protected:
+	    string login;
+	    string passwd;
+	public:
+
+	    ValidationNode(string login, string passwd);
+
+	    /* getters */
+	    virtual string get_login();
+	    virtual string get_passwd();
+	    
+	    /* inherited functions */
+	    virtual TreeNode* clone();
+	    virtual int type();
+	    virtual int putToString();
+    };
+    
+    class PriviligeListNode: public TreeNode {
+	private:
+	    Privilige *priv;
+	    PriviligeListNode *priv_list;
+	public:
+	    PriviligeListNode(Privilige *priv, PriviligeListNode *priv_list = NULL);
+	    virtual ~PriviligeListNode();
+	    
+	    /* getters */
+	    virtual Privilige* get_priv();
+	    virtual PriviligeListNode* try_get_priv_list();
+
+	    /* inherited functions */
+	    virtual TreeNode* clone();
+	    virtual int type();
+	    virtual int putToString();
+    };
+    
+    class NameListNode: public TreeNode {
+	private:
+	    string name;
+	    NameListNode *name_list;
+	public:
+	    NameListNode(string name, NameListNode *list = NULL);
+	    virtual ~NameListNode();
+	    
+	    /* getters */
+	    virtual string get_name();
+	    virtual NameListNode* try_get_name_list();
+
+	    /* inherited functions */
+	    virtual TreeNode* clone();
+	    virtual int type();
+	    virtual int putToString();
+    };
+    
+    class GrantPrivNode: public TreeNode {
+	private:
+	    PriviligeListNode 	*priv_list;
+	    NameListNode	*name_list;
+	    string 		user;
+	    bool		with_grant_option;
+	
+	public:
+	    GrantPrivNode(PriviligeListNode *priv_list, NameListNode *name_list, string user,bool with_grant_option);
+	    virtual ~GrantPrivNode();
+	    
+	    /* getters */
+	    virtual PriviligeListNode*  get_priv_list();
+	    virtual NameListNode*	get_name_list();
+	    virtual string		get_user();
+	    virtual bool		get_with_grant_option();
+
+	    /* inherited functions */
+	    virtual TreeNode* clone();
+	    virtual int type();
+	    virtual int putToString();
+    };
+    
+    class RevokePrivNode: public TreeNode {
+	private:
+	    PriviligeListNode 	*priv_list;
+	    NameListNode	*name_list;	
+	    string 		user;
+	    
+	public:
+	    RevokePrivNode(PriviligeListNode *priv_list, NameListNode *name_list, string user );
+	    virtual ~RevokePrivNode();
+	    
+	    /* getters */
+	    virtual PriviligeListNode* 	get_priv_list();
+	    virtual NameListNode*	get_name_list();
+	    virtual string		get_user();	    
+
+	    /* inherited functions */
+	    virtual TreeNode* clone();
+	    virtual int type();
+	    virtual int putToString();
+    };
+
+    class CreateUserNode: public TreeNode {
+	private:
+	    string user;
+	    string passwd;
+	
+	public:
+	    CreateUserNode(string user, string passwd);
+	    
+	    /* getters */
+	    virtual string get_user();
+	    virtual string get_passwd();
+	    
+	    /* inherited functions */
+	    virtual TreeNode* clone();
+	    virtual int type();
+	    virtual int putToString();	    
+
+    };
+    
+    class RemoveUserNode: public TreeNode {
+	private:
+	    string user;
+	
+	public:
+	    RemoveUserNode(string user);
+	    
+	    /* getters */
+	    virtual string get_user();
+	    
+	    /* inherited functions */
+	    virtual TreeNode* clone();
+	    virtual int type();
+	    virtual int putToString();	    
+    };
+
 
 // nodes that have two sons (one may be a NULL) - both alg. and non-alg.
     class TwoArgsNode : public QueryNode

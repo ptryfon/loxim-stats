@@ -6,6 +6,7 @@ SOURCES	=	QueryParser.cpp \
 		Stack.cpp \
 		Optymalizator.cpp \
 		Deb.cpp \
+		Privilige.cpp \
 		parser.tab.cpp \
 		lex.yy.cpp
 
@@ -16,6 +17,7 @@ HEADERS	=	QueryParser.h \
 		DataRead.h \
 		Optymalizator.h \
 		Deb.h \
+		Privilige.h \
 		parser.tab.h
 
 STATIC_LIB =	QueryParser.a

@@ -19,6 +19,7 @@ namespace QParser
     TreeNode* AlgOpNode::clone()    { return new AlgOpNode((QueryNode*)larg->clone(), (QueryNode*)rarg->clone(), op); }
     TreeNode* NonAlgOpNode::clone() { return new NonAlgOpNode((QueryNode*)larg->clone(), (QueryNode*)rarg->clone(), op); }
     TreeNode* TransactNode::clone() { return new TransactNode(op); }
+        
     TreeNode* CreateNode::clone()   { 
 	if (arg != NULL) return new CreateNode(name, (QueryNode*)arg->clone()); 
 	else return new CreateNode(name, NULL);}
@@ -79,6 +80,211 @@ namespace QParser
 		TreeNode *topNode = new NonAlgOpNode ((QueryNode *) nickNode, (QueryNode *) this, NonAlgOpNode::dot);
 		return topNode;
     }
+    
+    /**
+      *		VALIDATION NODE	BEGIN
+      */
+    ValidationNode::ValidationNode(string login, string passwd) {
+	this->login 	= login;
+	this->passwd	= passwd;
+    };
+    string ValidationNode::get_login() {
+	return login;
+    };
+    string ValidationNode::get_passwd() {
+	return passwd;
+    };    
+    TreeNode* ValidationNode::clone() {
+	return new ValidationNode(login, passwd);
+    };
+    int ValidationNode::type() {
+	return TNVALIDATION;
+    };
+    int ValidationNode::putToString() {
+	cout << "Validation node. Login: " << login << ", Password: " << passwd << endl;
+	return 0;
+    };      
+
+    PriviligeListNode::PriviligeListNode(Privilige *priv, PriviligeListNode *priv_list) {
+	this->priv = priv;
+	this->priv_list = priv_list;
+    };
+    PriviligeListNode::~PriviligeListNode() {
+	delete priv;
+	if (priv_list)
+	    delete priv_list;
+    };
+    Privilige* PriviligeListNode::get_priv() {
+	return priv;
+    };
+    PriviligeListNode* PriviligeListNode::try_get_priv_list() {
+	return priv_list;
+    };
+    TreeNode* PriviligeListNode::clone() {
+	if (priv_list)
+	    return new PriviligeListNode( priv->clone(), (PriviligeListNode *) priv_list->clone() );
+	else
+	    return new PriviligeListNode( priv->clone());
+    };
+    int PriviligeListNode::type() {
+	return TNPRIVLIST;
+    };
+    int PriviligeListNode::putToString() {
+	cout << "Privilige list. Privilige " << priv->to_string() << " ";
+	if (priv_list)
+	    priv_list->putToString();
+	cout << endl;
+	return 0;
+    };
+
+    NameListNode::NameListNode(string name, NameListNode *list) {
+	this->name = name;
+	this->name_list = list;
+    };
+    NameListNode::~NameListNode() {
+	if (name_list)
+	    delete name_list;
+    };
+	    
+    /* getters */
+    string NameListNode::get_name() {
+	return name;
+    };
+    NameListNode* NameListNode::try_get_name_list() {
+	return name_list;
+    };
+
+    /* inherited functions */
+    TreeNode* NameListNode::clone() {
+	if (name_list)
+	    return new NameListNode(name, (NameListNode *) name_list->clone());
+	else
+	    return new NameListNode(name);
+    };
+    int NameListNode::type() {
+	return TNNAMELIST;
+    };
+    int NameListNode::putToString() {
+	cout << "Name list node. Name " << name << " ";
+	if (name_list)
+	    name_list->putToString();
+	return 0;
+    };
+    
+    GrantPrivNode::GrantPrivNode(PriviligeListNode *priv_list, NameListNode *name_list, string user, bool with_grant_option) {
+    	this->priv_list = priv_list;
+    	this->name_list = name_list;
+    	this->user = user;
+    	this->with_grant_option = with_grant_option;
+    };
+    GrantPrivNode::~GrantPrivNode() {
+	delete name_list;
+	delete priv_list;
+    };
+	    
+    PriviligeListNode*  GrantPrivNode::get_priv_list() {
+	return priv_list;
+    };
+    NameListNode* GrantPrivNode::get_name_list() {
+	return name_list;
+    };
+    string GrantPrivNode::get_user() {
+	return user;
+    };
+    bool GrantPrivNode::get_with_grant_option() {
+	return with_grant_option;
+    };
+
+    TreeNode* 	GrantPrivNode::clone() {
+	return new GrantPrivNode(   (PriviligeListNode *) priv_list->clone(), 
+				    (NameListNode *) name_list->clone(), 
+				    user,
+				    with_grant_option);
+    };
+    int GrantPrivNode::type() {
+	return TNGRANTPRIV;
+    };
+    int GrantPrivNode::putToString() {
+	cout << "Grant node. grant option = " << with_grant_option << " " ;
+	priv_list->putToString(); cout << " ";
+	name_list->putToString(); cout << " ";
+	cout << user << " ";
+	return 0;
+    };
+    
+    RevokePrivNode::RevokePrivNode(PriviligeListNode *priv_list, NameListNode *name_list, string user ) {
+	this->priv_list = priv_list;
+	this->name_list = name_list;
+	this->user = user;
+    };
+    RevokePrivNode::~RevokePrivNode() {
+	delete priv_list;
+	delete name_list;
+    };
+	    
+    PriviligeListNode* 	RevokePrivNode::get_priv_list() {
+	return priv_list;
+    };
+    NameListNode* RevokePrivNode::get_name_list() {
+	return name_list;
+    };
+    string RevokePrivNode::get_user() {
+	return user;
+    };
+    TreeNode* RevokePrivNode::clone() {
+	return new RevokePrivNode( (PriviligeListNode *) priv_list->clone(), 
+				    (NameListNode *) name_list->clone(), 
+				    user);
+    };
+    int RevokePrivNode::type() {
+	return TNREVOKEPRIV;
+    };
+    int RevokePrivNode::putToString() {
+	cout << "Revoke node. User " << user << " ";
+	priv_list->putToString(); cout << " ";
+	name_list->putToString();
+	return 0;
+    };
+
+    CreateUserNode::CreateUserNode(string user, string passwd) {
+	this->user = user;
+	this->passwd = passwd;
+    };	
+    string CreateUserNode::get_user() {
+	return user;
+    };
+    string CreateUserNode::get_passwd() {
+	return passwd;
+    };	    
+    TreeNode* CreateUserNode::clone() {
+	return new CreateUserNode(user, passwd);
+    };
+    int CreateUserNode::type() {
+	return TNCREATEUSER;
+    };
+    int CreateUserNode::putToString() {
+	cout << "Create user node. User " << user << ", passwd " << passwd;
+	return 0;
+    };
+    
+    RemoveUserNode::RemoveUserNode(string user) {
+	this->user = user;
+    };
+    string RemoveUserNode::get_user() {
+	return user;
+    };
+    TreeNode* RemoveUserNode::clone() {
+	return new RemoveUserNode(user);
+    };
+    int RemoveUserNode::type() {
+	return TNREMOVEUSER;
+    };
+    int RemoveUserNode::putToString() {
+	cout << "Remove user node. User " << user;
+	return 0;
+    };
+
+      
 /* wartosci zwracane ? : 0 -- nic nie znalezione, szukaj dalej 
 						(cale drzewo daje 0 =>nie ma niez. podz.)
 						-1 -- blad, przerwij. 
