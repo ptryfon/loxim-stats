@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <string>
 #include <vector>
+#include <iostream>
+#include <fstream>
+#include <ios>
 
 #include "QueryResult.h"
 #include "TransactionManager/Transaction.h"
@@ -9,6 +12,7 @@
 #include "Store/DBLogicalID.h"
 #include "QueryParser/QueryParser.h"
 #include "QueryParser/TreeNode.h"
+#include "QueryParser/Privilige.h"
 #include "QueryExecutor.h"
 #include "Errors/Errors.h"
 #include "Errors/ErrorConsole.h"
@@ -113,7 +117,167 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			*result = new QueryNothingResult();
 			*ec << "[QE] Nothing else to do. QueryNothingResult created";
 			return 0;
-		} //if node == TNTRANS
+		} 
+		else if (nodeType == (TreeNode::TNVALIDATION)) {
+		    UserData *user_data = session_data->get_user_data();
+		    /* if user_data != NULL -> user id logged in, cannot log twice in one sesion */ 
+		    if (user_data != NULL) {
+			*result = new QueryBoolResult(false);
+		    }
+		    else {
+			ValidationNode *val_node = (ValidationNode *) tree;
+			if (priviliged_mode) {
+			    set_user_data(val_node);			
+			    *result = new QueryBoolResult(true); 
+			}
+			else {
+			    string pass_check_query = QueryBuilder::getHandle()->
+					    query_for_password(val_node->get_login(), val_node->get_passwd());
+		    	
+    			    QueryResult *local_res = NULL;
+			    int local_ret = execute_locally(pass_check_query, &local_res);
+			    if (local_ret || local_res == NULL || local_res->isBool() == false) {
+				*result = new QueryBoolResult(false); 
+			    } 		
+			    else {
+				bool b;
+				local_res->getBoolValue(b);
+				if (b) { 
+				    /* user_data is now NULL value */
+				    set_user_data(val_node);
+				}
+				*result = local_res;
+			    }			
+			}
+
+		    }
+		}
+		else if (nodeType == (TreeNode::TNGRANTPRIV)) {
+		    GrantPrivNode *grant_node = (GrantPrivNode *) tree;
+		    PriviligeListNode *priv_list_or_null = grant_node->get_priv_list();
+
+		    /* check if user has privilige to grant other privilige */
+		    bool grant_priv = true; 
+		    while (priv_list_or_null != NULL) {
+			Privilige *privilige = priv_list_or_null->get_priv();
+			string priv_name = privilige->get_priv_name();
+			priv_list_or_null = priv_list_or_null->try_get_priv_list();
+			    
+			NameListNode *name_list_or_null = grant_node->get_name_list();
+			while (name_list_or_null != NULL) {
+			    string name = name_list_or_null->get_name();
+			    name_list_or_null = name_list_or_null->try_get_name_list();
+			    
+			    grant_priv = grant_priv && assert_grant_priv(priv_name, name);			
+			    if (grant_priv == false) break;
+			};			
+		    };
+		    if (grant_priv) {
+			string user = grant_node->get_user();
+			int grant_option = grant_node->get_with_grant_option();
+			priv_list_or_null = grant_node->get_priv_list();
+
+			while (priv_list_or_null != NULL) {
+			    Privilige *privilige = priv_list_or_null->get_priv();
+			    string priv_name = privilige->get_priv_name();
+			    priv_list_or_null = priv_list_or_null->try_get_priv_list();
+			    
+			    NameListNode *name_list_or_null = grant_node->get_name_list();
+			    while (name_list_or_null != NULL) {
+				string name = name_list_or_null->get_name();
+				name_list_or_null = name_list_or_null->try_get_name_list();
+			    
+				string query = QueryBuilder::getHandle()->grant_priv_query(priv_name, name, user, grant_option); 
+				QueryResult *local_res = NULL;
+				execute_locally(query, &local_res);
+			    };			
+			};		    
+			*result = new QueryBoolResult(true);			
+		    }
+		    else {
+			*result = new QueryBoolResult(false);
+		    }			    
+		}
+		else if (nodeType == (TreeNode::TNREVOKEPRIV)) {
+		    RevokePrivNode *revoke_node = (RevokePrivNode *) tree;
+		    PriviligeListNode *priv_list_or_null = revoke_node->get_priv_list();
+
+		    /* check if user has privilige to revoke other privilige */
+		    bool revoke_priv = true; 
+		    while (priv_list_or_null != NULL) {
+			Privilige *privilige = priv_list_or_null->get_priv();
+			string priv_name = privilige->get_priv_name();
+			priv_list_or_null = priv_list_or_null->try_get_priv_list();
+			    
+			NameListNode *name_list_or_null = revoke_node->get_name_list();
+			while (name_list_or_null != NULL) {
+			    string name = name_list_or_null->get_name();
+			    name_list_or_null = name_list_or_null->try_get_name_list();
+			    
+			    revoke_priv = revoke_priv && assert_revoke_priv(priv_name, name);			
+			    if (revoke_priv == false) break;
+			};			
+		    };
+		    if (revoke_priv) {
+			string user = revoke_node->get_user();
+			priv_list_or_null = revoke_node->get_priv_list();
+
+			while (priv_list_or_null != NULL) {
+			    Privilige *privilige = priv_list_or_null->get_priv();
+			    string priv_name = privilige->get_priv_name();
+			    priv_list_or_null = priv_list_or_null->try_get_priv_list();
+			    
+			    NameListNode *name_list_or_null = revoke_node->get_name_list();
+			    while (name_list_or_null != NULL) {
+				string name = name_list_or_null->get_name();
+				name_list_or_null = name_list_or_null->try_get_name_list();
+			    
+				string query = QueryBuilder::getHandle()->revoke_priv_query(priv_name, name, user);
+				QueryResult *local_res = NULL;
+				execute_locally(query, &local_res);
+			    };			
+			};		    
+			*result = new QueryBoolResult(true);			
+		    }
+		    else {
+			*result = new QueryBoolResult(false);
+		    }			    
+		}		
+		else if (nodeType == (TreeNode::TNCREATEUSER)) {
+		    CreateUserNode *createUserNode = (CreateUserNode *) tree;
+		    bool create_priv = assert_create_user_priv();
+		    
+		    if (create_priv) {
+			string user   = createUserNode->get_user();
+			string passwd = createUserNode->get_passwd(); 
+			string query = QueryBuilder::getHandle()->create_user_query(user, passwd);
+
+			QueryResult *local_res = NULL;
+			execute_locally(query, &local_res);
+			
+			*result = new QueryBoolResult(true);
+		    }
+		    else {
+			*result = new QueryBoolResult(false);
+		    }
+		}
+		else if (nodeType == (TreeNode::TNREMOVEUSER)) {
+		    RemoveUserNode *removeUserNode = (RemoveUserNode *) tree;
+		    bool remove_priv = assert_remove_user_priv();
+		    
+		    if (remove_priv) {
+			string user   = removeUserNode->get_user();
+			string query = QueryBuilder::getHandle()->remove_user_query(user);
+
+			QueryResult *local_res = NULL;
+			execute_locally(query, &local_res);
+			
+			*result = new QueryBoolResult(true);
+		    }
+		    else {
+			*result = new QueryBoolResult(false);
+		    }
+		}		
 		else {
 			errcode = envs->pushDBsection();
 			if (errcode != 0) return errcode;
@@ -135,6 +299,95 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 	}
 	return 0;
 }
+
+void QueryExecutor::set_priviliged_mode(bool mode) {
+    this->priviliged_mode = mode;
+};
+
+void QueryExecutor::set_user_data(ValidationNode *val_node) {
+    string login  = val_node->get_login();
+    string passwd = val_node->get_passwd();
+
+    UserData *user_data = new UserData(login, passwd);
+    session_data->set_user_data(user_data);    
+};
+int QueryExecutor::execute_locally(string query, QueryResult **res) {
+    
+    QueryParser parser;
+    TreeNode *tree = NULL;
+    system_privilige_checking = true;
+    parser.parseIt(query, tree);
+    
+    int errcode = envs->pushDBsection();
+    if (errcode != 0) return errcode;
+    errcode = this->executeRecQuery(tree);
+    if (errcode != 0) return errcode;
+    errcode = qres->pop(*res);
+    if (errcode != 0) return errcode;
+    //errcode = envs->popDBsection();
+    //if (errcode != 0) return errcode;
+
+    system_privilige_checking = false;
+    return 0;
+};
+
+bool QueryExecutor::is_dba() {
+    string login = session_data->get_user_data()->get_login();
+    return "root" == login;
+};
+
+bool QueryExecutor::assert_privilige(string priv_name, string object) {
+    if (is_dba()) return true;
+    string query = QueryBuilder::getHandle()->
+			query_for_privilige(session_data->get_user_data()->get_login(), priv_name, object);
+/*
+    ofstream out("privilige.debug", ios::app);
+    out << query << endl;
+    out.close();    
+*/    
+    return assert_bool_query(query);    
+};
+
+bool QueryExecutor::assert_bool_query(string query) {
+    QueryResult *result = NULL;
+    int local_ret = execute_locally(query, &result);
+    if (local_ret || result == NULL || result->isBool() == false) {
+	return false;
+    }
+    bool b;
+    result->getBoolValue(b);
+    return b;    
+};
+
+bool QueryExecutor::assert_grant_priv(string priv_name, string name) {
+    if (is_dba()) return true;
+    
+    string query = QueryBuilder::getHandle()->
+			query_for_privilige_grant(session_data->get_user_data()->get_login(), priv_name, name);
+			
+    return assert_bool_query(query);
+};
+
+bool QueryExecutor::assert_revoke_priv(string priv_name, string name) {
+    if (is_dba()) return true;
+    return false;
+};
+
+bool QueryExecutor::assert_create_user_priv() {
+    if (is_dba()) return true;
+
+    string query = QueryBuilder::getHandle()->
+			query_for_privilige(session_data->get_user_data()->get_login(), Privilige::CREATE_PRIV, "xuser");
+    return assert_bool_query(query);    
+};
+
+bool QueryExecutor::assert_remove_user_priv() {
+    if (is_dba()) return true;
+
+    string query = QueryBuilder::getHandle()->
+			query_for_privilige(session_data->get_user_data()->get_login(), Privilige::DELETE_PRIV, "xuser");
+    return assert_bool_query(query);
+};
 
 //[sk153407, pk167277 - BEGIN]
 
@@ -266,6 +519,10 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		case TreeNode::TNNAME: {
 			*ec << "[QE] Type: TNNAME";
 			string name = tree->getName();
+			if (!system_privilige_checking && assert_privilige(Privilige::READ_PRIV, name) == false) {
+			    errcode = qres->push(new QueryBagResult());
+			    return 0;
+			}
 			int sectionNumber = ((NameNode *) tree)->getBindSect();
 			QueryResult *result = new QueryBagResult();
 			errcode = envs->bindName(name, sectionNumber, tr, result);
@@ -436,7 +693,17 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				errcode = this->objectFromBinder(binder, optr);
 				if (errcode != 0) return errcode;
 				//delete binder;
-				if ((errcode = tr->addRoot(optr)) != 0) {
+				string object_name = optr->getName();
+				if (!system_privilige_checking && 
+					assert_privilige(Privilige::CREATE_PRIV, object_name) == false) {
+				/*
+					ofstream out("privilige.debug", ios::app);
+					out << "create " << object_name << endl;
+					out.close();
+				*/
+				    continue;
+				}
+				if ((errcode = tr->addRoot(optr)) != 0) { 
 					*ec << "[QE] Error in addRoot";
 					tr->abort();
 					tr = NULL;
@@ -1012,11 +1279,23 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		value->setSubtype(Store::Link);
 		if (errcode != 0) return errcode;
 
+		string object_name = optr->getName();
+		if (!system_privilige_checking && assert_privilige(Privilige::CREATE_PRIV, object_name) == false) {
+		    QueryBagResult * result = new QueryBagResult();
+		    /*
+		    ofstream out("privilige.debug", ios::app);
+		    out << "create " << object_name << endl;
+		    out.close();		    
+		    */
+		    errcode = qres->push(result);
+		    if (errcode != 0) return errcode;
+		    return 0;
+		}
 		if ((errcode = tr->addRoot(optr)) != 0) {
-		*ec << "[QE] Error in addRoot";
-		tr->abort();
-		tr = NULL;
-		return errcode;
+		    *ec << "[QE] Error in addRoot";
+		    tr->abort();
+		    tr = NULL;
+		    return errcode;
 		}
 
 		QueryReferenceResult *lidres = new QueryReferenceResult(optr->getLogicalID());
@@ -1125,7 +1404,7 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 			LogicalID *ref_value = ((QueryReferenceResult *) arg)->getValue();
 			*ec << "[QE] derefQuery() - dereferencing Object";
 			ObjectPointer *optr;
-			errcode = tr->getObjectPointer(ref_value, Store::Read, optr);
+			errcode = tr->getObjectPointer(ref_value, Store::Read, optr); 
 			if (errcode != 0) {
 
 				*ec << "[QE] Error in getObjectPointer";
@@ -1133,6 +1412,21 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 				tr = NULL;
 				return errcode;
 			}
+			
+			if (optr->isRoot()) {
+			    string object_name = optr->getName();
+			    if (!system_privilige_checking && 
+				assert_privilige(Privilige::READ_PRIV, object_name) == false) {
+				res = new QueryBagResult();				
+				/*
+				ofstream out("privilige.debug", ios::app);
+				out << "read " << object_name << endl;
+				out.close();
+				*/
+				break;
+			    }
+			}
+			
 			DataValue* value = optr->getValue();
 			int vType = value->getType();
 			switch (vType) {
@@ -1168,13 +1462,24 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 					for (int i = 0; i < tmp_vec_size; i++) {
 						LogicalID *currID = tmp_vec->at(i);
 						ObjectPointer *currOptr;
-						errcode = tr->getObjectPointer(currID, Store::Read, currOptr);
+						errcode = tr->getObjectPointer(currID, Store::Read, currOptr); 
 						if (errcode != 0) {
 							*ec << "[QE] Error in getObjectPointer";
 							tr->abort();
 							tr = NULL;
 							return errcode;
 						}
+						/*
+						string object_name = currOptr->getName();
+						if (!system_privilige_checking && 
+							    assert_privilige(Privilige::READ_PRIV, object_name) == false) {
+						    
+						    //ofstream out("privilige.debug", ios::app);
+						    //out << "read " << object_name << endl;
+						    //out.close();
+						    
+						    continue;
+						}*/						
 						string currName = currOptr->getName();
 						QueryResult *currIDRes = new QueryReferenceResult(currID);
 						QueryResult *currInside;
@@ -1617,14 +1922,24 @@ int QueryExecutor::unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&
 				}
 				LogicalID *lid = ((QueryReferenceResult *) toDelete)->getValue();
 				ObjectPointer *optr;
-				if ((errcode = tr->getObjectPointer (lid, Store::Write, optr)) !=0) {
+				if ((errcode = tr->getObjectPointer (lid, Store::Write, optr)) !=0) { 
 					*ec << "[QE] Error in getObjectPointer.";
 					tr->abort();
 					tr = NULL;
 					return errcode;
 				}
 				if (optr->getIsRoot()) {
-					if ((errcode = tr->removeRoot(optr)) != 0) {
+					string object_name = optr->getName();
+					if (!system_privilige_checking && 
+						    assert_privilige(Privilige::DELETE_PRIV, object_name) == false) {
+					    /*
+					    ofstream out("privilige.debug", ios::app);
+					    out << "delete " << object_name << endl;
+					    out.close();						    
+					    */
+					    continue;
+					}				
+					if ((errcode = tr->removeRoot(optr)) != 0) { 
 						*ec << "[QE] Error in removeRoot.";
 						tr->abort();
 						tr = NULL;
@@ -1632,7 +1947,17 @@ int QueryExecutor::unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&
 					}
 					*ec << "[QE] Root removed";
 				}
-				if ((errcode = tr->deleteObject(optr)) != 0) {
+				string object_name = optr->getName();
+				if (!system_privilige_checking && 
+					    assert_privilige(Privilige::DELETE_PRIV, object_name) == false) {
+					/*
+					ofstream out("privilige.debug", ios::app);
+					out << "delete " << object_name << endl;
+					out.close();					    
+					*/
+				    continue;
+				}								
+				if ((errcode = tr->deleteObject(optr)) != 0) { 
 					*ec << "[QE] Error in deleteObject.";
 					tr->abort();
 					tr = NULL;
@@ -1911,13 +2236,24 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 		}
 		LogicalID *lidOut = ((QueryReferenceResult *) outer)->getValue();
 		ObjectPointer *optrOut;
-		errcode = tr->getObjectPointer (lidOut, Store::Write, optrOut);
+		errcode = tr->getObjectPointer (lidOut, Store::Write, optrOut); 
 		if (errcode != 0) {
 			*ec << "[QE] insert operation - Error in getObjectPointer.";
 			tr->abort();
 			tr = NULL;
 			return errcode;
 		}
+		string object_name = optrOut->getName();
+		if (!system_privilige_checking && 
+			assert_privilige(Privilige::MODIFY_PRIV, object_name) == false) {
+		    final = new QueryNothingResult();
+		    /*
+		    ofstream out("privilige.debug", ios::app);
+		    out << "modify " << object_name << endl;
+		    out.close();		    
+		    */
+		    return 0;
+		}				
 		*ec << "[QE] insert operation - getObjectPointer on leftArg done";
 		DataValue* db_value = optrOut->getValue();
 		*ec << "[QE] insert operation - Value taken";
@@ -1948,16 +2284,25 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 			switch (rightResultType) {
 				case QueryResult::QREFERENCE: {
 					lidIn = ((QueryReferenceResult *) toInsert)->getValue();
-					errcode = tr->getObjectPointer (lidIn, Store::Write, optrIn);
+					errcode = tr->getObjectPointer (lidIn, Store::Write, optrIn); 
 					if (errcode != 0) {
 						*ec << "[QE] insert operation - Error in getObjectPointer.";
 						tr->abort();
 						tr = NULL;
 						return errcode;
 					}
+					string object_name = optrIn->getName();
+					/*if (!system_privilige_checking && 
+							assert_privilige(Privilige::MODIFY_PRIV, object_name) == false) {
+					    	final = new QueryNothingResult();
+						//ofstream out("privilige.debug", ios::app);
+						//out << "create " << object_name << endl;
+						//out.close();					    
+					    	return 0;
+					}*/
 					ec->printf("[QE] getObjectPointer on %d element of rightArg done\n", i);
 					if (optrIn->getIsRoot()) {
-						errcode = tr->removeRoot(optrIn);
+						errcode = tr->removeRoot(optrIn); 
 						if (errcode != 0) {
 							*ec << "[QE] insert operation - Error in removeRoot.";
 							tr->abort();
@@ -1993,7 +2338,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 		dbDataVal->setVector(insVector);
 		*ec << "[QE] dataValue: setVector done";
 		db_value = dbDataVal;
-		errcode = tr->modifyObject(optrOut, db_value);
+		errcode = tr->modifyObject(optrOut, db_value); 
 		if (errcode != 0) {
 			*ec << "[QE] insert operation - Error in modifyObject.";
 			tr->abort();
@@ -2023,13 +2368,18 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 		}
 		LogicalID *old_lid = ((QueryReferenceResult *) lArg)->getValue();
 		ObjectPointer *old_optr;
-		errcode = tr->getObjectPointer (old_lid, Store::Write, old_optr);
+		errcode = tr->getObjectPointer (old_lid, Store::Write, old_optr); 
 		if (errcode != 0) {
 			*ec << "[QE] operator <assign>: error in getObjectPointer()";
 			tr->abort();
 			tr = NULL;
 			return errcode;
 		}
+		string object_name = old_optr->getName();
+		if (!system_privilige_checking && assert_privilige(Privilige::MODIFY_PRIV, object_name) == false) {
+		    final = new QueryNothingResult();
+		    return 0;
+		}		
 		*ec << "[QE] operator <assign>: getObjectPointer on left argument done";
 		DBDataValue *dbValue = new DBDataValue();
 		QueryResult *derefed;
@@ -2095,7 +2445,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 			}
 		}
 		DataValue* value = dbValue;
-		errcode = tr->modifyObject(old_optr, value);
+		errcode = tr->modifyObject(old_optr, value); 
 		if (errcode != 0) {
 			*ec << "[QE] operator <assign>: error in modifyObject()";
 			tr->abort();
@@ -2421,7 +2771,7 @@ int QueryExecutor::objectFromBinder(QueryResult *res, ObjectPointer *&newObject)
 	}
 	DataValue* value;
 	value = dbValue;
-	if ((errcode = tr->createObject(binderName, value, newObject)) != 0) {
+	if ((errcode = tr->createObject(binderName, value, newObject)) != 0) { //TODO
 		*ec << "[QE] Error in createObject";
 		tr->abort();
 		tr = NULL;
@@ -2436,8 +2786,10 @@ QueryExecutor::~QueryExecutor() {
 	tr = NULL;
 	delete envs;
 	delete qres;
+	delete session_data;
 	*ec << "[QE] QueryExecutor shutting down\n";
 	delete ec;
+	delete QueryBuilder::getHandle();
 }
 
 
@@ -2475,5 +2827,63 @@ void ResultStack::deleteAll() {
 		delete rs.at(i);
 	};
 }
+
+    /*
+     *	Query Builder begin
+     */
+    QueryBuilder* QueryBuilder::builder = new QueryBuilder();
+    QueryBuilder* QueryBuilder::getHandle() {
+	return builder;
+    };
+    QueryBuilder::QueryBuilder()  {}
+    QueryBuilder::~QueryBuilder() {}
+    string QueryBuilder::create_user_query(string login, string passwd) {
+	string query = "create (\"" + login + "\" as login, \"" + passwd + "\" as password) as xuser";
+        return query;
+    };
+    string QueryBuilder::remove_user_query(string login) {
+	string query = "delete (xuser where login = \"" + login + "\")";
+        return query;     
+    };
+    string QueryBuilder::grant_priv_query(string priv, string object, string user, int grant_option) {
+	
+	char str_grant_option[2];
+	if (grant_option) sprintf(str_grant_option, "%d", 1);
+	else		  sprintf(str_grant_option, "%d", 0);
+	
+	string lvalue = "(xuser where login=\"" + user + "\")";
+	string rvalue = "(create (\"" + priv + "\" as priv_name, \"" + object + "\" as object_name, "
+			+ str_grant_option + " as grant_option) as xprivilige)";
+	string oper   = " :< ";
+
+	string query = lvalue + oper + rvalue;
+        return query;
+    };
+    string QueryBuilder::revoke_priv_query(string priv, string object, string user) {
+	string user_query = "(xuser where login=\"" + user + "\")";
+	string priv_query = "(xprivilige where priv_name=\"" + priv + "\" and object_name=\"" + object + "\")";
+	string query = "delete (" + user_query + "." + priv_query + ")";
+	return query;     
+    };     
+    string QueryBuilder::query_for_privilige(string user, string priv, string object) {
+	string user_query = "(xuser where login=\"" + user + "\")";
+	string priv_query = "(xprivilige where priv_name=\"" + priv + "\" and object_name=\"" + object + "\")";
+	string query = "count (" + user_query + "." + priv_query + ") > 0";
+	return query;     
+    };
+    string QueryBuilder::query_for_privilige_grant(string user, string priv, string object) {
+	string user_query = "(xuser where login=\"" + user + "\")";
+	string priv_query = "(xprivilige where priv_name=\"" + priv + "\" and object_name=\"" + object + "\" and "
+			    + "grant_option=1)";
+	string query = "count (" + user_query + "." + priv_query + ") > 0";
+	return query;     
+    };    
+    string QueryBuilder::query_for_password(string user, string password) {
+	string query = "count (xuser where login=\"" + user + "\" and password=\"" + password + "\") > 0";
+	return query;
+    };
+    /*
+     *	Query Builder end
+     */
 
 }

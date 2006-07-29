@@ -8,16 +8,19 @@
    
 #include "QueryResult.h"
 #include "EnvironmentStack.h"
+#include "SessionData.h"
 #include "TransactionManager/Transaction.h"
 #include "Store/Store.h"
 #include "Store/DBDataValue.h"
 #include "Store/DBLogicalID.h"
 #include "QueryParser/QueryParser.h"
+#include "QueryParser/Privilige.h"
 #include "QueryParser/TreeNode.h"
 #include "Errors/Errors.h"
 #include "Errors/ErrorConsole.h"
 
 using namespace QParser;
+using namespace SessionDataNms;
 using namespace TManager;
 using namespace Errors;
 using namespace Store;
@@ -67,6 +70,7 @@ nie wiem gdzie zaincjalizowac
 		EnvironmentStack *envs;
 		ResultStack *qres;
 		map<string, QueryResult*> *prms;
+		SessionData *session_data;
 		int stop;
 		bool evalStopped() { return ( stop != 0 ); };
 		int executeRecQuery(TreeNode *tree);
@@ -79,7 +83,18 @@ nie wiem gdzie zaincjalizowac
 		int isIncluded(QueryResult *elem, QueryResult *set, bool &score);
 		int sortBag(QueryBagResult *inBag, QueryBagResult *&outBag);
 		int objectFromBinder(QueryResult *res, ObjectPointer *&newObject);
-        
+        	
+        	void set_user_data(ValidationNode *node);
+        	int execute_locally(string query, QueryResult **result);
+        	bool is_dba();
+        	bool assert_grant_priv(string priv_name, string name);
+        	bool assert_revoke_priv(string priv_name, string name);
+        	bool assert_create_user_priv();        	
+        	bool assert_remove_user_priv();        	
+        	bool assert_bool_query(string query);
+        	bool assert_privilige(string priv, string object);
+        	bool priviliged_mode;
+        	bool system_privilige_checking;
 //[sk153407, pk167277 - BEGIN]
 
         int getProcedureInfo(TreeNode *tree, ProcedureInfo *&pinf);
@@ -87,14 +102,36 @@ nie wiem gdzie zaincjalizowac
 //[sk153407, pk167277 - END]
         
 	public:
-		QueryExecutor() { envs = new EnvironmentStack(); qres = new ResultStack(); prms = NULL; tr = NULL; ec = new ErrorConsole("QueryExecutor"); stop = 0; };
+		QueryExecutor() { envs = new EnvironmentStack(); qres = new ResultStack(); prms = NULL; tr = NULL; ec = new ErrorConsole("QueryExecutor"); stop = 0; session_data = new SessionData(); system_privilige_checking = false;};
 		~QueryExecutor();
 		int executeQuery(TreeNode *tree, map<string, QueryResult*>* params, QueryResult **result);
 		int executeQuery(TreeNode *tree, QueryResult **result);
 		void stopExecuting() { stop = 65535; };
 		int abort();
+		void set_priviliged_mode(bool mode);
 	};
 	
+	/*
+	 *	Singleton design pattern
+	 */
+	class QueryBuilder {
+	    private:
+		static QueryBuilder *builder;
+		QueryBuilder();		
+
+	    public:
+		static QueryBuilder* getHandle();
+		
+		~QueryBuilder();
+		/* query builder functions */
+		string create_user_query(string user, string passwd);
+		string remove_user_query(string user);
+		string grant_priv_query(string priv, string object, string user, int grant_option = 0);
+		string revoke_priv_query(string priv, string object, string user);
+		string query_for_privilige(string user, string privilige, string object);
+		string query_for_privilige_grant(string user, string privilige, string object);
+		string query_for_password(string user, string password);
+	};
 }
 
 #endif
