@@ -61,7 +61,7 @@ int main (int argc, char *argv[])
   string login, passwd;
   read_login(login);
   read_passwd(passwd);
-  
+  if ("" == passwd) passwd = "not_a_password";  
   /* establishing connection */
   Connection *con;
   try
