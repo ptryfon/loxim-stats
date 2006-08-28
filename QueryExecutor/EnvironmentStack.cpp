@@ -3,6 +3,7 @@
 #include <vector>
 
 #include "QueryResult.h"
+#include "RemoteExecutor.h"
 #include "TransactionManager/Transaction.h"
 #include "Store/Store.h"
 #include "Store/DBDataValue.h"
@@ -282,6 +283,7 @@ int QueryReferenceResult::nested(Transaction *&tr, QueryResult *&r, QueryExecuto
 			 }
 			 *ec << "a teraz bring!!!!!!!!!!! ip: " <<  ip << " port: " << port <<"\n";
 			 QueryIntResult* qir = new QueryIntResult(5);
+			 new RemoteExecutor();
 			 r->addResult(qir);
 			 return 0;
 		}
