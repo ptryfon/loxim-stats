@@ -9,7 +9,7 @@ int bufferReceive(char** buffer, int* receiveDataSize, int Sock);
 int bufferSend(const char* buf,  int buf_size, int Sock);
 int packageReceive(Package** package, int sock);
 int packageSend(Package* package, int sock);
-int getConnection(char* url, int port, int* newsock);
+int getConnection(const char* url, int port, int* newsock);
 
 } //namespace
 

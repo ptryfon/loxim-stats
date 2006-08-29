@@ -208,7 +208,7 @@ int packageSend(Package* package, int sock) {
 }
 
 
-int getConnection(char* url, int port, int* newsock) {
+int getConnection(const char* url, int port, int* newsock) {
 	int sock;
 	sock = socket( PF_INET, SOCK_STREAM, 0 );
 	if (sock < 0)

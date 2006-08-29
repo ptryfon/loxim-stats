@@ -282,9 +282,13 @@ int QueryReferenceResult::nested(Transaction *&tr, QueryResult *&r, QueryExecuto
 
 			 }
 			 *ec << "a teraz bring!!!!!!!!!!! ip: " <<  ip << " port: " << port <<"\n";
-			 QueryIntResult* qir = new QueryIntResult(5);
-			 new RemoteExecutor();
-			 r->addResult(qir);
+			 QueryResult* qr = new QueryIntResult(5);
+			 RemoteExecutor *rex = new RemoteExecutor(ip, port);
+			 errcode = rex->execute(&qr);
+			 if (errcode != 0) {
+			 	return errcode;
+			 }
+			 r->addResult(qr);
 			 return 0;
 		}
 		/* end of link processing */
