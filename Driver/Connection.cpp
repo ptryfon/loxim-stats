@@ -90,7 +90,7 @@ Result* Connection::deserialize() {
 	unsigned long* lptr;
 	double db;
 	char df;
-
+	
 	switch (*(bufferBegin++)) {
 		case Result::BAG:
 			if (print_err) cerr << "<Connection::deserialize> tworze obiekt BAG\n";
@@ -221,10 +221,17 @@ Result* Connection::execute(const char* query) throw (ConnectionException) {
     //TODO lepsza diagnostyka bledow
 	if (error != 0) throw ConnectionIOException(error);
 	Package* package;
-	return oldReceive();
+	//return oldReceive();
     error = packageReceive(&package, sock);
     //cerr << "kod bledu odbioru: "<< error << endl;
 	if (error != 0) throw ConnectionIOException(error);
+
+	if (package->getType() == Package::ERRORRESULT) {
+	    //cerr << "execute --> odebralem paczke bledowa\n";
+	    ErrorPackage* ep = dynamic_cast<ErrorPackage*> (package);
+	    throw ConnectionServerException((int)ep->getError());		
+	    return ep->getResult();
+	}	
 
 	if (package->getType() != Package::SIMPLERESULT) throw ConnectionException("incorrect data received");
 	 SimpleResultPackage* srp = dynamic_cast<SimpleResultPackage*> (package);
@@ -248,6 +255,12 @@ Result* Connection::execute(Statement* stmt) throw (ConnectionException) {
 	Package* package;
 	error = packageReceive(&package, sock);
 	if (error != 0) throw ConnectionIOException(error);
+	
+	if (package->getType() == Package::ERRORRESULT) {
+	    ErrorPackage* ep = dynamic_cast<ErrorPackage*> (package);
+	    throw ConnectionServerException((int)ep->getError());		
+	    return ep->getResult();
+	}
 	
 	if (package->getType() != Package::SIMPLERESULT) throw ConnectionException("incorrect data received");
 	SimpleResultPackage* srp = dynamic_cast<SimpleResultPackage*> (package);
