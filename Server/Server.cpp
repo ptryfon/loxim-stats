@@ -31,7 +31,7 @@
 #include "../TCPProto/Tcp.h"
 
 #define PULSE_CHECKER_ACTIVE
-//#define PACKAGE_SENDING
+#define PACKAGE_SENDING
 
 typedef char TREE_NODE_TYPE;
 
@@ -368,7 +368,16 @@ int  Server::SerializeRec(QueryResult *qr)
 }
 
 
-int Server::sendError(int errNo) {
+int Server::sendError(int errNo) {    
+#ifdef PACKAGE_SENDING
+    ErrorPackage *ePack = new ErrorPackage();
+    ePack->init();
+    ePack->setError(errNo);
+    *ec << "[Server.sendError]: sending package\n";
+    packageSend(ePack, Sock);	
+    ePack->deinit();
+    return 0;
+#endif
     int errMesLen=16;
     Result::ResultType rT=Result::ERROR;
     char *bB;
@@ -380,6 +389,7 @@ int Server::sendError(int errNo) {
     errNo=htonl(errNo);
     memcpy((void *)b, (const void *)&errNo, sizeof(errNo));
     Send(*&bB, errMesLen);
+    //TODO free(bB);
     return 0;
 }
 
@@ -540,7 +550,7 @@ while (!signalReceived) {
 	pack->freeBuffers();
 	if (res != 0) {
 	    ec->printf("[Server.Run]--> PackageSend returned error code %d\n", res);
-	    return res;
+	    return ErrServer+ESend;
 	}
 	delete pack;
 #endif
