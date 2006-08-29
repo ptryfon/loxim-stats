@@ -19,7 +19,8 @@ public:
 	PARAMQUERY = 1,	   //String with $var
 	STATEMENT = 2,	   //Parser tree
 	PARAMSTATEMENT = 3,//stmtNr + map
-	SIMPLERESULT = 4   //Result
+	SIMPLERESULT = 4,   //Result
+	ERRORRESULT = 5 //Parse/execute error package
     };
     
 	virtual packageType getType()=0;
@@ -51,6 +52,24 @@ class SimpleQueryPackage : public Package {
 
 };
 
+class ErrorPackage : public Package {
+	public:
+	    packageType getType() {return ERRORRESULT;}
+	    int serialize(char **buffer, int *size);
+	    int deserialize(char *buffer, int size);
+	    void setError(int errNo);
+	    int getError();
+	    Result* getResult();
+	    void init();
+	    void deinit();
+	private:
+	    Result* tmpRes;
+	    int errorNo;
+	    char *bufferB;
+	    char *serialBuf;
+	    ErrorConsole *ec;
+};
+
 class SimpleResultPackage : public Package {
 	
 	public:
@@ -69,7 +88,6 @@ class SimpleResultPackage : public Package {
 		char * bufferEnd;
 	private:
 		Result* tmpRes;
-		
 		QueryResult* qr;
 		ErrorConsole *ec;
 		

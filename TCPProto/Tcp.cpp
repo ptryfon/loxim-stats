@@ -11,7 +11,7 @@
 #include "../Errors/Errors.h"
 #include "Package.h"
 
-//#define PACKAGE_DEBUG
+#define PACKAGE_DEBUG
 
 namespace TCPProto {
 
@@ -37,7 +37,7 @@ int bufferSend(const char* buf, int buf_size, int sock) {
 
 	while (lengthBufSize > 0) { //if 0, the size was sent
 		if (-1 ==  (ile = send(sock, lengthBuf, lengthBufSize, MSG_NOSIGNAL))) {
-		//	cerr << "blad wysylania 1: " << strerror(errno) << endl;
+			//cerr << "blad wysylania 1: " << strerror(errno) << endl;
 			return errno | ErrTCPProto;
 		}
 		lengthBufSize -= ile;
@@ -46,7 +46,7 @@ int bufferSend(const char* buf, int buf_size, int sock) {
 //	cerr << "<TCP::bufferSedn> znacznik przesylania, ile: " << ile << endl;
 	while (buf_size > 0) {
 	if (-1 == (ile = send(sock, buf, buf_size, MSG_NOSIGNAL))) {
-	//	cerr << "blad wysylania 2" << strerror(errno) << endl;
+		//cerr << "blad wysylania 2" << strerror(errno) << endl;
 		return errno | ErrTCPProto;
 	}
 
@@ -54,7 +54,7 @@ int bufferSend(const char* buf, int buf_size, int sock) {
 		buf += ile;
 	}
 
-//	printf("ServerTcp: Send-end \n");
+    	//printf("ServerTcp: Send-end \n");
 	return 0;
 }
 
@@ -138,11 +138,11 @@ int bufferReceive (char** buffer, int* receiveDataSize, int sock) {
 
 #ifdef PACKAGE_DEBUG
 	//cerr << "po serializacji: |" << buffer << "| rozmiar: "<<size << endl;
-	cerr << "odebrano paczke: ";
-	for (int i = 0; i < msgSize; i++) {
-	cerr << (int)(*(messgBuffBeg+i)) << "|";
-	}
-	cerr << endl;
+	//cerr << "odebrano paczke: ";
+	//for (int i = 0; i < 10; i++) {
+	//cerr << (int)(*(messgBuffBeg+i)) << "|";
+	//}
+	//cerr << endl;
 #endif
 
         return 0;
@@ -152,6 +152,7 @@ int packageReceive(Package** package, int sock) {
 
 	char* ptr;
 	int size, error;
+	//printf("R");
 	error = bufferReceive(&ptr, &size, sock);
 	if (error != 0) {
 		//cerr << "buffer receive failed\n";
@@ -178,6 +179,10 @@ int packageReceive(Package** package, int sock) {
 		case Package::PARAMSTATEMENT:
 			*package = new ParamStatementPackage();
 			break;
+		case Package::ERRORRESULT:
+			//cerr << "Paczka Bledowa odebrana\n";
+			*package = new ErrorPackage();
+			break;
 		default:
 			//TODO error
 			return -2;
@@ -196,6 +201,7 @@ int packageSend(Package* package, int sock) {
 	int   size;
 	error = package->serialize(&buffer, &size); // t allocs memory...
 	if (error != 0) {
+		//printf("pSend error\n");
 		return error;
 	}
 	return bufferSend(buffer, size, sock);

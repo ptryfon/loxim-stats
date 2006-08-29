@@ -55,8 +55,6 @@ using namespace QExecutor;
 		return res;
 	}
 	
-
-	//Nie dziala jeszcze
 	int SimpleResultPackage::serialize(char** buffer, int *size) {
 	
 	    QueryResult *qres;
@@ -105,7 +103,8 @@ using namespace QExecutor;
 			serialBuf++;
 			finalSize = finalSize + 2;
 			memcpy((void *)serialBuf, (const void *)&bufBagLen, sizeof(bufBagLen));
-			ec->printf("[SimpleResultPackage.Serialize]--> Bag header: |(type)=%d|(size)=%lu|\n", (int)bufferBegin[0], ntohl(*(unsigned long *)serialBuf));
+			//ec->printf("[SimpleResultPackage.Serialize]--> Bag header: |(type)=%d|%d|(size)=%lu|\n", 
+			//(int)bufferBegin[0], (int)bufferBegin[1], ntohl(*(unsigned long *)serialBuf));
 			serialBuf=serialBuf+sizeof(bufBagLen);
 			finalSize = finalSize + sizeof(bufBagLen);
 
@@ -117,7 +116,7 @@ using namespace QExecutor;
 				    ec->printf("[SimpleResultPackage.Serialize]--> getResult failed with %d, returning.. \n", retVal);
 				    return retVal;
 				}
-				//SerializeRec(collItem);
+				qr = (QueryResult *)collItem;
 				serialize(buffer, size);
 			}
 			break;
@@ -149,7 +148,7 @@ using namespace QExecutor;
 				    ec->printf("[SimpleResultPackage.Serialize]--> getResult failed with %d, returning.. \n", retVal);
 				    return retVal;
 				}
-				//SerializeRec(collItem);
+				qr = (QueryResult *)collItem;
 				serialize(buffer, size);
 			}
 
@@ -180,7 +179,7 @@ using namespace QExecutor;
 				    ec->printf("[SimpleResultPackage.Serialize]--> getResult failed with %d, returning.. \n", retVal);
 				    return retVal;
 				}
-				//SerializeRec(collItem);
+				qr = (QueryResult *)collItem;
 				serialize(buffer, size);
 			}
 
@@ -291,7 +290,7 @@ using namespace QExecutor;
 	*buffer = &*bufferBegin;
 	*size = 8192; //&finalSize;
 	//ec->printf("Buffer = %s\n", buffer);
-	ec->printf("Buffer set with type = %d\n", (int)(*buffer[0]));;
+	//ec->printf("Buffer set with type = %d|%d|%d|%d|\n", (int)(*buffer[0]), (int)(*buffer[1]), (int)(*buffer[2]), (int)(*buffer[3]));
 
 	return 0;
 	
@@ -378,7 +377,7 @@ int SimpleResultPackage::dataDeserialize(Result** r ) {
 	unsigned long* lptr;
 	double db;
 	char df;
-	//printf("buffer[0], buffer[1], buffer[2], buffer[3], buffer[4] = |%d|%d|%d|%d|%d\\n",(int)bufferBegin[0], (int)bufferBegin[1], (int)bufferBegin[2], (int)bufferBegin[3], (int)bufferBegin[4]);	
+	//printf("dataDeserialize: buffer[0], buffer[1], buffer[2], buffer[3], buffer[4] = |%d|%d|%d|%d|%d|\n",(int)bufferBegin[0], (int)bufferBegin[1], (int)bufferBegin[2], (int)bufferBegin[3], (int)bufferBegin[4]);	
 	
 	switch (*(bufferBegin++)) {
 	
