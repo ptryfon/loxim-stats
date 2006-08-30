@@ -393,6 +393,7 @@ bool QueryExecutor::assert_remove_user_priv() {
 
 int QueryExecutor::getProcedureInfo(TreeNode *tree, ProcedureInfo *&pinf)
 {
+    printf( "%s\n", tree->toString( 0, true ).c_str() );
     pinf = new ProcedureInfo();
     int errcode;
     QueryResult *result = new QueryBagResult();
@@ -401,6 +402,7 @@ int QueryExecutor::getProcedureInfo(TreeNode *tree, ProcedureInfo *&pinf)
     if (errcode != 0) return errcode;
     if (result->size() != 1)
     {
+      printf( "result->type: %d\n", result->type() );
         *ec << "[QE] Error in TNCALLPROC, more then one procedure with same signature";
         return 1000000;
     }
