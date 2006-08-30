@@ -279,6 +279,7 @@ using namespace QExecutor;
 		    strcpy(serialBuf, strVal.c_str());
 		    serialBuf=serialBuf+(strVal.length())+1;
 		    //SerializeRec(qres);
+		    qr = (QueryResult *)qres;
 		    serialize(buffer, size);
 		    break;
 		default:
