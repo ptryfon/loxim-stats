@@ -81,6 +81,18 @@ namespace QExecutor {
 			return err;
 		}
 		*ec << "odebralem 3";
+		//autentykacja zakonczona, zaczynam transakcje operacji
+		spackage.setQuery("begin");
+		err = packageSend(&spackage, newSock);
+		if (err != 0) {
+			return err;
+		}
+		
+		err = packageReceive(&package, newSock);
+		if (err != 0) {
+			return err;
+		}
+		
 		*sock = newSock;
 		//Connection *con = new Connection(newSock);
 		//delete con;

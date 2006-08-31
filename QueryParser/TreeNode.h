@@ -41,7 +41,7 @@ namespace QParser {
 	enum TreeNodeType { TNINT, TNSTRING, TNDOUBLE, TNVECTOR, TNNAME, 
 	    TNAS, TNUNOP, TNALGOP, TNNONALGOP, TNTRANS, TNCREATE, TNCOND, TNLINK, TNPARAM, TNFIX, 
 	    TNPROC, TNCALLPROC, TNRETURN, TNVALIDATION, TNCREATEUSER, TNREMOVEUSER, TNPRIVLIST, TNNAMELIST,
-	    TNGRANTPRIV, TNREVOKEPRIV};
+	    TNGRANTPRIV, TNREVOKEPRIV, TNREMOTE};
 	TreeNode() : parent(NULL) {}
 	TreeNode* getParent() { return parent; }
 	void setParent(TreeNode* _parent) { parent = _parent; }
@@ -892,6 +892,14 @@ lastOpenSect = 0; }
 	}
 	virtual ~LinkNode() {}
 	
+    };
+    
+    class RemoteNode : public TreeNode
+    {
+    	public:
+    		virtual int type() {return TreeNode::TNREMOTE;}
+    		virtual TreeNode* clone() {return new RemoteNode();}
+    		virtual int putToString() {cout << "TreeNode" << endl; return 0;}
     };
 
     class FixPointNode : public QueryNode

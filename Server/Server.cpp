@@ -478,8 +478,9 @@ while (!signalReceived) {
 			}
 			break;
 		case Package::REMOTEQUERY:
-			*ec << "odebralem zadanie remote!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!";
-			return 1;
+			*ec << "odebralem zadanie remote";
+			tNode = new RemoteNode();
+			//return 1;
 		break;
 		default:
 			//TODO error
@@ -501,7 +502,11 @@ while (!signalReceived) {
 			}
 			free(messgBuff);
 			break;
+		case Package::REMOTEQUERY:
+			ec->printf("[Server.Run]--> remote query 2x\n");
+			break;
 		default:
+			ec->printf("[Server.Run]--> impossible\n");
 			//impossible
 			return -1;
 			

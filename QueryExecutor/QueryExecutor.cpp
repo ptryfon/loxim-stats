@@ -1310,6 +1310,10 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		*ec << "[QE] Link operation Done!";
 		return 0;
 		}
+		case TreeNode::TNREMOTE: {
+			*ec << "zaczynam wezel TNREMOTE";
+			return 1;
+		}
 		default:
 			{
 			*ec << "Unknown node type";
