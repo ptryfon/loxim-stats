@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+<plugin>
+   <extension
+         point="org.eclipse.ui.editors">
+      <editor
+            class="objectBrowser.editors.query.QueryEditor"
+            contributorClass="objectBrowser.editors.query.QueryEditorActionContributor"
+            extensions="sbql"
+            icon="icons/sample.gif"
+            id="objectBrowser.editors.QueryEditor"
+            name="LoXiM Query Editor"/>
+   </extension>
+   <extension
+         point="org.eclipse.ui.newWizards">
+      <category
+            id="ObjectBrowser"
+            name="Object Browser"/>
+      <wizard
+            category="ObjectBrowser"
+            class="objectBrowser.wizards.NewConnectionWizard"
+            icon="icons/sample.gif"
+            id="objectBrowser.wizards.NewConnectionWizard"
+            name="New database connection"/>
+      <wizard
+            category="ObjectBrowser"
+            class="objectBrowser.wizards.NewQueryWizard"
+            icon="icons/sample.gif"
+            id="objectBrowser.wizards.NewQueryWizard"
+            name="LoXiM query"/>
+   </extension>
+   <extension
+         point="org.eclipse.ui.views">
+      <category
+            id="ObjectBrowser"
+            name="Object Browser"/>
+      <view
+            category="ObjectBrowser"
+            class="objectBrowser.views.ObjectDatabaseExplorer"
+            icon="icons/sample.gif"
+            id="objectBrowser.views.ObjectDatabaseExplorer"
+            name="Object Database Explorer"/>
+      <view
+            category="ObjectBrowser"
+            class="objectBrowser.views.ResultView"
+            icon="icons/sample.gif"
+            id="objectBrowser.views.ResultView"
+            name="Result View (graph)"/>
+      <view
+            category="ObjectBrowser"
+            class="objectBrowser.views.ResultViewText"
+            icon="icons/sample.gif"
+            id="objectBrowser.views.ResultViewText"
+            name="Result View (text)"/>
+   </extension>
+   <extension
+         point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension targetID="org.eclipse.ui.resourcePerspective">
+         <view
+               id="objectBrowser.views.ObjectDatabaseExplorer"
+               ratio="0.5"
+               relationship="left"
+               relative="org.eclipse.ui.views.TaskList"/>
+      </perspectiveExtension>
+      <perspectiveExtension targetID="org.eclipse.ui.resourcePerspective">
+         <view
+               id="objectBrowser.views.ResultView"
+               ratio="0.5"
+               relationship="bottom"
+               relative="org.eclipse.ui.views.TaskList"/>
+      </perspectiveExtension>
+      <perspectiveExtension targetID="org.eclipse.ui.resourcePerspective">
+         <view
+               id="objectBrowser.views.ResultViewText"
+               ratio="0.5"
+               relationship="right"
+               relative="org.eclipse.ui.views.TaskList"/>
+      </perspectiveExtension>
+   </extension>
+   <extension
+         point="org.eclipse.ui.perspectives">
+      <perspective
+            class="objectBrowser.perspectives.ObjectBrowsingPerspectiveFactory"
+            fixed="false"
+            icon="icons/sample.gif"
+            id="objectBrowser.objectBrowsing"
+            name="Object Browsing"/>
+   </extension>
+
+</plugin>
