@@ -14,5 +14,5 @@ public interface Package {
 	public short getType();
 	
 	public int serialize(OutputStream stream) throws IOException;
-	public void deserialize(InputStream stream, int size) throws IOException;
+	public void deserialize(InputStream stream, int size) throws IOException, SBQLException;
 }

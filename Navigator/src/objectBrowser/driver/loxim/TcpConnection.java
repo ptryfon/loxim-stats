@@ -55,57 +55,8 @@ public class TcpConnection implements Connection {
 		stream.writeTo(dos);
 	}
 
-	Result grabElements(ResultStream is, ResultCollection col)
-			throws IOException, SBQLException {
-		long count = is.readULong();
-		for (int i = 0; i < count; i++) {
-			col.addItem(deserialize(is));
-		}
-		return col;
-	}
 
-	String grabString(ResultStream is) throws IOException {
-		String s = "";
-		char c = (char) is.read();
-		while (c != 0) {
-			s = s + c;
-			c = (char) is.read();
-		}
-		return s;
-	}
 
-	Result deserialize(ResultStream is) throws IOException, SBQLException {
-		byte objType = (byte) is.read();
-		switch (objType) {
-		case RES_BAG:
-			return grabElements(is, new ResultBag());
-		case RES_SEQUENCE:
-			return grabElements(is, new ResultSequence());
-		case RES_STRUCT:
-			return grabElements(is, new ResultStruct());
-		case RES_REFERENCE:
-			return new ResultReference(grabString(is));
-		case RES_VOID:
-			return new ResultVoid();
-		case RES_STRING:
-			return new ResultString(grabString(is));
-		case RES_ERROR:
-			return new ResultError(is.readULong());
-		case RES_INT:
-			return new ResultInt((int) is.readULong());
-		case RES_BOOLTRUE:
-			return new ResultBool(true);
-		case RES_BOOLFALSE:
-			return new ResultBool(false);
-		case RES_DOUBLE:
-			return null; /* TODO */
-		case RES_BINDER:
-			return new ResultBinder(grabString(is), deserialize(is));
-		default:
-			throw new SBQLException("Unknown result type (" + objType + ")",
-					null);
-		}
-	}
 
 	public TcpConnection(Socket _socket) throws IOException {
 		socket = _socket;
@@ -124,10 +75,13 @@ public class TcpConnection implements Connection {
 			sqp.setQuery(query);
 
 			packageSend(sqp);
-
+			
+			SimpleResultPackage srp = new SimpleResultPackage();
 			ResultStream rs = new ResultStream(dis);
-			Result res = deserialize(rs);
+			srp.deserialize(rs, (int)rs.length);
+			Result res = srp.getResult();
 			rs.flush();
+			
 			if (res instanceof ResultError)
 				throw new SBQLException(((ResultError) res).getErrorCode());
 			return res;

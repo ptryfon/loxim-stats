@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Object Browser Plug-in
-Bundle-SymbolicName: ObjectBrowser; singleton:=true
+Bundle-SymbolicName: Navigator2; singleton:=true
 Bundle-Version: 1.0.0
 Bundle-Activator: objectBrowser.ObjectBrowserPlugin
 Bundle-Vendor: Tomasz Rosiek
