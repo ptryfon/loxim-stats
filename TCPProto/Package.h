@@ -20,7 +20,8 @@ public:
 	STATEMENT = 2,	   //Parser tree
 	PARAMSTATEMENT = 3,//stmtNr + map
 	SIMPLERESULT = 4,   //Result
-	ERRORRESULT = 5 //Parse/execute error package
+	ERRORRESULT = 5, //Parse/execute error package
+	REMOTEQUERY = 6 //remote reference
     };
     
 	virtual packageType getType()=0;
@@ -142,6 +143,14 @@ private:
 	int setResult(Result* result);
 
 	friend ostream& operator<<(ostream&, ParamStatementPackage&);	
+};
+
+class RemoteQueryPackage : public Package {
+
+	public:
+		packageType getType() { return REMOTEQUERY; }
+		int serialize(char** buffer, int* size); 
+		int deserialize(char* buffer, int size);
 };
 
 } //namespace

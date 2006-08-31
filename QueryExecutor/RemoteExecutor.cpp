@@ -97,8 +97,15 @@ namespace QExecutor {
 		*ec << "port: "; *ec << port;
 		
 		int sock;
+		int err;
 		
-		return connect(ip.c_str(), port, &sock);
+		err = connect(ip.c_str(), port, &sock);
+		if (err != 0) {
+			return err;
+		}
+		
+		RemoteQueryPackage *rqp = new RemoteQueryPackage();
+		return packageSend(rqp, sock);
 	
 	}
 	

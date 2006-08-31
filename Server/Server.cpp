@@ -458,6 +458,7 @@ while (!signalReceived) {
 	}
 
 	SimpleQueryPackage* sqp;
+	RemoteQueryPackage* rqp;
 	Package::packageType pType = package->getType(); 
 	
 	switch (pType) {
@@ -476,6 +477,10 @@ while (!signalReceived) {
 			    return ErrServer + EClientLost; //TODO Error
 			}
 			break;
+		case Package::REMOTEQUERY:
+			*ec << "odebralem zadanie remote!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!";
+			return 1;
+		break;
 		default:
 			//TODO error
 			return -1;

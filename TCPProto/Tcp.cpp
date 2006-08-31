@@ -183,6 +183,9 @@ int packageReceive(Package** package, int sock) {
 			//cerr << "Paczka Bledowa odebrana\n";
 			*package = new ErrorPackage();
 			break;
+		case Package::REMOTEQUERY:
+			*package = new RemoteQueryPackage();
+			break;
 		default:
 			//TODO error
 			return -2;
