@@ -283,7 +283,7 @@ int QueryReferenceResult::nested(Transaction *&tr, QueryResult *&r, QueryExecuto
 			 }
 			 *ec << "a teraz bring!!!!!!!!!!! ip: " <<  ip << " port: " << port <<"\n";
 			 QueryResult* qr = new QueryIntResult(5);
-			 RemoteExecutor *rex = new RemoteExecutor(ip, port);
+			 RemoteExecutor *rex = new RemoteExecutor(ip, port, qe);
 			 errcode = rex->execute(&qr);
 			 if (errcode != 0) {
 			 	return errcode;

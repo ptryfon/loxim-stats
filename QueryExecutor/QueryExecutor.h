@@ -70,7 +70,6 @@ nie wiem gdzie zaincjalizowac
 		EnvironmentStack *envs;
 		ResultStack *qres;
 		map<string, QueryResult*> *prms;
-		SessionData *session_data;
 		int stop;
 		bool evalStopped() { return ( stop != 0 ); };
 		int executeRecQuery(TreeNode *tree);
@@ -102,6 +101,7 @@ nie wiem gdzie zaincjalizowac
 //[sk153407, pk167277 - END]
         
 	public:
+		SessionData *session_data;
 		QueryExecutor() { envs = new EnvironmentStack(); qres = new ResultStack(); prms = NULL; tr = NULL; ec = new ErrorConsole("QueryExecutor"); stop = 0; session_data = new SessionData(); system_privilige_checking = false;};
 		~QueryExecutor();
 		int executeQuery(TreeNode *tree, map<string, QueryResult*>* params, QueryResult **result);
