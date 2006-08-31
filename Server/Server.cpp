@@ -457,37 +457,50 @@ while (!signalReceived) {
 	    return res;
 	}
 
-	if (package->getType() != Package::SIMPLEQUERY) {
-		//TODO error
-		return -1;
-	}
-	SimpleQueryPackage* sqp = (SimpleQueryPackage*) package;
-	messgBuff = sqp->getQuery();
-	size = sqp->getQuerySize();
-	delete package;
-
-	if (messgBuff==NULL) {
-	    *ec << "[Server.Run]--> Error in receive, client terminated??";
-	    *ec << "[Server.Run]--> Assuming client loss for that thread - TERMINATING thread";
-	    qEx->abort();
-	    qPa->QueryParser::~QueryParser();
-	    qEx->QueryExecutor::~QueryExecutor();
-	    return ErrServer + EClientLost; //TODO Error
-	}
-
+	SimpleQueryPackage* sqp;
+	Package::packageType pType = package->getType(); 
+	
+	switch (pType) {
+		case Package::SIMPLEQUERY:
+			sqp = (SimpleQueryPackage*) package;
+			messgBuff = sqp->getQuery();
+			size = sqp->getQuerySize();
+			delete package;
+	
+			if (messgBuff==NULL) {
+			    *ec << "[Server.Run]--> Error in receive, client terminated??";
+			    *ec << "[Server.Run]--> Assuming client loss for that thread - TERMINATING thread";
+			    qEx->abort();
+			    qPa->QueryParser::~QueryParser();
+			    qEx->QueryExecutor::~QueryExecutor();
+			    return ErrServer + EClientLost; //TODO Error
+			}
+			break;
+		default:
+			//TODO error
+			return -1;
+	}	
 
 	*ec << "[Server.Run]--> Blocking sigint again..";
 	sigprocmask(SIG_BLOCK, &block_cc, NULL);
 
-	ec->printf("[Server.Run]--> Requesting PARSE: |%s| \n", messgBuff);
-	res = (qPa->parseIt((string) messgBuff, tNode));
-	if (res != 0) {
-	    ec->printf("[Server.Run]--> Parser returned error code %d\n", res);
-	    sendError(res);
-	    ncError=1;
-	    continue;
+	switch (pType) {
+		case Package::SIMPLEQUERY:
+			ec->printf("[Server.Run]--> Requesting PARSE: |%s| \n", messgBuff);
+			res = (qPa->parseIt((string) messgBuff, tNode));
+			if (res != 0) {
+			    ec->printf("[Server.Run]--> Parser returned error code %d\n", res);
+			    sendError(res);
+			    ncError=1;
+			    continue;
+			}
+			free(messgBuff);
+			break;
+		default:
+			//impossible
+			return -1;
+			
 	}
-	free(messgBuff);
 
 #ifdef PULSE_CHECKER_ACTIVE
 	//Create PulseChecker thread
