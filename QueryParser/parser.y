@@ -35,6 +35,7 @@
 
 %right FIX_OP
 %right SEMICOLON
+%nonassoc RETURN
 %nonassoc DELETE CREATE INSERTINTO
 %left COMMA 
 %right EXISTS FOR_ALL
