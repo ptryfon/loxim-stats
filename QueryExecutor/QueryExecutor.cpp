@@ -393,7 +393,6 @@ bool QueryExecutor::assert_remove_user_priv() {
 
 int QueryExecutor::getProcedureInfo(TreeNode *tree, ProcedureInfo *&pinf)
 {
-    printf( "%s\n", tree->toString( 0, true ).c_str() );
     pinf = new ProcedureInfo();
     int errcode;
     QueryResult *result = new QueryBagResult();
@@ -516,6 +515,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 	if (tree != NULL) {
 		int nodeType = tree->type();
 		*ec << "[QE] TreeType taken";
+                printf( "%s\n", tree->toString( 0, true ).c_str() );
 		switch (nodeType)
 		{
 		case TreeNode::TNNAME: {
@@ -627,8 +627,10 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
             errcode = tmpQP->parseIt(pinf->ProcCode, tmpTN);
             if (errcode != 0) return errcode;
             errcode = executeRecQuery (tmpTN);
-            if (errcode != 0) return errcode;
-
+            if ( (errcode != EEvalStopped) && (errcode != 0) )
+              return errcode;
+            if (errcode == EEvalStopped) errcode = 0;
+            printf("!!!!!!!!!!!!!! stos po wykonaniu tresci:\n%s\n", qres->toString().c_str());
 
             delete tmpQP;
             delete tmpTN;
@@ -672,6 +674,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
              qres->push( new QueryNothingResult() );
            }
            *ec << "[QE] Type: TNRETURN (done)";
+           return EEvalStopped;
         }
 
 

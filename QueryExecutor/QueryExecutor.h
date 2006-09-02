@@ -114,7 +114,7 @@ nie wiem gdzie zaincjalizowac
         
 	public:
 		SessionData *session_data;
-		QueryExecutor() { envs = new EnvironmentStack(); qres = new ResultStack(); prms = NULL; tr = NULL; ec = new ErrorConsole("QueryExecutor"); stop = 0; session_data = new SessionData(); system_privilige_checking = false;};
+		QueryExecutor() { envs = new EnvironmentStack(); qres = new ResultStack(); prms = NULL; tr = NULL; ec = new ErrorConsole("QueryExecutor"); stop = 0; session_data = new SessionData(); system_privilige_checking = false; };
 		~QueryExecutor();
 		int executeQuery(TreeNode *tree, map<string, QueryResult*>* params, QueryResult **result);
 		int executeQuery(TreeNode *tree, QueryResult **result);
