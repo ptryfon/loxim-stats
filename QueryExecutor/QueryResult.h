@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string>
 #include <vector>
+#include <sstream>
 
 #include "TransactionManager/Transaction.h"
 #include "Store/Store.h"
@@ -45,6 +46,23 @@ public:
 
 	virtual QueryResult* clone()=0;
 
+      string getPrefixForLevel( int level, string name ) {
+        string result = "";
+
+        if( level > 0 ) {
+          for( int i = 0; i < level; i++ ) {
+            result += " |";
+          }
+          result += name + "\n";
+          for( int i = 0; i < level-1; i++ ) {
+            result += " |";
+          }
+          result += " +-";
+        }
+
+        return result;
+      }
+
 	virtual int type();
 	virtual bool collection()=0;
 	virtual bool isEmpty()=0;
@@ -65,6 +83,7 @@ public:
 	virtual int getReferenceValue(QueryResult *&r)=0;
 	virtual int comma(QueryResult *arg, QueryResult *&score)=0;
 	virtual bool sorting_less_eq(QueryResult *arg);
+        virtual string toString( int level = 0, bool recursive = false, string name = "" ) { return ""; }
 };
 
 
@@ -107,6 +126,17 @@ public:
 	int comma(QueryResult *arg, QueryResult *&score);
 	int sortCollection(QueryResult *r);
 	int postSort(QueryResult *&f);
+        virtual string toString( int level = 0, bool recursive = false, string name = "" ) {
+          string result = getPrefixForLevel( level, name ) + "[Sequence]\n";
+          
+          if( recursive ) {
+            for( int i = 0; i < seq.size(); i++ ) {
+                result += seq[i]->toString( level+1, true, "seq_elem" );
+            }
+          }
+
+          return result;
+        }
 };
 
 class QueryBagResult : public QueryResult
@@ -148,6 +178,20 @@ public:
 	int comma(QueryResult *arg, QueryResult *&score);
 	int divideBag(QueryResult *&left, QueryResult *&right);
 	int sortBag(QueryBagResult *&outBag);
+        virtual string toString( int level = 0, bool recursive = false, string name = "" ) {
+          stringstream c;
+          string sizeS;
+          c << bag.size(); c >> sizeS;
+          string result = getPrefixForLevel( level, name ) + "[Bag] size=" + sizeS + "\n";
+          
+          if( recursive ) {
+            for( int i = 0; i < bag.size(); i++ ) {
+                result += bag[i]->toString( level+1, true, "bag_elem" );
+            }
+          }
+
+          return result;
+        }
 };
 
 
@@ -188,6 +232,17 @@ public:
 	bool isReferenceValue();
 	int getReferenceValue(QueryResult *&r);
 	int comma(QueryResult *arg, QueryResult *&score);
+        virtual string toString( int level = 0, bool recursive = false, string name = "" ) {
+          string result = getPrefixForLevel( level, name ) + "[Struct]\n";
+          
+          if( recursive ) {
+            for( int i = 0; i < str.size(); i++ ) {
+                result += str[i]->toString( level+1, true, "struct_elem" );
+            }
+          }
+
+          return result;
+        }
 };
 
 
@@ -222,6 +277,16 @@ public:
 	bool isReferenceValue();
 	int getReferenceValue(QueryResult *&r);
 	int comma(QueryResult *arg, QueryResult *&score);
+        virtual string toString( int level = 0, bool recursive = false, string n = "" ) {
+          string result = getPrefixForLevel( level, n ) + "[Binder] name='" + name + "'\n";
+          
+          if( recursive ) {
+            if( item )
+              result += item->toString( level+1, true, "item" );
+          }
+
+          return result;
+        }
 };
 
 
@@ -253,6 +318,9 @@ public:
 	bool isReferenceValue();
 	int getReferenceValue(QueryResult *&r);
 	int comma(QueryResult *arg, QueryResult *&score);
+        virtual string toString( int level = 0, bool recursive = false, string n = "" ) {
+          return getPrefixForLevel( level, n ) + "[String] value='" + value + "'\n";
+        }
 };
 
 
@@ -289,6 +357,13 @@ public:
 	bool isReferenceValue();
 	int getReferenceValue(QueryResult *&r);
 	int comma(QueryResult *arg, QueryResult *&score);
+        virtual string toString( int level = 0, bool recursive = false, string n = "" ) {
+          stringstream c;
+          string valueS;
+          c << value; c >> valueS;
+
+          return getPrefixForLevel( level, n ) + "[Int] value=" + valueS + "\n";
+        }
 };
 
 
@@ -325,6 +400,13 @@ public:
 	bool isReferenceValue();
 	int getReferenceValue(QueryResult *&r);
 	int comma(QueryResult *arg, QueryResult *&score);
+        virtual string toString( int level = 0, bool recursive = false, string n = "" ) {
+          stringstream c;
+          string valueS;
+          c << value; c >> valueS;
+
+          return getPrefixForLevel( level, n ) + "[Double] value=" + valueS + "\n";
+        }
 };
 
 class QueryBoolResult : public QueryResult
@@ -358,6 +440,9 @@ public:
 	bool isReferenceValue();
 	int getReferenceValue(QueryResult *&r);
 	int comma(QueryResult *arg, QueryResult *&score);
+        virtual string toString( int level = 0, bool recursive = false, string n = "" ) {
+          return getPrefixForLevel( level, n ) + "[Bool] value=" + (value ? "true" : "false" ) + "\n";
+        }
 };
 
 
@@ -392,6 +477,11 @@ public:
 	bool isReferenceValue();
 	int getReferenceValue(QueryResult *&r);
 	int comma(QueryResult *arg, QueryResult *&score);
+        virtual string toString( int level = 0, bool recursive = false, string n = "" ) {
+          string valueS = value ? value->toString() : "<null>";
+
+          return getPrefixForLevel( level, n ) + "[Ref] refed=" + (refed ? "true" : "false" ) + ", value=" + valueS + "\n";
+        }
 };
 
 /* You get this, as a result of non-select query like delete or if anb error accurs */
@@ -418,6 +508,9 @@ public:
 	bool isReferenceValue();
 	int getReferenceValue(QueryResult *&r);
 	int comma(QueryResult *arg, QueryResult *&score);
+        virtual string toString( int level = 0, bool recursive = false, string n = "" ) {
+          return getPrefixForLevel( level, n ) + "[Nothing]\n";
+        }
 };
 
 }

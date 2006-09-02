@@ -50,6 +50,18 @@ namespace QExecutor
 		bool empty();
 		int size();
 		void deleteAll();
+        virtual string toString() {
+          stringstream c;
+          string sizeS;
+          c << rs.size(); c >> sizeS;
+          string result = "[ResultStack] size=" + sizeS + "\n";
+
+          for( int i = 0; i < rs.size(); i++ ) {
+            result += rs[i]->toString( 1, true, "rs_elem" );
+          }
+
+          return result;
+        }
 	};
 
 	class QueryExecutor

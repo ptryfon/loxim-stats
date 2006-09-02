@@ -584,6 +584,8 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 
         case TreeNode::TNCALLPROC:
         {
+          printf( "TNCALLPROC:\n%s\n", envs->toString().c_str());
+          printf( "TNCALLPROC:\n%s\n", qres->toString().c_str());
             ProcedureInfo* pinf;
             errcode=getProcedureInfo(tree, pinf);
             if (errcode != 0) return errcode;
