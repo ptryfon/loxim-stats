@@ -408,8 +408,18 @@ int QueryExecutor::getProcedureInfo(TreeNode *tree, ProcedureInfo *&pinf)
     }
     
     QueryResult* procRef;
+    if(result->type() != QueryResult::QBAG)
+    {
+        *ec << "[QE] Error in TNCALLPROC, wrong procedure format";
+    	return 1000001;
+    }    
     errcode = ((QueryBagResult*)result)->at(0, procRef);
     if (errcode != 0) return errcode;
+    if(procRef->type() != QueryResult::QREFERENCE)
+    {
+        *ec << "[QE] Error in TNCALLPROC, wrong procedure format";
+    	return 1000001;
+    }
     LogicalID *lid = ((QueryReferenceResult *)procRef)->getValue();
     ObjectPointer *optr;
     errcode = tr->getObjectPointer(lid, Store::Read, optr);
