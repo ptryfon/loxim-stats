@@ -591,37 +591,31 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
             QueryResult *result = new QueryBagResult();
 
             CallProcNode* cpNode = (CallProcNode*) tree;
+            QueryNode *paramNode = cpNode->getParNumb() ? cpNode->getParam( 0 ) : NULL;
+            int paramsType = paramNode ? paramNode->type() : -1;
+            bool isStruct = (paramsType == TreeNode::TNALGOP) && (((AlgOpNode *) paramNode)->getOp() == AlgOpNode::comma);
 
             //potem trzeba bedzie usunac wszystko do tego poziomu
             int envsHeight = envs->size();
             int qresHeight = qres->size();
 
             QueryStructResult *paramsStruct = new QueryStructResult();
-            if( cpNode->getParNumb() > 0 ) {
+            if( paramNode ) {
               QueryResult* paramRes;
 
-              errcode = executeRecQuery(cpNode->getParam(0));
+              errcode = executeRecQuery(paramNode);
               if (errcode != 0) return errcode;
               errcode = qres->pop(paramRes);
               if (errcode != 0) return errcode;
 
-              printf("!*!*!*!*! type: %d\n", paramRes->type() );
-
-              ((QueryBagResult *)paramRes)->at(0, paramRes);
-
-              switch( paramRes->type() ) {
-                case QueryResult::QSTRUCT: {
-                  paramsStruct = (QueryStructResult *) paramRes;
-                  break;
-                }
-                case QueryResult::QBINDER: {
-                  paramsStruct->addResult(paramRes);
-                  break;
-                }
-                default: {
-                  paramsStruct->addResult(new QueryBinderResult(pinf->Params[0], paramRes));
-                  break;
-                }
+              if( isStruct ) {
+                ((QueryBagResult *)paramRes)->at(0, paramRes);
+                paramsStruct = (QueryStructResult *) paramRes;
+              } else if ( paramsType == TreeNode::TNAS ){
+                ((QueryBagResult *)paramRes)->at(0, paramRes);
+                paramsStruct->addResult(paramRes);
+              } else {
+                paramsStruct->addResult(new QueryBinderResult(pinf->Params[0], paramRes));
               }
             }
 
@@ -648,6 +642,10 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
             if ( (errcode != EEvalStopped) && (errcode != 0) )
               return errcode;
             if (errcode == EEvalStopped) errcode = 0;
+            else {
+                errcode = qres->push(new QueryNothingResult());
+                if (errcode != 0) return errcode;
+            }
             printf("!!!!!!!!!!!!!! stos po wykonaniu tresci:\n%s\n", qres->toString().c_str());
 
             delete tmpQP;
