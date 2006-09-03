@@ -15,13 +15,15 @@ using namespace Errors;
 class Package {
 public:
     enum packageType {
+	RESERVED	= -1,	//to force nondefault deserialization method
 	SIMPLEQUERY = 0,   //String
 	PARAMQUERY = 1,	   //String with $var
 	STATEMENT = 2,	   //Parser tree
 	PARAMSTATEMENT = 3,//stmtNr + map
 	SIMPLERESULT = 4,   //Result
 	ERRORRESULT = 5, //Parse/execute error package
-	REMOTEQUERY = 6 //remote reference
+	REMOTEQUERY = 6, //remote reference
+	REMOTERESULT = 7 //environment section
     };
     
 	virtual packageType getType()=0;
@@ -87,15 +89,41 @@ class SimpleResultPackage : public Package {
 		char *bufferBegin;
 		int finalSize;
 		char * bufferEnd;
+		
 	private:
-		Result* tmpRes;
 		QueryResult* qr;
 		ErrorConsole *ec;
-		
+		Result* tmpRes;
 		int dataDeserialize(Result** r);
 		int grabElements(ResultCollection* col);
+		
+	protected:
 		int getULong(unsigned long &val);
 		int stringCopy(char* &newBuffer);
+		
+};
+
+class RemoteResultPackage : public Package {
+	
+	public:
+		//RemoteResultPackage() {}
+		packageType getType() { return REMOTERESULT; }
+		int serialize(char** buffer, int *size) {return -1;};
+		int deserialize(char* buffer, int size);
+		QueryResult* getQueryResult();
+		
+	protected:
+		int dataDeserialize(QueryResult** r);
+		int toInt(int* result, string from);
+		int grabElements(QueryBagResult* col);
+		QueryResult* tmpRes;
+		int getULong(unsigned long &val);
+		int stringCopy(char* &newBuffer);
+	
+	private:
+		ErrorConsole *ec;
+		char *bufferBegin;
+		char * bufferEnd;
 };
 
 class StatementPackage : public Package {

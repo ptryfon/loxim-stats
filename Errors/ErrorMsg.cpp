@@ -53,7 +53,8 @@ struct {
 	{EMutexInit,       "EMutexInit"},
 // plug for h_errno from gethostbyname(3)
 	{ENoHost,          "Host not found"},
-
+	{EUnknownPackage,  "Unknown Package Type"},
+	
 // THIS MUST BE THE LAST ENTRY
 	{EUnknown,         "Unknown error"}
 };

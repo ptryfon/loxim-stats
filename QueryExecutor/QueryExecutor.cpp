@@ -1355,8 +1355,29 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		return 0;
 		}
 		case TreeNode::TNREMOTE: {
-			*ec << "zaczynam wezel TNREMOTE";
-			return 1;
+			*ec << "zaczynam wezel TNREMOTE!!!!!!!!!!!!!!!!!!!!!!!!!!!!";
+			vector<ObjectPointer*>* vec;
+			if ((errcode = tr->getRoots(vec)) != 0) {
+				tr->abort();
+				tr = NULL;
+				return errcode;
+			}
+			QueryBagResult *r = new QueryBagResult();
+			int vecSize = vec->size();
+			ec->printf("[QE] %d Roots LID by name taken\n", vecSize);
+			for (int i = 0; i < vecSize; i++ ) {
+				 ObjectPointer *optr = vec->at(i);
+				 LogicalID *lid = optr->getLogicalID();
+				 string name = optr->getName();
+				 
+				*ec << "[QE] LogicalID received";
+				QueryReferenceResult *lidres = new QueryReferenceResult(lid);
+				QueryBinderResult *qbr = new QueryBinderResult(name, lidres);
+				r->addResult(qbr);
+			}
+			delete vec;
+			qres->push(r);
+			return 0;
 		}
 		default:
 			{

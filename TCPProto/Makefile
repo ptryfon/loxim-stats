@@ -9,6 +9,7 @@ SOURCES	=	SimpleResultPackage.cpp \
 			ParamStatementPackage.cpp \
 			ErrorPackage.cpp \
 			RemoteQueryPackage.cpp \
+			RemoteResultPackage.cpp \
 			Tcp.cpp \
 			../Driver/Result.cpp
 

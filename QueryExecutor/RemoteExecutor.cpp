@@ -11,6 +11,7 @@
 #include "QueryResult.h"
 #include "Errors/Errors.h"
 #include "../TCPProto/Tcp.h"
+//#include "../TCPProto/Package.h"
 #include "SessionData.h"
 #include "QueryExecutor.h"
 
@@ -115,9 +116,25 @@ namespace QExecutor {
 		if (err != 0) {
 			return err;
 		}
-		
+		*ec << "wysylam paczke remote";
 		RemoteQueryPackage *rqp = new RemoteQueryPackage();
-		return packageSend(rqp, sock);
+		
+		err = packageSend(rqp, sock);
+		if (err != 0) {
+			return err;
+		}
+		
+		Package* package;
+		err = packageReceive(&package, sock, Package::REMOTERESULT);
+		if (err != 0) {
+			return err;
+		}
+		*ec << "odebralem sekcje stosu";
+		RemoteResultPackage *rrp;
+		rrp = (RemoteResultPackage*) (package);
+		*qr = rrp->getQueryResult();
+		*ec << "poprawnie zakonczylem remote executor";
+		return 0;
 	
 	}
 	

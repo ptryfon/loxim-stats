@@ -86,9 +86,10 @@ namespace Errors {
 
 // plug for h_errno from gethostbyname(3)
 #define ENoHost			0x2400
+#define EUnknownPackage	0x2500
 
 // stopper
-#define EUnknown		0x2500
+#define EUnknown		0x2600
 
 string *SBQLstrerror(int error);
 }

@@ -239,7 +239,7 @@ int QueryReferenceResult::nested(Transaction *&tr, QueryResult *&r, QueryExecuto
 		if (lid->getServer() != "") {
 			 *ec << "zdalne logicalID\n";
 
-		return 0;
+		return 1;
 		}
 		/* end of remoteID processing */
 

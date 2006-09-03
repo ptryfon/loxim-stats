@@ -11,7 +11,7 @@
 #include "../Errors/Errors.h"
 #include "Package.h"
 
-#define PACKAGE_DEBUG
+//#define PACKAGE_DEBUG
 
 namespace TCPProto {
 
@@ -137,18 +137,18 @@ int bufferReceive (char** buffer, int* receiveDataSize, int sock) {
         *receiveDataSize = msgSize;
 
 #ifdef PACKAGE_DEBUG
-	//cerr << "po serializacji: |" << buffer << "| rozmiar: "<<size << endl;
-	//cerr << "odebrano paczke: ";
-	//for (int i = 0; i < 10; i++) {
-	//cerr << (int)(*(messgBuffBeg+i)) << "|";
-	//}
-	//cerr << endl;
+	cerr << "po serializacji: |" << buffer << "| rozmiar: "<<msgSize << endl;
+	cerr << "odebrano paczke: ";
+	for (int i = 0; i < 10; i++) {
+	cerr << (int)(*(messgBuffBeg+i)) << "|";
+	}
+	cerr << endl;
 #endif
 
         return 0;
 }
 
-int packageReceive(Package** package, int sock) {
+int packageReceive(Package** package, int sock, Package::packageType pType) {
 
 	char* ptr;
 	int size, error;
@@ -163,6 +163,12 @@ int packageReceive(Package** package, int sock) {
 		//cerr << "rozmiar < 1, rowny: "<<size <<"\n";
 		return -2; //TODO
 	}
+	
+	if (pType != Package::RESERVED) {
+		cerr << "zmianiam typ odbieranej paczki\n";
+		ptr[0] = (char) pType;
+	}
+	
 	switch (ptr[0]) {
 		case Package::SIMPLEQUERY:
 			*package = new SimpleQueryPackage();
@@ -186,9 +192,11 @@ int packageReceive(Package** package, int sock) {
 		case Package::REMOTEQUERY:
 			*package = new RemoteQueryPackage();
 			break;
+		case Package::REMOTERESULT:
+			*package = new RemoteResultPackage();
+			break;
 		default:
-			//TODO error
-			return -2;
+			return EUnknownPackage | ErrTCPProto;
 	}
 
 	if (0 != (error = (*package)->deserialize(ptr, size)))
