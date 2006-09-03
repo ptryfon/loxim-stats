@@ -610,8 +610,8 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
               if (errcode != 0) return errcode;
 
               if( isStruct ) {
-                ((QueryBagResult *)paramRes)->at(0, paramRes);
-                QueryStructResult *qsr = (QueryStructResult *) paramRes;
+                QueryStructResult *qsr;
+                ((QueryBagResult *)paramRes)->at(0, qsr);
                 bool flag = false;
 
                 for( int i = 0; i < qsr->size(); i++ ) {
