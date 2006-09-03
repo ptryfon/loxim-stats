@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <ios>
+#include <list>
 
 #include "QueryResult.h"
 #include "TransactionManager/Transaction.h"
@@ -604,15 +605,38 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
             if( paramNode ) {
               QueryResult* paramRes;
 
-              errcode = executeRecQuery(paramNode);
-              if (errcode != 0) return errcode;
-              errcode = qres->pop(paramRes);
-              if (errcode != 0) return errcode;
-
               if( isStruct ) {
-                ((QueryBagResult *)paramRes)->at(0, paramRes);
-                QueryStructResult *qsr = (QueryStructResult *) paramRes;
+                // ewaluujemy osobno wszystkie parametry i wrzucamy wyniki do
+                // struktury qsr
+                list<TreeNode *> nodes;
+                vector<QueryResult *> vec;
+                AlgOpNode *commaNode = (AlgOpNode *) paramNode;
+
+                while( commaNode ) {
+                  TreeNode *leftNode = commaNode->getLArg();
+                  TreeNode *rightNode = commaNode->getRArg();
+
+                  nodes.push_front( rightNode );
+                  if( (leftNode->type() == TreeNode::TNALGOP) && ( ((AlgOpNode *) leftNode)->getOp() == AlgOpNode::comma ) ) {
+                    commaNode = (AlgOpNode *) leftNode;
+                  } else {
+                    nodes.push_front( leftNode );
+                    commaNode = NULL;
+                  }
+                }
+
+                for( list<TreeNode *>::iterator it = nodes.begin(); it != nodes.end(); it++ ) {
+                  errcode = executeRecQuery(*it);
+                  if (errcode != 0) return errcode;
+                  errcode = qres->pop(paramRes);
+                  if (errcode != 0) return errcode;
+                  vec.push_back(paramRes);
+                }
+
+                QueryStructResult *qsr = new QueryStructResult( vec );
                 bool flag = false;
+
+                // zapuszczamy Algorytm Stencela na strukturze qsr
 
                 for( int i = 0; i < qsr->size(); i++ ) {
                   QueryResult *qres;
@@ -632,9 +656,21 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
                   paramsStruct->addResult( qres );
                 }
               } else if ( paramsType == TreeNode::TNAS ){
-                ((QueryBagResult *)paramRes)->at(0, paramRes);
-                paramsStruct->addResult(paramRes);
+                errcode = executeRecQuery(paramNode);
+                if (errcode != 0) return errcode;
+                errcode = qres->pop(paramRes);
+                if (errcode != 0) return errcode;
+                QueryBagResult *bag = (QueryBagResult *)paramRes;
+
+                for(int i = 0; i < bag->size(); i++ ) {
+                  bag->at(i, paramRes);
+                  paramsStruct->addResult(paramRes);
+                }
               } else {
+                errcode = executeRecQuery(paramNode);
+                if (errcode != 0) return errcode;
+                errcode = qres->pop(paramRes);
+                if (errcode != 0) return errcode;
                 if( pinf->Params.size() )
                   paramsStruct->addResult(new QueryBinderResult(pinf->Params[0], paramRes));
                 else
