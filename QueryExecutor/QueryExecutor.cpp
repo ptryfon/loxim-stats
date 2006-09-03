@@ -584,8 +584,6 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 
         case TreeNode::TNCALLPROC:
         {
-          printf( "TNCALLPROC:\n%s\n", envs->toString().c_str());
-          printf( "TNCALLPROC:\n%s\n", qres->toString().c_str());
             ProcedureInfo* pinf;
             errcode=getProcedureInfo(tree, pinf);
             if (errcode != 0) return errcode;
@@ -597,29 +595,49 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
             //potem trzeba bedzie usunac wszystko do tego poziomu
             int envsHeight = envs->size();
             int qresHeight = qres->size();
-            
-            QueryBagResult *paramBagRes = new QueryBagResult();
-            if(cpNode->getParNumb() != (int)((pinf->Params).size()))
-            {
-                printf("TTTTTTTTTTTTTVVVVVVVVV node %d, pinf %u\n",cpNode->getParNumb(), (pinf->Params).size() );
-                *ec << "[QE] Errror in TNCALLPROC, to many parameters";
-                return 100000;
+
+            QueryStructResult *paramsStruct = new QueryStructResult();
+            if( cpNode->getParNumb() > 0 ) {
+              QueryResult* paramRes;
+
+              errcode = executeRecQuery(cpNode->getParam(0));
+              if (errcode != 0) return errcode;
+              errcode = qres->pop(paramRes);
+              if (errcode != 0) return errcode;
+
+              printf("!*!*!*!*! type: %d\n", paramRes->type() );
+
+              ((QueryBagResult *)paramRes)->at(0, paramRes);
+
+              switch( paramRes->type() ) {
+                case QueryResult::QSTRUCT: {
+                  paramsStruct = (QueryStructResult *) paramRes;
+                  break;
+                }
+                case QueryResult::QBINDER: {
+                  paramsStruct->addResult(paramRes);
+                  break;
+                }
+                default: {
+                  paramsStruct->addResult(new QueryBinderResult(pinf->Params[0], paramRes));
+                  break;
+                }
+              }
             }
-            for(int i=0; i < cpNode->getParNumb(); i++)
-            {
-                QueryResult* paramRes;
-                errcode= executeRecQuery(cpNode->getParam(i));
-                if (errcode != 0) return errcode;
-                errcode = qres->pop(paramRes);
-                if (errcode != 0) return errcode;
-                QueryBinderResult* paramBind = 
-                  new QueryBinderResult((pinf->Params).at(i), paramRes);
-                paramBagRes->addResult(paramBind);
-            }
+
+            // paramsResult: struktura binderow - parametrow wywolania funkcji
+
+            printf( "*********** paramsStruct:\n%s\n", paramsStruct->toString(0, true).c_str());
+
+            QueryBagResult *paramBagRes = new QueryBagResult(paramsStruct->getVector());
+            paramsStruct->clear();
+            delete paramsStruct;
 
             errcode = envs->push(paramBagRes);
             if (errcode != 0) return errcode;
 
+          printf( "TNCALLPROC:\n%s\n", envs->toString().c_str());
+          printf( "TNCALLPROC:\n%s\n", qres->toString().c_str());
 
             QueryParser* tmpQP = new QueryParser();
             TreeNode* tmpTN;

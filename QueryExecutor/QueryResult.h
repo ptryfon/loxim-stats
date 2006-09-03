@@ -75,7 +75,7 @@ public:
 	virtual bool less_than(QueryResult *r)=0;
 	virtual bool greater_eq(QueryResult *r)=0;
 	virtual bool less_eq(QueryResult *r)=0;
-	virtual int nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe)=0;
+        virtual int nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe)=0;
 	virtual bool isBool()=0;
 	virtual bool isNothing()=0;
 	virtual int getBoolValue(bool &b)=0;
@@ -243,6 +243,8 @@ public:
 
           return result;
         }
+        vector<QueryResult*> getVector() { return str; }
+        void clear() { str.clear(); }
 };
 
 
