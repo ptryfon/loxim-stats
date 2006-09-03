@@ -1224,6 +1224,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 						else
 							errcode = (((QueryBagResult *) lResult)->at(i, currentResult));
 						if (errcode != 0) return errcode;
+						ec->printf("[QE] zaczynam nested()\n");
 						errcode = (currentResult)->nested(tr, newStackSection, this);
 						if (errcode != 0) return errcode;
 						ec->printf("[QE] nested(): function calculated for current row number %d\n", i);

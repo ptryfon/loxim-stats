@@ -224,6 +224,14 @@ int QueryBinderResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor *
 }
 
 int QueryReferenceResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe) {
+	ec->printf("[QE] nested(): QueryReferenceResult");
+	/* remote ID */
+	if ((value != NULL) && (value->getServer() != "")) {
+		*ec << "zdalne logicalID\n";
+		return 1;
+	}
+	/* end of remoteID processing */
+	
 	DataValue* tmp_data_value;
 	int errcode;
 	ObjectPointer *optr;
@@ -234,14 +242,6 @@ int QueryReferenceResult::nested(Transaction *&tr, QueryResult *&r, QueryExecuto
 			tr = NULL;
 			return errcode;
 		}
-		/* remote ID */
-		LogicalID *lid = optr->getLogicalID();
-		if (lid->getServer() != "") {
-			 *ec << "zdalne logicalID\n";
-
-		return 1;
-		}
-		/* end of remoteID processing */
 
 		tmp_data_value = optr->getValue();
 
