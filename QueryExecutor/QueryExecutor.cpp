@@ -600,6 +600,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
             int qresHeight = qres->size();
 
             QueryStructResult *paramsStruct = new QueryStructResult();
+
             if( paramNode ) {
               QueryResult* paramRes;
 
@@ -610,12 +611,34 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 
               if( isStruct ) {
                 ((QueryBagResult *)paramRes)->at(0, paramRes);
-                paramsStruct = (QueryStructResult *) paramRes;
+                QueryStructResult *qsr = (QueryStructResult *) paramRes;
+                bool flag = false;
+
+                for( int i = 0; i < qsr->size(); i++ ) {
+                  QueryResult *qres;
+
+                  errcode = qsr->at(i, qres);
+                  if (errcode != 0) return errcode;
+
+                  if( !flag && (qres->type() != QueryResult::QBINDER) ) {
+                    if( i >= pinf->Params.size() ) {
+                      flag = true;
+                    } else {
+                      qres = new QueryBinderResult( pinf->Params[i], qres );
+                    }
+                  } else {
+                    flag = true;
+                  }
+                  paramsStruct->addResult( qres );
+                }
               } else if ( paramsType == TreeNode::TNAS ){
                 ((QueryBagResult *)paramRes)->at(0, paramRes);
                 paramsStruct->addResult(paramRes);
               } else {
-                paramsStruct->addResult(new QueryBinderResult(pinf->Params[0], paramRes));
+                if( pinf->Params.size() )
+                  paramsStruct->addResult(new QueryBinderResult(pinf->Params[0], paramRes));
+                else
+                  paramsStruct->addResult(paramRes);
               }
             }
 
