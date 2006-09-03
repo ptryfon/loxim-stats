@@ -626,11 +626,23 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
                 }
 
                 for( list<TreeNode *>::iterator it = nodes.begin(); it != nodes.end(); it++ ) {
-                  errcode = executeRecQuery(*it);
+                  TreeNode *node = *it;
+                  bool wypakuj = node->type() == TreeNode::TNAS;
+
+                  errcode = executeRecQuery(node);
                   if (errcode != 0) return errcode;
                   errcode = qres->pop(paramRes);
                   if (errcode != 0) return errcode;
-                  vec.push_back(paramRes);
+                  if( wypakuj ) {
+                    QueryBagResult *bag = (QueryBagResult *)paramRes;
+
+                    for(int i = 0; i < bag->size(); i++ ) {
+                      bag->at(i, paramRes);
+                      vec.push_back(paramRes);
+                    }
+                  } else {
+                    vec.push_back(paramRes);
+                  }
                 }
 
                 QueryStructResult *qsr = new QueryStructResult( vec );
