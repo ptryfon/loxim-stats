@@ -63,6 +63,7 @@ extern pthread_t pulseThreads[];
 		char *serialBufBegin;
 		char *serialBufEnd;
 		int serialBufSize;
+		vector<TreeNode*> parsedStatements;	/* Czarek */
 		ErrorConsole *ec;
 		pthread_t pulseChecker_id;
 

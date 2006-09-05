@@ -417,8 +417,9 @@ int Server::Run()
 	qEx = new QueryExecutor();
 
 	qEx->set_priviliged_mode( is_priviliged_mode() );
-	TreeNode *tNode;
-	QueryResult *qResult;
+	TreeNode             *tNode;
+	map<string, Result*>  qParams;
+	QueryResult          *qResult;
 
 	*ec << "[Server.Run]--> Creating message buffers.. \n";
 
@@ -455,61 +456,77 @@ while (!signalReceived) {
 	if (res != 0) {
 	    ec->printf("[Server.Run]--> Receive returned error code %d\n", res);
 	    return res;
+	} else {
+	    ec->printf("[Server.Run]--> Received package type: %d\n", package->getType());
 	}
 
-	SimpleQueryPackage* sqp;
-	RemoteQueryPackage* rqp;
+
 	Package::packageType pType = package->getType(); 
-	
-	switch (pType) {
-		case Package::SIMPLEQUERY:
-			sqp = (SimpleQueryPackage*) package;
-			messgBuff = sqp->getQuery();
-			size = sqp->getQuerySize();
-			delete package;
-	
-			if (messgBuff==NULL) {
-			    *ec << "[Server.Run]--> Error in receive, client terminated??";
-			    *ec << "[Server.Run]--> Assuming client loss for that thread - TERMINATING thread";
-			    qEx->abort();
-			    qPa->QueryParser::~QueryParser();
-			    qEx->QueryExecutor::~QueryExecutor();
-			    return ErrServer + EClientLost; //TODO Error
-			}
-			break;
-		case Package::REMOTEQUERY:
-			*ec << "odebralem zadanie remote";
-			tNode = new RemoteNode();
-			//return 1;
-		break;
-		default:
-			//TODO error
-			return -1;
-	}	
 
-	*ec << "[Server.Run]--> Blocking sigint again..";
-	sigprocmask(SIG_BLOCK, &block_cc, NULL);
+	if (pType == Package::REMOTEQUERY) {
+		*ec << "odebralem zadanie remote";
+		tNode = new RemoteNode();
+		
+		*ec << "[Server.Run]--> Blocking sigint again..";
+		sigprocmask(SIG_BLOCK, &block_cc, NULL);
+		
+		ec->printf("[Server.Run]--> remote query 2x\n");
+	}
 
-	switch (pType) {
-		case Package::SIMPLEQUERY:
-			ec->printf("[Server.Run]--> Requesting PARSE: |%s| \n", messgBuff);
-			res = (qPa->parseIt((string) messgBuff, tNode));
-			if (res != 0) {
-			    ec->printf("[Server.Run]--> Parser returned error code %d\n", res);
-			    sendError(res);
-			    ncError=1;
-			    continue;
-			}
-			free(messgBuff);
-			break;
-		case Package::REMOTEQUERY:
-			ec->printf("[Server.Run]--> remote query 2x\n");
-			break;
-		default:
-			ec->printf("[Server.Run]--> impossible\n");
-			//impossible
-			return -1;
+	if ((pType == Package::SIMPLEQUERY) || 
+		(pType == Package::PARAMQUERY)) {
 			
+		SimpleQueryPackage* sqp = (SimpleQueryPackage*) package;
+		messgBuff = sqp->getQuery();
+		size = sqp->getQuerySize();
+		//delete package; // it will be used later as a ParamQuery
+	
+		if (messgBuff==NULL) {
+		    *ec << "[Server.Run]--> Error in receive, client terminated??";
+		    *ec << "[Server.Run]--> Assuming client loss for that thread - TERMINATING thread";
+		    qEx->abort();
+		    qPa->QueryParser::~QueryParser();
+		    qEx->QueryExecutor::~QueryExecutor();
+		    return ErrServer + EClientLost; //TODO Error
+		}
+	
+	
+		*ec << "[Server.Run]--> Blocking sigint again..";
+		sigprocmask(SIG_BLOCK, &block_cc, NULL);
+	
+		ec->printf("[Server.Run]--> Requesting PARSE: |%s| \n", messgBuff);
+		res = (qPa->parseIt((string) messgBuff, tNode));
+		if (res != 0) {
+		    ec->printf("[Server.Run]--> Parser returned error code %d\n", res);
+		    sendError(res);
+		    ncError=1;
+		    continue;
+		}
+		free(messgBuff);
+		*ec << "[Server.Run]--> Query has been parsed ";
+	}
+	
+	if (pType == Package::PARAMQUERY) {
+		*ec << "[Server.Run]--> Sending statement";
+		StatementPackage* stmtPkg = new StatementPackage();
+		stmtPkg->setStmtNr(parsedStatements.size());
+		parsedStatements.push_back(tNode);
+
+		res = packageSend(stmtPkg, getSocket());
+		if (res != 0) {
+			ec->printf("[Server.Run]--> packageSend returned error code %d\n", res);
+			*ec << "[SERVER]--> ends with ERROR";
+		}
+		delete package;
+		continue;
+	}
+
+	if (pType == Package::PARAMSTATEMENT) {
+	  *ec << "[Server.Run]--> Taking statement's number";
+	  ParamStatementPackage* psp = dynamic_cast<ParamStatementPackage*> (package);
+	  ec->printf("[Server.Run]--> taking parsed statement of nr: %d\n", psp->getStmtNr());
+	  tNode   = parsedStatements.at(psp->getStmtNr());
+	  //qParams = psp->getParams();
 	}
 
 #ifdef PULSE_CHECKER_ACTIVE
@@ -531,7 +548,16 @@ while (!signalReceived) {
 #endif
 
 	ec->printf("[Server.Run]--> Requesting EXECUTE on tree node: |%d| \n", (int) tNode);
-	res = (qEx->executeQuery(tNode, &qResult));
+	if (package->getType() == Package::PARAMSTATEMENT) {
+		ParamStatementPackage* psp = (ParamStatementPackage*) package;
+		cerr << "Server: [Server.Run]--> with params ";
+		cerr << *psp << endl; // why can't *ec be an ostream?? ghrr...
+		
+		res = (qEx->executeQuery(tNode, &(psp->getQueryParams()), &qResult));
+	}
+	else {
+		res = (qEx->executeQuery(tNode, &qResult));	
+	}
 #ifdef PULSE_CHECKER_ACTIVE
 	cancelPC(pulseChecker_id);
 #endif

@@ -6,11 +6,14 @@
 #include "../Driver/DriverManager.h"
 #include "../Driver/Result.h"
 
+//#define ANS_PARAMETER_ADDITION_ACTIVE  // $ans parameter holds the result of the last query
+
+
 using namespace std;
 using namespace Driver;
 
 void read_and_execute(istream &in, Connection *con );
-void execute_query(Connection *con, string &query);
+void execute_query(Connection *con, string &query, Result** lastResult);
 
 void printMsg (string str)
 {
@@ -80,6 +83,7 @@ int main (int argc, char *argv[])
   
   string line;			// one line of a query
   string input;			// whole query (possibly multi line)
+  Result *result = new ResultVoid();
 
   printMsg (" > ");
   try
@@ -104,7 +108,7 @@ int main (int argc, char *argv[])
 	  }
 	else
 	{
-	    execute_query(con, input);
+	    execute_query(con, input, &result);
 	}
       }	//while
 
@@ -117,7 +121,7 @@ int main (int argc, char *argv[])
     
   /* sending abort on exit */
   cerr << endl << "<SBQLCli> auto abort on exit " << endl;
-  Result *result = NULL;
+  if (result != NULL) delete result;
   try
   {
     result = con->execute ("abort;");
@@ -161,7 +165,7 @@ void read_and_execute(istream &in, Connection *con ) {
 	  }
 	else
 	{
-	    execute_query(con, input);
+	  execute_query(con, input, NULL);
 	}
       }	//while
 
@@ -174,32 +178,38 @@ void read_and_execute(istream &in, Connection *con ) {
 
 };
 
-void execute_query(Connection *con, string &input) {
-	    cerr << "<SBQLCli> Zapytanie: " << input << endl;
-
-	    try
-	    {
-		/*
-		  stmt   = con->parse(input.c_str());
-          stmt->addParam("ans", result);
-          stmt->addParam("empty", NULL);
-          resultTmp = con->execute(stmt);
-          delete stmt;
-          delete result;
-          result = resultTmp;
-        */
-	     Result *result    = NULL;
-	      result = con->execute (input.c_str ());
-	    /**/	      
-	      cout << *result << endl;
-
-	    }
-	    catch (ConnectionServerException e)
-	    {			//parse error, or smth.
-	      cerr << e << endl;
-	    }
-
-	    input.clear ();
-	    printMsg (" > ");
-
+/** result is result of the last query, possibly needed by $ans paramiter */
+void execute_query(Connection *con, string &input, Result **result) {
+  cerr << "<SBQLCli> Zapytanie: " << input << endl;
+  
+  try
+    {
+    
+#ifdef ANS_PARAMETER_ADDITION_ACTIVE 
+	  cerr<< "<SBQLCli> adding last result as a parameter $ans = " << **result << endl;
+      Result* resultTmp;
+      Statement* stmt;
+      stmt   = con->parse(input.c_str());
+      stmt->addParam("ans", *result);
+      resultTmp = con->execute(stmt);
+      delete stmt;
+      delete *result;
+      *result = resultTmp;
+#endif
+    
+#ifndef ANS_PARAMETER_ADDITION_ACTIVE 
+      //if (*result != NULL) delete *result;
+      *result = con->execute (input.c_str ());
+#endif
+      cout << **result << endl;
+      
+    }
+  catch (ConnectionServerException e)
+    {			//parse error, or smth.
+      cerr << e << endl;
+    }
+  
+  input.clear ();
+  printMsg (" > ");
+  
 }

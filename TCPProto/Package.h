@@ -161,14 +161,26 @@ public:
 		{ ParamStatementPackage::params = params; }
 	map<string, Result*> getParams() 
 		{ return params; }
+	void        setQueryParams(map<string, QueryResult*> queryParams) 
+		{ ParamStatementPackage::queryParams = queryParams; }	  
+	map<string, QueryResult*> getQueryParams() 
+		{ return queryParams; }
 	virtual ~ParamStatementPackage() {}
 private:
 	map<string, Result*> params;
 	map<string, QueryResult*> queryParams;
 	int getString(string* str);	
-	int getQueryResult(QueryResult** result);	
-	int setString(string str);	
+	int setString(string str);
+	int getStringLength(string str);	
+	int setDouble(double val);
+	int getDouble(double *val);
 	int setResult(Result* result);
+	int setResultCollection(ResultCollection* result);
+	int setResultOld(Result* result);
+	int getResultCollectionLength(ResultCollection* collection);
+	int getResultLength(Result* result);
+	int getQueryResultCollection(QueryResult* collection);
+	int getQueryResult(QueryResult** result);		
 
 	friend ostream& operator<<(ostream&, ParamStatementPackage&);	
 };
