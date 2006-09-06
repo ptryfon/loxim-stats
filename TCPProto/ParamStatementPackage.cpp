@@ -87,6 +87,11 @@ namespace TCPProto {
 		
 		error  = getULong(&paramCount);
 		if (error != 0) return -2;
+
+		cerr << "length: " << length << endl;
+		//		cerr << "stmtNr: " << stmtNr << endl;
+		cerr << "paramCount: " << paramCount << endl;
+
 				
 		for (unsigned long i=0; i < paramCount; i++) {
 			string paramName;
@@ -97,11 +102,8 @@ namespace TCPProto {
 		}
 		
 		free(buffer);
-		/*
-		cerr << "length: " << length << endl;
-		cerr << "stmtNr: " << stmtNr << endl;
-		cerr << "paramCount: " << paramCount << endl;
-		*/
+
+
 		return 0;
 	}
 	
@@ -135,6 +137,8 @@ namespace TCPProto {
 		free(chr);
 		
 		bufferBegin = tmpPtr; //skip the number of elements (long)
+
+		cerr << "string: " << *str << endl;
 		return 0;
 	}
 	
@@ -154,7 +158,8 @@ namespace TCPProto {
 	}
 	
 	int ParamStatementPackage::getStringLength(string str) {
-		return sizeof(unsigned long) + str.length() + 1; //string size + string ln + '\0'
+		return sizeof(unsigned long) + str.length() + 1;
+		//string size + string ln + '\0'
 	}
 	
 	
@@ -181,11 +186,13 @@ namespace TCPProto {
 		error = getULong(&(out[1]));
 		if (error != 0) return -2;
 		
+		cerr << "double: " << *val << endl;
 		return 0;	
 	}
 	
 	int ParamStatementPackage::getResultCollectionLength(ResultCollection* collection) {
 		int length = 0; // why not 1? We don't need to add ResultCollection type
+		length += sizeof(unsigned long); //collection size
 		int i;
 		for(i=0;i < collection->size(); i++) {
 			length += getResultLength(collection->get(i));
@@ -250,7 +257,8 @@ namespace TCPProto {
 			break;
 		
 		case Result::DOUBLE:
-			length += sizeof(double);
+		        //length += sizeof(double);
+		        length += 2*sizeof(unsigned long);
 			break;
 		
 		case Result::BINDER:
@@ -302,7 +310,7 @@ namespace TCPProto {
 		ResultString*   rstring;
   		ResultInt*      rint;
   		ResultDouble*   rdouble;
-  		//ResultBool*     rbool;
+		ResultBool*     rbool;
   		ResultReference* rref;
   		//ResultVoid*     rvoid;
   		ResultError*    rerror;
@@ -353,11 +361,20 @@ namespace TCPProto {
 			break;
 		
 		case Result::BOOLTRUE:
+		        setULong(0);
 			break;
 		
 		case Result::BOOLFALSE:
+		        setULong(1);
 			break;
-					
+			
+		case Result::BOOL:
+		        rbool  = (ResultBool*) result;
+			if (rbool->getValue() == true)
+			  setULong(0);
+			else
+			  setULong(1);
+			break;
 		case Result::DOUBLE:
 			rdouble = (ResultDouble*) result;
 			setDouble(rdouble->getValue());
@@ -375,20 +392,23 @@ namespace TCPProto {
 		} // switch
 		
 	
-		bufferBegin = tmpPtr;
+		//bufferBegin = tmpPtr;
 		return 0;
 	}
 
 	int ParamStatementPackage::getQueryResultCollection(QueryResult* collection) {
 		QueryResult*		 result;
-		QuerySequenceResult* qsequence;
+		QuerySequenceResult*     qsequence;
 		QueryBagResult*		 qbag;
 		QueryStructResult*	 qstruct;
 		
 		unsigned long length, i;
 		getULong(&length);
 
+		cerr << "col ln: " << length << endl;
+
 		for(i=0; i < length; i++) {
+		  cerr << "Buffer begin: " << (int)bufferBegin << endl;
 			getQueryResult(&result);
 			switch(collection->type()) {
 			case Result::SEQUENCE:
@@ -455,6 +475,8 @@ namespace TCPProto {
 			str.clear();
 			getString(&str);
 			sscanf(str.c_str(), "%d", &id);
+			cerr << "reference string: " << str << endl;
+			cerr << "reference int:    " << id  << endl;
 			qref->setValue(new DBLogicalID(id));
 			break;
 			

@@ -212,20 +212,20 @@ Result* Connection::oldExecute(const char* query) throw (ConnectionException) {
 }
 
 Result* Connection::execute(const char* query) throw (ConnectionException) {
-	SimpleQueryPackage spackage;
+        SimpleQueryPackage spackage;
 	//cerr << "zaczynam execute\n";
 	spackage.setQuery(query);
 	int error;
-    error = packageSend(&spackage, sock);
-    //cerr << "kod bledu wysylania: "<< error << endl;
-    //TODO lepsza diagnostyka bledow
+	error = packageSend(&spackage, sock);
+	//cerr << "kod bledu wysylania: "<< error << endl;
+	//TODO lepsza diagnostyka bledow
 	if (error != 0) throw ConnectionIOException(error);
 	Package* package;
 	//return oldReceive();
-    error = packageReceive(&package, sock);
-    //cerr << "kod bledu odbioru: "<< error << endl;
+	error = packageReceive(&package, sock);
+	//cerr << "kod bledu odbioru: "<< error << endl;
 	if (error != 0) throw ConnectionIOException(error);
-
+	
 	if (package->getType() == Package::ERRORRESULT) {
 	    //cerr << "execute --> odebralem paczke bledowa\n";
 	    ErrorPackage* ep = dynamic_cast<ErrorPackage*> (package);
@@ -255,13 +255,13 @@ Result* Connection::execute(Statement* stmt) throw (ConnectionException) {
 	Package* package;
 	error = packageReceive(&package, sock);
 	if (error != 0) throw ConnectionIOException(error);
-	
+
 	if (package->getType() == Package::ERRORRESULT) {
 	    ErrorPackage* ep = dynamic_cast<ErrorPackage*> (package);
 	    throw ConnectionServerException((int)ep->getError());		
 	    return ep->getResult();
 	}
-	
+
 	if (package->getType() != Package::SIMPLERESULT) throw ConnectionException("incorrect data received");
 	SimpleResultPackage* srp = dynamic_cast<SimpleResultPackage*> (package);
 	return srp->getResult();
@@ -279,6 +279,12 @@ Statement* Connection::parse(const char* query) throw (ConnectionException) {
 	error = packageReceive(&package, sock);
 	if (error != 0) throw ConnectionIOException(error);
 
+	if (package->getType() == Package::ERRORRESULT) {
+	    ErrorPackage* ep = dynamic_cast<ErrorPackage*> (package);
+	    throw ConnectionServerException((int)ep->getError());		
+	    //return ep->getResult();
+	    return NULL;
+	}
 	if (package->getType() != Package::STATEMENT) throw ConnectionException("incorrect data received");
 	StatementPackage* stmtPkg = dynamic_cast<StatementPackage*> (package);
 	

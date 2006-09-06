@@ -6,7 +6,7 @@
 #include "../Driver/DriverManager.h"
 #include "../Driver/Result.h"
 
-//#define ANS_PARAMETER_ADDITION_ACTIVE  // $ans parameter holds the result of the last query
+#define ANS_PARAMETER_ADDITION_ACTIVE  // $ans parameter holds the result of the last query
 
 
 using namespace std;
@@ -180,13 +180,15 @@ void read_and_execute(istream &in, Connection *con ) {
 
 /** result is result of the last query, possibly needed by $ans paramiter */
 void execute_query(Connection *con, string &input, Result **result) {
+  
   cerr << "<SBQLCli> Zapytanie: " << input << endl;
   
   try
     {
     
 #ifdef ANS_PARAMETER_ADDITION_ACTIVE 
-	  cerr<< "<SBQLCli> adding last result as a parameter $ans = " << **result << endl;
+      cerr << "<SBQLCli> adding last result as a parameter $ans = " 
+	   << **result << endl;
       Result* resultTmp;
       Statement* stmt;
       stmt   = con->parse(input.c_str());
