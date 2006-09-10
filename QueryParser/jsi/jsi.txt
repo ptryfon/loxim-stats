@@ -1,0 +1,37 @@
+EMP where SAL = ((EMP where NAME = "sitek").SAL)
+(EMP join NAME)  where SAL = (EMP where NAME = "kuba" ).SAL
+
+(EMP.(NAME, SAL) as "SAL")  where SAL = (EMP where NAME = "kuba" ).SAL
+
+(EMP.(NAME group as N, SAL group as S) group as DWA)  where S = (EMP where NAME = "kuba" ).SAL
+
+(EMP.(NAME group as N, SAL group as S))  where S = (EMP where NAME = "kuba" ).SAL
+
+-------------------------------------------
+/
+ 
+EMP.(SAL, NAME);
+/
+
+deref(EMP.(SAL, NAME));
+/
+
+EMP.(SAL group as S, NAME group as N);
+/
+
+deref(EMP.(SAL group as S, NAME group as N));
+/
+
+EMP join (SAL, NAME);
+/
+deref(EMP join (SAL, NAME));
+/
+
+EMP join (SAL join NAME);
+/
+deref(EMP join (SAL join NAME));
+/
+
+
+
+
