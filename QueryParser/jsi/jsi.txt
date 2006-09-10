@@ -1,3 +1,5 @@
+test eclipsa
+
 EMP where SAL = ((EMP where NAME = "sitek").SAL)
 (EMP join NAME)  where SAL = (EMP where NAME = "kuba" ).SAL
 
