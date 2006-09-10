@@ -20,6 +20,7 @@ namespace QParser
 	virtual int parseIt (string s, TreeNode *&aTree);
 	
 	virtual int testParse (string s, TreeNode *&aTree);
+	virtual void testDeath ();
 	virtual void setQres(StatQResStack *nq);
 	virtual void setEnvs(StatEnvStack *ne);
         virtual int statEvaluate(TreeNode *&tn);	

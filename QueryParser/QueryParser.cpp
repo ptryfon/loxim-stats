@@ -6,6 +6,7 @@
 #include "Stack.h"
 #include "DataRead.h"
 #include "QueryParser.h"
+#include "DeathRmver.h"
 #include "../Errors/ErrorConsole.h"
 #include "../Errors/Errors.h"
 #include "../Config/SBQLConfig.h"
@@ -117,7 +118,36 @@ namespace QParser {
 	} else Deb::ug(" optimisation is set OFF !\n");
 
 	Deb::ug(" ParseIt() ends successfully!");
+	//testDeath();
 	return 0;
+    }
+    
+    void QueryParser::testDeath(){
+    	string zap = "(EMP join (WORKS_IN.DEPT)).NAME;";
+	    cout << "TESTDEATH START---------------------------------------------------------------------------------" << endl;
+	    stringstream ss (stringstream::in | stringstream::out);
+	    ss << zap;
+	    lexer = new yyFlexLexer(&ss); 
+	    int res = yyparse();
+	
+		cout << "parse result: " << res << endl;
+	    delete lexer;
+	    TreeNode *tree = d;
+
+	    printf( "po parsowaniu treeNode: %d. \n", tree);
+	    cout << "Odczyt z drzewka, ktore przekazuje:" << endl;
+	    cout << "--------------------------------------" << endl;
+	    tree->putToString();
+	    cout << "\n--------------------------------------" << endl;
+    	    QParser::DeathRmver *rmver = new QParser::DeathRmver(this);
+	    int reslt;
+	    cout << "now the following tree will be evaluated statically.." << endl;
+	    TreeNode *nt = d->clone();
+
+		rmver.rmvDeath(nt);
+		
+	    cout << "TEST END__---------------------------------------------------------------------------------" << endl;
+		cout << "koniec testDeath\n";
     }
 
     int QueryParser::testParse (string query, TreeNode *&qTree) {
