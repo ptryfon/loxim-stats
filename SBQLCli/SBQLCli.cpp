@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <fstream>
+#include <pthread.h>
 #include <string>
 #include <unistd.h>
 #include "../Driver/DriverManager.h"
@@ -12,13 +13,37 @@
 using namespace std;
 using namespace Driver;
 
+pthread_t pulseT;
+pthread_mutex_t cliMut = PTHREAD_MUTEX_INITIALIZER;
+struct pInfo {
+    char *host;
+    const char *login;
+    const char *passwd;
+    int port;
+    pthread_t id;
+};
+
 void read_and_execute(istream &in, Connection *con );
 void execute_query(Connection *con, string &query, Result** lastResult);
+
 
 void printMsg (string str)
 {
   if (isatty (0))
     cout << str;
+}
+
+void *pulseRun(void *arg) {
+    pInfo pI = *(pInfo *)arg;
+    int status;
+    //cout << "Oto: " << pI.host << " " << pI.port << " " << pI.login << " " << pI.passwd << "\n";
+    Connection *pcCon; 
+    pcCon = DriverManager::getConnection(pI.host, pI.port, pI.login, pI.passwd, 0);
+    //printMsg("\npulseRun-->Joining\n");
+    pthread_join(pI.id, (void **)&status);
+    //printMsg("\npulseRun-->Exiting\n");
+    delete pcCon;
+    pthread_exit((void *)0); 
 }
 
 void read_login(string &login) {
@@ -66,19 +91,32 @@ int main (int argc, char *argv[])
   read_passwd(passwd);
   if ("" == passwd) passwd = "not_a_password";  
   /* establishing connection */
+  //Connection *pcCon;
   Connection *con;
+  pthread_t myTid = pthread_self();
+  int error;
+  pInfo cI;
+  cI.host = host;
+  cI.port = port+1;
+  cI.login = login.c_str(); cI.passwd = passwd.c_str(); 
+  cI.id = myTid;
   try
   {
-    //Adam - odkomentuj te jedna linijke:
-    //con = DriverManager::getConnection(host, port+1);
-    con = DriverManager::getConnection (host, port, login.c_str(), passwd.c_str());
+    //printMsg("Getting connection...\n");
+    con = DriverManager::getConnection (host, port, login.c_str(), passwd.c_str(), 1);
+    //printMsg("Got main connection, getting pulse connection...\n");
+    if ((error = pthread_create(&pulseT, NULL, pulseRun, &cI))!=0) {
+	cout << "thread creation failed with " << error;
+    }
+    //printMsg("Got pulse connection, I am %d\n", (int)pthread_self());
+        
   }
   catch (ConnectionException e)
   {
     cerr << e << endl;
     exit (1);
   }
-    
+  
   printMsg ("\n");
   
   string line;			// one line of a query
@@ -132,6 +170,7 @@ int main (int argc, char *argv[])
     cerr << e << endl;
   }
 
+  //delete pcCon;
   delete con;
   return 0;
 }
