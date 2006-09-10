@@ -134,7 +134,7 @@ namespace QParser {
 	    delete lexer;
 	    TreeNode *tree = d;
 
-	    printf( "po parsowaniu treeNode: %d. \n", tree);
+	    printf( "po parsowaniu treeNode: %d. \n", (int) tree);
 	    cout << "Odczyt z drzewka, ktore przekazuje:" << endl;
 	    cout << "--------------------------------------" << endl;
 	    tree->putToString();
@@ -144,7 +144,7 @@ namespace QParser {
 	    cout << "now the following tree will be evaluated statically.." << endl;
 	    TreeNode *nt = d->clone();
 
-		rmver.rmvDeath(nt);
+		rmver->rmvDeath(nt);
 		
 	    cout << "TEST END__---------------------------------------------------------------------------------" << endl;
 		cout << "koniec testDeath\n";

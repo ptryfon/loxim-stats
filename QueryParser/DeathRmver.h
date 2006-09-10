@@ -6,6 +6,7 @@
 #include <string>
 #include "ClassNames.h"
 #include "TreeNode.h"
+#include "QueryParser.h"
 
 
 using namespace std;
