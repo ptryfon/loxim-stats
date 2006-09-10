@@ -20,7 +20,7 @@ DriverManager::DriverManager() {}
 
 DriverManager::~DriverManager() {}
 
-Connection* DriverManager::getConnection(char* url, int port, const char* login, const char* passwd)
+Connection* DriverManager::getConnection(char* url, int port, const char* login, const char* passwd, int ver)
   throw (ConnectionDriverException)
 {
 	int newSock, error;
@@ -30,7 +30,9 @@ Connection* DriverManager::getConnection(char* url, int port, const char* login,
 		throw ConnectionDriverException(" can't establish connection ");
 	}
 	Connection *con = new Connection(newSock);
-	/* weryfikacja loginu i hasla */	
+	/* weryfikacja loginu i hasla */
+	if (ver==1) {
+	//cerr << "Weyfikuje login i haslo!\n";	
 	try {
 	    con->set_print_err(false);
 	    con->execute("begin");
@@ -54,7 +56,7 @@ Connection* DriverManager::getConnection(char* url, int port, const char* login,
 	    cerr << e << endl;
 	    throw ConnectionDriverException("user validation failed(check login or password) ");
 	}
-	
+	}
 	return con;
 }
 /*

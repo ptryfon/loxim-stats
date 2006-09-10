@@ -9,7 +9,8 @@ class DriverManager
 {
 public:
 	DriverManager();
-	 static Connection* getConnection(char* url, int port, const char* login, const char* passwd)
+	//ver --> czy weryfikowac? Jesli wolisz moze byc oddzielna funkcja.. (Adam)
+	 static Connection* getConnection(char* url, int port, const char* login, const char* passwd, int ver)
 	  throw (ConnectionDriverException);
 	virtual ~DriverManager();
 };
