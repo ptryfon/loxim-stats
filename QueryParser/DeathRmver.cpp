@@ -3,7 +3,7 @@
 
 namespace QParser{
 
-DeathRmver::DeathRmver(QueryParser *&qParser)
+DeathRmver::DeathRmver(QueryParser *qParser)
 {
 	cout << "DeathRmver constr start" << endl;
 	this.qParser = qParser;

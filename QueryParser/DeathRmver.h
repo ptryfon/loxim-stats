@@ -15,12 +15,12 @@ namespace QParser{
 class DeathRmver
 {
 protected:
-	QueryParser *&qParser;	
+	QueryParser *qParser;	
 	TreeNode 	*&qTree;
 	
 	
 public:
-	DeathRmver(QueryParser *&qParser);
+	DeathRmver(QueryParser *qParser);
 	virtual ~DeathRmver();
 	int rmvDeath(TreeNode *&qTree);
 
