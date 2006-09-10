@@ -1,0 +1,54 @@
+begin;
+/
+create("Matematyka" as DNAME,  "1pietro" as LOC) as DEPT;
+/ 
+create("Informatyka" as DNAME, "2pietro" as LOC) as DEPT;
+/ 
+create("Mechanika" as DNAME,   "3pietro" as LOC) as DEPT;
+/ 
+
+create("Adam" as NAME, 100 as SAL) as EMP;
+/
+(EMP where NAME="Adam") :< (create (DEPT where DNAME="Matematyka") as WORKS_IN);
+/
+(EMP where NAME="Adam") :< (create ("BANACHA1" as STREET, 10 as NO) as ADDRESS);
+/
+(EMP where NAME="Adam") :< (create ("Morus" as IMIE, 4 as WIEK) as PIES);
+/
+(EMP where NAME="Adam") :< (create("bialy" as KOLOR, 7 as WIEK) as KOT);
+/
+
+create("Jakub" as NAME, 200 as SAL) as EMP;
+/
+(EMP where NAME="Jakub") :< (create (DEPT where DNAME="Informatyka") as WORKS_IN);
+/
+(EMP where NAME="Jakub") :< (create ("BANACHA2" as STREET, 20 as NO) as ADDRESS);
+/
+(EMP where NAME="Jakub") :< (create ("Sara" as IMIE, 11 as WIEK) as PIES);
+/
+(EMP where NAME="Jakub") :< (create("laciaty" as KOLOR, 3 as WIEK) as KOT);
+/
+
+create("Zygfryd" as NAME, 300 as SAL) as EMP;
+/
+(EMP where NAME="Zygfryd") :< (create (DEPT where DNAME="Mechanika") as WORKS_IN);
+/
+(EMP where NAME="Zygfryd") :< (create ("BANACHA3" as STREET, 30 as NO) as ADDRESS);
+/
+(EMP where NAME="Zygfryd") :< (create ("Rudy" as IMIE, 6 as WIEK) as PIES);
+/
+(EMP where NAME="Zygfryd") :< (create("szary" as KOLOR, 1 as WIEK) as KOT);
+/
+
+create("Antoni" as NAME, 400 as SAL) as EMP;
+/
+(EMP where NAME="Antoni") :< (create (DEPT where DNAME="Informatyka") as WORKS_IN);
+/
+(EMP where NAME="Antoni") :< (create ("Mazowiecka" as STREET, 41 as NO) as ADDRESS);
+/
+(EMP where NAME="Antoni") :< (create ("Pacan" as IMIE, 17 as WIEK) as PIES);
+/
+(EMP where NAME="Antoni") :< (create("bury" as KOLOR, 2 as WIEK) as KOT);
+/
+end;
+/

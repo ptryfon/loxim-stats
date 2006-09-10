@@ -1,0 +1,112 @@
+begin;
+/
+create ("DEPT" as name, "0..*" as card, "complex" as kind) as __MDN__;
+/
+create ("EMP" as name, "0..*" as card, "complex" as kind) as __MDN__;
+/
+
+create ("NAME" as name, "1..1" as card, "atomic" as kind, "string" as type) as subobject;
+/
+(subobject where name="NAME") :< (create (__MDN__ where name="EMP") as owner);
+/
+(__MDN__ where name="EMP") :< (subobject where name="NAME");
+/
+create ("SAL" as name, "1..1" as card, "atomic" as kind, "int" as type) as subobject;
+/
+(subobject where name="SAL") :< (create (__MDN__ where name="EMP") as owner);
+/
+(__MDN__ where name="EMP") :< (subobject where name="SAL");
+/
+create ("WORKS_IN" as name, "1..1" as card, "link" as kind) as subobject;
+/
+(subobject where name="WORKS_IN") :< (create (__MDN__ where name="DEPT") as target);
+/
+(subobject where name="WORKS_IN") :< (create (__MDN__ where name="EMP") as owner);
+/
+(__MDN__ where name="EMP") :< (subobject where name="WORKS_IN");
+/
+create ("ADRESS" as name, "0..*" as card, "complex" as kind) as subobject;
+/
+create ("STREET" as name, "1..1" as card, "atomic" as kind, "string" as type) as subobject;
+/
+(subobject where name="STREET") :< (create (subobject where name="ADRESS") as owner);
+/
+(subobject where name="ADRESS") :< (subobject where name="STREET");
+/
+create ("NO" as name, "1..1" as card, "atomic" as kind, "int" as type) as subobject;
+/
+(subobject where name="NO") :< (create (subobject where name="ADRESS") as owner);
+/
+(subobject where name="ADRESS") :< (subobject where name="NO");
+/
+
+create ("DNAME" as name, "1..1" as card, "atomic" as kind, "string" as type) as subobject;
+/
+(subobject where name="DNAME") :< (create (__MDN__ where name="DEPT") as owner);
+/
+(__MDN__ where name="DEPT") :< (subobject where name="DNAME");
+/
+
+create ("LOC" as name, "1..*" as card, "atomic" as kind, "string" as type) as subobject;
+/
+(subobject where name="LOC") :< (create (__MDN__ where name="DEPT") as owner);
+/
+(__MDN__ where name="DEPT") :< (subobject where name="LOC");
+/
+
+(subobject where name="ADRESS") :< (create (subobject where name="EMP") as owner);
+/
+
+
+(__MDN__ where name="EMP") :< (subobject where name="ADRESS");
+/
+
+
+create ("PIES" as name, "1..1" as card, "complex" as kind) as subobject;
+/
+create ("IMIE" as name, "1..1" as card, "atomic" as kind, "string" as type) as subobject;
+/
+(subobject where name="IMIE") :< (create (subobject where name="PIES") as owner);
+/
+(subobject where name="PIES") :< (subobject where name="IMIE");
+/
+
+create ("WIEK" as name, "1..1" as card, "atomic" as kind, "int" as type) as subobject;
+/
+(subobject where name="WIEK") :< (create (subobject where name="PIES") as owner);
+/
+(subobject where name="PIES") :< (subobject where name="WIEK");
+/
+
+(subobject where name="PIES") :< (create (subobject where name="EMP") as owner);
+/
+(subobject where name="EMP") :< (subobject where name="PIES");
+/
+
+
+
+create ("KOT" as name, "1..1" as card, "complex" as kind) as subobject;
+/
+create ("KOLOR" as name, "1..1" as card, "atomic" as kind, "string" as type) as subobject;
+/
+(subobject where name="KOLOR") :< (create (subobject where name="KOT") as owner);
+/
+(subobject where name="KOT") :< (subobject where name="KOLOR");
+/
+
+create ("WIEK" as name, "1..1" as card, "atomic" as kind, "int" as type) as subobject;
+/
+(subobject where name="WIEK") :< (create (subobject where name="KOT") as owner);
+/
+(subobject where name="KOT") :< (subobject where name="WIEK");
+/
+
+(subobject where name="KOT") :< (create (subobject where name="EMP") as owner);
+/
+(subobject where name="EMP") :< (subobject where name="KOT");
+/
+
+
+end;
+/
+
