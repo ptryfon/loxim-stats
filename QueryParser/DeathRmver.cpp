@@ -6,7 +6,8 @@ namespace QParser{
 DeathRmver::DeathRmver(QueryParser *qParser)
 {
 	cout << "DeathRmver constr start" << endl;
-	this.qParser = qParser;
+	this->qParser = qParser;
+	this->qTree = NULL;
 }
 
 DeathRmver::~DeathRmver()
@@ -17,11 +18,11 @@ int DeathRmver::rmvDeath(TreeNode *&qTree){
 	this.qTree = qTree;
 	cout<< "rmvDeath start" << endl;
 	cout << "dostal :" << endl;
-	qTree.putToString();
+	qTree->putToString();
 	
 	cout<< "rmvDeath end" << endl;
 	cout << "zwraca :" << endl;
-	qTree.putToString();
+	qTree->putToString();
 	return 0;	
 }
 
