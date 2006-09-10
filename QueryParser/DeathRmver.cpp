@@ -7,7 +7,7 @@ DeathRmver::DeathRmver(QueryParser *qParser)
 {
 	cout << "DeathRmver constr start" << endl;
 	this->qParser = qParser;
-	this->qTree = NULL;
+//	this->qTree = NULL;
 }
 
 DeathRmver::~DeathRmver()
@@ -15,7 +15,7 @@ DeathRmver::~DeathRmver()
 }
 
 int DeathRmver::rmvDeath(TreeNode *&qTree){
-	this->qTree = qTree;
+//	this->qTree = qTree;
 	cout<< "rmvDeath start" << endl;
 	cout << "dostal :" << endl;
 	qTree->putToString();
