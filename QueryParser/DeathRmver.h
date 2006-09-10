@@ -17,7 +17,7 @@ class DeathRmver
 {
 protected:
 	QueryParser *qParser;	
-//	TreeNode 	*&qTree;
+	TreeNode 	*qTree;
 	
 	
 public:
