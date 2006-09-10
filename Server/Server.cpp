@@ -53,9 +53,17 @@ void sigHupPC(int sig);
 
 Server::Server(int newSock)
 {
-	Sock = newSock;
+    Sock = newSock;
     ec = new ErrorConsole("Server");
 }
+
+Server::Server(int newSock, int newPcSock)
+{
+    Sock = newSock;
+    pcSock = newPcSock;
+    ec = new ErrorConsole("Server");
+}
+
 
 Server::~Server()
 {
@@ -74,6 +82,12 @@ void Server::Test() {
 }
 
 void Server::cancelPC(pthread_t pulseId) {
+#ifndef PULSE_CHECKER_ACTIVE
+    return;
+#endif
+
+    //Niepotrzebna funkcja
+    return;
     ErrorConsole ec("Server_cancelPC");
     ec.printf("Cancelling PC..");
     pthread_mutex_lock(&mut);
@@ -103,35 +117,36 @@ int Server::getFdContact() {
 }
 
 void *clientPulseCheck(void *arg) {
-    Server srv=*(Server *)arg;
-    int res;
-    int fdCli;
-    char ghostBuff;
+    
     ErrorConsole ec("Server_PulseCheck");
+    ec.printf("clientPulseCheck starts\n");
+    //pthread_exit((void *)0);
+    
+    Server srv=*(Server *)arg;
+    int res=-2;
+    int fdCli;
+    int newSock;
+    char ghostBuff;
+    
+    fdCli=srv.getPCSocket();
+    Listener::ListenOnSocket(fdCli, &newSock);
 
-    fdCli=srv.getSocket();
-
-    pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
-    pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
-    while (1) {
-		res = recv(fdCli, &ghostBuff, 1, 0);
-		ec.printf("RECEIVEEND");
-		if (res<1) {
-			ec.printf("Server.clientPulseCheck]--> Error with select..(%d)  \n", res);
-			perror("recv");
-			ec.printf("PULSECHECK - DEAD - stopExecuting!\n");
-			srv.getQEx()->stopExecuting();
-			ec.printf("...done");
-			sleep(1000);
-		}
-		else if (res>0) {
-			ec.printf("Server.clientPulseCheck]--> Desc. change. (%d)  \n", res);
-			pthread_exit((void *) res);
-		}
-
-
+    ec.printf("PC-RECEIVESTART on socket = %d\n", newSock);
+    //pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+    //pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
+    res = recv(newSock, &ghostBuff, 1, 0);
+    ec.printf("PC-RECEIVEEND with code = %d\n", res);
+	if (res<1) {
+	    //ec.printf("Server.clientPulseCheck]--> Error with select..(%d)  \n", res);
+	    perror("recv");
+	    ec.printf("PULSECHECK - Client lost - stopExecuting!\n");
+	    srv.getQEx()->stopExecuting();
+	    ec.printf("...done");
+	    sleep(1000);
 	}
-
+	else if (res>0)
+	    ec.printf("Server.clientPulseCheck]--> Desc. change(!) (%d)  \n", res);
+	pthread_exit((void *) res);
 }
 
 double Server::htonDouble(double inD) {
@@ -394,11 +409,37 @@ int Server::sendError(int errNo) {
 }
 
 
+int Server::getPCSocket() {
+    return pcSock;
+}
+
+pthread_t Server::pulseCheckRun() {
+#ifndef PULSE_CHECKER_ACTIVE
+	return 0;
+#endif
+	//Create PulseChecker thread
+	int res;
+	pthread_mutex_lock(&mut);
+	pulseCheckerIndex=getPTindex(pthread_self()); //Taki sam index w pulseThreads jak serwer w pthreads
+	res = pthread_create(&pulseThreads[pulseCheckerIndex], NULL, clientPulseCheck, this);
+	ec->printf("[Server.Run]--> Pulse-checker created with code %d \n", res);
+	if (res!=0) {
+	    ec->printf("[Server.Run]--> Pulse-checker thread creation FAILED with %d \n",  res);
+	    //ec->printf("[Server.Run]--> Server continues to run anyway, but performance could be lowered\n");
+	}
+	else {
+	    ec->printf("[Server.Run]--> Pulse-checker CREATED and running at index %d \n", pulseCheckerIndex);
+	    pulseChecker_id=pulseThreads[pulseCheckerIndex];
+	    running_threads_count++;
+	}
+	pthread_mutex_unlock(&mut);
+	return res;
+}
+
 int Server::Run()
 {
 	int size=MAX_MESSG;
 	int res=0;
-	int pulseChecker_index=0;
 
 	//Non-critical error occured?
 	int ncError=0;
@@ -428,7 +469,12 @@ int Server::Run()
 	serialBufSize=MAX_MESSG;
 	serialBuf=serialBufBegin;
 	pulseChecker_id=0;
+	pulseCheckerIndex=0;
 
+#ifdef PULSE_CHECKER_ACTIVE
+	pulseChecker_id = pthread_self();
+	pulseCheckRun();
+#endif
 
 while (!signalReceived) {
 
@@ -455,7 +501,9 @@ while (!signalReceived) {
 
 	if (res != 0) {
 	    ec->printf("[Server.Run]--> Receive returned error code %d\n", res);
-	    return res;
+	    printf("SOck = %d", Sock);
+	    cancelPC(pulseChecker_id);
+    	    return res;
 	} else {
 	    ec->printf("[Server.Run]--> Received package type: %d\n", package->getType());
 	}
@@ -487,6 +535,7 @@ while (!signalReceived) {
 		    qEx->abort();
 		    qPa->QueryParser::~QueryParser();
 		    qEx->QueryExecutor::~QueryExecutor();
+		    cancelPC(pulseChecker_id);
 		    return ErrServer + EClientLost; //TODO Error
 		}
 	
@@ -529,24 +578,6 @@ while (!signalReceived) {
 	  //qParams = psp->getParams();
 	}
 
-#ifdef PULSE_CHECKER_ACTIVE
-	//Create PulseChecker thread
-	pthread_mutex_lock(&mut);
-	pulseChecker_index=getPTindex(pthread_self()); //Taki sam index w pulseThreads jak serwer w pthreads
-	res = pthread_create(&pulseThreads[pulseChecker_index], NULL, clientPulseCheck, this);
-	ec->printf("[Server.Run]--> Pulse-checker created with code %d \n", res);
-	if (res!=0) {
-	    ec->printf("[Server.Run]--> Pulse-checker thread creation FAILED with %d \n",  res);
-	    //ec->printf("[Server.Run]--> Server continues to run anyway, but performance could be lowered\n");
-	}
-	else {
-	    ec->printf("[Server.Run]--> Pulse-checker CREATED and running at index %d \n", pulseChecker_index);
-	    pulseChecker_id=pulseThreads[pulseChecker_index];
-	    running_threads_count++;
-	}
-	pthread_mutex_unlock(&mut);
-#endif
-
 	ec->printf("[Server.Run]--> Requesting EXECUTE on tree node: |%d| \n", (int) tNode);
 	if (package->getType() == Package::PARAMSTATEMENT) {
 		ParamStatementPackage* psp = (ParamStatementPackage*) package;
@@ -558,9 +589,6 @@ while (!signalReceived) {
 	else {
 		res = (qEx->executeQuery(tNode, &qResult));	
 	}
-#ifdef PULSE_CHECKER_ACTIVE
-	cancelPC(pulseChecker_id);
-#endif
 	if (res != 0) {
 	    ec->printf("[Server.Run]--> Executor returned error code %d\n", res);
 	    sendError(res);
@@ -573,6 +601,8 @@ while (!signalReceived) {
 	ec->printf("[Server.Run]--> Got qResult=|%d| of size: qResult->size()=|%d| :\n",  (int)qResult, qResult->size());
 
 	if (qResult == 0) {//TODO
+	    *ec << "[Server.Run]--> qResult is 0";
+	    cancelPC(pulseChecker_id);	
 	    return 0;
 	}
 
@@ -585,6 +615,7 @@ while (!signalReceived) {
 	    ec->printf("[Server.Run--> Serialize returned error code %d\n", res);
 	    sendError(res);
 	    *ec << "[SERVER]--> ends with ERROR";
+	    cancelPC(pulseChecker_id);
 	    return ErrServer+ESerialize;
 	}
 	
@@ -599,6 +630,7 @@ while (!signalReceived) {
 	pack->freeBuffers();
 	if (res != 0) {
 	    ec->printf("[Server.Run]--> PackageSend returned error code %d\n", res);
+	    cancelPC(pulseChecker_id);
 	    return ErrServer+ESend;
 	}
 	delete pack;
@@ -610,6 +642,7 @@ while (!signalReceived) {
 	if (res != 0) {
 	    ec->printf("[Server.Run]--> Send returned error code %d\n", res);
 	    *ec << "[SERVER]--> ends with ERROR";
+	    cancelPC(pulseChecker_id);
 	    return ErrServer+ESend;
 	}
 #endif
@@ -623,6 +656,7 @@ while (!signalReceived) {
 	Disconnect();
 
 	*ec << "[Server.Run]--> <><><>End<><><>";
+        cancelPC(pulseChecker_id);
 	return 0;
 }
 

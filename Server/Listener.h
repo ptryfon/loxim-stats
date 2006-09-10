@@ -21,6 +21,10 @@ using namespace Config;
  *  Waits(listens) for client to communicate.
  *  Creates Server object for each connection	 
  */
+        struct doubleSock {
+	    int sock;
+	    int pcSock;
+	};
 
 	class Listener
 	{
@@ -35,12 +39,14 @@ using namespace Config;
 		static int CreateSocketStatic(int port, int* created_socket);
 		int Lock(void);
 		int Unlock(void);
-
-	private:
 	#define limit 5	// default max number of incomming connections at the same time
+	
+		static int ListenOnSocket(int sock, int* newSocket, int queueLength=limit);
+		
+	private:
 		ErrorConsole* lCons;
+		
 	// TCP methods
-		int ListenOnSocket(int sock, int* newSocket, int queueLength=limit);
 		int CloseSocket(int sock);
 		
 		
@@ -52,6 +58,7 @@ using namespace Config;
 	
 		//pthread_t pthreads[MAX_CLIENTS];
 		int thread_sockets[MAX_CLIENTS];
+		doubleSock thread_sockets_2[MAX_CLIENTS];
 		//int threads_count;
 		
 	};

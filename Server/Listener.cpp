@@ -28,6 +28,7 @@ Listener::Listener()
 {
     lCons = new ErrorConsole("Server");
     memset(thread_sockets, '\0', MAX_CLIENTS);
+    memset(thread_sockets_2, '\0', MAX_CLIENTS);
     memset(takenFields, 0, MAX_CLIENTS);
     memset(pulseThreads, 0, MAX_CLIENTS);
     memset(pthreads, 0, MAX_CLIENTS);
@@ -176,11 +177,11 @@ void sigHandler(int sig) {
 			exit(errorCode);
 		    }   
 		    if (status!=0) {
-			ec.printf("[Listener-sigHandler-Master]--> Server thread nr. |%d| terminated with error\n", i);
+			ec.printf("[Listener-sigHandler-Master]--> Server thread nr %d terminated with error\n", i);
 			longjmp(j,1); 
 		    }
 		    else {
-			ec.printf("[Listener-sigHandler-Master]--> JOINED thread nr.|%d| with pthread_id |%d|\n", i, (int)pthreads[i]);
+			ec.printf("[Listener-sigHandler-Master]--> JOINED thread nr %d with pthread_id |%d|\n", i, (int)pthreads[i]);
 		    } 
 	}
 	ec << "[Listener-sigHandler-Master]--> All threads joined - SUCCESS! Preparing to JUMP";
@@ -216,17 +217,28 @@ void sigHandler(int sig) {
 }    
 
 void *createServ(void *arg) {
-    int socket=*(int *)arg;
+    doubleSock ds = *(doubleSock *)arg;
+    //int socket=*(int *)arg;
     int res;
     ErrorConsole ec("Server");
+    int socket = ds.sock;
+    int pcSocket = ds.pcSock;
     
     ec.printf("[Listener-createServ]--> New server thread reporting. My socket number is |%d|\n", socket);
     if (socket<0) {
 	ec << "[Listener-createServ]--> .. which is really unfortunate. I must quit now";
 	pthread_exit((void *)socket);
     }	
+    ec.printf("[Listener-createServ]--> New server thread reporting. My PC socket number is |%d|\n", pcSocket);
+    if (pcSocket<0) {
+	ec << "[Listener-createServ]--> .. which is really unfortunate. I must quit now";
+	pthread_exit((void *)pcSocket);
+    }
     
-    Server *srv = new Server(socket);
+    
+    //ec << "[Listener-createServ] --> Listening on socket now..";
+    //ls->ListenOnSocket(pcSocket, &newSocket);
+    Server *srv = new Server(socket, pcSocket);
 
     // watek zaczynal sie wykonywac zanim thread_index zostal zwiekszony
     // wiec myslal ze go nie ma, sleep(1) wystarcza w wiekszosci przypadkow
@@ -241,6 +253,7 @@ void *createServ(void *arg) {
 	srvs[res]=srv;
     pthread_mutex_unlock(&mut);	
   
+    
     ec << "[Listener-createServ]--> Executing server code now..";
     res=srv->Run();
     ec.printf("[Listener-createServ]--> Server returned |%d|, exiting \n", res);
@@ -255,6 +268,10 @@ int Listener::Start(int port) {
 	
 	int sock;
 	int newSock=-1;
+	
+	int pcSock;
+	int newPcSock=-2;
+	
 	int isEnd=0;
 	int errorCode=0;
 	int i=0;
@@ -279,6 +296,13 @@ int Listener::Start(int port) {
 	    lCons->printf("[Listener.Start]--> Error in Create Socket: %d\n", errorCode);
 	    return errorCode;
 	}
+	
+	if ((errorCode=CreateSocket(port+1, &pcSock))!=0) {
+	    lCons->printf("[Listener.Start]--> Error in Create Socket: %d\n", errorCode);
+	    return errorCode;
+	}
+	
+	
 	signal(SIGINT, sigHandler);
 	
 	lCons->printf("[Listener.Start]--> Initializing Log manager and Store manager \n");
@@ -301,6 +325,7 @@ int Listener::Start(int port) {
 	    delete TransactionManager::getHandle();
 	    Unlock();
 	    errorCode=CloseSocket(sock);
+	    errorCode=errorCode+CloseSocket(pcSock);
 	    //lCons->printf("[Listener.Start]--> Returning with %d\n", errorCode);
 	    return errorCode;
 	} 
@@ -309,15 +334,21 @@ int Listener::Start(int port) {
 	while ((isEnd==0) && (max_thread_index<MAX_CLIENTS)) {
 	    
 	    ListenOnSocket(sock, &newSock);
-	    lCons->printf("[Listener.Start]--> Got connection!\n");
+	    lCons->printf("[Listener.Start]--> Got connection (%d)!\n", newSock);
+	    //ListenOnSocket(pcSock, &newPcSock);
+	    
 	    sigprocmask(SIG_BLOCK, &lBlock_cc, NULL);
 	    pthread_mutex_lock(&mut);
 	    int ff_index=pickPocket();
 	    lCons->printf("[Listener.Start]--> Max=%d, Current=%d\n", max_thread_index, ff_index);
-	    thread_sockets[ff_index]=newSock;
+	    //thread_sockets[ff_index]=newSock;
+	    doubleSock dS;
+	    dS.sock = newSock;
+	    dS.pcSock = pcSock;
+	    thread_sockets_2[ff_index]=dS;
 	    pthread_mutex_unlock(&mut);    
 	
-	    if ((errorCode=pthread_create(&pthreads[ff_index], NULL, createServ, &thread_sockets[ff_index]))!=0) {
+	    if ((errorCode=pthread_create(&pthreads[ff_index], NULL, createServ, &thread_sockets_2[ff_index]))!=0) {
 		lCons->printf("[Listener.Start]--> THREAD creation FAILED. Failed thread number=|%d|\n", ff_index);
 		lCons->printf("[Listener.Start]--> PTHREAD_CREATE FAILED with %s\n", strerror(errorCode)); 
 		for (i=0;i<max_thread_index+1;i++) {
@@ -359,7 +390,7 @@ int Listener::Start(int port) {
 	    } 
 	}  
 	*lCons << "[Listener.Start]--> All threads terminated normally.. returning..";
-	CloseSocket(sock);
+	CloseSocket(newSock);
 	
 	return 0;
 

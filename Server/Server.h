@@ -34,6 +34,7 @@ extern pthread_t pulseThreads[];
 	{
 	public:
 		Server(int sock);
+		Server(int sock, int pcSock);
 		virtual ~Server();
 		
 		int Run();
@@ -42,9 +43,11 @@ extern pthread_t pulseThreads[];
 		int Receive(char** buffer, int* receiveDataSize);
 		void Test();
 		void cancelPC(pthread_t p);
+		pthread_t pulseCheckRun();
 		
 		QueryExecutor* getQEx();		
 		int getSocket();
+		int getPCSocket();
 		int getFdContact();
 		int pulseCheckerNotify();
 		//static void sigHandler(int sig);
@@ -57,6 +60,8 @@ extern pthread_t pulseThreads[];
 	private:
 		char *bigBuf;
 		int Sock;
+		int onSock;
+		int pcSock;
 		int fdContact;
 		char *messgBuff;
 		char *serialBuf;
@@ -66,6 +71,7 @@ extern pthread_t pulseThreads[];
 		vector<TreeNode*> parsedStatements;	/* Czarek */
 		ErrorConsole *ec;
 		pthread_t pulseChecker_id;
+		int pulseCheckerIndex;
 
 		int sendError(int errNo);
 		QueryExecutor *qEx;

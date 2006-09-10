@@ -109,7 +109,7 @@ int Listener::ListenOnSocket(int sock, int* newSocket, int queueLength)
 
 //	lCons->printf("ListenerTcp: Listening on socket number %d \n", sock);
     if (0 != listen( sock, queueLength )) {
-       *lCons << "blad w listen";
+      // *lCons << "blad w listen";
        return errno | ErrTCPProto;
     }
     
@@ -117,7 +117,7 @@ int Listener::ListenOnSocket(int sock, int* newSocket, int queueLength)
 
     	if ((nowy = accept( sock, (sockaddr*) 0, 0 )) == -1)
         {
-        	*lCons << "blad w accept";	
+        	//*lCons << "blad w accept";	
         	return 1;
         } else
         { 
