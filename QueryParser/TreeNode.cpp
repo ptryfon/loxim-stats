@@ -335,7 +335,7 @@ namespace QParser
 
 	int NameNode::staticEval (StatQResStack *&qres, StatEnvStack *&envs) {
 		Deb::ug("staticEval(Name) \n");
-		
+		cout << "jsi start stEval(name): " + this->name << endl;
 		BinderWrap *bw = envs->bindName(this->name);
 		if (Deb::ugOn()) cout << name << endl;
 		if (bw == NULL) { Deb::ug("name could NOT be bound ! will exit..\n"); return -1;}
@@ -345,9 +345,15 @@ namespace QParser
 		//Deb::ug("ok:%d, ", ((SigRef *) (bw->getBinder()->getValue()))->getRefNo());
 		Signature *sig = bw->getBinder()->getValue()->clone();	//death
 		sig->setDependsOn(this);
+		cout << "jsi set depOn\n";
 		qres->pushSig (sig);
 		this->setDependsOn(bw->getBinder()->getDependsOn());
+		if (bw->getBinder()->getDependsOn() == NULL)
+			cout << "jsi set this->depOn on NULL\n";
+		else 
+			cout << "jsi set this->depOn on " << bw->getBinder()->getDependsOn()->getName() << endl;
 		Deb::ug("result pushed on qres\n");
+		cout << "jsi end nameNode stEval\n";
 		return 0;
 	}
 	int ValueNode::staticEval (StatQResStack *&qres, StatEnvStack *&envs) {
@@ -494,6 +500,7 @@ namespace QParser
 		Signature *toPush = lSig->clone();
 		Deb::ug("just before push/statNested loop\n");
 		if (toPush->isColl()) {
+			cout << "pushing from SigColl\n";
 			Signature *pt = ((SigColl *) toPush)->getMyList();
 			while (pt != NULL) { 
 				if (envs->pushBinders(pt->statNested(pt->getDependsOn())) == 0) 
@@ -501,6 +508,11 @@ namespace QParser
 				pt = pt->getNext();
 			}
 		} else 	{
+			cout << "pushing not coll\n";
+			if (toPush->dependsOn == NULL)
+				cout << "the signature depends on NULL !!!!!\n";
+			else 
+				cout << "the signature depends on " + toPush->dependsOn->getName() << endl;
 			if (envs->pushBinders(toPush->statNested(toPush->getDependsOn())) == 0) 
 				sToPop = 1; 
 			else 
@@ -521,6 +533,11 @@ namespace QParser
 		switch (op) {
 			case NonAlgOpNode::dot :{/*we just take the part to the right of the dot*/
 				qres->pushSig(rSig->clone());
+				cout << "switch(dot) " << endl;
+				if (toPush->dependsOn == NULL)
+					cout << "the signature rSig depends on NULL !!!!!\n";
+				else 
+					cout << "the signature rSig depends on " + toPush->dependsOn->getName() << endl;
 				Deb::ug("dot: pushed rSig on qres\n");
 				break;}
 			case NonAlgOpNode::where: {/*TODO: do we assume the <where> condition is fulfilled ?? */
