@@ -19,11 +19,17 @@ namespace QParser {
     void Deb::ug (const char *fmt, ...) {
 	if (Deb::ugOn()) {
     	    va_list fmt_args;
-	    fprintf(stderr, "[QParser]: ");
+//	    fprintf(stderr, "[QParser]: ");
+//	    va_start(fmt_args, fmt);
+//	    vfprintf(stderr, fmt, fmt_args);
+//	    va_end (fmt_args);
+//	    fprintf(stderr, "\n");
+
+		  fprintf(stdout, "[QParser]: ");
 	    va_start(fmt_args, fmt);
-	    vfprintf(stderr, fmt, fmt_args);
+	    vfprintf(stdout, fmt, fmt_args);
 	    va_end (fmt_args);
-	    fprintf(stderr, "\n");
+	    fprintf(stdout, "\n");
 	}
     }
 
