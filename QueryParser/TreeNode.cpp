@@ -392,7 +392,7 @@ namespace QParser
 		}
 		else qres->pushSig (new StatBinder (this->name, topSig->clone()));
     	*/
-    	StatBinder sb = new StatBinder (this->name, topSig->clone());
+    	StatBinder *sb = new StatBinder (this->name, topSig->clone());
     	sb->setDependsOn(NULL);	// czy to jest ok??
     	qres->pushSig (sb);
     	
