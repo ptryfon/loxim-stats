@@ -344,8 +344,12 @@ namespace QParser
 		Deb::ug("name bound on envs, section nr set to %d, ", bw->getSectNumb());
 		//Deb::ug("ok:%d, ", ((SigRef *) (bw->getBinder()->getValue()))->getRefNo());
 		Signature *sig = bw->getBinder()->getValue()->clone();	//death
-		sig->setDependsOn(this);
-		cout << "jsi set depOn\n";
+		if (sig->getDependsOn() == NULL){
+			sig->setDependsOn(this);
+			cout << "jsi set depOn\n";
+		} else {
+			cout << "jsi sygnatura juz miala ustawione dependsOn, nie ustawia go ponownie\n";	
+		}
 		qres->pushSig (sig);
 		this->setDependsOn(bw->getBinder()->getDependsOn());
 		if (bw->getBinder()->getDependsOn() == NULL)
@@ -379,12 +383,20 @@ namespace QParser
 		Deb::ug( "staticEval(nas) - done with arg\n");
 		Signature *topSig = qres->topSig();
 		qres->pop();
-		if (((Signature *)topSig)->type() == Signature::SBINDER) {/* We simply change the name in the binder..?*/
+		/* to jest wersja oryginalna, wydaje mi sie ze nie poprawna
+		 * jakub sitek nizej napisalem tak jak mi sie wydaje ze jest ok
+		 * tzn nie ma tego prostego zmieniania nazwy bindera, zawsze jest tworzony nowy,
+		if (((Signature *)topSig)->type() == Signature::SBINDER) {// We simply change the name in the binder..?
 			((StatBinder *) topSig)->setName(this->name);
 			qres->pushSig (topSig->clone());
 		}
 		else qres->pushSig (new StatBinder (this->name, topSig->clone()));
-    		return 0;
+    	*/
+    	StatBinder sb = new StatBinder (this->name, topSig->clone());
+    	sb->setDependsOn(NULL);	// czy to jest ok??
+    	qres->pushSig (sb);
+    	
+    	return 0;
 	}
 	
 	int UnOpNode::staticEval (StatQResStack *&qres, StatEnvStack *&envs) {
