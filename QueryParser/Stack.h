@@ -112,6 +112,7 @@ namespace QParser {
 	protected:
 		int typ;
 		Signature *next; 	/* !=NULL when this sign. is part of a collection.. like sequence or bag or sth. */
+		TreeNode *dependsOn;	// death subqry
 	public:
 	    enum SigType {
 		SSEQ      = 1,	/*sigColl */
@@ -130,11 +131,13 @@ namespace QParser {
 		virtual void setNext (Signature *newNext) {this->next = newNext;}
 		virtual Signature *getNext () {return this->next;}
 		
+		virtual TreeNode getDependsOn(){return this->dependsOn;}
+		virtual void setDependsOn(TreeNode *_dependsOn){this->dependsOn = _dependsOn;}
 		virtual int type() {return 0;}
 		virtual bool isAtom () {return false;} /* overridden only in SigAtom */
 		virtual bool isColl () {return false;} /* overridden only in SigColl */
 		virtual bool isBinder () {return false;}
-		virtual BinderWrap *statNested() {return NULL;} /*the default behaviour of a signature*/
+		virtual BinderWrap *statNested(TreeNode * treeNode) {return NULL;} /*the default behaviour of a signature*/
 		virtual Signature *clone();
 		virtual void putToString () { cout << "(signature) ";if (this->next != NULL) next->putToString();}
 		virtual ~Signature() { if (this->next != NULL) delete this->next; }
@@ -165,7 +168,7 @@ namespace QParser {
 			if (this->isEmpty()) {this->setElts(newElt);}
 			else {this->myLast->setNext(newElt); newElt->setNext (NULL); myLast = newElt;}
 		}
-		virtual BinderWrap *statNested();
+		virtual BinderWrap *statNested(TreeNode * treeNode);
 		virtual Signature *clone();							
 		virtual void putToString() {
 			fprintf (stderr, "{");
@@ -211,7 +214,7 @@ namespace QParser {
 		virtual int getRefNo () {return this->refNo;}
 		virtual void setRefNo (int newNo) {this->refNo = newNo;}
 		virtual int type() {return Signature::SREF;}
-		virtual BinderWrap *statNested();/*implmnted in Stack.cpp*/
+		virtual BinderWrap *statNested(TreeNode *treeNode);/*implmnted in Stack.cpp*/
 		virtual Signature *clone();
 		virtual void putToString() {
 			cout << "ref(" << refNo << ") ";
@@ -234,7 +237,7 @@ namespace QParser {
 		virtual void setValue(Signature *newValue) {this->value = newValue;};
 		virtual int type() {return Signature::SBINDER;}
 		virtual bool isBinder() {return true;}
-		virtual BinderWrap *statNested();
+		virtual BinderWrap *statNested(TreeNode *treeNode);
 		virtual Signature *clone();
 		virtual void putToString() {
 			cout << name <<"(";

@@ -32,25 +32,33 @@ namespace QParser {
 		return ns;}
 	Signature* SigAtomType::clone(){
 		SigAtomType *ns = new SigAtomType(atomType);
+		ns->setDependsOn(this->getDependsOn());			// death
 		if (next != NULL) ns->setNext(next->clone());
 		return ns;}
 	Signature* SigRef::clone(){
 		SigRef *ns = new SigRef(refNo);
+		ns->setDependsOn(this->getDependsOn());			// death
 		if (next != NULL) ns->setNext(next->clone());
 		return ns;}
 	Signature* StatBinder::clone(){
 		StatBinder *ns = new StatBinder(name);
+		ns->setDependsOn(this->getDependsOn());			// death
 		if (value != NULL) ns->setValue (value->clone());
 		if (next != NULL) ns->setNext (next->clone());
 		return ns;
 		}
-	BinderWrap* SigRef::statNested() {
+	BinderWrap* SigRef::statNested(TreeNode *treeNode) {
 		Deb::ug("doing statNested on DATA SCHEME ! "); 
-		return DataScheme::dScheme()->statNested(refNo);
+		return DataScheme::dScheme()->statNested(refNo, treeNode);
 		}		
-	BinderWrap* StatBinder::statNested() { return new BinderList((StatBinder *) this);};
+	BinderWrap* StatBinder::statNested(TreeNode *treeNode) { 
+		if (this->dependsOn != treeNode){
+			cout << "jsi ERROR zobacz StatBinder::statNested\n")
+		}
+		return new BinderList((StatBinder *) this);
+	};
 
-	BinderWrap* SigColl::statNested() {
+	BinderWrap* SigColl::statNested(new SigRef (pom->getMyId())) {
 		Deb::ug( "statNested::sigColl -- should not be evoked...");	
 		return NULL;
 		}						

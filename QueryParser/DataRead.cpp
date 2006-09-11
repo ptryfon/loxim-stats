@@ -16,7 +16,7 @@ using namespace std;
 //using namespace Store;
 
 namespace QParser {
-		BinderWrap *DataScheme::statNested (int objId) {
+		BinderWrap *DataScheme::statNested (int objId, TreeNode *treeNode) {
 			DataObjectDef *candidate = this->getObjById(objId);
 			DataObjectDef *pom = NULL;
 //			list<StatBinder *> bindersCol;
@@ -29,7 +29,10 @@ namespace QParser {
 			if (candidate->getKind() == "link") {
 				Deb::ug("object is a link !\n");
 				pom = candidate->getTarget(); /*now pom points to the target object. */
-				StatBinder * sb = new StatBinder (pom->getName(), new SigRef (pom->getMyId()));				
+				SigRef sigRef = new SigRef (pom->getMyId());
+				sigRef->setDependsOn(NULL);
+				StatBinder * sb = new StatBinder (pom->getName(), sigRef);				
+				sb->setDependsOn(treeNode);
 				//bindersCol.push_back(sb);
 				bindersCol = new BinderList(sb);
 				return bindersCol;	//<kolekcja 1-eltowa zawierajaca sb>;				
@@ -57,7 +60,10 @@ namespace QParser {
 		BinderWrap* DataScheme::bindBaseObjects() {
 			BinderList *bw = NULL;
 			for (DataObjectDef *obts = this->getBaseObjects(); obts != NULL; obts = obts->getNextBase()) {
-				StatBinder * sb = new StatBinder (obts->getName(), new SigRef (obts->getMyId()));
+				SigRef *sigRef = new SigRef (obts->getMyId();
+				sigRef->setDependsOn(NULL);		// death
+				StatBinder * sb = new StatBinder (obts->getName(), sigRef));
+				sb->setDependsOn(NULL);
 				if (bw == NULL) bw = new BinderList (sb);
 				else bw = (BinderList *) bw->addPureBinder(sb);			
 			}

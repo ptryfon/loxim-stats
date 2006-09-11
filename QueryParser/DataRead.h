@@ -178,8 +178,8 @@ namespace QParser {
 			
 		};
 		
-		
-		virtual BinderWrap *statNested (int objId);
+		// jsi death - I added treeNode to enable removing death subqueries
+		virtual BinderWrap *statNested (int objId, TreeNode *treeNode);
 //		virtual list<StatBinder *> statNested (int objId); 
 
 		

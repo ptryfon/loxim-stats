@@ -343,8 +343,10 @@ namespace QParser
 		this->setStackSize(envs->getSize());
 		Deb::ug("name bound on envs, section nr set to %d, ", bw->getSectNumb());
 		//Deb::ug("ok:%d, ", ((SigRef *) (bw->getBinder()->getValue()))->getRefNo());
-		
-		qres->pushSig (bw->getBinder()->getValue()->clone());
+		Signature *sig = bw->getBinder()->getValue()->clone();	//death
+		sig->setDependsOn(this);
+		qres->pushSig (sig);
+		this->setDependsOn(bw->getBinder()->getDependsOn());
 		Deb::ug("result pushed on qres\n");
 		return 0;
 	}
@@ -493,8 +495,17 @@ namespace QParser
 		Deb::ug("just before push/statNested loop\n");
 		if (toPush->isColl()) {
 			Signature *pt = ((SigColl *) toPush)->getMyList();
-			while (pt != NULL) { if (envs->pushBinders(pt->statNested()) == 0) sToPop++; pt = pt->getNext();}
-		} else 	{if (envs->pushBinders(toPush->statNested()) == 0) sToPop = 1; else sToPop = 0;}
+			while (pt != NULL) { 
+				if (envs->pushBinders(pt->statNested(pt->getDependsOn())) == 0) 
+					sToPop++; 
+				pt = pt->getNext();
+			}
+		} else 	{
+			if (envs->pushBinders(toPush->statNested(toPush->getDependsOn())) == 0) 
+				sToPop = 1; 
+			else 
+				sToPop = 0;
+		}
 		Deb::ug("pushed static nested result on envs\n");
 		this->setLastOpenSect(envs->getSize());
 		if (this->rarg->staticEval(qres, envs) == -1) return -1;

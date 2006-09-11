@@ -34,6 +34,10 @@ EMP join (SAL join NAME);
 deref(EMP join (SAL join NAME));
 /
 
+prztestowac tez na czyms takim emp join (worksin.dept). name ale gdy dzial ma pole name
+co z derefami??
 
+to statNested(TreeNode * treeNode) to chyba jakas glupota, cyba wystarczy lokalnie sobie
+zadekl treeNode = this->dependsOn()
 
 

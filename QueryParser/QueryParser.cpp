@@ -118,7 +118,7 @@ namespace QParser {
 	} else Deb::ug(" optimisation is set OFF !\n");
 
 	Deb::ug(" ParseIt() ends successfully!");
-	testDeath();
+	//testDeath();
 	return 0;
     }
     

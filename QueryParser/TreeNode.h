@@ -18,6 +18,7 @@ namespace QParser {
     {
     protected:
 	TreeNode* parent;
+	bool needed;		// is not death
 
       string getPrefixForLevel( int level, string name ) {
         string result = "";
@@ -42,7 +43,7 @@ namespace QParser {
 	    TNAS, TNUNOP, TNALGOP, TNNONALGOP, TNTRANS, TNCREATE, TNCOND, TNLINK, TNPARAM, TNFIX, 
 	    TNPROC, TNCALLPROC, TNRETURN, TNVALIDATION, TNCREATEUSER, TNREMOVEUSER, TNPRIVLIST, TNNAMELIST,
 	    TNGRANTPRIV, TNREVOKEPRIV, TNREMOTE};
-	TreeNode() : parent(NULL) {}
+	TreeNode() : parent(NULL) {this->needed = false;}
 	TreeNode* getParent() { return parent; }
 	void setParent(TreeNode* _parent) { parent = _parent; }
 	virtual ~TreeNode() {};
@@ -319,9 +320,15 @@ namespace QParser {
 	string name;
 	int bindSect;
 	int stackSize;
+	TreeNode *dependsOn;		// for removing death subqueries
+			// can be either other name node or group as node
+			// node in which static nested result this NameNode is binded
+			// in dependsOn is null means that this NameNode is binded in base sections
+	
     public:
 	NameNode(string _name) : name(_name) {bindSect = 0; stackSize = 0;}
-
+	virtual TreeNode getDependsOn(){return this->dependsOn;}
+	virtual void setDependsOn(TreeNode *_dependsOn){this->dependsOn = _dependsOn;}
 	virtual int getBindSect() { return this->bindSect;}
 	virtual int getStackSize() {return this->stackSize;}
 	virtual void setBindSect(int newBSect) { this->bindSect = newBSect;}
@@ -331,7 +338,11 @@ namespace QParser {
 	virtual int type() { return TreeNode::TNNAME; }
 	virtual string getName() { return name; }
 	virtual int putToString() {
-	    cout << "("<< this->getName() <<"["<<bindSect << "," << stackSize << "])";    
+	    cout << "("<< this->getName() <<"["<<bindSect << "," << stackSize << "])";   
+	    cout << "depends on: " ;
+	    if (this->dependsOn != NULL)
+	    	cout << (this->dependsOn->getName()); 
+	    else cout <<"NULL ";
 	    return 0;
 	}
 	virtual int staticEval (StatQResStack *&qres, StatEnvStack *&envs);	
