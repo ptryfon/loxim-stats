@@ -62,7 +62,7 @@ namespace QParser {
 			for (DataObjectDef *obts = this->getBaseObjects(); obts != NULL; obts = obts->getNextBase()) {
 				SigRef *sigRef = new SigRef (obts->getMyId());
 				sigRef->setDependsOn(NULL);		// death
-				StatBinder * sb = new StatBinder (obts->getName(), sigRef));
+				StatBinder * sb = new StatBinder (obts->getName(), sigRef);
 				sb->setDependsOn(NULL);
 				if (bw == NULL) bw = new BinderList (sb);
 				else bw = (BinderList *) bw->addPureBinder(sb);			

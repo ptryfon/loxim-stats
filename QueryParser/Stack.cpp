@@ -53,7 +53,7 @@ namespace QParser {
 		}		
 	BinderWrap* StatBinder::statNested(TreeNode *treeNode) { 
 		if (this->dependsOn != treeNode){
-			cout << "jsi ERROR zobacz StatBinder::statNested\n")
+			cout << "jsi ERROR zobacz StatBinder::statNested\n";
 		}
 		return new BinderList((StatBinder *) this);
 	};
