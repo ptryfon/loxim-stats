@@ -326,7 +326,7 @@ namespace QParser {
 			// in dependsOn is null means that this NameNode is binded in base sections
 	
     public:
-	NameNode(string _name) : name(_name) {bindSect = 0; stackSize = 0; dependsOn = null;}
+	NameNode(string _name) : name(_name) {bindSect = 0; stackSize = 0; dependsOn = NULL;}
 	virtual TreeNode* getDependsOn(){return this->dependsOn;}
 	virtual void setDependsOn(TreeNode *_dependsOn){this->dependsOn = _dependsOn;}
 	virtual int getBindSect() { return this->bindSect;}
