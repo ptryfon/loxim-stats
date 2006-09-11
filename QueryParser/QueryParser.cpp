@@ -118,15 +118,21 @@ namespace QParser {
 	} else Deb::ug(" optimisation is set OFF !\n");
 
 	Deb::ug(" ParseIt() ends successfully!");
-	//testDeath();
+	/*
+	cout << "td1------------------------------------------------------------\n";
+	testDeath("EMP.NAME");
+	cout << "td2------------------------------------------------------------\n";
+	testDeath("(EMP join (WORKS_IN.DEPT)).NAME;");
+	cout << "td3------------------------------------------------------------\n";
+	*/
 	return 0;
     }
     
-    void QueryParser::testDeath(){
-    	string zap = "(EMP join (WORKS_IN.DEPT)).NAME;";
+    void QueryParser::testDeath(string _zap){
+//    	string zap = "(EMP join (WORKS_IN.DEPT)).NAME;";
 	    cout << "TESTDEATH START---------------------------------------------------------------------------------" << endl;
 	    stringstream ss (stringstream::in | stringstream::out);
-	    ss << zap;
+	    ss << _zap;
 	    lexer = new yyFlexLexer(&ss); 
 	    int res = yyparse();
 	
