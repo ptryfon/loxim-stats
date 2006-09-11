@@ -60,7 +60,7 @@ namespace QParser {
 		BinderWrap* DataScheme::bindBaseObjects() {
 			BinderList *bw = NULL;
 			for (DataObjectDef *obts = this->getBaseObjects(); obts != NULL; obts = obts->getNextBase()) {
-				SigRef *sigRef = new SigRef (obts->getMyId();
+				SigRef *sigRef = new SigRef (obts->getMyId());
 				sigRef->setDependsOn(NULL);		// death
 				StatBinder * sb = new StatBinder (obts->getName(), sigRef));
 				sb->setDependsOn(NULL);
