@@ -131,7 +131,7 @@ namespace QParser {
 		virtual void setNext (Signature *newNext) {this->next = newNext;}
 		virtual Signature *getNext () {return this->next;}
 		
-		virtual TreeNode getDependsOn(){return this->dependsOn;}
+		virtual TreeNode* getDependsOn(){return this->dependsOn;}
 		virtual void setDependsOn(TreeNode *_dependsOn){this->dependsOn = _dependsOn;}
 		virtual int type() {return 0;}
 		virtual bool isAtom () {return false;} /* overridden only in SigAtom */

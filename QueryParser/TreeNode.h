@@ -327,7 +327,7 @@ namespace QParser {
 	
     public:
 	NameNode(string _name) : name(_name) {bindSect = 0; stackSize = 0;}
-	virtual TreeNode getDependsOn(){return this->dependsOn;}
+	virtual TreeNode* getDependsOn(){return this->dependsOn;}
 	virtual void setDependsOn(TreeNode *_dependsOn){this->dependsOn = _dependsOn;}
 	virtual int getBindSect() { return this->bindSect;}
 	virtual int getStackSize() {return this->stackSize;}

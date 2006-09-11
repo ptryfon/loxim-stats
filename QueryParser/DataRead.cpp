@@ -29,7 +29,7 @@ namespace QParser {
 			if (candidate->getKind() == "link") {
 				Deb::ug("object is a link !\n");
 				pom = candidate->getTarget(); /*now pom points to the target object. */
-				SigRef sigRef = new SigRef (pom->getMyId());
+				SigRef *sigRef = new SigRef (pom->getMyId());
 				sigRef->setDependsOn(NULL);
 				StatBinder * sb = new StatBinder (pom->getName(), sigRef);				
 				sb->setDependsOn(treeNode);
