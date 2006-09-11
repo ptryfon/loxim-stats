@@ -49,6 +49,7 @@ namespace QParser {
 		}
 	BinderWrap* SigRef::statNested(TreeNode *treeNode) {
 		Deb::ug("doing statNested on DATA SCHEME ! "); 
+		cout << "treeNode->getName(): " + treeNode->getName() << endl;
 		return DataScheme::dScheme()->statNested(refNo, treeNode);
 		}		
 	BinderWrap* StatBinder::statNested(TreeNode *treeNode) { 

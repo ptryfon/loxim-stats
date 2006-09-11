@@ -534,10 +534,10 @@ namespace QParser
 			case NonAlgOpNode::dot :{/*we just take the part to the right of the dot*/
 				qres->pushSig(rSig->clone());
 				cout << "switch(dot) " << endl;
-				if (toPush->getDependsOn() == NULL)
+				if (rSig->getDependsOn() == NULL)
 					cout << "the signature rSig depends on NULL !!!!!\n";
 				else 
-					cout << "the signature rSig depends on " + toPush->getDependsOn()->getName() << endl;
+					cout << "the signature rSig depends on " + rSig->getDependsOn()->getName() << endl;
 				Deb::ug("dot: pushed rSig on qres\n");
 				break;}
 			case NonAlgOpNode::where: {/*TODO: do we assume the <where> condition is fulfilled ?? */

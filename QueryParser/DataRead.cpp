@@ -43,7 +43,10 @@ namespace QParser {
 				// <kolekcja statBinderow> *binders = new <pusta kolekcja>;	
 			Deb::ug("one sub - nr: %d.\n", pom->getMyId());
 			while (pom != NULL) {
-				StatBinder * sb = new StatBinder (pom->getName(), new SigRef (pom->getMyId()));
+				SigRef * sigRef = new SigRef (pom->getMyId());
+				sigRef->setDependsOn(NULL);
+				StatBinder * sb = new StatBinder (pom->getName(), sigRef);
+				sb->setDependsOn(treeNode);
 				//binders->addBinder(sb);
 				if (bindersCol == NULL) bindersCol = new BinderList(sb);
 				else {
