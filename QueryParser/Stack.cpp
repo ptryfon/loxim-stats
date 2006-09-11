@@ -58,7 +58,7 @@ namespace QParser {
 		return new BinderList((StatBinder *) this);
 	};
 
-	BinderWrap* SigColl::statNested(new SigRef (pom->getMyId())) {
+	BinderWrap* SigColl::statNested(TreeNode *treeNode) {
 		Deb::ug( "statNested::sigColl -- should not be evoked...");	
 		return NULL;
 		}						
