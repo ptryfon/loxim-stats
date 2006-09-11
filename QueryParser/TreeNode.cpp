@@ -509,10 +509,10 @@ namespace QParser
 			}
 		} else 	{
 			cout << "pushing not coll\n";
-			if (toPush->dependsOn == NULL)
+			if (toPush->getDependsOn() == NULL)
 				cout << "the signature depends on NULL !!!!!\n";
 			else 
-				cout << "the signature depends on " + toPush->dependsOn->getName() << endl;
+				cout << "the signature depends on " + toPush->getDependsOn()->getName() << endl;
 			if (envs->pushBinders(toPush->statNested(toPush->getDependsOn())) == 0) 
 				sToPop = 1; 
 			else 
@@ -534,10 +534,10 @@ namespace QParser
 			case NonAlgOpNode::dot :{/*we just take the part to the right of the dot*/
 				qres->pushSig(rSig->clone());
 				cout << "switch(dot) " << endl;
-				if (toPush->dependsOn == NULL)
+				if (toPush->getDependsOn() == NULL)
 					cout << "the signature rSig depends on NULL !!!!!\n";
 				else 
-					cout << "the signature rSig depends on " + toPush->dependsOn->getName() << endl;
+					cout << "the signature rSig depends on " + toPush->getDependsOn()->getName() << endl;
 				Deb::ug("dot: pushed rSig on qres\n");
 				break;}
 			case NonAlgOpNode::where: {/*TODO: do we assume the <where> condition is fulfilled ?? */
