@@ -736,9 +736,9 @@ lastOpenSect = 0; }
 		this->putToString();
 		cerr << "wola rarg put to string \n";
 		rarg->putToString();
-		cerr->"----------\n";
+		cerr << "----------\n";
 		cerr << "jsi rarg name " << rarg->getName() << "." << endl;
-		cerr->"!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+		cerr << "!!!!!!!!!!!!!!!!!!!!!!!!!\n";
 		rarg->markNeeded();	
 		cerr << "jsi after right \n";
 		if (op != 0){		// not a dot
