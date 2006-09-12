@@ -71,14 +71,17 @@ namespace QParser {
 	/* AND should have an argument for the data scheme ... ??? !!! */
 	
 	virtual bool getNeeded(){return this->needed;}
-	virtual void markNeeded(){cerr << "jsi unimplemented markNeeded" << this->getName() << endl;};
+	virtual void markNeeded(){
+		cerr << "jsi unimplemented markNeeded" << this->getName() << endl;
+		cerr << "jsi unimplemented markNeeded" << this->getName() << endl;
+	};
 	virtual void markNeededUp(){
 		cerr << "markNeededUP start\n";
 		this->needed = true;
 		if (this->getParent() != NULL){
 			this->getParent()->markNeededUp();	
 		}	
-		cerr << "markNeededUP start\n";
+		cerr << "markNeededUP end\n";
 	}
 	
 
@@ -376,7 +379,7 @@ namespace QParser {
 		if (this->getDependsOn() != NULL){
 			this->getDependsOn()->markNeeded();
 		}	
-		cerr<<"markNeeded w namenode start " << name << endl;
+		cerr<<"markNeeded w namenode end " << name << endl;
 	}
 	
 	virtual int staticEval (StatQResStack *&qres, StatEnvStack *&envs);	
@@ -733,14 +736,19 @@ lastOpenSect = 0; }
 		this->needed = true;
 		cerr << "jsi rarg null " << (rarg == NULL) <<endl;
 		cerr << "wola this put to string \n";
+		cout << "wola this put to string \n";
 		this->putToString();
-		cerr << "wola rarg put to string \n";
+		cerr << "jsi wola rarg put to string \n";
+		cout << "jsi wola rarg put to string \n";
 		rarg->putToString();
 		cerr << "----------\n";
+		cout << "----------\n";
 		cerr << "jsi rarg name " << rarg->getName() << "." << endl;
+		cout << "!!!!!!!!!!!!!!!!!!!!!!!!!\n";
 		cerr << "!!!!!!!!!!!!!!!!!!!!!!!!!\n";
 		rarg->markNeeded();	
 		cerr << "jsi after right \n";
+		cout << "jsi after right \n";
 		if (op != 0){		// not a dot
 			cerr << "jsi not a dot, calling on left\n";
 			larg->markNeeded();	
