@@ -314,9 +314,13 @@ namespace QParser {
 	virtual void setRArg(QueryNode* _rarg) {rarg = _rarg;rarg->setParent(this);}
 
 	virtual void markNeeded(){
+			cerr << "jsi twoargsnode1\n"; 
 			this->setNeeded(true);
+			cerr << "jsi twoargsnode2\n";
 			this->getLArg()->markNeeded();
-			this->getRArg()->markNeeded();	
+			cerr << "jsi twoargsnode3\n";
+			this->getRArg()->markNeeded();
+			cerr << "jsi twoargsnode4\n";	
 	}
 
 	virtual int swapSon (TreeNode *oldSon, TreeNode *newSon) {
