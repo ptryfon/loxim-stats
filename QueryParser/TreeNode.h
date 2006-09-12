@@ -71,6 +71,7 @@ namespace QParser {
 	/* AND should have an argument for the data scheme ... ??? !!! */
 	
 	virtual bool getNeeded(){return this->needed;}
+	virtual void setNeeded(bool _needed) {this->needed = _needed;}
 	virtual void markNeeded(){
 		cerr << "jsi unimplemented markNeeded" << this->getName() << endl;
 		cerr << "jsi unimplemented markNeeded" << this->getName() << endl;
@@ -78,7 +79,7 @@ namespace QParser {
 	virtual void markNeededUp(){
 		cerr << "jsi markNeededUP start\n";
 		cout << "jsi markNeededUP start\n";
-		this->needed = true;
+		this->setNeeded(true);
 		cout << "jsi mnu parent == this " << (this->getParent() == this) << endl;
 		cerr << "jsi mnu parent == this " << (this->getParent() == this) << endl;
 		if (this->getParent() != NULL){
@@ -313,9 +314,9 @@ namespace QParser {
 	virtual void setRArg(QueryNode* _rarg) {rarg = _rarg;rarg->setParent(this);}
 
 	virtual void markNeeded(){
-			this->needed = true;
-			larg->markNeeded();
-			rarg->markNeeded();	
+			this->setNeeded(true);
+			this->getLArg()->markNeeded();
+			this->getRArg()->markNeeded();	
 	}
 
 	virtual int swapSon (TreeNode *oldSon, TreeNode *newSon) {
@@ -342,7 +343,7 @@ namespace QParser {
         return getPrefixForLevel( level, name ) + "[Value]\n";
       }
       virtual void markNeeded(){
-      		this->needed = true;
+      		this->setNeeded(true);
       }
     };    
 
@@ -383,7 +384,7 @@ namespace QParser {
 	virtual void markNeeded(){
 		cerr<<"jsi markNeeded w namenode start " << name << endl;
 		cout<<"jsi markNeeded w namenode start " << name << endl;
-		this->needed = true;
+		this->setNeeded(true);
 		cerr << "jsi namenode wola mnu \n";
 		cout << "jsi namenode wola mnu \n";
 		this->markNeededUp();				// idzie w kierunku korzenia 
@@ -557,8 +558,8 @@ namespace QParser {
 	    else {/*an error from errorConsole is called;*/ return -1;}
 	}    	
 	virtual void markNeeded(){
-			this->needed = true;
-			arg->markNeeded();	
+			this->setNeeded(true);
+			this->getArg()->markNeeded();	
 	}
 
 	virtual int staticEval(StatQResStack *&qres, StatEnvStack *&envs);
@@ -595,8 +596,8 @@ namespace QParser {
 	virtual void setOp(unOp _op) { op = _op; }
 
 	virtual void markNeeded(){
-			this->needed = true;
-			arg->markNeeded();	
+			this->setNeeded(true);
+			this->getArg()->markNeeded();	
 	}
 
       virtual string toString( int level = 0, bool recursive = false, string name = "" ) {
@@ -749,7 +750,7 @@ lastOpenSect = 0; }
 	
 	virtual void markNeeded(){
 		cerr << "jsi nonalgopnode markNeeded start " << opStr() << endl;
-		this->needed = true;
+		this->setNeeded(true);
 		cerr << "jsi rarg null " << (rarg == NULL) <<endl;
 		cerr << "jsi wola this put to string \n";
 		cout << "jsi wola this put to string \n";
@@ -762,8 +763,9 @@ lastOpenSect = 0; }
 		this->rarg->putToString();
 		cerr << "----------\n";
 		cout << "----------\n";
-		cerr << "jsi larg name " << this->getLArg()->getName() << "." << endl;
-		cout << "jsi larg name " << this->getLArg()->getName() << "." << endl;
+		cerr << "jsi larg name \n"; // << this->getLArg()->getName() << "." << endl;
+		cout << "jsi larg name \n"; //
+		this->getLArg()->getName() << "." << endl;
 		cerr << "jsi wola rarggetname\n";
 		cout << "jsi wola rarggetname\n";
 		cerr << "jsi rarg name " << this->getRArg()->getName() << "." << endl;
@@ -775,7 +777,7 @@ lastOpenSect = 0; }
 		cout << "jsi after right \n";
 		if (op != 0){		// not a dot
 			cerr << "jsi not a dot, calling on left\n";
-			larg->markNeeded();	
+			this->getLArg()->markNeeded();	
 			cerr << "jsi after left\n";
 		}
 		cerr << "jsi nonalgopnode markNeeded end " << opStr()  << " \n";
