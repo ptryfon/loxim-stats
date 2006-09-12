@@ -51,6 +51,14 @@ namespace QParser {
 	virtual TreeNode* clone()=0;
 	virtual int type()=0;
 	virtual int putToString()=0;
+	virtual void markNeeded()=0;
+	virtual void markNeededUp(){
+		this->needed = true;
+		if (this->getParent() != null){
+			this->getParent()->markNeededUp();	
+		}	
+	}
+	virtual bool getNeeded(){return this->needed;}
 
     // na wniosek Executora:
 	virtual string getName() {return (string) NULL;}
@@ -288,6 +296,12 @@ namespace QParser {
 	virtual void setLArg(QueryNode* _larg) {larg = _larg;larg->setParent(this);}
 	virtual void setRArg(QueryNode* _rarg) {rarg = _rarg;rarg->setParent(this);}
 
+	virtual void markNeeded(){
+			this->needed = true;
+			larg->markNeeded();
+			rarg->markNeeded();	
+	}
+
 	virtual int swapSon (TreeNode *oldSon, TreeNode *newSon) {
     	    if (this->getLArg() == oldSon) {
     		this->setLArg ((QueryNode *) newSon);	return 0;} 
@@ -295,7 +309,7 @@ namespace QParser {
     		this->setRArg ((QueryNode *) newSon); return 0;} 
 	    else { /*an error should be reported - oldSon is not my son!*/ 
     		return -1;}        
-        }	
+    }	
     };
     
 // atomic nodes with string/int/double/bool value
@@ -310,6 +324,9 @@ namespace QParser {
 	virtual int staticEval (StatQResStack *&qres, StatEnvStack *&envs);		
       virtual string toString( int level = 0, bool recursive = false, string name = "" ) {
         return getPrefixForLevel( level, name ) + "[Value]\n";
+      }
+      virtual void markNeeded(){
+      		this->needed = true;
       }
     };    
 
@@ -338,13 +355,23 @@ namespace QParser {
 	virtual int type() { return TreeNode::TNNAME; }
 	virtual string getName() { return name; }
 	virtual int putToString() {
-	    cout << "("<< this->getName() <<"["<<bindSect << "," << stackSize << "])";   
-	    cout << "depends on: " ;
+	    cout << "("<< this->getName() <<"["<<bindSect << "," << stackSize << "]";   
+	    cout << "depOn:" ;
 	    if (this->dependsOn != NULL)
 	    	cout << (this->dependsOn->getName()); 
 	    else cout <<"NULL ";
+	    cout << ":" << (this->getNeeded())?"needed":"notNeeded";
+	    cout << ")";
 	    return 0;
 	}
+	virtual void markNeeded(){
+		this->needed = true;
+		this->markNeededUp();				// idzie w kierunku korzenia 
+		if (this->getDependsOn() != null){
+			this->getDependsOn()->markNeeded();
+		}	
+	}
+	
 	virtual int staticEval (StatQResStack *&qres, StatEnvStack *&envs);	
       virtual string toString( int level = 0, bool recursive = false, string n = "" ) {
         stringstream c;
@@ -503,6 +530,10 @@ namespace QParser {
 	    if (arg == oldSon) {this->setArg((QueryNode *) newSon); return 0;}
 	    else {/*an error from errorConsole is called;*/ return -1;}
 	}    	
+	virtual void markNeeded(){
+			this->needed = true;
+			arg->markNeeded();	
+	}
 
 	virtual int staticEval(StatQResStack *&qres, StatEnvStack *&envs);
 	virtual int optimizeTree() {return arg->optimizeTree();}
@@ -536,6 +567,11 @@ namespace QParser {
 	unOp getOp() { return op; }
 	virtual void setArg(QueryNode* _arg) { arg = _arg; arg->setParent(this); }
 	virtual void setOp(unOp _op) { op = _op; }
+
+	virtual void markNeeded(){
+			this->needed = true;
+			arg->markNeeded();	
+	}
 
       virtual string toString( int level = 0, bool recursive = false, string name = "" ) {
         string result = getPrefixForLevel( level, name ) + "[UnOp] op=" + opStr() + "\n";
@@ -684,6 +720,14 @@ lastOpenSect = 0; }
 	virtual void setLArg(QueryNode* _larg) {larg = _larg;larg->setParent(this);}
 	virtual void setRArg(QueryNode* _rarg) {rarg = _rarg;rarg->setParent(this);}
 	virtual void setOp(nonAlgOp _op) { op = _op; }
+	
+	virtual void markNeeded(){
+		this->needed = true;
+		rarg->markNeeded();	
+		if (op != 0){		// not a dot
+			larg->markNeeded();	
+		}
+	}
 	
       virtual string toString( int level = 0, bool recursive = false, string name = "" ) {
         stringstream c;
