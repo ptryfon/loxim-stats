@@ -51,7 +51,7 @@ namespace QParser {
 	virtual TreeNode* clone()=0;
 	virtual int type()=0;
 	virtual int putToString()=0;
-	virtual void markNeeded()=0;
+	virtual void markNeeded(){};
 	virtual void markNeededUp(){
 		this->needed = true;
 		if (this->getParent() != NULL){
