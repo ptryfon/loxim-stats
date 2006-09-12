@@ -688,7 +688,7 @@ namespace QParser {
 	    cout << "(";
 	    if (larg!= NULL) larg->putToString();
 	    else cout << "___";
-	    cout << this->opStr();
+	    cout << this->opStr()<<(this->getNeeded()?"N":"D");
 	    if (rarg!= NULL) rarg->putToString();
 	    else cout << "___";
 	    
@@ -817,7 +817,7 @@ lastOpenSect = 0; }
 	    cout << "(";
 	    if (larg!= NULL) larg->putToString();
 	    else cout << "___";
-	    cout << this->opStr();
+	    cout << this->opStr() << (this->getNeeded()?"N":"D");
 		cout << "<" << firstOpenSect << ","<< lastOpenSect << ">";
 	    if (rarg!= NULL) rarg->putToString();
 	    else cout << "___";	    
