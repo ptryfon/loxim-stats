@@ -1,4 +1,6 @@
 #include <netinet/in.h> 
+#include <iostream>
+#include <sstream>
 #include "Package.h"
 
 using namespace std;
@@ -88,9 +90,9 @@ namespace TCPProto {
 		error  = getULong(&paramCount);
 		if (error != 0) return -2;
 
-		cerr << "length: " << length << endl;
-		//		cerr << "stmtNr: " << stmtNr << endl;
-		cerr << "paramCount: " << paramCount << endl;
+		// cerr << "length: " << length << endl;
+		// cerr << "stmtNr: " << stmtNr << endl;
+		// cerr << "paramCount: " << paramCount << endl;
 
 				
 		for (unsigned long i=0; i < paramCount; i++) {
@@ -102,7 +104,6 @@ namespace TCPProto {
 		}
 		
 		free(buffer);
-
 
 		return 0;
 	}
@@ -138,7 +139,6 @@ namespace TCPProto {
 		
 		bufferBegin = tmpPtr; //skip the number of elements (long)
 
-		cerr << "string: " << *str << endl;
 		return 0;
 	}
 	
@@ -186,7 +186,6 @@ namespace TCPProto {
 		error = getULong(&(out[1]));
 		if (error != 0) return -2;
 		
-		cerr << "double: " << *val << endl;
 		return 0;	
 	}
 	
@@ -405,10 +404,9 @@ namespace TCPProto {
 		unsigned long length, i;
 		getULong(&length);
 
-		cerr << "col ln: " << length << endl;
+		// cerr << "col ln: " << length << endl;
 
 		for(i=0; i < length; i++) {
-		  cerr << "Buffer begin: " << (int)bufferBegin << endl;
 			getQueryResult(&result);
 			switch(collection->type()) {
 			case Result::SEQUENCE:
@@ -448,7 +446,7 @@ namespace TCPProto {
 		
 		// deserializing
 		getULong(&type);
-		cerr << "[ParamStatementPackage::getQueryResult]" << " type: " << type << endl; 
+		// cerr << "[ParamStatementPackage::getQueryResult]" << " type: " << type << endl; 
 
 		
 		switch(type) {
@@ -475,8 +473,6 @@ namespace TCPProto {
 			str.clear();
 			getString(&str);
 			sscanf(str.c_str(), "%d", &id);
-			cerr << "reference string: " << str << endl;
-			cerr << "reference int:    " << id  << endl;
 			qref->setValue(new DBLogicalID(id));
 			break;
 			
@@ -535,42 +531,51 @@ namespace TCPProto {
 			//Error
 		}
 		
-		*result = new QueryBagResult();
 		return 0;
 	}
 	
-	
+        string ParamStatementPackage::toString() {
+	  string output;
+	  stringstream oss;
+
+	  oss << *this;
+	  output = oss.str();
+
+	  return output;
+	}
 	
 	ostream& operator<<(ostream& os, ParamStatementPackage& psp) {
 		
 		map<string, Result*>::iterator it;
 		it = psp.params.begin();	
-		os << "Result params: ";
+		os << "Result params: " << endl;
 		while (it != psp.params.end()) {
 			string paramName = (*it).first;
-			os << "" << paramName;
+			os << "name:" << paramName << endl;
 			
 			Result* paramResult = (*it).second;
 			os << *paramResult;
 			it++;
 			if (it != psp.params.end()) 
-				os << ",";
+				os << endl;
 		}
-		
+		os << endl;
+
 		map<string, QueryResult*>::iterator qit;
 		qit = psp.queryParams.begin();	
-		os << "QueryResult params: ";
+		os << "QueryResult params: " << endl;
 		while (qit != psp.queryParams.end()) {
 			string paramName = (*qit).first;
-			os << "" << paramName << "";
+			os << "name:" << paramName << endl;
 			
-			// QueryResult* paramResult = (*qit).second;
-			// os << *paramResult;
+			QueryResult* paramResult = (*qit).second;
+			os << paramResult->toString(0,true,"");
 
 			qit++;
 			if (qit != psp.queryParams.end()) 
-				os << ",";
+				os << endl;
 		}
+		os << endl;
 		return os;
 	}
 }

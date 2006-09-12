@@ -231,7 +231,7 @@ void execute_query(Connection *con, string &input, Result **result) {
       Result* resultTmp;
       Statement* stmt;
       stmt   = con->parse(input.c_str());
-      stmt->addParam("ans", *result);
+      stmt->addParam("$ans", *result);
       resultTmp = con->execute(stmt);
       delete stmt;
       delete *result;

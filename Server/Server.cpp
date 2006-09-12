@@ -581,9 +581,10 @@ while (!signalReceived) {
 	ec->printf("[Server.Run]--> Requesting EXECUTE on tree node: |%d| \n", (int) tNode);
 	if (package->getType() == Package::PARAMSTATEMENT) {
 		ParamStatementPackage* psp = (ParamStatementPackage*) package;
-		cerr << "Server: [Server.Run]--> with params ";
-		cerr << *psp << endl; // why can't *ec be an ostream?? ghrr...
 		
+		*ec <<  "Server: [Server.Run]--> with params ";
+		*ec << psp->toString();
+
 		res = (qEx->executeQuery(tNode, &(psp->getQueryParams()), &qResult));
 	}
 	else {

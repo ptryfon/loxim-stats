@@ -1,6 +1,9 @@
 #ifndef _PACKAGE_H_
 #define _PACKAGE_H_
 
+#include <iostream>
+#include <string>
+
 #include "../Errors/Errors.h"
 #include "../Driver/Result.h"
 #include "../QueryExecutor/QueryResult.h"
@@ -159,12 +162,18 @@ public:
 	int         deserialize(char* buffer, int size);
 	void        setParams(map<string, Result*> params) 
 		{ ParamStatementPackage::params = params; }
+
 	map<string, Result*> getParams() 
 		{ return params; }
+
 	void        setQueryParams(map<string, QueryResult*> queryParams) 
 		{ ParamStatementPackage::queryParams = queryParams; }	  
+
 	map<string, QueryResult*> getQueryParams() 
 		{ return queryParams; }
+
+	string      toString();
+
 	virtual ~ParamStatementPackage() {}
 private:
 	map<string, Result*> params;
