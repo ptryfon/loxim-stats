@@ -761,19 +761,19 @@ lastOpenSect = 0; }
 		this->putToString();
 		cerr << "jsi wola larg put to string \n";
 		cout << "jsi wola larg put to string \n";
-		this->larg->putToString();
+	//	this->larg->putToString();
 		cerr << "jsi wola rarg put to string \n";
 		cout << "jsi wola rarg put to string \n";
-		this->rarg->putToString();
+	//	this->rarg->putToString();
 		cerr << "----------\n";
 		cout << "----------\n";
 		cerr << "jsi larg name \n"; // << this->getLArg()->getName() << "." << endl;
 		cout << "jsi larg name \n"; //
-		cout << this->getLArg()->getName() << "." << endl;
+	//	cout << this->getLArg()->getName() << "." << endl;
 		cerr << "jsi wola rarggetname\n";
 		cout << "jsi wola rarggetname\n";
-		cerr << "jsi rarg name " << this->getRArg()->getName() << "." << endl;
-		cout << "jsi rarg name " << this->getRArg()->getName() << "." << endl;
+//		cerr << "jsi rarg name " << this->getRArg()->getName() << "." << endl;
+//		cout << "jsi rarg name " << this->getRArg()->getName() << "." << endl;
 		cout << "!!!!!!!!!!!!!!!!!!!!!!!!!\n";
 		cerr << "!!!!!!!!!!!!!!!!!!!!!!!!!\n";
 		this->getRArg()->markNeeded();	
