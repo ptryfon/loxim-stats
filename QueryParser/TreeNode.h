@@ -732,7 +732,13 @@ lastOpenSect = 0; }
 		cerr << "jsi nonalgopnode markNeeded start " << opStr() << endl;
 		this->needed = true;
 		cerr << "jsi rarg null " << (rarg == NULL) <<endl;
+		cerr << "wola this put to string \n";
+		this->putToString();
+		cerr << "wola rarg put to string \n";
+		rarg->putToString();
+		cerr->"----------\n";
 		cerr << "jsi rarg name " << rarg->getName() << "." << endl;
+		cerr->"!!!!!!!!!!!!!!!!!!!!!!!!!\n";
 		rarg->markNeeded();	
 		cerr << "jsi after right \n";
 		if (op != 0){		// not a dot
