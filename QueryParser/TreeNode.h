@@ -751,8 +751,8 @@ lastOpenSect = 0; }
 		cerr << "jsi nonalgopnode markNeeded start " << opStr() << endl;
 		this->needed = true;
 		cerr << "jsi rarg null " << (rarg == NULL) <<endl;
-		cerr << "wola this put to string \n";
-		cout << "wola this put to string \n";
+		cerr << "jsi wola this put to string \n";
+		cout << "jsi wola this put to string \n";
 		this->putToString();
 		cerr << "jsi wola larg put to string \n";
 		cout << "jsi wola larg put to string \n";
@@ -764,8 +764,8 @@ lastOpenSect = 0; }
 		cout << "----------\n";
 		cerr << "jsi larg name " << this->getLArg()->getName() << "." << endl;
 		cout << "jsi larg name " << this->getLArg()->getName() << "." << endl;
-		cerr << "wola rarggetname\n";
-		cout << "wola rarggetname\n";
+		cerr << "jsi wola rarggetname\n";
+		cout << "jsi wola rarggetname\n";
 		cerr << "jsi rarg name " << this->getRArg()->getName() << "." << endl;
 		cout << "jsi rarg name " << this->getRArg()->getName() << "." << endl;
 		cout << "!!!!!!!!!!!!!!!!!!!!!!!!!\n";
