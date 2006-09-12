@@ -365,11 +365,13 @@ namespace QParser {
 	    return 0;
 	}
 	virtual void markNeeded(){
+		cerr<<"markNeeded w namenode start " << name << endl;
 		this->needed = true;
 		this->markNeededUp();				// idzie w kierunku korzenia 
 		if (this->getDependsOn() != NULL){
 			this->getDependsOn()->markNeeded();
 		}	
+		cerr<<"markNeeded w namenode start " << name << endl;
 	}
 	
 	virtual int staticEval (StatQResStack *&qres, StatEnvStack *&envs);	
