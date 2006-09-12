@@ -76,12 +76,20 @@ namespace QParser {
 		cerr << "jsi unimplemented markNeeded" << this->getName() << endl;
 	};
 	virtual void markNeededUp(){
-		cerr << "markNeededUP start\n";
+		cerr << "jsi markNeededUP start\n";
+		cout << "jsi markNeededUP start\n";
 		this->needed = true;
+		cout << "jsi mnu parent == this " << (this->getParent() == this) << endl;
+		cerr << "jsi mnu parent == this " << (this->getParent() == this) << endl;
 		if (this->getParent() != NULL){
+			cout << "jsi wola mnu w parencie\n";
+			cerr << "jsi wola mnu w parencie\n";
 			this->getParent()->markNeededUp();	
+			cout << "jsi po mnu w parencie\n";
+			cerr << "jsi po mnu w parencie\n";
 		}	
-		cerr << "markNeededUP end\n";
+		cerr << "jsi markNeededUP end\n";
+		cerr << "jsi markNeededUP end\n";
 	}
 	
 
@@ -373,13 +381,21 @@ namespace QParser {
 	    return 0;
 	}
 	virtual void markNeeded(){
-		cerr<<"markNeeded w namenode start " << name << endl;
+		cerr<<"jsi markNeeded w namenode start " << name << endl;
+		cout<<"jsi markNeeded w namenode start " << name << endl;
 		this->needed = true;
+		cerr << "jsi namenode wola mnu \n";
+		cout << "jsi namenode wola mnu \n";
 		this->markNeededUp();				// idzie w kierunku korzenia 
 		if (this->getDependsOn() != NULL){
+			cout << "jsi wola w dependsOn\n";
+			cerr << "jsi wola w dependsOn\n";
 			this->getDependsOn()->markNeeded();
+			cout << "jsi po w dependsOn\n";
+			cerr << "jsi po w dependsOn\n";
 		}	
-		cerr<<"markNeeded w namenode end " << name << endl;
+		cerr<<"jsi markNeeded w namenode end " << name << endl;
+		cout<<"jsi markNeeded w namenode end " << name << endl;
 	}
 	
 	virtual int staticEval (StatQResStack *&qres, StatEnvStack *&envs);	
@@ -743,10 +759,10 @@ lastOpenSect = 0; }
 		rarg->putToString();
 		cerr << "----------\n";
 		cout << "----------\n";
-		cerr << "jsi rarg name " << rarg->getName() << "." << endl;
+		cerr << "jsi rarg name " << this->getRArg()->getName() << "." << endl;
 		cout << "!!!!!!!!!!!!!!!!!!!!!!!!!\n";
 		cerr << "!!!!!!!!!!!!!!!!!!!!!!!!!\n";
-		rarg->markNeeded();	
+		this->getRArg()->markNeeded();	
 		cerr << "jsi after right \n";
 		cout << "jsi after right \n";
 		if (op != 0){		// not a dot
