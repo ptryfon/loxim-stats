@@ -15,6 +15,7 @@ namespace QParser{
 	class StatQResStack;
 	class Optymalizator;
 	class Deb;
+	class DeathRmver;
 }
 #endif
 

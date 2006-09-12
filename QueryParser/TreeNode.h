@@ -92,6 +92,7 @@ namespace QParser {
 		cerr << "jsi markNeededUP end\n";
 		cerr << "jsi markNeededUP end\n";
 	}
+	virtual TreeNode * getDeath(){return (this->getNeeded()?NULL:this);}
 	
 
       virtual string toString( int level = 0, bool recursive = false, string name = "" ) { return ""; }
@@ -321,6 +322,15 @@ namespace QParser {
 			cerr << "jsi twoargsnode3\n";
 			this->getRArg()->markNeeded();
 			cerr << "jsi twoargsnode4\n";	
+	}
+	
+	virtual TreeNode * getDeath(){
+		if (!this->getNeeded())
+			return this;	
+		TreeNode *pom = this->getLArg()->getDeath();
+		if (pom != null) 
+			return pom;
+		return this->getRArg()->getDeath();
 	}
 
 	virtual int swapSon (TreeNode *oldSon, TreeNode *newSon) {
@@ -565,6 +575,7 @@ namespace QParser {
 			this->setNeeded(true);
 			this->getArg()->markNeeded();	
 	}
+	virtual TreeNode * getDeath(){return (this->getNeeded()?(this->getArg()->getDeath()):this);}
 
 	virtual int staticEval(StatQResStack *&qres, StatEnvStack *&envs);
 	virtual int optimizeTree() {return arg->optimizeTree();}
@@ -603,6 +614,8 @@ namespace QParser {
 			this->setNeeded(true);
 			this->getArg()->markNeeded();	
 	}
+	
+	virtual TreeNode * getDeath(){return (this->getNeeded()?(this->getArg()->getDeath()):this);}
 
       virtual string toString( int level = 0, bool recursive = false, string name = "" ) {
         string result = getPrefixForLevel( level, name ) + "[UnOp] op=" + opStr() + "\n";

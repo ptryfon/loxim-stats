@@ -94,6 +94,9 @@ namespace QParser {
 		optres = -1;
 	    } else {
     		int optres = -2;
+    		DeathRmver rmver = new DeathRmver(this);
+    		rmver->rmvDeath(nt);
+    		if (this->statEvaluate(nt) != 0) optres = -1;
 		/* The main optimisation loop - factor out single independent subqueries *
 		 * as long as ... such exist !                                           */
     		while (optres == -2) {
@@ -106,9 +109,6 @@ namespace QParser {
 	    }
 	    if (optres != -1) {
 		Deb::ug("I'll return optimized tree\n"); 
-		cerr << "MARKED NEEDED START\n";
-		nt->markNeeded();
-		cerr << "MARKED NEEDED DONE\n";
 		qTree = nt;
 		
 		Deb::ug("Odczyt z drzewka, po zoptymalizowaniu:");
