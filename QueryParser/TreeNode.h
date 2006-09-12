@@ -54,7 +54,7 @@ namespace QParser {
 	virtual void markNeeded()=0;
 	virtual void markNeededUp(){
 		this->needed = true;
-		if (this->getParent() != null){
+		if (this->getParent() != NULL){
 			this->getParent()->markNeededUp();	
 		}	
 	}
