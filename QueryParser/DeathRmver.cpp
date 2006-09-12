@@ -20,7 +20,7 @@ int DeathRmver::rmvDeath(TreeNode *&qTree){
 	cout << "dostal :" << endl;
 	qTree->putToString();
 	while(true){
-		qParser->statEvaluate(qTree);
+		res = qParser->statEvaluate(qTree);
 		qTree->markNeeded();		
 		TreeNode * death = qTree->getDeath();
 		if (death == NULL) break;
@@ -31,11 +31,7 @@ int DeathRmver::rmvDeath(TreeNode *&qTree){
 		} else {
 			parent->getParent()->swapSon(parent, live);	
 		}
-	}	
-}
-
-		
-	
+	}		
 	cout<< "rmvDeath end" << endl;
 	cout << "zwraca :" << endl;
 	qTree->putToString();
