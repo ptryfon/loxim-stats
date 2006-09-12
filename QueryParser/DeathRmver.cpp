@@ -20,7 +20,7 @@ int DeathRmver::rmvDeath(TreeNode *&qTree){
 	cout << "dostal :" << endl;
 	qTree->putToString();
 	while(true){
-		res = qParser->statEvaluate(qTree);
+		qParser->statEvaluate(qTree);
 		qTree->markNeeded();		
 		TreeNode * death = qTree->getDeath();
 		if (death == NULL) break;
