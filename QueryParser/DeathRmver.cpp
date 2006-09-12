@@ -24,9 +24,12 @@ int DeathRmver::rmvDeath(TreeNode *&qTree){
 		qTree->markNeeded();		
 		TreeNode * death = qTree->getDeath();
 		if (death == NULL) break;
+		cout << "jsi trying to remove: \n";
+		death->putToString();
 		TwoArgsNode * parent = (TwoArgsNode*) death->getParent();
 		TreeNode * live = (parent->getLArg() == death)?parent->getRArg():parent->getLArg();
 		if (parent == qTree){
+			cout << "parent == live\n";
 			qTree = live;
 		} else {
 			parent->getParent()->swapSon(parent, live);	
