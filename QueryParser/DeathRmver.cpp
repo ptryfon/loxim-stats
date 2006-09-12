@@ -32,6 +32,9 @@ int DeathRmver::rmvDeath(TreeNode *&qTree){
 			parent->getParent()->swapSon(parent, live);	
 		}
 	}		
+	cout <<"=============================================================================" << endl;
+	cout <<"-----------------------------------------------------------------------------" << endl;
+	cout <<"-----------------------------------------------------------------------------" << endl;
 	cout<< "rmvDeath end" << endl;
 	cout << "zwraca :" << endl;
 	qTree->putToString();
