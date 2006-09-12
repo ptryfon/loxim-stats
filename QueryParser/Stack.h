@@ -400,7 +400,7 @@ namespace QParser {
 			return NULL;
 		}
 		virtual int pushBinders (BinderWrap *bw) {/* a collection of binders, not packed in a section yet... */
-			if (bw == NULL) {Deb::ug("null binders not pushed on envs\n"); return -1;};
+			if (bw == NULL) {Deb::ug("NULL binders not pushed on envs\n"); return -1;};
 			ListQStackElem *newSect = new StatEnvSection (bw);
 			if (this->isEmpty()) this->setElts (newSect);
 			else this->setElts (elts->push (newSect));
