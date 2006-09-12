@@ -765,7 +765,7 @@ lastOpenSect = 0; }
 		cout << "----------\n";
 		cerr << "jsi larg name \n"; // << this->getLArg()->getName() << "." << endl;
 		cout << "jsi larg name \n"; //
-		this->getLArg()->getName() << "." << endl;
+		cout << this->getLArg()->getName() << "." << endl;
 		cerr << "jsi wola rarggetname\n";
 		cout << "jsi wola rarggetname\n";
 		cerr << "jsi rarg name " << this->getRArg()->getName() << "." << endl;
