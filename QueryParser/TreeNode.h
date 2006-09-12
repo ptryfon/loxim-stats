@@ -367,7 +367,7 @@ namespace QParser {
 	virtual void markNeeded(){
 		this->needed = true;
 		this->markNeededUp();				// idzie w kierunku korzenia 
-		if (this->getDependsOn() != null){
+		if (this->getDependsOn() != NULL){
 			this->getDependsOn()->markNeeded();
 		}	
 	}
