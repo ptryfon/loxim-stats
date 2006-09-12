@@ -19,15 +19,30 @@ int DeathRmver::rmvDeath(TreeNode *&qTree){
 	cout<< "rmvDeath start" << endl;
 	cout << "dostal :" << endl;
 	qTree->putToString();
-	qParser->statEvaluate(qTree);
-	qTree->markNeeded();
-	
+	while(true){
+		qParser->statEvaluate(qTree);
+		qTree->markNeeded();		
+		TreeNode * death = qTree->getDeath();
+		if (death == NULL) break;
+		TwoArgsNode * parent = death->getParent();
+		TreeNode * live = (parent->getLArg() == death)?parent->getRArg():parent->getLArg();
+		if (parent == qTree){
+			qTree = live;
+		} else {
+			parent->getParent()->swapSon(parent, live);	
+		}
+	}	
+}
+
+		
 	
 	cout<< "rmvDeath end" << endl;
 	cout << "zwraca :" << endl;
 	qTree->putToString();
 	return 0;	
 }
+
+
 
 /* to chyba w czasie analizy statycznej, metoda na kazdym wezle
 // statically fill dependecies, everything apart from name nodes (dependecies for these nodes
