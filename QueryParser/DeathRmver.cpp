@@ -20,6 +20,9 @@ int DeathRmver::rmvDeath(TreeNode *&qTree){
 	cout << "dostal :" << endl;
 	qTree->putToString();
 	qParser->statEvaluate(qTree);
+	qTree->markNeeded();
+	
+	
 	cout<< "rmvDeath end" << endl;
 	cout << "zwraca :" << endl;
 	qTree->putToString();

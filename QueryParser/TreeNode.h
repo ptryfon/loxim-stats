@@ -53,10 +53,12 @@ namespace QParser {
 	virtual int putToString()=0;
 	virtual void markNeeded(){};
 	virtual void markNeededUp(){
+		cerr << "markNeededUP start\n";
 		this->needed = true;
 		if (this->getParent() != NULL){
 			this->getParent()->markNeededUp();	
 		}	
+		cerr << "markNeededUP start\n";
 	}
 	virtual bool getNeeded(){return this->needed;}
 
@@ -724,11 +726,13 @@ lastOpenSect = 0; }
 	virtual void setOp(nonAlgOp _op) { op = _op; }
 	
 	virtual void markNeeded(){
+		cerr << "algopnode markNeeded start\n";
 		this->needed = true;
 		rarg->markNeeded();	
 		if (op != 0){		// not a dot
 			larg->markNeeded();	
 		}
+		cerr << "algopnode markNeeded end\n";
 	}
 	
       virtual string toString( int level = 0, bool recursive = false, string name = "" ) {
