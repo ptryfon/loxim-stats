@@ -31,6 +31,7 @@ int DeathRmver::rmvDeath(TreeNode *&qTree){
 		if (parent == qTree){
 			cout << "parent == live\n";
 			qTree = live;
+			qTree->setParent(NULL);
 		} else {
 			parent->getParent()->swapSon(parent, live);	
 		}
