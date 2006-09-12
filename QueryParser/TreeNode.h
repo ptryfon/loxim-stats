@@ -359,8 +359,8 @@ namespace QParser {
 	    cout << "depOn:" ;
 	    if (this->dependsOn != NULL)
 	    	cout << (this->dependsOn->getName()); 
-	    else cout <<"NULL ";
-	    cout << ":" << (this->getNeeded())?"needed":"notNeeded";
+	    else cout <<"NULL";
+	    cout << ":" << (this->getNeeded()?"needed":"notNeeded");
 	    cout << ")";
 	    return 0;
 	}

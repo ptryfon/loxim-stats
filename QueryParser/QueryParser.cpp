@@ -106,6 +106,7 @@ namespace QParser {
 	    }
 	    if (optres != -1) {
 		Deb::ug("I'll return optimized tree\n"); 
+		nt->markNeeded();
 		qTree = nt;
 		
 		Deb::ug("Odczyt z drzewka, po zoptymalizowaniu:");
