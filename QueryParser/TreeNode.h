@@ -334,6 +334,7 @@ namespace QParser {
 	}
 
 	virtual int swapSon (TreeNode *oldSon, TreeNode *newSon) {
+		newSon->setParent(this);
     	    if (this->getLArg() == oldSon) {
     		this->setLArg ((QueryNode *) newSon);	return 0;} 
 	    else if (this->getRArg() == oldSon) {
@@ -568,6 +569,7 @@ namespace QParser {
 	    return 0;
 	}
 	virtual int swapSon (TreeNode *oldSon, TreeNode *newSon) {
+		newSon->setParent(this);
 	    if (arg == oldSon) {this->setArg((QueryNode *) newSon); return 0;}
 	    else {/*an error from errorConsole is called;*/ return -1;}
 	}    	
@@ -654,6 +656,7 @@ namespace QParser {
 	}
 
 	virtual int swapSon (TreeNode *oldSon, TreeNode *newSon) {
+		newSon->setParent(this);
 	    if (arg == oldSon) {this->setArg((QueryNode *) newSon); return 0;}
 	    else {/*an error from errorConsole is called;*/ return -1;}
 	}    	
@@ -913,6 +916,7 @@ lastOpenSect = 0; }
         return result;
       }
 		virtual int swapSon (TreeNode *oldSon, TreeNode *newSon) {
+			newSon->setParent(this);
 		    if (arg == oldSon) {this->setArg((QueryNode *) newSon); return 0;}
 		    else {/*an error from errorConsole is called;*/ return -1;}
 		}    		
