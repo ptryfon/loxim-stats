@@ -51,16 +51,7 @@ namespace QParser {
 	virtual TreeNode* clone()=0;
 	virtual int type()=0;
 	virtual int putToString()=0;
-	virtual void markNeeded(){};
-	virtual void markNeededUp(){
-		cerr << "markNeededUP start\n";
-		this->needed = true;
-		if (this->getParent() != NULL){
-			this->getParent()->markNeededUp();	
-		}	
-		cerr << "markNeededUP start\n";
-	}
-	virtual bool getNeeded(){return this->needed;}
+	
 
     // na wniosek Executora:
 	virtual string getName() {return (string) NULL;}
@@ -78,6 +69,18 @@ namespace QParser {
 	virtual int optimizeTree () {Deb::ug( "type: %d.", type());	return 0;}
 	/* should overridden in subclasses...*/
 	/* AND should have an argument for the data scheme ... ??? !!! */
+	
+	virtual bool getNeeded(){return this->needed;}
+	virtual void markNeeded(){cerr << "jsi unimplemented markNeeded" << this->getName() << endl;};
+	virtual void markNeededUp(){
+		cerr << "markNeededUP start\n";
+		this->needed = true;
+		if (this->getParent() != NULL){
+			this->getParent()->markNeededUp();	
+		}	
+		cerr << "markNeededUP start\n";
+	}
+	
 
       virtual string toString( int level = 0, bool recursive = false, string name = "" ) { return ""; }
     };
@@ -726,17 +729,18 @@ lastOpenSect = 0; }
 	virtual void setOp(nonAlgOp _op) { op = _op; }
 	
 	virtual void markNeeded(){
-		cerr << "algopnode markNeeded start\n";
+		cerr << "jsi nonalgopnode markNeeded start " << opStr() << endl;
 		this->needed = true;
-		cerr << "rarg null " << (rarg == NULL) <<endl;
+		cerr << "jsi rarg null " << (rarg == NULL) <<endl;
+		cerr << "jsi rarg name " << rarg->getName() << "." << endl;
 		rarg->markNeeded();	
-		cerr << "after right \n";
+		cerr << "jsi after right \n";
 		if (op != 0){		// not a dot
-			cerr << "not a dot, calling on left\n";
+			cerr << "jsi not a dot, calling on left\n";
 			larg->markNeeded();	
-			cerr << "after left\n";
+			cerr << "jsi after left\n";
 		}
-		cerr << "algopnode markNeeded end\n";
+		cerr << "jsi nonalgopnode markNeeded end " << opStr()  << " \n";
 	}
 	
       virtual string toString( int level = 0, bool recursive = false, string name = "" ) {
