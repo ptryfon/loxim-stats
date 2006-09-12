@@ -728,9 +728,13 @@ lastOpenSect = 0; }
 	virtual void markNeeded(){
 		cerr << "algopnode markNeeded start\n";
 		this->needed = true;
+		cerr << "rarg null " << (rarg == NULL) <<endl;
 		rarg->markNeeded();	
+		cerr << "after right \n";
 		if (op != 0){		// not a dot
+			cerr "not a dot, calling on left\n";
 			larg->markNeeded();	
+			cerr "after left\n";
 		}
 		cerr << "algopnode markNeeded end\n";
 	}
