@@ -94,7 +94,7 @@ namespace QParser {
 		optres = -1;
 	    } else {
     		int optres = -2;
-    		DeathRmver rmver = new DeathRmver(this);
+    		DeathRmver *rmver = new DeathRmver(this);
     		rmver->rmvDeath(nt);
     		if (this->statEvaluate(nt) != 0) optres = -1;
 		/* The main optimisation loop - factor out single independent subqueries *

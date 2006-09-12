@@ -328,7 +328,7 @@ namespace QParser {
 		if (!this->getNeeded())
 			return this;	
 		TreeNode *pom = this->getLArg()->getDeath();
-		if (pom != null) 
+		if (pom != NULL) 
 			return pom;
 		return this->getRArg()->getDeath();
 	}
@@ -371,7 +371,7 @@ namespace QParser {
 	TreeNode *dependsOn;		// for removing death subqueries
 			// can be either other name node or group as node
 			// node in which static nested result this NameNode is binded
-			// in dependsOn is null means that this NameNode is binded in base sections
+			// in dependsOn is NULL means that this NameNode is binded in base sections
 	
     public:
 	NameNode(string _name) : name(_name) {bindSect = 0; stackSize = 0; dependsOn = NULL;}
@@ -768,7 +768,7 @@ lastOpenSect = 0; }
 	virtual void markNeeded(){
 		cerr << "jsi nonalgopnode markNeeded start " << opStr() << endl;
 		this->setNeeded(true);
-		cerr << "jsi rarg null " << (rarg == NULL) <<endl;
+		cerr << "jsi rarg NULL " << (rarg == NULL) <<endl;
 		cerr << "jsi wola this put to string \n";
 		cout << "jsi wola this put to string \n";
 		this->putToString();

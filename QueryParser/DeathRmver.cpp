@@ -24,7 +24,7 @@ int DeathRmver::rmvDeath(TreeNode *&qTree){
 		qTree->markNeeded();		
 		TreeNode * death = qTree->getDeath();
 		if (death == NULL) break;
-		TwoArgsNode * parent = death->getParent();
+		TwoArgsNode * parent = (TwoArgsNode*) death->getParent();
 		TreeNode * live = (parent->getLArg() == death)?parent->getRArg():parent->getLArg();
 		if (parent == qTree){
 			qTree = live;
