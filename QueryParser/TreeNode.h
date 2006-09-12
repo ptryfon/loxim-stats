@@ -732,9 +732,9 @@ lastOpenSect = 0; }
 		rarg->markNeeded();	
 		cerr << "after right \n";
 		if (op != 0){		// not a dot
-			cerr "not a dot, calling on left\n";
+			cerr << "not a dot, calling on left\n";
 			larg->markNeeded();	
-			cerr "after left\n";
+			cerr << "after left\n";
 		}
 		cerr << "algopnode markNeeded end\n";
 	}
