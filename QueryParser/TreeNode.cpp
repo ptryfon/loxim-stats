@@ -606,7 +606,7 @@ namespace QParser
 		return "*";	
 	}
 	
-	virtual string mulCard(string leftCard, string rightCard){
+	string mulCard(string leftCard, string rightCard){
 		int min = min(minCard(leftCard), minCard(rightCard));	
 		int max = maxCard(leftCard) * maxCard(rightCard);
 		return int2card(min) + ".." + int2card(max);
