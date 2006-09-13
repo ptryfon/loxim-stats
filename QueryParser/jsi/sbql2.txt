@@ -1,0 +1,38 @@
+					     1.
+				
+					  / 	   \				  
+						  2 SAL				
+					3.
+				    
+				   /     \ 
+			4group as Aaa   5 Aaa	
+				
+				/
+			  6 join
+			   
+                     /    \	
+		     7 EMP	 8 .
+				
+				/	\		
+		    9 WORKS_IN  10 DEPT
+
+((emp join (worksIn.dept)) group as Aaa).SAL			
+
+na co powinny wskazywac wezly?
+wedlug mnie:
+
+10 dept -> 9 works in
+9 works in -> 7 emp
+
+5 Aaa -> 4 group as AAA 		??	czy tak?
+2 SAL  ->  ???????????			- tego nie wiem, czy tu wystarczy 1 strzalka???
+						- czy ma wskazywac na 7 EMP (emp map sal)?
+						- ale wtedy kiedy zostanie zazanczony jako potrzebny wezel Aaa??
+
+						-- a moze z sal powinno wychodzic kilka strzalek - do emp i do Aaa??
+						
+works_in.dept jest w tym wypadku martwe
+
+
+jak sie odbywa wyznaczanie wynikania:
+z 1 do 2 i z tad do ?? do 7 EMP ?? i co dalej? kiedy zaznacze Aaa jako potrzebne?
