@@ -113,6 +113,7 @@ namespace QParser {
 		int typ;
 		Signature *next; 	/* !=NULL when this sign. is part of a collection.. like sequence or bag or sth. */
 		TreeNode *dependsOn;	// death subqry
+		string card;			// death
 	public:
 	    enum SigType {
 		SSEQ      = 1,	/*sigColl */
@@ -133,6 +134,8 @@ namespace QParser {
 		
 		virtual TreeNode* getDependsOn(){return this->dependsOn;}
 		virtual void setDependsOn(TreeNode *_dependsOn){this->dependsOn = _dependsOn;}
+		virtual string getCard(){return this->card;}
+		virtual void setCard(string _card){this->card = _card;}
 		virtual int type() {return 0;}
 		virtual bool isAtom () {return false;} /* overridden only in SigAtom */
 		virtual bool isColl () {return false;} /* overridden only in SigColl */

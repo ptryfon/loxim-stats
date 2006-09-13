@@ -16,6 +16,7 @@ namespace QParser{
 	class Optymalizator;
 	class Deb;
 	class DeathRmver;
+	class Card;
 }
 #endif
 

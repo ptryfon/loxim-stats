@@ -19,6 +19,7 @@ namespace QParser {
     protected:
 	TreeNode* parent;
 	bool needed;		// is not death
+	string card;		// cardinality
 
       string getPrefixForLevel( int level, string name ) {
         string result = "";
@@ -70,6 +71,8 @@ namespace QParser {
 	/* should overridden in subclasses...*/
 	/* AND should have an argument for the data scheme ... ??? !!! */
 	
+	virtual string getCard(){return this->card;}
+	virtual void setCard(string _card){this->card = _card;}
 	virtual bool getNeeded(){return this->needed;}
 	virtual void setNeeded(bool _needed) {this->needed = _needed;}
 	virtual void markNeeded(){

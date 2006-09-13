@@ -40,4 +40,11 @@ co z derefami??
 to statNested(TreeNode * treeNode) to chyba jakas glupota, cyba wystarczy lokalnie sobie
 zadekl treeNode = this->dependsOn()
 
+((EMP join (WORKS_IN.DEPT)).(NAME, SAL)
+
+(EMP group as aaa).aaa
+
+(EMP.SAL group as aaa).aaa
+
+
 

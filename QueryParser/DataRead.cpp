@@ -31,8 +31,10 @@ namespace QParser {
 				pom = candidate->getTarget(); /*now pom points to the target object. */
 				SigRef *sigRef = new SigRef (pom->getMyId());
 				sigRef->setDependsOn(NULL);
+				sigRef->setCard(pom->getCard());
 				StatBinder * sb = new StatBinder (pom->getName(), sigRef);				
 				sb->setDependsOn(treeNode);
+				sb->setCard(pom->getCard());
 				//bindersCol.push_back(sb);
 				bindersCol = new BinderList(sb);
 				return bindersCol;	//<kolekcja 1-eltowa zawierajaca sb>;				
@@ -45,8 +47,10 @@ namespace QParser {
 			while (pom != NULL) {
 				SigRef * sigRef = new SigRef (pom->getMyId());
 				sigRef->setDependsOn(NULL);
+				sigRef->setCard(pom->getCard());
 				StatBinder * sb = new StatBinder (pom->getName(), sigRef);
 				sb->setDependsOn(treeNode);
+				sb->setCard(pom->getCard());
 				//binders->addBinder(sb);
 				if (bindersCol == NULL) bindersCol = new BinderList(sb);
 				else {
@@ -64,8 +68,10 @@ namespace QParser {
 			BinderList *bw = NULL;
 			for (DataObjectDef *obts = this->getBaseObjects(); obts != NULL; obts = obts->getNextBase()) {
 				SigRef *sigRef = new SigRef (obts->getMyId());
+				sigRef->setCard(obts->getCard());						// ?? ??- ktore trzeba?
 				sigRef->setDependsOn(NULL);		// death
 				StatBinder * sb = new StatBinder (obts->getName(), sigRef);
+				sb->setCard(obts->getCard());							// ?? ??czy obydwa?
 				sb->setDependsOn(NULL);
 				if (bw == NULL) bw = new BinderList (sb);
 				else bw = (BinderList *) bw->addPureBinder(sb);			
