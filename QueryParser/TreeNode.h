@@ -73,6 +73,11 @@ namespace QParser {
 	
 	virtual string getCard(){return this->card;}
 	virtual void setCard(string _card){this->card = _card;}
+	virtual void evalCard(){this->setCard("1..1");}
+	virtual string mulCard(string leftCard, string rightCard);
+	virtual int minCard(string card);
+	virtual int maxCard(string card);
+	virtual string int2card(int card);
 	virtual bool getNeeded(){return this->needed;}
 	virtual void setNeeded(bool _needed) {this->needed = _needed;}
 	virtual void markNeeded(){
@@ -95,7 +100,11 @@ namespace QParser {
 		cerr << "jsi markNeededUP end\n";
 		cerr << "jsi markNeededUP end\n";
 	}
-	virtual TreeNode * getDeath(){return (this->getNeeded()?NULL:this);}
+	virtual TreeNode * getDeath(){
+		if ((!this->getNeeded()) && (this->getCard()=="1..1"))
+			return this;	
+		return NULL;
+	}
 	
 
       virtual string toString( int level = 0, bool recursive = false, string name = "" ) { return ""; }
@@ -328,7 +337,7 @@ namespace QParser {
 	}
 	
 	virtual TreeNode * getDeath(){
-		if (!this->getNeeded())
+		if ((!this->getNeeded()) && (this->getCard()=="1..1"))
 			return this;	
 		TreeNode *pom = this->getLArg()->getDeath();
 		if (pom != NULL) 
@@ -391,7 +400,7 @@ namespace QParser {
 	virtual string getName() { return name; }
 	virtual int putToString() {
 	    cout << "("<< this->getName() <<"["<<bindSect << "," << stackSize << "]";   
-	    cout << "depOn:" ;
+	    cout << this->getCard()<<"depOn:" ;
 	    if (this->dependsOn != NULL)
 	    	cout << (this->dependsOn->getName()); 
 	    else cout <<"NULL";
@@ -416,6 +425,8 @@ namespace QParser {
 		cerr<<"jsi markNeeded w namenode end " << name << endl;
 		cout<<"jsi markNeeded w namenode end " << name << endl;
 	}
+	
+	virtual void evalCard(){;}	// to musi byc wziete ze skladu danych - przy wiazaniu
 	
 	virtual int staticEval (StatQResStack *&qres, StatEnvStack *&envs);	
       virtual string toString( int level = 0, bool recursive = false, string n = "" ) {
@@ -568,7 +579,7 @@ namespace QParser {
 	    if (this->isGrouped()) cout <<" group as ";
 	    else cout << " as ";
 	    
-	    cout << this->getName() <<")";    
+	    cout << this->getName() <<this->getCard()<<")";    
 	    return 0;
 	}
 	virtual int swapSon (TreeNode *oldSon, TreeNode *newSon) {
@@ -580,7 +591,12 @@ namespace QParser {
 			this->setNeeded(true);
 			this->getArg()->markNeeded();	
 	}
-	virtual TreeNode * getDeath(){return (this->getNeeded()?(this->getArg()->getDeath()):this);}
+	virtual void evalCard(){this->setCard(this->getArg()->getCard());}
+	virtual TreeNode * getDeath(){
+		if ((!this->getNeeded()) && (this->getCard()=="1..1"))
+			return this;	
+		return this->getArg()->getDeath();
+	}
 
 	virtual int staticEval(StatQResStack *&qres, StatEnvStack *&envs);
 	virtual int optimizeTree() {return arg->optimizeTree();}
@@ -620,7 +636,11 @@ namespace QParser {
 			this->getArg()->markNeeded();	
 	}
 	
-	virtual TreeNode * getDeath(){return (this->getNeeded()?(this->getArg()->getDeath()):this);}
+	virtual TreeNode * getDeath(){
+		if ((!this->getNeeded()) && (this->getCard()=="1..1"))
+			return this;	
+		return this->getArg()->getDeath();
+	}
 
       virtual string toString( int level = 0, bool recursive = false, string name = "" ) {
         string result = getPrefixForLevel( level, name ) + "[UnOp] op=" + opStr() + "\n";
@@ -707,7 +727,7 @@ namespace QParser {
 	    cout << "(";
 	    if (larg!= NULL) larg->putToString();
 	    else cout << "___";
-	    cout << this->opStr()<<(this->getNeeded()?"N":"D");
+	    cout << this->opStr()<<this->getCard()<<(this->getNeeded()?"Need":"Del");
 	    if (rarg!= NULL) rarg->putToString();
 	    else cout << "___";
 	    
@@ -738,6 +758,12 @@ namespace QParser {
 	    if (op == 19) return ":=";
 	    if (op == 20) return " ; ";
 	    return "~~~";
+	}
+	virtual void evalCard(){
+		if (this->opStr() != " , ")	this->setCard("1..1");
+		else {
+			this->setCard(this->mulCard(this->getLArg()->getCard(), this->getRArg()->getCard()));	
+		};
 	}
 	virtual int staticEval (StatQResStack *&qres, StatEnvStack *&envs);	
 	virtual int optimizeTree();
@@ -806,6 +832,17 @@ lastOpenSect = 0; }
 		cerr << "jsi nonalgopnode markNeeded end " << opStr()  << " \n";
 	}
 	
+	virtual void evalCard(){
+		if (this->opStr() == "_ . _"){
+			this->setCard(this->mulCard(this->getLArg()->getCard(), this->getRArg()->getCard()));	
+		} else if (this->opStr() == "join"){
+			this->setCard(this->mulCard(this->getLArg()->getCard(), this->getRArg()->getCard()));	
+		} else if (this->opStr() == "where"){
+			this->setCard(this->getLArg()->getCard());
+		}
+		this->setCard("0..*");
+	}
+	
       virtual string toString( int level = 0, bool recursive = false, string name = "" ) {
         stringstream c;
         string firstOpenSectS, lastOpenSectS;
@@ -836,7 +873,7 @@ lastOpenSect = 0; }
 	    cout << "(";
 	    if (larg!= NULL) larg->putToString();
 	    else cout << "___";
-	    cout << this->opStr() << (this->getNeeded()?"N":"D");
+	    cout << this->opStr() << this->getCard() << (this->getNeeded()?"Need":"Del");
 		cout << "<" << firstOpenSect << ","<< lastOpenSect << ">";
 	    if (rarg!= NULL) rarg->putToString();
 	    else cout << "___";	    

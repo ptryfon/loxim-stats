@@ -341,6 +341,7 @@ namespace QParser
 		if (bw == NULL) { Deb::ug("name could NOT be bound ! will exit..\n"); return -1;}
 		this->setBindSect(bw->getSectNumb());
 		this->setStackSize(envs->getSize());
+		this->setCard(bw->getBinder()->getCard());		// to jest zamiast wyw evalCard
 		Deb::ug("name bound on envs, section nr set to %d, ", bw->getSectNumb());
 		//Deb::ug("ok:%d, ", ((SigRef *) (bw->getBinder()->getValue()))->getRefNo());
 		Signature *sig = bw->getBinder()->getValue()->clone();	//death
@@ -374,6 +375,7 @@ namespace QParser
 	    		break;}
 	    	default: {return -1; break;}
 	    }
+	    this->evalCard();
 	    return 0;
 	}
 	int NameAsNode::staticEval (StatQResStack *&qres, StatEnvStack *&envs) {
@@ -396,7 +398,7 @@ namespace QParser
    // 	sb->setDependsOn(NULL);	// czy to jest ok?? - chyba jednak nie, i powinno byc tak:
    		sb->setDependsOn(this);
     	qres->pushSig (sb);
-    	
+    	this->evalCard();
     	return 0;
 	}
 	
@@ -448,6 +450,7 @@ namespace QParser
 			qres->pushSig (new SigAtomType ("int"));
 			return 0;
 		}
+		this->evalCard();
 		return -1;
 	}
 	
@@ -463,6 +466,7 @@ namespace QParser
 		Deb::ug("static_eval::AlgOP -- finished with RIGHT arg");
 		qres->pop();
 		qres->pop();
+		this->evalCard();
 		if (op == AlgOpNode::eq || op == AlgOpNode::neq || op == AlgOpNode::lt || 
 				op == AlgOpNode::gt || op == AlgOpNode::le || op == AlgOpNode::ge || 
 				op == AlgOpNode::boolAnd || op == AlgOpNode::boolOr) {
@@ -498,6 +502,7 @@ namespace QParser
 		if (op == AlgOpNode::insert) {
 			return -1; //change to return 0 when this case is implemented. 
 		}
+		this->evalCard();
 		return 0;	
 	}
 	
@@ -566,6 +571,7 @@ namespace QParser
 			default: {Deb::ug("statEval::nonalg operator not handled yet.."); return -1;}
 		
 		}
+		this->evalCard();
 		Deb::ug("stEv will return 0\n");
 		return 0;
 	}
@@ -583,7 +589,28 @@ namespace QParser
 	    }
 	    return s;
 	}
-
+	
+	int TreeNode::minCard(string card){
+		if (card[0] == '0') return 0;
+		if (card[0] == '1') return 1;
+		return 10;	
+	}
+	int TreeNode::maxCard(string card){
+		if (card[3] == '0') return 0;
+		if (card[3] == '1') return 1;
+		return 10;		
+	}
+	string TreeNode::int2card(int card){
+		if (card == 0) return "0";
+		if (card == 1) return "1";
+		return "*";	
+	}
+	
+	virtual string mulCard(string leftCard, string rightCard){
+		int min = min(minCard(leftCard), minCard(rightCard));	
+		int max = maxCard(leftCard) * maxCard(rightCard);
+		return int2card(min) + ".." + int2card(max);
+	}
 }
 
 
