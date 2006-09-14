@@ -607,9 +607,9 @@ namespace QParser
 	}
 	
 	string mulCard(string leftCard, string rightCard){
-		int min = (minCard(leftCard) < minCard(rightCard) ? minCard(leftCard): minCard(rightCard);	
-		int max = maxCard(leftCard) * maxCard(rightCard);
-		return int2card(min) + ".." + int2card(max);
+		int min = (this->minCard(leftCard) < this->minCard(rightCard) ? this->minCard(leftCard): this->minCard(rightCard);	
+		int max = this->maxCard(leftCard) * maxCard(rightCard);
+		return this->int2card(min) + ".." + int2card(max);
 	}
 }
 
