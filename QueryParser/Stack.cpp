@@ -35,7 +35,7 @@ namespace QParser {
 		ns->setDependsOn(this->getDependsOn());			// death
 	//	ns->setDependsOnVec(this->getDependsOnVec());	// death
 		for (int i = 0; i < this->getDependsOnVec()->size(); i++){
-			ns->addDependsOn(this->getDependsOnVec()->at(i);
+			ns->addDependsOn(this->getDependsOnVec()->at(i));
 		}
 		if (next != NULL) ns->setNext(next->clone());
 		return ns;}
@@ -44,7 +44,7 @@ namespace QParser {
 		ns->setDependsOn(this->getDependsOn());			// death
 	//	ns->setDependsOnVec(this->getDependsOnVec());	// death	tak lepiej nie
 		for (int i = 0; i < this->getDependsOnVec()->size(); i++){
-			ns->addDependsOn(this->getDependsOnVec()->at(i);
+			ns->addDependsOn(this->getDependsOnVec()->at(i));
 		}
 		if (next != NULL) ns->setNext(next->clone());
 		return ns;}
@@ -53,7 +53,7 @@ namespace QParser {
 		ns->setDependsOn(this->getDependsOn());			// death
 	//	ns->setDependsOnVec(this->getDependsOnVec());	// death
 		for (int i = 0; i < this->getDependsOnVec()->size(); i++){
-			ns->addDependsOn(this->getDependsOnVec()->at(i);
+			ns->addDependsOn(this->getDependsOnVec()->at(i));
 		}
 		if (value != NULL) ns->setValue (value->clone());
 		if (next != NULL) ns->setNext (next->clone());
