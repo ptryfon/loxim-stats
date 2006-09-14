@@ -607,7 +607,7 @@ namespace QParser
 	}
 	
 	string TreeNode::mulCard(string leftCard, string rightCard){
-		int min = ((this->minCard(leftCard) < this->minCard(rightCard) ? this->minCard(leftCard): this->minCard(rightCard));	
+		int min = ((this->minCard(leftCard) < this->minCard(rightCard)) ? this->minCard(leftCard): this->minCard(rightCard));	
 		int max = this->maxCard(leftCard) * this->maxCard(rightCard);
 		return this->int2card(min) + ".." + this->int2card(max);
 	}
