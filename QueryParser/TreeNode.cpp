@@ -345,8 +345,7 @@ namespace QParser
 		Deb::ug("name bound on envs, section nr set to %d, ", bw->getSectNumb());
 		//Deb::ug("ok:%d, ", ((SigRef *) (bw->getBinder()->getValue()))->getRefNo());
 		Signature *sig = bw->getBinder()->getValue()->clone();	//death
-		sig->addDependsOn(this);
-		
+	
 		if (sig->getDependsOn() == NULL){
 			sig->setDependsOn(this);
 			cout << "jsi set depOn\n";
@@ -401,7 +400,6 @@ namespace QParser
     	StatBinder *sb = new StatBinder (this->name, topSig->clone());
    // 	sb->setDependsOn(NULL);	// czy to jest ok?? - chyba jednak nie, i powinno byc tak:
    		sb->setDependsOn(this);
-   		sb->addDependsOn(this);
     	qres->pushSig (sb);
     	this->evalCard();
     	return 0;
