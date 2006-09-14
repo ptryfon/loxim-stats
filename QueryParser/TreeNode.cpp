@@ -345,18 +345,27 @@ namespace QParser
 		Deb::ug("name bound on envs, section nr set to %d, ", bw->getSectNumb());
 		//Deb::ug("ok:%d, ", ((SigRef *) (bw->getBinder()->getValue()))->getRefNo());
 		Signature *sig = bw->getBinder()->getValue()->clone();	//death
+		sig->addDependsOn(this);
+		
 		if (sig->getDependsOn() == NULL){
 			sig->setDependsOn(this);
 			cout << "jsi set depOn\n";
 		} else {
 			cout << "jsi sygnatura juz miala ustawione dependsOn, nie ustawia go ponownie\n";	
 		}
+		
 		qres->pushSig (sig);
-		this->setDependsOn(bw->getBinder()->getDependsOn());
+	
+	    for (int i = 0; i < bw->getBinder()->getDependsOnVec()->size(); i++){
+	    	this->addDependsOn(bw->getBinder()->getDependsOnVec()->at(i));
+	    }
+		 this->setDependsOn(bw->getBinder()->getDependsOn());
+		/*
 		if (bw->getBinder()->getDependsOn() == NULL)
 			cout << "jsi set this->depOn on NULL\n";
 		else 
 			cout << "jsi set this->depOn on " << bw->getBinder()->getDependsOn()->getName() << endl;
+		*/
 		Deb::ug("result pushed on qres\n");
 		cout << "jsi end nameNode stEval\n";
 		return 0;
@@ -397,6 +406,7 @@ namespace QParser
     	StatBinder *sb = new StatBinder (this->name, topSig->clone());
    // 	sb->setDependsOn(NULL);	// czy to jest ok?? - chyba jednak nie, i powinno byc tak:
    		sb->setDependsOn(this);
+   		sb->addDependsOn(this);
     	qres->pushSig (sb);
     	this->evalCard();
     	return 0;
@@ -552,10 +562,12 @@ namespace QParser
 			case NonAlgOpNode::dot :{/*we just take the part to the right of the dot*/
 				qres->pushSig(rSig->clone());
 				cout << "switch(dot) " << endl;
+				/*
 				if (rSig->getDependsOn() == NULL)
 					cout << "the signature rSig depends on NULL !!!!!\n";
 				else 
 					cout << "the signature rSig depends on " + rSig->getDependsOn()->getName() << endl;
+				*/
 				Deb::ug("dot: pushed rSig on qres\n");
 				break;}
 			case NonAlgOpNode::where: {/*TODO: do we assume the <where> condition is fulfilled ?? */

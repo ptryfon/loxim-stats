@@ -113,6 +113,7 @@ namespace QParser {
 		int typ;
 		Signature *next; 	/* !=NULL when this sign. is part of a collection.. like sequence or bag or sth. */
 		TreeNode *dependsOn;	// death subqry
+		vector<TreeNode*>	*dependsOnVec;
 		string card;			// death
 	public:
 	    enum SigType {
@@ -127,13 +128,16 @@ namespace QParser {
 		SREF      = 9,
 		SNOTHING  = 10
 		};
-		Signature (int _type) : typ(_type) {this->next = NULL;}
-		Signature () {this->next = NULL;}
+		Signature (int _type) : typ(_type) {this->next = NULL; this->dependsOnVec = new vector<TreeNode*>();}
+		Signature () {this->next = NULL; this->dependsOnVec = new vector<TreeNode*>();}
 		virtual void setNext (Signature *newNext) {this->next = newNext;}
 		virtual Signature *getNext () {return this->next;}
 		
 		virtual TreeNode* getDependsOn(){return this->dependsOn;}
 		virtual void setDependsOn(TreeNode *_dependsOn){this->dependsOn = _dependsOn;}
+		virtual vector<TreeNode*>* getDependsOnVec(){return this->dependsOnVec;}
+		virtual void setDependsOnVec(vector<TreeNode* vec){this->dependsOnVec = vec;}
+		virtual void addDependsOn(TreeNode *dep){this->dependsOnVec->push_back(dep);}
 		virtual string getCard(){return this->card;}
 		virtual void setCard(string _card){this->card = _card;}
 		virtual int type() {return 0;}
