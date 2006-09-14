@@ -24,12 +24,14 @@ int DeathRmver::rmvDeath(TreeNode *&qTree){
 	cout << "dostal :" << endl;
 	qTree->putToString();
 	while(true){
-		cout << "rmvDeath loop start -------------------------------------------------------\n";
+		cout << "\n rmvDeath loop start -------------------------------------------------------\n";
 		qParser->statEvaluate(qTree);
 		qTree->markNeeded();		
 		TreeNode * death = qTree->getDeath();
 		if (death == NULL) break;
 		cout << "jsi trying to remove: \n";
+		death->putToString();
+		cout << "\n from : \n";
 		death->putToString();
 		TwoArgsNode * parent = (TwoArgsNode*) death->getParent();
 		TreeNode * live = (parent->getLArg() == death)?parent->getRArg():parent->getLArg();
@@ -40,7 +42,7 @@ int DeathRmver::rmvDeath(TreeNode *&qTree){
 		} else {
 			parent->getParent()->swapSon(parent, live);	
 		}
-		cout << "rmvDeath loop end -------------------------------------------------------\n";
+		cout << "\nrmvDeath loop end -------------------------------------------------------\n";
 	}		
 	cout <<"=============================================================================" << endl;
 	cout <<"-----------------------------------------------------------------------------" << endl;
