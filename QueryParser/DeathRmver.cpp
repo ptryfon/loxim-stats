@@ -15,11 +15,16 @@ DeathRmver::~DeathRmver()
 }
 
 int DeathRmver::rmvDeath(TreeNode *&qTree){
+	cout <<"=============================================================================" << endl;
+	cout <<"-----------------------------------------------------------------------------" << endl;
+	cout <<"-----------------------------------------------------------------------------" << endl;
+	cout << "start rmvDeath\n";
 	this->qTree = qTree;
 	cout<< "rmvDeath start" << endl;
 	cout << "dostal :" << endl;
 	qTree->putToString();
 	while(true){
+		cout << "rmvDeath loop start -------------------------------------------------------\n";
 		qParser->statEvaluate(qTree);
 		qTree->markNeeded();		
 		TreeNode * death = qTree->getDeath();
@@ -35,6 +40,7 @@ int DeathRmver::rmvDeath(TreeNode *&qTree){
 		} else {
 			parent->getParent()->swapSon(parent, live);	
 		}
+		cout << "rmvDeath loop end -------------------------------------------------------\n";
 	}		
 	cout <<"=============================================================================" << endl;
 	cout <<"-----------------------------------------------------------------------------" << endl;
