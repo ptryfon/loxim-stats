@@ -385,15 +385,11 @@ namespace QParser {
 			// can be either other name node or group as node
 			// node in which static nested result this NameNode is binded
 			// in dependsOn is NULL means that this NameNode is binded in base sections
-	vector<TreeNode*> *dependsOnVec;
 	
     public:
-	NameNode(string _name) : name(_name) {bindSect = 0; stackSize = 0; dependsOn = NULL; dependsOnVec = new vector<TreeNode*>();}
+	NameNode(string _name) : name(_name) {bindSect = 0; stackSize = 0; dependsOn = NULL; }
 	virtual TreeNode* getDependsOn(){return this->dependsOn;}
 	virtual void setDependsOn(TreeNode *_dependsOn){this->dependsOn = _dependsOn;}
-	virtual vector<TreeNode*>* getDependsOnVec(){return this->dependsOnVec;}
-	virtual void setDependsOnVec(vector<TreeNode*> * vec){this->dependsOnVec = vec;}
-	virtual void addDependsOn(TreeNode *dep){this->dependsOnVec->push_back(dep);}
 	virtual int getBindSect() { return this->bindSect;}
 	virtual int getStackSize() {return this->stackSize;}
 	virtual void setBindSect(int newBSect) { this->bindSect = newBSect;}
@@ -405,11 +401,6 @@ namespace QParser {
 	virtual int putToString() {
 	    cout << "("<< this->getName() <<"["<<bindSect << "," << stackSize << "]";   
 	    cout << this->getCard()<<"depOn:" ;
-	    cout << "|";
-	    for (int i = 0; i < this->getDependsOnVec()->size(); i++){
-	    	cout << this->getDependsOnVec()->at(i)->getName();
-	    }
-	    cout << "|";
 	    if (this->dependsOn != NULL)
 	    	cout << (this->dependsOn->getName()); 
 	    else cout <<"NULL";
@@ -424,11 +415,6 @@ namespace QParser {
 		cerr << "jsi namenode wola mnu \n";
 		cout << "jsi namenode wola mnu \n";
 		this->markNeededUp();				// idzie w kierunku korzenia 
-		
-	    for (int i = 0; i < this->getDependsOnVec()->size(); i++){
-	    	this->getDependsOnVec()->at(i)->markNeededUp();
-	    }
-	    
 	/*	if (this->getDependsOn() != NULL){
 			cout << "jsi wola w dependsOn\n";
 			cerr << "jsi wola w dependsOn\n";

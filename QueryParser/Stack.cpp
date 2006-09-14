@@ -33,28 +33,16 @@ namespace QParser {
 	Signature* SigAtomType::clone(){
 		SigAtomType *ns = new SigAtomType(atomType);
 		ns->setDependsOn(this->getDependsOn());			// death
-	//	ns->setDependsOnVec(this->getDependsOnVec());	// death
-		for (int i = 0; i < this->getDependsOnVec()->size(); i++){
-			ns->addDependsOn(this->getDependsOnVec()->at(i));
-		}
 		if (next != NULL) ns->setNext(next->clone());
 		return ns;}
 	Signature* SigRef::clone(){
 		SigRef *ns = new SigRef(refNo);
 		ns->setDependsOn(this->getDependsOn());			// death
-	//	ns->setDependsOnVec(this->getDependsOnVec());	// death	tak lepiej nie
-		for (int i = 0; i < this->getDependsOnVec()->size(); i++){
-			ns->addDependsOn(this->getDependsOnVec()->at(i));
-		}
 		if (next != NULL) ns->setNext(next->clone());
 		return ns;}
 	Signature* StatBinder::clone(){
 		StatBinder *ns = new StatBinder(name);
 		ns->setDependsOn(this->getDependsOn());			// death
-	//	ns->setDependsOnVec(this->getDependsOnVec());	// death
-		for (int i = 0; i < this->getDependsOnVec()->size(); i++){
-			ns->addDependsOn(this->getDependsOnVec()->at(i));
-		}
 		if (value != NULL) ns->setValue (value->clone());
 		if (next != NULL) ns->setNext (next->clone());
 		return ns;

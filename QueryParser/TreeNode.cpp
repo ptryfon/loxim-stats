@@ -353,12 +353,7 @@ namespace QParser
 		} else {
 			cout << "jsi sygnatura juz miala ustawione dependsOn, nie ustawia go ponownie\n";	
 		}
-		
 		qres->pushSig (sig);
-	
-	    for (int i = 0; i < bw->getBinder()->getDependsOnVec()->size(); i++){
-	    	this->addDependsOn(bw->getBinder()->getDependsOnVec()->at(i));
-	    }
 		 this->setDependsOn(bw->getBinder()->getDependsOn());
 		/*
 		if (bw->getBinder()->getDependsOn() == NULL)

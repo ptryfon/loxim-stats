@@ -31,12 +31,9 @@ namespace QParser {
 				pom = candidate->getTarget(); /*now pom points to the target object. */
 				SigRef *sigRef = new SigRef (pom->getMyId());
 				sigRef->setDependsOn(NULL);
-				sigRef->setDependsOnVec(new vector<TreeNode*>());
 				sigRef->setCard(pom->getCard());
 				StatBinder * sb = new StatBinder (pom->getName(), sigRef);				
 				sb->setDependsOn(treeNode);
-				sb->setDependsOnVec(new vector<TreeNode*>());
-				sb->addDependsOn(treeNode);
 				sb->setCard(pom->getCard());
 				//bindersCol.push_back(sb);
 				bindersCol = new BinderList(sb);
@@ -50,12 +47,9 @@ namespace QParser {
 			while (pom != NULL) {
 				SigRef * sigRef = new SigRef (pom->getMyId());
 				sigRef->setDependsOn(NULL);
-				sigRef->setDependsOnVec(new vector<TreeNode*>());
 				sigRef->setCard(pom->getCard());
 				StatBinder * sb = new StatBinder (pom->getName(), sigRef);
 				sb->setDependsOn(treeNode);				// old to rem
-				sb->setDependsOnVec(new vector<TreeNode*>());
-				sb->addDependsOn(treeNode);
 				sb->setCard(pom->getCard());
 				//binders->addBinder(sb);
 				if (bindersCol == NULL) bindersCol = new BinderList(sb);
@@ -76,11 +70,9 @@ namespace QParser {
 				SigRef *sigRef = new SigRef (obts->getMyId());
 				sigRef->setCard(obts->getCard());						// ?? ??- ktore trzeba?
 				sigRef->setDependsOn(NULL);		// death
-				sigRef->setDependsOnVec(new vector<TreeNode*>());
 				StatBinder * sb = new StatBinder (obts->getName(), sigRef);
 				sb->setCard(obts->getCard());							// ?? ??czy obydwa?
 				sb->setDependsOn(NULL);
-				sb->setDependsOnVec(new vector<TreeNode*>());
 				if (bw == NULL) bw = new BinderList (sb);
 				else bw = (BinderList *) bw->addPureBinder(sb);			
 			}
