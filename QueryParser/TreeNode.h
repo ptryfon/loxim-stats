@@ -392,7 +392,7 @@ namespace QParser {
 	virtual TreeNode* getDependsOn(){return this->dependsOn;}
 	virtual void setDependsOn(TreeNode *_dependsOn){this->dependsOn = _dependsOn;}
 	virtual vector<TreeNode*>* getDependsOnVec(){return this->dependsOnVec;}
-	virtual void setDependsOnVec(vector<TreeNode* vec){this->dependsOnVec = vec;}
+	virtual void setDependsOnVec(vector<TreeNode*> vec){this->dependsOnVec = vec;}
 	virtual void addDependsOn(TreeNode *dep){this->dependsOnVec->push_back(dep);}
 	virtual int getBindSect() { return this->bindSect;}
 	virtual int getStackSize() {return this->stackSize;}
