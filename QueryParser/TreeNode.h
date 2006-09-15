@@ -845,7 +845,7 @@ lastOpenSect = 0; }
 	}
 	
 	virtual void evalCard(){
-		if (this->opStr() == "_ . _"){
+		if (this->op == NonAlgOpNode::dot){
 			this->setCard(this->mulCard(this->getLArg()->getCard(), this->getRArg()->getCard()));	
 		} else if (this->opStr() == "join"){
 			this->setCard(this->mulCard(this->getLArg()->getCard(), this->getRArg()->getCard()));	
