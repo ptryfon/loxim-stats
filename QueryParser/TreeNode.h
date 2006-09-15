@@ -100,9 +100,7 @@ namespace QParser {
 		cerr << "jsi markNeededUP end\n";
 		cerr << "jsi markNeededUP end\n";
 	}
-	virtual TreeNode * getDeath(){
-		if ((!this->getNeeded()) /*&& (this->getCard()=="1..1")*/)
-			return this;	
+	virtual TreeNode * getDeath(){	
 		return NULL;
 	}
 	
@@ -337,8 +335,6 @@ namespace QParser {
 	}
 	
 	virtual TreeNode * getDeath(){
-		if ((!this->getNeeded()) /*&& (this->getCard()=="1..1")*/)
-			return this;	
 		TreeNode *pom = this->getLArg()->getDeath();
 		if (pom != NULL) 
 			return pom;
@@ -594,8 +590,6 @@ namespace QParser {
 	}
 	virtual void evalCard(){this->setCard(this->getArg()->getCard());}
 	virtual TreeNode * getDeath(){
-		if ((!this->getNeeded()) /*&& (this->getCard()=="1..1")*/)
-			return this;	
 		return this->getArg()->getDeath();
 	}
 
@@ -638,8 +632,6 @@ namespace QParser {
 	}
 	
 	virtual TreeNode * getDeath(){
-		if ((!this->getNeeded()) /*&& (this->getCard()=="1..1")*/)
-			return this;	
 		return this->getArg()->getDeath();
 	}
 
@@ -760,6 +752,15 @@ namespace QParser {
 	    if (op == 20) return " ; ";
 	    return "~~~";
 	}
+	
+	virtual TreeNode * getDeath(){	
+		if (this->getOp() == AlgOpNode::comma){
+			if(!this->getRArg()->getNeeded()){
+				return this->getRArg();
+			}
+		}
+		return TwoArgsNode::getDeath();
+	}
 	virtual void evalCard(){
 		if (this->opStr() != " , ")	this->setCard("1..1");
 		else {
@@ -831,6 +832,15 @@ lastOpenSect = 0; }
 			cerr << "jsi after left\n";
 		}
 		cerr << "jsi nonalgopnode markNeeded end " << opStr()  << " \n";
+	}
+	
+	virtual TreeNode * getDeath(){	
+		if (this->getOp() == NonAlgOpNode::join){
+			if(!this->getRArg()->getNeeded()){
+				return this->getRArg();
+			}
+		}
+		return TwoArgsNode::getDeath();
 	}
 	
 	virtual void evalCard(){
