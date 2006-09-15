@@ -8,6 +8,7 @@
 #include <netdb.h>
 
 #include "Tcp.h"
+#include "TCPParam.h"
 #include "../Errors/Errors.h"
 #include "Package.h"
 
@@ -40,6 +41,11 @@ int bufferSend(const char* buf, int buf_size, int sock) {
 			//cerr << "blad wysylania 1: " << strerror(errno) << endl;
 			return errno | ErrTCPProto;
 		}
+		
+	#ifdef PACKAGE_DEBUG
+	 	cerr << "TCPProto::skonczylem send: " << ile << " na gniezdzie: " << sock << endl;
+	 #endif
+		
 		lengthBufSize -= ile;
 		lengthBuf += ile;
 	}
@@ -85,7 +91,14 @@ int bufferReceive (char** buffer, int* receiveDataSize, int sock) {
 
           while (rest > 0) {
 	  //      cerr << "<tcp::receive> zaczynam recv" << endl;
+ #ifdef PACKAGE_DEBUG
+ 	cerr << "TCPProto::zaczynam recv: " << rest << " na gniezdzie: " << sock << endl;
+ #endif
          	ile = recv (sock, lengthBuff, rest, 0);
+ 
+ #ifdef PACKAGE_DEBUG
+	cerr << "TCPProto::po recv, odebralem: " << ile << " na gniezdzie: " << sock << endl;
+#endif
        //  	cerr << "<tcp::receive> recv zakonczone" << endl;
          	if (ile < 0) {
 	//	cerr << "<tcp::receive> blad czytania tcp: " <<
@@ -113,8 +126,16 @@ int bufferReceive (char** buffer, int* receiveDataSize, int sock) {
          rest = msgSize;
 
         while (rest > 0) {
+        	
+        #ifdef PACKAGE_DEBUG
+         	cerr << "TCPProto::zaczynam recv 2: " << rest << " na gniezdzie: " << sock << endl;
+         #endif
+        	
         	ile = recv (sock, messgBuff, rest, 0);
 
+     #ifdef PACKAGE_DEBUG
+     	cerr << "TCPProto::po recv, odebralem 2: " << ile << " na gniezdzie: " << sock << endl;
+     #endif
         	if (ile < 0) {
         		int error = errno;
 		//	cerr << "<tcp::receive> blad czytania tcp: " <<
@@ -148,7 +169,7 @@ int bufferReceive (char** buffer, int* receiveDataSize, int sock) {
         return 0;
 }
 
-int packageReceive(Package** package, int sock, Package::packageType pType) {
+int packageReceive(Package** package, int sock, void* param, Package::packageType pType) {
 
 	char* ptr;
 	int size, error;
@@ -193,7 +214,10 @@ int packageReceive(Package** package, int sock, Package::packageType pType) {
 			*package = new RemoteQueryPackage();
 			break;
 		case Package::REMOTERESULT:
-			*package = new RemoteResultPackage();
+			if (param == NULL) {
+				return -1; //TODO wymagany parametr
+			}
+			*package = new RemoteResultPackage((TCPParam*)param);
 			break;
 		default:
 			return EUnknownPackage | ErrTCPProto;

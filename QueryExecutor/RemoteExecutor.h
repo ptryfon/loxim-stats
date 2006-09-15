@@ -23,7 +23,8 @@ namespace QExecutor
 		int port;
 		string ip;
 		QueryExecutor *qe;
-		
+		LogicalID *lid;
+		bool deref;
 		ErrorConsole *ec;
 		
 		int connect(const char* ip, int port, int*sock);
@@ -32,6 +33,8 @@ namespace QExecutor
 		RemoteExecutor(string ip, int port, QueryExecutor* qe);
 		~RemoteExecutor();
 		int execute(QueryResult** qr);
+		void setLogicalID(LogicalID* lid) {this->lid = lid;}
+		void setDeref();
 	};
 	
 }

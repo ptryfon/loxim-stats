@@ -17,6 +17,7 @@
 #include "QueryExecutor.h"
 #include "Errors/Errors.h"
 #include "Errors/ErrorConsole.h"
+#include "RemoteExecutor.h"
 
 using namespace QParser;
 using namespace TManager;
@@ -1414,8 +1415,39 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		return 0;
 		}
 		case TreeNode::TNREMOTE: {
+			
+			RemoteNode* rn = (RemoteNode *) tree;
+			LogicalID* lid = rn->getLogicalID();
+			QueryReferenceResult* qrr = new QueryReferenceResult(lid);
+			
+			if (rn->isDeref()) {
+			  //jesli deref to to!
+				ec->printf("[QE] zaczynam prosbe o zdalny deref");
+				QueryResult *op_result;
+				errcode = this->derefQuery(qrr, op_result);
+				if (errcode != 0) return errcode;
+				//delete tmp_result;
+				errcode = qres->push(op_result);
+				if (errcode != 0) return errcode;
+				*ec << "[QE] Unary operation Done!";
+				return 0;
+			}
+				
 			*ec << "zaczynam wezel TNREMOTE!!!!!!!!!!!!!!!!!!!!!!!!!!!!";
 			vector<ObjectPointer*>* vec;
+			
+			*ec << "remote 1";
+			if (lid != NULL) {
+				ec->printf("prosba o nested na obiekcie zdalnym\n");
+				QueryResult *newStackSection = new QueryBagResult();
+				errcode = qrr->nested(tr, newStackSection, this);
+				if (errcode != 0) return errcode;
+				errcode = qres->push(newStackSection);
+				if (errcode != 0) return errcode;
+				ec->printf("nested na obiekcie zdalnym udalo sie. nowa sekcja stosu gotowa");
+				return 0;
+			}
+			*ec << "remote 1";
 			if ((errcode = tr->getRoots(vec)) != 0) {
 				tr->abort();
 				tr = NULL;
@@ -1429,7 +1461,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				 LogicalID *lid = optr->getLogicalID();
 				 string name = optr->getName();
 				 
-				*ec << "[QE] LogicalID received";
+				ec->printf("[QE] LogicalID received: %d\n",  lid->toInteger()); 
 				QueryReferenceResult *lidres = new QueryReferenceResult(lid);
 				QueryBinderResult *qbr = new QueryBinderResult(name, lidres);
 				r->addResult(qbr);
@@ -1527,6 +1559,22 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 			break;
 		}
 		case QueryResult::QREFERENCE: {
+			LogicalID * lid = ((QueryReferenceResult *) arg)->getValue(); 
+			if (lid != NULL && lid->getServer() != "") {
+				ec->printf("deref na obiekcie zdalnym");
+				RemoteExecutor *rex = new RemoteExecutor(lid->getServer(), lid->getPort(), this);
+				rex->setLogicalID(lid);
+				rex->setDeref();
+				QueryResult* qr;
+				errcode = rex->execute(&qr);
+				if (errcode != 0) {
+					return errcode;
+				}
+				ec->printf("deref na obiektcie zdalnym zakonczone pomyslnie");
+				res = qr;
+				break;
+			}
+			
 			if (((QueryReferenceResult *) arg)->wasRefed()) {
 				res = arg;
 				break;

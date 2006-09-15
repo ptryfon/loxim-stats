@@ -15,6 +15,7 @@ SOURCES	=	SimpleResultPackage.cpp \
 
 HEADERS	=	Tcp.h \
 			Package.h \
+			TCPParam.h \
 			../Driver/Result.h
 
 STATIC_LIB =	TCPProto.a

@@ -7,6 +7,7 @@
 #include "../Errors/Errors.h"
 #include "../Driver/Result.h"
 #include "../QueryExecutor/QueryResult.h"
+#include "TCPParam.h"
 
 namespace TCPProto {
 
@@ -109,21 +110,24 @@ class SimpleResultPackage : public Package {
 class RemoteResultPackage : public Package {
 	
 	public:
-		//RemoteResultPackage() {}
+		RemoteResultPackage(TCPParam* param);
 		packageType getType() { return REMOTERESULT; }
 		int serialize(char** buffer, int *size) {return -1;};
 		int deserialize(char* buffer, int size);
 		QueryResult* getQueryResult();
+		virtual ~RemoteResultPackage(){}
 		
 	protected:
 		int dataDeserialize(QueryResult** r);
 		int toInt(int* result, string from);
-		int grabElements(QueryBagResult* col);
+		int grabElements(QueryResult* col);
 		QueryResult* tmpRes;
 		int getULong(unsigned long &val);
 		int stringCopy(char* &newBuffer);
 	
 	private:
+		string server;
+		int port;
 		ErrorConsole *ec;
 		char *bufferBegin;
 		char * bufferEnd;
@@ -200,6 +204,19 @@ class RemoteQueryPackage : public Package {
 		packageType getType() { return REMOTEQUERY; }
 		int serialize(char** buffer, int* size); 
 		int deserialize(char* buffer, int size);
+		void setLogicalID(LogicalID* lid) {this->lid = lid;}
+		LogicalID* getLogicalID() {return lid;}
+		RemoteQueryPackage(){lid = NULL;}
+		virtual ~RemoteQueryPackage(){}
+		bool isDeref() {return deref;}
+		void setDeref(bool d) {deref = d;}
+		
+	protected:
+		int stringCopy(char* &newBuffer);
+		LogicalID* lid;
+		bool deref;
+		char * bufferEnd;
+		char *bufferBegin;
 };
 
 } //namespace

@@ -8,6 +8,7 @@
 #include <sstream>
 #include "Stack.h"
 #include "ClassNames.h"
+#include "../Store/Store.h"
 #include "Privilige.h"
 //using namespace std;
 
@@ -1077,10 +1078,18 @@ lastOpenSect = 0; }
     
     class RemoteNode : public TreeNode
     {
+    	private:
+    		LogicalID* lid;
+    		bool deref;
+    		
     	public:
     		virtual int type() {return TreeNode::TNREMOTE;}
     		virtual TreeNode* clone() {return new RemoteNode();}
     		virtual int putToString() {cout << "TreeNode" << endl; return 0;}
+    		LogicalID* getLogicalID() {return lid;}
+    		void setLogicalID(LogicalID* l) {lid = l;}
+    		bool isDeref() {return deref;}
+    		void setDeref(bool b) {deref = b;}
     };
 
     class FixPointNode : public QueryNode

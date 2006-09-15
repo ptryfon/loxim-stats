@@ -99,6 +99,8 @@ namespace Store
 		virtual LogicalID* clone() const = 0;
 		virtual string getServer() const = 0;
 		virtual void setServer(string server) = 0;
+		virtual int getPort() const = 0;
+		virtual void setPort(int port) = 0;
 		virtual LogicalID* getRemoteID()  const = 0;
 		virtual void setRemoteID(LogicalID* remoteID) = 0;
 

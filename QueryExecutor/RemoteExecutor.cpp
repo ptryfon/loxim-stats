@@ -11,9 +11,12 @@
 #include "QueryResult.h"
 #include "Errors/Errors.h"
 #include "../TCPProto/Tcp.h"
+//#include "../TCPProto/TCPParam.h"
 //#include "../TCPProto/Package.h"
 #include "SessionData.h"
 #include "QueryExecutor.h"
+#define SLEEP			10000
+#define CONNECT_SLEEP	10000
 
 using namespace TCPProto;
 using namespace std;
@@ -25,6 +28,12 @@ namespace QExecutor {
 		this->ip = ip;
 		this->qe = qe;
 		ec = new ErrorConsole("RemoteExecutor");
+		lid = NULL;
+		deref = false;
+	}
+	
+	void RemoteExecutor::setDeref() {
+		deref = true;
 	}
 	
 	int RemoteExecutor::connect(const char* ip, int port, int *sock) {
@@ -38,6 +47,8 @@ namespace QExecutor {
 			return err;
 		}
 		
+		usleep(CONNECT_SLEEP);
+		
 		*ec << "mam connection";
 		SimpleQueryPackage spackage;
 		Package *package;
@@ -48,11 +59,15 @@ namespace QExecutor {
 			return err;
 		}
 		*ec << "wyslalem 1";
+		usleep(SLEEP);
 		err = packageReceive(&package, newSock);
 		if (err != 0) {
 			return err;
 		}
 		*ec << "odebralem 1";
+		
+		usleep(SLEEP);
+		
 		string login= qe->session_data->get_user_data()->get_login();
 		string passwd = qe->session_data->get_user_data()->get_passwd();
 		
@@ -71,6 +86,9 @@ namespace QExecutor {
 			return err;
 		}
 		*ec << "odebralem 2";
+		
+		usleep(SLEEP);
+		
 		spackage.setQuery("end");
 		err = packageSend(&spackage, newSock);
 		if (err != 0) {
@@ -81,6 +99,9 @@ namespace QExecutor {
 		if (err != 0) {
 			return err;
 		}
+		
+		usleep(SLEEP);
+		
 		*ec << "odebralem 3";
 		//autentykacja zakonczona, zaczynam transakcje operacji
 		spackage.setQuery("begin");
@@ -94,23 +115,30 @@ namespace QExecutor {
 			return err;
 		}
 		
+		usleep(SLEEP);
+		
 		*sock = newSock;
 		//Connection *con = new Connection(newSock);
 		//delete con;
 		return 0;
 	}
-	
-	
+	/*
+	void RemoteExecutor::setLogicalID(LogicalID* lid) {
+		this.lid = lid;
+	}
+	*/
 	RemoteExecutor::~RemoteExecutor() {}
 	int RemoteExecutor::execute(QueryResult **qr) {
 		
-		*qr = new QueryIntResult(5);
+		//*qr = new QueryIntResult(5);
 		*ec << "zaczynam remote execute, ip: ";
 		*ec << ip;
 		*ec << "port: "; *ec << port;
 		
 		int sock;
 		int err;
+			
+		usleep(SLEEP);
 		
 		err = connect(ip.c_str(), port, &sock);
 		if (err != 0) {
@@ -118,22 +146,55 @@ namespace QExecutor {
 		}
 		*ec << "wysylam paczke remote";
 		RemoteQueryPackage *rqp = new RemoteQueryPackage();
+		rqp->setLogicalID(lid);
+		rqp->setDeref(deref);
+		
+		usleep(SLEEP);
 		
 		err = packageSend(rqp, sock);
 		if (err != 0) {
 			return err;
 		}
 		
+		usleep(SLEEP);
+		
 		Package* package;
-		err = packageReceive(&package, sock, Package::REMOTERESULT);
+		TCPParam* param = new TCPParam();
+		param->setServer(ip);
+		param->setPort(port);
+		err = packageReceive(&package, sock, (void*)param, Package::REMOTERESULT);
 		if (err != 0) {
 			return err;
 		}
+		delete param;
 		*ec << "odebralem sekcje stosu";
 		RemoteResultPackage *rrp;
 		rrp = (RemoteResultPackage*) (package);
 		*qr = rrp->getQueryResult();
-		*ec << "poprawnie zakonczylem remote executor";
+		
+		usleep(SLEEP);
+		
+		SimpleQueryPackage spackage;
+		spackage.setQuery("end");
+		err = packageSend(&spackage, sock);
+		if (err != 0) {
+			return err;
+		}
+		*ec << "koncze sesje";
+		err = packageReceive(&package, sock);
+		if (err != 0) {
+			return err;
+		}
+		
+		*ec << "sesja zakonczona";
+		
+		err = close(sock);
+		if (err != 0) {
+			*ec << "blad zamykania gniazda";
+		} else {
+			*ec << "poprawnie zakonczylem remote executor";
+		}
+		
 		return 0;
 	
 	}

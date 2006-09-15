@@ -224,16 +224,27 @@ int QueryBinderResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor *
 }
 
 int QueryReferenceResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe) {
-	ec->printf("[QE] nested(): QueryReferenceResult");
+	int errcode;
+	ec->printf("[QE] nested(): QueryReferenceResult\n");
 	/* remote ID */
 	if ((value != NULL) && (value->getServer() != "")) {
+		*ec << "zaczynam zdalne logicalID!!!!!!!!!!!!!!!!\n";
+		QueryResult* qr;
+		RemoteExecutor *rex = new RemoteExecutor(value->getServer(), value->getPort(), qe);
+		rex->setLogicalID(value);
+		errcode = rex->execute(&qr);
+		if (errcode != 0) {
+			return errcode;
+		}
+		r->addResult(qr);
 		*ec << "zdalne logicalID\n";
-		return 1;
+		return 0;
 	}
+	*ec << "to nie jest zdalne logicalId\n";
 	/* end of remoteID processing */
 	
 	DataValue* tmp_data_value;
-	int errcode;
+	
 	ObjectPointer *optr;
 	if (value != NULL) {
 		if ((errcode = tr->getObjectPointer(value, Store::Read, optr)) != 0) {
@@ -282,7 +293,7 @@ int QueryReferenceResult::nested(Transaction *&tr, QueryResult *&r, QueryExecuto
 
 			 }
 			 *ec << "a teraz bring!!!!!!!!!!! ip: " <<  ip << " port: " << port <<"\n";
-			 QueryResult* qr = new QueryIntResult(5);
+			 QueryResult* qr;// = new QueryIntResult(5);
 			 RemoteExecutor *rex = new RemoteExecutor(ip, port, qe);
 			 errcode = rex->execute(&qr);
 			 if (errcode != 0) {

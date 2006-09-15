@@ -1,8 +1,14 @@
 #include <errno.h>
 #include <netinet/in.h> 
 #include "Package.h"
+#include "TCPParam.h"
 
 namespace TCPProto {
+	
+	RemoteResultPackage::RemoteResultPackage(TCPParam* param) {
+		server = param->getServer();
+		port = param->getPort();
+	}
 	
 	int RemoteResultPackage::deserialize(char* buffer, int size) {
 		cerr << "zaczynam remote result";
@@ -66,7 +72,7 @@ namespace TCPProto {
 			return 0;
 	}
 	
-	int RemoteResultPackage::grabElements(QueryBagResult* col) {
+	int RemoteResultPackage::grabElements(QueryResult* col) {
 		
 		unsigned long number;
 		int error;
@@ -79,7 +85,21 @@ namespace TCPProto {
 			cerr << "zaczynam kolejny element kolekcji";
 			if (0 != (error = dataDeserialize(&r))) return error;
 			cerr << "kolejny element kolekcji zostal wczytany";
-			col->addResult(r);
+			
+			switch (col->type()) {
+			case QueryResult::QBAG:
+				((QueryBagResult*) col)->addResult(r);
+				break;
+			case QueryResult::QSTRUCT:
+				((QueryStructResult*) col)->addResult(r);
+				break;
+			case QueryResult::QSEQUENCE:
+				((QuerySequenceResult*) col)->addResult(r);
+				break;
+			default:
+				return -1;//TODO
+			}
+			
 		}
 		
 		return 0;
@@ -104,7 +124,17 @@ namespace TCPProto {
 			case Result::BAG:
 				cerr << "<Connection::deserialize> tworze obiekt BAG\n";
 				*r = new QueryBagResult();
-				return grabElements((QueryBagResult*) *r);
+				return grabElements(*r);
+				
+			case Result::SEQUENCE:
+				cerr << "<Connection::deserialize> tworze obiekt SEQUENCE\n";
+				*r = new QuerySequenceResult();
+				return grabElements(*r);
+				
+			case Result::STRUCT:
+				cerr << "<Connection::deserialize> tworze obiekt STRUCT\n";
+				*r = new QueryStructResult();
+				return grabElements(*r);
 					
 			case Result::REFERENCE:
 				cerr << "<Connection::deserialize> tworze obiekt REFERENCE w remote response\n";
@@ -113,21 +143,22 @@ namespace TCPProto {
 				if (error != 0) return error;
 				int value;
 				error = toInt(&value, string(id));
+				cerr << "RemoteResultPackage :: odebralem zdalna referencje: " << value << endl; 
 				if (error != 0) return error;
 				lid = new DBLogicalID();
 				lid->setRemoteID(new DBLogicalID(value));
-				//TODO setRemoteServer
-				lid->setServer("ip:port");
+				lid->setServer(server);
+				lid->setPort(port);
 				*r = new QueryReferenceResult(lid);
 				return 0;
-		/*	
+			
 			case Result::VOID:
-			cerr << "<Connection::deserialize> tworze obiekt VOID\n";
-				*r = new ResultVoid();
+				cerr << "<Connection::deserialize> tworze obiekt VOID\n";
+				*r = new QueryNothingResult();
 				return 0;
-			*/
-		        case Result::STRING:
-			  cerr << "<Connection::deserialize> tworze obiekt STRING\n " ;
+			
+		    case Result::STRING:
+		    	cerr << "<Connection::deserialize> tworze obiekt STRING\n " ;
 				error = stringCopy(id); // by reference
 				if (error != 0) return error;
 				*r = new QueryStringResult(string (id));

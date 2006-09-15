@@ -512,8 +512,11 @@ while (!signalReceived) {
 	Package::packageType pType = package->getType(); 
 
 	if (pType == Package::REMOTEQUERY) {
-		*ec << "odebralem zadanie remote";
-		tNode = new RemoteNode();
+		*ec << "odebralem zadanie remote"; 
+		RemoteNode* rNode = new RemoteNode();
+		rNode->setLogicalID(((RemoteQueryPackage*)package)->getLogicalID());
+		rNode->setDeref(((RemoteQueryPackage*)package)->isDeref());
+		tNode = rNode;
 		
 		*ec << "[Server.Run]--> Blocking sigint again..";
 		sigprocmask(SIG_BLOCK, &block_cc, NULL);

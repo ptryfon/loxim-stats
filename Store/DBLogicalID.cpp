@@ -61,6 +61,16 @@ namespace Store
 		server = s;
 	};
 
+	int DBLogicalID::getPort() const
+	{
+		return port;
+	};
+
+	void DBLogicalID::setPort(int p)
+	{
+		port = p;
+	};
+	
 	LogicalID* DBLogicalID::getRemoteID()  const
 	{
 		return remoteID;

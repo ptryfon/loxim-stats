@@ -25,6 +25,8 @@ namespace Store
 		virtual LogicalID* clone() const;
         virtual string getServer() const;
         virtual void setServer(string server);
+        virtual void setPort(int port);
+        virtual int getPort() const;
 	virtual LogicalID* getRemoteID()  const;
 	virtual void setRemoteID(LogicalID* remoteID);
 
@@ -36,6 +38,7 @@ namespace Store
 		unsigned int value;
 	private:
 		string server;
+		int port;
 		LogicalID* remoteID;
 	};
 }
