@@ -31,10 +31,10 @@ namespace QParser {
 				pom = candidate->getTarget(); /*now pom points to the target object. */
 				SigRef *sigRef = new SigRef (pom->getMyId());
 				sigRef->setDependsOn(NULL);
-				sigRef->setCard(pom->getCard());
+				sigRef->setCard(candidate->getCard());
 				StatBinder * sb = new StatBinder (pom->getName(), sigRef);				
 				sb->setDependsOn(treeNode);
-				sb->setCard(pom->getCard());
+				sb->setCard(candidate->getCard());
 				//bindersCol.push_back(sb);
 				bindersCol = new BinderList(sb);
 				return bindersCol;	//<kolekcja 1-eltowa zawierajaca sb>;				

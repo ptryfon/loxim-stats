@@ -424,7 +424,7 @@ namespace QParser {
 		cout<<"jsi markNeeded w namenode end " << name << endl;
 	}
 	
-	virtual void evalCard(){;}	// to musi byc wziete ze skladu danych - przy wiazaniu
+//	virtual void evalCard(){;}	// to musi byc wziete ze skladu danych - przy wiazaniu
 	
 	virtual int staticEval (StatQResStack *&qres, StatEnvStack *&envs);	
       virtual string toString( int level = 0, bool recursive = false, string n = "" ) {
@@ -756,7 +756,7 @@ namespace QParser {
 	
 	virtual TreeNode * getDeath(){	
 		if (this->getOp() == AlgOpNode::comma){
-			if(!this->getRArg()->getNeeded()){
+			if((!this->getRArg()->getNeeded()&&(this->getCard()=="1..1"))){
 				return this->getRArg();
 			}
 		}
@@ -837,7 +837,7 @@ lastOpenSect = 0; }
 	
 	virtual TreeNode * getDeath(){	
 		if (this->getOp() == NonAlgOpNode::join){
-			if(!this->getRArg()->getNeeded()){
+			if((!this->getRArg()->getNeeded())&&(this->getCard()=="1..1")){
 				return this->getRArg();
 			}
 		}
