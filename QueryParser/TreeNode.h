@@ -851,8 +851,9 @@ lastOpenSect = 0; }
 			this->setCard(this->mulCard(this->getLArg()->getCard(), this->getRArg()->getCard()));	
 		} else if (this->op == NonAlgOpNode::where){
 			this->setCard(this->getLArg()->getCard());
+		} else {
+			this->setCard("0..*");
 		}
-		this->setCard("0..*");
 	}
 	
       virtual string toString( int level = 0, bool recursive = false, string name = "" ) {
