@@ -411,17 +411,26 @@ namespace QParser {
 		this->setNeeded(true);
 		cerr << "jsi namenode wola mnu \n";
 		cout << "jsi namenode wola mnu \n";
-		this->markNeededUp();				// idzie w kierunku korzenia 
-	/*	if (this->getDependsOn() != NULL){
+	//	this->markNeededUp();				// idzie w kierunku korzenia 
+		if (this->getDependsOn() != NULL){
 			cout << "jsi wola w dependsOn\n";
 			cerr << "jsi wola w dependsOn\n";
-			this->getDependsOn()->markNeeded();
+			this->getDependsOn()->markNeededUp();
 			cout << "jsi po w dependsOn\n";
 			cerr << "jsi po w dependsOn\n";
 		}
-	*/		
+			
 		cerr<<"jsi markNeeded w namenode end " << name << endl;
 		cout<<"jsi markNeeded w namenode end " << name << endl;
+	}
+	virtual void markNeededUp(){
+		this->setNeeded(true);
+		if (this->getParent() != NULL){
+			this->getParent()->markNeededUp();	
+		}	
+		if (this->getDependsOn() != NULL){
+			this->getDependsOn()->markNeededUp();
+		}
 	}
 	
 //	virtual void evalCard(){;}	// to musi byc wziete ze skladu danych - przy wiazaniu
@@ -756,7 +765,7 @@ namespace QParser {
 	
 	virtual TreeNode * getDeath(){	
 		if (this->getOp() == AlgOpNode::comma){
-			if((!this->getRArg()->getNeeded()&&(this->getCard()=="1..1"))){
+			if((!this->getRArg()->getNeeded()&&(this->getRArg()->getCard()=="1..1"))){
 				return this->getRArg();
 			}
 		}
@@ -837,7 +846,7 @@ lastOpenSect = 0; }
 	
 	virtual TreeNode * getDeath(){	
 		if (this->getOp() == NonAlgOpNode::join){
-			if((!this->getRArg()->getNeeded())&&(this->getCard()=="1..1")){
+			if((!this->getRArg()->getNeeded())&&(this->getRArg()->getCard()=="1..1")){
 				return this->getRArg();
 			}
 		}
