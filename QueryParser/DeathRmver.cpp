@@ -21,14 +21,17 @@ int DeathRmver::rmvDeath(TreeNode *&qTree){
 	cout<< "rmvDeath start" << endl;
 	cout << "dostal :" << endl;
 	qTree->putToString();
+	cout << endl;
 	while(true){
 //		Deb::ug("\n rmvDeath loop start -------------------------------------------------------\n");
 		qParser->statEvaluate(qTree);
 		qTree->markNeeded();		
 		TreeNode * death = qTree->getDeath();
 		if (death == NULL) break;
-//		Deb::ug("jsi trying to remove: \n");
-//		death->putToString();
+		Deb::ug("jsi trying to remove: \n");
+		if (Deb::ugOn()) death->putToString();
+		Deb::ug("\n from : \n");
+		if (Deb::ugOn()) death->getParent()->putToString();
 		TwoArgsNode * parent = (TwoArgsNode*) death->getParent();
 		TreeNode * live = (parent->getLArg() == death)?parent->getRArg():parent->getLArg();
 		if (parent == qTree){
