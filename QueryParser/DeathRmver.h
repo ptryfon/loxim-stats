@@ -24,13 +24,6 @@ public:
 	DeathRmver(QueryParser *qParser);
 	virtual ~DeathRmver();
 	int rmvDeath(TreeNode *&qTree);
-
-
-protected:
-	int doUsuniecia;
-/*
-	void fillDependencyGraph();
-*/
 };
 }
 #endif /*DEATHRMVER_H_*/

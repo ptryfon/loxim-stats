@@ -82,24 +82,13 @@ namespace QParser {
 	virtual bool getNeeded(){return this->needed;}
 	virtual void setNeeded(bool _needed) {this->needed = _needed;}
 	virtual void markNeeded(){
-		cerr << "jsi unimplemented markNeeded" << this->getName() << endl;
-		cerr << "jsi unimplemented markNeeded" << this->getName() << endl;
+		if (Deb::ugOn()) cerr << "jsi unimplemented markNeeded" << this->getName() << endl;
 	};
 	virtual void markNeededUp(){
-		cerr << "jsi markNeededUP start\n";
-		cout << "jsi markNeededUP start\n";
 		this->setNeeded(true);
-		cout << "jsi mnu parent == this " << (this->getParent() == this) << endl;
-		cerr << "jsi mnu parent == this " << (this->getParent() == this) << endl;
 		if (this->getParent() != NULL){
-			cout << "jsi wola mnu w parencie\n";
-			cerr << "jsi wola mnu w parencie\n";
 			this->getParent()->markNeededUp();	
-			cout << "jsi po mnu w parencie\n";
-			cerr << "jsi po mnu w parencie\n";
 		}	
-		cerr << "jsi markNeededUP end\n";
-		cerr << "jsi markNeededUP end\n";
 	}
 	virtual TreeNode * getDeath(){	
 		return NULL;
@@ -326,13 +315,9 @@ namespace QParser {
 	virtual void setRArg(QueryNode* _rarg) {rarg = _rarg;rarg->setParent(this);}
 
 	virtual void markNeeded(){
-			cerr << "jsi twoargsnode1\n"; 
 			this->setNeeded(true);
-			cerr << "jsi twoargsnode2\n";
 			this->getLArg()->markNeeded();
-			cerr << "jsi twoargsnode3\n";
 			this->getRArg()->markNeeded();
-			cerr << "jsi twoargsnode4\n";	
 	}
 	
 	virtual TreeNode * getDeath(){
@@ -406,22 +391,10 @@ namespace QParser {
 	    return 0;
 	}
 	virtual void markNeeded(){
-		cerr<<"jsi markNeeded w namenode start " << name << endl;
-		cout<<"jsi markNeeded w namenode start " << name << endl;
 		this->setNeeded(true);
-		cerr << "jsi namenode wola mnu \n";
-		cout << "jsi namenode wola mnu \n";
-	//	this->markNeededUp();				// idzie w kierunku korzenia 
 		if (this->getDependsOn() != NULL){
-			cout << "jsi wola w dependsOn\n";
-			cerr << "jsi wola w dependsOn\n";
 			this->getDependsOn()->markNeededUp();
-			cout << "jsi po w dependsOn\n";
-			cerr << "jsi po w dependsOn\n";
 		}
-			
-		cerr<<"jsi markNeeded w namenode end " << name << endl;
-		cout<<"jsi markNeeded w namenode end " << name << endl;
 	}
 	virtual void markNeededUp(){
 		this->setNeeded(true);
@@ -433,7 +406,7 @@ namespace QParser {
 		}
 	}
 	
-//	virtual void evalCard(){;}	// to musi byc wziete ze skladu danych - przy wiazaniu
+//	virtual void evalCard(){;}	// w nameNode biore to z bindera - przy wiazaniu
 	
 	virtual int staticEval (StatQResStack *&qres, StatEnvStack *&envs);	
       virtual string toString( int level = 0, bool recursive = false, string n = "" ) {
@@ -810,38 +783,12 @@ lastOpenSect = 0; }
 	virtual void setOp(nonAlgOp _op) { op = _op; }
 	
 	virtual void markNeeded(){
-		cerr << "jsi nonalgopnode markNeeded start " << opStr() << endl;
 		this->setNeeded(true);
-		cerr << "jsi rarg NULL " << (rarg == NULL) <<endl;
-		cerr << "jsi wola this put to string \n";
-		cout << "jsi wola this put to string \n";
 		this->putToString();
-		cerr << "jsi wola larg put to string \n";
-		cout << "jsi wola larg put to string \n";
-	//	this->larg->putToString();
-		cerr << "jsi wola rarg put to string \n";
-		cout << "jsi wola rarg put to string \n";
-	//	this->rarg->putToString();
-		cerr << "----------\n";
-		cout << "----------\n";
-		cerr << "jsi larg name \n"; // << this->getLArg()->getName() << "." << endl;
-		cout << "jsi larg name \n"; //
-	//	cout << this->getLArg()->getName() << "." << endl;
-		cerr << "jsi wola rarggetname\n";
-		cout << "jsi wola rarggetname\n";
-//		cerr << "jsi rarg name " << this->getRArg()->getName() << "." << endl;
-//		cout << "jsi rarg name " << this->getRArg()->getName() << "." << endl;
-		cout << "!!!!!!!!!!!!!!!!!!!!!!!!!\n";
-		cerr << "!!!!!!!!!!!!!!!!!!!!!!!!!\n";
 		this->getRArg()->markNeeded();	
-		cerr << "jsi after right \n";
-		cout << "jsi after right \n";
 		if (op != 0){		// not a dot
-			cerr << "jsi not a dot, calling on left\n";
 			this->getLArg()->markNeeded();	
-			cerr << "jsi after left\n";
 		}
-		cerr << "jsi nonalgopnode markNeeded end " << opStr()  << " \n";
 	}
 	
 	virtual TreeNode * getDeath(){	

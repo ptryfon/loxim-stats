@@ -5,9 +5,7 @@ namespace QParser{
 
 DeathRmver::DeathRmver(QueryParser *qParser)
 {
-	cout << "DeathRmver constr start" << endl;
 	this->qParser = qParser;
-//	this->qTree = NULL;
 }
 
 DeathRmver::~DeathRmver()
@@ -24,25 +22,22 @@ int DeathRmver::rmvDeath(TreeNode *&qTree){
 	cout << "dostal :" << endl;
 	qTree->putToString();
 	while(true){
-//		cout << "\n rmvDeath loop start -------------------------------------------------------\n";
+//		Deb::ug("\n rmvDeath loop start -------------------------------------------------------\n");
 		qParser->statEvaluate(qTree);
 		qTree->markNeeded();		
 		TreeNode * death = qTree->getDeath();
 		if (death == NULL) break;
-//		cout << "jsi trying to remove: \n";
-//		death->putToString();
-//		cout << "\n from : \n";
+//		Deb::ug("jsi trying to remove: \n");
 //		death->putToString();
 		TwoArgsNode * parent = (TwoArgsNode*) death->getParent();
 		TreeNode * live = (parent->getLArg() == death)?parent->getRArg():parent->getLArg();
 		if (parent == qTree){
-//			cout << "parent == live\n";
 			qTree = live;
 			qTree->setParent(NULL);
 		} else {
 			parent->getParent()->swapSon(parent, live);	
 		}
-//		cout << "\nrmvDeath loop end -------------------------------------------------------\n";
+//		Deb::ug("\nrmvDeath loop end -------------------------------------------------------\n");
 	}		
 	cout <<"=============================================================================" << endl;
 	cout <<"-----------------------------------------------------------------------------" << endl;
@@ -53,16 +48,5 @@ int DeathRmver::rmvDeath(TreeNode *&qTree){
 	cout << endl;
 	return 0;	
 }
-
-
-
-/* to chyba w czasie analizy statycznej, metoda na kazdym wezle
-// statically fill dependecies, everything apart from name nodes (dependecies for these nodes
-// are already done during static analisation
-void DeathRmver::fillDependencyGraph(){
-	cout << "drmver.fillDependencyGraph start" << endl;
-
-}
-*/
 
 }

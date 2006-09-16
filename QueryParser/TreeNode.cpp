@@ -335,7 +335,7 @@ namespace QParser
 
 	int NameNode::staticEval (StatQResStack *&qres, StatEnvStack *&envs) {
 		Deb::ug("staticEval(Name) \n");
-		cout << "jsi start stEval(name): " + this->name << endl;
+		if (Deb::ugOn()) cout << "jsi start stEval(name): " + this->name << endl;
 		BinderWrap *bw = envs->bindName(this->name);
 		if (Deb::ugOn()) cout << name << endl;
 		if (bw == NULL) { Deb::ug("name could NOT be bound ! will exit..\n"); return -1;}
@@ -348,20 +348,12 @@ namespace QParser
 	
 		if (sig->getDependsOn() == NULL){
 			sig->setDependsOn(this);
-			cout << "jsi set depOn\n";
 		} else {
-			cout << "jsi sygnatura juz miala ustawione dependsOn, nie ustawia go ponownie\n";	
+			Deb::ug("jsi sygnatura juz miala ustawione dependsOn, nie ustawia go ponownie\n");
 		}
 		qres->pushSig (sig);
 		 this->setDependsOn(bw->getBinder()->getDependsOn());
-		/*
-		if (bw->getBinder()->getDependsOn() == NULL)
-			cout << "jsi set this->depOn on NULL\n";
-		else 
-			cout << "jsi set this->depOn on " << bw->getBinder()->getDependsOn()->getName() << endl;
-		*/
-		Deb::ug("result pushed on qres\n");
-		cout << "jsi end nameNode stEval\n";
+		Deb::ug("result pushed on qres - end nameNode stEval\n");
 		return 0;
 	}
 	int ValueNode::staticEval (StatQResStack *&qres, StatEnvStack *&envs) {
@@ -554,13 +546,6 @@ namespace QParser
 		switch (op) {
 			case NonAlgOpNode::dot :{/*we just take the part to the right of the dot*/
 				qres->pushSig(rSig->clone());
-				cout << "switch(dot) " << endl;
-				/*
-				if (rSig->getDependsOn() == NULL)
-					cout << "the signature rSig depends on NULL !!!!!\n";
-				else 
-					cout << "the signature rSig depends on " + rSig->getDependsOn()->getName() << endl;
-				*/
 				Deb::ug("dot: pushed rSig on qres\n");
 				break;}
 			case NonAlgOpNode::where: {/*TODO: do we assume the <where> condition is fulfilled ?? */
