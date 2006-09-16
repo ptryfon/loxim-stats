@@ -148,32 +148,32 @@ namespace QParser {
 		
 		
 		virtual DataObjectDef *getObjById (int objId) {
-			cerr << "getObjById start\n";
+	//		cerr << "getObjById start\n";
 			int itsPlace = this->hashFun (objId);
-			cerr << "itsPlace " << itsPlace << endl;
+	//		cerr << "itsPlace " << itsPlace << endl;
 			DataObjectDef *point = refTable [itsPlace];
 			
-			if (point != NULL){
-			    cerr << "moze trzeba wyzerowac tablice, point != NULL " << endl;
-			} else 
-			    cerr << " point == NULL"<< endl;
+	//		if (point != NULL){
+	//		    cerr << "moze trzeba wyzerowac tablice, point != NULL " << endl;
+	//		} else 
+	//		    cerr << " point == NULL"<< endl;
 			
 			bool halt = false;
 			while (not halt) {
 				if (point == NULL) {halt = true;}
-				else { cerr << "point != NULL, spr Id" << endl;
+				else { //cerr << "point != NULL, spr Id" << endl;
 				    if (point->getMyId() == objId) {
-					cerr << "halt \n";
+				//	cerr << "halt \n";
 					halt = true;
 				    }
 				    else {
-					cerr << "bierze nast \n";
+				//	cerr << "bierze nast \n";
 					point = point->getNextHash();
-					cerr << "wzial nast \n";
+				//	cerr << "wzial nast \n";
 				    }	
 				}
 			};
-			cerr << "getObjById end\n";
+		//	cerr << "getObjById end\n";
 			return point; /*UWAGA to moze byc NULLem (jesli nie znalazl. )*/
 			
 		};

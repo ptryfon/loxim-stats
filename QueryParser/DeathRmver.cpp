@@ -24,32 +24,33 @@ int DeathRmver::rmvDeath(TreeNode *&qTree){
 	cout << "dostal :" << endl;
 	qTree->putToString();
 	while(true){
-		cout << "\n rmvDeath loop start -------------------------------------------------------\n";
+//		cout << "\n rmvDeath loop start -------------------------------------------------------\n";
 		qParser->statEvaluate(qTree);
 		qTree->markNeeded();		
 		TreeNode * death = qTree->getDeath();
 		if (death == NULL) break;
-		cout << "jsi trying to remove: \n";
-		death->putToString();
-		cout << "\n from : \n";
-		death->putToString();
+//		cout << "jsi trying to remove: \n";
+//		death->putToString();
+//		cout << "\n from : \n";
+//		death->putToString();
 		TwoArgsNode * parent = (TwoArgsNode*) death->getParent();
 		TreeNode * live = (parent->getLArg() == death)?parent->getRArg():parent->getLArg();
 		if (parent == qTree){
-			cout << "parent == live\n";
+//			cout << "parent == live\n";
 			qTree = live;
 			qTree->setParent(NULL);
 		} else {
 			parent->getParent()->swapSon(parent, live);	
 		}
-		cout << "\nrmvDeath loop end -------------------------------------------------------\n";
+//		cout << "\nrmvDeath loop end -------------------------------------------------------\n";
 	}		
 	cout <<"=============================================================================" << endl;
 	cout <<"-----------------------------------------------------------------------------" << endl;
 	cout <<"-----------------------------------------------------------------------------" << endl;
 	cout<< "rmvDeath end" << endl;
-	cout << "zwraca :" << endl;
+	cout << "zwraca : \n" << endl;
 	qTree->putToString();
+	cout << endl;
 	return 0;	
 }
 

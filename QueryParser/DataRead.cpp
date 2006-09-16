@@ -80,90 +80,75 @@ namespace QParser {
 		};		
 
 DataObjectDef * DataScheme::createDataObjectDef(ObjectPointer *mainOp, Transaction *tr){
-    cerr << "start createDataObjectDef " << endl;
-    cerr << "diag2\n";
-    cerr << "diag2.2 " << mainOp->getLogicalID()->toInteger() << endl;
-    cerr << "diag2.3\n";
+    //jsi cerr << "start createDataObjectDef " << endl;
+    //jsi cerr << "diag2.2 " << mainOp->getLogicalID()->toInteger() << endl;
     this->getObjById(mainOp->getLogicalID()->toInteger());
-    cerr << "diag2.4" << endl;
     if (this->getObjById(mainOp->getLogicalID()->toInteger()) != NULL){
-	cerr << "dany obiekt juz jest wczytany " << endl;
+	//jsi cerr << "dany obiekt juz jest wczytany " << endl;
 	return this->getObjById(mainOp->getLogicalID()->toInteger());
     };
-    
-    cerr << "diag2\n";
         
     DataObjectDef * datObDef = new DataObjectDef();	// ten obiekt wypelniam 
-    cerr << "diag3\n";
     datObDef->setMyId(mainOp->getLogicalID()->toInteger());
-    
-    cerr << "diag4\n";
-    
     DataValue *dv = mainOp->getValue();	//to jest obiekt zlozony, tu jest wektor wskaznikow do logicalId
-    cerr << "diag5\n";
-    vector<LogicalID*>* v = dv->getVector();
-    
-    cerr << "rodzaj obiektu " << mainOp->getName() << endl;
-    
+    vector<LogicalID*>* v = dv->getVector();  
+//    cerr << "rodzaj obiektu " << mainOp->getName() << endl;
     if (mainOp->getName() == "__MDN__"){
         this->addBaseObj(datObDef);
     } else {
         this->addObj(datObDef);
     }
-     
     // teraz ustawiam name, card, kind....    
     for (unsigned   int j = 0; j < v->size(); j++){
         // czy acces mode sie robi w ten sposob?
 	ObjectPointer *op = NULL;
 	tr->getObjectPointer( (*v)[j], Store::Read, op);
-	
-	cerr << " wczytal " << op->getName() << "---------------------" << endl;
-	
+//	cerr << " wczytal " << op->getName() << "---------------------" << endl;
         // moze tak nie mozna porownywac getName zwraca stringa **
         if (op->getName() == "name"){
-	    cout << "wczytal name " << op->getValue()->getString() << endl;
+//	    cout << "wczytal name " << op->getValue()->getString() << endl;
 	    datObDef->setName(op->getValue()->getString());    
 	} else if (op->getName() == "kind") {
-	    cout << "wczytal kind " << op->getValue()->getString() << endl;
+//	    cout << "wczytal kind " << op->getValue()->getString() << endl;
 	    datObDef->setKind(op->getValue()->getString());    
 	} else if (op->getName() == "card"){
-	    cout << "wczytal card " << op->getValue()->getString() << endl;
+//	    cout << "wczytal card " << op->getValue()->getString() << endl;
 	    datObDef->setCard(op->getValue()->getString());    
 	} else if (op->getName() == "type") {
-	    cout << "wczytal type " << op->getValue()->getString() << endl;
+//	    cout << "wczytal type " << op->getValue()->getString() << endl;
 	    datObDef->setType(op->getValue()->getString());    
 	} else if (op->getName() == "owner") {
-	    cout << "WAZNE wczytal owner " << op->getValue()->getPointer()->toInteger() << endl;
+//	    cout << "WAZNE wczytal owner " << op->getValue()->getPointer()->toInteger() << endl;
 	    datObDef->setOwnerId(op->getValue()->getPointer()->toInteger());
     //	    tr->getObjectPointer( (*v)[j], Store::Read, op);
 	    ObjectPointer * pom;
 	    tr->getObjectPointer(op->getValue()->getPointer(), Store::Read, pom);
-	    cout << "spodziewam sie, ze w nas linii napisze ze dany obiekt jest juz wczytany " << endl;
+//	    cout << "spodziewam sie, ze w nas linii napisze ze dany obiekt jest juz wczytany " << endl;
 	    datObDef->setOwner(this->createDataObjectDef(pom, tr));
 	} else if (op->getName() == "target") {
-	    cout << "WAZNE wczytal target " << op->getValue()->getPointer()->toInteger();
+//	    cout << "WAZNE wczytal target " << op->getValue()->getPointer()->toInteger();
 	    datObDef->setTargetId(op->getValue()->getPointer()->toInteger());
 	    ObjectPointer * pom;
 	    tr->getObjectPointer(op->getValue()->getPointer(), Store::Read, pom);
 	    datObDef->setTarget(this->createDataObjectDef(pom, tr));
 	} else if (op->getName() == "subobject") {				// czy to jest link??? chyba tak 
-	    cerr << "WAZNE wczytal subobject " << endl;				// tak samo jak owner i target
-	    cerr << "to chyba nie to id/ a jednak moze to " << op->getLogicalID()->toInteger();
+//	    cerr << "WAZNE wczytal subobject " << endl;				// tak samo jak owner i target
+//	    cerr << "to chyba nie to id/ a jednak moze to " << op->getLogicalID()->toInteger();
 //	    cerr << "to chyba dobre id " << op->getValue()->getPointer()->toInteger() << endl;
 	    ObjectPointer * pom;
 	    tr->getObjectPointer(op->getLogicalID(), Store::Read, pom);
-	    cerr << "wola rek " << endl;
+//	    cerr << "wola rek " << endl;
 	    DataObjectDef * subobj = this->createDataObjectDef(pom, tr);	    
 	    if (subobj->getOwner() == datObDef){
-		cerr << "OK subobj->getOwner() == datObDef" << endl;
+//		cerr << "OK subobj->getOwner() == datObDef" << endl;
 	    } else {
-		cout << "KURWA ERROR subobj->getOwner() != datObDef" << endl;
+		cout << "jsi ERROR subobj->getOwner() != datObDef" << endl;
 	    }
 	    datObDef->addSubObject(subobj);
-	    cerr << "end subobject " << endl;	    
+//	    cerr << "end subobject " << endl;	    
 	}
     }    
-    cerr << "end createDataObjectDef " << endl;    
+//    cerr << "end createDataObjectDef " << endl;    
     return datObDef;
 }
 
@@ -181,7 +166,7 @@ if (true) {
     if (Deb::ugOn()) cout << "odebral " << roots->size() << " obiektow"<< endl;
     for (unsigned int i = 0; i < roots->size(); i++){
 	ObjectPointer * mdnOp = (*roots)[i];
-	cout << "tworzy DataObjDef(__MDN__) ---------------------------------\n";
+//	cout << "tworzy DataObjDef(__MDN__) ---------------------------------\n";
 	createDataObjectDef(mdnOp, tr);
     }
 }    
