@@ -28,10 +28,10 @@ int DeathRmver::rmvDeath(TreeNode *&qTree){
 		qTree->markNeeded();		
 		TreeNode * death = qTree->getDeath();
 		if (death == NULL) break;
-		Deb::ug("jsi trying to remove: \n");
-		if (Deb::ugOn()) death->putToString();
-		Deb::ug("\n from : \n");
-		if (Deb::ugOn()) death->getParent()->putToString();
+		cout << "\n rem \n";
+		death->putToString();
+		cout << "\n from \n";
+		death->getParent()->putToString();
 		TwoArgsNode * parent = (TwoArgsNode*) death->getParent();
 		TreeNode * live = (parent->getLArg() == death)?parent->getRArg():parent->getLArg();
 		if (parent == qTree){
