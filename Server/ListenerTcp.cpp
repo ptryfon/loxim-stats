@@ -133,7 +133,7 @@ int Listener::CloseSocket(int sock) {
 	return 0;
 	}
 	else {
-		*lCons << "blad przy zamykaniu gniazda";
+		//*lCons << "blad przy zamykaniu gniazda";
 		return errno | ErrTCPProto;
 	}
 }

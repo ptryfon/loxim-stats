@@ -42,8 +42,8 @@ extern pthread_t pulseThreads[];
 		int Serialize(QueryResult *qr, char **buffer, char **bufferStart);
 		int Receive(char** buffer, int* receiveDataSize);
 		void Test();
-		void cancelPC(pthread_t p);
-		pthread_t pulseCheckRun();
+		void cancelPC();
+		int pulseCheckRun();
 		
 		QueryExecutor* getQEx();		
 		int getSocket();
@@ -60,7 +60,6 @@ extern pthread_t pulseThreads[];
 	private:
 		char *bigBuf;
 		int Sock;
-		int onSock;
 		int pcSock;
 		int fdContact;
 		char *messgBuff;

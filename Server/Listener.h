@@ -42,12 +42,12 @@ using namespace Config;
 	#define limit 5	// default max number of incomming connections at the same time
 	
 		static int ListenOnSocket(int sock, int* newSocket, int queueLength=limit);
+		static int CloseSocket(int sock);
 		
 	private:
 		ErrorConsole* lCons;
 		
 	// TCP methods
-		int CloseSocket(int sock);
 		
 		
 	
