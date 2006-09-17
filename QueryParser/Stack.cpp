@@ -65,19 +65,26 @@ namespace QParser {
 		Signature *pt = this->getMyList();
 		BinderWrap *bindersCol;
 			while (pt != NULL) { 
+				Deb::ug("jsi sn loop start\n");
 				BinderWrap *binders = pt->statNested(pt->getDependsOn());
+				Deb::ug("jsi sn got binders\n");
 		//		BinderWrap *binders = pt->statNested(treeNode);
 				if (bindersCol == NULL) bindersCol = (BinderList*) binders;
 				else {
+					Deb::ug("jsi sn else start\n");
 					BinderWrap *one = bindersCol;
 					while(one!=NULL){
+						Deb::ug("jsi sn while start\n");
 						bindersCol =  bindersCol->addOne(one);
+						Deb::ug("jsi sn eddedOne\n");
 						one =  one->getNext();
+						Deb::ug("jsi sn while end (gotNext)\n");
 					}
+					Deb::ug("jsi sn else end\n");
 				}
 				pt = pt->getNext();
 			}
-		
+		Deb::ug("stat nested na sigColl END\n");
 		return bindersCol;
 		}						
   
