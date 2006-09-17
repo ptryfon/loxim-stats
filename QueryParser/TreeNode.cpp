@@ -514,23 +514,33 @@ namespace QParser
 		Deb::ug("just before push/statNested loop\n");
 		if (toPush->isColl()) {
 			cout << "pushing from SigColl\n";
+			//ten fragment jest zamiast tego nastepnego zakomentowanego, wydaje mi sie ze
+			// tamto zle dzialalo, co jezeli elem, sigcoll byla siggcol
+			BinderWrap *bindersColl = toPush->statNested(toPush->getDependsOn());
+			sToPop+= bindersColl->size();
+			if (envs->pushBinders(pt->statNested(pt->getDependsOn())) != 0) 
+					cout << "EROOR jsi zobacz nonalgopnode steval dla sigcoll \n" <<endl;
+			/*
 			Signature *pt = ((SigColl *) toPush)->getMyList();
 			while (pt != NULL) { 
 				if (envs->pushBinders(pt->statNested(pt->getDependsOn())) == 0) 
 					sToPop++; 
 				pt = pt->getNext();
 			}
+			*/
 		} else 	{
 			cout << "pushing not coll\n";
-			if (toPush->getDependsOn() == NULL)
-				cout << "the signature depends on NULL !!!!!\n";
-			else 
-				cout << "the signature depends on " + toPush->getDependsOn()->getName() << endl;
+			
 			if (envs->pushBinders(toPush->statNested(toPush->getDependsOn())) == 0) 
 				sToPop = 1; 
 			else 
 				sToPop = 0;
 		}
+		if (toPush->getDependsOn() == NULL)
+			cout << "the signature depends on NULL !!!!!\n";
+		else 
+			cout << "the signature depends on " + toPush->getDependsOn()->getName() << endl;
+		
 		Deb::ug("pushed static nested result on envs\n");
 		this->setLastOpenSect(envs->getSize());
 		if (this->rarg->staticEval(qres, envs) == -1) return -1;

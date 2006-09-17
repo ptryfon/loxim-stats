@@ -272,6 +272,7 @@ namespace QParser {
 		virtual BinderWrap *addPureBinder (StatBinder *newBndr) = 0;
 		virtual BinderWrap *bindName(string aName) = 0;
 		virtual void putToString() {cout << "name(sign)" << endl;};
+		virtual int size() = 0;	//returns number of binders in this section
 	};	
 	
 	class BinderList : public BinderWrap
@@ -279,6 +280,16 @@ namespace QParser {
 	protected:
 		BinderList *next;
 	public:
+		virtual int size(){
+			BinderList pom = this;
+			int ile = 0;
+			do {
+				if (pom->getBinder()!=NULL) 
+					ile++;
+				pom = pom->next;
+			} while(pom != NULL);
+			return ile;
+		}
 		BinderList(StatBinder *_binder) {this->setBinder(_binder); this->next = NULL;}
 		BinderList() {binder = NULL; next = NULL;}
 		virtual void setNext(BinderList *newNext) {this->next = newNext;}

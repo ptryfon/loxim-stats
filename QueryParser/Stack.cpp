@@ -60,8 +60,25 @@ namespace QParser {
 	};
 
 	BinderWrap* SigColl::statNested(TreeNode *treeNode) {
+		Deb::ug("stat nested na sigColl start\n");
 		Deb::ug( "statNested::sigColl -- should not be evoked...");	
-		return NULL;
+		Signature *pt = this->getMyList();
+		BinderList *bindersCol;
+			while (pt != NULL) { 
+				BinderWrap *binders = pt->statNested(pt->getDependsOn());
+		//		BinderWrap *binders = pt->statNested(treeNode);
+				if (bindersCol == NULL) bindersCol = binders;
+				else {
+					BinderList *one = bindersCol;
+					while(one!=NULL){
+						bindersCol = (BinderList *) (bindersCol->addOne(one));
+						one = one->next;
+					}
+				}
+				pt = pt->getNext();
+			}
+		
+		return bindersCol;
 		}						
   
 	void Optimiser::setQres(StatQResStack *nq) {this->sQres = nq;}
