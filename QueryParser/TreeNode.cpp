@@ -518,7 +518,7 @@ namespace QParser
 			// tamto zle dzialalo, co jezeli elem, sigcoll byla siggcol
 			BinderWrap *bindersColl = toPush->statNested(toPush->getDependsOn());
 			sToPop+= bindersColl->size();
-			if (envs->pushBinders(pt->statNested(pt->getDependsOn())) != 0) 
+			if (envs->pushBinders(bindersColl) != 0) 
 					cout << "EROOR jsi zobacz nonalgopnode steval dla sigcoll \n" <<endl;
 			/*
 			Signature *pt = ((SigColl *) toPush)->getMyList();

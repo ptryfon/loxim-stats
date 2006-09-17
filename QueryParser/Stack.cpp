@@ -67,7 +67,7 @@ namespace QParser {
 			while (pt != NULL) { 
 				BinderWrap *binders = pt->statNested(pt->getDependsOn());
 		//		BinderWrap *binders = pt->statNested(treeNode);
-				if (bindersCol == NULL) bindersCol = binders;
+				if (bindersCol == NULL) bindersCol = (BinderWrap*) binders;
 				else {
 					BinderList *one = bindersCol;
 					while(one!=NULL){
