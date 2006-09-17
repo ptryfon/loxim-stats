@@ -273,7 +273,7 @@ namespace QParser {
 		virtual BinderWrap *bindName(string aName) = 0;
 		virtual void putToString() {cout << "name(sign)" << endl;};
 		virtual int size() = 0;	//returns number of binders in this section
-		virtual BinderWrap* next() = 0; // returns next elem, sth like iterator
+		virtual BinderWrap* getNext() = 0; // returns next elem, sth like iterator
 										// in list impl its just next
 	};	
 	
@@ -282,7 +282,7 @@ namespace QParser {
 	protected:
 		BinderList *next;
 	public:
-		virtual BinderWrap * next(){return next;}
+		virtual BinderWrap * getNext(){return next;}
 		virtual int size(){
 			BinderList* pom = this;
 			int ile = 0;

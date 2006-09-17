@@ -63,16 +63,16 @@ namespace QParser {
 		Deb::ug("stat nested na sigColl start\n");
 		Deb::ug( "statNested::sigColl -- should not be evoked...");	
 		Signature *pt = this->getMyList();
-		BinderList *bindersCol;
+		BinderWrap *bindersCol;
 			while (pt != NULL) { 
 				BinderWrap *binders = pt->statNested(pt->getDependsOn());
 		//		BinderWrap *binders = pt->statNested(treeNode);
 				if (bindersCol == NULL) bindersCol = (BinderList*) binders;
 				else {
-					BinderList *one = bindersCol;
+					BinderWrap *one = bindersCol;
 					while(one!=NULL){
-						bindersCol = (BinderList *) (bindersCol->addOne(one));
-						one = one->getNext();
+						bindersCol =  bindersCol->addOne(one);
+						one =  one->getNext();
 					}
 				}
 				pt = pt->getNext();
