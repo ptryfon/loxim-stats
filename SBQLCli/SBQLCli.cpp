@@ -3,6 +3,8 @@
 #include <fstream>
 #include <pthread.h>
 #include <string>
+#include <signal.h>
+
 #include <unistd.h>
 #include "../Driver/DriverManager.h"
 #include "../Driver/Result.h"
@@ -13,7 +15,9 @@
 using namespace std;
 using namespace Driver;
 
+pthread_cond_t conditional_v = PTHREAD_COND_INITIALIZER;
 pthread_t pulseT;
+Connection *con;
 pthread_mutex_t cliMut = PTHREAD_MUTEX_INITIALIZER;
 struct pInfo {
     char *host;
@@ -33,18 +37,42 @@ void printMsg (string str)
     cout << str;
 }
 
-void *pulseRun(void *arg) {
-    pInfo pI = *(pInfo *)arg;
+void cliSigHandler(int sig) {
+    int errorCode;
     int status;
+    if (pthread_self()==pulseT)
+	exit(0);
+    else {    
+	errorCode = pthread_join(pulseT, (void**)&status);
+	if (errorCode!=0) {
+	    printf("Error: Failed to join cliPulse thread - %s\n", strerror(errorCode));
+	    exit(errorCode);
+	}
+	exit(0);
+    }
+}
+
+void *pulseRun(void *arg) {
+    
+    //sigset_t block_sigs;
+    //sigemptyset(&block_sigs);
+    //sigaddset(&block_sigs, SIGINT);
+    
+    pInfo pI = *(pInfo *)arg;
     //cout << "Oto: " << pI.host << " " << pI.port << " " << pI.login << " " << pI.passwd << "\n";
     Connection *pcCon; 
     pcCon = DriverManager::getConnection(pI.host, pI.port, pI.login, pI.passwd, 0);
-    //printMsg("\npulseRun-->Joining\n");
-    pthread_join(pI.id, (void **)&status);
-    //printMsg("\npulseRun-->Exiting\n");
+    //printMsg("\nWaiting\n");
+    //pthread_join(pI.id, (void **)&status);
+    pthread_mutex_lock(&cliMut);
+    pthread_cond_wait(&conditional_v, &cliMut);
+    pthread_mutex_unlock(&cliMut);
+    printMsg("\nExiting\n");
     delete pcCon;
+    //sigprocmask(SIG_UNBLOCK, &block_sigs, NULL);
     pthread_exit((void *)0); 
 }
+
 
 void read_login(string &login) {
     printMsg ("Login: "); 
@@ -58,6 +86,17 @@ void read_passwd(string &passwd) {
 	getline(cin, passwd);
 	system("stty echo");    
     }
+}
+
+void goodExit(int code) {
+    pthread_mutex_lock(&cliMut);
+    pthread_cond_signal(&conditional_v);
+    pthread_mutex_unlock(&cliMut);
+    pthread_join(pulseT, NULL);
+     
+    delete con;
+    exit(code);
+
 }
 
 int main (int argc, char *argv[])
@@ -92,7 +131,7 @@ int main (int argc, char *argv[])
   if ("" == passwd) passwd = "not_a_password";  
   /* establishing connection */
   //Connection *pcCon;
-  Connection *con;
+  //Connection *con;
   pthread_t myTid = pthread_self();
   int error;
   pInfo cI;
@@ -100,6 +139,7 @@ int main (int argc, char *argv[])
   cI.port = port+1;
   cI.login = login.c_str(); cI.passwd = passwd.c_str(); 
   cI.id = myTid;
+  
   try
   {
     //printMsg("Getting connection...\n");
@@ -114,7 +154,7 @@ int main (int argc, char *argv[])
   catch (ConnectionException e)
   {
     cerr << e << endl;
-    exit (1);
+    goodExit(1);
   }
   
   printMsg ("\n");
@@ -154,7 +194,7 @@ int main (int argc, char *argv[])
   catch (ConnectionException e)
   {
     cerr << e << endl;
-    exit (1);
+    goodExit(1);
   }
     
   /* sending abort on exit */
@@ -170,9 +210,7 @@ int main (int argc, char *argv[])
     cerr << e << endl;
   }
 
-  //delete pcCon;
-  delete con;
-  return 0;
+  goodExit(0);
 }
 
 void read_and_execute(istream &in, Connection *con ) {
@@ -212,7 +250,7 @@ void read_and_execute(istream &in, Connection *con ) {
   catch (ConnectionException e)
   {
     cerr << e << endl;
-    exit (1);
+    goodExit(1);
   }
 
 };
