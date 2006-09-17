@@ -63,7 +63,7 @@ namespace QParser {
 		Deb::ug("stat nested na sigColl start\n");
 		Deb::ug( "statNested::sigColl -- should not be evoked...");	
 		Signature *pt = this->getMyList();
-		BinderWrap *bindersCol;
+		BinderWrap *bindersCol = NULL;
 			while (pt != NULL) { 
 				Deb::ug("jsi sn loop start\n");
 				BinderWrap *binders = pt->statNested(pt->getDependsOn());
