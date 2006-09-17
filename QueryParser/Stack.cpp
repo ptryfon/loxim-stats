@@ -72,7 +72,7 @@ namespace QParser {
 					BinderList *one = bindersCol;
 					while(one!=NULL){
 						bindersCol = (BinderList *) (bindersCol->addOne(one));
-						one = one->next;
+						one = one->next();
 					}
 				}
 				pt = pt->getNext();
