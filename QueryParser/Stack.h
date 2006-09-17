@@ -281,7 +281,7 @@ namespace QParser {
 		BinderList *next;
 	public:
 		virtual int size(){
-			BinderList pom = this;
+			BinderList* pom = this;
 			int ile = 0;
 			do {
 				if (pom->getBinder()!=NULL) 
