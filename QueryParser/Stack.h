@@ -301,8 +301,11 @@ namespace QParser {
 			if (this->next != NULL) next->setSectNumb(newNr);
 		}
 		virtual BinderWrap *addOne (BinderWrap *newBW) {
+			cout << "jsi addOne start\n";
 			((BinderList *)newBW)->setNext(this); 
+			cout << "jsi addOne2\n";
 			newBW->setSectNumb(this->sectNumb);
+			cout << "jsi addOne3\n";
 			return newBW;
 		}
 		virtual BinderWrap *addPureBinder (StatBinder *newBndr) {
