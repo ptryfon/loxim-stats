@@ -130,7 +130,7 @@ public:
           string result = getPrefixForLevel( level, name ) + "[Sequence]\n";
           
           if( recursive ) {
-            for( int i = 0; i < seq.size(); i++ ) {
+            for( unsigned int i = 0; i < seq.size(); i++ ) {
                 result += seq[i]->toString( level+1, true, "seq_elem" );
             }
           }
@@ -185,7 +185,7 @@ public:
           string result = getPrefixForLevel( level, name ) + "[Bag] size=" + sizeS + "\n";
           
           if( recursive ) {
-            for( int i = 0; i < bag.size(); i++ ) {
+            for( unsigned int i = 0; i < bag.size(); i++ ) {
                 result += bag[i]->toString( level+1, true, "bag_elem" );
             }
           }
@@ -236,7 +236,7 @@ public:
           string result = getPrefixForLevel( level, name ) + "[Struct]\n";
           
           if( recursive ) {
-            for( int i = 0; i < str.size(); i++ ) {
+            for( unsigned int i = 0; i < str.size(); i++ ) {
                 result += str[i]->toString( level+1, true, "struct_elem" );
             }
           }

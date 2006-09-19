@@ -1086,7 +1086,7 @@ lastOpenSect = 0; }
         string result = getPrefixForLevel( level, name ) + "[FixPoint] partsNumb=" + partsNumbS + ", names=" + namesS + "\n";
 
         if( recursive ) {
-          for( int i = 0; i < queries.size(); i++ ) {
+          for( unsigned int i = 0; i < queries.size(); i++ ) {
             result += (queries[i])->toString( level+1, true, "query" );
           }
         }
@@ -1279,7 +1279,7 @@ lastOpenSect = 0; }
         string result = getPrefixForLevel( level, n ) + "[CallProc] name='" + name + "', parNumb=" + parNumbS + "\n";
 
         if( recursive ) {
-          for( int i = 0; i < params.size(); i++ ) {
+          for( unsigned int i = 0; i < params.size(); i++ ) {
             result += (params[i])->toString( level+1, true, "param" );
           }
         }

@@ -647,7 +647,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
                   if( wypakuj ) {
                     QueryBagResult *bag = (QueryBagResult *)paramRes;
 
-                    for(int i = 0; i < bag->size(); i++ ) {
+                    for(unsigned int i = 0; i < bag->size(); i++ ) {
                       bag->at(i, paramRes);
                       vec.push_back(paramRes);
                     }
@@ -661,7 +661,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 
                 // zapuszczamy Algorytm Stencela na strukturze qsr
 
-                for( int i = 0; i < qsr->size(); i++ ) {
+                for( unsigned int i = 0; i < qsr->size(); i++ ) {
                   QueryResult *qres;
 
                   errcode = qsr->at(i, qres);
@@ -685,7 +685,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
                 if (errcode != 0) return errcode;
                 QueryBagResult *bag = (QueryBagResult *)paramRes;
 
-                for(int i = 0; i < bag->size(); i++ ) {
+                for(unsigned int i = 0; i < bag->size(); i++ ) {
                   bag->at(i, paramRes);
                   paramsStruct->addResult(paramRes);
                 }

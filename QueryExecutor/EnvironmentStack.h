@@ -31,7 +31,7 @@ namespace QExecutor
 		unsigned int sectionDBnumber;
 	public:
 		EnvironmentStack();
-		~EnvironmentStack();
+		virtual ~EnvironmentStack();
 		int push(QueryBagResult *r);
 		int pop();
 		int pushDBsection();
@@ -41,13 +41,13 @@ namespace QExecutor
 		int size();
 		int bindName(string name, int sectionNo, Transaction *&tr, QueryResult *&r);
 		void deleteAll();
-        virtual string toString() {
+        	string toString() {
           stringstream c;
           string sectionDBnumberS;
           c << sectionDBnumber; c >> sectionDBnumberS;
           string result = "[EnvironmentStack] sectionDBnumber=" + sectionDBnumberS + "\n";
 
-          for( int i = 0; i < es.size(); i++ ) {
+          for( unsigned int i = 0; i < es.size(); i++ ) {
             result += es[i]->toString( 1, true, "es_elem" );
           }
 
