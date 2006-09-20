@@ -168,8 +168,13 @@ namespace QParser {
 		virtual Signature *getMyList () {return this->myList;}
 		
 		virtual void addToMyList(Signature *newElt) {
+			
 			if (this->isEmpty()) {this->setElts(newElt);}
-			else {this->myLast->setNext(newElt); newElt->setNext (NULL); myLast = newElt;}
+			else {
+			    this->myLast->setNext(newElt); 
+			    newElt->setNext (NULL); 
+			    myLast = newElt;
+			}
 		}
 		virtual BinderWrap *statNested(TreeNode * treeNode);
 		virtual Signature *clone();							
@@ -297,15 +302,17 @@ namespace QParser {
 		BinderList() {binder = NULL; next = NULL;}
 		virtual void setNext(BinderList *newNext) {this->next = newNext;}
 		virtual void setSectNumb (int newNr) {
+	//		cout << "jsi setSectNumb start\n";
+	//		cout << "binder name: " << this->getBinder()->getName() << ".\n";
 			this->sectNumb = newNr; 
+	//		cout << "set nr\n";
 			if (this->next != NULL) next->setSectNumb(newNr);
+	//		cout << "served next, ending\n";
 		}
 		virtual BinderWrap *addOne (BinderWrap *newBW) {
-			cout << "jsi addOne start\n";
 			((BinderList *)newBW)->setNext(this); 
-			cout << "jsi addOne2\n";
 			newBW->setSectNumb(this->sectNumb);
-			cout << "jsi addOne3\n";
+			if (newBW == NULL) cout << "\n\n\n\n jsi ERROR ------------------------------ addOne zwraca NULL !!!!!!!!!!!!!!!!!!!!!!!!\n\n\n\n\n\n";
 			return newBW;
 		}
 		virtual BinderWrap *addPureBinder (StatBinder *newBndr) {

@@ -486,11 +486,11 @@ namespace QParser
 			if (lSig->type() == Signature::SSTRUCT) {
 				((SigColl *) lSig)->addToMyList (rSig);
 				qres->pushSig (lSig);
-			} else {
+			} else 
+			{
 				SigColl *s = new SigColl(Signature::SSTRUCT);
 				s->setElts(lSig); s->addToMyList(rSig);
-				qres->pushSig(s);
-				
+				qres->pushSig(s);				
 			}
 			return 0; 
 		}
@@ -517,9 +517,23 @@ namespace QParser
 			//ten fragment jest zamiast tego nastepnego zakomentowanego, wydaje mi sie ze
 			// tamto zle dzialalo, co jezeli elem, sigcoll byla siggcol
 			BinderWrap *bindersColl = toPush->statNested(toPush->getDependsOn());
-			sToPop+= bindersColl->size();
+			//sToPop+= bindersColl->size();
+			sToPop++;
+			
+			/*
+			BinderWrap *pom = bindersColl;
+			
+			cout << "wklada na envs: \n";
+			while(pom!=NULL){
+			    cout << " name: " << pom->getBinder()->getName();
+			    pom = pom->getNext();
+			}
+			cout << " koniec\n";
+			*/			
 			if (envs->pushBinders(bindersColl) != 0) 
 					cout << "EROOR jsi zobacz nonalgopnode steval dla sigcoll \n" <<endl;
+
+			
 			/*
 			Signature *pt = ((SigColl *) toPush)->getMyList();
 			while (pt != NULL) { 

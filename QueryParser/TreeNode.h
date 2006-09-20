@@ -741,6 +741,9 @@ namespace QParser {
 			if((!this->getRArg()->getNeeded()&&(this->getRArg()->getCard()=="1..1"))){
 				return this->getRArg();
 			}
+			if((!this->getLArg()->getNeeded()&&(this->getLArg()->getCard()=="1..1"))){
+				return this->getLArg();
+			}
 		}
 		return TwoArgsNode::getDeath();
 	}

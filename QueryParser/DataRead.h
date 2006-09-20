@@ -109,7 +109,7 @@ namespace QParser {
 		    for (int i = 0; i < 100; i++)
 			refTable[i] = NULL;
 		};
-		virtual ~DataScheme() {delete baseObjects;};
+		virtual ~DataScheme() {delete baseObjects;cout << "\n jsi \n !!!!!!!!!! \n destr dataSCHME !!!!!!\n";};
 		int readData();	
 	    	
 		static DataScheme *dScheme();

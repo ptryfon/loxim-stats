@@ -26,10 +26,18 @@ namespace QParser {
 	Signature* Signature::clone(){return NULL;}
 	Signature* SigColl::clone(){
 		SigColl *ns = new SigColl(type()); 
-		if (myList != NULL) {ns->setElts (myList->clone()); ns->setMyLast (this->myLast);}
-		
-		if (next != NULL) ns->setNext(next->clone());
-		return ns;}
+		Signature *pom;
+		if (myList != NULL) {
+		    ns->setElts (myList->clone()); 
+		    /*	tak bylo kiedys, tak jest zle, 
+		    ns->setMyLast (this->myLast);
+		    */
+		    ns->setMyLast (ns->getMyList()); 
+		}
+		if (next != NULL) 
+		    ns->setNext(next->clone());
+		return ns;
+	}
 	Signature* SigAtomType::clone(){
 		SigAtomType *ns = new SigAtomType(atomType);
 		ns->setDependsOn(this->getDependsOn());			// death
@@ -60,24 +68,48 @@ namespace QParser {
 	};
 
 	BinderWrap* SigColl::statNested(TreeNode *treeNode) {
-		Deb::ug("stat nested na sigColl start\n");
+		Deb::ug("stat nested na sigColl start-----------------------------------------------------------------------------------------------\n");
 		Deb::ug( "statNested::sigColl -- should not be evoked...");	
+		cout << "jsi zawartosc: \n";
+		this->putToString();  
 		Signature *pt = this->getMyList();
 		BinderWrap *bindersCol = NULL;
+		BinderWrap *resultBinders = NULL;
 			while (pt != NULL) { 
 				Deb::ug("jsi sn loop start\n");
-				BinderWrap *binders = pt->statNested(pt->getDependsOn());
-				Deb::ug("jsi sn got binders\n");
-		//		BinderWrap *binders = pt->statNested(treeNode);
-				if (bindersCol == NULL) bindersCol = (BinderList*) binders;
+				bindersCol = NULL;
+				bindersCol = pt->statNested(pt->getDependsOn());
+				Deb::ug("jsi sn got binders: \n");
+				BinderWrap *one = bindersCol;
+				// uwaga, bindersCol moze byc NULL - 
+				// wtedy gdy jest to obiekt atomowy, lub 
+				// stat nested dostalo NULL jako argument(pusta kol)
+				if (bindersCol == NULL) 
+				    cout << "binders coll ==NULL !!!!!!!\n";
+				else cout << "size : " << bindersCol->size() << endl;
+				while(one!=NULL){
+					    cout << "jsi test\n";
+					    one->getBinder();
+					    cout << "--- NAME:\n";
+					    cout << one->getBinder()->getName() << ".\n";
+					    one = one->getNext();
+				}
+				if (resultBinders == NULL){
+				    cout << "jsi sn if start\n";
+				     resultBinders = bindersCol;
+				}
 				else {
 					Deb::ug("jsi sn else start\n");
-					BinderWrap *one = bindersCol;
+					one = bindersCol;
+					
 					while(one!=NULL){
-						Deb::ug("jsi sn while start\n");
-						bindersCol =  bindersCol->addOne(one);
-						Deb::ug("jsi sn eddedOne\n");
-						one =  one->getNext();
+						BinderWrap *nextPom = one->getNext();
+						Deb::ug("jsi sn while start, will add\n");
+						cout << "adding: " << one->getBinder()->getName() << endl;
+						resultBinders =  resultBinders->addOne(one);
+						Deb::ug("jsi sn addedOne\n");
+						one = nextPom;
+						//one =  one->getNext();
 						Deb::ug("jsi sn while end (gotNext)\n");
 					}
 					Deb::ug("jsi sn else end\n");
