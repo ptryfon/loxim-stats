@@ -25,19 +25,19 @@ create ("WORKS_IN" as name, "1..1" as card, "link" as kind) as subobject;
 /
 (__MDN__ where name="EMP") :< (subobject where name="WORKS_IN");
 /
-create ("ADRESS" as name, "0..*" as card, "complex" as kind) as subobject;
+create ("ADDRESS" as name, "0..*" as card, "complex" as kind) as subobject;
 /
 create ("STREET" as name, "1..1" as card, "atomic" as kind, "string" as type) as subobject;
 /
-(subobject where name="STREET") :< (create (subobject where name="ADRESS") as owner);
+(subobject where name="STREET") :< (create (subobject where name="ADDRESS") as owner);
 /
-(subobject where name="ADRESS") :< (subobject where name="STREET");
+(subobject where name="ADDRESS") :< (subobject where name="STREET");
 /
 create ("NO" as name, "1..1" as card, "atomic" as kind, "int" as type) as subobject;
 /
-(subobject where name="NO") :< (create (subobject where name="ADRESS") as owner);
+(subobject where name="NO") :< (create (subobject where name="ADDRESS") as owner);
 /
-(subobject where name="ADRESS") :< (subobject where name="NO");
+(subobject where name="ADDRESS") :< (subobject where name="NO");
 /
 
 create ("DNAME" as name, "1..1" as card, "atomic" as kind, "string" as type) as subobject;
@@ -54,11 +54,11 @@ create ("LOC" as name, "1..*" as card, "atomic" as kind, "string" as type) as su
 (__MDN__ where name="DEPT") :< (subobject where name="LOC");
 /
 
-(subobject where name="ADRESS") :< (create (subobject where name="EMP") as owner);
+(subobject where name="ADDRESS") :< (create (subobject where name="EMP") as owner);
 /
 
 
-(__MDN__ where name="EMP") :< (subobject where name="ADRESS");
+(__MDN__ where name="EMP") :< (subobject where name="ADDRESS");
 /
 
 
