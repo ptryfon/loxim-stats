@@ -69,33 +69,34 @@ namespace QParser {
 
 	BinderWrap* SigColl::statNested(TreeNode *treeNode) {
 		Deb::ug("stat nested na sigColl start-----------------------------------------------------------------------------------------------\n");
-		Deb::ug( "statNested::sigColl -- should not be evoked...");	
-		cout << "jsi zawartosc: \n";
-		this->putToString();  
+		if (Deb::ugOn()){
+		    cout << "zawartosc sigColl: \n";
+		    this->putToString();  
+		    cout << endl;
+		}
 		Signature *pt = this->getMyList();
 		BinderWrap *bindersCol = NULL;
 		BinderWrap *resultBinders = NULL;
 			while (pt != NULL) { 
-				Deb::ug("jsi sn loop start\n");
+				Deb::ug("loop start\n");
 				bindersCol = NULL;
 				bindersCol = pt->statNested(pt->getDependsOn());
-				Deb::ug("jsi sn got binders: \n");
-				BinderWrap *one = bindersCol;
+				BinderWrap *one;
 				// uwaga, bindersCol moze byc NULL - 
 				// wtedy gdy jest to obiekt atomowy, lub 
 				// stat nested dostalo NULL jako argument(pusta kol)
-				if (bindersCol == NULL) 
-				    cout << "binders coll ==NULL !!!!!!!\n";
-				else cout << "size : " << bindersCol->size() << endl;
-				while(one!=NULL){
-					    cout << "jsi test\n";
+				if (Deb::ugOn()){	
+				    one = bindersCol;	
+				    cout << "statNested zwrocilo : ";
+				while(one!=NULL){	
 					    one->getBinder();
-					    cout << "--- NAME:\n";
-					    cout << one->getBinder()->getName() << ".\n";
+					    cout << one->getBinder()->getName() << " ";
 					    one = one->getNext();
 				}
+				cout << endl;
+				}
 				if (resultBinders == NULL){
-				    cout << "jsi sn if start\n";
+				     Deb::ug("jsi sn if start\n");
 				     resultBinders = bindersCol;
 				}
 				else {
@@ -104,20 +105,18 @@ namespace QParser {
 					
 					while(one!=NULL){
 						BinderWrap *nextPom = one->getNext();
-						Deb::ug("jsi sn while start, will add\n");
-						cout << "adding: " << one->getBinder()->getName() << endl;
+						//cout << "adding: " << one->getBinder()->getName() << endl;
 						resultBinders =  resultBinders->addOne(one);
-						Deb::ug("jsi sn addedOne\n");
 						one = nextPom;
+						// tak byloby zle:
 						//one =  one->getNext();
-						Deb::ug("jsi sn while end (gotNext)\n");
 					}
 					Deb::ug("jsi sn else end\n");
 				}
 				pt = pt->getNext();
 			}
 		Deb::ug("stat nested na sigColl END\n");
-		return bindersCol;
+		return resultBinders;
 		}						
   
 	void Optimiser::setQres(StatQResStack *nq) {this->sQres = nq;}

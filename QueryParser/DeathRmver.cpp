@@ -16,7 +16,6 @@ int DeathRmver::rmvDeath(TreeNode *&qTree){
 	cout <<"=============================================================================" << endl;
 	cout <<"-----------------------------------------------------------------------------" << endl;
 	cout <<"-----------------------------------------------------------------------------" << endl;
-	cout << "start rmvDeath\n";
 	this->qTree = qTree;
 	cout<< "rmvDeath start" << endl;
 	cout << "dostal :" << endl;
@@ -26,14 +25,18 @@ int DeathRmver::rmvDeath(TreeNode *&qTree){
 //		Deb::ug("\n rmvDeath loop start -------------------------------------------------------\n");
 		qParser->statEvaluate(qTree);
 		qTree->markNeeded();		
-		cout << "\n szuka w \n";
-		qTree->putToString();
-		cout << endl;
+		if (Deb::ugOn()){
+		    cout << "\n szuka w \n";
+		    qTree->putToString();
+		    cout << endl;
+		}
 		TreeNode * death = qTree->getDeath();
 		if (death == NULL) break;
-		cout << "\n rem \n";
-		death->putToString();
-		cout << "\n from \n";
+		if (Deb::ugOn()){
+		    cout << "\n rem \n";
+		    death->putToString();
+		    cout << "\n from \n";
+		}
 		death->getParent()->putToString();
 		TwoArgsNode * parent = (TwoArgsNode*) death->getParent();
 		TreeNode * live = (parent->getLArg() == death)?parent->getRArg():parent->getLArg();
@@ -48,8 +51,7 @@ int DeathRmver::rmvDeath(TreeNode *&qTree){
 	cout <<"=============================================================================" << endl;
 	cout <<"-----------------------------------------------------------------------------" << endl;
 	cout <<"-----------------------------------------------------------------------------" << endl;
-	cout<< "rmvDeath end" << endl;
-	cout << "zwraca : \n" << endl;
+	cout<< "rmvDeath end, zwraca" << endl;
 	qTree->putToString();
 	cout << endl;
 	return 0;	

@@ -96,8 +96,6 @@ namespace QParser {
     		int optres = -2;
     		DeathRmver *rmver = new DeathRmver(this);
     		rmver->rmvDeath(nt);
-    		cout << "po usunieciu, juz w queryParser:\n";
-    		nt->putToString();
     		if (this->statEvaluate(nt) != 0) optres = -1;
 		/* The main optimisation loop - factor out single independent subqueries *
 		 * as long as ... such exist !                                           */

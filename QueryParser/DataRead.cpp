@@ -17,19 +17,17 @@ using namespace std;
 
 namespace QParser {
 		BinderWrap *DataScheme::statNested (int objId, TreeNode *treeNode) {
-			cout <<"jsi, dscheme statnested start\n";
+			Deb::ug("dataScheme::statNested start\n");
 			DataObjectDef *candidate = this->getObjById(objId);
 			DataObjectDef *pom = NULL;
 //			list<StatBinder *> bindersCol;
 			BinderList *bindersCol = NULL;
-			cout << "ify\n";
+			
 			if (candidate == NULL){	
-				cout << "NULL !!!!\n";
+				Deb::ug("NULL !!!!\n");
 				return bindersCol; //<pusta kolekcja chyba ... >;
 			}
 			/*dalej zakladamy ze znalezlismy taki objekt w metabazie... */
-			cout << "jsi stnested znalazl obiekt: ";
-			cout << candidate->getName() << endl;
 			Deb::ug("i found object nr %d.\n", candidate->getMyId());
 			if (candidate->getKind() == "atomic") return bindersCol;	//<pusta kolekcja>;
 			if (candidate->getKind() == "link") {
@@ -66,9 +64,7 @@ namespace QParser {
 				pom = pom->getNextSub();
 				/**NIEEE !!! pom = pom->getNextSub() ! >:-0 */
 			}
-			cout <<"jsi, dscheme statnested start\n";
-			cout << "zwraca NULL?: " << (bindersCol == NULL) << " " << bindersCol << endl;
-			if (bindersCol == NULL) cout << " jsi ERROR\n";
+			if (bindersCol == NULL) Deb::ug("dataScheme::statNested zwraca NULL!!!\n");
 			return bindersCol;		
 		};
 
@@ -195,17 +191,15 @@ Deb::ug("-------------------readData END--------------------------------------")
 			datScheme->readData();
 		}		
 		DataObjectDef *pom = datScheme->getBaseObjects();
-		Deb::ug("2DataScheme has these base objects: ");
+		Deb::ug("DataScheme has these base objects: ");
 	    if (Deb::ugOn()) {
-		/* przez to byl segfault (nie przy pierwszym ale przy kolejnym wywolaniu
+		/* ?? przez to byl segfault (nie przy pierwszym ale przy kolejnym wywolaniu
 		*/
 		while (pom != NULL) {
 			cout << "--" << pom;		
 			fprintf(stderr, "[%d]", pom->getMyId());	
 			pom = pom->getNextBase();
 		}
-		 
-		cout << "jsi ERROR DataScheme::datScheme tu powstawal blad, do spr\n";
 	    }
 	    return datScheme;
 	};

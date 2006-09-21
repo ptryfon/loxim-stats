@@ -335,9 +335,8 @@ namespace QParser
 
 	int NameNode::staticEval (StatQResStack *&qres, StatEnvStack *&envs) {
 		Deb::ug("staticEval(Name) \n");
-		if (Deb::ugOn()) cout << "jsi start stEval(name): " + this->name << endl;
-		BinderWrap *bw = envs->bindName(this->name);
 		if (Deb::ugOn()) cout << name << endl;
+		BinderWrap *bw = envs->bindName(this->name);
 		if (bw == NULL) { Deb::ug("name could NOT be bound ! will exit..\n"); return -1;}
 		this->setBindSect(bw->getSectNumb());
 		this->setStackSize(envs->getSize());
@@ -349,7 +348,7 @@ namespace QParser
 		if (sig->getDependsOn() == NULL){
 			sig->setDependsOn(this);
 		} else {
-			Deb::ug("jsi sygnatura juz miala ustawione dependsOn, nie ustawia go ponownie\n");
+			Deb::ug("jsi death sygnatura juz miala ustawione dependsOn, nie ustawia go ponownie\n");
 		}
 		qres->pushSig (sig);
 		 this->setDependsOn(bw->getBinder()->getDependsOn());
