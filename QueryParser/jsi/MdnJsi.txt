@@ -80,7 +80,7 @@ create ("WIEK" as name, "1..1" as card, "atomic" as kind, "int" as type) as subo
 
 (subobject where name="PIES") :< (create (subobject where name="EMP") as owner);
 /
-(subobject where name="EMP") :< (subobject where name="PIES");
+(__MDN__ where name="EMP") :< (subobject where name="PIES");
 /
 
 
@@ -103,7 +103,7 @@ create ("WIEK" as name, "1..1" as card, "atomic" as kind, "int" as type) as subo
 
 (subobject where name="KOT") :< (create (subobject where name="EMP") as owner);
 /
-(subobject where name="EMP") :< (subobject where name="KOT");
+(__MDN__ where name="EMP") :< (subobject where name="KOT");
 /
 
 
