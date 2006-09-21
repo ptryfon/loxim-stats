@@ -1,14 +1,29 @@
 begin
 /
+
+-- usuwa WORKS_IN.DEPT
+(EMP join (WORKS_IN.DEPT)).(NAME, SAL)
+/
+
 ((EMP join DEPT) join (NAME, SAL, DNAME)).DNAME
 /
+
+((EMP join DEPT) join (NAME, SAL, DNAME)).NAME
+/
+
+-- (nie usuwa ADDRESS bo ma licznosc 0..*) - ok
 (EMP join (SAL, NAME, ADDRESS, WORKS_IN)).DEPT   
 /
--- (nie usuwa address bo ma licznosc 0..*) - ok
 
-count((EMP join (SAL, NAME, ADDRESS, WORKS_IN)).DEPT) ok
+count((EMP join (SAL, NAME, ADDRESS, WORKS_IN)).DEPT) 
 / 
+
+-- usuwa SAL, NAME, oraz STREET i NO - wszystkie maja licznosc 1..1
 ((EMP join (SAL, NAME, ADDRESS join (STREET, NO), WORKS_IN)) group as aaa).aaa.DEPT
 /
+
+((EMP join NAME)  where (SAL = (EMP where NAME = "Jakub" ).SAL) ).ADDRESS
+/
+
 end
 /
