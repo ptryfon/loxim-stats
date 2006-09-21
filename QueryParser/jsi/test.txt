@@ -1,0 +1,14 @@
+begin
+/
+((EMP join DEPT) join (NAME, SAL, DNAME)).DNAME
+/
+(EMP join (SAL, NAME, ADDRESS, WORKS_IN)).DEPT   
+/
+-- (nie usuwa address bo ma licznosc 0..*) - ok
+
+count((EMP join (SAL, NAME, ADDRESS, WORKS_IN)).DEPT) ok
+/ 
+((EMP join (SAL, NAME, ADDRESS join (STREET, NO), WORKS_IN)) group as aaa).aaa.DEPT
+/
+end
+/
