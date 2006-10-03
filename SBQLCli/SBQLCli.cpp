@@ -10,7 +10,8 @@
 #include "../Driver/Result.h"
 
 #define ANS_PARAMETER_ADDITION_ACTIVE  // $ans parameter holds the result of the last query
-
+#define VERSION "1.1"
+//#define DEBUG // verbose output
 
 using namespace std;
 using namespace Driver;
@@ -29,7 +30,8 @@ struct pInfo {
 
 void read_and_execute(istream &in, Connection *con );
 void execute_query(Connection *con, string &query, Result** lastResult);
-
+void printHead();
+void printUsage();
 
 void printMsg (string str)
 {
@@ -38,32 +40,24 @@ void printMsg (string str)
 }
 
 void cliSigHandler(int sig) {
-    int errorCode;
-    int status;
-    if (pthread_self()==pulseT)
-	exit(0);
-    else {    
-	errorCode = pthread_join(pulseT, (void**)&status);
-	if (errorCode!=0) {
-	    printf("Error: Failed to join cliPulse thread - %s\n", strerror(errorCode));
-	    exit(errorCode);
-	}
-	exit(0);
+  int errorCode;
+  int status;
+  if (pthread_self()==pulseT)
+    exit(0);
+  else { 
+    errorCode = pthread_join(pulseT, (void**)&status);
+    if (errorCode!=0) {
+        printf("Error: Failed to join cliPulse thread - %s\n", strerror(errorCode));
+        exit(errorCode);
     }
+    exit(0);
+  }
 }
 
 void *pulseRun(void *arg) {
-    
-    //sigset_t block_sigs;
-    //sigemptyset(&block_sigs);
-    //sigaddset(&block_sigs, SIGINT);
-    
     pInfo pI = *(pInfo *)arg;
-    //cout << "Oto: " << pI.host << " " << pI.port << " " << pI.login << " " << pI.passwd << "\n";
     Connection *pcCon; 
     pcCon = DriverManager::getConnection(pI.host, pI.port, pI.login, pI.passwd, 0);
-    //printMsg("\nWaiting\n");
-    //pthread_join(pI.id, (void **)&status);
     pthread_mutex_lock(&cliMut);
     pthread_cond_wait(&conditional_v, &cliMut);
     pthread_mutex_unlock(&cliMut);
@@ -104,61 +98,99 @@ int main (int argc, char *argv[])
 
   char *host = "localhost";
   int port = 6543;
+  string login, passwd;
 
   /* args things */
-  if (argc >= 2)
-    {
-      host = argv[1];
+  if (argc > 1) {
+    if (argv[1][0] == '-') {
+      for (int i = 1; i < argc; i++) {
+        string arg(argv[i]);
+        if (arg=="-?" || arg=="--help") 
+        {
+          printUsage();
+          exit(0);
+        }
+        if (arg.substr(0,2)=="-l" || arg.substr(0,2)=="-u" ) {
+          login=arg.substr(2);
+        }
+        if (arg.substr(0,2)=="-p") {
+          passwd=arg.substr(2);
+        }
+        if (arg.substr(0,2)=="-h") {
+          host=(char*)arg.substr(2).c_str();
+        }
+        if (arg.substr(0,2)=="-P") {
+          port=atoi(arg.substr(2).c_str());
+        }
+      }
+    } else {
+    //old school -- compatibility issues
+      if (argc >= 2) {
+        host = argv[1];
+      }
+      if (argc == 3) {
+        port = atoi (argv[2]);
+      }
+
+      if (argc > 3) {
+        printUsage();
+        exit (1);
+      }
     }
+  }
 
-  if (argc == 3)
-    {
-      port = atoi (argv[2]);
-    }
+  printHead();
 
-  if (argc > 3)
-    {
-      cout << "usage: " << argv[0] << " host port " << endl;
-      exit (1);
-    }
+  if (login == "") {
+    read_login(login);
+    read_passwd(passwd);
+    if ("" == passwd) passwd = "not_a_password";
+    printMsg("\n");
+  }
 
-  printMsg ("SBQLCli ver 1.0 \n");
-  printMsg ("Ctrl-d exits \n");   
-
-  string login, passwd;
-  read_login(login);
-  read_passwd(passwd);
-  if ("" == passwd) passwd = "not_a_password";  
   /* establishing connection */
-  //Connection *pcCon;
-  //Connection *con;
   pthread_t myTid = pthread_self();
   int error;
   pInfo cI;
   cI.host = host;
-  cI.port = port+1;
-  cI.login = login.c_str(); cI.passwd = passwd.c_str(); 
+  cI.port = port;
+  cI.login = login.c_str();
+  cI.passwd = passwd.c_str(); 
   cI.id = myTid;
-  
-  try
-  {
-    //printMsg("Getting connection...\n");
-    con = DriverManager::getConnection (host, port, login.c_str(), passwd.c_str(), 1);
-    //printMsg("Got main connection, getting pulse connection...\n");
-    if ((error = pthread_create(&pulseT, NULL, pulseRun, &cI))!=0) {
-	cout << "thread creation failed with " << error;
-    }
-    //printMsg("Got pulse connection, I am %d\n", (int)pthread_self());
-        
+
+  //getting connection
+  try {
+#ifdef DEBUG
+    cerr << "Getting connection..." << endl;
+#endif
+    con = DriverManager::getConnection (cI.host, cI.port, cI.login, cI.passwd, 1);
+#ifdef DEBUG
+    cerr << "Got main connection, getting pulse connection..." << endl;
+#endif
+  } catch (ConnectionException e) {
+    cerr << e << endl;
+    exit(1);
   }
-  catch (ConnectionException e)
+
+  //getting pulse
+  try 
+  {
+    if ((error = pthread_create(&pulseT, NULL, pulseRun, &cI))!=0) 
+    {
+      cerr << "thread creation failed with " << error;
+    }
+#ifdef DEBUG
+    cerr << "Got pulse connection, I am " << pthread_self() << endl;
+#endif
+  } 
+  catch (ConnectionException e) 
   {
     cerr << e << endl;
     goodExit(1);
   }
-  
+
   printMsg ("\n");
-  
+
   string line;			// one line of a query
   string input;			// whole query (possibly multi line)
   Result *result = new ResultVoid();
@@ -167,8 +199,8 @@ int main (int argc, char *argv[])
   try
   {
     while (getline (cin, line))
-      {
-        /* @file_with_queries */
+    {
+	/* @file_with_queries */
         if (line[0] == '@') {
     	    const char *filename = line.c_str() + 1;
 	    ifstream fin(filename);
@@ -218,6 +250,7 @@ void read_and_execute(istream &in, Connection *con ) {
   
   string line;			// one line of a query
   string input;			// whole query (possibly multi line)
+  Result *result = new ResultVoid();
 
   printMsg (" > ");
   try
@@ -242,10 +275,9 @@ void read_and_execute(istream &in, Connection *con ) {
 	  }
 	else
 	{
-	  execute_query(con, input, NULL);
+	  execute_query(con, input, &result);
 	}
       }	//while
-
   }
   catch (ConnectionException e)
   {
@@ -258,15 +290,14 @@ void read_and_execute(istream &in, Connection *con ) {
 /** result is result of the last query, possibly needed by $ans paramiter */
 void execute_query(Connection *con, string &input, Result **result) {
   
-  cerr << "<SBQLCli> Zapytanie: " << input << endl;
+  cerr << "<SBQLCli> query: " << input << endl;
   
-  try
+    try
     {
-    
 #ifdef ANS_PARAMETER_ADDITION_ACTIVE 
-      cerr << "<SBQLCli> adding last result as a parameter $ans = " 
-	   << **result << endl;
-      Result* resultTmp;
+    cerr << "<SBQLCli> adding last result as a parameter $ans = " 
+	<< **result << endl;
+    Result* resultTmp;
       Statement* stmt;
       stmt   = con->parse(input.c_str());
       stmt->addParam("$ans", *result);
@@ -291,4 +322,22 @@ void execute_query(Connection *con, string &input, Result **result) {
   input.clear ();
   printMsg (" > ");
   
+}
+
+void printHead() {
+  printMsg ("SBQLCli ver " + string(VERSION));
+  printMsg ("\nCtrl-d to exit \n");
+}
+
+void printUsage() {
+  printHead();
+  printMsg ("Usage: SBQLCli [OPTIONS] \n");
+  printMsg ("-?, --help        Display this help and exit.\n");
+  printMsg ("-llogin, -ulogin  Login\n");
+  printMsg ("-ppassword        Password\n");
+  printMsg ("-hlocalhost       Host (default: localhost)\n");
+  printMsg ("-P6543            Port (default: 6543)\n");
+  printMsg ("\n");
+  printMsg ("Example usage:\n");
+  printMsg ("> ./SBQLCli -lscott -ptiger -hlocalhost -P6543 \n\n");
 }
