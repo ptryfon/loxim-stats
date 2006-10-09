@@ -21,6 +21,9 @@ subdirs:
 		make -C $$i || exit 1; \
 	done
 
+doc:
+	doxygen Documentation/doxygen.conf
+
 clean:
 	@find -name "*.d" | xargs rm -f
 	@for i in $(SUBDIRS); do \
