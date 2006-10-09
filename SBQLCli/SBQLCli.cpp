@@ -9,22 +9,33 @@
 #include "../Driver/DriverManager.h"
 #include "../Driver/Result.h"
 
-#define ANS_PARAMETER_ADDITION_ACTIVE  // $ans parameter holds the result of the last query
+/** If defined the $ans parameter holds the result of the last query. */
+#define ANS_PARAMETER_ADDITION_ACTIVE
+/** Client version number. */
 #define VERSION "1.1"
-//#define DEBUG // verbose output
+/** If defined the program prints a verbose output. */
+//#define DEBUG
 
 using namespace std;
 using namespace Driver;
 
 pthread_cond_t conditional_v = PTHREAD_COND_INITIALIZER;
+/** Pulse thread id. */
 pthread_t pulseT;
+/** Global connection variable. */
 Connection *con;
 pthread_mutex_t cliMut = PTHREAD_MUTEX_INITIALIZER;
+/** This structure holds connection information. */
 struct pInfo {
+    /** Hostname. */
     char *host;
+    /** Login. */
     const char *login;
+    /** Password. */
     const char *passwd;
+    /** Port number. */
     int port;
+    /** Thread id of self. */
     pthread_t id;
 };
 
@@ -33,12 +44,22 @@ void execute_query(Connection *con, string &query, Result** lastResult);
 void printHead();
 void printUsage();
 
+/**
+ * This functions prints out the message on standard output, if descriptor 0 (zero) 
+ * refers to terminal. 
+ *
+ * @param str Message to be printed out.
+ */
 void printMsg (string str)
 {
   if (isatty (0))
     cout << str;
 }
 
+/**
+ * SBQLCli signal handler.
+ * @param sig Int signal id.
+ */
 void cliSigHandler(int sig) {
   int errorCode;
   int status;
@@ -54,6 +75,10 @@ void cliSigHandler(int sig) {
   }
 }
 
+/**
+ * <i>Start routine</i> function for the new thread. Function connects to the server.
+ * @param arg Reference to pInfo structure.
+ */
 void *pulseRun(void *arg) {
     pInfo pI = *(pInfo *)arg;
     Connection *pcCon; 
@@ -67,12 +92,22 @@ void *pulseRun(void *arg) {
     pthread_exit((void *)0); 
 }
 
-
+/**
+ * Function reads login from <i>cin</i> and saved it to the <i>login</i> variable.
+ *
+ * @param &login Variable set with this method.
+ */ 
 void read_login(string &login) {
     printMsg ("Login: "); 
     getline(cin, login);    
 }
 
+/**
+ * Function reads password from <i>cin</i> and saved it to the <i>passwd</i> variable.
+ * There's no echo shown on the screen.
+ *
+ * @param &passwd Variable set with this method.
+ */ 
 void read_passwd(string &passwd) {
     if (isatty(0)) {
 	printMsg ("Password: "); 
@@ -81,7 +116,11 @@ void read_passwd(string &passwd) {
 	system("stty echo");    
     }
 }
-
+/**
+ * This method allows clean exit, removes "pulse thread" and closes the connection.
+ *
+ * @param code Int value passed to exit(int code) function.
+ */
 void goodExit(int code) {
     pthread_mutex_lock(&cliMut);
     pthread_cond_signal(&conditional_v);
@@ -93,6 +132,9 @@ void goodExit(int code) {
 
 }
 
+/**
+ * Start function for the client program.
+ */
 int main (int argc, char *argv[])
 {
 
@@ -245,7 +287,13 @@ int main (int argc, char *argv[])
   goodExit(0);
 }
 
-void read_and_execute(istream &in, Connection *con ) {
+/**
+ * Reads from input stream (file), multiline stream of commands and execute them.
+ * 
+ * @param &in The input stream.
+ * @param con Connection object.
+ */
+void read_and_execute(istream &in, Connection *con) {
   printMsg ("\n");
   
   string line;			// one line of a query
@@ -287,9 +335,19 @@ void read_and_execute(istream &in, Connection *con ) {
 
 };
 
-/** result is result of the last query, possibly needed by $ans paramiter */
+/** 
+ * Function executes single query.
+ *
+ * @param con Connection object.
+ * @param input String with query.
+ * @param result Result of the last query, possibly needed by $ans. Cannot be NULL.
+ */
 void execute_query(Connection *con, string &input, Result **result) {
-  
+  //checking input params
+  if (*result == NULL) {
+    cerr << "SBQLCli: [execute_query]--> assert(result!=NULL) failed." << endl;
+    goodExit(1);
+  }
   cerr << "<SBQLCli> query: " << input << endl;
   
     try
@@ -324,11 +382,19 @@ void execute_query(Connection *con, string &input, Result **result) {
   
 }
 
+/**
+ * Function prints out the client name and verision.
+ */
 void printHead() {
   printMsg ("SBQLCli ver " + string(VERSION));
   printMsg ("\nCtrl-d to exit \n");
 }
 
+/**
+ * Function prints out the usage infomation.
+ * The output of this function is avalible with <tt>--help</tt> switch from
+ * command-line.
+ */
 void printUsage() {
   printHead();
   printMsg ("Usage: SBQLCli [OPTIONS] \n");
@@ -341,3 +407,27 @@ void printUsage() {
   printMsg ("Example usage:\n");
   printMsg ("> ./SBQLCli -lscott -ptiger -hlocalhost -P6543 \n\n");
 }
+
+//didn't know where to put that...
+
+/** 
+ * \mainpage LoXiM
+ *
+ * \section intro_sec Introduction
+ * 
+ *  W zalaczeniu dokumentacja wygenerowana na podstawie komentarzy w zrodlach. 
+ *  Na razie zrobilem tylko \link SBQLCli/SBQLCli.cpp \endlink. Nie wyglada to moze imponujaco, ale jezeli skomentuje
+ *  sie odpowiednio wszystkie klasy, to powinien narysowac drzewo klas, relacje dziedziczenia itd.
+ *
+ *  Prosze zauwazyc, ze ktos kto komentowac \link QCacher \endlink uzyl komentarzy (prawie) zgodnych 
+ *  z JavaDoc i jego komentarze tez zostaly wlaczone do dokumentacji.
+ * 
+ * \section Installation
+ * \subsection inst_step_1 Step 1:
+ *  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Donec elit lacus, vestibulum ac, auctor in, pharetra quis, diam. Mauris hendrerit, magna id feugiat laoreet, massa odio mattis sem, id lacinia lectus risus a sapien. Nulla sapien dolor, congue vel, interdum et, tincidunt ut, nulla. Nam euismod felis. Sed in urna pharetra orci auctor venenatis. Quisque massa pede, porttitor ac, suscipit non, hendrerit id, lectus. Sed imperdiet neque nec urna. Integer non nisl vitae mi aliquet egestas. Donec nisl sem, aliquam nec, malesuada eu, nonummy sit amet, neque. Vivamus lacinia lobortis pede. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Praesent tortor lorem, euismod at, pharetra at, egestas bibendum, nunc. Cras ligula diam, adipiscing et, dignissim id, posuere in, quam. Pellentesque egestas libero at felis. Fusce mollis, tortor at auctor varius, nisi nisi porta magna, eu faucibus sapien quam eget magna.
+ *  In massa enim, placerat vitae, tempus in, ultricies et, ante. Vivamus mollis mi ac sapien. Phasellus aliquet congue quam. Nunc non leo. Fusce eget felis. Suspendisse potenti. Nullam vitae justo ac enim ullamcorper mattis. Integer venenatis tincidunt enim. Nam imperdiet ornare dui. Morbi cursus. Cras eu magna vel ante dapibus consequat.
+ * \subsection inst_step_2 Step 2:
+ *  Ut at enim. Donec bibendum ipsum et elit. Proin gravida felis a neque. Aenean justo ligula, venenatis sed, tincidunt ut, malesuada non, sapien. Sed aliquam lorem in ligula. Aenean est massa, dapibus eu, semper sagittis, dignissim ac, sapien. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Fusce vitae sem at velit hendrerit sodales. Suspendisse pulvinar libero et nibh. Fusce euismod justo vel turpis. Praesent vitae neque viverra erat lacinia tincidunt. Vivamus tristique pulvinar eros. Ut at est sit amet urna pellentesque pharetra. Ut in lorem.
+ *  Vestibulum vitae lorem non dolor sollicitudin sagittis. Aliquam at dolor nec erat rutrum fermentum. Aliquam non mauris. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Morbi dapibus venenatis mauris. Pellentesque justo mi, lacinia non, molestie sed, ornare id, arcu. Donec a augue. Nunc faucibus. Phasellus vestibulum, mauris quis mattis egestas, neque pede consequat dui, eu semper nunc est eget pede. Phasellus ipsum. Nullam a nisi vel velit posuere fermentum.
+ *  Cras non massa non ligula imperdiet hendrerit. Duis ultrices, lacus a semper adipiscing, mauris nisl convallis sapien, quis varius odio pede ut nunc. Curabitur venenatis. Morbi nec diam eget felis tincidunt aliquam. In hac habitasse platea dictumst. Donec adipiscing risus ut mi. Phasellus sed ligula a odio feugiat adipiscing. Vestibulum eleifend viverra metus. Pellentesque urna. Phasellus nonummy condimentum nulla. Aenean pede enim, pharetra vitae, ultrices vel, dignissim at, orci. Vestibulum malesuada. Vivamus tempus. Sed venenatis, nunc quis auctor pellentesque, mi purus congue mi, et pretium nibh dolor vel ante.
+ */
