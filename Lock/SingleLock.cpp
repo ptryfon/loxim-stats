@@ -56,6 +56,11 @@ namespace LockMgr
 	else return 0;
     }
 
+    /**
+     * basic lock operation - determines whether transaction already has a lock,
+     * in what mode and on those basis the exact semaphore operation is choosen
+     * deadlock prevetion is also here
+     */
     int SingleLock::wait_for_lock(TransactionID *_tid, AccessMode _mode)
     {
 	int errorCode;
@@ -73,17 +78,20 @@ namespace LockMgr
 	err.printf("Wait for lock, tid = %d, mode = %d\n", _tid->getId(), _mode);
 	if (_mode == Read && !isCurrentRead && !isCurrentWrite)
 	{
-		if ((errorCode = preventDeadlock(_tid)) == 0)
+		/* many readers -> OK, reader and writer -> prevent deadlock */
+		if (currentWrite->empty())
 		    errorCode = sem->lock_read();
+		else {
+		    if ((errorCode = preventDeadlock(_tid)) == 0)
+			errorCode = sem->lock_read();
+		}
 	}
-	else if (_mode == Read && isCurrentRead)
-	/* reader inside */
+	else if (_mode == Read && isCurrentRead)	/* reader inside */
 	{
 		waiting--;
 		return 0;
 	}
-	else if (_mode == Read && isCurrentWrite)
-	/* this transaction holds object in exclusive access mode */
+	else if (_mode == Read && isCurrentWrite)	/* this transaction holds object in exclusive access mode */
 	{
 		waiting--;
 		return 0;
@@ -93,15 +101,14 @@ namespace LockMgr
 		if ((errorCode = preventDeadlock(_tid)) == 0)
 		    errorCode = sem->lock_write();
 	}
-	else if (_mode == Write && isCurrentWrite)
-	/* this transaction holds object in exclusive access mode */
+	else if (_mode == Write && isCurrentWrite)	/* this transaction holds object in exclusive access mode */
 	{
 		waiting--;
 		return 0;
 	}
-	else if (_mode == Write && isCurrentRead)
-	/* upgrade lock from read to write */
+	else if (_mode == Write && isCurrentRead)	/* upgrade lock from read to write */
 	{
+		err.printf("Standard upgrade");
 		if ((errorCode = preventDeadlock(_tid)) == 0)
 		    errorCode = sem->lock_upgrade(_tid->getId());
 	}
