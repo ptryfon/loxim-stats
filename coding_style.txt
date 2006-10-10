@@ -52,3 +52,16 @@ namespace Store
 
 3. Nie uzywamy char*, ale string.
 -------------------------------------------------------
+
+Zrodla bedziemy komentowac za pomoca Doxygen. Zeby wygenerowac dokumentacje
+nalezy wykonac:
+
+make doc
+
+Dokumentacja generuje sie wowczas w Documentation/API/html.
+
+Wzorcowo udokumentowany jest SBQLCli/SBQLCli.cpp. 
+
+Wiecej informacji na stronach:
+
+http://www.stack.nl/~dimitri/doxygen/docblocks.html
