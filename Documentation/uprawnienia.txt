@@ -1,4 +1,5 @@
-Modul uprawnien [jk209476 at students dot mimuw dot edu dot pl]
+Modul uprawnien - Julian Krzemiñski
+[ jk209476 at students dot mimuw dot edu dot pl]
 
 Idea modulu jest taka by uzytkownicy mogli nadawac (miec nadawane) uprawnienia do obiektow w bazie danych.
 Uprawnienia te dotycza czytania (Read), modyfikacji (Modify), tworzenia (Create) i usuwania obiektow (Delete).
