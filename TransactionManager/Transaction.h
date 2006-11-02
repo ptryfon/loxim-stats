@@ -1,6 +1,9 @@
 #ifndef _TRANSACTION_
 #define _TRANSACTION_
 
+/*
+ *	Julian Krzemiñski (julian.krzeminski@students.mimuw.edu.pl)
+ */
 namespace TManager
 {
 	class TransactionID;

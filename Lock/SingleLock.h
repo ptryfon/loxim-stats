@@ -1,6 +1,9 @@
 #ifndef _SINGLELOCK_
 #define _SINGLELOCK_
 
+/*
+ *	Julian Krzemiñski (julian.krzeminski@students.mimuw.edu.pl)
+ */
 namespace LockMgr { class SingleLock; };
 #include <stdio.h>
 #include <stdlib.h>

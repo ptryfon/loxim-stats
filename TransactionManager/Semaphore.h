@@ -1,6 +1,9 @@
 #ifndef _SEMAPHORE_
 #define _SEMAPHORE_
 
+/*
+ *	Julian Krzemiñski (julian.krzeminski@students.mimuw.edu.pl)
+ */
 namespace SemaphoreLib {
 
 class Semaphore

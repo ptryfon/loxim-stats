@@ -1,6 +1,9 @@
 #ifndef _COMPARATOR_
 #define _COMPARATOR_
 
+/**
+	Julian Krzemiñski (julian.krzeminski@students.mimuw.edu.pl)
+ */
 namespace LockMgr { 
 	class TransactionIDCmp; 
 	class DBPhysicalIDCmp;

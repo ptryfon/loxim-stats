@@ -2,6 +2,9 @@
 #include "RWSemaphore.h"
 #include "../Errors/Errors.h"
 
+/*
+ *	Julian Krzemiñski (julian.krzeminski@students.mimuw.edu.pl)
+ */
 namespace SemaphoreLib {
 
 	RWSemaphore::RWSemaphore()

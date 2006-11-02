@@ -4,6 +4,9 @@
 #include "../Errors/ErrorConsole.h"
 #include "../Errors/Errors.h"
 
+/*
+ *	Julian Krzemiñski (julian.krzeminski@students.mimuw.edu.pl)
+ */
 using namespace Errors;
 
 namespace SemaphoreLib {

@@ -1,6 +1,9 @@
 
 #include "Lock.h"
 
+/*
+ *	Julian Krzemiñski (julian.krzeminski@students.mimuw.edu.pl)
+ */
 namespace LockMgr
 {
 

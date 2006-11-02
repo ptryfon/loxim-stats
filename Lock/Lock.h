@@ -1,6 +1,8 @@
 #ifndef _LOCK_
 #define _LOCK_
-
+/*
+ *	Julian Krzemiñski (julian.krzeminski@students.mimuw.edu.pl)
+ */
 namespace LockMgr { class LockManager; }
 
 #include <stdio.h>

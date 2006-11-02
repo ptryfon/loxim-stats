@@ -1,6 +1,9 @@
 #ifndef _MUTEX_
 #define _MUTEX_
 
+/*
+ *	Julian Krzemiñski (julian.krzeminski@students.mimuw.edu.pl)
+ */
 namespace SemaphoreLib {
 
 class Mutex 
