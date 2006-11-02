@@ -9,33 +9,6 @@ import java.net.Socket;
 import objectBrowser.driver.loxim.result.*;
 
 public class TcpConnection implements Connection {
-	static final byte RES_RESULT = 0;
-
-	static final byte RES_SEQUENCE = 1;
-
-	static final byte RES_BAG = 2;
-
-	static final byte RES_STRUCT = 3;
-
-	static final byte RES_BINDER = 4;
-
-	static final byte RES_STRING = 5;
-
-	static final byte RES_INT = 6;
-
-	static final byte RES_DOUBLE = 7;
-
-	static final byte RES_BOOL = 8;
-
-	static final byte RES_REFERENCE = 9;
-
-	static final byte RES_VOID = 10;
-
-	static final byte RES_ERROR = 11;
-
-	static final byte RES_BOOLTRUE = 12;
-
-	static final byte RES_BOOLFALSE = 13;
 
 	Socket socket;
 
@@ -101,4 +74,47 @@ public class TcpConnection implements Connection {
 			throw new SBQLException(e.getMessage(), e);
 		}
 	}
+
+
+	public Statement parse(String query) throws SBQLException {
+		try {
+			ParamQueryPackage sqp = new ParamQueryPackage();
+			sqp.setQuery(query);
+				
+			packageSend(sqp);
+			
+			StatementPackage sp = new StatementPackage();
+			ResultStream rs = new ResultStream(dis);
+			sp.deserialize(rs, (int)rs.length);
+			Statement stmt = new Statement(sp.getStatementNumber());
+			rs.flush();
+			
+			return stmt;
+		} catch (IOException e)  {
+			throw new SBQLException(e.getMessage(), e);
+		}
+	}
+	
+	public Result execute(Statement statement) throws SBQLException {
+		try {
+			ParamStatementPackage psp = new ParamStatementPackage();
+			psp.setStatementNumber(statement.getNumber());
+			psp.setParams(statement.getParams());
+
+			packageSend(psp);
+			
+			SimpleResultPackage srp = new SimpleResultPackage();
+			ResultStream rs = new ResultStream(dis);
+			srp.deserialize(rs, (int)rs.length);
+			Result res = srp.getResult();
+			rs.flush();
+			
+			if (res instanceof ResultError)
+				throw new SBQLException(((ResultError) res).getErrorCode());
+			return res;
+		} catch (IOException e) {
+			throw new SBQLException(e.getMessage(), e);
+		}		
+	}
+	
 }
