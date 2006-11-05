@@ -427,7 +427,7 @@ int QueryExecutor::getProcedureInfo(TreeNode *tree, ProcedureInfo *&pinf)
     if (errcode != 0) 
     {
         *ec << "[QE] Error in getObjectPointer";
-        tr->abort();
+        //tr->abort();
         tr = NULL;
         return errcode;
     }
@@ -446,7 +446,7 @@ int QueryExecutor::getProcedureInfo(TreeNode *tree, ProcedureInfo *&pinf)
         if (errcode != 0) 
         {
             *ec << "[QE] Error in getObjectPointer";
-            tr->abort();
+            //tr->abort();
             tr = NULL;
             return errcode;
         }
@@ -478,7 +478,7 @@ int QueryExecutor::getProcedureInfo(TreeNode *tree, ProcedureInfo *&pinf)
                 if (errcode != 0) 
                 {
                     *ec << "[QE] Error in getObjectPointer";
-                    tr->abort();
+                    //tr->abort();
                     tr = NULL;
                     return errcode;
                 }
@@ -810,7 +810,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				}
 				if ((errcode = tr->addRoot(optr)) != 0) { 
 					*ec << "[QE] Error in addRoot";
-					tr->abort();
+					//tr->abort();
 					tr = NULL;
 					return errcode;
 				}
@@ -1399,7 +1399,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		}
 		if ((errcode = tr->addRoot(optr)) != 0) {
 		    *ec << "[QE] Error in addRoot";
-		    tr->abort();
+		    //tr->abort();
 		    tr = NULL;
 		    return errcode;
 		}
@@ -1449,7 +1449,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			}
 			*ec << "remote 1";
 			if ((errcode = tr->getRoots(vec)) != 0) {
-				tr->abort();
+				//tr->abort();
 				tr = NULL;
 				return errcode;
 			}
@@ -1586,7 +1586,7 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 			if (errcode != 0) {
 
 				*ec << "[QE] Error in getObjectPointer";
-				tr->abort();
+				//tr->abort();
 				tr = NULL;
 				return errcode;
 			}
@@ -1643,7 +1643,7 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 						errcode = tr->getObjectPointer(currID, Store::Read, currOptr); 
 						if (errcode != 0) {
 							*ec << "[QE] Error in getObjectPointer";
-							tr->abort();
+							//tr->abort();
 							tr = NULL;
 							return errcode;
 						}
@@ -2102,7 +2102,7 @@ int QueryExecutor::unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&
 				ObjectPointer *optr;
 				if ((errcode = tr->getObjectPointer (lid, Store::Write, optr)) !=0) { 
 					*ec << "[QE] Error in getObjectPointer.";
-					tr->abort();
+					//tr->abort();
 					tr = NULL;
 					return errcode;
 				}
@@ -2119,7 +2119,7 @@ int QueryExecutor::unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&
 					}				
 					if ((errcode = tr->removeRoot(optr)) != 0) { 
 						*ec << "[QE] Error in removeRoot.";
-						tr->abort();
+						//tr->abort();
 						tr = NULL;
 						return errcode;
 					}
@@ -2137,7 +2137,7 @@ int QueryExecutor::unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&
 				}								
 				if ((errcode = tr->deleteObject(optr)) != 0) { 
 					*ec << "[QE] Error in deleteObject.";
-					tr->abort();
+					//tr->abort();
 					tr = NULL;
 					return errcode;
 				}
@@ -2417,7 +2417,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 		errcode = tr->getObjectPointer (lidOut, Store::Write, optrOut); 
 		if (errcode != 0) {
 			*ec << "[QE] insert operation - Error in getObjectPointer.";
-			tr->abort();
+			//tr->abort();
 			tr = NULL;
 			return errcode;
 		}
@@ -2465,7 +2465,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 					errcode = tr->getObjectPointer (lidIn, Store::Write, optrIn); 
 					if (errcode != 0) {
 						*ec << "[QE] insert operation - Error in getObjectPointer.";
-						tr->abort();
+						//tr->abort();
 						tr = NULL;
 						return errcode;
 					}
@@ -2483,7 +2483,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 						errcode = tr->removeRoot(optrIn); 
 						if (errcode != 0) {
 							*ec << "[QE] insert operation - Error in removeRoot.";
-							tr->abort();
+							//tr->abort();
 							tr = NULL;
 							return errcode;
 						}
@@ -2519,7 +2519,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 		errcode = tr->modifyObject(optrOut, db_value); 
 		if (errcode != 0) {
 			*ec << "[QE] insert operation - Error in modifyObject.";
-			tr->abort();
+			//tr->abort();
 			tr = NULL;
 			return errcode;
 		}
@@ -2549,7 +2549,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 		errcode = tr->getObjectPointer (old_lid, Store::Write, old_optr); 
 		if (errcode != 0) {
 			*ec << "[QE] operator <assign>: error in getObjectPointer()";
-			tr->abort();
+			//tr->abort();
 			tr = NULL;
 			return errcode;
 		}
@@ -2626,7 +2626,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 		errcode = tr->modifyObject(old_optr, value); 
 		if (errcode != 0) {
 			*ec << "[QE] operator <assign>: error in modifyObject()";
-			tr->abort();
+			//tr->abort();
 			tr = NULL;
 			return errcode;
 		}
@@ -2951,7 +2951,7 @@ int QueryExecutor::objectFromBinder(QueryResult *res, ObjectPointer *&newObject)
 	value = dbValue;
 	if ((errcode = tr->createObject(binderName, value, newObject)) != 0) { //TODO
 		*ec << "[QE] Error in createObject";
-		tr->abort();
+		//tr->abort();
 		tr = NULL;
 		return errcode;
 	}
