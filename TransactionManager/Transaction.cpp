@@ -1,8 +1,9 @@
 
 #include "Transaction.h"
 
-/*
- *	Julian Krzemiñski (julian.krzeminski@students.mimuw.edu.pl)
+/**
+ *	@author Julian Krzemiñski (julian.krzeminski@students.mimuw.edu.pl)
+ *	@author Dominik Klimczak (dominik.klimczak@students.mimuw.edu.pl)
  */
 namespace TManager
 {
@@ -168,7 +169,8 @@ namespace TManager
 			    abort(); break;
 			}
 		    }
-		}	
+		}
+		else abort();
 		return errorNumber;
 	}
 
@@ -195,6 +197,7 @@ namespace TManager
 			}
 		    }
 		}
+		else abort();
 		return errorNumber;
 	}
 
@@ -208,6 +211,8 @@ namespace TManager
 		errorNumber = sm->getRootsLID(tid, p);			
 		sem->unlock();
 		
+		if (errorNumber) abort();
+	
 		return errorNumber;
 	}
 
@@ -221,6 +226,8 @@ namespace TManager
 		errorNumber = sm->getRootsLID(tid, name, p);
 		sem->unlock();
 		
+		if (errorNumber) abort();
+	
 		return errorNumber;
 	}
 
@@ -338,7 +345,7 @@ namespace TManager
 	
 	TransactionManager::~TransactionManager()
 	{
-		err.printf("Niszcze TransactionManagera\n");
+		err.printf("Destroying TransactionManager\n");
 		/* unlock all unfinished transactions */
 		for (list<TransactionID*>::iterator i = transactions->begin();	i != transactions->end(); i++)
 		    LockManager::getHandle()->unlockAll(*i);
@@ -366,10 +373,10 @@ namespace TManager
 
 	int TransactionManager::init(StoreManager *strMgr, LogManager *logsMgr)
 	{
-	    err.printf("Transaction Manager starting .... ");
+	    err.printf("Transaction Manager's starting .... ");
 	    storeMgr = strMgr;
 	    logMgr = logsMgr;
-	    err.printf("DONE\n");
+//	    err.printf("DONE\n");
 	    return 0;
 	}
 

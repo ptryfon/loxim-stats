@@ -1,8 +1,9 @@
 
 #include "SingleLock.h"
 
-/*
- *	Julian Krzemiñski (julian.krzeminski@students.mimuw.edu.pl)
+/**
+ *	@author Julian Krzemiñski (julian.krzeminski@students.mimuw.edu.pl)
+ *	@author Dominik Klimczak (dominik.klimczak@students.mimuw.edu.pl)
  */
 namespace LockMgr
 {
@@ -132,8 +133,8 @@ namespace LockMgr
 		    err.printf("New Writer, tid = %d\n", _tid->getId());
 		    currentWrite->insert(_tid);
 		}
-		/* keep original (youngest) transaction id */
-		tid = _tid;
+		/* for readers we keep the oldest transaction id */
+		if (_tid->getId() < tid->getId()) tid = _tid;
 		inside++;
 
 	    mutex->up();
