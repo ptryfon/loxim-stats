@@ -1,0 +1,14 @@
+Zapis do logów:
+
+Nalezy udostepnic funkcje do wywolania przez Store:
+	przez przypinanie strony: int PageWriteBegin(transaction_id, file_id, page_id, page_ptr, page_size)
+	przez odpinanie strony:   int PageWriteEnd(transaction_id, file_id, page_id, page_ptr, page_size)
+	Przypinanie i odpinanie jest realizowanie przez klase PagePointer, metody aquire i release.
+
+
+Odtwarzanie:
+
+Nalezy korzystac z funkcji klasy File
+
+	readPage
+	writePage
