@@ -1,8 +1,9 @@
 
 #include "Lock.h"
 
-/*
- *	Julian Krzemiñski (julian.krzeminski@students.mimuw.edu.pl)
+/**
+ *	@author Dominik Klimczak (dominik.klimczak@students.mimuw.edu.pl)
+ *	@author Julian Krzemiñski (julian.krzeminski@students.mimuw.edu.pl)
  */
 namespace LockMgr
 {
@@ -34,7 +35,7 @@ namespace LockMgr
 		/* 
 		 * TransactionManager removes all locks that is why structures:
 		 * transaction_locks, map_of_locks should be empty, 
-		 * hovever just in case we erase (lost) elements from these structures
+		 * hovever, just in case, we erase (lost) elements from these structures
 		 */
 		for (TransactionIdMap::iterator iter = transaction_locks->begin();
 	    	iter != transaction_locks->end(); iter++ )
@@ -135,7 +136,6 @@ namespace LockMgr
 		    map_of_locks->erase(oldPHID);
 		    lock->setPHID(newPHID);
 		    (*map_of_locks)[newPHID] = lock;	
-		    //map_of_locks->insert(lock);
 	    }
 	    else errorNumber = -1;
 	

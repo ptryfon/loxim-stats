@@ -1,7 +1,8 @@
 #ifndef _LOCK_
 #define _LOCK_
-/*
- *	Julian Krzemiñski (julian.krzeminski@students.mimuw.edu.pl)
+/**
+ *	@author Julian Krzemiñski (julian.krzeminski@students.mimuw.edu.pl)
+ *	@author Dominik Klimczak (dominik.klimczak@students.mimuw.edu.pl)
  */
 namespace LockMgr { class LockManager; }
 

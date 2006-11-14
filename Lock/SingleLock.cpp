@@ -50,7 +50,8 @@ namespace LockMgr
 
     int SingleLock::preventDeadlock(TransactionID* _tid)
     {
-	if ( tid->getId() < _tid->getId() )
+//oldversion	if ( tid->getId() < _tid->getId() )
+	if ( tid->getPriority() < _tid->getPriority() )
 	/* younger dies ( younger = higher id ) */
 	{
 	    /* deadlock exception - rollback transaction */
@@ -114,7 +115,8 @@ namespace LockMgr
 	{
 		err.printf("Standard upgrade");
 		if ((errorCode = preventDeadlock(_tid)) == 0)
-		    errorCode = sem->lock_upgrade(_tid->getId());
+		    errorCode = sem->lock_upgrade(_tid->getPriority());
+//oldversion		    errorCode = sem->lock_upgrade(_tid->getId());
 	}
 	
 	err.printf("Locking object, tid = %d\n", _tid->getId());
@@ -134,7 +136,8 @@ namespace LockMgr
 		    currentWrite->insert(_tid);
 		}
 		/* for readers we keep the oldest transaction id */
-		if (_tid->getId() < tid->getId()) tid = _tid;
+//oldversion		if (_tid->getId() < tid->getId()) tid = _tid;
+		if (_tid->getPriority() < tid->getPriority()) tid = _tid;
 		inside++;
 
 	    mutex->up();

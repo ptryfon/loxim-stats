@@ -19,7 +19,9 @@ namespace TManager
 #include "../Lock/Lock.h"
 #include "../Log/Logs.h"
 #include "../Errors/ErrorConsole.h"
+#include "../Config/SBQLConfig.h"
 #include "SemHeaders.h"
+
 
 using namespace Store;
 using namespace LockMgr;
@@ -35,20 +37,23 @@ namespace TManager
 	/**
 	 *	TransactionID - unique object for transaction
 	 */
-	class TransactionID 
-	{      
+	class TransactionID
+	{
 	      private:
 			friend class Transaction;
 			friend class TransactionManager;
 			TransactionID* clone();
 		        int id;
+			int priority;
 			unsigned timeStamp;
 
 	      public:
 			int getId() const;
+			int getPriority() const;
 			unsigned getTimeStamp() const;
-			void setTimeStamp(unsigned t);	      
+			void setTimeStamp(unsigned t);
 		        TransactionID(int n);
+		        TransactionID(int n, int priority);
 	};
 
 	/**
@@ -112,8 +117,15 @@ namespace TManager
 			static TransactionManager *tranMgr;   	   
 			StoreManager* storeMgr;
 			LogManager* logMgr;
+			
+			int minimalTransactionId;
+			bool semaphoresTimeout;
+			int readerTimeout;
+			int writerTimeout;
+			int boostAfterDeadlock;
 
 			TransactionManager();
+			int loadConfig();
  			void addTransaction(TransactionID*);
 	      		list<TransactionID*>* transactions;
 	      		int remove_from_list(TransactionID*);
@@ -128,6 +140,7 @@ namespace TManager
 	      
 	   		/* executor calls: */
 	     		int createTransaction(Transaction* &tr);
+	     		int createTransaction(Transaction* &tr, int id);
 	      		int commit(Transaction*);
 	      		int abort(Transaction*);
 	      

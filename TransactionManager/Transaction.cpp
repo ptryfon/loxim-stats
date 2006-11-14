@@ -12,14 +12,21 @@ namespace TManager
 	TransactionID::TransactionID(int id)
 	{
 		this->id = id;
+		this->priority = id;
+	};
+	TransactionID::TransactionID(int id, int priority)
+	{
+		this->id = id;
+		this->priority = priority;
 	};
 	int TransactionID::getId() const { return id; };
+	int TransactionID::getPriority() const { return priority; };
 	unsigned TransactionID::getTimeStamp() const { return timeStamp; };
 	void TransactionID::setTimeStamp(unsigned t) { timeStamp = t; };
 
 	TransactionID* TransactionID::clone()
 	{
-		return new TransactionID(this->id);
+		return new TransactionID(this->id, this->priority);
 	}
 	
 /*______Transaction_________________________________________*/
@@ -337,7 +344,44 @@ namespace TManager
 		mutex = new Mutex();
 		mutex->init();
 		transactions = new list<TransactionID*>;
-	};
+	 }
+	 
+	 int TransactionManager::loadConfig()
+	 {
+		string semTime = "off";
+		SBQLConfig conf("TransactionManager");
+		minimalTransactionId = 1;
+		semaphoresTimeout = false;
+		readerTimeout = 30;
+		writerTimeout = 40;
+		boostAfterDeadlock = 10;
+
+		int errorCode = conf.getInt( "minimal_transaction_id", minimalTransactionId);
+		if (errorCode)
+		    err.printf("Cannot read minimal_transaction_id from configuration, using default value %d\n", minimalTransactionId);
+		errorCode  = conf.getString( "semaphores_timeout", semTime);
+		if (semTime == "on")
+		    semaphoresTimeout = true;
+		if (errorCode)
+		    err << "Cannot read semaphores_timeout from configuration, using default value " + semTime;
+		errorCode  = conf.getInt( "reader_timeout", readerTimeout);
+		if (errorCode)
+		    err.printf("Cannot read reader_timout from configuration, using default value %d\n", readerTimeout);
+		errorCode  = conf.getInt( "writer_timeout", writerTimeout);
+		if (errorCode)
+		    err.printf("Cannot read writer_timeout from configuration, using default value %d\n", writerTimeout);
+		errorCode  = conf.getInt( "boost_after_deadlock", boostAfterDeadlock);
+		if (errorCode)
+		    err.printf("Cannot read boost_after_deadlock from configuration, using default value %d\n", boostAfterDeadlock);
+/*		err.printf("First trans %i\n", minimalTransactionId);
+		err << "Semaphores timeout " + semTime;
+		err.printf("Reader timeout %i\n", readerTimeout);
+		err.printf("Writer timeout %i\n", writerTimeout);*/
+		
+		transactionId = minimalTransactionId - 1;
+
+		return 0;
+	 }
 	
 	TransactionManager* TransactionManager::tranMgr = new TransactionManager();
 	
@@ -356,13 +400,31 @@ namespace TManager
 		delete LockManager::getHandle();
 	}
 
+	/**
+	 * standard begining of new transaction
+	 * @param tr - created transaction
+	 */
 	int TransactionManager::createTransaction(Transaction* &tr)
+	{
+	    return createTransaction(tr, -1);
+	}              
+
+	/**
+	 * begin transaction that was aborted by deadlock
+	 * @param tr created transaction
+	 * @param id id of old aborted transaction
+	 */
+	int TransactionManager::createTransaction(Transaction* &tr, int id)
 	{
 	    err.printf("Creating new transaction\n");
 	    mutex->down();
 			int currentId = transactionId;
 			transactionId++;
-			TransactionID* tid = new TransactionID(currentId);	    	
+			TransactionID* tid;
+			if (id > -1)
+			    tid = new TransactionID(currentId, id);
+			else
+			    tid = new TransactionID(currentId);
 			addTransaction(tid);
 			err.printf("Transaction created -> number %d\n", tid->getId());
 	    mutex->up();
@@ -373,11 +435,10 @@ namespace TManager
 
 	int TransactionManager::init(StoreManager *strMgr, LogManager *logsMgr)
 	{
-	    err.printf("Transaction Manager's starting .... ");
+	    err.printf("Transaction Manager's starting....\n");
 	    storeMgr = strMgr;
 	    logMgr = logsMgr;
-//	    err.printf("DONE\n");
-	    return 0;
+	    return loadConfig();
 	}
 
 	void TransactionManager::addTransaction(TransactionID* tid)

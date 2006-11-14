@@ -24,6 +24,10 @@ subdirs:
 doc:
 	doxygen Documentation/doxygen.conf
 
+bin:
+	cp Server/Server.conf .
+	tar c Server/Listener SBQLCli/SBQLCli Server.conf server.sh client.sh |gzip -c >loxim.tar.gz
+
 clean:
 	@find -name "*.d" | xargs rm -f
 	@for i in $(SUBDIRS); do \
