@@ -5,17 +5,13 @@ import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.management.relation.Relation;
-
 import objectBrowser.figures.OBFigureFactory;
 import objectBrowser.model.RelationBendpoint;
 import objectBrowser.model.Relationship;
 
-import org.eclipse.draw2d.AbsoluteBendpoint;
 import org.eclipse.draw2d.Connection;
 import org.eclipse.draw2d.IFigure;
 import org.eclipse.draw2d.ManhattanConnectionRouter;
-import org.eclipse.draw2d.PolylineConnection;
 import org.eclipse.draw2d.RelativeBendpoint;
 import org.eclipse.gef.EditPolicy;
 import org.eclipse.gef.editparts.AbstractConnectionEditPart;

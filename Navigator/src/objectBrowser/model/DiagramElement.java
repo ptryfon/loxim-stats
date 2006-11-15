@@ -6,8 +6,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 
-import objectBrowser.editors.LocationPropertySource;
-
 import org.eclipse.ui.views.properties.IPropertySource;
 
 public abstract class DiagramElement implements IPropertySource, Cloneable, Serializable {

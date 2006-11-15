@@ -2,7 +2,6 @@ package objectBrowser.figures;
 
 
 import org.eclipse.draw2d.ColorConstants;
-import org.eclipse.draw2d.Figure;
 import org.eclipse.draw2d.Label;
 import org.eclipse.draw2d.LineBorder;
 import org.eclipse.draw2d.ToolbarLayout;
@@ -25,6 +24,7 @@ public class CompositeDataObjectFigure extends DataObjectFigure {
 	    title = new Label("<NAZWA>");
 		Font titleFont = new Font(null, "Arial", 12, SWT.BOLD);
 		title.setFont(titleFont);	    
+		setToolTip(new Label("Composite object"));
 		
 	    add(title);	
 	    add(propertiesFigure);

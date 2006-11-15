@@ -1,19 +1,15 @@
 package objectBrowser.editors;
 
-import objectBrowser.figures.DataObjectFigure;
 import objectBrowser.figures.OBFigureFactory;
 import objectBrowser.figures.ResultNodeFigure;
-import objectBrowser.figures.SimpleDataObjectFigure;
 import objectBrowser.model.DiagramNode;
 import objectBrowser.model.ResultNode;
-import objectBrowser.model.SimpleDataObject;
 
 import org.eclipse.draw2d.ConnectionAnchor;
 import org.eclipse.draw2d.IFigure;
 import org.eclipse.draw2d.geometry.Rectangle;
 import org.eclipse.gef.ConnectionEditPart;
 import org.eclipse.gef.GraphicalEditPart;
-import org.eclipse.gef.editparts.AbstractGraphicalEditPart;
 
 public class ResultNodeEditPart extends DiagramElementEditPart {
 

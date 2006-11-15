@@ -18,6 +18,7 @@ public class ObjectBrowsingPerspectiveFactory implements IPerspectiveFactory {
         
         layout.setEditorAreaVisible(true);
         layout.setFixed(false);
+        
 	}
 
 }

@@ -1,15 +1,11 @@
 package objectBrowser.tests;
 
-import objectBrowser.model.CompositeDataObject;
 import objectBrowser.model.Diagram;
-import objectBrowser.model.Relationship;
-import objectBrowser.model.ResultNode;
-import objectBrowser.model.SimpleDataObject;
 
 public class DataGenerator1 {
 	public Diagram makeSample() {
 		Diagram pool = new Diagram();
-		
+		/*
 		CompositeDataObject o1 = new CompositeDataObject("czlowiek");
 		o1.getChildren().add(new SimpleDataObject("imie", "Jan"));
 		o1.getChildren().add(new SimpleDataObject("nazwisko", "Kowalski"));		
@@ -29,7 +25,7 @@ public class DataGenerator1 {
 		
 		
 		CompositeDataObject o2 = new CompositeDataObject("czlowiek");
-		o2.getChildren().add(new SimpleDataObject("imie", "Boles³aw"));
+		o2.getChildren().add(new SimpleDataObject("imie", "Bolesï¿½aw"));
 		o2.getChildren().add(new SimpleDataObject("nazwisko", "Chrobry"));		
 		pool.getObjects().add(o2);
 		
@@ -46,7 +42,7 @@ public class DataGenerator1 {
 		
 		rn.connectInput(r2);
 		o2.connectOutput(r2);
-		
+		*/
 		return pool;
 	}
 }

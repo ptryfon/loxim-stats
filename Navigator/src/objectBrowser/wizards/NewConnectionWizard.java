@@ -1,25 +1,24 @@
 package objectBrowser.wizards;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
+
 import objectBrowser.ObjectBrowserPlugin;
 import objectBrowser.connections.DatabaseConnection;
 
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.operation.IRunnableWithProgress;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
-import org.eclipse.core.runtime.*;
-import org.eclipse.jface.operation.*;
-import java.lang.reflect.InvocationTargetException;
-import java.util.prefs.BackingStoreException;
-
-import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.core.resources.*;
-import org.eclipse.core.runtime.CoreException;
-import java.io.*;
-import org.eclipse.ui.*;
-import org.eclipse.ui.ide.IDE;
-import org.osgi.service.prefs.Preferences;
+import org.eclipse.ui.IWorkbenchWizard;
 
 /**
  * This is a sample new wizard. Its role is to create a new file 

@@ -6,9 +6,6 @@ import java.util.List;
 import objectBrowser.model.DiagramNode;
 
 import org.eclipse.draw2d.ConnectionAnchor;
-import org.eclipse.draw2d.Figure;
-import org.eclipse.draw2d.IFigure;
-import org.eclipse.gef.ConnectionEditPart;
 import org.eclipse.gef.DragTracker;
 import org.eclipse.gef.EditPart;
 import org.eclipse.gef.Request;

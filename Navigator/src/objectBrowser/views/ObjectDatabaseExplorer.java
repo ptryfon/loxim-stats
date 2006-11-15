@@ -4,31 +4,48 @@ package objectBrowser.views;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
+import loxim.driver.exception.SBQLException;
 import objectBrowser.ObjectBrowserPlugin;
 import objectBrowser.connections.DatabaseConnection;
 import objectBrowser.connections.DatabaseConnectionPool;
 import objectBrowser.connections.ITreeListener;
 import objectBrowser.connections.TreeObject;
 import objectBrowser.connections.TreeParent;
-import objectBrowser.driver.loxim.SBQLException;
 
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.part.*;
-import org.eclipse.jface.operation.IRunnableWithProgress;
-import org.eclipse.jface.viewers.*;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.jface.action.*;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IMenuListener;
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.MessageDialogWithToggle;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
-import org.eclipse.ui.*;
-import org.eclipse.swt.widgets.Menu;
+import org.eclipse.jface.operation.IRunnableWithProgress;
+import org.eclipse.jface.viewers.DoubleClickEvent;
+import org.eclipse.jface.viewers.IDoubleClickListener;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.IStructuredContentProvider;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.ITreeContentProvider;
+import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerSorter;
 import org.eclipse.swt.SWT;
-import org.eclipse.core.internal.runtime.DataArea;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IAdaptable;
-import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.ui.IActionBars;
+import org.eclipse.ui.ISharedImages;
+import org.eclipse.ui.IWorkbenchActionConstants;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.part.DrillDownAdapter;
+import org.eclipse.ui.part.ViewPart;
 import org.osgi.service.prefs.BackingStoreException;
 
 /**
@@ -401,7 +418,7 @@ public class ObjectDatabaseExplorer extends ViewPart implements
 									.removeConnection((DatabaseConnection) obj);
 					}
 				} catch (Exception e) {
-					/* TODO - zrobiæ to ³adniej */
+					/* TODO - zrobiï¿½ to ï¿½adniej */
 					throw new RuntimeException(e);
 				}
 			}
@@ -465,7 +482,7 @@ public class ObjectDatabaseExplorer extends ViewPart implements
 		if (selection.isEmpty())
 			return;
 
-		/* TODO - nie mozemy pozwolic na wielokrotny wybór */
+		/* TODO - nie mozemy pozwolic na wielokrotny wybï¿½r */
 		TreeObject object = (TreeObject) selection.getFirstElement();
 		if (object instanceof DatabaseConnection) {
 			connectAction.setEnabled(!((DatabaseConnection)object).isConnected());

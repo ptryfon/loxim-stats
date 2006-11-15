@@ -1,7 +1,6 @@
 package objectBrowser.editors;
 
 import objectBrowser.model.CompositeDataObject;
-import objectBrowser.model.DataObject;
 import objectBrowser.model.Diagram;
 import objectBrowser.model.ReferenceDataObject;
 import objectBrowser.model.Relationship;

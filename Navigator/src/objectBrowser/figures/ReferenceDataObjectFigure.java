@@ -1,12 +1,9 @@
 package objectBrowser.figures;
 
+import loxim.pool.LoximReference;
 import objectBrowser.model.ReferenceDataObject;
-import objectBrowser.model.SimpleDataObject;
 
-import org.eclipse.draw2d.ColorConstants;
-import org.eclipse.draw2d.Figure;
 import org.eclipse.draw2d.Label;
-import org.eclipse.draw2d.LineBorder;
 import org.eclipse.draw2d.MarginBorder;
 import org.eclipse.draw2d.ToolbarLayout;
 import org.eclipse.swt.graphics.Color;
@@ -22,6 +19,8 @@ public class ReferenceDataObjectFigure extends DataObjectFigure {
 	    setBorder(new MarginBorder(0, 2, 0, 2));
 	    
 	    valueLabel = new Label("<SIMPLE PROPERTY>");
+	    
+	    setToolTip(new Label("Reference"));
 		
 	    add(valueLabel);	
 	  }
@@ -29,7 +28,7 @@ public class ReferenceDataObjectFigure extends DataObjectFigure {
 	  
 	  
 	  public void updateValue(ReferenceDataObject object) {
-		  valueLabel.setText(object.getName() + "...");		
+		  valueLabel.setText(object.getName() + "(ref to @" + ((LoximReference)object.getTarget()).getTargetRef() + ")");		
 	  }
 	  
 }

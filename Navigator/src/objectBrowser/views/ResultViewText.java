@@ -101,7 +101,7 @@ public class ResultViewText extends ViewPart {
 	}
 	
 	public void updateContent() {
-		getDocument().set(ObjectBrowserPlugin.getPlugin().getLastResult().getLongDescription());
+		String s = ObjectBrowserPlugin.getPlugin().toString();
 	}
 	
 	public Document getDocument() {

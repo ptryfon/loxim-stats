@@ -1,12 +1,12 @@
 package objectBrowser;
 
+import loxim.pool.ObjectPool;
+import loxim.pool.ObjectPoolImpl;
 import objectBrowser.connections.DatabaseConnectionPool;
-import objectBrowser.driver.loxim.result.Result;
-import objectBrowser.driver.loxim.result.ResultVoid;
 
-import org.eclipse.ui.plugin.*;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.prefs.Preferences;
 
@@ -14,13 +14,16 @@ import org.osgi.service.prefs.Preferences;
  * The main plugin class to be used in the desktop.
  */
 public class ObjectBrowserPlugin extends AbstractUIPlugin {
+	public static final String PLUGIN_ID = "Navigator2";
 
 	//The shared instance.
 	private volatile static ObjectBrowserPlugin plugin;
 	
 	private DatabaseConnectionPool connectionPool;
 	
-	private Result lastResult;
+	private ObjectPool objectPool;
+	
+	private boolean poolChanged;
 	
 	public DatabaseConnectionPool getConnectionPool() {
 		return connectionPool;
@@ -39,7 +42,7 @@ public class ObjectBrowserPlugin extends AbstractUIPlugin {
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 		connectionPool = new DatabaseConnectionPool();
-		lastResult = new ResultVoid();
+		objectPool = new ObjectPoolImpl();
 	}
 
 	/**
@@ -72,11 +75,16 @@ public class ObjectBrowserPlugin extends AbstractUIPlugin {
 		return new InstanceScope().getNode(getBundle().getSymbolicName());
 	}
 
-	public Result getLastResult() {
-		return lastResult;
+	public ObjectPool getObjectPool() {
+		return objectPool;
 	}
 
-	public void setLastResult(Result lastResult) {
-		this.lastResult = lastResult;
+	public boolean isPoolChanged() {
+		return poolChanged;
 	}
+
+	public void setPoolChanged(boolean poolChanged) {
+		this.poolChanged = poolChanged;
+	}
+
 }

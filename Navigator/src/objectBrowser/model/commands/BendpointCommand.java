@@ -14,7 +14,6 @@ import objectBrowser.model.Relationship;
 
 import org.eclipse.draw2d.geometry.Dimension;
 import org.eclipse.draw2d.geometry.Point;
-
 import org.eclipse.gef.commands.Command;
 
 

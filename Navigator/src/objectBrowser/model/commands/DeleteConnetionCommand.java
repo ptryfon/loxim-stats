@@ -1,8 +1,5 @@
 package objectBrowser.model.commands;
 
-import java.util.Iterator;
-import java.util.Vector;
-
 import objectBrowser.model.DiagramNode;
 import objectBrowser.model.Relationship;
 

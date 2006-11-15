@@ -3,12 +3,16 @@ package objectBrowser.model;
 import java.util.LinkedList;
 import java.util.List;
 
+import loxim.pool.LoximQuery;
+
 import org.eclipse.draw2d.geometry.Point;
 
 public class ResultNode extends DiagramNode {
 	protected List<DataObject> results = new LinkedList<DataObject>();
-	public ResultNode() {
+	protected LoximQuery query;
+	public ResultNode(LoximQuery query) {
 		super();
+		this.query = query;
 		setLocation(new Point(100, 100));
 	}	
 	
@@ -27,4 +31,8 @@ public class ResultNode extends DiagramNode {
 			results.add(result);
 		fireChildAdded(PROP_CHILDREN, result, new Integer(index));
 	}		
+	
+	public LoximQuery getQuery() {
+		return query;
+	}
 }

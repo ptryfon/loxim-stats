@@ -2,10 +2,7 @@ package objectBrowser.figures;
 
 import objectBrowser.model.SimpleDataObject;
 
-import org.eclipse.draw2d.ColorConstants;
-import org.eclipse.draw2d.Figure;
 import org.eclipse.draw2d.Label;
-import org.eclipse.draw2d.LineBorder;
 import org.eclipse.draw2d.MarginBorder;
 import org.eclipse.draw2d.ToolbarLayout;
 import org.eclipse.swt.graphics.Color;
@@ -19,7 +16,7 @@ public class SimpleDataObjectFigure extends DataObjectFigure {
 	    setLayoutManager(layout);		    	   
 	    setOpaque(false);
 	    setBorder(new MarginBorder(0, 2, 0, 2));
-	    
+	    setToolTip(new Label("Simple object"));
 	    valueLabel = new Label("<SIMPLE PROPERTY>");
 		
 	    add(valueLabel);	

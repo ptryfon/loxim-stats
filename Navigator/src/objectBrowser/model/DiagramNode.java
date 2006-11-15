@@ -1,28 +1,19 @@
 package objectBrowser.model;
 
 
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 
-import objectBrowser.editors.DimensionPropertySource;
 import objectBrowser.editors.LocationPropertySource;
 
-import org.eclipse.draw2d.geometry.Dimension;
 import org.eclipse.draw2d.geometry.Point;
 import org.eclipse.draw2d.geometry.Rectangle;
-import org.eclipse.gef.GraphicalEditPart;
-import org.eclipse.gef.NodeEditPart;
 import org.eclipse.ui.views.properties.IPropertyDescriptor;
-import org.eclipse.ui.views.properties.IPropertySource;
 import org.eclipse.ui.views.properties.PropertyDescriptor;
 
 public abstract class DiagramNode extends DiagramElement {
 	private Point location;
+	private Rectangle size;
 	public List<Relationship> inputs = new LinkedList<Relationship>();
 	public List<Relationship> outputs = new LinkedList<Relationship>();
 	
@@ -122,5 +113,13 @@ public abstract class DiagramNode extends DiagramElement {
 	}
 
 	public void update(){
+	}
+
+	public Rectangle getSize() {
+		return size;
+	}
+
+	public void setSize(Rectangle size) {
+		this.size = size;
 	}	
 }

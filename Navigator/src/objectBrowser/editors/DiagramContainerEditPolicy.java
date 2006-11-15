@@ -1,9 +1,6 @@
 package objectBrowser.editors;
 
-import java.util.List;
-
 import org.eclipse.gef.commands.Command;
-import org.eclipse.gef.commands.CompoundCommand;
 import org.eclipse.gef.editpolicies.ContainerEditPolicy;
 import org.eclipse.gef.requests.CreateRequest;
 import org.eclipse.gef.requests.GroupRequest;

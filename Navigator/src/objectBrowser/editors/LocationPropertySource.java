@@ -10,12 +10,11 @@
  *******************************************************************************/
 package objectBrowser.editors;
 
+import org.eclipse.draw2d.geometry.Point;
 import org.eclipse.ui.views.properties.IPropertyDescriptor;
 import org.eclipse.ui.views.properties.IPropertySource;
 import org.eclipse.ui.views.properties.PropertyDescriptor;
 import org.eclipse.ui.views.properties.TextPropertyDescriptor;
-
-import org.eclipse.draw2d.geometry.Point;
 
 
 public class LocationPropertySource

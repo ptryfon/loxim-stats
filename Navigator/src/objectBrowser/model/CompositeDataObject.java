@@ -1,13 +1,16 @@
 package objectBrowser.model;
 
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
+import loxim.pool.LoximCompositeObject;
+
 public class CompositeDataObject extends DataObject {
+	
 	private List<DataObject> children = new LinkedList<DataObject>();
-	public CompositeDataObject(String name) {
-		super(name);
+	
+	public CompositeDataObject(LoximCompositeObject object) {
+		super(object.getName(), object);
 	}
 	
 	public void addChild(DataObject child){
@@ -22,10 +25,6 @@ public class CompositeDataObject extends DataObject {
 		fireChildAdded(PROP_CHILDREN, child, new Integer(index));
 	}	
 	
-	public CompositeDataObject(String name, Collection<DataObject> children) {
-		super(name);
-		this.children.addAll(children);
-	}
 	
 	public List<DataObject>getChildren() {
 		return children;

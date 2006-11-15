@@ -1,19 +1,16 @@
 package objectBrowser.model;
 
+import loxim.pool.LoximSimpleObject;
+
 public class SimpleDataObject extends DataObject {	
-	protected String value;
 	
 	public String getValue() {
-		return value;
+		return ((LoximSimpleObject)target).getValue();
 	}
 
-	public void setValue(String value) {
-		this.value = value;
-	}
 
-	public SimpleDataObject(String name, String value) {
-		super(name);
-		this.value = value;
+	public SimpleDataObject(LoximSimpleObject object) {
+		super(object.getName(), object);
 	}
 	
 	

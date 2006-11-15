@@ -1,18 +1,11 @@
 package objectBrowser.model;
 
+import loxim.pool.LoximReference;
+
 public class ReferenceDataObject extends DataObject {
-	protected String targetOid;
 	
-	public ReferenceDataObject(String name, String targetOid) {
-		super(name);
-		this.targetOid = targetOid;
+	public ReferenceDataObject(LoximReference object) {
+		super(object.getName(), object);
 	}
 
-	public String getTargetOid() {
-		return targetOid;
-	}
-
-	public void setTargetOid(String targetOid) {
-		this.targetOid = targetOid;
-	}
 }

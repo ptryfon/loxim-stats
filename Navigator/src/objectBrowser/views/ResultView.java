@@ -1,19 +1,17 @@
 package objectBrowser.views;
 
 
+import loxim.driver.result.Result;
 import objectBrowser.ObjectBrowserPlugin;
-import objectBrowser.driver.loxim.result.Result;
 import objectBrowser.editors.OBEditPartFactory;
 import objectBrowser.model.CircleLayout;
 import objectBrowser.model.Diagram;
-import objectBrowser.model.LoximModelGenerator;
-import objectBrowser.tests.DataGenerator1;
+import objectBrowser.model.DiagramModelBuilder;
 
 import org.eclipse.draw2d.ColorConstants;
 import org.eclipse.gef.DefaultEditDomain;
 import org.eclipse.gef.GraphicalViewer;
 import org.eclipse.gef.tools.SelectionTool;
-import org.eclipse.gef.ui.parts.GraphicalViewerImpl;
 import org.eclipse.gef.ui.parts.ScrollingGraphicalViewer;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.part.ViewPart;
@@ -84,11 +82,14 @@ public class ResultView extends ViewPart {
 	}
 
 	public void updateContent() {
-		Result newResult = ObjectBrowserPlugin.getPlugin().getLastResult();
-		if (currentResult != null && currentResult.equals(newResult)) return; 
-		Diagram newModel = new LoximModelGenerator().makeModel(newResult);
-		new CircleLayout().makeLayout(newModel);
-		graphicalViewer.setContents(newModel);		
+		if (ObjectBrowserPlugin.getPlugin().isPoolChanged()) {
+			ObjectBrowserPlugin.getPlugin().setPoolChanged(false);
+			
+			DiagramModelBuilder builder = new DiagramModelBuilder(ObjectBrowserPlugin.getPlugin().getObjectPool());
+			Diagram newModel = builder.makeModel();
+			new CircleLayout(newModel).makeLayout();
+			graphicalViewer.setContents(newModel);	
+		} 			
 	}
 
 	@Override

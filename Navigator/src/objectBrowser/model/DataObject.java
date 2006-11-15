@@ -1,17 +1,19 @@
 package objectBrowser.model;
 
-import java.util.LinkedList;
-import java.util.List;
+import loxim.pool.LoximObject;
 
 import org.eclipse.draw2d.geometry.Point;
 
 public abstract class DataObject extends DiagramNode {
 	private String name;
+	protected LoximObject target;
 	
-	public DataObject(String name) {
+	public DataObject(String name, LoximObject target) {
 		super();
+		this.target = target;
 		setLocation(new Point(30, 30));
-		this.name = name;
+		setName(name);
+		
 	}	
 	
 	public String getName() {
@@ -19,7 +21,22 @@ public abstract class DataObject extends DiagramNode {
 	}
 	
 	public void setName(String name) {
-		this.name = name;
+		if (name == null) {
+			if (target.getRef() != null) {
+				this.name = "@" + target.getRef();
+			} else {
+				this.name = "<unnamed>";
+			}
+		} else {
+			if (target.getRef() != null) {
+				this.name = name + "(@" + target.getRef() + ")";
+			} else {
+				this.name = name;
+			}
+		}
 	}
 			
+	public LoximObject getTarget() {
+		return target;
+	}
 }

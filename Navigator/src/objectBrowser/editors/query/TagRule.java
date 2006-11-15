@@ -1,6 +1,8 @@
 package objectBrowser.editors.query;
 
-import org.eclipse.jface.text.rules.*;
+import org.eclipse.jface.text.rules.ICharacterScanner;
+import org.eclipse.jface.text.rules.IToken;
+import org.eclipse.jface.text.rules.MultiLineRule;
 
 public class TagRule extends MultiLineRule {
 

@@ -2,23 +2,20 @@ package objectBrowser.editors.query;
 
 import java.lang.reflect.InvocationTargetException;
 
+import loxim.driver.exception.SBQLException;
+import loxim.driver.result.Result;
 import objectBrowser.ObjectBrowserPlugin;
 import objectBrowser.connections.DatabaseConnection;
-import objectBrowser.driver.loxim.SBQLException;
-import objectBrowser.driver.loxim.result.Result;
 import objectBrowser.views.ResultView;
 import objectBrowser.views.ResultViewText;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuManager;
-import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.texteditor.BasicTextEditorActionContributor;
 import org.eclipse.ui.texteditor.ITextEditor;
 
@@ -60,13 +57,12 @@ public class QueryEditorActionContributor extends
 							monitor.beginTask("Executing query", 3);
 							monitor.worked(0);
 
-							con.doBegin();
-							monitor.worked(1);
-							res = con.doExecute(document.get());
-							monitor.worked(2);
-							con.doCommit();
 							
-							ObjectBrowserPlugin.getPlugin().setLastResult(res);
+							monitor.worked(1);
+							con.doExecute(document.get());
+							monitor.worked(2);
+							
+							
 							
 							ResultViewText rvt = ResultViewText.getInstance();
 							if (rvt != null) rvt.updateContent();
@@ -91,6 +87,7 @@ public class QueryEditorActionContributor extends
 					Throwable realException = e.getTargetException();
 					MessageDialog.openError(editor.getSite().getShell(),
 							"Error", realException.getMessage());
+					e.printStackTrace();
 				}
 
 			} else
@@ -102,7 +99,7 @@ public class QueryEditorActionContributor extends
 	@Override
 	public void contributeToMenu(IMenuManager menu) {
 		super.contributeToMenu(menu);
-
+		/*
 		ExecAction execAction = new ExecAction(this);
 
 		IMenuManager additionalMenu = menu; // (GroupMarker)menu.findUsingPath(IWorkbenchActionConstants.MB_ADDITIONS);
@@ -111,6 +108,7 @@ public class QueryEditorActionContributor extends
 			databaseMenu.add(execAction);
 			menu.add(databaseMenu);
 		}
+		*/
 	}
 
 }

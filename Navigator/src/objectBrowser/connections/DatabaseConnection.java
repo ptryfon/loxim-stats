@@ -4,11 +4,14 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
-import objectBrowser.driver.loxim.Connection;
-import objectBrowser.driver.loxim.SBQLException;
-import objectBrowser.driver.loxim.TcpConnectionFactory;
-import objectBrowser.driver.loxim.result.Result;
-import objectBrowser.driver.loxim.result.ResultBool;
+import loxim.driver.SimpleConnection;
+import loxim.driver.TcpConnectionFactory;
+import loxim.driver.exception.SBQLException;
+import loxim.driver.exception.SBQLProtocolException;
+import loxim.pool.ConnectionService;
+import loxim.pool.LoximObjectFactory;
+import objectBrowser.ObjectBrowserPlugin;
+
 
 public class DatabaseConnection implements TreeObject {
 	protected int id;
@@ -20,7 +23,9 @@ public class DatabaseConnection implements TreeObject {
 	protected boolean connected = false;
 	
 	protected DatabaseConnectionPool parent;
-	protected Connection con;
+	protected SimpleConnection con;
+	
+	protected ConnectionService service;	
 	
 	protected List<ITreeListener> listeners = new LinkedList<ITreeListener>();
 	
@@ -71,8 +76,8 @@ public class DatabaseConnection implements TreeObject {
 	}
 	
 	public String toString() {
-		if (connected) return hostname + ":" + port + " (*)";
-		return hostname + ":" + port;
+		if (connected) return connectionName + "(connected)";
+		return connectionName;
 	}
 	
 	public Object getAdapter(Class c) {
@@ -98,39 +103,25 @@ public class DatabaseConnection implements TreeObject {
 	public boolean isConnected() {
 		return connected;
 	}
-	
-	public boolean doLogin() throws SBQLException {
-		con.execute("begin");
-		Result res;
-		if ("".equals(password)) {
-			res = con.execute("validate " + login + " not_a_password");
-		} else {
-			res = con.execute("validate " + login + " " + password);
+			
+	public void doExecute(String query) throws SBQLException {
+		con.beginTransaction();
+		try {
+			service.executeQuery(query);
+			service.expandAll();
+			ObjectBrowserPlugin.getPlugin().setPoolChanged(true);
+		} catch (SBQLException e) {
+			con.rollbackTransaction();
+			throw e;
 		}
-		con.execute("end");
-		if (!(res instanceof ResultBool)) throw new SBQLException("Unknown result", null);
-		return ((ResultBool)res).getValue();
-	}
-	
-	public void doBegin() throws SBQLException {
-		con.execute("begin");
-	}
-	
-	public void doCommit() throws SBQLException {
-		con.execute("end");		
-	}
-	
-	public void doRollback() throws SBQLException {
-		con.execute("rollback");		
-	}	
-	
-	public Result doExecute(String query) throws SBQLException {
-		return con.execute(query);
+		con.commitTransation();
 	}
 	
 	public void connect() throws IOException, SBQLException {
-		con = TcpConnectionFactory.getConnection(hostname, port);
-		if (!doLogin()) throw new SBQLException("Incorrect login", null);
+		con = new SimpleConnection(TcpConnectionFactory.getConnection(hostname, port));
+		if (!con.login(login, password)) throw new SBQLProtocolException("Incorrect login");
+		service = new ConnectionService(ObjectBrowserPlugin.getPlugin().getObjectPool(), con, new LoximObjectFactory());
+		ObjectBrowserPlugin.getPlugin().setPoolChanged(true);
 		connected = true;
         fireChange();
 	}

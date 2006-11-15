@@ -1,0 +1,4 @@
+- sprawdzic czemu wyklada sie wykonanie zapytania, kiedy widoczny jest panel z wynikowym grafem
+- podlaczyć browser plików SBQL
+- zrobic cos, zeby widoczna byla opcja Uruchom w menu glownym oraz w panelu wynikow
+- usprawnić layout-managera - w tej chwili zajmuje bardzo duzo miejsca

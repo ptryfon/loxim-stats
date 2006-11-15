@@ -2,7 +2,6 @@ package objectBrowser.connections;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Observable;
 
 import objectBrowser.ObjectBrowserPlugin;
 
@@ -22,7 +21,7 @@ public class DatabaseConnectionPool implements TreeParent {
 			Preferences node = prefs.node(nodeName);
 			
 			try {
-				/* TODO - nieza³adne */
+				/* TODO - niezaï¿½adne */
 				con.setId(new Integer(nodeName.substring(3)).intValue());
 				con.setConnectionName(node.get("connectionName", "<unnamed>"));
 				con.setHostname(node.get("hostname", "<unknown>"));
@@ -35,6 +34,13 @@ public class DatabaseConnectionPool implements TreeParent {
 				
 			}
 		}
+	}
+	
+	public DatabaseConnection getConnectionById(int id) {
+		for (DatabaseConnection con : connections) {
+			if (con.id == id) return con;
+		}
+		return null;
 	}
 	
 	public DatabaseConnectionPool() throws BackingStoreException {

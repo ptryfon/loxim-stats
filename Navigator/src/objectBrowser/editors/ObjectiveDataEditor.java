@@ -5,13 +5,11 @@ import objectBrowser.tests.DataGenerator1;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.gef.DefaultEditDomain;
-import org.eclipse.gef.palette.PaletteDrawer;
 import org.eclipse.gef.palette.PaletteGroup;
 import org.eclipse.gef.palette.PaletteRoot;
 import org.eclipse.gef.palette.SelectionToolEntry;
 import org.eclipse.gef.palette.ToolEntry;
 import org.eclipse.gef.ui.palette.FlyoutPaletteComposite.FlyoutPreferences;
-import org.eclipse.gef.ui.parts.GraphicalEditor;
 import org.eclipse.gef.ui.parts.GraphicalEditorWithFlyoutPalette;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.ui.texteditor.IMarkerUpdater;
