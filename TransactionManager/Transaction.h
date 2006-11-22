@@ -68,7 +68,6 @@ namespace TManager
 			LogManager* logm;
 			TransactionManager* tm;
 			LockManager* lm;
-			TransactionID* getId();
 			ErrorConsole err;
 			Semaphore* sem;    /* for operation on Store Manager */
 	
@@ -88,6 +87,8 @@ namespace TManager
 		    	int getRootsLID(string name, vector<LogicalID*>* &p);
 		    	int addRoot(ObjectPointer* &p);
 		    	int removeRoot(ObjectPointer* &p);
+	
+		    	TransactionID* getId();
 
 			/* Data creation: */
 		    	int createIntValue(int value, DataValue* &dataVal);

@@ -44,23 +44,32 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 
 	if (tree != NULL) {
 		int nodeType = tree->type();
-		if (tr == NULL) {
+		if (! inTransaction) {
 			if (nodeType == TreeNode::TNTRANS) {
 				if (((TransactNode *) tree)->getOp() == TransactNode::begin) {
-					*ec << "[QE] Asking TransactionManager for a new transaction";
-					errcode = TransactionManager::getHandle()->createTransaction(tr);
+					if (antyStarve) {
+						ec->printf("[QE] Asking TransactionManager to REOPEN transaction number : %d\n", transactionNumber);
+						errcode = TransactionManager::getHandle()->createTransaction(tr, transactionNumber);
+						antyStarve = false;
+					}
+					else {
+						*ec << "[QE] Asking TransactionManager for a NEW transaction";
+						errcode = TransactionManager::getHandle()->createTransaction(tr);
+					}
 					if (errcode != 0) {
 						*ec << "[QE] Error in createTransaction";
 						*ec << "[QE] Transction not opened";
 						*result = new QueryNothingResult();
 						*ec << "[QE] nothing to do: QueryNothingResult created";
-						tr = NULL;
+						inTransaction = false;
 						return errcode;
 					}
 					else {
-						*ec << "[QE] Transction opened";
+						transactionNumber = tr->getId()->getId();
+						ec->printf("[QE] Transaction number : %d opened succesfully\n", transactionNumber);
 						*result = new QueryNothingResult();
 						*ec << "[QE] nothing else to do: QueryNothingResult created";
+						inTransaction = true;
 						return 0;
 					}
 				}
@@ -89,7 +98,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 				}
 				case TransactNode::end: {
 					errcode = tr->commit();
-					tr = NULL;
+					inTransaction = false;
 					if (errcode != 0) {
 						*ec << "[QE] error in transaction->commit()";
 						*result = new QueryNothingResult();
@@ -100,7 +109,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 				}
 				case TransactNode::abort: {
 					errcode = tr->abort();
-					tr = NULL;
+					inTransaction = false;
 					if (errcode != 0) {
 						*ec << "[QE] error in transaction->abort()";
 						*result = new QueryNothingResult();
@@ -293,7 +302,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			return 0;
 		}
 
-	} //if tr != NULL
+	} //if tree != NULL
 	else { // tree == NULL; return empty result
 		*ec << "[QE] empty tree, nothing to do";
 		*result = new QueryNothingResult();
@@ -427,8 +436,8 @@ int QueryExecutor::getProcedureInfo(TreeNode *tree, ProcedureInfo *&pinf)
     if (errcode != 0) 
     {
         *ec << "[QE] Error in getObjectPointer";
-        //tr->abort();
-        tr = NULL;
+        antyStarveFunction(errcode);
+        inTransaction = false;
         return errcode;
     }
     DataValue* dv = optr->getValue();
@@ -446,8 +455,8 @@ int QueryExecutor::getProcedureInfo(TreeNode *tree, ProcedureInfo *&pinf)
         if (errcode != 0) 
         {
             *ec << "[QE] Error in getObjectPointer";
-            //tr->abort();
-            tr = NULL;
+            antyStarveFunction(errcode);
+            inTransaction = false;
             return errcode;
         }
         if(tmpOptr->getName() == "ProcBody")
@@ -478,8 +487,8 @@ int QueryExecutor::getProcedureInfo(TreeNode *tree, ProcedureInfo *&pinf)
                 if (errcode != 0) 
                 {
                     *ec << "[QE] Error in getObjectPointer";
-                    //tr->abort();
-                    tr = NULL;
+                    antyStarveFunction(errcode);
+                    inTransaction = false;
                     return errcode;
                 }
                 if(paramOptr->getName() == "ParamName")
@@ -514,7 +523,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 	if (this->evalStopped()) {
 		*ec << "[QE] query evaluating stopped by Server, aborting transaction ";
 		errcode = tr->abort();
-		tr = NULL;
+		inTransaction = false;
 		if (errcode != 0) {
 			*ec << "[QE] error in transaction->abort()";
 			return errcode;
@@ -810,8 +819,8 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				}
 				if ((errcode = tr->addRoot(optr)) != 0) { 
 					*ec << "[QE] Error in addRoot";
-					//tr->abort();
-					tr = NULL;
+					antyStarveFunction(errcode);
+					inTransaction = false;
 					return errcode;
 				}
 				QueryReferenceResult *lidres = new QueryReferenceResult(optr->getLogicalID());
@@ -962,7 +971,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				if (this->evalStopped()) {
 					*ec << "[QE] query evaluating stopped by Server, aborting transaction ";
 					errcode = tr->abort();
-					tr = NULL;
+					inTransaction = false;
 					if (errcode != 0) {
 						*ec << "[QE] error in transaction->abort()";
 						return errcode;
@@ -1083,7 +1092,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 					if (this->evalStopped()) {
 						*ec << "[QE] query evaluating stopped by Server, aborting transaction ";
 						errcode = tr->abort();
-						tr = NULL;
+						inTransaction = false;
 						if (errcode != 0) {
 							*ec << "[QE] error in transaction->abort()";
 							return errcode;
@@ -1399,8 +1408,8 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		}
 		if ((errcode = tr->addRoot(optr)) != 0) {
 		    *ec << "[QE] Error in addRoot";
-		    //tr->abort();
-		    tr = NULL;
+		    antyStarveFunction(errcode);
+		    inTransaction = false;
 		    return errcode;
 		}
 
@@ -1449,8 +1458,8 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			}
 			*ec << "remote 1";
 			if ((errcode = tr->getRoots(vec)) != 0) {
-				//tr->abort();
-				tr = NULL;
+				antyStarveFunction(errcode);
+				inTransaction = false;
 				return errcode;
 			}
 			QueryBagResult *r = new QueryBagResult();
@@ -1586,8 +1595,8 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 			if (errcode != 0) {
 
 				*ec << "[QE] Error in getObjectPointer";
-				//tr->abort();
-				tr = NULL;
+				antyStarveFunction(errcode);
+				inTransaction = false;
 				return errcode;
 			}
 			
@@ -1643,8 +1652,8 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 						errcode = tr->getObjectPointer(currID, Store::Read, currOptr); 
 						if (errcode != 0) {
 							*ec << "[QE] Error in getObjectPointer";
-							//tr->abort();
-							tr = NULL;
+							antyStarveFunction(errcode);
+							inTransaction = false;
 							return errcode;
 						}
 						/*
@@ -2102,8 +2111,8 @@ int QueryExecutor::unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&
 				ObjectPointer *optr;
 				if ((errcode = tr->getObjectPointer (lid, Store::Write, optr)) !=0) { 
 					*ec << "[QE] Error in getObjectPointer.";
-					//tr->abort();
-					tr = NULL;
+					antyStarveFunction(errcode);
+					inTransaction = false;
 					return errcode;
 				}
 				if (optr->getIsRoot()) {
@@ -2119,8 +2128,8 @@ int QueryExecutor::unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&
 					}				
 					if ((errcode = tr->removeRoot(optr)) != 0) { 
 						*ec << "[QE] Error in removeRoot.";
-						//tr->abort();
-						tr = NULL;
+						antyStarveFunction(errcode);
+						inTransaction = false;
 						return errcode;
 					}
 					*ec << "[QE] Root removed";
@@ -2137,8 +2146,8 @@ int QueryExecutor::unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&
 				}								
 				if ((errcode = tr->deleteObject(optr)) != 0) { 
 					*ec << "[QE] Error in deleteObject.";
-					//tr->abort();
-					tr = NULL;
+					antyStarveFunction(errcode);
+					inTransaction = false;
 					return errcode;
 				}
 				*ec << "[QE] Object deleted";
@@ -2417,8 +2426,8 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 		errcode = tr->getObjectPointer (lidOut, Store::Write, optrOut); 
 		if (errcode != 0) {
 			*ec << "[QE] insert operation - Error in getObjectPointer.";
-			//tr->abort();
-			tr = NULL;
+			antyStarveFunction(errcode);
+			inTransaction = false;
 			return errcode;
 		}
 		string object_name = optrOut->getName();
@@ -2465,8 +2474,8 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 					errcode = tr->getObjectPointer (lidIn, Store::Write, optrIn); 
 					if (errcode != 0) {
 						*ec << "[QE] insert operation - Error in getObjectPointer.";
-						//tr->abort();
-						tr = NULL;
+						antyStarveFunction(errcode);
+						inTransaction = false;
 						return errcode;
 					}
 					string object_name = optrIn->getName();
@@ -2483,8 +2492,8 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 						errcode = tr->removeRoot(optrIn); 
 						if (errcode != 0) {
 							*ec << "[QE] insert operation - Error in removeRoot.";
-							//tr->abort();
-							tr = NULL;
+							antyStarveFunction(errcode);
+							inTransaction = false;
 							return errcode;
 						}
 						*ec << "[QE] insert operation - Root removed";
@@ -2519,8 +2528,8 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 		errcode = tr->modifyObject(optrOut, db_value); 
 		if (errcode != 0) {
 			*ec << "[QE] insert operation - Error in modifyObject.";
-			//tr->abort();
-			tr = NULL;
+			antyStarveFunction(errcode);
+			inTransaction = false;
 			return errcode;
 		}
 		*ec << "[QE] INSERT operation Done";
@@ -2549,8 +2558,8 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 		errcode = tr->getObjectPointer (old_lid, Store::Write, old_optr); 
 		if (errcode != 0) {
 			*ec << "[QE] operator <assign>: error in getObjectPointer()";
-			//tr->abort();
-			tr = NULL;
+			antyStarveFunction(errcode);
+			inTransaction = false;
 			return errcode;
 		}
 		string object_name = old_optr->getName();
@@ -2626,8 +2635,8 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 		errcode = tr->modifyObject(old_optr, value); 
 		if (errcode != 0) {
 			*ec << "[QE] operator <assign>: error in modifyObject()";
-			//tr->abort();
-			tr = NULL;
+			antyStarveFunction(errcode);
+			inTransaction = false;
 			return errcode;
 		}
 		*ec << "[QE] operator <assign>: value of the object was changed";
@@ -2839,9 +2848,9 @@ int QueryExecutor::isIncluded(QueryResult *elem, QueryResult *set, bool &score) 
 
 int QueryExecutor::abort() {
 	*ec << "[QE] abort()";
-	if (tr != NULL) {
+	if (inTransaction) {
 		int errcode = tr->abort();
-		tr = NULL;
+		inTransaction = false;
 		if (errcode != 0) {
 			*ec << "[QE] Error in abort()";
 			return errcode;
@@ -2851,6 +2860,13 @@ int QueryExecutor::abort() {
 	else
 		*ec << "[QE] Transaction not opened. Closing nevertheless. Done!\n";
 	return 0;
+}
+
+void QueryExecutor::antyStarveFunction(int errcode) {
+	if (errcode == ErrTManager | EDeadlock) {
+		antyStarve = true;
+		*ec << "[QE] EDeadlock error found => AntyStarve mode is on";
+	}
 }
 
 int QueryExecutor::objectFromBinder(QueryResult *res, ObjectPointer *&newObject) {
@@ -2951,8 +2967,8 @@ int QueryExecutor::objectFromBinder(QueryResult *res, ObjectPointer *&newObject)
 	value = dbValue;
 	if ((errcode = tr->createObject(binderName, value, newObject)) != 0) { //TODO
 		*ec << "[QE] Error in createObject";
-		//tr->abort();
-		tr = NULL;
+		antyStarveFunction(errcode);
+		inTransaction = false;
 		return errcode;
 	}
 	return 0;
@@ -2960,8 +2976,8 @@ int QueryExecutor::objectFromBinder(QueryResult *res, ObjectPointer *&newObject)
 
 
 QueryExecutor::~QueryExecutor() {
-	if (tr != NULL) tr->abort();
-	tr = NULL;
+	if (inTransaction) tr->abort();
+	inTransaction = false;
 	delete envs;
 	delete qres;
 	delete session_data;
