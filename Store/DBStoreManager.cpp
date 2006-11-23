@@ -167,7 +167,7 @@ namespace Store
 		
 		int rval = PageManager::deserialize(pPtr, p_id->offset, object);
 		
-		pPtr->release();
+		pPtr->release(0);
 		
 		if(rval) {
 			*ec << "Store::Manager::getObject failed";
@@ -219,7 +219,7 @@ namespace Store
 
 		pagemgr->updateFreeMap(pPtr);
 		
-		pPtr->release();
+		pPtr->release(1);
 		
 		physical_id pid;
 		pid.page_id = freepage;
@@ -344,7 +344,7 @@ namespace Store
 		
 		pagemgr->updateFreeMap(pPtr);
 		
-		pPtr->release();
+		pPtr->release(1);
 #ifdef DEBUG_MODE
 		ec->printf("Store::Manager::deleteObject done: %s\n", object->toString().c_str());
 #endif		

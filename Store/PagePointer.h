@@ -18,8 +18,8 @@ namespace Store
 		unsigned short getFileID();
 		unsigned int getPageID();
 		int aquire();
-		int release();
-		int releaseSync();
+		int release(int dirty);
+		int releaseSync(int dirty);
 		char* getPage();
 		void setPage(char* pagePointer);
 	};

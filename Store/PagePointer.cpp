@@ -27,12 +27,12 @@ namespace Store
 		return buffer->acquirePage(this);
 	};
 
-	int PagePointer::release()
+	int PagePointer::release(int dirty)
 	{
 		return buffer->releasePage(this);
 	};
 
-	int PagePointer::releaseSync()
+	int PagePointer::releaseSync(int dirty)
 	{
 		return buffer->releasePageSync(this);
 	};

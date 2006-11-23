@@ -10,7 +10,6 @@ SOURCES	=	Buffer.cpp \
 		DBStoreManager.cpp \
 		File.cpp \
 		Map.cpp \
-		Roots.cpp \
 		NamedRoots.cpp \
 		PagePointer.cpp \
 		PageManager.cpp \
@@ -24,7 +23,6 @@ HEADERS	=	Buffer.h \
 		DBStoreManager.h \
 		File.h \
 		Map.h \
-		Roots.h \
 		NamedRoots.h \
 		PagePointer.h \
 		PageManager.h \

@@ -218,7 +218,7 @@ cout << "DZIWNY KOD ---------\n";
 		for (int i = 0; i < 1000; i++) {
 			p[i] = store->getBuffer()->getPagePointer(STORE_FILE_DEFAULT, i);
 		//	p->aquire();
-		//	p->release();
+		//	p->release(0);
 		}
 		sleep(10);
 		store->stop();

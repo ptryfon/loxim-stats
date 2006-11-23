@@ -217,19 +217,19 @@ namespace Store
 			for(int i=0; i<p->object_count; i++) {
 				if( p->object_offset[i] >= static_cast<int>(objsize+sizeof(int)) ) {
 					int rid = pPtr->getPageID()+i+1;
-					pPtr->release();
+					pPtr->release(0);
 					ec << "Store::PageManager::getFreePage done";
 					return (rid);
 				}
 			}
 			if(p->object_count < static_cast<int>(MAX_OBJECT_COUNT)) {
 				int rid = pPtr->getPageID()+p->object_count+1;
-				pPtr->release();
+				pPtr->release(0);
 				ec << "Store::PageManager::getFreePage done";
 				return (rid);
 			}
 			
-			pPtr->release();
+			pPtr->release(0);
 			pii += MAX_OBJECT_COUNT+1;
 		} while(pii > 0);
 		
@@ -263,7 +263,7 @@ namespace Store
 		}
 		f->object_offset[offset] =	p->free_space;
 		
-		pFree->release();
+		pFree->releaseSync(1);
 
 		ec << "Store::PageManager::updateFreeMap done";
 		return 0;

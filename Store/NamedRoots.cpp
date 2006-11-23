@@ -128,9 +128,9 @@ namespace Store
 				i++;
 
 			if (i == 0)
-				page_pointer->releaseSync();
+				page_pointer->releaseSync(1);
 			else
-				page_pointer->release();
+				page_pointer->release(0);
 
 			delete page_pointer;
 		}
@@ -203,9 +203,9 @@ namespace Store
 			}
 
 			if (i == 0)
-				page_pointer->releaseSync();
+				page_pointer->releaseSync(1);
 			else
-				page_pointer->release();
+				page_pointer->release(0);
 
 			delete page_pointer;
 		}
@@ -314,9 +314,9 @@ namespace Store
 			}
 
 			if (changed != 0)
-				page_pointer->releaseSync();
+				page_pointer->releaseSync(1);
 			else
-				page_pointer->release();
+				page_pointer->release(0);
 
 			delete page_pointer;
 		}
@@ -382,7 +382,7 @@ namespace Store
 				i++;
 			}
 
-			page_pointer->release();
+			page_pointer->release(0);
 			delete page_pointer;
 		}
 
