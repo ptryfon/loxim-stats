@@ -33,7 +33,11 @@ struct {
 	{EQEmptySet,       "Empty Set"},
 	{EDivBy0,          "Division by 0"},
 	{EQEUnexpectedErr, "Unexpected QE Error"},
-	{EEvalStopped	,  "Query evaluation stopped by Server"},
+	{EEvalStopped,     "Query evaluation stopped by Server"},
+	{EProcNoBody,      "ProcBody is not preasent"},
+	{EProcWrongObject, "Wrong Procedure object format"},
+	{EProcWrongFormat, "Wrong Procedure format"},
+	{EProcNotSingle,   "Not one Procedure with this signature"},
 // Config
 	{ENotInit,         "ENotInit"},
 	{ENoValue,         "ENoValue"},

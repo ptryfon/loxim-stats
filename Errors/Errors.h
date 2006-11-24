@@ -63,33 +63,37 @@ namespace Errors {
 #define EDivBy0			0x1300
 #define EQEUnexpectedErr	0x1400
 #define EEvalStopped		0x1500
+#define EProcNoBody		0x1600
+#define EProcWrongObject	0x1700
+#define EProcWrongFormat	0x1800
+#define EProcNotSingle		0x1900
 
 // Config
-#define ENotInit		0x1600
-#define ENoValue		0x1700
-#define EBadValue		0x1800
+#define ENotInit		0x1A00
+#define ENoValue		0x1B00
+#define EBadValue		0x1C00
 
 // Server
-#define EReceive		0x1900
-#define EParse			0x1A00
-#define EExecute		0x1B00
-#define ESerialize		0x1C00
-#define ESend			0x1D00
-#define EBadResult		0x1E00
-#define EClientLost		0x1F00
+#define EReceive		0x1D00
+#define EParse			0x1E00
+#define EExecute		0x1F00
+#define ESerialize		0x2000
+#define ESend			0x2100
+#define EBadResult		0x2200
+#define EClientLost		0x2300
 
 // Transaction
-#define EDeadlock		0x2000
-#define ESemaphoreInit		0x2100
-#define EUpgradeLock		0x2200
-#define EMutexInit		0x2300
+#define EDeadlock		0x2400
+#define ESemaphoreInit		0x2500
+#define EUpgradeLock		0x2600
+#define EMutexInit		0x2700
 
 // plug for h_errno from gethostbyname(3)
-#define ENoHost			0x2400
-#define EUnknownPackage	0x2500
+#define ENoHost			0x2800
+#define EUnknownPackage		0x2900
 
 // stopper
-#define EUnknown		0x2600
+#define EUnknown		0x2A00
 
 string *SBQLstrerror(int error);
 }
