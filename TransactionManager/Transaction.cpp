@@ -426,7 +426,7 @@ namespace TManager
 			else
 			    tid = new TransactionID(currentId);
 			addTransaction(tid);
-			err.printf("Transaction created -> number %d\n", tid->getId());
+			err.printf("Transaction created -> number %d prio: %d\n", tid->getId(), tid->getPriority());
 	    mutex->up();
 	    	    
 	    tr = new Transaction(tid, sem);	
