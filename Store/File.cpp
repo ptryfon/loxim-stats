@@ -20,6 +20,7 @@ namespace Store
 		this->fmap = 0;
 		this->froots = 0;
 		this->fdefault = 0;
+		this->fviews = 0;
 
 		this->ec = new ErrorConsole("Store: File");
 	};
@@ -37,6 +38,8 @@ namespace Store
 			*file = fmap;
 		else if (fileID == STORE_FILE_ROOTS)
 			*file = froots;
+		else if (fileID == STORE_FILE_VIEWS)
+			*file = fviews;
 		else
 		{
 			*file = 0;
@@ -51,7 +54,7 @@ namespace Store
 		if (started)
 			return 0;
 
-		string smap, sroots, sdefault;
+		string smap, sroots, sdefault, sviews;
 
 		if (store->getConfig()->getString("store_file_default", sdefault) != 0)
 			sdefault = "/tmp/sbdefault";
@@ -59,6 +62,8 @@ namespace Store
 			sroots = "/tmp/sbroots";
 		if (store->getConfig()->getString("store_file_map", smap) != 0)
 			smap = "/tmp/sbmap";
+		if (store->getConfig()->getString("store_file_views", sviews) != 0)
+			sviews = "/tmp/sbviews";
 
 		fmap = ::open(smap.c_str(), O_RDWR);
 		ec->printf("fmap = %d, errno = %d, errmsg = %s",
@@ -69,6 +74,9 @@ namespace Store
 		fdefault = ::open(sdefault.c_str(), O_RDWR);
 		ec->printf("fdefault = %d, errno = %d, errmsg = %s",
 			fdefault, errno, strerror(errno));
+		fviews = ::open(sviews.c_str(), O_RDWR);
+		ec->printf("fviews = %d, errno = %d, errmsg = %s",
+			fviews, errno, strerror(errno));
 
 
 		if (fmap == -1)
@@ -87,13 +95,20 @@ namespace Store
 			store->getRoots()->initializeFile(this);
 		}
 
-
 		if (fdefault == -1)
 		{
 			if ((fdefault = ::open(sdefault.c_str(), O_CREAT | O_RDWR, S_IRUSR | S_IWUSR)) == -1)
 				return EBadFile;
 
 			store->getPageManager()->initializeFile(this);
+		}
+
+		if (fviews == -1)
+		{
+			if ((fviews = ::open(sviews.c_str(), O_CREAT | O_RDWR, S_IRUSR | S_IWUSR)) == -1)
+				return EBadFile;
+
+			store->getViews()->initializeFile(this);
 		}
 
 		started = 1;
@@ -108,6 +123,7 @@ namespace Store
 		if (fmap > 0) ::close(fmap);
 		if (froots > 0) ::close(froots);
 		if (fdefault > 0) ::close(fdefault);
+		if (fviews > 0) ::close(fviews);
 
 		started = 0;
 		return 0;

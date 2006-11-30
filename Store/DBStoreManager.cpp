@@ -64,9 +64,11 @@ namespace Store
 		this->buffer = new Buffer(this);
 		this->map = new Map();
 		this->roots = new NamedRoots();
+		this->views = new Views();
 		this->pagemgr = new PageManager(this);
 
 		this->roots->init(this->buffer, this->log);
+		this->views->init(this->buffer, this->log);
 		this->map->init(this->buffer, this->log);
 
 #ifdef DEBUG_MODE
@@ -139,6 +141,11 @@ namespace Store
 	NamedRoots* DBStoreManager::getRoots()
 	{
 		return roots;
+	}
+
+	Views* DBStoreManager::getViews()
+	{
+		return views;
 	}
 
 	PageManager* DBStoreManager::getPageManager()
@@ -524,12 +531,26 @@ namespace Store
 
 	int DBStoreManager::abortTransaction(TransactionID* tid)
 	{
-		return roots->abortTransaction(tid->getId());
+		int err = 0;
+
+		if (!(err = roots->abortTransaction(tid->getId())))
+			return err;
+		if (!(err = views->abortTransaction(tid->getId())))
+			return err;
+
+		return err;
 	}
 
 	int DBStoreManager::commitTransaction(TransactionID* tid)
 	{
-		return roots->commitTransaction(tid->getId());
+		int err = 0;
+
+		if (!(err = roots->commitTransaction(tid->getId())))
+			return err;
+		if (!(err = views->commitTransaction(tid->getId())))
+			return err;
+
+		return err;
 	}
 
 	DataValue* DBStoreManager::createIntValue(int value)

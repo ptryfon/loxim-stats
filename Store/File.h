@@ -24,6 +24,7 @@ namespace Store
 		int fmap;
 		int froots;
 		int fdefault;
+		int fviews;
 
 		int getStream(unsigned short fileID, int* file);
 
