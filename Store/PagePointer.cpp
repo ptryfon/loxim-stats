@@ -24,16 +24,48 @@ namespace Store
 
 	int PagePointer::aquire()
 	{
-		return buffer->acquirePage(this);
+		int err = buffer->acquirePage(this);
+
+		if (!err)
+		{
+			pageOriginal = new char[STORE_PAGESIZE];
+			memcpy(pageOriginal, pagePointer, STORE_PAGESIZE);
+		}
+		else
+			pageOriginal = 0;
+
+		return err;
 	};
 
 	int PagePointer::release(int dirty)
 	{
+		if (dirty && pageOriginal)
+		{
+			// log->write(***TRANSACTION ID***, fileID, pageID, pageOriginal, pagePointer);
+		}
+		
+		if (pageOriginal)
+		{
+			delete [] pageOriginal;
+			pageOriginal = 0;
+		}		
+
 		return buffer->releasePage(this);
 	};
 
 	int PagePointer::releaseSync(int dirty)
 	{
+		if (dirty && pageOriginal)
+		{
+			// log->write(***TRANSACTION ID***, fileID, pageID, pageOriginal, pagePointer);
+		}
+		
+		if (pageOriginal)
+		{
+			delete [] pageOriginal;
+			pageOriginal = 0;
+		}		
+
 		return buffer->releasePageSync(this);
 	};
 

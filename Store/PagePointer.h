@@ -10,6 +10,7 @@ namespace Store
 		unsigned short fileID;
 		unsigned int pageID;
 		char* pagePointer;
+		char* pageOriginal;
 		class Buffer* buffer;
 
 	public:
