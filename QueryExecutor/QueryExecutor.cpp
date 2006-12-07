@@ -293,6 +293,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			errcode = envs->pushDBsection();
 			if (errcode != 0) return errcode;
 			errcode = this->executeRecQuery(tree);
+			if (errcode == EEvalStopped) errcode = 0;
 			if (errcode != 0) return errcode;
 			errcode = qres->pop(*result);
 			if (errcode != 0) return errcode;
@@ -773,31 +774,20 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
             delete result;
             return 0;
         }
-
-
-	case TreeNode::TNRETURN:
-        {
-           *ec << "[QE] Type: TNRETURN (begin)";
-           ReturnNode *node = (ReturnNode *) tree;
-           QueryNode *query = node->getQuery();
-
-           // wykonujemy zapytanie (jesli jest)
-           if( query )
-           {
-             errcode = executeRecQuery( query );
-             if( errcode ) return errcode;
-           } else {
-             qres->push( new QueryNothingResult() );
-           }
-           *ec << "[QE] Type: TNRETURN (done)";
-           return EEvalStopped;
-        }
-
-
-
 //[sk153407, pk167277 - END]
 
-
+		case TreeNode::TNRETURN: {
+			*ec << "[QE] Type: TNRETURN (begin)";
+			QueryNode *query = ((ReturnNode *) tree)->getQuery();
+			if(query != NULL) {
+				errcode = executeRecQuery(query);
+				if(errcode != 0) return errcode;
+			}
+			else qres->push(new QueryNothingResult());
+			*ec << "[QE] Type: TNRETURN (done)";
+			return EEvalStopped;
+		}
+		
 		case TreeNode::TNCREATE: {
 			*ec << "[QE] Type: TNCREATE";
 			QueryResult *result = new QueryBagResult();
