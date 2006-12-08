@@ -25,7 +25,21 @@ namespace QExecutor {
 
 	class QueryExecutor;
 
-class QueryResult
+
+template<typename T> class Zliczalna {
+protected:
+	static int licznik;
+public:
+	Zliczalna() { licznik++; };
+	Zliczalna(const Zliczalna &) { licznik++;  };
+
+	virtual ~Zliczalna() { licznik--; };
+	static int zwrocLicznik()  { return licznik; } 
+};
+
+template<typename T> int Zliczalna<T>::licznik = 0;
+
+class QueryResult : public Zliczalna<QueryResult>
 {
 protected:
 	ErrorConsole *ec;
@@ -44,24 +58,27 @@ public:
 		QNOTHING  =10
 		};
 
+	//QueryResult () {};
+	//virtual ~QueryResult() {};
+	
 	virtual QueryResult* clone()=0;
 
-      string getPrefixForLevel( int level, string name ) {
-        string result = "";
+	string getPrefixForLevel( int level, string name ) {
+		string result = "";
 
-        if( level > 0 ) {
-          for( int i = 0; i < level; i++ ) {
-            result += " |";
-          }
-          result += name + "\n";
-          for( int i = 0; i < level-1; i++ ) {
-            result += " |";
-          }
-          result += " +-";
-        }
-
-        return result;
-      }
+		if( level > 0 ) {
+			for( int i = 0; i < level; i++ ) {
+				result += " |";
+			}
+	
+			result += name + "\n";
+			for( int i = 0; i < level-1; i++ ) {
+				result += " |";
+			}
+			result += " +-";
+		}
+		return result;
+	}
 
 	virtual int type();
 	virtual bool collection()=0;

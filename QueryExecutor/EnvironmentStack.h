@@ -42,6 +42,7 @@ namespace QExecutor
 		int bindName(string name, int sectionNo, Transaction *&tr, QueryResult *&r);
 		void deleteAll();
         	string toString() {
+        	
           stringstream c;
           string sectionDBnumberS;
           c << sectionDBnumber; c >> sectionDBnumberS;

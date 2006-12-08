@@ -48,6 +48,11 @@ int EnvironmentStack::pop(){
 }
 
 int EnvironmentStack::pushDBsection() {
+	if (sectionDBnumber != 0) {
+		*ec << "error: DBsection already pushed, can't be pushed once more";
+		*ec << (ErrQExecutor | EQEUnexpectedErr);
+		return ErrQExecutor | EQEUnexpectedErr;
+	}
 	QueryResult *r = new QueryBagResult();
 	es.push_back((QueryBagResult *)r);
 	sectionDBnumber = es.size();
@@ -56,19 +61,26 @@ int EnvironmentStack::pushDBsection() {
 }
 
 int EnvironmentStack::popDBsection() {
+	if (sectionDBnumber == 0) {
+		*ec << "error: DBsection wasn't pushed, can't be poped";
+		*ec << (ErrQExecutor | EQEUnexpectedErr);
+		return ErrQExecutor | EQEUnexpectedErr;
+	}
 	if (es.empty()) {
 		*ec << (ErrQExecutor | EQEmptySet);
 		return ErrQExecutor | EQEmptySet;
 	}
-	if (es.size() != sectionDBnumber) {
-		*ec << "error: trying to popDBsection() on not Data Base section";
+	if (sectionDBnumber > es.size()) {
+		*ec <<"error: DBsection number is greater then environment stack size";
 		*ec << (ErrQExecutor | EQEUnexpectedErr);
 		return ErrQExecutor | EQEUnexpectedErr;
 	}
-	// delete ??
-	es.pop_back();
+	while (sectionDBnumber <= es.size()) {
+		// delete ??
+		es.pop_back();
+	}	
 	sectionDBnumber = 0;
-	*ec << "[QE] Data Base section popped from Environment Stack";
+	*ec << "[QE] Data Base section popped from Environment Stack *";
 	return 0;
 }
 

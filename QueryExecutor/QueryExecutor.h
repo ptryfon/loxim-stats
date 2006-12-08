@@ -114,7 +114,7 @@ nie wiem gdzie zaincjalizowac
         	bool system_privilige_checking;
 //[sk153407, pk167277 - BEGIN]
 
-        int getProcedureInfo(TreeNode *tree, ProcedureInfo *&pinf);
+		int getProcedureInfo(TreeNode *tree, ProcedureInfo *&pinf);
 
 //[sk153407, pk167277 - END]
         

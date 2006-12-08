@@ -291,13 +291,23 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 		}		
 		else {
 			errcode = envs->pushDBsection();
-			if (errcode != 0) return errcode;
-			errcode = this->executeRecQuery(tree);
-			if (errcode == EEvalStopped) errcode = 0;
-			if (errcode != 0) return errcode;
-			errcode = qres->pop(*result);
-			if (errcode != 0) return errcode;
-			errcode = envs->popDBsection();
+			
+			if (errcode == 0) { 
+				errcode = this->executeRecQuery(tree);
+				if (errcode == EEvalStopped) errcode = 0;
+			}
+			int pop_errcode = envs->popDBsection();
+			if (errcode == 0) errcode = pop_errcode;
+			
+			if (errcode == 0) errcode = qres->pop(*result);
+			
+			*ec << " ************************************************************************** ";
+			
+			int ile = QueryResult::zwrocLicznik();
+			ec->printf(" QueryResults in use: %d\n", ile);
+			
+			*ec << " ************************************************************************** ";
+			
 			if (errcode != 0) return errcode;
 			*ec << "[QE] Done!";
 			return 0;
@@ -413,7 +423,7 @@ int QueryExecutor::getProcedureInfo(TreeNode *tree, ProcedureInfo *&pinf)
     if (errcode != 0) return errcode;
     if (result->size() != 1)
     {
-      printf( "result->type: %d\n", result->type() );
+      //printf( "result->type: %d\n", result->type() );
         *ec << "[QE] Error in TNCALLPROC, more then one procedure with same signature";
         *ec << (ErrQExecutor | EProcNotSingle);
 	return ErrQExecutor | EProcNotSingle;
@@ -545,7 +555,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 	if (tree != NULL) {
 		int nodeType = tree->type();
 		*ec << "[QE] TreeType taken";
-                printf( "%s\n", tree->toString( 0, true ).c_str() );
+		*ec << tree->toString(0, true);
 		switch (nodeType)
 		{
 		case TreeNode::TNNAME: {
