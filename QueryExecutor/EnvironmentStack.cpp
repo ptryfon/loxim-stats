@@ -80,7 +80,7 @@ int EnvironmentStack::popDBsection() {
 		es.pop_back();
 	}	
 	sectionDBnumber = 0;
-	*ec << "[QE] Data Base section popped from Environment Stack *";
+	*ec << "[QE] Data Base section popped from Environment Stack";
 	return 0;
 }
 
@@ -101,7 +101,7 @@ int EnvironmentStack::top(QueryBagResult *&r) {
 bool EnvironmentStack::empty() { return es.empty(); }
 int EnvironmentStack::size() { return es.size(); }
 
-int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, QueryResult *&r) {
+int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, QueryExecutor *qe, QueryResult *&r) {
 	int errcode;
 	*ec << "[QE] Name binding on ES";
 	unsigned int number = (es.size());
@@ -117,8 +117,9 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 			ec->printf("[QE] bindName: ES section %u is Data Base section\n", i);
 			vector<LogicalID*>* vec;
 			if ((errcode = tr->getRootsLID(name, vec)) != 0) {
-				tr->abort();
-				tr = NULL;
+				*ec << "[QE] bindName - error in getRootsLID";
+				qe->antyStarveFunction(errcode);
+				qe->inTransaction = false;
 				return errcode;
 			}
 			int vecSize = vec->size();
@@ -156,6 +157,127 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 		}
 	}
 	ec->printf("[QE] bindName: name not binded on ES, Parser said it should be binded at %d\n", sectionNo);
+	return 0;
+}
+
+int EnvironmentStack::procCheck(unsigned int qSize, LogicalID *lid, Transaction *&tr, QueryExecutor *qe, string &code, vector<string> &prms, int &f) {
+	*ec << "[QE] checking if this LogicalID point procedure we look for";
+	int errcode;
+	ObjectPointer *optr;
+	
+	errcode = tr->getObjectPointer (lid, Store::Read, optr); 
+	if (errcode != 0) {
+		*ec << "[QE] procCheck - Error in getObjectPointer.";
+		qe->antyStarveFunction(errcode);
+		qe->inTransaction = false;
+		return errcode;
+	}
+	
+	DataValue* data_value = optr->getValue();
+	int vType = data_value->getType();
+	int procBody_count = 0;
+	string tmp_code;
+	unsigned int params_count = 0;
+	vector<string> tmp_prms;
+	if (vType == Store::Vector) {
+		vector<LogicalID*>* tmp_vec = (data_value->getVector());
+		int vec_size = tmp_vec->size();
+		for (int i = 0; i < vec_size; i++ ) {
+			LogicalID *tmp_logID = tmp_vec->at(i);
+			ObjectPointer *tmp_optr;
+			if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, tmp_optr)) != 0) {
+				*ec << "[QE] procCheck - Error in getObjectPointer";
+				qe->antyStarveFunction(errcode);
+				qe->inTransaction = false;
+				return errcode;
+			}
+			string tmp_name = tmp_optr->getName();
+			DataValue* tmp_data_value = tmp_optr->getValue();
+			int tmp_vType = tmp_data_value->getType();
+			if (tmp_vType == Store::String) {
+				if (tmp_name == "ProcBody") {
+					tmp_code = tmp_data_value->getString();
+					procBody_count++;
+				}
+				if (tmp_name == "Param") {
+					tmp_prms.push_back(tmp_data_value->getString());
+					params_count++;
+				}
+			}
+		}
+		if ((procBody_count == 1) && (params_count == qSize)) {
+			*ec << "[QE] procCheck - success, this is procedure we've looked for";
+			if (f != 0) {
+				*ec << "[QE] error there should be only one procedure in a scope with the same name and number of parameters";
+				*ec << (ErrQExecutor | EProcNotSingle);
+				return ErrQExecutor | EProcNotSingle;
+			}
+			f++; 
+			code = tmp_code;
+			prms = tmp_prms;
+		}
+	}
+	return 0;
+}
+
+int EnvironmentStack::bindProcedureName(string name, unsigned int queries_size, Transaction *&tr, QueryExecutor *qe, string &code, vector<string> &params) {
+	*ec << "[QE] Procedure Name binding on ES";
+	int errcode;
+	unsigned int envs_size = (es.size());
+	int founded = 0;
+	
+	for (unsigned int i = envs_size; i >= 1; i--) {
+		if (i == sectionDBnumber) {
+			ec->printf("[QE] bindProcedureName: ES section %u is Data Base section\n", i);
+			vector<LogicalID*>* vec;
+			if ((errcode = tr->getRootsLID(name, vec)) != 0) {
+				*ec << "[QE] bindName - error in getRootsLID";
+				qe->antyStarveFunction(errcode);
+				qe->inTransaction = false;
+				return errcode;
+			}
+			int vecSize = vec->size();
+			ec->printf("[QE] %d Roots LID by name taken\n", vecSize);
+			for (int i = 0; i < vecSize; i++ ) {
+				LogicalID *lid = vec->at(i);
+				errcode = procCheck(queries_size, lid, tr, qe, code, params, founded);
+				if (errcode != 0) return errcode;
+			}
+			delete vec;
+		}
+		else {
+			QueryBagResult *section = (es.at(i - 1));
+			unsigned int sectionSize = (section->size());
+			ec->printf("[QE] bindProcedureName: ES section %u got %u elements\n", i, sectionSize);
+			for (unsigned int j = 0; j < sectionSize; j++) {
+				QueryResult *sth;
+				errcode = (section->at(j,sth));
+				if (errcode != 0) return errcode;
+				if ((sth->type()) == (QueryResult::QBINDER)) {
+					string current = (((QueryBinderResult *) sth)->getName());
+					ec->printf("[QE] bindProcedureName: current %u name is: %s\n", j, current.c_str());
+					if (current == name) {
+						QueryResult *item = (((QueryBinderResult *) sth)->getItem());
+						if (item->isReferenceValue()) {
+							QueryResult *ref_res;
+							errcode = item->getReferenceValue(ref_res);
+							if (errcode != 0) return errcode;
+							LogicalID *lid = ((QueryReferenceResult*)ref_res)->getValue();
+							errcode = procCheck(queries_size, lid, tr, qe, code, params, founded);
+							if (errcode != 0) return errcode;
+						}
+					}
+				}
+			}
+			
+		}
+		if (founded > 0) {
+			ec->printf("[QE] bindProcedureName: name binded at %d section of envs\n", i);
+			return 0;
+		}
+	}
+	ec->printf("[QE] bindProcedureName: name not binded on ES\n");
+	
 	return 0;
 }
 
@@ -240,7 +362,7 @@ int QueryReferenceResult::nested(Transaction *&tr, QueryResult *&r, QueryExecuto
 	ec->printf("[QE] nested(): QueryReferenceResult\n");
 	/* remote ID */
 	if ((value != NULL) && (value->getServer() != "")) {
-		*ec << "zaczynam zdalne logicalID!!!!!!!!!!!!!!!!\n";
+		*ec << "starting logicalID\n";
 		QueryResult* qr;
 		RemoteExecutor *rex = new RemoteExecutor(value->getServer(), value->getPort(), qe);
 		rex->setLogicalID(value);
@@ -249,10 +371,10 @@ int QueryReferenceResult::nested(Transaction *&tr, QueryResult *&r, QueryExecuto
 			return errcode;
 		}
 		r->addResult(qr);
-		*ec << "zdalne logicalID\n";
+		*ec << "remote logicalID\n";
 		return 0;
 	}
-	*ec << "to nie jest zdalne logicalId\n";
+	*ec << "this is not logicalId\n";
 	/* end of remoteID processing */
 	
 	DataValue* tmp_data_value;
@@ -261,17 +383,17 @@ int QueryReferenceResult::nested(Transaction *&tr, QueryResult *&r, QueryExecuto
 	if (value != NULL) {
 		if ((errcode = tr->getObjectPointer(value, Store::Read, optr)) != 0) {
 			*ec << "[QE] Error in getObjectPointer";
-			tr->abort();
-			tr = NULL;
+			qe->antyStarveFunction(errcode);
+			qe->inTransaction = false;
 			return errcode;
 		}
 
 		tmp_data_value = optr->getValue();
 
 		/* Link */
-		 *ec << "!!!!!!!!!typ data value: |"<< tmp_data_value->getSubtype()<< "|\n";
+		 *ec << "data value type: |"<< tmp_data_value->getSubtype()<< "|\n";
 		if (tmp_data_value->getSubtype() == Store::Link) {
-			 *ec << "nested wykonuje sie na obiekcie Link\n";
+			 *ec << "nested on Link object\n";
 			 vector<LogicalID*>*  tmp_vec =tmp_data_value->getVector();
 			 int vec_size = tmp_vec->size();
 			 int errcode;
@@ -282,29 +404,29 @@ int QueryReferenceResult::nested(Transaction *&tr, QueryResult *&r, QueryExecuto
 			 for (int i = 0; i < vec_size; i++ ) {
 				 LogicalID *tmp_logID = tmp_vec->at(i);
 				 if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, optr)) != 0) {
-					 *ec << "[QE] Error in getObjectPointer";
-					 tr->abort();
-					 tr = NULL;
-					 return errcode;
-				 }
-				 string tmp_name = optr->getName();
-				 value = optr->getValue();
-				 switch (value->getType()) {
-					 case Store::Integer:
+					*ec << "[QE] Error in getObjectPointer";
+					qe->antyStarveFunction(errcode);
+					qe->inTransaction = false;
+					return errcode;
+				}
+				string tmp_name = optr->getName();
+				value = optr->getValue();
+				switch (value->getType()) {
+					case Store::Integer:
 						 port = value->getInt();
 						 break;
-					 case Store::String:
+					case Store::String:
 						 ip = value->getString();
 						 break;
-					 default:
-						 *ec << "[QE] incorrect Link object structure";
-						 tr->abort();
-						 tr = NULL;
-						 return errcode;
+					default:
+						*ec << "[QE] incorrect Link object structure";
+						qe->antyStarveFunction(errcode);
+						qe->inTransaction = false;
+						return errcode;
 				 }
 
 			 }
-			 *ec << "a teraz bring!!!!!!!!!!! ip: " <<  ip << " port: " << port <<"\n";
+			 *ec << "and now bring!!!!!!!!!!! ip: " <<  ip << " port: " << port <<"\n";
 			 QueryResult* qr;// = new QueryIntResult(5);
 			 RemoteExecutor *rex = new RemoteExecutor(ip, port, qe);
 			 errcode = rex->execute(&qr);
@@ -333,9 +455,9 @@ int QueryReferenceResult::nested(Transaction *&tr, QueryResult *&r, QueryExecuto
 			case Store::Pointer: {
 				LogicalID *tmp_logID = (tmp_data_value->getPointer());
 				if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, optr)) != 0) {
-				*ec << "[QE] Error in getObjectPointer";
-					tr->abort();
-					tr = NULL;
+					*ec << "[QE] Error in getObjectPointer";
+					qe->antyStarveFunction(errcode);
+					qe->inTransaction = false;
 					return errcode;
 				}
 				string tmp_name = optr->getName();
@@ -353,9 +475,9 @@ int QueryReferenceResult::nested(Transaction *&tr, QueryResult *&r, QueryExecuto
 				for (int i = 0; i < vec_size; i++ ) {
 					LogicalID *tmp_logID = tmp_vec->at(i);
 					if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, optr)) != 0) {
-					*ec << "[QE] Error in getObjectPointer";
-						tr->abort();
-						tr = NULL;
+						*ec << "[QE] Error in getObjectPointer";
+						qe->antyStarveFunction(errcode);
+						qe->inTransaction = false;
 						return errcode;
 					}
 					string tmp_name = optr->getName();

@@ -17,10 +17,8 @@
   QParser::TreeNode* tree;
   QParser::QueryNode* qtree;
   QParser::FixPointNode* fxtree;
-  QParser::StringNode* instree;
-  QParser::ProcedureNode* proctree;
-  QParser::FormPar* onepar;
   QParser::CallProcNode* calltree;
+  QParser::ProcedureNode* proctree;
   QParser::Privilige *privilige;
   QParser::PriviligeListNode *priv_list;
   QParser::NameListNode *name_list;
@@ -28,8 +26,7 @@
 
 %token	<num> INTEGER
 %token	<dbl> DOUBLE 
-%token	<str> PARAMNAME NAME STRING SEMICOLON DOUBLESEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT DEREF REF BEGINTR END ABORT CREATE IF FI DO OD ELSE WHILE LINK FOREACH THEN FIX_OP FIXPOINT IN OUT RETURN VERTICAL VALIDATE READ MODIFY DELETE PASSWD WITH REVOKE REMOVE TO USER FROM ON GRANT OPTION
-%token  <str> PROCEDURE LEFTPROCPAR RIGHTPROCPAR
+%token	<str> PARAMNAME NAME STRING SEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT DEREF REF BEGINTR END ABORT CREATE IF FI DO OD ELSE WHILE LINK FOREACH THEN FIX_OP FIXPOINT RETURN VERTICAL VALIDATE READ MODIFY DELETE PASSWD WITH REVOKE REMOVE TO USER FROM ON GRANT OPTION PROCEDURE LEFTPROCPAR RIGHTPROCPAR
 
 %start statement
 
@@ -62,11 +59,10 @@
 %type <name_list> name_defs
 %type <privilige> privilige
 %type <qtree> query
-%type <fxtree> querylist
-%type <instree> stringlist
+%type <proctree> procquery
 %type <proctree> formparams
-%type <onepar> formpar
-%type <calltree> actparams
+%type <fxtree> querylist
+%type <calltree> paramslist
 %%
 
 statement   : query  { d=$1; }
@@ -87,7 +83,6 @@ query	    : NAME { char *s = $1; $$ = new NameNode(s); delete s; }
             | STRING { char *s = $1; $$ = new StringNode(s); delete s; }
 	    | DOUBLE { $$ = new DoubleNode($1); }
             | LEFTPAR query RIGHTPAR { $$ = $2; }
-	    | query SEMICOLON {$$ = $1; }
             | query AS NAME { $$ = new NameAsNode($1,$3,false); }
 	    | query GROUP_AS NAME { $$ = new NameAsNode($1,$3,true); }
             | COUNT LEFTPAR  query RIGHTPAR { $$ = new UnOpNode($3,UnOpNode::count); }
@@ -132,6 +127,7 @@ query	    : NAME { char *s = $1; $$ = new NameNode(s); delete s; }
 	    | query INSERTINTO query { $$ = new AlgOpNode($1,$3,AlgOpNode::insert); }
 	    | DELETE query  { $$ = new UnOpNode($2,UnOpNode::deleteOp); }
 	    | query ASSIGN query { $$ = new AlgOpNode($1,$3,AlgOpNode::assign); }
+	    | query ASSIGN procquery { $$ = new AlgOpNode($1,$3,AlgOpNode::assign); }
 	    | IF query THEN query ELSE query FI { $$ = new CondNode($2, $4, $6,CondNode::ifElsee); }
 	    | IF query THEN query FI { $$ = new CondNode($2, $4, CondNode::iff); }
 	    | WHILE query DO query OD { $$ = new CondNode($2, $4, CondNode::whilee); }
@@ -139,33 +135,28 @@ query	    : NAME { char *s = $1; $$ = new NameNode(s); delete s; }
 	    | LINK STRING STRING INTEGER { $$ = new LinkNode($2, $3, $4); }
 	    | query SEMICOLON query { $$ = new AlgOpNode ($1, $3, AlgOpNode::semicolon); }
 	    | FIXPOINT LEFTPAR querylist RIGHTPAR { $$ = $3; }
-	    | PROCEDURE NAME LEFTPAR RIGHTPAR LEFTPROCPAR stringlist RIGHTPROCPAR {
-		$$ = new ProcedureNode ($2, $6);}
-	    | PROCEDURE NAME LEFTPAR formparams RIGHTPAR LEFTPROCPAR stringlist RIGHTPROCPAR {
-		$$ = $4->addContent ($2, $7);}
 	    | RETURN query {$$ = new ReturnNode ($2); }
+	    | CREATE procquery {$$ = new RegisterProcNode ($2);}
 	    | NAME LEFTPAR RIGHTPAR {$$ = new CallProcNode ($1);}
-	    | NAME LEFTPAR actparams RIGHTPAR {$$ = $3->setName($1); }
+	    | NAME LEFTPAR paramslist RIGHTPAR {$3->setName($1); $$ = $3; }
 	    ;
+	   
+procquery   : PROCEDURE NAME LEFTPAR formparams RIGHTPAR LEFTPROCPAR STRING RIGHTPROCPAR {
+		char *n = $2; char *s = $7; $4->addContent(n, s); $$ = $4; delete n; delete s;}
+	    | PROCEDURE NAME LEFTPAR RIGHTPAR LEFTPROCPAR STRING RIGHTPROCPAR {
+		char *n = $2; char *s = $7; $$ = new ProcedureNode(); $$->addContent(n, s); delete n; delete s;}
+            ;
 	    
 querylist   : NAME FIX_OP query { $$ = new FixPointNode ($1, $3); }
 	    | querylist NAME FIX_OP query {$$ = new FixPointNode ($2, $4, $1); }
 	    ;
-	    
-stringlist  : STRING {char *s = $1; $$ = new StringNode(s); delete s;}
-	    ;
-	    
-formparams  : formpar {$$ = new ProcedureNode ($1); }
-	    | formparams SEMICOLON formpar {$$ = new ProcedureNode ($3, $1); }
-	    ;
-	
-formpar	    : NAME { $$ = new FormPar ($1, "none"); }
-	    | IN NAME { $$ = new FormPar ($2, "in"); }
-	    | OUT NAME {$$ = new FormPar ($2, "out"); }
-	    ;
 
-actparams   : query { $$ = new CallProcNode ($1); }
-	    | actparams VERTICAL query { $$ = new CallProcNode ($3, $1); }
+formparams  : NAME {char *s = $1; $$ = new ProcedureNode (s); delete s;}
+	    | formparams VERTICAL NAME {char *s = $3; $$ = new ProcedureNode (s, $1); delete s;}
+	    ;    
+
+paramslist  : query { $$ = new CallProcNode ($1); }
+	    | paramslist VERTICAL query {$$ = new CallProcNode ($3, $1); }
 	    ;
 
 validate_stmt: VALIDATE NAME NAME  { $$ = new ValidationNode($2, $3); }

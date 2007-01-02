@@ -411,128 +411,9 @@ bool QueryExecutor::assert_remove_user_priv() {
     return assert_bool_query(query);
 };
 
-//[sk153407, pk167277 - BEGIN]
 
-int QueryExecutor::getProcedureInfo(TreeNode *tree, ProcedureInfo *&pinf)
-{
-    pinf = new ProcedureInfo();
-    int errcode;
-    QueryResult *result = new QueryBagResult();
-    CallProcNode* cpNode = (CallProcNode*) tree;
-    errcode = envs->bindName(cpNode->getName(), cpNode->getSectionNum(), tr, result);
-    if (errcode != 0) return errcode;
-    if (result->size() != 1)
-    {
-      //printf( "result->type: %d\n", result->type() );
-        *ec << "[QE] Error in TNCALLPROC, more then one procedure with same signature";
-        *ec << (ErrQExecutor | EProcNotSingle);
-	return ErrQExecutor | EProcNotSingle;
-    }
-    
-    QueryResult* procRef;
-    if(result->type() != QueryResult::QBAG)
-    {
-        *ec << "[QE] Error in TNCALLPROC, wrong procedure format";
-    	*ec << (ErrQExecutor | EProcWrongFormat);
-	return ErrQExecutor | EProcWrongFormat;
-    }    
-    errcode = ((QueryBagResult*)result)->at(0, procRef);
-    if (errcode != 0) return errcode;
-    if(procRef->type() != QueryResult::QREFERENCE)
-    {
-        *ec << "[QE] Error in TNCALLPROC, wrong procedure format";
-    	*ec << (ErrQExecutor | EProcWrongFormat);
-	return ErrQExecutor | EProcWrongFormat;
-    }
-    LogicalID *lid = ((QueryReferenceResult *)procRef)->getValue();
-    ObjectPointer *optr;
-    errcode = tr->getObjectPointer(lid, Store::Read, optr);
-    if (errcode != 0) 
-    {
-        *ec << "[QE] Error in getObjectPointer";
-        antyStarveFunction(errcode);
-        inTransaction = false;
-        return errcode;
-    }
-    DataValue* dv = optr->getValue();
-    if (dv->getType() != Store::Vector)
-    {
-         *ec << "[QE] Error in TNCALLPROC, wrong procedure object format";
-         *ec << (ErrQExecutor | EProcWrongObject);
-	 return ErrQExecutor | EProcWrongObject;
-    }
-    vector<LogicalID*>* procVect = dv->getVector();
-    bool procCodeFound = false;
-    for(unsigned i = 0; i < procVect->size(); i++)
-    {
-        ObjectPointer *tmpOptr;
-        errcode = tr->getObjectPointer(procVect->at(i), Store::Read, tmpOptr);
-        if (errcode != 0) 
-        {
-            *ec << "[QE] Error in getObjectPointer";
-            antyStarveFunction(errcode);
-            inTransaction = false;
-            return errcode;
-        }
-        if(tmpOptr->getName() == "ProcBody")
-        {
-            DataValue* codeDv = tmpOptr->getValue();
-            if (codeDv->getType() != Store::String)
-            {
-                 *ec << "[QE] Error in TNCALLPROC, wrong procedure object format";
-                 *ec << (ErrQExecutor | EProcWrongObject);
-		 return ErrQExecutor | EProcWrongObject;
-            }
-            
-            pinf->ProcCode = codeDv->getString();
-            procCodeFound=true;
-        }
-        else if(tmpOptr->getName() == "Param")
-        {
-            DataValue* paramDv = tmpOptr->getValue();
-            if (paramDv->getType() != Store::Vector)
-            {
-                 *ec << "[QE] Error in TNCALLPROC, wrong procedure object format";
-                 *ec << (ErrQExecutor | EProcWrongObject);
-		 return ErrQExecutor | EProcWrongObject;
-            }
-            vector<LogicalID*>* paramVect = paramDv->getVector();
-            for(unsigned j = 0; j < paramVect->size(); j++)
-            {
-                ObjectPointer *paramOptr;
-                errcode = tr->getObjectPointer(paramVect->at(j), Store::Read, paramOptr);
-                if (errcode != 0) 
-                {
-                    *ec << "[QE] Error in getObjectPointer";
-                    antyStarveFunction(errcode);
-                    inTransaction = false;
-                    return errcode;
-                }
-                if(paramOptr->getName() == "ParamName")
-                {
-                    DataValue* pNameDv = paramOptr->getValue();
-                    if(pNameDv->getType() != Store::String)
-                    {
-                        *ec << "[QE] Error in TNCALLPROC, wrong procedure object format";
-                        *ec << (ErrQExecutor | EProcWrongObject);
-			return ErrQExecutor | EProcWrongObject;
-                    }
-                    (pinf->Params).push_back(pNameDv->getString());
-                    //printf("||| PARAM %s |||",(pNameDv->getString()).c_str());
-                }
-            }
-        }
-    }
-    if(!procCodeFound)
-    {
-        *ec << "[QE] Errror in TNCALLPROC, ProcBody is not preasent";
-        *ec << (ErrQExecutor | EProcNoBody);
-	return ErrQExecutor | EProcNoBody;
-    }
-    return 0;
-}
 
-//[sk153407, pk167277 - END]
+
 
 int QueryExecutor::executeRecQuery(TreeNode *tree) {
 
@@ -567,7 +448,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			}
 			int sectionNumber = ((NameNode *) tree)->getBindSect();
 			QueryResult *result = new QueryBagResult();
-			errcode = envs->bindName(name, sectionNumber, tr, result);
+			errcode = envs->bindName(name, sectionNumber, tr, this, result);
 			if (errcode != 0) return errcode;
 			errcode = qres->push(result);
 			if (errcode != 0) return errcode;
@@ -575,216 +456,144 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			return 0;
 		}//case TNNAME
 
+		case TreeNode::TNPROC: {
+			*ec << "[QE] Type: TNPROC";
+			
+			string name = ((ProcedureNode *) tree)->getName();
+			string code = ((ProcedureNode *) tree)->getCode();
+			vector<string> params = ((ProcedureNode *) tree)->getParams();
+			unsigned int paramsNumb = ((ProcedureNode *) tree)->getParamsNumb();
+			
+			QueryParser* tmpQP = new QueryParser();
+			TreeNode* tmpTN;
+			errcode = tmpQP->parseIt(code, tmpTN);
+			if (errcode != 0) {
+				*ec << "[QE] TNPROC error while parsing procedure code";
+				return errcode;
+			}
+			delete tmpTN;
+			delete tmpQP;
+			
+			QueryResult *strct = new QueryStructResult();
+			QueryResult *code_str = new QueryStringResult(code);
+			QueryResult *code_bind = new QueryBinderResult("ProcBody", code_str);
+			strct->addResult(code_bind);
+			for (unsigned int i=0; i<paramsNumb; i++) {
+				QueryResult *param_str = new QueryStringResult(params[i]);
+				QueryResult *param_bind = new QueryBinderResult("Param", param_str);
+				strct->addResult(param_bind);
+			}
+			QueryResult *final_binder = new QueryBinderResult(name, strct);
+			
+			ObjectPointer *optr;
+			errcode = objectFromBinder(final_binder, optr);
+			if (errcode != 0) return errcode;
+			
+			optr->getValue()->setSubtype(Store::Procedure);
+			
+			QueryResult *lidres = new QueryReferenceResult(optr->getLogicalID());
+			
+			errcode = qres->push(lidres);
+			if (errcode != 0) return errcode;
+			
+			return 0;
+		}//case TNPROC
 
-//[sk153407, pk167277 - BEGIN]
-        //procedure adding
-        case TreeNode::TNPROC:
-        {
-            *ec << "[QE] Type: TNPROC";
-            QueryParser* tmpQP = new QueryParser();
-            TreeNode* tmpTN;
-            ProcedureNode* pNode = (ProcedureNode*) tree;
-            string procQuery = "create (\"";
-            procQuery += (pNode->getContent())->getValue()+"\" as ProcBody";
-            for(int i=0; i < pNode->getParNumb(); i++)
-            {
-                procQuery += ",(\"" + pNode->getParam(i) + "\" as ParamName,";
-                procQuery += "\"" + pNode->getInout(i) + "\" as Kind ) as Param";
-            }
+		case TreeNode::TNREGPROC: {
+			*ec << "[QE] Type: TNREGPROC";
+			QueryNode *query = ((RegisterProcNode *) tree)->getQuery();
+			if(query != NULL) {
+				errcode = executeRecQuery(query);
+				if(errcode != 0) return errcode;
+			}
+			else qres->push(new QueryNothingResult());
+			
+			QueryResult *execution_result;
+			errcode = qres->pop(execution_result);
+			if (errcode != 0) return errcode;
+			
+			if (execution_result->type() != QueryResult::QREFERENCE) {
+				*ec << "[QE] TNREGISTER error - execution result is not QueryReference";
+				*ec << (ErrQExecutor | ERefExpected);
+				return ErrQExecutor | ERefExpected;
+			}
+			
+			ObjectPointer *optr;
+			errcode = tr->getObjectPointer (((QueryReferenceResult*)execution_result)->getValue(), Store::Read, optr);
+			if (errcode != 0) {
+				*ec << "[QE] register operation - Error in getObjectPointer.";
+				antyStarveFunction(errcode);
+				inTransaction = false;
+				return errcode;
+			}
+			
+			errcode = tr->addRoot(optr);
+			if (errcode != 0) { 
+				*ec << "[QE] Error in addRoot";
+				antyStarveFunction(errcode);
+				inTransaction = false;
+				return errcode;
+			}
+			
+			errcode = qres->push(execution_result);
+			if (errcode != 0) return errcode;
+			
+			return 0;
+		}//case TNREGISTER
 
-            procQuery += ") as "+pNode->getName();
-
-            errcode = tmpQP->parseIt(procQuery, tmpTN);
-            if (errcode != 0) return errcode;
-            errcode = executeRecQuery (tmpTN);
-            if (errcode != 0) return errcode;
-
-
-            QueryResult *procBinder;
-            ObjectPointer *objPtr;
-
-            qres->pop( procBinder );
-            qres->push( procBinder );
-
-            derefQuery( procBinder, procBinder );
-
-            procBinder = new QueryBinderResult( "cokolwiekbadz", procBinder );
-            objectFromBinder( procBinder, objPtr );
-            objPtr->getValue()->setSubtype( Procedure );
-
-            ((QueryBinderResult*)procBinder)->setItem( NULL );
-            delete procBinder;
-
-            *ec << "[QE] TNPROC Done! SBQL = " << procQuery;
-
-            delete tmpQP;
-
-            return 0;
-        }//case TNPROC
-
-        case TreeNode::TNCALLPROC:
-        {
-            ProcedureInfo* pinf;
-            errcode=getProcedureInfo(tree, pinf);
-            if (errcode != 0) return errcode;
-            *ec << "[QE] Type: TNCALLPROC";
-            QueryResult *result = new QueryBagResult();
-
-            CallProcNode* cpNode = (CallProcNode*) tree;
-            QueryNode *paramNode = cpNode->getParNumb() ? cpNode->getParam( 0 ) : NULL;
-            int paramsType = paramNode ? paramNode->type() : -1;
-            bool isStruct = (paramsType == TreeNode::TNALGOP) && (((AlgOpNode *) paramNode)->getOp() == AlgOpNode::comma);
-
-            //potem trzeba bedzie usunac wszystko do tego poziomu
-            int envsHeight = envs->size();
-            int qresHeight = qres->size();
-
-            QueryStructResult *paramsStruct = new QueryStructResult();
-
-            if( paramNode ) {
-              QueryResult* paramRes;
-
-              if( isStruct ) {
-                // ewaluujemy osobno wszystkie parametry i wrzucamy wyniki do
-                // struktury qsr
-                list<TreeNode *> nodes;
-                vector<QueryResult *> vec;
-                AlgOpNode *commaNode = (AlgOpNode *) paramNode;
-
-                while( commaNode ) {
-                  TreeNode *leftNode = commaNode->getLArg();
-                  TreeNode *rightNode = commaNode->getRArg();
-
-                  nodes.push_front( rightNode );
-                  if( (leftNode->type() == TreeNode::TNALGOP) && ( ((AlgOpNode *) leftNode)->getOp() == AlgOpNode::comma ) ) {
-                    commaNode = (AlgOpNode *) leftNode;
-                  } else {
-                    nodes.push_front( leftNode );
-                    commaNode = NULL;
-                  }
-                }
-
-                for( list<TreeNode *>::iterator it = nodes.begin(); it != nodes.end(); it++ ) {
-                  TreeNode *node = *it;
-                  bool wypakuj = node->type() == TreeNode::TNAS;
-
-                  errcode = executeRecQuery(node);
-                  if (errcode != 0) return errcode;
-                  errcode = qres->pop(paramRes);
-                  if (errcode != 0) return errcode;
-                  if( wypakuj ) {
-                    QueryBagResult *bag = (QueryBagResult *)paramRes;
-
-                    for(unsigned int i = 0; i < bag->size(); i++ ) {
-                      bag->at(i, paramRes);
-                      vec.push_back(paramRes);
-                    }
-                  } else {
-                    vec.push_back(paramRes);
-                  }
-                }
-
-                QueryStructResult *qsr = new QueryStructResult( vec );
-                bool flag = false;
-
-                // zapuszczamy Algorytm Stencela na strukturze qsr
-
-                for( unsigned int i = 0; i < qsr->size(); i++ ) {
-                  QueryResult *qres;
-
-                  errcode = qsr->at(i, qres);
-                  if (errcode != 0) return errcode;
-
-                  if( !flag && (qres->type() != QueryResult::QBINDER) ) {
-                    if( i >= pinf->Params.size() ) {
-                      flag = true;
-                    } else {
-                      qres = new QueryBinderResult( pinf->Params[i], qres );
-                    }
-                  } else {
-                    flag = true;
-                  }
-                  paramsStruct->addResult( qres );
-                }
-              } else if ( paramsType == TreeNode::TNAS ){
-                errcode = executeRecQuery(paramNode);
-                if (errcode != 0) return errcode;
-                errcode = qres->pop(paramRes);
-                if (errcode != 0) return errcode;
-                QueryBagResult *bag = (QueryBagResult *)paramRes;
-
-                for(unsigned int i = 0; i < bag->size(); i++ ) {
-                  bag->at(i, paramRes);
-                  paramsStruct->addResult(paramRes);
-                }
-              } else {
-                errcode = executeRecQuery(paramNode);
-                if (errcode != 0) return errcode;
-                errcode = qres->pop(paramRes);
-                if (errcode != 0) return errcode;
-                if( pinf->Params.size() )
-                  paramsStruct->addResult(new QueryBinderResult(pinf->Params[0], paramRes));
-                else
-                  paramsStruct->addResult(paramRes);
-              }
-            }
-
-            // paramsResult: struktura binderow - parametrow wywolania funkcji
-
-            //printf( "*********** paramsStruct:\n%s\n", paramsStruct->toString(0, true).c_str());
-
-            QueryBagResult *paramBagRes = new QueryBagResult(paramsStruct->getVector());
-            paramsStruct->clear();
-            delete paramsStruct;
-
-            errcode = envs->push(paramBagRes);
-            if (errcode != 0) return errcode;
-
-          //printf( "TNCALLPROC:\n%s\n", envs->toString().c_str());
-          //printf( "TNCALLPROC:\n%s\n", qres->toString().c_str());
-
-            QueryParser* tmpQP = new QueryParser();
-            TreeNode* tmpTN;
-
-            errcode = tmpQP->parseIt(pinf->ProcCode, tmpTN);
-            if (errcode != 0) return errcode;
-            errcode = executeRecQuery (tmpTN);
-            if ( (errcode != EEvalStopped) && (errcode != 0) )
-              return errcode;
-            if (errcode == EEvalStopped) errcode = 0;
-            else {
-                errcode = qres->push(new QueryNothingResult());
-                if (errcode != 0) return errcode;
-            }
-            //printf("!!!!!!!!!!!!!! stos po wykonaniu tresci:\n%s\n", qres->toString().c_str());
-
-            delete tmpQP;
-            delete tmpTN;
-
-            if(qres->size() == qresHeight)
-            {
-                //wkladamy na stos voida jesli niczego nie zwrocil return lub zapytanie
-                QueryResult* qnothing = new QueryNothingResult();
-                errcode = qres->push(qnothing);
-                if (errcode != 0) return errcode;
-            }
-
-            while(envs->size() > envsHeight)
-            {
-                errcode = envs->pop();
-                if (errcode != 0) return errcode;
-            }
-
-            //Uwaga nie wiem czy jakies inne obiekty poza result trzeba usuwac
-            //mysle ze sa one rekurencyjnie usuwane wraz z result
-            
-            *ec << "[QE] TNCALLPROC Done! code to do is: " << pinf->ProcCode;
-            
-            delete pinf;
-            delete result;
-            return 0;
-        }
-//[sk153407, pk167277 - END]
+		case TreeNode::TNCALLPROC: {
+			*ec << "[QE] Type: TNCALLPROC";
+			
+			vector<QueryNode*> queries = ((CallProcNode *) tree)->getQueries();
+			unsigned int queries_size = ((CallProcNode *) tree)->howManyParts();
+			string name = ((CallProcNode *) tree)->getName();
+			
+			vector<string> params;
+			string code = "";
+			
+			errcode = envs->bindProcedureName(name, queries_size, tr, this, code, params);
+			if (errcode != 0) return errcode;
+			
+			if (code == "") {
+				qres->push(new QueryBagResult());
+				return 0;
+			}
+			
+			QueryParser* tmpQP = new QueryParser();
+			TreeNode* tmpTN;
+			errcode = tmpQP->parseIt(code, tmpTN);
+			if (errcode != 0) {
+				*ec << "[QE] TNCALLPROC error while parsing procedure code";
+				return errcode;
+			}
+			
+			QueryResult *new_envs_sect = new QueryBagResult();
+			for (unsigned int i=0; i<queries_size; i++) {
+				errcode = executeRecQuery(queries[i]);
+				if(errcode != 0) return errcode;
+				QueryResult *execution_result;
+				errcode = qres->pop(execution_result);
+				if (errcode != 0) return errcode;
+				QueryResult *new_binder = new QueryBinderResult(params[i], execution_result);
+				new_envs_sect->addResult(new_binder);
+			}
+			
+			errcode = envs->push((QueryBagResult *) new_envs_sect);
+			if (errcode != 0) return errcode;
+			
+			if(tmpTN != NULL) {
+				errcode = executeRecQuery(tmpTN);
+				if (errcode == EEvalStopped) errcode = 0;
+				if(errcode != 0) return errcode;
+			}
+			
+			errcode = envs->pop();
+			if (errcode != 0) return errcode;
+			
+			delete tmpTN;
+			delete tmpQP;
+			return 0;
+		}//case TNCALLPROC
 
 		case TreeNode::TNRETURN: {
 			*ec << "[QE] Type: TNRETURN (begin)";
@@ -796,7 +605,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			else qres->push(new QueryNothingResult());
 			*ec << "[QE] Type: TNRETURN (done)";
 			return EEvalStopped;
-		}
+		}//case TNRETURN
 		
 		case TreeNode::TNCREATE: {
 			*ec << "[QE] Type: TNCREATE";
@@ -826,7 +635,8 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				*/
 				    continue;
 				}
-				if ((errcode = tr->addRoot(optr)) != 0) { 
+				errcode = tr->addRoot(optr);
+				if (errcode != 0) { 
 					*ec << "[QE] Error in addRoot";
 					antyStarveFunction(errcode);
 					inTransaction = false;
@@ -875,8 +685,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 
 		case TreeNode::TNVECTOR: {
 			*ec << "[QE] tree - Vector: not implemented, don't know what to do";
-			QueryResult *result = new QueryNothingResult();
-			errcode = qres->push(result);
+			errcode = qres->push(new QueryNothingResult());
 			if (errcode != 0) return errcode;
 			*ec << "[QE] QueryNothingResult created";
 			return 0;
@@ -1508,6 +1317,8 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 	return 0;
 }//executeQuerry
 
+
+
 int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 	*ec << "[QE] derefQuery()";
 	int errcode;
@@ -1579,7 +1390,7 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 		case QueryResult::QREFERENCE: {
 			LogicalID * lid = ((QueryReferenceResult *) arg)->getValue(); 
 			if (lid != NULL && lid->getServer() != "") {
-				ec->printf("deref na obiekcie zdalnym");
+				*ec << "dereferencing remote object";
 				RemoteExecutor *rex = new RemoteExecutor(lid->getServer(), lid->getPort(), this);
 				rex->setLogicalID(lid);
 				rex->setDeref();
@@ -1588,7 +1399,7 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 				if (errcode != 0) {
 					return errcode;
 				}
-				ec->printf("deref na obiektcie zdalnym zakonczone pomyslnie");
+				*ec << "derefQuery on remote object done";
 				res = qr;
 				break;
 			}
@@ -1602,7 +1413,6 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 			ObjectPointer *optr;
 			errcode = tr->getObjectPointer(ref_value, Store::Read, optr); 
 			if (errcode != 0) {
-
 				*ec << "[QE] Error in getObjectPointer";
 				antyStarveFunction(errcode);
 				inTransaction = false;

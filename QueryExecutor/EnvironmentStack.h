@@ -29,6 +29,7 @@ namespace QExecutor
 		ErrorConsole *ec;
 		vector<QueryBagResult*> es;
 		unsigned int sectionDBnumber;
+		int procCheck(unsigned int qSize, LogicalID *lid, Transaction *&tr, QueryExecutor *qe, string &code, vector<string> &prms, int &f);
 	public:
 		EnvironmentStack();
 		virtual ~EnvironmentStack();
@@ -39,7 +40,8 @@ namespace QExecutor
 		int top(QueryBagResult *&r);
 		bool empty();
 		int size();
-		int bindName(string name, int sectionNo, Transaction *&tr, QueryResult *&r);
+		int bindName(string name, int sectionNo, Transaction *&tr, QueryExecutor *qe, QueryResult *&r);
+		int bindProcedureName(string name, unsigned int queries_size, Transaction *&tr, QueryExecutor *qe, string &code, vector<string> &params);
 		void deleteAll();
         	string toString() {
         	

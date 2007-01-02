@@ -43,7 +43,7 @@ namespace QParser {
     public:
 	enum TreeNodeType { TNINT, TNSTRING, TNDOUBLE, TNVECTOR, TNNAME, 
 	    TNAS, TNUNOP, TNALGOP, TNNONALGOP, TNTRANS, TNCREATE, TNCOND, TNLINK, TNPARAM, TNFIX, 
-	    TNPROC, TNCALLPROC, TNRETURN, TNVALIDATION, TNCREATEUSER, TNREMOVEUSER, TNPRIVLIST, TNNAMELIST,
+	    TNPROC, TNCALLPROC, TNRETURN, TNREGPROC, TNVALIDATION, TNCREATEUSER, TNREMOVEUSER, TNPRIVLIST, TNNAMELIST,
 	    TNGRANTPRIV, TNREVOKEPRIV, TNREMOTE};
 	TreeNode() : parent(NULL) {this->needed = false;}
 	TreeNode* getParent() { return parent; }
@@ -770,7 +770,8 @@ namespace QParser {
 	QueryNode* rarg;
 	nonAlgOp op;
 	int firstOpenSect;   /* nrs of the ENV section which was open by this operator */	
-	int lastOpenSect;	
+
+	int lastOpenSect;	
     public:
 	NonAlgOpNode(QueryNode* _larg, QueryNode* _rarg, nonAlgOp _op)
                 : larg(_larg), rarg(_rarg), op(_op)
@@ -1153,137 +1154,125 @@ lastOpenSect = 0; }
       }
     };
     
-    
-    
-    
-    // parametr formalny - nazwa + "in", "out" lub "none"
-    class FormPar
+    class RegisterProcNode : public QueryNode
     {
     protected:
-	string name;
-	string qualifier;
+	QueryNode* query;
     public:
-	FormPar (string n, string q) {
-	    this->name = n; this->qualifier = q; }
-	virtual string getName() {return name;}
-	virtual string getQualifier() {return qualifier;}
-	virtual ~FormPar() {}
-    };    
-
-    class ProcedureNode : public QueryNode
-    {
-    protected:
-	string name;
-	vector<string> params;
-	vector<string> inouts;
-	int parNumb; //liczba parametrow
-	StringNode *content;  // tesc, czyli instrukcje w postaci stringa. (TODO: zmienic to?)
-    public:
-	ProcedureNode (FormPar *par) {		
-	    params.push_back (par->getName());
-	    inouts.push_back (par->getQualifier());
-	    parNumb = 1;
+	RegisterProcNode(QueryNode *q) {this->query = q; }
+	
+	virtual TreeNode* clone();
+	virtual int type() {return TreeNode::TNREGPROC;}
+	virtual QueryNode *getQuery() {return this->query;}
+	virtual int putToString() {
+	    cout << " RegisterProc < ";
+	    if (query != NULL) query->putToString();
+	    else cout << "_no_query_";
+	    cout << ">";
+	    return 0;
 	}
-	ProcedureNode (FormPar *par, ProcedureNode *tail) {
-	    params = tail->getParams();
-	    inouts = tail->getInouts();
-	    params.push_back (par->getName());
-	    inouts.push_back (par->getQualifier());
-	    parNumb = 1 + tail->getParNumb();
-		//... should I delete tail here ? 
-	}
-	ProcedureNode (string n, StringNode* cont) {
-	    name = n;
-	    content = cont;
-	    parNumb = 0; 
-	}
-      virtual string toString( int level = 0, bool recursive = false, string n = "" ) {
-        stringstream c;
-        string parNumbS;
-        string paramsS = "[";
-        string inoutsS = "[";
-
-        for( unsigned i = 0; i < params.size(); i++ ) {
-          paramsS += ((i > 0) ? ", " : "") + params[i];
-        }
-        paramsS += "]";
-
-        for( unsigned i = 0; i < inouts.size(); i++ ) {
-          inoutsS += ((i > 0) ? ", " : "") + inouts[i];
-        }
-        inoutsS += "]";
-
-        c << parNumb; c >> parNumbS;
-        string result = getPrefixForLevel( level, n ) + "[Procedure] name='" + name + "', parNumb="
-          + parNumbS + ", params=" + paramsS + ", inouts=" + inoutsS +"\n";
+	
+	virtual ~RegisterProcNode() {if (query != NULL) delete query;} 
+      virtual string toString( int level = 0, bool recursive = false, string name = "" ) {
+        string result = getPrefixForLevel( level, name ) + "[RegisterProc]\n";
 
         if( recursive ) {
-          if( content )
-            result += content->toString( level+1, true, "content" );
+          if( query )
+            result += query->toString( level+1, true, "query" );
         }
 
         return result;
       }
-
-	virtual TreeNode* clone();
-	virtual int type() {return TreeNode::TNPROC;};
-	virtual vector<string> getParams() {return this->params;}
-	virtual string getParam(int i) {return this->params.at(i);}
-	virtual vector<string> getInouts() {return this->inouts;}
-	virtual string getInout(int i) {return this->inouts.at(i);}
-	virtual int getParNumb() {return this->parNumb;}
-	virtual string getName() {return this->name;}
-	virtual StringNode *getContent() {return this->content;}
-	virtual void setParNumb(int i) {parNumb = i;}
-	virtual void setParams(vector<string> p) {params = p;}
-	virtual void setInouts(vector<string> i) {inouts = i;}
-	virtual ProcedureNode* addContent (string n, StringNode* cont) {
-	    this->name = n;  this->content = cont;
-	    return this;
+    };
+    
+    class ProcedureNode : public QueryNode
+    {
+    protected:
+	vector<string> params;
+	string name;
+	string code;
+	unsigned int paramsNumb;
+    public:
+	ProcedureNode() { paramsNumb = 0; }
+	ProcedureNode(string single_param) {
+		params.push_back(single_param);
+		paramsNumb = 1;
 	}
+	ProcedureNode(string single_param, ProcedureNode *tail) {
+		params = tail->getParams();
+		params.push_back(single_param);
+		paramsNumb = 1 + tail->getParamsNumb();
+		//delete tail;
+	}
+	ProcedureNode(string n, string c, vector<string> p, unsigned int pN) {
+		name = n;
+		code = c;
+		params = p;
+		paramsNumb = pN;
+	}
+	
+	virtual TreeNode* clone();
+	virtual int type() {return TreeNode::TNPROC;}
+	virtual ~ProcedureNode() {} 
+	
+	virtual void addContent(string n, string c) {name = n; code = c;}
+	virtual string getName() { return name; }
+	virtual string getCode() { return code; }
+	virtual vector<string> getParams() { return params; }
+	virtual unsigned int getParamsNumb() { return paramsNumb; }
+      
+      	virtual string toString( int level = 0, bool recursive = false, string _name = "" ) {
+        	string result = getPrefixForLevel( level, _name ) + "Procedure name - " + name + "\n";
+		result += getPrefixForLevel( level + 1, _name ) + "ProcBody - " + code + "\n";
+        	for (unsigned int i = 0; i < paramsNumb; i++) {
+			result += getPrefixForLevel( level + 1, _name ) + " Param - " + params[i] + "\n";
+		}
+        	return result;
+      	}
+	
 	virtual int putToString() {
-	    cout << " Procedure " << name << " (";
-	    for (int i = 0; i < parNumb; i++) {
-		cout << "[" << inouts.at(i) << "] " << params.at(i) << "; ";
-	    }
-	    cout << ") { ";
-		content->putToString();
-	    cout << "}";
+	    cout << "Procedure name - " << name << endl;
+	    cout << "  ProcBody - " << code << endl;
+        for (unsigned int i = 0; i < paramsNumb; i++) {
+		cout << "  Param - " << params[i] << endl;
+	}	    
 	    return 0;
 	}
-
-	virtual ~ProcedureNode() {}	
-    };
+    }; 
     
     class CallProcNode : public QueryNode
     {
-    protected:
+    protected:	
+	vector<QueryNode*> queries;
 	string name;
-	vector<QueryNode*> params;
-	int parNumb; //liczba parametrow
+	unsigned int partsNumb;
     public:
-	CallProcNode (QueryNode *q) {		
-	    params.push_back (q);
-	    parNumb = 1;
+	CallProcNode (string singleName) {
+	    name = singleName;
+	    partsNumb = 0;
 	}
-	CallProcNode (QueryNode *q, CallProcNode *tail) {
-	    params = tail->getParams();
-	    params.push_back (q);
-	    parNumb = 1 + tail->getParNumb();
-		//... should I delete tail here ? 
+	CallProcNode (QueryNode* singleQuery, CallProcNode *tail) {
+	    queries = tail->getQueries();
+	    queries.push_back(singleQuery);
+	    partsNumb = 1 + tail->howManyParts();
+	    //delete tail;
 	}
-	CallProcNode (string n) {name = n; parNumb = 0;}
-	
-      virtual string toString( int level = 0, bool recursive = false, string n = "" ) {
-        string parNumbS;
-        stringstream c;
+	CallProcNode (QueryNode* singleQuery) {
+	    queries.push_back(singleQuery);
+	    partsNumb = 1;
+	}
 
-        c << parNumb; c >> parNumbS;
-        string result = getPrefixForLevel( level, n ) + "[CallProc] name='" + name + "', parNumb=" + parNumbS + "\n";
+      virtual string toString( int level = 0, bool recursive = false, string _name = "" ) {
+        stringstream c;
+        string partsNumbS;
+        string namesS = "[" + name + "]";
+
+        c << partsNumb; c >> partsNumbS;
+        string result = getPrefixForLevel( level, name ) + "[CallProc] partsNumb=" + partsNumbS + ", name=" + namesS + "\n";
 
         if( recursive ) {
-          for( unsigned int i = 0; i < params.size(); i++ ) {
-            result += (params[i])->toString( level+1, true, "param" );
+          for( unsigned int i = 0; i < queries.size(); i++ ) {
+            result += (queries[i])->toString( level+1, true, "query" );
           }
         }
 
@@ -1292,30 +1281,26 @@ lastOpenSect = 0; }
 
 	virtual TreeNode* clone();
 	virtual int type() {return TreeNode::TNCALLPROC;};
-	virtual vector<QueryNode*> getParams() {return this->params;}
-	virtual QueryNode *getParam(int i) {return this->params.at(i);}
-	virtual int getParNumb() {return this->parNumb;}
+	virtual vector<QueryNode*> getQueries() {return this->queries;}
+	virtual QueryNode* getQuery(int i) {return this->queries.at(i);}
 	virtual string getName() {return this->name;}
-	virtual void setParNumb(int i) {parNumb = i;}
-	virtual void setParams(vector<QueryNode*> p) {params = p;}
-	virtual CallProcNode* setName (string n) {
-	    this->name = n; return this; }
+	virtual unsigned int howManyParts() {return this->partsNumb;}
+	virtual void setQueries(vector<QueryNode*> q) {queries = q;}
+	virtual void setName(string n) {name = n;}
+	virtual void setPartsNumb(int n) {partsNumb = n;}
 	virtual int putToString() {
-	    cout << " callProc " << name << " (";
-	    for (int i = 0; i < parNumb; i++) {
-		cout << "[";
-		params.at(i)->putToString();
-		cout  << "]; ";
+	    cout << " CallProc " << name << " {";
+	    for (unsigned int i = 0; i < partsNumb; i++) {
+		queries.at(i)->putToString();
+		if (i < (partsNumb - 1)) cout << " | ";
 	    }
-	    cout << ") ";
+	    cout << "} ";
 	    return 0;
 	}
-
-	virtual ~CallProcNode() {}	
+	
+	virtual ~CallProcNode() {}
+    
     };
-    
-    
-    
 
 }
     

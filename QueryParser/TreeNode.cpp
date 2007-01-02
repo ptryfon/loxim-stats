@@ -41,30 +41,20 @@ namespace QParser
 	fn->setPartsNumb(partsNumb);
 	return fn;    
     }
-    TreeNode* ProcedureNode::clone() {
-	vector<string> p;
-	vector<string> ins;
-	ProcedureNode *pn = new ProcedureNode(name, content);
-	for (int i = 0; i < parNumb; i++) {
-	    p.push_back(params.at(i));
-	    ins.push_back(inouts.at(i));
-	}
-	pn->setParams(p); pn->setInouts(ins);
-	pn->setParNumb(parNumb);
-	return pn;	
-    }
+
+    TreeNode* ReturnNode::clone() { return new ReturnNode((QueryNode*) query->clone()); }
+    TreeNode* ProcedureNode::clone() { return new ProcedureNode(name, code, params, paramsNumb); }
+    TreeNode* RegisterProcNode::clone() { return new RegisterProcNode((QueryNode*) query->clone()); }
     TreeNode* CallProcNode::clone() {
 	vector<QueryNode*> q;
-	CallProcNode *cn = new CallProcNode(name);
-	for (int i = 0; i < parNumb; i++) {
-	    q.push_back((QueryNode*) params.at(i)->clone());
-	}
-	cn->setParams(q);
-	cn->setParNumb(parNumb);
-	return cn;
+	CallProcNode *cpn = new CallProcNode(name);
+	for (unsigned int i = 0; i < partsNumb; i++) {
+	    q.push_back((QueryNode*) queries.at(i)->clone());   
+	} 
+	cpn->setQueries(q);
+	cpn->setPartsNumb(partsNumb);
+	return cpn;    
     }
-    TreeNode* ReturnNode::clone() { return new ReturnNode((QueryNode*) query->clone()); }
-    
     
     
     
@@ -72,7 +62,8 @@ namespace QParser
     called eg. for node  nd = nonalgop (where) ... 
     newTree = nd->factorSubQuery(subT, "randName")    
     (!!!) when used for optimization purposes, should not be called when 
-	  subT is a NameNode, because this does not help optimise a query.. */ 
+	  subT is a NameNode, because this does not help optimise a query.. */
+ 
     TreeNode* TreeNode::factorSubQuery(TreeNode *subT, string newName) {
     
 		subT->getParent()->swapSon((QueryNode *) subT, new NameNode(newName));

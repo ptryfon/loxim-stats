@@ -68,15 +68,6 @@ namespace QExecutor
 	{
 	protected:
     
-//[sk153407, pk167277 - BEGIN]
-/*
-nie wiem gdzie zaincjalizowac
-        static const std::string ProcBody  = "ProcBody";
-        static const std::string ParamName = "ParamName";
-        static const std::string ParamKind = "Kind";
-*/
-//[sk153407, pk167277 - END]
-    
 		ErrorConsole *ec;
 		Transaction *tr;
 		EnvironmentStack *envs;
@@ -84,10 +75,7 @@ nie wiem gdzie zaincjalizowac
 		map<string, QueryResult*> *prms;
 		int stop;
 		int transactionNumber;
-		bool inTransaction;
 		bool antyStarve;
-		
-		void antyStarveFunction(int errcode);
 		
 		bool evalStopped() { return ( stop != 0 ); };
 		int executeRecQuery(TreeNode *tree);
@@ -112,13 +100,9 @@ nie wiem gdzie zaincjalizowac
         	bool assert_privilige(string priv, string object);
         	bool priviliged_mode;
         	bool system_privilige_checking;
-//[sk153407, pk167277 - BEGIN]
-
-		int getProcedureInfo(TreeNode *tree, ProcedureInfo *&pinf);
-
-//[sk153407, pk167277 - END]
         
 	public:
+		bool inTransaction;
 		SessionData *session_data;
 		QueryExecutor() { 
 			envs = new EnvironmentStack(); 
@@ -137,6 +121,7 @@ nie wiem gdzie zaincjalizowac
 		int executeQuery(TreeNode *tree, map<string, QueryResult*>* params, QueryResult **result);
 		int executeQuery(TreeNode *tree, QueryResult **result);
 		void stopExecuting() { stop = 65535; };
+		void antyStarveFunction(int errcode);
 		int abort();
 		void set_priviliged_mode(bool mode);
 	};
