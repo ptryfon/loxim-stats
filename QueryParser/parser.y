@@ -65,13 +65,10 @@
 %type <calltree> paramslist
 %%
 
-statement   : query  { d=$1; }
-	    | BEGINTR SEMICOLON { d=new TransactNode(TransactNode::begin); }
-	    | BEGINTR { d=new TransactNode(TransactNode::begin); }
-	    | ABORT   SEMICOLON { d=new TransactNode(TransactNode::abort); }
-	    | ABORT { d=new TransactNode(TransactNode::abort); }
-	    | END     SEMICOLON { d=new TransactNode(TransactNode::end); }
-	    | END   { d=new TransactNode(TransactNode::end); }
+statement   : query semicolon_opt { d=$1; }
+	    | BEGINTR semicolon_opt { d=new TransactNode(TransactNode::begin); }
+	    | ABORT   semicolon_opt { d=new TransactNode(TransactNode::abort); }
+	    | END     semicolon_opt { d=new TransactNode(TransactNode::end); }
 	    | validate_stmt  semicolon_opt { d = $1; }
 	    | privilige_stmt semicolon_opt { d = $1; }
 	    | user_stmt	     semicolon_opt { d = $1; }
@@ -104,8 +101,7 @@ query	    : NAME { char *s = $1; $$ = new NameNode(s); delete s; }
 	    | query TIMES query { $$ = new AlgOpNode($1,$3,AlgOpNode::times); }
 	    | query DIVIDE_BY query { $$ = new AlgOpNode($1,$3,AlgOpNode::divide); }
 	    | query EQUAL query { $$ = new AlgOpNode($1,$3,AlgOpNode::eq); }
-	    | query REFEQUAL query {
-	      $$ = new AlgOpNode(new UnOpNode($1,UnOpNode::ref),new UnOpNode($3,UnOpNode::ref),AlgOpNode::eq);}
+	    | query REFEQUAL query { $$ = new AlgOpNode(new UnOpNode($1,UnOpNode::ref),new UnOpNode($3,UnOpNode::ref),AlgOpNode::eq);}
 	    | query NOT_EQUAL query { $$ = new AlgOpNode($1,$3,AlgOpNode::neq); }
 	    | query GREATER_THAN query { $$ = new AlgOpNode($1,$3,AlgOpNode::gt); }
 	    | query LESS_THAN query { $$ = new AlgOpNode($1,$3,AlgOpNode::lt); }
@@ -141,10 +137,10 @@ query	    : NAME { char *s = $1; $$ = new NameNode(s); delete s; }
 	    | NAME LEFTPAR paramslist RIGHTPAR {$3->setName($1); $$ = $3; }
 	    ;
 	   
-procquery   : PROCEDURE NAME LEFTPAR formparams RIGHTPAR LEFTPROCPAR STRING RIGHTPROCPAR {
-		char *n = $2; char *s = $7; $4->addContent(n, s); $$ = $4; delete n; delete s;}
-	    | PROCEDURE NAME LEFTPAR RIGHTPAR LEFTPROCPAR STRING RIGHTPROCPAR {
-		char *n = $2; char *s = $7; $$ = new ProcedureNode(); $$->addContent(n, s); delete n; delete s;}
+procquery   : PROCEDURE NAME LEFTPAR formparams RIGHTPAR LEFTPROCPAR query RIGHTPROCPAR {
+		char *n = $2; $4->addContent(n, $7); $$ = $4; delete n; }
+	    | PROCEDURE NAME LEFTPAR RIGHTPAR LEFTPROCPAR query RIGHTPROCPAR {
+		char *n = $2; $$ = new ProcedureNode(); $$->addContent(n, $6); delete n; }
             ;
 	    
 querylist   : NAME FIX_OP query { $$ = new FixPointNode ($1, $3); }

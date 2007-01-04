@@ -105,7 +105,7 @@ namespace QParser {
 	virtual TreeNode* clone()=0;
 	virtual int type()=0;
 	virtual int putToString()=0;
-
+	virtual string deParse()=0;
     };
     
     class NameNode;
@@ -419,6 +419,7 @@ namespace QParser {
 	
 	virtual ~NameNode() {}
 	
+	virtual string deParse() { string result; result = " " + name + " "; return result; };
     };  
 
 
@@ -455,6 +456,9 @@ namespace QParser {
         c << stackSize; c >> stackSizeS;
         return getPrefixForLevel( level, n ) + "[Param] name='" + name + "', bindSect=" + bindSectS  + ", stackSize=" + stackSizeS + "\n";
       }
+      
+      virtual string deParse() { string result; result = " " + name + " "; return result; };
+      
     };  
 
 
@@ -476,6 +480,15 @@ namespace QParser {
         c << value; c >> valueS;
         return getPrefixForLevel( level, name ) + "[Int] value=" + valueS  + "\n";
       }
+      
+      virtual string deParse() { 
+      	stringstream ss;
+	string str;
+	ss << value;
+	ss >> str; 
+	string result; 
+	result = " " + str + " "; 
+	return result; };
     };  
 
 // query := string
@@ -492,6 +505,8 @@ namespace QParser {
       virtual string toString( int level = 0, bool recursive = false, string name = "" ) {
         return getPrefixForLevel( level, name ) + "[String] value=" + value  + "\n";
       }
+      
+      virtual string deParse() { string result; result = " \"" + value + "\" "; return result; };
     };  
 
 // query := double
@@ -512,6 +527,15 @@ namespace QParser {
         c << value; c >> valueS;
         return getPrefixForLevel( level, name ) + "[Double] value=" + valueS  + "\n";
       }
+      
+      virtual string deParse() { 
+      	stringstream ss;
+	string str;
+	ss << value;
+	ss >> str; 
+	string result; 
+	result = " " + str + " "; 
+	return result; };
     };  
 
 // TODO: query := bool??? czy tylko powstaje w wyniku jakichs rzeczy .. ? 
@@ -589,6 +613,13 @@ namespace QParser {
 
         return result;
       }
+      
+      virtual string deParse() { 
+      	string result, tmp_res; 
+	if (group) { tmp_res = "group as "; } 
+	else  { tmp_res = "as "; }
+	result = arg->deParse() + tmp_res + name + " "; 
+	return result; }
     };  
 
 // query := query InfixAlgOp query
@@ -662,6 +693,24 @@ namespace QParser {
 	virtual int staticEval (StatQResStack *&qres, StatEnvStack *&envs);		
 	virtual int optimizeTree() {return arg->optimizeTree();}
 	virtual ~UnOpNode() { if (arg != NULL) delete arg; }
+	
+	virtual string deParse() { 
+		string result = ""; 
+		switch (op) {
+			case UnOpNode::count: { result = " count(" + arg->deParse() + ") "; return result; }
+			case UnOpNode::sum: { result = " sum(" + arg->deParse() + ") "; return result; }
+			case UnOpNode::avg: { result = " avg(" + arg->deParse() + ") "; return result; }
+			case UnOpNode::min: { result = " min(" + arg->deParse() + ") "; return result; }
+			case UnOpNode::max: { result = " max(" + arg->deParse() + ") "; return result; }
+			case UnOpNode::deref: { result = " deref(" + arg->deParse() + ") "; return result; }
+			case UnOpNode::ref: { result = " ref(" + arg->deParse() + ") "; return result; }
+			case UnOpNode::distinct: { result = " distinct(" + arg->deParse() + ") "; return result; }
+			case UnOpNode::unMinus: { result = " -" + arg->deParse() + " "; return result; }
+			case UnOpNode::boolNot: { result = " not " + arg->deParse() + " "; return result; }
+			case UnOpNode::deleteOp: { result = " delete " + arg->deParse() + " "; return result; }
+		}
+		return result;
+	};
     };  
 
 // query := query InfixAlgOp query
@@ -757,6 +806,34 @@ namespace QParser {
 	virtual int optimizeTree();
 	virtual ~AlgOpNode() { if (larg != NULL) delete larg;
                          if (rarg != NULL) delete rarg; }
+			 
+	virtual string deParse() { 
+		string result = ""; 
+		switch (op) {
+			case AlgOpNode::bagUnion: { result = larg->deParse() + "union" + rarg->deParse(); return result; }
+			case AlgOpNode::bagIntersect: { result = larg->deParse() + "intersect" + rarg->deParse(); return result; }
+			case AlgOpNode::bagMinus: { result = larg->deParse() + "minus" + rarg->deParse(); return result; }
+			case AlgOpNode::plus: { result = larg->deParse() + "+" + rarg->deParse(); return result; }
+			case AlgOpNode::minus: { result = larg->deParse() + "-" + rarg->deParse(); return result; }
+			case AlgOpNode::times: { result = larg->deParse() + "*" + rarg->deParse(); return result; }
+			case AlgOpNode::divide: { result = larg->deParse() + "/" + rarg->deParse(); return result; }
+			case AlgOpNode::eq: { result = larg->deParse() + "=" + rarg->deParse(); return result; }
+			case AlgOpNode::neq: { result = larg->deParse() + "!=" + rarg->deParse(); return result; }
+			case AlgOpNode::lt: { result = larg->deParse() + "<" + rarg->deParse(); return result; }
+			case AlgOpNode::gt: { result = larg->deParse() + ">" + rarg->deParse(); return result; }
+			case AlgOpNode::le: { result = larg->deParse() + "<=" + rarg->deParse(); return result; }
+			case AlgOpNode::ge: { result = larg->deParse() + ">=" + rarg->deParse(); return result; }
+			case AlgOpNode::boolAnd: { result = larg->deParse() + "and" + rarg->deParse(); return result; }
+			case AlgOpNode::boolOr: { result = larg->deParse() + "or" + rarg->deParse(); return result; }
+			case AlgOpNode::comma: { result = larg->deParse() + "," + rarg->deParse(); return result; }
+			case AlgOpNode::insertInto: { result = larg->deParse() + ":<" + rarg->deParse(); return result; }
+			case AlgOpNode::assign: { result = larg->deParse() + ":=" + rarg->deParse(); return result; }
+			case AlgOpNode::semicolon: { result = larg->deParse() + ";" + rarg->deParse(); return result; }
+			case AlgOpNode::insert: { return result; }
+			case AlgOpNode::refeq: { return result; }
+		}
+		return result;
+	};
     };  
 
 // query := query InfixNonalgOp query
@@ -872,6 +949,24 @@ lastOpenSect = 0; }
 //	virtual TreeNode *getHighestIndependant(); nieaktualne... ?
 	virtual ~NonAlgOpNode() { if (larg != NULL) delete larg;
                             if (rarg != NULL) delete rarg; }
+			    
+	virtual string deParse() { 
+		string result = ""; 
+		switch (op) {
+			case NonAlgOpNode::dot: { result = larg->deParse() + "." + rarg->deParse(); return result; }
+			case NonAlgOpNode::join: { result = larg->deParse() + "join" + rarg->deParse(); return result; }
+			case NonAlgOpNode::where: { result = larg->deParse() + "where" + rarg->deParse(); return result; }
+			case NonAlgOpNode::closeBy: { result = larg->deParse() + "close by" + rarg->deParse(); return result; }
+			case NonAlgOpNode::closeUniqueBy: { result = larg->deParse() + "close unique by" + rarg->deParse(); return result; }
+			case NonAlgOpNode::leavesBy: { result = larg->deParse() + "leaves by" + rarg->deParse(); return result; }
+			case NonAlgOpNode::leavesUniqueBy: { result = larg->deParse() + "leaves unique by" + rarg->deParse(); return result; }
+			case NonAlgOpNode::orderBy: { result = larg->deParse() + "order by" + rarg->deParse(); return result; }
+			case NonAlgOpNode::exists: { result = larg->deParse() + "exists" + rarg->deParse(); return result; }
+			case NonAlgOpNode::forAll: { result = larg->deParse() + "for all" + rarg->deParse(); return result; }
+			case NonAlgOpNode::forEach: { result = " for each" + larg->deParse() + "do" + rarg->deParse() + "od "; return result; }
+		}
+		return result;
+	}
     };  
 
     class TransactNode : public TreeNode 
@@ -935,6 +1030,8 @@ lastOpenSect = 0; }
 		}    		
 	
         virtual ~CreateNode() { if (arg != NULL) delete arg; }
+	
+	virtual string deParse() { string result; result = " create" + arg->deParse(); return result; };
     };  
 
 
@@ -1001,6 +1098,22 @@ lastOpenSect = 0; }
 	}
 	
 	virtual ~CondNode() {if (larg != NULL) delete larg; if (rarg != NULL) delete rarg; }
+	
+	virtual string deParse() { 
+		string result = ""; 
+		switch (op) {
+			case CondNode::iff: { 
+				result = " if" + condition->deParse() + "then" + larg->deParse() + "fi "; 
+				return result; }
+			case CondNode::ifElsee: { 
+				result = " if" + condition->deParse() + "then" + larg->deParse() + "else" + rarg->deParse() + "fi "; 
+				return result; }
+			case CondNode::whilee: { 
+				result = " while" + condition->deParse() + "do" + larg->deParse() + "od "; 
+				return result; }
+		}
+		return result;
+	};
     };
 
 // query := np.: link "Gdansk" "violet255" 3360 
@@ -1035,6 +1148,14 @@ lastOpenSect = 0; }
 	}
 	virtual ~LinkNode() {}
 	
+	virtual string deParse() { 
+		stringstream ss;
+		string str;
+		ss << port;
+		ss >> str; 
+		string result; 
+		result = " link \"" + nodeName + "\" \"" + ip + "\" " + str + " "; 
+		return result; }
     };
     
     class RemoteNode : public TreeNode
@@ -1121,6 +1242,13 @@ lastOpenSect = 0; }
 	
 	virtual ~FixPointNode() {}
     
+	virtual string deParse() { 
+		string result = " fixpoint ( "; 
+		for (int i = 0; i < partsNumb; i++) {
+			result = result + names[i] + " :-" + queries[i]->deParse();
+		}
+		result = result + ") ";
+		return result; };
     };
     
     class ReturnNode : public QueryNode
@@ -1152,6 +1280,8 @@ lastOpenSect = 0; }
 
         return result;
       }
+      
+      virtual string deParse() { string result; result = " return" + query->deParse(); return result; };
     };
     
     class RegisterProcNode : public QueryNode
@@ -1183,6 +1313,8 @@ lastOpenSect = 0; }
 
         return result;
       }
+      
+      virtual string deParse() { string result; result = " create" + query->deParse(); return result; };
     };
     
     class ProcedureNode : public QueryNode
@@ -1190,7 +1322,7 @@ lastOpenSect = 0; }
     protected:
 	vector<string> params;
 	string name;
-	string code;
+	QueryNode* code;
 	unsigned int paramsNumb;
     public:
 	ProcedureNode() { paramsNumb = 0; }
@@ -1204,7 +1336,7 @@ lastOpenSect = 0; }
 		paramsNumb = 1 + tail->getParamsNumb();
 		//delete tail;
 	}
-	ProcedureNode(string n, string c, vector<string> p, unsigned int pN) {
+	ProcedureNode(string n, QueryNode* c, vector<string> p, unsigned int pN) {
 		name = n;
 		code = c;
 		params = p;
@@ -1215,15 +1347,15 @@ lastOpenSect = 0; }
 	virtual int type() {return TreeNode::TNPROC;}
 	virtual ~ProcedureNode() {} 
 	
-	virtual void addContent(string n, string c) {name = n; code = c;}
+	virtual void addContent(string n, QueryNode* c) {name = n; code = c;}
 	virtual string getName() { return name; }
-	virtual string getCode() { return code; }
+	virtual QueryNode* getCode() { return code; }
 	virtual vector<string> getParams() { return params; }
 	virtual unsigned int getParamsNumb() { return paramsNumb; }
       
       	virtual string toString( int level = 0, bool recursive = false, string _name = "" ) {
         	string result = getPrefixForLevel( level, _name ) + "Procedure name - " + name + "\n";
-		result += getPrefixForLevel( level + 1, _name ) + "ProcBody - " + code + "\n";
+		result += getPrefixForLevel( level + 1, _name ) + "ProcBody - " + code->deParse() + "\n";
         	for (unsigned int i = 0; i < paramsNumb; i++) {
 			result += getPrefixForLevel( level + 1, _name ) + " Param - " + params[i] + "\n";
 		}
@@ -1232,12 +1364,21 @@ lastOpenSect = 0; }
 	
 	virtual int putToString() {
 	    cout << "Procedure name - " << name << endl;
-	    cout << "  ProcBody - " << code << endl;
+	    cout << "  ProcBody - " << code->deParse() << endl;
         for (unsigned int i = 0; i < paramsNumb; i++) {
 		cout << "  Param - " << params[i] << endl;
 	}	    
 	    return 0;
 	}
+	
+	virtual string deParse() { 
+		string result = " procedure " + name + "("; 
+		for (unsigned int i = 0; i < paramsNumb; i++) {
+			result = result + params[i];
+			if (i < (paramsNumb - 1)) result = result + "|";
+		}
+		result = result + ") {" + code->deParse() + "} ";
+		return result; };
     }; 
     
     class CallProcNode : public QueryNode
@@ -1299,7 +1440,15 @@ lastOpenSect = 0; }
 	}
 	
 	virtual ~CallProcNode() {}
-    
+	
+    	virtual string deParse() { 
+		string result = " " + name + "("; 
+		for (unsigned int i = 0; i < partsNumb; i++) {
+			result = result + queries[i]->deParse();
+			if (i < (partsNumb - 1)) result = result + "|";
+		}
+		result = result + ") ";
+		return result; };
     };
 
 }

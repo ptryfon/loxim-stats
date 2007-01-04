@@ -460,19 +460,12 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			*ec << "[QE] Type: TNPROC";
 			
 			string name = ((ProcedureNode *) tree)->getName();
-			string code = ((ProcedureNode *) tree)->getCode();
+			QueryNode* tmpQN = ((ProcedureNode *) tree)->getCode();
 			vector<string> params = ((ProcedureNode *) tree)->getParams();
 			unsigned int paramsNumb = ((ProcedureNode *) tree)->getParamsNumb();
 			
-			QueryParser* tmpQP = new QueryParser();
-			TreeNode* tmpTN;
-			errcode = tmpQP->parseIt(code, tmpTN);
-			if (errcode != 0) {
-				*ec << "[QE] TNPROC error while parsing procedure code";
-				return errcode;
-			}
-			delete tmpTN;
-			delete tmpQP;
+			string code = tmpQN->deParse();
+			delete tmpQN;
 			
 			QueryResult *strct = new QueryStructResult();
 			QueryResult *code_str = new QueryStringResult(code);
