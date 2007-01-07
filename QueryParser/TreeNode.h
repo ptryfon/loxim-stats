@@ -43,8 +43,8 @@ namespace QParser {
     public:
 	enum TreeNodeType { TNINT, TNSTRING, TNDOUBLE, TNVECTOR, TNNAME, 
 	    TNAS, TNUNOP, TNALGOP, TNNONALGOP, TNTRANS, TNCREATE, TNCOND, TNLINK, TNPARAM, TNFIX, 
-	    TNPROC, TNCALLPROC, TNRETURN, TNREGPROC, TNVALIDATION, TNCREATEUSER, TNREMOVEUSER, TNPRIVLIST, TNNAMELIST,
-	    TNGRANTPRIV, TNREVOKEPRIV, TNREMOTE};
+	    TNPROC, TNCALLPROC, TNRETURN, TNREGPROC, TNVIEW, TNREGVIEW, TNVALIDATION, TNCREATEUSER, 
+	    TNREMOVEUSER, TNPRIVLIST, TNNAMELIST, TNGRANTPRIV, TNREVOKEPRIV, TNREMOTE};
 	TreeNode() : parent(NULL) {this->needed = false;}
 	TreeNode* getParent() { return parent; }
 	void setParent(TreeNode* _parent) { parent = _parent; }
@@ -1097,7 +1097,7 @@ lastOpenSect = 0; }
 	    return 0;
 	}
 	
-	virtual ~CondNode() {if (larg != NULL) delete larg; if (rarg != NULL) delete rarg; }
+	virtual ~CondNode() {if (larg != NULL) delete larg; if (rarg != NULL) delete rarg; if (condition != NULL) delete condition; }
 	
 	virtual string deParse() { 
 		string result = ""; 
@@ -1240,7 +1240,11 @@ lastOpenSect = 0; }
 	    return 0;
 	}
 	
-	virtual ~FixPointNode() {}
+	virtual ~FixPointNode() { 
+		for (unsigned int i=0; i < queries.size(); i++) {
+			if (queries[i] != NULL) delete queries[i]; } 
+		queries.clear(); 
+	}
     
 	virtual string deParse() { 
 		string result = " fixpoint ( "; 
@@ -1317,6 +1321,39 @@ lastOpenSect = 0; }
       virtual string deParse() { string result; result = " create" + query->deParse(); return result; };
     };
     
+    class RegisterViewNode : public QueryNode
+    {
+    protected:
+	QueryNode* query;
+    public:
+	RegisterViewNode(QueryNode *q) {this->query = q; }
+	
+	virtual TreeNode* clone();
+	virtual int type() {return TreeNode::TNREGVIEW;}
+	virtual QueryNode *getQuery() {return this->query;}
+	virtual int putToString() {
+	    cout << " RegisterView < ";
+	    if (query != NULL) query->putToString();
+	    else cout << "_no_query_";
+	    cout << ">";
+	    return 0;
+	}
+	
+	virtual ~RegisterViewNode() {if (query != NULL) delete query;} 
+      virtual string toString( int level = 0, bool recursive = false, string name = "" ) {
+        string result = getPrefixForLevel( level, name ) + "[RegisterView]\n";
+
+        if( recursive ) {
+          if( query )
+            result += query->toString( level+1, true, "query" );
+        }
+
+        return result;
+      }
+      
+      virtual string deParse() { string result; result = " create" + query->deParse(); return result; };
+    };
+    
     class ProcedureNode : public QueryNode
     {
     protected:
@@ -1345,9 +1382,10 @@ lastOpenSect = 0; }
 	
 	virtual TreeNode* clone();
 	virtual int type() {return TreeNode::TNPROC;}
-	virtual ~ProcedureNode() {} 
+	virtual ~ProcedureNode() {if (code != NULL) delete code; } 
 	
 	virtual void addContent(string n, QueryNode* c) {name = n; code = c;}
+	virtual void addParam(string p) { params.push_back(p); paramsNumb++; }
 	virtual string getName() { return name; }
 	virtual QueryNode* getCode() { return code; }
 	virtual vector<string> getParams() { return params; }
@@ -1439,7 +1477,11 @@ lastOpenSect = 0; }
 	    return 0;
 	}
 	
-	virtual ~CallProcNode() {}
+	virtual ~CallProcNode() {
+		for (unsigned int i=0; i < queries.size(); i++) {
+			if (queries[i] != NULL) delete queries[i]; }
+		queries.clear();
+	}
 	
     	virtual string deParse() { 
 		string result = " " + name + "("; 
@@ -1450,6 +1492,77 @@ lastOpenSect = 0; }
 		result = result + ") ";
 		return result; };
     };
+
+class ViewNode : public QueryNode
+    {
+    protected:
+	string name;
+	vector<QueryNode*> procedures;
+	vector<QueryNode*> subviews;
+    public:
+	ViewNode(ViewNode *v) { subviews.push_back(v); }
+	ViewNode(ProcedureNode *p) { procedures.push_back(p); }
+	ViewNode(string n) { name = n; }
+	
+	virtual TreeNode* clone();
+	virtual int type() {return TreeNode::TNVIEW;}
+	virtual ~ViewNode() {
+		for (unsigned int i=0; i < procedures.size(); i++) {
+			if (procedures[i] != NULL) delete procedures[i]; }
+		procedures.clear();
+		for (unsigned int i=0; i < subviews.size(); i++) {
+			if (subviews[i] != NULL) delete subviews[i]; }
+		subviews.clear();
+	} 
+      
+	virtual void setName(string n) { name = n; } 
+	virtual void addContent(ViewNode *v) {
+		for (unsigned int i=0; i < v->procedures.size(); i++) {
+			procedures.push_back(v->procedures[i]);
+		}
+		for (unsigned int i=0; i < v->subviews.size(); i++) {
+			subviews.push_back(v->subviews[i]);
+		}
+	}
+	virtual vector<QueryNode*> getProcedures() { return this->procedures; }
+	virtual vector<QueryNode*> getSubviews() { return this->subviews; }
+	virtual string getName() { return name; }
+      
+      	virtual string toString( int level = 0, bool recursive = false, string _name = "" ) {
+        	string result = getPrefixForLevel( level, _name ) + "View name - " + name + "\n";
+		for (unsigned int i=0; i < procedures.size(); i++) {
+			result = result + (procedures[i])->toString( level+1, true, "query" );
+		}
+		for (unsigned int i=0; i < subviews.size(); i++) {
+			result = result + (subviews[i])->toString( level+1, true, "query" );
+		}
+        	return result;
+      	}
+	
+	virtual int putToString() {
+	    cout << "View name - " << name << endl;
+	    for (unsigned int i=0; i < procedures.size(); i++) {
+		procedures.at(i)->putToString();
+	    }
+	    for (unsigned int i=0; i < subviews.size(); i++) {
+		subviews.at(i)->putToString();
+	    }
+	    return 0;
+	}
+	
+	virtual string deParse() { 
+		string result = " view " + name + " {";
+		for (unsigned int i=0; i < procedures.size(); i++) {
+			result = result + procedures[i]->deParse();
+		}
+		for (unsigned int i=0; i < subviews.size(); i++) {
+			result = result + subviews[i]->deParse();
+		}
+		result = result + "} ";
+		return result; };
+    }; 
+
+
 
 }
     

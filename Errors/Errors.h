@@ -64,33 +64,34 @@ namespace Errors {
 #define EQEUnexpectedErr	0x1400
 #define EEvalStopped		0x1500
 #define EProcNotSingle		0x1600
+#define EBadViewDef		0x1700
 
 // Config
-#define ENotInit		0x1700
-#define ENoValue		0x1800
-#define EBadValue		0x1900
+#define ENotInit		0x1800
+#define ENoValue		0x1900
+#define EBadValue		0x1A00
 
 // Server
-#define EReceive		0x1A00
-#define EParse			0x1B00
-#define EExecute		0x1C00
-#define ESerialize		0x1D00
-#define ESend			0x1E00
-#define EBadResult		0x1F00
-#define EClientLost		0x2000
+#define EReceive		0x1B00
+#define EParse			0x1C00
+#define EExecute		0x1D00
+#define ESerialize		0x1E00
+#define ESend			0x1F00
+#define EBadResult		0x2000
+#define EClientLost		0x2100
 
 // Transaction
-#define EDeadlock		0x2100
-#define ESemaphoreInit		0x2200
-#define EUpgradeLock		0x2300
-#define EMutexInit		0x2400
+#define EDeadlock		0x2200
+#define ESemaphoreInit		0x2300
+#define EUpgradeLock		0x2400
+#define EMutexInit		0x2500
 
 // plug for h_errno from gethostbyname(3)
-#define ENoHost			0x2500
-#define EUnknownPackage		0x2600
+#define ENoHost			0x2600
+#define EUnknownPackage		0x2700
 
 // stopper
-#define EUnknown		0x2700
+#define EUnknown		0x2800
 
 string *SBQLstrerror(int error);
 }

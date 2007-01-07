@@ -506,7 +506,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			if (errcode != 0) return errcode;
 			
 			if (execution_result->type() != QueryResult::QREFERENCE) {
-				*ec << "[QE] TNREGISTER error - execution result is not QueryReference";
+				*ec << "[QE] TNREGPROC error - execution result is not QueryReference";
 				*ec << (ErrQExecutor | ERefExpected);
 				return ErrQExecutor | ERefExpected;
 			}
@@ -514,7 +514,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			ObjectPointer *optr;
 			errcode = tr->getObjectPointer (((QueryReferenceResult*)execution_result)->getValue(), Store::Read, optr);
 			if (errcode != 0) {
-				*ec << "[QE] register operation - Error in getObjectPointer.";
+				*ec << "[QE] register proc operation - Error in getObjectPointer.";
 				antyStarveFunction(errcode);
 				inTransaction = false;
 				return errcode;
@@ -532,7 +532,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			if (errcode != 0) return errcode;
 			
 			return 0;
-		}//case TNREGISTER
+		}//case TNREGPROC
 
 		case TreeNode::TNCALLPROC: {
 			*ec << "[QE] Type: TNCALLPROC";
@@ -599,6 +599,149 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			*ec << "[QE] Type: TNRETURN (done)";
 			return EEvalStopped;
 		}//case TNRETURN
+		
+		case TreeNode::TNREGVIEW: {
+			*ec << "[QE] Type: TNREGVIEW";
+			QueryNode *query = ((RegisterViewNode *) tree)->getQuery();
+			if(query != NULL) {
+				errcode = executeRecQuery(query);
+				if(errcode != 0) return errcode;
+			}
+			else qres->push(new QueryNothingResult());
+			
+			QueryResult *execution_result;
+			errcode = qres->pop(execution_result);
+			if (errcode != 0) return errcode;
+			
+			if (execution_result->type() != QueryResult::QREFERENCE) {
+				*ec << "[QE] TNREGVIEW error - execution result is not QueryReference";
+				*ec << (ErrQExecutor | ERefExpected);
+				return ErrQExecutor | ERefExpected;
+			}
+			
+			ObjectPointer *optr;
+			errcode = tr->getObjectPointer (((QueryReferenceResult*)execution_result)->getValue(), Store::Read, optr);
+			if (errcode != 0) {
+				*ec << "[QE] register view operation - Error in getObjectPointer.";
+				antyStarveFunction(errcode);
+				inTransaction = false;
+				return errcode;
+			}
+			
+			errcode = tr->addRoot(optr);
+			if (errcode != 0) { 
+				*ec << "[QE] Error in addRoot";
+				antyStarveFunction(errcode);
+				inTransaction = false;
+				return errcode;
+			}
+			
+			
+			//========================================//
+			// TODO register virtual objects as roots //
+			//========================================//
+			
+			
+			errcode = qres->push(execution_result);
+			if (errcode != 0) return errcode;
+			
+			return 0;
+		}//case TNREGVIEW
+		
+		case TreeNode::TNVIEW: {
+			*ec << "[QE] Type: TNCREATE";
+			
+			string name = ((ViewNode *) tree)->getName();
+			vector<QueryNode*> procs = ((ViewNode *) tree)->getProcedures();
+			unsigned int procs_num = procs.size();
+			vector<QueryNode*> views = ((ViewNode *) tree)->getSubviews();
+			unsigned int views_num = views.size();
+			
+			int virtobj_num = 0;
+			int on_upd_num = 0;
+			int on_cre_num = 0;
+			int on_del_num = 0;
+			int on_ret_num = 0;
+			
+			vector<LogicalID *> vec_lid;
+			string virt_obj_name;
+			
+			for (unsigned int i = 0; i < procs_num; i++) {
+				if(procs[i] != NULL) {
+					errcode = executeRecQuery(procs[i]);
+					if(errcode != 0) return errcode;
+				}
+				else qres->push(new QueryNothingResult());
+			
+				QueryResult *execution_result;
+				errcode = qres->pop(execution_result);
+				if (errcode != 0) return errcode;
+			
+				if (execution_result->type() != QueryResult::QREFERENCE) {
+					*ec << "[QE] TNVIEW error - execution result is not QueryReference";
+					*ec << (ErrQExecutor | ERefExpected);
+					return ErrQExecutor | ERefExpected;
+				}
+				LogicalID* lid = ((QueryReferenceResult*)execution_result)->getValue();
+				ObjectPointer *optr;
+				errcode = tr->getObjectPointer (lid, Store::Read, optr);
+				if (errcode != 0) {
+					*ec << "[QE] view creating operation - Error in getObjectPointer.";
+					antyStarveFunction(errcode);
+					inTransaction = false;
+					return errcode;
+				}
+				string optr_name = optr->getName();
+				if (optr_name == "on_update") on_upd_num++;
+				else if (optr_name == "on_create") on_cre_num++;
+				else if (optr_name == "on_delete") on_del_num++;
+				else if (optr_name == "on_retrieve") on_ret_num++;
+				else { virtobj_num++; virt_obj_name = optr_name; }
+				
+				vec_lid.push_back(lid);
+			}
+			
+			if (virtobj_num != 1) {
+				*ec << "[QE] TNVIEW error - there should be exactly one procedure defining virtual objects";
+				*ec << (ErrQExecutor | EBadViewDef);
+				return ErrQExecutor | EBadViewDef;
+			}
+			if ((on_upd_num > 1) || (on_cre_num > 1) || (on_del_num > 1) || (on_ret_num > 1)) {
+				*ec << "[QE] TNVIEW error - multiple \'on_\' procedure definition found";
+				*ec << (ErrQExecutor | EBadViewDef);
+				return ErrQExecutor | EBadViewDef;
+			}
+			
+			for (unsigned int i = 0; i < views_num; i++) {
+				if(views[i] != NULL) {
+					errcode = executeRecQuery(views[i]);
+					if(errcode != 0) return errcode;
+				}
+				else qres->push(new QueryNothingResult());
+			
+				QueryResult *execution_result;
+				errcode = qres->pop(execution_result);
+				if (errcode != 0) return errcode;
+			
+				if (execution_result->type() != QueryResult::QREFERENCE) {
+					*ec << "[QE] TNVIEW error - execution result is not QueryReference";
+					*ec << (ErrQExecutor | ERefExpected);
+					return ErrQExecutor | ERefExpected;
+				}
+				LogicalID* lid = ((QueryReferenceResult*)execution_result)->getValue();
+				
+				vec_lid.push_back(lid);
+			}
+			
+			//=========================================//
+			// TODO create complex object to be a view //
+			//=========================================//
+			
+			errcode = qres->push(new QueryNothingResult());
+			if (errcode != 0) return errcode;
+			
+			return 0;
+		}
 		
 		case TreeNode::TNCREATE: {
 			*ec << "[QE] Type: TNCREATE";
@@ -675,14 +818,6 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			ec->printf("[QE] QueryDoubleResult (%f) created\n", doubleValue);
 			return 0;
 		} //case TNDOUBLE
-
-		case TreeNode::TNVECTOR: {
-			*ec << "[QE] tree - Vector: not implemented, don't know what to do";
-			errcode = qres->push(new QueryNothingResult());
-			if (errcode != 0) return errcode;
-			*ec << "[QE] QueryNothingResult created";
-			return 0;
-		} //case TNVECTOR
 
 		case TreeNode::TNAS: {
 			*ec << "[QE] AS/GROUP_AS operation recognized";

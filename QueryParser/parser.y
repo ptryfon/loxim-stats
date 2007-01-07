@@ -19,14 +19,15 @@
   QParser::FixPointNode* fxtree;
   QParser::CallProcNode* calltree;
   QParser::ProcedureNode* proctree;
+  QParser::ViewNode* viewtree;
   QParser::Privilige *privilige;
   QParser::PriviligeListNode *priv_list;
   QParser::NameListNode *name_list;
 }
 
 %token	<num> INTEGER
-%token	<dbl> DOUBLE 
-%token	<str> PARAMNAME NAME STRING SEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT DEREF REF BEGINTR END ABORT CREATE IF FI DO OD ELSE WHILE LINK FOREACH THEN FIX_OP FIXPOINT RETURN VERTICAL VALIDATE READ MODIFY DELETE PASSWD WITH REVOKE REMOVE TO USER FROM ON GRANT OPTION PROCEDURE LEFTPROCPAR RIGHTPROCPAR
+%token	<dbl> DOUBLE
+%token	<str> PARAMNAME NAME STRING SEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT DEREF REF BEGINTR END ABORT CREATE IF FI DO OD ELSE WHILE LINK FOREACH THEN FIX_OP FIXPOINT RETURN VERTICAL VALIDATE READ MODIFY DELETE PASSWD WITH REVOKE REMOVE TO USER FROM ON GRANT OPTION PROCEDURE LEFTPROCPAR RIGHTPROCPAR VIEW ONRETRIEVE ONUPDATE ONCREATE ONDELETE
 
 %start statement
 
@@ -61,6 +62,10 @@
 %type <qtree> query
 %type <proctree> procquery
 %type <proctree> formparams
+%type <viewtree> viewquery
+%type <viewtree> viewrecdef
+%type <viewtree> viewdef
+%type <proctree> viewproc
 %type <fxtree> querylist
 %type <calltree> paramslist
 %%
@@ -124,6 +129,7 @@ query	    : NAME { char *s = $1; $$ = new NameNode(s); delete s; }
 	    | DELETE query  { $$ = new UnOpNode($2,UnOpNode::deleteOp); }
 	    | query ASSIGN query { $$ = new AlgOpNode($1,$3,AlgOpNode::assign); }
 	    | query ASSIGN procquery { $$ = new AlgOpNode($1,$3,AlgOpNode::assign); }
+	    | query ASSIGN viewquery { $$ = new AlgOpNode($1,$3,AlgOpNode::assign); }
 	    | IF query THEN query ELSE query FI { $$ = new CondNode($2, $4, $6,CondNode::ifElsee); }
 	    | IF query THEN query FI { $$ = new CondNode($2, $4, CondNode::iff); }
 	    | WHILE query DO query OD { $$ = new CondNode($2, $4, CondNode::whilee); }
@@ -133,27 +139,52 @@ query	    : NAME { char *s = $1; $$ = new NameNode(s); delete s; }
 	    | FIXPOINT LEFTPAR querylist RIGHTPAR { $$ = $3; }
 	    | RETURN query {$$ = new ReturnNode ($2); }
 	    | CREATE procquery {$$ = new RegisterProcNode ($2);}
+	    | CREATE viewquery {$$ = new RegisterViewNode ($2);}
 	    | NAME LEFTPAR RIGHTPAR {$$ = new CallProcNode ($1);}
 	    | NAME LEFTPAR paramslist RIGHTPAR {$3->setName($1); $$ = $3; }
 	    ;
-	   
+
+querylist   : NAME FIX_OP query { $$ = new FixPointNode ($1, $3); }
+	    | querylist NAME FIX_OP query {$$ = new FixPointNode ($2, $4, $1); }
+	    ;
+
+paramslist  : query { $$ = new CallProcNode ($1); }
+	    | paramslist VERTICAL query {$$ = new CallProcNode ($3, $1); }
+	    ;
+
 procquery   : PROCEDURE NAME LEFTPAR formparams RIGHTPAR LEFTPROCPAR query RIGHTPROCPAR {
 		char *n = $2; $4->addContent(n, $7); $$ = $4; delete n; }
 	    | PROCEDURE NAME LEFTPAR RIGHTPAR LEFTPROCPAR query RIGHTPROCPAR {
 		char *n = $2; $$ = new ProcedureNode(); $$->addContent(n, $6); delete n; }
             ;
-	    
-querylist   : NAME FIX_OP query { $$ = new FixPointNode ($1, $3); }
-	    | querylist NAME FIX_OP query {$$ = new FixPointNode ($2, $4, $1); }
-	    ;
 
 formparams  : NAME {char *s = $1; $$ = new ProcedureNode (s); delete s;}
 	    | formparams VERTICAL NAME {char *s = $3; $$ = new ProcedureNode (s, $1); delete s;}
-	    ;    
-
-paramslist  : query { $$ = new CallProcNode ($1); }
-	    | paramslist VERTICAL query {$$ = new CallProcNode ($3, $1); }
 	    ;
+
+viewquery   : VIEW NAME LEFTPROCPAR viewrecdef RIGHTPROCPAR {
+		char *n = $2; $4->setName(n); $$ = $4; delete n; }
+            ;
+
+viewrecdef  : viewdef		 { $$ = $1; }
+            | viewrecdef viewdef { $1->addContent($2); }
+            ;
+
+viewdef     : viewproc	{ $$ = new ViewNode($1); }
+            | viewquery	{ $$ = new ViewNode($1); }
+            ;
+
+viewproc    : PROCEDURE NAME LEFTPAR RIGHTPAR LEFTPROCPAR query RIGHTPROCPAR {
+		$$ = new ProcedureNode(); char *n = $2; $$->addContent(n, $6); delete n; }
+            | PROCEDURE ONUPDATE LEFTPAR NAME RIGHTPAR LEFTPROCPAR query RIGHTPROCPAR {
+		$$ = new ProcedureNode(); char *p = $4; $$->addContent("on_update", $7); $$->addParam(p); delete p; }
+            | PROCEDURE ONCREATE LEFTPAR NAME RIGHTPAR LEFTPROCPAR query RIGHTPROCPAR {
+		$$ = new ProcedureNode(); char *p = $4; $$->addContent("on_create", $7); $$->addParam(p); delete p; }
+            | PROCEDURE ONDELETE LEFTPAR RIGHTPAR LEFTPROCPAR query RIGHTPROCPAR {
+		$$ = new ProcedureNode(); $$->addContent("on_delete", $6); }
+            | PROCEDURE ONRETRIEVE LEFTPAR RIGHTPAR LEFTPROCPAR query RIGHTPROCPAR {
+		$$ = new ProcedureNode(); $$->addContent("on_retrieve", $6); }
+            ;
 
 validate_stmt: VALIDATE NAME NAME  { $$ = new ValidationNode($2, $3); }
 	    ;

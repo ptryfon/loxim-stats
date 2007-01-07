@@ -35,6 +35,7 @@ struct {
 	{EQEUnexpectedErr, "Unexpected QE Error"},
 	{EEvalStopped,     "Query evaluation stopped by Server"},
 	{EProcNotSingle,   "Not one Procedure with this signature"},
+	{EBadViewDef,      "Error in View definition"},
 // Config
 	{ENotInit,         "ENotInit"},
 	{ENoValue,         "ENoValue"},
