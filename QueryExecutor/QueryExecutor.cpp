@@ -301,12 +301,8 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			
 			if (errcode == 0) errcode = qres->pop(*result);
 			
-			*ec << " ************************************************************************** ";
-			
-			int ile = QueryResult::zwrocLicznik();
-			ec->printf(" QueryResults in use: %d\n", ile);
-			
-			*ec << " ************************************************************************** ";
+			int howMany = QueryResult::getCount();
+			ec->printf(" QueryResults in use: %d\n", howMany);
 			
 			if (errcode != 0) return errcode;
 			*ec << "[QE] Done!";
@@ -651,7 +647,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		case TreeNode::TNVIEW: {
 			*ec << "[QE] Type: TNCREATE";
 			
-			string name = ((ViewNode *) tree)->getName();
+			string view_name = ((ViewNode *) tree)->getName();
 			vector<QueryNode*> procs = ((ViewNode *) tree)->getProcedures();
 			unsigned int procs_num = procs.size();
 			vector<QueryNode*> views = ((ViewNode *) tree)->getSubviews();
@@ -733,11 +729,31 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				vec_lid.push_back(lid);
 			}
 			
-			//=========================================//
-			// TODO create complex object to be a view //
-			//=========================================//
+			QueryResult *tmp_bndr =new QueryBinderResult("virtual_objects", new QueryStringResult(virt_obj_name));
 			
-			errcode = qres->push(new QueryNothingResult());
+			ObjectPointer *tmp_optr;
+			errcode = objectFromBinder(tmp_bndr, tmp_optr);
+			if (errcode != 0) return errcode;
+			
+			LogicalID *virtObjLid = tmp_optr->getLogicalID();
+			vec_lid.push_back(virtObjLid);
+			
+			DBDataValue *dbValue = new DBDataValue();
+			dbValue->setVector(&vec_lid);
+			DataValue* value = dbValue;
+			
+			ObjectPointer *newObject;
+			if ((errcode = tr->createObject(view_name, value, newObject)) != 0) {
+				*ec << "[QE] Error in createObject";
+				antyStarveFunction(errcode);
+				inTransaction = false;
+				return errcode;
+			}
+			
+			newObject->getValue()->setSubtype(Store::View);
+			QueryResult *lidres = new QueryReferenceResult(newObject->getLogicalID());
+			
+			errcode = qres->push(lidres);
 			if (errcode != 0) return errcode;
 			
 			return 0;

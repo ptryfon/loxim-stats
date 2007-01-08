@@ -26,20 +26,20 @@ namespace QExecutor {
 	class QueryExecutor;
 
 
-template<typename T> class Zliczalna {
+template<typename T> class Countable {
 protected:
-	static int licznik;
+	static int count;
 public:
-	Zliczalna() { licznik++; };
-	Zliczalna(const Zliczalna &) { licznik++;  };
+	Countable() { count++; };
+	Countable(const Countable &) { count++;  };
 
-	virtual ~Zliczalna() { licznik--; };
-	static int zwrocLicznik()  { return licznik; } 
+	virtual ~Countable() { count--; };
+	static int getCount()  { return count; } 
 };
 
-template<typename T> int Zliczalna<T>::licznik = 0;
+template<typename T> int Countable<T>::count = 0;
 
-class QueryResult : public Zliczalna<QueryResult>
+class QueryResult : public Countable<QueryResult>
 {
 protected:
 	ErrorConsole *ec;
