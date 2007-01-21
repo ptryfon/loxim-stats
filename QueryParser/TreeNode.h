@@ -713,12 +713,62 @@ namespace QParser {
 	};
     };  
 
+  class VectorNode : public QueryNode
+    {
+    protected:	
+	vector<QueryNode*> queries;
+    public:
+	VectorNode (QueryNode* singleQuery, VectorNode *tail) {
+	    queries = tail->getQueries();
+	    queries.push_back(singleQuery);
+	    //delete tail;
+	}
+	VectorNode (QueryNode* singleQuery) {
+	    queries.push_back(singleQuery);
+	}
+	VectorNode () {};
+
+	virtual TreeNode* clone();
+	virtual int type() {return TreeNode::TNVECTOR;};
+	virtual vector<QueryNode*> getQueries() {return this->queries;}
+	virtual QueryNode* getQuery(int i) {return this->queries.at(i);}
+	virtual void setQueries(vector<QueryNode*> q) {queries = q;}
+	virtual unsigned int howManyParts() { return queries.size(); }
+	
+	virtual ~VectorNode() {
+		for (unsigned int i=0; i < queries.size(); i++) {
+			if (queries[i] != NULL) delete queries[i]; }
+		queries.clear();
+	}
+	virtual string toString( int level = 0, bool recursive = false, string _name = "" ) {
+        	string result = "";
+        	return result;
+      	}
+	
+	virtual int putToString() { return 0; }	
+	virtual string deParse() {
+		string result = "";
+        	return result;
+	}
+    };
+
 // query := query InfixAlgOp query
     class AlgOpNode : public TwoArgsNode 
     {
     public:
 	enum algOp { bagUnion, bagIntersect, bagMinus, plus, minus, times, divide,
    	         eq, refeq, neq, lt, gt, le, ge, boolAnd, boolOr, comma, insert, insertInto, assign, semicolon }; 
+   	static QueryNode* newNode(VectorNode* vec, algOp _op) {
+        	vector<QueryNode*> q = vec->getQueries();
+        	unsigned int q_size = q.size();
+        	if (q_size == 0) return NULL;
+        	QueryNode* last_node = q[q_size - 1];
+        	for (int i = (q_size - 2); i >= 0; i--) {
+        		QueryNode* tmp_node = new AlgOpNode(q[i], last_node, _op);
+        		last_node = tmp_node;
+        	}
+        	return last_node;
+        }
     protected:
 	QueryNode* larg;
 	QueryNode* rarg;
@@ -1413,7 +1463,7 @@ lastOpenSect = 0; }
 		string result = " procedure " + name + "("; 
 		for (unsigned int i = 0; i < paramsNumb; i++) {
 			result = result + params[i];
-			if (i < (paramsNumb - 1)) result = result + "|";
+			if (i < (paramsNumb - 1)) result = result + ",";
 		}
 		result = result + ") {" + code->deParse() + "} ";
 		return result; };
@@ -1430,15 +1480,11 @@ lastOpenSect = 0; }
 	    name = singleName;
 	    partsNumb = 0;
 	}
-	CallProcNode (QueryNode* singleQuery, CallProcNode *tail) {
-	    queries = tail->getQueries();
-	    queries.push_back(singleQuery);
-	    partsNumb = 1 + tail->howManyParts();
-	    //delete tail;
-	}
-	CallProcNode (QueryNode* singleQuery) {
-	    queries.push_back(singleQuery);
-	    partsNumb = 1;
+	CallProcNode (string singleName, VectorNode *vec) {
+	    queries = vec->getQueries();
+	    name = singleName;
+	    partsNumb = vec->howManyParts();
+	    //delete vec;
 	}
 
       virtual string toString( int level = 0, bool recursive = false, string _name = "" ) {
@@ -1468,12 +1514,12 @@ lastOpenSect = 0; }
 	virtual void setName(string n) {name = n;}
 	virtual void setPartsNumb(int n) {partsNumb = n;}
 	virtual int putToString() {
-	    cout << " CallProc " << name << " {";
+	    cout << " CallProc " << name << " (";
 	    for (unsigned int i = 0; i < partsNumb; i++) {
 		queries.at(i)->putToString();
-		if (i < (partsNumb - 1)) cout << " | ";
+		if (i < (partsNumb - 1)) cout << " , ";
 	    }
-	    cout << "} ";
+	    cout << ") ";
 	    return 0;
 	}
 	
@@ -1487,7 +1533,7 @@ lastOpenSect = 0; }
 		string result = " " + name + "("; 
 		for (unsigned int i = 0; i < partsNumb; i++) {
 			result = result + queries[i]->deParse();
-			if (i < (partsNumb - 1)) result = result + "|";
+			if (i < (partsNumb - 1)) result = result + ",";
 		}
 		result = result + ") ";
 		return result; };
@@ -1561,7 +1607,6 @@ class ViewNode : public QueryNode
 		result = result + "} ";
 		return result; };
     }; 
-
 
 
 }

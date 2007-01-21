@@ -17,7 +17,7 @@
   QParser::TreeNode* tree;
   QParser::QueryNode* qtree;
   QParser::FixPointNode* fxtree;
-  QParser::CallProcNode* calltree;
+  QParser::VectorNode* vectree;
   QParser::ProcedureNode* proctree;
   QParser::ViewNode* viewtree;
   QParser::Privilige *privilige;
@@ -27,7 +27,7 @@
 
 %token	<num> INTEGER
 %token	<dbl> DOUBLE
-%token	<str> PARAMNAME NAME STRING SEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT DEREF REF BEGINTR END ABORT CREATE IF FI DO OD ELSE WHILE LINK FOREACH THEN FIX_OP FIXPOINT RETURN VERTICAL VALIDATE READ MODIFY DELETE PASSWD WITH REVOKE REMOVE TO USER FROM ON GRANT OPTION PROCEDURE LEFTPROCPAR RIGHTPROCPAR VIEW ONRETRIEVE ONUPDATE ONCREATE ONDELETE
+%token	<str> PARAMNAME NAME STRING SEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT DEREF REF BEGINTR END ABORT CREATE IF FI DO OD ELSE WHILE LINK FOREACH THEN FIX_OP FIXPOINT RETURN VALIDATE READ MODIFY DELETE PASSWD WITH REVOKE REMOVE TO USER FROM ON GRANT OPTION PROCEDURE LEFTPROCPAR RIGHTPROCPAR VIEW ONRETRIEVE ONUPDATE ONCREATE ONDELETE
 
 %start statement
 
@@ -66,8 +66,8 @@
 %type <viewtree> viewrecdef
 %type <viewtree> viewdef
 %type <proctree> viewproc
-%type <fxtree> querylist
-%type <calltree> paramslist
+%type <fxtree> queryfixlist
+%type <vectree> querycommalist
 %%
 
 statement   : query semicolon_opt { d=$1; }
@@ -84,7 +84,6 @@ query	    : NAME { char *s = $1; $$ = new NameNode(s); delete s; }
             | INTEGER { $$ = new IntNode($1); }
             | STRING { char *s = $1; $$ = new StringNode(s); delete s; }
 	    | DOUBLE { $$ = new DoubleNode($1); }
-            | LEFTPAR query RIGHTPAR { $$ = $2; }
             | query AS NAME { $$ = new NameAsNode($1,$3,false); }
 	    | query GROUP_AS NAME { $$ = new NameAsNode($1,$3,true); }
             | COUNT LEFTPAR  query RIGHTPAR { $$ = new UnOpNode($3,UnOpNode::count); }
@@ -100,7 +99,7 @@ query	    : NAME { char *s = $1; $$ = new NameNode(s); delete s; }
             | query UNION query { $$ = new AlgOpNode($1,$3,AlgOpNode::bagUnion); }
             | query INTERSECT query { $$ = new AlgOpNode($1,$3,AlgOpNode::bagIntersect); }
             | query EXCEPT query  { $$ = new AlgOpNode($1,$3,AlgOpNode::bagMinus); }
-	    | query COMMA query { $$ = new AlgOpNode($1,$3,AlgOpNode::comma); } 
+	    | LEFTPAR querycommalist RIGHTPAR { $$ = AlgOpNode::newNode($2, AlgOpNode::comma); } 
 	    | query PLUS query { $$ = new AlgOpNode($1,$3,AlgOpNode::plus); }
             | query MINUS query { $$ = new AlgOpNode($1,$3,AlgOpNode::minus); }
 	    | query TIMES query { $$ = new AlgOpNode($1,$3,AlgOpNode::times); }
@@ -136,20 +135,20 @@ query	    : NAME { char *s = $1; $$ = new NameNode(s); delete s; }
 	    | FOREACH query DO query OD { $$ = new NonAlgOpNode($2, $4, NonAlgOpNode::forEach); }
 	    | LINK STRING STRING INTEGER { $$ = new LinkNode($2, $3, $4); }
 	    | query SEMICOLON query { $$ = new AlgOpNode ($1, $3, AlgOpNode::semicolon); }
-	    | FIXPOINT LEFTPAR querylist RIGHTPAR { $$ = $3; }
+	    | FIXPOINT LEFTPAR queryfixlist RIGHTPAR { $$ = $3; }
 	    | RETURN query {$$ = new ReturnNode ($2); }
 	    | CREATE procquery {$$ = new RegisterProcNode ($2);}
 	    | CREATE viewquery {$$ = new RegisterViewNode ($2);}
 	    | NAME LEFTPAR RIGHTPAR {$$ = new CallProcNode ($1);}
-	    | NAME LEFTPAR paramslist RIGHTPAR {$3->setName($1); $$ = $3; }
+	    | NAME LEFTPAR querycommalist RIGHTPAR {$$ = new CallProcNode ($1, $3);}
 	    ;
 
-querylist   : NAME FIX_OP query { $$ = new FixPointNode ($1, $3); }
-	    | querylist NAME FIX_OP query {$$ = new FixPointNode ($2, $4, $1); }
+queryfixlist   : NAME FIX_OP query { $$ = new FixPointNode ($1, $3); }
+	    | queryfixlist NAME FIX_OP query {$$ = new FixPointNode ($2, $4, $1); }
 	    ;
 
-paramslist  : query { $$ = new CallProcNode ($1); }
-	    | paramslist VERTICAL query {$$ = new CallProcNode ($3, $1); }
+querycommalist  : query { $$ = new VectorNode ($1); }
+	    | querycommalist COMMA query {$$ = new VectorNode ($3, $1); }
 	    ;
 
 procquery   : PROCEDURE NAME LEFTPAR formparams RIGHTPAR LEFTPROCPAR query RIGHTPROCPAR {
@@ -159,7 +158,7 @@ procquery   : PROCEDURE NAME LEFTPAR formparams RIGHTPAR LEFTPROCPAR query RIGHT
             ;
 
 formparams  : NAME {char *s = $1; $$ = new ProcedureNode (s); delete s;}
-	    | formparams VERTICAL NAME {char *s = $3; $$ = new ProcedureNode (s, $1); delete s;}
+	    | formparams COMMA NAME {char *s = $3; $$ = new ProcedureNode (s, $1); delete s;}
 	    ;
 
 viewquery   : VIEW NAME LEFTPROCPAR viewrecdef RIGHTPROCPAR {

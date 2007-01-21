@@ -1691,7 +1691,7 @@ int QueryBagResult::sortBag(QueryBagResult *&outBag) {
 			outBag->addResult(first);
 		}
 	}
-	else { //this size = 2+
+	else if ((this->size()) > 2) {
 		QueryResult *firstHalf;
 		QueryResult *secondHalf;
 		errcode = this->divideBag(firstHalf, secondHalf);

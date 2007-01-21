@@ -33,7 +33,6 @@ extern int szbderrno;
 
 %}
 %%
-"|"                     return VERTICAL;
 "("			return LEFTPAR;
 ")"			return RIGHTPAR;
 ";"			return SEMICOLON;
@@ -121,8 +120,8 @@ $[_a-zA-Z][_a-zA-Z0-9]* yylval.str = new char[strlen(yytext) + 1]; yylval.str = 
 [0-9]+ 			yylval.num = atoi(yytext); return INTEGER;
 [0-9]+"."[0-9]+		yylval.dbl = atof(yytext); return DOUBLE;
 
-"{"	BEGIN(comment);
-<comment>"}" BEGIN(INITIAL);
+"/*"	BEGIN(comment);
+<comment>"*/" BEGIN(INITIAL);
 <comment>.|\n
 
 \"[^\"]*\"		yylval.str = new char[strlen(yytext)]; yylval.str = strncpy(yylval.str, &yytext[1], strlen(yytext)-2); yylval.str[strlen(yytext)-2]=0; return STRING;

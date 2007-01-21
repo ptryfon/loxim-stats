@@ -34,12 +34,12 @@ namespace QParser
 	FixPointNode *fn = new FixPointNode();
 	for (int i = 0; i < partsNumb; i++) {
 	    q.push_back((QueryNode*) queries.at(i)->clone());
-	    n.push_back(names.at(i));	    
+	    n.push_back(names.at(i));
 	} 
 	fn->setQueries(q);
 	fn->setNames(n);
 	fn->setPartsNumb(partsNumb);
-	return fn;    
+	return fn;
     }
 
     TreeNode* ReturnNode::clone() { return new ReturnNode((QueryNode*) query->clone()); }
@@ -55,6 +55,15 @@ namespace QParser
 	cpn->setQueries(q);
 	cpn->setPartsNumb(partsNumb);
 	return cpn;    
+    }
+    TreeNode* VectorNode::clone() {
+	vector<QueryNode*> q;
+	for (unsigned int i = 0; i < queries.size(); i++) {
+	    q.push_back((QueryNode*) queries.at(i)->clone());
+	}
+	VectorNode *vn = new VectorNode();
+	vn->setQueries(q);
+	return vn;
     }
     TreeNode* ViewNode::clone() {
     	ViewNode *vn = new ViewNode(name);
