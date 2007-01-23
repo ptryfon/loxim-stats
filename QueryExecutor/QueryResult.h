@@ -98,7 +98,6 @@ public:
 	virtual int getBoolValue(bool &b)=0;
 	virtual bool isReferenceValue()=0;
 	virtual int getReferenceValue(QueryResult *&r)=0;
-	virtual int comma(QueryResult *arg, QueryResult *&score)=0;
 	virtual bool sorting_less_eq(QueryResult *arg);
         virtual string toString( int level = 0, bool recursive = false, string name = "" ) { return ""; }
 };
@@ -140,7 +139,6 @@ public:
 	int getBoolValue(bool &b);
 	bool isReferenceValue();
 	int getReferenceValue(QueryResult *&r);
-	int comma(QueryResult *arg, QueryResult *&score);
 	int sortCollection(QueryResult *r);
 	int postSort(QueryResult *&f);
         virtual string toString( int level = 0, bool recursive = false, string name = "" ) {
@@ -192,7 +190,6 @@ public:
 	int getBoolValue(bool &b);
 	bool isReferenceValue();
 	int getReferenceValue(QueryResult *&r);
-	int comma(QueryResult *arg, QueryResult *&score);
 	int divideBag(QueryResult *&left, QueryResult *&right);
 	int sortBag(QueryBagResult *&outBag);
         virtual string toString( int level = 0, bool recursive = false, string name = "" ) {
@@ -248,7 +245,6 @@ public:
 	int getBoolValue(bool &b);
 	bool isReferenceValue();
 	int getReferenceValue(QueryResult *&r);
-	int comma(QueryResult *arg, QueryResult *&score);
         virtual string toString( int level = 0, bool recursive = false, string name = "" ) {
           string result = getPrefixForLevel( level, name ) + "[Struct]\n";
           
@@ -295,7 +291,6 @@ public:
 	int getBoolValue(bool &b);
 	bool isReferenceValue();
 	int getReferenceValue(QueryResult *&r);
-	int comma(QueryResult *arg, QueryResult *&score);
         virtual string toString( int level = 0, bool recursive = false, string n = "" ) {
           string result = getPrefixForLevel( level, n ) + "[Binder] name='" + name + "'\n";
           
@@ -336,7 +331,6 @@ public:
 	int getBoolValue(bool &b);
 	bool isReferenceValue();
 	int getReferenceValue(QueryResult *&r);
-	int comma(QueryResult *arg, QueryResult *&score);
         virtual string toString( int level = 0, bool recursive = false, string n = "" ) {
           return getPrefixForLevel( level, n ) + "[String] value='" + value + "'\n";
         }
@@ -375,7 +369,6 @@ public:
 	int getBoolValue(bool &b);
 	bool isReferenceValue();
 	int getReferenceValue(QueryResult *&r);
-	int comma(QueryResult *arg, QueryResult *&score);
         virtual string toString( int level = 0, bool recursive = false, string n = "" ) {
           stringstream c;
           string valueS;
@@ -418,7 +411,6 @@ public:
 	int getBoolValue(bool &b);
 	bool isReferenceValue();
 	int getReferenceValue(QueryResult *&r);
-	int comma(QueryResult *arg, QueryResult *&score);
         virtual string toString( int level = 0, bool recursive = false, string n = "" ) {
           stringstream c;
           string valueS;
@@ -458,7 +450,6 @@ public:
 	int getBoolValue(bool &b);
 	bool isReferenceValue();
 	int getReferenceValue(QueryResult *&r);
-	int comma(QueryResult *arg, QueryResult *&score);
         virtual string toString( int level = 0, bool recursive = false, string n = "" ) {
           return getPrefixForLevel( level, n ) + "[Bool] value=" + (value ? "true" : "false" ) + "\n";
         }
@@ -495,7 +486,6 @@ public:
 	int getBoolValue(bool &b);
 	bool isReferenceValue();
 	int getReferenceValue(QueryResult *&r);
-	int comma(QueryResult *arg, QueryResult *&score);
         virtual string toString( int level = 0, bool recursive = false, string n = "" ) {
           string valueS = value ? value->toString() : "<null>";
 
@@ -526,7 +516,6 @@ public:
 	int getBoolValue(bool &b);
 	bool isReferenceValue();
 	int getReferenceValue(QueryResult *&r);
-	int comma(QueryResult *arg, QueryResult *&score);
         virtual string toString( int level = 0, bool recursive = false, string n = "" ) {
           return getPrefixForLevel( level, n ) + "[Nothing]\n";
         }

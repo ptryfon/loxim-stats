@@ -2357,8 +2357,24 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 	else if (op == AlgOpNode::comma) {
 		*ec << "[QE] COMMA operation";
 		final = new QueryBagResult();
-		errcode = lArg->comma(rArg,final);
-		if (errcode != 0) return errcode;
+		QueryResult *lBag = new QueryBagResult();
+		lBag->addResult(lArg);
+		QueryResult *rBag = new QueryBagResult();
+		rBag->addResult(rArg);
+		QueryResult *lelem;
+		QueryResult *relem;
+		for (unsigned int i=0; i < lBag->size(); i++) {
+			errcode = ((QueryBagResult *)lBag)->at(i, lelem);
+			if (errcode != 0) return errcode;
+			for (unsigned int j=0; j < rBag->size(); j++) {
+				errcode = ((QueryBagResult *)rBag)->at(j, relem);
+				if (errcode != 0) return errcode;
+				QueryResult *act_struct = new QueryStructResult();
+				act_struct->addResult(lelem);
+				act_struct->addResult(relem);
+				final->addResult(act_struct);
+			}
+		}
 		return 0;
 	}
 	else if (op == AlgOpNode::semicolon) {
@@ -2626,8 +2642,24 @@ int QueryExecutor::combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryRe
 		}
 		case NonAlgOpNode::join: {
 			*ec << "[QE] combine(): NonAlgebraic operator <join>";
-			errcode = curr->comma(rRes,partial);
-			if (errcode != 0) return errcode;
+			QueryResult *lBag = new QueryBagResult();
+			lBag->addResult(curr);
+			QueryResult *rBag = new QueryBagResult();
+			rBag->addResult(rRes);
+			for (unsigned int i=0; i < lBag->size(); i++) {
+				QueryResult *lelem;
+				errcode = ((QueryBagResult *)lBag)->at(i, lelem);
+				if (errcode != 0) return errcode;
+				for (unsigned int j=0; j < rBag->size(); j++) {
+					QueryResult *relem;
+					errcode = ((QueryBagResult *)rBag)->at(j, relem);
+					if (errcode != 0) return errcode;
+					QueryResult *act_struct = new QueryStructResult();
+					act_struct->addResult(lelem);
+					act_struct->addResult(relem);
+					partial->addResult(act_struct);
+				}
+			}
 			break;
 		}
 		case NonAlgOpNode::where: {
