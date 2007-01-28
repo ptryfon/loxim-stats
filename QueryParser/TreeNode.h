@@ -626,7 +626,7 @@ namespace QParser {
     class UnOpNode : public QueryNode 
     {
     public:
-	enum unOp { unMinus, count, sum, avg, min, max, distinct, boolNot, deleteOp, deref, ref};
+	enum unOp { unMinus, count, sum, avg, min, max, distinct, boolNot, deleteOp, deref, ref, nameof};
     protected:
 	QueryNode* arg;
 	unOp op;
@@ -671,18 +671,22 @@ namespace QParser {
 	
 	virtual string opStr() {
 	    int op = this->getOp();
-	    if (op == 0) return "unMinus";
-	    if (op == 1) return "count";	    
-	    if (op == 2) return "sum";	    
-	    if (op == 3) return "avg";
-	    if (op == 4) return "min";
-	    if (op == 5) return "max";
-	    if (op == 6) return "distinct";
-	    if (op == 7) return "boolNot";	    
-	    if (op == 8) return "deleteOp";	    
-	    if (op == 9) return "deref";	    
-		if (op == 10) return "ref";
-	    return "~~~";
+	    switch (op) {
+	    	case 0:	return "unMinus";
+	    	case 1: return "count";
+	    	case 2: return "sum";
+	    	case 3: return "avg";
+	    	case 4: return "min";
+	    	case 5: return "max";
+	    	case 6: return "distinct";
+	    	case 7: return "boolNot";
+	    	case 8: return "deleteOp";
+	    	case 9: return "deref";
+	    	case 10: return "ref";
+	    	case 11: return "nameof";
+	    	default: return "~~~";
+	    }
+	    	    
 	}
 
 	virtual int swapSon (TreeNode *oldSon, TreeNode *newSon) {
@@ -697,17 +701,42 @@ namespace QParser {
 	virtual string deParse() { 
 		string result = ""; 
 		switch (op) {
-			case UnOpNode::count: { result = " count(" + arg->deParse() + ") "; return result; }
-			case UnOpNode::sum: { result = " sum(" + arg->deParse() + ") "; return result; }
-			case UnOpNode::avg: { result = " avg(" + arg->deParse() + ") "; return result; }
-			case UnOpNode::min: { result = " min(" + arg->deParse() + ") "; return result; }
-			case UnOpNode::max: { result = " max(" + arg->deParse() + ") "; return result; }
-			case UnOpNode::deref: { result = " deref(" + arg->deParse() + ") "; return result; }
-			case UnOpNode::ref: { result = " ref(" + arg->deParse() + ") "; return result; }
-			case UnOpNode::distinct: { result = " distinct(" + arg->deParse() + ") "; return result; }
-			case UnOpNode::unMinus: { result = " -" + arg->deParse() + " "; return result; }
-			case UnOpNode::boolNot: { result = " not " + arg->deParse() + " "; return result; }
-			case UnOpNode::deleteOp: { result = " delete " + arg->deParse() + " "; return result; }
+			case UnOpNode::count:
+				result = " count(" + arg->deParse() + ") "; 
+				return result;
+			case UnOpNode::sum:
+				result = " sum(" + arg->deParse() + ") "; 
+				return result;
+			case UnOpNode::avg:
+				result = " avg(" + arg->deParse() + ") "; 
+				return result;
+			case UnOpNode::min:
+				result = " min(" + arg->deParse() + ") "; 
+				return result;
+			case UnOpNode::max:
+				result = " max(" + arg->deParse() + ") "; 
+				return result;
+			case UnOpNode::deref:
+				result = " deref(" + arg->deParse() + ") "; 
+				return result;
+			case UnOpNode::ref: 
+				result = " ref(" + arg->deParse() + ") "; 
+				return result;
+			case UnOpNode::distinct:
+				result = " distinct(" + arg->deParse() + ") ";
+				return result;
+			case UnOpNode::unMinus:
+				result = " -" + arg->deParse() + " "; 
+				return result;
+			case UnOpNode::boolNot:
+				result = " not " + arg->deParse() + " ";
+				return result;
+			case UnOpNode::deleteOp:
+				result = " delete " + arg->deParse() + " "; 
+				return result;
+			case UnOpNode::nameof:
+				result = " name(" + arg->deParse() + ") ";
+				return result;
 		}
 		return result;
 	};

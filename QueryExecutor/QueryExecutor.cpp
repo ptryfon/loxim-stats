@@ -1761,6 +1761,158 @@ int QueryExecutor::refQuery(QueryResult *arg, QueryResult *&res) {
 	return 0;
 }
 
+int QueryExecutor::nameofQuery(QueryResult *arg, QueryResult *&res) {
+    
+    
+    *ec << "[QE] nameofQuery()";
+    int errcode;
+    int argType = arg->type();
+    switch (argType) {
+        case QueryResult::QSEQUENCE: {
+            res = new QuerySequenceResult();
+            for (unsigned int i = 0; i < (arg->size()); i++) {
+                QueryResult *tmp_item;
+                errcode = ((QuerySequenceResult *) arg)->at(i, tmp_item);
+                if (errcode != 0) return errcode;
+                QueryResult *tmp_res;
+                errcode = this->nameofQuery(tmp_item, tmp_res);
+                if (errcode != 0) return errcode;
+                res->addResult(tmp_res);
+            }
+            break;
+        }
+        case QueryResult::QBAG: {
+            res = new QueryBagResult();
+            for (unsigned int i = 0; i < (arg->size()); i++) {
+                QueryResult *tmp_item;
+                errcode = ((QueryBagResult *) arg)->at(i, tmp_item);
+                if (errcode != 0) return errcode;
+                QueryResult *tmp_res;
+                errcode = this->nameofQuery(tmp_item, tmp_res);
+                if (errcode != 0) return errcode;
+                res->addResult(tmp_res);
+            }
+            break;
+        }
+        case QueryResult::QSTRUCT: {
+            res = new QueryStructResult();
+            for (unsigned int i = 0; i < (arg->size()); i++) {
+                QueryResult *tmp_item;
+                errcode = ((QueryStructResult *) arg)->at(i, tmp_item);
+                if (errcode != 0) return errcode;
+                QueryResult *tmp_res;
+                errcode = this->nameofQuery(tmp_item, tmp_res);
+                if (errcode != 0) return errcode;
+                res->addResult(tmp_res);
+            }
+            break;
+        }
+        case QueryResult::QBINDER: {
+            string tmp_name = ((QueryBinderResult *) arg)->getName();
+            QueryResult *tmp_item;
+            errcode = this->nameofQuery(((QueryBinderResult *) arg)->getItem(), tmp_item);
+            if (errcode != 0) return errcode;
+            res = new QueryBinderResult(tmp_name, tmp_item);
+            break;
+        }
+        case QueryResult::QBOOL: {
+            res = arg;
+            break;
+        }
+        case QueryResult::QINT: {
+            res = arg;
+            break;
+        }
+        case QueryResult::QDOUBLE: {
+            res = arg;
+            break;
+        }
+        case QueryResult::QSTRING: {
+            res = arg;
+            break;
+        }
+        case QueryResult::QREFERENCE: {
+            LogicalID * lid = ((QueryReferenceResult *) arg)->getValue();
+             
+            if (lid != NULL && lid->getServer() != "") {
+                *ec << "dereferencing remote object";
+                RemoteExecutor *rex = new RemoteExecutor(lid->getServer(), lid->getPort(), this);
+                rex->setLogicalID(lid);
+                rex->setDeref();
+                QueryResult* qr;
+                errcode = rex->execute(&qr);
+                if (errcode != 0) {
+                    return errcode;
+                }
+                *ec << "derefQuery on remote object done";
+                res = qr;
+                break;
+            }
+            
+            if (((QueryReferenceResult *) arg)->wasRefed()) {
+                res = arg;
+                break;
+            }
+            LogicalID *ref_value = ((QueryReferenceResult *) arg)->getValue();
+            *ec << "[QE] derefQuery() - dereferencing Object";
+            ObjectPointer *optr;
+            errcode = tr->getObjectPointer(ref_value, Store::Read, optr); 
+            if (errcode != 0) {
+                *ec << "[QE] Error in getObjectPointer";
+                antyStarveFunction(errcode);
+                inTransaction = false;
+                return errcode;
+            }
+            
+            if (optr->isRoot()) {
+                string object_name = optr->getName();
+                if (!system_privilige_checking && 
+                assert_privilige(Privilige::READ_PRIV, object_name) == false) {
+                res = new QueryBagResult();             
+                /*
+                ofstream out("privilige.debug", ios::app);
+                out << "read " << object_name << endl;
+                out.close();
+                */
+                break;
+                }
+            }
+            
+            res = new QueryStringResult(optr->getName());
+                        
+            break;
+        }
+        case QueryResult::QNOTHING: {
+            res = arg;
+            break;
+        }
+        default: {
+            *ec << "[QE] ERROR in derefQuery() - unknown result type";
+            *ec << (ErrQExecutor | EOtherResExp);
+            return ErrQExecutor | EOtherResExp;
+        }
+    }
+    QueryResult *tmp_res = res;
+    int tmp_resType = tmp_res->type();
+    if (tmp_resType == QueryResult::QBAG) {
+        if (tmp_res->size() == 1) {
+            errcode = ((QueryBagResult *) tmp_res)->at(0, res);
+            if (errcode != 0) return errcode;
+        }
+    }
+    else if (tmp_resType == QueryResult::QSEQUENCE) {
+        if (tmp_res->size() == 1) {
+            errcode = ((QuerySequenceResult *) tmp_res)->at(0, res);
+            if (errcode != 0) return errcode;
+        }
+    }
+    return 0;    
+    
+    /* TODO */
+    res = new QueryStringResult("NAME");
+    return 0;
+}
+
 int QueryExecutor::unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&final) {
 	int errcode;
 	switch (op) {
@@ -1776,6 +1928,12 @@ int QueryExecutor::unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&
 			if (errcode != 0) return errcode;
 			break;
 		}
+        case UnOpNode::nameof: {
+            *ec << "[QE] NAMEOF operation";
+            errcode = this->nameofQuery(arg, final);
+            if (errcode != 0) return errcode;
+            break;            
+        }
 		case UnOpNode::unMinus: {
 			*ec << "[QE] UN_MINUS operation";
 			QueryResult *derefArg;

@@ -85,6 +85,7 @@ namespace QExecutor
 		int algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResult *rArg, QueryResult *&final);
 		int derefQuery(QueryResult *arg, QueryResult *&res);
 		int refQuery(QueryResult *arg, QueryResult *&res);
+        int nameofQuery(QueryResult *arg, QueryResult *&res);
 		int isIncluded(QueryResult *elem, QueryResult *set, bool &score);
 		int sortBag(QueryBagResult *inBag, QueryBagResult *&outBag);
 		int objectFromBinder(QueryResult *res, ObjectPointer *&newObject);

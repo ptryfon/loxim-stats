@@ -77,6 +77,7 @@ extern int szbderrno;
 ":="			return ASSIGN;
 "deref"			return DEREF;
 "ref"			return REF;
+"nameof"		return NAMEOF;
 "begin"			return BEGINTR;
 "end"			return END;
 "abort"			return ABORT;

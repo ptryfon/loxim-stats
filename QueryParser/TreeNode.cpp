@@ -446,7 +446,26 @@ namespace QParser
 				if (objKind == "atomic") qres->pushSig (new SigAtomType (obj->getType()));
 				else if (objKind == "link") qres->pushSig (new SigRef (obj->getTarget()->getMyId()));
 				return 0;	
-				} /*case deref */					
+				} /*case deref */
+            case UnOpNode::nameof: {
+                
+                Deb::ug("static_eval::UNOP::nameof -- starting");
+                
+                int argType = topSig->type();
+                
+                if (argType != Signature::SREF) return -1;
+                /* TODO: should also allow topSig to be a bag or sequence, 
+                 * huh? what about struct? 
+                 * we make use of the global DataScheme *dScheme */
+                                                
+                DataObjectDef *obj = DataScheme::dScheme()->getObjById (((SigRef *)topSig)->getRefNo());
+                
+                if (obj == NULL) return -1;
+                
+                qres->pushSig(new SigAtomType("string"));                    	               
+                                    
+                return 0;
+                }					
 			default: break; // not implemented yet. or in {count, sum, avg, min, max}
 		}/*switch*/
 		if (op == UnOpNode::count || op == UnOpNode::sum || op == UnOpNode::avg || op == UnOpNode::min || op == UnOpNode::max) {

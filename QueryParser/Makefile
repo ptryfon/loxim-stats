@@ -21,6 +21,10 @@ HEADERS	=	QueryParser.h \
 		Deb.h \
 		Privilige.h \
 		parser.tab.h
+		
+GENERATED_SOURCES =	lex.yy.cpp \
+					parser.tab.cpp \
+					parser.tab.h
 
 STATIC_LIB =	QueryParser.a
 PROGRAM	=	
@@ -34,7 +38,7 @@ all: $(STATIC_LIB) $(PROGRAM)
 #	$(CXX) $(CXXFLAGS) $(LDFLAGS) $@.cpp $< -o $@
 
 clean:
-	rm -f $(OBJECTS) $(DEPFILES) $(STATIC_LIB) $(PROGRAM)
+	rm -f $(OBJECTS) $(DEPFILES) $(STATIC_LIB) $(PROGRAM) $(GENERATED_SOURCES)
 
 $(STATIC_LIB): $(OBJECTS)
 	$(AR) r $(STATIC_LIB) $(OBJECTS)
