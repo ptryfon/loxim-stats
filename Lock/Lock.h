@@ -35,6 +35,8 @@ namespace LockMgr
 {
     
 
+	typedef set<SingleLock*, SingleLockCmp> SingleLockSet;
+
 /*
  *	Singleton Desing Pattern
  */
@@ -58,7 +60,6 @@ class LockManager
 	    	 * map from transactionId to list of PhysicalIds locked 
 	    	 */
 	    	typedef set<DBPhysicalID*, DBPhysicalIDCmp> DBPhysicalIdSet;
-   	    	typedef set<SingleLock*, SingleLockCmp> SingleLockSet;
 	    	typedef map<TransactionID* , SingleLockSet*, TransactionIDCmp> TransactionIdMap;
 	    	TransactionIdMap* transaction_locks;
 	    
@@ -67,12 +68,14 @@ class LockManager
 	    	 * ( hovewer it can be locked by other tranasactions if share_lock was used )
 	    	 */
 	    	int unlock(SingleLock* , TransactionID*);
+	    	int lock_primitive(LogicalID* , TransactionID* , AccessMode );
 	    
 	    	int single_lock_id;
 	    	Mutex *mutex;
 	    	ErrorConsole err;	    
 	    
 	public: 
+
 	    	/*
 	    	 * Returns the only instance of class
 	    	 */
@@ -87,6 +90,11 @@ class LockManager
 	    	 * if object is already locked, Transaction tid will wait on a semaphore
 	    	 */
 	    	int lock(LogicalID* , TransactionID* , AccessMode );
+
+		/*
+	    	 * if object is already locked, Transaction tid will wait on a semaphore
+	    	 */
+	    	int lockAll(set<LogicalID*>* , TransactionID* , AccessMode );
 	    
 	    	/*
 	    	 * Transaction calls commit or rollback on TransactionManager, who calls LockManager

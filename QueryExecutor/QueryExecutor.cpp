@@ -30,7 +30,24 @@ namespace QExecutor {
 int QueryExecutor::executeQuery(TreeNode *tree, map<string, QueryResult*> *params, QueryResult **result) {
 	int errcode;
 	prms = params;
+#ifdef QUERY_CACHE
+	// get from cache
+	errorcode = QueryCacher::getHandle()->get(tree, result);
+	if (errorcode < 0)
+	    return errorcode;
+	else if (errorcode == 0)
+	    return 0;		//query retrived
+#endif
 	errcode = executeQuery(tree, result);
+#ifdef QUERY_CACHE
+	if (errorcode != 0)
+	    return errorcode;
+	// put to cache, if cacheable
+	if (treenode->isCacheable())
+	    errorcode = QueryCacher::getHandle()->put(tree, *result);
+	if (errorcode < 0)
+	    return errorcode;
+#endif
 	//delete prms;
 	prms = NULL;
 	return errcode;

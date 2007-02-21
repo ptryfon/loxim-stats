@@ -148,6 +148,9 @@ namespace TManager
 	   		/* log calls: */
 	      		list<TransactionID*>* getTransactions();
 	      		vector<int>* getTransactionsIds();
+			
+			int getReaderTimeout();
+			int getWriterTimeout();
 	};
 };
 

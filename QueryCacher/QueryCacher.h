@@ -6,6 +6,12 @@
 #include "../Errors/ErrorConsole.h"
 #include "../QueryExecutor/QueryResult.h"
 #include "../QueryParser/TreeNode.h"
+#include "../Errors/ErrorConsole.h"
+#include "../Config/SBQLConfig.h"
+#include "../TransactionManager/SemHeaders.h"
+#include "CacheMap.h"
+#include "QueryCacherConfig.h"
+
 
 using namespace Errors;
 using namespace QExecutor;
@@ -34,8 +40,10 @@ namespace QCacher
 	class NormalizedQuery
 	{
 	    private:
+		    TreeNode* query;
 	    public:
 		    NormalizedQuery(TreeNode*);
+		    ~NormalizedQuery();
 	};
 
 
@@ -45,10 +53,27 @@ namespace QCacher
 	class QueryCacher
 	{      
 	    private:
-	    public:
-		    int isCacheable(NormalizedQuery*);
-		    int getFromCache(NormalizedQuery*, QueryResult*&);
+		    int slots;
+		    bool use_cache;
+		    Mutex* mutex;
+		    
+		    AbstractCacheMap* cache;
+		    
+		    
+		    ErrorConsole err;
+		    static QueryCacher* qCacher;
+		    int loadConfig();
+	    
+		    int isCacheable(TreeNode*);
 		    QueryCacher();
+	    public:
+		    ~QueryCacher();
+		    static QueryCacher* getHandle();
+	    
+		    int get(TreeNode*, QueryResult*&);
+		    int put(TreeNode*, QueryResult*);
+		    int remove(TreeNode*);
+		    int unstampTransaction(int);
 	};
 };
 

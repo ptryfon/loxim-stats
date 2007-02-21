@@ -1,8 +1,10 @@
 include ../make.defs
 
-SOURCES	=	QueryCacher.cpp
+SOURCES	=	QueryCacher.cpp \
+		CacheMap.cpp
 
-HEADERS	=	QueryCacher.h
+HEADERS	=	QueryCacher.h \
+		CacheMap.h
 
 STATIC_LIB =	QueryCacher.a
 PROGRAM	=	

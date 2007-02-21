@@ -17,6 +17,10 @@ namespace QParser {
 // statement (the starting symbol)
     class TreeNode 
     {
+#ifdef QUERY_CACHE
+    private:
+	bool isCacheable;
+#endif
     protected:
 	TreeNode* parent;
 	bool needed;		// is not death
@@ -45,7 +49,12 @@ namespace QParser {
 	    TNAS, TNUNOP, TNALGOP, TNNONALGOP, TNTRANS, TNCREATE, TNCOND, TNLINK, TNPARAM, TNFIX, 
 	    TNPROC, TNCALLPROC, TNRETURN, TNREGPROC, TNVIEW, TNREGVIEW, TNVALIDATION, TNCREATEUSER, 
 	    TNREMOVEUSER, TNPRIVLIST, TNNAMELIST, TNGRANTPRIV, TNREVOKEPRIV, TNREMOTE};
-	TreeNode() : parent(NULL) {this->needed = false;}
+	TreeNode() : parent(NULL) { this->needed = false;
+#ifdef QUERY_CACHE
+	    this->isCacheable = false;}
+	markCacheable() { this->isCacheable = true;
+#endif
+	}
 	TreeNode* getParent() { return parent; }
 	void setParent(TreeNode* _parent) { parent = _parent; }
 	virtual ~TreeNode() {};

@@ -47,10 +47,22 @@ namespace LockMgr
     }
         
     int LockManager::lock(LogicalID* lid, TransactionID* tid, AccessMode mode)
+    {
+		int errorCode = 0;
+      
+		mutex->down();
+		
+		errorCode = lock_primitive(lid, tid, mode);
+		
+		mutex->up();
+		
+		return errorCode;
+    }
+
+    int LockManager::lock_primitive(LogicalID* lid, TransactionID* tid, AccessMode mode)
     {  
 		int errorNumber = 0;
 
-		mutex->down();
 	    	DBPhysicalID* phid = lid->getPhysicalID();
 	    	DBPhysicalIdMap::iterator pos = map_of_locks->find(phid);
 	    
@@ -86,10 +98,27 @@ namespace LockMgr
 			    
 		((*transaction_locks)[tid])->insert(lock);
 			
-		mutex->up();			    
 		
 		return errorNumber;
     }
+
+    int LockManager::lockAll(set<LogicalID*>* lock_set, TransactionID* tid, AccessMode mode)
+    {
+		int errorCode = 0;
+
+		err.printf("LockAll, tid = %d\n", tid->getId());
+		mutex->down();
+		
+		set<LogicalID*>::iterator pos = lock_set->begin();
+		while(!errorCode && pos != lock_set->end())
+		{
+		    errorCode = lock_primitive(*pos, tid, mode);
+		}
+
+		mutex->up();
+		return errorCode;
+    }
+
 
     int LockManager::unlockAll(TransactionID* transaction_id)
     {

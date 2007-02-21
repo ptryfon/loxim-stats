@@ -346,6 +346,9 @@ namespace TManager
 		transactions = new list<TransactionID*>;
 	 }
 	 
+	 int TransactionManager::getReaderTimeout() { return readerTimeout; }
+	 int TransactionManager::getWriterTimeout() { return writerTimeout; }
+	 
 	 int TransactionManager::loadConfig()
 	 {
 		string semTime = "off";
