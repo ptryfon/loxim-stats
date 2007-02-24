@@ -1,14 +1,11 @@
 #include <stdio.h>
 #include <pthread.h>
-#include <sys/time.h>
 #include "RWUJSemaphore.h"
 #include "../Errors/ErrorConsole.h"
 #include "../Errors/Errors.h"
-#include "Transaction.h"
 
 /*
- *	@author Dominik Klimczak(dominik.klimczak@students.mimuw.edu.pl)
- *	@author Julian Krzemiñski (julian.krzeminski@students.mimuw.edu.pl)
+ *	Julian Krzemiñski (julian.krzeminski@students.mimuw.edu.pl)
  */
 using namespace Errors;
 
@@ -22,8 +19,6 @@ namespace SemaphoreLib {
 		wait_writers	=	0;
 		wait_upgraders	=	0;
 		best_upgrader	=	-1;
-		readerTimeout	=	TransactionManager::getHandle()->getReaderTimeout();
-		writerTimeout	=	TransactionManager::getHandle()->getWriterTimeout();
 	}
 
 	RWUJSemaphore::~RWUJSemaphore()
@@ -57,28 +52,6 @@ namespace SemaphoreLib {
 			return ErrTManager | ESemaphoreInit;	
 		}
 		return ret;
-	}
-	
-	struct timespec RWUJSemaphore::getTime(int add)
-	{
-	    struct timeval now;
-	    struct timespec timeout;
-
-	    gettimeofday(&now, NULL);
-
-	    timeout.tv_sec = now.tv_sec + add;
-
-	    timeout.tv_nsec = now.tv_usec * 1000;
-	    
-	    return timeout;
-
-
-/*	    while (x < y && retcode != ETIMEDOUT) {
-
-		retcode = pthread_cond_timedwait(&mut, &cond, &timeout);
-
-	    }
-*/
 	}
 
 	int RWUJSemaphore::destroy()

@@ -21,9 +21,6 @@ class RWUJSemaphore: public Semaphore
 		pthread_cond_t  reader_cond;
 		pthread_cond_t	writer_cond;
 		pthread_cond_t	upgrader_cond;
-		
-		int readerTimeout;
-		int writerTimeout;
 
 		enum LockMode {
 			Read	=	0x01,
@@ -41,9 +38,6 @@ class RWUJSemaphore: public Semaphore
 	
 		int inside;
 		int _unlock();
-		
-		struct timespec getTime(int add);
-
 	public:
 		RWUJSemaphore();
 		virtual ~RWUJSemaphore();
