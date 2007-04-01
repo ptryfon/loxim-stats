@@ -9,6 +9,7 @@
 #include <fcntl.h>
 #include "Listener.h"
 #include "Server.h"
+#include "../Indexes/IndexManager.h"
 
 #define LOCK_PATH_KEY "lockpath"
 
@@ -320,12 +321,15 @@ int Listener::Start(int port) {
 	sm->start();
 	lCons->printf("[Listener.Start]--> Starting Log manager.. \n");
 	lm->start(sm);
+	lCons->printf("[Listener.Start]--> Starting Index manager.. \n");
+	Indexes::IndexManager::init();
 	
 	if (setjmp(j)!=0) {
 	    *lCons << "[Listener.Start]--> Jumped.. Stopping Store manager and  closing socket..";
 	    sm->stop();
 	    unsigned idx;
 	    lm->shutdown(idx);
+	    Indexes::IndexManager::shutdown();
 	    delete TransactionManager::getHandle();
 	    Unlock();
 	    errorCode=CloseSocket(sock);

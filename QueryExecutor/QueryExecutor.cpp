@@ -13,6 +13,7 @@
 #include "Store/DBLogicalID.h"
 #include "QueryParser/QueryParser.h"
 #include "QueryParser/TreeNode.h"
+#include "QueryParser/IndexNode.h"
 #include "QueryParser/Privilige.h"
 #include "QueryExecutor.h"
 #include "Errors/Errors.h"
@@ -23,6 +24,7 @@ using namespace QParser;
 using namespace TManager;
 using namespace Errors;
 using namespace Store;
+using namespace Indexes;
 using namespace std;
 
 namespace QExecutor {
@@ -61,6 +63,13 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 
 	if (tree != NULL) {
 		int nodeType = tree->type();
+		//tworzenie i usuwanie indeksow nie podlega transakcjom
+		if (nodeType == (TreeNode::TNINDEXDDL)) {
+			IndexNode *id = (dynamic_cast< IndexNode*>(tree));
+			errcode = id->execute(result);
+			//*result = new QueryNothingResult();
+			return errcode;	
+		} else	
 		if (! inTransaction) {
 			if (nodeType == TreeNode::TNTRANS) {
 				if (((TransactNode *) tree)->getOp() == TransactNode::begin) {
@@ -305,7 +314,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 		    else {
 			*result = new QueryBoolResult(false);
 		    }
-		}		
+		}	
 		else {
 			errcode = envs->pushDBsection();
 			
@@ -1356,6 +1365,13 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			*ec << "[QE] Condition operation Done!";
 			return 0;
 		} //case TNCOND
+		case TreeNode::TNINDEXDML: {
+			//IndexNode *id = ;
+			QueryResult* result;
+			errcode = (dynamic_cast< IndexNode*>(tree))->execute(&result);
+			//*result = new QueryNothingResult();
+			return errcode;	
+		}	
 		case TreeNode::TNLINK: {
 		*ec << "[QE] Link opeartion";
 

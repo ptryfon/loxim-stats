@@ -1,6 +1,6 @@
 include ../make.defs
 
-CXXFLAGS=-I./ -I./../ -Wall
+CXXFLAGS=-I./ -I./../ -Wall -g
 
 PROGRAM	=	SBQLCli
 
@@ -20,6 +20,7 @@ LIBS	=	../Driver/Driver.a \
 		../TransactionManager/TransactionManager.a \
 		../QueryExecutor/QueryExecutor.a \
 		../Lock/Lock.a \
+		../Indexes/IndexManager.a \
 		../TCPProto/TCPProto.a
 
 

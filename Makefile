@@ -11,6 +11,7 @@ SUBDIRS	=	Backup \
 		Driver \
 		Lock \
 		Log \
+		Indexes \
 		SBQLCli \
 		Server 		
 

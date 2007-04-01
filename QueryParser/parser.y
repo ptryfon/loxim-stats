@@ -2,8 +2,10 @@
 #include <string>
 #include <vector>
 #include "TreeNode.h"
+#include "IndexNode.h"
 #include "Privilige.h"
   using namespace QParser;
+  using namespace Indexes;
   int yylex();
   int yyerror(char* s);
   TreeNode *d;
@@ -27,7 +29,7 @@
 
 %token	<num> INTEGER
 %token	<dbl> DOUBLE
-%token	<str> PARAMNAME NAME STRING SEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT DEREF REF NAMEOF BEGINTR END ABORT CREATE IF FI DO OD ELSE WHILE LINK FOREACH THEN FIX_OP FIXPOINT RETURN VALIDATE READ MODIFY DELETE PASSWD WITH REVOKE REMOVE TO USER FROM ON GRANT OPTION PROCEDURE LEFTPROCPAR RIGHTPROCPAR VIEW ONRETRIEVE ONUPDATE ONCREATE ONDELETE
+%token	<str> PARAMNAME NAME STRING SEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT DEREF REF NAMEOF BEGINTR END ABORT CREATE IF FI DO OD ELSE WHILE LINK FOREACH THEN FIX_OP FIXPOINT RETURN VALIDATE READ MODIFY DELETE PASSWD WITH REVOKE REMOVE TO USER FROM ON GRANT OPTION PROCEDURE LEFTPROCPAR RIGHTPROCPAR VIEW ONRETRIEVE ONUPDATE ONCREATE ONDELETE INDEX
 
 %start statement
 
@@ -68,6 +70,7 @@
 %type <proctree> viewproc
 %type <fxtree> queryfixlist
 %type <vectree> querycommalist
+%type <tree> index_stmt
 %%
 
 statement   : query semicolon_opt { d=$1; }
@@ -77,6 +80,7 @@ statement   : query semicolon_opt { d=$1; }
 	    | validate_stmt  semicolon_opt { d = $1; }
 	    | privilige_stmt semicolon_opt { d = $1; }
 	    | user_stmt	     semicolon_opt { d = $1; }
+	    | index_stmt	 semicolon_opt { d = $1; }
             ;
 
 query	    : NAME { char *s = $1; $$ = new NameNode(s); delete s; }
@@ -214,6 +218,8 @@ name_defs:	NAME				{ $$ = new NameListNode($1); 	}
 user_stmt:	CREATE USER NAME PASSWD NAME	{ $$ = new CreateUserNode($3, $5); }
 	    |	REMOVE USER NAME		{ $$ = new RemoveUserNode($3); 	   }
 	    ;
+	    
+index_stmt: CREATE INDEX NAME ON NAME LEFTPAR NAME RIGHTPAR {$$ = new CreateIndexNode ($3, $5, $7);}
 	    
 semicolon_opt:  /* empty */	{}
 	    |	SEMICOLON	{}

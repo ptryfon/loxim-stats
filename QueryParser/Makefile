@@ -13,6 +13,7 @@ SOURCES	=	QueryParser.cpp \
 
 HEADERS	=	QueryParser.h \
 		TreeNode.h \
+		IndexNode.h \
 		Stack.h \
 		ClassNames.h \
 		DataRead.h \
