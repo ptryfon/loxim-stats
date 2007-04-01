@@ -1,6 +1,6 @@
 include ../make.defs
 
-CXXFLAGS=-I./ -I./../ -Wall
+CXXFLAGS=-I./ -I./../ -Wall -g
 
 SOURCES	=	Connection.cpp \
 		DriverManager.cpp \
