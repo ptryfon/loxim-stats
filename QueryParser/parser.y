@@ -29,7 +29,7 @@
 
 %token	<num> INTEGER
 %token	<dbl> DOUBLE
-%token	<str> PARAMNAME NAME STRING SEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT DEREF REF NAMEOF BEGINTR END ABORT CREATE IF FI DO OD ELSE WHILE LINK FOREACH THEN FIX_OP FIXPOINT RETURN VALIDATE READ MODIFY DELETE PASSWD WITH REVOKE REMOVE TO USER FROM ON GRANT OPTION PROCEDURE LEFTPROCPAR RIGHTPROCPAR VIEW ONRETRIEVE ONUPDATE ONCREATE ONDELETE INDEX
+%token	<str> PARAMNAME NAME STRING SEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT DEREF REF NAMEOF BEGINTR END ABORT CREATE IF FI DO OD ELSE WHILE LINK FOREACH THEN FIX_OP FIXPOINT RETURN VALIDATE READ MODIFY DELETE PASSWD WITH REVOKE REMOVE TO USER FROM ON GRANT OPTION PROCEDURE LEFTPROCPAR RIGHTPROCPAR VIEW ONRETRIEVE ONUPDATE ONCREATE ONDELETE INDEX VIRTUAL
 
 %start statement
 
@@ -166,8 +166,9 @@ formparams  : NAME {char *s = $1; $$ = new ProcedureNode (s); delete s;}
 	    | formparams COMMA NAME {char *s = $3; $$ = new ProcedureNode (s, $1); delete s;}
 	    ;
 
-viewquery   : VIEW NAME LEFTPROCPAR viewrecdef RIGHTPROCPAR {
-		char *n = $2; $4->setName(n); $$ = $4; delete n; }
+viewquery   : VIEW NAME LEFTPROCPAR VIRTUAL NAME LEFTPROCPAR query RIGHTPROCPAR viewrecdef RIGHTPROCPAR {
+		char *n = $2; char *v = $5; $9->setName(n); $9->setVirtual(v,$7); $$ = $9; delete n; delete v; }
+	    | VIEW NAME LEFTPROCPAR VIRTUAL NAME LEFTPROCPAR query RIGHTPROCPAR RIGHTPROCPAR { char *n = $2; char *v = $5; $$ = new ViewNode(n); $$->setVirtual(v,$7); delete n; delete v; }
             ;
 
 viewrecdef  : viewdef		 { $$ = $1; }
@@ -178,8 +179,7 @@ viewdef     : viewproc	{ $$ = new ViewNode($1); }
             | viewquery	{ $$ = new ViewNode($1); }
             ;
 
-viewproc    : PROCEDURE NAME LEFTPAR RIGHTPAR LEFTPROCPAR query RIGHTPROCPAR {
-		$$ = new ProcedureNode(); char *n = $2; $$->addContent(n, $6); delete n; }
+viewproc    : procquery { $$ = $1; }
             | PROCEDURE ONUPDATE LEFTPAR NAME RIGHTPAR LEFTPROCPAR query RIGHTPROCPAR {
 		$$ = new ProcedureNode(); char *p = $4; $$->addContent("on_update", $7); $$->addParam(p); delete p; }
             | PROCEDURE ONCREATE LEFTPAR NAME RIGHTPAR LEFTPROCPAR query RIGHTPROCPAR {

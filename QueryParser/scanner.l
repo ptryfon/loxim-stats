@@ -116,6 +116,7 @@ extern int szbderrno;
 "passwd"		return PASSWD;
 "remove"		return REMOVE;
 "index"			return INDEX;
+"virtual objects"	return VIRTUAL;
 
 [_a-zA-Z][_a-zA-Z0-9]* 	yylval.str = new char[strlen(yytext) + 1]; yylval.str = strcpy(yylval.str,yytext); return NAME;
 $[_a-zA-Z][_a-zA-Z0-9]* yylval.str = new char[strlen(yytext) + 1]; yylval.str = strcpy(yylval.str,yytext); return PARAMNAME;

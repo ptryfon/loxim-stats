@@ -542,6 +542,9 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				return errcode;
 			}
 			
+			// TODO tutaj tego nie powinno byc, usunac jak beda dzialac extendedType !!!
+			optr->getValue()->setSubtype(Store::Procedure);
+			
 			errcode = tr->addRoot(optr);
 			if (errcode != 0) { 
 				*ec << "[QE] Error in addRoot";
@@ -650,6 +653,9 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				return errcode;
 			}
 			
+			// TODO tutaj tego nie powinno byc, usunac jak beda dzialac extendedType !!!
+			optr->getValue()->setSubtype(Store::View);
+			
 			errcode = tr->addRoot(optr);
 			if (errcode != 0) { 
 				*ec << "[QE] Error in addRoot";
@@ -674,19 +680,56 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			*ec << "[QE] Type: TNCREATE";
 			
 			string view_name = ((ViewNode *) tree)->getName();
+			QueryNode* virtual_objects = ((ViewNode *) tree)->getVirtualObjects();
 			vector<QueryNode*> procs = ((ViewNode *) tree)->getProcedures();
 			unsigned int procs_num = procs.size();
 			vector<QueryNode*> views = ((ViewNode *) tree)->getSubviews();
 			unsigned int views_num = views.size();
 			
-			int virtobj_num = 0;
 			int on_upd_num = 0;
 			int on_cre_num = 0;
 			int on_del_num = 0;
 			int on_ret_num = 0;
 			
+			ObjectPointer *optr;
 			vector<LogicalID *> vec_lid;
-			string virt_obj_name;
+			
+			if(virtual_objects != NULL) {
+				errcode = executeRecQuery(virtual_objects);
+				if(errcode != 0) return errcode;
+			}
+			else qres->push(new QueryNothingResult());
+			QueryResult *execution_result;
+			errcode = qres->pop(execution_result);
+			if (errcode != 0) return errcode;
+			if (execution_result->type() != QueryResult::QREFERENCE) {
+				*ec << "[QE] TNVIEW error - execution result is not QueryReference";
+				*ec << (ErrQExecutor | ERefExpected);
+				return ErrQExecutor | ERefExpected;
+			}
+			LogicalID* lid = ((QueryReferenceResult*)execution_result)->getValue();	
+			errcode = tr->getObjectPointer (lid, Store::Read, optr);
+			if (errcode != 0) {
+				*ec << "[QE] view creating operation - Error in getObjectPointer.";
+				antyStarveFunction(errcode);
+				inTransaction = false;
+				return errcode;
+			}
+			string virt_obj_name = optr->getName();
+			if ((virt_obj_name == "") || (virt_obj_name == "") || (virt_obj_name == "") || (virt_obj_name == "")) {
+				*ec << "[QE] TNVIEW error - virtual objects shouldn't be named like \'on_\' procedures";
+				*ec << (ErrQExecutor | EBadViewDef);
+				return ErrQExecutor | EBadViewDef;
+			}
+			
+			QueryResult *tmp_bndr =new QueryBinderResult("virtual_objects", new QueryStringResult(virt_obj_name));
+			ObjectPointer *tmp_optr;
+			errcode = objectFromBinder(tmp_bndr, tmp_optr);
+			if (errcode != 0) return errcode;
+			LogicalID *virtObjLid = tmp_optr->getLogicalID();
+			vec_lid.push_back(virtObjLid);
+			
+			vec_lid.push_back(lid);
 			
 			for (unsigned int i = 0; i < procs_num; i++) {
 				if(procs[i] != NULL) {
@@ -694,18 +737,14 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 					if(errcode != 0) return errcode;
 				}
 				else qres->push(new QueryNothingResult());
-			
-				QueryResult *execution_result;
 				errcode = qres->pop(execution_result);
 				if (errcode != 0) return errcode;
-			
 				if (execution_result->type() != QueryResult::QREFERENCE) {
 					*ec << "[QE] TNVIEW error - execution result is not QueryReference";
 					*ec << (ErrQExecutor | ERefExpected);
 					return ErrQExecutor | ERefExpected;
 				}
-				LogicalID* lid = ((QueryReferenceResult*)execution_result)->getValue();
-				ObjectPointer *optr;
+				lid = ((QueryReferenceResult*)execution_result)->getValue();
 				errcode = tr->getObjectPointer (lid, Store::Read, optr);
 				if (errcode != 0) {
 					*ec << "[QE] view creating operation - Error in getObjectPointer.";
@@ -718,15 +757,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				else if (optr_name == "on_create") on_cre_num++;
 				else if (optr_name == "on_delete") on_del_num++;
 				else if (optr_name == "on_retrieve") on_ret_num++;
-				else { virtobj_num++; virt_obj_name = optr_name; }
-				
 				vec_lid.push_back(lid);
-			}
-			
-			if (virtobj_num != 1) {
-				*ec << "[QE] TNVIEW error - there should be exactly one procedure defining virtual objects";
-				*ec << (ErrQExecutor | EBadViewDef);
-				return ErrQExecutor | EBadViewDef;
 			}
 			if ((on_upd_num > 1) || (on_cre_num > 1) || (on_del_num > 1) || (on_ret_num > 1)) {
 				*ec << "[QE] TNVIEW error - multiple \'on_\' procedure definition found";
@@ -740,29 +771,16 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 					if(errcode != 0) return errcode;
 				}
 				else qres->push(new QueryNothingResult());
-			
-				QueryResult *execution_result;
 				errcode = qres->pop(execution_result);
 				if (errcode != 0) return errcode;
-			
 				if (execution_result->type() != QueryResult::QREFERENCE) {
 					*ec << "[QE] TNVIEW error - execution result is not QueryReference";
 					*ec << (ErrQExecutor | ERefExpected);
 					return ErrQExecutor | ERefExpected;
 				}
-				LogicalID* lid = ((QueryReferenceResult*)execution_result)->getValue();
-				
+				lid = ((QueryReferenceResult*)execution_result)->getValue();
 				vec_lid.push_back(lid);
 			}
-			
-			QueryResult *tmp_bndr =new QueryBinderResult("virtual_objects", new QueryStringResult(virt_obj_name));
-			
-			ObjectPointer *tmp_optr;
-			errcode = objectFromBinder(tmp_bndr, tmp_optr);
-			if (errcode != 0) return errcode;
-			
-			LogicalID *virtObjLid = tmp_optr->getLogicalID();
-			vec_lid.push_back(virtObjLid);
 			
 			DBDataValue *dbValue = new DBDataValue();
 			dbValue->setVector(&vec_lid);
@@ -777,6 +795,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			}
 			
 			newObject->getValue()->setSubtype(Store::View);
+			
 			QueryResult *lidres = new QueryReferenceResult(newObject->getLogicalID());
 			
 			errcode = qres->push(lidres);

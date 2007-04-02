@@ -174,6 +174,16 @@ int EnvironmentStack::procCheck(unsigned int qSize, LogicalID *lid, Transaction 
 	}
 	
 	DataValue* data_value = optr->getValue();
+	
+	*ec << " ------------------------------------------------------------------------------------------------- ";
+	ec->printf("============proc= Data value extended type: %d\n", data_value->getSubtype());
+	*ec << " ------------------------------------------------------------------------------------------------- ";
+	
+	//======================================================================//
+	// TODO check if this is procedure or just something that looks like it //
+	//	extendedType == Store::Procedure                                //
+	//======================================================================//
+	
 	int vType = data_value->getType();
 	int procBody_count = 0;
 	string tmp_code;
@@ -389,9 +399,12 @@ int QueryReferenceResult::nested(Transaction *&tr, QueryResult *&r, QueryExecuto
 		}
 
 		tmp_data_value = optr->getValue();
-
+		
 		/* Link */
-		 *ec << "data value type: |"<< tmp_data_value->getSubtype()<< "|\n";
+		*ec << " ----------------------------------------------------------------------------------------- ";
+		ec->printf(" ===============nested=  Data value extended type: %d\n", tmp_data_value->getSubtype());
+		*ec << " ----------------------------------------------------------------------------------------- ";
+		
 		if (tmp_data_value->getSubtype() == Store::Link) {
 			 *ec << "nested on Link object\n";
 			 vector<LogicalID*>*  tmp_vec =tmp_data_value->getVector();
