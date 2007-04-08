@@ -132,6 +132,20 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 				r->addResult(lidres);
 			}
 			delete vec;
+			
+			vector<LogicalID*>* vec_sec;
+			if ((errcode = tr->getViewsLID(name, vec_sec)) != 0) {
+				*ec << "[QE] bindName - error in getViewsID";
+				qe->antyStarveFunction(errcode);
+				qe->inTransaction = false;
+				return errcode;
+			}
+			int vecSize_sec = vec_sec->size();
+			ec->printf("[QE] %d Views LID by name taken\n", vecSize_sec);
+			
+			// TODO po znalezieniu nazwy wsrod wirtualnuych obiektow trza cos posprawdzac, jakos to spakowac i oddac
+			
+			delete vec_sec;
 		}
 		else {
 			section = (es.at(i - 1));

@@ -188,6 +188,12 @@ namespace Store
 		virtual int getRootsLID(TransactionID* tid, string name, vector<LogicalID*>*& roots) = 0;
 		virtual int addRoot(TransactionID* tid, ObjectPointer*& object) = 0;
 		virtual int removeRoot(TransactionID* tid, ObjectPointer*& object) = 0;
+		
+		// Views
+		virtual int getViewsLID(TransactionID* tid, vector<LogicalID*>*& roots) = 0;
+		virtual int getViewsLID(TransactionID* tid, string name, vector<LogicalID*>*& roots) = 0;
+		virtual int addView(TransactionID* tid, const char* name, ObjectPointer*& object) = 0;
+		virtual int removeView(TransactionID* tid, ObjectPointer*& object) = 0;
 
 		// Transactions
 		virtual int abortTransaction(TransactionID* tid) = 0;

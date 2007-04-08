@@ -528,6 +528,77 @@ namespace Store
 #endif
 		return 0;
 	}
+	
+	
+	
+	
+	
+	int DBStoreManager::getViewsLID(TransactionID* tid, vector<LogicalID*>*& p_views)
+	{
+#ifdef DEBUG_MODE
+		*ec << "Store::Manager::getViewsLID(ALL) begin..";
+#endif
+		int rval = getViewsLID(tid, "", p_views);
+
+#ifdef DEBUG_MODE
+		*ec << "Store::Manager::getViewsLID(ALL) done";
+#endif
+		return rval;
+	}
+
+	int DBStoreManager::getViewsLID(TransactionID* tid, string p_name, vector<LogicalID*>*& p_views)
+	{
+#ifdef DEBUG_MODE
+		*ec << "Store::Manager::getViewsLID(BY NAME) begin..";
+#endif
+		p_views = new vector<LogicalID*>(0);
+		vector<int>* rvec;
+		rvec = views->getViews(p_name.c_str(), tid->getId(), tid->getTimeStamp());
+		
+		vector<int>::iterator obj_iter;
+		for(obj_iter=rvec->begin(); obj_iter!=rvec->end(); obj_iter++)
+		{
+			LogicalID* lid = new DBLogicalID((*obj_iter));
+			p_views->push_back(lid);
+		}
+
+		delete rvec;
+#ifdef DEBUG_MODE
+		ec->printf("Store::Manager::getViewsLID(BY NAME) done: size=%d\n", p_views->size());
+#endif
+		return 0;
+	}
+
+
+	int DBStoreManager::addView(TransactionID* tid, const char* name, ObjectPointer*& object)
+	{
+#ifdef DEBUG_MODE
+		*ec << "Store::Manager::addView begin..";
+#endif
+		int lid = object->getLogicalID()->toInteger();
+
+		views->addView(lid, name, tid->getId(), tid->getTimeStamp());
+
+#ifdef DEBUG_MODE
+		ec->printf("Store::Manager::addView done: %s\n", name);
+#endif
+		return 0;
+	}
+
+	int DBStoreManager::removeView(TransactionID* tid, ObjectPointer*& object)
+	{
+#ifdef DEBUG_MODE
+		*ec << "Store::Manager::removeView begin..";
+#endif
+		int lid = object->getLogicalID()->toInteger();
+		
+		views->removeView(lid, tid->getId(), tid->getTimeStamp());
+
+#ifdef DEBUG_MODE
+		ec->printf("Store::Manager::removeView done: %s\n", object->toString().c_str());
+#endif
+		return 0;
+	}
 
 	int DBStoreManager::abortTransaction(TransactionID* tid)
 	{

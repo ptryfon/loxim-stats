@@ -104,50 +104,11 @@ namespace Store
 
 	ExtendedType DBDataValue::getSubtype() const
 	{
-		cout << "  *    G E T    extendedType     ";
-		switch(subtype) {
-			case Store::None: 
-				cout << "    n o n e   * \n";
-				break;
-			case Store::Link: 
-				cout << "    l i n k   * \n";
-				break;
-			case Store::Class: 
-				cout << "    c l a s s    * \n";
-				break;
-			case Store::Procedure: 
-				cout << "    p r o c e d u r e    * \n";
-				break;
-			case Store::View: 
-				cout << "    v i e w    * \n";
-				break;
-		}
-	
 		return subtype;
 	};
 
 	void DBDataValue::setSubtype(ExtendedType subtype)
 	{
-	
-		cout << "  *    S E T    extendedType     ";
-		switch(subtype) {
-			case Store::None: 
-				cout << "    n o n e   * \n";
-				break;
-			case Store::Link: 
-				cout << "    l i n k   * \n";
-				break;
-			case Store::Class: 
-				cout << "    c l a s s    * \n";
-				break;
-			case Store::Procedure: 
-				cout << "    p r o c e d u r e    * \n";
-				break;
-			case Store::View: 
-				cout << "    v i e w    * \n";
-				break;
-		}
-	
 		this->subtype = subtype;
 	};
 

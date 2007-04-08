@@ -278,6 +278,76 @@ namespace TManager
 	}
 
 
+	int Transaction::getViewsLID(vector<LogicalID*>* &p)
+	{
+		int errorNumber;
+
+		err.printf("Transaction: %d getViewsLID\n", tid->getId());
+		
+		sem->lock_read();
+		errorNumber = sm->getViewsLID(tid, p);			
+		sem->unlock();
+		
+		if (errorNumber) abort();
+	
+		return errorNumber;
+	}
+
+	int Transaction::getViewsLID(string name, vector<LogicalID*>* &p)
+	{
+		int errorNumber;
+		
+		err.printf("Transaction: %d getViewsLID by name \n", tid->getId());
+
+		sem->lock_read();
+		errorNumber = sm->getViewsLID(tid, name, p);
+		sem->unlock();
+		
+		if (errorNumber) abort();
+	
+		return errorNumber;
+	}
+
+
+	int Transaction::addView(const char* name, ObjectPointer* &p)
+	{
+		int errorNumber;
+		
+		err.printf("Transaction: %d addView\n", tid->getId());
+		
+		sem->lock_write();
+			errorNumber = sm->addView(tid, name,  p);
+			/* GUARANTEED no waiting */
+			if (errorNumber == 0)
+			    errorNumber = lm->lock( p->getLogicalID(), tid, Write);
+		sem->unlock();
+		
+		if (errorNumber) abort();
+			    
+		return errorNumber;
+	}
+
+	int Transaction::removeView(ObjectPointer* &p)
+	{
+		int errorNumber;
+		
+		err.printf("Transaction: %d removeView\n", tid->getId());
+		
+		errorNumber = lm->lock( p->getLogicalID(), tid, Write);
+		
+		if (errorNumber == 0)
+		{
+		    sem->lock_write();
+			errorNumber = sm->removeView(tid, p);		
+		    sem->unlock();
+		}
+				
+		if (errorNumber) abort();
+			    	   
+		return errorNumber;
+	}
+
+
 	/* Data creation */
 	int Transaction::createIntValue(int value, DataValue* &dataVal)
 	{

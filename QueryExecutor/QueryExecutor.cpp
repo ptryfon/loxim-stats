@@ -506,6 +506,14 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			
 			optr->getValue()->setSubtype(Store::Procedure);
 			
+			errcode = tr->modifyObject(optr, optr->getValue()); 
+			if (errcode != 0) {
+				*ec << "[QE] TNPROC - Error in modifyObject.";
+				antyStarveFunction(errcode);
+				inTransaction = false;
+				return errcode;
+			}
+			
 			QueryResult *lidres = new QueryReferenceResult(optr->getLogicalID());
 			
 			errcode = qres->push(lidres);
@@ -541,9 +549,6 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				inTransaction = false;
 				return errcode;
 			}
-			
-			// TODO tutaj tego nie powinno byc, usunac jak beda dzialac extendedType !!!
-			optr->getValue()->setSubtype(Store::Procedure);
 			
 			errcode = tr->addRoot(optr);
 			if (errcode != 0) { 
@@ -653,9 +658,6 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				return errcode;
 			}
 			
-			// TODO tutaj tego nie powinno byc, usunac jak beda dzialac extendedType !!!
-			optr->getValue()->setSubtype(Store::View);
-			
 			errcode = tr->addRoot(optr);
 			if (errcode != 0) { 
 				*ec << "[QE] Error in addRoot";
@@ -664,11 +666,30 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				return errcode;
 			}
 			
+			string virtual_objects_name = "";
+			vector<LogicalID*>* inner_vec = (optr->getValue())->getVector();
+			for (unsigned int i=0; i < inner_vec->size(); i++) {
+				ObjectPointer *inner_optr;
+				errcode = tr->getObjectPointer (inner_vec->at(i), Store::Read, inner_optr);
+				if (errcode != 0) {
+					*ec << "[QE] register view operation - Error in getObjectPointer.";
+					antyStarveFunction(errcode);
+					inTransaction = false;
+					return errcode;
+				}
+				if (inner_optr->getName() == "virtual_objects") {
+					virtual_objects_name = (inner_optr->getValue())->getString();
+					break;
+				}
+			}
 			
-			//========================================//
-			// TODO register virtual objects as roots //
-			//========================================//
-			
+			errcode = tr->addView(virtual_objects_name.c_str(), optr);
+			if (errcode != 0) { 
+				*ec << "[QE] Error in addView";
+				antyStarveFunction(errcode);
+				inTransaction = false;
+				return errcode;
+			}
 			
 			errcode = qres->push(execution_result);
 			if (errcode != 0) return errcode;
@@ -677,7 +698,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		}//case TNREGVIEW
 		
 		case TreeNode::TNVIEW: {
-			*ec << "[QE] Type: TNCREATE";
+			*ec << "[QE] Type: TNVIEW";
 			
 			string view_name = ((ViewNode *) tree)->getName();
 			QueryNode* virtual_objects = ((ViewNode *) tree)->getVirtualObjects();
@@ -795,6 +816,13 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			}
 			
 			newObject->getValue()->setSubtype(Store::View);
+			errcode = tr->modifyObject(newObject, newObject->getValue()); 
+			if (errcode != 0) {
+				*ec << "[QE] TNVIEW - Error in modifyObject.";
+				antyStarveFunction(errcode);
+				inTransaction = false;
+				return errcode;
+			}
 			
 			QueryResult *lidres = new QueryReferenceResult(newObject->getLogicalID());
 			
@@ -802,7 +830,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			if (errcode != 0) return errcode;
 			
 			return 0;
-		}
+		} // case: TNVIEW
 		
 		case TreeNode::TNCREATE: {
 			*ec << "[QE] Type: TNCREATE";
@@ -1960,7 +1988,6 @@ int QueryExecutor::nameofQuery(QueryResult *arg, QueryResult *&res) {
     }
     return 0;    
     
-    /* TODO */
     res = new QueryStringResult("NAME");
     return 0;
 }
@@ -3170,7 +3197,7 @@ int QueryExecutor::objectFromBinder(QueryResult *res, ObjectPointer *&newObject)
 	}
 	DataValue* value;
 	value = dbValue;
-	if ((errcode = tr->createObject(binderName, value, newObject)) != 0) { //TODO
+	if ((errcode = tr->createObject(binderName, value, newObject)) != 0) {
 		*ec << "[QE] Error in createObject";
 		antyStarveFunction(errcode);
 		inTransaction = false;
