@@ -127,7 +127,6 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 			for (int i = 0; i < vecSize; i++ ) {
 				found_one = true;
 				LogicalID *lid = vec->at(i);
-				*ec << "[QE] LogicalID received";
 				QueryReferenceResult *lidres = new QueryReferenceResult(lid);
 				r->addResult(lidres);
 			}
@@ -135,13 +134,15 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 			
 			vector<LogicalID*>* vec_sec;
 			if ((errcode = tr->getViewsLID(name, vec_sec)) != 0) {
-				*ec << "[QE] bindName - error in getViewsID";
+				*ec << "[QE] bindName - error in getViewsLID";
 				qe->antyStarveFunction(errcode);
 				qe->inTransaction = false;
 				return errcode;
 			}
 			int vecSize_sec = vec_sec->size();
+			*ec << " ----------------------------------------------------- ";
 			ec->printf("[QE] %d Views LID by name taken\n", vecSize_sec);
+			*ec << " ----------------------------------------------------- ";
 			
 			// TODO po znalezieniu nazwy wsrod wirtualnuych obiektow trza cos posprawdzac, jakos to spakowac i oddac
 			
@@ -189,21 +190,13 @@ int EnvironmentStack::procCheck(unsigned int qSize, LogicalID *lid, Transaction 
 	
 	DataValue* data_value = optr->getValue();
 	
-	*ec << " ------------------------------------------------------------------------------------------------- ";
-	ec->printf("============proc= Data value extended type: %d\n", data_value->getSubtype());
-	*ec << " ------------------------------------------------------------------------------------------------- ";
-	
-	//======================================================================//
-	// TODO check if this is procedure or just something that looks like it //
-	//	extendedType == Store::Procedure                                //
-	//======================================================================//
-	
 	int vType = data_value->getType();
+	ExtendedType extType = data_value->getSubtype();
 	int procBody_count = 0;
 	string tmp_code;
 	unsigned int params_count = 0;
 	vector<string> tmp_prms;
-	if (vType == Store::Vector) {
+	if ((vType == Store::Vector) && (extType == Store::Procedure)) {
 		vector<LogicalID*>* tmp_vec = (data_value->getVector());
 		int vec_size = tmp_vec->size();
 		for (int i = 0; i < vec_size; i++ ) {
@@ -415,10 +408,6 @@ int QueryReferenceResult::nested(Transaction *&tr, QueryResult *&r, QueryExecuto
 		tmp_data_value = optr->getValue();
 		
 		/* Link */
-		*ec << " ----------------------------------------------------------------------------------------- ";
-		ec->printf(" ===============nested=  Data value extended type: %d\n", tmp_data_value->getSubtype());
-		*ec << " ----------------------------------------------------------------------------------------- ";
-		
 		if (tmp_data_value->getSubtype() == Store::Link) {
 			 *ec << "nested on Link object\n";
 			 vector<LogicalID*>*  tmp_vec =tmp_data_value->getVector();
