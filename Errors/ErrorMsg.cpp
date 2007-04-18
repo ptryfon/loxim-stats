@@ -36,6 +36,8 @@ struct {
 	{EEvalStopped,     "Query evaluation stopped by Server"},
 	{EProcNotSingle,   "Not one Procedure with this signature"},
 	{EBadViewDef,      "Error in View definition"},
+	{EBadBindName,     "Error in Name binding"},
+	{EOperNotDefined,  "This operation is not defined for this object"},
 // Config
 	{ENotInit,         "ENotInit"},
 	{ENoValue,         "ENoValue"},

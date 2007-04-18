@@ -1348,7 +1348,8 @@ lastOpenSect = 0; }
     protected:
 	QueryNode* query;
     public:
-	ReturnNode(QueryNode *q) {this->query = q; }
+    	ReturnNode() { this->query = NULL; }
+	ReturnNode(QueryNode *q) { this->query = q; }
 	
 	virtual TreeNode* clone();
 	virtual int type() {return TreeNode::TNRETURN;}
@@ -1362,18 +1363,26 @@ lastOpenSect = 0; }
 	}
 	
 	virtual ~ReturnNode() {if (query != NULL) delete query;} 
+      
       virtual string toString( int level = 0, bool recursive = false, string name = "" ) {
         string result = getPrefixForLevel( level, name ) + "[Return]\n";
 
         if( recursive ) {
-          if( query )
+          if( query != NULL )
             result += query->toString( level+1, true, "query" );
         }
 
         return result;
       }
       
-      virtual string deParse() { string result; result = " return" + query->deParse(); return result; };
+      virtual string deParse() { 
+      	string result;
+      	if( query != NULL )
+      		result = " return " + query->deParse();
+      	else
+      		result = " break "; 
+      	return result; 
+      	};
     };
     
     class RegisterProcNode : public QueryNode

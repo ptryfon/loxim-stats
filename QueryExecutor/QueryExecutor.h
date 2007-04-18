@@ -29,13 +29,13 @@ using namespace std;
 namespace QExecutor
 {
     
-    class ProcedureInfo
-    {
-    public:
-        string ProcCode;
-        vector<string> Params;
-        virtual ~ProcedureInfo(){};
-    };
+//     class ProcedureInfo
+//     {
+//     public:
+//         string ProcCode;
+//         vector<string> Params;
+//         virtual ~ProcedureInfo(){};
+//     };
 	
 	class ResultStack
 	{
@@ -85,10 +85,12 @@ namespace QExecutor
 		int algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResult *rArg, QueryResult *&final);
 		int derefQuery(QueryResult *arg, QueryResult *&res);
 		int refQuery(QueryResult *arg, QueryResult *&res);
-        int nameofQuery(QueryResult *arg, QueryResult *&res);
+        	int nameofQuery(QueryResult *arg, QueryResult *&res);
 		int isIncluded(QueryResult *elem, QueryResult *set, bool &score);
 		int sortBag(QueryBagResult *inBag, QueryBagResult *&outBag);
 		int objectFromBinder(QueryResult *res, ObjectPointer *&newObject);
+		
+		int deVirtualize(QueryResult *arg, QueryResult *&res);
         	
         	void set_user_data(ValidationNode *node);
         	int execute_locally(string query, QueryResult **result);
@@ -125,6 +127,12 @@ namespace QExecutor
 		void antyStarveFunction(int errcode);
 		int abort();
 		void set_priviliged_mode(bool mode);
+		int procCheck(unsigned int qSize, LogicalID *lid, string &code, vector<string> &prms, int &founded);
+		int callProcedure(string code, vector<QueryBagResult*> sections);
+		int checkViewAndGetVirtuals(LogicalID *lid, string &name, string &code);
+		int getSubviews(LogicalID *lid, string vo_name, vector<LogicalID *> &subviews, vector<LogicalID *> &others);
+		int getOn_procedure(LogicalID *lid, string procName, string &code, string &param);
+		int pop_qres(QueryResult *&r) { return qres->pop(r); };
 	};
 	
 	/*

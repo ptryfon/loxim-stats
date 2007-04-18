@@ -94,6 +94,7 @@ extern int szbderrno;
 "fixpoint"		return FIXPOINT;
 ":-"			return FIX_OP;
 "return"		return RETURN;
+"break"			return BREAK;
 "procedure"		return PROCEDURE;
 "{"			return LEFTPROCPAR;
 "}"			return RIGHTPROCPAR;

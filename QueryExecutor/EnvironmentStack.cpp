@@ -22,11 +22,12 @@ using namespace std;
 
 namespace QExecutor {
 
-EnvironmentStack::EnvironmentStack() { sectionDBnumber = 0; ec = new ErrorConsole("QueryExecutor"); }
+EnvironmentStack::EnvironmentStack() { actual_prior = 0; sectionDBnumber = 0; ec = new ErrorConsole("QueryExecutor"); }
 EnvironmentStack::~EnvironmentStack() { this->deleteAll(); if (ec != NULL) delete ec; }
 
 int EnvironmentStack::push(QueryBagResult *r) {
 	es.push_back(r);
+	es_priors.push_back(actual_prior);
 	*ec << "[QE] Environment Stack pushed";
 	return 0;
 }
@@ -43,6 +44,7 @@ int EnvironmentStack::pop(){
 	}
 	// delete ??
 	es.pop_back();
+	es_priors.pop_back();
 	*ec << "[QE] Environment Stack popped";
 	return 0;
 }
@@ -55,7 +57,9 @@ int EnvironmentStack::pushDBsection() {
 	}
 	QueryResult *r = new QueryBagResult();
 	es.push_back((QueryBagResult *)r);
+	es_priors.push_back(actual_prior);
 	sectionDBnumber = es.size();
+	actual_prior = 1;
 	*ec << "[QE] Data Base section pushed on Environment Stack";
 	return 0;
 }
@@ -78,8 +82,10 @@ int EnvironmentStack::popDBsection() {
 	while (sectionDBnumber <= es.size()) {
 		// delete ??
 		es.pop_back();
+		es_priors.pop_back();
 	}	
 	sectionDBnumber = 0;
+	actual_prior = 0;
 	*ec << "[QE] Data Base section popped from Environment Stack";
 	return 0;
 }
@@ -124,44 +130,82 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 			}
 			int vecSize = vec->size();
 			ec->printf("[QE] %d Roots LID by name taken\n", vecSize);
-			for (int i = 0; i < vecSize; i++ ) {
-				found_one = true;
-				LogicalID *lid = vec->at(i);
-				QueryReferenceResult *lidres = new QueryReferenceResult(lid);
-				r->addResult(lidres);
-			}
-			delete vec;
-			
-			vector<LogicalID*>* vec_sec;
-			if ((errcode = tr->getViewsLID(name, vec_sec)) != 0) {
+			vector<LogicalID*>* vec_virt;
+			if ((errcode = tr->getViewsLID(name, vec_virt)) != 0) {
 				*ec << "[QE] bindName - error in getViewsLID";
 				qe->antyStarveFunction(errcode);
 				qe->inTransaction = false;
 				return errcode;
 			}
-			int vecSize_sec = vec_sec->size();
-			*ec << " ----------------------------------------------------- ";
-			ec->printf("[QE] %d Views LID by name taken\n", vecSize_sec);
-			*ec << " ----------------------------------------------------- ";
+			int vecSize_virt = vec_virt->size();
+			ec->printf("[QE] %d Views LID by name taken\n", vecSize_virt);
 			
-			// TODO po znalezieniu nazwy wsrod wirtualnuych obiektow trza cos posprawdzac, jakos to spakowac i oddac
+			if (vecSize_virt == 0) { 
+				for (int i = 0; i < vecSize; i++ ) {
+					found_one = true;
+					LogicalID *lid = vec->at(i);
+					QueryReferenceResult *lidres = new QueryReferenceResult(lid);
+					r->addResult(lidres);
+				}
+			}
+			else if (vecSize != 0) {
+				*ec << "[QE] bindName error: Real and virtual objects have the sam name";
+				*ec << (ErrQExecutor | EBadBindName);
+				return ErrQExecutor | EBadBindName;
+			}
+			else if (vecSize_virt != 1) {
+				*ec << "[QE] bindName error: Multiple views defining virtual objects with the same name";
+				*ec << (ErrQExecutor | EBadBindName);
+				return ErrQExecutor | EBadBindName;
+			}
+			else {
+				//TODO pakowanie wirtualnych resultow na stos wynikow, chyba gotowe
+				LogicalID *view_lid = vec_virt->at(0);
+				string view_code;
+				errcode = qe->checkViewAndGetVirtuals(view_lid, name, view_code);
+				if (errcode != 0) return errcode;
+				
+				vector<QueryBagResult*> envs_sections;
+				envs_sections.push_back(new QueryBagResult);
+				
+				errcode = qe->callProcedure(view_code, envs_sections);
+				if(errcode != 0) return errcode;
+				
+				QueryResult *res;
+				qe->pop_qres(res);
+				QueryResult *bagged_res = new QueryBagResult();
+				((QueryBagResult *) bagged_res)->addResult(res);
+				for (unsigned int i = 0; i < bagged_res->size(); i++) {
+					found_one = true;
+					QueryResult *seed;
+					errcode = ((QueryBagResult *) bagged_res)->at(i, seed);
+					if (errcode != 0) return errcode;
+					vector<QueryResult *> seeds;
+					seeds.push_back(seed);
+					QueryResult *virt_res = new QueryVirtualResult(name, view_lid, seeds);
+					r->addResult(virt_res);
+				}
+			}
 			
-			delete vec_sec;
+			delete vec;
+			delete vec_virt;
 		}
 		else {
-			section = (es.at(i - 1));
-			sectionSize = (section->size());
-			ec->printf("[QE] bindName: ES section %u got %u elements\n", i, sectionSize);
-			for (unsigned int j = 0; j < sectionSize; j++) {
-				errcode = (section->at(j,sth));
-				if (errcode != 0) return errcode;
-				if ((sth->type()) == (QueryResult::QBINDER)) {
-					current = (((QueryBinderResult *) sth)->getName());
-					ec->printf("[QE] bindName: current %u name is: %s\n", j, current.c_str());
-					if (current == name) {
-						found_one = true;
-						*ec << "[QE] bindName: Object added to Result";
-						r->addResult(((QueryBinderResult *) sth)->getItem());
+			if (es_priors.at(i - 1) == actual_prior) {
+				section = (es.at(i - 1));
+				sectionSize = (section->size());
+				ec->printf("[QE] bindName: ES section %u got %u elements\n", i, sectionSize);
+				for (unsigned int j = 0; j < sectionSize; j++) {
+					errcode = (section->at(j,sth));
+					if (errcode != 0) return errcode;
+					if ((sth->type()) == (QueryResult::QBINDER)) {
+						current = (((QueryBinderResult *) sth)->getName());
+						ec->printf("[QE] bindName: current %u name is: %s\n", j, current.c_str());
+						if (current == name) {
+							found_one = true;
+							*ec << "[QE] bindName: Object added to Result";
+							r->addResult(((QueryBinderResult *) sth)->getItem());
+						}
 					}
 				}
 			}
@@ -175,67 +219,6 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 	return 0;
 }
 
-int EnvironmentStack::procCheck(unsigned int qSize, LogicalID *lid, Transaction *&tr, QueryExecutor *qe, string &code, vector<string> &prms, int &f) {
-	*ec << "[QE] checking if this LogicalID point procedure we look for";
-	int errcode;
-	ObjectPointer *optr;
-	
-	errcode = tr->getObjectPointer (lid, Store::Read, optr); 
-	if (errcode != 0) {
-		*ec << "[QE] procCheck - Error in getObjectPointer.";
-		qe->antyStarveFunction(errcode);
-		qe->inTransaction = false;
-		return errcode;
-	}
-	
-	DataValue* data_value = optr->getValue();
-	
-	int vType = data_value->getType();
-	ExtendedType extType = data_value->getSubtype();
-	int procBody_count = 0;
-	string tmp_code;
-	unsigned int params_count = 0;
-	vector<string> tmp_prms;
-	if ((vType == Store::Vector) && (extType == Store::Procedure)) {
-		vector<LogicalID*>* tmp_vec = (data_value->getVector());
-		int vec_size = tmp_vec->size();
-		for (int i = 0; i < vec_size; i++ ) {
-			LogicalID *tmp_logID = tmp_vec->at(i);
-			ObjectPointer *tmp_optr;
-			if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, tmp_optr)) != 0) {
-				*ec << "[QE] procCheck - Error in getObjectPointer";
-				qe->antyStarveFunction(errcode);
-				qe->inTransaction = false;
-				return errcode;
-			}
-			string tmp_name = tmp_optr->getName();
-			DataValue* tmp_data_value = tmp_optr->getValue();
-			int tmp_vType = tmp_data_value->getType();
-			if (tmp_vType == Store::String) {
-				if (tmp_name == "ProcBody") {
-					tmp_code = tmp_data_value->getString();
-					procBody_count++;
-				}
-				if (tmp_name == "Param") {
-					tmp_prms.push_back(tmp_data_value->getString());
-					params_count++;
-				}
-			}
-		}
-		if ((procBody_count == 1) && (params_count == qSize)) {
-			*ec << "[QE] procCheck - success, this is procedure we've looked for";
-			if (f != 0) {
-				*ec << "[QE] error there should be only one procedure in a scope with the same name and number of parameters";
-				*ec << (ErrQExecutor | EProcNotSingle);
-				return ErrQExecutor | EProcNotSingle;
-			}
-			f++; 
-			code = tmp_code;
-			prms = tmp_prms;
-		}
-	}
-	return 0;
-}
 
 int EnvironmentStack::bindProcedureName(string name, unsigned int queries_size, Transaction *&tr, QueryExecutor *qe, string &code, vector<string> &params) {
 	*ec << "[QE] Procedure Name binding on ES";
@@ -257,36 +240,37 @@ int EnvironmentStack::bindProcedureName(string name, unsigned int queries_size, 
 			ec->printf("[QE] %d Roots LID by name taken\n", vecSize);
 			for (int i = 0; i < vecSize; i++ ) {
 				LogicalID *lid = vec->at(i);
-				errcode = procCheck(queries_size, lid, tr, qe, code, params, founded);
+				errcode = qe->procCheck(queries_size, lid, code, params, founded);
 				if (errcode != 0) return errcode;
 			}
 			delete vec;
 		}
 		else {
-			QueryBagResult *section = (es.at(i - 1));
-			unsigned int sectionSize = (section->size());
-			ec->printf("[QE] bindProcedureName: ES section %u got %u elements\n", i, sectionSize);
-			for (unsigned int j = 0; j < sectionSize; j++) {
-				QueryResult *sth;
-				errcode = (section->at(j,sth));
-				if (errcode != 0) return errcode;
-				if ((sth->type()) == (QueryResult::QBINDER)) {
-					string current = (((QueryBinderResult *) sth)->getName());
-					ec->printf("[QE] bindProcedureName: current %u name is: %s\n", j, current.c_str());
-					if (current == name) {
-						QueryResult *item = (((QueryBinderResult *) sth)->getItem());
-						if (item->isReferenceValue()) {
-							QueryResult *ref_res;
-							errcode = item->getReferenceValue(ref_res);
-							if (errcode != 0) return errcode;
-							LogicalID *lid = ((QueryReferenceResult*)ref_res)->getValue();
-							errcode = procCheck(queries_size, lid, tr, qe, code, params, founded);
-							if (errcode != 0) return errcode;
+			if (es_priors.at(i - 1) == actual_prior) {
+				QueryBagResult *section = (es.at(i - 1));
+				unsigned int sectionSize = (section->size());
+				ec->printf("[QE] bindProcedureName: ES section %u got %u elements\n", i, sectionSize);
+				for (unsigned int j = 0; j < sectionSize; j++) {
+					QueryResult *sth;
+					errcode = (section->at(j,sth));
+					if (errcode != 0) return errcode;
+					if ((sth->type()) == (QueryResult::QBINDER)) {
+						string current = (((QueryBinderResult *) sth)->getName());
+						ec->printf("[QE] bindProcedureName: current %u name is: %s\n", j, current.c_str());
+						if (current == name) {
+							QueryResult *item = (((QueryBinderResult *) sth)->getItem());
+							if (item->isReferenceValue()) {
+								QueryResult *ref_res;
+								errcode = item->getReferenceValue(ref_res);
+								if (errcode != 0) return errcode;
+								LogicalID *lid = ((QueryReferenceResult*)ref_res)->getValue();
+								errcode = qe->procCheck(queries_size, lid, code, params, founded);
+								if (errcode != 0) return errcode;
+							}
 						}
 					}
 				}
 			}
-			
 		}
 		if (founded > 0) {
 			ec->printf("[QE] bindProcedureName: name binded at %d section of envs\n", i);
@@ -302,6 +286,8 @@ void EnvironmentStack::deleteAll() {
 	for (unsigned int i = 0; i < (es.size()); i++) {
 		delete es.at(i);
 	};
+	es.clear();
+	es_priors.clear();
 }
 
 
@@ -512,6 +498,66 @@ int QueryReferenceResult::nested(Transaction *&tr, QueryResult *&r, QueryExecuto
 				break;
 			}
 		}
+	}
+	return 0;
+}
+
+// TODO nested na virtualnych resultach - na 100% do poprawienia
+int QueryVirtualResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe) {
+	int errcode;
+	ec->printf("[QE] nested(): QueryVirtualResult\n");
+	
+	vector<LogicalID *> subviews;
+	vector<LogicalID *> others;
+	errcode = qe->getSubviews(view_def, vo_name, subviews, others);
+	if (errcode != 0) return errcode;
+	for (unsigned int i = 0; i < subviews.size(); i++ ) {
+		LogicalID *subview_lid = subviews.at(i);
+		string subview_name = "";
+		string subview_code = "";
+		errcode = qe->checkViewAndGetVirtuals(subview_lid, subview_name, subview_code);
+		if (errcode != 0) return errcode;
+		vector<QueryBagResult*> envs_sections;
+		//TODO tu pewnie trzeba jakos lepiej stos inicjowac przed wywolaniem virtual_objects
+		for (int k = ((seeds.size()) - 1); k >= 0; k-- ) {
+			QueryResult *bagged_seed = new QueryBagResult();
+			((QueryBagResult *) bagged_seed)->addResult(seeds.at(k));
+			envs_sections.push_back((QueryBagResult *) bagged_seed);
+		}
+		errcode = qe->callProcedure(subview_code, envs_sections);
+		if(errcode != 0) return errcode;
+		QueryResult *res;
+		qe->pop_qres(res);
+		QueryResult *bagged_res = new QueryBagResult();
+		((QueryBagResult *) bagged_res)->addResult(res);
+		for (unsigned int j = 0; j < bagged_res->size(); j++) {
+			QueryResult *sub_seed;
+			errcode = ((QueryBagResult *) bagged_res)->at(j, sub_seed);
+			if (errcode != 0) return errcode;
+			vector<QueryResult *> sub_seeds;
+			sub_seeds.push_back(sub_seed);
+			for (unsigned int k = 0; k < (seeds.size()); k++ ) {
+				sub_seeds.push_back(seeds.at(k));
+			}
+			QueryResult *virt_res = new QueryVirtualResult(subview_name, subview_lid, sub_seeds);
+			QueryBinderResult *final_binder = new QueryBinderResult(subview_name, virt_res);
+			r->addResult(final_binder);
+		}
+		
+	}
+	for (unsigned int i = 0; i < others.size(); i++ ) {
+		LogicalID *tmp_logID = others.at(i);
+		ObjectPointer *tmp_optr;
+		if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, tmp_optr)) != 0) {
+			*ec << "[QE] Error in getObjectPointer";
+			qe->antyStarveFunction(errcode);
+			qe->inTransaction = false;
+			return errcode;
+		}
+		string tmp_name = tmp_optr->getName();
+		QueryReferenceResult *final_ref = new QueryReferenceResult(tmp_logID);
+		QueryBinderResult *final_binder = new QueryBinderResult(tmp_name, final_ref);
+		r->addResult(final_binder);
 	}
 	return 0;
 }

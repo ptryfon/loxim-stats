@@ -29,7 +29,7 @@
 
 %token	<num> INTEGER
 %token	<dbl> DOUBLE
-%token	<str> PARAMNAME NAME STRING SEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT DEREF REF NAMEOF BEGINTR END ABORT CREATE IF FI DO OD ELSE WHILE LINK FOREACH THEN FIX_OP FIXPOINT RETURN VALIDATE READ MODIFY DELETE PASSWD WITH REVOKE REMOVE TO USER FROM ON GRANT OPTION PROCEDURE LEFTPROCPAR RIGHTPROCPAR VIEW ONRETRIEVE ONUPDATE ONCREATE ONDELETE INDEX VIRTUAL
+%token	<str> PARAMNAME NAME STRING SEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT DEREF REF NAMEOF BEGINTR END ABORT CREATE IF FI DO OD ELSE WHILE LINK FOREACH THEN FIX_OP FIXPOINT RETURN BREAK VALIDATE READ MODIFY DELETE PASSWD WITH REVOKE REMOVE TO USER FROM ON GRANT OPTION PROCEDURE LEFTPROCPAR RIGHTPROCPAR VIEW ONRETRIEVE ONUPDATE ONCREATE ONDELETE INDEX VIRTUAL
 
 %start statement
 
@@ -141,6 +141,7 @@ query	    : NAME { char *s = $1; $$ = new NameNode(s); delete s; }
 	    | LINK STRING STRING INTEGER { $$ = new LinkNode($2, $3, $4); }
 	    | query SEMICOLON query { $$ = new AlgOpNode ($1, $3, AlgOpNode::semicolon); }
 	    | FIXPOINT LEFTPAR queryfixlist RIGHTPAR { $$ = $3; }
+	    | BREAK {$$ = new ReturnNode (); }
 	    | RETURN query {$$ = new ReturnNode ($2); }
 	    | CREATE procquery {$$ = new RegisterProcNode ($2);}
 	    | CREATE viewquery {$$ = new RegisterViewNode ($2);}
@@ -169,6 +170,8 @@ formparams  : NAME {char *s = $1; $$ = new ProcedureNode (s); delete s;}
 viewquery   : VIEW NAME LEFTPROCPAR VIRTUAL NAME LEFTPROCPAR query RIGHTPROCPAR viewrecdef RIGHTPROCPAR {
 		char *n = $2; char *v = $5; $9->setName(n); $9->setVirtual(v,$7); $$ = $9; delete n; delete v; }
 	    | VIEW NAME LEFTPROCPAR VIRTUAL NAME LEFTPROCPAR query RIGHTPROCPAR RIGHTPROCPAR { char *n = $2; char *v = $5; $$ = new ViewNode(n); $$->setVirtual(v,$7); delete n; delete v; }
+	    | VIEW NAME LEFTPROCPAR VIRTUAL NAME LEFTPAR RIGHTPAR LEFTPROCPAR query RIGHTPROCPAR viewrecdef RIGHTPROCPAR { char *n = $2; char *v = $5; $11->setName(n); $11->setVirtual(v,$9); $$ = $11; delete n; delete v; }
+	    | VIEW NAME LEFTPROCPAR VIRTUAL NAME LEFTPAR RIGHTPAR LEFTPROCPAR query RIGHTPROCPAR RIGHTPROCPAR { char *n = $2; char *v = $5; $$ = new ViewNode(n); $$->setVirtual(v,$9); delete n; delete v; }
             ;
 
 viewrecdef  : viewdef		 { $$ = $1; }

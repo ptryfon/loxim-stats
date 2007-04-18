@@ -29,7 +29,6 @@ namespace QExecutor
 		ErrorConsole *ec;
 		vector<QueryBagResult*> es;
 		unsigned int sectionDBnumber;
-		int procCheck(unsigned int qSize, LogicalID *lid, Transaction *&tr, QueryExecutor *qe, string &code, vector<string> &prms, int &f);
 	public:
 		EnvironmentStack();
 		virtual ~EnvironmentStack();
@@ -43,19 +42,20 @@ namespace QExecutor
 		int bindName(string name, int sectionNo, Transaction *&tr, QueryExecutor *qe, QueryResult *&r);
 		int bindProcedureName(string name, unsigned int queries_size, Transaction *&tr, QueryExecutor *qe, string &code, vector<string> &params);
 		void deleteAll();
+		
         	string toString() {
-        	
-          stringstream c;
-          string sectionDBnumberS;
-          c << sectionDBnumber; c >> sectionDBnumberS;
-          string result = "[EnvironmentStack] sectionDBnumber=" + sectionDBnumberS + "\n";
-
-          for( unsigned int i = 0; i < es.size(); i++ ) {
-            result += es[i]->toString( 1, true, "es_elem" );
-          }
-
-          return result;
-        }
+			stringstream c;
+			string sectionDBnumberS;
+			c << sectionDBnumber; c >> sectionDBnumberS;
+			string result = "[EnvironmentStack] sectionDBnumber=" + sectionDBnumberS + "\n";
+			for( unsigned int i = 0; i < es.size(); i++ ) {
+				result += es[i]->toString( 1, true, "es_elem" );
+			}
+			return result;
+		}
+		
+		vector<int> es_priors;
+		int actual_prior;
 	};
 	
 }

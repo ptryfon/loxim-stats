@@ -42,7 +42,12 @@ namespace QParser
 	return fn;
     }
 
-    TreeNode* ReturnNode::clone() { return new ReturnNode((QueryNode*) query->clone()); }
+    TreeNode* ReturnNode::clone() { 
+    	if( query != NULL )
+    		return new ReturnNode((QueryNode*) query->clone()); 
+    	else
+    		return new ReturnNode();
+    }
     TreeNode* ProcedureNode::clone() { return new ProcedureNode(name, code, params, paramsNumb); }
     TreeNode* RegisterProcNode::clone() { return new RegisterProcNode((QueryNode*) query->clone()); }
     TreeNode* RegisterViewNode::clone() { return new RegisterViewNode((QueryNode*) query->clone()); }

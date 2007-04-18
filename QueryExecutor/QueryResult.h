@@ -55,7 +55,8 @@ public:
 		QDOUBLE   = 7,
 		QBOOL     = 8,
 		QREFERENCE= 9,
-		QNOTHING  =10
+		QNOTHING  =10,
+		QVIRTUAL  =11
 		};
 
 	//QueryResult () {};
@@ -493,6 +494,7 @@ public:
         }
 };
 
+
 /* You get this, as a result of non-select query like delete or if anb error accurs */
 class QueryNothingResult : public QueryResult
 {
@@ -520,6 +522,53 @@ public:
           return getPrefixForLevel( level, n ) + "[Nothing]\n";
         }
 };
+
+
+class QueryVirtualResult : public QueryResult
+{
+protected:
+	
+public:
+	string vo_name;
+	LogicalID *view_def;
+	vector<QueryResult *> seeds;
+	
+	QueryVirtualResult();
+	QueryVirtualResult(string _vo_name, LogicalID *_view_def, vector<QueryResult *> _seeds);
+	QueryResult* clone();
+	virtual ~QueryVirtualResult() { 
+		for (unsigned int i = 0; i < (seeds.size()); i++ ) { delete (seeds.at(i)); };
+		if (view_def != NULL) delete view_def;
+		if (ec != NULL) delete ec; 
+	};
+	
+	int type();
+	bool collection();
+	bool isEmpty();
+	unsigned int size();
+	bool equal(QueryResult *r);
+	bool not_equal(QueryResult *r);
+	bool greater_than(QueryResult *r);
+	bool less_than(QueryResult *r);
+	bool greater_eq(QueryResult *r);
+	bool less_eq(QueryResult *r);
+	int nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe);
+	bool isBool();
+	bool isNothing();
+	int getBoolValue(bool &b);
+	bool isReferenceValue();
+	int getReferenceValue(QueryResult *&r);
+	
+        virtual string toString( int level = 0, bool recursive = false, string n = "" ) {
+		string valueS = view_def ? view_def->toString() : "<null>";
+		string res = getPrefixForLevel( level, n ) + "[Virtual] name=" + vo_name + " definition lid=" + valueS + "\n";
+		for (unsigned int i = 0; i < (seeds.size()); i++ ) {
+			res = res +  getPrefixForLevel( level + 1, n ) + "  [seed] " + seeds.at(i)->toString(level, recursive, n) + "\n";
+		}
+		return res;
+        }
+};
+
 
 }
 

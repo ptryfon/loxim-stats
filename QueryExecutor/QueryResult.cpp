@@ -42,6 +42,9 @@ QueryBoolResult::QueryBoolResult(bool v) 			{ value=v; ec = new ErrorConsole("Qu
 QueryReferenceResult::QueryReferenceResult()			{ ec = new ErrorConsole("QueryExecutor"); refed = false; }
 QueryReferenceResult::QueryReferenceResult(LogicalID* v) 	{ value=v; ec = new ErrorConsole("QueryExecutor"); refed = false; }
 QueryNothingResult::QueryNothingResult() 			{ ec = new ErrorConsole("QueryExecutor"); }
+QueryVirtualResult::QueryVirtualResult() 			{ ec = new ErrorConsole("QueryExecutor"); }
+QueryVirtualResult::QueryVirtualResult(string _vo_name, LogicalID *_view_def, vector<QueryResult *> _seeds) {
+vo_name = _vo_name; view_def = _view_def; seeds = _seeds; ec = new ErrorConsole("QueryExecutor");}
 
 //function clone()
 QueryResult* QuerySequenceResult::clone()	{ return new QuerySequenceResult(seq); }
@@ -54,6 +57,7 @@ QueryResult* QueryDoubleResult::clone()		{ return new QueryDoubleResult(value); 
 QueryResult* QueryBoolResult::clone()		{ return new QueryBoolResult(value); }
 QueryResult* QueryReferenceResult::clone()	{ return new QueryReferenceResult(value); }
 QueryResult* QueryNothingResult::clone()	{ return new QueryNothingResult(); }
+QueryResult* QueryVirtualResult::clone()	{ return new QueryVirtualResult(vo_name, view_def, seeds); }
 
 //function type() - returns type of a result
 int QueryResult::type()			{ return QueryResult::QRESULT; }
@@ -67,6 +71,7 @@ int QueryDoubleResult::type()		{ return QueryResult::QDOUBLE; }
 int QueryBoolResult::type()		{ return QueryResult::QBOOL; }
 int QueryReferenceResult::type()	{ return QueryResult::QREFERENCE; }
 int QueryNothingResult::type()		{ return QueryResult::QNOTHING; }
+int QueryVirtualResult::type()		{ return QueryResult::QVIRTUAL; }
 
 //function collection() - returns true if result is a collection, false if not
 bool QuerySequenceResult::collection()	{ return true; }
@@ -79,6 +84,7 @@ bool QueryDoubleResult::collection()	{ return false; }
 bool QueryBoolResult::collection()	{ return false; }
 bool QueryReferenceResult::collection()	{ return false; }
 bool QueryNothingResult::collection()	{ return false; }
+bool QueryVirtualResult::collection()	{ return false; }
 
 //function isEmpty() - returns false if a result contains some other results, true if does not
 bool QuerySequenceResult::isEmpty()	{ return seq.empty(); }
@@ -91,6 +97,7 @@ bool QueryDoubleResult::isEmpty()	{ return true; }
 bool QueryBoolResult::isEmpty()		{ return true; }
 bool QueryReferenceResult::isEmpty()	{ return true; }
 bool QueryNothingResult::isEmpty()	{ return true; }
+bool QueryVirtualResult::isEmpty()	{ return true; }
 
 //function size() - returns how many other results does a result contain
 unsigned int QuerySequenceResult::size()	{ return seq.size(); }
@@ -103,6 +110,7 @@ unsigned int QueryDoubleResult::size()		{ return 0; }
 unsigned int QueryBoolResult::size()		{ return 0; }
 unsigned int QueryReferenceResult::size()	{ return 0; }
 unsigned int QueryNothingResult::size()		{ return 0; }
+unsigned int QueryVirtualResult::size()		{ return 0; }
 
 //accesors for collection result classes - sequence, bag, struct
 void QuerySequenceResult::addResult(QueryResult *r){ 
@@ -626,6 +634,7 @@ bool QueryNothingResult::equal(QueryResult *r){
 }
 
 
+
 bool QuerySequenceResult::not_equal(QueryResult *r){
 	bool tmp_value = not ( this->equal(r) ); 
 	return tmp_value;
@@ -675,6 +684,9 @@ bool QueryNothingResult::not_equal(QueryResult *r){
 	bool tmp_value = not ( this->equal(r) );
 	return tmp_value;
 }
+
+
+
 
 bool QuerySequenceResult::greater_than(QueryResult *r) {
 	if (r->type() != QueryResult::QSEQUENCE ) {
@@ -1098,6 +1110,27 @@ bool QueryNothingResult::less_eq(QueryResult *r) {
 	return ((this->less_than(r)) || (this->equal(r)));
 }
 
+//TODO jak uporzadkowac QueryVirtualResulty
+bool QueryVirtualResult::equal(QueryResult *r){ 
+	return false; 
+}
+
+bool QueryVirtualResult::not_equal(QueryResult *r){ 
+	return false; 
+}
+bool QueryVirtualResult::greater_than(QueryResult *r){ 
+	return false; 
+}
+bool QueryVirtualResult::less_than(QueryResult *r){ 
+	return false; 
+}
+bool QueryVirtualResult::greater_eq(QueryResult *r){ 
+	return false; 
+}
+bool QueryVirtualResult::less_eq(QueryResult *r){ 
+	return false; 
+}
+
 //function isBool() - returns true if result is a boolean (also if it is table 1x1 containing one bollean), false if not
 bool QuerySequenceResult::isBool() { 
 	if (seq.size() == 1)
@@ -1129,6 +1162,7 @@ bool QueryDoubleResult::isBool()	{ return false; }
 bool QueryBoolResult::isBool()		{ return true; }
 bool QueryReferenceResult::isBool()	{ return false; }
 bool QueryNothingResult::isBool()	{ return false; }
+bool QueryVirtualResult::isBool()	{ return false; }
 
 
 //function isReferenceValue() - returns true if result is a reference, false if not
@@ -1162,6 +1196,7 @@ bool QueryDoubleResult::isReferenceValue()	{ return false; }
 bool QueryBoolResult::isReferenceValue()	{ return false; }
 bool QueryReferenceResult::isReferenceValue()	{ return true; }
 bool QueryNothingResult::isReferenceValue()	{ return false; }
+bool QueryVirtualResult::isReferenceValue()	{ return false; }
 
 //function isNothing() - returns true if result is void (also if it is table 1x1 containing void), false if not
 bool QuerySequenceResult::isNothing() { 
@@ -1195,6 +1230,7 @@ bool QueryDoubleResult::isNothing()	{ return false; }
 bool QueryBoolResult::isNothing()	{ return false; }
 bool QueryReferenceResult::isNothing()	{ return false; }
 bool QueryNothingResult::isNothing()	{ return true; }
+bool QueryVirtualResult::isNothing()	{ return false; }
 
 // function getBoolValue returns a boolean value if the object is a bollean
 int QuerySequenceResult::getBoolValue(bool &b) { 
@@ -1246,6 +1282,11 @@ int QueryReferenceResult::getBoolValue(bool &b) {
 	return ErrQExecutor | EBoolExpected;
 }
 int QueryNothingResult::getBoolValue(bool &b) { 
+	*ec << (ErrQExecutor | EBoolExpected);
+	return ErrQExecutor | EBoolExpected;
+}
+
+int QueryVirtualResult::getBoolValue(bool &b) { 
 	*ec << (ErrQExecutor | EBoolExpected);
 	return ErrQExecutor | EBoolExpected;
 }
@@ -1304,6 +1345,10 @@ int QueryNothingResult::getReferenceValue(QueryResult *&r) {
 	return ErrQExecutor | ERefExpected;
 }
 
+int QueryVirtualResult::getReferenceValue(QueryResult *&r) { 
+	*ec << (ErrQExecutor | ERefExpected);
+	return ErrQExecutor | ERefExpected;
+}
 
 bool QueryResult::sorting_less_eq(QueryResult *arg) {
 	if (((this->type()) == (arg->type())) || 
