@@ -580,10 +580,11 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			vector<string> params;
 			string code = "";
 			
-			errcode = envs->bindProcedureName(name, queries_size, tr, this, code, params);
+			int bindSectionNumber = -1;
+			errcode = envs->bindProcedureName(name, queries_size, tr, this, code, params, bindSectionNumber);
 			if (errcode != 0) return errcode;
 			
-			if (code == "") {
+			if ((code == "") || (bindSectionNumber == -1)) {
 				qres->push(new QueryBagResult());
 				return 0;
 			}
@@ -608,7 +609,10 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			vector<QueryBagResult*> envs_sections;
 			envs_sections.push_back((QueryBagResult *)new_envs_sect);
 			
+			int oldBindSectionPrior = envs->es_priors[bindSectionNumber];
+			envs->es_priors[bindSectionNumber] = envs->actual_prior + 1;
 			errcode = callProcedure(code, envs_sections);
+			envs->es_priors[bindSectionNumber] = oldBindSectionPrior;
 			if(errcode != 0) return errcode;
 			
 			return 0;
@@ -1939,7 +1943,7 @@ int QueryExecutor::nameofQuery(QueryResult *arg, QueryResult *&res) {
             LogicalID * lid = ((QueryReferenceResult *) arg)->getValue();
              
             if (lid != NULL && lid->getServer() != "") {
-                *ec << "dereferencing remote object";
+                *ec << "nameof() dereferencing remote object";
                 RemoteExecutor *rex = new RemoteExecutor(lid->getServer(), lid->getPort(), this);
                 rex->setLogicalID(lid);
                 rex->setDeref();
@@ -1948,7 +1952,7 @@ int QueryExecutor::nameofQuery(QueryResult *arg, QueryResult *&res) {
                 if (errcode != 0) {
                     return errcode;
                 }
-                *ec << "derefQuery on remote object done";
+                *ec << "nameof() on remote object done";
                 res = qr;
                 break;
             }
@@ -1958,7 +1962,7 @@ int QueryExecutor::nameofQuery(QueryResult *arg, QueryResult *&res) {
                 break;
             }
             LogicalID *ref_value = ((QueryReferenceResult *) arg)->getValue();
-            *ec << "[QE] derefQuery() - dereferencing Object";
+            *ec << "[QE] nameof() - dereferencing Object";
             ObjectPointer *optr;
             errcode = tr->getObjectPointer(ref_value, Store::Read, optr); 
             if (errcode != 0) {
@@ -1990,6 +1994,11 @@ int QueryExecutor::nameofQuery(QueryResult *arg, QueryResult *&res) {
             res = arg;
             break;
         }
+        case QueryResult::QVIRTUAL: {
+		string vo_name = ((QueryVirtualResult*) arg)->vo_name;
+		res = new QueryStringResult(vo_name);
+		break;
+	}
         default: {
             *ec << "[QE] ERROR in derefQuery() - unknown result type";
             *ec << (ErrQExecutor | EOtherResExp);
@@ -3519,10 +3528,6 @@ int QueryExecutor::checkViewAndGetVirtuals(LogicalID *lid, string &name, string 
 	}
 	return 0;
 }
-
-
-
-
 
 int QueryExecutor::getSubviews(LogicalID *lid, string vo_name, vector<LogicalID *> &subviews, vector<LogicalID *> &others) {
 	int errcode;

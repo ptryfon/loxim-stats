@@ -40,7 +40,7 @@ namespace QExecutor
 		bool empty();
 		int size();
 		int bindName(string name, int sectionNo, Transaction *&tr, QueryExecutor *qe, QueryResult *&r);
-		int bindProcedureName(string name, unsigned int queries_size, Transaction *&tr, QueryExecutor *qe, string &code, vector<string> &params);
+		int bindProcedureName(string name, unsigned int queries_size, Transaction *&tr, QueryExecutor *qe, string &code, vector<string> &params, int &bindSectionNo);
 		void deleteAll();
 		
         	string toString() {
