@@ -18,14 +18,10 @@ SUBDIRS	=	Backup \
 all: subdirs
 
 mapper:
-		cd Mapper
-		ant build
-		cd ..
+		make -C Mapper || exit 1; \
 	
 mapper-clean:
-		cd Mapper
-		ant clean
-		cd ..
+		make -C Mapper clean || exit 1; \
 
 subdirs:
 	@for i in $(SUBDIRS); do \
