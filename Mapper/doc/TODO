@@ -1,0 +1,28 @@
+
+
+Driver
+------
+
+Navigator
+---------
+- cache'owanie wartości
+- modyfikowanie zawartości 
+- zmiana wartości obiektów prostych
+- dodanie dziecka
+- usunięcie dziecka
+
+
+Transparent Mapper
+------------------
+- handler dla list/map
+
+Structure
+---------
+- wydzielenie zbioru obiektów sesyjnych na zewnątrz sesji
+
+Ogólne
+------
+- stworzyc hierarchie wyjątków
+- znaleźć miejsca gdzie możemy mieć nullpointery 
+- znaleźć miejsca gdzie kod jest nie gotowy - oznaczyć przez UnsupportedOperationException()
+

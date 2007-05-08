@@ -17,6 +17,16 @@ SUBDIRS	=	Backup \
 
 all: subdirs
 
+mapper:
+		cd Mapper
+		ant build
+		cd ..
+	
+mapper-clean:
+		cd Mapper
+		ant clean
+		cd ..
+
 subdirs:
 	@for i in $(SUBDIRS); do \
 		make -C $$i || exit 1; \
