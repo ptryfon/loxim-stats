@@ -25,11 +25,18 @@
   QParser::Privilige *privilige;
   QParser::PriviligeListNode *priv_list;
   QParser::NameListNode *name_list;
+  QParser::InterfaceAttribute *attribute;
+  QParser::InterfaceMethodParam* method_param;
+  QParser::InterfaceAttributeListNode *attributes;
+  QParser::InterfaceMethod* method;
+  QParser::InterfaceMethodListNode *methods;
+  QParser::InterfaceMethodParamListNode* method_params;
+  QParser::InterfaceStruct* iStruct;
 }
 
 %token	<num> INTEGER
 %token	<dbl> DOUBLE
-%token	<str> PARAMNAME NAME STRING SEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT DEREF REF NAMEOF BEGINTR END ABORT CREATE IF FI DO OD ELSE WHILE LINK FOREACH THEN FIX_OP FIXPOINT RETURN BREAK VALIDATE READ MODIFY DELETE PASSWD WITH REVOKE REMOVE TO USER FROM ON GRANT OPTION PROCEDURE LEFTPROCPAR RIGHTPROCPAR VIEW ONRETRIEVE ONUPDATE ONCREATE ONDELETE INDEX VIRTUAL
+%token	<str> PARAMNAME NAME STRING SEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT DEREF REF NAMEOF BEGINTR END ABORT CREATE IF FI DO OD ELSE WHILE LINK FOREACH THEN FIX_OP FIXPOINT RETURN BREAK VALIDATE READ MODIFY DELETE PASSWD WITH REVOKE REMOVE TO USER FROM ON GRANT OPTION PROCEDURE LEFTPROCPAR RIGHTPROCPAR VIEW ONRETRIEVE ONUPDATE ONCREATE ONDELETE INDEX VIRTUAL COLON INTERFACE
 
 %start statement
 
@@ -71,6 +78,14 @@
 %type <fxtree> queryfixlist
 %type <vectree> querycommalist
 %type <tree> index_stmt
+%type <tree> interface_stmt
+%type <iStruct> interface_struct
+%type <attributes> attributes
+%type <attribute> attribute
+%type <methods> methods
+%type <method> method
+%type <method_params> method_params
+%type <method_param> method_param
 %%
 
 statement   : query semicolon_opt { d=$1; }
@@ -81,6 +96,7 @@ statement   : query semicolon_opt { d=$1; }
 	    | privilige_stmt semicolon_opt { d = $1; }
 	    | user_stmt	     semicolon_opt { d = $1; }
 	    | index_stmt	 semicolon_opt { d = $1; }
+	    | interface_stmt	semicolon_opt { d = $1; }
             ;
 
 query	    : NAME { char *s = $1; $$ = new NameNode(s); delete s; }
@@ -223,7 +239,34 @@ user_stmt:	CREATE USER NAME PASSWD NAME	{ $$ = new CreateUserNode($3, $5); }
 	    ;
 	    
 index_stmt: CREATE INDEX NAME ON NAME LEFTPAR NAME RIGHTPAR {$$ = new CreateIndexNode ($3, $5, $7);}
-	    
+
 semicolon_opt:  /* empty */	{}
 	    |	SEMICOLON	{}
 	    ;
+	    
+
+interface_stmt: CREATE INTERFACE NAME LEFTPROCPAR interface_struct RIGHTPROCPAR {$$ = new CreateInterfaceNode($3, $5);}
+
+interface_struct: LEFTPAR attributes RIGHTPAR semicolon_opt  methods { $$ = new InterfaceStruct ($2, $5);}
+	| LEFTPAR attributes RIGHTPAR semicolon_opt { $$ = new InterfaceStruct ($2);}	
+	;
+
+attributes: attribute { $$ = new InterfaceAttributeListNode($1);}
+	| attributes attribute { $$ = new InterfaceAttributeListNode($2, $1);}
+	;
+
+attribute: NAME COLON NAME SEMICOLON  {$$ = new InterfaceAttribute ($1, $3);}
+
+methods: method { $$ = new InterfaceMethodListNode($1);}
+	| methods method { $$ = new InterfaceMethodListNode($2, $1);}
+	;
+
+method: NAME LEFTPAR method_params RIGHTPAR SEMICOLON { $$ = new InterfaceMethod($1, $3);}
+
+method_params: method_param { $$ = new InterfaceMethodParamListNode($1);} 
+	| method_params COMMA method_param { $$ = new InterfaceMethodParamListNode($3, $1);}
+	;
+
+method_param: NAME COLON NAME { $$ = new InterfaceMethodParam($1, $3);}
+
+

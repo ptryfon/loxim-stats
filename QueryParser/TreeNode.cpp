@@ -97,6 +97,129 @@ namespace QParser
 		return topNode;
     }
     
+    
+    
+    /* INTERFACE NODES */
+    
+    CreateInterfaceNode::CreateInterfaceNode(string name, InterfaceStruct* iStruct) {
+	this->interfaceName = name;
+	this->iStruct = iStruct;
+    };
+    
+    CreateInterfaceNode::~CreateInterfaceNode() {
+	if (iStruct)
+	    delete iStruct;
+    };
+    
+    
+    TreeNode *CreateInterfaceNode::clone() {
+	return new CreateInterfaceNode(interfaceName, (InterfaceStruct *) iStruct->clone());
+    };
+    
+    
+    InterfaceStruct::InterfaceStruct(InterfaceAttributeListNode *attList, InterfaceMethodListNode *methods) {
+	this->attributeList = attList;
+	this->methodList = methods;
+    };
+    
+    InterfaceStruct::~InterfaceStruct() {
+	if (attributeList)
+	    delete attributeList;
+	if (methodList)
+	    delete methodList;
+    };
+    
+    
+    TreeNode* InterfaceStruct::clone() {
+	return new InterfaceStruct((InterfaceAttributeListNode *)attributeList->clone(), (InterfaceMethodListNode *) methodList->clone());
+    };
+    
+    InterfaceAttribute::InterfaceAttribute(string valueName, string typeName) {
+	this->valueName = valueName;
+	this->typeName = typeName;
+    };
+    
+    InterfaceAttribute::~InterfaceAttribute() {};
+    
+    TreeNode* InterfaceAttribute::clone() {
+	return new InterfaceAttribute(valueName, typeName);    
+    };
+    
+    
+    InterfaceAttributeListNode::InterfaceAttributeListNode(InterfaceAttribute *attribute, InterfaceAttributeListNode *rest) {
+	this->attribute = attribute;
+	this->attributeList = rest;
+    };
+    
+    InterfaceAttributeListNode::~InterfaceAttributeListNode() {
+	if (attribute) 
+	    delete attribute;
+	if (attributeList)
+	    delete attributeList;
+    };
+    
+    TreeNode* InterfaceAttributeListNode::clone() {
+	return new InterfaceAttributeListNode((InterfaceAttribute *)attribute->clone(), (InterfaceAttributeListNode *)attributeList->clone());
+    };
+    
+    InterfaceMethodListNode::InterfaceMethodListNode(InterfaceMethod *method, InterfaceMethodListNode *rest) {
+	this->method = method;
+	this->methodList = rest;    
+    };
+    
+    InterfaceMethodListNode::~InterfaceMethodListNode() {
+	if (method)
+	    delete method;
+	if (methodList)
+	    delete methodList;
+    };
+    
+    TreeNode * InterfaceMethodListNode::clone() {
+	return new InterfaceMethodListNode((InterfaceMethod *)method->clone(), (InterfaceMethodListNode *)methodList->clone());
+    }
+
+    InterfaceMethod::InterfaceMethod(string methodName, InterfaceMethodParamListNode *methodParams) {
+	this->methodName = methodName;
+	this->methodParams = methodParams;    
+    };
+    
+    InterfaceMethod::~InterfaceMethod() {
+	if (methodParams)
+	    delete methodParams;    
+    };
+    
+    TreeNode *InterfaceMethod::clone() {
+	return new InterfaceMethod(methodName, (InterfaceMethodParamListNode *)methodParams->clone());
+    };
+    
+    InterfaceMethodParamListNode::InterfaceMethodParamListNode(InterfaceMethodParam *methodParam, InterfaceMethodParamListNode *rest) {
+	this->methodParam = methodParam;
+	this->methodParamList = rest;
+    };
+    
+    InterfaceMethodParamListNode::~InterfaceMethodParamListNode() {
+	if (methodParam)
+	    delete methodParam;
+	if (methodParamList)
+	    delete methodParamList;    
+    };
+    
+    TreeNode* InterfaceMethodParamListNode::clone() {
+	return new InterfaceMethodParamListNode((InterfaceMethodParam *)methodParam->clone(), (InterfaceMethodParamListNode *)methodParamList->clone());
+    };
+    
+    InterfaceMethodParam::InterfaceMethodParam(string valueName, string typeName) {
+	this->valueName = valueName;
+	this->typeName = typeName;
+    };
+    
+    InterfaceMethodParam::~InterfaceMethodParam() {};
+    
+    TreeNode* InterfaceMethodParam::clone() {
+	return new InterfaceMethodParam(valueName, typeName);
+    };
+    
+    
     /**
       *		VALIDATION NODE	BEGIN
       */
