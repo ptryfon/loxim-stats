@@ -1,0 +1,24 @@
+create class VerySimple {}
+
+create class VerySimpleInvariant {
+    instance simpleObject : {}
+}
+
+create class ProcAndFiels {
+    instance : {
+        field1;
+        field2;
+    }
+    procedure getField1(){return field1}
+    procedure sumf1f2(){return field1 + field2}
+}
+
+create class Full extends VerySimple, VerySimpleInvariant{
+    instance fullObject : {
+        field1;
+        field2
+    }
+    procedure getField1(){return field1}
+    procedure sumf1f2(){return field1 + field2}
+}
+
