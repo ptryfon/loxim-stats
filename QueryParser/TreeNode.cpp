@@ -51,6 +51,7 @@ namespace QParser
     TreeNode* ProcedureNode::clone() { return new ProcedureNode(name, code, params, paramsNumb); }
     TreeNode* RegisterProcNode::clone() { return new RegisterProcNode((QueryNode*) query->clone()); }
     TreeNode* RegisterViewNode::clone() { return new RegisterViewNode((QueryNode*) query->clone()); }
+    TreeNode* RegisterClassNode::clone() { return new RegisterClassNode((QueryNode*) query->clone()); }
     TreeNode* CallProcNode::clone() {
 	vector<QueryNode*> q;
 	CallProcNode *cpn = new CallProcNode(name);
@@ -79,6 +80,15 @@ namespace QParser
 		vn->subviews.push_back(subviews[i]);
 	}
 	return vn;
+    }
+
+    TreeNode* ClassNode::clone() {
+        ClassNode *cn = new ClassNode(name);
+        for (unsigned int i=0; i < procedures.size(); i++) {
+            cn->procedures.push_back(procedures[i]);
+        }
+
+        return cn;
     }
     
     

@@ -22,6 +22,7 @@
   QParser::VectorNode* vectree;
   QParser::ProcedureNode* proctree;
   QParser::ViewNode* viewtree;
+  QParser::ClassNode* classtree;
   QParser::Privilige *privilige;
   QParser::PriviligeListNode *priv_list;
   QParser::NameListNode *name_list;
@@ -36,7 +37,7 @@
 
 %token	<num> INTEGER
 %token	<dbl> DOUBLE
-%token	<str> PARAMNAME NAME STRING SEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT DEREF REF NAMEOF BEGINTR END ABORT CREATE IF FI DO OD ELSE WHILE LINK FOREACH THEN FIX_OP FIXPOINT RETURN BREAK VALIDATE READ MODIFY DELETE PASSWD WITH REVOKE REMOVE TO USER FROM ON GRANT OPTION PROCEDURE LEFTPROCPAR RIGHTPROCPAR VIEW ONRETRIEVE ONUPDATE ONCREATE ONDELETE INDEX VIRTUAL COLON INTERFACE
+%token	<str> PARAMNAME NAME STRING SEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT DEREF REF NAMEOF BEGINTR END ABORT CREATE IF FI DO OD ELSE WHILE LINK FOREACH THEN FIX_OP FIXPOINT RETURN BREAK VALIDATE READ MODIFY DELETE PASSWD WITH REVOKE REMOVE TO USER FROM ON GRANT OPTION PROCEDURE CLASS EXTENDS INSTANCE LEFTPROCPAR RIGHTPROCPAR VIEW ONRETRIEVE ONUPDATE ONCREATE ONDELETE INDEX VIRTUAL COLON INTERFACE
 
 %start statement
 
@@ -67,9 +68,14 @@
 %type <tree> user_stmt
 %type <priv_list> priv_defs
 %type <name_list> name_defs
+%type <name_list> name_defs_semicolon
 %type <privilige> privilige
 %type <qtree> query
 %type <proctree> procquery
+%type <classtree> classquery
+%type <classtree> classproc
+%type <classtree> classprocs
+%type <classtree> classbody
 %type <proctree> formparams
 %type <viewtree> viewquery
 %type <viewtree> viewrecdef
@@ -161,6 +167,7 @@ query	    : NAME { char *s = $1; $$ = new NameNode(s); delete s; }
 	    | RETURN query {$$ = new ReturnNode ($2); }
 	    | CREATE procquery {$$ = new RegisterProcNode ($2);}
 	    | CREATE viewquery {$$ = new RegisterViewNode ($2);}
+        | CREATE classquery {$$ = new RegisterViewNode ($2);}
 	    | NAME LEFTPAR RIGHTPAR {$$ = new CallProcNode ($1);}
 	    | NAME LEFTPAR querycommalist RIGHTPAR {$$ = new CallProcNode ($1, $3);}
 	    ;
@@ -267,6 +274,44 @@ method_params: method_param { $$ = new InterfaceMethodParamListNode($1);}
 	| method_params COMMA method_param { $$ = new InterfaceMethodParamListNode($3, $1);}
 	;
 
-method_param: NAME COLON NAME { $$ = new InterfaceMethodParam($1, $3);}
+method_param: NAME COLON NAME { $$ = new InterfaceMethodParam($1, $3);};
 
+classquery: CLASS NAME LEFTPROCPAR classbody RIGHTPROCPAR {char *n = $2; $4->setName(n); $$ = $4; delete n;}
+    | CLASS NAME EXTENDS name_defs LEFTPROCPAR classbody RIGHTPROCPAR {
+        char *n = $2; $6->setName(n); $6->setExtends($4); $$ = $6; delete n;};
+
+classbody: /* empty */ { $$ = new ClassNode(); }
+    /* procedure ... */
+    | classprocs { $$ = $1 }
+    /* instance name : { n1; n2 [;]} procedure ... */
+    | INSTANCE NAME COLON LEFTPROCPAR name_defs_semicolon semicolon_opt RIGHTPROCPAR classprocs 
+        {char *n = $2; $8->setInvariant(n); $8->setFields($5); $$ = $8; delete n;}
+    /* instance : { n1; n2 [;]} procedure ... */
+    | INSTANCE COLON LEFTPROCPAR name_defs_semicolon semicolon_opt RIGHTPROCPAR classprocs 
+        {$7->setFields($4); $$ = $7;}
+    /* instance name : {} procedure ... */
+    | INSTANCE NAME COLON LEFTPROCPAR RIGHTPROCPAR classprocs 
+        {char *n = $2; $6->setInvariant(n); $$ = $6; delete n;}
+    /* instance name : { n1; n2 [;]} */
+    | INSTANCE NAME COLON LEFTPROCPAR name_defs_semicolon semicolon_opt RIGHTPROCPAR 
+        {char *n = $2; $$ = new ClassNode(); $$->setInvariant(n); $$->setFields($5); delete n;}
+    /* instance : { n1; n2 [;]} */
+    | INSTANCE COLON LEFTPROCPAR name_defs_semicolon semicolon_opt RIGHTPROCPAR
+        {$$ = new ClassNode(); $$->setFields($4); }
+    /* instance name : {} */
+    | INSTANCE NAME COLON LEFTPROCPAR RIGHTPROCPAR
+        {char *n = $2; $$ = new ClassNode(); $$->setInvariant(n); delete n;}
+    ;
+
+classproc: procquery { $$ = new ClassNode($1); }
+    ;
+
+classprocs: classproc { $$ = $1}
+    | classprocs classproc { $1->addContent($2); }
+    ;
+
+name_defs_semicolon:  NAME { $$ = new NameListNode($1);    }
+        |   name_defs SEMICOLON NAME { $$ = new NameListNode($3, $1);    }
+
+//subclass: EXTENDS name_defs SEMICOLON {}
 

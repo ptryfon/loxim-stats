@@ -50,7 +50,8 @@ namespace QParser {
 	    TNPROC, TNCALLPROC, TNRETURN, TNREGPROC, TNVIEW, TNREGVIEW, TNVALIDATION, TNCREATEUSER, 
 	    TNREMOVEUSER, TNPRIVLIST, TNNAMELIST, TNGRANTPRIV, TNREVOKEPRIV, TNREMOTE, TNINDEXDDL, TNINDEXDML,
 	    TNCREATEINTERFACENODE, TNINTERFACESTRUCT, TNINTERFACEATTRIBUTELISTNODE, TNINTERFACEATTRIBUTE, 
-	    TNINTERFACEMETHODLISTNODE, TNINTERFACEMETHOD, TNINTERFACEMETHODPARAMLISTNODE, TNINTERFACEMETHODPARAM};
+	    TNINTERFACEMETHODLISTNODE, TNINTERFACEMETHOD, TNINTERFACEMETHODPARAMLISTNODE, TNINTERFACEMETHODPARAM,
+        TNREGCLASS, TNCLASS};
 	TreeNode() : parent(NULL) { this->needed = false;
 #ifdef QUERY_CACHE
 	    this->isCacheable = false;}
@@ -1859,8 +1860,153 @@ class ViewNode : public QueryNode
     }; 
 
 
-}
     
+
+class RegisterClassNode : public QueryNode
+    {
+    protected:
+    QueryNode* query;
+    public:
+    RegisterClassNode(QueryNode *q) {this->query = q; }
+    
+    virtual TreeNode* clone();
+    virtual int type() {return TreeNode::TNREGCLASS;}
+    virtual QueryNode *getQuery() {return this->query;}
+    virtual int putToString() {
+        cout << " RegisterClass < ";
+        if (query != NULL) query->putToString();
+        else cout << "_no_query_";
+        cout << ">";
+        return 0;
+    }
+    
+    virtual ~RegisterClassNode() {if (query != NULL) delete query;} 
+      virtual string toString( int level = 0, bool recursive = false, string name = "" ) {
+        string result = getPrefixForLevel( level, name ) + "[RegisterClass]\n";
+
+        if( recursive ) {
+          if( query )
+            result += query->toString( level+1, true, "query" );
+        }
+
+        return result;
+      }
+      
+      virtual string deParse() { 
+        string result; 
+        result = " create" + query->deParse(); 
+        cout << result;
+        return result; };
+    };
+
+
+class ClassNode : public QueryNode
+    {
+    protected:
+    string name;
+    string invariant;
+    NameListNode* extends;
+    NameListNode* fields;
+    //ProcedureNode* virtual_objects;
+    vector<QueryNode*> procedures;
+    //vector<QueryNode*> subviews;
+
+    virtual void emptyInit(){
+        extends = NULL; 
+        fields = NULL;
+    }
+    public:
+    //ViewNode(ViewNode *v) { subviews.push_back(v); }
+    ClassNode() {emptyInit();}
+    ClassNode(ProcedureNode *p) { procedures.push_back(p); emptyInit(); }
+    ClassNode(string n) { name = n; emptyInit(); }
+
+    virtual TreeNode* clone();
+    virtual int type() {return TreeNode::TNCLASS;}
+    virtual ~ClassNode() {
+        for (unsigned int i=0; i < procedures.size(); i++) {
+            if (procedures[i] != NULL) delete procedures[i]; }
+        procedures.clear();
+        /*for (unsigned int i=0; i < subviews.size(); i++) {
+            if (subviews[i] != NULL) delete subviews[i]; }
+        subviews.clear();
+        if (virtual_objects != NULL) delete virtual_objects;
+        */
+    } 
+
+    virtual void setExtends(NameListNode* extends) { this->extends = extends; }
+    virtual void setFields(NameListNode* fields) { this->fields = fields; }
+    virtual void setName(string n) { name = n; }
+    virtual void setInvariant(string invariant) { this->invariant = invariant; }
+    /*virtual void setVirtual(string n, QueryNode* c) { 
+        virtual_objects = new ProcedureNode();
+        virtual_objects->addContent(n, c);
+    } */
+    virtual void addContent(ClassNode *cn) {
+        for (unsigned int i=0; i < cn->procedures.size(); i++) {
+            procedures.push_back(cn->procedures[i]);
+        }
+        /*for (unsigned int i=0; i < v->subviews.size(); i++) {
+            subviews.push_back(v->subviews[i]);
+        }*/
+    }
+    virtual vector<QueryNode*> getProcedures() { return this->procedures; }
+    //virtual vector<QueryNode*> getSubviews() { return this->subviews; }
+    virtual string getName() { return name; }
+    /*virtual QueryNode* getVirtualObjects() { return virtual_objects; }
+
+        virtual string toString( int level = 0, bool recursive = false, string _name = "" ) {
+            string result = getPrefixForLevel( level, _name ) + "View name - " + name + "\n";
+            result = result + virtual_objects->toString( level+1, true, "query" );
+        for (unsigned int i=0; i < procedures.size(); i++) {
+            result = result + (procedures[i])->toString( level+1, true, "query" );
+        }
+        for (unsigned int i=0; i < subviews.size(); i++) {
+            result = result + (subviews[i])->toString( level+1, true, "query" );
+        }
+            return result;
+        }
+    */
+    virtual int putToString() {
+        cout << "Class name - " << name;
+        if(extends){
+            cout << " extends " << extends->putToString() << endl;
+        }
+        if(!invariant.empty()){
+            cout << " invariant " << invariant << endl;
+        }
+        if(fields){
+            cout << " fields " << fields->putToString() << endl;
+        }
+        //virtual_objects->putToString();
+        for (unsigned int i=0; i < procedures.size(); i++) {
+            procedures.at(i)->putToString();
+        }
+        /*for (unsigned int i=0; i < subviews.size(); i++) {
+        subviews.at(i)->putToString();
+        }*/
+        return 0;
+    }
+
+    virtual string deParse() { 
+        string result = " class " + name + " ";
+        for (unsigned int i=0; i < procedures.size(); i++) {
+            result = result + procedures[i]->deParse();
+        }
+        /*for (unsigned int i=0; i < subviews.size(); i++) {
+            result = result + subviews[i]->deParse();
+        }*/
+        result = result + " } ";
+        cout << result;
+        return result; };
+    }; 
+
+
+
+}
+
+
+
 
 #endif
 
