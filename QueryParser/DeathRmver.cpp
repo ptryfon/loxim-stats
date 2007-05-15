@@ -13,13 +13,15 @@ DeathRmver::~DeathRmver()
 }
 
 int DeathRmver::rmvDeath(TreeNode *&qTree){
+	cout << "rmvDeath start\n";
 	cout <<"=============================================================================" << endl;
 	cout <<"-----------------------------------------------------------------------------" << endl;
 	cout <<"-----------------------------------------------------------------------------" << endl;
+	
 	this->qTree = qTree;
-	cout<< "rmvDeath start" << endl;
 	cout << "dostal :" << endl;
-	qTree->putToString();
+	qTree->serialize();
+//	qTree->putToString();
 	cout << endl;
 	while(true){
 //		Deb::ug("\n rmvDeath loop start -------------------------------------------------------\n");
@@ -52,7 +54,8 @@ int DeathRmver::rmvDeath(TreeNode *&qTree){
 	cout <<"-----------------------------------------------------------------------------" << endl;
 	cout <<"-----------------------------------------------------------------------------" << endl;
 	cout<< "rmvDeath end, zwraca" << endl;
-	qTree->putToString();
+//	qTree->putToString();
+	qTree->serialize();
 	cout << endl;
 	return 0;	
 }
