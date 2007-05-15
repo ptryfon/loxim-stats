@@ -40,7 +40,10 @@ namespace QParser {
     	QStackElem() { };
 		QStackElem(ElemContent *cont) {this->content = cont;}
 	
-		virtual ElemContent *getContent() {return this->content;}
+		// ta metoda tu nic nie daje, nie powinno jej byc, 
+		// podkasy maja jeszcze raz zdefiniowany atr content,
+		// i to wywolanie tutaj zwraca ten kontent a nie ich wlasny !!!!
+		virtual ElemContent *getContent() {return this->content;}	
 		virtual void setContent(ElemContent *newCont) {this->content = newCont;}
 
 		virtual int getNumber() {return this->myNumber;}
@@ -50,8 +53,9 @@ namespace QParser {
 		virtual QStackElem *pop() = 0;
 		virtual QStackElem *top() = 0;
 		virtual void putToString() {
+			cout << "QstackElem:putToString:\n";
 			if (this->content == NULL) cout << "# emptyQStackElem #"; 
-			else { cout << "#"<< myNumber << ": "; content->putToString(); cout << " #";}
+			else { cout << "#"<< myNumber << ": "; this->content->putToString(); cout << " #";}
 			cout << endl;
 		}
 		virtual ~QStackElem() {}
@@ -275,8 +279,9 @@ namespace QParser {
 		
 		virtual BinderWrap *addOne (BinderWrap *newElt) = 0;
 		virtual BinderWrap *addPureBinder (StatBinder *newBndr) = 0;
-		virtual BinderWrap *bindName(string aName) = 0;
-		virtual void putToString() {cout << "name(sign)" << endl;};
+		virtual BinderWrap *bindName(string aName) = 0; 
+		virtual void bindName2(string aName, vector<BinderWrap*> *vec) = 0; 
+		virtual void putToString() {cout << "bw-name(sign)" << endl;};
 		virtual int size() = 0;	//returns number of binders in this section
 		virtual BinderWrap* getNext() = 0; // returns next elem, sth like iterator
 										// in list impl its just next
@@ -323,9 +328,15 @@ namespace QParser {
 			else if (this->next == NULL) return NULL;
 			else return this->next->bindName(aName);
 		}
+		
+		virtual void bindName2(string aName, vector<BinderWrap*> *vec){
+			if (this->binder->getName() == aName) vec->push_back(this);
+			if (this->next == NULL) return;
+			else this->next->bindName2(aName, vec);
+		}
 		virtual void putToString() {
 			if (this->binder == NULL) cout << "_noBinder_";
-			else {cout << "[s:" << this->sectNumb << ","; 
+			else {cout << "bwl-[s:" << this->sectNumb << ","; 
 				binder->putToString(); cout << "] ";}
 			if (this->next != NULL) this->next->putToString();
 		}
@@ -354,7 +365,7 @@ namespace QParser {
 		virtual QStackElem *pop () { /* we know there is at least 1 elt to pop.. */
 			ListQStackElem *sectPoint = this->getNext();
 			this->next = NULL;
-//			delete(this);	/* TODO: czy tak mo¿na ... ??? */
+//			delete(this);	/* TODO: czy tak moï¿½na ... ??? */
 			return sectPoint;
 		}
 		virtual QStackElem *top () {
@@ -362,7 +373,7 @@ namespace QParser {
 		}
 		virtual void putToString() {
 			if (this->content == NULL) cout << "# LISTSection #"; 
-			else { cout << "#"<< myNumber << ": "; content->putToString(); cout << " #";}
+			else { cout << "lqse#"<< myNumber << ": "; content->putToString(); cout << " #";}
 			cout << endl;
 			if (this->next != NULL) this->next->putToString();
 		}				
@@ -382,6 +393,10 @@ namespace QParser {
 		virtual void addBinder (BinderWrap *bw) { this->content = (this->content->addOne(bw));}
 		virtual void addPureBinder (StatBinder *sb) {this->content = (this->content->addPureBinder(sb));}
 		virtual void setContent(ElemContent *newCont) {this->content = (BinderWrap *)newCont; this->content->setSectNumb(myNumber);}
+	
+		// bez tego nie mozna bylo wywolac tej metody zdefiniowanej w nadklasie - bo tam tez byl zdef atr content
+		// i zwracal ten z nadklasy a nie ten z tej klasy !!!
+		virtual ElemContent *getContent(){return this->content;};
 		virtual void setNumber(int newNr) {
 			this->myNumber = newNr; 
 			if (this->content != NULL) content->setSectNumb(newNr);
@@ -393,7 +408,13 @@ namespace QParser {
 				else return ((StatEnvSection *)this->next)->bindName(aName);
 			} else return bw;			
 		}		
-
+		virtual void bindName2(string aName, vector<BinderWrap*> *vec){
+			this->content->bindName2(aName, vec);
+			if (vec->size() == 0) {
+				if (this->next == NULL) return ;
+				else  ((StatEnvSection *)this->next)->bindName2(aName, vec);
+			};		
+		}
 		virtual void putToString() {
 			if (this->content == NULL) cout << "# emptySection #"; 
 			else { cout << "#"<< myNumber << ": "; content->putToString(); cout << " #";}
@@ -419,6 +440,12 @@ namespace QParser {
 			if (this->isEmpty()) return NULL;
 			else return ((StatEnvSection *)this->top())->bindName(aName);
 		}
+		
+		virtual void bindName2 (string aName, vector<BinderWrap*> *vec) {
+			if (this->isEmpty()) return;
+			else ((StatEnvSection *)this->top())->bindName2(aName, vec);
+		}
+		
 		virtual BinderWrap *bindNameHere (string aName, int sectNo) {
 			QStackElem *s = this->getElt(sectNo);
 			Deb::ug("znalazlem getElt");
