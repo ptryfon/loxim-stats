@@ -7,6 +7,7 @@
 #include "DataRead.h"
 #include "QueryParser.h"
 #include "DeathRmver.h"
+#include "AuxRmver.h"
 #include "../Errors/ErrorConsole.h"
 #include "../Errors/Errors.h"
 #include "../Config/SBQLConfig.h"
@@ -20,14 +21,18 @@ using namespace Errors;
 using namespace Config;
 
 namespace QParser {
-
-
+	
+	int  QueryParser::statEvalRun = 0;
+	int  QueryParser::getStatEvalRun(){return statEvalRun;};
+	void QueryParser::setStatEvalRun(int n){QueryParser::statEvalRun = n;};
+	void QueryParser::incStatEvalRun(){statEvalRun++;};
     void QueryParser::setQres(StatQResStack *nq) {this->sQres = nq;}
     void QueryParser::setEnvs(StatEnvStack *nq) {this->sEnvs = nq;}
     QueryParser::~QueryParser() {if (sQres != NULL) delete sQres;
 				if (sEnvs != NULL) delete sEnvs;}
-
+	
     int QueryParser::statEvaluate(TreeNode *&tn) {
+    	QueryParser::incStatEvalRun();
 	/* init the both static stacks. The data model is available as	 *
 	 * DataRead::dScheme()						 */
 	setEnvs(new StatEnvStack());
@@ -50,7 +55,7 @@ namespace QParser {
 
 
     int QueryParser::parseIt(string query, TreeNode *&qTree) {
-    
+    	QueryParser::setStatEvalRun(0);
 	ErrorConsole ec("QueryParser");
 	
 	/* check if this is debug mode or not... */	
@@ -106,6 +111,8 @@ namespace QParser {
     		    fprintf (stderr, "one more stat eval..\n");
 	    	    if (this->statEvaluate(nt) != 0) optres = -1;
 		}
+		AuxRmver *auxRmver = new AuxRmver(this);
+		auxRmver->rmvAux(nt);
 	    }
 	    if (optres != -1) {
 		Deb::ug("I'll return optimized tree\n"); 
@@ -128,11 +135,19 @@ namespace QParser {
 	testDeath("(EMP join (WORKS_IN.DEPT)).NAME;");
 	cout << "td3------------------------------------------------------------\n";
 	*/
+	
+	cout <<"=============================================================================" << endl;
+	cout <<"-----------------------------------------------------------------------------" << endl;
+	cout <<"-----------------------------------------------------------------------------" << endl;
+	cout<< "P    A    R    S    E    R        Z    W    R    A    C    A    :" << endl;
+//	qTree->putToString();
+	qTree->serialize();
+	cout << endl;
 	return 0;
     }
     
     void QueryParser::testDeath(string _zap){
-//    	string zap = "(EMP join (WORKS_IN.DEPT)).NAME;";
+//    	string zap = "(EMP join (WORKS_IN.DEPT)).NAME;";  
 	    cout << "TESTDEATH START---------------------------------------------------------------------------------" << endl;
 	    stringstream ss (stringstream::in | stringstream::out);
 	    ss << _zap;
@@ -168,7 +183,8 @@ namespace QParser {
 	    ss << zap;
 	    lexer = new yyFlexLexer(&ss); 
 	    int res = yyparse();
-		cout << "parse result: " << res << endl;
+	
+	cout << "parse result: " << res << endl;
 	    delete lexer;
 	    TreeNode *tree = d;
 
