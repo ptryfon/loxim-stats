@@ -43,14 +43,14 @@ namespace QParser{
 	    TreeNode *rarg = ((TwoArgsNode *)tree)->getRArg();
 	    if (isIndependent(larg, min, max) && isIndependent(rarg, min, max)) return true;
 	    else return false;
-	} else if (tree->type() == TreeNode::TNUNOP){	// operator unarny
+	} else if ((tree->type() == TreeNode::TNUNOP) || (tree->type() == TreeNode::TNAS)){	// operator unarny
 	    TreeNode *arg = ((UnOpNode *)tree)->getArg();
 	    return isIndependent(arg, min, max);
 	} else // ten wezel nie jest nazwa ani operatorem dwuargumentowym ani operatorem jednoargumentowym
 	    return true;
     }
     
-    TreeNode * Optymalizator::doGetIndep(TreeNode * tree, int min, int max, int &depth){
+    TreeNode * Optymalizator::doGetIndep(TreeNode * tree, int min, int max, int &depth){ 
 	if ((tree->type() == TreeNode::TNNONALGOP) && this->isIndependent(tree, min, max)){
 	    return tree;
 	} else if (tree->type() == TreeNode::TNALGOP){
