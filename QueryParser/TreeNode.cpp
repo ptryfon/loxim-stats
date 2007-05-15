@@ -8,38 +8,41 @@
 
 namespace QParser 
 {
-
-    TreeNode* NameNode::clone()     { return new NameNode(name); }
-    TreeNode* ParamNode::clone()    { return new ParamNode(name); }
-    TreeNode* IntNode::clone()      { return new IntNode(value); }
-    TreeNode* StringNode::clone()   { return new StringNode(value); }
-    TreeNode* DoubleNode::clone()   { return new DoubleNode(value); }
-    TreeNode* NameAsNode::clone()   { return new NameAsNode((QueryNode*)arg->clone(), name, group); }
-    TreeNode* UnOpNode::clone()     { return new UnOpNode((QueryNode*)arg->clone(), op); }
-    TreeNode* AlgOpNode::clone()    { return new AlgOpNode((QueryNode*)larg->clone(), (QueryNode*)rarg->clone(), op); }
-    TreeNode* NonAlgOpNode::clone() { return new NonAlgOpNode((QueryNode*)larg->clone(), (QueryNode*)rarg->clone(), op); }
-    TreeNode* TransactNode::clone() { return new TransactNode(op); }
+	long TreeNode::uv = 0;
+	long TreeNode::getUv(){return uv++;};
+	
+	
+    TreeNode* NameNode::clone()     { NameNode * nowy =  new NameNode(name); nowy->setUsedBy(this->getUsedBy()); nowy->setBoundIn(this->getBoundIn()); nowy->setOid(this->getOid()); return nowy; }
+    TreeNode* ParamNode::clone()    { TreeNode * nowy =  new ParamNode(name); nowy->setOid(this->getOid()); return nowy;}
+    TreeNode* IntNode::clone()      { IntNode * nowy = new IntNode(value); nowy->setOid(this->getOid());  return nowy;}
+    TreeNode* StringNode::clone()   { StringNode * nowy = new StringNode(value);  nowy->setOid(this->getOid()); return nowy;}
+    TreeNode* DoubleNode::clone()   { DoubleNode * nowy = new DoubleNode(value); nowy->setOid(this->getOid()); return nowy; }
+    TreeNode* NameAsNode::clone()   { NameAsNode * nowy =  new NameAsNode((QueryNode*)arg->clone(), name, group); nowy->setUsedBy(this->getUsedBy()); nowy->setOid(this->getOid()); return nowy;}
+    TreeNode* UnOpNode::clone()     { TreeNode * nowy = new UnOpNode((QueryNode*)arg->clone(), op);  nowy->setOid(this->getOid()); return nowy;}
+    TreeNode* AlgOpNode::clone()    { TreeNode * nowy = new AlgOpNode((QueryNode*)larg->clone(), (QueryNode*)rarg->clone(), op); nowy->setOid(this->getOid()); return nowy;}
+    TreeNode* NonAlgOpNode::clone() { TreeNode * nowy = new NonAlgOpNode((QueryNode*)larg->clone(), (QueryNode*)rarg->clone(), op); nowy->setOid(this->getOid()); return nowy;}
+    TreeNode* TransactNode::clone() { TreeNode * nowy = new TransactNode(op); nowy->setOid(this->getOid()); return nowy;}
         
     TreeNode* CreateNode::clone()   { 
-	if (arg != NULL) return new CreateNode(name, (QueryNode*)arg->clone()); 
-	else return new CreateNode(name, NULL);}
-    TreeNode* LinkNode::clone() {return new LinkNode(nodeName, ip, port); }
-    TreeNode* CondNode::clone() {
-	if (rarg != NULL) return new CondNode((QueryNode*)condition->clone(), (QueryNode*)larg->clone(), (QueryNode*)rarg->clone(), op);
-	else return new CondNode((QueryNode*)condition->clone(), (QueryNode*)larg->clone(), op);
+		if (arg != NULL) return new CreateNode(name, (QueryNode*)arg->clone()); 
+		else return new CreateNode(name, NULL);}
+    	TreeNode* LinkNode::clone() {return new LinkNode(nodeName, ip, port); }
+    	TreeNode* CondNode::clone() {
+		if (rarg != NULL) return new CondNode((QueryNode*)condition->clone(), (QueryNode*)larg->clone(), (QueryNode*)rarg->clone(), op);
+		else return new CondNode((QueryNode*)condition->clone(), (QueryNode*)larg->clone(), op);
     }
     TreeNode* FixPointNode::clone() {
-	vector<QueryNode*> q;
-	vector<string> n;
-	FixPointNode *fn = new FixPointNode();
-	for (int i = 0; i < partsNumb; i++) {
-	    q.push_back((QueryNode*) queries.at(i)->clone());
-	    n.push_back(names.at(i));
-	} 
-	fn->setQueries(q);
-	fn->setNames(n);
-	fn->setPartsNumb(partsNumb);
-	return fn;
+		vector<QueryNode*> q;
+		vector<string> n;
+		FixPointNode *fn = new FixPointNode();
+		for (int i = 0; i < partsNumb; i++) {
+		    q.push_back((QueryNode*) queries.at(i)->clone());
+	    	n.push_back(names.at(i));
+		} 
+		fn->setQueries(q);
+		fn->setNames(n);
+		fn->setPartsNumb(partsNumb);
+		return fn;
     }
 
     TreeNode* ReturnNode::clone() { 
@@ -483,6 +486,13 @@ namespace QParser
 	}
 
 	int NameNode::staticEval (StatQResStack *&qres, StatEnvStack *&envs) {
+		
+		
+		
+		return staticEval2(qres, envs);
+		
+		
+		
 		Deb::ug("staticEval(Name) \n");
 		if (Deb::ugOn()) cout << name << endl;
 		BinderWrap *bw = envs->bindName(this->name);
@@ -504,6 +514,86 @@ namespace QParser
 		Deb::ug("result pushed on qres - end nameNode stEval\n");
 		return 0;
 	}
+	
+	int NameNode::staticEval2 (StatQResStack *&qres, StatEnvStack *&envs) {
+		vector<BinderWrap*> *vec = new vector<BinderWrap*>();
+		
+		Deb::ug("staticEval2(Name) \n");
+		if (Deb::ugOn()) cout << name << endl;
+		BinderWrap *bw = NULL;
+		envs->bindName2(this->name, vec);
+		if (vec->size() > 0){
+			bw = vec->at(0);	// pierwszy ktory zostal znaleziony, wynik powinien byc taki jak w starym	
+		}
+		if (bw == NULL) { Deb::ug("name could NOT be bound ! will exit..\n"); return -1;}
+		this->setBindSect(bw->getSectNumb());
+		this->setStackSize(envs->getSize());
+		this->setCard(bw->getBinder()->getCard());		// to jest zamiast wyw evalCard
+
+		printf("size: %d \n", ((BinderWrap*)  envs->getElt(this->getBindSect())->getContent())->size());
+		
+		this->setStatEnvSecSize(((BinderWrap*)envs->getElt(this->getBindSect())->getContent())->size());
+		cout << "jsi after setting StatEnvSecSize\n";
+		Deb::ug("name bound on envs, section nr set to %d, ", bw->getSectNumb());
+		//Deb::ug("ok:%d, ", ((SigRef *) (bw->getBinder()->getValue()))->getRefNo());
+		Signature *sig = bw->getBinder()->getValue()->clone();	//death
+
+		if (sig->getDependsOn() == NULL){	// nie wiem czy to jest potrzebne i czy wogole ma sens - ???
+			sig->setDependsOn(this);		// ta sygnatura zalezy od nazwy ?? ktora jest w niej wiazana ??
+		} else {							// a moze inaczej - zalezy od nazwy kora ja wklada na stos ?? taka interpretacja bylaby lepsza
+			Deb::ug("jsi death sygnatura juz miala ustawione dependsOn, nie ustawia go ponownie\n");
+		}
+		
+		for (int i = 1; i < vec->size(); i++){ // dodaje do sygnatury pozostale
+			BinderWrap *pombw = vec->at(i);
+			
+			if (sig->type() == Signature::SSTRUCT) {
+				((SigColl *) sig)->addToMyList (pombw->getBinder()->getValue()->clone());
+			} else 
+			{
+				SigColl *s = new SigColl(Signature::SSTRUCT);
+				s->setElts(sig); s->addToMyList(pombw->getBinder()->getValue()->clone());
+				sig = s;		
+			}
+		}
+		
+		qres->pushSig (sig);
+		 this->setDependsOn(bw->getBinder()->getDependsOn());		// tak bylo kiedys, nie wiem czy to jest poprawne, co z pozostalymi z vec ?? w ktorych tez jest wiazana ??
+		Deb::ug("result pushed on qres - end nameNode stEval\n");
+		calculateBoundUsed(vec);
+		return 0;
+	}
+	
+	void NameNode::calculateBoundUsed(vector<BinderWrap*> *vec){
+		cout << "calculateBoundUsed " << vec->size() << endl;
+		if (QueryParser::getStatEvalRun() == 1){
+			for (int i = 0; i < vec->size(); i++){
+				cout << i << " " << vec->at(i)->getBinder()->getName() << " binder: " << endl;	
+				vec->at(i)->getBinder()->putToString() ;
+				cout << endl << "zalezy od: " << endl;
+				if (vec->at(i)->getBinder()->getDependsOn() != NULL){
+					vec->at(i)->getBinder()->getDependsOn()->putToString();
+				} else cout << "NULL";
+			
+				cout << endl;
+				TreeNode * wiazanyW = vec->at(i)->getBinder()->getDependsOn();
+				this->getBoundIn()->push_back(wiazanyW);
+				if (NULL != wiazanyW){
+					if (wiazanyW->type() == TreeNode::TNNAME){
+						((NameNode*) wiazanyW)->getUsedBy()->push_back(this);
+					} else if (wiazanyW->type() == TreeNode::TNAS){
+						((NameAsNode*) wiazanyW)->getUsedBy()->push_back(this);
+					} else {
+						cout << "ERROR BBBBBBBBBLLLLLLLLLAAAAAAAAAADDDDDDDDDDDD w 	NameNode::calculateBoundUsed                 ERROR\n";
+						cerr << "ERROR BBBBBBBBBLLLLLLLLLAAAAAAAAAADDDDDDDDDDDD w 	NameNode::calculateBoundUsed                 ERROR\n";
+					}
+				}
+			}
+		} else 
+			cout << "to jest " << QueryParser::getStatEvalRun() << " przebieg statycznej ewaluacji" << endl;
+		cout << "---------------------------------------------" << endl;
+	}
+	
 	int ValueNode::staticEval (StatQResStack *&qres, StatEnvStack *&envs) {
 		Deb::ug("staticEval:value node ");
 		switch (this->type()) {
@@ -650,6 +740,7 @@ namespace QParser
 			if (Deb::ugOn()) {
 			    lSig->putToString(); cout << "/^\\"; rSig->putToString(); cout << endl;
 			}
+			// uwaga ten fragment kodu jest skopiowany do NameNode::staticEval jezeli cos bedzie zmieniane, moze trzeba tez tam
 			if (lSig->type() == Signature::SSTRUCT) {
 				((SigColl *) lSig)->addToMyList (rSig);
 				qres->pushSig (lSig);
