@@ -15,6 +15,7 @@ namespace QParser
     	protected:
 	    StatQResStack *sQres;
 	    StatEnvStack *sEnvs;
+	    static int statEvalRun;	// ktory raz jest wywolywana statyczna ewaluacja - pewne rzeczy mozna ustawiac tylko raz
 	public:
 	QueryParser() {sQres = NULL; sEnvs = NULL;}
 	virtual int parseIt (string s, TreeNode *&aTree);
@@ -25,6 +26,9 @@ namespace QParser
 	virtual void setEnvs(StatEnvStack *ne);
         virtual int statEvaluate(TreeNode *&tn);	
 	virtual ~QueryParser();
+	static int getStatEvalRun();
+	static void setStatEvalRun(int n);
+	static void incStatEvalRun();
     };
 		
 }
