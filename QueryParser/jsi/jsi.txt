@@ -1,4 +1,27 @@
 prywatne notatki jsi
+
+inne wypisywanie,
+zastapienie joina kropka
+do poprawy - do tej pory bindName uwazalo ze moze byc zwiazany tylko w jednym wezle -
+deref,
+
+EMP.(WORKS_IN.(DEPT group as 'ddd').(NAME, ddd.NAME)) 
+
+
+(EMP.((((DEPT group as 'ddd').(NAME, (ddd.NAME))) group as 'rkr').(WORKS_IN.rkr)))
+
+
+
+
+((EMP) . ((WORKS_IN) . (((DEPT) group as ddd) . ((NAME) , ((ddd) . (NAME))))))
+
+
+((EMP) . (((((DEPT) group as ddd) . ((NAME) , ((ddd) . (NAME)))) group as viflegavdvvskohjhink) . ((WORKS_IN) . (viflegavdvvskohjhink))))
+ 
+ 
+ ((EMP[1,1])_ . _<2,2>((WORKS_IN[2,2])_ . _<3,3>(((DEPT[3,3]) group as ddd)_ . _<4,4>((NAME[2,4]) , ((ddd[4,4])_ . _<5,5>(NAME[5,5]))))))
+ 
+ 
 -----------------------
  (EMP join SAL).SAL									-- nie dzialalo bo
  w sigColl::statnested zwracalem czesciowy wynik a nie koncowy !! 
@@ -8,8 +31,10 @@ prywatne notatki jsi
  
  ./Listener 2>/dev/null | grep "rmvDeath end, zwraca" -A 1
  
- 
+ (EMP join (WORKS_IN.DEPT)).NAME
+ (EMP join (WORKS_IN.DEPT)).SAL
  (EMP join (WORKS_IN.DEPT)).(NAME, SAL)
+ (EMP join (WORKS_IN.DEPT)).(WIEK, SAL)		
 
  count(((EMP join SAL join NAME join ADDRESS join STREET join NO join WORKS_IN) 
  group as aaa).aaa.DEPT)			nic nie usunal
@@ -19,10 +44,13 @@ prywatne notatki jsi
 DEPT{
 	DNAME	1..1 string
 	LOC		1..* string
+	NAME	1..1 string		// a co?
 }
 
 EMP{
 	NAME		1..1 string
+	SURNAME		1..1 string
+	WIEK		1..1 int
 	SAL			1..1 int
 	WORKS_IN	1..1 ref do DEPT
 	
