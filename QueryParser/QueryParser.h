@@ -16,8 +16,9 @@ namespace QParser
 	    StatQResStack *sQres;
 	    StatEnvStack *sEnvs;
 	    static int statEvalRun;	// ktory raz jest wywolywana statyczna ewaluacja - pewne rzeczy mozna ustawiac tylko raz
+		bool shouldOptimize;
 	public:
-	QueryParser() {sQres = NULL; sEnvs = NULL;}
+	QueryParser();
 	virtual int parseIt (string s, TreeNode *&aTree);
 	
 	virtual int testParse (string s, TreeNode *&aTree);

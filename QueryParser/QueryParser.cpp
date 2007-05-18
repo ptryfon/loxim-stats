@@ -30,6 +30,15 @@ namespace QParser {
     void QueryParser::setEnvs(StatEnvStack *nq) {this->sEnvs = nq;}
     QueryParser::~QueryParser() {if (sQres != NULL) delete sQres;
 				if (sEnvs != NULL) delete sEnvs;}
+	QueryParser::QueryParser() {
+		sQres = NULL; 
+		sEnvs = NULL; 
+		SBQLConfig conf("QueryParser");
+		conf.getBool("optimisation", shouldOptimize);
+		if (shouldOptimize) {
+			DataScheme::reloadDScheme();
+		}
+	}
 	
     int QueryParser::statEvaluate(TreeNode *&tn) {
     	QueryParser::incStatEvalRun();
@@ -88,9 +97,8 @@ namespace QParser {
 	int stat_ev_res;
 	TreeNode *nt = d->clone();
 
-	bool shouldOptimize;
-	SBQLConfig conf("QueryParser");
-	conf.getBool("optimisation", shouldOptimize);
+	
+	
 	if (shouldOptimize) {
 	    Deb::ug(" optimisation is set ON !");
 	    int optres = 0;

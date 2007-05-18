@@ -113,6 +113,7 @@ namespace QParser {
 		int readData();	
 	    	
 		static DataScheme *dScheme();
+		static void  reloadDScheme();
 		virtual int hashFun (int objId) {return (objId % 100); }
 	
 		virtual void hashIn (int tabPos, DataObjectDef *newObj) {

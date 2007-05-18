@@ -56,7 +56,7 @@ namespace QParser {
 	    TNREMOVEUSER, TNPRIVLIST, TNNAMELIST, TNGRANTPRIV, TNREVOKEPRIV, TNREMOTE, TNINDEXDDL, TNINDEXDML,
 	    TNCREATEINTERFACENODE, TNINTERFACESTRUCT, TNINTERFACEATTRIBUTELISTNODE, TNINTERFACEATTRIBUTE, 
 	    TNINTERFACEMETHODLISTNODE, TNINTERFACEMETHOD, TNINTERFACEMETHODPARAMLISTNODE, TNINTERFACEMETHODPARAM,
-        TNREGCLASS, TNCLASS};
+        TNREGCLASS, TNCLASS, TNDML};
 	 
 	 
 	 
@@ -2100,15 +2100,34 @@ class ClassNode : public QueryNode
         }*/
         result = result + " } ";
         cout << result;
-        return result; };
-    }; 
+        return result; 
+    };
+	}; 
 
 
+
+
+
+class DMLNode : public TreeNode 
+    {
+    public:
+		enum dmlInst { reload }; 
+    protected:
+		dmlInst inst;
+    public:
+		DMLNode (dmlInst _inst);
+		virtual TreeNode* clone();
+		virtual int type() { return TreeNode::TNDML; }
+		dmlInst getInst() { return inst; }
+		virtual void setInst(dmlInst _inst) { inst = _inst; }
+
+        virtual int putToString() {
+    	    cout << "dml reloadScheme";
+    	    return 0;
+		}
+		virtual ~DMLNode() {}
+    };  
 
 }
-
-
-
-
 #endif
 

@@ -79,6 +79,7 @@ extern int szbderrno;
 "deref"			return DEREF;
 "ref"			return REF;
 "nameof"		return NAMEOF;
+"reloadScheme"	return RELOADSCHEME;
 "begin"			return BEGINTR;
 "end"			return END;
 "abort"			return ABORT;

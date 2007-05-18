@@ -22,6 +22,7 @@ namespace QParser
     TreeNode* AlgOpNode::clone()    { TreeNode * nowy = new AlgOpNode((QueryNode*)larg->clone(), (QueryNode*)rarg->clone(), op); nowy->setOid(this->getOid()); return nowy;}
     TreeNode* NonAlgOpNode::clone() { TreeNode * nowy = new NonAlgOpNode((QueryNode*)larg->clone(), (QueryNode*)rarg->clone(), op); nowy->setOid(this->getOid()); return nowy;}
     TreeNode* TransactNode::clone() { TreeNode * nowy = new TransactNode(op); nowy->setOid(this->getOid()); return nowy;}
+    TreeNode* DMLNode::clone() { TreeNode * nowy = new DMLNode(inst); nowy->setOid(this->getOid()); return nowy;}
         
     TreeNode* CreateNode::clone()   { 
 		if (arg != NULL) return new CreateNode(name, (QueryNode*)arg->clone()); 
@@ -669,8 +670,9 @@ namespace QParser
 				/*error: invalid object def id. */
 				string objKind = obj->getKind();
 				if (objKind == "complex") {
-					Deb::ug("eval::UNOP::deref -- can't handle deref(complex)");
-					return -1;}
+					//Deb::ug("eval::UNOP::deref -- can't handle deref(complex)");
+					return 0;
+					return -1;}	// deref moze byc zupelnie przezroczysty
 				if (objKind == "atomic") qres->pushSig (new SigAtomType (obj->getType()));
 				else if (objKind == "link") qres->pushSig (new SigRef (obj->getTarget()->getMyId()));
 				return 0;	
@@ -883,6 +885,10 @@ namespace QParser
 		int max = this->maxCard(leftCard) * this->maxCard(rightCard);
 		return this->int2card(min) + ".." + this->int2card(max);
 	}
+	
+	DMLNode::DMLNode (dmlInst _inst) : inst(_inst) {DataScheme::reloadDScheme();}
+
+
 }
 
 

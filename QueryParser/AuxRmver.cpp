@@ -20,7 +20,8 @@ int AuxRmver::rmvAux(TreeNode *&qTree){
 	
 	this->qTree = qTree;
 	cout << "dostal :" << endl;
-	qTree->putToString();
+	qTree->serialize();
+	// qTree->putToString();
 	cout << endl;
 	bool removed = true;
 	while(removed){

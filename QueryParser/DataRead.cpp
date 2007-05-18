@@ -186,9 +186,11 @@ Deb::ug("-------------------readData END--------------------------------------")
 	DataScheme* DataScheme::datScheme;
 	
 	DataScheme* DataScheme::dScheme() {
+		cout << "DataScheme::dScheme() \n";
 		if (datScheme == NULL) {
 			datScheme = new DataScheme();
 			datScheme->readData();
+			cout << "DataScheme::dScheme() wczytal obiekty\n";
 		}		
 		DataObjectDef *pom = datScheme->getBaseObjects();
 		Deb::ug("DataScheme has these base objects: ");
@@ -203,6 +205,11 @@ Deb::ug("-------------------readData END--------------------------------------")
 	    }
 	    return datScheme;
 	};
+	void  DataScheme::reloadDScheme(){
+		cout << "reload danych\n";
+		datScheme = new DataScheme();
+		datScheme->readData();
+	}
 
 }
 /************************** KONIEC tam dalej sa stare wersje *********************************************************/
