@@ -33,6 +33,7 @@ namespace Logs
     SBQLConfig *config;
     string logFilePath;
     bool crashRecoveryInProgress;
+    static bool cleanClosed;
 
     //jesli tid == NULL to do logow nie jest nic zapisywane
     void pushLogable( int tid, LogRecord *record);
@@ -47,6 +48,11 @@ namespace Logs
     int start( StoreManager *store );
     static int checkForBackup();
     bool getCrashRecoveryInProgress() { return crashRecoveryInProgress; }
+
+	/**
+	 * Mowi czy ostatnio serwer zostal czysto zamkniety i czy przed aktualnym uruchomieniem nie bylo potrzebne odtwarzanie bazy
+	 */
+	static bool isCleanClosed() {return cleanClosed;}
 
     /**
     Robi flush Logów;

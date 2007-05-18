@@ -10,6 +10,8 @@
 
 /* LogManager class */
 
+bool LogManager::cleanClosed = true;
+
 void LogManager::pushLogable( int tid, LogRecord *record)
 {
   if(tid >= 0)
@@ -125,6 +127,7 @@ int LogManager::checkForBackup()
       // odtwarzamy backup (jesli jest) i wstawiamy na koniec logow REDO_LOGS
       ::lseek( fileDes, 0, SEEK_END );
       LogRecord::initialize( fileDes );
+      cleanClosed = false;
       printf( "Server wasn't stopped clear last time, restoring backup...\n" );
       manager.init();
       result = manager.restore();
