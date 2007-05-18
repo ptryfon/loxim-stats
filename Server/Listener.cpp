@@ -322,7 +322,7 @@ int Listener::Start(int port) {
 	lCons->printf("[Listener.Start]--> Starting Log manager.. \n");
 	lm->start(sm);
 	lCons->printf("[Listener.Start]--> Starting Index manager.. \n");
-	Indexes::IndexManager::init();
+	Indexes::IndexManager::init(LogManager::isCleanClosed());
 	
 	if (setjmp(j)!=0) {
 	    *lCons << "[Listener.Start]--> Jumped.. Stopping Store manager and  closing socket..";

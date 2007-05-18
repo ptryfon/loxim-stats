@@ -6,6 +6,8 @@
 //#include "../QueryParser/IndexNode.h"
 
 #include <string>
+#include <fstream>
+#include <iostream>
 using namespace Errors;
 using namespace QExecutor;
 using namespace std;
@@ -20,13 +22,30 @@ namespace Indexes
 	{
 	private:
 	
+		// decriptors
+		static int lockDesc;
+		static int listDesc;
+		static int dataDesc;
+		
+		static SBQLConfig config;
+		static string listFileName;
+		static string indexLockFile;
+		
 		static IndexManager* handle;	
 		IndexManager();
 		static ErrorConsole *ec;
+		string indexListFile;
+		string indexDataFile;
+		int instanceInit(bool cleanShutdown);
+		int finalize();
+		int getFileName(string paramName, string &value);
+		int closeFiles(int errCode);
+		int fileOpen(string paramName, int &descriptor);
+		int loadIndexList(string &fileName);
 	
 	public:
 	
-		static int init();
+		static int init(bool cleanShutdown);
 		int createIndex(string indexName, string indexedRootName, string indexedFieldName, QueryResult **result);
 		int listIndex(QueryResult **result);
 		int dropIndex(string indexName, QueryResult **result);
