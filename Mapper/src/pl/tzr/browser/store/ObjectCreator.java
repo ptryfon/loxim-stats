@@ -1,5 +1,6 @@
 package pl.tzr.browser.store;
 
+import pl.tzr.browser.session.LoximSession;
 import pl.tzr.browser.store.node.ComplexValue;
 import pl.tzr.browser.store.node.Node;
 import pl.tzr.browser.store.node.NodeImpl;
@@ -7,7 +8,6 @@ import pl.tzr.browser.store.node.ObjectValue;
 import pl.tzr.browser.store.node.ReferenceValue;
 import pl.tzr.browser.store.node.SimpleValue;
 import pl.tzr.browser.store.node.ValueVisitor;
-import pl.tzr.driver.loxim.SimpleConnection;
 import pl.tzr.driver.loxim.exception.SBQLException;
 import pl.tzr.driver.loxim.result.Result;
 import pl.tzr.driver.loxim.result.ResultBag;
@@ -16,18 +16,17 @@ import pl.tzr.driver.loxim.result.ResultBool;
 import pl.tzr.driver.loxim.result.ResultInt;
 import pl.tzr.driver.loxim.result.ResultReference;
 import pl.tzr.driver.loxim.result.ResultString;
+import pl.tzr.exception.InvalidDataStructureException;
+import pl.tzr.exception.NestedSBQLException;
 
 public class ObjectCreator implements ValueVisitor {
 	
-	final SimpleConnection connection;
-	
-	final LoximStore store;
+	final LoximSession loximSession;
 	
 	private Result createdObject;
 	
-	public ObjectCreator(SimpleConnection connection, LoximStore store) {
-		this.connection = connection;
-		this.store = store;
+	public ObjectCreator(LoximSession loximSession) {
+		this.loximSession = loximSession;
 	}
 
 	public void visitBoolValue(SimpleValue simpleValue) {
@@ -50,30 +49,49 @@ public class ObjectCreator implements ValueVisitor {
 		createdObject = new ResultReference(referenceValue.getTargetNode().getReference());		
 	}	
 	
-	public Node create(String objectName, ObjectValue value) throws SBQLException {
+	public Node create(String objectName, ObjectValue value) {
 		
 		value.visit(this);
 		
-		Result result = connection.executeParam("create ?", new ResultBinder(objectName, createdObject));
+		Result result;
 		
-		if (!(result instanceof ResultBag)) throw new IllegalStateException();
+		try {
 		
-		ResultBag resultBag = (ResultBag)result;
+		result = loximSession.getConnection().executeParam(
+				"create ?", new ResultBinder(objectName, createdObject));
 		
-		Result item = resultBag.getItems().get(0);
+		} catch (SBQLException e) {
+			throw new NestedSBQLException(e);
+		}
 		
-		if (!(item instanceof ResultReference)) throw new IllegalStateException();
+		try {
 		
-		return new NodeImpl(store, ((ResultReference)item).getRef(), objectName);
+			Result item = ((ResultBag)result).getItems().get(0);
+					
+			return new NodeImpl(loximSession, ((ResultReference)item).getRef(), objectName);
+		
+		} catch (ClassCastException e) {
+			throw new InvalidDataStructureException();
+		} catch (ArrayIndexOutOfBoundsException e) {
+			throw new InvalidDataStructureException();
+		}
+		
+
 		
 	}
 	
-	public void update(String ref, ObjectValue value) throws SBQLException {
+	public void update(String ref, ObjectValue value) {
 		
 		value.visit(this);
 		
-		connection.executeParam("? := ?", 
+		try {
+		
+		loximSession.getConnection().executeParam("? := ?", 
 				new ResultReference(ref), createdObject);
+		
+		} catch (SBQLException e) {
+			throw new NestedSBQLException(e);
+		}
 		
 	}
 

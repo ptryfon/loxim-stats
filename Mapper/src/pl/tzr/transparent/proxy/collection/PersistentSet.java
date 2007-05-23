@@ -9,7 +9,7 @@ import pl.tzr.browser.store.node.Node;
 import pl.tzr.driver.loxim.exception.SBQLException;
 import pl.tzr.transparent.TransparentProxyFactory;
 
-public class PersistentSet implements Set {
+public class PersistentSet<E> implements Set<E> {
 	
 	private final Node parentNode;
 	
@@ -21,7 +21,7 @@ public class PersistentSet implements Set {
 	
 	private Set<Node> itemNodes;
 	
-	private class CustomIterator implements Iterator {
+	private class CustomIterator implements Iterator<E> {
 		
 		private Iterator<Node> nodeIterator;
 		
@@ -36,13 +36,14 @@ public class PersistentSet implements Set {
 			return nodeIterator.hasNext();
 		}
 
-		public Object next() {
+		public E next() {
 			
 			Node node = nodeIterator.next();
 			
 			if (node == null) return null;
 			
-			Object transparentProxy = createProxy(node);
+			@SuppressWarnings("unchecked")
+			E transparentProxy = (E)createProxy(node);
 			
 			return transparentProxy;
 		}
@@ -111,7 +112,7 @@ public class PersistentSet implements Set {
 				
 	}
 
-	public Iterator iterator() {
+	public Iterator<E> iterator() {
 		return new CustomIterator();
 	}
 	
@@ -161,10 +162,14 @@ public class PersistentSet implements Set {
 		return toArray(array);
 	}
 
-	public Object[] toArray(Object[] array) {
+	public <T> T[] toArray(T[] array) {
 		int i = 0;
-		for (Object item : this) {
-			array[i] = item;
+		for (E item : this) {
+			
+			@SuppressWarnings("unchecked")
+			T castedItem = (T)item;
+			
+			array[i] = castedItem; 
 			i++;
 		}
 

@@ -3,27 +3,24 @@ package pl.tzr.test;
 import java.util.Collection;
 
 import pl.tzr.browser.session.Session;
-import pl.tzr.browser.session.SessionImpl;
+import pl.tzr.browser.session.LoximSession;
 import pl.tzr.browser.store.node.Node;
 import pl.tzr.browser.store.node.ObjectValue;
 import pl.tzr.browser.store.node.ReferenceValue;
 import pl.tzr.browser.store.node.SimpleValue;
-import pl.tzr.driver.loxim.SimpleConnection;
+import pl.tzr.driver.loxim.SimpleConnectionImpl;
 import pl.tzr.driver.loxim.TcpConnectionFactory;
 
 public class BrowserTest {
 	
 	private static void testNavigation() throws Exception {
 		
-		SimpleConnection connection = new SimpleConnection(
-				TcpConnectionFactory.getConnection("127.0.0.1", 6543));
+		SimpleConnectionImpl connection = new SimpleConnectionImpl(
+				TcpConnectionFactory.getConnection("127.0.0.1", 6543), "root", "");
+					
+		Session sessionImpl = new LoximSession(connection);	
 		
-		connection.login("root", "");		
-		connection.beginTransaction();
-		
-		Session session = new SessionImpl(connection);
-		
-		Collection<Node> results = session.find("Part");
+		Collection<Node> results = sessionImpl.find("Part");
 		
 		int i = 0;
 		
@@ -51,16 +48,13 @@ public class BrowserTest {
 			if (detailCost != null) detailCost.setValue(new SimpleValue(i));
 		}
 		
-		connection.commitTransation();
+		sessionImpl.commit();
 		
 		connection.close();
 		
 	}
 	
 
-	/**
-	 * @param args
-	 */
 	public static void main(String[] args) throws Exception {
 		
 		testNavigation();

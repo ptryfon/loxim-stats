@@ -15,9 +15,8 @@ import pl.tzr.transparent.structure.annotation.PersistentSet;
 import pl.tzr.transparent.structure.annotation.Reference;
 
 /**
- * Komponent, który tworzy definicję modelu danych w oparciu o klasy
- * Javove tego modelu zawierające odpowiednie adnotacje,
- * informujące o tym jak reprezentować je w bazie danych.
+ * Data model factory componet wich creates data model and mapping definition
+ * based on annotated Java classes of the model.
  * @author Tomasz Rosiek
  *
  */
@@ -100,7 +99,7 @@ public class SimpleAnnotatedModelRegistryFactory implements ModelRegistryFactory
 			if (!(Set.class.isAssignableFrom(returnType))) throw 
 				new IllegalStateException("Niewlasciwy typ danych dla obiektu klasy PersistentSet");
 			
-			propertyInfo = new CollectionPropertyInfo<Set>(propertyName, Set.class,
+			propertyInfo = new CollectionPropertyInfo(propertyName, Set.class,
 					persistentSetAnnotation.itemType(), new SetPropertyAccessor());
 			
 		} else if(annotationMap.containsKey(Reference.class)) {

@@ -6,18 +6,21 @@ import java.util.Set;
 import pl.tzr.browser.session.Session;
 import pl.tzr.browser.store.node.Node;
 import pl.tzr.driver.loxim.exception.SBQLException;
-import pl.tzr.transparent.structure.model.ModelRegistry;
 
-
+/**
+ * Implementation of TransparentSession wich uses provided Session and
+ * TransparentProxyFactory 
+ * @author Tomasz Rosiek 
+ *
+ */
 public class TransparentSessionImpl implements TransparentSession {
-	private final Session session;
+	private final Session sessionImpl;
 	private final TransparentProxyFactory transparentProxyFactory;
 	
 	public TransparentSessionImpl(
-			Session session, 
-			TransparentProxyFactory transparentProxyFactory,
-			ModelRegistry modelRegistry) {
-		this.session = session;
+			Session sessionImpl, 
+			TransparentProxyFactory transparentProxyFactory) {
+		this.sessionImpl = sessionImpl;
 		this.transparentProxyFactory = transparentProxyFactory;
 	}
 
@@ -28,7 +31,7 @@ public class TransparentSessionImpl implements TransparentSession {
 
 	public Set<Object> find(String query, Class desiredClass) throws SBQLException {
 		
-		Set<Node> results = session.find(query);
+		Set<Node> results = sessionImpl.find(query);
 		
 		Set<Object> transparentResults = new HashSet<Object>();
 		
@@ -46,6 +49,22 @@ public class TransparentSessionImpl implements TransparentSession {
 		
 		/* Modyfikuje działanie getterow i setterów obiektu "object" za pomocą CGLIB'a */
 
+	}
+
+	public Session getSession() {
+		return sessionImpl;
+	}
+
+	public void commit() {
+		sessionImpl.commit();
+	}
+
+	public boolean isActive() {
+		return sessionImpl.isActive();
+	}
+
+	public void rollback() {
+		sessionImpl.rollback();		
 	}
 
 }

@@ -6,7 +6,7 @@
 	<classpathentry kind="lib" path="lib/commons-logging-1.1.jar"/>
 	<classpathentry kind="lib" path="lib/commons-logging-adapters-1.1.jar"/>
 	<classpathentry kind="lib" path="lib/commons-logging-api-1.1.jar"/>
-	<classpathentry kind="lib" path="lib/bsh-2.0b4.jar"/>
 	<classpathentry kind="lib" path="lib/junit.jar"/>
+	<classpathentry kind="lib" path="lib/cglib-2.1_3.jar"/>
 	<classpathentry kind="output" path="target"/>
 </classpath>

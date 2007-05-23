@@ -2,26 +2,26 @@ package pl.tzr.transparent.structure.model;
 
 import pl.tzr.transparent.proxy.handler.PropertyAccessor;
 
-public class PropertyInfo<T> {
+public class PropertyInfo {
 		
 	private final String propertyName;
 	
-	private final Class<T> clazz;
+	private final Class clazz;
 
-	private final PropertyAccessor<T> typeHandler;
+	private final PropertyAccessor typeHandler;
 	
-	public PropertyInfo(final String propertyName, final Class<T> clazz, final PropertyAccessor<T> typeHandler) {
+	public PropertyInfo(final String propertyName, final Class clazz, final PropertyAccessor typeHandler) {
 		super();
 		this.propertyName = propertyName;
 		this.clazz = clazz;
 		this.typeHandler = typeHandler;
 	}	
 
-	public Class<T> getClazz() {
+	public Class getClazz() {
 		return clazz;
 	}
 
-	public PropertyAccessor<T> getTypeHandler() {
+	public PropertyAccessor getTypeHandler() {
 		return typeHandler;
 	}
 

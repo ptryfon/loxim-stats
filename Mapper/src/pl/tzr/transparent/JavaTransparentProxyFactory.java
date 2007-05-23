@@ -10,7 +10,7 @@ import pl.tzr.transparent.proxy.JavaTransparentProxyHandler;
 import pl.tzr.transparent.structure.model.ModelRegistry;
 
 /**
- * Implementacja interfejsu TransparentProxyFactory, oparta o mechanizm
+ * Implementation of TransparentProxyFactory wich uses
  * Java Transparent Proxy
  * @author Tomasz Rosiek
  *
@@ -34,7 +34,7 @@ public class JavaTransparentProxyFactory implements TransparentProxyFactory {
 	public Object createProxy(Node node, Class desiredClass) {
 		
 		if (proxies.containsKey(node)) {
-			/* Obiekt reprezentant został już utworzony w tej sesji */
+			/* Proxy object has already been created in current session */
 			return proxies.get(node);
 		} else {
 			/* Obiekt reprezentant nie został jeszcze utworzony - tworzymy go */

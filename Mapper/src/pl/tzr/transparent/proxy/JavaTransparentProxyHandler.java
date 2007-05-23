@@ -83,6 +83,7 @@ public class JavaTransparentProxyHandler extends JavaBeanProxyInvocationHandler 
 		
 			ClassInfo classInfo = modelRegistry.getClassInfo(entityClass);
 			
+			
 			PropertyInfo propertyInfo = classInfo.getPropertyInfo(propertyName);
 			
 			propertyInfo.getTypeHandler().saveToBase(arg, node, propertyName, propertyInfo);

@@ -52,7 +52,7 @@ public abstract class JavaBeanProxyInvocationHandler implements InvocationHandle
 			
 			return invokeEquals(proxy, args[0]);
 			
-		} else throw new IllegalStateException();
+		} else throw new IllegalStateException("TODO");
 		
 	}
 	

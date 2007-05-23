@@ -2,8 +2,6 @@ package pl.tzr.test.data;
 
 import java.util.Set;
 
-import pl.tzr.transparent.structure.annotation.PersistentSet;
-
 public class PartImpl implements Part {
 
 	String name;

@@ -1,8 +1,7 @@
 package pl.tzr.transparent.structure.model;
 
 /**
- * Fabryka modelu danych. Implementacje tego interfejsu potrafią
- * stworzyć model danych
+ * Interface for factory of data model registry 
  * @author Tomasz Rosiek
  *
  */

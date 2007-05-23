@@ -7,8 +7,14 @@ import pl.tzr.browser.store.node.Node;
 import pl.tzr.browser.store.node.ObjectValue;
 import pl.tzr.driver.loxim.exception.SBQLException;
 
-
-public interface Store {
+/**
+ * Concrete classes of this interface provide implementations of 
+ * all needed operations on the database
+ * 
+ * @author Tomasz Rosiek
+ *
+ */
+public interface Executor {
 	
 	Set<Node> executeQuery(String query) throws SBQLException;
 	

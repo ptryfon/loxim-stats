@@ -38,7 +38,7 @@ public class ReferencePropertyAccessor implements PropertyAccessor {
 	public void saveToBase(Object data, Node parent, String propertyName, 
 			PropertyInfo propertyInfo) throws InvalidDataStructure, SBQLException {
 		
-		throw new IllegalStateException();
+		throw new UnsupportedOperationException();
 		
 	}
 	

@@ -5,8 +5,9 @@ import java.util.Map;
 
 
 /**
- * Reprezentuje zbiór informacji o modelu danych. Zawiera wszystkie klasy
- * jakie mogą wystąpić w bazie danych
+ * Represents the data model and mapping definition. Contains the list of
+ * all classes wich could be mapped to the LoXiM database with the
+ * way of mapping
  * @author Tomasz Rosiek
  *
  */
@@ -23,7 +24,7 @@ public class ModelRegistry {
 	}
 	
 	public ClassInfo getClassInfo(Class clazz) {
-		//FIXME a co z diedziczeniem?
+		//FIXME what about inheritance ?
 		return registry.get(clazz);
 	}
 	
