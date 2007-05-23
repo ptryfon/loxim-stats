@@ -160,7 +160,7 @@ namespace Store
 #endif
 		physical_id *p_id = NULL;
 		if( (map->getPhysicalID(lid->toInteger(),&p_id)) == 2 ) return 2; //out of range
-		cout << "file: " << p_id->file_id << ", page: " << p_id->page_id << ", off: " << p_id->offset <<endl;
+//		cout << "file: " << p_id->file_id << ", page: " << p_id->page_id << ", off: " << p_id->offset <<endl;
 
 		if (map->equal(p_id, map->RIP))
 		{

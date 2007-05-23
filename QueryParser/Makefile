@@ -7,6 +7,7 @@ SOURCES	=	QueryParser.cpp \
 		Optymalizator.cpp \
 		DeathRmver.cpp \
 		AuxRmver.cpp \
+		JoinRpcer.cpp \
 		Deb.cpp \
 		Privilige.cpp \
 		parser.tab.cpp \
@@ -21,6 +22,7 @@ HEADERS	=	QueryParser.h \
 		Optymalizator.h \
 		DeathRmver.h \
 		AuxRmver.h \
+		JoinRpcer.h \
 		Deb.h \
 		Privilige.h \
 		parser.tab.h

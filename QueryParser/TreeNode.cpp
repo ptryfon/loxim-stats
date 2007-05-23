@@ -789,7 +789,7 @@ namespace QParser
 			    pom = pom->getNext();
 			}
 			cout << " koniec\n";
-			*/			
+			*/		
 			if (envs->pushBinders(bindersColl) != 0) 
 					cout << "EROOR jsi zobacz nonalgopnode steval dla sigcoll \n" <<endl;
 
@@ -802,9 +802,7 @@ namespace QParser
 				pt = pt->getNext();
 			}
 			*/
-		} else 	{
-			cout << "pushing not coll\n";
-			
+		} else 	{			
 			if (envs->pushBinders(toPush->statNested(toPush->getDependsOn())) == 0) 
 				sToPop = 1; 
 			else 
@@ -812,9 +810,6 @@ namespace QParser
 		}
 		if (toPush->getDependsOn() == NULL)
 			cout << "the signature depends on NULL !!!!!\n";
-		else 
-			cout << "the signature depends on " + toPush->getDependsOn()->getName() << endl;
-		
 		Deb::ug("pushed static nested result on envs\n");
 		this->setLastOpenSect(envs->getSize());
 		if (this->rarg->staticEval(qres, envs) == -1) return -1;
@@ -888,7 +883,53 @@ namespace QParser
 	
 	DMLNode::DMLNode (dmlInst _inst) : inst(_inst) {DataScheme::reloadDScheme();}
 
+bool TreeNode::containsOid(long oid){
+	vector<TreeNode*> *listVec = new vector<TreeNode*>();
+	this->getInfixList(listVec);
+	for(vector<TreeNode*>::iterator iter = listVec->begin(); iter != listVec->end(); iter++){	
+		if ((*iter)->getOid() == oid  ){
+			return true;
+		}
+	}
+	return false;
+}
+	
+void TreeNode::getBoundIn(TreeNode *node, vector<TreeNode*> *treeVec, vector<TreeNode*> *boundVec){
+	for(vector<TreeNode*>::iterator iter = treeVec->begin(); iter != treeVec->end(); iter++){	
+		if ((*iter)->type()==TreeNode::TNNAME  ){
+			if ( ((NameNode*)(*iter))->getDependsOn() == node ){
+				boundVec->push_back(*iter);
+			}
+		}
+	}
+}
+// ustawia w tym drzewie used i needen na puste wektory
+void TreeNode::resetUsedNeeded(TreeNode *qTree){
 
+	vector<TreeNode*> * listVec = new vector<TreeNode*>();	// wszystkie wezly w drzewie 
+	qTree->getInfixList(listVec);
+	for(vector<TreeNode*>::iterator iter = listVec->begin(); iter != listVec->end(); iter++){
+		if ((*iter)->type() == TreeNode::TNNAME){
+			// jsi_kom cout<< "resetUsedNeeded::usedBySize : " << ((NameNode*) (*iter))->getUsedBy()->size() << endl;
+			((NameNode*) (*iter))->setUsedBy(new vector<TreeNode*>());
+			((NameNode*) (*iter))->setBoundIn(new vector<TreeNode*>());
+		} else if ((*iter)->type() == TreeNode::TNAS){
+			((NameAsNode*) *iter)->setUsedBy(new vector<TreeNode*>());
+		} else {
+			
+		}
+	}			
+}
+
+TreeNode* TreeNode::getNodeByOid(vector<TreeNode*>* listVec, long oid){
+	for(vector<TreeNode*>::iterator iter = listVec->begin(); iter != listVec->end(); iter++){
+		if ((*iter)->getOid() == oid) {
+			
+			return (*iter);	
+		}
+	}
+	return NULL;
+}
 }
 
 

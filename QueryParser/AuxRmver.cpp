@@ -27,7 +27,7 @@ int AuxRmver::rmvAux(TreeNode *&qTree){
 	while(removed){
 		removed = false;
 		QueryParser::setStatEvalRun(0);
-		resetUsedNeeded(qTree);
+		TreeNode::resetUsedNeeded(qTree);
 		qParser->statEvaluate(qTree);
 		if (Deb::ugOn()){
 		    cout << "\n szuka w \n";
@@ -105,15 +105,15 @@ bool AuxRmver::removedAux(NameAsNode * _auxNode, vector<NameNode*> *_toRemoveVec
 	
 	vector<TreeNode*> *listVec2 = new vector<TreeNode*>();	// wszystkie wezly w drzewie 
 	klon->getInfixList(listVec2);
-	auxNode = (NameAsNode*) getNodeByOid(listVec2, _auxNode->getOid());
+	auxNode = (NameAsNode*) TreeNode::getNodeByOid(listVec2, _auxNode->getOid());
 	
 	for (vector<NameNode*>::iterator rIter = _toRemoveVec->begin(); rIter != _toRemoveVec->end(); rIter++){
-		toRemoveVec->push_back((NameNode*) getNodeByOid(listVec2, (*rIter)->getOid()));	
+		toRemoveVec->push_back((NameNode*) TreeNode::getNodeByOid(listVec2, (*rIter)->getOid()));	
 	}
 
 	QueryParser::setStatEvalRun(0);
 	// jsi_kom cout<< "wywoluje resetUsedNeeded(klon)\n";
-	resetUsedNeeded(klon);
+	TreeNode::resetUsedNeeded(klon);
 
 	// teraz usuwam z oryginalu auxNode i wszystkie w nim wiazane (z toRemoveVec)
 	
@@ -164,7 +164,7 @@ bool AuxRmver::removedAux(NameAsNode * _auxNode, vector<NameNode*> *_toRemoveVec
 	for(vector<NameNode*>::iterator nameIter = nameVec->begin(); nameIter != nameVec->end(); nameIter++){
 		NameNode * newNode = *nameIter;
 		assert(newNode != NULL);
-		NameNode * oldNode = (NameNode*) getNodeByOid(oldlistVec, newNode->getOid());
+		NameNode * oldNode = (NameNode*) TreeNode::getNodeByOid(oldlistVec, newNode->getOid());
 		
 		if (!oldNode)
 			cout << "NULL !!!! " << endl;
@@ -228,41 +228,5 @@ bool AuxRmver::canTryToRemoveAux(NameAsNode * auxNode, vector<NameNode*> *nameVe
 	return true;
 }
 
-void AuxRmver::getBoundIn(TreeNode *node, vector<TreeNode*> *treeVec, vector<TreeNode*> *boundVec){
-	for(vector<TreeNode*>::iterator iter = treeVec->begin(); iter != treeVec->end(); iter++){	
-		if ((*iter)->type()==TreeNode::TNNAME  ){
-			if ( ((NameNode*)(*iter))->getDependsOn() == node ){
-				boundVec->push_back(*iter);
-			}
-		}
-	}
-}
-// ustawia w tym drzewie used i needen na puste wektory
-void AuxRmver::resetUsedNeeded(TreeNode *qTree){
-
-	vector<TreeNode*> * listVec = new vector<TreeNode*>();	// wszystkie wezly w drzewie 
-	qTree->getInfixList(listVec);
-	for(vector<TreeNode*>::iterator iter = listVec->begin(); iter != listVec->end(); iter++){
-		if ((*iter)->type() == TreeNode::TNNAME){
-			// jsi_kom cout<< "resetUsedNeeded::usedBySize : " << ((NameNode*) (*iter))->getUsedBy()->size() << endl;
-			((NameNode*) (*iter))->setUsedBy(new vector<TreeNode*>());
-			((NameNode*) (*iter))->setBoundIn(new vector<TreeNode*>());
-		} else if ((*iter)->type() == TreeNode::TNAS){
-			((NameAsNode*) *iter)->setUsedBy(new vector<TreeNode*>());
-		} else {
-			
-		}
-	}			
-}
-
-TreeNode* AuxRmver::getNodeByOid(vector<TreeNode*>* listVec, long oid){
-	for(vector<TreeNode*>::iterator iter = listVec->begin(); iter != listVec->end(); iter++){
-		if ((*iter)->getOid() == oid) {
-			
-			return (*iter);	
-		}
-	}
-	return NULL;
-}
 
 }

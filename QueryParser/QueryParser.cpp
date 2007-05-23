@@ -8,6 +8,7 @@
 #include "QueryParser.h"
 #include "DeathRmver.h"
 #include "AuxRmver.h"
+#include "JoinRpcer.h"
 #include "../Errors/ErrorConsole.h"
 #include "../Errors/Errors.h"
 #include "../Config/SBQLConfig.h"
@@ -121,6 +122,8 @@ namespace QParser {
 		}
 		AuxRmver *auxRmver = new AuxRmver(this);
 		auxRmver->rmvAux(nt);
+		JoinRpcer *joinRpcer = new JoinRpcer(this);
+		joinRpcer->replaceJoin(nt);
 	    }
 	    if (optres != -1) {
 		Deb::ug("I'll return optimized tree\n"); 

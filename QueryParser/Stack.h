@@ -131,8 +131,8 @@ namespace QParser {
 		SREF      = 9,
 		SNOTHING  = 10
 		};
-		Signature (int _type) : typ(_type) {this->next = NULL; }
-		Signature () {this->next = NULL;}
+		Signature (int _type) : typ(_type) {this->next = NULL; this->dependsOn = NULL;}
+		Signature () {this->next = NULL; this->dependsOn = NULL;}
 		virtual void setNext (Signature *newNext) {this->next = newNext;}
 		virtual Signature *getNext () {return this->next;}
 		

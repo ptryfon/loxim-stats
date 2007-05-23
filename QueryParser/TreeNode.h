@@ -132,7 +132,17 @@ namespace QParser {
 	virtual void getInfixList(vector<TreeNode*> *auxVec){
 		
 	}
-      virtual string toString( int level = 0, bool recursive = false, string name = "" ) { return ""; }
+    virtual string toString( int level = 0, bool recursive = false, string name = "" ) { return ""; }
+      
+	// adds to boundVec all nodes from treeVec, that are bound in node
+	static void getBoundIn(TreeNode *node, vector<TreeNode*> *treeVec, vector<TreeNode*> *boundVec);
+	// 
+	static void resetUsedNeeded(TreeNode *qtree); 
+	
+	static TreeNode* getNodeByOid(vector<TreeNode*>* listVec, long oid);
+	
+	virtual bool containsOid(long oid);
+      
     };
 
 // statement := query
