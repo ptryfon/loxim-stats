@@ -4,6 +4,7 @@ import pl.tzr.browser.store.node.ComplexValue;
 import pl.tzr.browser.store.node.Node;
 import pl.tzr.browser.store.node.ObjectValue;
 import pl.tzr.driver.loxim.exception.SBQLException;
+import pl.tzr.exception.InvalidDataStructureException;
 import pl.tzr.transparent.TransparentProxyFactory;
 import pl.tzr.transparent.structure.model.PropertyInfo;
 
@@ -14,10 +15,10 @@ public abstract class PrimitivePropertyAccessor<T> implements PropertyAccessor<T
 			String propertyName, 
 			PropertyInfo info, 
 			TransparentProxyFactory transparentProxyFactory) 
-		throws InvalidDataStructure, SBQLException {
+		throws SBQLException {
 		
 		ObjectValue value = parent.getValue();
-		if (!(value instanceof ComplexValue)) throw new InvalidDataStructure();
+		if (!(value instanceof ComplexValue)) throw new InvalidDataStructureException();
 		
 		Node foundNode = parent.getUniqueChildNode(propertyName);										
 		T result = fetchPrimitiveValue(foundNode);
@@ -29,10 +30,10 @@ public abstract class PrimitivePropertyAccessor<T> implements PropertyAccessor<T
 	
 	public void saveToBase(T data, Node parent, String propertyName, 
 			PropertyInfo propertyInfo) 
-		throws InvalidDataStructure, SBQLException {
+		throws InvalidDataStructureException, SBQLException {
 		
 		ObjectValue value = parent.getValue();
-		if (!(value instanceof ComplexValue)) throw new InvalidDataStructure();
+		if (!(value instanceof ComplexValue)) throw new InvalidDataStructureException();
 		
 		Node foundNode = parent.getUniqueChildNode(propertyName);
 		
@@ -56,10 +57,10 @@ public abstract class PrimitivePropertyAccessor<T> implements PropertyAccessor<T
 	}	
 	
 	protected abstract T fetchPrimitiveValue(Node node) throws
-		SBQLException, InvalidDataStructure;
+		SBQLException, InvalidDataStructureException;
 
 	protected abstract ObjectValue createPimitiveValue(T data) throws
-		SBQLException, InvalidDataStructure;
+		SBQLException, InvalidDataStructureException;
 	
 
 }

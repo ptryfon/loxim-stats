@@ -5,6 +5,7 @@ import pl.tzr.browser.store.node.ObjectValue;
 import pl.tzr.browser.store.node.SimpleValue;
 import pl.tzr.browser.store.node.SimpleValue.Type;
 import pl.tzr.driver.loxim.exception.SBQLException;
+import pl.tzr.exception.InvalidDataStructureException;
 
 public class BooleanPropertyAccessor 
 	extends PrimitivePropertyAccessor<Boolean> 
@@ -12,19 +13,19 @@ public class BooleanPropertyAccessor
 
 	@Override
 	protected Boolean fetchPrimitiveValue(Node proxy) 
-		throws SBQLException, InvalidDataStructure {
+		throws SBQLException {
 		ObjectValue value = proxy.getValue();		
-		if (!(value instanceof SimpleValue)) throw new InvalidDataStructure();
+		if (!(value instanceof SimpleValue)) throw new InvalidDataStructureException();
 		SimpleValue simpleValue = (SimpleValue)value;
 		
-		if (simpleValue.getType() != Type.BOOL) throw new InvalidDataStructure();
+		if (simpleValue.getType() != Type.BOOL) throw new InvalidDataStructureException();
 		
 		return simpleValue.getBoolean();
 	}	
 
 	@Override
 	protected ObjectValue createPimitiveValue(Boolean data) 
-		throws SBQLException, InvalidDataStructure {
+		throws SBQLException, InvalidDataStructureException {
 		return new SimpleValue(data.booleanValue());
 	}	
 

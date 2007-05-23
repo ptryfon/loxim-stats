@@ -37,7 +37,7 @@ public class JavaTransparentProxyFactory implements TransparentProxyFactory {
 			/* Proxy object has already been created in current session */
 			return proxies.get(node);
 		} else {
-			/* Obiekt reprezentant nie został jeszcze utworzony - tworzymy go */
+			/* Proxy object hasn't beed created - create it now */
 			Object result = Proxy.newProxyInstance(
 				    desiredClass.getClassLoader(),
 				    new Class[] {desiredClass},

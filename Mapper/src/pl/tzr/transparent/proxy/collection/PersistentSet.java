@@ -55,8 +55,10 @@ public class PersistentSet<E> implements Set<E> {
 		
 	}
 		
-	public PersistentSet(final Node parentNode, final String propertyName, final Class clazz, final TransparentProxyFactory transparentProxyFactory) {
-		super();
+	public PersistentSet(final Node parentNode, final String propertyName, 
+			final Class clazz, 
+			final TransparentProxyFactory transparentProxyFactory) {
+		
 		this.parentNode = parentNode;
 		this.propertyName = propertyName;
 		this.transparentProxyFactory = transparentProxyFactory;

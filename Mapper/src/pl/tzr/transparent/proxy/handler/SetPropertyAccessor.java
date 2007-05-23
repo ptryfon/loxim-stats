@@ -14,7 +14,7 @@ public class SetPropertyAccessor implements PropertyAccessor<Set> {
 	public Set retrieveFromBase(Node parent, String propertyName,
 			PropertyInfo propertyInfo,
 			TransparentProxyFactory transparentProxyFactory)
-			throws InvalidDataStructure, SBQLException {
+			throws SBQLException {
 		
 		CollectionPropertyInfo castedPropertyInfo = 
 			(CollectionPropertyInfo)propertyInfo;
@@ -32,7 +32,7 @@ public class SetPropertyAccessor implements PropertyAccessor<Set> {
 
 
 	public void saveToBase(Set data, Node parent, String propertyName, 
-			PropertyInfo propertyInfo) throws InvalidDataStructure, SBQLException {
+			PropertyInfo propertyInfo) throws SBQLException {
 
 		throw new UnsupportedOperationException();
 	}

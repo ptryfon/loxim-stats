@@ -206,9 +206,9 @@ public class LoximExecutor implements Executor {
 		return newObject;
 	}
 	
-	private Result executeQuery(String query, Result... param) {
+	private Result executeQuery(String query, Result... params) {
 		try {
-			return loximSession.getConnection().executeParam("deref(?)", param);
+			return loximSession.getConnection().executeParam(query, params);
 		} catch (SBQLException e) {
 			throw new NestedSBQLException(e);
 		}

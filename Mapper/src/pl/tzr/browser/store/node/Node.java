@@ -6,7 +6,7 @@ import pl.tzr.driver.loxim.exception.SBQLException;
 
 /**
  * Pointer to the data object in LoXiM database
- * Allows to fetch and modify contents of the pointed object
+ * Allows to fetch and modify contents of the object
  *  
  * @author Tomasz Rosiek
  *

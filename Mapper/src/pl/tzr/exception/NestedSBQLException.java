@@ -9,10 +9,8 @@ import pl.tzr.driver.loxim.exception.SBQLException;
  */
 public class NestedSBQLException extends MappingException {
 	
-	private SBQLException e;
-
 	public NestedSBQLException(SBQLException e) {
-		this.e = e;
+		super(e);
 	}
 	
 }

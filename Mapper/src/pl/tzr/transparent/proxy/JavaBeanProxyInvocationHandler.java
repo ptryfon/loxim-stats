@@ -3,6 +3,8 @@ package pl.tzr.transparent.proxy;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 
+import javax.naming.OperationNotSupportedException;
+
 /**
  * Implementacja handlera dla mechanizmu Java Transparent Proxy, przeznaczona
  * do tworzenia obiektów pośredniczących zgodnych ze standardem JavaBeans. 
@@ -52,7 +54,7 @@ public abstract class JavaBeanProxyInvocationHandler implements InvocationHandle
 			
 			return invokeEquals(proxy, args[0]);
 			
-		} else throw new IllegalStateException("TODO");
+		} else throw new UnsupportedOperationException();
 		
 	}
 	

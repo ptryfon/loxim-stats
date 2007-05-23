@@ -6,5 +6,13 @@ package pl.tzr.exception;
  *
  */
 public class MappingException extends RuntimeException {
+	
+	public MappingException() {
+		super();
+	}
+	
+	protected MappingException(Exception e) {
+		super(e);
+	}
 
 }
