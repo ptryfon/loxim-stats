@@ -119,6 +119,7 @@ namespace QParser {
 	virtual void markNeeded(){
 		if (Deb::ugOn()) cerr << "jsi unimplemented markNeeded" << this->getName() << endl;
 	};
+	virtual void markNeeded2(){;};
 	virtual void markNeededUp(){
 		this->setNeeded(true);
 		if (this->getParent() != NULL){
@@ -555,6 +556,11 @@ namespace QParser {
 			this->getLArg()->markNeeded();
 			this->getRArg()->markNeeded();
 	}
+	virtual void markNeeded2(){
+			this->setNeeded(true);
+			this->getLArg()->markNeeded2();
+			this->getRArg()->markNeeded2();
+	}
 	
 	virtual TreeNode * getDeath(){
 		TreeNode *pom = this->getLArg()->getDeath();
@@ -594,6 +600,9 @@ namespace QParser {
         return getPrefixForLevel( level, name ) + "[Value]\n";
       }
       virtual void markNeeded(){
+      		this->setNeeded(true);
+      }
+      virtual void markNeeded2(){
       		this->setNeeded(true);
       }
     };    
@@ -647,6 +656,16 @@ namespace QParser {
 		this->setNeeded(true);
 		if (this->getDependsOn() != NULL){
 			this->getDependsOn()->markNeededUp();
+		}
+	}
+	virtual void markNeeded2(){
+		this->setNeeded(true);
+		
+		for (vector<TreeNode*>::iterator iter = this->getBoundIn()->begin(); iter != this->getBoundIn()->end(); iter++){
+				if ((*iter != NULL)){		// zalezy od null - czyli jest wiazany w sekcji bazowej, 
+					(*iter)->markNeededUp();
+				}	
+			
 		}
 	}
 	virtual void markNeededUp(){
@@ -865,6 +884,10 @@ namespace QParser {
 			this->setNeeded(true);
 			this->getArg()->markNeeded();	
 	}
+	virtual void markNeeded2(){
+			this->setNeeded(true);
+			this->getArg()->markNeeded2();	
+	}
 	virtual void evalCard(){this->setCard(this->getArg()->getCard());}
 	virtual TreeNode * getDeath(){
 		return this->getArg()->getDeath();
@@ -918,7 +941,10 @@ namespace QParser {
 			this->setNeeded(true);
 			this->getArg()->markNeeded();	
 	}
-	
+	virtual void markNeeded2(){
+			this->setNeeded(true);
+			this->getArg()->markNeeded2();	
+	}
 	virtual TreeNode * getDeath(){
 		return this->getArg()->getDeath();
 	}
@@ -1243,6 +1269,14 @@ lastOpenSect = 0; }
 		this->getRArg()->markNeeded();	
 		if (op != 0){		// not a dot
 			this->getLArg()->markNeeded();	
+		}
+	}
+	virtual void markNeeded2(){
+		this->setNeeded(true);
+		this->putToString();
+		this->getRArg()->markNeeded2();	
+		if (op != 0){		// not a dot
+			this->getLArg()->markNeeded2();	
 		}
 	}
 	

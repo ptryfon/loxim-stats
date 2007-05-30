@@ -524,7 +524,8 @@ namespace QParser
 		BinderWrap *bw = NULL;
 		envs->bindName2(this->name, vec);
 		if (vec->size() > 0){
-			bw = vec->at(0);	// pierwszy ktory zostal znaleziony, wynik powinien byc taki jak w starym	
+			//bw = vec->at(0);	// pierwszy ktory zostal znaleziony, wynik powinien byc taki jak w starym	
+			bw = vec->at(vec->size()-1);	// teraz wynik powinien byc inny!
 		}
 		if (bw == NULL) { Deb::ug("name could NOT be bound ! will exit..\n"); return -1;}
 		this->setBindSect(bw->getSectNumb());

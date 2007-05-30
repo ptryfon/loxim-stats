@@ -26,7 +26,8 @@ int DeathRmver::rmvDeath(TreeNode *&qTree){
 	while(true){
 //		Deb::ug("\n rmvDeath loop start -------------------------------------------------------\n");
 		qParser->statEvaluate(qTree);
-		qTree->markNeeded();		
+		// qTree->markNeeded();		
+		qTree->markNeeded2();
 		if (Deb::ugOn()){
 		    cout << "\n szuka w \n";
 		    qTree->putToString();
