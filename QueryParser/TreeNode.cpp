@@ -1,7 +1,7 @@
 #include "TreeNode.h"
 #include "Stack.h"
 #include "DataRead.h"
-#include "Optymalizator.h"
+#include "Optimizer.h"
 #include "stdio.h"
 #include "stdlib.h"
 #include "Deb.h"
@@ -454,7 +454,7 @@ namespace QParser
 	
 	int NonAlgOpNode::optimizeTree() {
 		int pRes = 0;
-		Optymalizator *optimiser = new Optymalizator();
+		Optimizer *optimiser = new Optimizer();
 		
 		TreeNode *hInd = optimiser->getIndependant(this);
 		//LL; //this->getHighestIndependant();

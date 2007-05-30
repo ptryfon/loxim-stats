@@ -4,7 +4,7 @@ SOURCES	=	QueryParser.cpp \
 		TreeNode.cpp \
 		DataRead.cpp \
 		Stack.cpp \
-		Optymalizator.cpp \
+		Optimizer.cpp \
 		DeathRmver.cpp \
 		AuxRmver.cpp \
 		JoinRpcer.cpp \
@@ -19,7 +19,7 @@ HEADERS	=	QueryParser.h \
 		Stack.h \
 		ClassNames.h \
 		DataRead.h \
-		Optymalizator.h \
+		Optimizer.h \
 		DeathRmver.h \
 		AuxRmver.h \
 		JoinRpcer.h \

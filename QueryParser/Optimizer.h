@@ -11,7 +11,7 @@ using namespace std;
 
 namespace QParser{
 
-class Optymalizator{
+class Optimizer{
     public:
     
     TreeNode * getIndependant(TreeNode *niealg);

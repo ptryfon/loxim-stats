@@ -1,11 +1,11 @@
-#include "Optymalizator.h"
+#include "Optimizer.h"
 #include "TreeNode.h"
 #include "Deb.h"
 
 namespace QParser{
 
 
-    TreeNode * Optymalizator::getIndependant(TreeNode *niealg){
+    TreeNode * Optimizer::getIndependant(TreeNode *niealg){
 	Deb::ug("GETINDEPENDANT START");
 	int min = ((NonAlgOpNode* ) niealg)->getFirstOpenSect();
 	int max = ((NonAlgOpNode* ) niealg)->getLastOpenSect();
@@ -31,7 +31,7 @@ namespace QParser{
     }
 
     
-    bool Optymalizator::isIndependent(TreeNode * tree, int min, int max){
+    bool Optimizer::isIndependent(TreeNode * tree, int min, int max){
 	cout << "ISINDEPENDENT START" << endl;
 	if (tree->type() == TreeNode::TNNAME){		// jezeli wezel z nazwa to sprawdzam w ktorej sekcji wiarze
 	    NameNode *nnode = (NameNode *) tree;
@@ -50,7 +50,7 @@ namespace QParser{
 	    return true;
     }
     
-    TreeNode * Optymalizator::doGetIndep(TreeNode * tree, int min, int max, int &depth){ 
+    TreeNode * Optimizer::doGetIndep(TreeNode * tree, int min, int max, int &depth){ 
 	if ((tree->type() == TreeNode::TNNONALGOP) && this->isIndependent(tree, min, max)){
 	    return tree;
 	} else if (tree->type() == TreeNode::TNALGOP){

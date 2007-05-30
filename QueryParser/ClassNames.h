@@ -13,7 +13,7 @@ namespace QParser{
 	class TreeNode;
 	class StatEnvStack;
 	class StatQResStack;
-	class Optymalizator;
+	class Optimizer;
 	class Deb;
 	class DeathRmver;
 	class Card;
