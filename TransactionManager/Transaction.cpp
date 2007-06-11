@@ -1,8 +1,9 @@
 
 #include "Transaction.h"
+#include "../Indexes/IndexManager.h"
 
 /**
- *	@author Julian Krzemiñski (julian.krzeminski@students.mimuw.edu.pl)
+ *	@author Julian Krzemiski (julian.krzeminski@students.mimuw.edu.pl)
  *	@author Dominik Klimczak (dominik.klimczak@students.mimuw.edu.pl)
  */
 namespace TManager
@@ -95,7 +96,11 @@ namespace TManager
 	    {
 		sem->lock_write();
 
-		    errorNumber = sm->modifyObject(tid, op, dv);
+			//po modyfikacji w storze *op bedzie juz innym obiektem o tym samym lid
+			errorNumber = Indexes::IndexManager::getHandle()->modifyObject(tid, op, dv);
+
+			if (errorNumber == 0)
+		    errorNumber = sm->modifyObject(tid, op, dv);		
 
 		    if (errorNumber == 0)
 			errorNumber = lm->lock(op->getLogicalID(), tid, Write);
@@ -119,6 +124,11 @@ namespace TManager
 
 		sem->lock_write();
 			errorNumber = sm->createObject( tid, name, value, p);
+			
+			/* INDEX	przechwytywanie createObject chyba nie bedzie potrzebne. zamiast tego jest addRoot
+			if (errorNumber == 0)
+				errorNumber = Indexes::IndexManager::getHandle()->createObject(tid, name, value, p, p->getLogicalID());
+			*/
 			
 			if (errorNumber == 0)
 			/* quaranteed not wait for lock */			
@@ -248,6 +258,9 @@ namespace TManager
 		sem->lock_write();
 			errorNumber = sm->addRoot(tid, p);
 			/* GUARANTEED no waiting */
+			if (errorNumber == 0)
+				errorNumber = Indexes::IndexManager::getHandle()->addRoot(tid, p);
+			
 			if (errorNumber == 0)
 			    errorNumber = lm->lock( p->getLogicalID(), tid, Write);
 		sem->unlock();
