@@ -115,43 +115,24 @@ namespace Indexes
   			ec->printf("Cannot read %s from configuration file\n", indexLockParamName);
   			return closeFiles(errCode);
   		}
-  		
-  		if ((errCode = getFileName(indexListParamName, listFileName))) {
-  			return closeFiles(errCode);
-  		}
-  		
-		if ((errCode = fileOpen(indexDataParamName, dataDesc))) {
-			return closeFiles(errCode);
-		}
 		
 		loadIndexList(listFileName);
 		
 		if (!cleanShutdown) {
 			ec->printf("Shutdown wasn't clean. Rebuilding indexes...\n");
-			
+			//TODO przebudowac wszystkie indeksy, skasowac stare pliki
 			ec->printf("Indexes rebuilding done\n");
 		}
 		
-		//jesli jest lock to nie bylo czyste zamkniecie -> skasuj zawartosc indeksu, utworz nowa na podstawie listy indeksow, wyswietl komunikat
-		
-		//zaloz lock
 		return 0;
 	}
 	
 	int IndexManager::loadIndexList(string &fileName) {
-		ifstream file(fileName.c_str(), ios::in);
-		if (!file.is_open()) {
-			ec->printf("Cannot open or create file %s", fileName.c_str());
-			//TODO dorzucic blad indexow
-			return ENoFile;
-		}
 		
 		string indexName, rootName, fieldName; 
 		
 		ec->printf("wczytuje indeksy\n");
-		while (file >> indexName >> rootName >> fieldName) {
-			cout << "istniejace indexy: " << indexName << " ON " << rootName << "." << fieldName << endl;
-		}
+		
 		ec->printf("zakonczono wczytywanie indeksow\n");
 		
 		//destruktor file zamyka plik
@@ -178,36 +159,44 @@ namespace Indexes
 	int IndexManager::createIndex(string indexName, string indexedRootName, string indexedFieldName, QueryResult **result) 
 	{
 		int err = 0;
-		*ec << "creating index";
-		
-		ofstream fileList(listFileName.c_str(), ios::app);
-		if (!fileList.is_open()) {
-			ec->printf("Cannot open file: %s\n", listFileName.c_str());
-			return ENoFile; //TODO dodac IM
-		}
-		
-		fileList << indexName << " " << indexedRootName << " " << indexedFieldName << endl;
-		
-		if (!fileList) {
-			ec->printf("Cannot write to a file: %s. File can be corrupted\n", listFileName.c_str());
-			err = ENoFile; //TODO dodac
-		}
 	
-		fileList.close();
+		if ((err = addIndex(indexName, indexedRootName, indexedFieldName))) {
+			//TODO index already exists
+			return err;
+		}
+		*ec << "adding index to database";
 		
 		*result = new QueryNothingResult();
-		return err; //destruktor fileList zamknie plik
+		return 0;
 	}
 
 	int IndexManager::listIndex(QueryResult **result)
 	{
 		*ec << "listing indexes";
-		*result = new QueryNothingResult();
+		string2index::const_iterator it;
+		IndexHandler* ih;
+		QueryBagResult *bagResult = new QueryBagResult();
+		QueryStructResult *structResult;
+		for (it = indexNames.begin(); it != indexNames.end(); ++it) {
+			ih = it->second;
+			ec->printf("index: %s on %s (%s)\n", ih->getName().c_str(), ih->getRoot().c_str(), ih->getField().c_str());
+
+			structResult = new QueryStructResult();
+			structResult->addResult(new QueryBinderResult("name", new QueryStringResult(ih->getName())));
+			structResult->addResult(new QueryBinderResult("root", new QueryStringResult(ih->getRoot())));
+			structResult->addResult(new QueryBinderResult("field", new QueryStringResult(ih->getField())));
+			bagResult->addResult(structResult);
+		}
+		*result = bagResult;
 		return 0;	
 	}
 
 	int IndexManager::dropIndex(string indexName, QueryResult **result) {
 		*ec << "dropping index";
+		int err;
+		if ((err = dropIndex(indexName))) {
+			return err;
+		}
 		*result = new QueryNothingResult();
 		return 0;
 	}

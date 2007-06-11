@@ -1,8 +1,8 @@
 include ../make.defs
 
-SOURCES	=	IndexManager.cpp
+SOURCES	=	IndexManager.cpp Metadata.cpp
 
-HEADERS	=	IndexManager.h
+HEADERS	=	IndexManager.h IndexHandler.h
 
 STATIC_LIB =	IndexManager.a
 PROGRAM	=	
