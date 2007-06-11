@@ -246,7 +246,10 @@ user_stmt:	CREATE USER NAME PASSWD NAME	{ $$ = new CreateUserNode($3, $5); }
 	    |	REMOVE USER NAME		{ $$ = new RemoveUserNode($3); 	   }
 	    ;
 	    
-index_stmt: CREATE INDEX NAME ON NAME LEFTPAR NAME RIGHTPAR {$$ = new CreateIndexNode ($3, $5, $7);}
+index_stmt:	CREATE INDEX NAME ON NAME LEFTPAR NAME RIGHTPAR {$$ = new CreateIndexNode ($3, $5, $7);}
+		|	INDEX {$$ = new ListIndexNode();}
+		|	DELETE INDEX NAME {$$ = new DropIndexNode($3);}
+		;
 
 semicolon_opt:  /* empty */	{}
 	    |	SEMICOLON	{}

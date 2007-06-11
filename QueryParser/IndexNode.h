@@ -21,7 +21,6 @@ namespace Indexes {
     		//getEc()
     	
     	public:
-    		IndexManager *im;
     		virtual int execute(QueryResult **result)=0;//{return 0;};
     		//IndexNode(){}
     		virtual int type()=0;// {return TreeNode::TNINDEXDDL;}
@@ -48,8 +47,8 @@ namespace Indexes {
 	    	CreateIndexNode(string _indexName, string _indexedRootName, string _indexedFieldName)
 	    				: indexName(_indexName), indexedRootName(_indexedRootName),	indexedFieldName(_indexedFieldName) {}
 	    	virtual TreeNode* clone() {return new CreateIndexNode(indexName, indexedRootName, indexedFieldName);}
-	    	virtual int putToString() {cout << "create index" << indexName << " on " << indexedRootName << "(" << indexedFieldName<< ")" << endl; return 0;}
-	    	virtual int execute(QueryResult **result){return im->createIndex(indexName, indexedRootName, indexedFieldName, result);};
+	    	virtual int putToString() {cout << "create index " << indexName << " on " << indexedRootName << "(" << indexedFieldName<< ")" << endl; return 0;}
+	    	virtual int execute(QueryResult **result){return IndexManager::getHandle()->createIndex(indexName, indexedRootName, indexedFieldName, result);};
 	    	virtual ~CreateIndexNode(){};
 	    	//virtual TreeNode* clone() {return new CreateIndexNode();}
     };
@@ -59,15 +58,24 @@ namespace Indexes {
     	public:
     		ListIndexNode(){};
     		virtual ~ListIndexNode(){};
-    		virtual int execute(QueryResult **result) {return im->listIndex(result);};	
+    		virtual int execute(QueryResult **result) {return IndexManager::getHandle()->listIndex(result);};
+    		
+    		virtual TreeNode* clone() {return new ListIndexNode();}
+	    	virtual int putToString() {cout << "list index" << endl; return 0;}	
     };
     
     class DropIndexNode : public IndexDDLNode
     {
+    	private:
+    		string indexName;
+    	
     	public:
-    		DropIndexNode(){};
+    		DropIndexNode(string indexName) : indexName(indexName) {}
     		virtual ~DropIndexNode(){};
-    		virtual int execute(string indexName, QueryResult **result) {return im->dropIndex(indexName, result);};	
+    		virtual int execute(QueryResult **result) {return IndexManager::getHandle()->dropIndex(indexName, result);};	
+    		
+    		virtual TreeNode* clone() {return new DropIndexNode(indexName) ;}
+	    	virtual int putToString() {cout << "drop index " << indexName << endl; return 0;}	
     };
 }
 
