@@ -385,7 +385,7 @@ int QueryReferenceResult::nested(Transaction *&tr, QueryResult *&r, QueryExecuto
 	
 	ObjectPointer *optr;
 	if (value != NULL) {
-		if ((errcode = tr->getObjectPointer(value, Store::Read, optr)) != 0) {
+		if ((errcode = tr->getObjectPointer(value, Store::Read, optr, false)) != 0) {
 			*ec << "[QE] Error in getObjectPointer";
 			qe->antyStarveFunction(errcode);
 			qe->inTransaction = false;
@@ -406,7 +406,7 @@ int QueryReferenceResult::nested(Transaction *&tr, QueryResult *&r, QueryExecuto
 			 DataValue* value;
 			 for (int i = 0; i < vec_size; i++ ) {
 				 LogicalID *tmp_logID = tmp_vec->at(i);
-				 if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, optr)) != 0) {
+				 if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, optr, false)) != 0) {
 					*ec << "[QE] Error in getObjectPointer";
 					qe->antyStarveFunction(errcode);
 					qe->inTransaction = false;
@@ -457,7 +457,7 @@ int QueryReferenceResult::nested(Transaction *&tr, QueryResult *&r, QueryExecuto
 			}
 			case Store::Pointer: {
 				LogicalID *tmp_logID = (tmp_data_value->getPointer());
-				if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, optr)) != 0) {
+				if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, optr, false)) != 0) {
 					*ec << "[QE] Error in getObjectPointer";
 					qe->antyStarveFunction(errcode);
 					qe->inTransaction = false;
@@ -477,7 +477,7 @@ int QueryReferenceResult::nested(Transaction *&tr, QueryResult *&r, QueryExecuto
 				int vec_size = tmp_vec->size();
 				for (int i = 0; i < vec_size; i++ ) {
 					LogicalID *tmp_logID = tmp_vec->at(i);
-					if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, optr)) != 0) {
+					if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, optr, false)) != 0) {
 						*ec << "[QE] Error in getObjectPointer";
 						qe->antyStarveFunction(errcode);
 						qe->inTransaction = false;
@@ -549,7 +549,7 @@ int QueryVirtualResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor 
 	for (unsigned int i = 0; i < others.size(); i++ ) {
 		LogicalID *tmp_logID = others.at(i);
 		ObjectPointer *tmp_optr;
-		if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, tmp_optr)) != 0) {
+		if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, tmp_optr, false)) != 0) {
 			*ec << "[QE] Error in getObjectPointer";
 			qe->antyStarveFunction(errcode);
 			qe->inTransaction = false;

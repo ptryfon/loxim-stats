@@ -548,7 +548,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			}
 			
 			ObjectPointer *optr;
-			errcode = tr->getObjectPointer (((QueryReferenceResult*)execution_result)->getValue(), Store::Read, optr);
+			errcode = tr->getObjectPointer (((QueryReferenceResult*)execution_result)->getValue(), Store::Read, optr, false);
 			if (errcode != 0) {
 				*ec << "[QE] register proc operation - Error in getObjectPointer.";
 				antyStarveFunction(errcode);
@@ -662,7 +662,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				return ErrQExecutor | ERefExpected;
 			}
 			LogicalID* lid = ((QueryReferenceResult*)execution_result)->getValue();	
-			errcode = tr->getObjectPointer (lid, Store::Read, optr);
+			errcode = tr->getObjectPointer (lid, Store::Read, optr, false);
 			if (errcode != 0) {
 				*ec << "[QE] view creating operation - Error in getObjectPointer.";
 				antyStarveFunction(errcode);
@@ -699,7 +699,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 					return ErrQExecutor | ERefExpected;
 				}
 				lid = ((QueryReferenceResult*)execution_result)->getValue();
-				errcode = tr->getObjectPointer (lid, Store::Read, optr);
+				errcode = tr->getObjectPointer (lid, Store::Read, optr, false);
 				if (errcode != 0) {
 					*ec << "[QE] view creating operation - Error in getObjectPointer.";
 					antyStarveFunction(errcode);
@@ -785,7 +785,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			}
 			
 			ObjectPointer *optr;
-			errcode = tr->getObjectPointer (((QueryReferenceResult*)execution_result)->getValue(), Store::Read, optr);
+			errcode = tr->getObjectPointer (((QueryReferenceResult*)execution_result)->getValue(), Store::Read, optr, false);
 			if (errcode != 0) {
 				*ec << "[QE] register view operation - Error in getObjectPointer.";
 				antyStarveFunction(errcode);
@@ -805,7 +805,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			vector<LogicalID*>* inner_vec = (optr->getValue())->getVector();
 			for (unsigned int i=0; i < inner_vec->size(); i++) {
 				ObjectPointer *inner_optr;
-				errcode = tr->getObjectPointer (inner_vec->at(i), Store::Read, inner_optr);
+				errcode = tr->getObjectPointer (inner_vec->at(i), Store::Read, inner_optr, false);
 				if (errcode != 0) {
 					*ec << "[QE] register view operation - Error in getObjectPointer.";
 					antyStarveFunction(errcode);
@@ -1637,13 +1637,18 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 			LogicalID *ref_value = ((QueryReferenceResult *) arg)->getValue();
 			*ec << "[QE] derefQuery() - dereferencing Object";
 			ObjectPointer *optr;
-			errcode = tr->getObjectPointer(ref_value, Store::Read, optr); 
+			errcode = tr->getObjectPointer(ref_value, Store::Read, optr, true); 
 			if (errcode != 0) {
 				*ec << "[QE] Error in getObjectPointer";
 				antyStarveFunction(errcode);
 				inTransaction = false;
 				return errcode;
 			}
+			
+			if (optr == NULL) {
+				res = new QueryBagResult();
+				break;
+			} 
 			
 			if (optr->isRoot()) {
 			    string object_name = optr->getName();
@@ -1694,7 +1699,7 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 					for (int i = 0; i < tmp_vec_size; i++) {
 						LogicalID *currID = tmp_vec->at(i);
 						ObjectPointer *currOptr;
-						errcode = tr->getObjectPointer(currID, Store::Read, currOptr); 
+						errcode = tr->getObjectPointer(currID, Store::Read, currOptr, false); 
 						if (errcode != 0) {
 							*ec << "[QE] Error in getObjectPointer";
 							antyStarveFunction(errcode);
@@ -1964,12 +1969,17 @@ int QueryExecutor::nameofQuery(QueryResult *arg, QueryResult *&res) {
             LogicalID *ref_value = ((QueryReferenceResult *) arg)->getValue();
             *ec << "[QE] nameof() - dereferencing Object";
             ObjectPointer *optr;
-            errcode = tr->getObjectPointer(ref_value, Store::Read, optr); 
+            errcode = tr->getObjectPointer(ref_value, Store::Read, optr, true); 
             if (errcode != 0) {
                 *ec << "[QE] Error in getObjectPointer";
                 antyStarveFunction(errcode);
                 inTransaction = false;
                 return errcode;
+            }
+            
+            if (optr == NULL) {
+        		res = new QueryBagResult();
+        		break;
             }
             
             if (optr->isRoot()) {
@@ -2338,12 +2348,17 @@ int QueryExecutor::unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&
 				if (toDeleteType == QueryResult::QREFERENCE) {
 					LogicalID *lid = ((QueryReferenceResult *) toDelete)->getValue();
 					ObjectPointer *optr;
-					if ((errcode = tr->getObjectPointer (lid, Store::Write, optr)) !=0) { 
+					if ((errcode = tr->getObjectPointer (lid, Store::Write, optr, true)) !=0) { 
 						*ec << "[QE] Error in getObjectPointer.";
 						antyStarveFunction(errcode);
 						inTransaction = false;
 						return errcode;
 					}
+					
+					if (optr == NULL) {
+						continue;
+					}
+					
 					if (optr->getIsRoot()) {
 						string object_name = optr->getName();
 						if (!system_privilige_checking && 
@@ -2710,7 +2725,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 		}
 		LogicalID *lidOut = ((QueryReferenceResult *) outer)->getValue();
 		ObjectPointer *optrOut;
-		errcode = tr->getObjectPointer (lidOut, Store::Write, optrOut); 
+		errcode = tr->getObjectPointer (lidOut, Store::Write, optrOut, false); 
 		if (errcode != 0) {
 			*ec << "[QE] insert operation - Error in getObjectPointer.";
 			antyStarveFunction(errcode);
@@ -2758,12 +2773,15 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 			switch (rightResultType) {
 				case QueryResult::QREFERENCE: {
 					lidIn = ((QueryReferenceResult *) toInsert)->getValue();
-					errcode = tr->getObjectPointer (lidIn, Store::Write, optrIn); 
+					errcode = tr->getObjectPointer (lidIn, Store::Write, optrIn, true); 
 					if (errcode != 0) {
 						*ec << "[QE] insert operation - Error in getObjectPointer.";
 						antyStarveFunction(errcode);
 						inTransaction = false;
 						return errcode;
+					}
+					if (optrIn == NULL) {
+						break;
 					}
 					string object_name = optrIn->getName();
 					/*if (!system_privilige_checking && 
@@ -2876,7 +2894,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 		else {
 			LogicalID *old_lid = ((QueryReferenceResult *) lArg)->getValue();
 			ObjectPointer *old_optr;
-			errcode = tr->getObjectPointer (old_lid, Store::Write, old_optr); 
+			errcode = tr->getObjectPointer (old_lid, Store::Write, old_optr, false); 
 			if (errcode != 0) {
 				*ec << "[QE] operator <assign>: error in getObjectPointer()";
 				antyStarveFunction(errcode);
@@ -2968,7 +2986,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 				if (errcode != 0) return errcode;
 				LogicalID *rArg_lid = ((QueryReferenceResult *)rArg_ref)->getValue();
 				ObjectPointer *rArg_optr;
-				errcode = tr->getObjectPointer (rArg_lid, Store::Read, rArg_optr); 
+				errcode = tr->getObjectPointer (rArg_lid, Store::Read, rArg_optr, false); 
 				if (errcode != 0) {
 					*ec << "[QE] operator <assign>: error in getObjectPointer()";
 					antyStarveFunction(errcode);
@@ -3341,7 +3359,7 @@ int QueryExecutor::procCheck(unsigned int qSize, LogicalID *lid, string &code, v
 	int errcode;
 	ObjectPointer *optr;
 	
-	errcode = tr->getObjectPointer (lid, Store::Read, optr); 
+	errcode = tr->getObjectPointer (lid, Store::Read, optr, false); 
 	if (errcode != 0) {
 		*ec << "[QE] procCheck - Error in getObjectPointer.";
 		antyStarveFunction(errcode);
@@ -3365,7 +3383,7 @@ int QueryExecutor::procCheck(unsigned int qSize, LogicalID *lid, string &code, v
 		for (int i = 0; i < vec_size; i++ ) {
 			LogicalID *tmp_logID = tmp_vec->at(i);
 			ObjectPointer *tmp_optr;
-			if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, tmp_optr)) != 0) {
+			if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, tmp_optr, false)) != 0) {
 				*ec << "[QE] procCheck - Error in getObjectPointer";
 				antyStarveFunction(errcode);
 				inTransaction = false;
@@ -3406,7 +3424,7 @@ int QueryExecutor::checkViewAndGetVirtuals(LogicalID *lid, string &name, string 
 	string actual_name = "";
 	int actual_name_count = 0;
 	ObjectPointer *optr;
-	errcode = tr->getObjectPointer (lid, Store::Read, optr);
+	errcode = tr->getObjectPointer (lid, Store::Read, optr, false);
 	if (errcode != 0) {
 		*ec << "[QE] checkViewAndGetVirtuals - Error in getObjectPointer.";
 		antyStarveFunction(errcode);
@@ -3423,7 +3441,7 @@ int QueryExecutor::checkViewAndGetVirtuals(LogicalID *lid, string &name, string 
 		for (int i = 0; i < vec_size; i++ ) {
 			LogicalID *tmp_logID = tmp_vec->at(i);
 			ObjectPointer *tmp_optr;
-			if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, tmp_optr)) != 0) {
+			if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, tmp_optr, false)) != 0) {
 				*ec << "[QE] checkViewAndGetVirtuals - Error in getObjectPointer";
 				antyStarveFunction(errcode);
 				inTransaction = false;
@@ -3461,7 +3479,7 @@ int QueryExecutor::checkViewAndGetVirtuals(LogicalID *lid, string &name, string 
 		for (int i = 0; i < vec_copy_size; i++) {
 			LogicalID *tmp_logID = tmp_vec_copy.at(i);
 			ObjectPointer *tmp_optr;
-			if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, tmp_optr)) != 0) {
+			if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, tmp_optr, false)) != 0) {
 				*ec << "[QE] checkViewAndGetVirtuals - Error in getObjectPointer";
 				antyStarveFunction(errcode);
 				inTransaction = false;
@@ -3482,7 +3500,7 @@ int QueryExecutor::checkViewAndGetVirtuals(LogicalID *lid, string &name, string 
 					}
 					LogicalID *proc_code_lid = tmp_vec_inner->at(0);
 					ObjectPointer *proc_code_optr;
-					if ((errcode = tr->getObjectPointer(proc_code_lid, Store::Read, proc_code_optr)) != 0) {
+					if ((errcode = tr->getObjectPointer(proc_code_lid, Store::Read, proc_code_optr, false)) != 0) {
 						*ec << "[QE] checkViewAndGetVirtuals - Error in getObjectPointer";
 						antyStarveFunction(errcode);
 						inTransaction = false;
@@ -3532,7 +3550,7 @@ int QueryExecutor::checkViewAndGetVirtuals(LogicalID *lid, string &name, string 
 int QueryExecutor::getSubviews(LogicalID *lid, string vo_name, vector<LogicalID *> &subviews, vector<LogicalID *> &others) {
 	int errcode;
 	ObjectPointer *optr;
-	errcode = tr->getObjectPointer (lid, Store::Read, optr);
+	errcode = tr->getObjectPointer (lid, Store::Read, optr, false);
 	if (errcode != 0) {
 		*ec << "[QE] getSubviews - Error in getObjectPointer.";
 		antyStarveFunction(errcode);
@@ -3548,7 +3566,7 @@ int QueryExecutor::getSubviews(LogicalID *lid, string vo_name, vector<LogicalID 
 		for (int i = 0; i < vec_size; i++ ) {
 			LogicalID *tmp_logID = tmp_vec->at(i);
 			ObjectPointer *tmp_optr;
-			if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, tmp_optr)) != 0) {
+			if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, tmp_optr, false)) != 0) {
 				*ec << "[QE] getSubviews - Error in getObjectPointer";
 				antyStarveFunction(errcode);
 				inTransaction = false;
@@ -3581,7 +3599,7 @@ int QueryExecutor::getOn_procedure(LogicalID *lid, string procName, string &code
 	param = "";
 	int errcode;
 	ObjectPointer *optr;
-	errcode = tr->getObjectPointer (lid, Store::Read, optr);
+	errcode = tr->getObjectPointer (lid, Store::Read, optr, false);
 	if (errcode != 0) {
 		*ec << "[QE] getOn_procedure - Error in getObjectPointer.";
 		antyStarveFunction(errcode);
@@ -3598,7 +3616,7 @@ int QueryExecutor::getOn_procedure(LogicalID *lid, string procName, string &code
 		for (int i = 0; i < vec_size; i++ ) {
 			LogicalID *tmp_logID = tmp_vec->at(i);
 			ObjectPointer *tmp_optr;
-			if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, tmp_optr)) != 0) {
+			if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, tmp_optr, false)) != 0) {
 				*ec << "[QE] getOn_procedure - Error in getObjectPointer";
 				antyStarveFunction(errcode);
 				inTransaction = false;
@@ -3619,7 +3637,7 @@ int QueryExecutor::getOn_procedure(LogicalID *lid, string procName, string &code
 				}
 				LogicalID *first_logID = proc_vec->at(0);
 				ObjectPointer *first_optr;
-				if ((errcode = tr->getObjectPointer(first_logID, Store::Read, first_optr)) != 0) {
+				if ((errcode = tr->getObjectPointer(first_logID, Store::Read, first_optr, false)) != 0) {
 					*ec << "[QE] getOn_procedure - Error in getObjectPointer";
 					antyStarveFunction(errcode);
 					inTransaction = false;
@@ -3644,7 +3662,7 @@ int QueryExecutor::getOn_procedure(LogicalID *lid, string procName, string &code
 				if (proc_vec_size == 2) {
 					LogicalID *second_logID = proc_vec->at(1);
 					ObjectPointer *second_optr;
-					if ((errcode = tr->getObjectPointer(second_logID, Store::Read, second_optr)) != 0) {
+					if ((errcode = tr->getObjectPointer(second_logID, Store::Read, second_optr, false)) != 0) {
 						*ec << "[QE] getOn_procedure - Error in getObjectPointer";
 						antyStarveFunction(errcode);
 						inTransaction = false;

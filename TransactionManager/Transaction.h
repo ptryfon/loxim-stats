@@ -2,7 +2,7 @@
 #define _TRANSACTION_
 
 /**
- *	@author Julian Krzemiñski (julian.krzeminski@students.mimuw.edu.pl)
+ *	@author Julian Krzemiï¿½ski (julian.krzeminski@students.mimuw.edu.pl)
  *	@author Dominik Klimczak (dominik.klimczak@students.mimuw.edu.pl)
  */
 namespace TManager
@@ -76,8 +76,8 @@ namespace TManager
 		    	~Transaction();
 	    	
 	     	 	/* Executor calls: */
-		    	int getObjectPointer(LogicalID* lid, AccessMode mode, ObjectPointer* &p);
-			int modifyObject(ObjectPointer* &op, DataValue* dv);
+		    	int getObjectPointer(LogicalID* lid, AccessMode mode, ObjectPointer* &p, bool allowNullObject);
+				int modifyObject(ObjectPointer* &op, DataValue* dv);
 		    	int createObject(string name, DataValue* value, ObjectPointer* &p);
 		    	int deleteObject(ObjectPointer* object);
 		    

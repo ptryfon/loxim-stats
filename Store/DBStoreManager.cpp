@@ -165,7 +165,8 @@ namespace Store
 		if (map->equal(p_id, map->RIP))
 		{
 			*ec << "Store::Manager::getObject failed: Object not found\n(brak ustalonego kodu bledu dla tej operacji, default -> return 2;";
-			return 2;	
+			object = NULL;
+			return 0;	
 		}
 
 		PagePointer *pPtr = buffer->getPagePointer(p_id->file_id, p_id->page_id);

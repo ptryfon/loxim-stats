@@ -61,7 +61,7 @@ namespace TManager
 		return errorNumer;
 	}
 				
-	int Transaction::getObjectPointer(LogicalID* lid, AccessMode mode, ObjectPointer* &p)
+	int Transaction::getObjectPointer(LogicalID* lid, AccessMode mode, ObjectPointer* &p, bool allowNullObject)
 	{
 		int errorNumber;
 	
@@ -78,6 +78,11 @@ namespace TManager
 		}
 		
 		if (errorNumber) abort();
+		
+		if (p == NULL && !allowNullObject) {
+			err.printf("Transaction: %d getObjectPointer, object doesn't exist while we expect existing object\n");
+			abort();
+		} 
     
 		return errorNumber; 
 	}

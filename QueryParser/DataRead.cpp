@@ -107,7 +107,7 @@ DataObjectDef * DataScheme::createDataObjectDef(ObjectPointer *mainOp, Transacti
     for (unsigned   int j = 0; j < v->size(); j++){
         // czy acces mode sie robi w ten sposob?
 	ObjectPointer *op = NULL;
-	tr->getObjectPointer( (*v)[j], Store::Read, op);
+	tr->getObjectPointer( (*v)[j], Store::Read, op, false);
 //	cerr << " wczytal " << op->getName() << "---------------------" << endl;
         // moze tak nie mozna porownywac getName zwraca stringa **
         if (op->getName() == "name"){
@@ -127,21 +127,21 @@ DataObjectDef * DataScheme::createDataObjectDef(ObjectPointer *mainOp, Transacti
 	    datObDef->setOwnerId(op->getValue()->getPointer()->toInteger());
     //	    tr->getObjectPointer( (*v)[j], Store::Read, op);
 	    ObjectPointer * pom;
-	    tr->getObjectPointer(op->getValue()->getPointer(), Store::Read, pom);
+	    tr->getObjectPointer(op->getValue()->getPointer(), Store::Read, pom, false);
 //	    cout << "spodziewam sie, ze w nas linii napisze ze dany obiekt jest juz wczytany " << endl;
 	    datObDef->setOwner(this->createDataObjectDef(pom, tr));
 	} else if (op->getName() == "target") {
 //	    cout << "WAZNE wczytal target " << op->getValue()->getPointer()->toInteger();
 	    datObDef->setTargetId(op->getValue()->getPointer()->toInteger());
 	    ObjectPointer * pom;
-	    tr->getObjectPointer(op->getValue()->getPointer(), Store::Read, pom);
+	    tr->getObjectPointer(op->getValue()->getPointer(), Store::Read, pom, false);
 	    datObDef->setTarget(this->createDataObjectDef(pom, tr));
 	} else if (op->getName() == "subobject") {				// czy to jest link??? chyba tak 
 //	    cerr << "WAZNE wczytal subobject " << endl;				// tak samo jak owner i target
 //	    cerr << "to chyba nie to id/ a jednak moze to " << op->getLogicalID()->toInteger();
 //	    cerr << "to chyba dobre id " << op->getValue()->getPointer()->toInteger() << endl;
 	    ObjectPointer * pom;
-	    tr->getObjectPointer(op->getLogicalID(), Store::Read, pom);
+	    tr->getObjectPointer(op->getLogicalID(), Store::Read, pom, false);
 //	    cerr << "wola rek " << endl;
 	    DataObjectDef * subobj = this->createDataObjectDef(pom, tr);	    
 	    if (subobj->getOwner() == datObDef){
