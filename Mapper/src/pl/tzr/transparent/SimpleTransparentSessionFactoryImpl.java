@@ -1,8 +1,8 @@
 package pl.tzr.transparent;
 
-import pl.tzr.browser.session.Session;
 import pl.tzr.browser.session.LoximSession;
-import pl.tzr.driver.loxim.SimpleConnection;
+import pl.tzr.browser.session.Session;
+import pl.tzr.driver.loxim.LoximDatasource;
 import pl.tzr.driver.loxim.exception.SBQLException;
 import pl.tzr.exception.NestedSBQLException;
 import pl.tzr.transparent.proxy.handler.registry.AccessorRegistryFactory;
@@ -13,13 +13,13 @@ import pl.tzr.transparent.structure.model.SimpleAnnotatedModelRegistryFactory;
 public class SimpleTransparentSessionFactoryImpl implements
 		TransparentSessionFactory {
 	
-	private final SimpleConnection connection;
+	private final LoximDatasource datasource;
 	private final Class[] classes;
 	
 	protected TransparentSession currentSession;
 	
-	public SimpleTransparentSessionFactoryImpl(final SimpleConnection connection, Class[] classes) {
-		this.connection = connection;
+	public SimpleTransparentSessionFactoryImpl(final LoximDatasource datasource, Class[] classes) {
+		this.datasource = datasource;
 		this.classes = classes;
 	}		
 
@@ -32,7 +32,7 @@ public class SimpleTransparentSessionFactoryImpl implements
 	}
 
 	public TransparentSession getCurrentSession() {
-		if ((currentSession != null) && (currentSession.isActive())) {
+		if ((currentSession == null) || (!currentSession.isActive())) {
 			currentSession = createNewSession();
 		}
 
@@ -44,7 +44,7 @@ public class SimpleTransparentSessionFactoryImpl implements
 		Session session;
 		
 		try {
-			session = new LoximSession(connection);
+			session = new LoximSession(datasource.getConnection());
 		} catch (SBQLException e) {
 			throw new NestedSBQLException(e);
 		}
@@ -66,12 +66,15 @@ public class SimpleTransparentSessionFactoryImpl implements
 		ModelRegistry modelRegistry = modelRegistryFactory.getModelRegistry();
 
 		/* Tworzymy fabryke przezroczystych obiektow */
-		TransparentProxyFactory transparentProxyFactory = new JavaTransparentProxyFactory(
-				modelRegistry);
+		TransparentProxyFactory transparentProxyFactory = new JavaTransparentProxyFactory();
+		
+		DatabaseContext context = new DatabaseContext();
+		context.setModelRegistry(modelRegistry);
+		context.setTransparentProxyFactory(transparentProxyFactory);
 
 		/* Otwieramy sesje mappera */
 		TransparentSession transparentSession = new TransparentSessionImpl(
-				session, transparentProxyFactory);
+				session, context);
 
 		return transparentSession;
 

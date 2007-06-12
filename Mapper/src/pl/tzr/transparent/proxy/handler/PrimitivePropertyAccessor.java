@@ -1,66 +1,84 @@
 package pl.tzr.transparent.proxy.handler;
 
 import pl.tzr.browser.store.node.ComplexValue;
+import pl.tzr.browser.store.node.LoximNode;
 import pl.tzr.browser.store.node.Node;
 import pl.tzr.browser.store.node.ObjectValue;
 import pl.tzr.driver.loxim.exception.SBQLException;
+import pl.tzr.exception.DeletedException;
 import pl.tzr.exception.InvalidDataStructureException;
-import pl.tzr.transparent.TransparentProxyFactory;
+import pl.tzr.transparent.TransparentSession;
 import pl.tzr.transparent.structure.model.PropertyInfo;
 
 public abstract class PrimitivePropertyAccessor<T> implements PropertyAccessor<T> {
 	
 	public T retrieveFromBase(
-			Node parent, 
-			String propertyName, 
+			Node parent, 			
 			PropertyInfo info, 
-			TransparentProxyFactory transparentProxyFactory) 
-		throws SBQLException {
+			TransparentSession session) 
+		throws SBQLException, DeletedException {
 		
 		ObjectValue value = parent.getValue();
-		if (!(value instanceof ComplexValue)) throw new InvalidDataStructureException();
+		if (!(value instanceof ComplexValue)) 
+			throw new InvalidDataStructureException();
 		
-		Node foundNode = parent.getUniqueChildNode(propertyName);										
-		T result = fetchPrimitiveValue(foundNode);
+		Node foundNode = parent.getUniqueChildNode(info.getPropertyName());
+		if (foundNode == null) {
+			return null;
+		} else {
 		
-		return result;		
+			T result = fetchPrimitiveValue(foundNode, info, session);		
+			return result;
 			
+		}
  
 	}
 	
-	public void saveToBase(T data, Node parent, String propertyName, 
-			PropertyInfo propertyInfo) 
-		throws InvalidDataStructureException, SBQLException {
+	public void saveToBase(T data, 
+			Node parent, 
+			PropertyInfo propertyInfo, 
+			TransparentSession session) 
+		throws SBQLException, DeletedException {
 		
 		ObjectValue value = parent.getValue();
 		if (!(value instanceof ComplexValue)) throw new InvalidDataStructureException();
 		
-		Node foundNode = parent.getUniqueChildNode(propertyName);
+		Node foundNode = parent.getUniqueChildNode(propertyInfo.getPropertyName());
 		
 		if (foundNode == null) {
 			if (data != null) {
-				/* Dodaj nowy */
-				throw new UnsupportedOperationException();	
+				/* Create new node */
+				ObjectValue newValue = createPrimitiveValue(data, propertyInfo, session);
+				Node newNode = new LoximNode(propertyInfo.getPropertyName(), newValue);
+				parent.addChild(newNode);
 			}
 			
 		} else {
 			if (data != null) {
-				/* Zmien istniejacy */
-				ObjectValue newValue = createPimitiveValue(data);
+				/* Change existing node */
+				/* TODO - support for cascade deletion */
+				ObjectValue newValue = createPrimitiveValue(data, propertyInfo, session);
 				foundNode.setValue(newValue);				
 			} else {
-				/* Usun istniejacy */
+				/* Remove existing node */
+				/* TODO - support for cascade deletion */
 				foundNode.delete();
 			}
 		}
 		
 	}	
 	
-	protected abstract T fetchPrimitiveValue(Node node) throws
-		SBQLException, InvalidDataStructureException;
+	protected abstract T fetchPrimitiveValue(
+			Node node, 
+			PropertyInfo propertyInfo, 
+			TransparentSession session) 
+		throws SBQLException, InvalidDataStructureException;
 
-	protected abstract ObjectValue createPimitiveValue(T data) throws
-		SBQLException, InvalidDataStructureException;
+	protected abstract ObjectValue createPrimitiveValue(
+			T data, 
+			PropertyInfo propertyInfo, 
+			TransparentSession session) 
+		throws SBQLException, InvalidDataStructureException;
 	
 
 }

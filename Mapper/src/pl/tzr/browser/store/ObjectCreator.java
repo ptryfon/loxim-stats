@@ -2,8 +2,6 @@ package pl.tzr.browser.store;
 
 import pl.tzr.browser.session.LoximSession;
 import pl.tzr.browser.store.node.ComplexValue;
-import pl.tzr.browser.store.node.Node;
-import pl.tzr.browser.store.node.NodeImpl;
 import pl.tzr.browser.store.node.ObjectValue;
 import pl.tzr.browser.store.node.ReferenceValue;
 import pl.tzr.browser.store.node.SimpleValue;
@@ -46,10 +44,12 @@ public class ObjectCreator implements ValueVisitor {
 	}
 	
 	public void visitReferenceValue(ReferenceValue referenceValue) {
+		if (referenceValue.getTargetNode().isDetached()) 
+			throw new IllegalStateException("Tried to persist reference to detached object");
 		createdObject = new ResultReference(referenceValue.getTargetNode().getReference());		
 	}	
 	
-	public Node create(String objectName, ObjectValue value) {
+	public String create(String objectName, ObjectValue value) {
 		
 		value.visit(this);
 		
@@ -68,7 +68,7 @@ public class ObjectCreator implements ValueVisitor {
 		
 			Result item = ((ResultBag)result).getItems().get(0);
 					
-			return new NodeImpl(loximSession, ((ResultReference)item).getRef(), objectName);
+			return ((ResultReference)item).getRef();
 		
 		} catch (ClassCastException e) {
 			throw new InvalidDataStructureException();

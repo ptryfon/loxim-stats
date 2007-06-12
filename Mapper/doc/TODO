@@ -1,29 +1,26 @@
-
-
-Driver
-------
-Stworzyć coś w rodzaju datasource
-
 Navigator
 ---------
 - jak dodawać nowe obiekty złożone
 
 - cache'owanie wartości
 - modyfikowanie zawartości 
-- zmiana wartości obiektów prostych
-- dodanie dziecka
 - usunięcie dziecka
 
 - obsługa odłączania i ponownego podłączania obiektów do sesji
 
 Transparent Mapper
 ------------------
+- usuwanie elementów złożonych
+- usuwanie referencji
+- usuwanie elementów z kolekcji
+
+- zbiory oparte na referencjach
+
+- kaskadowe zapisywanie obiektow podlaczonych przez referencje
+- usuwanie składowych obiektów złożonych
+- generalnie usuwanie obiektów
+
 - handler dla list/map
-
-
-Structure
----------
-- wydzielenie zbioru obiektów sesyjnych na zewnątrz sesji
 
 Ogólne
 ------

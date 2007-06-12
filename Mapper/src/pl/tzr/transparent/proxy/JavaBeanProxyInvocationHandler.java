@@ -3,14 +3,12 @@ package pl.tzr.transparent.proxy;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 
-import javax.naming.OperationNotSupportedException;
-
 /**
- * Implementacja handlera dla mechanizmu Java Transparent Proxy, przeznaczona
- * do tworzenia obiektów pośredniczących zgodnych ze standardem JavaBeans. 
- * Obsługiwane jest działanie następujących metod
+ * Abstract implementation of Java Transparent Proxy InvocationHandler, 
+ * destinated to use with JavaBean objects  
+ * The following methods of the object are supported:
  * <ul>
- * 	<li>akcesory (getXxx, setXxx, isXxx)</li>
+ * 	<li>accessors (getXxx, setXxx, isXxx)</li>
  *  <li>equals</li>
  *  <li>hashCode</li>
  * </ul>
@@ -54,47 +52,70 @@ public abstract class JavaBeanProxyInvocationHandler implements InvocationHandle
 			
 			return invokeEquals(proxy, args[0]);
 			
-		} else throw new UnsupportedOperationException();
+		} else if (m.getName().equals("toString")) {
+			
+			return invokeToString(proxy);
+			
+		} else throw new UnsupportedOperationException(m.getName()); 
 		
 	}
 	
 	/**
-	 * Operacja wykonywana w momencie wywołania gettera (metody getXxx albo 
-	 * isXxx) na obiekcie pośredniczącym proxy
-	 * @param proxy obiekt pośredniczący
-	 * @param propertyName nazwa atrybutu obiektu którego dotyczy wywołanie 
-	 * @param returnType spodziewany typ wyniku
+	 * Action ran when a getter method (getXxx or 
+	 * isXxx) is executed on the proxy object
+	 * @param proxy 
+	 * 		proxy object
+	 * @param propertyName 
+	 * 		name of the attribute wich the getter concerns 
+	 * @param returnType 
+	 * 		expected result type
 	 * @return
+	 * 		getter execution result
 	 */
 	public abstract Object invokeGetter(Object proxy, String propertyName, 
 			Class returnType);
 	
 	/**
-	 * Operacja wykonywana w momencie wywołania settera (metody getXxx albo 
-	 * isXxx) na obiekcie pośredniczącym proxy
-	 * @param proxy obiekt pośredniczący
-	 * @param propertyName nazwa atrybutu obiektu którego dotyczy wywołanie
+	 * Action ran when a setter method (getXxx or 
+	 * isXxx) is executed on the proxy object
+	 * @param proxy 
+	 * 		proxy object
+	 * @param propertyName 
+	 * 		name of the attribute wich the setter concerns
 	 * @param arg argument wywoływanej metody
+	 * 		argument of the setter
 	 * @return
 	 */
 	public abstract Object invokeSetter(Object proxy, String propertyName, 
 			Object arg);
 	
 	/**
-	 * Operacja wykonywana w momencie wywołania metody equals na obiekcie 
-	 * pośredniczącym proxy
-	 * @param proxy obiekt pośredniczący
-	 * @param arg argument metody equals
+	 * Action ran when a equals method is executed on the proxy object 
+	 * @param proxy 
+	 * 			proxy object
+	 * @param arg 
+	 *			argument of the proxy methods
 	 * @return
+	 * 		result of the equals method
 	 */
 	public abstract Object invokeEquals(Object proxy, Object arg);
 	
 	/**
-	 * Operacja wykonywana w momencie wywołania metody hashCode na obiekcie 
-	 * pośredniczącym proxy
-	 * @param proxy obiekt pośredniczący
+	 * Action ran when a hashCode() method is executed on the proxy object 
+	 * @param proxy 
+	 * 			proxy object
 	 * @return
+	 * 		result of the hashCode method
 	 */
 	public abstract Object invokeHashCode(Object proxy);
+	
+	/**
+	 * Action ran when a toString method is executed on the proxy object 
+	 * @param proxy 
+	 * 			proxy object
+	 * @return
+	 * 		result of the toString() method
+	 */
+	public abstract Object invokeToString(Object proxy);	
 
 }

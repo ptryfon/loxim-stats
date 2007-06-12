@@ -1,5 +1,6 @@
 package pl.tzr.test.data;
 
+import java.util.HashSet;
 import java.util.Set;
 
 public class PartImpl implements Part {
@@ -9,7 +10,9 @@ public class PartImpl implements Part {
 	int detailCost;
 	int detailMass;
 	
-	Set<Component> component;
+	Set<Component> component = new HashSet<Component>();
+	
+	Component singleComponent;
 	
 	public int getDetailCost() {
 		return detailCost;
@@ -42,6 +45,8 @@ public class PartImpl implements Part {
 	public void setName(String name) {
 		this.name = name;
 	}
+	
+	
 
 	public Set<Component> getComponent() {
 		return component;
@@ -49,6 +54,14 @@ public class PartImpl implements Part {
 
 	public void setComponent(Set<Component> component) {
 		this.component = component;
+	}
+
+	public Component getSingleComponent() {
+		return singleComponent;
+	}
+
+	public void setSingleComponent(Component singleComponent) {
+		this.singleComponent = singleComponent;
 	}
 
 	

@@ -5,16 +5,26 @@ import pl.tzr.browser.store.node.ObjectValue;
 import pl.tzr.browser.store.node.SimpleValue;
 import pl.tzr.browser.store.node.SimpleValue.Type;
 import pl.tzr.driver.loxim.exception.SBQLException;
+import pl.tzr.exception.DeletedException;
 import pl.tzr.exception.InvalidDataStructureException;
+import pl.tzr.transparent.TransparentSession;
+import pl.tzr.transparent.structure.model.PropertyInfo;
 
 public class IntegerPropertyAccessor 
 	extends PrimitivePropertyAccessor<Integer> 
 	implements PropertyAccessor<Integer> {
 
 	@Override
-	protected Integer fetchPrimitiveValue(Node proxy) 
+	protected Integer fetchPrimitiveValue(Node proxy, PropertyInfo propertyInfo, TransparentSession session) 
 		throws SBQLException {
-		ObjectValue value = proxy.getValue();		
+		
+		ObjectValue value;
+		try {
+			value = proxy.getValue();
+		} catch (DeletedException e) {
+			return null;
+		}		
+		
 		if (!(value instanceof SimpleValue)) throw new InvalidDataStructureException();
 		SimpleValue simpleValue = (SimpleValue)value;
 		
@@ -24,7 +34,7 @@ public class IntegerPropertyAccessor
 	}	
 
 	@Override
-	protected ObjectValue createPimitiveValue(Integer data) 
+	protected ObjectValue createPrimitiveValue(Integer data, PropertyInfo propertyInfo, TransparentSession session) 
 		throws SBQLException {
 		return new SimpleValue(data.intValue());
 	}

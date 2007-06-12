@@ -8,25 +8,32 @@ public class PropertyInfo {
 	
 	private final Class clazz;
 
-	private final PropertyAccessor typeHandler;
+	private final PropertyAccessor accessor;
 	
-	public PropertyInfo(final String propertyName, final Class clazz, final PropertyAccessor typeHandler) {
-		super();
+	public PropertyInfo(
+			final String propertyName, 
+			final Class clazz, 
+			final PropertyAccessor accessor) {
+		
 		this.propertyName = propertyName;
 		this.clazz = clazz;
-		this.typeHandler = typeHandler;
+		this.accessor = accessor;
 	}	
 
 	public Class getClazz() {
 		return clazz;
 	}
 
-	public PropertyAccessor getTypeHandler() {
-		return typeHandler;
+	public PropertyAccessor getAccessor() {
+		return accessor;
 	}
 
 	public String getPropertyName() {
 		return propertyName;
+	}
+	
+	public boolean isValueCacheable() {
+		return false;
 	}
 
 	

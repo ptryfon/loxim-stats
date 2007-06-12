@@ -7,7 +7,6 @@ import java.util.Map;
 import pl.tzr.browser.store.node.Node;
 import pl.tzr.test.data.Part;
 import pl.tzr.transparent.proxy.JavaTransparentProxyHandler;
-import pl.tzr.transparent.structure.model.ModelRegistry;
 
 /**
  * Implementation of TransparentProxyFactory wich uses
@@ -17,21 +16,19 @@ import pl.tzr.transparent.structure.model.ModelRegistry;
  */
 public class JavaTransparentProxyFactory implements TransparentProxyFactory {
 	
-	private final ModelRegistry modelRegistry;
-	
+		
 	private Map<Node, Object> proxies = new HashMap<Node, Object>();
 
-	public JavaTransparentProxyFactory(final ModelRegistry modelRegistry) {
+	public JavaTransparentProxyFactory() {
 		super();
-		this.modelRegistry = modelRegistry;
 	}
 
-	public Object createRootProxy(Node node) {		
-		Class desiredClass = getDesiredClass(node); 
-		return createProxy(node, desiredClass);
+	public Object createRootProxy(Node node, TransparentSession session) {		
+		Class desiredClass = getDesiredClass(node, session.getDatabaseContext()); 
+		return createProxy(node, desiredClass, session);
 	}	
 	
-	public Object createProxy(Node node, Class desiredClass) {
+	public Object createProxy(Node node, Class desiredClass, TransparentSession session) {
 		
 		if (proxies.containsKey(node)) {
 			/* Proxy object has already been created in current session */
@@ -41,7 +38,7 @@ public class JavaTransparentProxyFactory implements TransparentProxyFactory {
 			Object result = Proxy.newProxyInstance(
 				    desiredClass.getClassLoader(),
 				    new Class[] {desiredClass},
-				    new JavaTransparentProxyHandler(node, desiredClass, modelRegistry, this));
+				    new JavaTransparentProxyHandler(node, desiredClass, session));
 			proxies.put(node, result);
 			return result;
 		}
@@ -49,8 +46,8 @@ public class JavaTransparentProxyFactory implements TransparentProxyFactory {
 		
 	}
 	
-	private Class getDesiredClass(Node proxy) {
-		modelRegistry.getClassInfo(proxy.getName());
+	private Class getDesiredClass(Node proxy, DatabaseContext context) {
+		context.getModelRegistry().getClassInfo(proxy.getName());
 		return Part.class;
 	}
 

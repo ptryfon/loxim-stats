@@ -16,16 +16,16 @@ public interface TransparentProxyFactory {
 	 * @param desiredClass oczekiwana klasa tworzonego obiektu
 	 * @return
 	 */
-	Object createProxy(Node node, Class desiredClass);
+	Object createProxy(Node node, Class desiredClass, TransparentSession session);
 	
-	public Object createRootProxy(Node node);
+	Object createRootProxy(Node node, TransparentSession session);
 	
 	/**
 	 * Zwraca true jeśli podany obiekt Javy jest reprezentacją obiektu loxim 
 	 * @param object
 	 * @return
 	 */
-	public boolean isProxy(Object object);
+	boolean isProxy(Object object);
 	
 	/**
 	 * Zwraca informacje o obiekcie loxim który jest reprezentowany przez

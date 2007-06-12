@@ -2,7 +2,9 @@ package pl.tzr.browser.store.node;
 
 import java.util.Collection;
 
+import pl.tzr.browser.session.LoximSession;
 import pl.tzr.driver.loxim.exception.SBQLException;
+import pl.tzr.exception.DeletedException;
 
 /**
  * Pointer to the data object in LoXiM database
@@ -31,7 +33,7 @@ public interface Node {
 	 * @return
 	 * @throws SBQLException
 	 */
-	ObjectValue getValue() throws SBQLException;
+	ObjectValue getValue() throws SBQLException, DeletedException;
 	
 	/**
 	 * Sets a value of the simple object
@@ -51,6 +53,15 @@ public interface Node {
 	Collection<Node> getChildNodes(String propertyName) throws SBQLException;
 	
 	/**
+	 * Gets allchild nodes of the object if object is complex
+	 * TODO Should throw an axception if object is not complex
+	 * @param propertyName
+	 * @return
+	 * @throws SBQLException
+	 */
+	Collection<Node> getAllChildNodes() throws SBQLException;
+	
+	/**
 	 * Gets the unique child node of the object. Throws an exception
 	 * if object has more than one child nodes, returns null if object
 	 * doesn't contain any child nodes 
@@ -66,12 +77,30 @@ public interface Node {
 	 * @param child
 	 * @throws SBQLException
 	 */
-	void addChild(Node child) throws SBQLException;
+	void addChild(Node child) throws SBQLException, DeletedException;
 	
 	/**
 	 * Deletes the object represented by the node
 	 * @throws SBQLException
 	 */
-	void delete() throws SBQLException;
+	void delete() throws SBQLException;	
 	
+	/**
+	 * Returns true if the node is detached from the database, and contains
+	 * all the data 
+	 * @return
+	 * 		true if the node is detached
+	 */
+	boolean isDetached();
+	
+	/**
+	 * Marks object attached and binds it to current session. This method
+	 * should be run when the node is stored 
+	 * @param session
+	 * 		session to wich the node was attached
+	 * @param ref
+	 * 		reference of the node in the database
+	 */
+	void markAttached(LoximSession session, String ref);
+
 }

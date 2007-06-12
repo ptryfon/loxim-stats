@@ -6,6 +6,9 @@ import java.util.Set;
 import pl.tzr.browser.session.Session;
 import pl.tzr.browser.store.node.Node;
 import pl.tzr.driver.loxim.exception.SBQLException;
+import pl.tzr.exception.DeletedException;
+import pl.tzr.exception.NestedSBQLException;
+import pl.tzr.exception.TransparentDeletedException;
 
 /**
  * Implementation of TransparentSession wich uses provided Session and
@@ -14,57 +17,87 @@ import pl.tzr.driver.loxim.exception.SBQLException;
  *
  */
 public class TransparentSessionImpl implements TransparentSession {
-	private final Session sessionImpl;
-	private final TransparentProxyFactory transparentProxyFactory;
+	private final Session session;
+	private final DatabaseContext databaseContext;
 	
 	public TransparentSessionImpl(
-			Session sessionImpl, 
-			TransparentProxyFactory transparentProxyFactory) {
-		this.sessionImpl = sessionImpl;
-		this.transparentProxyFactory = transparentProxyFactory;
+			Session session, DatabaseContext databaseContext) {
+		this.session = session;
+		this.databaseContext = databaseContext;
 	}
 
 	public void delete(Object object) {
-		throw new UnsupportedOperationException();
-		// TODO 
+		if (!databaseContext.getTransparentProxyFactory().isProxy(object))
+			throw new IllegalStateException("Object is not persistent");
+		
+		try {
+			databaseContext.getTransparentProxyFactory().getNodeOfProxy(object).delete();
+		} catch (SBQLException e) {
+			throw new NestedSBQLException(e);
+		}
 	}
 
 	public Set<Object> find(String query, Class desiredClass) throws SBQLException {
 		
-		Set<Node> results = sessionImpl.find(query);
+		Set<Node> results = session.find(query);
 		
 		Set<Object> transparentResults = new HashSet<Object>();
 		
 		for (Node result : results) {
-			Object transparentResult = transparentProxyFactory.createProxy(result, desiredClass);
+			Object transparentResult = databaseContext.getTransparentProxyFactory().createProxy(result, desiredClass, this);
 			transparentResults.add(transparentResult);
 		}
 		
 		return transparentResults;
 	}
 
-	public void persist(Object object) {
-		throw new UnsupportedOperationException();
-		/* Zapisuje obiekt w bazie danych */
+	public Object persist(Object object) {
+					
+		//Store object in the database
+		Node node = storeObject(object);
 		
-		/* Modyfikuje działanie getterow i setterów obiektu "object" za pomocą CGLIB'a */
+		//Create proxy
+		Object proxy = databaseContext.getTransparentProxyFactory().createRootProxy(node, this);
+		
+		return proxy;		
 
 	}
+	
+	private Node storeObject(Object object) {
+			
+		Node node = databaseContext.getModelRegistry().createNodeRepresentation(object, this);
+		
+		try {
+			session.addToRoot(node);
+		} catch (SBQLException e) {
+			throw new NestedSBQLException(e);
+		} catch (DeletedException e) {
+			throw new TransparentDeletedException(e);
+		}
+		
+		return node;
+	}
+	
+	
 
 	public Session getSession() {
-		return sessionImpl;
+		return session;
 	}
 
 	public void commit() {
-		sessionImpl.commit();
+		session.commit();
 	}
 
 	public boolean isActive() {
-		return sessionImpl.isActive();
+		return session.isActive();
 	}
 
 	public void rollback() {
-		sessionImpl.rollback();		
+		session.rollback();		
+	}
+
+	public DatabaseContext getDatabaseContext() {
+		return databaseContext;
 	}
 
 }

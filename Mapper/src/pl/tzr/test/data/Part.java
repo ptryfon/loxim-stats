@@ -26,5 +26,9 @@ public interface Part {
 	Set<Component> getComponent();
 
 	void setComponent(Set<Component> component);
+	
+	Component getSingleComponent();
+
+	void setSingleComponent(Component singleComponent);
 
 }

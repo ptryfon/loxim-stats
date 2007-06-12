@@ -9,7 +9,7 @@ public class ReferenceValue implements ObjectValue {
 	}
 
 	public void visit(ValueVisitor visitor) {
-		throw new UnsupportedOperationException();
+		visitor.visitReferenceValue(this);
 	}
 
 	public Node getTargetNode() {

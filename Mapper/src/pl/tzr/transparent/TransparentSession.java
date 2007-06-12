@@ -23,7 +23,7 @@ public interface TransparentSession {
 	 * Persists the object in the database
 	 * @param object to be persisted
 	 */
-	void persist(Object object);
+	Object persist(Object object);
 	
 	/**
 	 * Removes object representation from the database. After execution of this
@@ -47,4 +47,6 @@ public interface TransparentSession {
 	 * Rollbacks and closes the session
 	 */
 	void rollback();
+	
+	DatabaseContext getDatabaseContext();
 }

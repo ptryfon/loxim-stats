@@ -20,7 +20,8 @@ import pl.tzr.transparent.structure.annotation.Reference;
  * @author Tomasz Rosiek
  *
  */
-public class SimpleAnnotatedModelRegistryFactory implements ModelRegistryFactory {
+public class SimpleAnnotatedModelRegistryFactory 
+	implements ModelRegistryFactory {
 	
 	private Class[] classes;
 	
@@ -55,7 +56,10 @@ public class SimpleAnnotatedModelRegistryFactory implements ModelRegistryFactory
 				propertyName.substring(1);
 				
 				PropertyInfo propertyInfo = 
-					createPropertyInfo(propertyName, method.getReturnType(), method.getAnnotations(), modelRegistry);
+					createPropertyInfo(propertyName, 
+							method.getReturnType(), 
+							method.getAnnotations(), 
+							modelRegistry);
 				
 				properties.put(propertyName, propertyInfo);
 				
@@ -63,13 +67,16 @@ public class SimpleAnnotatedModelRegistryFactory implements ModelRegistryFactory
 			
 		}
 		
-		ClassInfo classInfo = new ClassInfo(clazz.getSimpleName(), clazz, properties);
+		ClassInfo classInfo = new ClassInfo(clazz.getSimpleName(), 
+				clazz, 
+				properties);
 		
 		return classInfo;
 		
 	}
 	
-	private Map<Class<? extends Annotation>, Annotation> toAnnotationMap(Annotation[] annotations) {
+	private Map<Class<? extends Annotation>, Annotation> 
+		toAnnotationMap(Annotation[] annotations) {
 		
 		Map<Class<? extends Annotation>, Annotation> annotationMap = 
 			new HashMap<Class<? extends Annotation>, Annotation>();
@@ -85,19 +92,25 @@ public class SimpleAnnotatedModelRegistryFactory implements ModelRegistryFactory
 	}
 	
 	private PropertyInfo createPropertyInfo(
-			String propertyName, Class returnType, Annotation[] annotations, ModelRegistry modelRegistry) {
+			String propertyName, 
+			Class returnType, 
+			Annotation[] annotations, 
+			ModelRegistry modelRegistry) {
 		
-		Map<Class<? extends Annotation>, Annotation> annotationMap = toAnnotationMap(annotations);
+		Map<Class<? extends Annotation>, Annotation> annotationMap = 
+			toAnnotationMap(annotations);
 		
 		PropertyInfo propertyInfo = null;
 		
-		if (annotationMap.containsKey(pl.tzr.transparent.structure.annotation.PersistentSet.class)) {
+		if (annotationMap.containsKey(
+				pl.tzr.transparent.structure.annotation.PersistentSet.class)) {
 			
 			PersistentSet persistentSetAnnotation = 
 				(PersistentSet)annotationMap.get(PersistentSet.class);
 					 			
 			if (!(Set.class.isAssignableFrom(returnType))) throw 
-				new IllegalStateException("Niewlasciwy typ danych dla obiektu klasy PersistentSet");
+				new IllegalStateException(
+						"Niewlasciwy typ danych dla obiektu klasy PersistentSet");
 			
 			propertyInfo = new CollectionPropertyInfo(propertyName, Set.class,
 					persistentSetAnnotation.itemType(), new SetPropertyAccessor());

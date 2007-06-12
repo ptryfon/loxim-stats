@@ -7,7 +7,10 @@ import java.util.Set;
 
 import pl.tzr.browser.store.node.Node;
 import pl.tzr.driver.loxim.exception.SBQLException;
-import pl.tzr.transparent.TransparentProxyFactory;
+import pl.tzr.exception.DeletedException;
+import pl.tzr.exception.NestedSBQLException;
+import pl.tzr.exception.TransparentDeletedException;
+import pl.tzr.transparent.TransparentSession;
 
 public class PersistentSet<E> implements Set<E> {
 	
@@ -15,7 +18,7 @@ public class PersistentSet<E> implements Set<E> {
 	
 	private final String propertyName;
 	
-	private final TransparentProxyFactory transparentProxyFactory;
+	private final TransparentSession session;
 	
 	private final Class clazz;
 	
@@ -57,17 +60,17 @@ public class PersistentSet<E> implements Set<E> {
 		
 	public PersistentSet(final Node parentNode, final String propertyName, 
 			final Class clazz, 
-			final TransparentProxyFactory transparentProxyFactory) {
+			final TransparentSession session) {
 		
 		this.parentNode = parentNode;
 		this.propertyName = propertyName;
-		this.transparentProxyFactory = transparentProxyFactory;
+		this.session = session;
 		this.clazz = clazz;
 	}
 
 	private Object createProxy(Node node) {
 		
-		Object proxy = transparentProxyFactory.createProxy(node, clazz);		
+		Object proxy = session.getDatabaseContext().getTransparentProxyFactory().createProxy(node, clazz, session);		
 		return proxy;
 		
 	}
@@ -88,10 +91,10 @@ public class PersistentSet<E> implements Set<E> {
 
 	
 	public boolean contains(Object arg) {
-		if (!transparentProxyFactory.isProxy(arg)) return false;
+		if (!session.getDatabaseContext().getTransparentProxyFactory().isProxy(arg)) return false;
 				
 		fetchChildren();			
-		Node node = transparentProxyFactory.getNodeOfProxy(arg);
+		Node node = session.getDatabaseContext().getTransparentProxyFactory().getNodeOfProxy(arg);
 						
 		return (itemNodes.contains(node));
 		
@@ -118,9 +121,33 @@ public class PersistentSet<E> implements Set<E> {
 		return new CustomIterator();
 	}
 	
-	public boolean add(Object arg0) {
-		//TODO
-		throw new UnsupportedOperationException();
+	public boolean add(Object item) {
+		
+		Node node = session.getDatabaseContext().getModelRegistry().
+			createNodeRepresentation(item, propertyName, session);
+		
+		try {
+		
+			parentNode.addChild(node);
+		
+		} catch (SBQLException e) {
+			
+			throw new NestedSBQLException(e);
+			
+		} catch (DeletedException e) {
+			
+			throw new TransparentDeletedException(e);
+			
+		}
+		
+		if (itemNodes != null) itemNodes.add(node);
+		
+		/* TODO - what if there is any iterator ? */
+		
+		/* TODO - what if the item already exists in the set ? */
+		
+		return true;
+		
 	}
 
 	public boolean addAll(Collection args) {

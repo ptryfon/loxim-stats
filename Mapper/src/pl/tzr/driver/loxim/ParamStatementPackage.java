@@ -23,7 +23,9 @@ import pl.tzr.driver.loxim.result.ResultVoid;
 
 
 class ParamStatementPackage implements Package {
+	
 	long statementNumber;
+	
 	Map<String, Result> params;
 	
 	public ParamStatementPackage() {
@@ -58,7 +60,10 @@ class ParamStatementPackage implements Package {
 	private void serializeResult(OutputStream stream, Result result) throws SBQLException {
 		try {
 			ConversionUtils.writeUInt(stream, result.getType());
-			if (result instanceof ResultCollection) {
+			if (result instanceof ResultBinder) {
+				serializeString(stream, ((ResultBinder)result).getKey());
+				serializeResult(stream, ((ResultBinder)result).getValue());				
+			} else if (result instanceof ResultCollection) {
 				serializeResultCollection(stream, (ResultCollection)result);
 			} else if (result instanceof ResultReference) {
 				serializeString(stream, ((ResultReference)result).getRef());
@@ -78,9 +83,6 @@ class ParamStatementPackage implements Package {
 				}
 			} else if (result instanceof ResultDouble) {
 				ConversionUtils.writeDouble(stream, ((ResultDouble)result).getValue());
-			} else if (result instanceof ResultBinder) {
-				serializeString(stream, ((ResultBinder)result).getKey());
-				serializeResult(stream, ((ResultBinder)result).getValue());				
 			} else throw new SBQLProtocolException("Nieznany rodzaj parametru");
 		} catch (IOException e) {
 			throw new SBQLIOException(e);
@@ -96,8 +98,14 @@ class ParamStatementPackage implements Package {
 	}
 	
 	private int getResultLength(Result result) throws SBQLException {
-		int length = ConversionUtils.getUIntSize(); 
-		if (result instanceof ResultCollection) {
+		int length = ConversionUtils.getUIntSize();  //Result type
+		
+		if (result instanceof ResultBinder) {
+			ResultBinder binder = (ResultBinder)result;
+			length += binder.getKey().length() + 1;
+			length += ConversionUtils.getUIntSize();
+			length += getResultLength(binder.getValue());
+		} else if (result instanceof ResultCollection) {
 			length  += getResultCollectionLength((ResultCollection)result);
 		} else if (result instanceof ResultReference) {
 			int refLen = ((ResultReference)result).getRef().length() + 1;
@@ -115,10 +123,6 @@ class ParamStatementPackage implements Package {
 			length += ConversionUtils.getUIntSize();
 		} else if (result instanceof ResultDouble) {
 			length += ConversionUtils.getDoubleSize();
-		} else if (result instanceof ResultBinder) {
-			ResultBinder binder = (ResultBinder)result;
-			length += binder.getKey().length() + 1;
-			length += getResultLength(binder.getValue());
 		} else throw new SBQLProtocolException("Nieznany rodzaj parametru");
 		return length; 
 	}

@@ -3,10 +3,15 @@ package pl.tzr.driver.loxim.result;
 import java.util.List;
 
 public abstract class Result {
+	
 	Result parent = null;
-	ResultBase base;	
-	public abstract List<Result> getItems();
+	
+	ResultBase base;
+	
+	public abstract List<? extends Result> getItems();
+	
 	public abstract String getLongDescription();
+	
 	public void setBase(ResultBase b) {
 		if (b != base) { 
 			base = b;
@@ -14,6 +19,7 @@ public abstract class Result {
 				for (Result r : getItems()) r.setBase(b);
 		}
 	}
+	
 	public ResultBase getBase() {
 		return base;
 	}

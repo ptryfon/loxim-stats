@@ -28,7 +28,7 @@ public interface SimpleConnection extends Connection {
 	 * @param params parametry zapytania
 	 * @throws SBQLException
 	 */
-	Result executeParam(String query, Result... params) throws SBQLException;
+	<T extends Result> T executeParam(String query, Result... params) throws SBQLException;
 
 	
 	/**

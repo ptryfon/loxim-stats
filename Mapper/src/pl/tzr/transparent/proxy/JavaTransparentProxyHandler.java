@@ -2,21 +2,25 @@ package pl.tzr.transparent.proxy;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
+import java.util.HashMap;
+import java.util.Map;
 
 import pl.tzr.browser.store.node.Node;
 import pl.tzr.driver.loxim.exception.SBQLException;
-import pl.tzr.transparent.TransparentProxyFactory;
+import pl.tzr.exception.DeletedException;
+import pl.tzr.exception.TransparentDeletedException;
+import pl.tzr.transparent.TransparentSession;
 import pl.tzr.transparent.structure.model.ClassInfo;
-import pl.tzr.transparent.structure.model.ModelRegistry;
 import pl.tzr.transparent.structure.model.PropertyInfo;
 
 /**
- * Implementacja handlera dla obiektów pośredniczących Javy, reprezentujących
- * obiekty w bazie loxim. <br/>
- * W momencie wywołania metody na obiekcie pośredniczącym, wykonywana jest
- * odpowiednia operacja wybrana przez handler. 
- * Próba dostępu do atrybutów obiektu pośredniczącego spowoduje pobranie
- * lub modyfikacje odpowiednich wartości w bazie danych 
+ * Implementation of the Java Transparent Proxy handler for Java object
+ * representing LoXiM database objects
+ * <br/>
+ * When the methond on the proxy object is executed, then proper action
+ * choosen by handler is ran.
+ * Any access to attributes of the proxy objects will affect fetching
+ * or updating proper values in the database
  * 
  * @author Tomasz Rosiek
  *
@@ -25,29 +29,33 @@ public class JavaTransparentProxyHandler extends JavaBeanProxyInvocationHandler 
 	
 	private final Node node;
 	
-	private final ModelRegistry modelRegistry;
-	
-	private final TransparentProxyFactory transparentProxyFactory;
-	
+	private final TransparentSession session;
+		
 	private final Class entityClass;
+
+	/* TODO - move it somewhere else */
+	private final Map<String, Object> propertyValue = new HashMap<String, Object>();
 	
 	/**
-	 * Domyślny konstruktor handlera
-	 * @param node obiekt loxim który ma być reprezentowany 
-	 * @param entityClass klasa Javy obiektu reprezentującego
-	 * @param modelRegistry model danych
-	 * @param transparentProxyFactory fabryka obiektów reprezentujących
+	 * Default contstructor
+	 * @param node 
+	 * 			LoXiM node wich will be transparent proxied
+	 * 	 
+	 * @param entityClass
+	 * 			Java class or interface wich the proxy node will implement 			
+	 * @param modelRegistry 
+	 * 			data model registry
+	 * @param transparentProxyFactory 
+	 *			factory of LoXiM transparent proxy objects
 	 */
 	public JavaTransparentProxyHandler(
 			final Node node, 
-			final Class entityClass, 
-			final ModelRegistry modelRegistry, 
-			final TransparentProxyFactory transparentProxyFactory) {
+			final Class entityClass,
+			final TransparentSession session) {
 		
 		this.node = node;
-		this.modelRegistry = modelRegistry;
 		this.entityClass = entityClass;
-		this.transparentProxyFactory = transparentProxyFactory;
+		this.session = session;		
 		
 	}
 	
@@ -59,21 +67,32 @@ public class JavaTransparentProxyHandler extends JavaBeanProxyInvocationHandler 
 				
 		try {
 			
-			ClassInfo classInfo = modelRegistry.getClassInfo(entityClass);
+			ClassInfo classInfo = session.getDatabaseContext().getModelRegistry().getClassInfo(entityClass);
 			
 			PropertyInfo propertyInfo = classInfo.getPropertyInfo(propertyName);
 			
-			Object result = propertyInfo.getTypeHandler().retrieveFromBase(
-					node, 
-					propertyName, 
-					propertyInfo, 
-					transparentProxyFactory);
+			if (propertyInfo.isValueCacheable() && propertyValue.containsKey(propertyName)) {
+				
+				return propertyValue.get(propertyName);
+				
+			} else {
 			
-			return result;			
+				Object result = propertyInfo.getAccessor().retrieveFromBase(
+						node, 					 
+						propertyInfo, session);
+				
+				if (propertyInfo.isValueCacheable()) propertyValue.put(propertyName, result);
+				
+				return result;
+				
+			}
+									
 		
 		} catch (SBQLException e) {
 			throw new RuntimeException(e);
-		} 
+		} catch (DeletedException e) {
+			throw new TransparentDeletedException(e);
+		}
 		
 	}
 
@@ -81,15 +100,21 @@ public class JavaTransparentProxyHandler extends JavaBeanProxyInvocationHandler 
 	public Object invokeSetter(Object proxy, String propertyName, Object arg) {
 		try {
 		
-			ClassInfo classInfo = modelRegistry.getClassInfo(entityClass);
-			
+			ClassInfo classInfo = session.getDatabaseContext().getModelRegistry().getClassInfo(entityClass);			
 			
 			PropertyInfo propertyInfo = classInfo.getPropertyInfo(propertyName);
 			
-			propertyInfo.getTypeHandler().saveToBase(arg, node, propertyName, propertyInfo);
+			propertyInfo.getAccessor().saveToBase(arg, node, propertyInfo, session);
+									
+			if (propertyInfo.isValueCacheable())
+				propertyValue.remove(propertyName);
+			
+			/* TODO - invalidate fetched items in any other way */
 			
 		} catch (SBQLException e) {
 			throw new RuntimeException(e);
+		} catch (DeletedException e) {
+			throw new TransparentDeletedException(e);
 		}
 		
 		return null;
@@ -112,6 +137,11 @@ public class JavaTransparentProxyHandler extends JavaBeanProxyInvocationHandler 
 				castedArgHandler.node.getReference()));
 		
 	}
+	
+	@Override
+	public Object invokeToString(Object proxy) {
+		return node.getName() + "@" + node.getReference();
+	}	
 
 	@Override
 	public Object invokeHashCode(Object transparentProxy) {
@@ -121,5 +151,7 @@ public class JavaTransparentProxyHandler extends JavaBeanProxyInvocationHandler 
 	public Node getNode() {
 		return node;
 	}
+
+
 
 }

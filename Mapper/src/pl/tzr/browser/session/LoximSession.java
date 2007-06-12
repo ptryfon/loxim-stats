@@ -6,14 +6,20 @@ import java.util.Set;
 
 import pl.tzr.browser.store.LoximExecutor;
 import pl.tzr.browser.store.node.Node;
-import pl.tzr.browser.store.node.NodeImpl;
+import pl.tzr.browser.store.node.LoximNode;
 import pl.tzr.driver.loxim.SimpleConnection;
 import pl.tzr.driver.loxim.exception.SBQLException;
+import pl.tzr.exception.DeletedException;
 import pl.tzr.exception.NestedSBQLException;
 import pl.tzr.exception.SessionClosedException;
 
+/**
+ * Implementation of Session interface to be used with LoXiM database
+ * @author Tomasz Rosiek
+ *
+ */
 public class LoximSession implements Session {
-	
+
 	private SimpleConnection connection;
 	
 	private LoximExecutor executor;
@@ -32,6 +38,10 @@ public class LoximSession implements Session {
 	public Set<Node> find(String query) throws SBQLException {
 		return executor.executeQuery(query);
 	}
+	
+	public void addToRoot(Node node) throws SBQLException, DeletedException {
+		executor.attachObject(node);		
+	}	
 	
 	public SimpleConnection getConnection() {
 		return connection;
@@ -79,7 +89,7 @@ public class LoximSession implements Session {
 			Node node = fetchedNodes.get(ref);
 			return node;
 		} else {
-			Node node = new NodeImpl(this, ref, name);
+			Node node = new LoximNode(this, ref, name);
 			fetchedNodes.put(ref, node);
 			return  node;
 		}				

@@ -4,9 +4,10 @@ import java.util.Collection;
 import java.util.Map;
 
 
-/**
- * Reprezentuje informacje o sposobie reprezentacji obiektów określonej 
- * klasy w bazie danych loxim 
+/** 
+ * Stores information how objects of the specified Java class are
+ * mapped in LoXiM database
+ *   
  * @author Tomasz Rosiek
  *
  */
@@ -28,8 +29,8 @@ public class ClassInfo {
 	}
 
 	/**
-	 * Zwraca nazwę pod jaką w bazie danych zostanie zapisany obiekt
-	 * tej klasy
+	 * Returns a name of LoXiM entity wich will be used when we store
+	 * Java object
 	 * @return
 	 */
 	public String getEntityName() {
@@ -37,7 +38,7 @@ public class ClassInfo {
 	}
 
 	/**
-	 * Zwraca reprezentowaną klasę
+	 * Returns mapped Java class
 	 * @return
 	 */
 	public Class getClazz() {
@@ -45,8 +46,9 @@ public class ClassInfo {
 	}
 	
 	/**
-	 * Zwraca informację o atrybucie klasy
+	 * Returns mapping information about specified property of the class 
 	 * @param name
+	 * 		name of the property
 	 * @return
 	 */
 	public PropertyInfo getPropertyInfo(String name) {
@@ -54,7 +56,7 @@ public class ClassInfo {
 	}
 	
 	/**
-	 * Zwraca listę atrybutów klasy
+	 * Returns a list of class properties
 	 * @return
 	 */
 	public Collection<PropertyInfo> getProperties() {

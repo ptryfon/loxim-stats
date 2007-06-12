@@ -4,16 +4,18 @@ import java.util.Set;
 
 import pl.tzr.browser.store.node.Node;
 import pl.tzr.driver.loxim.exception.SBQLException;
-import pl.tzr.transparent.TransparentProxyFactory;
+import pl.tzr.exception.DeletedException;
+import pl.tzr.transparent.TransparentSession;
 import pl.tzr.transparent.proxy.collection.PersistentSet;
 import pl.tzr.transparent.structure.model.CollectionPropertyInfo;
 import pl.tzr.transparent.structure.model.PropertyInfo;
 
 public class SetPropertyAccessor implements PropertyAccessor<Set> {
 	
-	public Set retrieveFromBase(Node parent, String propertyName,
+	public Set retrieveFromBase(
+			Node parent, 
 			PropertyInfo propertyInfo,
-			TransparentProxyFactory transparentProxyFactory)
+			TransparentSession session)
 			throws SBQLException {
 		
 		CollectionPropertyInfo castedPropertyInfo = 
@@ -24,17 +26,29 @@ public class SetPropertyAccessor implements PropertyAccessor<Set> {
 		 * cache'owanie obiektów
 		 */ 
 		
-		PersistentSet set = new PersistentSet(parent, propertyName, 
-				castedPropertyInfo.getItemClass(), transparentProxyFactory);
+		PersistentSet set = new PersistentSet(parent, propertyInfo.getPropertyName(), 
+				castedPropertyInfo.getItemClass(), session);
 		
 		return set;
 	}
 
 
-	public void saveToBase(Set data, Node parent, String propertyName, 
-			PropertyInfo propertyInfo) throws SBQLException {
+	public void saveToBase(
+			Set data, 
+			Node parent,  
+			PropertyInfo propertyInfo, 
+			TransparentSession session) 
+		throws SBQLException, DeletedException {
+									
+		for (Object item : data) {
+			
+			Node itemNode = session.getDatabaseContext().getModelRegistry().
+				createNodeRepresentation(item, propertyInfo.getPropertyName(), session);
+			
+			parent.addChild(itemNode);
+			
+		}				
 
-		throw new UnsupportedOperationException();
 	}
 
 }

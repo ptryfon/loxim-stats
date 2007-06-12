@@ -5,10 +5,15 @@ import java.util.List;
 
 
 public class ResultStruct extends ResultCollection {
-	List<Result> items;
+	final List<Result> items = new LinkedList<Result>();;
 	
-	public ResultStruct() {
-		items = new LinkedList<Result>();
+	public ResultStruct() {		
+	}
+	
+	public ResultStruct(Result... newItems) {		
+		for (Result newItem : newItems) {
+			items.add(newItem);
+		}		
 	}
 
 	public List<Result> getItems() {
