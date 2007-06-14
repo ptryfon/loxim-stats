@@ -14,11 +14,14 @@ public class SimpleTransparentSessionFactoryImpl implements
 		TransparentSessionFactory {
 	
 	private final LoximDatasource datasource;
+	
 	private final Class[] classes;
 	
 	protected TransparentSession currentSession;
 	
-	public SimpleTransparentSessionFactoryImpl(final LoximDatasource datasource, Class[] classes) {
+	public SimpleTransparentSessionFactoryImpl(
+			final LoximDatasource datasource, 
+			final Class[] classes) {
 		this.datasource = datasource;
 		this.classes = classes;
 	}		
@@ -28,6 +31,7 @@ public class SimpleTransparentSessionFactoryImpl implements
 		if ((currentSession != null) && (currentSession.isActive())) {
 			currentSession.rollback();
 		}
+
 		
 	}
 
@@ -49,30 +53,33 @@ public class SimpleTransparentSessionFactoryImpl implements
 			throw new NestedSBQLException(e);
 		}
 
-		/* Tworzymy fabryke modeli */
-		SimpleAnnotatedModelRegistryFactory modelRegistryFactory = new SimpleAnnotatedModelRegistryFactory();
+		/* Create a factory of mapping definition */
+		SimpleAnnotatedModelRegistryFactory modelRegistryFactory = 
+			new SimpleAnnotatedModelRegistryFactory();
 
-		/* Tworzymy fabryke rejestru typow danych */
-		AccessorRegistryFactory accessorRegistryFactory = new SimpleAccessorRegistryFactory();
+		/* Create a factory of property accessor registry */
+		AccessorRegistryFactory accessorRegistryFactory = 
+			new SimpleAccessorRegistryFactory();
 
-		/* Okreslamy jakie klasy maja sie skladac na model */
+		/* Define classes belonging to the model */
 		modelRegistryFactory.setClasses(classes);
 
-		/* Tworzymy rejestr typow danych */
+		/* Create a registry of property accessors */
 		modelRegistryFactory.setHandlerRegistry(accessorRegistryFactory
 				.getHandlerRegistry());
 
-		/* Tworzymy model */
+		/* Create a model registry */
 		ModelRegistry modelRegistry = modelRegistryFactory.getModelRegistry();
 
-		/* Tworzymy fabryke przezroczystych obiektow */
-		TransparentProxyFactory transparentProxyFactory = new JavaTransparentProxyFactory();
+		/* Create a factory of proxy objects */
+		TransparentProxyFactory transparentProxyFactory = 
+			new JavaTransparentProxyFactory();
 		
 		DatabaseContext context = new DatabaseContext();
 		context.setModelRegistry(modelRegistry);
 		context.setTransparentProxyFactory(transparentProxyFactory);
 
-		/* Otwieramy sesje mappera */
+		/* Create mapper session */
 		TransparentSession transparentSession = new TransparentSessionImpl(
 				session, context);
 

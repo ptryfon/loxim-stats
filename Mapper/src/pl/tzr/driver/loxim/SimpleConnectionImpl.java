@@ -7,20 +7,28 @@ import pl.tzr.driver.loxim.exception.SBQLException;
 import pl.tzr.driver.loxim.exception.SBQLProtocolException;
 import pl.tzr.driver.loxim.result.Result;
 import pl.tzr.driver.loxim.result.ResultBool;
-import pl.tzr.driver.loxim.result.ResultReference;
-
-
 
 /**
- * Wrapper na obiekty reprezentujące połączenie z baza danych LoXiM, pozwalajacy na wykonywanie bardziej wysokopoziomowych operacji
- * jak logowanie czy rozpoczynanie i konczenie transakcji 
+ * Wrapper for the Connection introducing some useful higher level operations
+ * like authentication and transaction support based on the SBQL language.
  * @author Tomasz Rosiek (tomasz.rosiek@gmail.com)
  *
  */
 public class SimpleConnectionImpl implements Connection, SimpleConnection {
-	Connection target;
 	
-	public SimpleConnectionImpl(Connection connection, String login, String password) 
+	private final Connection target;
+	
+	/**
+	 * Opens authenticated connection to the SBQL based database and logs in
+	 * @param connection created connection
+	 * @param login user's login
+	 * @param password user's password
+	 * @throws SBQLException
+	 */
+	public SimpleConnectionImpl(
+			final Connection connection, 
+			final String login, 
+			final String password) 
 		throws SBQLException{
 		
 		target = connection;
@@ -45,25 +53,13 @@ public class SimpleConnectionImpl implements Connection, SimpleConnection {
 	}
 	
 
-	/**
-	 * Wykonuje zapytanie sparametryzowane
-	 * @param query tresc zapytania
-	 * @param params parametry zapytania
-	 * @return
-	 * @throws SBQLException
-	 */
+
 	public Result executeNamed(String query, Map<String, Result> params) throws SBQLException {
 		long statementId = parse(query);
 		return execute(statementId, params);
 	}
 	
-	/**
-	 * Wykonuje zapytanie sparametryzowane, parametry zapisane jako znaki zapytania
-	 * @param query tresc zapytania
-	 * @param params parametry zapytania
-	 * @return
-	 * @throws SBQLException
-	 */
+
 	public Result executeParam(String query, Result... params) throws SBQLException {
 		
 		Map<String, Result> paramMap = new HashMap<String, Result>();
@@ -82,7 +78,8 @@ public class SimpleConnectionImpl implements Connection, SimpleConnection {
 				break;
 			case '?' :
 				if (!inString) {
-					if (i >= params.length) throw new IllegalArgumentException("Niewlasciwa liczba argumentow");
+					if (i >= params.length) throw 
+						new IllegalArgumentException("Invalid argument count");
 					String paramName = "$arg" + i;
 					paramMap.put(paramName, params[i]);					
 					buffer.append(paramName);
@@ -95,7 +92,8 @@ public class SimpleConnectionImpl implements Connection, SimpleConnection {
 			}
 		}
 		
-		if (i < params.length) throw new IllegalArgumentException("Niewlasciwa liczba argumentow");
+		if (i < params.length) 
+			throw new IllegalArgumentException("Invalid argument count");
 		
 		String newQuery = buffer.toString();
 		
@@ -105,21 +103,34 @@ public class SimpleConnectionImpl implements Connection, SimpleConnection {
 	}
 	
 	/**
-	 * Wykonuje zapytanie sparametryzowane - parametry z tablicy podstawia w kolejnosci wystepowania.
-	 * @param query
-	 * @param params
-	 * @return
+	 * Starts a transaction
 	 * @throws SBQLException
 	 */
-	public Result execute(String query, Result[] params) throws SBQLException {
-		throw new RuntimeException("Nie zaimplementowane");
+	public void beginTransaction() throws SBQLException {
+		execute("begin");
 	}
 	
 	/**
-	 * Probuje sie zalogowac do bazy danych
-	 * @param login nazwa uzytkownika
-	 * @param password haslo
-	 * @return true, jesli udalo sie zalogowac, false w przeciwnym przypadku
+	 * Commits the transaction
+	 * @throws SBQLException
+	 */
+	public void commitTransation() throws SBQLException {
+		execute("end");
+	}
+	
+	/**
+	 * Rollbacks the transaction
+	 * @throws SBQLException
+	 */
+	public void rollbackTransaction() throws SBQLException {
+		execute("abort");
+	}
+	
+	/**
+	 * Tries to login into the database
+	 * @param login username
+	 * @param password password
+	 * @return true, if logging in succeeded, false otherwise
 	 * @throws SBQLException
 	 */
 	protected boolean login(String login, String password) throws SBQLException {
@@ -131,41 +142,11 @@ public class SimpleConnectionImpl implements Connection, SimpleConnection {
 			res = execute("validate " + login + " " + password);
 		}
 		execute("end");
-		if (!(res instanceof ResultBool)) throw new SBQLProtocolException("Unknown result");		
+		if (!(res instanceof ResultBool)) 
+			throw new SBQLProtocolException("Unknown result");
+		
 		return ((ResultBool)res).getValue();		
-	}
+	}	
 	
-	/**
-	 * Rozpoczyna transakcje
-	 * @throws SBQLException
-	 */
-	public void beginTransaction() throws SBQLException {
-		execute("begin");
-	}
-	
-	/**
-	 * Zatwierdza transakcje
-	 * @throws SBQLException
-	 */
-	public void commitTransation() throws SBQLException {
-		execute("end");
-	}
-	
-	/**
-	 * Przerywa transakcje
-	 * @throws SBQLException
-	 */
-	public void rollbackTransaction() throws SBQLException {
-		execute("abort");
-	}
-	
-	/**
-	 * Dokonuje dereferencji obiektu
-	 * @param ref referencja
-	 * @return obiekt okreslony przez referencje
-	 */
-	public Result deref(String ref) throws SBQLException {
-		return executeParam("deref(?)", new Result[] { new ResultReference(ref) });		
-	}
 }
 

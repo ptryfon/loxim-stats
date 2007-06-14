@@ -10,7 +10,7 @@ import pl.tzr.driver.loxim.exception.SBQLIOException;
 
 
 class StatementPackage implements Package {
-	long statementNumber = -1;
+	private long statementNumber = -1;
 
 	public void deserialize(InputStream stream, int size) throws SBQLException,
 			SBQLException {
@@ -27,10 +27,10 @@ class StatementPackage implements Package {
 	}
 
 	public int serialize(OutputStream stream) throws SBQLException {
-		throw new RuntimeException("Nie powinnismy tego uzywac");
+		throw new UnsupportedOperationException("Not to be used on the client side");
 	}
 
-	public long getStatementNumber() {
+	public long getStatementNumber() {		
 		return statementNumber;
 	}
 }

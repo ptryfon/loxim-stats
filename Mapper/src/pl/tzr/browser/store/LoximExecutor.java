@@ -21,11 +21,9 @@ import pl.tzr.driver.loxim.result.ResultInt;
 import pl.tzr.driver.loxim.result.ResultReference;
 import pl.tzr.driver.loxim.result.ResultString;
 import pl.tzr.driver.loxim.result.ResultStruct;
-import pl.tzr.driver.loxim.result.ResultVoid;
 import pl.tzr.exception.DeletedException;
 import pl.tzr.exception.InvalidDataStructureException;
 import pl.tzr.exception.NestedSBQLException;
-import pl.tzr.exception.TransparentDeletedException;
 
 /**
  * Implementation of Executor interface providing data manipulation operations
@@ -76,7 +74,7 @@ public class LoximExecutor implements Executor {
 			
 			Collection<Node> childNodes = node.getAllChildNodes();
 			
-			//FIXME: LoXiM nie pozwala stworzyś pustego obiektu złożonego
+			//FIXME: LoXiM doesn't allow to create empty composite object
 			ResultBinder b = new ResultBinder("bugfix", new ResultInt(0));				
 			ResultStruct s = new ResultStruct(b);
 			
@@ -274,5 +272,19 @@ public class LoximExecutor implements Executor {
 			throw new NestedSBQLException(e);
 		}
 	}
+	
+	public boolean isChild(Node parentNode, Node childNode) throws SBQLException {
+		
+		throw new UnsupportedOperationException();
+
+		//executeQuery("Part where " + childNode.getName() + "=?", new ResultReference(childNode.getReference()));
+
+		//return false;
+	}
+
+	public void removeAllChildren(Node parentNode, String childName) throws SBQLException {
+		throw new UnsupportedOperationException();
+		
+	}	
 
 }

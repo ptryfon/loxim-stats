@@ -10,7 +10,7 @@ import pl.tzr.driver.loxim.exception.SBQLException;
 import pl.tzr.exception.DeletedException;
 
 public class LoximNode implements Node {
-	
+
 	private String ref;
 	
 	private String name;
@@ -91,8 +91,8 @@ public class LoximNode implements Node {
 				getChildNodes(ref, propertyName);
 			
 			if (children.isEmpty()) return null;
-			//FIXME wyłączyć potem
-			//if (children.size() > 1) throw new IllegalStateException("Za dużo elementów");
+			//FIXME Only for testing purpuroses. Uncomment it later
+			//if (children.size() > 1) throw new IllegalStateException("Too many elements");
 			return children.iterator().next();
 		}
 		
@@ -150,6 +150,17 @@ public class LoximNode implements Node {
 	public boolean isDetached() {
 		return detached;
 	}
+	
+	public boolean isChild(Node childNode) throws SBQLException {
+				
+		return owningSession.getExecutor().isChild(this, childNode);
+	}
+
+	public void removeAllChildren(String childName) throws SBQLException {
+		
+		owningSession.getExecutor().removeAllChildren(this, childName);
+		
+	}	
 	
 //	protected void markAsDeleted() throws SBQLException {
 //		

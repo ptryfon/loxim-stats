@@ -5,56 +5,122 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
- * Funkcje pomocnicze służace do transmisji danych zrozumialych dla kodu w C++
+ * Utility function used during communication with C++
  * @author Tomasz Rosiek (tomasz.rosiek@gmail.com)
  *
  */
 class ConversionUtils {
-	public static void writeUInt(OutputStream s, long i) throws IOException {
-		s.write((int)(i >> 24));
-		s.write((int)(i >> 16));
-		s.write((int)(i >> 8));
-		s.write((int)(i % 256));
+	/**
+	 * Writes C++ readable <i>unsigned int</i> value to the output stream 
+	 * @param stream target output stream
+	 * @param uint value to be written
+	 * @throws IOException
+	 */
+	public static void writeUInt(
+			OutputStream stream, 
+			long uint)
+		throws IOException {
+		
+		stream.write((int)(uint >> 24));
+		stream.write((int)(uint >> 16));
+		stream.write((int)(uint >> 8));
+		stream.write((int)(uint % 256));
 	}
 	
-	public static void writeString(OutputStream stream, String string) throws IOException {
+	/**
+	 * Writes C++ readable <i>char[]</i> value to the output stream 
+	 * @param stream target output stream
+	 * @param string value to be written
+	 * @throws IOException
+	 */
+	public static void writeString(
+				OutputStream stream, 
+				String string) 
+		throws IOException {
+		
 		stream.write(string.getBytes());
 		stream.write(0);		
 	}
 	
-	public static long readUInt(InputStream stream) throws IOException {		
-		short s[] = new short[4];
-		for (int i=0; i< 4; i++) s[i] = (short)stream.read();
-		long res = (s[0] << 24) | (s[1] << 16) | (s[2] << 8) | s[3];
-		return res;		
+	/**
+	 * Reads <i>unsigned int</i> value written by C++ from the input stream
+	 * @param stream source input stream
+	 * @return readed unsigned int 
+	 * @throws IOException
+	 */
+	public static long readUInt(InputStream stream) throws IOException {	
+		byte b[] = new byte[4];		
+		stream.read(b);
+		long result = (b[0] << 24) | (b[1] << 16) | (b[2] << 8) | b[3];
+		return result;		
 	}
 	
-	public static void writeEnum(OutputStream s, short i) throws IOException {
-		s.write(i);
+	/**
+	 * Writes enumeration value (<i>enum</i> C++ type) to output stream
+	 * @param stream output stream
+	 * @param index index of the enumeration item
+	 * @throws IOException
+	 */
+	public static void writeEnum(
+			OutputStream stream, 
+			short index) 
+		throws IOException {
+		
+		stream.write(index);
 	}
 	
+	/**
+	 * Reads enumeration value (<i>enum</i> C++ type) from the input stream
+	 * @param stream input stream
+	 * @return index of the enumeration item
+	 * @throws IOException
+	 */
 	public static short readEnum(InputStream s) throws IOException{
 		return (short)s.read();
 	}	
 	
+	/**
+	 * Reads double value (<i>double</i> C++ type) from the input stream
+	 * @param stream input stream
+	 * @return readed value
+	 * @throws IOException
+	 */
 	public static double readDouble(InputStream stream) throws IOException {
 		/* TODO */
-		throw new RuntimeException("Funkcja nie zaimplementowana");
+		throw new UnsupportedOperationException("Not implemented yet");
 	}
 	
+	/**
+	 * Writes double value (<i>double</i> C++ type) to output stream
+	 * @param stream output stream
+	 * @param value value to be writted
+	 * @throws IOException
+	 */	
 	public static void writeDouble(OutputStream stream, double value) {
 		/* TODO */
-		throw new RuntimeException("Funkcja nie zaimplementowana");
+		throw new UnsupportedOperationException("Not implemented yet");		
 	}
 	
+	/**
+	 * Returns storage size of the <i>enum</i> type
+	 * @return storage size of the <i>enum</i> type
+	 */
 	public static int getEnumSize() {
 		return 1;
 	}
 	
+	/**
+	 * Returns storage size of the <i>unsigned int</i> type
+	 * @return storage size of the <i>unsigned int</i> type
+	 */
 	public static int getUIntSize() {
 		return 4;
 	}
-	
+
+	/**
+	 * Returns storage size of the <i>double</i> type
+	 * @return storage size of the <i>double</i> type
+	 */	
 	public static int getDoubleSize() {
 		return 8;
 	}

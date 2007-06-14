@@ -21,34 +21,132 @@ import pl.tzr.driver.loxim.result.ResultError;
 
 
 /**
- * Implementacja protokolu dostepu do bazy danych LoXiM za posrednictwem protokolu TCP/IP
+ * Implementation of connection protocol used by LoXiM database, based on TCP/IP
  * @author Tomasz Rosiek (tomasz.rosiek@gmail.com)
  *
  */
 public class TcpConnection implements Connection {
 	
-	private Log log = LogFactory.getLog(this.getClass());
+	private final Log log = LogFactory.getLog(this.getClass());
 
-	protected Socket socket;
+	protected final Socket socket;
 
-	protected DataOutputStream dos;
+	protected final DataOutputStream dos;
 
-	protected DataInputStream dis;
-
+	protected final DataInputStream dis;
+	
 	/**
-	 * Wykonuje zapytanie w oparciu o protokół sprzed wakacji 2006
-	 * @param query
+	 * Creates database connection basing on the opened TCP/IP socket
+	 * @param _socket
 	 * @throws IOException
-	 * @deprecated
 	 */
-	protected void oldSend(String query) throws IOException {
-		dos.writeInt(query.length());
-		dos.write(query.getBytes());
+	public TcpConnection(final Socket socket) throws IOException {
+		this.socket = socket;
+		dis = new DataInputStream(socket.getInputStream());
+		dos = new DataOutputStream(socket.getOutputStream());
+	}
+	
+	public Result execute(String query) throws SBQLException {
+		
+		Date startTime = null;
+		
+		if (log.isDebugEnabled()) {
+			startTime = new Date();
+		}
+		
+		try {
+		
+		SimpleQueryPackage sqp = new SimpleQueryPackage(query);			
+		sendPackage(sqp);
+		
+		Package p = readPackage();
+
+		if (p instanceof SimpleResultPackage) {
+			Result res = ((SimpleResultPackage)p).getResult();
+			if (res instanceof ResultError)
+				throw new SBQLServerException(((ResultError) res).getErrorCode());
+			return res;				
+		} else if (p instanceof ErrorPackage) {
+			throw new SBQLServerException(((ErrorPackage)p).getError());
+		} else
+			throw new SBQLProtocolException("Unexpected package type (" + p + ")");
+		
+		} finally {
+			
+			if (log.isDebugEnabled()) {
+				long queryMillis = new Date().getTime() - startTime.getTime();
+				
+				log.debug("Query '" + query + "' was executed in " + queryMillis + "ms");
+			}
+			
+			
+		}
+	}
+
+	public void close() throws SBQLException {
+		try {
+			socket.close();
+		} catch (IOException e) {
+			throw new SBQLIOException(e);
+		}
+	}
+
+
+	public long parse(String query) throws SBQLException {
+		ParamQueryPackage sqp = new ParamQueryPackage(query);
+		sendPackage(sqp);
+		
+		Package p = readPackage();				
+		
+		if (p instanceof StatementPackage) {
+			
+			long statementId = ((StatementPackage)p).getStatementNumber();						
+			log.debug("Prepared parametrized statement '" + query + "' - assigned numer is " + statementId);			
+			return statementId;
+			
+		} else if (p instanceof ErrorPackage) {
+			throw new SBQLServerException(((ErrorPackage)p).getError());
+		} else throw new SBQLProtocolException("Unexpected package type (" + p + ")");			
+	}
+	
+	public Result execute(long statementId, Map<String, Result> params) throws SBQLException {
+		
+		Date startTime = null;
+		
+		if (log.isDebugEnabled()) {
+			startTime = new Date();
+		}
+		
+		try {
+		
+			ParamStatementPackage psp = new ParamStatementPackage(statementId, params);
+			sendPackage(psp);
+			Package p = readPackage();
+	
+			if (p instanceof SimpleResultPackage) {
+				Result res = ((SimpleResultPackage)p).getResult();
+				if (res instanceof ResultError)
+					throw new SBQLServerException(((ResultError) res).getErrorCode());
+				return res;				
+			} else if (p instanceof ErrorPackage) {
+				throw new SBQLServerException(((ErrorPackage)p).getError());
+			} else throw new SBQLProtocolException("Unexpected package type (" + p + ")");
+		
+		} finally {
+			
+			if (log.isDebugEnabled()) {
+				long queryMillis = new Date().getTime() - startTime.getTime();
+				
+				log.debug("Prepared statement " + statementId + " was executed in " + queryMillis + "ms");
+			}
+			
+		}
+			
 	}
 
 	/**
-	 * Wysyła pakiet na serwer bazy danych
-	 * @param pack pakiet do wyslania
+	 * Sends data package to the database server
+	 * @param pack data package to be sent
 	 * @throws SBQLException
 	 */
 	protected void sendPackage(Package pack) throws SBQLException {
@@ -65,8 +163,8 @@ public class TcpConnection implements Connection {
 
 
 	/**
-	 * Pobiera pakiet z serwera bazy danych
-	 * @return pobrany pakiet
+	 * Retrieves package from the database server
+	 * @return received package
 	 * @throws SBQLException
 	 */
 	protected Package readPackage() throws SBQLException {
@@ -103,111 +201,5 @@ public class TcpConnection implements Connection {
 			throw new SBQLIOException(e);
 		}
 	}	
-
-
-	public TcpConnection(Socket _socket) throws IOException {
-		socket = _socket;
-		dis = new DataInputStream(socket.getInputStream());
-		dos = new DataOutputStream(socket.getOutputStream());
-	}
-
-	public Result execute(String query) throws SBQLException {
-		
-		Date startTime = null;
-		
-		if (log.isDebugEnabled()) {
-			startTime = new Date();
-		}
-		
-		try {
-		
-		SimpleQueryPackage sqp = new SimpleQueryPackage(query);			
-		sendPackage(sqp);
-		
-		Package p = readPackage();
-
-		if (p instanceof SimpleResultPackage) {
-			Result res = ((SimpleResultPackage)p).getResult();
-			if (res instanceof ResultError)
-				throw new SBQLServerException(((ResultError) res).getErrorCode());
-			return res;				
-		} else if (p instanceof ErrorPackage) {
-			throw new SBQLServerException(((ErrorPackage)p).getError());
-		} else
-			throw new SBQLProtocolException("Nieoczekiwany rodzaj pakietu " + p);
-		
-		} finally {
-			
-			if (log.isDebugEnabled()) {
-				long queryMillis = new Date().getTime() - startTime.getTime();
-				
-				log.debug("Zapytanie '" + query + "' wykonane w czasie " + queryMillis + "ms");
-			}
-			
-			
-		}
-	}
-
-	public void close() throws SBQLException {
-		try {
-			socket.close();
-		} catch (IOException e) {
-			throw new SBQLIOException(e);
-		}
-	}
-
-
-	public long parse(String query) throws SBQLException {
-		ParamQueryPackage sqp = new ParamQueryPackage(query);
-		sendPackage(sqp);
-		
-		Package p = readPackage();				
-		
-		if (p instanceof StatementPackage) {
-			
-			long statementId = ((StatementPackage)p).getStatementNumber();						
-			log.debug("Przygotowanie zapytania '" + query + "' - numer " + statementId);			
-			return statementId;
-			
-		} else if (p instanceof ErrorPackage) {
-			throw new SBQLServerException(((ErrorPackage)p).getError());
-		} else throw new SBQLProtocolException("Nieoczekiwany rodzaj pakietu " + p);			
-	}
-	
-	public Result execute(long statementId, Map<String, Result> params) throws SBQLException {
-		
-		Date startTime = null;
-		
-		if (log.isDebugEnabled()) {
-			startTime = new Date();
-		}
-		
-		try {
-		
-			ParamStatementPackage psp = new ParamStatementPackage(statementId, params);
-			sendPackage(psp);
-			Package p = readPackage();
-	
-			if (p instanceof SimpleResultPackage) {
-				Result res = ((SimpleResultPackage)p).getResult();
-				if (res instanceof ResultError)
-					throw new SBQLServerException(((ResultError) res).getErrorCode());
-				return res;				
-			} else if (p instanceof ErrorPackage) {
-				throw new SBQLServerException(((ErrorPackage)p).getError());
-			} else throw new SBQLProtocolException("Nieoczekiwany rodzaj pakietu " + p);
-		
-		} finally {
-			
-			if (log.isDebugEnabled()) {
-				long queryMillis = new Date().getTime() - startTime.getTime();
-				
-				log.debug("Przygotowane zapytanie " + statementId + " wykonane w czasie " + queryMillis + "ms");
-			}
-			
-		}
-			
-	}
-	
 
 }

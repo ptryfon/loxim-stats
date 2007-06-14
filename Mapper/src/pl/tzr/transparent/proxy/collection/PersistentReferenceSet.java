@@ -5,14 +5,16 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+import pl.tzr.browser.store.node.LoximNode;
 import pl.tzr.browser.store.node.Node;
+import pl.tzr.browser.store.node.ReferenceValue;
 import pl.tzr.driver.loxim.exception.SBQLException;
 import pl.tzr.exception.DeletedException;
 import pl.tzr.exception.NestedSBQLException;
 import pl.tzr.exception.TransparentDeletedException;
 import pl.tzr.transparent.TransparentSession;
 
-public class PersistentSet<E> implements Set<E> {
+public class PersistentReferenceSet<E> implements Set<E> {
 	
 	private final Node parentNode;
 	
@@ -45,7 +47,7 @@ public class PersistentSet<E> implements Set<E> {
 			
 			lastNode = nodeIterator.next();
 			
-			if (lastNode == null) return null;
+			if (lastNode == null) return null;			
 			
 			@SuppressWarnings("unchecked")
 			E transparentProxy = (E)createProxy(lastNode);
@@ -68,7 +70,7 @@ public class PersistentSet<E> implements Set<E> {
 		
 	}
 		
-	public PersistentSet(final Node parentNode, final String propertyName, 
+	public PersistentReferenceSet(final Node parentNode, final String propertyName, 
 			final Class clazz, 
 			final TransparentSession session) {
 		
@@ -80,8 +82,18 @@ public class PersistentSet<E> implements Set<E> {
 
 	private Object createProxy(Node node) {
 		
-		Object proxy = session.getDatabaseContext().getTransparentProxyFactory().createProxy(node, clazz, session);		
-		return proxy;
+		try {
+			
+			//FIXME error handling when node is not reference
+			Node targetNode = ((ReferenceValue)(node.getValue())).getTargetNode();
+			Object proxy = session.getDatabaseContext().getTransparentProxyFactory().createProxy(targetNode, clazz, session);		
+			return proxy;
+			
+		} catch (DeletedException e) {
+			throw new TransparentDeletedException(e);
+		} catch (SBQLException e) {
+			throw new NestedSBQLException(e);
+		}				
 		
 	}
 
@@ -98,13 +110,14 @@ public class PersistentSet<E> implements Set<E> {
 		}
 		
 	}	
-
 	
 	public boolean contains(Object arg) {
 		if (!session.getDatabaseContext().getTransparentProxyFactory().isProxy(arg)) return false;
 				
 		fetchChildren();			
 		Node node = session.getDatabaseContext().getTransparentProxyFactory().getNodeOfProxy(arg);
+		
+		//FIXME find node containing pointer
 						
 		return (itemNodes.contains(node));
 		
@@ -133,20 +146,27 @@ public class PersistentSet<E> implements Set<E> {
 	
 	public boolean add(Object item) {
 		
-		Node node = session.getDatabaseContext().getModelRegistry().
-			createNodeRepresentation(item, propertyName, session);		
+		if (!session.getDatabaseContext().getTransparentProxyFactory().isProxy(item)) {
+			throw new UnsupportedOperationException("Item is not yet persisted");
+		} 
 		
+		Node targetNode = session.getDatabaseContext().getTransparentProxyFactory().getNodeOfProxy(item);
+		
+		Node collectionItemNode = new LoximNode(propertyName, new ReferenceValue(targetNode));
+				
 		try {
 			
-			if (parentNode.isChild(node)) {
+			//FIXME find node containing pointer
+			
+			if (parentNode.isChild(targetNode)) {
 				
 				return false;
 				
 			} else {
 
-				parentNode.addChild(node);
+				parentNode.addChild(collectionItemNode);
 				
-				if (itemNodes != null) itemNodes.add(node);
+				if (itemNodes != null) itemNodes.add(collectionItemNode);
 				
 				return true;
 				
@@ -187,20 +207,24 @@ public class PersistentSet<E> implements Set<E> {
 
 	public boolean remove(Object item) {
 		
-		Node node = session.getDatabaseContext().getModelRegistry().
-			createNodeRepresentation(item, propertyName, session);
+		if (!session.getDatabaseContext().getTransparentProxyFactory().isProxy(item)) {
+			throw new UnsupportedOperationException("Item is not yet persisted");
+		} 
+		
+		Node targetNode = session.getDatabaseContext().getTransparentProxyFactory().getNodeOfProxy(item);
+		
+		Node itemNode = null; /* TODO */
 		
 		try {
 
-			if (parentNode.isChild(node)) {
-				
-				/* Apparently cannot happen */				
+			if (!parentNode.isChild(targetNode)) {
+							
 				return false;
 				
 			} else {
 	
-				node.delete();				
-				if (itemNodes != null) itemNodes.remove(node);				
+				targetNode.delete();				
+				if (itemNodes != null) itemNodes.remove(itemNode);				
 				return true;
 				
 			}

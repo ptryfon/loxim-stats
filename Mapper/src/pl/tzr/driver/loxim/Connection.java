@@ -5,43 +5,41 @@ import java.util.Map;
 import pl.tzr.driver.loxim.exception.SBQLException;
 import pl.tzr.driver.loxim.result.Result;
 
-
-
-
 /**
- * Interfejs opisujący połączenie z bazą LoXiM
+ * Interface of connection with semistructural database
  * @author Tomasz Rosiek (tomasz.rosiek@gmail.com)
  *
  */
 public interface Connection {
 	
 	/**
-	 * Wykonanie prostego zapytania
-	 * @param query tresc zapytania
-	 * @return wynik zapytania
+	 * Excecutes simple query
+	 * @param query query text
+	 * @return query result
 	 * @throws SBQLException
 	 */
 	public Result execute(String query) throws SBQLException;
 	
 	/**
-	 * Przygotowanie zapytania sparametryzowanego
-	 * @param query tresc zapytania
-	 * @return zwraca identyfikator przygotowanego zapytania sparametryzowanego 
+	 * Prepares parametrized query
+	 * @param query query text. Parameters should be named and look like $arg
+	 * @return identifier of parametrized query, to be used in 
+	 * execute(statementId, params) method
 	 * @throws SBQLException
 	 */
 	public long parse(String query) throws SBQLException;
 	
 	/**
-	 * Wykonanie przygotowanego zapytania sparametryzowanego
-	 * @param statementId identyfikator przygotowanego zapytania sparametryzowanego
-	 * @param params wartosci parametrow
-	 * @return wynik zapytania
+	 * Executes parametrized query
+	 * @param statementId identifier of parametrized query
+	 * @param params map of parameter values
+	 * @return query result
 	 * @throws SBQLException
 	 */
 	public Result execute(long statementId, Map<String, Result> params) throws SBQLException;
 		
 	/**
-	 * Zamkniecie polaczenia z baza danych
+	 * Closes connection with database
 	 * @throws SBQLException
 	 */
 	public void close() throws SBQLException;

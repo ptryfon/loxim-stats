@@ -102,5 +102,21 @@ public interface Node {
 	 * 		reference of the node in the database
 	 */
 	void markAttached(LoximSession session, String ref);
+	
+	/**
+	 * Returns true if the childNode is the child of the node represtented
+	 * by this object 
+	 * @param node
+	 * @throws SBQLException
+	 */
+	boolean isChild(Node childNode) throws SBQLException;
+	
+	/**
+	 * Removes all children of the node having specified name
+	 * @param childName
+	 * 		name of child nodes to remove
+	 * @throws SBQLException
+	 */
+	void removeAllChildren(String childName) throws SBQLException;
 
 }

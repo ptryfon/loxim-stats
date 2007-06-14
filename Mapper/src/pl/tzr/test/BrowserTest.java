@@ -51,9 +51,9 @@ public class BrowserTest {
 			session.commit();
 			
 		} finally {
-		
-			connection.close();
 			
+			datasource.release(connection);
+					
 		}
 		
 	}
@@ -89,9 +89,10 @@ public class BrowserTest {
 			session.commit();
 			
 		} finally {
-		
-			connection.close();
 			
+			datasource.release(connection);
+		
+		
 		}
 		
 		
@@ -137,8 +138,8 @@ public class BrowserTest {
 			
 		} finally {
 			
-			connection.close();
-			
+			datasource.release(connection);
+					
 		}
 	}
 	
@@ -183,8 +184,9 @@ public class BrowserTest {
 			session.commit();
 		
 		} finally {
+			
+			datasource.release(connection);
 		
-			connection.close();
 		
 		}
 		

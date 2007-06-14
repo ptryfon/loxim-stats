@@ -6,8 +6,15 @@ import java.net.Socket;
 import pl.tzr.driver.loxim.exception.SBQLException;
 import pl.tzr.driver.loxim.exception.SBQLIOException;
 
+/**
+ * Simple implementation of semistructural datasource providing connection
+ * to the LoXiM database.
+ * This datasource connections on demand and disconnects when released.
+ * @author Tomasz Rosiek
+ *
+ */
 public class LoximDatasourceImpl implements LoximDatasource {
-	
+
 	private String host;
 	
 	private int port;
@@ -26,11 +33,19 @@ public class LoximDatasourceImpl implements LoximDatasource {
 		}
 		
 	}
+	
+	public void release(SimpleConnection connection) throws SBQLException {
+		connection.close();		
+	}	
 
 	public String getHost() {
 		return host;
 	}
 
+	/**
+	 * Sets host name or ip address of the database server
+	 * @param host hostname or ip addres
+	 */
 	public void setHost(String host) {
 		this.host = host;
 	}
@@ -39,6 +54,10 @@ public class LoximDatasourceImpl implements LoximDatasource {
 		return login;
 	}
 
+	/**
+	 * Sets user's login to be used during the database connection
+	 * @param login user's login
+	 */
 	public void setLogin(String login) {
 		this.login = login;
 	}
@@ -47,6 +66,10 @@ public class LoximDatasourceImpl implements LoximDatasource {
 		return password;
 	}
 
+	/**
+	 * Sets user's password to be used during the database connection
+	 * @param login user's passoword
+	 */	
 	public void setPassword(String password) {
 		this.password = password;
 	}
@@ -55,6 +78,10 @@ public class LoximDatasourceImpl implements LoximDatasource {
 		return port;
 	}
 
+	/**
+	 * Sets database servers TCP port
+	 * @param login user's login
+	 */	
 	public void setPort(int port) {
 		this.port = port;
 	}

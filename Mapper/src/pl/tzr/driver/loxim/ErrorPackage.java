@@ -15,7 +15,7 @@ public class ErrorPackage implements Package {
 		
 		try {
 		
-		error = ConversionUtils.readUInt(stream);
+			error = ConversionUtils.readUInt(stream);
 		
 		} catch (IOException e) {
 			throw new SBQLIOException(e);

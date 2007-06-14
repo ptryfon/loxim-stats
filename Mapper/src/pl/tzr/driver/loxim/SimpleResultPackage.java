@@ -42,7 +42,7 @@ class SimpleResultPackage implements Package {
 	}
 	
 	public int serialize(OutputStream stream) throws SBQLException {
-		throw new RuntimeException("Funkcja niezimplementowana");
+		throw new UnsupportedOperationException("Not to be used on the client side");
 	}
 
 	public void deserialize(InputStream stream, int size) throws SBQLException {
@@ -78,7 +78,7 @@ class SimpleResultPackage implements Package {
 			case ResultType.RES_BINDER:
 				return new ResultBinder(deserializeString(is), deserializeResult(is));
 			default:
-				throw new SBQLProtocolException("Nieznany rodzaj wyniku (" + objType + ")");
+				throw new SBQLProtocolException("Unexpected result type (" + objType + ")");
 			}
 		} catch (IOException e) {
 			throw new SBQLIOException(e);
