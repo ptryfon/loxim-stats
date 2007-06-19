@@ -25,6 +25,7 @@ namespace Errors {
 #define	ErrStore		0x2400000
 #define	ErrTManager		0x2800000
 #define ErrTCPProto		0x4000000
+#define ErrIndexes		0x4200000
 #define ErrAllModules		0xFF00000
 
 // error codes 1-255 (0x01 - 0xFF) reserved for system errno.h
@@ -92,8 +93,13 @@ namespace Errors {
 #define ENoHost			0x2800
 #define EUnknownPackage		0x2900
 
+// Indexes
+#define EIndexExists	0x2A00
+#define EFieldIndexed	0x2B00
+#define ENoIndex		0x2C00
+
 // stopper
-#define EUnknown		0x2A00
+#define EUnknown		0x2D00
 
 string *SBQLstrerror(int error);
 }

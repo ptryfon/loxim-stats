@@ -58,7 +58,10 @@ struct {
 // plug for h_errno from gethostbyname(3)
 	{ENoHost,          "Host not found"},
 	{EUnknownPackage,  "Unknown Package Type"},
-	
+// Indexes
+	{EIndexExists,		"Index already exists"},
+	{EFieldIndexed,		"Field is already indexed"},
+	{ENoIndex,			"No such index"},
 // THIS MUST BE THE LAST ENTRY
 	{EUnknown,         "Unknown error"}
 };
@@ -103,6 +106,9 @@ struct {
 				break;
 			case ErrTManager:
 				src_mod = "Transaction Manager";
+				break;
+			case ErrIndexes:
+				src_mod = "Indexes";
 				break;
 			default:
 				src_mod = "Unknown";
