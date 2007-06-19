@@ -3,34 +3,39 @@
 namespace Indexes
 {
 	
+	int IndexManager::testAndAddIndex(string name, string rootName, string fieldName, LogicalID* lid) {
+		int err;
+		if ((err = isValuesUsed(name, rootName, fieldName))) {
+			return err;
+		}
+		addIndex(name, rootName, fieldName, lid);
+		return 0;
+	}
+	
 	//non thread-safe
-	int IndexManager::addIndex(string name, string rootName, string fieldName) {
+	void IndexManager::addIndex(string name, string rootName, string fieldName, LogicalID* lid) {
+		
+		IndexHandler *ih = new IndexHandler(name, rootName, fieldName, lid);
+		//TODO wydajnosc - dodawac pare po jednokrotnym iterowaniu
+		indexNames[name] = ih;
+		indexes[rootName][fieldName] = ih;
+	}
+	
+	int IndexManager::isValuesUsed(string name, string rootName, string fieldName) {
 		//1. czy taka nazwa nie jest jeszcze uzywana
 		
 		if (indexNames.count(name) > 0) {
-			//TODO nazwa juz uzywana
 			ec->printf("INDEX::addIndex: nazwa %s jest juz uzywana\n", name.c_str());
-			return -1;
+			return ErrIndexes | EIndexExists;
 		}
 		
 		//2. czy te pola nie sa jeszcze indeksowane
 		
 		if (isFieldIndexed(rootName, fieldName)) {
-			//TODO
 			ec->printf("INDEX::add Index: pole %s.%s jest juz indeksowane\n", rootName.c_str(), fieldName.c_str());
-			return -1;
+			return ErrIndexes | EFieldIndexed;
 		}
 		
-		IndexHandler *ih = new IndexHandler(name, rootName, fieldName);
-		//TODO wydajnosc - dodawac pare po jednokrotnym iterowaniu
-		indexNames[name] = ih;
-		indexes[rootName][fieldName] = ih;
-		
-		return 0;
-	}
-	
-	//non thread-safe
-	int IndexManager::removeIndex(string name) {
 		return 0;
 	}
 	
@@ -42,6 +47,7 @@ namespace Indexes
 			return 0;
 	}
 	
+	/* ta metoda prawdopodobnie nie bedzie potrzebna
 	int IndexManager::createObject(TransactionID* tid, string name, DataValue* value, ObjectPointer* op, LogicalID* p_lid) {
 		#ifdef INDEX_DEBUG_MODE
 			ec->printf("INDEX::createObject. root: %d, o nazwie: %s, na wartosc: i lid: %d\n", op->getIsRoot(), op->getName().c_str(), p_lid->toInteger());
@@ -49,6 +55,7 @@ namespace Indexes
 		
 		return 0;
 	}
+	*/
 	
 	int IndexManager::addRoot(TransactionID* tid, ObjectPointer* op) {
 
@@ -88,7 +95,17 @@ namespace Indexes
 				#ifdef INDEX_DEBUG_MODE
 					ec->printf("nowy root zawiera obiekt %s\n", innerOp->getName().c_str());
 				#endif
-				//TODO czy indeksuje to pole?
+				
+				// czy indeksuje to pole?
+				IndexHandler* ih;
+				if (!(ih = getIndexFromField(innerOp->getName(), it))) {
+					//pole nie jest indeksowane
+					return 0;
+				}
+				#ifdef INDEX_DEBUG_MODE
+					ec->printf("nowy root zawiera obiekt indeksowany %s\n", innerOp->getName().c_str());
+				#endif
+				//ih->addEntry();
 			}
 		
 		return 0;
@@ -107,14 +124,28 @@ namespace Indexes
 		//return (isRootIndexed(rootName, it) && ((it->second).count(fieldName) > 0));
 	}
 	
-	int IndexManager::dropIndex(string indexName) {
+	IndexHandler* IndexManager::getIndexFromField(const string &fieldName, indexesMap::iterator &it) {
+		string2index::const_iterator it2;
+		it2 = (it->second).find(fieldName);
+		if (it2 == (it->second).end()) {
+			return NULL;
+		} else {
+			return it2->second;
+		}
+	}
+	
+	int IndexManager::prepareToDrop(string indexName, string2index::iterator &itResult, LogicalID* &lid) {
 		string2index::iterator it = indexNames.find(indexName);
 		if (it == indexNames.end()) {
-			#ifdef INDEX_DEBUG_MODE
-				ec->printf("nie ma indeksu o nazwie %s\n", indexName.c_str());
-			#endif
-			return -1;	
+			return ErrIndexes | ENoIndex;
 		}
+		itResult = it;
+		lid = it->second->getLogicalID();
+		return 0;
+	}
+	
+	int IndexManager::dropIndex(string2index::iterator &it) {
+		
 		IndexHandler* ih = it->second;
 		indexNames.erase(it);
 		#ifdef INDEX_DEBUG_MODE

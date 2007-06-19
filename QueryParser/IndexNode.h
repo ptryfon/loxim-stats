@@ -48,7 +48,7 @@ namespace Indexes {
 	    				: indexName(_indexName), indexedRootName(_indexedRootName),	indexedFieldName(_indexedFieldName) {}
 	    	virtual TreeNode* clone() {return new CreateIndexNode(indexName, indexedRootName, indexedFieldName);}
 	    	virtual int putToString() {cout << "create index " << indexName << " on " << indexedRootName << "(" << indexedFieldName<< ")" << endl; return 0;}
-	    	virtual int execute(QueryResult **result){return IndexManager::getHandle()->createIndex(indexName, indexedRootName, indexedFieldName, result);};
+	    	virtual int execute(QueryResult **result){return IndexManager::getHandle()->createIndexSynchronized(indexName, indexedRootName, indexedFieldName, result);};
 	    	virtual ~CreateIndexNode(){};
 	    	//virtual TreeNode* clone() {return new CreateIndexNode();}
     };
@@ -72,7 +72,7 @@ namespace Indexes {
     	public:
     		DropIndexNode(string indexName) : indexName(indexName) {}
     		virtual ~DropIndexNode(){};
-    		virtual int execute(QueryResult **result) {return IndexManager::getHandle()->dropIndex(indexName, result);};	
+    		virtual int execute(QueryResult **result) {return IndexManager::getHandle()->dropIndexSynchronized(indexName, result);};	
     		
     		virtual TreeNode* clone() {return new DropIndexNode(indexName) ;}
 	    	virtual int putToString() {cout << "drop index " << indexName << endl; return 0;}	

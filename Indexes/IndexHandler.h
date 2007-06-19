@@ -8,12 +8,14 @@ namespace Indexes
 		
 		private:
 			string name, root, field;
+			LogicalID* lid;
 		
 		public:
-			IndexHandler(string name, string root, string field) : name(name), root(root), field(field) {}
+			IndexHandler(string name, string root, string field, LogicalID* lid) : name(name), root(root), field(field), lid(lid) {}
 			string getName() {return name;}
 			string getRoot() {return root;}
 			string getField() {return field;}
+			LogicalID* getLogicalID() {return lid;}
 	};
 
 }

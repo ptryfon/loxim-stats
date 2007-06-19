@@ -65,9 +65,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 		int nodeType = tree->type();
 		//tworzenie i usuwanie indeksow nie podlega transakcjom
 		if (nodeType == (TreeNode::TNINDEXDDL)) {
-			IndexNode *id = (dynamic_cast< IndexNode*>(tree));
-			errcode = id->execute(result);
-			//*result = new QueryNothingResult();
+			errcode = (dynamic_cast< IndexNode*>(tree))->execute(result);
 			return errcode;	
 		} else	
 		if (! inTransaction) {
