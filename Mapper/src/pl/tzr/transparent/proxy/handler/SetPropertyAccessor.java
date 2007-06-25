@@ -20,13 +20,8 @@ public class SetPropertyAccessor implements PropertyAccessor<Set> {
 		
 		CollectionPropertyInfo castedPropertyInfo = 
 			(CollectionPropertyInfo)propertyInfo;
-		
-		
-		/* TODO - co gdy zbiór został już pobrany z bazy danych? - jakieś
-		 * cache'owanie obiektów
-		 */ 
-		
-		PersistentSet set = new PersistentSet(parent, propertyInfo.getPropertyName(), 
+				
+		PersistentSet set = new PersistentSet(parent, propertyInfo.getNodeName(), 
 				castedPropertyInfo.getItemClass(), session);
 		
 		return set;
@@ -43,7 +38,7 @@ public class SetPropertyAccessor implements PropertyAccessor<Set> {
 		for (Object item : data) {
 			
 			Node itemNode = session.getDatabaseContext().getModelRegistry().
-				createNodeRepresentation(item, propertyInfo.getPropertyName(), session);
+				createNodeRepresentation(item, propertyInfo.getNodeName(), session);
 			
 			parent.addChild(itemNode);
 			

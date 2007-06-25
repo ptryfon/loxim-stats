@@ -1,7 +1,6 @@
 package pl.tzr.transparent.proxy.collection;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -21,19 +20,16 @@ public class PersistentSet<E> implements Set<E> {
 	private final TransparentSession session;
 	
 	private final Class clazz;
-	
-	private Set<Node> itemNodes;
-	
+		
 	private class CustomIterator implements Iterator<E> {
 		
 		private Iterator<Node> nodeIterator;
 		
 		private Node lastNode;
 		
-		public CustomIterator() {
-			
-			fetchChildren();			
-			nodeIterator = itemNodes.iterator();
+		public CustomIterator(Collection<Node> nodes) {
+						
+			nodeIterator = nodes.iterator();
 			
 		}
 
@@ -80,18 +76,17 @@ public class PersistentSet<E> implements Set<E> {
 
 	private Object createProxy(Node node) {
 		
-		Object proxy = session.getDatabaseContext().getTransparentProxyFactory().createProxy(node, clazz, session);		
+		Object proxy = session.getDatabaseContext().
+            getTransparentProxyFactory().createProxy(node, clazz, session);		
 		return proxy;
 		
 	}
 
-	private void fetchChildren(){
-		
+	private Collection<Node> fetchChildren(){
+               		
 		try {
-		
-			if (itemNodes == null) {			
-				itemNodes = new HashSet<Node>(parentNode.getChildNodes(propertyName));			
-			}
+            
+            return parentNode.getChildNodes(propertyName);
 		
 		} catch (SBQLException e) {
 			throw new RuntimeException(e);
@@ -101,12 +96,13 @@ public class PersistentSet<E> implements Set<E> {
 
 	
 	public boolean contains(Object arg) {
-		if (!session.getDatabaseContext().getTransparentProxyFactory().isProxy(arg)) return false;
-				
-		fetchChildren();			
-		Node node = session.getDatabaseContext().getTransparentProxyFactory().getNodeOfProxy(arg);
+		if (!session.getDatabaseContext().
+                getTransparentProxyFactory().isProxy(arg)) return false;
+        
+		Node node = session.getDatabaseContext().
+            getTransparentProxyFactory().getNodeOfProxy(arg);
 						
-		return (itemNodes.contains(node));
+		return (parentNode.isChild(node));
 		
 	}
 
@@ -121,14 +117,13 @@ public class PersistentSet<E> implements Set<E> {
 	}
 
 	public boolean isEmpty() {
-		
-		fetchChildren();		
-		return (itemNodes.isEmpty());
+				
+		return (parentNode.childAmount(propertyName) == 0);
 				
 	}
 
 	public Iterator<E> iterator() {
-		return new CustomIterator();
+		return new CustomIterator(fetchChildren());
 	}
 	
 	public boolean add(Object item) {
@@ -138,15 +133,13 @@ public class PersistentSet<E> implements Set<E> {
 		
 		try {
 			
-			if (parentNode.isChild(node)) {
-				
+			if (!node.isDetached() && parentNode.isChild(node)) {
+                
 				return false;
 				
 			} else {
 
 				parentNode.addChild(node);
-				
-				if (itemNodes != null) itemNodes.add(node);
 				
 				return true;
 				
@@ -162,9 +155,7 @@ public class PersistentSet<E> implements Set<E> {
 			throw new TransparentDeletedException(e);
 			
 		}
-							
-		/* TODO - what if there is any iterator ? */
-		
+									
 	}
 
 	public boolean addAll(Collection args) {
@@ -187,12 +178,15 @@ public class PersistentSet<E> implements Set<E> {
 
 	public boolean remove(Object item) {
 		
-		Node node = session.getDatabaseContext().getModelRegistry().
-			createNodeRepresentation(item, propertyName, session);
+	    if (!session.getDatabaseContext().getTransparentProxyFactory().isProxy(item)) 
+            return false;
+        
+        Node node = session.getDatabaseContext().
+            getTransparentProxyFactory().getNodeOfProxy(item);
 		
 		try {
 
-			if (parentNode.isChild(node)) {
+			if (!parentNode.isChild(node)) {
 				
 				/* Apparently cannot happen */				
 				return false;
@@ -200,7 +194,7 @@ public class PersistentSet<E> implements Set<E> {
 			} else {
 	
 				node.delete();				
-				if (itemNodes != null) itemNodes.remove(node);				
+				
 				return true;
 				
 			}
@@ -236,9 +230,8 @@ public class PersistentSet<E> implements Set<E> {
 		return isChanged;				
 	}
 
-	public int size() {		
-		fetchChildren();
-		return (itemNodes.size());
+	public int size() {
+        return parentNode.childAmount(propertyName);
 	}
 
 	public Object[] toArray() {

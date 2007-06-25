@@ -2,8 +2,12 @@ package pl.tzr.test.data;
 
 import java.util.Set;
 
-import pl.tzr.transparent.structure.annotation.PersistentSet;
+import pl.tzr.transparent.structure.annotation.Node;
+import pl.tzr.transparent.structure.annotation.OnRemoveAction;
+import pl.tzr.transparent.structure.annotation.Persistent;
+import pl.tzr.transparent.structure.annotation.ComponentSet;
 
+@Node(nodeName="PART")
 public interface Part {
 
 	int getDetailCost();
@@ -22,11 +26,14 @@ public interface Part {
 
 	void setName(String name);
 
-	@PersistentSet(itemType=Component.class)
+    @Persistent(nodeName="component2")
+	@ComponentSet(itemType=Component.class)
 	Set<Component> getComponent();
 
 	void setComponent(Set<Component> component);
 	
+    @Persistent(nodeName="single")
+    @pl.tzr.transparent.structure.annotation.Component(onRemove=OnRemoveAction.DELETE)
 	Component getSingleComponent();
 
 	void setSingleComponent(Component singleComponent);

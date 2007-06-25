@@ -109,7 +109,15 @@ public interface Node {
 	 * @param node
 	 * @throws SBQLException
 	 */
-	boolean isChild(Node childNode) throws SBQLException;
+	boolean isChild(Node childNode);
+    
+    /**
+     * Returns amount of the nodes children containing specified name
+     * @param name
+     *  name of the child name to count
+     * @return amount of the child nodes with specified name
+     */
+    int childAmount(String name);
 	
 	/**
 	 * Removes all children of the node having specified name

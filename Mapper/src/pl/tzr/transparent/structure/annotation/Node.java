@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-public @interface PersistentSet {
-	Class itemType();
+@Target(ElementType.TYPE)
+public @interface Node {
+    String nodeName() default "";
 }

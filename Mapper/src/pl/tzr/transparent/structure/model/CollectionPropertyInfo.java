@@ -13,12 +13,13 @@ public class CollectionPropertyInfo extends PropertyInfo {
 	private final Class itemClass;
 	
 	public CollectionPropertyInfo(
-			final String propertyName, 
+			final String propertyName,
+            final String nodeName,
 			final Class clazz, 
 			final Class itemClass, 
 			final PropertyAccessor typeHandler) {
 		
-		super(propertyName, clazz, typeHandler);
+		super(propertyName, nodeName, clazz, typeHandler);
 		this.itemClass = itemClass;
 	}
 

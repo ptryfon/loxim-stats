@@ -1,29 +1,21 @@
 Navigator
 ---------
-- jak dodawać nowe obiekty złożone
-
-- cache'owanie wartości
-- modyfikowanie zawartości 
 - usunięcie dziecka
-
 - obsługa odłączania i ponownego podłączania obiektów do sesji
 
 Transparent Mapper
 ------------------
-- usuwanie elementów złożonych
-- usuwanie referencji
-- usuwanie elementów z kolekcji
+- dodawanie do kolekcji elementów które są w roocie
+- przy usuwaniu z kolekcji przenosimy do root'a (konfigurowalne)
+- poprawić testy jednostkowe - dodać asercje
 
 - zbiory oparte na referencjach
+- w momencie usuwania obiektu należy przenieść go do roota (konfigurowalne)
 
-- kaskadowe zapisywanie obiektow podlaczonych przez referencje
-- usuwanie składowych obiektów złożonych
-- generalnie usuwanie obiektów
+- sprawdzenie działania w sytuacji, gdy sesja została zakończona
+- odłączanie obiektów z sesji
 
-- handler dla list/map
-
-Ogólne
-------
-- napisac javadoce po angielsku
-- znaleźć miejsca gdzie możemy mieć nullpointery 
-- znaleźć miejsca gdzie kod jest nie gotowy - oznaczyć przez UnsupportedOperationException()
+Narzędzia do Springa
+--------------------
+- datasource bean
+- manager transakcji

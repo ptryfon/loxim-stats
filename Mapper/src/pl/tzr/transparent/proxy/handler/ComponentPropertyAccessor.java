@@ -8,9 +8,20 @@ import pl.tzr.driver.loxim.exception.SBQLException;
 import pl.tzr.exception.DeletedException;
 import pl.tzr.exception.InvalidDataStructureException;
 import pl.tzr.transparent.TransparentSession;
+import pl.tzr.transparent.structure.annotation.OnRemoveAction;
 import pl.tzr.transparent.structure.model.PropertyInfo;
 
 public class ComponentPropertyAccessor implements PropertyAccessor {
+    
+    private OnRemoveAction onRemoveAction = OnRemoveAction.DELETE; 
+    
+    public ComponentPropertyAccessor() {
+        
+    }
+    
+    public ComponentPropertyAccessor(OnRemoveAction onRemoveAction) {
+        this.onRemoveAction = onRemoveAction;
+    }
 		
 	public Object retrieveFromBase(
 			Node parent, 
@@ -25,7 +36,7 @@ public class ComponentPropertyAccessor implements PropertyAccessor {
 		if (!(value instanceof ComplexValue)) 
 			throw new InvalidDataStructureException();
 		
-		Node foundProxy = parent.getUniqueChildNode(propertyInfo.getPropertyName());
+		Node foundProxy = parent.getUniqueChildNode(propertyInfo.getNodeName());
 		
 		if (foundProxy == null) return null;
 		
@@ -47,31 +58,49 @@ public class ComponentPropertyAccessor implements PropertyAccessor {
 		ObjectValue value = parent.getValue();
 		if (!(value instanceof ComplexValue)) throw new InvalidDataStructureException();
 		
-		Node foundNode = parent.getUniqueChildNode(propertyInfo.getPropertyName());
+		Node foundNode = parent.getUniqueChildNode(propertyInfo.getNodeName());
 		
 		if (foundNode == null) {
 			if (data != null) {
 				/* Create new node */				
 				Node newNode = session.getDatabaseContext().
 					getModelRegistry().
-					createNodeRepresentation(data, propertyInfo.getPropertyName(), session);
+					createNodeRepresentation(data, propertyInfo.getNodeName(), session);
 				parent.addChild(newNode);
 			}
 			
 		} else {
 			if (data != null) {
 				/* Delete existing node and create new one */
-				foundNode.delete();
+                
+                    
+		        detachOldNode(foundNode);
+                
+
 				Node newNode = session.getDatabaseContext().
 					getModelRegistry().
-					createNodeRepresentation(data, propertyInfo.getPropertyName(), session);
+					createNodeRepresentation(data, propertyInfo.getNodeName(), session);
 				parent.addChild(newNode);				
 			} else {
 				/* Remove existing node */
-				foundNode.delete();
+                detachOldNode(foundNode);
 			}
 		}		
 		
 	}		
+    
+    private void detachOldNode(Node node) throws SBQLException {
+               
+        switch (onRemoveAction) {
+            case DELETE:
+                node.delete();
+                break;
+            case MOVE_TO_ROOT:
+                throw new UnsupportedOperationException();
+            default:
+                throw new UnsupportedOperationException();
+        }
+        
+    }
 	
 }

@@ -151,12 +151,18 @@ public class LoximNode implements Node {
 		return detached;
 	}
 	
-	public boolean isChild(Node childNode) throws SBQLException {
+	public boolean isChild(Node childNode) {
 				
 		return owningSession.getExecutor().isChild(this, childNode);
 	}
+    
+    
 
-	public void removeAllChildren(String childName) throws SBQLException {
+	public int childAmount(String name) {
+        return owningSession.getExecutor().childAmount(this, name);
+    }
+
+    public void removeAllChildren(String childName) throws SBQLException {
 		
 		owningSession.getExecutor().removeAllChildren(this, childName);
 		

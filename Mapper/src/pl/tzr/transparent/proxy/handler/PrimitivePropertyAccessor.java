@@ -22,7 +22,7 @@ public abstract class PrimitivePropertyAccessor<T> implements PropertyAccessor<T
 		if (!(value instanceof ComplexValue)) 
 			throw new InvalidDataStructureException();
 		
-		Node foundNode = parent.getUniqueChildNode(info.getPropertyName());
+		Node foundNode = parent.getUniqueChildNode(info.getNodeName());
 		if (foundNode == null) {
 			return null;
 		} else {
@@ -43,25 +43,23 @@ public abstract class PrimitivePropertyAccessor<T> implements PropertyAccessor<T
 		ObjectValue value = parent.getValue();
 		if (!(value instanceof ComplexValue)) throw new InvalidDataStructureException();
 		
-		Node foundNode = parent.getUniqueChildNode(propertyInfo.getPropertyName());
+		Node foundNode = parent.getUniqueChildNode(propertyInfo.getNodeName());
 		
 		if (foundNode == null) {
 			if (data != null) {
 				/* Create new node */
 				ObjectValue newValue = createPrimitiveValue(data, propertyInfo, session);
-				Node newNode = new LoximNode(propertyInfo.getPropertyName(), newValue);
+				Node newNode = new LoximNode(propertyInfo.getNodeName(), newValue);
 				parent.addChild(newNode);
 			}
 			
 		} else {
 			if (data != null) {
 				/* Change existing node */
-				/* TODO - support for cascade deletion */
 				ObjectValue newValue = createPrimitiveValue(data, propertyInfo, session);
 				foundNode.setValue(newValue);				
 			} else {
 				/* Remove existing node */
-				/* TODO - support for cascade deletion */
 				foundNode.delete();
 			}
 		}

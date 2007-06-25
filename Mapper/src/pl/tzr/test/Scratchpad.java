@@ -46,7 +46,7 @@ public class Scratchpad {
 			
 			ResultReference ref = (ResultReference)(((ResultBag)result).getItems().get(0));
 			
-			Result result2 = sc.executeParam("line exists ref(point) = ?", ref);
+			Result result2 = sc.executeParam("line.point intersect ?", ref);
 			
 			System.out.println(((ResultBag)result2).getItems().get(0));
 					
