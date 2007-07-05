@@ -5,12 +5,16 @@ import java.util.Set;
 
 public class PartImpl implements Part {
 
-	String name;
+
+
+    String name;
 	String kind;
 	int detailCost;
 	int detailMass;
 	
 	Set<Component> component = new HashSet<Component>();
+    
+    Set<Component> referenceComponent = new HashSet<Component>();
 	
 	Component singleComponent;
 	
@@ -64,5 +68,12 @@ public class PartImpl implements Part {
 		this.singleComponent = singleComponent;
 	}
 
+    public Set<Component> getReferenceComponent() {
+        return referenceComponent;
+    }
+
+    public void setReferenceComponent(Set<Component> component) {
+        referenceComponent = component;
+    }    
 	
 }

@@ -1,10 +1,12 @@
 package pl.tzr.test;
 
-import javax.xml.ws.ServiceMode;
+import java.util.HashSet;
+import java.util.Set;
+
+import junit.framework.TestCase;
 
 import org.junit.Test;
 
-import junit.framework.TestCase;
 import pl.tzr.driver.loxim.LoximDatasourceImpl;
 import pl.tzr.exception.TransparentDeletedException;
 import pl.tzr.test.data.Component;
@@ -16,9 +18,7 @@ import pl.tzr.transparent.TransparentSession;
 import pl.tzr.transparent.TransparentSessionFactory;
 
 public class TransparentTest extends TestCase {
-    
-    /* FIXME - make proper assertions for that */
-    
+        
     TransparentSessionFactory transparentSessionFactory;
     
     TransparentSession transparentSession;
@@ -77,20 +77,23 @@ public class TransparentTest extends TestCase {
 		part.setSingleComponent(component1);
 		
 		Part persistentPart = (Part)transparentSession.persist(part);
+        
+        assertNotNull(persistentPart);
+        
+        /* Access to created part */
+        assertEquals("Tail", persistentPart.getName());
+        assertEquals("normal", persistentPart.getKind());
+        assertEquals(30, persistentPart.getDetailCost());
+        assertEquals(77, persistentPart.getDetailMass());
 								
-				
-		/* Access to created part */															
-		System.out.println(persistentPart.getName());
-		System.out.println(persistentPart.getKind());
-		System.out.println(persistentPart.getDetailCost());
 		
 		/* Modify simple property of created part */
 		persistentPart.setDetailCost(88);
 		
-		/* Display properties of the component */		
-		System.out.println("component amount=" + persistentPart.getSingleComponent().getAmount());
-		System.out.println("component leads to=" + persistentPart.getSingleComponent().getLeadsTo().getName());
-								
+		/* Access properties of the component */
+        assertEquals(3, persistentPart.getSingleComponent().getAmount());
+        assertEquals("Screw", persistentPart.getSingleComponent().getLeadsTo().getName());
+        								
 		transparentSession.commit();
 		
 	}
@@ -128,16 +131,17 @@ public class TransparentTest extends TestCase {
     	persistentPart.setSingleComponent(component1);
     					
     	/* Access to created part */															
-    	System.out.println(persistentPart.getName());
-    	System.out.println(persistentPart.getKind());
-    	System.out.println(persistentPart.getDetailCost());
+        assertEquals("Tail", persistentPart.getName());
+        assertEquals("normal", persistentPart.getKind());
+        assertEquals(30, persistentPart.getDetailCost());
+        assertEquals(77, persistentPart.getDetailMass());
     	
     	/* Modify simple property of created part */
     	persistentPart.setDetailCost(88);
     	
     	/* Display properties of the component */		
-    	System.out.println("component amount=" + persistentPart.getSingleComponent().getAmount());
-    	System.out.println("component leads to=" + persistentPart.getSingleComponent().getLeadsTo().getName());
+        assertEquals(3, persistentPart.getSingleComponent().getAmount());
+        assertEquals("Screw", persistentPart.getSingleComponent().getLeadsTo().getName());
     	
     	transparentSession.commit();
 		
@@ -157,11 +161,11 @@ public class TransparentTest extends TestCase {
 		part.setName("Tail");								
 		
 		Part persistentPart = (Part)transparentSession.persist(part);
-								
-		System.out.println("Before attribute deletion:" + persistentPart.getKind());
+        
+        assertEquals("normal", persistentPart.getKind());								
 		persistentPart.setKind(null);
-		System.out.println("After attribute deletion:" + persistentPart.getKind());
-		System.out.println(persistentPart.getDetailCost());
+        assertEquals(null, persistentPart.getKind());
+		assertEquals(30, persistentPart.getDetailCost());
 											
 		transparentSession.commit();
 
@@ -190,16 +194,16 @@ public class TransparentTest extends TestCase {
 		
 		Component persistentComp = persistentPart.getSingleComponent();
 								
-		System.out.println("Before attribute deletion:" + persistentComp.getAmount());
+        assertEquals(33, persistentComp.getAmount());
 		persistentPart.setSingleComponent(null);
-		System.out.println("After attribute deletion (should be null):" + persistentPart.getSingleComponent());
+        assertNull(persistentPart.getSingleComponent());		
 		
-		try {
-			/* persistentComp has been deleted - exception is thrown when you try to access it */ 
+		try {			 
 			persistentComp.getAmount();
-			throw new IllegalStateException();
+			fail();
 		} catch (TransparentDeletedException e) {
-			System.out.println("Properly throw of the exception");	
+            /* persistentComp has been deleted
+             * An exception is thrown when you try to access it */
 		}
 		
 		transparentSession.commit();
@@ -238,19 +242,20 @@ public class TransparentTest extends TestCase {
 		Component persistentComp = persistentPart.getSingleComponent();
 		
 		persistentComp.setLeadsTo(persistentPart2);
-								
-		System.out.println("Before reference target deletion:" + persistentComp.getLeadsTo());
-		
+        
+        assertEquals("Tail", persistentComp.getLeadsTo().getName());
+												
 		transparentSession.delete(persistentPart2);
-		
-		System.out.println("After attribute deletion (should be null):" + persistentComp.getLeadsTo());
-		
+        
+        assertNull(persistentComp.getLeadsTo());
+				
 		try {
 			
 			persistentPart2.getDetailCost();
-			throw new IllegalStateException();
+            fail();
+
 		} catch (TransparentDeletedException e) {
-			System.out.println("Properly throw of the exception");	
+            /* An exception thrown properly*/
 		}
 																	
 		transparentSession.commit();
@@ -277,17 +282,25 @@ public class TransparentTest extends TestCase {
         c1.setAmount(1);
         
         Component c2 = new ComponentImpl();
-        c2.setAmount(1);
+        c2.setAmount(2);
         
         persistentPart.getComponent().add(c1);
         
         persistentPart.getComponent().add(c2);
         
+        
+        boolean wasC1 = false;
+        boolean wasC2 = false;
+        
         for (Component c : persistentPart.getComponent()) {
             
-            System.out.println(c.getAmount());
+            if (c.getAmount() == 1) wasC1 = true;
+            if (c.getAmount() == 2) wasC2 = true;
+            
             
         }
+        
+        assertTrue(wasC1 && wasC2);
         
         Component c = persistentPart.getComponent().iterator().next();
         
@@ -302,65 +315,98 @@ public class TransparentTest extends TestCase {
         assertEquals(1, persistentPart.getComponent().size());
         
     }
+    
+    @Test 
+    public void testReferenceSet() throws Exception {
+        
+        Part part = new PartImpl();            
+        part.setDetailCost(30);
+        part.setDetailMass(77);
+        part.setKind("normal");
+        part.setName("Tail");
+
+        Part persistentPart = (Part)transparentSession.persist(part);
+        
+        Set<Component> transientComponents = new HashSet<Component>();
+        
+        Component comp1 = new ComponentImpl();
+        comp1.setAmount(1);        
+        Component persistentComp1 = (Component)transparentSession.persist(comp1);
+        
+        Component comp2 = new ComponentImpl();
+        comp2.setAmount(2);        
+
+        Component persistentComp2 = (Component)transparentSession.persist(comp2);
+        
+        /* Add to transient set */
+        transientComponents.add(persistentComp1);
+        transientComponents.add(persistentComp2);
+        
+        persistentPart.setReferenceComponent(transientComponents);
+        
+        //
+        
+        Set<Component> persistentSet = persistentPart.getReferenceComponent(); 
+        
+        assertNotNull(persistentSet);
+        
+        //assertFalse(persistentPart.getReferenceComponent().isEmpty());
+        
+        assertEquals(2, persistentPart.getReferenceComponent().size());
+        
+        /* Add to persistent set */
+        Component comp3 = new ComponentImpl();
+        comp3.setAmount(3);
+        Component persistentComp3 = (Component)transparentSession.persist(comp3);
+        
+        persistentSet.add(persistentComp3);
+        
+        assertEquals(3, persistentPart.getReferenceComponent().size());
+        
+        //transparentSession.commit();
+        
+        boolean wasComp1 = false;
+        boolean wasComp2 = false;
+        boolean wasComp3 = false;                
+        
+        for (Component comp : persistentPart.getReferenceComponent()) {
+            
+            switch (comp.getAmount()) {
+            case 1: 
+                wasComp1 = true;
+                break;
+            case 2:
+                wasComp2 = true;
+                break;
+            case 3:
+                wasComp3 = true;
+                break;
+            default:
+                fail();
+            }
+
+        }
+        
+        assertTrue(wasComp1);
+        assertTrue(wasComp2);
+        assertTrue(wasComp3);
+        
+        assertTrue(persistentSet.contains(persistentComp2));
+        
+        persistentSet.remove(persistentComp2);
+        
+        assertFalse(persistentSet.contains(persistentComp2));
+        
+        assertEquals(2, persistentSet.size());
+               
+    }
+    
+    @Test
+    public void testPrimitiveSet() {
+        /* TODO */
+    }	
 	
-	
-
-//	private void testTransparentProxying() throws Exception {
-//						
-//		/* Start new session */
-//		
-//		TransparentSession transparentSession = transparentSessionFactory.getCurrentSession();
-//		
-//		try {			
-//
-//			Set<Object> results = transparentSession
-//					.find("Part", Part.class);
-//
-//			/* Odczytujemy wszystkie elementy typu Part */
-//
-//			for (Object item : results) {
-//
-//				Part part = (Part) item;
-//
-//				System.out.println("Part name=" + part.getName());
-//
-//				System.out.println("Components of the part:");
-//
-//				if (part.getComponent() != null) {
-//
-//					
-//					for (Component comp : part.getComponent()) {
-//						System.out.println("- component leadsTo "
-//								+ comp.getLeadsTo().getName());
-//						System.out.println(" -component amount ="
-//								+ comp.getAmount());
-//
-//						/* Dokonujemy modyfikacji bazy */
-//						comp.setAmount(comp.getAmount() + 1);
-//
-//					}
-//				
-//				}
-//
-//				System.out.println();
-//
-//			}
-//			
-//			transparentSession.commit();
-//
-//		} catch (Exception e) {
-//			
-//			transparentSession.rollback();
-//			
-//			throw e;
-//
-//		}
-//		
-//		
-//
-//	}
-
-
+//TODO Write tests of querying
 
 
 }

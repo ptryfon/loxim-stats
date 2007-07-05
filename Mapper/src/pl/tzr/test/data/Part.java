@@ -6,6 +6,7 @@ import pl.tzr.transparent.structure.annotation.Node;
 import pl.tzr.transparent.structure.annotation.OnRemoveAction;
 import pl.tzr.transparent.structure.annotation.Persistent;
 import pl.tzr.transparent.structure.annotation.ComponentSet;
+import pl.tzr.transparent.structure.annotation.ReferenceSet;
 
 @Node(nodeName="PART")
 public interface Part {
@@ -37,5 +38,12 @@ public interface Part {
 	Component getSingleComponent();
 
 	void setSingleComponent(Component singleComponent);
+    
+    
+    @Persistent(nodeName="component3")
+    @ReferenceSet(itemType=Component.class)
+    Set<Component> getReferenceComponent();
+    
+    public void setReferenceComponent(Set<Component> component);
 
 }

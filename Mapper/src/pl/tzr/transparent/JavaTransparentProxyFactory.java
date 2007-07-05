@@ -47,8 +47,7 @@ public class JavaTransparentProxyFactory implements TransparentProxyFactory {
 	}
 	
 	private Class getDesiredClass(Node proxy, DatabaseContext context) {
-		context.getModelRegistry().getClassInfo(proxy.getName());
-		return Part.class;
+		return context.getModelRegistry().getClassInfo(proxy.getName()).getClazz();
 	}
 
 	public Node getNodeOfProxy(Object object) {

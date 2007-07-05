@@ -48,6 +48,11 @@ public class ObjectCreator implements ValueVisitor {
 			throw new IllegalStateException("Tried to persist reference to detached object");
 		createdObject = new ResultReference(referenceValue.getTargetNode().getReference());		
 	}	
+    
+    public Result createResult(ObjectValue value) {
+        value.visit(this);
+        return this.createdObject;
+    }
 	
 	public String create(String objectName, ObjectValue value) {
 		

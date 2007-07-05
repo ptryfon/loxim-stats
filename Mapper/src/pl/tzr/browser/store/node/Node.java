@@ -46,7 +46,7 @@ public interface Node {
 	/**
 	 * Gets child nodes of the object if object is complex
 	 * TODO Should throw an axception if object is not complex
-	 * @param propertyName
+	 * @param nodeName
 	 * @return
 	 * @throws SBQLException
 	 */
@@ -55,7 +55,7 @@ public interface Node {
 	/**
 	 * Gets allchild nodes of the object if object is complex
 	 * TODO Should throw an axception if object is not complex
-	 * @param propertyName
+	 * @param nodeName
 	 * @return
 	 * @throws SBQLException
 	 */
@@ -65,7 +65,7 @@ public interface Node {
 	 * Gets the unique child node of the object. Throws an exception
 	 * if object has more than one child nodes, returns null if object
 	 * doesn't contain any child nodes 
-	 * @param propertyName
+	 * @param nodeName
 	 * @return
 	 * @throws SBQLException
 	 */
@@ -126,5 +126,14 @@ public interface Node {
 	 * @throws SBQLException
 	 */
 	void removeAllChildren(String childName) throws SBQLException;
+    
+    /**
+     * Searches for the nodes having a children with provided name and provided
+     * value
+     * @param name expected name of the children
+     * @param value expected value of the children
+     * @return collection of nodes fullfiling the criteria
+     */
+    Collection<Node> hasChildOfValue(String name, ObjectValue value);
 
 }

@@ -11,7 +11,9 @@ import pl.tzr.exception.DeletedException;
 
 public class LoximNode implements Node {
 
-	private String ref;
+
+
+    private String ref;
 	
 	private String name;
 	
@@ -166,7 +168,11 @@ public class LoximNode implements Node {
 		
 		owningSession.getExecutor().removeAllChildren(this, childName);
 		
-	}	
+	}
+    
+    public Collection<Node> hasChildOfValue(String name, ObjectValue value) {
+        return owningSession.getExecutor().findChildsOfValue(this, name, value);
+    }    
 	
 //	protected void markAsDeleted() throws SBQLException {
 //		

@@ -30,7 +30,7 @@ public interface Executor {
 	 * Returns object's child nodes of provided name
 	 * @param parentRef
 	 * 		reference to parent object
-	 * @param propertyName
+	 * @param nodeName
 	 * 		name of the child node
 	 * @return
 	 * 		collection of the child noded of provided name

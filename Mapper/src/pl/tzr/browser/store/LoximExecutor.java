@@ -303,7 +303,37 @@ public class LoximExecutor implements Executor {
         
         throw new UnsupportedOperationException();
 
-    }    
+    }   
+    
+    public Set<Node> findChildsOfValue(
+            Node parent, String name, ObjectValue value) {
+        
+        Result valueResult = objectCreator.createResult(value);
+        
+        Result result = executeQuery("(?." + name + " as tmp).(tmp as ptr, deref(tmp) intersect ? as cont).ptr",
+                new ResultReference(parent.getReference()),
+                valueResult);
+
+        Set<Node> results = new HashSet<Node>();
+        
+        try {
+
+            for (Result item : ((ResultBag) result).getItems()) {
+                
+                ResultReference refItem = (ResultReference)item;
+                
+                Node newObject = loximSession.createNode(refItem.getRef(), name);
+                results.add(newObject);
+
+            }
+
+        } catch (ClassCastException e) {
+            throw new InvalidDataStructureException();
+        }
+
+        return results;
+        
+    }
 
     private Result executeQuery(String query, Result... params) {
         try {

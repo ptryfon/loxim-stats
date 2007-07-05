@@ -9,13 +9,15 @@ import java.util.Set;
 import pl.tzr.transparent.proxy.handler.ComponentPropertyAccessor;
 import pl.tzr.transparent.proxy.handler.PropertyAccessor;
 import pl.tzr.transparent.proxy.handler.ReferencePropertyAccessor;
-import pl.tzr.transparent.proxy.handler.SetPropertyAccessor;
+import pl.tzr.transparent.proxy.handler.ComponentSetPropertyAccessor;
+import pl.tzr.transparent.proxy.handler.ReferenceSetPropertyAccessor;
 import pl.tzr.transparent.proxy.handler.registry.AccessorRegistry;
 import pl.tzr.transparent.structure.annotation.Component;
 import pl.tzr.transparent.structure.annotation.Node;
 import pl.tzr.transparent.structure.annotation.Persistent;
 import pl.tzr.transparent.structure.annotation.ComponentSet;
 import pl.tzr.transparent.structure.annotation.Reference;
+import pl.tzr.transparent.structure.annotation.ReferenceSet;
 
 /**
  * Data model factory componet wich creates data model and mapping definition
@@ -128,13 +130,27 @@ public class SimpleAnnotatedModelRegistryFactory implements
 
             if (!(Set.class.isAssignableFrom(returnType)))
                 throw new IllegalStateException(
-                        "Niewlasciwy typ danych dla obiektu klasy PersistentSet");
+                        "Niewlasciwy typ danych dla obiektu klasy ComponentSet");
 
             propertyInfo = new CollectionPropertyInfo(propertyName, 
                     nodeName, Set.class,
                     persistentSetAnnotation.itemType(),
-                    new SetPropertyAccessor());
+                    new ComponentSetPropertyAccessor());
 
+        } else if (annotationMap.containsKey(ReferenceSet.class)) {
+
+            ReferenceSet persistentSetAnnotation = (ReferenceSet) annotationMap
+            .get(ReferenceSet.class);
+
+            if (!(Set.class.isAssignableFrom(returnType)))
+                throw new IllegalStateException(
+                        "Niewlasciwy typ danych dla obiektu klasy ComponentSet");
+        
+            propertyInfo = new CollectionPropertyInfo(propertyName, 
+                    nodeName, Set.class,
+                    persistentSetAnnotation.itemType(),
+                    new ReferenceSetPropertyAccessor());
+            
         } else if (annotationMap.containsKey(Reference.class)) {
 
             propertyInfo = new PropertyInfo(propertyName, nodeName, returnType,
@@ -158,6 +174,8 @@ public class SimpleAnnotatedModelRegistryFactory implements
         } else {
             
             /* Default mapping is the reference */
+            
+            /* TODO - check whether the target type is properly mapped */
             
             propertyInfo = new PropertyInfo(propertyName, nodeName, returnType,
                     new ReferencePropertyAccessor());

@@ -1,19 +1,21 @@
 Navigator
 ---------
+- warstwa browsera powinna wyrzucać tylko niesprawdzane wyjątki
 - usunięcie dziecka
 - obsługa odłączania i ponownego podłączania obiektów do sesji
+- napisanie testów jednostkowych
 
 Transparent Mapper
 ------------------
+- zbiory prymitywów
+- sprawdzenie działania w sytuacji, gdy sesja została zakończona
+- odłączanie obiektów z sesji i ponowne ich podłączanie
+- napisać testy do zapytań
+
 - dodawanie do kolekcji elementów które są w roocie
 - przy usuwaniu z kolekcji przenosimy do root'a (konfigurowalne)
-- poprawić testy jednostkowe - dodać asercje
-
-- zbiory oparte na referencjach
 - w momencie usuwania obiektu należy przenieść go do roota (konfigurowalne)
-
-- sprawdzenie działania w sytuacji, gdy sesja została zakończona
-- odłączanie obiektów z sesji
+(jak to zrobić?)
 
 Narzędzia do Springa
 --------------------
