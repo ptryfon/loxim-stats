@@ -413,21 +413,15 @@ void printUsage() {
 /** 
  * \mainpage LoXiM
  *
- * \section intro_sec Introduction
- * 
- *  W zalaczeniu dokumentacja wygenerowana na podstawie komentarzy w zrodlach. 
- *  Na razie zrobilem tylko \link SBQLCli/SBQLCli.cpp \endlink. Nie wyglada to moze imponujaco, ale jezeli skomentuje
- *  sie odpowiednio wszystkie klasy, to powinien narysowac drzewo klas, relacje dziedziczenia itd.
+ *  This is the generated documentation of LoXiM - an experimental database
+ *  management system. 
  *
- *  Prosze zauwazyc, ze ktos kto komentowac \link QCacher \endlink uzyl komentarzy (prawie) zgodnych 
- *  z JavaDoc i jego komentarze tez zostaly wlaczone do dokumentacji.
- * 
- * \section Installation
- * \subsection inst_step_1 Step 1:
- *  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Donec elit lacus, vestibulum ac, auctor in, pharetra quis, diam. Mauris hendrerit, magna id feugiat laoreet, massa odio mattis sem, id lacinia lectus risus a sapien. Nulla sapien dolor, congue vel, interdum et, tincidunt ut, nulla. Nam euismod felis. Sed in urna pharetra orci auctor venenatis. Quisque massa pede, porttitor ac, suscipit non, hendrerit id, lectus. Sed imperdiet neque nec urna. Integer non nisl vitae mi aliquet egestas. Donec nisl sem, aliquam nec, malesuada eu, nonummy sit amet, neque. Vivamus lacinia lobortis pede. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Praesent tortor lorem, euismod at, pharetra at, egestas bibendum, nunc. Cras ligula diam, adipiscing et, dignissim id, posuere in, quam. Pellentesque egestas libero at felis. Fusce mollis, tortor at auctor varius, nisi nisi porta magna, eu faucibus sapien quam eget magna.
- *  In massa enim, placerat vitae, tempus in, ultricies et, ante. Vivamus mollis mi ac sapien. Phasellus aliquet congue quam. Nunc non leo. Fusce eget felis. Suspendisse potenti. Nullam vitae justo ac enim ullamcorper mattis. Integer venenatis tincidunt enim. Nam imperdiet ornare dui. Morbi cursus. Cras eu magna vel ante dapibus consequat.
- * \subsection inst_step_2 Step 2:
- *  Ut at enim. Donec bibendum ipsum et elit. Proin gravida felis a neque. Aenean justo ligula, venenatis sed, tincidunt ut, malesuada non, sapien. Sed aliquam lorem in ligula. Aenean est massa, dapibus eu, semper sagittis, dignissim ac, sapien. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Fusce vitae sem at velit hendrerit sodales. Suspendisse pulvinar libero et nibh. Fusce euismod justo vel turpis. Praesent vitae neque viverra erat lacinia tincidunt. Vivamus tristique pulvinar eros. Ut at est sit amet urna pellentesque pharetra. Ut in lorem.
- *  Vestibulum vitae lorem non dolor sollicitudin sagittis. Aliquam at dolor nec erat rutrum fermentum. Aliquam non mauris. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Morbi dapibus venenatis mauris. Pellentesque justo mi, lacinia non, molestie sed, ornare id, arcu. Donec a augue. Nunc faucibus. Phasellus vestibulum, mauris quis mattis egestas, neque pede consequat dui, eu semper nunc est eget pede. Phasellus ipsum. Nullam a nisi vel velit posuere fermentum.
- *  Cras non massa non ligula imperdiet hendrerit. Duis ultrices, lacus a semper adipiscing, mauris nisl convallis sapien, quis varius odio pede ut nunc. Curabitur venenatis. Morbi nec diam eget felis tincidunt aliquam. In hac habitasse platea dictumst. Donec adipiscing risus ut mi. Phasellus sed ligula a odio feugiat adipiscing. Vestibulum eleifend viverra metus. Pellentesque urna. Phasellus nonummy condimentum nulla. Aenean pede enim, pharetra vitae, ultrices vel, dignissim at, orci. Vestibulum malesuada. Vivamus tempus. Sed venenatis, nunc quis auctor pellentesque, mi purus congue mi, et pretium nibh dolor vel ante.
+ *  The main (entry) class of the server is Server::Listener. 
+ *
+ *  The main (entry) class of an example client is SBQLCli::SBQLCli.
+ *
+ *  To run the software, simple start the serwer (Server/Listener) 
+ *  and then connect to this server by means of the command line client, i.e.
+ *  SBQLCli/SBQLCli. The configuration of the server is read from 
+ *  file Server.conf.
  */
