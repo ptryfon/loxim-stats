@@ -3,6 +3,7 @@ package pl.tzr.browser.session;
 import java.util.Set;
 
 import pl.tzr.browser.store.node.Node;
+import pl.tzr.browser.store.node.ObjectValue;
 import pl.tzr.driver.loxim.exception.SBQLException;
 import pl.tzr.exception.DeletedException;
 
@@ -20,10 +21,11 @@ public interface Session {
 	 * Executes the query on the database and returns a list of nodes
 	 * with query results.
 	 * @param query
+     * @param params - query parameters
 	 * @return
 	 * @throws SBQLException
 	 */
-	Set<Node> find(String query) throws SBQLException;
+	Set<Node> find(String query, ObjectValue... params) throws SBQLException;
 	
 	/**
 	 * Persists the node with it's subnodes and puts it into the root

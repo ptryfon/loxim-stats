@@ -26,6 +26,6 @@ public class SBQLIOException extends SBQLException {
 	
 	@Override
 	public String getMessage() {
-		return "IOException (module:" + exception.getMessage() + ")";
+		return "IOException:" + exception;
 	}	
 }

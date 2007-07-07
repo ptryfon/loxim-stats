@@ -13,7 +13,6 @@ import pl.tzr.browser.store.node.SimpleValue;
 import pl.tzr.driver.loxim.LoximDatasource;
 import pl.tzr.driver.loxim.LoximDatasourceImpl;
 import pl.tzr.driver.loxim.SimpleConnection;
-import pl.tzr.driver.loxim.result.Result;
 import pl.tzr.exception.DeletedException;
 
 public class BrowserTest {

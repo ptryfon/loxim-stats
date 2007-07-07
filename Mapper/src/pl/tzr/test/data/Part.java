@@ -2,10 +2,11 @@ package pl.tzr.test.data;
 
 import java.util.Set;
 
+import pl.tzr.transparent.structure.annotation.ComponentSet;
 import pl.tzr.transparent.structure.annotation.Node;
 import pl.tzr.transparent.structure.annotation.OnRemoveAction;
 import pl.tzr.transparent.structure.annotation.Persistent;
-import pl.tzr.transparent.structure.annotation.ComponentSet;
+import pl.tzr.transparent.structure.annotation.PrimitiveSet;
 import pl.tzr.transparent.structure.annotation.ReferenceSet;
 
 @Node(nodeName="PART")
@@ -26,6 +27,12 @@ public interface Part {
 	String getName();
 
 	void setName(String name);
+    
+    @Persistent(nodeName="otherName")
+    @PrimitiveSet(itemType=String.class)
+    Set<String> getOtherNames();
+    
+    void setOtherNames(Set<String> otherNames);
 
     @Persistent(nodeName="component2")
 	@ComponentSet(itemType=Component.class)

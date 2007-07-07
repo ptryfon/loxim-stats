@@ -24,7 +24,7 @@ public interface Executor {
 	 * @return
 	 * @throws SBQLException
 	 */
-	Set<Node> executeQuery(String query) throws SBQLException;
+	Set<Node> find(String query, ObjectValue... params) throws SBQLException;
 	
 	/**
 	 * Returns object's child nodes of provided name

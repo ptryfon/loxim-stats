@@ -1,19 +1,10 @@
 package pl.tzr.test;
 
-import pl.tzr.driver.loxim.LoximDatasource;
 import pl.tzr.driver.loxim.LoximDatasourceImpl;
 import pl.tzr.driver.loxim.SimpleConnection;
 import pl.tzr.driver.loxim.result.Result;
 import pl.tzr.driver.loxim.result.ResultBag;
 import pl.tzr.driver.loxim.result.ResultReference;
-import pl.tzr.exception.TransparentDeletedException;
-import pl.tzr.test.data.Component;
-import pl.tzr.test.data.ComponentImpl;
-import pl.tzr.test.data.Part;
-import pl.tzr.test.data.PartImpl;
-import pl.tzr.transparent.SimpleTransparentSessionFactoryImpl;
-import pl.tzr.transparent.TransparentSession;
-import pl.tzr.transparent.TransparentSessionFactory;
 
 public class Scratchpad {
 	

@@ -1,16 +1,17 @@
 Navigator
 ---------
+- zapytania zwracajace prymitywy
 - warstwa browsera powinna wyrzucać tylko niesprawdzane wyjątki
-- usunięcie dziecka
+- usunięcie dziecka (?)
 - obsługa odłączania i ponownego podłączania obiektów do sesji
 - napisanie testów jednostkowych
 
+
 Transparent Mapper
 ------------------
-- zbiory prymitywów
 - sprawdzenie działania w sytuacji, gdy sesja została zakończona
 - odłączanie obiektów z sesji i ponowne ich podłączanie
-- napisać testy do zapytań
+- działanie equals i hashCode
 
 - dodawanie do kolekcji elementów które są w roocie
 - przy usuwaniu z kolekcji przenosimy do root'a (konfigurowalne)
@@ -21,3 +22,4 @@ Narzędzia do Springa
 --------------------
 - datasource bean
 - manager transakcji
+

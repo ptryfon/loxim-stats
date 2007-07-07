@@ -7,15 +7,17 @@ import java.util.Map;
 import java.util.Set;
 
 import pl.tzr.transparent.proxy.handler.ComponentPropertyAccessor;
+import pl.tzr.transparent.proxy.handler.ComponentSetPropertyAccessor;
+import pl.tzr.transparent.proxy.handler.PrimitiveSetPropertyAccessor;
 import pl.tzr.transparent.proxy.handler.PropertyAccessor;
 import pl.tzr.transparent.proxy.handler.ReferencePropertyAccessor;
-import pl.tzr.transparent.proxy.handler.ComponentSetPropertyAccessor;
 import pl.tzr.transparent.proxy.handler.ReferenceSetPropertyAccessor;
 import pl.tzr.transparent.proxy.handler.registry.AccessorRegistry;
 import pl.tzr.transparent.structure.annotation.Component;
+import pl.tzr.transparent.structure.annotation.ComponentSet;
 import pl.tzr.transparent.structure.annotation.Node;
 import pl.tzr.transparent.structure.annotation.Persistent;
-import pl.tzr.transparent.structure.annotation.ComponentSet;
+import pl.tzr.transparent.structure.annotation.PrimitiveSet;
 import pl.tzr.transparent.structure.annotation.Reference;
 import pl.tzr.transparent.structure.annotation.ReferenceSet;
 
@@ -144,12 +146,27 @@ public class SimpleAnnotatedModelRegistryFactory implements
 
             if (!(Set.class.isAssignableFrom(returnType)))
                 throw new IllegalStateException(
-                        "Niewlasciwy typ danych dla obiektu klasy ComponentSet");
+                        "Niewlasciwy typ danych dla obiektu klasy ReferenceSet");
         
             propertyInfo = new CollectionPropertyInfo(propertyName, 
                     nodeName, Set.class,
                     persistentSetAnnotation.itemType(),
                     new ReferenceSetPropertyAccessor());
+            
+        } else if (annotationMap.containsKey(PrimitiveSet.class)) {
+            
+            PrimitiveSet persistentSetAnnotation = (PrimitiveSet) annotationMap
+            .get(PrimitiveSet.class);
+
+            if (!(Set.class.isAssignableFrom(returnType)))
+                throw new IllegalStateException(
+                        "Niewlasciwy typ danych dla obiektu klasy PrimitiveSet");
+        
+            propertyInfo = new CollectionPropertyInfo(propertyName, 
+                    nodeName, Set.class,
+                    persistentSetAnnotation.itemType(),
+                    new PrimitiveSetPropertyAccessor());
+            
             
         } else if (annotationMap.containsKey(Reference.class)) {
 

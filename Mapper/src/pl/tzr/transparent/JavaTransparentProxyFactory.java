@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import pl.tzr.browser.store.node.Node;
-import pl.tzr.test.data.Part;
 import pl.tzr.transparent.proxy.JavaTransparentProxyHandler;
 
 /**

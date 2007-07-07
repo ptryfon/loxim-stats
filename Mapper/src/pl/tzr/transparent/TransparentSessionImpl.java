@@ -5,6 +5,9 @@ import java.util.Set;
 
 import pl.tzr.browser.session.Session;
 import pl.tzr.browser.store.node.Node;
+import pl.tzr.browser.store.node.ObjectValue;
+import pl.tzr.browser.store.node.ReferenceValue;
+import pl.tzr.browser.store.node.SimpleValue;
 import pl.tzr.driver.loxim.exception.SBQLException;
 import pl.tzr.exception.DeletedException;
 import pl.tzr.exception.NestedSBQLException;
@@ -17,7 +20,8 @@ import pl.tzr.exception.TransparentDeletedException;
  *
  */
 public class TransparentSessionImpl implements TransparentSession {
-	private final Session session;
+    	
+    private final Session session;
 	private final DatabaseContext databaseContext;
 	
 	public TransparentSessionImpl(
@@ -44,12 +48,59 @@ public class TransparentSessionImpl implements TransparentSession {
 		Set<Object> transparentResults = new HashSet<Object>();
 		
 		for (Node result : results) {
-			Object transparentResult = databaseContext.getTransparentProxyFactory().createProxy(result, desiredClass, this);
+			Object transparentResult = 
+                databaseContext.getTransparentProxyFactory().
+                createProxy(result, desiredClass, this);
+            
 			transparentResults.add(transparentResult);
 		}
 		
 		return transparentResults;
 	}
+    
+    public Set<Object> findWithParams(
+            String query, 
+            Class desiredClass, Object... params) 
+            throws SBQLException {
+        
+        ObjectValue[] paramValues = buildParamValues(params); 
+        
+        Set<Node> results = session.find(query, paramValues);
+        
+        Set<Object> transparentResults = new HashSet<Object>();
+        
+        for (Node result : results) {
+            Object transparentResult = 
+                databaseContext.getTransparentProxyFactory().
+                createProxy(result, desiredClass, this);
+            
+            transparentResults.add(transparentResult);
+        }
+        
+        return transparentResults;
+    }    
+    
+    private ObjectValue[] buildParamValues(Object... params) {
+        
+        ObjectValue[] values = new ObjectValue[params.length];
+        
+        int i = 0;
+        for (Object param : params) {
+            
+            if (getDatabaseContext().getTransparentProxyFactory().isProxy(param)) {
+                
+                values[i] = new ReferenceValue(getDatabaseContext().
+                        getTransparentProxyFactory().getNodeOfProxy(param));
+                
+            } else {
+                values[i] = SimpleValue.build(param);
+            }
+                        
+            i++;
+        }
+        
+        return values;
+    }
 
 	public Object persist(Object object) {
 					

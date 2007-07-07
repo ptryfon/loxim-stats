@@ -218,14 +218,20 @@ public class LoximExecutor implements Executor {
         } else
             throw new UnsupportedOperationException();
     }
+    
+    
 
-    public Set<Node> executeQuery(String query) throws SBQLException {
+    public Set<Node> find(String query, ObjectValue... objectValues) 
+        throws SBQLException {
 
         Set<Node> results = new HashSet<Node>();
+        
+        Result[] paramResults = buildResultsFromValues(objectValues);
 
         String internalQuery = "(" + query + " as i).(i as r, nameof(i) as n)";
 
-        Result result = loximSession.getConnection().execute(internalQuery);
+        Result result = loximSession.getConnection().executeParam(
+                internalQuery, paramResults);
 
         try {
 
@@ -242,6 +248,29 @@ public class LoximExecutor implements Executor {
 
         return results;
     }
+    
+    private Result[] buildResultsFromValues(ObjectValue[] values) 
+        throws SBQLException {
+    
+    Result[] results = new Result[values.length];
+    
+    int i = 0;
+    
+    for (ObjectValue value : values) {
+    
+        if (value instanceof SimpleValue || value instanceof ReferenceValue) {
+
+            ObjectCreator objectCreator = new ObjectCreator(loximSession);
+            results[i] = objectCreator.createResult(value);
+
+        } else throw new UnsupportedOperationException();
+    
+        i++;
+    
+    }
+    
+    return results;
+}
 
     private Node getNodeFromPairOfBinders(ResultStruct itemStruct) {
 
