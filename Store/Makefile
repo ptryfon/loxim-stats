@@ -12,6 +12,7 @@ SOURCES	=	Buffer.cpp \
 		Map.cpp \
 		NamedRoots.cpp \
 		Views.cpp \
+		NamedItems.cpp \
 		PagePointer.cpp \
 		PageManager.cpp \
 		Misc.cpp
@@ -25,6 +26,7 @@ HEADERS	=	Buffer.h \
 		File.h \
 		Map.h \
 		NamedRoots.h \
+		NamedItems.h \
 		Views.h \
 		PagePointer.h \
 		PageManager.h \

@@ -52,6 +52,7 @@ namespace Errors {
 
 // Parse error
 #define ENotParsed		0xB00
+#define ENotUniqueNameList 0xB01
 
 // Executor
 #define ENumberExpected		0xC00
@@ -68,6 +69,8 @@ namespace Errors {
 #define EBadViewDef		0x1700
 #define EBadBindName		0x1800
 #define EOperNotDefined		0x1900
+#define ENotUniqueClassName 0x1910
+#define ENoClassDefFound	0x1920
 
 // Config
 #define ENotInit		0x1A00

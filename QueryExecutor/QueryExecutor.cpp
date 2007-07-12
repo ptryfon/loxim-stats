@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string>
 #include <vector>
+#include <set>
 #include <iostream>
 #include <fstream>
 #include <ios>
@@ -829,6 +830,124 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			
 			return 0;
 		}//case TNREGVIEW
+		
+		case TreeNode::TNCLASS: {
+			*ec << "[QE] Type: TNCLASS";
+			vector<LogicalID *>* classVector = new vector<LogicalID *>(0);//main class object
+			string className = ((ClassNode *) tree)->getName();
+			string invariantName = ((ClassNode *) tree)->getInvariant();
+			NameListNode* fields = ((ClassNode *) tree)->getFields();
+			NameListNode* extendedClasses = ((ClassNode *) tree)->getExtends();
+			int errcode;
+			
+			//class name
+			bool classExist;
+			errcode = classExists(className, classExist);
+			if(errcode != 0) {
+				return errcode;
+			}
+			if(classExist) {
+				return qeErrorOccur("[QE] Class: \"" + className + "\" already exist.", ENotUniqueClassName);
+			}
+			
+			//invariant name
+			if(!invariantName.empty()) {
+				pushStringToLIDs(invariantName, QE_INVARIANT_BIND_NAME, classVector);
+			}
+			
+			//extended classes
+			if(extendedClasses != NULL) {
+				set<string>* classesNames = new set<string>();
+				errcode = extendedClasses->namesFromUniqueList(classesNames);
+				if (errcode != 0) {
+					return otherErrorOccur("[QE] Not unique extended class name.", errcode);
+				}
+				vector<LogicalID *>* extendedclassesLIDs;
+				errcode = classesLIDsFromNames(classesNames, extendedclassesLIDs);
+				if(errcode != 0) {
+					return errcode;
+				}
+				pushStringsToLIDs(classesNames, QE_EXTEND_BIND_NAME, classVector);
+			}
+			
+			//adding fields
+			if(fields != NULL) {
+				set<string>* fieldsNames = new set<string>();
+				errcode = fields->namesFromUniqueList(fieldsNames);
+				if (errcode != 0) {
+					return otherErrorOccur("[QE] Not unique field name.", errcode);
+				}
+				pushStringsToLIDs(fieldsNames, QE_FIELD_BIND_NAME, classVector);
+			}
+			
+			//adding methods
+			vector<QueryNode*> procs = ((ClassNode *) tree)->getProcedures();
+			for(vector<QueryNode*>::iterator i = procs.begin(); i != procs.end(); i++) {
+				errcode = executeRecQuery(*i);
+				if(errcode != 0) return errcode;
+				QueryResult *execution_result;
+				errcode = qres->pop(execution_result);
+				if (errcode != 0) return errcode;
+				if (execution_result->type() != QueryResult::QREFERENCE) {
+					return qeErrorOccur("[QE] TNCLASS error - execution result is not QueryReference", ERefExpected);
+				}
+				LogicalID* lid = ((QueryReferenceResult*)execution_result)->getValue();
+				ObjectPointer *optr;
+				errcode = tr->getObjectPointer (lid, Store::Read, optr, false);
+				if (errcode != 0) {
+					return trErrorOccur("[QE] class creating operation - Error in getObjectPointer.", errcode);
+				}
+				string optr_name = optr->getName();
+				
+				LogicalID* newLid;
+				errcode = lidFromReference(QE_METHOD_BIND_NAME, lid, newLid);
+				if(errcode != 0) return errcode;
+				classVector->push_back(newLid);
+			}
+			
+			DBDataValue *dbValue = new DBDataValue();
+			dbValue->setVector(classVector);
+			delete classVector;
+			return createObjectAndPutOnQRes(dbValue, className, Store::Class); 
+		}
+		
+		case TreeNode::TNREGCLASS: {
+			*ec << "[QE] Type: TNREGCLASS";
+			QueryNode *query = ((RegisterClassNode *) tree)->getQuery();
+			if(query != NULL) {
+				errcode = executeRecQuery(query);
+				if(errcode != 0) return errcode;
+			}
+			else qres->push(new QueryNothingResult());
+			
+			QueryResult *execution_result;
+			errcode = qres->pop(execution_result);
+			if (errcode != 0) return errcode;
+			
+			if (execution_result->type() != QueryResult::QREFERENCE) {
+				return qeErrorOccur( "[QE] TNREGCLASS error - execution result is not QueryReference", ERefExpected );
+			}
+			
+			ObjectPointer *optr;
+			errcode = tr->getObjectPointer (((QueryReferenceResult*)execution_result)->getValue(), Store::Read, optr, false);
+			if (errcode != 0) {
+				return trErrorOccur("[QE] register view operation - Error in getObjectPointer.", errcode);
+			}
+			
+			errcode = tr->addRoot(optr);
+			if (errcode != 0) { 
+				return trErrorOccur("[QE] Error in addRoot", errcode);
+			}
+			
+			errcode = tr->addClass(optr->getName().c_str(), optr);
+			if (errcode != 0) {
+				return trErrorOccur("[QE] Error in addClass", errcode);
+			}
+			
+			errcode = qres->push(execution_result);
+			if (errcode != 0) return errcode;
+			return 0;
+		}
 		
 		
 		
@@ -3827,6 +3946,115 @@ int QueryExecutor::deVirtualize(QueryResult *arg, QueryResult *&res) {
 			return ErrQExecutor | EOtherResExp;
 		}
 	}
+	return 0;
+}
+
+int QueryExecutor::otherErrorOccur( string msg, int errcode ) {
+	*ec << msg;
+	return errcode;
+}
+
+int QueryExecutor::qeErrorOccur( string msg, int errcode ) {
+	*ec << msg;
+	*ec << (ErrQExecutor | errcode);
+	return ErrQExecutor | errcode;
+}
+
+int QueryExecutor::trErrorOccur( string msg, int errcode ) {
+	*ec << msg;
+	antyStarveFunction(errcode);
+	inTransaction = false;
+	return errcode;
+}
+
+
+
+
+void QueryExecutor::pushStringToLIDs(string name, string bindName, vector<LogicalID*>*& lids) {
+	LogicalID* tmpLid;
+	lidFromString(bindName, name, tmpLid);
+	lids->push_back(tmpLid);
+}
+
+void QueryExecutor::pushStringsToLIDs(set<string>* names, string bindName, vector<LogicalID*>*& lids) {
+	for(set<string>::iterator i = names->begin(); i != names->end(); ++i) {
+		pushStringToLIDs(*i, bindName, lids);
+	}
+}
+
+int QueryExecutor::classesLIDsFromNames(set<string>* names, vector<LogicalID*>*& lids) {
+	lids = new vector<LogicalID*>(0);
+	for(set<string>::iterator i = names->begin(); i != names->end(); i++) {
+		vector<LogicalID *>* addedClasses;
+		int errcode = tr->getClassesLID(*i, addedClasses);
+		if(errcode != 0) {
+			return trErrorOccur("[QE] Error in getClassesLID", errcode);
+		}
+		if(addedClasses->size() == 0) {
+			return qeErrorOccur("[QE] Class: \"" + (*i) + "\" not found.", ENoClassDefFound);
+		}
+		lids->push_back(addedClasses->at(0));
+	}
+	return 0;
+}
+
+int QueryExecutor::classExists(string className, bool& exist) {
+	vector<LogicalID *>* addedClasses;
+	int errcode = tr->getClassesLID(className, addedClasses);
+	if(errcode != 0) {
+		return trErrorOccur("[QE] Error in getClassesLID", errcode);
+	}
+	exist = addedClasses->size() != 0;
+	return 0;
+}
+
+int QueryExecutor::lidFromVector( string bindName, vector<QueryResult*> value, LogicalID*& lid) {
+	return lidFromBinder(bindName, new QueryBagResult(value), lid);
+}
+
+int QueryExecutor::lidFromReference( string bindName, LogicalID* value, LogicalID*& lid) {
+	return lidFromBinder(bindName, new QueryReferenceResult(value), lid);
+}
+
+int QueryExecutor::lidFromString( string bindName, string value, LogicalID*& lid) {
+	return lidFromBinder(bindName, new QueryStringResult(value), lid);
+}
+
+int QueryExecutor::lidFromBinder( string bindName, QueryResult* result, LogicalID*& lid) {
+	QueryResult *tmp_bndr =new QueryBinderResult(bindName, result);
+	ObjectPointer *tmp_optr;
+	int errcode = objectFromBinder(tmp_bndr, tmp_optr);
+	if (errcode != 0) return errcode;
+	lid= tmp_optr->getLogicalID();
+	return 0;
+}
+
+int QueryExecutor::createObjectAndPutOnQRes(DBDataValue* dbValue, string objectName, int type) {
+	int errcode = 0;
+	ObjectPointer *newObject;
+	DataValue* value = dbValue;
+	if ((errcode = tr->createObject(objectName, value, newObject)) != 0) {
+		*ec << "[QE] Error in createObject";
+		antyStarveFunction(errcode);
+		inTransaction = false;
+		return errcode;
+	}
+	
+	if(Store::None != type) {
+		newObject->getValue()->setSubtype(Store::Class);
+		errcode = tr->modifyObject(newObject, newObject->getValue()); 
+		if (errcode != 0) {
+			*ec << "[QE] TNCLASS - Error in modifyObject.";
+			antyStarveFunction(errcode);
+			inTransaction = false;
+			return errcode;
+		}
+	}
+	
+	QueryResult *lidres = new QueryReferenceResult(newObject->getLogicalID());
+	
+	errcode = qres->push(lidres);
+	if (errcode != 0) return errcode;
 	return 0;
 }
 

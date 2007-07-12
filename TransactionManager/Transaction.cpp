@@ -366,6 +366,80 @@ namespace TManager
 	}
 
 
+	//classes begin
+	
+		int Transaction::getClassesLID(vector<LogicalID*>* &p)
+	{
+		int errorNumber;
+
+		err.printf("Transaction: %d getClassesLID\n", tid->getId());
+		
+		sem->lock_read();
+		errorNumber = sm->getClassesLID(tid, p);			
+		sem->unlock();
+		
+		if (errorNumber) abort();
+	
+		return errorNumber;
+	}
+
+	int Transaction::getClassesLID(string name, vector<LogicalID*>* &p)
+	{
+		int errorNumber;
+		
+		err.printf("Transaction: %d getClassesLID by name \n", tid->getId());
+
+		sem->lock_read();
+		errorNumber = sm->getClassesLID(tid, name, p);
+		sem->unlock();
+		
+		if (errorNumber) abort();
+	
+		return errorNumber;
+	}
+
+
+	int Transaction::addClass(const char* name, ObjectPointer* &p)
+	{
+		int errorNumber;
+		
+		err.printf("Transaction: %d addClass\n", tid->getId());
+		
+		sem->lock_write();
+			errorNumber = sm->addClass(tid, name,  p);
+			/* GUARANTEED no waiting */
+			if (errorNumber == 0)
+			    errorNumber = lm->lock( p->getLogicalID(), tid, Write);
+		sem->unlock();
+		
+		if (errorNumber) abort();
+			    
+		return errorNumber;
+	}
+
+	int Transaction::removeClass(ObjectPointer* &p)
+	{
+		int errorNumber;
+		
+		err.printf("Transaction: %d removeClass\n", tid->getId());
+		
+		errorNumber = lm->lock( p->getLogicalID(), tid, Write);
+		
+		if (errorNumber == 0)
+		{
+		    sem->lock_write();
+			errorNumber = sm->removeClass(tid, p);		
+		    sem->unlock();
+		}
+				
+		if (errorNumber) abort();
+			    	   
+		return errorNumber;
+	}
+	
+	
+	//classes end 
+
 	/* Data creation */
 	int Transaction::createIntValue(int value, DataValue* &dataVal)
 	{

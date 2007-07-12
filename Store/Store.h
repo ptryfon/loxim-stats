@@ -194,6 +194,12 @@ namespace Store
 		virtual int getViewsLID(TransactionID* tid, string name, vector<LogicalID*>*& roots) = 0;
 		virtual int addView(TransactionID* tid, const char* name, ObjectPointer*& object) = 0;
 		virtual int removeView(TransactionID* tid, ObjectPointer*& object) = 0;
+		
+		// Classes
+		virtual int getClassesLID(TransactionID* tid, vector<LogicalID*>*& roots) = 0;
+		virtual int getClassesLID(TransactionID* tid, string name, vector<LogicalID*>*& roots) = 0;
+		virtual int addClass(TransactionID* tid, const char* name, ObjectPointer*& object) = 0;
+		virtual int removeClass(TransactionID* tid, ObjectPointer*& object) = 0;
 
 		// Transactions
 		virtual int abortTransaction(TransactionID* tid) = 0;

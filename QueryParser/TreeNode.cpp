@@ -5,6 +5,8 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "Deb.h"
+#include "Errors/Errors.h"
+#include "Errors/ErrorConsole.h"
 
 namespace QParser 
 {
@@ -306,6 +308,23 @@ namespace QParser
     NameListNode* NameListNode::try_get_name_list() {
 	return name_list;
     };
+    
+    int NameListNode::namesFromUniqueList( set<string>*& names ) {
+    	NameListNode *name_list_or_null = this->try_get_name_list();
+    	if(names->end() != names->find(name)) {
+    		return ErrQParser | ENotUniqueNameList;
+    	}
+    	names->insert(name);
+		while (name_list_or_null != NULL) {
+		    string tmpName = name_list_or_null->get_name();
+		    if(names->end() != names->find(tmpName)) {
+    			return ErrQParser | ENotUniqueNameList;
+    		}
+    		names->insert(tmpName);
+		    name_list_or_null = name_list_or_null->try_get_name_list();
+		}
+    	return 0;
+    }
 
     /* inherited functions */
     TreeNode* NameListNode::clone() {

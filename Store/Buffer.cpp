@@ -1,5 +1,5 @@
 /**
- * $Id: Buffer.cpp,v 1.34 2006-11-30 13:17:12 mo201077 Exp $
+ * $Id: Buffer.cpp,v 1.35 2007-07-12 13:43:36 sk153407 Exp $
  *
  */
 #include "Buffer.h"
@@ -145,6 +145,11 @@ namespace Store
 
 						case STORE_FILE_VIEWS: 
 							store->getViews()->initializePage(i, n_page->page); 
+							break;
+						
+						//TODO - opisacjako zmieniane miejsce
+						case STORE_FILE_CLASSES: 
+							store->getClasses()->initializePage(i, n_page->page); 
 							break;
 
 						default:

@@ -1,13 +1,28 @@
+-- Author: Sebastian Kaczanowski
+
 create class VerySimple {}
+
+create class VerySimpleExtended extends VerySimple {}
+
 
 create class VerySimpleInvariant {
     instance simpleObject : {}
 }
 
-create class ProcAndFiels {
-    instance : {
+create class ProcAndFields {
+    instance pf : {
         field1;
         field2;
+    }
+    procedure getField1(){return field1}
+    procedure sumf1f2(){return field1 + field2}
+    procedure get7(){return 7}
+}
+
+create class ProcAndFieldsExtended extends ProcAndFields {
+    instance pfe : {
+        field3;
+        field4;
     }
     procedure getField1(){return field1}
     procedure sumf1f2(){return field1 + field2}
@@ -21,4 +36,6 @@ create class Full extends VerySimple, VerySimpleInvariant{
     procedure getField1(){return field1}
     procedure sumf1f2(){return field1 + field2}
 }
+
+
 

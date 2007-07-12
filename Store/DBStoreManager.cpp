@@ -65,10 +65,12 @@ namespace Store
 		this->map = new Map();
 		this->roots = new NamedRoots();
 		this->views = new Views();
+		this->classes = new Classes();
 		this->pagemgr = new PageManager(this);
 
 		this->roots->init(this->buffer, this->log);
 		this->views->init(this->buffer, this->log);
+		this->classes->init(this->buffer, this->log);
 		this->map->init(this->buffer, this->log);
 
 #ifdef DEBUG_MODE
@@ -146,6 +148,11 @@ namespace Store
 	Views* DBStoreManager::getViews()
 	{
 		return views;
+	}
+	
+	Classes* DBStoreManager::getClasses()
+	{
+		return classes;
 	}
 
 	PageManager* DBStoreManager::getPageManager()
@@ -600,6 +607,76 @@ namespace Store
 #endif
 		return 0;
 	}
+	
+	//Classes
+	
+	int DBStoreManager::getClassesLID(TransactionID* tid, vector<LogicalID*>*& p_classes)
+	{
+#ifdef DEBUG_MODE
+		*ec << "Store::Manager::getClassesLID(ALL) begin..";
+#endif
+		int rval = getClassesLID(tid, "", p_classes);
+
+#ifdef DEBUG_MODE
+		*ec << "Store::Manager::getClassesLID(ALL) done";
+#endif
+		return rval;
+	}
+
+	int DBStoreManager::getClassesLID(TransactionID* tid, string p_name, vector<LogicalID*>*& p_classes)
+	{
+#ifdef DEBUG_MODE
+		*ec << "Store::Manager::getClassesLID(BY NAME) begin..";
+#endif
+		p_classes = new vector<LogicalID*>(0);
+		vector<int>* rvec;
+		rvec = classes->getItems(p_name.c_str(), tid->getId(), tid->getTimeStamp());
+		
+		vector<int>::iterator obj_iter;
+		for(obj_iter=rvec->begin(); obj_iter!=rvec->end(); obj_iter++)
+		{
+			LogicalID* lid = new DBLogicalID((*obj_iter));
+			p_classes->push_back(lid);
+		}
+
+		delete rvec;
+#ifdef DEBUG_MODE
+		ec->printf("Store::Manager::getClassesLID(BY NAME) done: size=%d\n", p_classes->size());
+#endif
+		return 0;
+	}
+
+
+	int DBStoreManager::addClass(TransactionID* tid, const char* name, ObjectPointer*& object)
+	{
+#ifdef DEBUG_MODE
+		*ec << "Store::Manager::addClass begin..";
+#endif
+		int lid = object->getLogicalID()->toInteger();
+
+		classes->addItem(lid, name, tid->getId(), tid->getTimeStamp());
+
+#ifdef DEBUG_MODE
+		ec->printf("Store::Manager::addClass done: %s\n", name);
+#endif
+		return 0;
+	}
+
+	int DBStoreManager::removeClass(TransactionID* tid, ObjectPointer*& object)
+	{
+#ifdef DEBUG_MODE
+		*ec << "Store::Manager::removeClass begin..";
+#endif
+		int lid = object->getLogicalID()->toInteger();
+		
+		classes->removeItem(lid, tid->getId(), tid->getTimeStamp());
+
+#ifdef DEBUG_MODE
+		ec->printf("Store::Manager::removeClass done: %s\n", object->toString().c_str());
+#endif
+		return 0;
+	}
+	
 
 	int DBStoreManager::abortTransaction(TransactionID* tid)
 	{
@@ -608,6 +685,8 @@ namespace Store
 		if (!(err = roots->abortTransaction(tid->getId())))
 			return err;
 		if (!(err = views->abortTransaction(tid->getId())))
+			return err;
+		if (!(err = classes->abortTransaction(tid->getId())))
 			return err;
 
 		return err;
@@ -620,6 +699,8 @@ namespace Store
 		if (!(err = roots->commitTransaction(tid->getId())))
 			return err;
 		if (!(err = views->commitTransaction(tid->getId())))
+			return err;
+		if (!(err = classes->commitTransaction(tid->getId())))
 			return err;
 
 		return err;

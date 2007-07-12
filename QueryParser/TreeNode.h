@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include <vector>
+#include <set>
 #include <string>
 #include <sstream>
 #include "Stack.h"
@@ -408,6 +409,8 @@ namespace QParser {
 	    /* getters */
 	    virtual string get_name();
 	    virtual NameListNode* try_get_name_list();
+	    
+	    virtual int namesFromUniqueList( set<string>*& names );
 
 	    /* inherited functions */
 	    virtual TreeNode* clone();
@@ -2097,8 +2100,11 @@ class ClassNode : public QueryNode
         }*/
     }
     virtual vector<QueryNode*> getProcedures() { return this->procedures; }
-    //virtual vector<QueryNode*> getSubviews() { return this->subviews; }
     virtual string getName() { return name; }
+    virtual string getInvariant() { return invariant; }
+    virtual NameListNode* getFields() { return fields; }
+    virtual NameListNode* getExtends() {return extends;}
+    
     /*virtual QueryNode* getVirtualObjects() { return virtual_objects; }
 
         virtual string toString( int level = 0, bool recursive = false, string _name = "" ) {
@@ -2145,7 +2151,7 @@ class ClassNode : public QueryNode
         result = result + " } ";
         cout << result;
         return result; 
-    };
+    }
 	}; 
 
 

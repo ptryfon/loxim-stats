@@ -28,7 +28,13 @@ using namespace std;
 
 namespace QExecutor
 {
-    
+
+#define QE_INVARIANT_BIND_NAME 	"invariant"
+#define QE_CLASS_BIND_NAME 		"class"
+#define QE_METHOD_BIND_NAME		"method"
+#define QE_EXTEND_BIND_NAME		"extends"
+#define QE_FIELD_BIND_NAME		"field"
+
 //     class ProcedureInfo
 //     {
 //     public:
@@ -89,6 +95,33 @@ namespace QExecutor
 		int isIncluded(QueryResult *elem, QueryResult *set, bool &score);
 		int sortBag(QueryBagResult *inBag, QueryBagResult *&outBag);
 		int objectFromBinder(QueryResult *res, ObjectPointer *&newObject);
+		
+		/** Create new object in store and puts reference on stack result */
+		int classExists(string className, bool& exist);
+		
+		int createObjectAndPutOnQRes(DBDataValue* dbValue, string objectName, int type);
+		
+		int lidFromVector( string bindName, vector<QueryResult*> value, LogicalID*& lid);
+		
+		int lidFromString( string bindName, string value, LogicalID*& lid);
+		
+		int lidFromReference( string bindName, LogicalID* value, LogicalID*& lid);
+		
+		int lidFromBinder( string bindName, QueryResult* result, LogicalID*& lid);
+		
+		int trErrorOccur( string msg, int errcode );
+		
+		int qeErrorOccur( string msg, int errcode );
+		
+		int otherErrorOccur( string msg, int errcode );
+		
+		int classesLIDsFromNames(set<string>* names, vector<LogicalID*>*& lids);
+		
+		void pushStringToLIDs(string name, string bindName, vector<LogicalID*>*& lids);
+		
+		void pushStringsToLIDs(set<string>* names, string bindName, vector<LogicalID*>*& lids);
+		
+		
 		
 		int deVirtualize(QueryResult *arg, QueryResult *&res);
         	

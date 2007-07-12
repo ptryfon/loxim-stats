@@ -168,7 +168,7 @@ query	    : NAME { char *s = $1; $$ = new NameNode(s); delete s; }
 	    | RETURN query {$$ = new ReturnNode ($2); }
 	    | CREATE procquery {$$ = new RegisterProcNode ($2);}
 	    | CREATE viewquery {$$ = new RegisterViewNode ($2);}
-        | CREATE classquery {$$ = new RegisterViewNode ($2);}
+        | CREATE classquery {$$ = new RegisterClassNode ($2);}
 	    | NAME LEFTPAR RIGHTPAR {$$ = new CallProcNode ($1);}
 	    | NAME LEFTPAR querycommalist RIGHTPAR {$$ = new CallProcNode ($1, $3);}
 	    ;

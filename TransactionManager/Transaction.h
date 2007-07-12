@@ -92,6 +92,11 @@ namespace TManager
 		    	int getViewsLID(string name, vector<LogicalID*>* &p);
 		    	int addView(const char* name, ObjectPointer* &p);
 		    	int removeView(ObjectPointer* &p);
+		    	
+		    	int getClassesLID(vector<LogicalID*>* &p);
+		    	int getClassesLID(string name, vector<LogicalID*>* &p);
+		    	int addClass(const char* name, ObjectPointer* &p);
+		    	int removeClass(ObjectPointer* &p);
 	
 		    	TransactionID* getId();
 

@@ -15,6 +15,7 @@ namespace Store
 #include "PageManager.h"
 #include "Misc.h"
 #include "Errors/ErrorConsole.h"
+#include "NamedItems.h"
 
 using namespace std;
 using namespace Config;
@@ -34,6 +35,7 @@ namespace Store
 		Map* map;
 		NamedRoots* roots;
 		Views* views;
+		Classes* classes;
 		PageManager* pagemgr;
 		unsigned timer;
 		ErrorConsole *ec;
@@ -55,6 +57,7 @@ namespace Store
 		Map* getMap();
 		NamedRoots* getRoots();
 		Views* getViews();
+		Classes* getClasses();
 		PageManager* getPageManager();
 
 		virtual int getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object);
@@ -76,6 +79,11 @@ namespace Store
 		virtual int getViewsLID(TransactionID* tid, string name, vector<LogicalID*>*& roots);
 		virtual int addView(TransactionID* tid, const char* name, ObjectPointer*& object);
 		virtual int removeView(TransactionID* tid, ObjectPointer*& object);
+		
+		virtual int getClassesLID(TransactionID* tid, vector<LogicalID*>*& roots);
+		virtual int getClassesLID(TransactionID* tid, string name, vector<LogicalID*>*& roots);
+		virtual int addClass(TransactionID* tid, const char* name, ObjectPointer*& object);
+		virtual int removeClass(TransactionID* tid, ObjectPointer*& object);
 
 		virtual int abortTransaction(TransactionID* tid);
 		virtual int commitTransaction(TransactionID* tid);
