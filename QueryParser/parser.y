@@ -47,7 +47,7 @@
 %nonassoc DELETE CREATE INSERTINTO
 %left COMMA 
 %right EXISTS FOR_ALL
-%left GROUP_AS AS
+%left GROUP_AS AS AS_INSTANCE_OF
 %right ASSIGN
 %left UNION EXCEPT
 %left INTERSECT
@@ -111,6 +111,7 @@ query	    : NAME { char *s = $1; $$ = new NameNode(s); delete s; }
             | INTEGER { $$ = new IntNode($1); }
             | STRING { char *s = $1; $$ = new StringNode(s); delete s; }
 	    | DOUBLE { $$ = new DoubleNode($1); }
+	    | query AS_INSTANCE_OF query { $$ = new AsInstanceOfNode($1, $3); }
             | query AS NAME { $$ = new NameAsNode($1,$3,false); }
 	    | query GROUP_AS NAME { $$ = new NameAsNode($1,$3,true); }
             | COUNT LEFTPAR  query RIGHTPAR { $$ = new UnOpNode($3,UnOpNode::count); }

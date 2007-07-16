@@ -57,7 +57,7 @@ namespace QParser {
 	    TNREMOVEUSER, TNPRIVLIST, TNNAMELIST, TNGRANTPRIV, TNREVOKEPRIV, TNREMOTE, TNINDEXDDL, TNINDEXDML,
 	    TNCREATEINTERFACENODE, TNINTERFACESTRUCT, TNINTERFACEATTRIBUTELISTNODE, TNINTERFACEATTRIBUTE, 
 	    TNINTERFACEMETHODLISTNODE, TNINTERFACEMETHOD, TNINTERFACEMETHODPARAMLISTNODE, TNINTERFACEMETHODPARAM,
-        TNREGCLASS, TNCLASS, TNDML};
+        TNREGCLASS, TNCLASS, TNDML, TNASINSTANCEOF};
 	 
 	 
 	 
@@ -2009,7 +2009,53 @@ class ViewNode : public QueryNode
     }; 
 
 
+class AsInstanceOfNode : public QueryNode
+    {
+    protected:
+    QueryNode* objectsQuery;
+    QueryNode* classQuery;
+    public:
+    AsInstanceOfNode(QueryNode *objectsQuery, QueryNode* classQuery) {
+    	this->objectsQuery = objectsQuery;
+    	this->classQuery = classQuery;
+    }
     
+    virtual TreeNode* clone();
+    virtual int type() {return TreeNode::TNASINSTANCEOF;}
+    virtual QueryNode *getObjectsQuery() {return this->objectsQuery;}
+    virtual QueryNode *getClassQuery() {return this->classQuery;}
+    virtual int putToString() {
+        cout << " AsInstanceOf < ";
+        if (objectsQuery != NULL) objectsQuery->putToString();
+        else cout << "_no_objects_query_";
+        cout<< ", ";
+        if (classQuery != NULL) classQuery->putToString();
+        else cout << "_no_class_query_";
+        cout << ">";
+        return 0;
+    }
+    
+    virtual ~AsInstanceOfNode() {
+    	if (objectsQuery != NULL) delete objectsQuery;
+    	if (classQuery != NULL) delete classQuery;
+    } 
+	virtual string toString( int level = 0, bool recursive = false, string name = "" ) {
+		string result = getPrefixForLevel( level, name ) + "[AsInstanceOf]\n";
+		if( recursive ) {
+  			if( objectsQuery )
+    			result += objectsQuery->toString( level+1, true, "query" );
+    		if( classQuery )
+    			result += classQuery->toString( level+1, true, "query" );
+    	}
+    	return result;
+	}
+      
+      virtual string deParse() { 
+        string result; 
+        result = " " + objectsQuery->deParse() + " as instance of " + classQuery->deParse(); 
+        cout << result;
+        return result; };
+    };
 
 class RegisterClassNode : public QueryNode
     {

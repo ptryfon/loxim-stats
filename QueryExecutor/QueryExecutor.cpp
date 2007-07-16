@@ -831,9 +831,75 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			return 0;
 		}//case TNREGVIEW
 		
+		case TreeNode::TNASINSTANCEOF: {
+			*ec << "[QE] Type: TNASINSTANCEOF";
+			QueryNode *objectsQuery = ((AsInstanceOfNode *) tree)->getObjectsQuery();
+			if(objectsQuery != NULL) {
+				errcode = executeRecQuery(objectsQuery);
+				if(errcode != 0) return errcode;
+			}
+			else qres->push(new QueryNothingResult());
+			
+			QueryResult *objectsResult;
+			errcode = qres->pop(objectsResult);
+			if (errcode != 0) return errcode;
+			
+			if (objectsResult->type() != QueryResult::QBAG) {
+				return qeErrorOccur("[QE] Bag of Reference expected.", EBagOfRefExpected);
+			}
+			QueryBagResult *bagOfObjects = (QueryBagResult *)objectsResult;
+			
+			QueryNode *classQuery = ((AsInstanceOfNode *) tree)->getClassQuery();
+			unsigned int classMark = 0;
+			if(classQuery != NULL) {
+				errcode = executeRecQuery(classQuery);
+				if(errcode != 0) return errcode;
+				QueryResult *classResult;
+				errcode = qres->pop(classResult);
+				if (errcode != 0) return errcode;
+				if(classResult->type() != QueryResult::QBAG) {
+					return qeErrorOccur("[QE] Bag of Reference expected.", EBagOfRefExpected);
+				}
+				if(((QueryBagResult*)classResult)->size() != 1) {
+					return qeErrorOccur("[QE] One Reference expected.", EOneResultExpected);
+				}
+				QueryResult *oneClassResult;
+				errcode = ((QueryBagResult*)classResult)->at(0, oneClassResult);
+				if(errcode != 0) return errcode;
+				if(oneClassResult->type() != QueryResult::QREFERENCE) {
+					return qeErrorOccur("[QE] Reference expected.", ERefExpected);
+				}
+				//TODO pobrać tą klasę z tranzakcji (upewniając się przy tym, że to rzeczywiście klasa)
+				classMark = ((QueryReferenceResult*)oneClassResult)->getValue()->toInteger();
+			}
+			
+			for(unsigned int i = 0; i < bagOfObjects->size(); i++) {
+				QueryResult *oneObjectResult;
+				errcode = bagOfObjects->at(i, oneObjectResult);
+				if(errcode != 0) return errcode;
+				if(oneObjectResult->type() != QueryResult::QREFERENCE) {
+					return qeErrorOccur("[QE] Reference expected.", ERefExpected);
+				}
+				ObjectPointer* optr;
+				errcode = tr->getObjectPointer( ((QueryReferenceResult*)oneObjectResult)->getValue(), Store::Read, optr, false);
+				if(errcode != 0) {
+					trErrorOccur("[QE] Can't get object to set classMark.", errcode);
+				}
+				DataValue* newDV = optr->getValue()->clone();
+				newDV->setClassMark(classMark);
+				errcode = tr->modifyObject(optr, newDV);
+				if(errcode != 0) {
+					return trErrorOccur("[QE] Can't modify object and set classMark.", errcode);
+				}
+			}
+			qres->push(objectsResult);//assums that lids are same after tr->modifyObject()
+			return 0;
+		}
+		
 		case TreeNode::TNCLASS: {
 			*ec << "[QE] Type: TNCLASS";
 			vector<LogicalID *>* classVector = new vector<LogicalID *>(0);//main class object
+			//TODO zmienic typ bo inaczej trzeba usuwac przy kazdym return a nie tylko przed ostatnim
 			string className = ((ClassNode *) tree)->getName();
 			string invariantName = ((ClassNode *) tree)->getInvariant();
 			NameListNode* fields = ((ClassNode *) tree)->getFields();

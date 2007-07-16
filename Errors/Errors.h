@@ -58,6 +58,7 @@ namespace Errors {
 #define ENumberExpected		0xC00
 #define EBoolExpected		0xD00
 #define ERefExpected		0xE00
+#define EBagOfRefExpected	0xE10
 #define EOtherResExp		0xF00
 #define EUnknownValue		0x1000
 #define EUnknownNode		0x1100
@@ -71,6 +72,7 @@ namespace Errors {
 #define EOperNotDefined		0x1900
 #define ENotUniqueClassName 0x1910
 #define ENoClassDefFound	0x1920
+#define EOneResultExpected	0x1930
 
 // Config
 #define ENotInit		0x1A00

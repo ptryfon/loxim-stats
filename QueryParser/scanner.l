@@ -42,6 +42,7 @@ extern int szbderrno;
 "min"			return MIN;
 "max"			return MAX;
 "distinct"		return DISTINCT;
+"as instance of" return AS_INSTANCE_OF;
 "group as"		return GROUP_AS;
 "as"			return AS;
 "union"			return UNION;

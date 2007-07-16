@@ -35,6 +35,8 @@ namespace Store
 		virtual DataType getType() const;
 		virtual ExtendedType getSubtype() const;
 		virtual void setSubtype(ExtendedType subtype);
+		virtual unsigned int getClassMark() const;
+		virtual void setClassMark(unsigned int classMark);
 		virtual string toString();
 		virtual Serialized serialize() const;
 		static int deserialize(unsigned char* bytes, DBDataValue*& value, bool AutoRemove=false);
@@ -62,6 +64,8 @@ namespace Store
 	private:
 		DataType type;
 		ExtendedType subtype;
+		/** Object class LogicalID or 0 if this object has no class. */
+		unsigned int classMark;
 		complex_value value;
 
 		void p_init();

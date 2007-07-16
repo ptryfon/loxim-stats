@@ -116,6 +116,8 @@ namespace Store
 		// Class functions
 		virtual DataType getType() const = 0;
 		virtual ExtendedType getSubtype() const = 0;
+		virtual unsigned int getClassMark() const = 0;
+		virtual void setClassMark(unsigned int classMark) = 0;
 		virtual void setSubtype(ExtendedType type) = 0;
 		virtual string toString() = 0;
 		virtual Serialized serialize() const = 0;
@@ -239,6 +241,7 @@ namespace Store
 		virtual ~Serialized();
 		Serialized& operator+=(const Serialized&);
 		Serialized& operator+=(const int&);
+		Serialized& operator+=(const unsigned int&);
 		Serialized& operator+=(const double&);
 		Serialized& operator+=(const string&);
 		Serialized& operator+=(const LogicalID&);

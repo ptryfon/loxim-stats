@@ -89,6 +89,11 @@ namespace Store
 	{
 		return ((*this) += p_baseTypeSerialize(s));
 	}
+	
+	Serialized& Serialized::operator+=(const unsigned int& s)
+	{
+		return ((*this) += p_baseTypeSerialize(s));
+	}
 
 	Serialized& Serialized::operator+=(const double& s)
 	{
