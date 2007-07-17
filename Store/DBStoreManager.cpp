@@ -682,11 +682,14 @@ namespace Store
 	{
 		int err = 0;
 
-		if (!(err = roots->abortTransaction(tid->getId())))
+		err = roots->abortTransaction(tid->getId());
+		if (err != 0)
 			return err;
-		if (!(err = views->abortTransaction(tid->getId())))
+		err = views->abortTransaction(tid->getId());
+		if (err != 0)
 			return err;
-		if (!(err = classes->abortTransaction(tid->getId())))
+		err = classes->abortTransaction(tid->getId());
+		if (err != 0)
 			return err;
 
 		return err;
@@ -695,12 +698,14 @@ namespace Store
 	int DBStoreManager::commitTransaction(TransactionID* tid)
 	{
 		int err = 0;
-
-		if (!(err = roots->commitTransaction(tid->getId())))
+		err = roots->commitTransaction(tid->getId());
+		if (err != 0)
 			return err;
-		if (!(err = views->commitTransaction(tid->getId())))
+		err = views->commitTransaction(tid->getId());
+		if (err != 0)
 			return err;
-		if (!(err = classes->commitTransaction(tid->getId())))
+		err = classes->commitTransaction(tid->getId());
+		if (err != 0)
 			return err;
 
 		return err;
