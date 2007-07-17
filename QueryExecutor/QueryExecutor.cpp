@@ -2140,22 +2140,23 @@ int QueryExecutor::nameofQuery(QueryResult *arg, QueryResult *&res) {
             break;
         }
         case QueryResult::QBOOL: {
-            res = arg;
+            res = new QueryBagResult();
             break;
         }
         case QueryResult::QINT: {
-            res = arg;
+            res = new QueryBagResult();
             break;
         }
         case QueryResult::QDOUBLE: {
-            res = arg;
+            res = new QueryBagResult();
             break;
         }
         case QueryResult::QSTRING: {
-            res = arg;
+            res = new QueryBagResult();
             break;
         }
         case QueryResult::QREFERENCE: {
+        	        	
             LogicalID * lid = ((QueryReferenceResult *) arg)->getValue();
              
             if (lid != NULL && lid->getServer() != "") {
