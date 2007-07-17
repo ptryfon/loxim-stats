@@ -850,7 +850,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			QueryBagResult *bagOfObjects = (QueryBagResult *)objectsResult;
 			
 			QueryNode *classQuery = ((AsInstanceOfNode *) tree)->getClassQuery();
-			unsigned int classMark = 0;
+			SetOfLids classMarks;
 			if(classQuery != NULL) {
 				errcode = executeRecQuery(classQuery);
 				if(errcode != 0) return errcode;
@@ -870,7 +870,8 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 					return qeErrorOccur("[QE] Reference expected.", ERefExpected);
 				}
 				//TODO pobrać tą klasę z tranzakcji (upewniając się przy tym, że to rzeczywiście klasa)
-				classMark = ((QueryReferenceResult*)oneClassResult)->getValue()->toInteger();
+				classMarks.insert( ((QueryReferenceResult*)oneClassResult)->getValue() );
+				
 			}
 			
 			for(unsigned int i = 0; i < bagOfObjects->size(); i++) {
@@ -886,7 +887,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 					trErrorOccur("[QE] Can't get object to set classMark.", errcode);
 				}
 				DataValue* newDV = optr->getValue()->clone();
-				newDV->setClassMark(classMark);
+				newDV->addClassMarks(&classMarks);
 				errcode = tr->modifyObject(optr, newDV);
 				if(errcode != 0) {
 					return trErrorOccur("[QE] Can't modify object and set classMark.", errcode);
@@ -898,8 +899,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		
 		case TreeNode::TNCLASS: {
 			*ec << "[QE] Type: TNCLASS";
-			vector<LogicalID *>* classVector = new vector<LogicalID *>(0);//main class object
-			//TODO zmienic typ bo inaczej trzeba usuwac przy kazdym return a nie tylko przed ostatnim
+			vector<LogicalID *> classVector;//main class object
 			string className = ((ClassNode *) tree)->getName();
 			string invariantName = ((ClassNode *) tree)->getInvariant();
 			NameListNode* fields = ((ClassNode *) tree)->getFields();
@@ -922,13 +922,14 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			}
 			
 			//extended classes
+			vector<LogicalID *> extendedclassesLIDs;
 			if(extendedClasses != NULL) {
-				set<string>* classesNames = new set<string>();
+				set<string> classesNamesRef;
+				set<string>* classesNames = &classesNamesRef;
 				errcode = extendedClasses->namesFromUniqueList(classesNames);
 				if (errcode != 0) {
 					return otherErrorOccur("[QE] Not unique extended class name.", errcode);
 				}
-				vector<LogicalID *>* extendedclassesLIDs;
 				errcode = classesLIDsFromNames(classesNames, extendedclassesLIDs);
 				if(errcode != 0) {
 					return errcode;
@@ -938,7 +939,8 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			
 			//adding fields
 			if(fields != NULL) {
-				set<string>* fieldsNames = new set<string>();
+				set<string> fieldsNamesRef;
+				set<string>* fieldsNames = &fieldsNamesRef;
 				errcode = fields->namesFromUniqueList(fieldsNames);
 				if (errcode != 0) {
 					return otherErrorOccur("[QE] Not unique field name.", errcode);
@@ -968,13 +970,39 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				LogicalID* newLid;
 				errcode = lidFromReference(QE_METHOD_BIND_NAME, lid, newLid);
 				if(errcode != 0) return errcode;
-				classVector->push_back(newLid);
+				classVector.push_back(newLid);
 			}
 			
+			// Seting extended classes (property classMarks)
 			DBDataValue *dbValue = new DBDataValue();
-			dbValue->setVector(classVector);
-			delete classVector;
-			return createObjectAndPutOnQRes(dbValue, className, Store::Class); 
+			dbValue->setVector(&classVector);
+			for(vector<LogicalID *>::iterator i = extendedclassesLIDs.begin(); i != extendedclassesLIDs.end(); ++i) {
+				dbValue->addClassMark(*i);
+			}
+			
+			LogicalID* newLid;
+			errcode = createObjectAndPutOnQRes(dbValue, className, Store::Class, newLid);
+			if(errcode != 0) return errcode;
+			
+			// Seting newLid as subclass (property subclasses) in extended classes
+			if(dbValue->getClassMarks() == NULL) {
+				return 0;
+			}
+			for(SetOfLids::iterator i = (dbValue->getClassMarks())->begin(); i != (dbValue->getClassMarks())->end(); ++i) {
+				LogicalID* classMark = *i;
+				ObjectPointer *optr;
+				errcode = tr->getObjectPointer (classMark, Store::Read, optr, false);
+				if (errcode != 0) {
+					return trErrorOccur("[QE] create class operation - Error in getObjectPointer of extended class.", errcode);
+				}
+				DataValue* newDV = optr->getValue()->clone();
+				newDV->addSubclass(newLid);
+				errcode = tr->modifyObject(optr, newDV);
+				if(errcode != 0) {
+					return trErrorOccur("[QE] Can't modify object and set classMark.", errcode);
+				}
+			}
+			return 0;
 		}
 		
 		case TreeNode::TNREGCLASS: {
@@ -997,7 +1025,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			ObjectPointer *optr;
 			errcode = tr->getObjectPointer (((QueryReferenceResult*)execution_result)->getValue(), Store::Read, optr, false);
 			if (errcode != 0) {
-				return trErrorOccur("[QE] register view operation - Error in getObjectPointer.", errcode);
+				return trErrorOccur("[QE] register class operation - Error in getObjectPointer.", errcode);
 			}
 			
 			errcode = tr->addRoot(optr);
@@ -4036,30 +4064,32 @@ int QueryExecutor::trErrorOccur( string msg, int errcode ) {
 
 
 
-void QueryExecutor::pushStringToLIDs(string name, string bindName, vector<LogicalID*>*& lids) {
+void QueryExecutor::pushStringToLIDs(string name, string bindName, vector<LogicalID*>& lids) {
 	LogicalID* tmpLid;
 	lidFromString(bindName, name, tmpLid);
-	lids->push_back(tmpLid);
+	lids.push_back(tmpLid);
 }
 
-void QueryExecutor::pushStringsToLIDs(set<string>* names, string bindName, vector<LogicalID*>*& lids) {
+void QueryExecutor::pushStringsToLIDs(set<string>* names, string bindName, vector<LogicalID*>& lids) {
 	for(set<string>::iterator i = names->begin(); i != names->end(); ++i) {
 		pushStringToLIDs(*i, bindName, lids);
 	}
 }
 
-int QueryExecutor::classesLIDsFromNames(set<string>* names, vector<LogicalID*>*& lids) {
-	lids = new vector<LogicalID*>(0);
+int QueryExecutor::classesLIDsFromNames(set<string>* names, vector<LogicalID*>& lids) {
 	for(set<string>::iterator i = names->begin(); i != names->end(); i++) {
 		vector<LogicalID *>* addedClasses;
 		int errcode = tr->getClassesLID(*i, addedClasses);
 		if(errcode != 0) {
+			delete addedClasses;
 			return trErrorOccur("[QE] Error in getClassesLID", errcode);
 		}
 		if(addedClasses->size() == 0) {
+			delete addedClasses;
 			return qeErrorOccur("[QE] Class: \"" + (*i) + "\" not found.", ENoClassDefFound);
 		}
-		lids->push_back(addedClasses->at(0));
+		lids.push_back(addedClasses->at(0));
+		delete addedClasses;
 	}
 	return 0;
 }
@@ -4068,9 +4098,11 @@ int QueryExecutor::classExists(string className, bool& exist) {
 	vector<LogicalID *>* addedClasses;
 	int errcode = tr->getClassesLID(className, addedClasses);
 	if(errcode != 0) {
+		delete addedClasses;
 		return trErrorOccur("[QE] Error in getClassesLID", errcode);
 	}
 	exist = addedClasses->size() != 0;
+	delete addedClasses;
 	return 0;
 }
 
@@ -4095,7 +4127,7 @@ int QueryExecutor::lidFromBinder( string bindName, QueryResult* result, LogicalI
 	return 0;
 }
 
-int QueryExecutor::createObjectAndPutOnQRes(DBDataValue* dbValue, string objectName, int type) {
+int QueryExecutor::createObjectAndPutOnQRes(DBDataValue* dbValue, string objectName, int type, LogicalID*& newLid) {
 	int errcode = 0;
 	ObjectPointer *newObject;
 	DataValue* value = dbValue;
@@ -4116,8 +4148,8 @@ int QueryExecutor::createObjectAndPutOnQRes(DBDataValue* dbValue, string objectN
 			return errcode;
 		}
 	}
-	
-	QueryResult *lidres = new QueryReferenceResult(newObject->getLogicalID());
+	newLid = newObject->getLogicalID();
+	QueryResult *lidres = new QueryReferenceResult(newLid);
 	
 	errcode = qres->push(lidres);
 	if (errcode != 0) return errcode;

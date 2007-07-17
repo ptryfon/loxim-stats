@@ -2,6 +2,7 @@
 #define __STORE_H__
 
 #define DEBUG_MODE
+#include <set>
 
 namespace Store
 {
@@ -10,6 +11,8 @@ namespace Store
 	class DataValue;
 	class ObjectPointer;
 	class StoreManager;
+	struct LIDComparator;
+	typedef std::set<LogicalID*, LIDComparator> SetOfLids;
 
 	enum DataType
 	{
@@ -42,6 +45,7 @@ namespace Store
 
 #include <string>
 #include <vector>
+
 #include "Config/SBQLConfig.h"
 #include "Log/Logs.h"
 #include "TransactionManager/Transaction.h"
@@ -109,6 +113,12 @@ namespace Store
 		virtual ~LogicalID() {};
 	};
 
+	struct LIDComparator {
+		bool operator()(LogicalID* lid1, LogicalID* lid2) const {
+			return lid1->toInteger() < lid2->toInteger();
+		} 
+	};
+	
 
 	class DataValue
 	{
@@ -116,8 +126,19 @@ namespace Store
 		// Class functions
 		virtual DataType getType() const = 0;
 		virtual ExtendedType getSubtype() const = 0;
-		virtual unsigned int getClassMark() const = 0;
-		virtual void setClassMark(unsigned int classMark) = 0;
+		
+		// ClassMarks methods
+		virtual SetOfLids* getClassMarks() const = 0;
+		virtual void addClassMark(LogicalID* classMark) = 0;
+		virtual void setClassMarks(SetOfLids* classMarks) = 0;
+		virtual void addClassMarks(SetOfLids* toAdd) = 0;
+		
+		// Subclass methods
+		virtual SetOfLids* getSubclasses() const = 0;
+		virtual void addSubclass(LogicalID* subclass) = 0;
+		virtual void setSubclasses(SetOfLids* subclasses) = 0;
+		virtual void addSubclasses(SetOfLids* toAdd) = 0;
+		
 		virtual void setSubtype(ExtendedType type) = 0;
 		virtual string toString() = 0;
 		virtual Serialized serialize() const = 0;
@@ -246,6 +267,7 @@ namespace Store
 		Serialized& operator+=(const string&);
 		Serialized& operator+=(const LogicalID&);
 		Serialized& operator+=(const DataValue&);
+		Serialized& operator+=(SetOfLids* const &s);
 		template <typename T> Serialized& operator+=(const T&);
 		void info() const;
 

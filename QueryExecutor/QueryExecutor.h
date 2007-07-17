@@ -99,7 +99,7 @@ namespace QExecutor
 		/** Create new object in store and puts reference on stack result */
 		int classExists(string className, bool& exist);
 		
-		int createObjectAndPutOnQRes(DBDataValue* dbValue, string objectName, int type);
+		int createObjectAndPutOnQRes(DBDataValue* dbValue, string objectName, int type, LogicalID*& newLid);
 		
 		int lidFromVector( string bindName, vector<QueryResult*> value, LogicalID*& lid);
 		
@@ -115,11 +115,11 @@ namespace QExecutor
 		
 		int otherErrorOccur( string msg, int errcode );
 		
-		int classesLIDsFromNames(set<string>* names, vector<LogicalID*>*& lids);
+		int classesLIDsFromNames(set<string>* names, vector<LogicalID*>& lids);
 		
-		void pushStringToLIDs(string name, string bindName, vector<LogicalID*>*& lids);
+		void pushStringToLIDs(string name, string bindName, vector<LogicalID*>& lids);
 		
-		void pushStringsToLIDs(set<string>* names, string bindName, vector<LogicalID*>*& lids);
+		void pushStringsToLIDs(set<string>* names, string bindName, vector<LogicalID*>& lids);
 		
 		
 		

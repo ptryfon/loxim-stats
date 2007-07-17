@@ -21,6 +21,9 @@ namespace Store
 				vector<LogicalID*>* vector_value;
 //			} v;
 		} complex_value;
+		
+	static void cloneSetOfLid(SetOfLids* fromSet, SetOfLids*& toSet) ;
+	static void deleteSetOfLid(SetOfLids* toDel);
 
 	public:
 		DBDataValue();
@@ -35,11 +38,18 @@ namespace Store
 		virtual DataType getType() const;
 		virtual ExtendedType getSubtype() const;
 		virtual void setSubtype(ExtendedType subtype);
-		virtual unsigned int getClassMark() const;
-		virtual void setClassMark(unsigned int classMark);
+		virtual SetOfLids* getClassMarks() const;
+		virtual void setClassMarks(SetOfLids* classMarks);
+		virtual void addClassMarks(SetOfLids* toAdd);
+		virtual void addClassMark(LogicalID* classMark);
+		virtual SetOfLids* getSubclasses() const;
+		virtual void addSubclass(LogicalID* subclass);
+		virtual void setSubclasses(SetOfLids* subclasses);
+		virtual void addSubclasses(SetOfLids* toAdd);
 		virtual string toString();
 		virtual Serialized serialize() const;
 		static int deserialize(unsigned char* bytes, DBDataValue*& value, bool AutoRemove=false);
+		static void deserializeSetOfLids(unsigned char*& curpos, SetOfLids*& lids);
 		virtual DataValue* clone() const;
 
 		virtual int getInt() const;
@@ -64,8 +74,17 @@ namespace Store
 	private:
 		DataType type;
 		ExtendedType subtype;
-		/** Object class LogicalID or 0 if this object has no class. */
-		unsigned int classMark;
+		
+		//this two vector type properties may be consider as usefull for role.
+		
+		/** Object class LogicalID or 0 if this object has no class.
+		 * If object is a class it contains extended classes. */
+		SetOfLids* classMarks;
+		
+		/** If object is a class it contains lids to all subclasses.
+		 * NULL if object is not a class. */
+		SetOfLids* subclasses;
+		
 		complex_value value;
 
 		void p_init();
