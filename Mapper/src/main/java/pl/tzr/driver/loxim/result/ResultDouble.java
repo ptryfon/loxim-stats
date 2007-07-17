@@ -1,0 +1,22 @@
+package pl.tzr.driver.loxim.result;
+
+public class ResultDouble extends ResultSimple {
+
+	double val;
+	public ResultDouble(double _val) {
+		val = _val;
+	}
+	public double getValue() {
+		return val;
+	}
+	
+	@Override
+    public String toString() {
+		return new Double(val).toString();
+	}
+
+	@Override
+    public int getType() {
+		return ResultType.RES_DOUBLE;
+	}
+}

@@ -1,3 +1,11 @@
-#Fri Apr 06 17:50:23 CEST 2007
+#Sat Jul 07 16:50:22 CEST 2007
 eclipse.preferences.version=1
+formatter_profile=_Tomka
+formatter_settings_version=10
 internal.default.compliance=default
+org.eclipse.jdt.ui.exception.name=e
+org.eclipse.jdt.ui.gettersetter.use.is=true
+org.eclipse.jdt.ui.javadoc=true
+org.eclipse.jdt.ui.keywordthis=false
+org.eclipse.jdt.ui.overrideannotation=true
+org.eclipse.jdt.ui.text.custom_code_templates=<?xml version\="1.0" encoding\="UTF-8" standalone\="no"?><templates/>

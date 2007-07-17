@@ -11,7 +11,7 @@ Kompilacja
 Aby skompilować bibliotekę, należy wejść do katalogu z mapperem i wykonać 
 polecenie
 
-$ ant
+$ ant build
 
 Powstanie plik mapper.jar
 
@@ -19,17 +19,13 @@ Zależności
 ----------
 Mapper jest zależny od następujących bibliotek
 - commons-logging 1.1
-- bean-shell 2.0b4
-- junit 3.81
+- commons-beanutils 
 
 Wszystkie niezbędne do pracy biblioteki znajdują się w katalogu lib
 
 Krótki przykład
 ---------------
-W pliku /doc/data/samolot-insert.sbql jest zestaw danych testowych, które
-można umieścić w bazie danych.
-
-Pakiet pl.tzr.test.data zawiera interfejsy opisujące możliwe obiekty
+Pakiet pl.tzr.transparent.data zawiera interfejsy opisujące możliwe obiekty
 z bazy danych. Są to interfejsy:
 
 - Component
@@ -39,105 +35,32 @@ Wraz z biblioteką dostarczona jest prosta przykładowa aplikacja, która
 pobiera i wyświetla obiekty Part z bazy danych. Można ją uruchomić wywołując 
 polecenie:
 
-$ run_test_transparent.sh
+$ ant test
 
 Oczywiście wcześniej trzeba mieć uruchomiony serwer bazy danych z umieszczonymi
-danymi testowymi. Kod źródłowy przykładu znajduje się w klasie 
-pl.tzr.test.TansparentTest
+danymi testowymi. 
 
 Na wyjście stderr logowane są wszystkie wykonywane zapytania.
 
-Architektura
-------------
-- sterownik TCP/IP (pakiet pl.tzr.driver) - pozwala na połączenie z bazą 
-  danych i wykonywanie zapytań.
-  
-- warstwa nawgacyjna (pakiet pl.tzr.browser) - pozwala na pobieranie 
-  konkretnych obiektów z bazy. Każdy obiekt z bazy danych jest reprezentowany 
-  przez obiekt klasy Node. Warstwa pozwala przeglądać wartości poszczególnych 
-  obiektów (dla obiektów prostych) oraz ich obiekty składowe (jeśli mamy do 
-  czynienia z obiektem złożonym). Warstwa ta pozwala też dodawać nowe obiekty 
-  oraz zmieniać wartości istniejących obiektów.
-  
-- warstwa przezroczystego mapowania (pakiet pl.tzr.transparent) - pozwala 
-  stworzyć model bazy danych w formie hierarchii obiektów Javy i zapisywać go 
-  w bazie danych, a później korzystać z obiektów bazodanowych za pomocą 
-  dowolnych Javowych interfejsów  
-    
-Release notes
--------------
-- Działa tylko funkcjonalność odczytu danych z bazy, nie jest możliwa 
-  modyfikacja 
-  
-- Odwzorowanie modelu danych jest definiowane przez wskazanie klas Javy
-  składających się na model. 
-  
-- Na chwilę obecną mapper korzysta z mechanizmu Java Transparent Proxy
-  do tworzenia obiektów Javy o dynamicznie określonym zachowaniu. Mechanizm
-  ten ma swoje ograniczenia, między innymi to że potrafi tworzyć dynamiczne
-  klasy tylko w oparciu o istniejące interfejsy (może tworzyć obiektów które
-  "udają" interfejs, natomiast nie może tworzyć obiektów którę "udają" inne
-  klasy) - ograniczenie jest stąd takie, że na chwilę obecną model danych musi
-  zostać określony jako zbiór interfejsów, a atrybuty poszczególnych 
-  obiektów powinny być zdefiniowane jako para gettera i settera w interfejsie.
-  
-Przykład to:
+Budowanie przy użyciu narzędzia maven2
+--------------------------------------
+Do zbudowania projektu możemy również użyć narzędzia maven2. W tym celu
+wykonujemy polecenie:
 
-public interface Part {
+> mvn package -Dmaven.test.skip
 
-	int getDetailCost();
-	
-	void setDetailCost(int detailCost);
+Parametr -Dmaven.tes
+Jeśli chcemy wykonać testy automatyczne dołączone do projektu, uruchamiamy
+serwer LoXim i wykonujemy
+polecenie
 
-	int getDetailMass();
+> mvn test
 
-	void setDetailMass(int detailMass);
+Jeśli chcemy umieścić plik JAR z mapperem w lokalnym repozytorium mavena,
+aby wykorzystać mappera w innych projektach, musimy wykonać polecenie
 
-	String getKind();
+> mvn install -Dmaven.test.skip
 
-	void setKind(String kind);
-
-	String getName();
-
-	void setName(String name);
-
-	@PersistentSet(itemType=Component.class)
-	Set<Component> getComponent();
-
-	void setComponent(Set<Component> component);
-
-}
-
-Definiuje obiekty klasy Part, które posiadają atrybuty detailCost, detailMass, 
-kind, name i component.
-
-- W pewnych przypadkach możemy lub wręcz musimy zdefiniować w jaki sposób
-  dany atrybut obiektu ma zostać zapisany w bazie danych. Domyślna polityka
-  zapisu obiektów w bazie jest następująca
-  
-- Obiekty znajdujące się w korzeniu mają taką nazwę jak nazwa klasy
-
-- Atrybuty obiektów javy sa zapisywane jako podobiekty obiektu złożonego,
-  o nazwie takiej jak nazwa atrybutu.
-  
-- W przypadku gdy obiekt w bazie danych ma wiele atrybutów o tej samej nazwie
-  możemy zamapować te atrybuty jako zbiór, w tym celu stosujemy adnotację
-  @PersistentSet.
-  
-- W przypadku gdy A zawiera obiekt B, możemy poprostu w klasie Javy mającej
-  reprezentować obiekty A dodać atrybut typu B
-  
-- jeśli chcemy aby jakiś atrybut klasy Javy był odwzorowany na referencje,
-  stosujemy adnotację @Reference  
-  
-- Póki co możliwa jest tylko praca w ramach jednego połącząnia i jednej 
-  transakcji, nie ma możliwości korzystania z obiektów trwałych po zakończeniu 
-  transakcji, w której zostały one pobrane
-  
-- Typy danych inne niż int, boolean, String, Set oraz klasy należące do modelu
-  nie są obsługiwane.
-  
-- Brak sensownej hierarchii błedów
-
-- Nie ma możliwości zdefiniowania własnego odwzorowania nazw klas i atrybutów
-  Javy, na nazwy obiektów i ich podobiektów w LoXiMie
+Instrukcja obsługi
+------------------
+(...TODO...)

@@ -5,7 +5,10 @@
     <property name="debuglevel" value="source,lines,vars"/>
     <property name="target" value="1.5"/>
     <property name="source" value="1.5"/>
-	<property name="srcDir" value="src"/>
+	<property name="srcDir" value="src/main/java"/>
+	<property name="resourceDir" value="src/main/resources"/>
+	<property name="testSrcDir" value="src/test/java"/>
+	<property name="testResourceDir" value="src/test/resources"/>    
 	<property name="targetDir" value="target"/>
 	<property name="javadocDir" value="doc/api"/>
        
@@ -24,12 +27,21 @@
     </path>
     <target name="init">
         <mkdir dir="${targetDir}"/>
-        <copy includeemptydirs="false" todir="${targetDir}">
-            <fileset dir="${srcDir}" excludes="**/*.launch, **/*.java"/>
+        <mkdir dir="${targetDir}/build"/>
+        <copy includeemptydirs="false" todir="${targetDir}/build">
+            <fileset dir="${srcDir}" excludes="**/*.launch, **/*.java"/>            
+            <fileset dir="${resourceDir}" excludes="**/*.launch, **/*.java"/>            
         </copy>
-        <copy includeemptydirs="false" todir="${targetDir}">
-            <fileset dir="resources" excludes="**/*.launch, **/*.java"/>
-        </copy>
+    </target>
+    <target name="init-test">
+        <mkdir dir="${targetDir}"/>
+        <mkdir dir="${targetDir}/test"/>        
+        <copy includeemptydirs="false" todir="${targetDir}/test">
+            <fileset dir="${srcDir}" excludes="**/*.launch, **/*.java"/>            
+            <fileset dir="${resourceDir}" excludes="**/*.launch, **/*.java"/>            
+            <fileset dir="${testSrcDir}" excludes="**/*.launch, **/*.java"/>
+            <fileset dir="${testResourceDir}" excludes="**/*.launch, **/*.java"/>            
+        </copy>        
     </target>
     <target name="clean">
         <delete dir="${targetDir}"/>
@@ -57,24 +69,34 @@
     <target depends="build-project,package,javadoc" name="build"/>
     <target depends="init" name="build-project">
         <echo message="${ant.project.name}: ${ant.file}"/>
-        <javac debug="true" debuglevel="${debuglevel}" destdir="${targetDir}" source="${source}" target="${target}">
+        <javac debug="true" debuglevel="${debuglevel}" destdir="${targetDir}/build" source="${source}" target="${target}">
             <src path="src"/>
             <classpath refid="mapper.classpath"/>
         </javac>
-        <javac debug="true" debuglevel="${debuglevel}" destdir="${targetDir}" source="${source}" target="${target}">
-            <src path="resources"/>
+    </target>
+    
+    <target depends="init-test" name="build-test">
+        <echo message="${ant.project.name}: ${ant.file}"/>
+        <javac debug="true" debuglevel="${debuglevel}" destdir="${targetDir}/test" source="${source}" target="${target}">
+             <src path="${srcDir}"/>
+             <classpath refid="mapper.classpath"/>
+        </javac>        
+        <javac debug="true" debuglevel="${debuglevel}" destdir="${targetDir}/test" source="${source}" target="${target}">
+            <src path="${testSrcDir}"/>
             <classpath refid="mapper.classpath"/>
         </javac>
     </target>
+        
+    
 	<target name="package">
-		<jar destfile="mapper.jar" basedir="${targetDir}"/>
+		<jar destfile="mapper.jar" basedir="${targetDir}/build"/>
 	</target>
     
-    <target name="test" depends="build-project">
+    <target name="test" depends="build-test">
       <junit fork="no" printsummary="yes" haltonfailure="yes" showoutput="yes" >
         <batchtest fork="yes" todir="${junitDir}">
-          <fileset dir="${targetDir}">
-            <include name="pl/tzr/test/transparent/**/*Test.class" />
+          <fileset dir="${targetDir}/test">
+            <include name="pl/tzr/transparent/**/*Test.class" />
           </fileset>
         </batchtest>
         <classpath refid="mapper.classpath" />
