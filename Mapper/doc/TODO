@@ -5,15 +5,9 @@ Aktualnie robione
 Transparent Mapper
 ------------------
 
-
 - dodawanie do kolekcji elementów które są w roocie
 - przy usuwaniu z kolekcji przenosimy do root'a (konfigurowalne)
 - w momencie usuwania obiektu kompozytu należy przenieść go do roota (konfigurowalne)
 (jak to zrobić?)
 - kaskadowe utrwalanie obiektów (referencje i zbiory referencyjne)
 - support for sets as query parameters
-
-Narzędzia do Springa
---------------------
-- datasource bean
-- manager transakcji
