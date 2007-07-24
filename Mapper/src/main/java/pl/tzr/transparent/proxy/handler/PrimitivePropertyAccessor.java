@@ -55,9 +55,12 @@ public abstract class PrimitivePropertyAccessor<T> implements PropertyAccessor<T
 			
 		} else {
 			if (data != null) {
+                /* Remove existing node */
+                foundNode.delete();
 				/* Change existing node */
-				ObjectValue newValue = createPrimitiveValue(data, propertyInfo, session);
-				foundNode.setValue(newValue);				
+                ObjectValue newValue = createPrimitiveValue(data, propertyInfo, session);
+                Node newNode = new LoximNode(propertyInfo.getNodeName(), newValue);
+                parent.addChild(newNode);
 			} else {
 				/* Remove existing node */
 				foundNode.delete();
