@@ -82,7 +82,8 @@ namespace Store
 		
 		virtual int getClassesLID(TransactionID* tid, vector<LogicalID*>*& roots);
 		virtual int getClassesLID(TransactionID* tid, string name, vector<LogicalID*>*& roots);
-		virtual int addClass(TransactionID* tid, const char* name, ObjectPointer*& object);
+		virtual int getClassesLIDByInvariant(TransactionID* tid, string invariantName, vector<LogicalID*>*& roots);
+		virtual int addClass(TransactionID* tid, const char* name, const char* invariantName, ObjectPointer*& object);
 		virtual int removeClass(TransactionID* tid, ObjectPointer*& object);
 
 		virtual int abortTransaction(TransactionID* tid);

@@ -136,6 +136,7 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 					qe->inTransaction = false;
 					return errcode;
 				}
+				
 				int vecSize_virt = vec_virt->size();
 				ec->printf("[QE] %d Views LID by name taken\n", vecSize_virt);
 				
@@ -145,6 +146,31 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 						LogicalID *lid = vec->at(i);
 						QueryReferenceResult *lidres = new QueryReferenceResult(lid);
 						r->addResult(lidres);
+					}
+					ClassGraph cg;
+					stringHashSet shs;
+					cg.fetchSubInvariantNames(name, tr, qe, shs);
+					vector< vector<LogicalID*>* > vecvec;
+					for(stringHashSet::iterator i = shs.begin(); i != shs.end(); i++) {
+						vector<LogicalID*>* vecSubInvariant;
+						if ((errcode = tr->getRootsLID((*i), vecSubInvariant)) != 0) {
+							return qe->trErrorOccur("[QE] bindName - error in getRootsLID", errcode);
+						}
+						vecvec.push_back(vecSubInvariant);
+					}
+					for(unsigned int i = 0; i < vecvec.size(); ++i) {
+						vector<LogicalID*>* vecSubInvariant = vecvec.at(i);
+						for (unsigned int j = 0; j < vecSubInvariant->size(); j++ ) {
+							LogicalID *lid = vecSubInvariant->at(j);
+							bool inInvariant;
+							errcode = cg.belongsToInvariant(lid, name, tr, qe, inInvariant);
+							if(errcode != 0) return errcode;
+							if(!inInvariant) continue;
+							found_one = true;
+							QueryReferenceResult *lidres = new QueryReferenceResult(lid);
+							r->addResult(lidres);
+						}
+						delete vecSubInvariant;
 					}
 				}
 				else if (vecSize != 0) {

@@ -2,7 +2,12 @@
 #define __STORE_H__
 
 #define DEBUG_MODE
+
 #include <set>
+#include "QueryExecutor/HashMacro.h"
+
+
+
 
 namespace Store
 {
@@ -12,7 +17,10 @@ namespace Store
 	class ObjectPointer;
 	class StoreManager;
 	struct LIDComparator;
-	typedef std::set<LogicalID*, LIDComparator> SetOfLids;
+	class hashLogicalID;
+	struct eqLogicalID;
+	typedef hash_set<LogicalID*, hashLogicalID, eqLogicalID> SetOfLids;
+	//typedef std::set<LogicalID*, LIDComparator> SetOfLids;
 
 	enum DataType
 	{
@@ -119,6 +127,22 @@ namespace Store
 		} 
 	};
 	
+	class hashLogicalID {
+	private:
+		hash<unsigned> hasher;
+		
+	public:
+		size_t operator()(const LogicalID* lid) const {
+			return hasher(lid->toInteger());
+		}
+	};
+	
+	struct eqLogicalID{
+		bool operator()(const LogicalID* s1, const LogicalID* s2) const{
+			return s1->toInteger() == s2->toInteger();
+		}
+	};
+	
 
 	class DataValue
 	{
@@ -221,7 +245,8 @@ namespace Store
 		// Classes
 		virtual int getClassesLID(TransactionID* tid, vector<LogicalID*>*& roots) = 0;
 		virtual int getClassesLID(TransactionID* tid, string name, vector<LogicalID*>*& roots) = 0;
-		virtual int addClass(TransactionID* tid, const char* name, ObjectPointer*& object) = 0;
+		virtual int getClassesLIDByInvariant(TransactionID* tid, string invariantName, vector<LogicalID*>*& roots) = 0;
+		virtual int addClass(TransactionID* tid, const char* name, const char* invariantName, ObjectPointer*& object) = 0;
 		virtual int removeClass(TransactionID* tid, ObjectPointer*& object) = 0;
 
 		// Transactions

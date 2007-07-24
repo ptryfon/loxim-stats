@@ -109,12 +109,6 @@ namespace QExecutor
 		
 		int lidFromBinder( string bindName, QueryResult* result, LogicalID*& lid);
 		
-		int trErrorOccur( string msg, int errcode );
-		
-		int qeErrorOccur( string msg, int errcode );
-		
-		int otherErrorOccur( string msg, int errcode );
-		
 		int classesLIDsFromNames(set<string>* names, vector<LogicalID*>& lids);
 		
 		void pushStringToLIDs(string name, string bindName, vector<LogicalID*>& lids);
@@ -166,6 +160,12 @@ namespace QExecutor
 		int getSubviews(LogicalID *lid, string vo_name, vector<LogicalID *> &subviews, vector<LogicalID *> &others);
 		int getOn_procedure(LogicalID *lid, string procName, string &code, string &param);
 		int pop_qres(QueryResult *&r) { return qres->pop(r); };
+		
+		int trErrorOccur( string msg, int errcode );
+		
+		int qeErrorOccur( string msg, int errcode );
+		
+		int otherErrorOccur( string msg, int errcode );
 	};
 	
 	/*

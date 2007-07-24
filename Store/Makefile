@@ -13,11 +13,13 @@ SOURCES	=	Buffer.cpp \
 		NamedRoots.cpp \
 		Views.cpp \
 		NamedItems.cpp \
+		Classes.cpp \
 		PagePointer.cpp \
 		PageManager.cpp \
 		Misc.cpp
 
-HEADERS	=	Buffer.h \
+HEADERS	=	../QueryExecutor/HashMacro.h \
+		Buffer.h \
 		DBDataValue.h \
 		DBLogicalID.h \
 		DBObjectPointer.h \

@@ -4,7 +4,8 @@
 #include <stdio.h>
 #include <string>
 #include <vector>
-   
+  
+#include "ClassGraph.h"
 #include "QueryResult.h"
 #include "TransactionManager/Transaction.h"
 #include "Store/Store.h"

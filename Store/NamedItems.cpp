@@ -74,13 +74,84 @@ namespace Store
 
 		return 0;
 	}
+	
+	int NamedItems::addItem(int size_needed, char* entry_buf) {
+		
+		int i = 1;
+		while (i > 0)
+		{
+			PagePointer* page_pointer = buffer->getPagePointer(STORE_FILE_, (unsigned int) i);
+			page_pointer->aquire();
+
+			char* page_buf = page_pointer->getPage();
+			ixr_page* page = (ixr_page*) page_buf;
+
+			if (page->free >= size_needed)
+			{
+				memcpy(page_buf + (STORE_PAGESIZE - page->free), entry_buf, size_needed);
+				page->free -= size_needed;
+				page->entries++;
+				page->page_hdr.timestamp = log->getLogicalTimerValue();
+
+				i = 0;
+			}
+			else
+				i++;
+
+			if (i == 0)
+				page_pointer->releaseSync(1);
+			else
+				page_pointer->release(0);
+
+			delete page_pointer;
+		}
+
+		return 0;
+		
+	}
+	
+	int NamedItems::createEntry(int logicalID, const char* name, int transactionID, int transactionTimeStamp, int& size_needed, char*& entry_buf) {
+		int name_len = 0;
+		ix_entry* entry = 0;
+
+		name_len = strlen(name);
+		if (name_len > STORE_IX_NAMEMAXLEN)
+			return 1;
+
+		size_needed = sizeof(ix_entry) + name_len + 1;
+		entry_buf = new char[size_needed];
+		memset(entry_buf, 0, size_needed);
+
+
+		entry = (ix_entry*) entry_buf;
+		entry->size = size_needed;
+		entry->l_id = logicalID;
+		entry->cur_tran = transactionID;
+		entry->add_t = transactionTimeStamp;
+		entry->del_t = STORE_IX_NULLVALUE;
+		memcpy(entry->name, name, name_len);
+		
+		return 0;
+	}
 
 	int NamedItems::addItem(int logicalID, const char* name, int transactionID, int transactionTimeStamp)
 	{
+		
 #ifdef IX_DEBUG
 		ec->printf("addItem(logicalID=%i, name=\"%s\", transactionID=%i, transactionTimeStamp=%i)\n", logicalID, name, transactionID, transactionTimeStamp);
 #endif
-
+		char* entry_buf;
+		int size_needed = 0;
+		int errcode = createEntry(logicalID, name, transactionID, transactionTimeStamp, size_needed, entry_buf);
+		if(errcode != 0) return errcode;
+		addItem(size_needed, entry_buf);
+		if(entry_buf != NULL){
+			delete entry_buf;
+		}
+		return 0;
+		
+		/* old version */
+		/*
 		int i = 0;
 		int name_len = 0;
 		int size_needed = 0;
@@ -138,6 +209,7 @@ namespace Store
 		delete entry_buf;
 
 		return 0;
+		*/
 	};
 
 	int NamedItems::removeItem(int logicalID, int transactionID, int transactionTimeStamp)
@@ -151,7 +223,7 @@ namespace Store
 		PagePointer* page_pointer = 0;
 		char* page_buf = 0;
 		ixr_page* page = 0;
-		ixr_entry* entry = 0;
+		ix_entry* entry = 0;
 		int entry_size = 0;
 
 		i = 1;
@@ -172,7 +244,7 @@ namespace Store
 				offset = sizeof(ixr_page);
 				while (offset < STORE_PAGESIZE - page->free)
 				{
-					entry = (ixr_entry*) (page_buf + offset);
+					entry = (ix_entry*) (page_buf + offset);
 
 					if (entry->l_id == logicalID)
 					{
@@ -247,7 +319,7 @@ namespace Store
 		PagePointer* page_pointer = 0;
 		char* page_buf = 0;
 		ixr_page* page = 0;
-		ixr_entry* entry = 0;
+		ix_entry* entry = 0;
 		int entry_size = 0;
 		int changed = 0;
 
@@ -270,7 +342,7 @@ namespace Store
 				offset = sizeof(ixr_page);
 				while (offset < STORE_PAGESIZE - page->free)
 				{
-					entry = (ixr_entry*) (page_buf + offset);
+					entry = (ix_entry*) (page_buf + offset);
 					entry_size = entry->size;
 
 					if (entry->cur_tran == transactionID || (mode == 2 && entry->cur_tran != STORE_IX_NULLVALUE))
@@ -332,20 +404,15 @@ namespace Store
 
 		return getItems("", transactionID, transactionTimeStamp);
 	}
-
-	vector<int>* NamedItems::getItems(const char* name, int transactionID, int transactionTimeStamp)
-	{
-#ifdef IX_DEBUG
-		ec->printf("getItems(name=\"%s\", transactionID=%i, transactionTimeStamp=%i)\n", name, transactionID, transactionTimeStamp);
-#endif
-
+	
+	template<typename Operation, typename DataType>
+	vector<int>* NamedItems::getItemsByAnything(Operation findTest, DataType thingToFind, int transactionID, int transactionTimeStamp) {
 		vector<int>* roots = new vector<int>();
 		int i = 0;
 		int offset = 0;
 		PagePointer* page_pointer = 0;
 		char* page_buf = 0;
 		ixr_page* page = 0;
-		ixr_entry* entry = 0;
 
 		i = 1;
 		while (i > 0)
@@ -365,8 +432,77 @@ namespace Store
 				offset = sizeof(ixr_page);
 				while (offset < STORE_PAGESIZE - page->free)
 				{
-					entry = (ixr_entry*) (page_buf + offset);
+					ix_entry* entry = (ix_entry*) (page_buf + offset);
+					ec->printf("@@@@@@@ !!! @@@@@@@ add_t: %i, l_id: %i del_t: %i, cur_tran: %i, name: %s\n", entry->add_t, entry->l_id, entry->del_t, entry->cur_tran, entry->name);
+					if
+					(
+						//(strlen(name) == 0 || strcmp(name, entry->name) == 0)
+						findTest(thingToFind, entry)
+						&& entry->add_t <= transactionTimeStamp
+						&& entry->del_t == STORE_IX_NULLVALUE
+						&& (entry->cur_tran == STORE_IX_NULLVALUE || entry->cur_tran == transactionID)
+					)
+						roots->push_back(entry->l_id);
 
+					offset += entry->size;
+				}
+
+				i++;
+			}
+
+			page_pointer->release(0);
+			delete page_pointer;
+		}
+
+		return roots;
+	}
+
+
+	vector<int>* Classes::getClassByInvariant(const char* invariantName, int transactionID, int transactionTimeStamp) {
+#ifdef IX_DEBUG
+		ec->printf("getClassByInvariant(invariantName=\"%s\", transactionID=%i, transactionTimeStamp=%i)\n", invariantName, transactionID, transactionTimeStamp);
+#endif
+		//return getItemsByAnything(findByName, invariantName, transactionID, transactionTimeStamp);
+		return getItemsByAnything(findByInvariantName, invariantName, transactionID, transactionTimeStamp);
+	}
+
+	vector<int>* NamedItems::getItems(const char* name, int transactionID, int transactionTimeStamp)
+	{
+#ifdef IX_DEBUG
+		ec->printf("getItems(name=\"%s\", transactionID=%i, transactionTimeStamp=%i)\n", name, transactionID, transactionTimeStamp);
+#endif
+		
+		return getItemsByAnything(findByName, name, transactionID, transactionTimeStamp);
+		
+		/* old version */
+		/*vector<int>* roots = new vector<int>();
+		int i = 0;
+		int offset = 0;
+		PagePointer* page_pointer = 0;
+		char* page_buf = 0;
+		ixr_page* page = 0;
+		ix_entry* entry = 0;
+
+		i = 1;
+		while (i > 0)
+		{
+			page_pointer = buffer->getPagePointer(STORE_FILE_, (unsigned int) i);
+			page_pointer->aquire();
+
+			page_buf = page_pointer->getPage();
+			page = (ixr_page*) page_buf;
+
+			if (page->page_hdr.timestamp == STORE_IX_NULLVALUE)
+				i = 0;
+			else if (page->entries == 0)
+				i++;
+			else
+			{
+				offset = sizeof(ixr_page);
+				while (offset < STORE_PAGESIZE - page->free)
+				{
+					entry = (ix_entry*) (page_buf + offset);
+					//ec->printf("@@@@@@@ !!! @@@@@@@ add_t: %i, l_id: %i del_t: %i, cur_tran: %i, name: %s\n", entry->add_t, entry->l_id, entry->del_t, entry->cur_tran, entry->name);
 					if
 					(
 						(strlen(name) == 0 || strcmp(name, entry->name) == 0)
@@ -386,6 +522,6 @@ namespace Store
 			delete page_pointer;
 		}
 
-		return roots;
+		return roots;*/
 	}
 }

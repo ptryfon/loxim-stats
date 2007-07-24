@@ -95,7 +95,8 @@ namespace TManager
 		    	
 		    	int getClassesLID(vector<LogicalID*>* &p);
 		    	int getClassesLID(string name, vector<LogicalID*>* &p);
-		    	int addClass(const char* name, ObjectPointer* &p);
+		    	int getClassesLIDByInvariant(string invariantName, vector<LogicalID*>* &p);
+		    	int addClass(const char* name, const char* invariantName, ObjectPointer* &p);
 		    	int removeClass(ObjectPointer* &p);
 	
 		    	TransactionID* getId();

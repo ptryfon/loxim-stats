@@ -397,16 +397,32 @@ namespace TManager
 	
 		return errorNumber;
 	}
+	
+	int Transaction::getClassesLIDByInvariant(string invariantName, vector<LogicalID*>* &p)
+	{
+		int errorNumber;
+		
+		err.printf("Transaction: %d getClassesLID by name \n", tid->getId());
+
+		sem->lock_read();
+		errorNumber = sm->getClassesLIDByInvariant(tid, invariantName, p);
+		sem->unlock();
+		
+		if (errorNumber) abort();
+	
+		return errorNumber;
+		
+	}
 
 
-	int Transaction::addClass(const char* name, ObjectPointer* &p)
+	int Transaction::addClass(const char* name, const char* invariantName, ObjectPointer* &p)
 	{
 		int errorNumber;
 		
 		err.printf("Transaction: %d addClass\n", tid->getId());
 		
 		sem->lock_write();
-			errorNumber = sm->addClass(tid, name,  p);
+			errorNumber = sm->addClass(tid, name, invariantName,  p);
 			/* GUARANTEED no waiting */
 			if (errorNumber == 0)
 			    errorNumber = lm->lock( p->getLogicalID(), tid, Write);

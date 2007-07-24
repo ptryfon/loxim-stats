@@ -645,16 +645,38 @@ namespace Store
 #endif
 		return 0;
 	}
+	
+	int DBStoreManager::getClassesLIDByInvariant(TransactionID* tid, string invariantName, vector<LogicalID*>*& p_classes) {
+#ifdef DEBUG_MODE
+		*ec << "Store::Manager::getClassesLIDByInvariant(BY NAME) begin..";
+#endif
+		p_classes = new vector<LogicalID*>(0);
+		vector<int>* rvec;
+		rvec = classes->getClassByInvariant(invariantName.c_str(), tid->getId(), tid->getTimeStamp());
+		
+		vector<int>::iterator obj_iter;
+		for(obj_iter=rvec->begin(); obj_iter!=rvec->end(); obj_iter++)
+		{
+			LogicalID* lid = new DBLogicalID((*obj_iter));
+			p_classes->push_back(lid);
+		}
+
+		delete rvec;
+#ifdef DEBUG_MODE
+		ec->printf("Store::Manager::getClassesLIDByInvariant(BY NAME) done: size=%d\n", p_classes->size());
+#endif
+		return 0;
+	}
 
 
-	int DBStoreManager::addClass(TransactionID* tid, const char* name, ObjectPointer*& object)
+	int DBStoreManager::addClass(TransactionID* tid, const char* name, const char* invariantName, ObjectPointer*& object)
 	{
 #ifdef DEBUG_MODE
 		*ec << "Store::Manager::addClass begin..";
 #endif
 		int lid = object->getLogicalID()->toInteger();
 
-		classes->addItem(lid, name, tid->getId(), tid->getTimeStamp());
+		classes->addClass(lid, name, invariantName, tid->getId(), tid->getTimeStamp());
 
 #ifdef DEBUG_MODE
 		ec->printf("Store::Manager::addClass done: %s\n", name);

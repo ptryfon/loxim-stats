@@ -107,10 +107,14 @@ namespace Store
 		if(toDel == NULL) {
 			return;
 		}
+		vector<LogicalID*> lidsToDel;
 		for(SetOfLids::iterator i = toDel->begin(); i != toDel->end(); i++) {
-			delete (*i);
+			lidsToDel.push_back(*i);
 		}
 		delete toDel;
+		for(vector<LogicalID*>::iterator i = lidsToDel.begin(); i != lidsToDel.end(); ++i) {
+			delete (*i);
+		}
 	}
 
 	DBDataValue::~DBDataValue()
@@ -120,6 +124,8 @@ namespace Store
 #endif
 		deleteSetOfLid(this->subclasses);
 		deleteSetOfLid(this->classMarks);
+		this->subclasses = NULL;
+		this->classMarks = NULL;
 		p_destroyVal();
 	};
 	 
@@ -207,7 +213,7 @@ namespace Store
 			str << ", ";
 		}
 		if(subclasses != NULL) {
-			str << "sc: ";
+			str << "sc:";
 			for(SetOfLids::iterator i = subclasses->begin(); i != subclasses->end(); ++i) {
 				str << " " << (*i)->toString();
 			}

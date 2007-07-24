@@ -1033,7 +1033,21 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				return trErrorOccur("[QE] Error in addRoot", errcode);
 			}
 			
-			errcode = tr->addClass(optr->getName().c_str(), optr);
+			string invariant_name = "";
+			vector<LogicalID*>* inner_vec = (optr->getValue())->getVector();
+			for (unsigned int i=0; i < inner_vec->size(); i++) {
+				ObjectPointer *inner_optr;
+				errcode = tr->getObjectPointer (inner_vec->at(i), Store::Read, inner_optr, false);
+				if (errcode != 0) {
+					return trErrorOccur("[QE] register class operation - Error in getObjectPointer.", errcode);
+				}
+				if (inner_optr->getName() == QE_INVARIANT_BIND_NAME) {
+					invariant_name = (inner_optr->getValue())->getString();
+					break;
+				}
+			}
+			
+			errcode = tr->addClass(optr->getName().c_str(), invariant_name.c_str(), optr);
 			if (errcode != 0) {
 				return trErrorOccur("[QE] Error in addClass", errcode);
 			}
