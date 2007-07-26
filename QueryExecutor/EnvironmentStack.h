@@ -33,7 +33,7 @@ namespace QExecutor
 	public:
 		EnvironmentStack();
 		virtual ~EnvironmentStack();
-		int push(QueryBagResult *r);
+		int push(QueryBagResult *r, Transaction *&tr, QueryExecutor *qe);
 		int pop();
 		int pushDBsection();
 		int popDBsection();

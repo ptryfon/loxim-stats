@@ -25,8 +25,31 @@ namespace QExecutor {
 EnvironmentStack::EnvironmentStack() { actual_prior = 0; sectionDBnumber = 0; ec = new ErrorConsole("QueryExecutor"); }
 EnvironmentStack::~EnvironmentStack() { this->deleteAll(); if (ec != NULL) delete ec; }
 
-int EnvironmentStack::push(QueryBagResult *r) {
-	es.push_back(r);
+int EnvironmentStack::push(QueryBagResult *r, Transaction *&tr, QueryExecutor *qe) {
+	int errcode;
+	QueryBagResult* newR = (QueryBagResult*)r->clone();
+	
+	for(unsigned int i = 0; i < r->size(); i++) {
+		QueryResult* qr;
+		errcode = r->at(i, qr);
+		if(errcode != 0) return errcode;
+		if(qr->type() == QueryResult::QBINDER) {
+			if(qr->isReferenceValue()) {
+				QueryResult* useless;
+				errcode = qr->getReferenceValue(useless);
+				if(errcode != 0) return errcode;
+				QueryReferenceResult* ref = (QueryReferenceResult*)useless;
+				stringHashSet shs;
+				errcode = qe->getCg()->fetchExtInvariantNamesForLid(ref->getValue(), tr, qe, shs);
+				if(errcode != 0) return errcode;
+				for(stringHashSet::iterator j = shs.begin(); j != shs.end(); ++j) {
+					newR->addResult( new QueryBinderResult(*j, ref->clone()) );
+				}
+			}
+		}
+	}
+	*ec << newR->toString(0, true);
+	es.push_back(newR);
 	es_priors.push_back(actual_prior);
 	*ec << "[QE] Environment Stack pushed";
 	return 0;
@@ -43,6 +66,8 @@ int EnvironmentStack::pop(){
 		return ErrQExecutor | EQEUnexpectedErr;
 	}
 	// delete ??
+	//bo klonujemy to co dostajemy w push
+	//delete es.back();
 	es.pop_back();
 	es_priors.pop_back();
 	*ec << "[QE] Environment Stack popped";
@@ -147,9 +172,9 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 						QueryReferenceResult *lidres = new QueryReferenceResult(lid);
 						r->addResult(lidres);
 					}
-					ClassGraph cg;
+					ClassGraph* cg = qe->getCg();
 					stringHashSet shs;
-					cg.fetchSubInvariantNames(name, tr, qe, shs);
+					cg->fetchSubInvariantNames(name, tr, qe, shs);
 					vector< vector<LogicalID*>* > vecvec;
 					for(stringHashSet::iterator i = shs.begin(); i != shs.end(); i++) {
 						vector<LogicalID*>* vecSubInvariant;
@@ -163,7 +188,7 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 						for (unsigned int j = 0; j < vecSubInvariant->size(); j++ ) {
 							LogicalID *lid = vecSubInvariant->at(j);
 							bool inInvariant;
-							errcode = cg.belongsToInvariant(lid, name, tr, qe, inInvariant);
+							errcode = cg->belongsToInvariant(lid, name, tr, qe, inInvariant);
 							if(errcode != 0) return errcode;
 							if(!inInvariant) continue;
 							found_one = true;

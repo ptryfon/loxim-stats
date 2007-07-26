@@ -5,6 +5,10 @@
 #include <string>
 #include <vector>
 #include <map>
+
+namespace QExecutor {
+	class ClassGraph;
+}
    
 #include "QueryExecutor.h"
 #include "QueryResult.h"
@@ -59,34 +63,76 @@ namespace QExecutor
 	 * i są przechowywane w ClassGraph::classGraph.
 	 */
 	class ClassGraphVertex {
+		
 	public:
+		
 		SetOfLids extends;
 		SetOfLids subclasses;
 		string invariant;
 		string name;
+		bool invalid;
 		
-		ClassGraphVertex(){};
+		ClassGraphVertex():invalid(false){};
 		virtual ~ClassGraphVertex(){};
-		virtual int initNotGraphProperties(DataValue* classData, Transaction *&tr, QueryExecutor *qe);
+		virtual int initNotGraphProperties(ObjectPointer *optr, Transaction *&tr, QueryExecutor *qe);
 		virtual void addSubclass(LogicalID* lid) { subclasses.insert(lid); }
 		virtual void addExtend(LogicalID* lid) { extends.insert(lid); }
+		virtual void removeSubclass(LogicalID* lid) { subclasses.erase(lid); }
+		virtual void removeExtend(LogicalID* lid) { extends.erase(lid); }
+		virtual string toString(ClassGraph* cg);
+		
+		static string classSetToString(ClassGraph* cg, SetOfLids* classSet);
 	};
 	
 	class ClassGraph {
 	private:
-		ErrorConsole *ec;
+		//ErrorConsole *ec;
+		bool lazy;
 		MapOfClassVertices classGraph;
 		MapOfInvariantVertices invariants;
 	protected:
-		virtual int fetchSubInvariantNames(string& invariantName, stringHashSet& invariantsNames);
+	
+		virtual void removeFromInvariant(LogicalID* lid, string name);
+			
+		virtual void removeFromSubclasses(SetOfLids* extendedClasses, LogicalID* lid);
 		
-		virtual int fetchSubInvariantNames(ClassGraphVertex* cgvIn, stringHashSet& invariantsNames);
+		virtual void removeFromExtends(SetOfLids* subclasses, LogicalID* lid);
+
+		virtual int fetchInvariantNames(string& invariantName, stringHashSet& invariantsNames, bool sub);
+		
+		virtual int fetchInvariantNames(ClassGraphVertex* cgvIn, stringHashSet& invariantsNames, bool sub);
+	
+		virtual int fetchInvariantNames(string& invariantName, Transaction *&tr, QueryExecutor *qe, stringHashSet& invariantsNames, bool noInvariantName, bool sub);
+		
 	public:
+		static ErrorConsole *ec;
+	
+		static int trErrorOccur(QueryExecutor* qe, string msg, int errcode );
+	
+		static ClassGraph* handle;
+		
+		static int getHandle(ClassGraph*& cg);
+		
+		static int init();
+		
+		static void shutdown();
+	
 		virtual ~ClassGraph();
-		ClassGraph() {ec = new ErrorConsole("QueryExecutor");};
+		ClassGraph():lazy(false) {};
+		
+		virtual string toString();
+		
+		int addClass(ObjectPointer *optr, Transaction *&tr, QueryExecutor *qe);
+		
+		int removeClass(LogicalID* lid);
+		
 		virtual void putToInvariants(string& invariantName, LogicalID* lid);
 		
 		virtual int fetchSubInvariantNames(string& invariantName, Transaction *&tr, QueryExecutor *qe, stringHashSet& invariantsNames, bool noInvariantName = true);
+		
+		virtual int fetchExtInvariantNames(string& invariantName, Transaction *&tr, QueryExecutor *qe, stringHashSet& invariantsNames,  bool noInvariantName = true);
+		
+		virtual int fetchExtInvariantNamesForLid(LogicalID* lid, Transaction *&tr, QueryExecutor *qe, stringHashSet& invariantsNames,  bool noObjectName = true);
 		
 		virtual int completeSubgraph(LogicalID* lid, Transaction *&tr, QueryExecutor *qe);
 		

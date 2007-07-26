@@ -5,7 +5,8 @@
 #include <string>
 #include <vector>
 #include <map>
-   
+
+#include "ClassGraph.h"
 #include "QueryResult.h"
 #include "EnvironmentStack.h"
 #include "SessionData.h"
@@ -76,6 +77,7 @@ namespace QExecutor
     
 		ErrorConsole *ec;
 		Transaction *tr;
+		ClassGraph *cg;
 		EnvironmentStack *envs;
 		ResultStack *qres;
 		map<string, QueryResult*> *prms;
@@ -148,6 +150,8 @@ namespace QExecutor
 			system_privilige_checking = false; 
 		};
 		~QueryExecutor();
+		int initCg();
+		ClassGraph* getCg();
 		int executeQuery(TreeNode *tree, map<string, QueryResult*>* params, QueryResult **result);
 		int executeQuery(TreeNode *tree, QueryResult **result);
 		void stopExecuting() { stop = 65535; };

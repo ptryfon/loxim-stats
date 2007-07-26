@@ -466,6 +466,9 @@ int Server::Run()
 	qEx = new QueryExecutor();
 
 	qEx->set_priviliged_mode( is_priviliged_mode() );
+	int errcode = qEx->initCg();
+	if(errcode != 0) return errcode;
+	
 	TreeNode             *tNode;
 	map<string, Result*>  qParams;
 	QueryResult          *qResult;

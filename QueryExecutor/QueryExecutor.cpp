@@ -1052,6 +1052,11 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				return trErrorOccur("[QE] Error in addClass", errcode);
 			}
 			
+			errcode = cg->addClass(optr, tr, this);
+			if(errcode != 0) return errcode;
+			
+			*ec << cg->toString();
+			
 			errcode = qres->push(execution_result);
 			if (errcode != 0) return errcode;
 			return 0;
@@ -1246,7 +1251,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				QueryResult *newStackSection = new QueryBagResult();
 				errcode = (final)->nested(tr, newStackSection, this);
 				if (errcode != 0) return errcode;
-				errcode = envs->push((QueryBagResult *) newStackSection);
+				errcode = envs->push((QueryBagResult *) newStackSection, tr, this);
 				if (errcode != 0) return errcode;
 				for (int i = 0; i<howManyOps; i++) {
 					string currName = ((FixPointNode *) tree)->getName(i);
@@ -1370,7 +1375,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 					QueryResult *newStackSection = new QueryBagResult();
 					errcode = (currentResult)->nested(tr, newStackSection, this);
 					if (errcode != 0) return errcode;
-					errcode = envs->push((QueryBagResult *) newStackSection);
+					errcode = envs->push((QueryBagResult *) newStackSection, tr, this);
 					if (errcode != 0) return errcode;
 					QueryResult *newResult;
 					errcode = executeRecQuery (((NonAlgOpNode *) tree)->getRArg());
@@ -1500,7 +1505,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 						errcode = (currentResult)->nested(tr, newStackSection, this);
 						if (errcode != 0) return errcode;
 						ec->printf("[QE] nested(): function calculated for current row number %d\n", i);
-						errcode = envs->push((QueryBagResult *) newStackSection);
+						errcode = envs->push((QueryBagResult *) newStackSection, tr, this);
 						if (errcode != 0) return errcode;
 						QueryResult *rResult;
 						errcode = executeRecQuery (((NonAlgOpNode *) tree)->getRArg());
@@ -3939,7 +3944,7 @@ int QueryExecutor::callProcedure(string code, vector<QueryBagResult*> sections) 
 	
 	envs->actual_prior++;
 	for (unsigned int i = 0; i < sections.size(); i++) {
-		errcode = envs->push((QueryBagResult *) sections.at(i));
+		errcode = envs->push((QueryBagResult *) sections.at(i), tr, this);
 		if (errcode != 0) return errcode;
 	}
 		
@@ -4217,6 +4222,11 @@ void ResultStack::deleteAll() {
 		delete rs.at(i);
 	};
 }
+
+int QueryExecutor::initCg() { return ClassGraph::getHandle(cg); }
+
+ClassGraph* QueryExecutor::getCg() { return cg; }
+
 
     /*
      *	Query Builder begin

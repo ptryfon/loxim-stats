@@ -323,12 +323,15 @@ int Listener::Start(int port) {
 	lm->start(sm);
 	lCons->printf("[Listener.Start]--> Starting Index manager.. \n");
 	Indexes::IndexManager::init(LogManager::isCleanClosed());
+	ClassGraph::ClassGraph::init();
 	
 	if (setjmp(j)!=0) {
 	    *lCons << "[Listener.Start]--> Jumped.. Stopping Store manager and  closing socket..";
 	    sm->stop();
 	    unsigned idx;
-	    lm->shutdown(idx);
+	    lm->shutdown(idx);//nie wiem czy tu to ma znaczenie, 
+	    	//ale z reguly najlepiej niszczyc w odwrotnej kolejnosci niz sie otwieralo.
+	    ClassGraph::ClassGraph::shutdown();
 	    Indexes::IndexManager::shutdown();
 	    delete TransactionManager::getHandle();
 	    Unlock();

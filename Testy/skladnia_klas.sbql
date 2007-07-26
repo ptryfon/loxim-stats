@@ -19,6 +19,10 @@ create 1 as c;
 create 2 as b;
 /
 
+create ( (create 1 as b) ) as cB
+
+create ( (create 1 as b) as instance of B ) as cB 
+
 --ponizsze zapytanie w tym momencie niczego nie wybierze o ile baza byla pusta
 a;
 /
