@@ -28,7 +28,7 @@ public class PersistentPrimitiveSet extends PersistentSet {
                              
         ObjectValue nodeValue = SimpleValue.build(item);
                                            
-        if (!parentNode.hasChildOfValue(nodeName, nodeValue).isEmpty()) {
+        if (!parentNode.getChildrenWithValue(nodeName, nodeValue).isEmpty()) {
             
             return false;
             
@@ -60,7 +60,7 @@ public class PersistentPrimitiveSet extends PersistentSet {
     public boolean contains(Object item) {
         
         Collection<Node> foundNodes = 
-            parentNode.hasChildOfValue(nodeName, SimpleValue.build(item)); 
+            parentNode.getChildrenWithValue(nodeName, SimpleValue.build(item)); 
                         
         return (!foundNodes.isEmpty());
         
@@ -72,7 +72,7 @@ public class PersistentPrimitiveSet extends PersistentSet {
         
             
         Collection<Node> pointingNodes = 
-            parentNode.hasChildOfValue(nodeName, nodeValue);
+            parentNode.getChildrenWithValue(nodeName, nodeValue);
 
         if (pointingNodes.isEmpty()) {
                         

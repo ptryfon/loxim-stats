@@ -149,24 +149,24 @@ public class LoximNode implements Node {
 	
 	public boolean isChild(Node childNode) {
 				
-		return owningSession.getExecutor().isChild(this, childNode);
+		return owningSession.getExecutor().isChild(getReference(), childNode);
 	}
     
 	public int childAmount(String childName) {
-        return owningSession.getExecutor().childAmount(this, childName);
+        return owningSession.getExecutor().childAmount(getReference(), childName);
     }
 
     public void removeAllChildren(String childName) {
 		
-		owningSession.getExecutor().removeAllChildren(this, childName);
+		owningSession.getExecutor().removeAllChildren(getReference(), childName);
 		
 	}
     
-    public Collection<Node> hasChildOfValue(String childName, 
+    public Collection<Node> getChildrenWithValue(String childName, 
             ObjectValue value) {
         
-        return owningSession.getExecutor().findChildsOfValue(
-                this, childName, value);
+        return owningSession.getExecutor().findChildrenOfValue(
+                getReference(), childName, value);
     }    
 	
 

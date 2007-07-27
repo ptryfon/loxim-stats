@@ -46,7 +46,7 @@ public class PersistentReferenceSet<E> extends PersistentSet<E> {
 		Node node = session.getDatabaseContext().
             getTransparentProxyFactory().getNodeOfProxy(arg);
         
-        Collection<Node> foundNodes = (parentNode.hasChildOfValue(nodeName, 
+        Collection<Node> foundNodes = (parentNode.getChildrenWithValue(nodeName, 
                 new ReferenceValue(node))); 
 						
 		return (!foundNodes.isEmpty());
@@ -66,7 +66,7 @@ public class PersistentReferenceSet<E> extends PersistentSet<E> {
         
         ObjectValue nodeValue = new ReferenceValue(targetNode);
         
-		if (!parentNode.hasChildOfValue(nodeName, nodeValue).isEmpty()) {
+		if (!parentNode.getChildrenWithValue(nodeName, nodeValue).isEmpty()) {
             
 			return false;
 			
@@ -95,7 +95,7 @@ public class PersistentReferenceSet<E> extends PersistentSet<E> {
         ObjectValue nodeValue = new ReferenceValue(targetNode);
                     
         Collection<Node> pointingNodes = 
-            parentNode.hasChildOfValue(nodeName, nodeValue);
+            parentNode.getChildrenWithValue(nodeName, nodeValue);
 
 		if (pointingNodes.isEmpty()) {
 						

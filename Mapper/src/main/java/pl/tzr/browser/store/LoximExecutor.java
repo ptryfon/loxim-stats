@@ -344,11 +344,11 @@ public class LoximExecutor implements Executor {
         return newObject;
     }
     
-    public boolean isChild(Node parentNode, Node childNode) {
+    public boolean isChild(String parentRef, Node childNode) {
 
         Result result = executeQuery("?." + childNode.getName()
                 + " intersect ?",
-                new ResultReference(parentNode.getReference()),
+                new ResultReference(parentRef),
                 new ResultReference(childNode.getReference()));
 
         try {
@@ -361,10 +361,10 @@ public class LoximExecutor implements Executor {
 
 
     
-    public int childAmount(Node parentNode, String childName) {
+    public int childAmount(String parentRef, String childName) {
         
         Result result = executeQuery("count(?." + childName + ")",
-                new ResultReference(parentNode.getReference()));
+                new ResultReference(parentRef));
 
         try {
             return ((ResultInt) result).getValue();
@@ -375,21 +375,21 @@ public class LoximExecutor implements Executor {
         
     }
     
-    public void removeAllChildren(Node parentNode, String childName) {
+    public void removeAllChildren(String parentRef, String childName) {
         
         executeQuery("delete ?." + childName,
-                new ResultReference(parentNode.getReference()));
+                new ResultReference(parentRef));
                 
     }   
     
-    public Set<Node> findChildsOfValue(
-            Node parent, String name, ObjectValue value) {
+    public Set<Node> findChildrenOfValue(
+            String parentRef, String name, ObjectValue value) {
         
         ObjectCreator objectCreator = new ObjectCreator(loximSession);
         Result valueResult = objectCreator.createResult(value);
         
         Result result = executeQuery("(?." + name + " as tmp).(tmp as ptr, deref(tmp) intersect ? as cont).ptr",
-                new ResultReference(parent.getReference()),
+                new ResultReference(parentRef),
                 valueResult);
 
         Set<Node> results = new HashSet<Node>();

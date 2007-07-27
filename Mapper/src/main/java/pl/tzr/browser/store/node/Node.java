@@ -48,7 +48,7 @@ public interface Node {
 	Collection<Node> getChildNodes(String propertyName);
 	
 	/**
-	 * Gets allchild nodes of the object if object is complex
+	 * Gets all child nodes of the object if object is complex
 	 * TODO Should throw an axception if object is not complex
 	 * @param nodeName
 	 * @return
@@ -123,6 +123,6 @@ public interface Node {
      * @param value expected value of the children
      * @return collection of nodes fullfiling the criteria
      */
-    Collection<Node> hasChildOfValue(String name, ObjectValue value);   
+    Collection<Node> getChildrenWithValue(String name, ObjectValue value);   
 
 }

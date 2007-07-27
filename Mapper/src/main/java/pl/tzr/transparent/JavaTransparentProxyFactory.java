@@ -18,9 +18,6 @@ public class JavaTransparentProxyFactory implements TransparentProxyFactory {
 		
 	private Map<Node, Object> proxies = new HashMap<Node, Object>();
 
-	public JavaTransparentProxyFactory() {
-		super();
-	}
 
 	public Object createRootProxy(Node node, TransparentSession session) {		
 		Class desiredClass = getDesiredClass(node, session.getDatabaseContext()); 
