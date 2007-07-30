@@ -273,7 +273,7 @@ methods: method { $$ = new InterfaceMethodListNode($1);}
 	| methods method { $$ = new InterfaceMethodListNode($2, $1);}
 	;
 
-method: NAME LEFTPAR method_params RIGHTPAR SEMICOLON { $$ = new InterfaceMethod($1, $3);}
+method: NAME LEFTPAR method_params RIGHTPAR NAME SEMICOLON { $$ = new InterfaceMethod($1, $5, $3);}
 
 method_params: method_param { $$ = new InterfaceMethodParamListNode($1);} 
 	| method_params COMMA method_param { $$ = new InterfaceMethodParamListNode($3, $1);}

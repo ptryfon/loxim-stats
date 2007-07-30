@@ -148,7 +148,25 @@ namespace QParser
     
     
     TreeNode* InterfaceStruct::clone() {
-	return new InterfaceStruct((InterfaceAttributeListNode *)attributeList->clone(), (InterfaceMethodListNode *) methodList->clone());
+	if ((attributeList) && (methodList))
+	    return new InterfaceStruct((InterfaceAttributeListNode *)attributeList->clone(), (InterfaceMethodListNode *) methodList->clone());
+	if (attributeList)
+	    return new InterfaceStruct((InterfaceAttributeListNode *)attributeList->clone(), NULL);
+	if (methodList)
+	    return new InterfaceStruct(NULL, (InterfaceMethodListNode *) methodList->clone());
+	return new InterfaceStruct(NULL, NULL); 
+    };
+    
+    //ADTODO - doit
+    vector<InterfaceMethod *> InterfaceStruct::getMethods() {
+	vector<InterfaceMethod *> vec;
+	return vec;
+    };
+    
+    //ADTODO - doit
+    vector<InterfaceAttribute *> InterfaceStruct::getAttribs() {
+	vector<InterfaceAttribute *> vec;
+	return vec;
     };
     
     InterfaceAttribute::InterfaceAttribute(string valueName, string typeName) {
@@ -176,7 +194,10 @@ namespace QParser
     };
     
     TreeNode* InterfaceAttributeListNode::clone() {
+    if (attributeList)
 	return new InterfaceAttributeListNode((InterfaceAttribute *)attribute->clone(), (InterfaceAttributeListNode *)attributeList->clone());
+    else 
+	return new InterfaceAttributeListNode((InterfaceAttribute *)attribute->clone(), NULL);
     };
     
     InterfaceMethodListNode::InterfaceMethodListNode(InterfaceMethod *method, InterfaceMethodListNode *rest) {
@@ -191,12 +212,17 @@ namespace QParser
 	    delete methodList;
     };
     
-    TreeNode * InterfaceMethodListNode::clone() {
+    TreeNode* InterfaceMethodListNode::clone() {
+    if (methodList)
 	return new InterfaceMethodListNode((InterfaceMethod *)method->clone(), (InterfaceMethodListNode *)methodList->clone());
-    }
+    else 
+	return new InterfaceMethodListNode((InterfaceMethod *)method->clone(), NULL);
+    };
+    
 
-    InterfaceMethod::InterfaceMethod(string methodName, InterfaceMethodParamListNode *methodParams) {
+    InterfaceMethod::InterfaceMethod(string methodName, string methodType, InterfaceMethodParamListNode *methodParams) {
 	this->methodName = methodName;
+	this->methodType = methodType;
 	this->methodParams = methodParams;    
     };
     
@@ -206,7 +232,7 @@ namespace QParser
     };
     
     TreeNode *InterfaceMethod::clone() {
-	return new InterfaceMethod(methodName, (InterfaceMethodParamListNode *)methodParams->clone());
+	return new InterfaceMethod(methodName, methodType, (InterfaceMethodParamListNode *)methodParams->clone());
     };
     
     InterfaceMethodParamListNode::InterfaceMethodParamListNode(InterfaceMethodParam *methodParam, InterfaceMethodParamListNode *rest) {
@@ -222,7 +248,10 @@ namespace QParser
     };
     
     TreeNode* InterfaceMethodParamListNode::clone() {
+    if (methodParamList)
 	return new InterfaceMethodParamListNode((InterfaceMethodParam *)methodParam->clone(), (InterfaceMethodParamListNode *)methodParamList->clone());
+    else 
+	return new InterfaceMethodParamListNode((InterfaceMethodParam *)methodParam->clone(), NULL);
     };
     
     InterfaceMethodParam::InterfaceMethodParam(string valueName, string typeName) {

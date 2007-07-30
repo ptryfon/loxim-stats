@@ -188,7 +188,7 @@ namespace QParser {
     
     /* Interface Nodes */
     
-    
+    //ADTODO - killit, use InterfaceAttribute
     class InterfaceMethodParam: public TreeNode {
 	private:
 	    string valueName;
@@ -236,19 +236,20 @@ namespace QParser {
     class InterfaceMethod: public TreeNode {
 	private:
 	    string methodName;
+	    string methodType;
 	    InterfaceMethodParamListNode *methodParams;
 	public:
-	    InterfaceMethod(string methodName, InterfaceMethodParamListNode *methodParams = NULL);
+	    InterfaceMethod(string methodName, string methodType, InterfaceMethodParamListNode *methodParams = NULL);
 	    virtual ~InterfaceMethod();
 	    virtual string getMethodName() {return methodName;};
+	    virtual string getMethodType() {return methodType;};
 	    virtual InterfaceMethodParamListNode* get_methodParams() {return methodParams;};
-	    
 	    virtual TreeNode* clone();
 	    virtual int type() {return TNINTERFACEMETHOD;};
 	    virtual int putToString() {cout << "InterfaceMethod name = " + methodName + "\n"; return 0;};
 	    virtual string toString(int level = 0, bool recursive = false, string name = "") {
 		string methodParamsString = methodParams ? methodParams->toString() : "<null>";
-		string result = getPrefixForLevel( level, name) + "[Method] + " + methodName + " ( " + methodParamsString + " ) " + "\n";
+		string result = getPrefixForLevel( level, name) + "[Method] + " + methodName + " :" + methodType + " ( " + methodParamsString + " ) " + "\n";
 		
 		return result;	    
 	    }
@@ -326,10 +327,12 @@ namespace QParser {
 	InterfaceAttributeListNode* attributeList;
 	InterfaceMethodListNode* methodList;
     public: 
-	InterfaceStruct(InterfaceAttributeListNode* attributeList, InterfaceMethodListNode* methodList = NULL);
+	InterfaceStruct(InterfaceAttributeListNode* attributeList = NULL, InterfaceMethodListNode* methodList = NULL);
 	virtual ~InterfaceStruct();
 	virtual InterfaceAttributeListNode* get_attributeList() {return attributeList;};
 	virtual InterfaceMethodListNode* get_methodList() {return methodList;};
+	vector<InterfaceMethod *> getMethods();
+	vector<InterfaceAttribute *> getAttribs();
 	virtual TreeNode* clone();
 	virtual int type() {return TNINTERFACESTRUCT;};
 	virtual int putToString() {cout << "InterfaceStruct\n"; return 0;};

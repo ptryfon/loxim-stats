@@ -42,6 +42,7 @@ namespace Store
 		Class = 2,		// Vector
 		Procedure = 3,	// Vector
 		View = 4,		// Vector
+		Interface = 5,
 	};
 
 	enum AccessMode

@@ -77,7 +77,7 @@ namespace TManager
 	    	
 	     	 	/* Executor calls: */
 		    	int getObjectPointer(LogicalID* lid, AccessMode mode, ObjectPointer* &p, bool allowNullObject);
-				int modifyObject(ObjectPointer* &op, DataValue* dv);
+			int modifyObject(ObjectPointer* &op, DataValue* dv);
 		    	int createObject(string name, DataValue* value, ObjectPointer* &p);
 		    	int deleteObject(ObjectPointer* object);
 		    
@@ -98,6 +98,14 @@ namespace TManager
 		    	int getClassesLIDByInvariant(string invariantName, vector<LogicalID*>* &p);
 		    	int addClass(const char* name, const char* invariantName, ObjectPointer* &p);
 		    	int removeClass(ObjectPointer* &p);
+
+			int getInterfacesLID(vector<LogicalID*>* &p);
+		    	int getInterfacesLID(string name, vector<LogicalID*>* &p);
+		    	int getInterfacesLIDByInvariant(string invariantName, vector<LogicalID*>* &p);
+		    	int addInterface(const char* name, const char* invariantName, ObjectPointer* &p);
+		    	int removeInterface(ObjectPointer* &p);
+
+    			
 	
 		    	TransactionID* getId();
 
