@@ -2018,7 +2018,7 @@ class AsInstanceOfNode : public QueryNode
     QueryNode* objectsQuery;
     QueryNode* classQuery;
     public:
-    AsInstanceOfNode(QueryNode *objectsQuery, QueryNode* classQuery) {
+    AsInstanceOfNode(QueryNode* classQuery, QueryNode *objectsQuery) {
     	this->objectsQuery = objectsQuery;
     	this->classQuery = classQuery;
     }
