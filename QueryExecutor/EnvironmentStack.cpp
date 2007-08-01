@@ -778,16 +778,16 @@ int QueryReferenceResult::nested(Transaction *&tr, QueryExecutor * qe) {
 				break;
 			}
 		}
-		if(vType == Store::Vector || vType == Store::Pointer) {
-			errcode = qe->getEnvs()->push(r, tr, qe);
-			if(errcode != 0) return errcode;
-			bool classFound = false;
-			errcode = qe->getEnvs()->pushClasses(tmp_data_value, qe, classFound);
-			if(errcode != 0) return errcode;
-			QueryBinderResult *selfBinder = new QueryBinderResult("self", this);
-			r->addResult(selfBinder);
-			return 0;
-		}
+		//if(vType == Store::Vector || vType == Store::Pointer) {
+		errcode = qe->getEnvs()->push(r, tr, qe);
+		if(errcode != 0) return errcode;
+		bool classFound = false;
+		errcode = qe->getEnvs()->pushClasses(tmp_data_value, qe, classFound);
+		if(errcode != 0) return errcode;
+		QueryBinderResult *selfBinder = new QueryBinderResult("self", this);
+		r->addResult(selfBinder);
+		return 0;
+		//}
 	}
 	return qe->getEnvs()->push(r, tr, qe);
 }
