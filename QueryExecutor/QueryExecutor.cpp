@@ -1401,12 +1401,14 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 					*ec << (ErrQExecutor | EEvalStopped);
 					return ErrQExecutor | EEvalStopped;
 				}
+				errcode = (final)->nested(tr, this);
+				if (errcode != 0) return errcode;
 				QueryResult *next_final = new QueryStructResult();
-				QueryResult *newStackSection = new QueryBagResult();
+				/*QueryResult *newStackSection = new QueryBagResult();
 				errcode = (final)->nested(tr, newStackSection, this);
 				if (errcode != 0) return errcode;
 				errcode = envs->push((QueryBagResult *) newStackSection, tr, this);
-				if (errcode != 0) return errcode;
+				if (errcode != 0) return errcode;*/
 				for (int i = 0; i<howManyOps; i++) {
 					string currName = ((FixPointNode *) tree)->getName(i);
 					errcode = executeRecQuery (((FixPointNode *) tree)->getQuery(i));
@@ -1526,11 +1528,13 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 					QueryResult *currentResult;
 					errcode = partial_result->getResult(currentResult);
 					if (errcode != 0) return errcode;
-					QueryResult *newStackSection = new QueryBagResult();
+					errcode = (currentResult)->nested(tr, this);
+					if (errcode != 0) return errcode;
+					/*QueryResult *newStackSection = new QueryBagResult();
 					errcode = (currentResult)->nested(tr, newStackSection, this);
 					if (errcode != 0) return errcode;
 					errcode = envs->push((QueryBagResult *) newStackSection, tr, this);
-					if (errcode != 0) return errcode;
+					if (errcode != 0) return errcode;*/
 					QueryResult *newResult;
 					errcode = executeRecQuery (((NonAlgOpNode *) tree)->getRArg());
 					if (errcode != 0) return errcode;
@@ -1649,18 +1653,26 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 					*ec << "[QE] For each row of this score, the right argument will be computed";
 					for (unsigned int i = 0; i < (lResult->size()); i++) {
 						QueryResult *currentResult;
-						QueryResult *newStackSection = new QueryBagResult();
+						
 						if ((lResult->type()) == QueryResult::QSEQUENCE)
 							errcode = (((QuerySequenceResult *) lResult)->at(i, currentResult));
 						else
 							errcode = (((QueryBagResult *) lResult)->at(i, currentResult));
 						if (errcode != 0) return errcode;
+						
+						/*QueryResult *newStackSection = new QueryBagResult();
 						ec->printf("[QE] zaczynam nested()\n");
 						errcode = (currentResult)->nested(tr, newStackSection, this);
 						if (errcode != 0) return errcode;
 						ec->printf("[QE] nested(): function calculated for current row number %d\n", i);
 						errcode = envs->push((QueryBagResult *) newStackSection, tr, this);
+						if (errcode != 0) return errcode;*/
+						
+						ec->printf("[QE] zaczynam nested()\n");
+						errcode = (currentResult)->nested(tr, this);
 						if (errcode != 0) return errcode;
+						
+						
 						QueryResult *rResult;
 						errcode = executeRecQuery (((NonAlgOpNode *) tree)->getRArg());
 						if (errcode != 0) return errcode;
@@ -1876,10 +1888,12 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			*ec << "remote 1";
 			if (lid != NULL) {
 				ec->printf("prosba o nested na obiekcie zdalnym\n");
-				QueryResult *newStackSection = new QueryBagResult();
+				/*QueryResult *newStackSection = new QueryBagResult();
 				errcode = qrr->nested(tr, newStackSection, this);
 				if (errcode != 0) return errcode;
 				errcode = qres->push(newStackSection);
+				if (errcode != 0) return errcode;*/
+				errcode = (qrr)->nested(tr, const_cast<QueryExecutor*>(this));
 				if (errcode != 0) return errcode;
 				ec->printf("nested na obiekcie zdalnym udalo sie. nowa sekcja stosu gotowa");
 				return 0;

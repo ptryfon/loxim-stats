@@ -36,6 +36,17 @@ namespace QExecutor
 {
 	class ClassGraphVertex;
 	
+	class Method {
+	public:
+		LogicalID* lid;
+		vector<string> params;
+		string code;
+		Method(LogicalID* lid) { this->lid = lid; }
+		virtual ~Method() { delete lid; }
+	};
+	
+	typedef hash_map<unsigned int, Method*> ArgsCountToMethodMap;
+	
 	typedef hash_map<LogicalID*, ClassGraphVertex*, hashLogicalID, eqLogicalID> MapOfClassVertices;
 	
 	class hashString {
@@ -54,32 +65,44 @@ namespace QExecutor
 		}
 	};
 	
+	typedef hash_map<string, ArgsCountToMethodMap*, hashString, eqString> NameToArgCountToMethodMap;
+	
 	typedef hash_map<string, SetOfLids*, hashString, eqString> MapOfInvariantVertices;
 	
 	typedef hash_set<string, hashString, eqString> stringHashSet;
+	
+	//typedef hash_map<string, LogicalID*, hashString, eqString> MapOfProcedure;
 	
 	/**
 	 * Wszystkie LogicalID* jakie zawieraja obiekty tej klasy sa niszczone i tworzone w klasie ClassGraph
 	 * i są przechowywane w ClassGraph::classGraph.
 	 */
 	class ClassGraphVertex {
-		
+	protected:
+		virtual int fetchMethod(LogicalID* lid, Transaction *&tr, QueryExecutor *qe, Method*& method, unsigned int & params_count, string& name);
+		virtual int insertIntoMethods(string& name, unsigned int argsCount, Method* m);
+		virtual int putMethod(LogicalID* lid, Transaction *&tr, QueryExecutor *qe);
+		virtual string fieldsToString();
+		virtual string methodsToString();
 	public:
 		
 		SetOfLids extends;
 		SetOfLids subclasses;
+		NameToArgCountToMethodMap methods;
+		stringHashSet fields;
 		string invariant;
 		string name;
 		bool invalid;
 		
 		ClassGraphVertex():invalid(false){};
-		virtual ~ClassGraphVertex(){};
+		virtual ~ClassGraphVertex();
 		virtual int initNotGraphProperties(ObjectPointer *optr, Transaction *&tr, QueryExecutor *qe);
 		virtual void addSubclass(LogicalID* lid) { subclasses.insert(lid); }
 		virtual void addExtend(LogicalID* lid) { extends.insert(lid); }
 		virtual void removeSubclass(LogicalID* lid) { subclasses.erase(lid); }
 		virtual void removeExtend(LogicalID* lid) { extends.erase(lid); }
 		virtual string toString(ClassGraph* cg);
+		virtual int getMethod(string& name, unsigned int argsCount, Method*& method, bool& found);
 		
 		static string classSetToString(ClassGraph* cg, SetOfLids* classSet);
 	};
@@ -103,6 +126,8 @@ namespace QExecutor
 		virtual int fetchInvariantNames(ClassGraphVertex* cgvIn, stringHashSet& invariantsNames, bool sub);
 	
 		virtual int fetchInvariantNames(string& invariantName, Transaction *&tr, QueryExecutor *qe, stringHashSet& invariantsNames, bool noInvariantName, bool sub);
+		
+		virtual int fetchMethod(string name, unsigned int argsCount, SetOfLids* classesToSearch, Method*& method, bool& found);
 		
 	public:
 		static ErrorConsole *ec;
@@ -138,6 +163,8 @@ namespace QExecutor
 		
 		virtual int invariantToCohesiveSubgraph(string& invariantName, Transaction *&tr, QueryExecutor *qe);
 		
+		virtual int lidToClassGraphLid(LogicalID* lidFrom, LogicalID*& lidTo);
+		
 		virtual bool vertexExist(LogicalID* lid) {
 			return classGraph.find(lid) != classGraph.end();
 		}
@@ -151,6 +178,8 @@ namespace QExecutor
 		
 		// Metoda nie buduje grafu dla invariantUpName.
 		virtual int belongsToInvariant(LogicalID* lid, string& invariantUpName, Transaction *&tr, QueryExecutor *qe, bool& inInvariant);
+		
+		virtual int fetchMethod(string name, unsigned int argsCount, SetOfLids* classesToSearch, string &code, vector<string> &params, int& founded);
 	};
 }
 

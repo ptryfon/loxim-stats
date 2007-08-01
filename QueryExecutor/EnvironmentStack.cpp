@@ -27,9 +27,10 @@ EnvironmentStack::~EnvironmentStack() { this->deleteAll(); if (ec != NULL) delet
 
 int EnvironmentStack::push(QueryBagResult *r, Transaction *&tr, QueryExecutor *qe) {
 	int errcode;
-	QueryBagResult* newR = (QueryBagResult*)r->clone();
 	
-	for(unsigned int i = 0; i < r->size(); i++) {
+	unsigned bagSize = r->size();
+	
+	for(unsigned int i = 0; i < bagSize; i++) {
 		QueryResult* qr;
 		errcode = r->at(i, qr);
 		if(errcode != 0) return errcode;
@@ -43,13 +44,13 @@ int EnvironmentStack::push(QueryBagResult *r, Transaction *&tr, QueryExecutor *q
 				errcode = qe->getCg()->fetchExtInvariantNamesForLid(ref->getValue(), tr, qe, shs);
 				if(errcode != 0) return errcode;
 				for(stringHashSet::iterator j = shs.begin(); j != shs.end(); ++j) {
-					newR->addResult( new QueryBinderResult(*j, ref->clone()) );
+					r->addResult( new QueryBinderResult(*j, ref->clone()) );
 				}
 			}
 		}
 	}
-	*ec << newR->toString(0, true);
-	es.push_back(newR);
+	*ec << r->toString(0, true);
+	es.push_back(r);
 	es_priors.push_back(actual_prior);
 	*ec << "[QE] Environment Stack pushed";
 	return 0;
@@ -66,8 +67,12 @@ int EnvironmentStack::pop(){
 		return ErrQExecutor | EQEUnexpectedErr;
 	}
 	// delete ??
-	//bo klonujemy to co dostajemy w push
-	//delete es.back();
+	unsigned int popedSectionNo = es.size();
+	SectionToClassMap::iterator actClasses = classesPerSection.find(popedSectionNo);
+	if(actClasses != classesPerSection.end()) {
+		delete (*actClasses).second;
+		classesPerSection.erase(actClasses);
+	}
 	es.pop_back();
 	es_priors.pop_back();
 	*ec << "[QE] Environment Stack popped";
@@ -130,9 +135,12 @@ int EnvironmentStack::top(QueryBagResult *&r) {
 bool EnvironmentStack::empty() { return es.empty(); }
 int EnvironmentStack::size() { return es.size(); }
 
+
+
 int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, QueryExecutor *qe, QueryResult *&r) {
 	int errcode;
 	*ec << "[QE] Name binding on ES";
+	*ec << toString() ;
 	unsigned int number = (es.size());
 	ec->printf("[QE] bindName: ES got %u sections\n", number);
 	r = new QueryBagResult();
@@ -321,6 +329,12 @@ int EnvironmentStack::bindProcedureName(string name, unsigned int queries_size, 
 						}
 					}
 				}
+				if(founded <= 0) {
+					SectionToClassMap::iterator cpsI = classesPerSection.find(i);
+					if(cpsI != classesPerSection.end()) {
+						errcode = qe->getCg()->fetchMethod(name, queries_size, (*cpsI).second, code, params, founded);
+					}
+				}
 			}
 		}
 		if (founded > 0) {
@@ -334,7 +348,49 @@ int EnvironmentStack::bindProcedureName(string name, unsigned int queries_size, 
 	return 0;
 }
 
+int EnvironmentStack::pushClasses(DataValue* dv, QueryExecutor *qe, bool& classFound) {
+	//klasy nie sa obiektami innych klas
+	if(dv->getSubtype() == Store::Class) {
+		return 0;
+	}
+	SetOfLids* classMarks = dv->getClassMarks(); 
+	if(classMarks == NULL) {
+		return 0;
+	}
+	unsigned int actualSectionNo = es.size();
+	if(actualSectionNo == 0) {
+		//TODO: error env stack corrupt
+		return 1;
+	}
+	
+	SetOfLids* cgClasses = NULL;
+	for(SetOfLids::iterator i = classMarks->begin(); i != classMarks->end(); ++i) {
+		LogicalID* lid;
+		int errcode = qe->getCg()->lidToClassGraphLid(*i, lid);
+		if(errcode != 0) {
+			if(cgClasses != NULL) {
+				delete cgClasses;
+			}
+			return errcode;
+		}
+		if(lid != NULL) {
+			if(cgClasses == NULL) {
+				cgClasses = new SetOfLids();
+			}
+			classFound = true;
+			cgClasses->insert(lid);
+		}
+	}
+	if(cgClasses != NULL) {
+		classesPerSection[actualSectionNo] = cgClasses;
+	}
+	return 0;
+}
+
 void EnvironmentStack::deleteAll() {
+	for(SectionToClassMap::iterator i = classesPerSection.begin(); i != classesPerSection.end(); ++i) {
+		delete (*i).second;
+	}  
 	for (unsigned int i = 0; i < (es.size()); i++) {
 		delete es.at(i);
 	};
@@ -347,6 +403,30 @@ void EnvironmentStack::deleteAll() {
 
 
 // nested function returns bag of binders, which will be pushed on the environment stack
+
+//Zmiana metody nested, teraz dokonuje też wstawienia na stos.
+//Refaktoryzacja wykorzystuje zrealizowane wczesniej metody nested trzyargumentowa
+//i dodaje w nadklasie metode nested dwoargumentowa, ktora wstawia cos na stos.
+//Metody trzyargumentowe zmienione na protected.
+//Dodana implementacja pusta metody trzyargumentowej w nadklasie.
+
+int QueryResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe) {
+	return 0;
+}
+
+int QueryResult::nested(Transaction *&tr, QueryExecutor * qe) {
+	QueryResult *newStackSection = new QueryBagResult();
+	int errcode = this->nested(tr, newStackSection, qe);
+	if (errcode != 0) return errcode;
+	return qe->getEnvs()->push((QueryBagResult *) newStackSection, tr, qe);
+}
+
+/*int QueryReferenceResult::nested(Transaction *&tr, QueryExecutor * qe) {
+	QueryResult *newStackSection = new QueryBagResult();
+	int errcode = this->nested(tr, newStackSection, qe);
+	if (errcode != 0) return errcode;
+	return qe->getEnvs()->push((QueryBagResult *) newStackSection, tr, qe);
+}*/
 
 int QuerySequenceResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe) {
 	*ec << "[QE] nested(): ERROR! QuerySequenceResult shouldn't be nested";
@@ -412,10 +492,12 @@ int QueryBinderResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor *
 	return 0;
 }
 
-int QueryReferenceResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe) {
+/*
+ * 
+ * int QueryReferenceResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe) {
 	int errcode;
 	ec->printf("[QE] nested(): QueryReferenceResult\n");
-	/* remote ID */
+	/* remote ID * /
 	if ((value != NULL) && (value->getServer() != "")) {
 		*ec << "starting logicalID\n";
 		QueryResult* qr;
@@ -430,7 +512,7 @@ int QueryReferenceResult::nested(Transaction *&tr, QueryResult *&r, QueryExecuto
 		return 0;
 	}
 	*ec << "this is not logicalId\n";
-	/* end of remoteID processing */
+	/* end of remoteID processing * /
 	
 	DataValue* tmp_data_value;
 	
@@ -445,7 +527,7 @@ int QueryReferenceResult::nested(Transaction *&tr, QueryResult *&r, QueryExecuto
 
 		tmp_data_value = optr->getValue();
 		
-		/* Link */
+		/* Link * /
 		if (tmp_data_value->getSubtype() == Store::Link) {
 			 *ec << "nested on Link object\n";
 			 vector<LogicalID*>*  tmp_vec =tmp_data_value->getVector();
@@ -490,7 +572,7 @@ int QueryReferenceResult::nested(Transaction *&tr, QueryResult *&r, QueryExecuto
 			 r->addResult(qr);
 			 return 0;
 		}
-		/* end of link processing */
+		/* end of link processing * /
 
 		int vType = tmp_data_value->getType();
 		switch (vType) {
@@ -553,6 +635,164 @@ int QueryReferenceResult::nested(Transaction *&tr, QueryResult *&r, QueryExecuto
 	}
 	return 0;
 }
+*/
+
+
+int QueryReferenceResult::nested(Transaction *&tr, QueryExecutor * qe) {
+	QueryBagResult *r = new QueryBagResult();
+	int errcode;
+	ec->printf("[QE] nested(): QueryReferenceResult\n");
+	/* remote ID */
+	if ((value != NULL) && (value->getServer() != "")) {
+		*ec << "starting logicalID\n";
+		QueryResult* qr;
+		RemoteExecutor *rex = new RemoteExecutor(value->getServer(), value->getPort(), qe);
+		rex->setLogicalID(value);
+		errcode = rex->execute(&qr);
+		if (errcode != 0) {
+			return errcode;
+		}
+		r->addResult(qr);
+		*ec << "remote logicalID\n";
+		return qe->getEnvs()->push(r, tr, qe);
+	}
+	*ec << "this is not logicalId\n";
+	/* end of remoteID processing */
+	
+	DataValue* tmp_data_value;
+	
+	ObjectPointer *optr;
+	if (value != NULL) {
+		if ((errcode = tr->getObjectPointer(value, Store::Read, optr, false)) != 0) {
+			*ec << "[QE] Error in getObjectPointer";
+			qe->antyStarveFunction(errcode);
+			qe->inTransaction = false;
+			return errcode;
+		}
+
+		tmp_data_value = optr->getValue();
+		
+		/* Link */
+		if (tmp_data_value->getSubtype() == Store::Link) {
+			 *ec << "nested on Link object\n";
+			 vector<LogicalID*>*  tmp_vec =tmp_data_value->getVector();
+			 int vec_size = tmp_vec->size();
+			 int errcode;
+			 int port;
+			 string ip;
+			 ObjectPointer *optr;
+			 DataValue* value;
+			 for (int i = 0; i < vec_size; i++ ) {
+				 LogicalID *tmp_logID = tmp_vec->at(i);
+				 if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, optr, false)) != 0) {
+					*ec << "[QE] Error in getObjectPointer";
+					qe->antyStarveFunction(errcode);
+					qe->inTransaction = false;
+					return errcode;
+				}
+				string tmp_name = optr->getName();
+				value = optr->getValue();
+				switch (value->getType()) {
+					case Store::Integer:
+						 port = value->getInt();
+						 break;
+					case Store::String:
+						 ip = value->getString();
+						 break;
+					default:
+						*ec << "[QE] incorrect Link object structure";
+						qe->antyStarveFunction(errcode);
+						qe->inTransaction = false;
+						return errcode;
+				 }
+
+			 }
+			 *ec << "and now bring!!!!!!!!!!! ip: " <<  ip << " port: " << port <<"\n";
+			 QueryResult* qr;// = new QueryIntResult(5);
+			 RemoteExecutor *rex = new RemoteExecutor(ip, port, qe);
+			 errcode = rex->execute(&qr);
+			 if (errcode != 0) {
+			 	return errcode;
+			 }
+			 r->addResult(qr);
+			 return qe->getEnvs()->push(r, tr, qe);
+		}
+		/* end of link processing */
+
+		int vType = tmp_data_value->getType();
+		switch (vType) {
+			case Store::Integer: {
+				*ec << "[QE] nested(): QueryReferenceResult pointing integer value - can't be nested";
+				break;
+			}
+			case Store::Double: {
+				*ec << "[QE] nested(): QueryReferenceResult pointing double value - can't be nested";
+				break;
+			}
+			case Store::String: {
+				*ec << "[QE] nested(): QueryReferenceResult pointing string value - can't be nested";
+				break;
+			}
+			case Store::Pointer: {
+				LogicalID *tmp_logID = (tmp_data_value->getPointer());
+				if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, optr, false)) != 0) {
+					*ec << "[QE] Error in getObjectPointer";
+					qe->antyStarveFunction(errcode);
+					qe->inTransaction = false;
+					return errcode;
+				}
+				string tmp_name = optr->getName();
+				QueryReferenceResult *final_ref = new QueryReferenceResult(tmp_logID);
+				QueryBinderResult *final_binder = new QueryBinderResult(tmp_name, final_ref);
+				*ec << "[QE] nested(): QueryReferenceResult pointing reference value";
+				r->addResult(final_binder);
+				ec->printf("[QE] nested(): new QueryBinderResult returned name: %s\n", tmp_name.c_str());
+				
+				break;
+			}
+			case Store::Vector: {
+				vector<LogicalID*>* tmp_vec = (tmp_data_value->getVector());
+				*ec << "[QE] nested(): QueryReferenceResult pointing vector value";
+				int vec_size = tmp_vec->size();
+				for (int i = 0; i < vec_size; i++ ) {
+					LogicalID *tmp_logID = tmp_vec->at(i);
+					if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, optr, false)) != 0) {
+						*ec << "[QE] Error in getObjectPointer";
+						qe->antyStarveFunction(errcode);
+						qe->inTransaction = false;
+						return errcode;
+					}
+					string tmp_name = optr->getName();
+					QueryReferenceResult *final_ref = new QueryReferenceResult(tmp_logID);
+					QueryBinderResult *final_binder = new QueryBinderResult(tmp_name, final_ref);
+					ec->printf("[QE] nested(): vector element number %d\n", i);
+					r->addResult(final_binder);
+					ec->printf("[QE] nested(): new QueryBinderResult returned name: %s\n", tmp_name.c_str());
+				}
+				break;
+			}
+			default : {
+				*ec << "[QE] nested(): ERROR! QueryReferenceResult pointing unknown format value";
+				*ec << (ErrQExecutor | EUnknownValue);
+				return ErrQExecutor | EUnknownValue;
+				break;
+			}
+		}
+		if(vType == Store::Vector || vType == Store::Pointer) {
+			errcode = qe->getEnvs()->push(r, tr, qe);
+			if(errcode != 0) return errcode;
+			bool classFound = false;
+			errcode = qe->getEnvs()->pushClasses(tmp_data_value, qe, classFound);
+			if(errcode != 0) return errcode;
+			QueryBinderResult *selfBinder = new QueryBinderResult("self", this);
+			r->addResult(selfBinder);
+			return 0;
+		}
+	}
+	return qe->getEnvs()->push(r, tr, qe);
+}
+
+
 
 // TODO nested na virtualnych resultach - na 100% do poprawienia
 int QueryVirtualResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe) {

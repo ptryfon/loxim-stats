@@ -165,6 +165,8 @@ namespace QExecutor
 		int getOn_procedure(LogicalID *lid, string procName, string &code, string &param);
 		int pop_qres(QueryResult *&r) { return qres->pop(r); };
 		
+		EnvironmentStack* getEnvs() { return envs; }
+		
 		int trErrorOccur( string msg, int errcode );
 		
 		int qeErrorOccur( string msg, int errcode );

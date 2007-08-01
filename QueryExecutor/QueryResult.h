@@ -93,14 +93,15 @@ public:
 	virtual bool less_than(QueryResult *r)=0;
 	virtual bool greater_eq(QueryResult *r)=0;
 	virtual bool less_eq(QueryResult *r)=0;
-        virtual int nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe)=0;
+	virtual int nested(Transaction *&tr, QueryExecutor * qe);
+	virtual int nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe);
 	virtual bool isBool()=0;
 	virtual bool isNothing()=0;
 	virtual int getBoolValue(bool &b)=0;
 	virtual bool isReferenceValue()=0;
 	virtual int getReferenceValue(QueryResult *&r)=0;
 	virtual bool sorting_less_eq(QueryResult *arg);
-        virtual string toString( int level = 0, bool recursive = false, string name = "" ) { return ""; }
+	virtual string toString( int level = 0, bool recursive = false, string name = "" ) { return ""; }
 };
 
 
@@ -481,7 +482,8 @@ public:
 	bool less_than(QueryResult *r);
 	bool greater_eq(QueryResult *r);
 	bool less_eq(QueryResult *r);
-	int nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe);
+	int nested(Transaction *&tr, QueryExecutor * qe);
+	//int nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe);
 	bool isBool();
 	bool isNothing();
 	int getBoolValue(bool &b);

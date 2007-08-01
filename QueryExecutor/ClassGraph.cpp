@@ -64,13 +64,38 @@ string ClassGraphVertex::classSetToString(ClassGraph* cg, SetOfLids* classSet) {
 	return str.str();
 }
 
+string ClassGraphVertex::fieldsToString() {
+	ostringstream str;
+	for(stringHashSet::iterator i = fields.begin(); i != fields.end(); ++i) {
+		str << " " << (*i);
+	}
+	return str.str();
+}
+
+string ClassGraphVertex::methodsToString() {
+	ostringstream str;
+	for(NameToArgCountToMethodMap::iterator i = methods.begin(); i != methods.end(); ++i) {
+		str <<" (";
+		ArgsCountToMethodMap* map = (*i).second;
+		for(ArgsCountToMethodMap::iterator j = map->begin(); j != map->end(); ++j) {
+			str << " " << (*j).first;
+		}
+		str << " )" << (*i).first;
+	}
+	return str.str();
+}
+
 string ClassGraphVertex::toString(ClassGraph* cg){
  	ostringstream str;
 	str << "Name: " << name << ", instance: " << invariant << ", extends: [";
 	str << classSetToString(cg, &extends);
 	str << " ], subclasses: [";
 	str << classSetToString(cg, &subclasses);
-	str << " ]";
+	str << " ], fields: [";
+	str << fieldsToString();
+	str << " ], methods: [";
+	str << methodsToString();
+	str << "]";
 	return str.str();
 }
 
@@ -90,6 +115,101 @@ string ClassGraph::toString() {
 	return str.str();
 }
 
+int ClassGraphVertex::fetchMethod(LogicalID* lid, Transaction *&tr, QueryExecutor *qe, Method*& method, unsigned int & params_count, string& name) {
+	int errcode;
+	ObjectPointer *optr;
+	
+	errcode = tr->getObjectPointer (lid, Store::Read, optr, false); 
+	if (errcode != 0) {
+		return ClassGraph::trErrorOccur(qe, "[ClassGraph] initMethod - Error in getObjectPointer.", errcode);
+	}
+	
+	DataValue* data_value = optr->getValue();
+	name = optr->getName();
+	int vType = data_value->getType();
+	ExtendedType extType = data_value->getSubtype();
+	
+	int procBody_count = 0;
+
+	params_count = 0;
+	int others_count = 0;
+
+	if ((vType == Store::Vector) && (extType == Store::Procedure)) {
+		method = new Method(lid->clone());
+		vector<LogicalID*>* tmp_vec = (data_value->getVector());
+		int vec_size = tmp_vec->size();
+		for (int i = 0; i < vec_size; i++ ) {
+			LogicalID *tmp_logID = tmp_vec->at(i);
+			ObjectPointer *tmp_optr;
+			if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, tmp_optr, false)) != 0) {
+				return ClassGraph::trErrorOccur(qe, "[ClassGraph] initMethod - Error in getObjectPointer.", errcode);
+			}
+			string tmp_name = tmp_optr->getName();
+			DataValue* tmp_data_value = tmp_optr->getValue();
+			int tmp_vType = tmp_data_value->getType();
+			if (tmp_vType == Store::String) {
+				if (tmp_name == "ProcBody") {
+					method->code = tmp_data_value->getString();
+					procBody_count++;
+				}
+				else if (tmp_name == "Param") {
+					method->params.push_back(tmp_data_value->getString());
+					params_count++;
+				}
+				else others_count++;
+			}
+		}
+	}
+	
+	return 0;
+}
+
+int ClassGraphVertex::insertIntoMethods(string& name, unsigned int argsCount, Method* m) {
+	NameToArgCountToMethodMap::iterator methodI = methods.find(name);
+	ArgsCountToMethodMap* map; 
+	if(methodI == methods.end()) {
+		map = new ArgsCountToMethodMap();
+		methods[name] = map;
+		(*map)[argsCount] = m;
+		return 0;
+	} 
+	map = (*methodI).second;
+	if(map->find(argsCount) != map->end()) {
+		//TODO: blad zduplikowane metody
+		delete m;// nie wkladamy wiec tracimy wskaznik
+		return 1;
+	}
+	(*map)[argsCount] = m;
+	return 0;
+}
+
+int ClassGraphVertex::putMethod(LogicalID* lid, Transaction *&tr, QueryExecutor *qe) {
+	Method* method;
+	unsigned int params_count = 0;
+	string name;
+	int errcode = fetchMethod(lid, tr, qe, method, params_count, name);
+	if(errcode != 0) return errcode;
+	errcode = insertIntoMethods(name, params_count, method);
+	if(errcode != 0) return errcode;
+	return 0;
+}
+
+int ClassGraphVertex::getMethod(string& name, unsigned int argsCount, Method*& method, bool& found) {
+	NameToArgCountToMethodMap::iterator methodI = methods.find(name);
+	found = false;
+	if(methodI == methods.end()) {
+		return 0;
+	}
+	ArgsCountToMethodMap* map = (*methodI).second;
+	ArgsCountToMethodMap::iterator mI = map->find(argsCount);
+	if(mI == map->end()) {
+		return 0;
+	}
+	method = (*mI).second;
+	found = true;
+	return 0;
+}
+
 int ClassGraphVertex::initNotGraphProperties(ObjectPointer *optr, Transaction *&tr, QueryExecutor *qe) {
 	int errcode = 0;
 	DataValue* dv = optr->getValue();
@@ -98,9 +218,8 @@ int ClassGraphVertex::initNotGraphProperties(ObjectPointer *optr, Transaction *&
 		return 1;//spodziewana klasa, otrzymano cos innego
 	}
 	vector<LogicalID*>* inner_vec = dv->getVector();
-	int amountOfNeededValues = 1;
 	for (unsigned int i=0; i < inner_vec->size(); i++) {
-		if(amountOfNeededValues <= 0) break; 
+
 		ObjectPointer *inner_optr;
 		errcode = tr->getObjectPointer (inner_vec->at(i), Store::Read, inner_optr, false);
 		if (errcode != 0) {
@@ -108,13 +227,45 @@ int ClassGraphVertex::initNotGraphProperties(ObjectPointer *optr, Transaction *&
 		}
 		if (inner_optr->getName() == QE_INVARIANT_BIND_NAME) {
 			invariant = (inner_optr->getValue())->getString();
-			amountOfNeededValues--;
 		}
-		/*if (inner_optr->getName() == QE_CLASS_BIND_NAME) {
-			name = (inner_optr->getValue())->getString();
-			amountOfNeededValues--;
-		}*/
+		if (inner_optr->getName() == QE_METHOD_BIND_NAME) {
+			errcode = putMethod( (inner_optr->getValue())->getPointer(), tr, qe );
+			if(errcode != 0) return errcode;
+		}
+		if (inner_optr->getName() == QE_FIELD_BIND_NAME) {
+			fields.insert( (inner_optr->getValue())->getString() );
+		}
 	}
+	return 0;
+}
+
+int ClassGraph::fetchMethod(string name, unsigned int argsCount, SetOfLids* classesToSearch, Method*& method, bool& found) {
+	int errcode = 0;
+	for(SetOfLids::iterator i = classesToSearch->begin(); i != classesToSearch->end(); ++i) {
+		if(vertexExist(*i)) {
+			ClassGraphVertex* cgv;
+			errcode = getVertex(*i, cgv);
+			if(errcode != 0) return errcode;
+			errcode = cgv->getMethod(name,argsCount, method, found);
+			if(errcode != 0 ) return errcode;
+			if(found) return 0;
+			fetchMethod(name, argsCount, &(cgv->extends), method, found);
+			if(found) return 0;
+		}  
+	}
+	return 0;
+}
+
+int ClassGraph::fetchMethod(string name, unsigned int argsCount, SetOfLids* classesToSearch, string &code, vector<string> &params, int& founded) {
+	int errcode = 0;
+	Method* method;
+	bool found = false;
+	errcode = fetchMethod(name, argsCount, classesToSearch, method, found);
+	if(errcode != 0) return errcode;
+	if(!found) return 0;
+	founded++;
+	code = method->code;
+	params = method->params;
 	return 0;
 }
 
@@ -125,7 +276,7 @@ int ClassGraph::invariantToCohesiveSubgraph(string& invariantName, Transaction *
 		return trErrorOccur(qe,  "[QE] Error in geting class by invariant.", errcode );
 	}
 	for(vector<LogicalID*>::iterator i = lids->begin(); i != lids->end(); i++) {
-		(*ec) << "^^^^^^^^^^^^^^^ ------------ " << (*i)->toString();
+		//(*ec) << "^^^^^^^^^^^^^^^ ------------ " << (*i)->toString();
 		//zakladamy, ze jak klasa jest to jest z calym podgrafem
 		//wiec trzeba cos robic tylko gdy klasy nie ma
 		if(classGraph.find(*i) == classGraph.end()) {
@@ -203,11 +354,22 @@ int ClassGraph::removeClass(LogicalID* lid) {
 	return 0;
 }
 
+int ClassGraph::lidToClassGraphLid(LogicalID* lidFrom, LogicalID*& lidTo) {
+	MapOfClassVertices::iterator cgvI = classGraph.find(lidFrom);
+	if(cgvI == classGraph.end()) {
+		lidTo = NULL;
+		return 0;
+	}
+	lidTo = (*cgvI).first;
+	return 0;
+}
+
 int ClassGraph::addClass(ObjectPointer *optr, Transaction *&tr, QueryExecutor *qe) {
 	LogicalID* newLid = optr->getLogicalID()->clone();
 	DataValue* dv = optr->getValue();
 	ClassGraphVertex* cgv = new ClassGraphVertex();
-	cgv->initNotGraphProperties(optr, tr, qe);
+	int errcode = cgv->initNotGraphProperties(optr, tr, qe);
+	if(errcode != 0) return errcode;
 	classGraph[newLid] = cgv;
 	putToInvariants(cgv->invariant, newLid);
 	SetOfLids* tmp = dv->getClassMarks();
@@ -422,6 +584,16 @@ ClassGraph::~ClassGraph() {
 	delete ec;
 	for(vector<LogicalID*>::iterator i = lidsToDel.begin(); i != lidsToDel.end(); ++i) {
 		delete (*i);
+	}
+}
+
+ClassGraphVertex::~ClassGraphVertex() {
+	for(NameToArgCountToMethodMap::iterator i = methods.begin(); i != methods.end(); ++i) {
+		ArgsCountToMethodMap* toDel = (*i).second;
+		for(ArgsCountToMethodMap::iterator j = toDel->begin(); j != toDel->end(); ++j) {
+			delete ( (*j).second );
+		}
+		delete toDel;
 	}
 }
 

@@ -1,6 +1,6 @@
 include ../make.defs
 
-SOURCES	=	QueryExecutor.cpp EnvironmentStack.cpp QueryResult.cpp SessionData.cpp RemoteExecutor.cpp ClassGraph.cpp
+SOURCES	=	EnvironmentStack.cpp QueryResult.cpp QueryExecutor.cpp SessionData.cpp RemoteExecutor.cpp ClassGraph.cpp
 
 HEADERS	=	HashMacro.h QueryResult.h EnvironmentStack.h SessionData.h RemoteExecutor.h ClassGraph.h
 

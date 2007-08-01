@@ -24,9 +24,14 @@ using namespace std;
 
 namespace QExecutor
 {
+	typedef hash_map<unsigned int, SetOfLids*> SectionToClassMap;
+	
 	class EnvironmentStack
 	{
 	protected: 
+		//lidy zawarte w tej kolekcji naleza do grafu klas
+		//i nie nalezy ich niszczyc w tej klasie
+		SectionToClassMap classesPerSection;
 		ErrorConsole *ec;
 		vector<QueryBagResult*> es;
 		unsigned int sectionDBnumber;
@@ -34,6 +39,7 @@ namespace QExecutor
 		EnvironmentStack();
 		virtual ~EnvironmentStack();
 		int push(QueryBagResult *r, Transaction *&tr, QueryExecutor *qe);
+		int pushClasses(DataValue* dv, QueryExecutor *qe, bool& classFound);
 		int pop();
 		int pushDBsection();
 		int popDBsection();
@@ -46,11 +52,14 @@ namespace QExecutor
 		
         	string toString() {
 			stringstream c;
-			string sectionDBnumberS;
-			c << sectionDBnumber; c >> sectionDBnumberS;
-			string result = "[EnvironmentStack] sectionDBnumber=" + sectionDBnumberS + "\n";
+			//string sectionDBnumberS;
+			c << "[EnvironmentStack] sectionDBnumber=" << sectionDBnumber 
+				<< " actual_prior=" << actual_prior << endl;
+			string result = c.str();
 			for( unsigned int i = 0; i < es.size(); i++ ) {
-				result += es[i]->toString( 1, true, "es_elem" );
+				stringstream s;
+				s << "es_elem prior: " << es_priors.at(i);
+				result += es[i]->toString( 1, true, s.str() );
 			}
 			return result;
 		}
