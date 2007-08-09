@@ -35,6 +35,10 @@ namespace QExecutor
 #define QE_METHOD_BIND_NAME		"method"
 #define QE_EXTEND_BIND_NAME		"extends"
 #define QE_FIELD_BIND_NAME		"field"
+#define QE_SELF_KEYWORD			"self"
+#define QE_SUPER_KEYWORD		"super"
+#define QE_NAMES_SEPARATOR		"::"
+
 
 //     class ProcedureInfo
 //     {

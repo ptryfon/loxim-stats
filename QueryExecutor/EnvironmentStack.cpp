@@ -22,8 +22,10 @@ using namespace std;
 
 namespace QExecutor {
 
-EnvironmentStack::EnvironmentStack() { actual_prior = 0; sectionDBnumber = 0; ec = new ErrorConsole("QueryExecutor"); }
+EnvironmentStack::EnvironmentStack() { actualBindClassLid = NULL; actual_prior = 0; sectionDBnumber = 0; ec = new ErrorConsole("QueryExecutor"); }
 EnvironmentStack::~EnvironmentStack() { this->deleteAll(); if (ec != NULL) delete ec; }
+
+unsigned int EnvironmentStack::getSectionDBnumber() { return sectionDBnumber; }
 
 int EnvironmentStack::push(QueryBagResult *r, Transaction *&tr, QueryExecutor *qe) {
 	int errcode;
@@ -278,12 +280,13 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 }
 
 
-int EnvironmentStack::bindProcedureName(string name, unsigned int queries_size, Transaction *&tr, QueryExecutor *qe, string &code, vector<string> &params, int &bindSectionNo) {
+int EnvironmentStack::bindProcedureName(string name, unsigned int queries_size, Transaction *&tr, QueryExecutor *qe, string &code, vector<string> &params, int &bindSectionNo, LogicalID*& bindClassLid) {
 	*ec << "[QE] Procedure Name binding on ES";
 	int errcode;
 	unsigned int envs_size = (es.size());
 	int founded = 0;
 	bindSectionNo = -1;
+	bindClassLid = NULL;
 	
 	for (unsigned int i = envs_size; i >= 1; i--) {
 		if (es_priors.at(i - 1) == actual_prior) {
@@ -332,7 +335,7 @@ int EnvironmentStack::bindProcedureName(string name, unsigned int queries_size, 
 				if(founded <= 0) {
 					SectionToClassMap::iterator cpsI = classesPerSection.find(i);
 					if(cpsI != classesPerSection.end()) {
-						errcode = qe->getCg()->fetchMethod(name, queries_size, (*cpsI).second, code, params, founded);
+						errcode = qe->getCg()->findMethod(name, queries_size, (*cpsI).second, code, params, founded, actualBindClassLid, bindClassLid);
 					}
 				}
 			}

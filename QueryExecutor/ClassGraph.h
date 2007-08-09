@@ -71,6 +71,8 @@ namespace QExecutor
 	
 	typedef hash_set<string, hashString, eqString> stringHashSet;
 	
+	typedef hash_map<string, LogicalID*, hashString, eqString> NameToLidMap;
+	
 	//typedef hash_map<string, LogicalID*, hashString, eqString> MapOfProcedure;
 	
 	/**
@@ -113,8 +115,12 @@ namespace QExecutor
 		bool lazy;
 		MapOfClassVertices classGraph;
 		MapOfInvariantVertices invariants;
+		NameToLidMap nameIndex;
+		unsigned int separatorLen;
 	protected:
 	
+		enum SearchPhase { SEARCHING, SKIP_ONE_STEP, SEARCHING_START_CLASS };
+		
 		virtual void removeFromInvariant(LogicalID* lid, string name);
 			
 		virtual void removeFromSubclasses(SetOfLids* extendedClasses, LogicalID* lid);
@@ -127,7 +133,22 @@ namespace QExecutor
 	
 		virtual int fetchInvariantNames(string& invariantName, Transaction *&tr, QueryExecutor *qe, stringHashSet& invariantsNames, bool noInvariantName, bool sub);
 		
-		virtual int fetchMethod(string name, unsigned int argsCount, SetOfLids* classesToSearch, Method*& method, bool& found);
+		virtual int findMethod(string name, unsigned int argsCount, SetOfLids* classesToSearch, Method*& method, bool& found, LogicalID* classLidToStartSearching, SearchPhase searchStarted, LogicalID*& bindClassLid);
+		
+		virtual int findMethod(string name, unsigned int argsCount, SetOfLids* classesToSearch, Method*& method, bool& found, LogicalID* actualBindClassLid, LogicalID*& bindClassLid);
+		
+		virtual void putToInvariants(string& invariantName, LogicalID* lid);
+		
+		virtual void putToNameIndex(string& className, LogicalID* classLid);
+		
+		virtual bool classExist(string& className) {return nameIndex.find(className) != nameIndex.end();};
+		
+		virtual int getClassLidByName(string& className, LogicalID*& classLid) {
+			classLid = nameIndex[className];
+			return 0;
+		}
+		
+		virtual void removeFromNameIndex(string& className);
 		
 	public:
 		static ErrorConsole *ec;
@@ -143,15 +164,14 @@ namespace QExecutor
 		static void shutdown();
 	
 		virtual ~ClassGraph();
-		ClassGraph():lazy(false) {};
+		
+		ClassGraph();
 		
 		virtual string toString();
 		
 		int addClass(ObjectPointer *optr, Transaction *&tr, QueryExecutor *qe);
 		
 		int removeClass(LogicalID* lid);
-		
-		virtual void putToInvariants(string& invariantName, LogicalID* lid);
 		
 		virtual int fetchSubInvariantNames(string& invariantName, Transaction *&tr, QueryExecutor *qe, stringHashSet& invariantsNames, bool noInvariantName = true);
 		
@@ -179,7 +199,7 @@ namespace QExecutor
 		// Metoda nie buduje grafu dla invariantUpName.
 		virtual int belongsToInvariant(LogicalID* lid, string& invariantUpName, Transaction *&tr, QueryExecutor *qe, bool& inInvariant);
 		
-		virtual int fetchMethod(string name, unsigned int argsCount, SetOfLids* classesToSearch, string &code, vector<string> &params, int& founded);
+		virtual int findMethod(string name, unsigned int argsCount, SetOfLids* classesToSearch, string &code, vector<string> &params, int& founded, LogicalID* actualBindClassLid, LogicalID*& bindClassLid);
 	};
 }
 

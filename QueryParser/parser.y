@@ -37,7 +37,7 @@
 
 %token	<num> INTEGER
 %token	<dbl> DOUBLE
-%token	<str> PARAMNAME NAME STRING SEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT DEREF REF NAMEOF RELOADSCHEME BEGINTR END ABORT CREATE IF FI DO OD ELSE WHILE LINK FOREACH THEN FIX_OP FIXPOINT RETURN BREAK VALIDATE READ MODIFY DELETE PASSWD WITH REVOKE REMOVE TO USER FROM ON GRANT OPTION PROCEDURE CLASS EXTENDS INSTANCE LEFTPROCPAR RIGHTPROCPAR VIEW ONRETRIEVE ONUPDATE ONCREATE ONDELETE INDEX VIRTUAL COLON INTERFACE
+%token	<str> EXTNAME PARAMNAME NAME STRING SEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT DEREF REF NAMEOF RELOADSCHEME BEGINTR END ABORT CREATE IF FI DO OD ELSE WHILE LINK FOREACH THEN FIX_OP FIXPOINT RETURN BREAK VALIDATE READ MODIFY DELETE PASSWD WITH REVOKE REMOVE TO USER FROM ON GRANT OPTION PROCEDURE CLASS EXTENDS INSTANCE LEFTPROCPAR RIGHTPROCPAR VIEW ONRETRIEVE ONUPDATE ONCREATE ONDELETE INDEX VIRTUAL COLON INTERFACE
 
 %start statement
 
@@ -107,6 +107,7 @@ statement   : query semicolon_opt { d=$1; }
             ;
 
 query	    : NAME { char *s = $1; $$ = new NameNode(s); delete s; }
+		| EXTNAME { char *s = $1; $$ = new NameNode(s); delete s; }
 	    | PARAMNAME { char *s = $1; $$ = new ParamNode(s); delete s; }
             | INTEGER { $$ = new IntNode($1); }
             | STRING { char *s = $1; $$ = new StringNode(s); delete s; }
@@ -172,6 +173,8 @@ query	    : NAME { char *s = $1; $$ = new NameNode(s); delete s; }
         | CREATE classquery {$$ = new RegisterClassNode ($2);}
 	    | NAME LEFTPAR RIGHTPAR {$$ = new CallProcNode ($1);}
 	    | NAME LEFTPAR querycommalist RIGHTPAR {$$ = new CallProcNode ($1, $3);}
+	    | EXTNAME LEFTPAR RIGHTPAR {$$ = new CallProcNode ($1);}
+	    | EXTNAME LEFTPAR querycommalist RIGHTPAR {$$ = new CallProcNode ($1, $3);}
 	    ;
 
 queryfixlist   : NAME FIX_OP query { $$ = new FixPointNode ($1, $3); }

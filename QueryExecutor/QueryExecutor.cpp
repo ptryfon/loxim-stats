@@ -580,7 +580,8 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			string code = "";
 			
 			int bindSectionNumber = -1;
-			errcode = envs->bindProcedureName(name, queries_size, tr, this, code, params, bindSectionNumber);
+			LogicalID* bindClassLid;
+			errcode = envs->bindProcedureName(name, queries_size, tr, this, code, params, bindSectionNumber, bindClassLid);
 			if (errcode != 0) return errcode;
 			
 			if ((code == "") || (bindSectionNumber == -1)) {
@@ -609,9 +610,21 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			envs_sections.push_back((QueryBagResult *)new_envs_sect);
 			
 			int oldBindSectionPrior = envs->es_priors[bindSectionNumber];
-			envs->es_priors[bindSectionNumber] = envs->actual_prior + 1;
+			//to moze byc to samo co to co wyzej, ale to nie szkodzi
+			unsigned int globalSectionNumber = envs->getSectionDBnumber() - 1;
+			int oldGlobalSectionPrior = envs->es_priors[globalSectionNumber];
+			LogicalID* oldBindClassLid =  envs->actualBindClassLid;
+			int newPrior = envs->actual_prior + 1;
+			
+			envs->es_priors[bindSectionNumber] = newPrior;
+			envs->es_priors[globalSectionNumber] = newPrior;
+			envs->actualBindClassLid = bindClassLid;
+						
 			errcode = callProcedure(code, envs_sections);
+			
+			envs->actualBindClassLid = oldBindClassLid;
 			envs->es_priors[bindSectionNumber] = oldBindSectionPrior;
+			envs->es_priors[globalSectionNumber] = oldGlobalSectionPrior;
 			if(errcode != 0) return errcode;
 			
 			return 0;

@@ -239,28 +239,68 @@ int ClassGraphVertex::initNotGraphProperties(ObjectPointer *optr, Transaction *&
 	return 0;
 }
 
-int ClassGraph::fetchMethod(string name, unsigned int argsCount, SetOfLids* classesToSearch, Method*& method, bool& found) {
+int ClassGraph::findMethod(string name, unsigned int argsCount, SetOfLids* classesToSearch, Method*& method, bool& found, LogicalID* classLidToStartSearching, SearchPhase searchPhase, LogicalID*& bindClassLid) {
 	int errcode = 0;
 	for(SetOfLids::iterator i = classesToSearch->begin(); i != classesToSearch->end(); ++i) {
 		if(vertexExist(*i)) {
 			ClassGraphVertex* cgv;
 			errcode = getVertex(*i, cgv);
 			if(errcode != 0) return errcode;
-			errcode = cgv->getMethod(name,argsCount, method, found);
-			if(errcode != 0 ) return errcode;
-			if(found) return 0;
-			fetchMethod(name, argsCount, &(cgv->extends), method, found);
+			if(searchPhase == SKIP_ONE_STEP) {
+				findMethod(name, argsCount, &(cgv->extends), method, found, classLidToStartSearching, SEARCHING, bindClassLid);
+			} else if (searchPhase == SEARCHING_START_CLASS && !((*classLidToStartSearching) == (*(*i)))) {
+				findMethod(name, argsCount, &(cgv->extends), method, found, classLidToStartSearching, searchPhase, bindClassLid);
+			} else {
+				errcode = cgv->getMethod(name,argsCount, method, found);
+				if(errcode != 0 ) return errcode;
+				if(found) {
+					bindClassLid = (*i);
+					return 0;
+				}
+				findMethod(name, argsCount, &(cgv->extends), method, found, classLidToStartSearching, SEARCHING, bindClassLid);
+			}
 			if(found) return 0;
 		}  
 	}
 	return 0;
 }
 
-int ClassGraph::fetchMethod(string name, unsigned int argsCount, SetOfLids* classesToSearch, string &code, vector<string> &params, int& founded) {
+int ClassGraph::findMethod(string name, unsigned int argsCount, SetOfLids* classesToSearch, Method*& method, bool& found, LogicalID* actualBindClassLid, LogicalID*& bindClassLid) {
+	string::size_type firstSeparatorPos = name.find_first_of(QE_NAMES_SEPARATOR);
+	if(firstSeparatorPos == string::npos) {
+		return findMethod(name, argsCount, classesToSearch, method, found, NULL, SEARCHING, bindClassLid);
+	}
+	//Ponizej wywolywanie metody za pomoca super:: lub nadklasa::,
+	//wiec nalezy zaczac szukanie w zwyz od aktualnie zbindowanej klasy (actualBindClassLid)
+	string className = name.substr(0, firstSeparatorPos);
+	string methodName = name.substr(name.find_last_of(QE_NAMES_SEPARATOR) + separatorLen - 1);
+	SetOfLids* newClassesToSearch = classesToSearch;
+	SetOfLids oneClassToSearch;
+	if(actualBindClassLid != NULL)
+	{
+		oneClassToSearch.insert(actualBindClassLid);
+		newClassesToSearch = &oneClassToSearch;
+	}
+	if(className == QE_SUPER_KEYWORD) {
+		//Uwaga: mozna wywolac wprost na obiekcie super::metoda(),
+		//wtedy wykonanie zacznie sie od nadklasy,
+		//jesli mialoby tak nie byc to tu trzeba zglosic blad.
+		return findMethod(methodName, argsCount, newClassesToSearch, method, found, NULL, SKIP_ONE_STEP, bindClassLid);		
+	}
+	if(!classExist(className)) {
+		return 1;//TODO blad "class def not found"
+	}
+	LogicalID* classLid;
+	int errcode = getClassLidByName(className, classLid);
+	if(errcode != 0) return errcode;
+	return findMethod(methodName, argsCount, newClassesToSearch, method, found, classLid, SEARCHING_START_CLASS, bindClassLid);
+}
+
+int ClassGraph::findMethod(string name, unsigned int argsCount, SetOfLids* classesToSearch, string &code, vector<string> &params, int& founded, LogicalID* actualBindClassLid, LogicalID*& bindClassLid) {
 	int errcode = 0;
 	Method* method;
 	bool found = false;
-	errcode = fetchMethod(name, argsCount, classesToSearch, method, found);
+	errcode = findMethod(name, argsCount, classesToSearch, method, found, actualBindClassLid, bindClassLid);
 	if(errcode != 0) return errcode;
 	if(!found) return 0;
 	founded++;
@@ -287,6 +327,14 @@ int ClassGraph::invariantToCohesiveSubgraph(string& invariantName, Transaction *
 		}
 	}
 	return 0;
+}
+
+void ClassGraph::putToNameIndex(string& className, LogicalID* classLid) {
+	nameIndex[className] = classLid;
+}
+
+void ClassGraph::removeFromNameIndex(string& className) {
+	nameIndex.erase(className);
 }
 
 void ClassGraph::putToInvariants(string& invariantName, LogicalID* lid) {
@@ -342,6 +390,7 @@ int ClassGraph::removeClass(LogicalID* lid) {
 		return 0;
 	}
 	
+	removeFromNameIndex((*cgvI).second->name);
 	removeFromInvariant(lid, (*cgvI).second->invariant);
 	removeFromSubclasses(&((*cgvI).second->extends), lid);
 	removeFromExtends(&((*cgvI).second->subclasses), lid);
@@ -372,6 +421,7 @@ int ClassGraph::addClass(ObjectPointer *optr, Transaction *&tr, QueryExecutor *q
 	if(errcode != 0) return errcode;
 	classGraph[newLid] = cgv;
 	putToInvariants(cgv->invariant, newLid);
+	putToNameIndex(cgv->name, newLid);
 	SetOfLids* tmp = dv->getClassMarks();
 	for(SetOfLids::iterator i = tmp->begin(); i != tmp->end(); ++i) {
 		MapOfClassVertices::iterator extCgvI = classGraph.find(*i);
@@ -595,6 +645,11 @@ ClassGraphVertex::~ClassGraphVertex() {
 		}
 		delete toDel;
 	}
+}
+
+ClassGraph::ClassGraph():lazy(false) { 
+	char* str = QE_NAMES_SEPARATOR;
+	separatorLen = strlen(str);
 }
 
 }
