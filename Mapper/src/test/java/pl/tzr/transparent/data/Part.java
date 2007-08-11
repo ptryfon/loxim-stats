@@ -4,6 +4,7 @@ import java.util.Set;
 
 import pl.tzr.transparent.structure.annotation.ComponentSet;
 import pl.tzr.transparent.structure.annotation.Node;
+import pl.tzr.transparent.structure.annotation.OnBindAction;
 import pl.tzr.transparent.structure.annotation.OnRemoveAction;
 import pl.tzr.transparent.structure.annotation.Persistent;
 import pl.tzr.transparent.structure.annotation.PrimitiveSet;
@@ -41,7 +42,8 @@ public interface Part {
 	void setComponent(Set<Component> component);
 	
     @Persistent(nodeName="single")
-    @pl.tzr.transparent.structure.annotation.Component(onRemove=OnRemoveAction.DELETE)
+    @pl.tzr.transparent.structure.annotation.Component(
+            onRemove=OnRemoveAction.DELETE, onCreate=OnBindAction.COPY)    
 	Component getSingleComponent();
 
 	void setSingleComponent(Component singleComponent);

@@ -21,11 +21,14 @@ public class SimpleTransparentSessionFactoryImpl implements
 	private Class[] classes;
     
     private DatabaseContext context;
+    
+    private boolean initialized = false;
 	
 	protected Set<TransparentSession> activeSessions = 
         new HashSet<TransparentSession>();
-    
-    public SimpleTransparentSessionFactoryImpl() {
+        
+    protected void onInit() {                
+
         /* Create a factory of mapping definition */
         SimpleAnnotatedModelRegistryFactory modelRegistryFactory = 
             new SimpleAnnotatedModelRegistryFactory();
@@ -50,11 +53,22 @@ public class SimpleTransparentSessionFactoryImpl implements
         
         context = new DatabaseContext();
         context.setModelRegistry(modelRegistry);
-        context.setTransparentProxyFactory(transparentProxyFactory);
+        context.setTransparentProxyFactory(transparentProxyFactory);        
         
     }
+    
+    protected void initializeIfRequired() {
+        if (!initialized) {
+            onInit();
+            initialized = true;
+        }
+    }
+    
 	
 	public TransparentSession getSession() {
+        
+        initializeIfRequired();
+        
 		
 		Session session;
 		

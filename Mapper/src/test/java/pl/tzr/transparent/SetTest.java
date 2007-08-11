@@ -114,9 +114,7 @@ public class SetTest extends AbstractTransparentTestCase {
         comp3.setAmount(3);
         Component persistentComp3 = (Component)transparentSession.persist(comp3);
                 
-        persistentSet.add(persistentComp3);
-        
-        /* TODO - test adding item second time */
+        persistentSet.add(persistentComp3);       
         
         assertEquals(3, persistentPart.getReferenceComponent().size());
         

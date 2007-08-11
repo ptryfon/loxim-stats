@@ -138,7 +138,9 @@ public class SimpleAnnotatedModelRegistryFactory implements
             propertyInfo = new CollectionPropertyInfo(propertyName, 
                     nodeName, Set.class,
                     persistentSetAnnotation.itemType(),
-                    new ComponentSetPropertyAccessor());
+                    new ComponentSetPropertyAccessor(
+                            persistentSetAnnotation.onCreate(),
+                            persistentSetAnnotation.onRemove()));
 
         } else if (annotationMap.containsKey(ReferenceSet.class)) {
 
@@ -180,7 +182,9 @@ public class SimpleAnnotatedModelRegistryFactory implements
                 annotationMap.get(Component.class);
             
             propertyInfo = new PropertyInfo(propertyName, nodeName, returnType,
-                    new ComponentPropertyAccessor(componentAnnotation.onRemove()));
+                    new ComponentPropertyAccessor(
+                            componentAnnotation.onCreate(),
+                            componentAnnotation.onRemove()));
             
         } else if (accessorRegistry.isHandlerAvailable(returnType)) {
 

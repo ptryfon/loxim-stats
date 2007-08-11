@@ -72,10 +72,18 @@ public class LoximSession implements Session {
     public void commit() {
         if (!active) throw new SessionClosedException();
         try {
-            connection.commitTransation();
-            datasource.release(connection);
-        } catch (SBQLException e) {
-            throw new NestedSBQLException(e);
+            try {
+                connection.commitTransation();                        
+            } catch (SBQLException e) {
+                throw new NestedSBQLException(e);
+            }
+        } finally {
+            try {
+                datasource.release(connection);                       
+            } catch (SBQLException e) {
+                throw new NestedSBQLException(e);
+            }
+            
         }
         onClose();
 
@@ -84,10 +92,18 @@ public class LoximSession implements Session {
     public void rollback() {
         if (!active) throw new SessionClosedException();
         try {
-            connection.rollbackTransaction();
-            datasource.release(connection);
-        } catch (SBQLException e) {
-            throw new NestedSBQLException(e);
+            try {
+                connection.rollbackTransaction();                        
+            } catch (SBQLException e) {
+                throw new NestedSBQLException(e);
+            }
+        } finally {
+            try {
+                datasource.release(connection);                       
+            } catch (SBQLException e) {
+                throw new NestedSBQLException(e);
+            }
+            
         }
         onClose();
     }

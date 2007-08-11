@@ -27,7 +27,7 @@ public class CreateNodeTest extends AbstractNodeTestCase {
         
         Collection<SimpleValue> prices = session.findPrimitive("deref(PART.price)");
         
-        assertTrue(2 < prices.size());
+        assertTrue(2 <= prices.size());
         
         boolean wasPrice250 = false;
         boolean wasPrice275 = false;

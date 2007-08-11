@@ -22,4 +22,10 @@ public @interface Component {
      * when the property value is changed. Default action is delete.
      */
     OnRemoveAction onRemove() default OnRemoveAction.DELETE;
+    
+    /**
+     * Defines what to do when we try to bind an existing database object
+     * as a child of some component object
+     */
+    OnBindAction onCreate() default OnBindAction.COPY;
 }

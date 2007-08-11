@@ -28,4 +28,10 @@ public @interface ComponentSet {
      * Default action is to delete the node.
      */    
     OnRemoveAction onRemove() default OnRemoveAction.DELETE;
+    
+    /**
+     * Defines what to do when we try to bind an existing database object
+     * as a child of some component object
+     */
+    OnBindAction onCreate() default OnBindAction.COPY;    
 }
