@@ -1418,16 +1418,20 @@ lastOpenSect = 0; }
 // query := CREATE NAME  |  CREATE NAME LEFTPAR query RIGHTPAR
     class CreateNode : public QueryNode 
     {
+    private:
+        bool classMember;
     protected:
 		QueryNode* arg;
 		string name;
     public:
 		CreateNode(string _name, QueryNode* _arg = NULL)
-	            : arg(_arg), name(_name)  {}
+	            : arg(_arg), name(_name)  {this->classMember = false;}
 		
-		CreateNode(QueryNode* _arg) : arg(_arg) {name = "";}
+		CreateNode(QueryNode* _arg) : arg(_arg){ this->classMember = false; name = "";}
+		CreateNode(QueryNode* _arg, bool classMember) : arg(_arg) { this->classMember = classMember; name = "";}
 		virtual TreeNode* clone();
 		virtual int type() { return TreeNode::TNCREATE; }
+		virtual bool isClassMember() { return classMember; }
 		string getName() { return name; }
 		TreeNode* getArg() { return arg; }
 		virtual void setArg(QueryNode* _arg) { arg = _arg; arg->setParent(this); }    
@@ -1780,7 +1784,9 @@ lastOpenSect = 0; }
 		params = p;
 		paramsNumb = pN;
 	}
-	
+	virtual void completeStaticName(string className) {
+		name = className + "::" + name;
+	}
 	virtual TreeNode* clone();
 	virtual int type() {return TreeNode::TNPROC;}
 	virtual ~ProcedureNode() {if (code != NULL) delete code; } 
@@ -2105,26 +2111,51 @@ class ClassNode : public QueryNode
     string invariant;
     NameListNode* extends;
     NameListNode* fields;
+    NameListNode* staticFields;
     //ProcedureNode* virtual_objects;
     vector<QueryNode*> procedures;
+    vector<QueryNode*> staticProcedures;
     //vector<QueryNode*> subviews;
 
+	virtual void deleteFromVector(vector<QueryNode*>& vec) {
+		for (unsigned int i=0; i < vec.size(); i++) {
+           delete vec[i];
+        }
+        vec.clear();
+	}
     virtual void emptyInit(){
         extends = NULL; 
         fields = NULL;
+        staticFields = NULL;
     }
+    virtual void proceduresInit(ProcedureNode *p, vector<QueryNode*>& procVec){
+        emptyInit();
+        procVec.push_back(p);
+    }
+    
+    virtual void completeStaticNames() {
+    	for (unsigned int i=0; i < staticProcedures.size(); i++) {
+            ((ProcedureNode*)staticProcedures[i])->completeStaticName(name);
+        }
+    }
+    
     public:
     //ViewNode(ViewNode *v) { subviews.push_back(v); }
     ClassNode() {emptyInit();}
-    ClassNode(ProcedureNode *p) { procedures.push_back(p); emptyInit(); }
-    ClassNode(string n) { name = n; emptyInit(); }
+    ClassNode(ProcedureNode *p) { proceduresInit(p, procedures); }
+    ClassNode(ProcedureNode *p, bool isStatic) {
+    	proceduresInit(p, isStatic?staticProcedures:procedures); 
+	}
+    ClassNode(string n) { setName(n); emptyInit(); }
 
     virtual TreeNode* clone();
     virtual int type() {return TreeNode::TNCLASS;}
     virtual ~ClassNode() {
-        for (unsigned int i=0; i < procedures.size(); i++) {
-            if (procedures[i] != NULL) delete procedures[i]; }
-        procedures.clear();
+        deleteFromVector(procedures);
+        deleteFromVector(staticProcedures);
+        delete extends;
+        delete fields;
+        delete staticFields;
         /*for (unsigned int i=0; i < subviews.size(); i++) {
             if (subviews[i] != NULL) delete subviews[i]; }
         subviews.clear();
@@ -2134,24 +2165,32 @@ class ClassNode : public QueryNode
 
     virtual void setExtends(NameListNode* extends) { this->extends = extends; }
     virtual void setFields(NameListNode* fields) { this->fields = fields; }
-    virtual void setName(string n) { name = n; }
+    virtual void setStaticFields(NameListNode* staticFields) { this->staticFields = staticFields; }
+    virtual void setName(string n) { name = n; completeStaticNames();  }
     virtual void setInvariant(string invariant) { this->invariant = invariant; }
     /*virtual void setVirtual(string n, QueryNode* c) { 
         virtual_objects = new ProcedureNode();
         virtual_objects->addContent(n, c);
     } */
     virtual void addContent(ClassNode *cn) {
+        for (unsigned int i=0; i < cn->staticProcedures.size(); i++) {
+            staticProcedures.push_back(cn->staticProcedures[i]);
+        }
+        cn->staticProcedures.clear();
         for (unsigned int i=0; i < cn->procedures.size(); i++) {
             procedures.push_back(cn->procedures[i]);
         }
+        cn->procedures.clear();
         /*for (unsigned int i=0; i < v->subviews.size(); i++) {
             subviews.push_back(v->subviews[i]);
         }*/
     }
     virtual vector<QueryNode*> getProcedures() { return this->procedures; }
+    virtual vector<QueryNode*> getStaticProcedures() { return staticProcedures; }
     virtual string getName() { return name; }
     virtual string getInvariant() { return invariant; }
     virtual NameListNode* getFields() { return fields; }
+    virtual NameListNode* getStaticFields() { return staticFields; }
     virtual NameListNode* getExtends() {return extends;}
     
     /*virtual QueryNode* getVirtualObjects() { return virtual_objects; }
@@ -2179,9 +2218,17 @@ class ClassNode : public QueryNode
         if(fields){
             cout << " fields " << fields->putToString() << endl;
         }
+        if(staticFields != NULL) {
+        	cout << " static fields " << staticFields->putToString() << endl;
+        }
         //virtual_objects->putToString();
         for (unsigned int i=0; i < procedures.size(); i++) {
             procedures.at(i)->putToString();
+        }
+        
+        for (unsigned int i=0; i < staticProcedures.size(); i++) {
+        	cout << " static ";
+            staticProcedures.at(i)->putToString();
         }
         /*for (unsigned int i=0; i < subviews.size(); i++) {
         subviews.at(i)->putToString();
@@ -2193,6 +2240,9 @@ class ClassNode : public QueryNode
         string result = " class " + name + " ";
         for (unsigned int i=0; i < procedures.size(); i++) {
             result = result + procedures[i]->deParse();
+        }
+        for (unsigned int i=0; i < staticProcedures.size(); i++) {
+            result = result + " static " + staticProcedures[i]->deParse();
         }
         /*for (unsigned int i=0; i < subviews.size(); i++) {
             result = result + subviews[i]->deParse();

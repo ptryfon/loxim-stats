@@ -787,7 +787,7 @@ int QueryReferenceResult::nested(Transaction *&tr, QueryExecutor * qe) {
 		bool classFound = false;
 		errcode = qe->getEnvs()->pushClasses(tmp_data_value, qe, classFound);
 		if(errcode != 0) return errcode;
-		QueryBinderResult *selfBinder = new QueryBinderResult("self", this);
+		QueryBinderResult *selfBinder = new QueryBinderResult(QE_SELF_KEYWORD, this);
 		r->addResult(selfBinder);
 		return 0;
 		//}

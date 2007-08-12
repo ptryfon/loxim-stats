@@ -1070,6 +1070,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			string className = ((ClassNode *) tree)->getName();
 			string invariantName = ((ClassNode *) tree)->getInvariant();
 			NameListNode* fields = ((ClassNode *) tree)->getFields();
+			NameListNode* staticFields = ((ClassNode *) tree)->getStaticFields();
 			NameListNode* extendedClasses = ((ClassNode *) tree)->getExtends();
 			int errcode;
 			
@@ -1115,6 +1116,17 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				pushStringsToLIDs(fieldsNames, QE_FIELD_BIND_NAME, classVector);
 			}
 			
+			//adding static fields
+			if(staticFields != NULL) {
+				set<string> fieldsNamesRef;
+				set<string>* fieldsNames = &fieldsNamesRef;
+				errcode = staticFields->namesFromUniqueList(fieldsNames);
+				if (errcode != 0) {
+					return otherErrorOccur("[QE] Not unique field name.", errcode);
+				}
+				pushStringsToLIDs(fieldsNames, QE_STATIC_FIELD_BIND_NAME, classVector);
+			}
+			
 			//adding methods
 			vector<QueryNode*> procs = ((ClassNode *) tree)->getProcedures();
 			for(vector<QueryNode*>::iterator i = procs.begin(); i != procs.end(); i++) {
@@ -1136,6 +1148,37 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				
 				LogicalID* newLid;
 				errcode = lidFromReference(QE_METHOD_BIND_NAME, lid, newLid);
+				if(errcode != 0) return errcode;
+				classVector.push_back(newLid);
+			}
+			
+			//adding static methods
+			vector<QueryNode*> staticProcs = ((ClassNode *) tree)->getStaticProcedures();
+			for(vector<QueryNode*>::iterator i = staticProcs.begin(); i != staticProcs.end(); i++) {
+				errcode = executeRecQuery(*i);
+				if(errcode != 0) return errcode;
+				QueryResult *execution_result;
+				errcode = qres->pop(execution_result);
+				if (errcode != 0) return errcode;
+				if (execution_result->type() != QueryResult::QREFERENCE) {
+					return qeErrorOccur("[QE] TNCLASS error - execution result is not QueryReference", ERefExpected);
+				}
+				LogicalID* lid = ((QueryReferenceResult*)execution_result)->getValue();
+				ObjectPointer *optr;
+				errcode = tr->getObjectPointer (lid, Store::Read, optr, false);
+				if (errcode != 0) {
+					return trErrorOccur("[QE] class creating operation - Error in getObjectPointer.", errcode);
+				}
+				
+				errcode = tr->addRoot(optr);
+				if (errcode != 0) { 
+					return trErrorOccur("[QE] Error in addRoot", errcode);
+				}
+				
+				string optr_name = optr->getName();
+				
+				LogicalID* newLid;
+				errcode = lidFromReference(QE_STATIC_METHOD_BIND_NAME, lid, newLid);
 				if(errcode != 0) return errcode;
 				classVector.push_back(newLid);
 			}
@@ -1241,10 +1284,24 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			if (errcode != 0) return errcode;
 			QueryResult *bagRes = new QueryBagResult();
 			bagRes->addResult(tmp_result);
+			bool isStaticMember = ((CreateNode*)tree)->isClassMember();
 			for (unsigned int i = 0; i < bagRes->size(); i++) {
 				QueryResult *binder;
 				errcode = ((QueryBagResult *) bagRes)->at(i, binder);
 				if (errcode != 0) return errcode;
+				if(isStaticMember) {
+					//statyczne skladowe klas moga byc tworzone tylko
+					//gdy zostaly zadeklarowane w klasach
+					if ((binder->type()) != QueryResult::QBINDER) {
+						return qeErrorOccur("[QE] objectFromBinder() expected a binder, got something else", EOtherResExp);
+					}
+					bool fieldExist = false;
+					errcode = cg->staticFieldExist(((QueryBinderResult*)binder)->getName(), fieldExist);
+					if(errcode != 0) return errcode;
+					if(!fieldExist) {
+						return 1;//TODO: No class def found
+					}
+				}
 				ObjectPointer *optr;
 				errcode = this->objectFromBinder(binder, optr);
 				if (errcode != 0) return errcode;

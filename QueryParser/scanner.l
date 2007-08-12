@@ -103,6 +103,7 @@ extern int szbderrno;
 "class"         return CLASS;
 "extends"       return EXTENDS;
 "instance"      return INSTANCE;
+"static"		return STATIC;
 "{"			return LEFTPROCPAR;
 "}"			return RIGHTPROCPAR;
 "view"			return VIEW;

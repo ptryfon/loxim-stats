@@ -37,7 +37,7 @@
 
 %token	<num> INTEGER
 %token	<dbl> DOUBLE
-%token	<str> EXTNAME PARAMNAME NAME STRING SEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT DEREF REF NAMEOF RELOADSCHEME BEGINTR END ABORT CREATE IF FI DO OD ELSE WHILE LINK FOREACH THEN FIX_OP FIXPOINT RETURN BREAK VALIDATE READ MODIFY DELETE PASSWD WITH REVOKE REMOVE TO USER FROM ON GRANT OPTION PROCEDURE CLASS EXTENDS INSTANCE LEFTPROCPAR RIGHTPROCPAR VIEW ONRETRIEVE ONUPDATE ONCREATE ONDELETE INDEX VIRTUAL COLON INTERFACE
+%token	<str> STATIC EXTNAME PARAMNAME NAME STRING SEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT DEREF REF NAMEOF RELOADSCHEME BEGINTR END ABORT CREATE IF FI DO OD ELSE WHILE LINK FOREACH THEN FIX_OP FIXPOINT RETURN BREAK VALIDATE READ MODIFY DELETE PASSWD WITH REVOKE REMOVE TO USER FROM ON GRANT OPTION PROCEDURE CLASS EXTENDS INSTANCE LEFTPROCPAR RIGHTPROCPAR VIEW ONRETRIEVE ONUPDATE ONCREATE ONDELETE INDEX VIRTUAL COLON INTERFACE
 
 %start statement
 
@@ -69,6 +69,7 @@
 %type <priv_list> priv_defs
 %type <name_list> name_defs
 %type <name_list> name_defs_semicolon
+%type <name_list> classstatic
 %type <privilige> privilige
 %type <qtree> query
 %type <proctree> procquery
@@ -76,6 +77,7 @@
 %type <classtree> classproc
 %type <classtree> classprocs
 %type <classtree> classbody
+%type <classtree> classprocs_and_static
 %type <proctree> formparams
 %type <viewtree> viewquery
 %type <viewtree> viewrecdef
@@ -104,18 +106,19 @@ statement   : query semicolon_opt { d=$1; }
 	    | user_stmt	     semicolon_opt { d = $1; }
 	    | index_stmt	 semicolon_opt { d = $1; }
 	    | interface_stmt	semicolon_opt { d = $1; }
-            ;
+        ;
 
 query	    : NAME { char *s = $1; $$ = new NameNode(s); delete s; }
 		| EXTNAME { char *s = $1; $$ = new NameNode(s); delete s; }
 	    | PARAMNAME { char *s = $1; $$ = new ParamNode(s); delete s; }
-            | INTEGER { $$ = new IntNode($1); }
-            | STRING { char *s = $1; $$ = new StringNode(s); delete s; }
+        | INTEGER { $$ = new IntNode($1); }
+        | STRING { char *s = $1; $$ = new StringNode(s); delete s; }
 	    | DOUBLE { $$ = new DoubleNode($1); }
+	    | CREATE query AS EXTNAME { $$ = new CreateNode( new NameAsNode($2,$4,false), true); }
 	    | query AS_INSTANCE_OF query { $$ = new AsInstanceOfNode($1, $3); }
-            | query AS NAME { $$ = new NameAsNode($1,$3,false); }
+        | query AS NAME { $$ = new NameAsNode($1,$3,false); }
 	    | query GROUP_AS NAME { $$ = new NameAsNode($1,$3,true); }
-            | COUNT LEFTPAR  query RIGHTPAR { $$ = new UnOpNode($3,UnOpNode::count); }
+        | COUNT LEFTPAR  query RIGHTPAR { $$ = new UnOpNode($3,UnOpNode::count); }
 	    | SUM LEFTPAR  query RIGHTPAR { $$ = new UnOpNode($3,UnOpNode::sum); }
 	    | AVG LEFTPAR  query RIGHTPAR { $$ = new UnOpNode($3,UnOpNode::avg); }
 	    | MIN LEFTPAR  query RIGHTPAR { $$ = new UnOpNode($3,UnOpNode::min); }
@@ -126,12 +129,12 @@ query	    : NAME { char *s = $1; $$ = new NameNode(s); delete s; }
 	    | DISTINCT LEFTPAR  query RIGHTPAR { $$ = new UnOpNode($3,UnOpNode::distinct); }
 	    | MINUS query 				%prec UMINUS  { $$ = new UnOpNode($2,UnOpNode::unMinus); }
 	    | NOT query { $$ = new UnOpNode($2,UnOpNode::boolNot); }
-            | query UNION query { $$ = new AlgOpNode($1,$3,AlgOpNode::bagUnion); }
-            | query INTERSECT query { $$ = new AlgOpNode($1,$3,AlgOpNode::bagIntersect); }
-            | query EXCEPT query  { $$ = new AlgOpNode($1,$3,AlgOpNode::bagMinus); }
+        | query UNION query { $$ = new AlgOpNode($1,$3,AlgOpNode::bagUnion); }
+        | query INTERSECT query { $$ = new AlgOpNode($1,$3,AlgOpNode::bagIntersect); }
+        | query EXCEPT query  { $$ = new AlgOpNode($1,$3,AlgOpNode::bagMinus); }
 	    | LEFTPAR querycommalist RIGHTPAR { $$ = AlgOpNode::newNode($2, AlgOpNode::comma); } 
 	    | query PLUS query { $$ = new AlgOpNode($1,$3,AlgOpNode::plus); }
-            | query MINUS query { $$ = new AlgOpNode($1,$3,AlgOpNode::minus); }
+        | query MINUS query { $$ = new AlgOpNode($1,$3,AlgOpNode::minus); }
 	    | query TIMES query { $$ = new AlgOpNode($1,$3,AlgOpNode::times); }
 	    | query DIVIDE_BY query { $$ = new AlgOpNode($1,$3,AlgOpNode::divide); }
 	    | query EQUAL query { $$ = new AlgOpNode($1,$3,AlgOpNode::eq); }
@@ -290,15 +293,15 @@ classquery: CLASS NAME LEFTPROCPAR classbody RIGHTPROCPAR {char *n = $2; $4->set
 
 classbody: /* empty */ { $$ = new ClassNode(); }
     /* procedure ... */
-    | classprocs { $$ = $1 }
+    | classprocs_and_static { $$ = $1 }
     /* instance name : { n1; n2 [;]} procedure ... */
-    | INSTANCE NAME COLON LEFTPROCPAR name_defs_semicolon semicolon_opt RIGHTPROCPAR classprocs 
+    | INSTANCE NAME COLON LEFTPROCPAR name_defs_semicolon semicolon_opt RIGHTPROCPAR classprocs_and_static
         {char *n = $2; $8->setInvariant(n); $8->setFields($5); $$ = $8; delete n;}
     /* instance : { n1; n2 [;]} procedure ... */
-    | INSTANCE COLON LEFTPROCPAR name_defs_semicolon semicolon_opt RIGHTPROCPAR classprocs 
+    | INSTANCE COLON LEFTPROCPAR name_defs_semicolon semicolon_opt RIGHTPROCPAR classprocs_and_static 
         {$7->setFields($4); $$ = $7;}
     /* instance name : {} procedure ... */
-    | INSTANCE NAME COLON LEFTPROCPAR RIGHTPROCPAR classprocs 
+    | INSTANCE NAME COLON LEFTPROCPAR RIGHTPROCPAR classprocs_and_static
         {char *n = $2; $6->setInvariant(n); $$ = $6; delete n;}
     /* instance name : { n1; n2 [;]} */
     | INSTANCE NAME COLON LEFTPROCPAR name_defs_semicolon semicolon_opt RIGHTPROCPAR 
@@ -311,11 +314,20 @@ classbody: /* empty */ { $$ = new ClassNode(); }
         {char *n = $2; $$ = new ClassNode(); $$->setInvariant(n); delete n;}
     ;
 
+classprocs_and_static: classstatic classprocs { $2->setStaticFields($1); $$ = $2 }
+	| classstatic { $$ = new ClassNode(); $$->setStaticFields($1) }
+	| classprocs {$$ = $1 }
+	;
+
+classstatic: STATIC LEFTPROCPAR name_defs RIGHTPROCPAR semicolon_opt
+	{$$ = $3}
+
 classproc: procquery { $$ = new ClassNode($1); }
+	| STATIC procquery { $$ = new ClassNode($2, true); }
     ;
 
 classprocs: classproc { $$ = $1}
-    | classprocs classproc { $1->addContent($2); }
+    | classprocs classproc { $1->addContent($2); delete $2; }
     ;
 
 name_defs_semicolon:  NAME { $$ = new NameListNode($1);    }

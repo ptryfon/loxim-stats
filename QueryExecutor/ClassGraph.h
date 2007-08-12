@@ -84,7 +84,7 @@ namespace QExecutor
 		virtual int fetchMethod(LogicalID* lid, Transaction *&tr, QueryExecutor *qe, Method*& method, unsigned int & params_count, string& name);
 		virtual int insertIntoMethods(string& name, unsigned int argsCount, Method* m);
 		virtual int putMethod(LogicalID* lid, Transaction *&tr, QueryExecutor *qe);
-		virtual string fieldsToString();
+		virtual string fieldsToString(stringHashSet& fields);
 		virtual string methodsToString();
 	public:
 		
@@ -92,6 +92,7 @@ namespace QExecutor
 		SetOfLids subclasses;
 		NameToArgCountToMethodMap methods;
 		stringHashSet fields;
+		stringHashSet staticFields;
 		string invariant;
 		string name;
 		bool invalid;
@@ -105,6 +106,7 @@ namespace QExecutor
 		virtual void removeExtend(LogicalID* lid) { extends.erase(lid); }
 		virtual string toString(ClassGraph* cg);
 		virtual int getMethod(string& name, unsigned int argsCount, Method*& method, bool& found);
+		virtual bool hasStaticField(string& staticField);
 		
 		static string classSetToString(ClassGraph* cg, SetOfLids* classSet);
 	};
@@ -120,6 +122,10 @@ namespace QExecutor
 	protected:
 	
 		enum SearchPhase { SEARCHING, SKIP_ONE_STEP, SEARCHING_START_CLASS };
+		
+		virtual string lastPartFromExtName(const string& extName, bool& isExtName);
+		
+		virtual string firstPartFromExtName(const string& extName, bool& isExtName);
 		
 		virtual void removeFromInvariant(LogicalID* lid, string name);
 			
@@ -147,6 +153,8 @@ namespace QExecutor
 			classLid = nameIndex[className];
 			return 0;
 		}
+		
+		virtual int getClassVertexByName(string& className, ClassGraphVertex*& cgv, bool& fieldExist);
 		
 		virtual void removeFromNameIndex(string& className);
 		
@@ -200,6 +208,8 @@ namespace QExecutor
 		virtual int belongsToInvariant(LogicalID* lid, string& invariantUpName, Transaction *&tr, QueryExecutor *qe, bool& inInvariant);
 		
 		virtual int findMethod(string name, unsigned int argsCount, SetOfLids* classesToSearch, string &code, vector<string> &params, int& founded, LogicalID* actualBindClassLid, LogicalID*& bindClassLid);
+		
+		virtual int staticFieldExist(const string& extName, bool& exist);
 	};
 }
 

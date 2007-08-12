@@ -64,7 +64,7 @@ string ClassGraphVertex::classSetToString(ClassGraph* cg, SetOfLids* classSet) {
 	return str.str();
 }
 
-string ClassGraphVertex::fieldsToString() {
+string ClassGraphVertex::fieldsToString(stringHashSet& fields) {
 	ostringstream str;
 	for(stringHashSet::iterator i = fields.begin(); i != fields.end(); ++i) {
 		str << " " << (*i);
@@ -92,7 +92,9 @@ string ClassGraphVertex::toString(ClassGraph* cg){
 	str << " ], subclasses: [";
 	str << classSetToString(cg, &subclasses);
 	str << " ], fields: [";
-	str << fieldsToString();
+	str << fieldsToString(fields);
+	str << " ], static fields: [";
+	str << fieldsToString(staticFields);
 	str << " ], methods: [";
 	str << methodsToString();
 	str << "]";
@@ -113,6 +115,11 @@ string ClassGraph::toString() {
 		str << " ] " << endl;
 	}
 	return str.str();
+}
+
+bool ClassGraphVertex::hasStaticField(string& staticField) {
+	stringHashSet::iterator i = staticFields.find(staticField);
+	return i != staticFields.end();
 }
 
 int ClassGraphVertex::fetchMethod(LogicalID* lid, Transaction *&tr, QueryExecutor *qe, Method*& method, unsigned int & params_count, string& name) {
@@ -235,6 +242,9 @@ int ClassGraphVertex::initNotGraphProperties(ObjectPointer *optr, Transaction *&
 		if (inner_optr->getName() == QE_FIELD_BIND_NAME) {
 			fields.insert( (inner_optr->getValue())->getString() );
 		}
+		if (inner_optr->getName() == QE_STATIC_FIELD_BIND_NAME) {
+			staticFields.insert( (inner_optr->getValue())->getString() );
+		}
 	}
 	return 0;
 }
@@ -265,15 +275,66 @@ int ClassGraph::findMethod(string name, unsigned int argsCount, SetOfLids* class
 	return 0;
 }
 
+int ClassGraph::staticFieldExist(const string& extName, bool& fieldExist) {
+	fieldExist = false;
+	bool isExtName = false;
+	string className = firstPartFromExtName(extName, isExtName);
+	if(!isExtName) {
+		return 0;
+	}
+	ClassGraphVertex* cgv;
+	bool classExist;
+	int errcode = getClassVertexByName(className, cgv, classExist);
+	if(errcode != 0) return errcode;
+	if(!classExist) {
+		return 1;//TODO: no class def found
+	}
+	string staticField = lastPartFromExtName(extName, isExtName);
+	fieldExist = cgv->hasStaticField(staticField);
+	return 0;
+}
+
+int ClassGraph::getClassVertexByName(string& className, ClassGraphVertex*& cgv, bool& exist) {
+	exist = true;
+	if(!classExist(className)) {
+		exist = false;
+		return 0;
+	}
+	LogicalID* classLid;
+	int errcode = getClassLidByName(className, classLid);
+	if(errcode != 0) return errcode;
+	return getVertex(classLid, cgv);
+}
+
+string ClassGraph::lastPartFromExtName(const string& extName, bool& isExtName) {
+	string::size_type separatorPos = extName.find_last_of(QE_NAMES_SEPARATOR);
+	isExtName = (separatorPos != string::npos);
+	if(!isExtName) return "";
+	return extName.substr(separatorPos + separatorLen - 1);
+}
+
+string ClassGraph::firstPartFromExtName(const string& extName, bool& isExtName) {
+	string::size_type separatorPos = extName.find_first_of(QE_NAMES_SEPARATOR);
+	isExtName = (separatorPos != string::npos);
+	if(!isExtName) return "";
+	return extName.substr(0, separatorPos);
+}
+
 int ClassGraph::findMethod(string name, unsigned int argsCount, SetOfLids* classesToSearch, Method*& method, bool& found, LogicalID* actualBindClassLid, LogicalID*& bindClassLid) {
-	string::size_type firstSeparatorPos = name.find_first_of(QE_NAMES_SEPARATOR);
+	/*string::size_type firstSeparatorPos = name.find_first_of(QE_NAMES_SEPARATOR);
 	if(firstSeparatorPos == string::npos) {
+		return findMethod(name, argsCount, classesToSearch, method, found, NULL, SEARCHING, bindClassLid);
+	}*/
+	bool isExtName = false;
+	string className = firstPartFromExtName(name, isExtName);
+	if(!isExtName) {
 		return findMethod(name, argsCount, classesToSearch, method, found, NULL, SEARCHING, bindClassLid);
 	}
 	//Ponizej wywolywanie metody za pomoca super:: lub nadklasa::,
 	//wiec nalezy zaczac szukanie w zwyz od aktualnie zbindowanej klasy (actualBindClassLid)
-	string className = name.substr(0, firstSeparatorPos);
-	string methodName = name.substr(name.find_last_of(QE_NAMES_SEPARATOR) + separatorLen - 1);
+	/*string className = name.substr(0, firstSeparatorPos);
+	string methodName = name.substr(name.find_last_of(QE_NAMES_SEPARATOR) + separatorLen - 1);*/
+	string methodName = lastPartFromExtName(name, isExtName);
 	SetOfLids* newClassesToSearch = classesToSearch;
 	SetOfLids oneClassToSearch;
 	if(actualBindClassLid != NULL)
