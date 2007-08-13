@@ -23,6 +23,7 @@
   QParser::ProcedureNode* proctree;
   QParser::ViewNode* viewtree;
   QParser::ClassNode* classtree;
+  QParser::ClassCastNode* classcast;
   QParser::Privilige *privilige;
   QParser::PriviligeListNode *priv_list;
   QParser::NameListNode *name_list;
@@ -178,6 +179,7 @@ query	    : NAME { char *s = $1; $$ = new NameNode(s); delete s; }
 	    | NAME LEFTPAR querycommalist RIGHTPAR {$$ = new CallProcNode ($1, $3);}
 	    | EXTNAME LEFTPAR RIGHTPAR {$$ = new CallProcNode ($1);}
 	    | EXTNAME LEFTPAR querycommalist RIGHTPAR {$$ = new CallProcNode ($1, $3);}
+	    | LEFTPAR NAME RIGHTPAR query {$$ = new ClassCastNode($2, $4);}
 	    ;
 
 queryfixlist   : NAME FIX_OP query { $$ = new FixPointNode ($1, $3); }
@@ -319,7 +321,7 @@ classprocs_and_static: classstatic classprocs { $2->setStaticFields($1); $$ = $2
 	| classprocs {$$ = $1 }
 	;
 
-classstatic: STATIC LEFTPROCPAR name_defs RIGHTPROCPAR semicolon_opt
+classstatic: STATIC LEFTPROCPAR name_defs_semicolon semicolon_opt RIGHTPROCPAR semicolon_opt
 	{$$ = $3}
 
 classproc: procquery { $$ = new ClassNode($1); }

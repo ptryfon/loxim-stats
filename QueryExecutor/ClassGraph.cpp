@@ -625,6 +625,51 @@ int ClassGraph::fetchInvariantNames(ClassGraphVertex* cgvIn, stringHashSet& inva
 	return 0;
 }
 
+int ClassGraph::classBelongsToExtSubGraph(const MapOfClassVertices::iterator& classI, const MapOfClassVertices::iterator& subGraphI, bool& belongs) {
+	if(classI == classGraph.end()) {
+		return 1;//TODO: class def not found
+	}
+	if(subGraphI == classGraph.end()) {
+		return 1;//TODO: class def not found
+	}
+	if(classI == subGraphI) {
+		belongs = true;
+		return 0;
+	}
+	SetOfLids* superClasses =&(((*subGraphI).second)->extends);
+	for(SetOfLids::iterator i = superClasses->begin(); i != superClasses->end(); ++i) {
+		MapOfClassVertices::iterator newSubGraph = classGraph.find(*i);
+		int errcode = classBelongsToExtSubGraph(classI, newSubGraph, belongs);
+		if(errcode != 0) return errcode;
+		if(belongs) return 0;
+	}
+	return 0;
+}
+
+int ClassGraph::isCastAllowed(string& className, ObjectPointer *optr, bool& includes) {
+	includes = false;
+	if(optr->getValue()->getSubtype() == Store::Class ) {
+		return 0;//class can't be cast
+	}
+	SetOfLids* classesToCheck = optr->getValue()->getClassMarks();
+	if(classesToCheck == NULL) {
+		return 0;
+	}
+	if(!classExist(className)) {
+		return 1;//TODO noclasdefffound
+	}
+	LogicalID* classLid;
+	int errcode = getClassLidByName(className, classLid);
+	if(errcode != 0) return errcode;
+	MapOfClassVertices::iterator classI = classGraph.find(classLid);
+	for(SetOfLids::iterator i = classesToCheck->begin(); i != classesToCheck->end(); ++i) {
+		errcode = classBelongsToExtSubGraph(classI, classGraph.find(*i), includes);
+		if(errcode != 0) return errcode;
+		if(includes) return 0;
+	}
+	return 0;
+}
+
 /*int ClassGraph::classBelongsToInvariant(LogicalID* lid, string& invariantUpName, bool& inInvariant) {
 	
 }*/

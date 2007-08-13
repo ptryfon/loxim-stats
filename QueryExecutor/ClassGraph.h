@@ -158,6 +158,8 @@ namespace QExecutor
 		
 		virtual void removeFromNameIndex(string& className);
 		
+		virtual int classBelongsToExtSubGraph(const MapOfClassVertices::iterator& classI, const MapOfClassVertices::iterator& subGraphI, bool& belongs);
+		
 	public:
 		static ErrorConsole *ec;
 	
@@ -210,6 +212,8 @@ namespace QExecutor
 		virtual int findMethod(string name, unsigned int argsCount, SetOfLids* classesToSearch, string &code, vector<string> &params, int& founded, LogicalID* actualBindClassLid, LogicalID*& bindClassLid);
 		
 		virtual int staticFieldExist(const string& extName, bool& exist);
+		
+		virtual int isCastAllowed(string& className, ObjectPointer *optr, bool& includes);
 	};
 }
 

@@ -1064,6 +1064,51 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			return 0;		
 		}
 		
+		case TreeNode::TNCAST: {
+			*ec << "[QE] Type: TNCAST";
+			string className = ((ClassCastNode*)tree)->getName();
+			errcode = executeRecQuery(((ClassCastNode*)tree)->getQueryToCast());
+			if(errcode != 0) return errcode;
+			QueryResult *execution_result;
+			errcode = qres->pop(execution_result);
+			if (errcode != 0) return errcode;
+			QueryResult* finalResult = new QueryBagResult();
+			if (execution_result->type() == QueryResult::QBAG) {
+				QueryBagResult* executionBag = dynamic_cast<QueryBagResult*>(execution_result);
+				for(unsigned int i = 0; i < executionBag->size(); ++i) {
+					QueryResult* result;
+					errcode = executionBag->at(i, result);
+					if(errcode != 0){
+						//delete finalResult;
+						//nie klonuje do finalResult, wiec chyba nie moge go tu usunac
+						return errcode;
+					}
+					//obiekty inne niz referencje sa pomijane
+					if(result->type() == QueryResult::QREFERENCE) {
+						ObjectPointer *optr;
+						errcode = tr->getObjectPointer (((QueryReferenceResult*)result)->getValue(), Store::Read, optr, false);
+						if (errcode != 0) {
+							//delete finalResult;
+							return trErrorOccur("[QE] TNCAST- Error in getObjectPointer.", errcode);
+						}
+						bool canCast = false;
+						errcode = cg->isCastAllowed(className, optr, canCast);
+						if(errcode != 0) {
+							//delete finalResult;
+							return errcode;
+						}
+						if(canCast) {
+							finalResult->addResult(result);
+						}
+					}
+				}
+			}
+			errcode = qres->push(finalResult);
+			if(errcode != 0) return errcode;
+			*ec << "[QE] TNCAST processing complete";
+			return 0;
+		}
+		
 		case TreeNode::TNCLASS: {
 			*ec << "[QE] Type: TNCLASS";
 			vector<LogicalID *> classVector;//main class object

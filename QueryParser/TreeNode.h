@@ -57,7 +57,7 @@ namespace QParser {
 	    TNREMOVEUSER, TNPRIVLIST, TNNAMELIST, TNGRANTPRIV, TNREVOKEPRIV, TNREMOTE, TNINDEXDDL, TNINDEXDML,
 	    TNCREATEINTERFACENODE, TNINTERFACESTRUCT, TNINTERFACEATTRIBUTELISTNODE, TNINTERFACEATTRIBUTE, 
 	    TNINTERFACEMETHODLISTNODE, TNINTERFACEMETHOD, TNINTERFACEMETHODPARAMLISTNODE, TNINTERFACEMETHODPARAM,
-        TNREGCLASS, TNCLASS, TNDML, TNASINSTANCEOF};
+        TNREGCLASS, TNCLASS, TNDML, TNASINSTANCEOF, TNCAST};
 	 
 	 
 	 
@@ -2103,10 +2103,39 @@ class RegisterClassNode : public QueryNode
         return result; };
     };
 
+class ClassCastNode : public QueryNode {
+protected:
+	string name;
+	QueryNode* queryToCast;
+public:
+	ClassCastNode(string name, QueryNode* queryToCast) {
+		this->name = name;
+		this->queryToCast = queryToCast;
+	}
+	virtual int type() {return TreeNode::TNCAST;}
+	virtual TreeNode* clone();
+	virtual ~ClassCastNode() {
+		delete queryToCast;
+	}
+	virtual QueryNode* getQueryToCast() {
+		return queryToCast;
+	}
+	virtual string getName() {return name;}
+	virtual int putToString() {
+		cout << "Cast to " << name << "(";
+		if(queryToCast != NULL) {
+			queryToCast->putToString();
+		}
+		cout << ")" << endl;
+		return 0;
+	}
+	virtual string deParse() {
+		 return "((" + name +")" + queryToCast->deParse() + ")";
+	}
+};
 
-class ClassNode : public QueryNode
-    {
-    protected:
+class ClassNode : public QueryNode {
+protected:
     string name;
     string invariant;
     NameListNode* extends;
@@ -2139,7 +2168,7 @@ class ClassNode : public QueryNode
         }
     }
     
-    public:
+public:
     //ViewNode(ViewNode *v) { subviews.push_back(v); }
     ClassNode() {emptyInit();}
     ClassNode(ProcedureNode *p) { proceduresInit(p, procedures); }
@@ -2210,16 +2239,22 @@ class ClassNode : public QueryNode
     virtual int putToString() {
         cout << "Class name - " << name;
         if(extends){
-            cout << " extends " << extends->putToString() << endl;
+            cout << " extends ";
+            extends->putToString();
+            cout << endl;
         }
         if(!invariant.empty()){
             cout << " invariant " << invariant << endl;
         }
         if(fields){
-            cout << " fields " << fields->putToString() << endl;
+            cout << " fields ";
+            fields->putToString();
+            cout << endl;
         }
         if(staticFields != NULL) {
-        	cout << " static fields " << staticFields->putToString() << endl;
+        	cout << " static fields ";
+        	staticFields->putToString();
+        	cout << endl;
         }
         //virtual_objects->putToString();
         for (unsigned int i=0; i < procedures.size(); i++) {
@@ -2251,7 +2286,7 @@ class ClassNode : public QueryNode
         cout << result;
         return result; 
     }
-	}; 
+}; 
 
 
 

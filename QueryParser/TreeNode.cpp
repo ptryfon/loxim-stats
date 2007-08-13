@@ -91,11 +91,22 @@ namespace QParser
 
     TreeNode* ClassNode::clone() {
         ClassNode *cn = new ClassNode(name);
+        cn->invariant = invariant;
+        cn->extends = (extends == NULL)?NULL:dynamic_cast<NameListNode*>(extends->clone());
+        cn->fields = (fields == NULL)?NULL:dynamic_cast<NameListNode*>(fields->clone());
+        cn->staticFields = (staticFields == NULL)?NULL:dynamic_cast<NameListNode*>(staticFields->clone());
         for (unsigned int i=0; i < procedures.size(); i++) {
-            cn->procedures.push_back(procedures[i]);
+            cn->procedures.push_back(dynamic_cast<QueryNode*>(procedures[i]->clone()));
         }
-		//TODO - unfinished clonning  
+		for (unsigned int i=0; i < staticProcedures.size(); i++) {
+            cn->staticProcedures.push_back(dynamic_cast<QueryNode*>(staticProcedures[i]->clone()));
+        }
         return cn;
+    }
+    
+    TreeNode* ClassCastNode::clone() {
+    	ClassCastNode* ccn = new ClassCastNode(name, (queryToCast == NULL)?NULL:dynamic_cast<QueryNode*>(queryToCast->clone()));
+    	return ccn;
     }
     
     
