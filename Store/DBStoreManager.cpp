@@ -66,6 +66,7 @@ namespace Store
 		this->roots = new NamedRoots();
 		this->views = new Views();
 		this->classes = new Classes();
+		this->interfaces = new Interfaces();
 		this->pagemgr = new PageManager(this);
 
 		this->roots->init(this->buffer, this->log);
@@ -153,6 +154,11 @@ namespace Store
 	Classes* DBStoreManager::getClasses()
 	{
 		return classes;
+	}
+	
+	Interfaces* DBStoreManager::getInterfaces()
+	{
+	    return interfaces;
 	}
 
 	PageManager* DBStoreManager::getPageManager()
@@ -610,7 +616,7 @@ namespace Store
 	
 	//Classes
 	
-	int DBStoreManager::getClassesLID(TransactionID* tid, vector<LogicalID*>*& p_classes)
+int DBStoreManager::getClassesLID(TransactionID* tid, vector<LogicalID*>*& p_classes)
 	{
 #ifdef DEBUG_MODE
 		*ec << "Store::Manager::getClassesLID(ALL) begin..";
@@ -699,6 +705,87 @@ namespace Store
 		return 0;
 	}
 	
+
+//Interfaces
+	
+    int DBStoreManager::getInterfacesLID(TransactionID* tid, vector<LogicalID*>*& p_interfaces)
+	{
+#ifdef DEBUG_MODE
+		*ec << "Store::Manager::getInterfacesLID(ALL) begin..";
+#endif
+		int rval = getInterfacesLID(tid, "", p_interfaces);
+
+#ifdef DEBUG_MODE
+		*ec << "Store::Manager::getInterfacesLID(ALL) done";
+#endif
+		return rval;
+	}
+
+	int DBStoreManager::getInterfacesLID(TransactionID* tid, string p_name, vector<LogicalID*>*& p_interfaces)
+	{
+#ifdef DEBUG_MODE
+		*ec << "Store::Manager::getInterfacesLID(BY NAME) begin..";
+#endif
+		p_interfaces = new vector<LogicalID*>(0);
+		vector<int>* rvec;
+		rvec = interfaces->getItems(p_name.c_str(), tid->getId(), tid->getTimeStamp());
+		
+		vector<int>::iterator obj_iter;
+		for(obj_iter=rvec->begin(); obj_iter!=rvec->end(); obj_iter++)
+		{
+			LogicalID* lid = new DBLogicalID((*obj_iter));
+			p_interfaces->push_back(lid);
+		}
+
+		delete rvec;
+#ifdef DEBUG_MODE
+		ec->printf("Store::Manager::getInterfacesLID(BY NAME) done: size=%d\n", p_interfaces->size());
+#endif
+		return 0;
+	}
+
+	int DBStoreManager::addInterface(TransactionID* tid, const char* name, ObjectPointer*& object)
+	{
+#ifdef DEBUG_MODE
+		*ec << "Store::Manager::addInterface begin..";
+#endif
+		int lid = object->getLogicalID()->toInteger();
+
+		int err = interfaces->addInterface(lid, name, tid->getId(), tid->getTimeStamp());
+		if (err != 0) {
+		    *ec << "Store::Manager::addInterface: error in Interfaces::addInterface";
+		    return err;
+		}
+		/*
+		char *entryBuf;
+		int size = 0;
+		interfaces->createEntry(lid, name, tid->getId(), tid->getTimeStamp(), size, entryBuf);
+		interfaces->addItem(size, entryBuf);
+		if (entryBuf != NULL)
+		    delete entryBuf;
+		*/
+
+#ifdef DEBUG_MODE
+		ec->printf("Store::Manager::addInterface done: %s\n", name);
+#endif
+		return 0;
+	}
+
+	int DBStoreManager::removeInterface(TransactionID* tid, ObjectPointer*& object)
+	{
+#ifdef DEBUG_MODE
+		*ec << "Store::Manager::removeInterface begin..";
+#endif
+		int lid = object->getLogicalID()->toInteger();
+		
+		interfaces->removeItem(lid, tid->getId(), tid->getTimeStamp());
+
+#ifdef DEBUG_MODE
+		ec->printf("Store::Manager::removeInterface done: %s\n", object->toString().c_str());
+#endif
+		return 0;
+	}
+
 
 	int DBStoreManager::abortTransaction(TransactionID* tid)
 	{

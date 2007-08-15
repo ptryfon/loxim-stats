@@ -105,7 +105,9 @@ namespace QExecutor
 		int objectFromBinder(QueryResult *res, ObjectPointer *&newObject);
 		
 		int classExists(string className, bool& exist);
-		/** Create new object in store and puts reference on stack result */
+		int interfaceNameTaken(string name, bool& taken);
+		
+		/** Create new object in store and puts reference on stack result */		
 		int createObjectAndPutOnQRes(DBDataValue* dbValue, string objectName, int type, LogicalID*& newLid);
 		
 		int lidFromVector( string bindName, vector<QueryResult*> value, LogicalID*& lid);

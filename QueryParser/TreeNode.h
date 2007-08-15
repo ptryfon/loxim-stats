@@ -55,11 +55,9 @@ namespace QParser {
 	    TNAS, TNUNOP, TNALGOP, TNNONALGOP, TNTRANS, TNCREATE, TNCOND, TNLINK, TNPARAM, TNFIX, 
 	    TNPROC, TNCALLPROC, TNRETURN, TNREGPROC, TNVIEW, TNREGVIEW, TNVALIDATION, TNCREATEUSER, 	
 	    TNREMOVEUSER, TNPRIVLIST, TNNAMELIST, TNGRANTPRIV, TNREVOKEPRIV, TNREMOTE, TNINDEXDDL, TNINDEXDML,
-	    TNCREATEINTERFACENODE, TNINTERFACESTRUCT, TNINTERFACEATTRIBUTELISTNODE, TNINTERFACEATTRIBUTE, 
+	    TNINTERFACENODE, TNINTERFACESTRUCT, TNINTERFACEATTRIBUTELISTNODE, TNINTERFACEATTRIBUTE, 
 	    TNINTERFACEMETHODLISTNODE, TNINTERFACEMETHOD, TNINTERFACEMETHODPARAMLISTNODE, TNINTERFACEMETHODPARAM,
-        TNREGCLASS, TNCLASS, TNDML, TNASINSTANCEOF, TNCAST};
-	 
-	 
+	    TNREGINTERFACE, TNREGCLASS, TNCLASS, TNDML, TNASINSTANCEOF, TNCAST};
 	 
 	    
 	TreeNode() : parent(NULL) { 
@@ -188,6 +186,8 @@ namespace QParser {
     
     /* Interface Nodes */
     
+    
+    
     //ADTODO - killit, use InterfaceAttribute
     class InterfaceMethodParam: public TreeNode {
 	private:
@@ -206,6 +206,12 @@ namespace QParser {
 		string result = getPrefixForLevel( level, name) + "[MethodParam] + " + valueName + " : " + typeName + "\n";
 		return result;
 	    }
+	    
+	    virtual string deParse() { 
+    		string result;
+		result = valueName + ": " + typeName + ";"; 
+		return result;
+	    };
     };
     
     
@@ -231,6 +237,15 @@ namespace QParser {
 		}
 		return result;
 	    }
+	    
+	    virtual string deParse() { 
+    		string result;
+		result = methodParam->deParse() + " "; 
+		if (methodParamList)
+		    result = result +  methodParamList->deParse();
+    		return result;
+	    };
+	    
     };
 
     class InterfaceMethod: public TreeNode {
@@ -253,6 +268,15 @@ namespace QParser {
 		
 		return result;	    
 	    }
+	    
+	    virtual string deParse() { 
+    		string result;
+		result = methodName; 
+		if (methodParams)
+		    result = result + "( " + methodParams->deParse() + ")";
+		result = result + ": " + methodType + "; ";
+    		return result;
+	    };
     };
     
 
@@ -277,6 +301,15 @@ namespace QParser {
 		}
 		return result;
 	    }
+	    
+	    virtual string deParse() { 
+    		string result;
+		result = method->deParse() + " ";
+		if (methodList)
+		    result = result + methodList->deParse(); 
+    	        cout << result;
+    		return result;
+	    };
     };
     
     class InterfaceAttribute: public TreeNode {
@@ -296,6 +329,13 @@ namespace QParser {
 		string result = getPrefixForLevel( level, name) + "[Attribute] + " + valueName + " : " + typeName + "\n";
 		return result;
 	    }
+	    
+	    virtual string deParse() { 
+    		string result;
+		result = valueName + ": " + typeName + "; ";
+    		return result;
+	    };
+	    
     };
     
     
@@ -320,6 +360,15 @@ namespace QParser {
 		}
 		return result;
 	    }
+	    
+	    virtual string deParse() { 
+    		string result;
+		result = attribute->deParse() + " ";
+		if (attributeList)
+		    result = result + attributeList->deParse(); 
+    	        cout << result;
+    		return result;
+	    };
     };
     
     class InterfaceStruct: public TreeNode {
@@ -342,27 +391,82 @@ namespace QParser {
 	    string result = getPrefixForLevel(level, name) + "[InterfaceStruct] + " + attributeListString + " " + methodListString + "\n";
 	    
 	    return result;
-	}    
+	}
+	virtual string deParse() { 
+    	    string result = ""; 
+	    if (attributeList)
+    		result = result + attributeList->deParse() + " ";
+	    if (methodList)
+		result = result + methodList->deParse(); 
+    	    cout << result;
+    	    return result;
+	};
+	
+	    
     };
     
-    class CreateInterfaceNode : public TreeNode {
+    class InterfaceNode : public QueryNode {
     private:
 	string interfaceName;
 	InterfaceStruct* iStruct;
     public:
-	CreateInterfaceNode(string interfaceName, InterfaceStruct* iStruct);
-	virtual ~CreateInterfaceNode();
+	InterfaceNode(string interfaceName, InterfaceStruct* iStruct);
+	virtual ~InterfaceNode();
 	virtual InterfaceStruct* get_iStruct() {return iStruct;};
 	virtual string get_interfaceName() {return interfaceName;};
 	virtual TreeNode* clone();
-	virtual int type() {return TNCREATEINTERFACENODE;};
+	virtual int type() {return TNINTERFACENODE;};
 	virtual int putToString() {cout << "CreateInterfaceNode name=" + interfaceName + "\n"; return 0;};
+
+	virtual string deParse() { 
+    	    string result; 
+    	    result = " interface " + interfaceName + " " + iStruct->deParse(); 
+    	    cout << result;
+    	    return result;
+	};
+	
 	virtual string toString(int level = 0, bool recursive = false, string name = "") {
 	    string InterfaceStructString = iStruct ? iStruct->toString() : "<null>";
 	    string result = getPrefixForLevel(level, name) + "[CreateInterfaceNode] + " + interfaceName + " "  + InterfaceStructString + "\n";
 	    
 	    return result;
 	}    
+    };
+    
+    
+    class RegisterInterfaceNode : public QueryNode {
+    protected:
+	QueryNode* query;
+    public:
+	RegisterInterfaceNode(QueryNode *q);
+	virtual ~RegisterInterfaceNode(); 
+        
+	virtual TreeNode* clone();
+	virtual int type() {return TreeNode::TNREGINTERFACE;}
+	virtual QueryNode *getQuery() {return this->query;}
+	virtual int putToString() {
+    	    cout << " RegisterInterface < ";
+    	    if (query != NULL) query->putToString();
+    	    else cout << "_no_query_";
+    	    cout << ">";
+    	    return 0;
+	}
+    
+	virtual string toString( int level = 0, bool recursive = false, string name = "" ) {
+    	    string result = getPrefixForLevel( level, name ) + "[RegisterInterface]\n";
+            if( recursive ) {
+		if( query )
+        	    result += query->toString( level+1, true, "query" );
+    	    }
+    	    return result;
+	}
+      
+        virtual string deParse() { 
+    	    string result; 
+    	    result = " create" + query->deParse(); 
+    	    cout << result;
+    	    return result;
+	}
     };
     
     

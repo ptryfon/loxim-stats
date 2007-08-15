@@ -415,11 +415,13 @@ namespace Store
 		ixr_page* page = 0;
 
 		i = 1;
+		
 		while (i > 0)
 		{
-			page_pointer = buffer->getPagePointer(STORE_FILE_, (unsigned int) i);
+					
+			page_pointer = buffer->getPagePointer(STORE_FILE_, (unsigned int) i);		
 			page_pointer->aquire();
-
+	
 			page_buf = page_pointer->getPage();
 			page = (ixr_page*) page_buf;
 
@@ -457,6 +459,21 @@ namespace Store
 		return roots;
 	}
 
+
+	int Interfaces::addInterface(int lid, const char* name, int tid, int tTimeStamp) {
+	
+	    char *entryBuf;
+	    int size = 0;
+	    int err;
+	    if ((err=createEntry(lid, name, tid, tTimeStamp, size, entryBuf))!=0)
+		return err;
+	    if ((err=addItem(size, entryBuf))!=0)
+		return err;
+	    if (entryBuf != NULL) 
+		delete entryBuf;
+	
+	    return 0;
+	}
 
 	vector<int>* Classes::getClassByInvariant(const char* invariantName, int transactionID, int transactionTimeStamp) {
 #ifdef IX_DEBUG

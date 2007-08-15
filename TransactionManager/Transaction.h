@@ -101,11 +101,8 @@ namespace TManager
 
 			int getInterfacesLID(vector<LogicalID*>* &p);
 		    	int getInterfacesLID(string name, vector<LogicalID*>* &p);
-		    	int getInterfacesLIDByInvariant(string invariantName, vector<LogicalID*>* &p);
-		    	int addInterface(const char* name, const char* invariantName, ObjectPointer* &p);
-		    	int removeInterface(ObjectPointer* &p);
-
-    			
+		    	//int addInterface(const char* name, const char* invariantName, ObjectPointer* &p);
+		    	//int removeInterface(ObjectPointer* &p);
 	
 		    	TransactionID* getId();
 

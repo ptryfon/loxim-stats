@@ -129,19 +129,32 @@ namespace QParser
     
     /* INTERFACE NODES */
     
-    CreateInterfaceNode::CreateInterfaceNode(string name, InterfaceStruct* iStruct) {
+    RegisterInterfaceNode::RegisterInterfaceNode(QueryNode *q) {
+	this->query = q;
+    };
+    
+    RegisterInterfaceNode::~RegisterInterfaceNode() {
+	if (query!=NULL)
+	    delete query;	
+    };
+    
+    TreeNode* RegisterInterfaceNode::clone() {
+	return new RegisterInterfaceNode((QueryNode*) query->clone());
+    };
+    
+    InterfaceNode::InterfaceNode(string name, InterfaceStruct* iStruct) {
 	this->interfaceName = name;
 	this->iStruct = iStruct;
     };
     
-    CreateInterfaceNode::~CreateInterfaceNode() {
+    InterfaceNode::~InterfaceNode() {
 	if (iStruct)
 	    delete iStruct;
     };
     
     
-    TreeNode *CreateInterfaceNode::clone() {
-	return new CreateInterfaceNode(interfaceName, (InterfaceStruct *) iStruct->clone());
+    TreeNode *InterfaceNode::clone() {
+	return new InterfaceNode(interfaceName, (InterfaceStruct *) iStruct->clone());
     };
     
     
@@ -156,7 +169,6 @@ namespace QParser
 	if (methodList)
 	    delete methodList;
     };
-    
     
     TreeNode* InterfaceStruct::clone() {
 	if ((attributeList) && (methodList))

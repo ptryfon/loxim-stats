@@ -250,6 +250,12 @@ namespace Store
 		virtual int addClass(TransactionID* tid, const char* name, const char* invariantName, ObjectPointer*& object) = 0;
 		virtual int removeClass(TransactionID* tid, ObjectPointer*& object) = 0;
 
+		// Interfaces
+		virtual int getInterfacesLID(TransactionID* tid, vector<LogicalID*>*& roots) = 0;
+		virtual int getInterfacesLID(TransactionID* tid, string name, vector<LogicalID*>*& roots) = 0;
+		virtual int addInterface(TransactionID* tid, const char* name, ObjectPointer*& object) = 0;
+		virtual int removeInterface(TransactionID* tid, ObjectPointer*& object) = 0;
+
 		// Transactions
 		virtual int abortTransaction(TransactionID* tid) = 0;
 		virtual int commitTransaction(TransactionID* tid) = 0;

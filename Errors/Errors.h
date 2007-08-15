@@ -73,6 +73,7 @@ namespace Errors {
 #define ENotUniqueClassName 0x1910
 #define ENoClassDefFound	0x1920
 #define EOneResultExpected	0x1930
+#define ENotUniqueInterfaceName 0x1940
 
 // Config
 #define ENotInit		0x1A00

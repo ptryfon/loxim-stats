@@ -368,7 +368,7 @@ namespace TManager
 
 	//classes begin
 	
-		int Transaction::getClassesLID(vector<LogicalID*>* &p)
+	int Transaction::getClassesLID(vector<LogicalID*>* &p)
 	{
 		int errorNumber;
 
@@ -455,6 +455,37 @@ namespace TManager
 	
 	
 	//classes end 
+
+	//Interfaces
+	int Transaction::getInterfacesLID(vector<LogicalID*>* &p)
+	{
+		int errorNumber;
+
+		err.printf("Transaction: %d getInterfacesLID\n", tid->getId());
+		
+		sem->lock_read();
+		errorNumber = sm->getInterfacesLID(tid, p);			
+		sem->unlock();
+		
+		if (errorNumber) abort();
+	
+		return errorNumber;
+	}
+
+	int Transaction::getInterfacesLID(string name, vector<LogicalID*>* &p)
+	{
+		int errorNumber;
+		
+		err.printf("Transaction: %d getInterfacesLID by name \n", tid->getId());
+
+		sem->lock_read();
+		errorNumber = sm->getInterfacesLID(tid, name, p);
+		sem->unlock();
+		
+		if (errorNumber) abort();
+	
+		return errorNumber;
+	}
 
 	/* Data creation */
 	int Transaction::createIntValue(int value, DataValue* &dataVal)

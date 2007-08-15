@@ -4,6 +4,7 @@
 namespace Store
 {
 	class Classes;
+	class Interfaces;
 };
 
 #define IX_DEBUG	1
@@ -118,6 +119,19 @@ namespace Store
 		template<typename Operation, typename DataType>
 		vector<int>* getItemsByAnything(Operation findTest, DataType thingToFind, int transactionID, int transactionTimeStamp);
 		
+	};
+	
+	class Interfaces : public NamedItems {
+	public: 
+	    Interfaces() {
+		STORE_IX_INITIALPAGECOUNT = STORE_IXC_INITIALPAGECOUNT;
+		STORE_IX_NAMEMAXLEN = STORE_IXC_NAMEMAXLEN;
+		STORE_IX_NULLVALUE = STORE_IXC_NULLVALUE;
+		STORE_FILE_ = STORE_FILE_INTERFACES;
+		STORE_PAGE_HEADER = STORE_PAGE_INTERFACESHEADER;
+		STORE_PAGE_PAGE = STORE_PAGE_INTERFACESPAGE;		
+	    }
+	    int addInterface(int logicalID, const char* name, int transactionID, int transactionTimeStamp);
 	};
 	
 	class Classes : public NamedItems {

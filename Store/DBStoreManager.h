@@ -36,6 +36,7 @@ namespace Store
 		NamedRoots* roots;
 		Views* views;
 		Classes* classes;
+		Interfaces *interfaces;
 		PageManager* pagemgr;
 		unsigned timer;
 		ErrorConsole *ec;
@@ -58,6 +59,7 @@ namespace Store
 		NamedRoots* getRoots();
 		Views* getViews();
 		Classes* getClasses();
+		Interfaces* getInterfaces();
 		PageManager* getPageManager();
 
 		virtual int getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object);
@@ -85,6 +87,11 @@ namespace Store
 		virtual int getClassesLIDByInvariant(TransactionID* tid, string invariantName, vector<LogicalID*>*& roots);
 		virtual int addClass(TransactionID* tid, const char* name, const char* invariantName, ObjectPointer*& object);
 		virtual int removeClass(TransactionID* tid, ObjectPointer*& object);
+
+		virtual int getInterfacesLID(TransactionID* tid, vector<LogicalID*>*& roots);
+		virtual int getInterfacesLID(TransactionID* tid, string name, vector<LogicalID*>*& roots);
+		virtual int addInterface(TransactionID* tid, const char* name, ObjectPointer*& object);
+		virtual int removeInterface(TransactionID* tid, ObjectPointer*& object);
 
 		virtual int abortTransaction(TransactionID* tid);
 		virtual int commitTransaction(TransactionID* tid);
