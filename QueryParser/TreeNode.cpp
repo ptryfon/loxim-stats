@@ -58,35 +58,35 @@ namespace QParser
     TreeNode* RegisterProcNode::clone() { return new RegisterProcNode((QueryNode*) query->clone()); }
     TreeNode* RegisterViewNode::clone() { return new RegisterViewNode((QueryNode*) query->clone()); }
     TreeNode* RegisterClassNode::clone() { return new RegisterClassNode((QueryNode*) query->clone()); }
-    TreeNode* AsInstanceOfNode::clone() { return new AsInstanceOfNode((QueryNode*) objectsQuery->clone(), (QueryNode*) classQuery->clone()); }
+    //TreeNode* AsInstanceOfNode::clone() { return new AsInstanceOfNode((QueryNode*) objectsQuery->clone(), (QueryNode*) classQuery->clone()); }
     TreeNode* CallProcNode::clone() {
-	vector<QueryNode*> q;
-	CallProcNode *cpn = new CallProcNode(name);
-	for (unsigned int i = 0; i < partsNumb; i++) {
-	    q.push_back((QueryNode*) queries.at(i)->clone());   
-	} 
-	cpn->setQueries(q);
-	cpn->setPartsNumb(partsNumb);
-	return cpn;    
+		vector<QueryNode*> q;
+		CallProcNode *cpn = new CallProcNode(name);
+		for (unsigned int i = 0; i < partsNumb; i++) {
+		    q.push_back((QueryNode*) queries.at(i)->clone());   
+		} 
+		cpn->setQueries(q);
+		cpn->setPartsNumb(partsNumb);
+		return cpn;    
     }
     TreeNode* VectorNode::clone() {
-	vector<QueryNode*> q;
-	for (unsigned int i = 0; i < queries.size(); i++) {
-	    q.push_back((QueryNode*) queries.at(i)->clone());
-	}
-	VectorNode *vn = new VectorNode();
-	vn->setQueries(q);
-	return vn;
+		vector<QueryNode*> q;
+		for (unsigned int i = 0; i < queries.size(); i++) {
+		    q.push_back((QueryNode*) queries.at(i)->clone());
+		}
+		VectorNode *vn = new VectorNode();
+		vn->setQueries(q);
+		return vn;
     }
     TreeNode* ViewNode::clone() {
     	ViewNode *vn = new ViewNode(name);
     	for (unsigned int i=0; i < procedures.size(); i++) {
 		vn->procedures.push_back(procedures[i]);
-	}
-	for (unsigned int i=0; i < subviews.size(); i++) {
-		vn->subviews.push_back(subviews[i]);
-	}
-	return vn;
+		}
+		for (unsigned int i=0; i < subviews.size(); i++) {
+			vn->subviews.push_back(subviews[i]);
+		}
+		return vn;
     }
 
     TreeNode* ClassNode::clone() {
@@ -104,12 +104,41 @@ namespace QParser
         return cn;
     }
     
-    TreeNode* ClassCastNode::clone() {
+    /*TreeNode* ClassCastNode::clone() {
     	ClassCastNode* ccn = new ClassCastNode(name, (queryToCast == NULL)?NULL:dynamic_cast<QueryNode*>(queryToCast->clone()));
     	return ccn;
+    }*/
+    
+    TreeNode* ClassCastNode::clone() {
+    	return new ClassCastNode(
+    		(getObjectsQuery() == NULL)?NULL:dynamic_cast<QueryNode*>(getObjectsQuery()->clone()),
+    		(getClassesQuery() == NULL)?NULL:dynamic_cast<QueryNode*>(getClassesQuery()->clone()));
     }
     
+    /*TreeNode* InstanceOfNode::clone() {
+    	InstanceOfNode* ion = new InstanceOfNode(
+    		(queryToCheck == NULL)?NULL:dynamic_cast<QueryNode*>(queryToCheck->clone()),
+    		(classes == NULL)?NULL:dynamic_cast<QueryNode*>(classes->clone()));
+    	return ion;
+    }*/
     
+    TreeNode* InstanceOfNode::clone() {
+    	return new InstanceOfNode(
+    		(getObjectsQuery() == NULL)?NULL:dynamic_cast<QueryNode*>(getObjectsQuery()->clone()),
+    		(getClassesQuery() == NULL)?NULL:dynamic_cast<QueryNode*>(getClassesQuery()->clone()));
+    }
+    
+    TreeNode* ExcludesNode::clone() {
+    	return new ExcludesNode(
+    		getClassesQuery()==NULL ? NULL : dynamic_cast<QueryNode*>(getClassesQuery()->clone()),
+    		getObjectsQuery()==NULL ? NULL : dynamic_cast<QueryNode*>(getObjectsQuery()->clone()) );
+    }
+    
+    TreeNode* IncludesNode::clone() {
+    	return new ExcludesNode(
+    		getClassesQuery()==NULL ? NULL : dynamic_cast<QueryNode*>(getClassesQuery()->clone()),
+    		getObjectsQuery()==NULL ? NULL : dynamic_cast<QueryNode*>(getObjectsQuery()->clone()) );
+    }
     
 /*  to be used when subT is an subTree independant of (this) and (this) is a non-alg operator.
     called eg. for node  nd = nonalgop (where) ... 

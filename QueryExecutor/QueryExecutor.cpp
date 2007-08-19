@@ -844,9 +844,14 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			return 0;
 		}//case TNREGVIEW
 		
-		case TreeNode::TNASINSTANCEOF: {
-			*ec << "[QE] Type: TNASINSTANCEOF";
-			QueryNode *objectsQuery = ((AsInstanceOfNode *) tree)->getObjectsQuery();
+		case TreeNode::TNEXCLUDES:
+		case TreeNode::TNINCLUDES: {
+			if(nodeType == TreeNode::TNINCLUDES) {
+				*ec << "[QE] Type: TNINCLUDES";
+			} else {
+				*ec << "[QE] Type: TNEXCLUDES";
+			}
+			QueryNode *objectsQuery = ((ClassesObjectsNode *) tree)->getObjectsQuery();
 			if(objectsQuery != NULL) {
 				errcode = executeRecQuery(objectsQuery);
 				if(errcode != 0) return errcode;
@@ -862,7 +867,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			}
 			QueryBagResult *bagOfObjects = (QueryBagResult *)objectsResult;
 			
-			QueryNode *classQuery = ((AsInstanceOfNode *) tree)->getClassQuery();
+			QueryNode *classQuery = ((ClassesObjectsNode *) tree)->getClassesQuery();
 			SetOfLids classMarks;
 			if(classQuery != NULL) {
 				errcode = executeRecQuery(classQuery);
@@ -873,18 +878,22 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				if(classResult->type() != QueryResult::QBAG) {
 					return qeErrorOccur("[QE] Bag of Reference expected.", EBagOfRefExpected);
 				}
-				if(((QueryBagResult*)classResult)->size() != 1) {
+				/*if(((QueryBagResult*)classResult)->size() != 1) {
 					return qeErrorOccur("[QE] One Reference expected.", EOneResultExpected);
-				}
-				QueryResult *oneClassResult;
-				errcode = ((QueryBagResult*)classResult)->at(0, oneClassResult);
-				if(errcode != 0) return errcode;
-				if(oneClassResult->type() != QueryResult::QREFERENCE) {
-					return qeErrorOccur("[QE] Reference expected.", ERefExpected);
-				}
-				//TODO pobrać tą klasę z tranzakcji (upewniając się przy tym, że to rzeczywiście klasa)
-				classMarks.insert( ((QueryReferenceResult*)oneClassResult)->getValue() );
+				}*/
 				
+				for(unsigned int i = 0; i < ((QueryBagResult*)classResult)->size(); ++i) {
+					QueryResult *oneClassResult;
+					errcode = ((QueryBagResult*)classResult)->at(i, oneClassResult);
+					if(errcode != 0) return errcode;
+					if(oneClassResult->type() != QueryResult::QREFERENCE) {
+						return qeErrorOccur("[QE] Reference expected.", ERefExpected);
+					}
+					if(!cg->vertexExist(((QueryReferenceResult*)oneClassResult)->getValue())) {
+						return 1;//TODO (sk) error NoClassDefFound
+					}
+					classMarks.insert( ((QueryReferenceResult*)oneClassResult)->getValue() );
+				}
 			}
 			
 			for(unsigned int i = 0; i < bagOfObjects->size(); i++) {
@@ -900,7 +909,11 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 					trErrorOccur("[QE] Can't get object to set classMark.", errcode);
 				}
 				DataValue* newDV = optr->getValue()->clone();
-				newDV->addClassMarks(&classMarks);
+				if(nodeType == TreeNode::TNINCLUDES) {
+					newDV->addClassMarks(&classMarks);
+				} else {
+					newDV->removeClassMarks(&classMarks);
+				}
 				errcode = tr->modifyObject(optr, newDV);
 				if(errcode != 0) {
 					return trErrorOccur("[QE] Can't modify object and set classMark.", errcode);
@@ -1070,7 +1083,153 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			return 0;		
 		}
 		
+		case TreeNode::TNINSTANCEOF: {
+			*ec << "[QE] Type: TNINSTANCEOF";
+			bool isInstanceOf = true;
+			if(((ObjectsClassesNode*)tree)->getObjectsQuery() != NULL && ((ObjectsClassesNode*)tree)->getClassesQuery() != NULL) {
+				//getting object
+				errcode = executeRecQuery(((ObjectsClassesNode*)tree)->getObjectsQuery());
+				if(errcode != 0) return errcode;
+				QueryResult *exec_result_object;//czy to nalezy usunac?
+				errcode = qres->pop(exec_result_object);
+				if (errcode != 0) return errcode;
+				//getting classes
+				errcode = executeRecQuery(((ObjectsClassesNode*)tree)->getClassesQuery());
+				if(errcode != 0) return errcode;
+				QueryResult *exec_result_classes;//czy to nalezy usunac?
+				errcode = qres->pop(exec_result_classes);
+				if (errcode != 0) return errcode;
+				
+				if(exec_result_classes->type() != QueryResult::QBAG) {
+					return 1;//TODO (sk) BagExpected
+				}
+				if(exec_result_object->type() != QueryResult::QBAG) {
+					return 1;//TODO (sk) BagExpected
+				}
+				QueryBagResult* classesBag = dynamic_cast<QueryBagResult*>(exec_result_classes);
+				QueryBagResult* objectsBag = dynamic_cast<QueryBagResult*>(exec_result_object);
+				
+				for(unsigned int i = 0; i < classesBag->size(); ++i) {
+					QueryResult* classResult;
+					errcode = classesBag->at(i, classResult);
+					if(errcode != 0){
+						return errcode;
+					}
+					if(classResult->type() != QueryResult::QREFERENCE) {
+						return 1;//TODO (sk) ReferenceExpected
+					}
+					LogicalID* classLid = ((QueryReferenceResult*)classResult)->getValue();
+					if(!cg->vertexExist(classLid)) {
+						return 1;//TODO (sk) NoClassDefFound
+					}
+					for(unsigned int j = 0; j < objectsBag->size(); ++j) {
+						QueryResult* objectResult;
+						errcode = objectsBag->at(j, objectResult);
+						if(errcode != 0){
+							return errcode;
+						}
+						if(objectResult->type() != QueryResult::QREFERENCE) {
+							return 1;//TODO (sk) ReferenceExpected
+						}
+						ObjectPointer *optr;
+						errcode = tr->getObjectPointer (((QueryReferenceResult*)objectResult)->getValue(), Store::Read, optr, false);
+						if (errcode != 0) {
+							return trErrorOccur("[QE] TNINSTANCEOF- Error in getObjectPointer.", errcode);
+						}
+						errcode = cg->isCastAllowed(classLid, optr, isInstanceOf);
+						if(errcode != 0) {
+							return errcode;
+						}
+						if(!isInstanceOf){
+							break;
+						}
+					}
+					if(!isInstanceOf){
+						break;
+					}
+				}
+			}
+			errcode = qres->push(new QueryBoolResult(isInstanceOf));
+			if(errcode != 0) return errcode;
+			*ec << "[QE] TNCAST processing complete";
+			return 0;
+		}
+		
 		case TreeNode::TNCAST: {
+			*ec << "[QE] Type: TNCAST";
+			QueryResult *execResultObject;
+			errcode = execRecursivQueryAndPop(((ObjectsClassesNode*)tree)->getObjectsQuery(), execResultObject);
+			if(errcode != 0) return errcode;
+			QueryResult *execResultClasses;
+			errcode = execRecursivQueryAndPop(((ObjectsClassesNode*)tree)->getClassesQuery(), execResultClasses);
+			
+			if(execResultClasses->type() != QueryResult::QBAG) {
+				return 1;//TODO (sk) BagExpected
+			}
+			if(execResultObject->type() != QueryResult::QBAG) {
+				return 1;//TODO (sk) BagExpected
+			}
+			QueryBagResult* classesBag = dynamic_cast<QueryBagResult*>(execResultClasses);
+			QueryBagResult* objectsBag = dynamic_cast<QueryBagResult*>(execResultObject);
+			QueryResult* finalResult;
+			
+			if(classesBag->isEmpty()) {
+				finalResult = execResultObject;
+			} else {
+				finalResult = new QueryBagResult();
+				for(unsigned int i = 0; i < objectsBag->size(); ++i) {
+					QueryResult* objectResult;
+					errcode = objectsBag->at(i, objectResult);
+					if(errcode != 0){
+						//delete finalResult;
+						return errcode;
+					}
+					if(objectResult->type() == QueryResult::QREFERENCE) {
+						ObjectPointer *optr;
+						errcode = tr->getObjectPointer (((QueryReferenceResult*)objectResult)->getValue(), Store::Read, optr, false);
+						if (errcode != 0) {
+							//delete finalResult;
+							return trErrorOccur("[QE] TNINSTANCEOF- Error in getObjectPointer.", errcode);
+						}
+						bool isInstanceOf = true;
+						for(unsigned int j = 0; j < classesBag->size(); ++j) {
+							QueryResult* classResult;
+							errcode = classesBag->at(j, classResult);
+							if(errcode != 0){
+								//delete finalResult;
+								return errcode;
+							}
+							if(classResult->type() != QueryResult::QREFERENCE) {
+								//delete finalResult;
+								return 1;//TODO (sk) ReferenceExpected
+							}
+							LogicalID* classLid = ((QueryReferenceResult*)classResult)->getValue();
+							if(!cg->vertexExist(classLid)) {
+								//delete finalResult;
+								return 1;//TODO (sk) NoClassDefFound
+							}
+							errcode = cg->isCastAllowed(classLid, optr, isInstanceOf);
+							if(errcode != 0) {
+								//delete finalResult;
+								return errcode;
+							}
+							if(!isInstanceOf){
+								break;
+							}
+						}
+						if(isInstanceOf){
+							finalResult->addResult(objectResult);
+						}
+					}
+				}
+			}
+			errcode = qres->push(finalResult);
+			if(errcode != 0) return errcode;
+			*ec << "[QE] TNCAST processing complete";
+			return 0;
+		}
+		
+		/*case TreeNode::TNCAST: {
 			*ec << "[QE] Type: TNCAST";
 			string className = ((ClassCastNode*)tree)->getName();
 			errcode = executeRecQuery(((ClassCastNode*)tree)->getQueryToCast());
@@ -1113,7 +1272,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			if(errcode != 0) return errcode;
 			*ec << "[QE] TNCAST processing complete";
 			return 0;
-		}
+		}*/
 		
 		case TreeNode::TNCLASS: {
 			*ec << "[QE] Type: TNCLASS";
@@ -3304,6 +3463,13 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 						break;
 					}
 					string object_name = optrIn->getName();
+					if(ClassGraph::isExtName( object_name )) {
+						/*
+						 * Dobrze by bylo zaznaczac w obiekcie, ze jest statyczna skladowa,
+						 * a nie przekonywac sie o tym na podstawie postaci nazwy.
+						 */
+						return 1;//TODO (sk) Cant move static class member from root.
+					}
 					/*if (!system_privilige_checking && 
 							assert_privilige(Privilige::MODIFY_PRIV, object_name) == false) {
 					    	final = new QueryNothingResult();
@@ -4370,8 +4536,17 @@ int QueryExecutor::trErrorOccur( string msg, int errcode ) {
 	return errcode;
 }
 
-
-
+int QueryExecutor::execRecursivQueryAndPop(TreeNode *query, QueryResult*& execResult) {
+	int errcode;
+	if(query != NULL) {
+		errcode = executeRecQuery(query);
+		if(errcode != 0) return errcode;
+	}
+	else qres->push(new QueryNothingResult());
+	errcode = qres->pop(execResult);
+	if (errcode != 0) return errcode;
+	return 0;
+}
 
 void QueryExecutor::pushStringToLIDs(string name, string bindName, vector<LogicalID*>& lids) {
 	LogicalID* tmpLid;

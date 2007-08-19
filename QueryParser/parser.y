@@ -48,7 +48,7 @@
 %nonassoc DELETE CREATE INSERTINTO
 %left COMMA 
 %right EXISTS FOR_ALL
-%left GROUP_AS AS AS_INSTANCE_OF
+%left GROUP_AS AS INCLUDES EXCLUDES INSTANCEOF CAST
 %right ASSIGN
 %left UNION EXCEPT
 %left INTERSECT
@@ -115,7 +115,8 @@ query	    : NAME { char *s = $1; $$ = new NameNode(s); delete s; }
     	    | STRING { char *s = $1; $$ = new StringNode(s); delete s; }
 	    | DOUBLE { $$ = new DoubleNode($1); }
 	    | CREATE query AS EXTNAME { $$ = new CreateNode( new NameAsNode($2,$4,false), true); }
-	    | query AS_INSTANCE_OF query { $$ = new AsInstanceOfNode($1, $3); }
+	    | query INCLUDES query { $$ = new IncludesNode($1, $3); }
+	    | query EXCLUDES query { $$ = new ExcludesNode($1, $3); }
             | query AS NAME { $$ = new NameAsNode($1,$3,false); }
 	    | query GROUP_AS NAME { $$ = new NameAsNode($1,$3,true); }
 	    | COUNT LEFTPAR  query RIGHTPAR { $$ = new UnOpNode($3,UnOpNode::count); }
@@ -179,7 +180,8 @@ query	    : NAME { char *s = $1; $$ = new NameNode(s); delete s; }
 	    | NAME LEFTPAR querycommalist RIGHTPAR {$$ = new CallProcNode ($1, $3);}
 	    | EXTNAME LEFTPAR RIGHTPAR {$$ = new CallProcNode ($1);}
 	    | EXTNAME LEFTPAR querycommalist RIGHTPAR {$$ = new CallProcNode ($1, $3);}
-	    | LEFTPAR NAME RIGHTPAR query {$$ = new ClassCastNode($2, $4);}
+	    | query CAST query {$$ = new ClassCastNode($1, $3);}
+	    | query INSTANCEOF query {$$ = new InstanceOfNode($1, $3);}
 	    ;
 
 queryfixlist   : NAME FIX_OP query { $$ = new FixPointNode ($1, $3); }
@@ -333,7 +335,7 @@ classprocs: classproc { $$ = $1}
     ;
 
 name_defs_semicolon:  NAME { $$ = new NameListNode($1);    }
-        |   name_defs SEMICOLON NAME { $$ = new NameListNode($3, $1);    }
+        |   name_defs_semicolon SEMICOLON NAME { $$ = new NameListNode($3, $1);    }
 
 //subclass: EXTENDS name_defs SEMICOLON {}
 

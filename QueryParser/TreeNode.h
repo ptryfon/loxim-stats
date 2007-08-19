@@ -57,7 +57,7 @@ namespace QParser {
 	    TNREMOVEUSER, TNPRIVLIST, TNNAMELIST, TNGRANTPRIV, TNREVOKEPRIV, TNREMOTE, TNINDEXDDL, TNINDEXDML,
 	    TNINTERFACENODE, TNINTERFACESTRUCT, TNINTERFACEATTRIBUTELISTNODE, TNINTERFACEATTRIBUTE, 
 	    TNINTERFACEMETHODLISTNODE, TNINTERFACEMETHOD, TNINTERFACEMETHODPARAMLISTNODE, TNINTERFACEMETHODPARAM,
-	    TNREGINTERFACE, TNREGCLASS, TNCLASS, TNDML, TNASINSTANCEOF, TNCAST};
+	    TNREGINTERFACE, TNREGCLASS, TNCLASS, TNDML, TNINCLUDES, TNEXCLUDES, TNCAST, TNINSTANCEOF};
 	 
 	    
 	TreeNode() : parent(NULL) { 
@@ -1206,6 +1206,12 @@ namespace QParser {
     class AlgOpNode : public TwoArgsNode 
     {
     public:
+    /*
+     * Cos tu jest nie tak z tym insert i insertInto!
+     * Zdaje sie, ze insertInto nie jest uzywane i nie ma slowa kluczowego insert.
+     * Zeby dobrze dzialal operator :< w procedurach, chwilowo insert
+     * i insertInto beda robic w opStr i deParse to samo.
+     */
 	enum algOp { bagUnion, bagIntersect, bagMinus, plus, minus, times, divide,
    	         eq, refeq, neq, lt, gt, le, ge, boolAnd, boolOr, comma, insert, insertInto, assign, semicolon }; 
    	static QueryNode* newNode(VectorNode* vec, algOp _op) {
@@ -1288,7 +1294,8 @@ namespace QParser {
 	    if (op == 14) return " && ";
 	    if (op == 15) return " || ";
 	    if (op == 16) return " , ";	    
-	    if (op == 17) return "insert";
+	    //if (op == 17) return "insert";
+	    if (op == 17) return ":<";
 	    if (op == 18) return ":<";
 	    if (op == 19) return ":=";
 	    if (op == 20) return " ; ";
@@ -1339,7 +1346,8 @@ namespace QParser {
 			case AlgOpNode::insertInto: { result = larg->deParse() + ":<" + rarg->deParse(); return result; }
 			case AlgOpNode::assign: { result = larg->deParse() + ":=" + rarg->deParse(); return result; }
 			case AlgOpNode::semicolon: { result = larg->deParse() + ";" + rarg->deParse(); return result; }
-			case AlgOpNode::insert: { return result; }
+			case AlgOpNode::insert: { result = larg->deParse() + ":<" + rarg->deParse(); return result; }
+			//case AlgOpNode::insert: { return result; }
 			case AlgOpNode::refeq: { return result; }
 		}
 		return result;
@@ -2121,8 +2129,180 @@ class ViewNode : public QueryNode
 		return result; };
     }; 
 
+class ClassesObjectsNode : public TwoArgsNode {
+protected:
+	virtual void init(QueryNode* larg, QueryNode* rarg) {
+		if(larg != NULL) this->setLArg(larg);
+		if(rarg != NULL) this->setRArg(rarg);
+	}
+	virtual string getOperationName() = 0;
+	virtual string getKeyWord() = 0;
+	
+public:
+	virtual ~ClassesObjectsNode() { delete larg; delete rarg; }
+	ClassesObjectsNode(QueryNode* classesQuery, QueryNode* objectsQuery) {
+		init(classesQuery, objectsQuery);
+	}
+	virtual QueryNode *getObjectsQuery() {return this->rarg;}
+    virtual QueryNode *getClassesQuery() {return this->larg;}
+    
+    virtual int putToString() {
+        cout << " " << getOperationName() << " < ";
+        if (getObjectsQuery() != NULL) getObjectsQuery()->putToString();
+        else cout << "_no_objects_query_";
+        cout<< ", ";
+        if (getClassesQuery() != NULL) getClassesQuery()->putToString();
+        else cout << "_no_class_query_";
+        cout << ">";
+        return 0;
+    }
+    
+	virtual string toString(int level = 0, bool recursive = false, string name = "" ) {
+		string result = getPrefixForLevel( level, name ) + "[" + getOperationName() + "]\n";
+		if( recursive ) {
+  			if( larg != NULL )
+    			result += larg->toString( level+1, true, "query" );
+    		if( rarg != NULL )
+    			result += rarg->toString( level+1, true, "query" );
+    	}
+    	return result;
+	}
+      
+	virtual string deParse() { 
+        string result; 
+        result = " (" + larg->deParse() + ") " + getKeyWord() + " (" + rarg->deParse() + ") "; 
+        cout << result;
+        return result;
+    }
+};
 
-class AsInstanceOfNode : public QueryNode
+class ExcludesNode : public ClassesObjectsNode {
+
+protected:
+	virtual string getKeyWord() { return "excludes"; }
+	virtual string getOperationName() { return "Excludes"; }
+public:
+	ExcludesNode(QueryNode* classesQuery, QueryNode* objectsQuery)
+		: ClassesObjectsNode(classesQuery, objectsQuery) {}
+    virtual TreeNode* clone();
+    virtual int type() {return TreeNode::TNEXCLUDES;}
+};
+
+class IncludesNode : public ClassesObjectsNode {
+protected:
+	virtual string getKeyWord() { return "includes"; }
+	virtual string getOperationName() { return "Includes"; }
+public:
+	IncludesNode(QueryNode* classesQuery, QueryNode* objectsQuery)
+		: ClassesObjectsNode(classesQuery, objectsQuery) {}
+    virtual TreeNode* clone();
+    virtual int type() {return TreeNode::TNINCLUDES;}
+};
+
+class ObjectsClassesNode : public ClassesObjectsNode {
+public:
+	ObjectsClassesNode(QueryNode* objectsQuery, QueryNode* classesQuery)
+		: ClassesObjectsNode(objectsQuery, classesQuery) {}
+	virtual QueryNode *getObjectsQuery() {return this->larg;}
+    virtual QueryNode *getClassesQuery() {return this->rarg;}
+};
+
+class InstanceOfNode : public ObjectsClassesNode {
+protected:
+	virtual string getKeyWord() { return "instanceof"; }
+	virtual string getOperationName() { return "Instanceof"; }
+public:
+	InstanceOfNode(QueryNode* objectsQuery, QueryNode* classesQuery)
+		: ObjectsClassesNode(objectsQuery, classesQuery) {}
+    virtual TreeNode* clone();
+    virtual int type() {return TreeNode::TNINSTANCEOF;}
+};
+
+class ClassCastNode : public ObjectsClassesNode {
+protected:
+	virtual string getKeyWord() { return "cast"; }
+	virtual string getOperationName() { return "Cast"; }
+public:
+	ClassCastNode(QueryNode* objectsQuery, QueryNode* classesQuery)
+		: ObjectsClassesNode(objectsQuery, classesQuery) {}
+    virtual TreeNode* clone();
+    virtual int type() {return TreeNode::TNCAST;}
+	/*virtual string deParse() {
+		 return "((" + getClassesQuery()->deParse() +")" + getObjectsQuery()->deParse() + ")";
+	}*/
+};
+ 
+/*class ClassCastNode : public QueryNode {
+protected:
+	string name;
+	QueryNode* queryToCast;
+public:
+	ClassCastNode(string name, QueryNode* queryToCast) {
+		this->name = name;
+		this->queryToCast = queryToCast;
+	}
+	virtual int type() {return TreeNode::TNCAST;}
+	virtual TreeNode* clone();
+	virtual ~ClassCastNode() {
+		delete queryToCast;
+	}
+	virtual QueryNode* getQueryToCast() {
+		return queryToCast;
+	}
+	virtual string getName() {return name;}
+	virtual int putToString() {
+		cout << "Cast to " << name << "(";
+		if(queryToCast != NULL) {
+			queryToCast->putToString();
+		}
+		cout << ")" << endl;
+		return 0;
+	}
+	virtual string deParse() {
+		 return "((" + name +")" + queryToCast->deParse() + ")";
+	}
+};*/
+
+/*class InstanceOfNode : public QueryNode {
+protected:
+	QueryNode* classes;
+	QueryNode* queryToCheck;
+public:
+	InstanceOfNode(QueryNode* queryToCheck, QueryNode* classes) {
+		this->queryToCheck = queryToCheck;
+		this->classes = classes;
+	}
+	virtual int type() {return TreeNode::TNINSTANCEOF;}
+	virtual TreeNode* clone();
+	virtual ~InstanceOfNode() {
+		delete queryToCheck;
+		delete classes;
+	}
+	virtual QueryNode* getQueryToCheck() {
+		return queryToCheck;
+	}
+	virtual QueryNode* getClasses() {return classes;}
+	virtual int putToString() {
+		cout << "Object(s) ";
+		if(queryToCheck != NULL) {
+			queryToCheck->putToString();
+		}
+		cout <<" class(es) ";
+		if(classes != NULL) {
+			classes->putToString();
+		}
+		cout << endl;
+		return 0;
+	}
+	virtual string deParse() {
+		 return "(" + queryToCheck->deParse() + " instanceof " + classes->deParse() + ")";
+	}
+};*/
+
+
+
+
+/*class AsInstanceOfNode : public QueryNode
     {
     protected:
     QueryNode* objectsQuery;
@@ -2149,11 +2329,11 @@ class AsInstanceOfNode : public QueryNode
     }
     
     virtual ~AsInstanceOfNode() {
-    	if (objectsQuery != NULL) delete objectsQuery;
-    	if (classQuery != NULL) delete classQuery;
+    	delete objectsQuery;
+    	delete classQuery;
     } 
 	virtual string toString( int level = 0, bool recursive = false, string name = "" ) {
-		string result = getPrefixForLevel( level, name ) + "[AsInstanceOf]\n";
+		string result = getPrefixForLevel( level, name ) + "[Includes]\n";
 		if( recursive ) {
   			if( objectsQuery )
     			result += objectsQuery->toString( level+1, true, "query" );
@@ -2165,10 +2345,10 @@ class AsInstanceOfNode : public QueryNode
       
       virtual string deParse() { 
         string result; 
-        result = " " + objectsQuery->deParse() + " as instance of " + classQuery->deParse(); 
+        result = " " + classQuery->deParse() + " includes " + objectsQuery->deParse(); 
         cout << result;
         return result; };
-    };
+    };*/
 
 class RegisterClassNode : public QueryNode
     {
@@ -2207,36 +2387,8 @@ class RegisterClassNode : public QueryNode
         return result; };
     };
 
-class ClassCastNode : public QueryNode {
-protected:
-	string name;
-	QueryNode* queryToCast;
-public:
-	ClassCastNode(string name, QueryNode* queryToCast) {
-		this->name = name;
-		this->queryToCast = queryToCast;
-	}
-	virtual int type() {return TreeNode::TNCAST;}
-	virtual TreeNode* clone();
-	virtual ~ClassCastNode() {
-		delete queryToCast;
-	}
-	virtual QueryNode* getQueryToCast() {
-		return queryToCast;
-	}
-	virtual string getName() {return name;}
-	virtual int putToString() {
-		cout << "Cast to " << name << "(";
-		if(queryToCast != NULL) {
-			queryToCast->putToString();
-		}
-		cout << ")" << endl;
-		return 0;
-	}
-	virtual string deParse() {
-		 return "((" + name +")" + queryToCast->deParse() + ")";
-	}
-};
+
+
 
 class ClassNode : public QueryNode {
 protected:

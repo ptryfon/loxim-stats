@@ -124,6 +124,8 @@ namespace QExecutor
 		
 		void pushStringsToLIDs(set<string>* names, string bindName, vector<LogicalID*>& lids);
 		
+		int execRecursivQueryAndPop(TreeNode *query, QueryResult*& execResult);
+		
 		
 		
 		int deVirtualize(QueryResult *arg, QueryResult *&res);

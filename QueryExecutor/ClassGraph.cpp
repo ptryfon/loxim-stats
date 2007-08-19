@@ -306,6 +306,10 @@ int ClassGraph::getClassVertexByName(string& className, ClassGraphVertex*& cgv, 
 	return getVertex(classLid, cgv);
 }
 
+bool ClassGraph::isExtName(const string& extName) {
+	return extName.find_first_of(QE_NAMES_SEPARATOR) != string::npos;
+}
+
 string ClassGraph::lastPartFromExtName(const string& extName, bool& isExtName) {
 	string::size_type separatorPos = extName.find_last_of(QE_NAMES_SEPARATOR);
 	isExtName = (separatorPos != string::npos);
@@ -630,6 +634,10 @@ int ClassGraph::classBelongsToExtSubGraph(const MapOfClassVertices::iterator& cl
 		return 1;//TODO: class def not found
 	}
 	if(subGraphI == classGraph.end()) {
+		//tu raczej nie powinno byc bledu, to oznacza, ze klasa jest invalid,
+		//lub, ze obiekt jest invalid (worning by sie przydal)
+		//Jeszcze nalezy sprawdzic, czy tu nie moga dotrzec tylko istniejace klasy,
+		//wtedy nalezy tu zglaszac jednak blad.
 		return 1;//TODO: class def not found
 	}
 	if(classI == subGraphI) {
@@ -646,7 +654,7 @@ int ClassGraph::classBelongsToExtSubGraph(const MapOfClassVertices::iterator& cl
 	return 0;
 }
 
-int ClassGraph::isCastAllowed(string& className, ObjectPointer *optr, bool& includes) {
+int ClassGraph::isCastAllowed(LogicalID* classLid, ObjectPointer *optr, bool& includes) {
 	includes = false;
 	if(optr->getValue()->getSubtype() == Store::Class ) {
 		return 0;//class can't be cast
@@ -655,19 +663,23 @@ int ClassGraph::isCastAllowed(string& className, ObjectPointer *optr, bool& incl
 	if(classesToCheck == NULL) {
 		return 0;
 	}
+	MapOfClassVertices::iterator classI = classGraph.find(classLid);
+	for(SetOfLids::iterator i = classesToCheck->begin(); i != classesToCheck->end(); ++i) {
+		int errcode = classBelongsToExtSubGraph(classI, classGraph.find(*i), includes);
+		if(errcode != 0) return errcode;
+		if(includes) return 0;
+	}
+	return 0;
+}
+
+int ClassGraph::isCastAllowed(string& className, ObjectPointer *optr, bool& includes) {
 	if(!classExist(className)) {
 		return 1;//TODO noclasdefffound
 	}
 	LogicalID* classLid;
 	int errcode = getClassLidByName(className, classLid);
 	if(errcode != 0) return errcode;
-	MapOfClassVertices::iterator classI = classGraph.find(classLid);
-	for(SetOfLids::iterator i = classesToCheck->begin(); i != classesToCheck->end(); ++i) {
-		errcode = classBelongsToExtSubGraph(classI, classGraph.find(*i), includes);
-		if(errcode != 0) return errcode;
-		if(includes) return 0;
-	}
-	return 0;
+	return isCastAllowed(classLid, optr, includes);
 }
 
 /*int ClassGraph::classBelongsToInvariant(LogicalID* lid, string& invariantUpName, bool& inInvariant) {

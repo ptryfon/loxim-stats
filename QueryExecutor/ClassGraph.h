@@ -172,6 +172,8 @@ namespace QExecutor
 		static int init();
 		
 		static void shutdown();
+		
+		static bool isExtName(const string& extName);
 	
 		virtual ~ClassGraph();
 		
@@ -212,6 +214,8 @@ namespace QExecutor
 		virtual int findMethod(string name, unsigned int argsCount, SetOfLids* classesToSearch, string &code, vector<string> &params, int& founded, LogicalID* actualBindClassLid, LogicalID*& bindClassLid);
 		
 		virtual int staticFieldExist(const string& extName, bool& exist);
+		
+		virtual int isCastAllowed(LogicalID* classLid, ObjectPointer *optr, bool& includes);
 		
 		virtual int isCastAllowed(string& className, ObjectPointer *optr, bool& includes);
 	};
