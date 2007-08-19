@@ -844,85 +844,6 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			return 0;
 		}//case TNREGVIEW
 		
-		case TreeNode::TNEXCLUDES:
-		case TreeNode::TNINCLUDES: {
-			if(nodeType == TreeNode::TNINCLUDES) {
-				*ec << "[QE] Type: TNINCLUDES";
-			} else {
-				*ec << "[QE] Type: TNEXCLUDES";
-			}
-			QueryNode *objectsQuery = ((ClassesObjectsNode *) tree)->getObjectsQuery();
-			if(objectsQuery != NULL) {
-				errcode = executeRecQuery(objectsQuery);
-				if(errcode != 0) return errcode;
-			}
-			else qres->push(new QueryNothingResult());
-			
-			QueryResult *objectsResult;
-			errcode = qres->pop(objectsResult);
-			if (errcode != 0) return errcode;
-			
-			if (objectsResult->type() != QueryResult::QBAG) {
-				return qeErrorOccur("[QE] Bag of Reference expected.", EBagOfRefExpected);
-			}
-			QueryBagResult *bagOfObjects = (QueryBagResult *)objectsResult;
-			
-			QueryNode *classQuery = ((ClassesObjectsNode *) tree)->getClassesQuery();
-			SetOfLids classMarks;
-			if(classQuery != NULL) {
-				errcode = executeRecQuery(classQuery);
-				if(errcode != 0) return errcode;
-				QueryResult *classResult;
-				errcode = qres->pop(classResult);
-				if (errcode != 0) return errcode;
-				if(classResult->type() != QueryResult::QBAG) {
-					return qeErrorOccur("[QE] Bag of Reference expected.", EBagOfRefExpected);
-				}
-				/*if(((QueryBagResult*)classResult)->size() != 1) {
-					return qeErrorOccur("[QE] One Reference expected.", EOneResultExpected);
-				}*/
-				
-				for(unsigned int i = 0; i < ((QueryBagResult*)classResult)->size(); ++i) {
-					QueryResult *oneClassResult;
-					errcode = ((QueryBagResult*)classResult)->at(i, oneClassResult);
-					if(errcode != 0) return errcode;
-					if(oneClassResult->type() != QueryResult::QREFERENCE) {
-						return qeErrorOccur("[QE] Reference expected.", ERefExpected);
-					}
-					if(!cg->vertexExist(((QueryReferenceResult*)oneClassResult)->getValue())) {
-						return 1;//TODO (sk) error NoClassDefFound
-					}
-					classMarks.insert( ((QueryReferenceResult*)oneClassResult)->getValue() );
-				}
-			}
-			
-			for(unsigned int i = 0; i < bagOfObjects->size(); i++) {
-				QueryResult *oneObjectResult;
-				errcode = bagOfObjects->at(i, oneObjectResult);
-				if(errcode != 0) return errcode;
-				if(oneObjectResult->type() != QueryResult::QREFERENCE) {
-					return qeErrorOccur("[QE] Reference expected.", ERefExpected);
-				}
-				ObjectPointer* optr;
-				errcode = tr->getObjectPointer( ((QueryReferenceResult*)oneObjectResult)->getValue(), Store::Read, optr, false);
-				if(errcode != 0) {
-					trErrorOccur("[QE] Can't get object to set classMark.", errcode);
-				}
-				DataValue* newDV = optr->getValue()->clone();
-				if(nodeType == TreeNode::TNINCLUDES) {
-					newDV->addClassMarks(&classMarks);
-				} else {
-					newDV->removeClassMarks(&classMarks);
-				}
-				errcode = tr->modifyObject(optr, newDV);
-				if(errcode != 0) {
-					return trErrorOccur("[QE] Can't modify object and set classMark.", errcode);
-				}
-			}
-			qres->push(objectsResult);//assums that lids are same after tr->modifyObject()
-			return 0;
-		}
-
 		case TreeNode::TNINTERFACEMETHOD: {
 		    *ec << "[QE] Type: TNINTERFACEMETHOD";
 		    string name = ((InterfaceMethod *) tree)->getMethodName();
@@ -1083,6 +1004,83 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			return 0;		
 		}
 		
+		case TreeNode::TNEXCLUDES:
+		case TreeNode::TNINCLUDES: {
+			if(nodeType == TreeNode::TNINCLUDES) {
+				*ec << "[QE] Type: TNINCLUDES";
+			} else {
+				*ec << "[QE] Type: TNEXCLUDES";
+			}
+			QueryNode *objectsQuery = ((ClassesObjectsNode *) tree)->getObjectsQuery();
+			if(objectsQuery != NULL) {
+				errcode = executeRecQuery(objectsQuery);
+				if(errcode != 0) return errcode;
+			}
+			else qres->push(new QueryNothingResult());
+			
+			QueryResult *objectsResult;
+			errcode = qres->pop(objectsResult);
+			if (errcode != 0) return errcode;
+			
+			if (objectsResult->type() != QueryResult::QBAG) {
+				return qeErrorOccur("[QE] Bag of Reference expected.", EBagOfRefExpected);
+			}
+			QueryBagResult *bagOfObjects = (QueryBagResult *)objectsResult;
+			
+			QueryNode *classQuery = ((ClassesObjectsNode *) tree)->getClassesQuery();
+			SetOfLids classMarks;
+			if(classQuery != NULL) {
+				errcode = executeRecQuery(classQuery);
+				if(errcode != 0) return errcode;
+				QueryResult *classResult;
+				errcode = qres->pop(classResult);
+				if (errcode != 0) return errcode;
+				if(classResult->type() != QueryResult::QBAG) {
+					return qeErrorOccur("[QE] Bag of Reference expected.", EBagOfRefExpected);
+				}
+				
+				for(unsigned int i = 0; i < ((QueryBagResult*)classResult)->size(); ++i) {
+					QueryResult *oneClassResult;
+					errcode = ((QueryBagResult*)classResult)->at(i, oneClassResult);
+					if(errcode != 0) return errcode;
+					if(oneClassResult->type() != QueryResult::QREFERENCE) {
+						return qeErrorOccur("[QE] Reference expected.", ERefExpected);
+					}
+					if(!cg->vertexExist(((QueryReferenceResult*)oneClassResult)->getValue())) {
+						return 1;//TODO (sk) error NoClassDefFound
+					}
+					classMarks.insert( ((QueryReferenceResult*)oneClassResult)->getValue() );
+				}
+			}
+			
+			for(unsigned int i = 0; i < bagOfObjects->size(); i++) {
+				QueryResult *oneObjectResult;
+				errcode = bagOfObjects->at(i, oneObjectResult);
+				if(errcode != 0) return errcode;
+				if(oneObjectResult->type() != QueryResult::QREFERENCE) {
+					return qeErrorOccur("[QE] Reference expected.", ERefExpected);
+				}
+				ObjectPointer* optr;
+				errcode = tr->getObjectPointer( ((QueryReferenceResult*)oneObjectResult)->getValue(), Store::Read, optr, false);
+				if(errcode != 0) {
+					trErrorOccur("[QE] Can't get object to set classMark.", errcode);
+				}
+				DataValue* newDV = optr->getValue()->clone();
+				if(nodeType == TreeNode::TNINCLUDES) {
+					newDV->addClassMarks(&classMarks);
+				} else {
+					newDV->removeClassMarks(&classMarks);
+				}
+				errcode = tr->modifyObject(optr, newDV);
+				if(errcode != 0) {
+					return trErrorOccur("[QE] Can't modify object and set classMark.", errcode);
+				}
+			}
+			qres->push(objectsResult);//assums that lids are same after tr->modifyObject()
+			return 0;
+		}
+		
+		
 		case TreeNode::TNINSTANCEOF: {
 			*ec << "[QE] Type: TNINSTANCEOF";
 			bool isInstanceOf = true;
@@ -1228,51 +1226,6 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			*ec << "[QE] TNCAST processing complete";
 			return 0;
 		}
-		
-		/*case TreeNode::TNCAST: {
-			*ec << "[QE] Type: TNCAST";
-			string className = ((ClassCastNode*)tree)->getName();
-			errcode = executeRecQuery(((ClassCastNode*)tree)->getQueryToCast());
-			if(errcode != 0) return errcode;
-			QueryResult *execution_result;
-			errcode = qres->pop(execution_result);
-			if (errcode != 0) return errcode;
-			QueryResult* finalResult = new QueryBagResult();
-			if (execution_result->type() == QueryResult::QBAG) {
-				QueryBagResult* executionBag = dynamic_cast<QueryBagResult*>(execution_result);
-				for(unsigned int i = 0; i < executionBag->size(); ++i) {
-					QueryResult* result;
-					errcode = executionBag->at(i, result);
-					if(errcode != 0){
-						//delete finalResult;
-						//nie klonuje do finalResult, wiec chyba nie moge go tu usunac
-						return errcode;
-					}
-					//obiekty inne niz referencje sa pomijane
-					if(result->type() == QueryResult::QREFERENCE) {
-						ObjectPointer *optr;
-						errcode = tr->getObjectPointer (((QueryReferenceResult*)result)->getValue(), Store::Read, optr, false);
-						if (errcode != 0) {
-							//delete finalResult;
-							return trErrorOccur("[QE] TNCAST- Error in getObjectPointer.", errcode);
-						}
-						bool canCast = false;
-						errcode = cg->isCastAllowed(className, optr, canCast);
-						if(errcode != 0) {
-							//delete finalResult;
-							return errcode;
-						}
-						if(canCast) {
-							finalResult->addResult(result);
-						}
-					}
-				}
-			}
-			errcode = qres->push(finalResult);
-			if(errcode != 0) return errcode;
-			*ec << "[QE] TNCAST processing complete";
-			return 0;
-		}*/
 		
 		case TreeNode::TNCLASS: {
 			*ec << "[QE] Type: TNCLASS";
