@@ -193,6 +193,15 @@ namespace Store
 		}
 	}
 	
+	void DBDataValue::removeClassMarks(SetOfLids* toDel) {
+		if(toDel == NULL) {
+			return;
+		}
+		for(SetOfLids::iterator i = toDel->begin(); i != toDel->end(); ++i) {
+			this->classMarks->erase(*i);
+		}
+	}
+	
 	void DBDataValue::addSubclasses(SetOfLids* toAdd) {
 		if(toAdd == NULL) {
 			return;

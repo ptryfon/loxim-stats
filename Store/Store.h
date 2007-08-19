@@ -157,6 +157,7 @@ namespace Store
 		virtual void addClassMark(LogicalID* classMark) = 0;
 		virtual void setClassMarks(SetOfLids* classMarks) = 0;
 		virtual void addClassMarks(SetOfLids* toAdd) = 0;
+		virtual void removeClassMarks(SetOfLids* toDel) = 0;
 		
 		// Subclass methods
 		virtual SetOfLids* getSubclasses() const = 0;
