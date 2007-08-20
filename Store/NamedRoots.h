@@ -1,4 +1,9 @@
-#ifndef __STORE_IXR_H__
+#ifdef ___NODEFFORIT___
+/*
+ * Uwaga ten plik zostal wylaczony specjalnie.
+ */
+
+//#ifndef __STORE_IXR_H__
 #define __STORE_IXR_H__
 
 #define IXR_DEBUG	1

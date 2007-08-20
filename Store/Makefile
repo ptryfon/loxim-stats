@@ -10,7 +10,7 @@ SOURCES	=	Buffer.cpp \
 		DBStoreManager.cpp \
 		File.cpp \
 		Map.cpp \
-		NamedRoots.cpp \
+		NamedRoots_new.cpp \
 		Views.cpp \
 		NamedItems.cpp \
 		Classes.cpp \
@@ -27,7 +27,6 @@ HEADERS	=	../QueryExecutor/HashMacro.h \
 		DBStoreManager.h \
 		File.h \
 		Map.h \
-		NamedRoots.h \
 		NamedItems.h \
 		Views.h \
 		PagePointer.h \

@@ -1,3 +1,7 @@
+/*
+ * Ten plik nie jest używany.
+ */
+
 #include "NamedItems.h"
 
 namespace Store

@@ -5,9 +5,15 @@ namespace Store
 {
 	class Classes;
 	class Interfaces;
+	class NamedRoots;
 };
 
+#define IXR_DEBUG	1
 #define IX_DEBUG	1
+
+#define STORE_IXR_INITIALPAGECOUNT		2
+#define STORE_IXR_NAMEMAXLEN			100
+#define STORE_IXR_NULLVALUE				-1
 
 #define STORE_IXC_INITIALPAGECOUNT		2
 #define STORE_IXC_NAMEMAXLEN			1000
@@ -165,6 +171,41 @@ namespace Store
 		int addClass(int logicalID, const char* name, const char* invariantName, int transactionID, int transactionTimeStamp);
 
 		vector<int>* getClassByInvariant(const char* invariantName, int transactionID, int transactionTimeStamp);
+	};
+	
+	class NamedRoots : public NamedItems {
+	private:
+#ifdef IXR_DEBUG
+		ErrorConsole* ec;
+#endif
+	
+	protected:
+	public:
+		~NamedRoots();
+		NamedRoots() {
+#ifdef IX_DEBUG
+			this->ec = new ErrorConsole("Store: NamedRoots");
+#endif
+			STORE_IX_INITIALPAGECOUNT = STORE_IXR_INITIALPAGECOUNT;
+			STORE_IX_NAMEMAXLEN = STORE_IXR_NAMEMAXLEN;
+			STORE_IX_NULLVALUE = STORE_IXR_NULLVALUE;
+			STORE_FILE_ = STORE_FILE_ROOTS;
+			STORE_PAGE_HEADER = STORE_PAGE_ROOTSHEADER;
+			STORE_PAGE_PAGE = STORE_PAGE_ROOTSPAGE;
+		}
+		
+		int addRoot(int logicalID, const char* name, int transactionID, int transactionTimeStamp) {
+			return addItem(logicalID, name, transactionID, transactionTimeStamp);
+		}
+		int removeRoot(int logicalID, int transactionID, int transactionTimeStamp) {
+			return removeItem(logicalID, transactionID, transactionTimeStamp);
+		}
+		vector<int>* getRoots(int transactionID, int transactionTimeStamp) {
+			return getItems(transactionID, transactionTimeStamp);
+		}
+		vector<int>* getRoots(const char* name, int transactionID, int transactionTimeStamp) {
+			return getItems(name, transactionID, transactionTimeStamp);
+		}
 	};
 
 };
