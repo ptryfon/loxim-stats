@@ -126,6 +126,8 @@ namespace QExecutor
 		
 		int execRecursivQueryAndPop(TreeNode *query, QueryResult*& execResult);
 		
+		int persistDelete(QueryResult* bagArg);
+		
 		
 		
 		int deVirtualize(QueryResult *arg, QueryResult *&res);

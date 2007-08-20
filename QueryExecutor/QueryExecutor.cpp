@@ -2972,104 +2972,8 @@ int QueryExecutor::unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&
 			*ec << "[QE] DELETE operation";
 			QueryResult* bagArg = new QueryBagResult();
 			bagArg->addResult(arg);
-			for (unsigned int i = 0; i < bagArg->size(); i++) {
-				QueryResult* toDelete;  //the object to be deleted
-				errcode = ((QueryBagResult *) bagArg)->at(i, toDelete);
-				if (errcode != 0) return errcode;
-				int toDeleteType = toDelete->type();
-				if (toDeleteType == QueryResult::QREFERENCE) {
-					LogicalID *lid = ((QueryReferenceResult *) toDelete)->getValue();
-					ObjectPointer *optr;
-					if ((errcode = tr->getObjectPointer (lid, Store::Write, optr, true)) !=0) { 
-						*ec << "[QE] Error in getObjectPointer.";
-						antyStarveFunction(errcode);
-						inTransaction = false;
-						return errcode;
-					}
-					
-					if (optr == NULL) {
-						continue;
-					}
-					
-					if (optr->getIsRoot()) {
-						string object_name = optr->getName();
-						if (!system_privilige_checking && 
-							assert_privilige(Privilige::DELETE_PRIV, object_name) == false) {
-						/*
-						ofstream out("privilige.debug", ios::app);
-						out << "delete " << object_name << endl;
-						out.close();						    
-						*/
-						continue;
-						}
-						if (((optr->getValue())->getSubtype()) == Store::View) {
-							if ((errcode = tr->removeView(optr)) != 0) { 
-								*ec << "[QE] Error in removeView.";
-								antyStarveFunction(errcode);
-								inTransaction = false;
-								return errcode;
-							}
-						}
-						if ((errcode = tr->removeRoot(optr)) != 0) { 
-							*ec << "[QE] Error in removeRoot.";
-							antyStarveFunction(errcode);
-							inTransaction = false;
-							return errcode;
-						}
-						*ec << "[QE] Root removed";
-					}
-					string object_name = optr->getName();
-					if (!system_privilige_checking && 
-						assert_privilige(Privilige::DELETE_PRIV, object_name) == false) {
-						/*
-						ofstream out("privilige.debug", ios::app);
-						out << "delete " << object_name << endl;
-						out.close();					    
-						*/
-					continue;
-					}								
-					if ((errcode = tr->deleteObject(optr)) != 0) { 
-						*ec << "[QE] Error in deleteObject.";
-						antyStarveFunction(errcode);
-						inTransaction = false;
-						return errcode;
-					}
-				}
-				else if (toDeleteType == QueryResult::QVIRTUAL) {
-					
-					//TODO watpie by to dzialalo w pelni tak jak powinno
-					LogicalID *view_def = ((QueryVirtualResult*) toDelete)->view_def;
-					vector<QueryResult *> seeds = ((QueryVirtualResult*) toDelete)->seeds;
-					string proc_code = "";
-					string proc_param = "";
-					errcode = getOn_procedure(view_def, "on_delete", proc_code, proc_param);
-					if (errcode != 0) return errcode;
-					if (proc_code == "") {
-						*ec << "[QE] delete() - this VirtualObject doesn't have this operation defined";
-						*ec << (ErrQExecutor | EOperNotDefined);
-						return ErrQExecutor | EOperNotDefined;
-					}
-					vector<QueryBagResult*> envs_sections;
-					//TODO tu pewnie trzeba jakos lepiej stos inicjowac przed wywolaniem virtual_objects
-					for (int k = ((seeds.size()) - 1); k >= 0; k-- ) {
-						QueryResult *bagged_seed = new QueryBagResult();
-						((QueryBagResult *) bagged_seed)->addResult(seeds.at(k));
-						envs_sections.push_back((QueryBagResult *) bagged_seed);
-					}
-					errcode = callProcedure(proc_code, envs_sections);
-					if (errcode != 0) return errcode;
-					QueryResult *res;
-					errcode = qres->pop(res);
-					if (errcode != 0) return errcode;
-					break;
-				}
-				else {
-					*ec << "[QE] ERROR! DELETE argument must consist of QREFERENCE";
-					*ec << (ErrQExecutor | ERefExpected);
-					return ErrQExecutor | ERefExpected;
-				}	
-				*ec << "[QE] Object deleted";
-			}
+			errcode = persistDelete(bagArg);
+			if(errcode != 0) return errcode;
 			*ec << "[QE] delete operation complete - QueryNothingResult created";
 			final = new QueryNothingResult();
 			break;
@@ -3079,6 +2983,109 @@ int QueryExecutor::unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&
 			*ec << (ErrQExecutor | EUnknownNode);
 			return ErrQExecutor | EUnknownNode;
 		}
+	}
+	return 0;
+}
+
+int QueryExecutor::persistDelete(QueryResult* bagArg) {
+	int errcode = 0;
+	for (unsigned int i = 0; i < bagArg->size(); i++) {
+		QueryResult* toDelete;  //the object to be deleted
+		errcode = ((QueryBagResult *) bagArg)->at(i, toDelete);
+		if (errcode != 0) return errcode;
+		int toDeleteType = toDelete->type();
+		if (toDeleteType == QueryResult::QREFERENCE) {
+			LogicalID *lid = ((QueryReferenceResult *) toDelete)->getValue();
+			ObjectPointer *optr;
+			if ((errcode = tr->getObjectPointer (lid, Store::Write, optr, true)) !=0) { 
+				*ec << "[QE] Error in getObjectPointer.";
+				antyStarveFunction(errcode);
+				inTransaction = false;
+				return errcode;
+			}
+			
+			if (optr == NULL) {
+				continue;
+			}
+			
+			if (optr->getIsRoot()) {
+				string object_name = optr->getName();
+				if (!system_privilige_checking && 
+					assert_privilige(Privilige::DELETE_PRIV, object_name) == false) {
+				/*
+				ofstream out("privilige.debug", ios::app);
+				out << "delete " << object_name << endl;
+				out.close();						    
+				*/
+				continue;
+				}
+				if (((optr->getValue())->getSubtype()) == Store::View) {
+					if ((errcode = tr->removeView(optr)) != 0) { 
+						*ec << "[QE] Error in removeView.";
+						antyStarveFunction(errcode);
+						inTransaction = false;
+						return errcode;
+					}
+				}
+				if ((errcode = tr->removeRoot(optr)) != 0) { 
+					*ec << "[QE] Error in removeRoot.";
+					antyStarveFunction(errcode);
+					inTransaction = false;
+					return errcode;
+				}
+				*ec << "[QE] Root removed";
+			}
+			string object_name = optr->getName();
+			if (!system_privilige_checking && 
+				assert_privilige(Privilige::DELETE_PRIV, object_name) == false) {
+				/*
+				ofstream out("privilige.debug", ios::app);
+				out << "delete " << object_name << endl;
+				out.close();					    
+				*/
+			continue;
+			}								
+			if ((errcode = tr->deleteObject(optr)) != 0) { 
+				*ec << "[QE] Error in deleteObject.";
+				antyStarveFunction(errcode);
+				inTransaction = false;
+				return errcode;
+			}
+		}
+		else if (toDeleteType == QueryResult::QVIRTUAL) {
+			
+			//TODO watpie by to dzialalo w pelni tak jak powinno
+			LogicalID *view_def = ((QueryVirtualResult*) toDelete)->view_def;
+			vector<QueryResult *> seeds = ((QueryVirtualResult*) toDelete)->seeds;
+			string proc_code = "";
+			string proc_param = "";
+			errcode = getOn_procedure(view_def, "on_delete", proc_code, proc_param);
+			if (errcode != 0) return errcode;
+			if (proc_code == "") {
+				*ec << "[QE] delete() - this VirtualObject doesn't have this operation defined";
+				*ec << (ErrQExecutor | EOperNotDefined);
+				return ErrQExecutor | EOperNotDefined;
+			}
+			vector<QueryBagResult*> envs_sections;
+			//TODO tu pewnie trzeba jakos lepiej stos inicjowac przed wywolaniem virtual_objects
+			for (int k = ((seeds.size()) - 1); k >= 0; k-- ) {
+				QueryResult *bagged_seed = new QueryBagResult();
+				((QueryBagResult *) bagged_seed)->addResult(seeds.at(k));
+				envs_sections.push_back((QueryBagResult *) bagged_seed);
+			}
+			errcode = callProcedure(proc_code, envs_sections);
+			if (errcode != 0) return errcode;
+			QueryResult *res;
+			errcode = qres->pop(res);
+			if (errcode != 0) return errcode;
+			break;
+		}
+		else {
+			*ec << "[QE] ERROR! DELETE argument must consist of QREFERENCE";
+			*ec << (ErrQExecutor | ERefExpected);
+			return ErrQExecutor | ERefExpected;
+		}	
+		*ec << "[QE] Object deleted";
 	}
 	return 0;
 }
