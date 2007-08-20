@@ -193,8 +193,22 @@ namespace Store
 		}
 	}
 	
+	void DBDataValue::removeSubclass(LogicalID* lid) {
+		if(subclasses == NULL || lid == NULL) {
+			return;
+		}
+		subclasses->erase(lid);
+	}
+	
+	void DBDataValue::removeClassMark(LogicalID* lid) {
+		if(lid == NULL || classMarks == NULL) {
+			return;
+		}
+		classMarks->erase(lid);
+	}
+	
 	void DBDataValue::removeClassMarks(SetOfLids* toDel) {
-		if(toDel == NULL) {
+		if(toDel == NULL || classMarks == NULL) {
 			return;
 		}
 		for(SetOfLids::iterator i = toDel->begin(); i != toDel->end(); ++i) {

@@ -68,6 +68,14 @@ namespace Store
 		}
 	};
 	
+	struct FindNamesWithBegin {
+		bool operator()(const char* nameBegin, ix_entry* entry) {
+			//cout << "********************** ------------------> ";
+			//cout << (static_cast<ixc_entry*>(entry))->getInvariant() << endl;
+			return (strstr(entry->name, nameBegin) == entry->name);
+		}
+	};
+	
 	class NamedItems
 	{
 	protected: 
@@ -180,6 +188,9 @@ namespace Store
 #endif
 	
 	protected:
+	
+		static FindNamesWithBegin findNamesWithBegin;
+	
 	public:
 		~NamedRoots();
 		NamedRoots() {
@@ -206,6 +217,7 @@ namespace Store
 		vector<int>* getRoots(const char* name, int transactionID, int transactionTimeStamp) {
 			return getItems(name, transactionID, transactionTimeStamp);
 		}
+		vector<int>* getRootsWithBegin(const char* nameBegin, int transactionID, int transactionTimeStamp);
 	};
 
 };

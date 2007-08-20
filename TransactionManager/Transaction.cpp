@@ -253,6 +253,19 @@ namespace TManager
 		return errorNumber;
 	}
 
+	int Transaction::getRootsLIDWithBegin(string nameBegin, vector<LogicalID*>* &p) {
+		int errorNumber;
+		
+		err.printf("Transaction: %d getRootsLID by nameBegin \n", tid->getId());
+
+		sem->lock_read();
+		errorNumber = sm->getRootsLIDWithBegin(tid, nameBegin, p);
+		sem->unlock();
+		
+		if (errorNumber) abort();
+	
+		return errorNumber;
+	}
 
 	int Transaction::addRoot(ObjectPointer* &p)
 	{

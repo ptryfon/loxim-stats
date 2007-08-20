@@ -158,12 +158,14 @@ namespace Store
 		virtual void setClassMarks(SetOfLids* classMarks) = 0;
 		virtual void addClassMarks(SetOfLids* toAdd) = 0;
 		virtual void removeClassMarks(SetOfLids* toDel) = 0;
+		virtual void removeClassMark(LogicalID* lid) = 0;
 		
 		// Subclass methods
 		virtual SetOfLids* getSubclasses() const = 0;
 		virtual void addSubclass(LogicalID* subclass) = 0;
 		virtual void setSubclasses(SetOfLids* subclasses) = 0;
 		virtual void addSubclasses(SetOfLids* toAdd) = 0;
+		virtual void removeSubclass(LogicalID* lid) = 0;
 		
 		virtual void setSubtype(ExtendedType type) = 0;
 		virtual string toString() = 0;
@@ -235,6 +237,7 @@ namespace Store
 		virtual int getRoots(TransactionID* tid, string name, vector<ObjectPointer*>*& roots) = 0;
 		virtual int getRootsLID(TransactionID* tid, vector<LogicalID*>*& roots) = 0;
 		virtual int getRootsLID(TransactionID* tid, string name, vector<LogicalID*>*& roots) = 0;
+		virtual int getRootsLIDWithBegin(TransactionID* tid, string nameBegin, vector<LogicalID*>*& roots) = 0;
 		virtual int addRoot(TransactionID* tid, ObjectPointer*& object) = 0;
 		virtual int removeRoot(TransactionID* tid, ObjectPointer*& object) = 0;
 		

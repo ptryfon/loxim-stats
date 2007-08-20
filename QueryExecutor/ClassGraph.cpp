@@ -10,6 +10,8 @@ using namespace std;
 
 namespace QExecutor
 {
+	
+string ClassGraph::classNameToExtPrefix(const string& className) { return className + QE_NAMES_SEPARATOR;}
 
 ClassGraph* ClassGraph::handle = NULL;
 
@@ -432,7 +434,7 @@ void ClassGraph::removeFromInvariant(LogicalID* lid, string name) {
 
 void ClassGraph::removeFromSubclasses(SetOfLids* extendedClasses, LogicalID* lid) {
 	for(SetOfLids::iterator i = extendedClasses->begin(); i != extendedClasses->end(); ++i) {
-		MapOfClassVertices::iterator cgvI = classGraph.find(lid);
+		MapOfClassVertices::iterator cgvI = classGraph.find(*i);
 		if(cgvI != classGraph.end()) {
 			(*cgvI).second->removeSubclass(lid);
 		}
@@ -441,7 +443,7 @@ void ClassGraph::removeFromSubclasses(SetOfLids* extendedClasses, LogicalID* lid
 
 void ClassGraph::removeFromExtends(SetOfLids* subclasses, LogicalID* lid) {
 	for(SetOfLids::iterator i = subclasses->begin(); i != subclasses->end(); ++i) {
-		MapOfClassVertices::iterator cgvI = classGraph.find(lid);
+		MapOfClassVertices::iterator cgvI = classGraph.find(*i);
 		if(cgvI != classGraph.end()) {
 			(*cgvI).second->removeExtend(lid);
 			(*cgvI).second->invalid = true;

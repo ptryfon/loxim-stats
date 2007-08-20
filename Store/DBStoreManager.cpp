@@ -450,6 +450,28 @@ namespace Store
 #endif
 		return rval;
 	}
+	
+	int DBStoreManager::getRootsLIDWithBegin(TransactionID* tid, string nameBegin, vector<LogicalID*>*& p_roots) {
+#ifdef DEBUG_MODE
+		*ec << "Store::Manager::getRootsLIDWithBegin(BY NAME_BEGIN) begin..";
+#endif
+		p_roots = new vector<LogicalID*>(0);
+		vector<int>* rvec;
+		rvec = roots->getRootsWithBegin(nameBegin.c_str(), tid->getId(), tid->getTimeStamp());
+		
+		vector<int>::iterator obj_iter;
+		for(obj_iter=rvec->begin(); obj_iter!=rvec->end(); obj_iter++)
+		{
+			LogicalID* lid = new DBLogicalID((*obj_iter));
+			p_roots->push_back(lid);
+		}
+
+		delete rvec;
+#ifdef DEBUG_MODE
+		ec->printf("Store::Manager::getRootsLIDWithBegin(BY NAME_BEGIN) done: size=%d\n", p_roots->size());
+#endif
+		return 0;
+	}
 
 	int DBStoreManager::getRootsLID(TransactionID* tid, string p_name, vector<LogicalID*>*& p_roots)
 	{

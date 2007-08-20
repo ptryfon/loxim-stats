@@ -128,6 +128,13 @@ namespace QExecutor
 		
 		int persistDelete(QueryResult* bagArg);
 		
+		int persistDelete(LogicalID *lid);
+		
+		int persistDelete(vector<LogicalID*>* lids);
+		
+		int removePersistFromSubclasses(ObjectPointer *optr);
+		
+		int removePersistFromSuperclasses(ObjectPointer *optr);
 		
 		
 		int deVirtualize(QueryResult *arg, QueryResult *&res);

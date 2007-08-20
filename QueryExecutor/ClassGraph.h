@@ -173,6 +173,8 @@ namespace QExecutor
 		
 		static void shutdown();
 		
+		static string classNameToExtPrefix(const string& className);
+		
 		static bool isExtName(const string& extName);
 	
 		virtual ~ClassGraph();

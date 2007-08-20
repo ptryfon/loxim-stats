@@ -486,6 +486,13 @@ namespace Store
 		//return getItemsByAnything(findByName, invariantName, transactionID, transactionTimeStamp);
 		return getItemsByAnything(findByInvariantName, invariantName, transactionID, transactionTimeStamp);
 	}
+	
+	vector<int>* NamedRoots::getRootsWithBegin(const char* nameBegin, int transactionID, int transactionTimeStamp) {
+#ifdef IX_DEBUG
+		ec->printf("getRootsWithBegin(nameBegin=\"%s\", transactionID=%i, transactionTimeStamp=%i)\n", nameBegin, transactionID, transactionTimeStamp);
+#endif
+		return getItemsByAnything(findNamesWithBegin, nameBegin, transactionID, transactionTimeStamp);
+	}
 
 	vector<int>* NamedItems::getItems(const char* name, int transactionID, int transactionTimeStamp)
 	{

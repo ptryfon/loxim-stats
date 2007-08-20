@@ -1063,7 +1063,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				ObjectPointer* optr;
 				errcode = tr->getObjectPointer( ((QueryReferenceResult*)oneObjectResult)->getValue(), Store::Read, optr, false);
 				if(errcode != 0) {
-					trErrorOccur("[QE] Can't get object to set classMark.", errcode);
+					return trErrorOccur("[QE] Can't get object to set classMark.", errcode);
 				}
 				DataValue* newDV = optr->getValue()->clone();
 				if(nodeType == TreeNode::TNINCLUDES) {
@@ -2987,6 +2987,142 @@ int QueryExecutor::unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&
 	return 0;
 }
 
+int QueryExecutor::removePersistFromSubclasses(ObjectPointer *superOptr) {
+	SetOfLids* objectToChange = superOptr->getValue()->getSubclasses();
+	if(objectToChange == NULL) return 0;
+	for(SetOfLids::iterator i = objectToChange->begin(); i != objectToChange->end(); ++i) {
+		ObjectPointer* optr;
+		int errcode = tr->getObjectPointer( *i, Store::Read, optr, false);
+		if(errcode != 0) {
+			return trErrorOccur("[QE] Can't get object to remove classMark.", errcode);
+		}
+		DataValue* newDV = optr->getValue()->clone();
+		newDV->removeClassMark(superOptr->getLogicalID());
+		errcode = tr->modifyObject(optr, newDV);
+		if(errcode != 0) {
+			return trErrorOccur("[QE] Can't modify object and set classMark.", errcode);
+		}
+	}
+	return 0;
+}
+
+int QueryExecutor::removePersistFromSuperclasses(ObjectPointer *subOptr) {
+	SetOfLids* objectToChange = subOptr->getValue()->getClassMarks();
+	if(objectToChange == NULL) return 0;
+	for(SetOfLids::iterator i = objectToChange->begin(); i != objectToChange->end(); ++i) {
+		ObjectPointer* optr;
+		int errcode = tr->getObjectPointer( *i, Store::Read, optr, false);
+		if(errcode != 0) {
+			return trErrorOccur("[QE] Can't get object to remove classMark.", errcode);
+		}
+		DataValue* newDV = optr->getValue()->clone();
+		newDV->removeSubclass(subOptr->getLogicalID());
+		errcode = tr->modifyObject(optr, newDV);
+		if(errcode != 0) {
+			return trErrorOccur("[QE] Can't modify object and set classMark.", errcode);
+		}
+	}
+	return 0;
+}
+
+int QueryExecutor::persistDelete(LogicalID *lid) {
+	int errcode = 0;
+	ObjectPointer *optr;
+	if ((errcode = tr->getObjectPointer (lid, Store::Write, optr, true)) !=0) { 
+		*ec << "[QE] Error in getObjectPointer.";
+		antyStarveFunction(errcode);
+		inTransaction = false;
+		return errcode;
+	}
+	
+	if (optr == NULL) {
+		return 0;
+	}
+	
+	string object_name = optr->getName();
+	//Class does not have to be root.
+	if (((optr->getValue())->getSubtype()) == Store::Class) {
+		vector<LogicalID*>* lids;
+		errcode = tr->getRootsLIDWithBegin(ClassGraph::classNameToExtPrefix(object_name), lids);
+		if (errcode != 0) {
+			return trErrorOccur("[QE] Error in geting static members to remove.", errcode);
+		}
+		//Class removing means removing of all its static members too.
+		errcode = persistDelete(lids);
+		delete lids;
+		if (errcode != 0) return errcode;
+		//Removing class from superclasses and subclasses and updating class graph.
+		errcode = removePersistFromSuperclasses(optr);
+		if (errcode != 0) return errcode;
+		errcode = removePersistFromSubclasses(optr);
+		if (errcode != 0) return errcode;
+		cg->removeClass(optr->getLogicalID());
+		//Removing class from class file.
+		errcode = tr->removeClass(optr);
+		if (errcode != 0) {
+			return trErrorOccur("[QE] Error in class removing.", errcode);
+		}
+	}
+	
+	if (optr->getIsRoot()) {
+		//Nie rozumiem czemu to jest tu, a potem nizej jeszcze raz.
+		//Usuwam oba i przesuwam do gory.
+		//( 1 )
+		//string object_name = optr->getName();
+		if (!system_privilige_checking && 
+			assert_privilige(Privilige::DELETE_PRIV, object_name) == false) {
+			/*
+			ofstream out("privilige.debug", ios::app);
+			out << "delete " << object_name << endl;
+			out.close();						    
+			*/
+			return 0;
+		}
+		if (((optr->getValue())->getSubtype()) == Store::View) {
+			if ((errcode = tr->removeView(optr)) != 0) { 
+				*ec << "[QE] Error in removeView.";
+				antyStarveFunction(errcode);
+				inTransaction = false;
+				return errcode;
+			}
+		}
+		if ((errcode = tr->removeRoot(optr)) != 0) { 
+			*ec << "[QE] Error in removeRoot.";
+			antyStarveFunction(errcode);
+			inTransaction = false;
+			return errcode;
+		}
+		*ec << "[QE] Root removed";
+	}
+	//( 2 )
+	//string object_name = optr->getName();
+	if (!system_privilige_checking && 
+		assert_privilige(Privilige::DELETE_PRIV, object_name) == false) {
+		/*
+		ofstream out("privilige.debug", ios::app);
+		out << "delete " << object_name << endl;
+		out.close();					    
+		*/
+		return 0;
+	}								
+	if ((errcode = tr->deleteObject(optr)) != 0) { 
+		*ec << "[QE] Error in deleteObject.";
+		antyStarveFunction(errcode);
+		inTransaction = false;
+		return errcode;
+	}
+	return 0;
+}
+
+int QueryExecutor::persistDelete(vector<LogicalID*>* lids) {
+	if(lids == NULL) return 0;
+	for(vector<LogicalID*>::iterator i = lids->begin(); i != lids->end(); ++i) {
+		int errcode = persistDelete(*i);
+		if(errcode != 0) return errcode;
+	}
+	return 0;
+}
+
 int QueryExecutor::persistDelete(QueryResult* bagArg) {
 	int errcode = 0;
 	for (unsigned int i = 0; i < bagArg->size(); i++) {
@@ -2996,61 +3132,8 @@ int QueryExecutor::persistDelete(QueryResult* bagArg) {
 		int toDeleteType = toDelete->type();
 		if (toDeleteType == QueryResult::QREFERENCE) {
 			LogicalID *lid = ((QueryReferenceResult *) toDelete)->getValue();
-			ObjectPointer *optr;
-			if ((errcode = tr->getObjectPointer (lid, Store::Write, optr, true)) !=0) { 
-				*ec << "[QE] Error in getObjectPointer.";
-				antyStarveFunction(errcode);
-				inTransaction = false;
-				return errcode;
-			}
-			
-			if (optr == NULL) {
-				continue;
-			}
-			
-			if (optr->getIsRoot()) {
-				string object_name = optr->getName();
-				if (!system_privilige_checking && 
-					assert_privilige(Privilige::DELETE_PRIV, object_name) == false) {
-				/*
-				ofstream out("privilige.debug", ios::app);
-				out << "delete " << object_name << endl;
-				out.close();						    
-				*/
-				continue;
-				}
-				if (((optr->getValue())->getSubtype()) == Store::View) {
-					if ((errcode = tr->removeView(optr)) != 0) { 
-						*ec << "[QE] Error in removeView.";
-						antyStarveFunction(errcode);
-						inTransaction = false;
-						return errcode;
-					}
-				}
-				if ((errcode = tr->removeRoot(optr)) != 0) { 
-					*ec << "[QE] Error in removeRoot.";
-					antyStarveFunction(errcode);
-					inTransaction = false;
-					return errcode;
-				}
-				*ec << "[QE] Root removed";
-			}
-			string object_name = optr->getName();
-			if (!system_privilige_checking && 
-				assert_privilige(Privilige::DELETE_PRIV, object_name) == false) {
-				/*
-				ofstream out("privilige.debug", ios::app);
-				out << "delete " << object_name << endl;
-				out.close();					    
-				*/
-			continue;
-			}								
-			if ((errcode = tr->deleteObject(optr)) != 0) { 
-				*ec << "[QE] Error in deleteObject.";
-				antyStarveFunction(errcode);
-				inTransaction = false;
-				return errcode;
-			}
+			errcode = persistDelete(lid);
+			if(errcode != 0) return errcode;
 		}
 		else if (toDeleteType == QueryResult::QVIRTUAL) {
 			

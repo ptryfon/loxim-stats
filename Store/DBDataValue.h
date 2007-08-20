@@ -41,10 +41,12 @@ namespace Store
 		virtual SetOfLids* getClassMarks() const;
 		virtual void setClassMarks(SetOfLids* classMarks);
 		virtual void addClassMarks(SetOfLids* toAdd);
+		virtual void removeClassMark(LogicalID* lid);
 		virtual void removeClassMarks(SetOfLids* toDel);
 		virtual void addClassMark(LogicalID* classMark);
 		virtual SetOfLids* getSubclasses() const;
 		virtual void addSubclass(LogicalID* subclass);
+		virtual void removeSubclass(LogicalID* lid);
 		virtual void setSubclasses(SetOfLids* subclasses);
 		virtual void addSubclasses(SetOfLids* toAdd);
 		virtual string toString();
