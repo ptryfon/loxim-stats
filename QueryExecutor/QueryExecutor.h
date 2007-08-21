@@ -136,6 +136,8 @@ namespace QExecutor
 		
 		int removePersistFromSuperclasses(ObjectPointer *optr);
 		
+		int persistStaticMembersDelete(const string& object_name);
+		
 		
 		int deVirtualize(QueryResult *arg, QueryResult *&res);
         	

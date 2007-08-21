@@ -45,7 +45,7 @@
 %right FIX_OP
 %right SEMICOLON
 %nonassoc RETURN
-%nonassoc DELETE CREATE INSERTINTO
+%nonassoc CREATE_OR_UPDATE UPDATE DELETE CREATE INSERTINTO
 %left COMMA 
 %right EXISTS FOR_ALL
 %left GROUP_AS AS INCLUDES EXCLUDES INSTANCEOF CAST
@@ -174,7 +174,9 @@ query	    : NAME { char *s = $1; $$ = new NameNode(s); delete s; }
 	    | RETURN query {$$ = new ReturnNode ($2); }
 	    | CREATE procquery {$$ = new RegisterProcNode ($2);}
 	    | CREATE viewquery {$$ = new RegisterViewNode ($2);}
-	    | CREATE classquery {$$ = new RegisterClassNode ($2);}
+	    | CREATE_OR_UPDATE classquery {$$ = new RegisterClassNode ($2, CT_CREATE_OR_UPDATE);}
+	    | UPDATE classquery {$$ = new RegisterClassNode ($2, CT_UPDATE);}
+	    | CREATE classquery {$$ = new RegisterClassNode ($2, CT_CREATE);}
 	    | CREATE interface {$$ = new RegisterInterfaceNode ($2);}
 	    | NAME LEFTPAR RIGHTPAR {$$ = new CallProcNode ($1);}
 	    | NAME LEFTPAR querycommalist RIGHTPAR {$$ = new CallProcNode ($1, $3);}

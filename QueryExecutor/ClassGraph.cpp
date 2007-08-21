@@ -296,7 +296,7 @@ int ClassGraph::staticFieldExist(const string& extName, bool& fieldExist) {
 	return 0;
 }
 
-int ClassGraph::getClassVertexByName(string& className, ClassGraphVertex*& cgv, bool& exist) {
+int ClassGraph::getClassVertexByName(const string& className, ClassGraphVertex*& cgv, bool& exist) {
 	exist = true;
 	if(!classExist(className)) {
 		exist = false;
@@ -337,7 +337,7 @@ int ClassGraph::findMethod(string name, unsigned int argsCount, SetOfLids* class
 		return findMethod(name, argsCount, classesToSearch, method, found, NULL, SEARCHING, bindClassLid);
 	}
 	//Ponizej wywolywanie metody za pomoca super:: lub nadklasa::,
-	//wiec nalezy zaczac szukanie w zwyz od aktualnie zbindowanej klasy (actualBindClassLid)
+	//wiec nalezy zaczac szukanie wzwyz od aktualnie zbindowanej klasy (actualBindClassLid)
 	/*string className = name.substr(0, firstSeparatorPos);
 	string methodName = name.substr(name.find_last_of(QE_NAMES_SEPARATOR) + separatorLen - 1);*/
 	string methodName = lastPartFromExtName(name, isExtName);
@@ -502,6 +502,30 @@ int ClassGraph::addClass(ObjectPointer *optr, Transaction *&tr, QueryExecutor *q
 	return 0;
 }
 
+int ClassGraph::updateClass(ObjectPointer *optr, Transaction *&tr, QueryExecutor *qe) {
+	LogicalID* lid = optr->getLogicalID();
+	int errcode = removeClass(lid);
+	if(errcode != 0) return errcode;
+	errcode = addClass(optr, tr, qe);
+	if(errcode != 0) return errcode;
+	ClassGraphVertex* cgv;
+	errcode = getVertex(lid, cgv);
+	if(errcode != 0) return errcode;
+	LogicalID* newLid;
+	errcode = lidToClassGraphLid(lid, newLid);
+	if(errcode != 0) return errcode;
+	SetOfLids* tmp = optr->getValue()->getSubclasses();
+	for(SetOfLids::iterator i = tmp->begin(); i != tmp->end(); ++i) {
+		MapOfClassVertices::iterator extCgvI = classGraph.find(*i);
+		if(extCgvI == classGraph.end()) {
+			removeClass(lid);
+			return qe->qeErrorOccur("[ClassGraph] No class in graph.", ENoClassDefFound);
+		}
+		((*extCgvI).second)->addExtend(newLid);
+		cgv->addSubclass((*extCgvI).first);
+	}
+	return 0;
+}
 
 int ClassGraph::completeSubgraph(LogicalID* lid, Transaction *&tr, QueryExecutor *qe) {
 	if(classGraph.find(lid) != classGraph.end()) {
@@ -656,12 +680,31 @@ int ClassGraph::classBelongsToExtSubGraph(const MapOfClassVertices::iterator& cl
 	return 0;
 }
 
-int ClassGraph::isCastAllowed(LogicalID* classLid, ObjectPointer *optr, bool& includes) {
-	includes = false;
-	if(optr->getValue()->getSubtype() == Store::Class ) {
-		return 0;//class can't be cast
+int ClassGraph::checkExtendsForUpdate(const string& updatedClass, SetOfLids* extendedClasses, LogicalID*& upLid, bool& isUpdatePossible) {
+	isUpdatePossible = true;
+	if(!classExist(updatedClass)) {
+		//TODO (sk) NoClassDefFound.
+		return 1;
 	}
-	SetOfLids* classesToCheck = optr->getValue()->getClassMarks();
+	int errcode = getClassLidByName(updatedClass, upLid);
+	if(errcode != 0) return errcode;
+	bool inSubGraph = false;
+	errcode = isCastAllowed(upLid, extendedClasses, inSubGraph);
+	if(errcode!=0) return errcode;
+	isUpdatePossible = !inSubGraph;
+	/*MapOfClassVertices::iterator subGraph = classGraph.find(classLid);
+	for(SetOfLids::iterator i = extendedClasses->begin(); i != extendedClasses->end(); ++i) {
+		errcode = classBelongsToExtSubGraph(subGraph, classGraph.find(*i), inSubGraph);
+		if(errcode != 0) return errcode;
+		if(inSubGraph) {
+			isUpdatePossible = false;
+			return 0;
+		}
+	}*/
+	return 0;
+}
+
+int ClassGraph::isCastAllowed(LogicalID* classLid, SetOfLids* classesToCheck, bool& includes) {
 	if(classesToCheck == NULL) {
 		return 0;
 	}
@@ -672,6 +715,25 @@ int ClassGraph::isCastAllowed(LogicalID* classLid, ObjectPointer *optr, bool& in
 		if(includes) return 0;
 	}
 	return 0;
+}
+
+int ClassGraph::isCastAllowed(LogicalID* classLid, ObjectPointer *optr, bool& includes) {
+	includes = false;
+	if(optr->getValue()->getSubtype() == Store::Class ) {
+		return 0;//class can't be cast
+	}
+	return isCastAllowed(classLid, optr->getValue()->getClassMarks(), includes);
+	/*SetOfLids* classesToCheck = optr->getValue()->getClassMarks();
+	if(classesToCheck == NULL) {
+		return 0;
+	}
+	MapOfClassVertices::iterator classI = classGraph.find(classLid);
+	for(SetOfLids::iterator i = classesToCheck->begin(); i != classesToCheck->end(); ++i) {
+		int errcode = classBelongsToExtSubGraph(classI, classGraph.find(*i), includes);
+		if(errcode != 0) return errcode;
+		if(includes) return 0;
+	}
+	return 0;*/
 }
 
 int ClassGraph::isCastAllowed(string& className, ObjectPointer *optr, bool& includes) {

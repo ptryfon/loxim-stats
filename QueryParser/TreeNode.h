@@ -15,6 +15,7 @@
 //using namespace std;
 
 namespace QParser {
+	enum CreateType { CT_CREATE, CT_UPDATE, CT_CREATE_OR_UPDATE };
 
 // statement (the starting symbol)
     class TreeNode 
@@ -58,6 +59,8 @@ namespace QParser {
 	    TNINTERFACENODE, TNINTERFACESTRUCT, TNINTERFACEATTRIBUTELISTNODE, TNINTERFACEATTRIBUTE, 
 	    TNINTERFACEMETHODLISTNODE, TNINTERFACEMETHOD, TNINTERFACEMETHODPARAMLISTNODE, TNINTERFACEMETHODPARAM,
 	    TNREGINTERFACE, TNREGCLASS, TNCLASS, TNDML, TNINCLUDES, TNEXCLUDES, TNCAST, TNINSTANCEOF};
+	    
+	
 	 
 	    
 	TreeNode() : parent(NULL) { 
@@ -2232,49 +2235,9 @@ public:
 	}*/
 };
  
-
-class RegisterClassNode : public QueryNode
-    {
-    protected:
-    QueryNode* query;
-    public:
-    RegisterClassNode(QueryNode *q) {this->query = q; }
-    
-    virtual TreeNode* clone();
-    virtual int type() {return TreeNode::TNREGCLASS;}
-    virtual QueryNode *getQuery() {return this->query;}
-    virtual int putToString() {
-        cout << " RegisterClass < ";
-        if (query != NULL) query->putToString();
-        else cout << "_no_query_";
-        cout << ">";
-        return 0;
-    }
-    
-    virtual ~RegisterClassNode() {if (query != NULL) delete query;} 
-      virtual string toString( int level = 0, bool recursive = false, string name = "" ) {
-        string result = getPrefixForLevel( level, name ) + "[RegisterClass]\n";
-
-        if( recursive ) {
-          if( query )
-            result += query->toString( level+1, true, "query" );
-        }
-
-        return result;
-      }
-      
-      virtual string deParse() { 
-        string result; 
-        result = " create" + query->deParse(); 
-        cout << result;
-        return result; };
-    };
-
-
-
-
 class ClassNode : public QueryNode {
 protected:
+	CreateType createType;
     string name;
     string invariant;
     NameListNode* extends;
@@ -2308,6 +2271,10 @@ protected:
     }
     
 public:
+
+	virtual CreateType getCreateType() { return createType;}
+	virtual void setCreateType(CreateType createType) { this->createType = createType; }
+
     //ViewNode(ViewNode *v) { subviews.push_back(v); }
     ClassNode() {emptyInit();}
     ClassNode(ProcedureNode *p) { proceduresInit(p, procedures); }
@@ -2427,7 +2394,47 @@ public:
     }
 }; 
 
+class RegisterClassNode : public QueryNode{
+protected:
+    QueryNode* query;
+    CreateType createType;
+public:
+    RegisterClassNode(QueryNode *q, CreateType createType):createType(createType) {
+    	this->query = q;
+    	(dynamic_cast<ClassNode*>(q))->setCreateType(createType);
+    }
+    
+    virtual CreateType getCreateType() { return createType;}
+    virtual TreeNode* clone();
+    virtual int type() {return TreeNode::TNREGCLASS;}
+    virtual QueryNode *getQuery() {return this->query;}
+    virtual int putToString() {
+        cout << " RegisterClass < ";
+        if (query != NULL) query->putToString();
+        else cout << "_no_query_";
+        cout << ">";
+        return 0;
+    }
+    
+    virtual ~RegisterClassNode() {if (query != NULL) delete query;} 
+  	virtual string toString( int level = 0, bool recursive = false, string name = "" ) {
+        string result = getPrefixForLevel( level, name ) + "[RegisterClass]\n";
 
+        if( recursive ) {
+          if( query )
+            result += query->toString( level+1, true, "query" );
+        }
+
+        return result;
+  	}
+      
+	virtual string deParse() { 
+        string result; 
+        result = " create" + query->deParse(); 
+        cout << result;
+        return result; 
+    }
+};
 
 
 

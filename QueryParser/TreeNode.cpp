@@ -57,7 +57,7 @@ namespace QParser
     TreeNode* ProcedureNode::clone() { return new ProcedureNode(name, code, params, paramsNumb); }
     TreeNode* RegisterProcNode::clone() { return new RegisterProcNode((QueryNode*) query->clone()); }
     TreeNode* RegisterViewNode::clone() { return new RegisterViewNode((QueryNode*) query->clone()); }
-    TreeNode* RegisterClassNode::clone() { return new RegisterClassNode((QueryNode*) query->clone()); }
+    TreeNode* RegisterClassNode::clone() { return new RegisterClassNode((QueryNode*) query->clone(), getCreateType()); }
     //TreeNode* AsInstanceOfNode::clone() { return new AsInstanceOfNode((QueryNode*) objectsQuery->clone(), (QueryNode*) classQuery->clone()); }
     TreeNode* CallProcNode::clone() {
 		vector<QueryNode*> q;
@@ -91,6 +91,7 @@ namespace QParser
 
     TreeNode* ClassNode::clone() {
         ClassNode *cn = new ClassNode(name);
+        cn->createType = createType;
         cn->invariant = invariant;
         cn->extends = (extends == NULL)?NULL:dynamic_cast<NameListNode*>(extends->clone());
         cn->fields = (fields == NULL)?NULL:dynamic_cast<NameListNode*>(fields->clone());

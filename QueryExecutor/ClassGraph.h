@@ -147,14 +147,14 @@ namespace QExecutor
 		
 		virtual void putToNameIndex(string& className, LogicalID* classLid);
 		
-		virtual bool classExist(string& className) {return nameIndex.find(className) != nameIndex.end();};
+		virtual bool classExist(const string& className) {return nameIndex.find(className) != nameIndex.end();};
 		
-		virtual int getClassLidByName(string& className, LogicalID*& classLid) {
+		virtual int getClassLidByName(const string& className, LogicalID*& classLid) {
 			classLid = nameIndex[className];
 			return 0;
 		}
 		
-		virtual int getClassVertexByName(string& className, ClassGraphVertex*& cgv, bool& fieldExist);
+		virtual int getClassVertexByName(const string& className, ClassGraphVertex*& cgv, bool& fieldExist);
 		
 		virtual void removeFromNameIndex(string& className);
 		
@@ -183,9 +183,11 @@ namespace QExecutor
 		
 		virtual string toString();
 		
-		int addClass(ObjectPointer *optr, Transaction *&tr, QueryExecutor *qe);
+		virtual int addClass(ObjectPointer *optr, Transaction *&tr, QueryExecutor *qe);
 		
-		int removeClass(LogicalID* lid);
+		virtual int removeClass(LogicalID* lid);
+		
+		virtual int updateClass(ObjectPointer *optr, Transaction *&tr, QueryExecutor *qe);
 		
 		virtual int fetchSubInvariantNames(string& invariantName, Transaction *&tr, QueryExecutor *qe, stringHashSet& invariantsNames, bool noInvariantName = true);
 		
@@ -217,9 +219,13 @@ namespace QExecutor
 		
 		virtual int staticFieldExist(const string& extName, bool& exist);
 		
+		virtual int isCastAllowed(LogicalID* classLid, SetOfLids* classesToCheck, bool& includes);
+		
 		virtual int isCastAllowed(LogicalID* classLid, ObjectPointer *optr, bool& includes);
 		
 		virtual int isCastAllowed(string& className, ObjectPointer *optr, bool& includes);
+		
+		virtual int checkExtendsForUpdate(const string& updatedClass, SetOfLids* extendedClasses, LogicalID*& upLid, bool& isUpdatePossible);
 	};
 }
 

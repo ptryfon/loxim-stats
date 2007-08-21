@@ -1235,6 +1235,8 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			NameListNode* fields = ((ClassNode *) tree)->getFields();
 			NameListNode* staticFields = ((ClassNode *) tree)->getStaticFields();
 			NameListNode* extendedClasses = ((ClassNode *) tree)->getExtends();
+			CreateType ct = ((ClassNode *) tree)->getCreateType();
+
 			int errcode;
 			
 			//class name
@@ -1243,8 +1245,17 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			if(errcode != 0) {
 				return errcode;
 			}
-			if(classExist) {
+			if(classExist && ct == CT_CREATE) {
 				return qeErrorOccur("[QE] Class: \"" + className + "\" already exist.", ENotUniqueClassName);
+			} else if(!classExist && ct == CT_UPDATE) {
+				//TODO (sk) Class to update not found.
+				return qeErrorOccur("[QE] Class to update: \"" + className + "\" not found.", ENotUniqueClassName);
+			}
+			
+			if(classExist) {
+				//Static members must be removed to allow static methods update.
+				errcode = persistStaticMembersDelete(className);
+				if(errcode != 0) return errcode;
 			}
 			
 			//invariant name
@@ -1354,8 +1365,42 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			}
 			
 			LogicalID* newLid;
-			errcode = createObjectAndPutOnQRes(dbValue, className, Store::Class, newLid);
-			if(errcode != 0) return errcode;
+			if(classExist) {//update part
+				//Check if updated class try to extends its subclass, which is forbiden.
+				bool isUpdatePossible = true;
+				LogicalID* upLid;
+				errcode = cg->checkExtendsForUpdate(className, dbValue->getClassMarks(), upLid, isUpdatePossible);
+				if(errcode != 0) return errcode;
+				if(!isUpdatePossible) {
+					return 1;//TODO (sk) Proba dziedziczenia po podklasie.
+				}
+				ObjectPointer *upOptr;
+				errcode = tr->getObjectPointer (upLid, Store::Read, upOptr, false);
+				if (errcode != 0) {
+					return trErrorOccur("[QE] update class operation - Error in getObjectPointer.", errcode);
+				}
+				//usuniecie informacji z nadklas
+				errcode = removePersistFromSuperclasses(upOptr);
+				if(errcode != 0) return errcode;
+				
+				//Przekazanie podklas.
+				//KLUCZOWA OPERACJA. Update istnieje po to, zeby podmienic klase, tak by,
+				//klasy i obiekty z niej dziedziczace nadal sie do niej odnosily.
+				dbValue->addSubclasses(upOptr->getValue()->getSubclasses());
+				
+				dbValue->setSubtype(Store::Class);
+				
+				errcode = tr->modifyObject(upOptr, dbValue); 
+				if (errcode != 0) {
+					return trErrorOccur("[QE] TNCLASS - Error in modifyObject.", errcode);
+				}
+				newLid = upOptr->getLogicalID();
+				errcode = qres->push(new QueryReferenceResult(newLid));
+				if (errcode != 0) return errcode;
+			} else {//create part
+				errcode = createObjectAndPutOnQRes(dbValue, className, Store::Class, newLid);
+				if(errcode != 0) return errcode;
+			}
 			
 			// Seting newLid as subclass (property subclasses) in extended classes
 			if(dbValue->getClassMarks() == NULL) {
@@ -1401,9 +1446,13 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				return trErrorOccur("[QE] register class operation - Error in getObjectPointer.", errcode);
 			}
 			
-			errcode = tr->addRoot(optr);
-			if (errcode != 0) { 
-				return trErrorOccur("[QE] Error in addRoot", errcode);
+			bool classIsUpdated = cg->vertexExist(optr->getLogicalID());
+			
+			if(!classIsUpdated) {
+				errcode = tr->addRoot(optr);
+				if (errcode != 0) { 
+					return trErrorOccur("[QE] Error in addRoot", errcode);
+				}
 			}
 			
 			string invariant_name = "";
@@ -1420,13 +1469,23 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				}
 			}
 			
+			if(classIsUpdated) {
+				errcode = tr->removeClass(optr);
+				if (errcode != 0) {
+					return trErrorOccur("[QE] Error in class removing.", errcode);
+				}
+			}
 			errcode = tr->addClass(optr->getName().c_str(), invariant_name.c_str(), optr);
 			if (errcode != 0) {
 				return trErrorOccur("[QE] Error in addClass", errcode);
 			}
-			
-			errcode = cg->addClass(optr, tr, this);
-			if(errcode != 0) return errcode;
+			if(classIsUpdated) {
+				errcode = cg->updateClass(optr, tr, this);
+				if(errcode != 0) return errcode;
+			} else {
+				errcode = cg->addClass(optr, tr, this);
+				if(errcode != 0) return errcode;
+			}
 			
 			*ec << cg->toString();
 			
@@ -3025,6 +3084,18 @@ int QueryExecutor::removePersistFromSuperclasses(ObjectPointer *subOptr) {
 	return 0;
 }
 
+int QueryExecutor::persistStaticMembersDelete(const string& object_name) {
+	vector<LogicalID*>* lids;
+	int errcode = tr->getRootsLIDWithBegin(ClassGraph::classNameToExtPrefix(object_name), lids);
+	if (errcode != 0) {
+		return trErrorOccur("[QE] Error in geting static members to remove.", errcode);
+	}
+	errcode = persistDelete(lids);
+	delete lids;
+	if (errcode != 0) return errcode;
+	return 0;
+}
+
 int QueryExecutor::persistDelete(LogicalID *lid) {
 	int errcode = 0;
 	ObjectPointer *optr;
@@ -3042,14 +3113,8 @@ int QueryExecutor::persistDelete(LogicalID *lid) {
 	string object_name = optr->getName();
 	//Class does not have to be root.
 	if (((optr->getValue())->getSubtype()) == Store::Class) {
-		vector<LogicalID*>* lids;
-		errcode = tr->getRootsLIDWithBegin(ClassGraph::classNameToExtPrefix(object_name), lids);
-		if (errcode != 0) {
-			return trErrorOccur("[QE] Error in geting static members to remove.", errcode);
-		}
 		//Class removing means removing of all its static members too.
-		errcode = persistDelete(lids);
-		delete lids;
+		errcode = persistStaticMembersDelete(object_name);
 		if (errcode != 0) return errcode;
 		//Removing class from superclasses and subclasses and updating class graph.
 		errcode = removePersistFromSuperclasses(optr);
