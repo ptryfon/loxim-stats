@@ -36,7 +36,7 @@ extern int szbderrno;
 "("			return LEFTPAR;
 ")"			return RIGHTPAR;
 ";"			return SEMICOLON;
-"create or update" CREATE_OR_UPDATE;
+"create or update" return CREATE_OR_UPDATE;
 "sum"			return SUM;
 "count"			return COUNT;
 "avg"			return AVG;
