@@ -203,7 +203,7 @@ int ClassGraphVertex::putMethod(LogicalID* lid, Transaction *&tr, QueryExecutor 
 	return 0;
 }
 
-int ClassGraphVertex::getMethod(string& name, unsigned int argsCount, Method*& method, bool& found) {
+int ClassGraphVertex::getMethod(const string& name, unsigned int argsCount, Method*& method, bool& found) {
 	NameToArgCountToMethodMap::iterator methodI = methods.find(name);
 	found = false;
 	if(methodI == methods.end()) {

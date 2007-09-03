@@ -1065,6 +1065,10 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				if(errcode != 0) {
 					return trErrorOccur("[QE] Can't get object to set classMark.", errcode);
 				}
+				if(optr->getValue()->getSubtype() == Store::Class) {
+					//TODO (sk) Inproper class usage.
+					return 1;
+				}
 				DataValue* newDV = optr->getValue()->clone();
 				if(nodeType == TreeNode::TNINCLUDES) {
 					newDV->addClassMarks(&classMarks);
@@ -1366,7 +1370,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			
 			LogicalID* newLid;
 			if(classExist) {//update part
-				//Check if updated class try to extends its subclass, which is forbiden.
+				//Check if updated class try to extends its subclass, what is forbiden.
 				bool isUpdatePossible = true;
 				LogicalID* upLid;
 				errcode = cg->checkExtendsForUpdate(className, dbValue->getClassMarks(), upLid, isUpdatePossible);

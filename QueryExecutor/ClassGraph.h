@@ -105,7 +105,7 @@ namespace QExecutor
 		virtual void removeSubclass(LogicalID* lid) { subclasses.erase(lid); }
 		virtual void removeExtend(LogicalID* lid) { extends.erase(lid); }
 		virtual string toString(ClassGraph* cg);
-		virtual int getMethod(string& name, unsigned int argsCount, Method*& method, bool& found);
+		virtual int getMethod(const string& name, unsigned int argsCount, Method*& method, bool& found);
 		virtual bool hasStaticField(string& staticField);
 		
 		static string classSetToString(ClassGraph* cg, SetOfLids* classSet);
@@ -119,6 +119,8 @@ namespace QExecutor
 		MapOfInvariantVertices invariants;
 		NameToLidMap nameIndex;
 		unsigned int separatorLen;
+		static ClassGraph* handle;
+		
 	protected:
 	
 		enum SearchPhase { SEARCHING, SKIP_ONE_STEP, SEARCHING_START_CLASS };
@@ -160,12 +162,12 @@ namespace QExecutor
 		
 		virtual int classBelongsToExtSubGraph(const MapOfClassVertices::iterator& classI, const MapOfClassVertices::iterator& subGraphI, bool& belongs);
 		
+		ClassGraph();
+		
 	public:
 		static ErrorConsole *ec;
 	
 		static int trErrorOccur(QueryExecutor* qe, string msg, int errcode );
-	
-		static ClassGraph* handle;
 		
 		static int getHandle(ClassGraph*& cg);
 		
@@ -178,8 +180,6 @@ namespace QExecutor
 		static bool isExtName(const string& extName);
 	
 		virtual ~ClassGraph();
-		
-		ClassGraph();
 		
 		virtual string toString();
 		
