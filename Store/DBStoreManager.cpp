@@ -72,6 +72,7 @@ namespace Store
 		this->roots->init(this->buffer, this->log);
 		this->views->init(this->buffer, this->log);
 		this->classes->init(this->buffer, this->log);
+		this->interfaces->init(this->buffer, this->log);
 		this->map->init(this->buffer, this->log);
 
 #ifdef DEBUG_MODE
@@ -752,6 +753,8 @@ int DBStoreManager::getClassesLID(TransactionID* tid, vector<LogicalID*>*& p_cla
 		vector<int>* rvec;
 		rvec = interfaces->getItems(p_name.c_str(), tid->getId(), tid->getTimeStamp());
 		
+		*ec << "Store::Manager::getInterfacesLID(BY NAME) past getItems";
+		
 		vector<int>::iterator obj_iter;
 		for(obj_iter=rvec->begin(); obj_iter!=rvec->end(); obj_iter++)
 		{
@@ -772,8 +775,13 @@ int DBStoreManager::getClassesLID(TransactionID* tid, vector<LogicalID*>*& p_cla
 		*ec << "Store::Manager::addInterface begin..";
 #endif
 		int lid = object->getLogicalID()->toInteger();
+		
+		ec->printf("Store::Manager::addInterface lid = %d\n", lid);
 
 		int err = interfaces->addInterface(lid, name, tid->getId(), tid->getTimeStamp());
+		
+		ec->printf("Store::Manager::addInterface after interfaces->addInterface");
+		
 		if (err != 0) {
 		    *ec << "Store::Manager::addInterface: error in Interfaces::addInterface";
 		    return err;

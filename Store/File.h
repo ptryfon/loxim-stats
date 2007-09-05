@@ -26,6 +26,8 @@ namespace Store
 		int fdefault;
 		int fviews;
 		int fclasses;
+		int finterfaces;
+
 
 		int getStream(unsigned short fileID, int* file);
 

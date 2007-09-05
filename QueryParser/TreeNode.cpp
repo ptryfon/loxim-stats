@@ -213,12 +213,26 @@ namespace QParser
     //ADTODO - doit
     vector<InterfaceMethod *> InterfaceStruct::getMethods() {
 	vector<InterfaceMethod *> vec;
+	InterfaceMethod *met;
+	InterfaceMethodListNode *metList = this->get_methodList();
+	while (metList != NULL) {
+	    met = metList->get_method();
+	    metList = metList->get_methodList();
+	    vec.push_back(met);
+	}
 	return vec;
     };
     
     //ADTODO - doit
     vector<InterfaceAttribute *> InterfaceStruct::getAttribs() {
 	vector<InterfaceAttribute *> vec;
+	InterfaceAttribute *attrib;
+	InterfaceAttributeListNode *attrList = this->get_attributeList();
+	while (attrList != NULL) {
+	    attrib = attrList->get_attribute();
+	    attrList = attrList->get_attributeList();
+	    vec.push_back(attrib);
+	}
 	return vec;
     };
     

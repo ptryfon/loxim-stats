@@ -204,9 +204,9 @@ namespace QParser {
 	    
 	    virtual TreeNode* clone();
 	    virtual int type() {return TNINTERFACEMETHODPARAM;};
-	    virtual int putToString() {cout << "InterfaceMethodParam value =" + valueName + " type = " + typeName + "\n"; return 0;};
+	    virtual int putToString() {cout << "[InterfaceMethodParam: value = " + valueName + ", type = " + typeName + " ]\n"; return 0;};
 	    virtual string toString(int level = 0, bool recursive = false, string name = "") {
-		string result = getPrefixForLevel( level, name) + "[MethodParam] + " + valueName + " : " + typeName + "\n";
+		string result = getPrefixForLevel( level, name) + "([InterfaceMethodParam] " + this->deParse() + ") ";
 		return result;
 	    }
 	    
@@ -233,7 +233,7 @@ namespace QParser {
 	    virtual int putToString() {cout << "InterfaceMethodParamListNode \n"; return 0;};
 	    virtual string toString(int level = 0, bool recursive = false, string name = "") {
 		string methodParamVal = methodParam ? methodParam->toString() : "<null>";
-		string result = getPrefixForLevel( level, name) + "[MethodParamList] methodParam=" + methodParamVal + "\n";
+		string result = getPrefixForLevel( level, name) + "([InterfaceMethodParamList] methodParam = " + methodParamVal + ") ";
 		if (recursive) {
 		    if (methodParamList) 
 			result += methodParamList->toString(level+1, true, "methodParamList");
@@ -267,7 +267,7 @@ namespace QParser {
 	    virtual int putToString() {cout << "InterfaceMethod name = " + methodName + "\n"; return 0;};
 	    virtual string toString(int level = 0, bool recursive = false, string name = "") {
 		string methodParamsString = methodParams ? methodParams->toString() : "<null>";
-		string result = getPrefixForLevel( level, name) + "[Method] + " + methodName + " :" + methodType + " ( " + methodParamsString + " ) " + "\n";
+		string result = getPrefixForLevel( level, name) + "([InterfaceMethod] " + methodName + " ( " + methodParamsString + " ) : " + methodType + ") ";
 		
 		return result;	    
 	    }
@@ -297,7 +297,7 @@ namespace QParser {
 	    virtual int putToString() {cout << "InterfaceMethodListNode \n"; return 0;};
 	    virtual string toString(int level = 0, bool recursive = false, string name = "") {
 		string methodVal = method ? method->toString() : "<null>";
-		string result = getPrefixForLevel( level, name) + "[MethodList] method=" + methodVal + "\n";
+		string result = getPrefixForLevel( level, name) + "([InterfaceMethodListNode] method = " + methodVal + ") ";
 		if (recursive) {
 		    if (methodList) 
 			result += methodList->toString(level+1, true, "methodList");
@@ -329,7 +329,7 @@ namespace QParser {
 	    virtual int type() {return TNINTERFACEATTRIBUTE;};
 	    virtual int putToString() {cout << "InterfaceAttribute valueName = " + valueName + " type =" + typeName + "\n"; return 0;};
 	    virtual string toString(int level = 0, bool recursive = false, string name = "") {
-		string result = getPrefixForLevel( level, name) + "[Attribute] + " + valueName + " : " + typeName + "\n";
+		string result = getPrefixForLevel( level, name) + "([InterfaceAttribute] " + this->deParse() +  ") ";
 		return result;
 	    }
 	    
@@ -356,7 +356,7 @@ namespace QParser {
 	    virtual int putToString() { cout << "InterfaceAttributeListNode \n"; return 0;};
 	    virtual string toString(int level = 0, bool recursive = false, string name = "") {
 		string attributeVal = attribute ? attribute->toString() : "<null>";
-		string result = getPrefixForLevel( level, name) + "[AttributeList] attribute=" + attributeVal + "\n";
+		string result = getPrefixForLevel( level, name) + "([InterfaceAttributeListNode] " + attributeVal + ") ";
 		if (recursive) {
 		    if (attributeList) 
 			result += attributeList->toString(level+1, true, "attributeList");
@@ -391,7 +391,7 @@ namespace QParser {
 	virtual string toString(int level = 0, bool recursive = false, string name = "") {
 	    string attributeListString = attributeList ? attributeList->toString() : "<null>";
 	    string methodListString = methodList ? methodList->toString() : "<null>";
-	    string result = getPrefixForLevel(level, name) + "[InterfaceStruct] + " + attributeListString + " " + methodListString + "\n";
+	    string result = getPrefixForLevel(level, name) + "([InterfaceStruct] " + attributeListString + " " + methodListString + ") ";
 	    
 	    return result;
 	}
@@ -419,7 +419,7 @@ namespace QParser {
 	virtual string get_interfaceName() {return interfaceName;};
 	virtual TreeNode* clone();
 	virtual int type() {return TNINTERFACENODE;};
-	virtual int putToString() {cout << "CreateInterfaceNode name=" + interfaceName + "\n"; return 0;};
+	virtual int putToString() {cout << "InterfaceNode name=" + interfaceName + "\n"; return 0;};
 
 	virtual string deParse() { 
     	    string result; 
@@ -430,7 +430,7 @@ namespace QParser {
 	
 	virtual string toString(int level = 0, bool recursive = false, string name = "") {
 	    string InterfaceStructString = iStruct ? iStruct->toString() : "<null>";
-	    string result = getPrefixForLevel(level, name) + "[CreateInterfaceNode] + " + interfaceName + " "  + InterfaceStructString + "\n";
+	    string result = getPrefixForLevel(level, name) + "([InterfaceNode] " + interfaceName + " "  + InterfaceStructString + ") ";
 	    
 	    return result;
 	}    
@@ -448,10 +448,8 @@ namespace QParser {
 	virtual int type() {return TreeNode::TNREGINTERFACE;}
 	virtual QueryNode *getQuery() {return this->query;}
 	virtual int putToString() {
-    	    cout << " RegisterInterface < ";
-    	    if (query != NULL) query->putToString();
-    	    else cout << "_no_query_";
-    	    cout << ">";
+	    string queryString = query ? query->toString() : "<null>";
+	    cout << "([RegisterInterfaceNode] " + queryString + ")\n";
     	    return 0;
 	}
     

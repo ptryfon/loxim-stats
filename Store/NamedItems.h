@@ -136,8 +136,13 @@ namespace Store
 	};
 	
 	class Interfaces : public NamedItems {
+	private: 
+	    ErrorConsole *ec;
 	public: 
+	    ~Interfaces();
 	    Interfaces() {
+		this->ec = new ErrorConsole("Store: Interfaces");
+		*ec << "Interfaces constructed!";
 		STORE_IX_INITIALPAGECOUNT = STORE_IXC_INITIALPAGECOUNT;
 		STORE_IX_NAMEMAXLEN = STORE_IXC_NAMEMAXLEN;
 		STORE_IX_NULLVALUE = STORE_IXC_NULLVALUE;

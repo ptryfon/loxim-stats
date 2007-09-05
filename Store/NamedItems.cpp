@@ -82,10 +82,15 @@ namespace Store
 	int NamedItems::addItem(int size_needed, char* entry_buf) {
 		
 		int i = 1;
+		//ec->printf("NI::addItem(2) starts\n");
 		while (i > 0)
 		{
+			if (buffer==NULL)
+			    ec->printf("NamedItems::addItem ERROR!-null buffer (no init called)!\n");
+			//ec->printf("NI::aI Store_file_ %d\n", STORE_FILE_);
 			PagePointer* page_pointer = buffer->getPagePointer(STORE_FILE_, (unsigned int) i);
 			page_pointer->aquire();
+			//ec->printf("NI::aI page_pointer aquired\n");
 
 			char* page_buf = page_pointer->getPage();
 			ixr_page* page = (ixr_page*) page_buf;
@@ -115,9 +120,12 @@ namespace Store
 	}
 	
 	int NamedItems::createEntry(int logicalID, const char* name, int transactionID, int transactionTimeStamp, int& size_needed, char*& entry_buf) {
+		
 		int name_len = 0;
 		ix_entry* entry = 0;
-
+		
+		//ec->printf("debug1, maxlen = %d, len = %d \n", STORE_IX_NAMEMAXLEN, strlen(name));
+		
 		name_len = strlen(name);
 		if (name_len > STORE_IX_NAMEMAXLEN)
 			return 1;
@@ -126,7 +134,6 @@ namespace Store
 		entry_buf = new char[size_needed];
 		memset(entry_buf, 0, size_needed);
 
-
 		entry = (ix_entry*) entry_buf;
 		entry->size = size_needed;
 		entry->l_id = logicalID;
@@ -134,7 +141,9 @@ namespace Store
 		entry->add_t = transactionTimeStamp;
 		entry->del_t = STORE_IX_NULLVALUE;
 		memcpy(entry->name, name, name_len);
-		
+
+		//ec->printf("NI::createEntry entry Created!\n");
+
 		return 0;
 	}
 
@@ -146,9 +155,14 @@ namespace Store
 #endif
 		char* entry_buf;
 		int size_needed = 0;
+		//ec->printf("NamedItems::addItem before create Entry\n");
 		int errcode = createEntry(logicalID, name, transactionID, transactionTimeStamp, size_needed, entry_buf);
+		//ec->printf("NamedItems::addItem after create Entry, errorcode = %d, size_needed = %d \n", errcode, size_needed);
 		if(errcode != 0) return errcode;
+		if (entry_buf == NULL)
+		    ec->printf("NamedItems::addItem NULL entry_buf\n");
 		addItem(size_needed, entry_buf);
+		//ec->printf("NamedItems::addItem past addItem(size, buf)\n");
 		if(entry_buf != NULL){
 			delete entry_buf;
 		}
@@ -420,12 +434,19 @@ namespace Store
 
 		i = 1;
 		
+#ifdef IX_DEBUG
+		ec->printf("NamedItems::getItemsByAnything starts\n");
+#endif	
 		while (i > 0)
 		{
 					
+			if (buffer == NULL)
+			    ec->printf("NULL buffer!!\n");
 			page_pointer = buffer->getPagePointer(STORE_FILE_, (unsigned int) i);		
+			if (page_pointer == NULL)
+			    ec->printf("NULL page pointer (buffer not started?)\n");
 			page_pointer->aquire();
-	
+			    
 			page_buf = page_pointer->getPage();
 			page = (ixr_page*) page_buf;
 
@@ -435,6 +456,7 @@ namespace Store
 				i++;
 			else
 			{
+
 				offset = sizeof(ixr_page);
 				while (offset < STORE_PAGESIZE - page->free)
 				{
@@ -455,24 +477,37 @@ namespace Store
 
 				i++;
 			}
-
+			    
 			page_pointer->release(0);
 			delete page_pointer;
 		}
-
 		return roots;
 	}
 
+
+	Interfaces::~Interfaces() {
+	    ec->printf("Interfaces destructor called, my last message\n");
+	    delete(this->ec);
+	}
 
 	int Interfaces::addInterface(int lid, const char* name, int tid, int tTimeStamp) {
 	
 	    char *entryBuf;
 	    int size = 0;
 	    int err;
+	    
+	    ec->printf("Interfaces::addInterface creating entry\n");
+	    
 	    if ((err=createEntry(lid, name, tid, tTimeStamp, size, entryBuf))!=0)
 		return err;
+		
+	    ec->printf("Interfaces::addInterface Entry created\n");	
+		
 	    if ((err=addItem(size, entryBuf))!=0)
 		return err;
+	    
+	    ec->printf("Interfaces::addInterface item added\n");	
+	    
 	    if (entryBuf != NULL) 
 		delete entryBuf;
 	

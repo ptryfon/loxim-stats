@@ -500,6 +500,41 @@ namespace TManager
 		return errorNumber;
 	}
 
+	int Transaction::addInterface(const char* name, ObjectPointer* &p)
+	{
+		int errorNumber;
+		err.printf("Transaction: %d addInterface\n", tid->getId());
+	
+		sem->lock_write();
+			errorNumber = sm->addInterface(tid, name, p);
+			if (errorNumber == 0)
+			    errorNumber = lm->lock( p->getLogicalID(), tid, Write);
+		sem->unlock();
+		
+		if (errorNumber) abort();		    
+		return errorNumber;
+	}
+
+	int Transaction::removeInterface(ObjectPointer* &p)
+	{
+		int errorNumber;
+		err.printf("Transaction: %d removeInterface\n", tid->getId());
+		errorNumber = lm->lock( p->getLogicalID(), tid, Write);
+		
+		if (errorNumber == 0)
+		{
+		    sem->lock_write();
+			errorNumber = sm->removeInterface(tid, p);		
+		    sem->unlock();
+		}
+				
+		if (errorNumber) abort();
+		return errorNumber;
+	}
+	
+	//interfaces end
+
+
 	/* Data creation */
 	int Transaction::createIntValue(int value, DataValue* &dataVal)
 	{
