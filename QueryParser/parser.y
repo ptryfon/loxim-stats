@@ -49,7 +49,7 @@
 %nonassoc UPDATE DELETE CREATE INSERTINTO
 %left COMMA 
 %right EXISTS FOR_ALL
-%left GROUP_AS AS INCLUDES EXCLUDES INSTANCEOF CAST
+%left CAST GROUP_AS AS INCLUDES EXCLUDES INSTANCEOF
 %right ASSIGN
 %left UNION EXCEPT
 %left INTERSECT
@@ -183,7 +183,7 @@ query	    : NAME { char *s = $1; $$ = new NameNode(s); delete s; }
 	    | NAME LEFTPAR querycommalist RIGHTPAR {$$ = new CallProcNode ($1, $3);}
 	    | EXTNAME LEFTPAR RIGHTPAR {$$ = new CallProcNode ($1);}
 	    | EXTNAME LEFTPAR querycommalist RIGHTPAR {$$ = new CallProcNode ($1, $3);}
-	    | query CAST query {$$ = new ClassCastNode($1, $3);}
+	    | CAST LEFTPAR query AS query RIGHTPAR {$$ = new ClassCastNode($3, $5);}
 	    | query INSTANCEOF query {$$ = new InstanceOfNode($1, $3);}
 	    ;
 
