@@ -710,7 +710,11 @@ int ClassGraph::isCastAllowed(LogicalID* classLid, SetOfLids* classesToCheck, bo
 	}
 	MapOfClassVertices::iterator classI = classGraph.find(classLid);
 	for(SetOfLids::iterator i = classesToCheck->begin(); i != classesToCheck->end(); ++i) {
-		int errcode = classBelongsToExtSubGraph(classI, classGraph.find(*i), includes);
+		MapOfClassVertices::iterator subGraph = classGraph.find(*i);
+		if(subGraph == classGraph.end()) {
+			continue;
+		}
+		int errcode = classBelongsToExtSubGraph(classI, subGraph, includes);
 		if(errcode != 0) return errcode;
 		if(includes) return 0;
 	}
