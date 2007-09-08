@@ -3721,6 +3721,8 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 		}
 		DBDataValue *dbDataVal = new DBDataValue();
 		dbDataVal->setVector(insVector);
+		dbDataVal->setClassMarks(db_value->getClassMarks());
+		dbDataVal->setSubclasses(db_value->getSubclasses());
 		*ec << "[QE] dataValue: setVector done";
 		db_value = dbDataVal;
 		errcode = tr->modifyObject(optrOut, db_value); 
