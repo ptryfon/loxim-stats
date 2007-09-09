@@ -1,0 +1,405 @@
+-- Uwaga interpretacje konstrukcji sk³adniowych pojawiaj± siê tylko
+-- przy pierwszym ich wyst±pieniu.
+
+-- Nadklasa wszystkich rodzajów produktów.
+-- Interpretacja sk³adni:
+-- Nazwa obiektów: produkt
+-- Wymagane pola: nazwa, cena
+create class Produkt {
+  instance produkt : {nazwa; cena}
+}
+/
+
+-- P³yty Audio.
+-- Rozszerza klasê Produkt.
+create class PlytaAudio extends Produkt {
+  instance plytaAudio : {wykonawca}
+}
+/
+
+-- Produkty Elektroniczne
+-- porownaj(v1, v2) -Metoda statyczna do porównywania parametrów.
+-- NOTEQAL, EQUAL - w³a¶ciwo¶ci statyczne s³u¿±ce za wyniki porównania.
+-- porownaj( prodEl ) - metoda do porównywania parametrów bie¿±cego obiektu
+--                      z obiektem prodEl.
+create class ProduktElektroniczny extends Produkt {
+  instance produktElektroniczny : { poborMocy }
+  static {NOTEQUAL; EQUAL}
+
+  static procedure porownaj(v1, v2) {
+    if v1 > v2 then
+      return deref(ProduktElektroniczny::NOTEQUAL)
+    else if v1 = v2 then
+      return deref(ProduktElektroniczny::EQUAL)
+    fi fi;
+    return (-ProduktElektroniczny::NOTEQUAL)
+  }
+
+  procedure porownaj( prodEl ) {
+    return ProduktElektroniczny::porownaj(prodEl.poborMocy, poborMocy)
+  }
+}
+/
+
+-- Inicjowanie w³a¶ciwo¶ci statycznych
+
+create 1 as ProduktElektroniczny::NOTEQUAL
+/
+
+create 0 as ProduktElektroniczny::EQUAL
+/
+
+-- Odtwarzacz CD.
+-- porownaj( cd ) - przedfiniowane porównanie uwzglêdniaj±ce te¿ parametr: naIlePlyt
+create class OdtwarzaczCD extends ProduktElektroniczny {
+  instance odtwarzaczCD : {naIlePlyt}
+
+  procedure porownaj( cd ) {
+    return super::porownaj(cd) + ProduktElektroniczny::porownaj(naIlePlyt, cd.naIlePlyt)
+  }
+}
+/
+
+-- Tuner.
+-- porownajSamTuner( t ) - metoda porównuj±ca tuner bez porównania
+--                         parametru poborMocy z nadklasy
+-- porownaj( t ) - przedfiniowane porównanie uwzglêdniaj±ce te¿ parametr: naIleStacji
+create class Tuner extends ProduktElektroniczny {
+  instance tuner : {naIleStacji}
+
+  procedure porownajSamTuner( t ) {
+    return ProduktElektroniczny::porownaj(naIleStacji, t.naIleStacji)
+  }
+
+  procedure porownaj( t ) {
+    return porownajSamTuner( t ) + super::porownaj(t)
+  }
+}
+/
+
+-- Wzmacniacz.
+-- porownaj( wzm ) - przedfiniowane porównanie uwzglêdniaj±ce te¿ parametr: mocMuzyczna
+create class Wzmacniacz extends ProduktElektroniczny {
+  instance wzmacniacz : {mocMuzyczna}
+
+  procedure porownaj( wzm ) {
+    return super::porownaj(wzm) +
+      ProduktElektroniczny::porownaj(mocMuzyczna, wzm.mocMuzyczna)
+  }
+}
+/
+
+
+-- Amplituner.
+-- Klasa dziedziczy po klasach Tuner i Wzmacniacz.
+-- porownaj( at ) - przedfiniowane porównanie, które porównuje amplitunery
+--                  (czyli wzmacniacz i tuner), gdy at jest amplitunerem,
+--                  w p.p. porównuje aplituner w zale¿no¶ci od klasy at
+--                  albo z tunerem albo ze wzmacniaczem.
+create or update class Amplituner extends Wzmacniacz, Tuner {
+  instance amplituner : {}
+
+  procedure porownaj( at ) {
+    if at instanceof Amplituner then
+      return Wzmacniacz::porownaj(at) + Tuner::porownajSamTuner(at)
+    fi;
+    return - at.porownaj(at)
+  }
+}
+/
+
+-- Klasa umo¿liwiaj±ca obs³ugê wypo¿yczania produktów.
+-- Brak nazwy obiektów.
+-- konstruktor() - metoda, któr± nale¿y wywo³aæ, gdy do³±cza siê obiekt do tej klasy.
+--                 Dodaje ona w³a¶ciwo¶ci potrzebne do dzia³ania klasy.
+-- destruktor() - metoda, któr± nale¿y wywo³aæ, gdy siê chce od³±czyæ obiekt
+--                od klasy. Usuwa ona w³a¶ciwo¶ci tej klasy i wy³±cza obiekt
+--                spo¶ród instancji DoWypozyczenia.
+-- Metody konstruktor() i destruktor() zosta³y upodobnione pod wzglêdem tego
+-- co zwracaj± do operatorów includes i excludes ze wzglêdu na to,
+-- i¿ bêd± wykorzystywane w identycznych sytuacjach jak ten operator.
+create or update class DoWypozyczenia {
+  instance : {wypozyczony}
+
+  procedure moznaWypozyczyc() {
+    if(wypozyczony = 0) then return self fi
+  }
+
+  procedure konstruktor() {
+    self :< 0 as wypozyczony;
+    return self
+  }
+
+  procedure destruktor() {
+    delete self.wypozyczony;
+    return DoWypozyczenia excludes self
+  }
+
+  procedure wypozycz() {
+    if wypozyczony = 0 then
+      wypozyczony := 1;
+      return 1
+    else
+      return 0
+    fi
+  }
+
+  procedure oddaj() {
+    wypozyczony := 0
+  }
+}
+/
+
+-- Dodawanie przyk³adowych obiektów.
+
+PlytaAudio includes create (
+  "Ipecac" as producent,
+  "thank you for giving me your valuable time" as nazwa,
+  "Kaada" as wykonawca,
+  40 as cena
+) as plytaAudio
+/
+
+PlytaAudio includes create (
+  "Nonesuch" as producent,
+  "Blues Dream" as nazwa,
+  "Bill Frisell" as wykonawca,
+  45 as cena
+) as plytaAudio
+/
+
+PlytaAudio includes create (
+  "epic" as producent,
+  "time's up" as nazwa,
+  "Living Color" as wykonawca,
+  50 as cena
+) as plytaCD
+/
+
+Amplituner includes create (
+  "Dobra Firma" as producent,
+  "AT 1" as nazwa, 
+  1000 as cena,
+  130 as poborMocy, 
+  50 as mocMuzyczna, 
+  99 as naIleStacji
+) as amplituner
+/
+
+Amplituner includes create (
+  "Firma" as producent,
+  "super AT 1000" as nazwa,
+  400 as cena,
+  100 as poborMocy,
+  40 as mocMuzyczna,
+  9 as naIleStacji
+) as amplituner
+/
+
+Tuner includes create (
+  "Firma" as producent,
+  "super T 1000" as nazwa,
+  150 as cena,
+  10 as poborMocy,
+  9 as naIleStacji
+) as tuner
+/
+
+Tuner includes create (
+  "Dobra Firma" as producent,
+  "T 3" as nazwa,
+  300 as cena,
+  10 as poborMocy,
+  999 as naIleStacji
+) as tuner
+/
+
+Wzmacniacz includes create (
+  "Dobra Firma" as producent,
+  "A 1" as nazwa, 
+  1000 as cena,
+  150 as poborMocy, 
+  60 as mocMuzyczna
+) as wzmacniacz
+/
+
+Wzmacniacz includes create (
+  "Firma" as producent,
+  "super A 1000" as nazwa,
+  350 as cena,
+  180 as poborMocy,
+  60 as mocMuzyczna
+) as wzmacniacz
+/
+
+OdtwarzaczCD includes create (
+  "Dobra Firma" as producent,
+  "CD 1" as nazwa,
+  1000 as cena,
+  150 as poborMocy,
+  1 as naIlePlyt
+) as odtwarzaczCD
+/
+
+-- Koniec dodawania obiektów (obiektów jest 10 w tym: 2 * tuner, 2 * wzmacniacz,
+-- 2 * amplituner, 2 * plytaAudio, 1 * plytaCD, 1 * odtwarzaczCD).
+
+--
+-- Zastêpowalno¶ci na poziomie kolekcji.
+--
+
+count(produkt)
+/
+
+-- Wynik: 9, bo obiekt o nazwie "plytaCD" nie podlega zasadzie zastêpowalno¶ci
+-- na poziomie kolekcji, gdy¿ niezmiennicza nazwa obiektów klasy to: "plytaAudio"
+
+count(tuner)
+/
+
+-- Wynik: 4, z zasad± zastêpowalno¶ci, amplitunery te¿ zosta³y policzone jako tunery.
+
+count(produktElektroniczny)
+/
+
+-- Wynik: 7, bo PlytaAudio nie dziedziczy po ProduktElektroniczny.
+
+--
+-- Wywo³ywanie metod. 
+--
+
+(amplituner where nazwa = "AT 1").porownaj(amplituner where nazwa = "super AT 1000")
+/
+
+-- Wynik: { 1 }, bo "AT 1" ma wprawdzie wiêkszy pobór mocy, ale te¿ wiêksz±
+-- moc muzyczn± i wiêksz± ilo¶æ stacji, wiêc wynik jest poprawny.
+
+(amplituner where nazwa = "AT 1").porownaj(wzmacniacz where nazwa = "A 1")
+/
+
+-- Wynik: { 0 }
+
+(wzmacniacz where nazwa = "A 1").porownaj(amplituner where nazwa = "AT 1")
+/
+
+-- Wynik: { 0 }
+
+(wzmacniacz where nazwa = "super A 1000").porownaj(wzmacniacz where nazwa = "A 1")
+/
+
+-- Wynik { -1 }
+
+
+--
+-- Modyfikowanie klasy.
+--
+
+amplituner.cenaWGroszach()
+/
+
+-- Wynik: { }, poniewa¿ nie ma metody cenaWGroszach()
+
+-- Dodanie metody cenaWGroszach() do klasy Produkt (dodano te¿ pole producent)
+update class Produkt {
+  instance produkt : {producent; nazwa; cena}
+
+  procedure cenaWGroszach() {
+    return 100 * cena
+  }
+}
+/
+
+amplituner.cenaWGroszach()
+/
+
+-- Wynik: { 100000 40000 }, modyfikacja klasy siê powiod³o, co wiêcej
+-- mo¿na powtórzyæ z takim samym wynikiem wszystkie poprzednie testy.
+
+--
+-- Dodawanie zobowi±zañ.
+--
+
+-- Rzutowanie wybiera te produkty, które s± jednocze¶nie
+-- instancjami klasy DoWypozyczenia.
+-- Operator "deref" jest prostym sposobem na wypisanie zawarto¶ci obiektów.
+deref(cast(produkt as DoWypozyczenia))
+/
+
+-- Wynik: { }, nie ma produktów klasy DoWypozyczenia.
+
+-- Przenaczenie amplitunerów do wypo¿yczenia.
+(DoWypozyczenia includes amplituner).konstruktor()
+/
+
+deref(cast(produkt as DoWypozyczenia))
+/
+
+-- Wynik: {
+-- < producent(Dobra Firma)  nazwa(AT 1)  cena(1000)  poborMocy(130)
+--   mocMuzyczna(50)  naIleStacji(99)  wypozyczony(0)  >
+-- < producent(Firma) nazwa(super AT 1000)  cena(400)  poborMocy(100)
+--   mocMuzyczna(40)  naIleStacji(9)  wypozyczony(0)  >  }
+-- Amplitunery mog± zostaæ wypo¿yczone. Zauwa¿my w³a¶ciwo¶æ "wypozyczony",
+-- dodan± przy pomocy konstruktora do obu amplitunerów.
+
+-- Wypo¿yczamy jeden z amlitunerów.
+(amplituner where producent = "Firma").wypozycz()
+/
+
+-- Wynik: { 1 }, uda³o siê.
+
+-- Wypo¿yczamy ten sam amplituner powtórnie.
+(amplituner where producent = "Firma").wypozycz()
+/
+
+-- Wynik: { 0 }, nie uda³o siê bez oddania wypo¿yczyæ.
+
+-- Uruchomienie destruktora z dok³adnie wskazanej klasy.
+-- To, ¿e destruktor zwraca zmieniane obiekty zosta³o wykorzystane
+-- do ich wypisania przez "deref".
+deref(cast(produkt as DoWypozyczenia).DoWypozyczenia::destruktor())
+/
+
+-- Wynik: {
+-- < producent(Dobra Firma)  nazwa(AT 1)  cena(1000)  poborMocy(130)
+--   mocMuzyczna(50)  naIleStacji(99)  >
+-- < producent(Firma)  nazwa(super AT 1000)  cena(400)  poborMocy(100)
+--   mocMuzyczna(40)  naIleStacji(9)  >  }
+-- Jak widaæ nast±pi³o usuniêcie w³a¶ciwo¶ci: "wypozyczony".
+
+deref(cast(produkt as DoWypozyczenia))
+/
+
+-- Wynik: { }, czyli tak jak przed wywo³aniem konstruktorów,
+-- nie ma produktów klasy DoWypozyczenia.
+
+
+--
+-- Usuwanie klas.
+--
+
+delete Produkt
+/
+
+count(produkt)
+/
+
+-- Wynik: 0, bo nie ma klasy Produkt.
+
+count(tuner)
+/
+
+-- Wynik: 4.
+
+count(produktElektroniczny)
+/
+
+-- Wynik: 7, inne klasy jak widaæ dzia³aj±.
+
+(amplituner where nazwa = "AT 1").porownaj(wzmacniacz where nazwa = "A 1")
+/
+
+-- Wynik: { 0 }, wywo³ania metod te¿ dzia³aj±.
+-- Uwaga, po usuniêciu nadklasy hierarchia jest nieodwracalnie uszkodzona,
+-- a to dlatego, ¿e sk³adnia dodawania klasy nie przewiduje mo¿liwo¶ci
+-- wskazania jej podklas.
