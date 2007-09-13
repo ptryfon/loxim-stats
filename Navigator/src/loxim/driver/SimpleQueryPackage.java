@@ -22,7 +22,7 @@ class SimpleQueryPackage implements Package {
 		return Package.TYPE_SIMPLEQUERY;
 	}
 
-	public int serialize(OutputStream stream) throws SBQLException {
+	public int serialize(OutputStream stream) throws SBstmtQLException {
 		try {
 			ConversionUtils.writeEnum(stream, getType());
 			stream.write(query.getBytes());

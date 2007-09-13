@@ -175,7 +175,18 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 				int vecSize_virt = vec_virt->size();
 				ec->printf("[QE] %d Views LID by name taken\n", vecSize_virt);
 				
-				if (vecSize_virt == 0) { 
+				vector<LogicalID*>* vec_sysvirt;
+				if ((errcode = tr->getSystemViewsLID(name, vec_sysvirt)) != 0) {
+					*ec << "[QE] bindName - error in getSystemViewsLID";
+					qe->antyStarveFunction(errcode);
+					qe->inTransaction = false;
+					return errcode;
+				}
+				
+				int vecSize_sysvirt = vec_sysvirt->size();
+				ec->printf("[QE] %d SystemViews LID by name taken\n", vecSize_virt);
+				
+				if (vecSize_virt == 0 && vecSize_sysvirt == 0) { 
 					for (int i = 0; i < vecSize; i++ ) {
 						found_one = true;
 						LogicalID *lid = vec->at(i);
@@ -209,41 +220,62 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 					}
 				}
 				else if (vecSize != 0) {
-					*ec << "[QE] bindName error: Real and virtual objects have the sam name";
+					if (vecSize_virt != 0) {
+						*ec << "[QE] bindName error: Real and virtual objects have the sam name";
+					} else {
+						*ec << "[QE] bindName error: Real and system view objects have the sam name";
+					}
 					*ec << (ErrQExecutor | EBadBindName);
 					return ErrQExecutor | EBadBindName;
-				}
-				else if (vecSize_virt != 1) {
+				} else if(vecSize_virt != 0 && vecSize_sysvirt != 0) {
+					*ec << "[QE] bindName error: virtual objects and system view objects have the sam name";
+					*ec << (ErrQExecutor | EBadBindName);
+					return ErrQExecutor | EBadBindName;
+				} else if (vecSize_virt > 1) {
 					*ec << "[QE] bindName error: Multiple views defining virtual objects with the same name";
 					*ec << (ErrQExecutor | EBadBindName);
 					return ErrQExecutor | EBadBindName;
 				}
+				else if (vecSize_sysvirt > 1) {
+					*ec << "[QE] bindName error: Multiple system views defining objects with the same name";
+					*ec << (ErrQExecutor | EBadBindName);
+					return ErrQExecutor | EBadBindName;
+				}
 				else {
-					//TODO pakowanie wirtualnych resultow na stos wynikow, chyba gotowe
-					LogicalID *view_lid = vec_virt->at(0);
-					string view_code;
-					errcode = qe->checkViewAndGetVirtuals(view_lid, name, view_code);
-					if (errcode != 0) return errcode;
-					
-					vector<QueryBagResult*> envs_sections;
-					envs_sections.push_back(new QueryBagResult);
-					
-					errcode = qe->callProcedure(view_code, envs_sections);
-					if(errcode != 0) return errcode;
-					
-					QueryResult *res;
-					qe->pop_qres(res);
-					QueryResult *bagged_res = new QueryBagResult();
-					((QueryBagResult *) bagged_res)->addResult(res);
-					for (unsigned int i = 0; i < bagged_res->size(); i++) {
-						found_one = true;
-						QueryResult *seed;
-						errcode = ((QueryBagResult *) bagged_res)->at(i, seed);
+					if (vecSize_virt == 1) {
+						//TODO pakowanie wirtualnych resultow na stos wynikow, chyba gotowe
+						LogicalID *view_lid = vec_virt->at(0);
+						string view_code;
+						errcode = qe->checkViewAndGetVirtuals(view_lid, name, view_code);
 						if (errcode != 0) return errcode;
-						vector<QueryResult *> seeds;
-						seeds.push_back(seed);
-						QueryResult *virt_res = new QueryVirtualResult(name, view_lid, seeds);
-						r->addResult(virt_res);
+						
+						vector<QueryBagResult*> envs_sections;
+						envs_sections.push_back(new QueryBagResult);
+						
+						errcode = qe->callProcedure(view_code, envs_sections);
+						if(errcode != 0) return errcode;
+						
+						QueryResult *res;
+						qe->pop_qres(res);
+						QueryResult *bagged_res = new QueryBagResult();
+						((QueryBagResult *) bagged_res)->addResult(res);
+						for (unsigned int i = 0; i < bagged_res->size(); i++) {
+							found_one = true;
+							QueryResult *seed;
+							errcode = ((QueryBagResult *) bagged_res)->at(i, seed);
+							if (errcode != 0) return errcode;
+							vector<QueryResult *> seeds;
+							seeds.push_back(seed);
+							QueryResult *virt_res = new QueryVirtualResult(name, view_lid, seeds);
+							r->addResult(virt_res);
+						}
+					} else {
+						// Gałaź lda wirtualnych widokół
+						*ec << "[QE] TUTAJ WYNIKI";
+						found_one = true;
+						LogicalID *svlid = vec_sysvirt->at(0);
+						QueryReferenceResult *sysvirtres = new QueryReferenceResult(svlid);
+						r->addResult(sysvirtres);
 					}
 				}
 				

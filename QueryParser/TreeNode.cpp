@@ -14,7 +14,7 @@ namespace QParser
 	long TreeNode::getUv(){return uv++;};
 	
 	
-    TreeNode* NameNode::clone()     { NameNode * nowy =  new NameNode(name); nowy->setUsedBy(this->getUsedBy()); nowy->setBoundIn(this->getBoundIn()); nowy->setOid(this->getOid()); return nowy; }
+     TreeNode* NameNode::clone()     { NameNode * nowy =  new NameNode(name); nowy->setUsedBy(this->getUsedBy()); nowy->setBoundIn(this->getBoundIn()); nowy->setOid(this->getOid()); return nowy; }
     TreeNode* ParamNode::clone()    { TreeNode * nowy =  new ParamNode(name); nowy->setOid(this->getOid()); return nowy;}
     TreeNode* IntNode::clone()      { IntNode * nowy = new IntNode(value); nowy->setOid(this->getOid());  return nowy;}
     TreeNode* StringNode::clone()   { StringNode * nowy = new StringNode(value);  nowy->setOid(this->getOid()); return nowy;}
@@ -1048,5 +1048,3 @@ TreeNode* TreeNode::getNodeByOid(vector<TreeNode*>* listVec, long oid){
 	return NULL;
 }
 }
-
-

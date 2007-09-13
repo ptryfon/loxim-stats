@@ -169,7 +169,8 @@ namespace Store
 	{
 		return this->subclasses;
 	}
-	
+				/* Obiekty widoku systemowego */
+
 	void DBDataValue::addSubclass(LogicalID* subclass) {
 		if(this->subclasses == NULL) {
 			this->subclasses = new SetOfLids();

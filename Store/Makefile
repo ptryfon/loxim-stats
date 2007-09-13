@@ -16,7 +16,8 @@ SOURCES	=	Buffer.cpp \
 		Classes.cpp \
 		PagePointer.cpp \
 		PageManager.cpp \
-		Misc.cpp
+		Misc.cpp \
+		SystemViews.cpp
 
 HEADERS	=	../QueryExecutor/HashMacro.h \
 		Buffer.h \
@@ -33,7 +34,8 @@ HEADERS	=	../QueryExecutor/HashMacro.h \
 		PageManager.h \
 		Store.h \
 		Misc.h \
-		Struct.h
+		Struct.h \
+		SystemViews.h
 
 STATIC_LIB =	Store.a
 PROGRAM =	TestStore

@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include "DBStoreManager.h"
 #include "DBDataValue.h"
+#include "SystemViews.h"
 
 #define LOGS
 
@@ -67,6 +68,7 @@ namespace Store
 		this->views = new Views();
 		this->classes = new Classes();
 		this->interfaces = new Interfaces();
+		this->systemviews = new SystemViews();
 		this->pagemgr = new PageManager(this);
 
 		this->roots->init(this->buffer, this->log);
@@ -162,6 +164,12 @@ namespace Store
 	    return interfaces;
 	}
 
+	SystemViews* DBStoreManager::getSystemViews()
+	{
+		return systemviews;
+	}
+	
+
 	PageManager* DBStoreManager::getPageManager()
 	{
 		return pagemgr;
@@ -169,9 +177,12 @@ namespace Store
 
 	int DBStoreManager::getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object)
 	{
-#ifdef DEBUG_MODE
-		ec->printf("Store::Manager::getObject (LID=%d) started...", lid->toInteger());
-#endif
+			if(lid->toInteger() & 0xFF000000) {
+				ec->printf("Store::Manager::getObject from systemViews LID = %u\n", lid->toInteger());				
+			/* Obiekty widoku systemowego, gdy zapalone są bity 31-24*/
+			return systemviews->getObject( tid, lid, mode, object);
+			}
+		
 		physical_id *p_id = NULL;
 		if( (map->getPhysicalID(lid->toInteger(),&p_id)) == 2 ) return 2; //out of range
 //		cout << "file: " << p_id->file_id << ", page: " << p_id->page_id << ", off: " << p_id->offset <<endl;
@@ -816,6 +827,43 @@ int DBStoreManager::getClassesLID(TransactionID* tid, vector<LogicalID*>*& p_cla
 		return 0;
 	}
 
+//System Views
+	int DBStoreManager::getSystemViewsLID(TransactionID* tid, vector<LogicalID*>*& p_systemviews)
+	{
+		#ifdef DEBUG_MODE
+			*ec << "Store::Manager::getSystemViewsLID(ALL) begin..";
+		#endif
+			int rval = getSystemViewsLID(tid, "", p_systemviews);
+		
+		#ifdef DEBUG_MODE
+			*ec << "Store::Manager::getSystemViewsLID(ALL) done";
+		#endif
+			return rval;
+	}
+	
+	int DBStoreManager::getSystemViewsLID(TransactionID* tid, string name, vector<LogicalID*>*& p_systemviews)
+	{
+		#ifdef DEBUG_MODE
+				*ec << "Store::Manager::getSystemViewsLID(BY NAME) begin..";
+		#endif
+				p_systemviews = new vector<LogicalID*>(0);
+				vector<int>* rvec;
+				rvec = systemviews->getItems(name.c_str(), tid->getId(), tid->getTimeStamp());
+				
+				vector<int>::iterator obj_iter;
+				for(obj_iter=rvec->begin(); obj_iter!=rvec->end(); obj_iter++)
+				{
+					LogicalID* lid = new DBLogicalID((*obj_iter));
+					p_systemviews->push_back(lid);
+				}
+		
+				delete rvec;
+		#ifdef DEBUG_MODE
+				ec->printf("Store::Manager::getSystemViewsLID(BY NAME) done: size=%d\n", p_systemviews->size());
+		#endif
+				return 0;
+	}
+	
 
 	int DBStoreManager::abortTransaction(TransactionID* tid)
 	{

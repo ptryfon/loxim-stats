@@ -135,6 +135,7 @@ extern int szbderrno;
 ([_a-zA-Z][_a-zA-Z0-9]*)*::[_a-zA-Z][_a-zA-Z0-9]* yylval.str = new char[strlen(yytext) + 1]; yylval.str = strcpy(yylval.str,yytext); return EXTNAME;
 [_a-zA-Z][_a-zA-Z0-9]* 	yylval.str = new char[strlen(yytext) + 1]; yylval.str = strcpy(yylval.str,yytext); return NAME;
 $[_a-zA-Z][_a-zA-Z0-9]* yylval.str = new char[strlen(yytext) + 1]; yylval.str = strcpy(yylval.str,yytext); return PARAMNAME;
+%[_a-zA-Z][_a-zA-Z0-9]* 	yylval.str = new char[strlen(yytext) + 1]; yylval.str = strcpy(yylval.str,yytext); return SYSTEMVIEWNAME;
 [0-9]+ 			yylval.num = atoi(yytext); return INTEGER;
 [0-9]+"."[0-9]+		yylval.dbl = atof(yytext); return DOUBLE;
 

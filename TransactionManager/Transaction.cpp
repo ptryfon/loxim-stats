@@ -65,16 +65,27 @@ namespace TManager
 	{
 		int errorNumber;
 	
-		err.printf("Transaction: %d getObjectPointer, mode %d\n", tid->getId(), mode);
-		errorNumber = lm->lock(lid, tid, mode);
+		err.printf("Transaction: %u getObjectPointer, mode %d\n", tid->getId(), mode);
+		if(lid->toInteger() & 0xFF000000) {
+			err.printf("TransactionStore::getObject from systemViews LID = %u\n", lid->toInteger());			
+			/* Obiekty widoku systemowego, gdy zapalone są bity 31-24*/
+			sem->lock_read();
 
-		if (errorNumber == 0)
-		{
-		    sem->lock_read();
-		    
-		    	errorNumber = sm->getObject( tid, lid, mode, p);
+			errorNumber = sm->getObject( tid, lid, mode, p);
+
+			sem->unlock();
+		} else {
+			errorNumber = lm->lock(lid, tid, mode);
+	
+			if (errorNumber == 0)
+			{
+				sem->lock_read();
+				
+					errorNumber = sm->getObject( tid, lid, mode, p);
+				
+				sem->unlock();
+			}
 			
-		    sem->unlock();
 		}
 		
 		if (errorNumber) abort();
@@ -83,7 +94,7 @@ namespace TManager
 			err.printf("Transaction: %d getObjectPointer, object doesn't exist while we expect existing object\n");
 			abort();
 		} 
-    
+		
 		return errorNumber; 
 	}
 	
@@ -500,6 +511,37 @@ namespace TManager
 		return errorNumber;
 	}
 
+	//System Views
+	int Transaction::getSystemViewsLID(vector<LogicalID*>* &p)
+	{
+		int errorNumber;
+
+		err.printf("Transaction: %d getInterfacesLID\n", tid->getId());
+		
+		sem->lock_read();
+		errorNumber = sm->getSystemViewsLID(tid, p);			
+		sem->unlock();
+		
+		if (errorNumber) abort();
+	
+		return errorNumber;
+	}
+
+	int Transaction::getSystemViewsLID(string name, vector<LogicalID*>* &p)
+	{
+		int errorNumber;
+		
+		err.printf("Transaction: %d getInterfacesLID by name \n", tid->getId());
+
+		sem->lock_read();
+		errorNumber = sm->getSystemViewsLID(tid, name, p);
+		sem->unlock();
+		
+		if (errorNumber) abort();
+	
+		return errorNumber;
+	}
+	
 	int Transaction::addInterface(const char* name, ObjectPointer* &p)
 	{
 		int errorNumber;

@@ -260,6 +260,10 @@ namespace Store
 		virtual int addInterface(TransactionID* tid, const char* name, ObjectPointer*& object) = 0;
 		virtual int removeInterface(TransactionID* tid, ObjectPointer*& object) = 0;
 
+		// System views
+		virtual int getSystemViewsLID(TransactionID* tid, vector<LogicalID*>*& p_systemviews) = 0;
+		virtual int getSystemViewsLID(TransactionID* tid, string name, vector<LogicalID*>*& p_systemviews) = 0;
+
 		// Transactions
 		virtual int abortTransaction(TransactionID* tid) = 0;
 		virtual int commitTransaction(TransactionID* tid) = 0;

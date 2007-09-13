@@ -16,6 +16,7 @@ namespace Store
 #include "Misc.h"
 #include "Errors/ErrorConsole.h"
 #include "NamedItems.h"
+#include "SystemViews.h"
 
 using namespace std;
 using namespace Config;
@@ -37,6 +38,7 @@ namespace Store
 		Views* views;
 		Classes* classes;
 		Interfaces *interfaces;
+		SystemViews* systemviews;
 		PageManager* pagemgr;
 		unsigned timer;
 		ErrorConsole *ec;
@@ -60,6 +62,7 @@ namespace Store
 		Views* getViews();
 		Classes* getClasses();
 		Interfaces* getInterfaces();
+		SystemViews* getSystemViews();
 		PageManager* getPageManager();
 
 		virtual int getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object);
@@ -93,6 +96,9 @@ namespace Store
 		virtual int getInterfacesLID(TransactionID* tid, string name, vector<LogicalID*>*& roots);
 		virtual int addInterface(TransactionID* tid, const char* name, ObjectPointer*& object);
 		virtual int removeInterface(TransactionID* tid, ObjectPointer*& object);
+
+		virtual int getSystemViewsLID(TransactionID* tid, vector<LogicalID*>*& p_systemviews);
+		virtual int getSystemViewsLID(TransactionID* tid, string name, vector<LogicalID*>*& p_systemviews);
 
 		virtual int abortTransaction(TransactionID* tid);
 		virtual int commitTransaction(TransactionID* tid);

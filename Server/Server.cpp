@@ -535,7 +535,6 @@ while (!signalReceived) {
 
 	if ((pType == Package::SIMPLEQUERY) || 
 		(pType == Package::PARAMQUERY)) {
-			
 		SimpleQueryPackage* sqp = (SimpleQueryPackage*) package;
 		messgBuff = sqp->getQuery();
 		size = sqp->getQuerySize();
