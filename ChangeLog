@@ -1,3 +1,8 @@
+2007-09-14  Damian Klata  <dk209472@students.mimuw.edu.pl>
+
+	* Store/Makefile, Store/Store.h, TransactionManager/Transaction.cpp, TransactionManager/Transaction.h, Navigator/src/loxim/driver/SimpleQueryPackage.java, QueryExecutor/EnvironmentStack.cpp, QueryParser/TreeNode.cpp, QueryParser/TreeNode.h, QueryParser/parser.y, QueryParser/scanner.l, Server/Server.cpp, Store/DBDataValue.cpp, Store/DBStoreManager.cpp, Store/DBStoreManager.h:
+	Widoki systemowe.
+
 2007-09-09  Sebastian Kaczanowski  <sk153407@students.mimuw.edu.pl>
 
 	* Testy/test_klas.sbql: Plik z testami dla klas.
