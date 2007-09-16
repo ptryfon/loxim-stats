@@ -25,11 +25,11 @@ namespace QParser {
 			
 			if (candidate == NULL){	
 				Deb::ug("NULL !!!!\n");
-				return bindersCol; //<pusta kolekcja chyba ... >;
+				return bindersCol; //<empty collection>;
 			}
-			/*dalej zakladamy ze znalezlismy taki objekt w metabazie... */
+			/* further we assume we have found such an object in database */
 			Deb::ug("i found object nr %d.\n", candidate->getMyId());
-			if (candidate->getKind() == "atomic") return bindersCol;	//<pusta kolekcja>;
+			if (candidate->getKind() == "atomic") return bindersCol;	//<empty collection>;
 			if (candidate->getKind() == "link") {
 				Deb::ug("object is a link !\n");
 				pom = candidate->getTarget(); /*now pom points to the target object. */
@@ -43,7 +43,7 @@ namespace QParser {
 				bindersCol = new BinderList(sb);
 				return bindersCol;	//<kolekcja 1-eltowa zawierajaca sb>;				
 			};
-			/*dalej zakladamy ze kind == "complex" -- objekt zlozony. */
+			/* further we assume that kind == "complex" -- objekt zlozony. */
 			Deb::ug("the object is a complex one ! \n");
 			pom = candidate->getSubObjects();
 				// <kolekcja statBinderow> *binders = new <pusta kolekcja>;	

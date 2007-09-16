@@ -19,7 +19,7 @@ int DeathRmver::rmvDeath(TreeNode *&qTree){
 	cout <<"-----------------------------------------------------------------------------" << endl;
 	
 	this->qTree = qTree;
-	cout << "dostal :" << endl;
+	cout << "received :" << endl;
 	qTree->serialize();
 //	qTree->putToString();
 	cout << endl;
@@ -29,7 +29,7 @@ int DeathRmver::rmvDeath(TreeNode *&qTree){
 		// qTree->markNeeded();		
 		qTree->markNeeded2();
 		if (Deb::ugOn()){
-		    cout << "\n szuka w \n";
+		    cout << "\n it is searching in \n";
 		    qTree->putToString();
 		    cout << endl;
 		}
@@ -54,7 +54,7 @@ int DeathRmver::rmvDeath(TreeNode *&qTree){
 	cout <<"=============================================================================" << endl;
 	cout <<"-----------------------------------------------------------------------------" << endl;
 	cout <<"-----------------------------------------------------------------------------" << endl;
-	cout<< "rmvDeath end, zwraca" << endl;
+	cout<< "rmvDeath end, returns" << endl;
 //	qTree->putToString();
 	qTree->serialize();
 	cout << endl;

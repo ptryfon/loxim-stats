@@ -10,22 +10,22 @@ namespace QParser{
 	int min = ((NonAlgOpNode* ) niealg)->getFirstOpenSect();
 	int max = ((NonAlgOpNode* ) niealg)->getLastOpenSect();
 	int depth = 0;	
-	Deb::ug("drzewko oper niealg");
+	Deb::ug("nonalg oper tree:");
 	niealg->putToString();
 	Deb::ug("------------------------");
 	
-	cout << "szuka niezaleznego w" << endl;
+	cout << "it is searching for independant in" << endl;
 	(((TwoArgsNode *) niealg)->getRArg())->putToString();
 	cout << "------------------------" << endl;
 	
 	TreeNode * tree = doGetIndep(((TwoArgsNode *) niealg)->getRArg(), min, max, depth);
 	
 	printf(" drzewko: %d, na glebokosci %d\n", (int) tree, depth);
-	cout << "getIndependant zwraca takie cos: " << endl;
+	cout << "getIndependant returns: " << endl;
 	if (tree != NULL)
 		tree->putToString();
 	else 
-	    cout << "nie znalazl niezaleznego zapytania" << endl;
+	    cout << "no independant subquery found" << endl;
 	cout << "GETINDEPENDANT END" << endl;
 	return tree;
     }

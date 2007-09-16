@@ -83,12 +83,12 @@ namespace QParser {
 //	return -1;		    
 	} else {
 //			    *ec << "zapytanie sparsowane chyba ok\n";
-	    Deb::ug("zapuytanie sparsowane chyba ok ");
+	    Deb::ug("query ok parsed");
 	}	
 	delete lexer;
 	qTree = d;
 	
-	Deb::ug("Odczyt z drzewka, ktore przekazuje:");
+	Deb::ug("tree before optimization:");
 	Deb::ug("--------------------------------------");
 	if (Deb::ugOn()) {
 	    qTree->putToString(); cout << endl;
@@ -129,7 +129,7 @@ namespace QParser {
 		Deb::ug("I'll return optimized tree\n"); 
 		qTree = nt;
 		
-		Deb::ug("Odczyt z drzewka, po zoptymalizowaniu:");
+		Deb::ug("Tree after optimization:");
 		Deb::ug("--------------------------------------");
 		if (Deb::ugOn()) {
 	        qTree->putToString(); cout << endl;
@@ -150,7 +150,7 @@ namespace QParser {
 	cout <<"=============================================================================" << endl;
 	cout <<"-----------------------------------------------------------------------------" << endl;
 	cout <<"-----------------------------------------------------------------------------" << endl;
-	cout<< "P    A    R    S    E    R        Z    W    R    A    C    A    :" << endl;
+	cout<< "P    A    R    S    E    R        R  E  T  U  R  N  S   :" << endl;
 //	qTree->putToString();
 	qTree->serialize();
 	cout << endl;

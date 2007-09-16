@@ -18,36 +18,30 @@ int JoinRpcer::replaceJoin(TreeNode *&qTree){
 	cout <<"-----------------------------------------------------------------------------" << endl;
 	
 	this->qTree = qTree;
-	cout << "dostal :" << endl;
+	cout << "received :" << endl;
 	qTree->serialize();
 	// qTree->putToString();
 	cout << endl;
 	
-	cout << "rj before setStatEvalRun\n";
 	QueryParser::setStatEvalRun(0);
-	cout << "rj after setStatEvalRun\n";
 	
-	cout << "rj before resetUsedNeeded\n";
 	TreeNode::resetUsedNeeded(qTree);
-	cout << "rj after resetUsedNeeded\n";
 	
-	cout << "rj before statEvaluate\n";
 	qParser->statEvaluate(qTree);
-	cout << "rj after statEvaluate\n";
 	
 	bool replaced = true;
 	while(replaced){
 		replaced = false;
 		
 		if (Deb::ugOn()){
-		    cout << "\n JoinRpcer szuka w \n";
+		    cout << "\n JoinRpcer is searching in \n";
 		    qTree->putToString();
 		    cout << endl;
 		}
 		vector<NonAlgOpNode*> *toReplaceVec =  new vector<NonAlgOpNode*>();
 		getSupposed(toReplaceVec, qTree);
-		cout << "\n JoinRpcer szuka w size:  " << toReplaceVec->size() << endl;
 		// tu robie zastepowanie joina kropka, jezeli sie uda, ustawiam replaced = true;
+		// i try to replace join with dot
 		for(vector<NonAlgOpNode*>::iterator iter = toReplaceVec->begin(); iter != toReplaceVec->end(); iter++){
 			if (canReplace(*iter)){
 				replaceJoinWithDot((NonAlgOpNode*) (*iter)->getLArg());	
@@ -58,7 +52,7 @@ int JoinRpcer::replaceJoin(TreeNode *&qTree){
 	cout <<"=============================================================================" << endl;
 	cout <<"-----------------------------------------------------------------------------" << endl;
 	cout <<"-----------------------------------------------------------------------------" << endl;
-	cout<< "replaceJoin end, zwraca" << endl;
+	cout<< "replaceJoin end, returns" << endl;
 //	qTree->putToString();
 //	cout << endl;
 //	cout << "\n serialize: \n";

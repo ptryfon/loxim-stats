@@ -21,7 +21,7 @@ protected:
 	
 	bool canTryToRemoveAux(NameAsNode * auxNode, vector<NameNode*>* nameVec);
 	
-	// auxNode - name as node, toRemoveVec - nazwy ktore sa wiazane w auxNode - pomocnicze
+	// auxNode - name as node, toRemoveVec - names that are bound in auxNode , helpers
 	bool removedAux(NameAsNode * auxNode, vector<NameNode*> *toRemoveVec, TreeNode *&qTree);
 	
 	

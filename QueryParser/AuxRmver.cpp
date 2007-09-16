@@ -30,12 +30,12 @@ int AuxRmver::rmvAux(TreeNode *&qTree){
 		TreeNode::resetUsedNeeded(qTree);
 		qParser->statEvaluate(qTree);
 		if (Deb::ugOn()){
-		    cout << "\n szuka w \n";
+		    cout << "\n it is looking in\n";
 		    qTree->putToString();
 		    cout << endl;
 		}
-		vector<NameAsNode*> * auxVec = new vector<NameAsNode*>();	// wszystkie wezly group as
-		vector<TreeNode*> * listVec = new vector<TreeNode*>();	// wszystkie wezly w drzewie 
+		vector<NameAsNode*> * auxVec = new vector<NameAsNode*>();	// all group as nodes
+		vector<TreeNode*> * listVec = new vector<TreeNode*>();	//  all nodes in a tree
 		qTree->getInfixList(listVec);
 		for(vector<TreeNode*>::iterator iter = listVec->begin(); iter != listVec->end(); iter++){
 			if ((*iter)->type() == TreeNode::TNAS){
@@ -54,31 +54,31 @@ int AuxRmver::rmvAux(TreeNode *&qTree){
 			}
 			for(vector<NameNode*>::iterator usedIter =usedBy->begin(); usedIter != usedBy->end(); usedIter++){
 /*				
+				// here i check if *usedIter is bound in section with size 1 and if its father is dot
+				// if it is so, than i copy the orig and delete from it all decl. and occurences and 
+				// evaluate it and check if all names are bound in the same node
 				// tu sprawdzam czy (*usedIter) jest wiazany w sekcji o rozmiarze 1 i czy jego ojcem jest kropka
 				// jezeli tak to kopije sobie znowu oryginal i usuwam z niego dekl i wszystkie wywolania i ewaluuje
 				// potem sprawdzam czy wszystkie z used by sa wiazane w tym samym wezle
 	
 */				
 				if (!canTryToRemoveAux(*auxIter,  usedBy)){
-					// jsi_kom cout<< "stwierdzil ze nie moze usunac\n";
 					canTryToRemove = false;
 				} else {
-					// jsi_kom cout<< "stwierdzil ze moze usunac\n";	
+
 				}
 			}
 			
 			
 			if (canTryToRemove){
 				if (removedAux(*auxIter, usedBy, qTree)){
-					// jsi_kom cout<< "zostal usuniety " << endl;
 					removed = true;
 					break;
 				}
 			} else {
-				// jsi_kom cout<< "nie prubuje usuwac bo nie moze\n";	
+
 			}
 			
-			// jsi_kom cout<< "nie mogl zostac usuniety: " << endl;
 			(*auxIter)->putToString();
 			cout << endl;
 		}	
@@ -112,12 +112,11 @@ bool AuxRmver::removedAux(NameAsNode * _auxNode, vector<NameNode*> *_toRemoveVec
 	}
 
 	QueryParser::setStatEvalRun(0);
-	// jsi_kom cout<< "wywoluje resetUsedNeeded(klon)\n";
 	TreeNode::resetUsedNeeded(klon);
 
-	// teraz usuwam z oryginalu auxNode i wszystkie w nim wiazane (z toRemoveVec)
+	// now i delete from the orig auxNode and all related with it (from toRemoveVec)
 	
-	// usuwam name as node
+	// i delete name as node
 	if (klon == auxNode){ 
 		klon = auxNode->getArg();
 		auxNode->getArg()->setParent(NULL); 
@@ -128,13 +127,13 @@ bool AuxRmver::removedAux(NameAsNode * _auxNode, vector<NameNode*> *_toRemoveVec
 	}
 	
 	for(vector<NameNode*>::iterator rIter = toRemoveVec->begin(); rIter != toRemoveVec->end(); rIter++){
-		// jego ojcem jest operator kropki
+		// its father is a dot node
 		NonAlgOpNode* parentDot = (NonAlgOpNode*) (*rIter)->getParent();
 		TreeNode* left = parentDot->getLArg();
 		TreeNode* right = parentDot->getRArg();
 		if ((*rIter) == left){
 			parentDot->getParent()->swapSon(parentDot, right);		
-		} else {// jest prawym synem kropki
+		} else {// its right son of dot node
 			if (NULL != parentDot->getParent()){
 				parentDot->getParent()->swapSon(parentDot, left);
 			} else {
@@ -144,7 +143,7 @@ bool AuxRmver::removedAux(NameAsNode * _auxNode, vector<NameNode*> *_toRemoveVec
 		}
 	}
 
-	// wykonuje statyczna ewaluacje na klonie
+	
 	printf("wykonuje statyczna ewaluacje na klonie\n");
 	qParser->statEvaluate(klon);
 

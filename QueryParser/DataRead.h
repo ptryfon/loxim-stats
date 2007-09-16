@@ -24,29 +24,29 @@ namespace QParser {
 	
 	/*******************************************************
 	 *													   *
-	 *	RAMOWA IMPLEMENTACJA STRUKTURY METABAZY W PAMIECI  *
+	 *	Implementation of metabase in memory               *
 	 *													   *
 	 *******************************************************/
 
 	class DataObjectDef
 	{
 	protected:
-		DataObjectDef *nextBase;	/* lista definicji bazowych obiektow */
-/* jsi ??? */	DataObjectDef *nextColl;	/* !=NULL tylko tam, gdzie to elt. jakiejs kolekcji. */	
-		DataObjectDef *nextSub;		/* lista podobjektow jakiegos complex object.*/
-		DataObjectDef *nextHash;	/* lista dla jednego pola tab. haszujacej. */
-		int myId;	/*TODO: czy to jest int? czy unsigned int? czy co? trzeba chyba u executorow sprawdzic*/
+		DataObjectDef *nextBase;	/* list of definitions of base objects */
+/* jsi ??? */	DataObjectDef *nextColl;	/* !=NULL only if it belongs to a collection */	
+		DataObjectDef *nextSub;		/* list of subobjects of a complex object.*/
+		DataObjectDef *nextHash;	/* list for one field in a hash table */
+		int myId;	
 		string name;
 		string card;
 		string kind;
-		bool isBase;	/*czy owner jest NULL*/
+		bool isBase;	/*if owner is NULL*/
 		
-		string type; 				/* TYLKO U ATOMIC */
-		DataObjectDef *subObjects;	/* TYLKO U COMPLEX */
-		//list<DataObjectDef *> subObjects;	/* TYLKO U COMPLEX */
-		DataObjectDef *target;		/* TYLKO U LINK */
+		string type; 				/* only in ATOMIC */
+		DataObjectDef *subObjects;	/* only in COMPLEX */
+		//list<DataObjectDef *> subObjects;	/* only in COMPLEX */
+		DataObjectDef *target;		/* only in LINK */
 		int		targetId;
-		DataObjectDef *owner;		/* o ile to nie ob. bazowy. wtedy null. */
+		DataObjectDef *owner;		/* null in base objects */
 		int 		ownerId;
 		
 	public:
@@ -78,7 +78,7 @@ namespace QParser {
 		virtual void setKind(string k){kind = k;}
 		virtual DataObjectDef * getTarget(){return target;}
 		virtual void  setTarget(DataObjectDef * t){target = t;}
-		/* TODO: get/set na wiekszosci tego powyzej... + konstruktory sensowne. */
+		
 		virtual void addSubObject(DataObjectDef * nobj){
 		    nobj->nextSub = this->subObjects;
 		    this->subObjects = nobj;
@@ -99,7 +99,7 @@ namespace QParser {
 	static DataScheme* datScheme;
 	protected:
 	DataObjectDef *baseObjects;
-	DataObjectDef *refTable[100]; /*TODO: czy tak sie deklaruje tablice wskaznikow???*/
+	DataObjectDef *refTable[100]; 
 
 	DataObjectDef *createDataObjectDef(ObjectPointer *op, Transaction * tr);
 	
@@ -128,62 +128,37 @@ namespace QParser {
 		    this->hashIn(newPlace, obj);
 		}
 			
-		virtual void addBaseObj (DataObjectDef *newOne) {
-			// DataObjectDef *pom;
-//			int newPlace;
-			/*	//	FIXME	nie wiem o co tu chodzilo, czy dodanie obiektu do listy??
-			if (this->baseObjects != NULL) {
-				pom = this->baseObjects->getNextBase();		// czy w ten sposob nie traci sie 
-				this->baseObjects->setNext(NULL);		// pierwszego elemnetu??
-				delete this->baseObjects;
-				newOne->setNext(pom);				
-			}
-			*/			
+		virtual void addBaseObj (DataObjectDef *newOne) {	
 			newOne->setNextBase(this->baseObjects);
 			this->baseObjects = newOne;		/*no matter if it was empty before or not. */
 			/* now insert it to the hashtable... */
 			addObj(newOne);
-			// newPlace = this->hashFun(newOne->getMyId());
-			// this->hashIn(newPlace, newOne);
 		}
 		
 		
 		virtual DataObjectDef *getObjById (int objId) {
-	//		cerr << "getObjById start\n";
 			int itsPlace = this->hashFun (objId);
-	//		cerr << "itsPlace " << itsPlace << endl;
 			DataObjectDef *point = refTable [itsPlace];
-			
-	//		if (point != NULL){
-	//		    cerr << "moze trzeba wyzerowac tablice, point != NULL " << endl;
-	//		} else 
-	//		    cerr << " point == NULL"<< endl;
-			
+
 			bool halt = false;
 			while (not halt) {
 				if (point == NULL) {halt = true;}
-				else { //cerr << "point != NULL, spr Id" << endl;
+				else { 
 				    if (point->getMyId() == objId) {
-				//	cerr << "halt \n";
-					halt = true;
+						halt = true;
 				    }
 				    else {
-				//	cerr << "bierze nast \n";
-					point = point->getNextHash();
-				//	cerr << "wzial nast \n";
+						point = point->getNextHash();
 				    }	
 				}
 			};
-		//	cerr << "getObjById end\n";
-			return point; /*UWAGA to moze byc NULLem (jesli nie znalazl. )*/
+	;
+			return point; /*it can be NULL if wasnt found*/
 			
 		};
 		
-		// jsi death - I added treeNode to enable removing death subqueries
 		virtual BinderWrap *statNested (int objId, TreeNode *treeNode);
-//		virtual list<StatBinder *> statNested (int objId); 
 
-		
 		/*function below uses a list impl. of BinderWraps. you can change it ...  */
 		virtual BinderWrap* bindBaseObjects(); 
 		

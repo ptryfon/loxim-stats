@@ -26,8 +26,8 @@ namespace QParser {
 #endif
     protected:
     static long uv;
-    long oid;	// zachowywane przy clone, jezeli beda konstruktory kopiujace tez powinny to kopiowac
-    long id;	// unikatowy identyfikator obiektu, nie zachowywane przy clone i  konstr kopiujacych
+    long oid;	// preserved by clone, copying constructor should copy it
+    long id;	// unique object id, not preserved by clone and copying constructor
    
 	TreeNode* parent;
 	bool needed;		// is not death
@@ -92,7 +92,7 @@ namespace QParser {
 	virtual void serialize(){this->putToString();};
 	
 
-    // na wniosek Executora:
+    // Executor wanted id:
 	virtual string getName() {return (string) NULL;}
 	virtual TreeNode* getArg() {return (TreeNode *) NULL;}
 	virtual TreeNode* getLArg() {return (TreeNode *) NULL;}

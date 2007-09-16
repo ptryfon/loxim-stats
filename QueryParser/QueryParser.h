@@ -15,7 +15,7 @@ namespace QParser
     	protected:
 	    StatQResStack *sQres;
 	    StatEnvStack *sEnvs;
-	    static int statEvalRun;	// ktory raz jest wywolywana statyczna ewaluacja - pewne rzeczy mozna ustawiac tylko raz
+	    static int statEvalRun;	// for which time the stat eval is called - some things can be set only once
 		bool shouldOptimize;
 	public:
 	QueryParser();
