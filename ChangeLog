@@ -1,3 +1,8 @@
+2007-09-16  Jakub Sitek  <js209298@students.mimuw.edu.pl>
+
+	* QueryParser/AuxRmver.cpp, QueryParser/AuxRmver.h, QueryParser/DataRead.cpp, QueryParser/DataRead.h, QueryParser/DeathRmver.cpp, QueryParser/JoinRpcer.cpp, QueryParser/Optimizer.cpp, QueryParser/QueryParser.cpp, QueryParser/QueryParser.h, QueryParser/TreeNode.h:
+	angielskie komunikaty i komentarze
+
 2007-09-14  Damian Klata  <dk209472@students.mimuw.edu.pl>
 
 	* Store/SystemViews.cpp, Store/SystemViews.h: Widoki Systemowe
