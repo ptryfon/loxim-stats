@@ -1,3 +1,7 @@
+2007-10-19  Piotr Turski  <pt209301@students.mimuw.edu.pl>
+
+	* Indexes/Tests/Attic/ParentName.cpp: New file.
+
 2007-09-26  Piotr Turski  <pt209301@students.mimuw.edu.pl>
 
 	* Indexes/Tests/Attic/ConnectionThread.cpp, Indexes/Tests/Attic/ConnectionThread.h, Indexes/Tests/Attic/IntegrationTest.cpp:
