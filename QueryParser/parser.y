@@ -28,18 +28,20 @@
   QParser::PriviligeListNode *priv_list;
   QParser::NameListNode *name_list;
   QParser::InterfaceAttribute *attribute;
-  QParser::InterfaceMethodParam* method_param;
   QParser::InterfaceAttributeListNode *attributes;
   QParser::InterfaceMethod* method;
   QParser::InterfaceMethodListNode *methods;
   QParser::InterfaceMethodParamListNode* method_params;
   QParser::InterfaceStruct* iStruct;
+  QParser::InterfaceBind* iBind;
+  QParser::InterfaceInnerLinkage* iLinkage;
+  QParser::InterfaceInnerLinkageList* iLinkageList;
 }
 
 %nonassoc CREATE_OR_UPDATE
 %token	<num> INTEGER
 %token	<dbl> DOUBLE
-%token	<str> STATIC SYSTEMVIEWNAME EXTNAME PARAMNAME NAME STRING SEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT DEREF REF NAMEOF RELOADSCHEME BEGINTR END ABORT CREATE IF FI DO OD ELSE WHILE LINK FOREACH THEN FIX_OP FIXPOINT RETURN BREAK VALIDATE READ MODIFY DELETE PASSWD WITH REVOKE REMOVE TO USER FROM ON GRANT OPTION PROCEDURE CLASS EXTENDS INSTANCE LEFTPROCPAR RIGHTPROCPAR VIEW ONRETRIEVE ONUPDATE ONCREATE ONDELETE INDEX VIRTUAL COLON INTERFACE
+%token	<str> STATIC SYSTEMVIEWNAME EXTNAME PARAMNAME NAME STRING SEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT DEREF REF NAMEOF RELOADSCHEME BEGINTR END ABORT CREATE IF FI DO OD ELSE WHILE LINK FOREACH THEN FIX_OP FIXPOINT RETURN BREAK VALIDATE READ MODIFY DELETE PASSWD WITH REVOKE REMOVE TO USER FROM ON GRANT OPTION PROCEDURE CLASS EXTENDS INSTANCE LEFTPROCPAR RIGHTPROCPAR VIEW ONRETRIEVE ONUPDATE ONCREATE ONDELETE INDEX VIRTUAL COLON INTERFACE SHOWS ASSOCIATE
 
 %start statement
 
@@ -95,7 +97,9 @@
 %type <methods> methods
 %type <method> method
 %type <method_params> method_params
-%type <method_param> method_param
+%type <iBind> interfaceBind
+%type <iLinkage> interfaceInnerLinkage
+%type <iLinkageList> interfaceInnerLinkageList
 %%
 
 statement   : query semicolon_opt { d=$1; }
@@ -107,6 +111,7 @@ statement   : query semicolon_opt { d=$1; }
 	    | privilige_stmt semicolon_opt { d = $1; }
 	    | user_stmt	     semicolon_opt { d = $1; }
 	    | index_stmt	 semicolon_opt { d = $1; }
+	    | interfaceBind	semicolon_opt { d = $1;}
 	    ;
 
 query	    : 
@@ -270,7 +275,20 @@ index_stmt:	CREATE INDEX NAME ON NAME LEFTPAR NAME RIGHTPAR {$$ = new CreateInde
 semicolon_opt:  /* empty */	{}
 	    |	SEMICOLON	{}
 	    ;
+
+
 	    
+interfaceBind: INTERFACE NAME SHOWS NAME {$$ = new InterfaceBind ($2, $4);}
+	| INTERFACE NAME SHOWS NAME ASSOCIATE interfaceInnerLinkageList {$$ = new InterfaceBind ($2, $4, $6);}
+	;
+
+interfaceInnerLinkageList: interfaceInnerLinkage {$$ = new InterfaceInnerLinkageList ($1);}
+	| interfaceInnerLinkageList COMMA interfaceInnerLinkage {$$ = new InterfaceInnerLinkageList ($3, $1);}
+	;
+	
+interfaceInnerLinkage: LEFTPAR NAME COMMA NAME RIGHTPAR {$$ = new InterfaceInnerLinkage ($2, $4);}
+
+
 
 interface: INTERFACE NAME LEFTPROCPAR interface_struct RIGHTPROCPAR {$$ = new InterfaceNode($2, $4);}
 
@@ -279,10 +297,10 @@ interface_struct: LEFTPAR attributes RIGHTPAR semicolon_opt  methods { $$ = new 
 	;
 
 attributes: attribute { $$ = new InterfaceAttributeListNode($1);}
-	| attributes attribute { $$ = new InterfaceAttributeListNode($2, $1);}
+	| attributes SEMICOLON attribute { $$ = new InterfaceAttributeListNode($3, $1);}
 	;
 
-attribute: NAME COLON NAME SEMICOLON  {$$ = new InterfaceAttribute ($1, $3);}
+attribute: NAME COLON NAME {$$ = new InterfaceAttribute ($1, $3);}
 
 methods: method { $$ = new InterfaceMethodListNode($1);}
 	| methods method { $$ = new InterfaceMethodListNode($2, $1);}
@@ -290,11 +308,9 @@ methods: method { $$ = new InterfaceMethodListNode($1);}
 
 method: NAME LEFTPAR method_params RIGHTPAR COLON NAME SEMICOLON { $$ = new InterfaceMethod($1, $6, $3);}
 
-method_params: method_param { $$ = new InterfaceMethodParamListNode($1);} 
-	| method_params COMMA method_param { $$ = new InterfaceMethodParamListNode($3, $1);}
+method_params: attribute { $$ = new InterfaceMethodParamListNode($1);} 
+	| method_params COMMA attribute { $$ = new InterfaceMethodParamListNode($3, $1);}
 	;
-
-method_param: NAME COLON NAME { $$ = new InterfaceMethodParam($1, $3);};
 
 classquery: CLASS NAME LEFTPROCPAR classbody RIGHTPROCPAR {char *n = $2; $4->setName(n); $$ = $4; delete n;}
     | CLASS NAME EXTENDS name_defs LEFTPROCPAR classbody RIGHTPROCPAR {

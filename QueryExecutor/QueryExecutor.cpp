@@ -20,6 +20,7 @@
 #include "Errors/Errors.h"
 #include "Errors/ErrorConsole.h"
 #include "RemoteExecutor.h"
+#include "InterfaceMatcher.h"
 
 using namespace QParser;
 using namespace TManager;
@@ -41,6 +42,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, map<string, QueryResult*> *param
 	else if (errorcode == 0)
 	    return 0;		//query retrived
 #endif
+	printf("Debug: EQ: tree type is: %d\n", tree->type());
 	errcode = executeQuery(tree, result);
 #ifdef QUERY_CACHE
 	if (errorcode != 0)
@@ -844,6 +846,85 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			return 0;
 		}//case TNREGVIEW
 		
+		//ADTODO
+		case TreeNode::TNINTERFACEBIND: {
+		    *ec << "[QE] Type: TNINTERFACEBIND";
+		    
+		    NameNode *interfaceNameNode = ((InterfaceBind *)tree)->getInterfaceName();
+		    NameNode *implementationNameNode = ((InterfaceBind *)tree)->getImplementationName(); 
+		    if ((!interfaceNameNode) || (!implementationNameNode))
+			ec->printf("NULL NameNode in InterfaceBind!!!\n");
+		    
+		    string interfaceName = interfaceNameNode->getName();
+		    string implementationName = implementationNameNode->getName();
+		    
+		    /********************************************** 
+		    Check if interface and implementation are in DB 
+		    ***********************************************/
+		    ec->printf("[QE] TNINTERFACEBIND: Checking interface presence by name: %s\n", interfaceName.c_str());
+		    bool taken;
+		    if ((errcode = interfaceNameTaken(interfaceName, taken)) != 0) {
+		        *ec << "[QE] TNINTERFACEBIND: returning error from interfaceNameTaken";
+		        return errcode;
+		    }			
+    		    if (!taken)
+		        return qeErrorOccur("[QE] TNINTERFACEBIND: interface \"" + interfaceName + "\" does not exist", ENoInterfaceFound);			     
+		    
+		    *ec << "[QE] TNINTERFACEBIND: interface found, checking implementation presence";    
+			
+		    /* ADTODO - check views also! */
+		    bool impNameTaken;
+		    errcode = implementationNameTaken(implementationName, impNameTaken);
+		    if(errcode != 0) {
+		    	*ec << "[QE] TNINTERFACEBIND: returning error from implementationNameTaken";
+		    	return errcode;
+		    }
+		    if(impNameTaken)
+		    	return qeErrorOccur("[QE] Implementation: \"" + implementationName + "\" does not exist.", ENoImplementationFound);
+		    
+		    /**********************************************
+		    Get objects (bag results) from DB 
+		    **********************************************/
+		    errcode = executeRecQuery(interfaceNameNode);
+		    if (errcode !=0) return errcode;
+		    QueryResult *interfaceResult; 
+		    errcode = qres->pop(interfaceResult);
+		    if (errcode !=0) return errcode;
+		    if (interfaceResult->type() != QueryResult::QBAG)
+		    {
+			ec->printf("TNINTERFACEBIND bad result for interface NameNode\n");
+			return ErrQExecutor | ERefExpected; //ADTODO - other error
+		    }
+		    
+		    errcode = executeRecQuery(implementationNameNode);
+		    if (errcode !=0) return errcode;
+		    QueryResult *implementationResult; 
+		    errcode = qres->pop(implementationResult);
+		    if (errcode !=0) return errcode;
+		    if (implementationResult->type() != QueryResult::QBAG)
+		    {
+			ec->printf("TNINTERFACEBIND bad result for implementation NameNode\n");
+			return ErrQExecutor | ERefExpected; //ADTODO - other error
+		    }
+		    
+		    		    
+		    /**********************************************
+		    Check if implementation fits interface
+		    **********************************************/
+		    
+		    
+		    
+		    /******************
+		    Cleanup and return
+		    *******************/
+		    
+		    QueryResult *result = new QueryIntResult(0);
+		    errcode = qres->push(result);
+		    if (errcode != 0) return errcode;
+		    *ec << "[QE] TNINTERFACEBIND done";
+		    return 0;
+		}
+		
 		
 		
 		case TreeNode::TNREGINTERFACE: {
@@ -853,29 +934,13 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		    QueryNode *query = ((RegisterInterfaceNode *) tree)->getQuery();
 		    ObjectPointer *optr;
 		    
-		    /*
-		    QueryResult *nameStruct = new QueryStructResult();
-		    QueryResult *nameString = new QueryStringResult(((InterfaceNode *)query)->get_interfaceName());
-		    QueryResult *nameBinder = new QueryBinderResult("NAME", nameString);
-		    nameStruct->addResult(nameBinder);
-		
-		    if ((errcode = objectFromBinder(nameBinder, optr))!=0)
-			return errcode;
-		
-		    QueryResult *lidres = new QueryReferenceResult(optr->getLogicalID());
-		    if ((errcode = qres->push(lidres))!=0)
-			return errcode;		
-		    */
-		    
-		    
 		    if(query != NULL) {
 			errcode = executeRecQuery(query);
 			if(errcode != 0) return errcode;
 		    }
 		    	    
 		    else qres->push(new QueryNothingResult());
-		    
-			
+		    	
 		    ec->printf("[QE] TNREGINTERFACE inner result pushed\n");
 		    
 		    QueryResult *execution_result;
@@ -901,17 +966,6 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			
 		    ec->printf("[QE] TNREGINTERFACE addRoot processed\n");
 		    
-		    /*
-		    vector<LogicalID*>* inner_vec = (optr->getValue())->getVector();
-		    for (unsigned int i=0; i < inner_vec->size(); i++) {
-		    	ObjectPointer *inner_optr;
-		    	errcode = tr->getObjectPointer (inner_vec->at(i), Store::Read, inner_optr, false);
-		    	if (errcode != 0) {
-				return trErrorOccur("[QE] register interface operation - Error in getObjectPointer.", errcode);
-		    	}
-		    }
-		    */
-	
 		    *ec << optr->getName().c_str();
 		    ec->printf("[QE] TNREGINTERFACE got name");
 			
@@ -939,43 +993,54 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		    //ADTODO - constantize TYPE
 		    QueryResult *methodStruct = new QueryStructResult();
 		    QueryResult *typeString = new QueryStringResult(type);
-		    QueryResult *typeBinder = new QueryBinderResult("TYPE", typeString);
+		    QueryResult *typeBinder = new QueryBinderResult(QE_TYPE_BIND_NAME, typeString);
 		    QueryResult *nameString = new QueryStringResult(name);
-		    QueryResult *nameBinder = new QueryBinderResult("NAME", nameString);
+		    QueryResult *nameBinder = new QueryBinderResult(QE_NAME_BIND_NAME, nameString);
 		    methodStruct->addResult(nameBinder);
 		    methodStruct->addResult(typeBinder);
-		
-		    /*
+		    QueryResult *paramBinder, *paramName, *paramNameBinder, *paramType, *paramTypeBinder, *paramStruct;
+		    int i=0;
+		    		
+		    
 		    // get and process arguments (ADTODO-check name uniqueness)
-		    InterfaceAttributeListNode *argumentList = ((InterfaceMethod *) tree)->get_argumentList();
-			if (argumentList) {
-			    vector<InterfaceAttribute *> argums = ((InterfaceMethod *) tree)->getArgums();
+		    InterfaceMethodParamListNode *argumentList = ((InterfaceMethod *) tree)->get_methodParams();
+			if (argumentList==NULL) 
+			    ec->printf("[QE] TNINTERFACEMETHOD NULL argument(parameter)list\n");		    
+			else {
+			    vector<InterfaceAttribute *> argums = ((InterfaceMethod *) tree)->getMethodParams();
+			    ec->printf("[QE] TNINTERFACEMETHOD parameter count = %d\n", argums.size());
 			    for(vector<InterfaceAttribute *>::iterator arg = argums.begin(); arg != argums.end(); arg++) {
-			    if ((errcode = executeRecQuery(*arg)) != 0) 
-			        return errcode;				    
-			    QueryResult *execution_result;
-			    if ((errcode = qres->pop(execution_result))!=0)
-			        return errcode;
-			    if (execution_result->type() != QueryResult::QREFERENCE) 
-			        return qeErrorOccur("[QE] TNINTERFACEMETHOD error - execution result is not QueryReference (arguments)", ERefExpected);
-			    //LogicalID* lid = ((QueryReferenceResult*)execution_result)->getValue();
-			    //ObjectPointer *optr;
-			    //if ((errcode = tr->getObjectPointer (lid, Store::Read, optr, false))!=0)
-			    //	return trErrorOccur("[QE] TNINTEFACEMETHOD - Error in getObjectPointer (arguments).", errcode);
-			    //string optr_name = optr->getName();
-			    //LogicalID* newLid;
-			    //if ((errcode = lidFromReference(QE_FIELD_BIND_NAME, lid, newLid))!=0)
-			    //    return errcode;
-			    methodStruct->addResult((QueryReferenceResult *)execution_result);
+				i++;
+				ec->printf("[QE] TNINTERFACEMETHOD processing parameter %d of %d\n", i, argums.size());  
+				paramName = new QueryStringResult((*arg)->getValueName());
+				paramType = new QueryStringResult((*arg)->getTypeName());
+				paramNameBinder = new QueryBinderResult(QE_NAME_BIND_NAME, paramName);
+				paramTypeBinder = new QueryBinderResult(QE_TYPE_BIND_NAME, paramType);
+				paramStruct = new QueryStructResult();
+				paramStruct->addResult(paramNameBinder);
+				paramStruct->addResult(paramTypeBinder);
+				paramBinder = new QueryBinderResult(QE_METHOD_PARAM_BIND_NAME, paramStruct);
+				//paramBinder = new QueryBinderResult("PARAM", paramName);
+				methodStruct->addResult(paramBinder);
+				ec->printf("[QE] TNINTERFACEMETHOD parameter (%s) added\n", (*arg)->getValueName().c_str());
+			    }
+			
 		        }
-		    }
-		    */
+		    
+		    //ADTODO-check memory!
+		    if (paramBinder!=NULL)
+		    	delete paramBinder;
 		    
 		    QueryResult *methodBinder = new QueryBinderResult(name, methodStruct);
 		    ObjectPointer *optr;
+		    
+		    ec->printf("[QE] TNINTERFACEMETHOD making object from binder\n");
+		    
 		    if ((errcode = objectFromBinder(methodBinder, optr))!=0)
 			return errcode;
-		
+			
+		    ec->printf("[QE] TNINTERFACEMETHOD object made\n");
+		    	
 		    QueryResult *lidres = new QueryReferenceResult(optr->getLogicalID());
 		    if ((errcode = qres->push(lidres))!=0)
 			return errcode;		
@@ -984,6 +1049,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		    return 0;
 		}
 		
+		// ADTODO-get rid of that
 		case TreeNode::TNINTERFACEATTRIBUTE: {
 		    *ec << "[QE] Type: TNINTERFACEATTRIBUTE";
 		    string name = ((InterfaceAttribute *) tree)->getValueName();
@@ -993,9 +1059,9 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		    //ADTODO - constantize TYPE
 		    QueryResult *attribStruct = new QueryStructResult();
 		    QueryResult *typeString = new QueryStringResult(type);
-		    QueryResult *typeBinder = new QueryBinderResult("TYPE", typeString);
+		    QueryResult *typeBinder = new QueryBinderResult(QE_TYPE_BIND_NAME, typeString);
 		    QueryResult *nameString = new QueryStringResult(name);
-		    QueryResult *nameBinder = new QueryBinderResult("NAME", nameString);
+		    QueryResult *nameBinder = new QueryBinderResult(QE_TYPE_BIND_NAME, nameString);
 		    attribStruct->addResult(nameBinder);
 		    attribStruct->addResult(typeBinder);
 		    QueryResult *attributeBinder = new QueryBinderResult(name, attribStruct);
@@ -4147,8 +4213,9 @@ void QueryExecutor::antyStarveFunction(int errcode) {
 int QueryExecutor::objectFromBinder(QueryResult *res, ObjectPointer *&newObject) {
 	int errcode;
 	*ec << "[QE] objectFromBinder()";
+	ec->printf("[QE] QueryResult type: %d\n", res->type());
 	if ((res->type()) != QueryResult::QBINDER) {
-		*ec << "[QE] objectFromBinder() expected a binder, got something else";
+		ec->printf("[QE] objectFromBinder() expected a binder, got something else: %d\n", res->type());
 		*ec << (ErrQExecutor | EOtherResExp);
 		return ErrQExecutor | EOtherResExp;
 	}
@@ -4787,6 +4854,21 @@ int QueryExecutor::classesLIDsFromNames(set<string>* names, vector<LogicalID*>& 
 	return 0;
 }
 
+
+/* ADTODO - if both class and view of that name exist! */
+int QueryExecutor::implementationNameTaken(string name, bool &taken) {
+    bool exists;
+    int errorCode = classExists(name, exists);
+    if (errorCode !=0)
+	return errorCode;
+    if (exists)
+	return 0;
+    errorCode = viewExists(name, exists);
+    if (errorCode !=0)
+	return errorCode;
+    return 0;	
+}
+
 int QueryExecutor::interfaceNameTaken(string name, bool& taken) {
     vector<LogicalID *>* interfaces;
     int errorcode;
@@ -4810,6 +4892,12 @@ int QueryExecutor::classExists(string className, bool& exist) {
 	exist = addedClasses->size() != 0;
 	delete addedClasses;
 	return 0;
+}
+
+/* ADTODO - implement */
+int QueryExecutor::viewExists(string viewName, bool& exists) {
+    exists = false;
+    return 0;
 }
 
 int QueryExecutor::lidFromVector( string bindName, vector<QueryResult*> value, LogicalID*& lid) {

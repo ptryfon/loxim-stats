@@ -74,6 +74,8 @@ namespace Errors {
 #define ENoClassDefFound	0x1920
 #define EOneResultExpected	0x1930
 #define ENotUniqueInterfaceName 0x1940
+#define ENoInterfaceFound	0x1950
+#define ENoImplementationFound 	0x1960
 
 // Config
 #define ENotInit		0x1A00
