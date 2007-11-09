@@ -485,7 +485,7 @@ namespace QParser {
 	protected:
 		Signature *content;
 	public:
-		StatQResElt() {this->next == NULL; this->content == NULL;};
+		StatQResElt() {this->next = NULL; this->content = NULL;};
 		StatQResElt(Signature *cont) : content(cont) {this->next = NULL;};
 		
 		virtual Signature *getContent() {return this->content;}
