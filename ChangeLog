@@ -1,3 +1,8 @@
+2007-11-10  Piotr Turski  <pt209301@students.mimuw.edu.pl>
+
+	* Indexes/Tests/Attic/ImplicitCalling.cpp, Indexes/Tests/Attic/Syntax.cpp, Indexes/Attic/OptimizedField.cpp, Indexes/Attic/OptimizedField.h, Indexes/Attic/QueryOptimizer.cpp, Indexes/Attic/QueryOptimizer.h:
+	New file.
+
 2007-11-09  Jakub Sitek  <js209298@students.mimuw.edu.pl>
 
 	* QueryParser/Stack.h:
