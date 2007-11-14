@@ -1,3 +1,8 @@
+2007-11-14  Piotr Turski  <pt209301@students.mimuw.edu.pl>
+
+	* Indexes/Attic/TransactionImpact.cpp, Indexes/Attic/TransactionImpact.h, Indexes/Attic/VisibilityResolver.cpp, Indexes/Attic/VisibilityResolver.h:
+	New file.
+
 2007-11-14  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
 
 	* QueryExecutor/EnvironmentStack.cpp, QueryExecutor/QueryExecutor.cpp:
