@@ -1,3 +1,8 @@
+2007-11-14  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
+
+	* QueryExecutor/EnvironmentStack.cpp, QueryExecutor/QueryExecutor.cpp:
+	bug fixed
+
 2007-11-10  Piotr Turski  <pt209301@students.mimuw.edu.pl>
 
 	* Indexes/Tests/Attic/ImplicitCalling.cpp, Indexes/Tests/Attic/Syntax.cpp, Indexes/Attic/OptimizedField.cpp, Indexes/Attic/OptimizedField.h, Indexes/Attic/QueryOptimizer.cpp, Indexes/Attic/QueryOptimizer.h:
