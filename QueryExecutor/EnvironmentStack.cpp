@@ -184,7 +184,7 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 				}
 				
 				int vecSize_sysvirt = vec_sysvirt->size();
-				ec->printf("[QE] %d SystemViews LID by name taken\n", vecSize_virt);
+				ec->printf("[QE] %d SystemViews LID by name taken\n", vecSize_sysvirt);
 				
 				if (vecSize_virt == 0 && vecSize_sysvirt == 0) { 
 					for (int i = 0; i < vecSize; i++ ) {
@@ -243,7 +243,7 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 				}
 				else {
 					if (vecSize_virt == 1) {
-						//TODO pakowanie wirtualnych resultow na stos wynikow, chyba gotowe
+						//DG TODO
 						LogicalID *view_lid = vec_virt->at(0);
 						string view_code;
 						errcode = qe->checkViewAndGetVirtuals(view_lid, name, view_code);
@@ -683,7 +683,7 @@ int QueryReferenceResult::nested(Transaction *&tr, QueryExecutor * qe) {
 
 
 
-// TODO nested na virtualnych resultach - na 100% do poprawienia
+// DG TODO
 int QueryVirtualResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe) {
 	int errcode;
 	ec->printf("[QE] nested(): QueryVirtualResult\n");
@@ -699,14 +699,15 @@ int QueryVirtualResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor 
 		errcode = qe->checkViewAndGetVirtuals(subview_lid, subview_name, subview_code);
 		if (errcode != 0) return errcode;
 		vector<QueryBagResult*> envs_sections;
-		//TODO tu pewnie trzeba jakos lepiej stos inicjowac przed wywolaniem virtual_objects
 		for (int k = ((seeds.size()) - 1); k >= 0; k-- ) {
 			QueryResult *bagged_seed = new QueryBagResult();
 			((QueryBagResult *) bagged_seed)->addResult(seeds.at(k));
 			envs_sections.push_back((QueryBagResult *) bagged_seed);
 		}
+		
 		errcode = qe->callProcedure(subview_code, envs_sections);
 		if(errcode != 0) return errcode;
+		
 		QueryResult *res;
 		qe->pop_qres(res);
 		QueryResult *bagged_res = new QueryBagResult();

@@ -329,7 +329,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			QueryResult *tmp_result;
 			if (errcode == 0) errcode = qres->pop(tmp_result);
 			
-			// TODO nie moge na zewnatrz oddac QueryVirtualResultow...
+			// DG TODO nie moge na zewnatrz oddac QueryVirtualResultow...
 			int next_errcode;
 			if (errcode == 0) next_errcode = deVirtualize(tmp_result, *result);
 			
@@ -602,31 +602,21 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				new_envs_sect->addResult(new_binder);
 			}
 			
-			// TODO przed wywolaniem procedury czasem pewnie trzeba wlozyc na stos cos
-			// wiecej niz tylko parametry np. dla metod w klasach trzeba wlozyc sekcje z
-			// atrybutami obiektu, atrybutami klasowymi etc.
-			
+			// DG TODO
 			// callProcedure wklada na stos sekcje w takiej kolejnosci jak sa w podanym wektorze
 			// envs_sections(0) bedzie najnizej, envs_sections(n) bedzie na wierzcholku stosu
 			vector<QueryBagResult*> envs_sections;
 			envs_sections.push_back((QueryBagResult *)new_envs_sect);
 			
 			int oldBindSectionPrior = envs->es_priors[bindSectionNumber];
-			//to moze byc to samo co to co wyzej, ale to nie szkodzi
-			unsigned int globalSectionNumber = envs->getSectionDBnumber() - 1;
-			int oldGlobalSectionPrior = envs->es_priors[globalSectionNumber];
 			LogicalID* oldBindClassLid =  envs->actualBindClassLid;
-			int newPrior = envs->actual_prior + 1;
-			
-			envs->es_priors[bindSectionNumber] = newPrior;
-			envs->es_priors[globalSectionNumber] = newPrior;
+			envs->es_priors[bindSectionNumber] = envs->actual_prior + 1;
 			envs->actualBindClassLid = bindClassLid;
 						
 			errcode = callProcedure(code, envs_sections);
 			
 			envs->actualBindClassLid = oldBindClassLid;
 			envs->es_priors[bindSectionNumber] = oldBindSectionPrior;
-			envs->es_priors[globalSectionNumber] = oldGlobalSectionPrior;
 			if(errcode != 0) return errcode;
 			
 			return 0;
@@ -2595,7 +2585,7 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 			break;
 		}
 		case QueryResult::QVIRTUAL: {
-			//TODO watpie by to dzialalo w pelni tak jak powinno
+			// DG TODO
 			LogicalID *view_def = ((QueryVirtualResult*) arg)->view_def;
 			vector<QueryResult *> seeds = ((QueryVirtualResult*) arg)->seeds;
 			string proc_code = "";
@@ -2608,14 +2598,15 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 				return ErrQExecutor | EOperNotDefined;
 			}
 			vector<QueryBagResult*> envs_sections;
-			//TODO tu pewnie trzeba jakos lepiej stos inicjowac przed wywolaniem virtual_objects
 			for (int k = ((seeds.size()) - 1); k >= 0; k-- ) {
 				QueryResult *bagged_seed = new QueryBagResult();
 				((QueryBagResult *) bagged_seed)->addResult(seeds.at(k));
 				envs_sections.push_back((QueryBagResult *) bagged_seed);
 			}
+			
 			errcode = callProcedure(proc_code, envs_sections);
-			if (errcode != 0) return errcode;
+			if(errcode != 0) return errcode;
+			
 			errcode = qres->pop(res);
 			if (errcode != 0) return errcode;
 			break;
@@ -3360,38 +3351,40 @@ int QueryExecutor::persistDelete(QueryResult* bagArg) {
 		errcode = ((QueryBagResult *) bagArg)->at(i, toDelete);
 		if (errcode != 0) return errcode;
 		int toDeleteType = toDelete->type();
+		
 		if (toDeleteType == QueryResult::QREFERENCE) {
 			LogicalID *lid = ((QueryReferenceResult *) toDelete)->getValue();
 			errcode = persistDelete(lid);
 			if(errcode != 0) return errcode;
 		}
 		else if (toDeleteType == QueryResult::QVIRTUAL) {
-			
-			//TODO watpie by to dzialalo w pelni tak jak powinno
+			// DG TODO
 			LogicalID *view_def = ((QueryVirtualResult*) toDelete)->view_def;
 			vector<QueryResult *> seeds = ((QueryVirtualResult*) toDelete)->seeds;
 			string proc_code = "";
 			string proc_param = "";
 			errcode = getOn_procedure(view_def, "on_delete", proc_code, proc_param);
 			if (errcode != 0) return errcode;
+			
 			if (proc_code == "") {
 				*ec << "[QE] delete() - this VirtualObject doesn't have this operation defined";
 				*ec << (ErrQExecutor | EOperNotDefined);
 				return ErrQExecutor | EOperNotDefined;
 			}
+			
 			vector<QueryBagResult*> envs_sections;
-			//TODO tu pewnie trzeba jakos lepiej stos inicjowac przed wywolaniem virtual_objects
 			for (int k = ((seeds.size()) - 1); k >= 0; k-- ) {
 				QueryResult *bagged_seed = new QueryBagResult();
 				((QueryBagResult *) bagged_seed)->addResult(seeds.at(k));
 				envs_sections.push_back((QueryBagResult *) bagged_seed);
 			}
+				
 			errcode = callProcedure(proc_code, envs_sections);
-			if (errcode != 0) return errcode;
+			if(errcode != 0) return errcode;
+			
 			QueryResult *res;
 			errcode = qres->pop(res);
 			if (errcode != 0) return errcode;
-			break;
 		}
 		else {
 			*ec << "[QE] ERROR! DELETE argument must consist of QREFERENCE";
@@ -3821,7 +3814,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 				return ErrQExecutor | ERefExpected;
 			}
 			else {
-				//TODO watpie by to dzialalo w pelni tak jak powinno
+				// DG TODO
 				LogicalID *view_def = ((QueryVirtualResult*) lArg)->view_def;
 				vector<QueryResult *> seeds = ((QueryVirtualResult*) lArg)->seeds;
 				string proc_code = "";
@@ -3834,7 +3827,6 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 					return ErrQExecutor | EOperNotDefined;
 				}
 				vector<QueryBagResult*> envs_sections;
-				//TODO tu pewnie trzeba jakos lepiej stos inicjowac przed wywolaniem virtual_objects
 				for (int k = ((seeds.size()) - 1); k >= 0; k-- ) {
 					QueryResult *bagged_seed = new QueryBagResult();
 					((QueryBagResult *) bagged_seed)->addResult(seeds.at(k));
@@ -3846,7 +3838,8 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 				envs_sections.push_back((QueryBagResult *) param_bag);
 				
 				errcode = callProcedure(proc_code, envs_sections);
-				if (errcode != 0) return errcode;
+				if(errcode != 0) return errcode;
+
 				QueryResult *res;
 				errcode = qres->pop(res);
 				if (errcode != 0) return errcode;
@@ -4674,6 +4667,10 @@ int QueryExecutor::callProcedure(string code, vector<QueryBagResult*> sections) 
 	}
 	
 	envs->actual_prior++;
+	unsigned int globalSectionNumber = envs->getSectionDBnumber() - 1;
+	int oldGlobalSectionPrior = envs->es_priors[globalSectionNumber];
+	envs->es_priors[globalSectionNumber] = envs->actual_prior;
+
 	for (unsigned int i = 0; i < sections.size(); i++) {
 		errcode = envs->push((QueryBagResult *) sections.at(i), tr, this);
 		if (errcode != 0) return errcode;
@@ -4697,6 +4694,8 @@ int QueryExecutor::callProcedure(string code, vector<QueryBagResult*> sections) 
 		errcode = envs->pop();
 		if (errcode != 0) return errcode;
 	}
+	
+	envs->es_priors[globalSectionNumber] = oldGlobalSectionPrior;
 	envs->actual_prior--;
 	
 	delete tmpTN;
@@ -4780,6 +4779,7 @@ int QueryExecutor::deVirtualize(QueryResult *arg, QueryResult *&res) {
 			res = arg;
 			break;
 		}
+		//TODO poprawic devirtualizajce
 		case QueryResult::QVIRTUAL: {
 			if ((((QueryVirtualResult *)arg)->seeds.size() > 0) && (((QueryVirtualResult *)arg)->seeds.at(0) != NULL))
 				res = ((QueryVirtualResult *)arg)->seeds.at(0);
