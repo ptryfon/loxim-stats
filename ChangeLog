@@ -1,3 +1,7 @@
+2007-11-15  Krzysztof Stencel  <stencel@students.mimuw.edu.pl>
+
+	* Testy/emp-views.sbql: Added a test on views.
+
 2007-11-14  Piotr Turski  <pt209301@students.mimuw.edu.pl>
 
 	* Indexes/Attic/TransactionImpact.cpp, Indexes/Attic/TransactionImpact.h, Indexes/Attic/VisibilityResolver.cpp, Indexes/Attic/VisibilityResolver.h:
