@@ -1,3 +1,7 @@
+2007-11-25  Piotr Turski  <pt209301@students.mimuw.edu.pl>
+
+	* Indexes/Attic/Cleaner.cpp, Indexes/Attic/Cleaner.h: New file.
+
 2007-11-15  Krzysztof Stencel  <stencel@students.mimuw.edu.pl>
 
 	* Testy/emp-views.sbql: Added a test on views.
