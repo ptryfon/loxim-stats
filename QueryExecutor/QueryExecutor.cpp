@@ -4534,11 +4534,14 @@ int QueryExecutor::getSubviews(LogicalID *lid, string vo_name, vector<LogicalID 
 			if ((tmp_vType == Store::Vector) && (tmp_extType == Store::View)) {
 				subviews.push_back(tmp_logID);
 			}
-			else if ((tmp_vType == Store::Vector) && (tmp_extType == Store::Procedure) &&
+			
+			// DG TODO kiedys moze byc potrzeba zwracac nie tylko podperspektywy ale tez inne
+			// podobiekty nalezace do danego wirtualnego obiektu
+			/*else if ((tmp_vType == Store::Vector) && (tmp_extType == Store::Procedure) &&
 				(tmp_name != "on_update") && (tmp_name != "on_delete") && (tmp_name != vo_name) && 
 				(tmp_name != "on_create") && (tmp_name != "on_retrieve")) {
 				others.push_back(tmp_logID);
-			}
+			}*/
 		}
 	}
 	else {
@@ -4666,17 +4669,17 @@ int QueryExecutor::callProcedure(string code, vector<QueryBagResult*> sections) 
 		return errcode;
 	}
 	
-	envs->actual_prior++;
-	unsigned int globalSectionNumber = envs->getSectionDBnumber() - 1;
-	int oldGlobalSectionPrior = envs->es_priors[globalSectionNumber];
-	envs->es_priors[globalSectionNumber] = envs->actual_prior;
-
-	for (unsigned int i = 0; i < sections.size(); i++) {
-		errcode = envs->push((QueryBagResult *) sections.at(i), tr, this);
-		if (errcode != 0) return errcode;
-	}
-		
 	if(tmpTN != NULL) {
+	
+		envs->actual_prior++;
+		unsigned int globalSectionNumber = envs->getSectionDBnumber() - 1;
+		int oldGlobalSectionPrior = envs->es_priors[globalSectionNumber];
+		envs->es_priors[globalSectionNumber] = envs->actual_prior;
+		for (unsigned int i = 0; i < sections.size(); i++) {
+			errcode = envs->push((QueryBagResult *) sections.at(i), tr, this);
+			if (errcode != 0) return errcode;
+		}
+
 		errcode = executeRecQuery(tmpTN);
 		if (errcode == 0) {
 			//skoro errcode == 0 tzn ze wywolana byla procedura a nie funkcja
@@ -4688,18 +4691,18 @@ int QueryExecutor::callProcedure(string code, vector<QueryBagResult*> sections) 
 		}
 		else if (errcode == EEvalStopped) errcode = 0;
 		if(errcode != 0) return errcode;
+	
+		for (unsigned int i = 0; i < sections.size(); i++) {
+			errcode = envs->pop();
+			if (errcode != 0) return errcode;
+		}
+		envs->es_priors[globalSectionNumber] = oldGlobalSectionPrior;
+		envs->actual_prior--;
+		
+		delete tmpTN;
 	}
 	
-	for (unsigned int i = 0; i < sections.size(); i++) {
-		errcode = envs->pop();
-		if (errcode != 0) return errcode;
-	}
-	
-	envs->es_priors[globalSectionNumber] = oldGlobalSectionPrior;
-	envs->actual_prior--;
-	
-	delete tmpTN;
-	delete tmpQP;
+	if (tmpQP != NULL) delete tmpQP;
 	return 0;
 }
 
