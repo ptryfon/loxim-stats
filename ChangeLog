@@ -1,3 +1,8 @@
+2007-11-29  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
+
+	* QueryExecutor/QueryExecutor.cpp:
+	drobna poprawka widocznosci pomocniczych procedur w perspektywach
+
 2007-11-25  Piotr Turski  <pt209301@students.mimuw.edu.pl>
 
 	* Indexes/Attic/Cleaner.cpp, Indexes/Attic/Cleaner.h: New file.
