@@ -1,3 +1,7 @@
+2007-12-03  Maksymilian Humpich  <mh209206@students.mimuw.edu.pl>
+
+	* QueryParser/parser.y: bug fixed. (intr. with systemviews)
+
 2007-11-29  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
 
 	* QueryExecutor/QueryExecutor.cpp:
