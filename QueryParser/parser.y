@@ -114,8 +114,7 @@ statement   : query semicolon_opt { d=$1; }
 	    | interfaceBind	semicolon_opt { d = $1;}
 	    ;
 
-query	    : 
-	    | SYSTEMVIEWNAME { char *s = $1; $$ = new NameNode(s); delete s; }
+query	    : SYSTEMVIEWNAME { char *s = $1; $$ = new NameNode(s); delete s; }
 		| NAME { char *s = $1; $$ = new NameNode(s); delete s; }
 	    | EXTNAME { char *s = $1; $$ = new NameNode(s); delete s; }
 	    | PARAMNAME { char *s = $1; $$ = new ParamNode(s); delete s; }
