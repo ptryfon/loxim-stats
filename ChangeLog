@@ -1,3 +1,7 @@
+2007-12-14  Piotr Turski  <pt209301@students.mimuw.edu.pl>
+
+	* Indexes/Attic/const.h: New file.
+
 2007-12-03  Maksymilian Humpich  <mh209206@students.mimuw.edu.pl>
 
 	* QueryParser/parser.y: bug fixed. (intr. with systemviews)
