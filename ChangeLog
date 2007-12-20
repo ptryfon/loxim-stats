@@ -1,3 +1,8 @@
+2007-12-20  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
+
+	* QueryExecutor/EnvironmentStack.cpp, QueryExecutor/QueryExecutor.cpp, QueryParser/TreeNode.h, Testy/emp-views.sbql:
+	Views: on_create() v:1.0
+
 2007-12-14  Piotr Turski  <pt209301@students.mimuw.edu.pl>
 
 	* Indexes/Attic/const.h: New file.
