@@ -164,6 +164,7 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 				}
 				int vecSize = vec->size();
 				ec->printf("[QE] %d Roots LID by name taken\n", vecSize);
+				
 				vector<LogicalID*>* vec_virt;
 				if ((errcode = tr->getViewsLID(name, vec_virt)) != 0) {
 					*ec << "[QE] bindName - error in getViewsLID";
@@ -171,7 +172,6 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 					qe->inTransaction = false;
 					return errcode;
 				}
-				
 				int vecSize_virt = vec_virt->size();
 				ec->printf("[QE] %d Views LID by name taken\n", vecSize_virt);
 				
@@ -182,7 +182,6 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 					qe->inTransaction = false;
 					return errcode;
 				}
-				
 				int vecSize_sysvirt = vec_sysvirt->size();
 				ec->printf("[QE] %d SystemViews LID by name taken\n", vecSize_sysvirt);
 				
@@ -270,7 +269,7 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 							r->addResult(virt_res);
 						}
 					} else {
-						// Gałaź lda wirtualnych widokół
+						// Galaz dla wirtualnych widokow�
 						*ec << "[QE] TUTAJ WYNIKI";
 						found_one = true;
 						LogicalID *svlid = vec_sysvirt->at(0);

@@ -1666,42 +1666,101 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				QueryResult *binder;
 				errcode = ((QueryBagResult *) bagRes)->at(i, binder);
 				if (errcode != 0) return errcode;
+				
+				if ((binder->type()) != QueryResult::QBINDER) {
+					return qeErrorOccur("[QE] objectFromBinder() expected a binder, got something else", EOtherResExp);
+				}
+				string newobject_name = ((QueryBinderResult*)binder)->getName();
+				
 				if(isStaticMember) {
 					//statyczne skladowe klas moga byc tworzone tylko
 					//gdy zostaly zadeklarowane w klasach
-					if ((binder->type()) != QueryResult::QBINDER) {
-						return qeErrorOccur("[QE] objectFromBinder() expected a binder, got something else", EOtherResExp);
-					}
+					
 					bool fieldExist = false;
-					errcode = cg->staticFieldExist(((QueryBinderResult*)binder)->getName(), fieldExist);
+					errcode = cg->staticFieldExist(newobject_name, fieldExist);
 					if(errcode != 0) return errcode;
 					if(!fieldExist) {
 						return 1;//TODO: No class def found
 					}
 				}
-				ObjectPointer *optr;
-				errcode = this->objectFromBinder(binder, optr);
-				if (errcode != 0) return errcode;
-				//delete binder;
-				string object_name = optr->getName();
-				if (!system_privilige_checking && 
-					assert_privilige(Privilige::CREATE_PRIV, object_name) == false) {
-				/*
-					ofstream out("privilige.debug", ios::app);
-					out << "create " << object_name << endl;
-					out.close();
-				*/
-				    continue;
-				}
-				errcode = tr->addRoot(optr);
-				if (errcode != 0) { 
-					*ec << "[QE] Error in addRoot";
+				
+				vector<LogicalID*>* vec_virt;
+				if ((errcode = tr->getViewsLID(newobject_name, vec_virt)) != 0) {
+					*ec << "[QE] bindName - error in getViewsLID";
 					antyStarveFunction(errcode);
 					inTransaction = false;
 					return errcode;
 				}
-				QueryReferenceResult *lidres = new QueryReferenceResult(optr->getLogicalID());
-				((QueryBagResult *) result)->addResult (lidres);
+				int vecSize_virt = vec_virt->size();
+				ec->printf("[QE] %d Views LID by name taken\n", vecSize_virt);
+				if (vecSize_virt > 1) {
+					*ec << "[QE] Multiple views defining virtual objects with the same name";
+					*ec << (ErrQExecutor | EBadBindName);
+					return ErrQExecutor | EBadBindName;
+				}
+				else if (vecSize_virt == 1) {
+				
+				// DG TODO
+				
+					LogicalID *view_def = vec_virt->at(0);
+					string proc_code = "";
+					string proc_param = "";
+					errcode = getOn_procedure(view_def, "on_create", proc_code, proc_param);
+					if (errcode != 0) return errcode;
+					if (proc_code == "") {
+						*ec << "[QE] operator <create> - this VirtualObject doesn't have this operation defined";
+						*ec << (ErrQExecutor | EOperNotDefined);
+						return ErrQExecutor | EOperNotDefined;
+					}
+					vector<QueryBagResult*> envs_sections;
+					QueryResult *create_arg = ((QueryBinderResult*)binder)->getItem();
+					QueryResult *param_binder = new QueryBinderResult(proc_param, create_arg);
+					QueryResult *param_bag = new QueryBagResult();
+					((QueryBagResult *) param_bag)->addResult(param_binder);
+					envs_sections.push_back((QueryBagResult *) param_bag);
+					
+					errcode = callProcedure(proc_code, envs_sections);
+					if(errcode != 0) return errcode;
+					
+					QueryResult *res;
+					errcode = qres->pop(res);
+					if (errcode != 0) return errcode;
+					QueryResult *bagged_res = new QueryBagResult();
+					((QueryBagResult *) bagged_res)->addResult(res);
+					for (unsigned int i = 0; i < bagged_res->size(); i++) {
+						QueryResult *seed;
+						errcode = ((QueryBagResult *) bagged_res)->at(i, seed);
+						if (errcode != 0) return errcode;
+						
+						vector<QueryResult *> seeds;
+						seeds.push_back(seed);
+						QueryResult *virt_res = new QueryVirtualResult(newobject_name, view_def, seeds);
+						((QueryBagResult *) result)->addResult(virt_res);
+					}
+				}
+				else {
+					ObjectPointer *optr;
+					errcode = this->objectFromBinder(binder, optr);
+					if (errcode != 0) return errcode;
+					
+					string object_name = optr->getName();
+					if (!system_privilige_checking && 
+						assert_privilige(Privilige::CREATE_PRIV, object_name) == false) {
+						continue;
+					}
+					
+					errcode = tr->addRoot(optr);
+					if (errcode != 0) { 
+						*ec << "[QE] Error in addRoot";
+						antyStarveFunction(errcode);
+						inTransaction = false;
+						return errcode;
+					}
+					
+					QueryReferenceResult *lidres = new QueryReferenceResult(optr->getLogicalID());
+					((QueryBagResult *) result)->addResult (lidres);
+				}
+				//delete binder;
 			}
 			//delete tmp_result;
 			//delete bagRes;
@@ -3664,132 +3723,242 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 		if (errcode != 0) return errcode;
 		int leftResultType = outer->type();
 		if (leftResultType != QueryResult::QREFERENCE) {
-			*ec << "[QE] ERROR! Left argument of insert operation must consist of QREFERENCE";
-			*ec << (ErrQExecutor | ERefExpected);
-			return ErrQExecutor | ERefExpected;
-		}
-		LogicalID *lidOut = ((QueryReferenceResult *) outer)->getValue();
-		ObjectPointer *optrOut;
-		errcode = tr->getObjectPointer (lidOut, Store::Write, optrOut, false); 
-		if (errcode != 0) {
-			*ec << "[QE] insert operation - Error in getObjectPointer.";
-			antyStarveFunction(errcode);
-			inTransaction = false;
-			return errcode;
-		}
-		string object_name = optrOut->getName();
-		if (!system_privilige_checking && 
-			assert_privilige(Privilige::MODIFY_PRIV, object_name) == false) {
-		    final = new QueryNothingResult();
-		    /*
-		    ofstream out("privilige.debug", ios::app);
-		    out << "modify " << object_name << endl;
-		    out.close();		    
-		    */
-		    return 0;
-		}				
-		*ec << "[QE] insert operation - getObjectPointer on leftArg done";
-		DataValue* db_value = optrOut->getValue();
-		*ec << "[QE] insert operation - Value taken";
-		int vType = db_value->getType();
-		if (vType != Store::Vector) {
-			*ec << "[QE] insert operation - ERROR! the l-Value has to be a reference to Vector";
-			*ec << (ErrQExecutor | EOtherResExp);
-			return ErrQExecutor | EOtherResExp;
-		}
-		vector<LogicalID*> *insVector = db_value->getVector();
-		if (insVector == NULL) {
-			*ec << "[QE] insert operation - insVector == NULL";
-			*ec << (ErrQExecutor | EQEUnexpectedErr);
-			return ErrQExecutor | EQEUnexpectedErr;
-		}
-		*ec << "[QE] Vector taken";
-		ec->printf("[QE] Vec.size = %d\n", insVector->size());
-		QueryResult *rBag = new QueryBagResult();
-		rBag->addResult(rArg);
-		for (unsigned int i = 0; i < rBag->size(); i++) {
-			ec->printf("[QE] trying to INSERT %d element of rightArg into leftArg\n", i);
-			QueryResult *toInsert;
-			errcode = ((QueryBagResult *) rBag)->at(i, toInsert);
-			if (errcode != 0) return errcode;
-			ObjectPointer *optrIn;
-			LogicalID *lidIn;
-			int rightResultType = toInsert->type();
-			switch (rightResultType) {
-				case QueryResult::QREFERENCE: {
-					lidIn = ((QueryReferenceResult *) toInsert)->getValue();
-					errcode = tr->getObjectPointer (lidIn, Store::Write, optrIn, true); 
-					if (errcode != 0) {
-						*ec << "[QE] insert operation - Error in getObjectPointer.";
-						antyStarveFunction(errcode);
-						inTransaction = false;
-						return errcode;
+			if (leftResultType != QueryResult::QVIRTUAL) {
+				*ec << "[QE] ERROR! Left argument of insert operation must consist of QREFERENCE";
+				*ec << (ErrQExecutor | ERefExpected);
+				return ErrQExecutor | ERefExpected;
+			}
+			else {
+				// DG TODO
+				
+				LogicalID *main_view_def = ((QueryVirtualResult*) outer)->view_def;
+				string main_vo_name = ((QueryVirtualResult*) outer)->vo_name;
+				vector<QueryResult *> main_seeds = ((QueryVirtualResult*) outer)->seeds;
+				vector<LogicalID *> subviews;
+				vector<LogicalID *> others;
+				errcode = getSubviews(main_view_def, main_vo_name, subviews, others);
+				if (errcode != 0) return errcode;
+				
+				QueryResult *rBag = new QueryBagResult();
+				rBag->addResult(rArg);
+				for (unsigned int i = 0; i < rBag->size(); i++) {
+					ec->printf("[QE] trying to INSERT %d element of rightArg into leftArg\n", i);
+					QueryResult *toInsert;
+					errcode = ((QueryBagResult *) rBag)->at(i, toInsert);
+					if (errcode != 0) return errcode;
+					int rightResultType = toInsert->type();
+					switch (rightResultType) {
+						case QueryResult::QREFERENCE: {
+							
+							// DG TODO prawy argument :< jest LIDem. Co teraz?
+							
+							break;
+						}
+						case QueryResult::QBINDER: {
+							string toInsert_name = ((QueryBinderResult *)toInsert)->getName();
+							QueryResult *toInsert_value = ((QueryBinderResult *)toInsert)->getItem();
+							
+							LogicalID *sub_view_def = NULL;
+							for (unsigned int j = 0; j < subviews.size(); j++ ) {
+								LogicalID *subview_lid = subviews.at(j);
+								string subview_name = "";
+								string subview_code = "";
+								errcode = checkViewAndGetVirtuals(subview_lid, subview_name, subview_code);
+								if (errcode != 0) return errcode;
+								if (subview_name == toInsert_name) {
+									if (sub_view_def != NULL){
+										*ec << "[QE] ERROR! More then one subview defining virtual objects with same name";
+										*ec << (ErrQExecutor | EBadViewDef);
+										return ErrQExecutor | EBadViewDef;
+									}
+									else {
+										sub_view_def = subview_lid;
+										continue;
+									}
+									delete subview_lid;
+								}
+							}
+							
+							if (sub_view_def == NULL){
+								*ec << "[QE] operator <insert into> - this VirtualObject doesn't have this operation defined";
+								*ec << (ErrQExecutor | EOperNotDefined);
+								return ErrQExecutor | EOperNotDefined;
+							}
+							string proc_code = "";
+							string proc_param = "";
+							errcode = getOn_procedure(sub_view_def, "on_create", proc_code, proc_param);
+							if (errcode != 0) return errcode;
+							if (proc_code == "") {
+								*ec << "[QE] operator <insert into> - this VirtualObject doesn't have this operation defined";
+								*ec << (ErrQExecutor | EOperNotDefined);
+								return ErrQExecutor | EOperNotDefined;
+							}
+							
+							vector<QueryBagResult*> envs_sections;
+							for (int k = ((main_seeds.size()) - 1); k >= 0; k-- ) {
+								QueryResult *bagged_seed = new QueryBagResult();
+								((QueryBagResult *) bagged_seed)->addResult(main_seeds.at(k));
+								envs_sections.push_back((QueryBagResult *) bagged_seed);
+							}
+							QueryResult *param_binder = new QueryBinderResult(proc_param, toInsert_value);
+							QueryResult *param_bag = new QueryBagResult();
+							((QueryBagResult *) param_bag)->addResult(param_binder);
+							envs_sections.push_back((QueryBagResult *) param_bag);
+							
+							errcode = callProcedure(proc_code, envs_sections);
+							if(errcode != 0) return errcode;
+			
+							QueryResult *res;
+							errcode = qres->pop(res);
+							if (errcode != 0) return errcode;
+							
+							break;
+						}
+						case QueryResult::QVIRTUAL: {
+						
+							// DO TODO  Wirtualny obiekt jako prawy argument
+							
+							return ErrQExecutor | ERefExpected;
+						}
+						default: {
+							*ec << "[QE] Right argument of insert operation must consist of QREFERENCE or QBINDER or QVIRTUAL";
+							*ec << (ErrQExecutor | ERefExpected);
+							return ErrQExecutor | ERefExpected;
+						}
 					}
-					if (optrIn == NULL) {
-						break;
-					}
-					string object_name = optrIn->getName();
-					if(ClassGraph::isExtName( object_name )) {
-						/*
-						 * Dobrze by bylo zaznaczac w obiekcie, ze jest statyczna skladowa,
-						 * a nie przekonywac sie o tym na podstawie postaci nazwy.
-						 */
-						return 1;//TODO (sk) Cant move static class member from root.
-					}
-					/*if (!system_privilige_checking && 
-							assert_privilige(Privilige::MODIFY_PRIV, object_name) == false) {
-					    	final = new QueryNothingResult();
-						//ofstream out("privilige.debug", ios::app);
-						//out << "create " << object_name << endl;
-						//out.close();					    
-					    	return 0;
-					}*/
-					ec->printf("[QE] getObjectPointer on %d element of rightArg done\n", i);
-					if (optrIn->getIsRoot()) {
-						errcode = tr->removeRoot(optrIn); 
+				}
+			}
+		}
+		else {
+			LogicalID *lidOut = ((QueryReferenceResult *) outer)->getValue();
+			ObjectPointer *optrOut;
+			errcode = tr->getObjectPointer (lidOut, Store::Write, optrOut, false); 
+			if (errcode != 0) {
+				*ec << "[QE] insert operation - Error in getObjectPointer.";
+				antyStarveFunction(errcode);
+				inTransaction = false;
+				return errcode;
+			}
+			string object_name = optrOut->getName();
+			if (!system_privilige_checking && 
+				assert_privilige(Privilige::MODIFY_PRIV, object_name) == false) {
+			final = new QueryNothingResult();
+			/*
+			ofstream out("privilige.debug", ios::app);
+			out << "modify " << object_name << endl;
+			out.close();		    
+			*/
+			return 0;
+			}				
+			*ec << "[QE] insert operation - getObjectPointer on leftArg done";
+			DataValue* db_value = optrOut->getValue();
+			*ec << "[QE] insert operation - Value taken";
+			int vType = db_value->getType();
+			if (vType != Store::Vector) {
+				*ec << "[QE] insert operation - ERROR! the l-Value has to be a reference to Vector";
+				*ec << (ErrQExecutor | EOtherResExp);
+				return ErrQExecutor | EOtherResExp;
+			}
+			vector<LogicalID*> *insVector = db_value->getVector();
+			if (insVector == NULL) {
+				*ec << "[QE] insert operation - insVector == NULL";
+				*ec << (ErrQExecutor | EQEUnexpectedErr);
+				return ErrQExecutor | EQEUnexpectedErr;
+			}
+			*ec << "[QE] Vector taken";
+			ec->printf("[QE] Vec.size = %d\n", insVector->size());
+			QueryResult *rBag = new QueryBagResult();
+			rBag->addResult(rArg);
+			for (unsigned int i = 0; i < rBag->size(); i++) {
+				ec->printf("[QE] trying to INSERT %d element of rightArg into leftArg\n", i);
+				QueryResult *toInsert;
+				errcode = ((QueryBagResult *) rBag)->at(i, toInsert);
+				if (errcode != 0) return errcode;
+				ObjectPointer *optrIn;
+				LogicalID *lidIn;
+				int rightResultType = toInsert->type();
+				switch (rightResultType) {
+					case QueryResult::QREFERENCE: {
+						lidIn = ((QueryReferenceResult *) toInsert)->getValue();
+						errcode = tr->getObjectPointer (lidIn, Store::Write, optrIn, true); 
 						if (errcode != 0) {
-							*ec << "[QE] insert operation - Error in removeRoot.";
+							*ec << "[QE] insert operation - Error in getObjectPointer.";
 							antyStarveFunction(errcode);
 							inTransaction = false;
 							return errcode;
 						}
-						*ec << "[QE] insert operation - Root removed";
+						if (optrIn == NULL) {
+							break;
+						}
+						string object_name = optrIn->getName();
+						if(ClassGraph::isExtName( object_name )) {
+							/*
+							* Dobrze by bylo zaznaczac w obiekcie, ze jest statyczna skladowa,
+							* a nie przekonywac sie o tym na podstawie postaci nazwy.
+							*/
+							return 1;//TODO (sk) Cant move static class member from root.
+						}
+						/*if (!system_privilige_checking && 
+								assert_privilige(Privilige::MODIFY_PRIV, object_name) == false) {
+							final = new QueryNothingResult();
+							//ofstream out("privilige.debug", ios::app);
+							//out << "create " << object_name << endl;
+							//out.close();					    
+							return 0;
+						}*/
+						ec->printf("[QE] getObjectPointer on %d element of rightArg done\n", i);
+						if (optrIn->getIsRoot()) {
+							errcode = tr->removeRoot(optrIn); 
+							if (errcode != 0) {
+								*ec << "[QE] insert operation - Error in removeRoot.";
+								antyStarveFunction(errcode);
+								inTransaction = false;
+								return errcode;
+							}
+							*ec << "[QE] insert operation - Root removed";
+						}
+						else {
+							*ec << "[QE] ERROR in insert operation - right argument must be Root";
+							*ec << (ErrQExecutor | EQEUnexpectedErr);
+							return ErrQExecutor | EQEUnexpectedErr;
+						}
+						break;
 					}
-					else {
-						*ec << "[QE] ERROR in insert operation - right argument must be Root";
-						*ec << (ErrQExecutor | EQEUnexpectedErr);
-						return ErrQExecutor | EQEUnexpectedErr;
+					case QueryResult::QBINDER: {
+						errcode = this->objectFromBinder(toInsert, optrIn);
+						if (errcode != 0) return errcode;
+						lidIn = (optrIn->getLogicalID());
+						break;
 					}
-					break;
+					case QueryResult::QVIRTUAL: {
+						
+						// DO TODO  Wirtualny obiekt jako prawy argument
+						
+						return ErrQExecutor | ERefExpected;
+					}
+					default: {
+						*ec << "[QE] Right argument of insert operation must consist of QREFERENCE or QBINDER or QVIRTUAL";
+						*ec << (ErrQExecutor | ERefExpected);
+						return ErrQExecutor | ERefExpected;
+					}
 				}
-				case QueryResult::QBINDER: {
-					errcode = this->objectFromBinder(toInsert, optrIn);
-					if (errcode != 0) return errcode;
-					lidIn = (optrIn->getLogicalID());
-					break;
-				}
-				default: {
-					*ec << "[QE] Right argument of insert operation must consist of QREFERENCE or QBINDER";
-					*ec << (ErrQExecutor | ERefExpected);
-					return ErrQExecutor | ERefExpected;
-				}
+				*ec << "[QE] Inserting the object";
+				insVector->push_back(lidIn);
+				ec->printf("[QE] New Vec.size = %d\n", insVector->size());
 			}
-			*ec << "[QE] Inserting the object";
-			insVector->push_back(lidIn);
-			ec->printf("[QE] New Vec.size = %d\n", insVector->size());
-		}
-		DBDataValue *dbDataVal = new DBDataValue();
-		dbDataVal->setVector(insVector);
-		dbDataVal->setClassMarks(db_value->getClassMarks());
-		dbDataVal->setSubclasses(db_value->getSubclasses());
-		*ec << "[QE] dataValue: setVector done";
-		db_value = dbDataVal;
-		errcode = tr->modifyObject(optrOut, db_value); 
-		if (errcode != 0) {
-			*ec << "[QE] insert operation - Error in modifyObject.";
-			antyStarveFunction(errcode);
-			inTransaction = false;
-			return errcode;
+			DBDataValue *dbDataVal = new DBDataValue();
+			dbDataVal->setVector(insVector);
+			dbDataVal->setClassMarks(db_value->getClassMarks());
+			dbDataVal->setSubclasses(db_value->getSubclasses());
+			*ec << "[QE] dataValue: setVector done";
+			db_value = dbDataVal;
+			errcode = tr->modifyObject(optrOut, db_value); 
+			if (errcode != 0) {
+				*ec << "[QE] insert operation - Error in modifyObject.";
+				antyStarveFunction(errcode);
+				inTransaction = false;
+				return errcode;
+			}
 		}
 		*ec << "[QE] INSERT operation Done";
 		final = new QueryNothingResult();

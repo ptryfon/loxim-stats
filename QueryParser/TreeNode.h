@@ -1004,7 +1004,7 @@ namespace QParser {
       	string result, tmp_res; 
 	if (group) { tmp_res = "group as "; } 
 	else  { tmp_res = "as "; }
-	result = arg->deParse() + tmp_res + name + " "; 
+	result = " (" + arg->deParse() + tmp_res + name + ") "; 
 	return result; }
     };  
 
@@ -1126,13 +1126,13 @@ namespace QParser {
 				result = " distinct(" + arg->deParse() + ") ";
 				return result;
 			case UnOpNode::unMinus:
-				result = " -" + arg->deParse() + " "; 
+				result = " -(" + arg->deParse() + ") "; 
 				return result;
 			case UnOpNode::boolNot:
-				result = " not " + arg->deParse() + " ";
+				result = " not(" + arg->deParse() + ") ";
 				return result;
 			case UnOpNode::deleteOp:
-				result = " delete " + arg->deParse() + " "; 
+				result = " delete(" + arg->deParse() + ") "; 
 				return result;
 			case UnOpNode::nameof:
 				result = " name(" + arg->deParse() + ") ";
@@ -1306,28 +1306,90 @@ namespace QParser {
 	virtual string deParse() { 
 		string result = ""; 
 		switch (op) {
-			case AlgOpNode::bagUnion: { result = larg->deParse() + "union" + rarg->deParse(); return result; }
-			case AlgOpNode::bagIntersect: { result = larg->deParse() + "intersect" + rarg->deParse(); return result; }
-			case AlgOpNode::bagMinus: { result = larg->deParse() + "minus" + rarg->deParse(); return result; }
-			case AlgOpNode::plus: { result = larg->deParse() + "+" + rarg->deParse(); return result; }
-			case AlgOpNode::minus: { result = larg->deParse() + "-" + rarg->deParse(); return result; }
-			case AlgOpNode::times: { result = larg->deParse() + "*" + rarg->deParse(); return result; }
-			case AlgOpNode::divide: { result = larg->deParse() + "/" + rarg->deParse(); return result; }
-			case AlgOpNode::eq: { result = larg->deParse() + "=" + rarg->deParse(); return result; }
-			case AlgOpNode::neq: { result = larg->deParse() + "!=" + rarg->deParse(); return result; }
-			case AlgOpNode::lt: { result = larg->deParse() + "<" + rarg->deParse(); return result; }
-			case AlgOpNode::gt: { result = larg->deParse() + ">" + rarg->deParse(); return result; }
-			case AlgOpNode::le: { result = larg->deParse() + "<=" + rarg->deParse(); return result; }
-			case AlgOpNode::ge: { result = larg->deParse() + ">=" + rarg->deParse(); return result; }
-			case AlgOpNode::boolAnd: { result = larg->deParse() + "and" + rarg->deParse(); return result; }
-			case AlgOpNode::boolOr: { result = larg->deParse() + "or" + rarg->deParse(); return result; }
-			case AlgOpNode::comma: { result = larg->deParse() + "," + rarg->deParse(); return result; }
-			case AlgOpNode::insertInto: { result = larg->deParse() + ":<" + rarg->deParse(); return result; }
-			case AlgOpNode::assign: { result = larg->deParse() + ":=" + rarg->deParse(); return result; }
-			case AlgOpNode::semicolon: { result = larg->deParse() + ";" + rarg->deParse(); return result; }
-			case AlgOpNode::insert: { result = larg->deParse() + ":<" + rarg->deParse(); return result; }
-			//case AlgOpNode::insert: { return result; }
-			case AlgOpNode::refeq: { return result; }
+			case AlgOpNode::bagUnion: { 
+				result = " (" + larg->deParse() + "union" + rarg->deParse() + ") "; 
+				return result; 
+			}
+			case AlgOpNode::bagIntersect: { 
+				result = " (" + larg->deParse() + "intersect" + rarg->deParse() + ") "; 
+				return result; 
+			}
+			case AlgOpNode::bagMinus: { 
+				result = " (" + larg->deParse() + "minus" + rarg->deParse() + ") "; 
+				return result; 
+			}
+			case AlgOpNode::plus: { 
+				result = " (" + larg->deParse() + "+" + rarg->deParse() + ") "; 
+				return result; 
+			}
+			case AlgOpNode::minus: { 
+				result = " (" + larg->deParse() + "-" + rarg->deParse() + ") "; 
+				return result; 
+			}
+			case AlgOpNode::times: { 
+				result = " (" + larg->deParse() + "*" + rarg->deParse() + ") "; 
+				return result; 
+			}
+			case AlgOpNode::divide: { 
+				result = " (" + larg->deParse() + "/" + rarg->deParse() + ") "; 
+				return result; 
+			}
+			case AlgOpNode::eq: { 
+				result = " (" + larg->deParse() + "=" + rarg->deParse() + ") "; 
+				return result; 
+			}
+			case AlgOpNode::neq: { 
+				result = " (" + larg->deParse() + "!=" + rarg->deParse() + ") "; 
+				return result; 
+			}
+			case AlgOpNode::lt: { 
+				result = " (" + larg->deParse() + "<" + rarg->deParse() + ") "; 
+				return result; 
+			}
+			case AlgOpNode::gt: { 
+				result = " (" + larg->deParse() + ">" + rarg->deParse() + ") "; 
+				return result; 
+			}
+			case AlgOpNode::le: { 
+				result = " (" + larg->deParse() + "<=" + rarg->deParse() + ") "; 
+				return result; 
+			}
+			case AlgOpNode::ge: { 
+				result = " (" + larg->deParse() + ">=" + rarg->deParse() + ") "; 
+				return result; 
+			}
+			case AlgOpNode::boolAnd: { 
+				result = " (" + larg->deParse() + "and" + rarg->deParse() + ") "; 
+				return result; 
+			}
+			case AlgOpNode::boolOr: { 
+				result = " (" + larg->deParse() + "or" + rarg->deParse() + ") "; 
+				return result; 
+			}
+			case AlgOpNode::comma: { 
+				result = " (" + larg->deParse() + "," + rarg->deParse() + ") "; 
+				return result; 
+			}
+			case AlgOpNode::insertInto: { 
+				result = " (" + larg->deParse() + ":<" + rarg->deParse() + ") "; 
+				return result; 
+			}
+			case AlgOpNode::assign: { 
+				result = " (" + larg->deParse() + ":=" + rarg->deParse() + ") "; 
+				return result; 
+			}
+			case AlgOpNode::semicolon: { 
+				result = " (" + larg->deParse() + ";" + rarg->deParse() + ") "; 
+				return result; 
+			}
+			case AlgOpNode::insert: { 
+				result = " (" + larg->deParse() + ":<" + rarg->deParse() + ") "; 
+				return result; 
+			}
+			case AlgOpNode::refeq: { 
+				result = " (" + larg->deParse() + "==" + rarg->deParse() + ") "; 
+				return result; 
+			}
 		}
 		return result;
 	};
@@ -1467,17 +1529,50 @@ lastOpenSect = 0; }
 	virtual string deParse() { 
 		string result = ""; 
 		switch (op) {
-			case NonAlgOpNode::dot: { result = larg->deParse() + "." + rarg->deParse(); return result; }
-			case NonAlgOpNode::join: { result = larg->deParse() + "join" + rarg->deParse(); return result; }
-			case NonAlgOpNode::where: { result = larg->deParse() + "where" + rarg->deParse(); return result; }
-			case NonAlgOpNode::closeBy: { result = larg->deParse() + "close by" + rarg->deParse(); return result; }
-			case NonAlgOpNode::closeUniqueBy: { result = larg->deParse() + "close unique by" + rarg->deParse(); return result; }
-			case NonAlgOpNode::leavesBy: { result = larg->deParse() + "leaves by" + rarg->deParse(); return result; }
-			case NonAlgOpNode::leavesUniqueBy: { result = larg->deParse() + "leaves unique by" + rarg->deParse(); return result; }
-			case NonAlgOpNode::orderBy: { result = larg->deParse() + "order by" + rarg->deParse(); return result; }
-			case NonAlgOpNode::exists: { result = larg->deParse() + "exists" + rarg->deParse(); return result; }
-			case NonAlgOpNode::forAll: { result = larg->deParse() + "for all" + rarg->deParse(); return result; }
-			case NonAlgOpNode::forEach: { result = " for each" + larg->deParse() + "do" + rarg->deParse() + "od "; return result; }
+			case NonAlgOpNode::dot: { 
+				result = " (" + larg->deParse() + "." + rarg->deParse() + ") "; 
+				return result; 
+			}
+			case NonAlgOpNode::join: { 
+				result = " (" + larg->deParse() + "join" + rarg->deParse() + ") "; 
+				return result; 
+			}
+			case NonAlgOpNode::where: { 
+				result = " (" + larg->deParse() + "where" + rarg->deParse() + ") "; 
+				return result; 
+			}
+			case NonAlgOpNode::closeBy: { 
+				result = " (" + larg->deParse() + "close by" + rarg->deParse() + ") "; 
+				return result; 
+			}
+			case NonAlgOpNode::closeUniqueBy: { 
+				result = " (" + larg->deParse() + "close unique by" + rarg->deParse() + ") "; 
+				return result; 
+			}
+			case NonAlgOpNode::leavesBy: { 
+				result = " (" + larg->deParse() + "leaves by" + rarg->deParse() + ") "; 
+				return result; 
+			}
+			case NonAlgOpNode::leavesUniqueBy: { 
+				result = " (" + larg->deParse() + "leaves unique by" + rarg->deParse() + ") "; 
+				return result; 
+			}
+			case NonAlgOpNode::orderBy: { 
+				result = " (" + larg->deParse() + "order by" + rarg->deParse() + ") "; 
+				return result; 
+			}
+			case NonAlgOpNode::exists: { 
+				result = " (" + larg->deParse() + "exists" + rarg->deParse() + ") "; 
+				return result; 
+			}
+			case NonAlgOpNode::forAll: { 
+				result = " (" + larg->deParse() + "for all" + rarg->deParse() + ") "; 
+				return result; 
+			}
+			case NonAlgOpNode::forEach: { 
+				result = " for each" + larg->deParse() + "do" + rarg->deParse() + "od "; 
+				return result; 
+			}
 		}
 		return result;
 	}
@@ -1506,7 +1601,7 @@ lastOpenSect = 0; }
 		virtual ~TransactNode() {}
     };  
 
-// query := CREATE NAME  |  CREATE NAME LEFTPAR query RIGHTPAR
+// query := CREATE query 
     class CreateNode : public QueryNode 
     {
     private:
@@ -1549,7 +1644,7 @@ lastOpenSect = 0; }
 	
         virtual ~CreateNode() { if (arg != NULL) delete arg; }
 	
-	virtual string deParse() { string result; result = " create" + arg->deParse(); return result; };
+	virtual string deParse() { string result; result = " (create" + arg->deParse() + ") "; return result; };
     };  
 
 
@@ -1672,7 +1767,7 @@ lastOpenSect = 0; }
 		ss << port;
 		ss >> str; 
 		string result; 
-		result = " link \"" + nodeName + "\" \"" + ip + "\" " + str + " "; 
+		result = " (link \"" + nodeName + "\" \"" + ip + "\" " + str + ") "; 
 		return result; }
     };
     
@@ -1808,7 +1903,7 @@ lastOpenSect = 0; }
       virtual string deParse() { 
       	string result;
       	if( query != NULL )
-      		result = " return " + query->deParse();
+      		result = " (return " + query->deParse() + ") ";
       	else
       		result = " break "; 
       	return result; 
@@ -1845,7 +1940,7 @@ lastOpenSect = 0; }
         return result;
       }
       
-      virtual string deParse() { string result; result = " create" + query->deParse(); return result; };
+      virtual string deParse() { string result; result = " (create" + query->deParse() + ") "; return result; };
     };
     
     
@@ -2021,7 +2116,7 @@ class RegisterViewNode : public QueryNode
       
       virtual string deParse() { 
       	string result; 
-      	result = " create" + query->deParse(); 
+      	result = " (create" + query->deParse() + ") "; 
       	cout << result;
       	return result; };
     };
@@ -2406,7 +2501,7 @@ public:
       
 	virtual string deParse() { 
         string result; 
-        result = " create" + query->deParse(); 
+        result = " (create" + query->deParse() + ") "; 
         cout << result;
         return result; 
     }
