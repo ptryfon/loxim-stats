@@ -1,3 +1,8 @@
+2007-12-23  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
+
+	* QueryExecutor/QueryExecutor.cpp:
+	operator '+' od teraz dziala takze jako konkatenacja napisow
+
 2007-12-20  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
 
 	* QueryExecutor/EnvironmentStack.cpp, QueryExecutor/QueryExecutor.cpp, QueryParser/TreeNode.h, Testy/emp-views.sbql:
