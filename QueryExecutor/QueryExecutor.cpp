@@ -3463,7 +3463,46 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 		if (errcode != 0) return errcode;
 		errcode = this->derefQuery(rArg,derefR);
 		if (errcode != 0) return errcode;
-		if ((derefL->type() == QueryResult::QINT) || (derefL->type() == QueryResult::QDOUBLE)) {
+		if ((derefL->type() == QueryResult::QSTRING) || (derefR->type() == QueryResult::QSTRING)) {
+			stringstream ss;
+			string leftString;
+			switch(derefL->type()) {
+				case QueryResult::QINT: {
+					ss << (((QueryIntResult *)derefL)->getValue());
+					ss >> leftString;
+					break;
+				}
+				case QueryResult::QDOUBLE: {
+					ss << (((QueryDoubleResult *)derefL)->getValue());
+					ss >> leftString;
+					break;
+				}
+				case QueryResult::QSTRING: {
+					leftString = ((QueryStringResult *)derefL)->getValue();
+					break;
+				}
+			}
+			string rightString;
+			switch(derefR->type()) {
+				case QueryResult::QINT: {
+					ss << (((QueryIntResult *)derefR)->getValue());
+					ss >> rightString;
+					break;
+				}
+				case QueryResult::QDOUBLE: {
+					ss << (((QueryDoubleResult *)derefR)->getValue());
+					ss >> rightString;
+					break;
+				}
+				case QueryResult::QSTRING: {
+					rightString = ((QueryStringResult *)derefR)->getValue();
+					break;
+				}
+			}
+			string final_value = leftString + rightString;
+			final = new QueryStringResult(final_value);
+		}
+		else if ((derefL->type() == QueryResult::QINT) || (derefL->type() == QueryResult::QDOUBLE)) {
 			switch (op) {
 				case AlgOpNode::plus: {
 					*ec << "[QE] + operation";
