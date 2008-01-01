@@ -1,3 +1,7 @@
+2008-01-01  Piotr Turski  <pt209301@students.mimuw.edu.pl>
+
+	* Indexes/Tests/Attic/CleanTest.cpp: New file.
+
 2007-12-23  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
 
 	* QueryExecutor/QueryExecutor.cpp:
