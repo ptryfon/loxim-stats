@@ -1,3 +1,8 @@
+2008-01-04  Piotr Turski  <pt209301@students.mimuw.edu.pl>
+
+	* Indexes/Tests/Attic/StateSaving.cpp, Indexes/Attic/LoximDataBridge.cpp, Indexes/Attic/LoximDataBridge.h:
+	New file.
+
 2008-01-01  Piotr Turski  <pt209301@students.mimuw.edu.pl>
 
 	* Indexes/Tests/Attic/CleanTest.cpp: New file.
