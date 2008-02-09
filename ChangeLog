@@ -1,3 +1,8 @@
+2008-02-09  Piotr Turski  <pt209301@students.mimuw.edu.pl>
+
+	* Indexes/Attic/NonloggedDataSerializer.cpp, Indexes/Attic/NonloggedDataSerializer.h:
+	New file.
+
 2008-01-30  Piotr Turski  <pt209301@students.mimuw.edu.pl>
 
 	* Indexes/Attic/const.cpp: New file.
