@@ -1,0 +1,167 @@
+#ifndef __TC_TYPE_CHECKER_H__
+#define __TC_TYPE_CHECKER_H__
+
+#include "Errors/ErrorConsole.h"
+#include "QueryExecutor/QueryResult.h"
+#include "Store/Store.h"
+#include "TransactionManager/Transaction.h"
+#include "TransactionManager/Mutex.h"
+#include "QueryParser/Deb.h"
+#include "QueryParser/Stack.h"
+#include "QueryParser/TreeNode.h"
+#include "QueryParser/DataRead.h"
+	
+#include "ClassNames.h"
+#include "DecisionTable.h"
+#include "Rule.h"
+#include "TypeCheckResult.h"
+
+#include <string>
+#include <fstream>
+#include <iostream>
+#include <map>
+#include <vector>
+
+using namespace Errors;
+using namespace QExecutor;
+using namespace QParser;
+using namespace TManager;
+using namespace std;
+
+// some TC constants, to use across typechecking procs..
+//#define INDEX_DEBUG_MODE 
+#define TC_FINAL_ERROR -10
+
+#define TC_MDN_NAME		"__MDN__"
+#define TC_MDNT_NAME	"__MDNT__"
+#define	TC_SUB_OBJ_NAME	"subobject"
+#define TC_MDN_ATOMIC	"atomic"
+#define TC_MDN_LINK		"link"
+#define TC_MDN_COMPLEX	"complex"
+#define TC_MDN_DEFTYPE	"defined_type"
+#define TC_REF_TYPE_SUFF	"__REFTYPE_"
+#define TC_MDS_KIND			"kind"
+#define TC_MDS_NAME			"name"
+#define TC_MDS_CARD			"card"
+#define TC_MDS_ISDIST		"isDistinct"
+#define TC_MDS_REFNAME		"refName"
+#define TC_MDS_TYPENAME		"typeName"
+#define TC_MDS_TYPE			"type"
+#define TC_MDS_OWNER		"owner"
+#define TC_MDS_TARGET		"target"
+
+
+namespace TypeCheck
+{
+	
+	class TCError {
+	
+	private:
+		string type;		//"BAD_ARG", "BAD_NAME", ...
+		string outputText;
+								 
+	public:
+		enum TcErrorType {TCBARG, TCBNAME};
+		TCError(){};
+		TCError(string type, string output) {this->type = type; this->outputText = output;}
+		
+		virtual string getOutput() {
+			return "[ERROR: " +type + "] : " + outputText;
+		}	
+		virtual ~TCError(){};
+	};
+	
+	//TODO: does this class REALLY differ from TCError? if not - maybe lets just add an attribute
+	//		saying if its an error, or an action, huh?
+	class TCAction {	
+	private:
+		string type;		//"DEREF", "COERCE", "ELLIPSIS", ...
+		string outputText;
+		
+	public:
+		TCAction(){};
+		TCAction(string type, string output) {this->type = type; this->outputText = output;}
+		virtual string getOutput() {
+			return type + ": " + outputText;
+		}
+		virtual ~TCAction(){};
+	};	
+	
+	class TCGlobalResult {
+	
+	private:
+		vector<TCError> errors;
+		vector<TCAction> implicitActions; //derefs, coerces, ellipsis... 
+		string overallResult;	// "SUCCESS", "ERROR", "DYNAMIC_CTRL"
+		//could also add field such as: onErrorActions, which would hold all actions
+		//done on error, in order to restore the typechecking process. So, eg.: if
+		//a name'd been miss-spelled, then what name was chosen to replace it, etc.
+	public:
+		TCGlobalResult(){overallResult = "SUCCESS";}; //let's presume best-case scenario...
+		virtual vector<TCError> getErrors() {return errors;}
+		virtual vector<TCAction> getActions() {return implicitActions;}
+		virtual void addError(TCError err) {this->errors.push_back(err);}
+		virtual void addAction(TCAction act) {this->implicitActions.push_back(act);}
+		virtual void reportTypeError(TCError err) {
+			overallResult = "ERROR";
+			addError(err);
+		}
+		virtual void setOverallResult(string res) {this->overallResult = res;}
+		virtual void printOutput();
+		virtual ~TCGlobalResult(){};
+	};	
+	
+	class TypeChecker {	
+	
+	private: 
+		TCGlobalResult globalResult;//	global type-check result: SUCCESS/ERROR, list of errors..
+		StatQResStack *sQres;		//	static query result stack
+		StatEnvStack *sEnvs;		//	static environment stack
+		TreeNode *tNode;			//	the query tree to be type-checked.
+		//DecisionTableHandler dTables;
+		
+	public:
+		enum TcAction {CD_COERCE_11, CD_COERCE_11_L, CD_COERCE_11_R, BS_TOSTR_L, BS_TOSTR_R };
+
+		TypeChecker();
+		TypeChecker(TreeNode *tn) {
+			setTNode(tn);
+			setEnvs(new StatEnvStack());
+			setQres(new StatQResStack());
+			sEnvs->pushBinders(DataScheme::dScheme()->bindBaseObjects());
+		}
+		
+		virtual void setQres(StatQResStack *nq) {this->sQres = nq;};
+		virtual void setEnvs(StatEnvStack *ne) {this->sEnvs = ne;};
+		virtual void setTNode(TreeNode *tn) {this->tNode = tn;};
+		virtual DecisionTableHandler *getDTables() {return DecisionTableHandler::getHandle();}
+		virtual DecisionTable *getDTable(string algOrNonAlg, int op) {return DecisionTableHandler::getHandle()->getDTable(algOrNonAlg, op);}
+		
+	/** augment...() methods, to be pointed to in TCResults.. */
+		virtual int coerceCardsTo11(TreeNode *tn, Signature *lSig, Signature*rSig);
+		virtual int coerceOneCardTo11(TreeNode *tn, Signature *sig);
+		virtual int coerceToString(bool leftArg, bool rightArg);
+	/** end of pointered methods... */
+		virtual int performAction(int actionId, TreeNode *tn, Signature *lSig, Signature *rSig, TypeCheckResult *tcr);
+		virtual void reportTypeError(TCError err) { return this->globalResult.reportTypeError(err);};
+		virtual int doTypeChecking(string &s);
+		
+		virtual int typeCheck(TreeNode *tn);
+		virtual bool bindError(vector<BinderWrap*> *vec);
+		virtual Signature* extractSigFromBindVector(vector<BinderWrap*> *vec);
+		virtual int augmentTreeEllipsis(TreeNode *tn, string name, vector<BinderWrap*> *vec, string expander);
+		/** Will these arguments be enough... ? */
+		virtual int augmentTreeCoerce(TreeNode *tn, Signature *lSig, Signature *rSig, TypeCheckResult &tcRes);
+		
+		virtual int augmentTreeDeref(TreeNode *tn, string opType, int oper, TypeCheckResult &tcRes, Signature *lSig, Signature *rSig);
+		virtual int restoreAfterMisspelledName(TreeNode *tn, string name, vector<BinderWrap*> *vec);
+		
+		virtual ~TypeChecker();
+		
+	};
+	
+
+}
+
+	
+#endif /* __TC_TYPE_CHECKER_H__ */
