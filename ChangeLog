@@ -1,3 +1,15 @@
+2008-02-10  Maksymilian Humpich  <mh209206@students.mimuw.edu.pl>
+
+	* TypeCheck/Attic/IndexHandler.h, TypeCheck/Attic/IndexManager.cpp, TypeCheck/Attic/IndexManager.h:
+	- removed trash files
+
+	* TypeCheck/TypeCheckResult.h, TypeCheck/TypeCheckResult.h~, TypeCheck/TypeChecker.cpp, TypeCheck/TypeChecker.cpp~, TypeCheck/TypeChecker.h, TypeCheck/TypeChecker.h~, TypeCheck/Attic/IndexHandler.h, TypeCheck/Attic/IndexManager.cpp, TypeCheck/Attic/IndexManager.h, TypeCheck/ClassNames.h, TypeCheck/ClassNames.h~, TypeCheck/DMLControl.cpp, TypeCheck/DMLControl.cpp~, TypeCheck/DMLControl.h, TypeCheck/DMLControl.h~, TypeCheck/DecisionTable.cpp, TypeCheck/DecisionTable.cpp~, TypeCheck/DecisionTable.h, TypeCheck/DecisionTable.h~, TypeCheck/MDLControl.h~, TypeCheck/Makefile, TypeCheck/Makefile~, TypeCheck/Metadata.cpp, TypeCheck/Rule.cpp, TypeCheck/Rule.cpp~, TypeCheck/Rule.h, TypeCheck/Rule.h~, TypeCheck/TypeCheckResult.cpp, TypeCheck/TypeCheckResult.cpp~:
+	- Added missing TypeCheck directory
+
+	* Errors/ErrorConsole.cpp, Errors/ErrorMsg.cpp, Errors/Errors.h, Makefile, QueryExecutor/EnvironmentStack.cpp, QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryExecutor.h, QueryExecutor/QueryResult.h, QueryParser/ClassNames.h, QueryParser/DataRead.cpp, QueryParser/DataRead.h, QueryParser/QueryParser.cpp, QueryParser/QueryParser.h, QueryParser/Stack.cpp, QueryParser/Stack.h, QueryParser/TreeNode.cpp, QueryParser/TreeNode.h, QueryParser/parser.y, QueryParser/scanner.l, SBQLCli/Makefile, Server/Makefile, Server/Server.conf, Server/Server.cpp, TransactionManager/Transaction.cpp, TransactionManager/Transaction.h:
+	- Type checking module added (yet to be finished)
+	- minor corrections in QueryParser (Stack.h, TreeNode.h)
+
 2008-02-09  Piotr Turski  <pt209301@students.mimuw.edu.pl>
 
 	* Indexes/Attic/NonloggedDataSerializer.cpp, Indexes/Attic/NonloggedDataSerializer.h:
