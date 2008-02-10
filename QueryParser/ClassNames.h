@@ -18,6 +18,12 @@ namespace QParser{
 	class DeathRmver;
 	class Card;
 }
+
+namespace TManager{
+	class Transaction;
+	class TransactionManager;
+}
+
 #endif
 
 

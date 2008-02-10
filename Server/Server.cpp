@@ -17,6 +17,7 @@
 #include "../Log/Logs.h"
 #include "../QueryParser/QueryParser.h"
 #include "../QueryParser/TreeNode.h"
+#include "../QueryParser/DataRead.h"
 #include "../QueryExecutor/QueryResult.h"
 #include "../QueryExecutor/QueryExecutor.h"
 #include "../Store/DBStoreManager.h"
@@ -463,6 +464,7 @@ int Server::Run()
 	sigprocmask(SIG_BLOCK, &block_cc, NULL);
 
 	qPa = new QueryParser();
+	//if (qPa->usesMdn()) DataScheme::reloadScheme();
 	qEx = new QueryExecutor();
 
 	qEx->set_priviliged_mode( is_priviliged_mode() );
@@ -485,7 +487,8 @@ int Server::Run()
 #ifdef PULSE_CHECKER_ACTIVE
 	res=pulseCheckRun();
 #endif
-
+	string typeCheckResultString = "";
+	int typeCheckResultInt = 0;
 while (!signalReceived) {
 
 	if (ncError==1)
@@ -555,12 +558,15 @@ while (!signalReceived) {
 		sigprocmask(SIG_BLOCK, &block_cc, NULL);
 	
 		ec->printf("[Server.Run]--> Requesting PARSE: |%s| \n", messgBuff);
-		res = (qPa->parseIt((string) messgBuff, tNode));
-		if (res != 0) {
-		    ec->printf("[Server.Run]--> Parser returned error code %d\n", res);
-		    sendError(res);
-		    ncError=1;
-		    continue;
+		typeCheckResultString = "";		
+		typeCheckResultInt = (qPa->parseIt((string) messgBuff, tNode, typeCheckResultString, true, true));
+		//*ec << "straight after parseIt, tcResString: ";
+		//*ec << typeCheckResultString;
+		if (typeCheckResultInt != 0 && typeCheckResultInt != (ErrTypeChecker | EGeneralTCError)) {
+			ec->printf("[Server.Run]--> Parser returned error code %d\n", typeCheckResultInt);
+			sendError(typeCheckResultInt);
+			ncError=1;
+			continue;
 		}
 		free(messgBuff);
 		*ec << "[Server.Run]--> Query has been parsed ";
@@ -590,17 +596,27 @@ while (!signalReceived) {
 	}
 
 	ec->printf("[Server.Run]--> Requesting EXECUTE on tree node: |%d| \n", (int) tNode);
-	if (package->getType() == Package::PARAMSTATEMENT) {
+/*	if (package->getType() == Package::PARAMSTATEMENT) {
 		ParamStatementPackage* psp = (ParamStatementPackage*) package;
-		
 		*ec <<  "Server: [Server.Run]--> with params ";
 		*ec << psp->toString();
-
 		res = (qEx->executeQuery(tNode, &(psp->getQueryParams()), &qResult));
 	}
-	else {
-		res = (qEx->executeQuery(tNode, &qResult));	
+	else {res = (qEx->executeQuery(tNode, &qResult));}
+*/	
+	if (typeCheckResultInt == (ErrTypeChecker | EGeneralTCError)) {
+		qResult = new QueryStringResult(typeCheckResultString);
+	} else {
+		if (package->getType() == Package::PARAMSTATEMENT) {
+			ParamStatementPackage* psp = (ParamStatementPackage*) package;
+			*ec <<  "Server: [Server.Run]--> with params ";
+			*ec << psp->toString();
+			res = (qEx->executeQuery(tNode, &(psp->getQueryParams()), &qResult));
+		} else {
+			res = (qEx->executeQuery(tNode, &qResult));	
+		}
 	}
+	
 	if (res != 0) {
 	    ec->printf("[Server.Run]--> Executor returned error code %d\n", res);
 	    sendError(res);
@@ -621,7 +637,6 @@ while (!signalReceived) {
 	*ec << "[Server.Run]--> *****SERIALIZE starts*****";
 
 #ifndef PACKAGE_SENDING
-	
 	res = (SerializeRec(qResult));
 	if (res != 0) {
 	    ec->printf("[Server.Run--> Serialize returned error code %d\n", res);

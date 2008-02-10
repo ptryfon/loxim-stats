@@ -28,36 +28,46 @@ namespace QParser {
 		SigColl *ns = new SigColl(type()); 
 		Signature *pom;
 		if (myList != NULL) {
-		    ns->setElts (myList->clone()); 
+			ns->setElts (myList->clone()); 
 		    /*	tak bylo kiedys, tak jest zle, 
-		    ns->setMyLast (this->myLast);
-		    */
-		    ns->setMyLast (ns->getMyList()); 
+			ns->setMyLast (this->myLast);
+			*/
+			ns->setMyLast (ns->getMyList()); 
 		}
 		if (next != NULL) 
-		    ns->setNext(next->clone());
+			ns->setNext(next->clone());
+		ns->setCard(this->card);
+		ns->setTypeName(this->distinctTypeName);
 		return ns;
 	}
 	Signature* SigAtomType::clone(){
 		SigAtomType *ns = new SigAtomType(atomType);
 		ns->setDependsOn(this->getDependsOn());			// death
 		if (next != NULL) ns->setNext(next->clone());
-		return ns;}
+		ns->setCard(this->card);
+		ns->setTypeName(this->distinctTypeName);
+		return ns;
+	}
 	Signature* SigRef::clone(){
 		SigRef *ns = new SigRef(refNo);
 		ns->setDependsOn(this->getDependsOn());			// death
 		if (next != NULL) ns->setNext(next->clone());
-		return ns;}
+		ns->setCard(this->card);
+		ns->setTypeName(this->distinctTypeName);
+		return ns;
+	}
 	Signature* StatBinder::clone(){
 		StatBinder *ns = new StatBinder(name);
 		ns->setDependsOn(this->getDependsOn());			// death
 		if (value != NULL) ns->setValue (value->clone());
 		if (next != NULL) ns->setNext (next->clone());
+		ns->setCard(this->card);
+		ns->setTypeName(this->distinctTypeName);
 		return ns;
-		}
+	}
 	BinderWrap* SigRef::statNested(TreeNode *treeNode) {
 		Deb::ug("doing statNested on DATA SCHEME ! "); 
-		cout << "treeNode->getName(): " + treeNode->getName() << endl;
+		if (treeNode != NULL && Deb::ugOn()) cout << "treeNode->getName(): " + treeNode->getName() << endl;
 		return DataScheme::dScheme()->statNested(refNo, treeNode);
 		}		
 	BinderWrap* StatBinder::statNested(TreeNode *treeNode) { 
@@ -68,7 +78,7 @@ namespace QParser {
 	};
 
 	BinderWrap* SigColl::statNested(TreeNode *treeNode) {
-		Deb::ug("stat nested na sigColl start-----------------------------------------------------------------------------------------------\n");
+		Deb::ug("stat nested na sigColl start----------------------------------------------------------\n");
 		if (Deb::ugOn()){
 		    cout << "zawartosc sigColl: \n";
 		    this->putToString();  

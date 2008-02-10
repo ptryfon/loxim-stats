@@ -4,6 +4,7 @@
 
 #include "QueryResult.h"
 #include "RemoteExecutor.h"
+#include "../QueryParser/ClassNames.h"
 #include "TransactionManager/Transaction.h"
 #include "Store/Store.h"
 #include "Store/DBDataValue.h"
@@ -269,7 +270,7 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 							r->addResult(virt_res);
 						}
 					} else {
-						// Galaz dla wirtualnych widokow‚
+						// Galaz dla wirtualnych widokowï¿½
 						*ec << "[QE] TUTAJ WYNIKI";
 						found_one = true;
 						LogicalID *svlid = vec_sysvirt->at(0);

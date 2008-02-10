@@ -38,6 +38,10 @@ struct {
 	{EBadViewDef,      "Error in View definition"},
 	{EBadBindName,     "Error in Name binding"},
 	{EOperNotDefined,  "This operation is not defined for this object"},
+	{ESuchMdnExists,   "Metadata entry with such name already exists"},
+	{EObjectInsteadOfType, "Object declared based on other object, instead of defined type"}, 
+	{EMdnCreateError, "Error while performing DB inserts on Metadata nodes"},
+	{ERecurrentTypes,  "Cannot define recurrent or mutually recurrent types"}, 
 // Config
 	{ENotInit,         "ENotInit"},
 	{ENoValue,         "ENoValue"},
@@ -62,6 +66,11 @@ struct {
 	{EIndexExists,		"Index already exists"},
 	{EFieldIndexed,		"Field is already indexed"},
 	{ENoIndex,			"No such index"},
+// TypeChecker
+	{ECannotRestore, 	"Unable to restore type checking process"},
+	{ECannotRestoreBadName, "Unable to restore type checking after Bad Name error"},
+	{EIncompleteMetadata, "Metadata incomplete, unable to typecheck query. "},
+	{EMetadataOutdated, "Metadata not up to date, unable to typecheck query. Try: reloadScheme; \n"},
 // THIS MUST BE THE LAST ENTRY
 	{EUnknown,         "Unknown error"}
 };
@@ -109,6 +118,9 @@ struct {
 				break;
 			case ErrIndexes:
 				src_mod = "Indexes";
+				break;
+			case ErrTypeChecker:
+				src_mod = "Type Checker";
 				break;
 			default:
 				src_mod = "Unknown";

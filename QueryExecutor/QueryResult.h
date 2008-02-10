@@ -6,6 +6,7 @@
 #include <vector>
 #include <sstream>
 
+#include "../QueryParser/ClassNames.h"
 #include "TransactionManager/Transaction.h"
 #include "Store/Store.h"
 #include "Store/DBDataValue.h"

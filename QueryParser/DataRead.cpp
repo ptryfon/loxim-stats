@@ -9,220 +9,354 @@
 #include "Store/Store.h"
 #include "Store/DBStoreManager.h"
 #include "Store/DBObjectPointer.h"
+#include "Errors/ErrorConsole.h"
+#include "Errors/Errors.h"
 #include "TransactionManager/Transaction.h"
+#include "TypeCheck/TypeChecker.h"
 #include "Deb.h"
 using namespace std;
 //using namespace QExecutor;
 //using namespace Store;
 
 namespace QParser {
-		BinderWrap *DataScheme::statNested (int objId, TreeNode *treeNode) {
-			Deb::ug("dataScheme::statNested start\n");
-			DataObjectDef *candidate = this->getObjById(objId);
-			DataObjectDef *pom = NULL;
-//			list<StatBinder *> bindersCol;
-			BinderList *bindersCol = NULL;
-			
-			if (candidate == NULL){	
-				Deb::ug("NULL !!!!\n");
-				return bindersCol; //<empty collection>;
-			}
-			/* further we assume we have found such an object in database */
-			Deb::ug("i found object nr %d.\n", candidate->getMyId());
-			if (candidate->getKind() == "atomic") return bindersCol;	//<empty collection>;
-			if (candidate->getKind() == "link") {
-				Deb::ug("object is a link !\n");
-				pom = candidate->getTarget(); /*now pom points to the target object. */
-				SigRef *sigRef = new SigRef (pom->getMyId());
-				sigRef->setDependsOn(NULL);
-				sigRef->setCard(candidate->getCard());
-				StatBinder * sb = new StatBinder (pom->getName(), sigRef);				
-				sb->setDependsOn(treeNode);
-				sb->setCard(candidate->getCard());
-				//bindersCol.push_back(sb);
-				bindersCol = new BinderList(sb);
-				return bindersCol;	//<kolekcja 1-eltowa zawierajaca sb>;				
-			};
-			/* further we assume that kind == "complex" -- objekt zlozony. */
-			Deb::ug("the object is a complex one ! \n");
-			pom = candidate->getSubObjects();
-				// <kolekcja statBinderow> *binders = new <pusta kolekcja>;	
-			Deb::ug("one sub - nr: %d.\n", pom->getMyId());
-			while (pom != NULL) {
-				SigRef * sigRef = new SigRef (pom->getMyId());
-				sigRef->setDependsOn(NULL);
-				sigRef->setCard(pom->getCard());
-				StatBinder * sb = new StatBinder (pom->getName(), sigRef);
-				sb->setDependsOn(treeNode);				// old to rem
-				sb->setCard(pom->getCard());
-				//binders->addBinder(sb);
-				if (bindersCol == NULL) bindersCol = new BinderList(sb);
-				else {
-					bindersCol = (BinderList *) (bindersCol->addOne(new BinderList(sb)));
-				}
-//				bindersCol.push_back(sb);
-				pom = pom->getNextSub();
-				/**NIEEE !!! pom = pom->getNextSub() ! >:-0 */
-			}
-			if (bindersCol == NULL) Deb::ug("dataScheme::statNested zwraca NULL!!!\n");
-			return bindersCol;		
-		};
-
-
-		BinderWrap* DataScheme::bindBaseObjects() {
-			BinderList *bw = NULL;
-			for (DataObjectDef *obts = this->getBaseObjects(); obts != NULL; obts = obts->getNextBase()) {
-				SigRef *sigRef = new SigRef (obts->getMyId());
-				sigRef->setCard(obts->getCard());						// ?? ??- ktore trzeba?
-				sigRef->setDependsOn(NULL);		// death
-				StatBinder * sb = new StatBinder (obts->getName(), sigRef);
-				sb->setCard(obts->getCard());							// ?? ??czy obydwa?
-				sb->setDependsOn(NULL);
-				if (bw == NULL) bw = new BinderList (sb);
-				else bw = (BinderList *) bw->addPureBinder(sb);			
-			}
-			return bw;
-		};		
-
-DataObjectDef * DataScheme::createDataObjectDef(ObjectPointer *mainOp, Transaction *tr){
-    Deb::ug("start createDataObjectDef \n");
-    //jsi cerr << "diag2.2 " << mainOp->getLogicalID()->toInteger() << endl;
-    this->getObjById(mainOp->getLogicalID()->toInteger());
-    if (this->getObjById(mainOp->getLogicalID()->toInteger()) != NULL){
-	Deb::ug("dany obiekt juz jest wczytany \n");
-	return this->getObjById(mainOp->getLogicalID()->toInteger());
-    };
-        
-    DataObjectDef * datObDef = new DataObjectDef();	// ten obiekt wypelniam 
-    datObDef->setMyId(mainOp->getLogicalID()->toInteger());
-    DataValue *dv = mainOp->getValue();	//to jest obiekt zlozony, tu jest wektor wskaznikow do logicalId
-    vector<LogicalID*>* v = dv->getVector();  
-//    cerr << "rodzaj obiektu " << mainOp->getName() << endl;
-    if (mainOp->getName() == "__MDN__"){
-        this->addBaseObj(datObDef);
-    } else {
-        this->addObj(datObDef);
-    }
-    // teraz ustawiam name, card, kind....    
-    for (unsigned   int j = 0; j < v->size(); j++){
-        // czy acces mode sie robi w ten sposob?
-	ObjectPointer *op = NULL;
-	tr->getObjectPointer( (*v)[j], Store::Read, op, false);
-//	cerr << " wczytal " << op->getName() << "---------------------" << endl;
-        // moze tak nie mozna porownywac getName zwraca stringa **
-        if (op->getName() == "name"){
-//	    cout << "wczytal name " << op->getValue()->getString() << endl;
-	    datObDef->setName(op->getValue()->getString());    
-	} else if (op->getName() == "kind") {
-//	    cout << "wczytal kind " << op->getValue()->getString() << endl;
-	    datObDef->setKind(op->getValue()->getString());    
-	} else if (op->getName() == "card"){
-//	    cout << "wczytal card " << op->getValue()->getString() << endl;
-	    datObDef->setCard(op->getValue()->getString());    
-	} else if (op->getName() == "type") {
-//	    cout << "wczytal type " << op->getValue()->getString() << endl;
-	    datObDef->setType(op->getValue()->getString());    
-	} else if (op->getName() == "owner") {
-//	    cout << "WAZNE wczytal owner " << op->getValue()->getPointer()->toInteger() << endl;
-	    datObDef->setOwnerId(op->getValue()->getPointer()->toInteger());
-    //	    tr->getObjectPointer( (*v)[j], Store::Read, op);
-	    ObjectPointer * pom;
-	    tr->getObjectPointer(op->getValue()->getPointer(), Store::Read, pom, false);
-//	    cout << "spodziewam sie, ze w nas linii napisze ze dany obiekt jest juz wczytany " << endl;
-	    datObDef->setOwner(this->createDataObjectDef(pom, tr));
-	} else if (op->getName() == "target") {
-//	    cout << "WAZNE wczytal target " << op->getValue()->getPointer()->toInteger();
-	    datObDef->setTargetId(op->getValue()->getPointer()->toInteger());
-	    ObjectPointer * pom;
-	    tr->getObjectPointer(op->getValue()->getPointer(), Store::Read, pom, false);
-	    datObDef->setTarget(this->createDataObjectDef(pom, tr));
-	} else if (op->getName() == "subobject") {				// czy to jest link??? chyba tak 
-//	    cerr << "WAZNE wczytal subobject " << endl;				// tak samo jak owner i target
-//	    cerr << "to chyba nie to id/ a jednak moze to " << op->getLogicalID()->toInteger();
-//	    cerr << "to chyba dobre id " << op->getValue()->getPointer()->toInteger() << endl;
-	    ObjectPointer * pom;
-	    tr->getObjectPointer(op->getLogicalID(), Store::Read, pom, false);
-//	    cerr << "wola rek " << endl;
-	    DataObjectDef * subobj = this->createDataObjectDef(pom, tr);	    
-	    if (subobj->getOwner() == datObDef){
-//		cerr << "OK subobj->getOwner() == datObDef" << endl;
-	    } else {
-		cout << "jsi ERROR subobj->getOwner() != datObDef" << endl;
-	    }
-	    datObDef->addSubObject(subobj);
-//	    cerr << "end subobject " << endl;	    
-	}
-    }    
-//    cerr << "end createDataObjectDef " << endl;    
-    return datObDef;
-}
-
-int DataScheme::readData(){
-    Deb::ug("-------------------readData START--------------------------------------");
-    vector<ObjectPointer *> * roots;
-if (true) {
-
-    Transaction * tr;     
-    if (TransactionManager::getHandle()->createTransaction(tr))
-	Deb::ug("nie udalo sie zrobic tranzakcji");
-        
 	
-    tr->getRoots("__MDN__", roots);	
-    if (Deb::ugOn()) cout << "odebral " << roots->size() << " obiektow"<< endl;
-    for (unsigned int i = 0; i < roots->size(); i++){
-	ObjectPointer * mdnOp = (*roots)[i];
-//	cout << "tworzy DataObjDef(__MDN__) ---------------------------------\n";
-	createDataObjectDef(mdnOp, tr);
-    }
-}    
-    
+	BinderWrap *DataScheme::statNested (int objId, TreeNode *treeNode) {
+		Deb::ug("dataScheme::statNested start\n");
+		DataObjectDef *candidate = this->getObjById(objId);
+		return statNested(candidate, treeNode, candidate->getName(), candidate->getCard());
+	}
+		
+	
+	BinderWrap *DataScheme::statNested (DataObjectDef *candidate, TreeNode *treeNode, string obName, string obCard) {
+		DataObjectDef *pom = NULL;
+		BinderList *bindersCol = NULL;
+			
+		if (candidate == NULL){	
+			Deb::ug("NULL !!!!\n");
+			return bindersCol; //<empty collection>;
+		}
+		/* further we assume we have found such an object in database */
+		Deb::ug("i found object nr %d.\n", candidate->getMyId());
+		if (candidate->getKind() == TC_MDN_ATOMIC) return bindersCol;	//<empty collection>;
+		if (candidate->getKind() == TC_MDN_LINK) {
+			Deb::ug("object is a link !\n");
+			pom = candidate->getTarget(); /*now pom points to the target object. */
+			SigRef *sigRef = new SigRef (pom->getMyId());
+			sigRef->setDependsOn(NULL);
+			sigRef->setCard(obCard);
+			string binderName = pom->getName();
+			if (pom->getIsTypedef()) { //make it an artificial name, to be able to detect when binding.
+				binderName = TC_REF_TYPE_SUFF + binderName;
+			}
+			StatBinder * sb = new StatBinder (binderName, sigRef);	
+			sb->setDependsOn(treeNode);
+			sb->setCard(obCard);
+			bindersCol = new BinderList(sb);
+			return bindersCol;	//<kolekcja 1-eltowa zawierajaca sb>;	
+		} else if (candidate->getKind() == TC_MDN_DEFTYPE) {
+			Deb::ug("object defined by its type !!!\n");	
+			pom = candidate->getTypeObj();	
+			BinderList *retList = (BinderList *) statNested(pom, treeNode, obName, obCard);	
+			return retList;				
+		};
+		/* further we assume that kind == "complex" -- objekt zlozony. */
+		Deb::ug("the object is a complex one ! \n");
+		pom = candidate->getSubObjects();
+		Deb::ug("one sub - nr: %d.\n", pom->getMyId());
+		while (pom != NULL) {
+			SigRef * sigRef = new SigRef (pom->getMyId());
+			sigRef->setDependsOn(NULL);
+			sigRef->setCard(pom->getCard());
+			sigRef->setTypeName(pom->getTypeName());
+			StatBinder * sb = new StatBinder (pom->getName(), sigRef);
+			sb->setDependsOn(treeNode);				// old to rem
+			sb->setCard(pom->getCard());
+			sb->setTypeName(pom->getTypeName());
+				//binders->addBinder(sb);
+			if (bindersCol == NULL) bindersCol = new BinderList(sb);
+			else {
+				bindersCol = (BinderList *) (bindersCol->addOne(new BinderList(sb)));
+			}
+			pom = pom->getNextSub();
+			/**! pom = pom->getNextSub() ! >:-0 */
+		}
+		if (bindersCol == NULL) Deb::ug("dataScheme::statNested returns with NULL!!!\n");
+		return bindersCol;		
+	};
 
-Deb::ug("-------------------readData END--------------------------------------");
-	return 0;
-};
+	Signature *DataScheme::signatureOfRef(int objId) {
+		Deb::ug("DataScheme: getting signature of ref: %d.", objId);
+		DataObjectDef *candidate = this->getObjById(objId);
+		if (candidate == NULL){	
+			Deb::ug("object with this id is NULL !!!!\n");
+			return NULL; 
+		}
+		Signature *resultSig = candidate->createSignature();
+		cout << "Created signature based on dataobject def. Sig: " << endl;
+		resultSig->putToString();
+		cout << endl << "that was it" << endl;
+		return resultSig;
+	};			
+
+	BinderWrap* DataScheme::bindBaseObjects() {
+		BinderList *bw = NULL;
+		for (DataObjectDef *obt = this->getBaseObjects(); obt != NULL; obt = obt->getNextBase()) {
+			SigRef *sigRef = new SigRef (obt->getMyId());
+			sigRef->setCard(obt->getCard());						// ?? ??- ktore trzeba?
+			if (obt->getKind() == TC_MDN_DEFTYPE && obt->getTypeObj() != NULL && obt->getTypeObj()->getIsDistinct()) {
+				sigRef->setTypeName(obt->getTypeName());
+			}
+			sigRef->setDependsOn(NULL);		// death
+			StatBinder * sb = new StatBinder (obt->getName(), sigRef);
+			sb->setCard(obt->getCard());							// ?? ??czy obydwa?
+			sb->setTypeName(obt->getTypeName());
+			sb->setDependsOn(NULL);
+			if (bw == NULL) bw = new BinderList (sb);
+			else bw = (BinderList *) bw->addPureBinder(sb);			
+		}
+		return bw;
+	};
+
+	Signature *DataObjectDef::createSignature() {
+		Deb::ug("creating signature of myself, my id: %d.", this->getMyId());
+		Signature *sig = NULL;
+		if (kind == TC_MDN_LINK) {
+			sig = new SigRef(targetId);
+		} else if (kind == TC_MDN_ATOMIC) {
+			sig = new SigAtomType(type);
+		} else if (kind == TC_MDN_COMPLEX) {
+			sig = new SigColl(Signature::SSTRUCT);
+			DataObjectDef *point = this->getSubObjects();
+			while (point != NULL) {
+				Signature *son = point->createSignature();
+				((SigColl *)sig)->addToMyList(son);
+				point = point->getNextSub();
+				/**! pom = pom->getNextSub() ! >:-0 */
+			}
+		} else if (kind == TC_MDN_DEFTYPE) {
+			if (this->getTypeObj() != NULL) {
+				sig = this->getTypeObj()->createSignature();
+			}
+		} else {
+			sig = new SigRef(getMyId()); // default behavior, if unkown kind appears.
+		}
+		if (sig != NULL) {
+			sig->setCard(card);
+			if (typeName != "") sig->setTypeName(typeName);
+		}
+			//could try set other attributes, like... distinct typename? mutability? 
+		return sig;
+	}
+	
+		
+	DataObjectDef * DataScheme::createDataObjectDef(ObjectPointer *mainOp, Transaction *tr){
+		Deb::ug("start createDataObjectDef \n");
+		if (mainOp == NULL || mainOp->getLogicalID() == NULL) { return NULL;}
+		DataObjectDef *oldOp = NULL;
+		if ((oldOp = this->getObjById(mainOp->getLogicalID()->toInteger())) != NULL) {
+			Deb::ug("Object already created and hashed\n");
+			return oldOp;
+		};
+		DataObjectDef * datObDef = new DataObjectDef();	// this object is to be created and filled in. 
+		datObDef->setMyId(mainOp->getLogicalID()->toInteger());
+		vector<LogicalID*>* v = mainOp->getValue()->getVector();
+		if (mainOp->getName() == TC_MDN_NAME){
+			datObDef->setIsTypedef(false);
+			this->addBaseObj(datObDef);
+		} else if (mainOp->getName() == TC_MDNT_NAME) {
+			datObDef->setIsTypedef(true);
+			this->addBaseType(datObDef);
+		} else {
+			datObDef->setIsTypedef(false);
+			this->addObj(datObDef);
+		}
+		for (unsigned   int j = 0; j < v->size(); j++){
+			ObjectPointer *op = NULL;
+			tr->getObjectPointer( (*v)[j], Store::Read, op, false);
+			if (op->getName() == TC_MDS_NAME){
+				datObDef->setName(op->getValue()->getString());
+			} else if (op->getName() == TC_MDS_KIND) {
+				datObDef->setKind(op->getValue()->getString());
+			} else if (op->getName() == TC_MDS_CARD){
+				datObDef->setCard(op->getValue()->getString());
+			} else if (op->getName() == TC_MDS_ISDIST) {
+				datObDef->setIsDistinct(op->getValue()->getString() == "1" ? true : false);
+			} else if (op->getName() == TC_MDS_REFNAME) {
+				string refName = op->getValue()->getString();
+				datObDef->setRefName(refName);
+//		if (datObDef->getTarget() == NULL) {
+				LogicalID *lid = getRootIdByName(refName);
+				if (lid == NULL) {
+					cout << "datascheme incomplete, missing " << refName << ".." << endl;
+					this->setComplete(false);
+					this->addMissedRoot(refName);
+					return NULL;
+				} else {
+					ObjectPointer *pom;
+					datObDef->setTargetId(lid->toInteger());
+					tr->getObjectPointer(lid, Store::Read, pom, false);
+					datObDef->setTarget(this->createDataObjectDef(pom, tr));
+				}
+//		} else {cout << "TARGET already filled BY ORDINARY TARGET SUBOBJ. !" << endl;}
+			} else if (op->getName() == TC_MDS_TYPENAME) {
+				string tName = op->getValue()->getString();
+				datObDef->setTypeName(tName);
+				cout << "filling type object ref., name: " << tName << endl;
+				LogicalID *lid = getRootIdByName(tName);
+				if (lid == NULL) {
+					cout << "datascheme incomplete, missing type: " << tName << "." << endl;
+					this->setComplete(false);
+					this->addMissedRoot("type: "+tName);
+				} else {
+					ObjectPointer *ptr;
+					tr->getObjectPointer(lid, Store::Read, ptr, false);
+					datObDef->setTypeObj(this->createDataObjectDef(ptr, tr));
+					if ((datObDef->getTypeObj() == NULL) || !(datObDef->getTypeObj()->getIsTypedef())) {
+						this->setComplete(false);
+						this->addMissedRoot("type: "+tName);
+					}
+				}
+			} else if (op->getName() == TC_MDS_TYPE) {
+				datObDef->setType(op->getValue()->getString());    
+			} else if (op->getName() == TC_MDS_OWNER) {
+				datObDef->setOwnerId(op->getValue()->getPointer()->toInteger());
+				ObjectPointer * pom;
+				tr->getObjectPointer(op->getValue()->getPointer(), Store::Read, pom, false);
+				datObDef->setOwner(this->createDataObjectDef(pom, tr));
+			} else if (op->getName() == TC_MDS_TARGET) {
+				datObDef->setTargetId(op->getValue()->getPointer()->toInteger());
+				if (datObDef->getTarget() == NULL) { //may have been filled by name..s
+					cout << "FILLING TARGET AS TARGET" << endl;
+					ObjectPointer * pom;
+					tr->getObjectPointer(op->getValue()->getPointer(), Store::Read, pom, false);
+					datObDef->setTarget(this->createDataObjectDef(pom, tr));
+				}
+			} else if (op->getName() == TC_SUB_OBJ_NAME) {
+				ObjectPointer * pom;
+				tr->getObjectPointer(op->getLogicalID(), Store::Read, pom, false);
+				DataObjectDef * subobj = this->createDataObjectDef(pom, tr);	    
+				if (subobj != NULL && subobj->getOwner() == datObDef){
+					datObDef->addSubObject(subobj);
+				}
+			}
+		}
+		return datObDef;
+	}
+
+	int DataScheme::readData() {
+		readData(NULL);
+	}
+
+	int DataScheme::readData(Transaction *tr){
+		Deb::ug("-------------------readData START--------------------------------------");
+		vector<ObjectPointer *> * roots;
+		vector<ObjectPointer *> * rootTypes;
+
+		bool newTransaction = false;
+		if (tr == NULL) {
+			Deb::ug("Have to create new transaction to read datascheme.");
+			TransactionManager::getHandle()->createTransaction(tr);
+			newTransaction = true;
+		}	
+		tr->getRoots(TC_MDN_NAME, roots);	
+		tr->getRoots(TC_MDNT_NAME, rootTypes);
+		if (Deb::ugOn()) 
+			cout << "GOT " << roots->size() << " roots(MDN) and " << rootTypes->size() << " rootTypes(MDNT)\n";
+		registerRoots(roots, tr);
+		registerRoots(rootTypes, tr);
+	
+		createObjectDefs(roots, tr);
+		createObjectDefs(rootTypes, tr);
+
+		delete roots;
+		delete rootTypes;
+		if (newTransaction) tr->commit();
+		Deb::ug("-------------------readData END--------------------------------------");
+		return 0;
+	};
+
+	void DataScheme::registerRoots(vector<ObjectPointer *> *roots, Transaction *tr) {
+		for (unsigned int i = 0; i < roots->size(); i++){
+			ObjectPointer * mdnOp = (*roots)[i];
+			vector<LogicalID*> *v = mdnOp->getValue()->getVector();
+			for (unsigned int j = 0; j < v->size(); j++) {
+				ObjectPointer *op = NULL;
+				tr->getObjectPointer( (*v)[j], Store::Read, op,false);
+				if (op->getName() == "name") {
+					rootMap[op->getValue()->getString()] = mdnOp->getLogicalID();
+					break;
+				} 
+			}
+		}
+	}
+
+	void DataScheme::createObjectDefs(vector<ObjectPointer *> *roots, Transaction *tr) {
+		for (unsigned int i = 0; i < roots->size(); i++){
+			ObjectPointer * mdnOp = (*roots)[i];
+			createDataObjectDef(mdnOp, tr);
+		}
+	}
+	
+	//all existing metadata roots should be available this way
+	LogicalID *DataScheme::getRootIdByName(string name) {
+		if (rootMap.find(name) == rootMap.end()) return NULL;
+		else return rootMap[name];
+	}
+
+	//add given name to vector of missing roots only if its not there already.
+	void DataScheme::addMissedRoot(string name) {
+		for (unsigned int i = 0; i < missedRoots.size(); i++) {
+			if (missedRoots[i] == name) return;
+		}
+		missedRoots.push_back(name);
+	}
 /***********************************************************************************************************/
 
-/***********************************************************************************************************/
 	DataScheme* DataScheme::datScheme;
 	
 	DataScheme* DataScheme::dScheme() {
-		cout << "DataScheme::dScheme() \n";
 		if (datScheme == NULL) {
+			ErrorConsole ec("QueryParser");
+			ec << "dScheme initialized out of any transactions.\n";
 			datScheme = new DataScheme();
 			datScheme->readData();
-			cout << "DataScheme::dScheme() wczytal obiekty\n";
+		}
+		return datScheme;
+	}
+	
+	DataScheme* DataScheme::dScheme(Transaction *tr) {
+		Deb::ug("DataScheme::dScheme(tr) \n");
+		if (datScheme == NULL) {
+			datScheme = new DataScheme();
+			datScheme->readData(tr);
+			Deb::ug("DataScheme::dScheme() has just read its objects and types\n");
 		}		
 		DataObjectDef *pom = datScheme->getBaseObjects();
 		Deb::ug("DataScheme has these base objects: ");
-	    if (Deb::ugOn()) {
-		/* ?? przez to byl segfault (nie przy pierwszym ale przy kolejnym wywolaniu
-		*/
-		while (pom != NULL) {
-			cout << "--" << pom;		
-			fprintf(stderr, "[%d]", pom->getMyId());	
-			pom = pom->getNextBase();
+		if (Deb::ugOn()) {
+		/* ?? segfault used to come up here, at first call */
+			while (pom != NULL) {
+				fprintf(stderr, "[%d]", pom->getMyId());	
+				pom = pom->getNextBase();
+			}
 		}
-	    }
-	    return datScheme;
+		return datScheme;
 	};
-	void  DataScheme::reloadDScheme(){
-		cout << "reload danych\n";
-		datScheme = new DataScheme();
-		datScheme->readData();
+	
+	void DataScheme::reloadDScheme() {
+		reloadDScheme(NULL);
 	}
+	
+	void DataScheme::reloadDScheme(Transaction *tr){
+		Deb::ug("reloading data scheme\n");
+		if (datScheme != NULL) delete datScheme;
+		datScheme = new DataScheme();
+		datScheme->readData(tr);
+	}
+
 
 }
 /************************** KONIEC tam dalej sa stare wersje *********************************************************/
-
-
-
-
-
-
-
-
-
-
 
 
 

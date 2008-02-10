@@ -111,6 +111,8 @@ extern int szbderrno;
 "static"		return STATIC;
 "{"			return LEFTPROCPAR;
 "}"			return RIGHTPROCPAR;
+"["			return LEFTSQUAREPAR;
+"]"			return RIGHTSQUAREPAR;
 "view"			return VIEW;
 "on_update"		return ONUPDATE;
 "on_retrieve"		return ONRETRIEVE;
@@ -133,11 +135,17 @@ extern int szbderrno;
 "virtual objects"	return VIRTUAL;
 "shows"			return SHOWS;
 "associate"		return ASSOCIATE;
+"typedef"		return TYPEDEF;
+"string"		return STRING_SIG;
+"double"		return DOUBLE_SIG;
+"integer"		return INTEGER_SIG;
+"boolean"		return BOOLEAN_SIG;/* TO BE OR NOT TO BE... */
 
 ([_a-zA-Z][_a-zA-Z0-9]*)*::[_a-zA-Z][_a-zA-Z0-9]* yylval.str = new char[strlen(yytext) + 1]; yylval.str = strcpy(yylval.str,yytext); return EXTNAME;
 [_a-zA-Z][_a-zA-Z0-9]* 	yylval.str = new char[strlen(yytext) + 1]; yylval.str = strcpy(yylval.str,yytext); return NAME;
 $[_a-zA-Z][_a-zA-Z0-9]* yylval.str = new char[strlen(yytext) + 1]; yylval.str = strcpy(yylval.str,yytext); return PARAMNAME;
 %[_a-zA-Z][_a-zA-Z0-9]* 	yylval.str = new char[strlen(yytext) + 1]; yylval.str = strcpy(yylval.str,yytext); return SYSTEMVIEWNAME;
+[0-1]".."[0-1"*"] yylval.str = new char[strlen(yytext) + 1]; yylval.str = strcpy(yylval.str,yytext); return CARDCONST;
 [0-9]+ 			yylval.num = atoi(yytext); return INTEGER;
 [0-9]+"."[0-9]+		yylval.dbl = atof(yytext); return DOUBLE;
 

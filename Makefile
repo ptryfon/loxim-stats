@@ -3,6 +3,7 @@ include make.defs
 SUBDIRS	=	Backup \
 		QueryExecutor \
 		QueryParser \
+		TypeCheck \
 		Store \
 		TransactionManager \
 		Errors \

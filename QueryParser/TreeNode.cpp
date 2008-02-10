@@ -14,7 +14,7 @@ namespace QParser
 	long TreeNode::getUv(){return uv++;};
 	
 	
-     TreeNode* NameNode::clone()     { NameNode * nowy =  new NameNode(name); nowy->setUsedBy(this->getUsedBy()); nowy->setBoundIn(this->getBoundIn()); nowy->setOid(this->getOid()); return nowy; }
+    TreeNode* NameNode::clone()     { NameNode * nowy =  new NameNode(name); nowy->setUsedBy(this->getUsedBy()); nowy->setBoundIn(this->getBoundIn()); nowy->setOid(this->getOid()); return nowy; }
     TreeNode* ParamNode::clone()    { TreeNode * nowy =  new ParamNode(name); nowy->setOid(this->getOid()); return nowy;}
     TreeNode* IntNode::clone()      { IntNode * nowy = new IntNode(value); nowy->setOid(this->getOid());  return nowy;}
     TreeNode* StringNode::clone()   { StringNode * nowy = new StringNode(value);  nowy->setOid(this->getOid()); return nowy;}
@@ -29,8 +29,8 @@ namespace QParser
     TreeNode* CreateNode::clone()   { 
 		if (arg != NULL) return new CreateNode(name, (QueryNode*)arg->clone()); 
 		else return new CreateNode(name, NULL);}
-    	TreeNode* LinkNode::clone() {return new LinkNode(nodeName, ip, port); }
-    	TreeNode* CondNode::clone() {
+    TreeNode* LinkNode::clone() {return new LinkNode(nodeName, ip, port); }
+    TreeNode* CondNode::clone() {
 		if (rarg != NULL) return new CondNode((QueryNode*)condition->clone(), (QueryNode*)larg->clone(), (QueryNode*)rarg->clone(), op);
 		else return new CondNode((QueryNode*)condition->clone(), (QueryNode*)larg->clone(), op);
     }
@@ -140,13 +140,44 @@ namespace QParser
     		getClassesQuery()==NULL ? NULL : dynamic_cast<QueryNode*>(getClassesQuery()->clone()),
     		getObjectsQuery()==NULL ? NULL : dynamic_cast<QueryNode*>(getObjectsQuery()->clone()) );
     }
-    
+	/** Typecheck clones...*/
+	TreeNode* SignatureNode::clone() { 
+		TreeNode * retNode = NULL;
+		if (arg != NULL) retNode = new SignatureNode((StructureTypeNode *)arg->clone());
+		else {
+			if (this->sigKind == SignatureNode::atomic) retNode = new SignatureNode(sigKind, atomType);
+			else retNode = new SignatureNode(sigKind, typeName);
+		}
+		retNode->setOid(this->getOid());
+		return retNode;
+	}
+	TreeNode* ObjectDeclareNode::clone() {
+		TreeNode * retNode = NULL;
+		if (signature != NULL) retNode = new ObjectDeclareNode(name, (SignatureNode *)signature->clone(), card);
+		else retNode = new ObjectDeclareNode(name, NULL, card);
+		retNode->setOid(this->getOid());
+		return retNode;
+	}
+	TreeNode* StructureTypeNode::clone() {
+		StructureTypeNode *newStrct = new StructureTypeNode();
+		newStrct->setSubDeclarations(subDeclarations);
+		newStrct->setOid(this->getOid());
+		return newStrct;
+	}
+	TreeNode* TypeDefNode::clone() {
+		TreeNode * retNode = NULL;
+		if (signature != NULL) retNode = new TypeDefNode(name, (SignatureNode *)signature->clone(), isDistinct);
+		else retNode = new TypeDefNode(name, NULL, isDistinct);
+		retNode->setOid(this->getOid());
+		return retNode;
+	}	
+	/** Typecheck clones end. */
+	
 /*  to be used when subT is an subTree independant of (this) and (this) is a non-alg operator.
     called eg. for node  nd = nonalgop (where) ... 
     newTree = nd->factorSubQuery(subT, "randName")    
     (!!!) when used for optimization purposes, should not be called when 
 	  subT is a NameNode, because this does not help optimise a query.. */
- 
     TreeNode* TreeNode::factorSubQuery(TreeNode *subT, string newName) {
     
 		subT->getParent()->swapSon((QueryNode *) subT, new NameNode(newName));
@@ -739,7 +770,7 @@ namespace QParser
 			Deb::ug("jsi death sygnatura juz miala ustawione dependsOn, nie ustawia go ponownie\n");
 		}
 		
-		for (int i = 1; i < vec->size(); i++){ // dodaje do sygnatury pozostale
+		for (unsigned int i = 1; i < vec->size(); i++){ // dodaje do sygnatury pozostale
 			BinderWrap *pombw = vec->at(i);
 			
 			if (sig->type() == Signature::SSTRUCT) {
@@ -762,7 +793,7 @@ namespace QParser
 	void NameNode::calculateBoundUsed(vector<BinderWrap*> *vec){
 		cout << "calculateBoundUsed " << vec->size() << endl;
 		if (QueryParser::getStatEvalRun() == 1){
-			for (int i = 0; i < vec->size(); i++){
+			for (unsigned int i = 0; i < vec->size(); i++){
 				cout << i << " " << vec->at(i)->getBinder()->getName() << " binder: " << endl;	
 				vec->at(i)->getBinder()->putToString() ;
 				cout << endl << "zalezy od: " << endl;
@@ -1075,7 +1106,7 @@ namespace QParser
 		return this->int2card(min) + ".." + this->int2card(max);
 	}
 	
-	DMLNode::DMLNode (dmlInst _inst) : inst(_inst) {DataScheme::reloadDScheme();}
+	DMLNode::DMLNode (dmlInst _inst) : inst(_inst) {/*DataScheme::reloadDScheme(); - done through executor!*/}
 
 bool TreeNode::containsOid(long oid){
 	vector<TreeNode*> *listVec = new vector<TreeNode*>();
@@ -1124,4 +1155,91 @@ TreeNode* TreeNode::getNodeByOid(vector<TreeNode*>* listVec, long oid){
 	}
 	return NULL;
 }
+
+/**
+ *		TypeCheck specific begin...
+ */
+
+	int TwoArgsNode::augmentTreeDeref(bool derefLeft, bool derefRight) {
+		if (derefLeft) {
+			cout << "2argsNode::augmentTreeDeref left " << endl;
+			UnOpNode *deref = new UnOpNode(this->getLArg(),UnOpNode::deref);
+			this->setLArg(deref);
+		}
+		if (derefRight) {
+			cout << "2argsNode::augmentTreeDeref RIGHT" << endl;
+			UnOpNode *deref = new UnOpNode(this->getRArg(),UnOpNode::deref);
+			this->setRArg(deref);
+		}
+		return 0;
+	}
+	
+	int UnOpNode::augmentTreeDeref(bool derefLeft, bool derefRight) {
+		if (derefLeft) {
+			UnOpNode *deref = new UnOpNode(this->arg,UnOpNode::deref);
+			this->setArg(deref);
+		}
+		return 0;
+	}
+	
+	SignatureNode::~SignatureNode() {
+		if (arg != NULL) delete arg;
+	}
+	StructureTypeNode::~StructureTypeNode() {
+		for (unsigned int i=0; i < subDeclarations->size(); i++) {
+			if (subDeclarations->at(i) != NULL) delete subDeclarations->at(i); 
+		}
+		subDeclarations->clear();
+		delete subDeclarations;
+	}
+	ObjectDeclareNode::~ObjectDeclareNode () {
+		if (this->signature != NULL) delete this->signature;
+	}
+	
+	int SignatureNode::putToString () {
+		cout << "{sig" << this->sigKind << ";";
+		switch (sigKind) {
+			case SignatureNode::atomic : {cout << this->atomType; break;}
+			case SignatureNode::ref : { cout << "ref " << this->typeName; break;}
+			case SignatureNode::defType : { cout << this->typeName; break;}
+			case SignatureNode::complex : { cout << "("; this->arg->putToString(); cout << ")"; break;}
+			default: {cout << "_unkown_sig_"; break;}
+		}
+		cout << "}";
+		return 0;
+	}
+	
+	string SignatureNode::getHeadline() {
+		switch (sigKind) {
+			case SignatureNode::atomic :
+				return "\"atomic\" as kind, \""+atomType+"\" as type";
+			case SignatureNode::ref :
+				return "\"link\" as kind, \""+typeName+"\" as refName";
+			case SignatureNode::defType :
+				return "\"defined_type\" as kind, \""+typeName+"\" as typeName";
+			case SignatureNode::complex :
+				return "\"complex\" as kind";
+				default: return "";
+		}
+	}
+	
+	int StructureTypeNode::putToString () { 
+		for (unsigned int i = 0; i < subDeclarations->size(); i++) {
+			if (i != 0) cout << ", ";
+			subDeclarations->at(i)->putToString();
+		}
+		return 0; 
+	}
+	
+	void StructureTypeNode::setSubDeclarations(vector<ObjectDeclareNode*> *q) {
+		for (unsigned int i = 0; i < q->size(); i++) {
+			subDeclarations->push_back((ObjectDeclareNode *) q->at(i)->clone());
+		}
+	}
+/**
+ *		TypeCheck specific end.
+ */
+
+
+
 }

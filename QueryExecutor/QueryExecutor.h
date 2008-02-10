@@ -17,8 +17,10 @@
 #include "QueryParser/QueryParser.h"
 #include "QueryParser/Privilige.h"
 #include "QueryParser/TreeNode.h"
+#include "QueryParser/DataRead.h"
 #include "Errors/Errors.h"
 #include "Errors/ErrorConsole.h"
+#include "TypeCheck/TypeChecker.h"
 
 using namespace QParser;
 using namespace SessionDataNms;
@@ -149,6 +151,7 @@ namespace QExecutor
         	
         	void set_user_data(ValidationNode *node);
         	int execute_locally(string query, QueryResult **result);
+			int execute_locally(string query, QueryResult **result, QueryParser &parser); //for multi-queries
         	bool is_dba();
         	bool assert_grant_priv(string priv_name, string name);
         	bool assert_revoke_priv(string priv_name, string name);
@@ -158,7 +161,15 @@ namespace QExecutor
         	bool assert_privilige(string priv, string object);
         	bool priviliged_mode;
         	bool system_privilige_checking;
-        
+		/** typedefs   - type definitions / declarations */
+	
+		int executeObjectDeclarationOrTypeDefinition(DeclareDefineNode *obdNode, bool isTypedef);
+		//int executeObjectDeclaration(ObjectDeclareNode *tree);
+		//int executeTypeDefinition(TypeDefNode *tree);
+		int objDeclRec(DeclareDefineNode *obd, string rootName, bool typeDef, string ownerName, vector<string> *queries, bool topLevel);
+	
+		/** end of typedefs...  */
+			
 	public:
 		bool inTransaction;
 		SessionData *session_data;
@@ -220,6 +231,13 @@ namespace QExecutor
 		string query_for_privilige(string user, string privilige, string object);
 		string query_for_privilige_grant(string user, string privilige, string object);
 		string query_for_password(string user, string password);
+		
+		string query_create_obj_mdn(string name, string card, string interior, string mainStr);		
+		string query_insert_target(int base, string baseName, bool isTgtTypedef, string tgtName);
+		string query_insert_owner(string name, string ownerName, int ownerBase);
+		string query_insert_subobj(int ownerBase, string ownerName, string subName);
+		string query_create_typedef(string name, bool distinct, string interior);
+		string baseStr(int baseCd);
 	};
 }
 

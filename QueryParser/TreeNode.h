@@ -59,10 +59,9 @@ namespace QParser {
 	    TNINTERFACENODE, TNINTERFACESTRUCT, TNINTERFACEATTRIBUTELISTNODE, TNINTERFACEATTRIBUTE, 
 	    TNINTERFACEMETHODLISTNODE, TNINTERFACEMETHOD, TNINTERFACEMETHODPARAMLISTNODE, TNINTERFACEMETHODPARAM,
 	    TNREGINTERFACE, TNREGCLASS, TNCLASS, TNDML, TNINCLUDES, TNEXCLUDES, TNCAST, TNINSTANCEOF, TNSYSTEMVIEWNAME,
-	    TNINTERFACEBIND, TNINTERFACEINNERLINKAGELIST, TNINTERFACEINNERLINKAGE};
-	
+	 	TNINTERFACEBIND, TNINTERFACEINNERLINKAGELIST, TNINTERFACEINNERLINKAGE, TNSIGNATURE, TNOBJDECL, TNSTRUCTTYPE,
+		TNTYPEDEF};
 	 
-	    
 	TreeNode() : parent(NULL) { 
 		this->needed = false;
 		this->setId(TreeNode::getUv());
@@ -92,7 +91,7 @@ namespace QParser {
 	virtual void serialize(){this->putToString();};
 	
 
-    // Executor wanted id:
+    // For QExecutor:
 	virtual string getName() {return (string) NULL;}
 	virtual TreeNode* getArg() {return (TreeNode *) NULL;}
 	virtual TreeNode* getLArg() {return (TreeNode *) NULL;}
@@ -106,9 +105,8 @@ namespace QParser {
 	virtual string randomString();
 	virtual int staticEval (StatQResStack *&qres, StatEnvStack *&envs) {return -1;}	
 	virtual int optimizeTree () {Deb::ug( "type: %d.", type());	return 0;}
-	/* should overridden in subclasses...*/
+	/* should be overridden in subclasses...*/
 	/* AND should have an argument for the data scheme ... ??? !!! */
-	
 	virtual string getCard(){return this->card;}
 	virtual void setCard(string _card){this->card = _card;}
 	virtual void evalCard(){this->setCard("1..1");}
@@ -145,7 +143,14 @@ namespace QParser {
 	static TreeNode* getNodeByOid(vector<TreeNode*>* listVec, long oid);
 	
 	virtual bool containsOid(long oid);
-      
+	
+	//in case restrictive typechecking options are selected - some queries must be ommitted
+	virtual bool skipPreprocessing() {
+		int tp = type();
+		return (tp == TNTRANS || tp == TNDML || tp == TNOBJDECL || tp == TNTYPEDEF || tp == TNVALIDATION);
+	}
+	virtual int augmentTreeDeref(bool derefLeft, bool derefRight) {Deb::ug("augmentTreeDeref at Treenode"); return 0;};
+	
     };
 
 // statement := query
@@ -624,7 +629,6 @@ namespace QParser {
       }
     };
 
-
 // nodes that have two sons (one may be a NULL) - both alg. and non-alg.
     class TwoArgsNode : public QueryNode
     {
@@ -634,8 +638,8 @@ namespace QParser {
 	QueryNode* rarg;
     public:
 	virtual int putToString()=0;
-	QueryNode* getLArg() { return larg; }
-	QueryNode* getRArg() { return rarg; }
+	virtual QueryNode* getLArg() { return larg; }
+	virtual QueryNode* getRArg() { return rarg; }
 
 	virtual void setLArg(QueryNode* _larg) {larg = _larg;larg->setParent(this);}
 	virtual void setRArg(QueryNode* _rarg) {rarg = _rarg;rarg->setParent(this);}
@@ -672,6 +676,7 @@ namespace QParser {
 		auxVec->push_back(this);
 		this->getRArg()->getInfixList(auxVec);
 	}
+	virtual int augmentTreeDeref(bool derefLeft, bool derefRight);
     };
     
 // atomic nodes with string/int/double/bool value
@@ -1094,6 +1099,9 @@ namespace QParser {
 	    if (arg == oldSon) {this->setArg((QueryNode *) newSon); return 0;}
 	    else {/*an error from errorConsole is called;*/ return -1;}
 	}    	
+	
+	virtual int augmentTreeDeref(bool derefLeft, bool derefRight);
+	
 	virtual int staticEval (StatQResStack *&qres, StatEnvStack *&envs);		
 	virtual int optimizeTree() {return arg->optimizeTree();}
 	virtual ~UnOpNode() { if (arg != NULL) delete arg; }
@@ -1214,8 +1222,8 @@ namespace QParser {
                 { larg->setParent(this); rarg->setParent(this); }
 	virtual TreeNode* clone();
 	virtual int type() { return TreeNode::TNALGOP; }
-	QueryNode* getLArg() { return larg; }
-	QueryNode* getRArg() { return rarg; }
+	virtual QueryNode* getLArg() { return larg; }
+	virtual QueryNode* getRArg() { return rarg; }
 	algOp getOp() { return op; }
 	virtual void setLArg(QueryNode* _larg) {larg = _larg;larg->setParent(this);}
 	virtual void setRArg(QueryNode* _rarg) {rarg = _rarg;rarg->setParent(this);}
@@ -1411,8 +1419,15 @@ namespace QParser {
     public:
 	NonAlgOpNode(QueryNode* _larg, QueryNode* _rarg, nonAlgOp _op)
                 : larg(_larg), rarg(_rarg), op(_op)
-                { larg->setParent(this); rarg->setParent(this); firstOpenSect = 0; 
-lastOpenSect = 0; } 
+	{ 
+		if (larg != NULL) {
+			larg->setParent(this); 
+		}
+		if (rarg != NULL) {
+			rarg->setParent(this); 
+		}
+		firstOpenSect = 0; lastOpenSect = 0; 
+	} 
 	virtual TreeNode* clone();
 	virtual int type() { return TreeNode::TNNONALGOP; }
 	QueryNode* getLArg() { return larg; }
@@ -2599,6 +2614,151 @@ class InterfaceInnerLinkage: public TreeNode {
 	     implementationName->toString() + ") ";};
     }; 
     
+	/** TypeCheck TreeNode class declarations... */
+	class StructureTypeNode; 
+    
+	class SignatureNode : public TreeNode
+	{
+	
+		public:
+			enum SignatureKind {atomic, ref, defType, complex};
+		private:
+			SignatureKind sigKind;
+			string atomType;		//for atomic
+			string typeName;		//for ref, defType
+			StructureTypeNode *arg;	//for complex
+		public: 
+			SignatureNode (SignatureKind _sigKind, string detail) {
+				cout << "doing sig Node, with detail: " << detail << endl;
+				this->sigKind = _sigKind;
+				this->arg = NULL;
+				if (this->sigKind == SignatureNode::atomic) { 
+					atomType = detail; typeName = "";
+				} else {
+					typeName = detail; atomType = "";
+				}
+			}
+			SignatureNode (StructureTypeNode *_arg) {
+				this->sigKind = SignatureNode::complex;
+				this->arg = _arg;
+				this->atomType = ""; this->typeName = "";
+			}
+			SignatureNode() {};
+			virtual TreeNode* clone();
+			virtual int type() { return TreeNode::TNSIGNATURE; }
+			virtual int getSigKind() {return sigKind;}
+			virtual StructureTypeNode *getStructArg() {return arg;}
+			virtual string getTypeName() {return typeName;}
+			virtual int putToString();
+			virtual string getHeadline();
+			virtual ~SignatureNode();
+	};
+	
+	class DeclareDefineNode : public TreeNode
+	{
+		protected:
+			string name;
+			SignatureNode *signature;
+		public:
+			virtual TreeNode* clone() = 0;
+			virtual int type() = 0;
+			virtual string getName() {return name;}
+			virtual SignatureNode *getSigNode() {return signature;}
+			virtual int putToString() = 0;
+	};
+	
+	class ObjectDeclareNode : public DeclareDefineNode
+	{
+		private:
+			string card;
+		public:
+			ObjectDeclareNode (string _name, SignatureNode *sig) {
+				this->name = _name;
+				this->card = "1..1"; //the default cardinality... 
+				this->signature = sig;
+			}
+			ObjectDeclareNode (string _name, SignatureNode *sig, string cardinality) {
+				this->name = _name;
+				this->card = cardinality;
+				this->signature = sig;
+			}
+			ObjectDeclareNode() {};
+			virtual TreeNode* clone();
+			virtual int type() { return TreeNode::TNOBJDECL; }
+			virtual string getName() {return name;}
+			virtual string getCard() {return card;}
+			virtual SignatureNode *getSigNode() {return signature;}
+			virtual int putToString() {
+				cout << "<" << name << "[" << card << "] : ";
+				signature->putToString();
+				cout << ">";
+				return 0;
+			}	
+			virtual ~ObjectDeclareNode ();
+	};
+		
+	class StructureTypeNode : public TreeNode
+	{
+		protected:	
+			vector<ObjectDeclareNode*> *subDeclarations; //sub-declarations... 
+		public:
+			StructureTypeNode (ObjectDeclareNode* singleDecl, StructureTypeNode *tail) {
+				subDeclarations = tail->getSubDeclarations();
+			
+				subDeclarations->push_back(singleDecl);
+			//delete tail;
+			}
+			StructureTypeNode (ObjectDeclareNode* singleDecl) {
+				subDeclarations = new vector<ObjectDeclareNode*>();
+				subDeclarations->push_back(singleDecl);
+			}
+			StructureTypeNode () {subDeclarations = new vector<ObjectDeclareNode*>();};
+	
+			virtual TreeNode* clone();
+			virtual int type() {return TreeNode::TNSTRUCTTYPE;};
+			virtual vector<ObjectDeclareNode*> *getSubDeclarations() {return this->subDeclarations;}
+			virtual ObjectDeclareNode* getSubDecl(int i) {return this->subDeclarations->at(i);}
+			virtual void setSubDeclarations(vector<ObjectDeclareNode*> *odns);
+			virtual unsigned int howManyParts() { return subDeclarations->size(); }
 
+			virtual string toString( int level = 0, bool recursive = false, string _name = "" ) {
+				string result = "";
+				return result;
+			}
+			virtual int putToString();
+			virtual string deParse() {
+				string result = "";
+				return result;
+			}
+			virtual ~StructureTypeNode();
+	};	
+	
+	class TypeDefNode : public DeclareDefineNode
+	{
+		private:
+			bool isDistinct;
+		public:
+			TypeDefNode() {};
+			TypeDefNode(string _name, SignatureNode *sig, bool distinct) {
+				this->name = _name;
+				this->signature = sig;
+				this->isDistinct = distinct;
+			}
+
+			virtual TreeNode* clone();
+			virtual int type() { return TreeNode::TNTYPEDEF; }
+			virtual bool getIsDistinct() {return isDistinct;}
+			virtual int putToString() {
+				cout << "<typedef ";
+				if (this->isDistinct) cout << "distinct ";
+				cout << this->name << " = ";
+				this->signature->putToString();
+				cout << " >";
+				return 0;
+			}
+			virtual ~TypeDefNode() {if (this->signature != NULL) delete this->signature;};
+	};
+	/** End of TypeCheck TreeNode class declarations... */
+	
 }
 #endif

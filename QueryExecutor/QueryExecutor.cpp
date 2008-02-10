@@ -8,6 +8,7 @@
 #include <list>
 
 #include "QueryResult.h"
+#include "../QueryParser/ClassNames.h"
 #include "TransactionManager/Transaction.h"
 #include "Store/Store.h"
 #include "Store/DBDataValue.h"
@@ -315,7 +316,35 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 		    else {
 			*result = new QueryBoolResult(false);
 		    }
-		}	
+		}	/** Type declarations / definitions */
+		else if (nodeType == TreeNode::TNOBJDECL) {
+			*ec << "Will try execute object declaration\n";
+			errcode = this->executeObjectDeclarationOrTypeDefinition((DeclareDefineNode *) tree, false);
+			*result = new QueryNothingResult();
+			if (errcode != 0) return errcode;
+		}
+		else if (nodeType == TreeNode::TNTYPEDEF ) {
+			errcode = this->executeObjectDeclarationOrTypeDefinition((DeclareDefineNode *) tree, true);
+			*result = new QueryNothingResult();
+			if (errcode != 0) return errcode;
+		}
+		else if (nodeType == TreeNode::TNDML) {
+			tr->reloadDmlStct();
+			DataScheme::reloadDScheme(tr);
+			if (DataScheme::dScheme()->getIsComplete()) {
+				//*result = new QueryNothingResult();
+				*result = new QueryStringResult("Datascheme consistent.");
+			} else {
+				DataScheme::dScheme()->getMissedRoots();
+				string client_msg = "Datascheme incomplete. Missing entries: \n";
+				for (unsigned int i = 0; i < DataScheme::dScheme()->getMissedRoots().size(); i++) {
+					if (i > 0) client_msg += ", ";
+					client_msg += DataScheme::dScheme()->getMissedRoots().at(i);
+				}
+				*result = new QueryStringResult(client_msg);
+			}
+			return 0;
+		}	/** These were type declarations / definitions */	
 		else {
 			errcode = envs->pushDBsection();
 			
@@ -377,10 +406,42 @@ int QueryExecutor::execute_locally(string query, QueryResult **res) {
     if (errcode != 0) return errcode;
     //errcode = envs->popDBsection();
     //if (errcode != 0) return errcode;
-
+/*	Or...: ?
+	errcode = envs->popDBsection();
+	if (errcode != 0) return errcode;
+	errcode = qres->pop(*res);
+	if (errcode != 0) return errcode;
+*/
     system_privilige_checking = false;
     return 0;
 };
+
+int QueryExecutor::execute_locally(string query, QueryResult **res, QueryParser &parser) {
+	TreeNode *tree = NULL;
+	
+	int parsercode = parser.parseIt(query, tree);
+	if (parsercode != 0) {
+		*ec << "exec. locally, parser code aint 0, error! , query: " + query + ". \n";
+	}
+	*ec << "IN EXEC_LOCALLY: will push dbsection; \n";
+	int errcode = envs->pushDBsection();
+	if (errcode != 0) {
+		*ec << "!!!!! pushDB doesn't work\n";
+		return errcode;
+	}
+	errcode = this->executeRecQuery(tree);
+	if (errcode != 0) {
+		*ec << "!!!!! executeRecQuery ended with error, so cant popDB section properly!!! so doing it here.\n";
+		envs->popDBsection();
+		return errcode;
+	}
+	errcode = envs->popDBsection();
+	if (errcode != 0) {*ec << "Error on popDBsection, in exec. locally"; return errcode;}
+	errcode = qres->pop(*res);
+	if (errcode != 0) {*ec << "Error on pop from qres, in exec. locally"; return errcode;}
+	
+	return 0;
+}
 
 bool QueryExecutor::is_dba() {
     string login = session_data->get_user_data()->get_login();
@@ -5173,6 +5234,86 @@ QueryExecutor::~QueryExecutor() {
 }
 
 
+/* Typedef and object declaration execution methods */
+
+int QueryExecutor::executeObjectDeclarationOrTypeDefinition(DeclareDefineNode *obdNode, bool isTypedef) {
+	int errcode = 0;	
+	vector<string> *vec = new vector<string>();
+	//we COULD,instead, replace the node if it was same as isTypedef; and throw ERROR only if it was the opposite.
+	if ((tr->getDmlStct()->findRoot(obdNode->getName())) != DMLControl::absent) { 
+		return (ErrQExecutor | ESuchMdnExists);
+	}
+	errcode = objDeclRec(obdNode, obdNode->getName(), isTypedef, obdNode->getName(), vec, true);
+	if (errcode != 0) return errcode;
+
+	for (unsigned int i = 0; i < vec->size(); i++) {*ec << "qry: " + vec->at(i);}
+	QueryParser parser(false);
+	QueryResult *local_res = NULL;
+	int locResult = 0;
+	for (unsigned int i = 0; i < vec->size(); i++) {
+		locResult += execute_locally(vec->at(i), &local_res, parser);
+	}
+	if (locResult != 0)	return (ErrQExecutor | EMdnCreateError);
+	tr->getDmlStct()->addRoot(obdNode->getName(), (isTypedef ? DMLControl::type : DMLControl::object));
+	*ec << tr->getDmlStct()->depsToString();
+	*ec << tr->getDmlStct()->rootMdnsToString();
+	DataScheme::dScheme(tr)->setUpToDate(false);
+	return 0;
+}
+
+int QueryExecutor::objDeclRec(DeclareDefineNode *obd, string rootName, bool typeDef, string ownerName, vector<string> *queries, bool isTopLevel) {
+	string query = "";
+	string objName = (isTopLevel ? TC_MDN_NAME : TC_SUB_OBJ_NAME);
+	int errcode = 0;
+	if (isTopLevel && typeDef) {
+		query = QueryBuilder::getHandle()->query_create_typedef(obd->getName(), ((TypeDefNode *)obd)->getIsDistinct(), obd->getSigNode()->getHeadline());
+	} else {
+		query = QueryBuilder::getHandle()->query_create_obj_mdn(obd->getName(), ((ObjectDeclareNode *)obd)->getCard(), obd->getSigNode()->getHeadline(), objName);
+	}
+	queries->push_back(query);	// base query for declaration
+		
+	int sigKind =  obd->getSigNode()->getSigKind();
+	string tName = "";
+	vector<ObjectDeclareNode*> *subs = NULL;
+	switch (sigKind) {
+		case SignatureNode::atomic : break; //nothing needs be done here.
+		case SignatureNode::ref : break;//Not inserting target-not needed by new DScheme.(though still be handled well)
+	//QBuilder::query_insert_target(0, obdNode->getName(), false, obdNode->getSigNode()->getTypeName());push_back(query);
+		case SignatureNode::defType :
+			tName = obd->getSigNode()->getTypeName();
+			//check if its an object. (if so - well, error, can't do that, only defined type name allowed here).
+			if ((tr->getDmlStct()->findRoot(tName)) == DMLControl::object) {
+				*ec << "Found MDN object while looking for type - have to report error";
+				return (ErrQExecutor | EObjectInsteadOfType);
+			}
+			if (typeDef) {//If not in typedef -were done. else - check for recurrence & update dependency structs.
+				*ec << "will look for dependencies..\n";
+				if (tr->getDmlStct()->findDependency(tName, rootName) != 0) {
+					*ec << "Attempt to define inftly recurrent types: " + tName + " <--> " + obd->getName();
+					return (ErrQExecutor | ERecurrentTypes);
+				}
+				tr->getDmlStct()->markDependency (rootName, tName);
+			}
+			break;
+		case SignatureNode::complex :
+			subs = obd->getSigNode()->getStructArg()->getSubDeclarations();
+			for (unsigned int i = 0; i < subs->size(); i++) {
+				errcode = objDeclRec(subs->at(i), rootName, typeDef, obd->getName(), queries, false);
+				if (errcode != 0) {
+					return errcode;
+				}
+			}
+			break;
+			default: *ec << "Unknown signature node kind"; break;
+	}
+	if (!isTopLevel) {
+		//decide whether owner(parent node) is __MDN__, or __MDNT__, or some subobject somewhere...
+		int ownerBase = (ownerName == rootName ? (typeDef ? 1: 0) : 2);
+		queries->push_back(QueryBuilder::getHandle()->query_insert_owner(obd->getName(), ownerName, ownerBase));
+		queries->push_back(QueryBuilder::getHandle()->query_insert_subobj(ownerBase, ownerName, obd->getName()));
+	}
+	return 0;
+}
 
 /* RESULT STACK */
 
@@ -5267,6 +5408,44 @@ ClassGraph* QueryExecutor::getCg() { return cg; }
 	string query = "count (xuser where login=\"" + user + "\" and password=\"" + password + "\") > 0";
 	return query;
     };
+	
+	string QueryBuilder::query_create_obj_mdn (string name, string card, string interior, string mainStr) {
+		return "create (\"" + name + "\" as name, \"" + card + "\" as card, " + interior + ") as " + mainStr;
+	}
+
+	string QueryBuilder::query_create_typedef(string name, bool distinct, string interior) {
+		string isDistinct = (distinct ? "1" : "0");
+		return "create (\"" + name + "\" as name, \"" + isDistinct + "\" as isDistinct, " + interior + ") as " + TC_MDNT_NAME;
+	}
+	
+	string QueryBuilder::query_insert_target(int base, string baseName, bool isTgtTypedef, string tgtName) {
+		string query = "("+baseStr(base)+" where name=\"" +baseName + "\")";
+		query += " :< (create (";
+		//if (isTgtTypedef) query += TC_MDNT_NAME; else query += TC_MDN_NAME;
+		query += (isTgtTypedef ? TC_MDNT_NAME : TC_MDN_NAME);
+		query += " where name=\""+tgtName+"\") as target)";
+		return query;
+	}
+	string QueryBuilder::query_insert_owner(string name, string ownerName, int ownerBase) {
+		string query = "(subobject where name=\""+name+"\") :< ";
+		query += "(create (" + baseStr(ownerBase)+" where name=\""+ownerName+"\") as owner);";
+		return query;
+	}
+	
+	string QueryBuilder::query_insert_subobj(int ownerBase, string ownerName, string subName) {
+		string query = "(" + baseStr(ownerBase) + " where name=\""+ownerName+"\") :< ";
+		query += "(subobject where name = \"" + subName +"\");";
+		return query;
+	}
+	
+	string QueryBuilder::baseStr(int baseCd) {
+		switch (baseCd) {
+			case 0 : return TC_MDN_NAME;
+			case 1 : return TC_MDNT_NAME;
+			case 2 : return TC_SUB_OBJ_NAME;
+			default: return TC_MDN_NAME;
+		}
+	}
     /*
      *	Query Builder end
      */

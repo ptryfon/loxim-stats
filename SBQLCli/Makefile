@@ -21,7 +21,8 @@ LIBS	=	../Driver/Driver.a \
 		../QueryExecutor/QueryExecutor.a \
 		../Lock/Lock.a \
 		../Indexes/IndexManager.a \
-		../TCPProto/TCPProto.a
+		../TCPProto/TCPProto.a \
+		../TypeCheck/TypeChecker.a
 
 
 

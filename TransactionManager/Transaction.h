@@ -14,6 +14,7 @@ namespace TManager
 #include <list>
 #include <iterator>
 #include <vector>
+#include <map>
 
 #include "../Store/Store.h"
 #include "../Lock/Lock.h"
@@ -21,6 +22,9 @@ namespace TManager
 #include "../Errors/ErrorConsole.h"
 #include "../Config/SBQLConfig.h"
 #include "SemHeaders.h"
+#include "../QueryParser/ClassNames.h"
+#include "../TypeCheck/ClassNames.h"
+#include "../TypeCheck/DMLControl.h"
 
 
 using namespace Store;
@@ -28,6 +32,7 @@ using namespace LockMgr;
 using namespace Logs;
 using namespace Errors;
 using namespace SemaphoreLib;
+using namespace TypeCheck;
 
 namespace TManager
 {
@@ -70,11 +75,12 @@ namespace TManager
 			LockManager* lm;
 			ErrorConsole err;
 			Semaphore* sem;    /* for operation on Store Manager */
-	
+			DMLControl *dmlStructs;
 	      public:
 			Transaction(TransactionID* tId, Semaphore* sem);
 		    	~Transaction();
-	    	
+				DMLControl *getDmlStct();
+				void reloadDmlStct();
 	     	 	/* Executor calls: */
 		    	int getObjectPointer(LogicalID* lid, AccessMode mode, ObjectPointer* &p, bool allowNullObject);
 			int modifyObject(ObjectPointer* &op, DataValue* dv);

@@ -1,6 +1,7 @@
 
 #include "Transaction.h"
 #include "../Indexes/IndexManager.h"
+#include "TypeCheck/TypeChecker.h"
 
 /**
  *	@author Julian Krzemiski (julian.krzeminski@students.mimuw.edu.pl)
@@ -38,16 +39,20 @@ namespace TManager
 		sem = _sem;
 		this->tid = tid;
 		tm = TransactionManager::getHandle();
-		lm = LockManager::getHandle();	    	    
+		lm = LockManager::getHandle();
+		dmlStructs = new DMLControl(this);
 	};
 	
 	Transaction::~Transaction()
 	{
 		delete tid;
+		delete dmlStructs;
 	}
 	
 	TransactionID* Transaction::getId() { return tid; };
 
+	DMLControl *Transaction::getDmlStct() {return dmlStructs;}
+	
 	int Transaction::init(StoreManager *stmg, LogManager *lgmg)
 	{
 		unsigned id;
@@ -58,9 +63,20 @@ namespace TManager
 		/* message to Logs */
 	    	errorNumer = logm->beginTransaction(tid->getId(), id);
 		tid->setTimeStamp(id);
+		dmlStructs->init();
+		cout << dmlStructs->depsToString() << endl;
+		cout << dmlStructs->rootMdnsToString();
 		return errorNumer;
 	}
-				
+	
+	void Transaction::reloadDmlStct() {
+		if (dmlStructs != NULL) delete dmlStructs;
+		dmlStructs = new DMLControl(this);
+		dmlStructs->init();
+		cout << dmlStructs->depsToString() << endl;
+		cout << dmlStructs->rootMdnsToString();
+	}
+	
 	int Transaction::getObjectPointer(LogicalID* lid, AccessMode mode, ObjectPointer* &p, bool allowNullObject)
 	{
 		int errorNumber;

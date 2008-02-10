@@ -36,19 +36,23 @@
   QParser::InterfaceBind* iBind;
   QParser::InterfaceInnerLinkage* iLinkage;
   QParser::InterfaceInnerLinkageList* iLinkageList;
+  QParser::SignatureNode* sigtree;
+  QParser::StructureTypeNode* stucturetree;
+  QParser::ObjectDeclareNode* obdecltree;
 }
 
 %nonassoc CREATE_OR_UPDATE
 %token	<num> INTEGER
 %token	<dbl> DOUBLE
-%token	<str> STATIC SYSTEMVIEWNAME EXTNAME PARAMNAME NAME STRING SEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT DEREF REF NAMEOF RELOADSCHEME BEGINTR END ABORT CREATE IF FI DO OD ELSE WHILE LINK FOREACH THEN FIX_OP FIXPOINT RETURN BREAK VALIDATE READ MODIFY DELETE PASSWD WITH REVOKE REMOVE TO USER FROM ON GRANT OPTION PROCEDURE CLASS EXTENDS INSTANCE LEFTPROCPAR RIGHTPROCPAR VIEW ONRETRIEVE ONUPDATE ONCREATE ONDELETE INDEX VIRTUAL COLON INTERFACE SHOWS ASSOCIATE
-
+%token	<str> STATIC SYSTEMVIEWNAME EXTNAME PARAMNAME NAME STRING SEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT DEREF REF NAMEOF RELOADSCHEME BEGINTR END ABORT CREATE IF FI DO OD ELSE WHILE LINK FOREACH THEN FIX_OP FIXPOINT RETURN BREAK VALIDATE READ MODIFY DELETE PASSWD WITH REVOKE REMOVE TO USER FROM ON GRANT OPTION PROCEDURE CLASS EXTENDS INSTANCE LEFTPROCPAR RIGHTPROCPAR VIEW ONRETRIEVE ONUPDATE ONCREATE ONDELETE INDEX VIRTUAL COLON INTERFACE SHOWS ASSOCIATE CARDCONST TYPEDEF CARD00 CARD01 CARD 11 CARD0INF CARD1INF LEFTSQUAREPAR RIGHTSQUAREPAR STRING_SIG DOUBLE_SIG INTEGER_SIG BOOLEAN_SIG
+		
 %start statement
 
 %right FIX_OP
 %right SEMICOLON
 %nonassoc RETURN
 %nonassoc UPDATE DELETE CREATE INSERTINTO
+%nonassoc TYPEDEF
 %left COMMA 
 %right EXISTS FOR_ALL
 %left CAST GROUP_AS AS INCLUDES EXCLUDES INSTANCEOF
@@ -100,6 +104,10 @@
 %type <iBind> interfaceBind
 %type <iLinkage> interfaceInnerLinkage
 %type <iLinkageList> interfaceInnerLinkageList
+%type <tree> type_decl_stmt
+%type <sigtree> signature
+%type <obdecltree> object_decl
+%type <stucturetree> object_decl_commalist
 %%
 
 statement   : query semicolon_opt { d=$1; }
@@ -112,6 +120,7 @@ statement   : query semicolon_opt { d=$1; }
 	    | user_stmt	     semicolon_opt { d = $1; }
 	    | index_stmt	 semicolon_opt { d = $1; }
 	    | interfaceBind	semicolon_opt { d = $1;}
+		| type_decl_stmt  semicolon_opt { d = $1;}
 	    ;
 
 query	    : SYSTEMVIEWNAME { char *s = $1; $$ = new NameNode(s); delete s; }
@@ -119,12 +128,12 @@ query	    : SYSTEMVIEWNAME { char *s = $1; $$ = new NameNode(s); delete s; }
 	    | EXTNAME { char *s = $1; $$ = new NameNode(s); delete s; }
 	    | PARAMNAME { char *s = $1; $$ = new ParamNode(s); delete s; }
 	    | INTEGER { $$ = new IntNode($1); }
-    	    | STRING { char *s = $1; $$ = new StringNode(s); delete s; }
+    	| STRING { char *s = $1; $$ = new StringNode(s); delete s; }
 	    | DOUBLE { $$ = new DoubleNode($1); }
 	    | CREATE query AS EXTNAME { $$ = new CreateNode( new NameAsNode($2,$4,false), true); }
 	    | query INCLUDES query { $$ = new IncludesNode($1, $3); }
 	    | query EXCLUDES query { $$ = new ExcludesNode($1, $3); }
-            | query AS NAME { $$ = new NameAsNode($1,$3,false); }
+        | query AS NAME { $$ = new NameAsNode($1,$3,false); }
 	    | query GROUP_AS NAME { $$ = new NameAsNode($1,$3,true); }
 	    | COUNT LEFTPAR  query RIGHTPAR { $$ = new UnOpNode($3,UnOpNode::count); }
 	    | SUM LEFTPAR  query RIGHTPAR { $$ = new UnOpNode($3,UnOpNode::sum); }
@@ -285,11 +294,11 @@ interfaceInnerLinkageList: interfaceInnerLinkage {$$ = new InterfaceInnerLinkage
 	| interfaceInnerLinkageList COMMA interfaceInnerLinkage {$$ = new InterfaceInnerLinkageList ($3, $1);}
 	;
 	
-interfaceInnerLinkage: LEFTPAR NAME COMMA NAME RIGHTPAR {$$ = new InterfaceInnerLinkage ($2, $4);}
+interfaceInnerLinkage: LEFTPAR NAME COMMA NAME RIGHTPAR {$$ = new InterfaceInnerLinkage ($2, $4);};
 
 
 
-interface: INTERFACE NAME LEFTPROCPAR interface_struct RIGHTPROCPAR {$$ = new InterfaceNode($2, $4);}
+interface: INTERFACE NAME LEFTPROCPAR interface_struct RIGHTPROCPAR {$$ = new InterfaceNode($2, $4);};
 
 interface_struct: LEFTPAR attributes RIGHTPAR semicolon_opt  methods { $$ = new InterfaceStruct ($2, $5);}
 	| LEFTPAR attributes RIGHTPAR semicolon_opt { $$ = new InterfaceStruct ($2);}	
@@ -299,13 +308,13 @@ attributes: attribute { $$ = new InterfaceAttributeListNode($1);}
 	| attributes SEMICOLON attribute { $$ = new InterfaceAttributeListNode($3, $1);}
 	;
 
-attribute: NAME COLON NAME {$$ = new InterfaceAttribute ($1, $3);}
+attribute: NAME COLON NAME {$$ = new InterfaceAttribute ($1, $3);};
 
 methods: method { $$ = new InterfaceMethodListNode($1);}
 	| methods method { $$ = new InterfaceMethodListNode($2, $1);}
 	;
 
-method: NAME LEFTPAR method_params RIGHTPAR COLON NAME SEMICOLON { $$ = new InterfaceMethod($1, $6, $3);}
+method: NAME LEFTPAR method_params RIGHTPAR COLON NAME SEMICOLON { $$ = new InterfaceMethod($1, $6, $3);};
 
 method_params: attribute { $$ = new InterfaceMethodParamListNode($1);} 
 	| method_params COMMA attribute { $$ = new InterfaceMethodParamListNode($3, $1);}
@@ -344,7 +353,7 @@ classprocs_and_static: classstatic classprocs { $2->setStaticFields($1); $$ = $2
 	;
 
 classstatic: STATIC LEFTPROCPAR name_defs_semicolon semicolon_opt RIGHTPROCPAR semicolon_opt
-	{$$ = $3}
+	{$$ = $3};
 
 classproc: procquery { $$ = new ClassNode($1); }
 	| STATIC procquery { $$ = new ClassNode($2, true); }
@@ -354,6 +363,32 @@ classprocs: classproc { $$ = $1}
     | classprocs classproc { $1->addContent($2); delete $2; }
     ;
 
+	type_decl_stmt: object_decl {$$ = $1;}
+	| TYPEDEF NAME EQUAL signature {$$ = new TypeDefNode($2, $4, false);}
+	| TYPEDEF DISTINCT NAME EQUAL signature {$$ = new TypeDefNode($3, $5, true);}
+		/* other kinds of declarations may be added here...
+	* like... PROGR_DECL? OR INTERFACE_DECL? OR CLASS_DECL - but for now, they've 
+		* already been added elsewhere. */
+	;
+			
+	object_decl: NAME COLON signature semicolon_opt {char *s = $1; $$ = new ObjectDeclareNode(s, $3); delete s;}
+	| NAME LEFTSQUAREPAR CARDCONST RIGHTSQUAREPAR COLON signature semicolon_opt
+{ char *s = $3; char *s2 = $1; $$ = new ObjectDeclareNode(s2, $6, s); delete s; delete s2;}
+	;
+				
+	object_decl_commalist : object_decl {$$ = new StructureTypeNode ($1); }
+	| object_decl_commalist COMMA object_decl {$$ = new StructureTypeNode ($3, $1); }
+	;
+			
+	signature: STRING_SIG {$$ = new SignatureNode(SignatureNode::atomic, "string"); }
+	| INTEGER_SIG {$$ = new SignatureNode(SignatureNode::atomic, "int");}
+	| DOUBLE_SIG {$$ = new SignatureNode(SignatureNode::atomic, "double");}	
+	| REF NAME {char *s = $2; $$ = new SignatureNode(SignatureNode::ref, s); delete s;}
+	| NAME {char *s = $1; $$ = new SignatureNode(SignatureNode::defType, s); delete s;} 
+	/** defined types OR defined distinct types. */
+	| LEFTPAR object_decl_commalist RIGHTPAR {$$ = new SignatureNode($2);}
+	;
+	
 name_defs_semicolon:  NAME { $$ = new NameListNode($1);    }
         |   name_defs_semicolon SEMICOLON NAME { $$ = new NameListNode($3, $1);    }
 

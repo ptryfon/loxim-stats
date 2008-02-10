@@ -26,6 +26,7 @@ namespace Errors {
 #define	ErrTManager		0x2800000
 #define ErrTCPProto		0x4000000
 #define ErrIndexes		0x4200000
+#define ErrTypeChecker	0x4400000
 #define ErrAllModules		0xFF00000
 
 // error codes 1-255 (0x01 - 0xFF) reserved for system errno.h
@@ -76,7 +77,10 @@ namespace Errors {
 #define ENotUniqueInterfaceName 0x1940
 #define ENoInterfaceFound	0x1950
 #define ENoImplementationFound 	0x1960
-
+#define EObjectInsteadOfType 0x1970
+#define EMdnCreateError		0x1980
+#define ERecurrentTypes		0x1990
+#define ESuchMdnExists		0x1991
 // Config
 #define ENotInit		0x1A00
 #define ENoValue		0x1B00
@@ -105,6 +109,15 @@ namespace Errors {
 #define EIndexExists	0x2A00
 #define EFieldIndexed	0x2B00
 #define ENoIndex		0x2C00
+
+// Type Checker
+#define ECannotRestore			0x2E00
+#define ECannotRestoreBadName	0x2E10
+#define ENameNotBound			0x2E20
+#define EGeneralTCError			0x2E30
+#define ETCNotApplicable		0x2E40
+#define EIncompleteMetadata		0x2E50
+#define EMetadataOutdated		0x2E60
 
 // stopper
 #define EUnknown		0x2D00

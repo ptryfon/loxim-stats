@@ -85,6 +85,9 @@ namespace Errors {
 			case ErrTManager:
 				src_mod = "Transaction Manager";
 				break;
+			case ErrTypeChecker:
+				src_mod = "Type Checker";
+				break;
 			default:
 				src_mod = "Unknown";
 				break;
