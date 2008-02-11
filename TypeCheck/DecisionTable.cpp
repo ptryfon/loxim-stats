@@ -13,6 +13,7 @@
 #include <string>
 #include <fstream>
 #include <iostream>
+#include <sstream>
 #include <map>
 #include <vector>
 
@@ -31,33 +32,37 @@ namespace TypeCheck
 		vector<CollKindRule> collKindRules;
 */
 	string DecisionTable::cdAddBands(string lCard, string rCard) {
-		string lBand, rBand; 
+		stringstream conv;
 		//in the code below zeros are subtracted in order to cast (convert) chars to integers.
-		if (((lCard[0]-0)+ (rCard[0]-0)) > 1) lBand = "1";
-		else lBand = "" + ((lCard[0]-0) + (rCard[0]-0));
-		
-		if (lCard[3] == '*' || rCard[3] == '*') rBand = "*";
-		else rBand = "" + ((lCard[3]-0) + (rCard[3]-0));
-		
-		return lBand + ".." + rBand;
+		if (((lCard[0]-'0')+ (rCard[0]-'0')) > 1) conv << "1";
+		else conv << ((lCard[0]-'0') + (rCard[0]-'0'));
+		conv << "..";
+		if (lCard[3] == '*' || rCard[3] == '*') conv << "*";
+		else {
+			int rb = ((lCard[3]-'0') + (rCard[3]-'0'));
+			if (rb > 1) conv << "*";
+			else conv << rb;
+		}
+		return conv.str();
 	}
 		
 	//Takes left card, replaces left bound with zero, and copies right bound...
 	string DecisionTable::cdCopyLeftWithZero(string lCard, string rCard) {
-		return "0.." + lCard[3];
+		stringstream conv;
+		conv << "0.." << lCard[3];
+		return conv.str();
 	}	
 	
 	string DecisionTable::cdMultiplyBands(string lCard, string rCard) {
-		string lBand, rBand;
-		if (lCard[0] == '0' || rCard[0] == '0') { lBand = "0"; } 
-		else if (lCard[0] == '*' || rCard[0] == '*') { lBand = "*";	} 
-		else { lBand = "" + (lCard[0]-0) * (rCard[0]-0); }
-		
-		if (lCard[3] == '0' || rCard[3] == '0') { rBand = "0"; } 
-		else if (lCard[3] == '*' || rCard[3] == '*') { rBand = "*";	} 
-		else { rBand = "" + (lCard[3]-0) * (rCard[3]-0); }
-		
-		return lBand + ".." + rBand;
+		stringstream conv;
+		if (lCard[0] == '0' || rCard[0] == '0') conv << "0"; 
+		else if (lCard[0] == '*' || rCard[0] == '*') conv << "*";
+		else conv << ((lCard[0] - '0') * (rCard[0] - '0'));
+		conv << "..";
+		if (lCard[3] == '0' || rCard[3] == '0') conv << "0";
+		else if (lCard[3] == '*' || rCard[3] == '*') conv << "*";
+		else conv << ((lCard[3] - '0') * (rCard[3] - '0'));
+		return conv.str();
 	}
 	
 	
@@ -191,7 +196,7 @@ namespace TypeCheck
 				addTnRule("ELSE",	"ERROR");
 /*C-KIND*/		addCkRule("M_BOTH",	"NONE",	"NONE", "bag");
 				addCkRule("M_LEFT",	"NONE",	"bag",	"bag");
-				addCkRule("M_RGHT",	"bag",	"NONE",	"bag");
+				addCkRule("M_RIGHT",	"bag",	"NONE",	"bag");
 				addCkRule("bag", "bag",	"bag");
 				addCkRule("ELSE","ERROR");
 				break;
@@ -312,7 +317,7 @@ namespace TypeCheck
 /*T-NAME*/		addTnRule("M_BOTH", "X", "Y", "");	//struct always gets an empty distinct typename... 
 /*C-KIND*/		addCkRule("M_BOTH",	"NONE",	"NONE", "bag");
 				addCkRule("M_LEFT",	"NONE",	"bag",	"bag");
-				addCkRule("M_RGHT",	"bag",	"NONE",	"bag");
+				addCkRule("M_RIGHT",	"bag",	"NONE",	"bag");
 				addCkRule("bag", "bag",	"bag");
 				addCkRule("ELSE","ERROR");
 				break;			
@@ -335,7 +340,7 @@ namespace TypeCheck
 /*T-NAME*/		addTnRule("M_BOTH", "whatever", "X", DecisionTable::ARG_COPY_R);
 /*C-KIND*/		addCkRule("M_BOTH",	"NONE",	"NONE", "bag");
 				addCkRule("M_LEFT",	"NONE",	"bag",	"bag");
-				addCkRule("M_RGHT",	"bag",	"NONE",	"bag");
+				addCkRule("M_RIGHT",	"bag",	"NONE",	"bag");
 				addCkRule("bag", "bag",	"bag");
 				addCkRule("M_LEFT", "NONE", "sequence", "sequence");
 				addCkRule("M_RIGHT", "sequence", "NONE", "sequence");
@@ -349,7 +354,7 @@ namespace TypeCheck
 /*T-NAME*/		addTnRule("M_BOTH", "X", "Y", "");	//struct always gets an EMPTY distinct typename... 
 /*C-KIND*/		addCkRule("M_BOTH",	"NONE",	"NONE", "bag");
 				addCkRule("M_LEFT",	"NONE",	"bag",	"bag");
-				addCkRule("M_RGHT",	"bag",	"NONE",	"bag");
+				addCkRule("M_RIGHT",	"bag",	"NONE",	"bag");
 				addCkRule("bag", "bag",	"bag");
 				addCkRule("M_LEFT", "NONE", "sequence", "sequence");
 				addCkRule("M_RIGHT", "sequence", "NONE", "sequence");
@@ -448,7 +453,7 @@ namespace TypeCheck
 			cout << "[TC]: after card rules" << endl; 
 			result += applyRuleset(typeNameRules, lSig, rSig, lSig->getTypeName(), rSig->getTypeName(), finalResult);
 			cout << "[TC]: after TYPeNMAME" << endl; 
-			result += applyRuleset(collKindRules, lSig, rSig, lSig->textCollKind(), rSig->textCollKind(), finalResult);
+			result += applyRuleset(collKindRules, lSig, rSig, lSig->getCollKind(), rSig->getCollKind(), finalResult);
 			cout << "[TC]: after COLLKIND" << endl; 
 		}
 		return result;
@@ -553,10 +558,10 @@ namespace TypeCheck
 		if (!finalResult.isError()) {
 			result += applyRuleset(cardRules, sig, sig->getCard(), finalResult);
 			result += applyRuleset(typeNameRules, sig, sig->getTypeName(), finalResult);
-			result += applyRuleset(collKindRules, sig, sig->textCollKind(),finalResult);
+			result += applyRuleset(collKindRules, sig, sig->getCollKind(),finalResult);
 		}
-		cout << "applied all rulesets, with total result: " << result << endl;
-		cout << "and my finalResult is...: "<< endl;
+		cout << "applied all rulesets (UNOP), with total result: " << result << endl;
+		cout << "and my finalResult is...: \n"<< endl;
 		cout << finalResult.printAllInfo();
 		cout << "ok, returning";
 		return result;

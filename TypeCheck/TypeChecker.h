@@ -49,7 +49,8 @@ using namespace std;
 #define TC_MDS_TYPE			"type"
 #define TC_MDS_OWNER		"owner"
 #define TC_MDS_TARGET		"target"
-
+#define TC_CK_BAG			"bag"
+#define TC_CK_SEQ			"sequence"
 
 namespace TypeCheck
 {
@@ -104,10 +105,13 @@ namespace TypeCheck
 		virtual void addAction(TCAction act) {this->implicitActions.push_back(act);}
 		virtual void reportTypeError(TCError err) {
 			overallResult = "ERROR";
+			cout << "will add error to globalresult" << endl;
 			addError(err);
+			cout << "Added error to globalresult" << endl;
 		}
 		virtual void setOverallResult(string res) {this->overallResult = res;}
 		virtual void printOutput();
+		virtual string getOutput();
 		virtual ~TCGlobalResult(){};
 	};	
 	

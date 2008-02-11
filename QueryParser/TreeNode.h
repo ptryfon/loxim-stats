@@ -149,6 +149,7 @@ namespace QParser {
 		int tp = type();
 		return (tp == TNTRANS || tp == TNDML || tp == TNOBJDECL || tp == TNTYPEDEF || tp == TNVALIDATION);
 	}
+	virtual void qpLocalAction(QueryParser *qp);
 	virtual int augmentTreeDeref(bool derefLeft, bool derefRight) {Deb::ug("augmentTreeDeref at Treenode"); return 0;};
 	
     };
@@ -2527,7 +2528,7 @@ public:
 class DMLNode : public TreeNode 
     {
     public:
-		enum dmlInst { reload }; 
+		enum dmlInst { reload, tcoff, tcon }; 
     protected:
 		dmlInst inst;
     public:
@@ -2536,9 +2537,13 @@ class DMLNode : public TreeNode
 		virtual int type() { return TreeNode::TNDML; }
 		dmlInst getInst() { return inst; }
 		virtual void setInst(dmlInst _inst) { inst = _inst; }
-
+		virtual void qpLocalAction(QueryParser *qp);
         virtual int putToString() {
-    	    cout << "dml reloadScheme";
+			switch (inst) {
+				case DMLNode::reload : 	cout << "dml reloadScheme"; break;
+				case DMLNode::tcoff : 	cout << "dml typechecker-off"; break;
+				case DMLNode::tcon : 	cout << "dml typechecker-on"; break;
+			}
     	    return 0;
 		}
 		virtual ~DMLNode() {}

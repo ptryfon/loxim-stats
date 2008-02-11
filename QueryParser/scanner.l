@@ -140,6 +140,8 @@ extern int szbderrno;
 "double"		return DOUBLE_SIG;
 "integer"		return INTEGER_SIG;
 "boolean"		return BOOLEAN_SIG;/* TO BE OR NOT TO BE... */
+"tcOFF"			return TCOFF;
+"tcON"			return TCON;
 
 ([_a-zA-Z][_a-zA-Z0-9]*)*::[_a-zA-Z][_a-zA-Z0-9]* yylval.str = new char[strlen(yytext) + 1]; yylval.str = strcpy(yylval.str,yytext); return EXTNAME;
 [_a-zA-Z][_a-zA-Z0-9]* 	yylval.str = new char[strlen(yytext) + 1]; yylval.str = strcpy(yylval.str,yytext); return NAME;

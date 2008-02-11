@@ -94,13 +94,24 @@ namespace TypeCheck
 	
 	void TCGlobalResult::printOutput() {
 		ErrorConsole ec("TypeChecker");
-		ec << "TypeChecking result: " + overallResult  + "\n ";
+		ec << "PRINTOUTPUT:: TypeChecking result: " + overallResult  + "\n ";
 		if (overallResult == "ERROR") {
 			ec << "Query type check returned errors: \n";
+			cout << "errors size: " << errors.size() << endl;
 			for (unsigned int i = 0; i < errors.size(); i++) {
 				ec << errors[i].getOutput() + ", \n";
 			}
 		}
+	}
+	
+	string TCGlobalResult::getOutput() {
+		string ret = "TypeCheck result: " + overallResult + "\n";
+		if (overallResult == "ERROR") {
+			for (unsigned int i = 0; i < errors.size(); i++) {
+				ret += "* " + errors[i].getOutput() + "\n";
+			}
+		}
+		return ret;
 	}
 	
 	int TypeChecker::doTypeChecking(string &tcResultString) {
@@ -111,11 +122,14 @@ namespace TypeCheck
 		Deb::ug("Finished all typecheck, result: %d", result);
 		globalResult.printOutput();
 		if (result != 0 && result != (ErrTypeChecker | ETCNotApplicable)) {
-			cout << "setting tcResult to non ''" << endl;
+			cout << "setting tcResult to NON ''" << endl;
 			//Thats where globalResult should be sensibly serialized, with end-line chars, to let the user
 			// see all errors caught while type checking. 
-			tcResultString = "This is the result of your \n type check procedure... ";
-			tcResultString += "\n	let it be stupid lines for now, ok?\n";
+//			tcResultString = "This is the result of your \n type check procedure... ";
+//			tcResultString += "\n	let it be stupid lines for now, ok?\n";
+			tcResultString = globalResult.getOutput();
+			cout << "maybe set tcResultString to getOutput" << endl;
+			cout << globalResult.getOutput() << endl;
 			return (ErrTypeChecker | EGeneralTCError);
 		} else {
 			cout << "leaving tcResult THE WAY IT WAS !!! " << endl;
@@ -209,10 +223,8 @@ namespace TypeCheck
 				TypeCheckResult tcRes;
 				
 				errcode = this->getDTable("ALG", op)->getResult(tcRes, lSig, rSig);
-				
-				Deb::ug("got tcresult with errcode: %d .", errcode);
-				cout << "got such tcresult: " << tcRes.printAllInfo() << endl;
-				//Deb::ug("got such tcresult: %s .", tcRes.printAllInfo()); 
+				cout << "ALGOP: got tcresult with errcode: " << errcode << endl;
+				cout << "ALGOP:got such tcresult: \n" << tcRes.printAllInfo() << endl;
 				if ((tcRes.isError()) && (op != AlgOpNode::refeq)) { //if (op != AlgOpNode::refeq)
 					errcode = augmentTreeDeref(tn, "ALG", op, tcRes, lSig, rSig);
 					if (errcode != 0) return errcode;
@@ -285,7 +297,7 @@ namespace TypeCheck
 				cout << "RSIG: " << endl; rSig->putToString();
 				errcode = this->getDTable("NONALG", op)->getResult(tcRes, lSig, rSig);
 				Deb::ug("NONALGOP: got tcresult with errcode: %d .", errcode);
-				cout << "got such tcresult: " << tcRes.printAllInfo() << endl;
+				cout << "NONALG: got such tcresult: \n" << tcRes.printAllInfo() << endl;
 				if (!tcRes.isError()) {
 					resultSig = tcRes.getSig();
 					errcode = sQres->pushSig(resultSig->clone());
@@ -310,8 +322,7 @@ namespace TypeCheck
 				TypeCheckResult tcRes;
 				errcode = this->getDTables()->getUnOpDTable(op)->getResult(tcRes, argSig);
 				Deb::ug("UNARY OP: got tcresult with errcode: %d .", errcode);
-				cout << "got such tcresult: " << tcRes.printAllInfo() << endl;
-				//Deb::ug("got such tcresult: %s .", tcRes.printAllInfo()); 
+				cout << "UNOP, got such tcresult: \n" << tcRes.printAllInfo() << endl;
 				if (!tcRes.isError()) {
 					resultSig = tcRes.getSig();
 					errcode = sQres->pushSig(resultSig->clone());
@@ -338,7 +349,7 @@ namespace TypeCheck
 				TypeCheckResult tcRes;
 				errcode = this->getDTables()->getUnOpDTable(op, name, grouped)->getResult(tcRes, argSig);
 				Deb::ug("NAME AS OR GrOUP AS - got tcresult with errcode %d.", errcode);
-				cout << "got such tcresult: " << tcRes.printAllInfo() << endl;
+				cout << "TN AS, got such tcresult: \n" << tcRes.printAllInfo() << endl;
 				if (!tcRes.isError()) {
 					resultSig = tcRes.getSig();
 					errcode = sQres->pushSig(resultSig->clone());
@@ -431,10 +442,8 @@ namespace TypeCheck
 		tn->putToString();
 		cout << endl;
 		Deb::ug("my params...(tcresL, tcresR, lSig, rSig)");
-		cout << tmpTcResL.printAllInfo();
-		cout << endl;
-		cout << tmpTcResR.printAllInfo();
-		cout << endl;
+		cout << tmpTcResL.printAllInfo() << endl;
+		cout << tmpTcResR.printAllInfo() << endl;
 		if (lSigIn != NULL) lSigIn->putToString(); else cout << "lSigIn -- NULL ";
 		cout << endl;
 		if (rSigIn != NULL) rSigIn->putToString(); else cout << "rSigIn -- NULL ";

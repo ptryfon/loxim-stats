@@ -36,7 +36,7 @@ namespace TypeCheck
 	
 	string TypeCheckResult::printAllInfo() {
 		string str = "";
-		str += "[sign: " +(getSig() != NULL ? getSig()->textType() : "NULL") + "] \n ";
+		str += "[sign: " +(getSig() != NULL ? getSig()->toString() : "NULL") + "] \n ";
 		str += "[effect: " + getEffect() + "] \n ";
 		stringstream sout;
 		string dynStr = (dynCtrl == true ? "true" : "false");

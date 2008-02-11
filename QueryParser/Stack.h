@@ -3,6 +3,7 @@
 
 
 #include <iostream>
+#include <sstream>
 #include <vector>
 #include <string>
 #include <list>
@@ -118,7 +119,7 @@ namespace QParser {
 		TreeNode *dependsOn;	// death subqry
 		string card;			// death
 		string distinctTypeName;	//typeChecking system. this will often be empty/null. 
-		string collectionKind;	//sequence OR bag...
+		string collectionKind;	//sequence OR bag OR ""- empty means its not a collection
 	public:
 		enum SigType {
 			SSEQ      = 1,	/*sigColl */ //should not be used any more. (functionality replaced by collectionKind
@@ -158,29 +159,24 @@ namespace QParser {
 			return "";
 		}
 		
-		Signature (int _type) : typ(_type) {
-			cout << "\nSUPER SIGNATURE(type) constructor fired !" << endl;
-			this->next = NULL; this->dependsOn = NULL; distinctTypeName = "";
-		}
-		Signature () {
-			cout << "\nSUPER SIGNATURE() constructor fired !" << endl;
-			this->next = NULL; this->dependsOn = NULL; distinctTypeName = "";
-		}
+		Signature (int _type) : typ(_type) {init();}
+		Signature () {init();}
+		virtual void init();
 		virtual void setNext (Signature *newNext) {this->next = newNext;}
 		virtual Signature *getNext () {return this->next;}
 	
 		virtual string getTypeName() {cout << "tname:" <<this->distinctTypeName << ":"<< endl; return this->distinctTypeName;}
-		virtual bool emptyTypeName() {return (this->distinctTypeName == "");} //TODO:?this->distinctTypeName == NULL || 
+		virtual bool emptyTypeName() {return (this->distinctTypeName == "");} 
 		virtual bool isDisctinct() {return emptyTypeName();}
 		virtual void setTypeName(string typeName) {this->distinctTypeName = typeName;}
-		virtual string getCollectionKind() {return collectionKind;}
-	
+		virtual string getCollKind() {return collectionKind;}
+		virtual void setCollKind(string ck) {collectionKind = ck;}
 		virtual TreeNode* getDependsOn(){return this->dependsOn;}
 		virtual void setDependsOn(TreeNode *_dependsOn){this->dependsOn = _dependsOn;}
 		virtual string getCard(){return this->card;}
 		virtual void setCard(string _card){
 			this->card = _card; //and set default collectionKind if needed...
-			if ((card[3] == '*') && collectionKind == "") collectionKind = "bag";
+			if ((card[3] == '*') && (collectionKind == "")) collectionKind = "bag";
 		}
 		virtual int type() {return 0;}
 		virtual bool isAtom () {return false;} /* overridden only in SigAtom */
@@ -190,6 +186,8 @@ namespace QParser {
 		virtual BinderWrap *statNested(TreeNode * treeNode) {return NULL;} /*the default behaviour of a signature*/
 		virtual Signature *clone();
 		virtual void putToString () { cout << "(signature) ";if (this->next != NULL) next->putToString();}
+		virtual string toString() { return "BaseSignature";}
+		virtual string attrsToString() {return distinctTypeName + "[" +card + "]" + collectionKind;}
 		virtual ~Signature() {}// cout << "entered top SIG destructor" << endl; if (this->next != NULL) delete this->next; }
 	};
 	
@@ -202,9 +200,9 @@ namespace QParser {
 		Signature *myLast;
 		int collType;	
 	public:
-		SigColl (int _collType) : collType(_collType) {cout << "\n\nSIGCOLL(colltype) fired\n\n"; myList = NULL; myLast = NULL; next = NULL; card = "1..1";distinctTypeName = "";}
-		SigColl () {cout << "\n\nSIGCOLL() fired\n\n"; this->collType = Signature::SBAG; myList = NULL; myLast = NULL; next = NULL; card = "1..1";distinctTypeName = "";} /*bag is the default collection*/
-		SigColl (int _collType, Signature *_myList) : myList(_myList), collType(_collType) {myLast = _myList; next = NULL; card = "1..1";distinctTypeName = "";};
+		SigColl (int _collType) : collType(_collType) {myList = NULL; myLast = NULL;}
+		SigColl () {this->collType = Signature::SSTRUCT; myList = NULL; myLast = NULL; } /* STRUCT is the default sigcoll (now collections are handled through collectionKind attr.!*/
+		SigColl (int _collType, Signature *_myList) : myList(_myList), collType(_collType) {myLast = _myList; };
 		virtual bool isColl () {return true;}
 		virtual string textCollKind() {if (this->collType == Signature::SSTRUCT) return ""; return this->textType();}
 		virtual bool isEmpty() {return (myList == NULL);}
@@ -212,8 +210,8 @@ namespace QParser {
 		virtual void setCollType(int type) {this->collType = type;}
 		virtual void setCollTypeByString(string sType) {
 			if (sType == "structure") this->collType = Signature::SSTRUCT;
-			if (sType == "sequence") this->collType = Signature::SSEQ;
-			if (sType == "bag") this->collType = Signature::SBAG;
+			if (sType == "sequence") this->collType = Signature::SSEQ;		// deprecated - now use collectionKind attr
+			if (sType == "bag") this->collType = Signature::SBAG;			// deprecated - now use collectionKind attr
 		}
 		virtual Signature *getMyLast () {return myLast;}		
 		virtual void setMyLast (Signature *nl) {if (nl->getNext() == NULL) myLast = nl; else setMyLast (nl->getNext());}
@@ -231,12 +229,18 @@ namespace QParser {
 		}
 		virtual BinderWrap *statNested(TreeNode * treeNode);
 		virtual Signature *clone();							
-		virtual void putToString() {cout << "[";
-			cout << "{";
+		virtual void putToString() {
+			cout << "(STRCT," << distinctTypeName << "[" << card << "]" << collectionKind << "{";
 			if (this->myList != NULL) myList->putToString();
-			cout << "}";
-			if (next != NULL) next->putToString(); cout << "]";
-		
+			cout << "}) ";
+			if (next != NULL) next->putToString(); 
+		}
+		virtual string toString() {
+			string ret =  "(STRUCT," + attrsToString() + "{";
+			if (this->myList != NULL) ret += myList->toString();
+			ret += "}) ";
+			if (next != NULL) ret += next->toString();
+			return ret;
 		}
 		virtual ~SigColl() {
 			cout << "entered sigcoll destructor" << endl;
@@ -261,8 +265,8 @@ namespace QParser {
 		protected:
 			string atomType;	/*"int" lub "double" lub "string" lub "bool"*/		
 		public:
-			SigAtomType() {cout << "\n\nSIGATOMTYPE() fired\n\n"; next = NULL; distinctTypeName = ""; card = "1..1";}
-			SigAtomType(string _atomType) : atomType(_atomType) {cout << "\n\nSIGATOMTYPE(atomType) fired\n\n"; next = NULL; distinctTypeName = ""; card = "1..1";}
+			SigAtomType() {}
+			SigAtomType(string _atomType) : atomType(_atomType) {}
 			virtual bool isAtom () {return true;}
 			virtual int getNumb (string atype) {
 				if (atype == "int") return Signature::SINT;
@@ -275,9 +279,14 @@ namespace QParser {
 			virtual void setType(string newType) {this->atomType = newType;}
 			virtual Signature *clone();
 			virtual void putToString() {
-				cout << "(" << this->atomType << ") ";
+				cout << "(" << this->atomType << "," << distinctTypeName << "[" << card << "]" << collectionKind << ") ";
 				if (next != NULL) next->putToString();
 			}		
+			virtual string toString() {
+				string ret =  "(" + atomType + "," + attrsToString() + ") ";
+				if (next != NULL) ret += next->toString();
+				return ret;
+			}
 			virtual ~SigAtomType() {cout << "entered atom destructor"; this->putToString(); cout << endl; if (next != NULL) delete next; cout << "done with atom" << endl;}
 	};
 		
@@ -286,16 +295,23 @@ namespace QParser {
 		protected:
 			int refNo;
 		public:
-			SigRef() {cout << "\n\nSIG_REF() fired\n\n"; next = NULL; card = "1..1";distinctTypeName = "";}
-			SigRef(int _refNo) : refNo(_refNo) {cout << "\n\nSIG_REF(refNo) fired\n\n"; next = NULL; card = "1..1";distinctTypeName = "";}
+			SigRef() {}
+			SigRef(int _refNo) : refNo(_refNo) {}
 			virtual int getRefNo () {return this->refNo;}
 			virtual void setRefNo (int newNo) {this->refNo = newNo;}
 			virtual int type() {return Signature::SREF;}
 			virtual BinderWrap *statNested(TreeNode *treeNode);/*implmnted in Stack.cpp*/
 			virtual Signature *clone();
 			virtual void putToString() {
-				cout << "ref(" << refNo << ") ";
+				cout << "(ref->" << refNo << "," << distinctTypeName << "[" << card << "]" << collectionKind << ") ";
 				if (next != NULL) next->putToString();
+			}
+			virtual string toString() {
+				stringstream ss;
+				ss << refNo;
+				string ret = "(ref->" + ss.str() + "," + attrsToString() + ") ";
+				if (next != NULL) ret += next->toString();
+				return ret;
 			}
 			virtual ~SigRef() { cout << "entered sigref destructor:"; this->putToString(); cout << endl; if (next != NULL) delete next; Deb::ug("killed 1 ref\n");}
 		
@@ -303,14 +319,17 @@ namespace QParser {
 	
 	class SigVariant : public Signature
 	{	//TODO: probably should look like SigColl - so be one of its subtypes. and introduced everywhere else in TC.
-		protected:
-			
 		public:
 			SigVariant(){}
 			virtual Signature *clone() {return new SigVariant();}
 			virtual int type() {return Signature::SVAR;}
 			virtual void putToString() {
-				cout << "VARIANT:)";
+				cout << "VARIANT";
+			}
+			virtual string toString() {
+				string ret = "(VARIANT," + attrsToString() + ") ";
+				if (next != NULL) ret += next->toString();
+				return ret;
 			}
 			virtual ~SigVariant() {cout <<" killing a variant signature" << endl;}
 	};
@@ -321,8 +340,8 @@ namespace QParser {
 			string name;
 			Signature *value;
 		public:
-			StatBinder(string _name, Signature *_value) : name(_name), value(_value) {cout << "\n\nSIGBINDER(name, value) fired\n\n"; next = NULL; card = "1..1";distinctTypeName = "";};
-			StatBinder(string _name) : name(_name) {cout << "\n\nSIG BINDER (NAME) fired\n\n"; next = NULL; card = "1..1";};
+			StatBinder(string _name, Signature *_value) : name(_name), value(_value) {};
+			StatBinder(string _name) : name(_name) {};
 			virtual string getName() {return this->name;};
 			virtual Signature *getValue() {return this->value;};
 			virtual void setName(string newName) {this->name = newName;};
@@ -332,10 +351,10 @@ namespace QParser {
 			virtual BinderWrap *statNested(TreeNode *treeNode);
 			virtual Signature *clone();
 			virtual void putToString() {
-				cout << name <<"(";
+				cout << "(" << name <<"(";
 				if (value == NULL) cout << "__";
 				else value->putToString();
-				cout << ") ";
+				cout << ")) ";
 				if (next != NULL) next->putToString();
 			}
 			virtual ~StatBinder() {cout << "entered statBinder destr" << endl; if (value != NULL) {Deb::ug( "value to kil\n");delete value; }

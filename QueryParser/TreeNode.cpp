@@ -1107,7 +1107,15 @@ namespace QParser
 	}
 	
 	DMLNode::DMLNode (dmlInst _inst) : inst(_inst) {/*DataScheme::reloadDScheme(); - done through executor!*/}
-
+	void TreeNode::qpLocalAction(QueryParser *qp) {/*By default does nothing*/}
+	void DMLNode::qpLocalAction(QueryParser *qp) {
+		switch (inst) {
+			case DMLNode::reload : break;
+			case DMLNode::tcoff : qp->setTcOffTmp(true); break;
+			case DMLNode::tcon : qp->setTcOffTmp(false); break;
+		}
+	}
+	
 bool TreeNode::containsOid(long oid){
 	vector<TreeNode*> *listVec = new vector<TreeNode*>();
 	this->getInfixList(listVec);

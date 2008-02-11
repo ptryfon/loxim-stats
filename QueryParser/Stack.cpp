@@ -22,6 +22,14 @@ namespace QParser {
 
 
 /*stworz stos ENVS i wsadz jako elementy bazowe kilka binderow...*/
+	//initializes all attributes.
+	void Signature::init() {
+		this->next = NULL; this->dependsOn = NULL; 
+		distinctTypeName = ""; collectionKind = ""; 
+		card = "1..1";
+	}
+	
+	
 	
 	Signature* Signature::clone(){return NULL;}
 	Signature* SigColl::clone(){

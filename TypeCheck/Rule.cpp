@@ -71,9 +71,8 @@ namespace TypeCheck
 				retResult.getSig()->setTypeName(this->result);
 				break;}
 			case Rule::COLLKIND: { 
-				if (retResult.getSig()->isColl()) {//TODO: and if not...?
-					((SigColl *)retResult.getSig())->setCollTypeByString(this->result);
-				}
+				retResult.getSig()->setCollKind(this->result);
+				//if (retResult.getSig()->isColl()) {((SigColl *)retResult.getSig())->setCollTypeByString(this->result);}
 				break;}
 			default: cout << "unknown rule type" << endl; return -1; //unknown Rule type... 
 		}
@@ -87,7 +86,7 @@ namespace TypeCheck
 			cout << "GEN RES:: !!! dTable is NULL !!! " << endl;
 		}
 		switch (this->getRuleType()) {
-			case Rule::BASE: {
+		case Rule::BASE: {
 				cout << "my sigGen: ";
 				cout << sigGen << ", my attrGen: ";
 				cout << attrGen << endl;
@@ -106,21 +105,16 @@ namespace TypeCheck
 				cout << "!!! dTable is NULL !!! " << endl;
 			}
 			break;}
-			case Rule::CARD: {
+		case Rule::CARD: {
 			retResult.getSig()->setCard(dTable->doAttr(attrGen, lSig->getCard(), rSig->getCard()));
-			// (*(this->attrGenerator))(lSig->getCad(), rSig->getCard()));
 			break;}
-			case Rule::TYPENAME: { 
+		case Rule::TYPENAME: { 
 			retResult.getSig()->setTypeName(dTable->doAttr(attrGen, lSig->getTypeName(), rSig->getTypeName()));
-			//(*(this->attrGenerator))(lSig->getTypeName(), rSig->getTypeName()));
 			break;}
-			case Rule::COLLKIND: { 
-			if (retResult.getSig()->isColl()) {//TODO: what does this mean, when the signature is not a collection? maybe should do a 1-elt collection ??? 
-				((SigColl *)retResult.getSig())->setCollTypeByString(dTable->doAttr(attrGen, lSig->textType(), rSig->textType()));
-			}
-			//(*(this->attrGenerator))(lSig->textType(), rSig->textType()));
+		case Rule::COLLKIND: { 
+			retResult.getSig()->setCollKind(dTable->doAttr(attrGen, lSig->getCollKind(), rSig->getCollKind()));
 			break;}
-			default: return -1; //unknown Rule type... 
+		default: return -1; //unknown Rule type... 
 		}
 		return 0;
 	}

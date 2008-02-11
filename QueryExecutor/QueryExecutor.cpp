@@ -329,19 +329,27 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			if (errcode != 0) return errcode;
 		}
 		else if (nodeType == TreeNode::TNDML) {
-			tr->reloadDmlStct();
-			DataScheme::reloadDScheme(tr);
-			if (DataScheme::dScheme()->getIsComplete()) {
-				//*result = new QueryNothingResult();
-				*result = new QueryStringResult("Datascheme consistent.");
-			} else {
-				DataScheme::dScheme()->getMissedRoots();
-				string client_msg = "Datascheme incomplete. Missing entries: \n";
-				for (unsigned int i = 0; i < DataScheme::dScheme()->getMissedRoots().size(); i++) {
-					if (i > 0) client_msg += ", ";
-					client_msg += DataScheme::dScheme()->getMissedRoots().at(i);
-				}
-				*result = new QueryStringResult(client_msg);
+			DMLNode::dmlInst inst = ((DMLNode *) tree)->getInst();
+			switch (inst) {
+				case DMLNode::reload :
+					tr->reloadDmlStct();
+					DataScheme::reloadDScheme(tr);
+					if (DataScheme::dScheme()->getIsComplete()) {
+					//*result = new QueryNothingResult();
+						*result = new QueryStringResult("Datascheme consistent.");
+					} else {
+						DataScheme::dScheme()->getMissedRoots();
+						string client_msg = "Datascheme incomplete. Missing entries: \n";
+						for (unsigned int i = 0; i < DataScheme::dScheme()->getMissedRoots().size(); i++) {
+							if (i > 0) client_msg += ", ";
+							client_msg += DataScheme::dScheme()->getMissedRoots().at(i);
+						}
+						*result = new QueryStringResult(client_msg);
+					}
+					break;
+				case DMLNode::tcoff : *result = new QueryNothingResult(); break;
+				case DMLNode::tcon : *result = new QueryNothingResult();break;
+				default: break;
 			}
 			return 0;
 		}	/** These were type declarations / definitions */	
@@ -1365,7 +1373,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			}
 			errcode = qres->push(new QueryBoolResult(isInstanceOf));
 			if(errcode != 0) return errcode;
-			*ec << "[QE] TNCAST processing complete";
+			*ec << "[QE] TNINSTANCEOF processing complete";
 			return 0;
 		}
 		

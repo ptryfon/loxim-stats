@@ -20,6 +20,7 @@ namespace QParser
 	    static int statEvalRun;	// for which time the stat eval is called - some things can be set only once
 		bool shouldOptimize;
 		bool shouldTypeCheck;
+		bool tcTurnedOffTmp;		// to switch typechecking off temporarily. 
 		string dmlIncompleteAction;
 	public:
 		QueryParser();
@@ -32,6 +33,8 @@ namespace QParser
 		virtual void testDeath (string zap);
 		virtual void setQres(StatQResStack *nq);
 		virtual void setEnvs(StatEnvStack *ne);
+		virtual void setTcOffTmp(bool tcoff);
+		virtual bool isTcOffTmp();
 		virtual int statEvaluate(TreeNode *&tn);	
 		virtual ~QueryParser();
 		static int getStatEvalRun();

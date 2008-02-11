@@ -41,6 +41,7 @@ namespace QParser {
 		conf.getBool("optimisation", shouldOptimize);
 		conf.getBool("type_checking", shouldTypeCheck);
 		conf.getString("metadata_incomplete_action", dmlIncompleteAction);
+		tcTurnedOffTmp = false;
 		/* check if this is debug mode or not... */	
 		Deb::setWriteDebugs();		
 		Deb::ug("Parser debug mode is ON! you can change it in the configuration file");
@@ -53,6 +54,7 @@ namespace QParser {
 	QueryParser::QueryParser(bool readConfig) {
 		sQres = NULL;
 		sEnvs = NULL;
+		tcTurnedOffTmp = false;
 		if (readConfig) {
 			SBQLConfig conf("QueryParser");
 			conf.getBool("optimisation", shouldOptimize);
@@ -66,7 +68,14 @@ namespace QParser {
 			shouldTypeCheck = false;
 		} 
 	}
-
+	
+	void QueryParser::setTcOffTmp(bool tcoff) {
+		tcTurnedOffTmp = tcoff;
+	}
+	bool QueryParser::isTcOffTmp() {
+		return tcTurnedOffTmp;
+	}
+	
 	int QueryParser::statEvaluate(TreeNode *&tn) {
 		QueryParser::incStatEvalRun();
 		/* init the both static stacks. The data model is available as	 *
@@ -95,7 +104,7 @@ namespace QParser {
 		TypeCheckResult tcRes;
 		int intTCRes = dt->getResult(tcRes, lSig, rSig);
 		cout << "getResult int res: " << intTCRes << endl;
-		cout << "tcres:" << tcRes.printAllInfo() << endl;		
+		cout << "tcres:\n" << tcRes.printAllInfo() << endl;		
 	
 		return 0;
 	}
@@ -137,7 +146,6 @@ namespace QParser {
 			cout << "\n--------------------------------------\n";
 		}
 		if ((shouldTypeCheck || shouldOptimize) && !qTree->skipPreprocessing()) {
-			int stat_ev_res;
 			TreeNode *nt = d->clone();
 			bool metadataCorrect = DataScheme::dScheme()->getIsComplete();
 			bool metadataUpToDate = DataScheme::dScheme()->getIsUpToDate();
@@ -147,13 +155,20 @@ namespace QParser {
 
 			int typeCheckErrCode = 0;
 			if (shouldTypeCheck && toBeTypeChecked && metadataCorrect && metadataUpToDate) {
-				Deb::ug(" \n \n TYPECHECK BEGIN !!! \n \n");
-				TypeChecker *tc = new TypeCheck::TypeChecker(nt);
-				typeCheckErrCode = tc->doTypeChecking(tcResultString);			
-				Deb::ug(" \n \n TYPECHECK DONE... \n "); 
-				if ((typeCheckErrCode != 0) && (typeCheckErrCode != (ErrTypeChecker | ETCNotApplicable))) {
-					ec << "TC, Parser: typeCheckErrorCode says general TC error, should return string to user.\n";
-					return typeCheckErrCode;
+				if (isTcOffTmp()) { ec << "Typechecking turned off temporarily"; tcResultString = "";}
+				else {
+					Deb::ug(" \n \n TYPECHECK BEGIN !!! \n \n");
+					TypeChecker *tc = new TypeCheck::TypeChecker(nt);
+					typeCheckErrCode = tc->doTypeChecking(tcResultString);		
+					Deb::ug(" \n \n TYPECHECK DONE... \n "); 
+					if ((typeCheckErrCode != 0) && (typeCheckErrCode != (ErrTypeChecker | ETCNotApplicable))) {
+						ec << "TC, Parser: typeCheckErrorCode says general TC error, should return string to user.\n";
+						return typeCheckErrCode;
+					}
+					if (typeCheckErrCode == 0) {
+						delete qTree;
+						qTree = nt;
+					}
 				}
 			} else {
 				if (shouldTypeCheck && toBeTypeChecked && dmlIncompleteAction == DML_AC_RETURN_ERROR) {
@@ -167,6 +182,8 @@ namespace QParser {
 			if (shouldOptimize && toBeOptimized && metadataCorrect && metadataUpToDate) {
 				Deb::ug(" optimisation is set ON !");
 				int optres = 0;
+				int stat_ev_res;
+				nt = qTree->clone();
 				if ((stat_ev_res = this->statEvaluate(nt)) != 0) {
 					Deb::ug("static evaluation did not work out ...");
 					optres = -1;
@@ -204,6 +221,8 @@ namespace QParser {
 				}
 				Deb::ug(" optimisation is disabled. \n");
 			}
+		} else {
+			qTree->qpLocalAction(this);
 		}
 		Deb::ug(" ParseIt() ends successfully!");
 		/*			cout << "td1------------------------------------------------------------\n";
@@ -215,7 +234,7 @@ namespace QParser {
 		cout << "===================================================================" << endl;
 		cout << "P    A    R    S    E    R        R    E    T    U    R    N    S :" << endl;
 		qTree->serialize();
-		cout << "===================================================================" << endl;
+		cout << "\n===================================================================" << endl;
 		return 0;
 	}
     
@@ -237,8 +256,8 @@ namespace QParser {
 	    tree->putToString();
 	    cout << "\n--------------------------------------" << endl;
     	    QParser::DeathRmver *rmver = new QParser::DeathRmver(this);
-	    int reslt;
-	    cout << "now the following tree will be evaluated statically.." << endl;
+	    
+		cout << "now the following tree will be evaluated statically.." << endl;
 	    TreeNode *nt = d->clone();
 
 		rmver->rmvDeath(nt);
