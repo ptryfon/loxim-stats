@@ -1,5 +1,10 @@
 2008-02-11  Maksymilian Humpich  <mh209206@students.mimuw.edu.pl>
 
+	* QueryExecutor/QueryExecutor.cpp, QueryParser/QueryParser.cpp, QueryParser/QueryParser.h, QueryParser/Stack.cpp, QueryParser/Stack.h, QueryParser/TreeNode.cpp, QueryParser/TreeNode.h, QueryParser/parser.y, QueryParser/scanner.l, Server/Server.conf, TypeCheck/DecisionTable.cpp, TypeCheck/Rule.cpp, TypeCheck/TypeCheckResult.cpp, TypeCheck/TypeChecker.cpp, TypeCheck/TypeChecker.h:
+	- upgraded TypeChecking
+	- slight changes to Signatures (Stack.h)
+	- some errors in TypeCheck corrected
+
 	* TypeCheck/DecisionTable.h, TypeCheck/Rule.h, TypeCheck/Rule.h~, TypeCheck/TypeCheckResult.h, TypeCheck/TypeCheckResult.h~:
 	*** empty log message ***
 
