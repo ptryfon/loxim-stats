@@ -54,7 +54,7 @@ namespace TypeCheck
 		virtual void addActionId(int actId);
 		virtual vector<int> getActionIds() {return this->actionIds;}
 		virtual string printAllInfo();
-		virtual void clear() {};
+		virtual void clear();
 		virtual ~TypeCheckResult();
 	};
 

@@ -6,7 +6,6 @@
 #include "QueryExecutor/QueryResult.h"
 #include "QueryParser/Stack.h"
 #include "Store/Store.h"
-#include "IndexHandler.h"
 #include "TransactionManager/Transaction.h"
 #include "TransactionManager/Mutex.h"
 

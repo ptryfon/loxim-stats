@@ -102,7 +102,7 @@ namespace TypeCheck
 		bool appliesTo(string arg) {
 			if (this->specialArg == "ELSE") return true;
 			if (this->specialArg == "M") return (arg == "" || this->arg != "NONE");
-			if (this->specialArg == "ACCURATE") {
+			if (this->specialArg == "" || this->specialArg == "ACCURATE") {
 				return (arg == this->arg);
 			}
 			return false; /* rule doesn't match given input. */
