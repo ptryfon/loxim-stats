@@ -1,3 +1,8 @@
+2008-02-11  Maksymilian Humpich  <mh209206@students.mimuw.edu.pl>
+
+	* TypeCheck/DecisionTable.h, TypeCheck/Rule.h, TypeCheck/Rule.h~, TypeCheck/TypeCheckResult.h, TypeCheck/TypeCheckResult.h~:
+	*** empty log message ***
+
 2008-02-10  Maksymilian Humpich  <mh209206@students.mimuw.edu.pl>
 
 	* TypeCheck/Attic/IndexHandler.h, TypeCheck/Attic/IndexManager.cpp, TypeCheck/Attic/IndexManager.h:
