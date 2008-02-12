@@ -124,6 +124,10 @@ namespace Errors {
 #define ETCNotApplicable		0x3340
 #define EIncompleteMetadata		0x3350
 #define EMetadataOutdated		0x3360
+#define ETCInnerFailure			0x3370
+#define ETCInnerRuleUnknown		0x3371
+#define ETCInnerNULLFailure		0x3372
+
 // stopper
 #define EUnknown		0x3400
 

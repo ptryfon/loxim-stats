@@ -99,7 +99,7 @@ namespace QParser {
 		Signature *lSig = new SigAtomType("string");
 		Signature *rSig = new SigAtomType("string");
 		TypeChecker *tc = new TypeCheck::TypeChecker(qTree);
-		DecisionTable *dt = tc->getDTable("ALG", AlgOpNode::plus);
+		DecisionTable *dt = tc->getDTable(DTable::ALG, AlgOpNode::plus);
 	
 		cout << "gotDTable(alg, plus);" << endl;
 		TypeCheckResult tcRes;
@@ -286,7 +286,7 @@ namespace QParser {
 	    delete lexer;
 	    TreeNode *tree = d;
 
-	    printf( "po parsowaniu treeNode: %d. \n", tree);
+	    //printf( "po parsowaniu treeNode: %d. \n", tree);
 	    cout << "Odczyt z drzewka, ktore przekazuje:" << endl;
 	    cout << "--------------------------------------" << endl;
 	    tree->putToString();

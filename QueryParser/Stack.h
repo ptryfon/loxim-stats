@@ -570,6 +570,7 @@ namespace QParser {
 			}
 		
 			virtual void bindNameEllipsis(string name, vector<BinderWrap*> *vec, string &expander) {
+				Deb::ug("Stack::bindNameEllipsis()");
 				if (this->isEmpty()) return;
 				((StatEnvSection *) this->top())->bindNameEllipsis(name, vec, expander);
 			}
@@ -630,6 +631,7 @@ namespace QParser {
 			StatQResStack() {this->setElts(NULL); this->setSize(0);}
 			virtual int pushSig (Signature *newSig) {
 				if (newSig == NULL) return -1;
+				if (Deb::ugOn()) {cout << "pushed " << newSig->toString() << " on sQres.\n";}
 				return this->push(new StatQResElt (newSig));
 			} 
 
