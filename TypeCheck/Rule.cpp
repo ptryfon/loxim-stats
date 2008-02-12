@@ -1,11 +1,13 @@
 #include "Rule.h"
 
 #include "Errors/ErrorConsole.h"
+#include "Errors/Errors.h"
 #include "QueryExecutor/QueryResult.h"
 #include "QueryParser/Stack.h"
+#include "QueryParser/Deb.h"
 #include "TransactionManager/Transaction.h"
 #include "TransactionManager/Mutex.h"
-
+#include "TypeChecker.h"
 #include <string>
 #include <fstream>
 #include <iostream>
@@ -38,22 +40,22 @@ namespace TypeCheck
 	}
 	
 	int TCRule::getResult(Signature *lSig, Signature *rSig, TypeCheckResult &retResult) {
-		if (this->result == "ERROR") {
-			retResult.setEffect("ERROR"); //should give more info on the error, but.. HERE?
+		if (this->result == TC_RS_ERROR) {
+			retResult.setEffect(TC_RS_ERROR); //should give more info on the error, but.. HERE?
 			//or outside this method- from typechecker?
 			return 0;
 		}
 		cout << "RULE::getResult: not and error rule" << endl;
 		if (needsAction()) {
-			retResult.setEffect("COERCE");
+			retResult.setEffect(TC_RS_COERCE);
 			retResult.addActionId(this->action);
 		}
 		retResult.setDynCtrl(retResult.isDynCtrl() || this->dynCtrl);
 		if (!needsResultGenerator()) {
-			cout << "DOES NOT NEED RES. GEN" << endl;
+			Deb::ug("Simple generator is enough");
 			return getSimpleResult(lSig, rSig, retResult);
 		} else {
-			cout << "NEEDs RES. GEN" << endl;
+			Deb::ug("Needs result generator");
 			return getGeneratedResult(lSig, rSig, retResult);
 		}
 		return 0;
@@ -72,38 +74,19 @@ namespace TypeCheck
 				break;}
 			case Rule::COLLKIND: { 
 				retResult.getSig()->setCollKind(this->result);
-				//if (retResult.getSig()->isColl()) {((SigColl *)retResult.getSig())->setCollTypeByString(this->result);}
 				break;}
-			default: cout << "unknown rule type" << endl; return -1; //unknown Rule type... 
+			default: return (ErrTypeChecker  | ETCInnerRuleUnknown); 
 		}
 		return 0;
 	}
 	int TCRule::getGeneratedResult(Signature *lSig, Signature *rSig, TypeCheckResult &retResult) {
-		cout << "doing result generation" << endl;
-		if (dTable != NULL) {
-			cout << "GEN RES:: dTable is not null " << endl;
-		} else {
-			cout << "GEN RES:: !!! dTable is NULL !!! " << endl;
-		}
 		switch (this->getRuleType()) {
 		case Rule::BASE: {
-				cout << "my sigGen: ";
-				cout << sigGen << ", my attrGen: ";
-				cout << attrGen << endl;
-				cout << "now will setSig..." << endl;
-				//lSig->putToString(); rSig->putToString();
-			//retResult.setSignature((*(this->resultGenerator))(lSig, rSig));
+			if (Deb::ugOn()) {cout << "TCRule::getGenRes: my sigGen: "<< sigGen << ", my attrGen: " << attrGen << endl;}
 			if (dTable != NULL) {
-				cout << "dTable is not null " << endl;
-				if (lSig != NULL) cout << "lSig AINT NULL" << endl;
-				if (rSig != NULL) cout << "rSig AINT NULL" << endl;
-				if (lSig == NULL) cout << "lSig IS !!! NULL" << endl;
-				if (rSig == NULL) cout << "rSig IS !!! NULL" << endl;
-				//Signature *resSig = dTable->doSig(sigGen, lSig, rSig);
+				if (Deb::ugOn() && (lSig == NULL || rSig == NULL)) cout << "one of the signatures is NULL !\n";
 				retResult.setSig(dTable->doSig(this->sigGen, lSig, rSig));
-			} else {
-				cout << "!!! dTable is NULL !!! " << endl;
-			}
+			} else return (ErrTypeChecker  | ETCInnerNULLFailure);
 			break;}
 		case Rule::CARD: {
 			retResult.getSig()->setCard(dTable->doAttr(attrGen, lSig->getCard(), rSig->getCard()));
@@ -114,7 +97,7 @@ namespace TypeCheck
 		case Rule::COLLKIND: { 
 			retResult.getSig()->setCollKind(dTable->doAttr(attrGen, lSig->getCollKind(), rSig->getCollKind()));
 			break;}
-		default: return -1; //unknown Rule type... 
+		default: return (ErrTypeChecker  | ETCInnerRuleUnknown); 
 		}
 		return 0;
 	}
@@ -186,12 +169,12 @@ namespace TypeCheck
 	
 	int UnOpRule::getResult(Signature *sig, TypeCheckResult &retResult) {
 		cout << "in unoprule, getResult" << endl;
-		if (this->result == "ERROR") {
-			retResult.setEffect("ERROR"); 
+		if (this->result == TC_RS_ERROR) {
+			retResult.setEffect(TC_RS_ERROR); 
 			return 0;
 		}
 		if (needsAction()) {
-			retResult.setEffect("COERCE");
+			retResult.setEffect(TC_RS_COERCE);
 			retResult.addActionId(this->action);
 		}
 		retResult.setDynCtrl(retResult.isDynCtrl() || this->dynCtrl);

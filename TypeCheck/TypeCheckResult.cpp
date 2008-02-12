@@ -23,6 +23,7 @@ namespace TypeCheck
 		if (res == "double") resultSig = new SigAtomType("double");
 		if (res == "boolean") resultSig = new SigAtomType("boolean");
 		if (res == "string") resultSig = new SigAtomType("string");
+		//the case below will not be valid any more.
 		if (res == "bag" || res == "list") {
 			resultSig = new SigColl();
 			((SigColl *)resultSig)->setCollTypeByString(res);
@@ -30,13 +31,12 @@ namespace TypeCheck
 	}
 	
 	void TypeCheckResult::addActionId(int actId) {
-		if (actId >= 0) 
-			this->actionIds.push_back(actId);
+		if (actId >= 0)	this->actionIds.push_back(actId);
 	}
 	
 	string TypeCheckResult::printAllInfo() {
 		string str = "";
-		str += "[sign: " +(getSig() != NULL ? getSig()->toString() : "NULL") + "] \n ";
+		str += "[sig: " +(getSig() != NULL ? getSig()->toString() : "NULL") + "] \n ";
 		str += "[effect: " + getEffect() + "] \n ";
 		stringstream sout;
 		string dynStr = (dynCtrl == true ? "true" : "false");
@@ -46,8 +46,9 @@ namespace TypeCheck
 		str += "[actions: " + sout.str() + "] \n ";
 		sout.str("");
 		for (unsigned int i = 0; i < actionIds.size(); i++) {
+			if (i > 0) str += ", ";
 			sout << actionIds.at(i);
-			str += "" + sout.str() + ", ";
+			str += sout.str();
 			sout.str("");
 		} str += "\n";
 		return str;
@@ -59,9 +60,8 @@ namespace TypeCheck
 	
 	TypeCheckResult::~TypeCheckResult() {
 		if (resultSig != NULL) { 
-			cout << endl << "deleting resultSig in tcResult" << endl;
 			delete resultSig;
-			cout << "DONE!: deleted resultSig in tcResult" << endl;
+			cout << "deleted resultSig in tcResult" << endl;
 		}
 	}
 

@@ -29,7 +29,7 @@ using namespace std;
 namespace TypeCheck
 {
 
-	/** augment...() methods, to be pointed to in TCResults.. */
+	/* augment...() methods, to be pointed to in TCResults.. */
 	//TODO: fill these methods below with real content
 	int TypeChecker::coerceCardsTo11(TreeNode *tn, Signature *lSig, Signature*rSig) {
 		// - modify tn, adding coerceNodes ?
@@ -48,7 +48,7 @@ namespace TypeCheck
 		return 0;
 	}
 	
-	/** ------------ end of pointered methods --------------- */
+	/* ------------ end of pointered methods --------------- */
 	int TypeChecker::performAction(int actionId, TreeNode *tn, Signature *lSig, Signature *rSig, TypeCheckResult *tcr) {
 	//TODO: there will be more params to perform(). will it be one set of param types?
 	// lets say : some &tcresult, currTreeNode, lSig, rSig? ..? 
@@ -60,28 +60,27 @@ namespace TypeCheck
 			case TypeChecker::CD_COERCE_11_R : 
 				return coerceOneCardTo11(tn, rSig);
 			case TypeChecker::BS_TOSTR_L : 
-				return coerceToString(true, false);	//true: left argument
+				return coerceToString(true, false);	
 			case TypeChecker::BS_TOSTR_R : 
-				return coerceToString(false, true);	//
+				return coerceToString(false, true);	
 			default: return -1;
 		}
 	}
 	
-	/** #################### Constructors & Destr. ####################... */
-/*	TypeChecker::TypeChecker(TreeNode *tn) {
+	/* ------------  Constructors & Destr. ------------  */
+	TypeChecker::TypeChecker(TreeNode *tn) {
 		setTNode(tn);
 		setEnvs(new StatEnvStack());
 		setQres(new StatQResStack());
 		sEnvs->pushBinders(DataScheme::dScheme()->bindBaseObjects());
 	}
-*/	
+	
 	TypeChecker::TypeChecker() {
 		tNode = NULL;
 		/* init the both static stacks. The data model is available as DataRead::dScheme() */
 		setEnvs(new StatEnvStack());
 		setQres(new StatQResStack());
-		/* set the first section of the ENVS stack with binders to *
-			* definitions of base (i.e. root) objects ...             */
+		/* set the first section of the ENVS stack with binders to definitions of base objects  */
 		sEnvs->pushBinders(DataScheme::dScheme()->bindBaseObjects());
 	}
 	TypeChecker::~TypeChecker() {
@@ -90,16 +89,16 @@ namespace TypeCheck
 		if (tNode != NULL) delete tNode;
 	}
 
-	/** ------------ end of constructors & desctructors --------------- */
+	/* ------------ end of constructors & desctructors --------------- */
 	
 	void TCGlobalResult::printOutput() {
 		ErrorConsole ec("TypeChecker");
-		ec << "PRINTOUTPUT:: TypeChecking result: " + overallResult  + "\n ";
+		ec << "TypeChecking result: " + overallResult  + "\n ";
 		if (overallResult == "ERROR") {
 			ec << "Query type check returned errors: \n";
 			cout << "errors size: " << errors.size() << endl;
 			for (unsigned int i = 0; i < errors.size(); i++) {
-				ec << errors[i].getOutput() + ", \n";
+				ec << " -->" + errors[i].getOutput() + " \n";
 			}
 		}
 	}
@@ -125,10 +124,7 @@ namespace TypeCheck
 			cout << "setting tcResult to NON ''" << endl;
 			//Thats where globalResult should be sensibly serialized, with end-line chars, to let the user
 			// see all errors caught while type checking. 
-//			tcResultString = "This is the result of your \n type check procedure... ";
-//			tcResultString += "\n	let it be stupid lines for now, ok?\n";
 			tcResultString = globalResult.getOutput();
-			cout << "maybe set tcResultString to getOutput" << endl;
 			cout << globalResult.getOutput() << endl;
 			return (ErrTypeChecker | EGeneralTCError);
 		} else {
@@ -137,9 +133,7 @@ namespace TypeCheck
 		return result;
 	
 	}
-	/**
-	 * Checks if param. vector contains at least one valid binder, i.e. if static bind succeeded
-	 */
+	/* Checks if param. vector contains at least one valid binder, i.e. if static bind succeeded */
 	bool TypeChecker::bindError(vector<BinderWrap*> *vec) {
 		return (vec == NULL || vec->size() == 0 || vec->at(0) == NULL || vec->at(0)->getBinder() == NULL);
 	}
@@ -149,96 +143,78 @@ namespace TypeCheck
 	 */
 	int TypeChecker::typeCheck(TreeNode *tn) {
 		if (tn == NULL) {
-			if (Deb::ugOn()) cout << " tn is null, nth to typecheck" << endl;
+			if (Deb::ugOn()) cout << "NULL TreeNode cannot by typechecked" << endl;
 			return -1;
 		}
 		int nodeType = tn->type();
 		int errcode = 0;
 		switch (nodeType) {
 			case TreeNode::TNNAME: {
-				string name = ((NameNode *)tn)->getName();
-				string expandName = "";
-										if (Deb::ugOn()) cout << "       TTNNAAMMEE in typecheck:	" << name << endl;
+				string expandName = "", name = ((NameNode *)tn)->getName();
 				vector<BinderWrap*> *vec = new vector<BinderWrap*>();
 				sEnvs->bindName2(name, vec);
 				if (bindError(vec)) {//BIND ERROR
-					Deb::ug("typeCheck static bind - NAME NOT FOUND - will try ellipsis");
 					sEnvs->bindNameEllipsis(name, vec, expandName);
-					cout << "AFTER bindNameEllipsis: name:"<< name << ", expandName:"<<expandName<<endl;
 					if (!bindError(vec) && expandName != "") {
 						errcode = augmentTreeEllipsis(tn, name, vec, expandName);
 						if (errcode != 0) return errcode;
 					}
 				}
-				if (bindError(vec)) {//ELLIPSIS DOESN'T WORK
-					Deb::ug("typeCheck will report name error - ellipsis didn't work out.");
-					globalResult.reportTypeError(TCError("BAD_NAME", "Name: '"+name+"' was not found."));
+				if (bindError(vec)) {//ELLIPSIS DOESN'T WORK - report error, try to restore process.
+					globalResult.reportTypeError(TCError(TCError::BNAME, name));
 					errcode = restoreAfterMisspelledName(tn, name, vec);
 					if (errcode != 0) return errcode;
 				}
 				Signature *sig = extractSigFromBindVector(vec);
-				if (sig == NULL) return (ErrTypeChecker | ENameNotBound);
+				if (sig == NULL) return (ErrTypeChecker | ENameNotBound);	
 				errcode = sQres->pushSig (sig);
 				if (errcode != 0) return errcode;
-				Deb::ug("pushed some bound signature on sQres..\n");
 				return 0;
 			} //case TNNAME
 			case TreeNode::TNINT: {
 				errcode = sQres->pushSig(new SigAtomType("int"));
 				if (errcode != 0) return errcode;
-				Deb::ug("pushed new INT sig on sQres");
 				return 0;
 			} //case TNINT
 			case TreeNode::TNSTRING: {
 				errcode = sQres->pushSig(new SigAtomType("string"));
 				if (errcode != 0) return errcode;
-				Deb::ug("pushed new String sig on sQres");
 				return 0;
-			} //case TNSTRING
-	
+			} //case TNSTRING	
 			case TreeNode::TNDOUBLE: {
 				errcode = sQres->pushSig(new SigAtomType("double"));
 				if (errcode != 0) return errcode;
-				Deb::ug("pushed new Double sig on sQres");
 				return 0;
 			} //case TNDOUBLE
 			case TreeNode::TNALGOP: {
+				if (Deb::ugOn()) cout<<"TypeChecker::typeCheck(ALG: "<<((AlgOpNode *) tn)->opStr()<<")\n";
 				AlgOpNode::algOp op = ((AlgOpNode *) tn)->getOp();
-				Deb::ug(" Algebraic operator - type recognized");
-				//QueryResult *lResult, *rResult;
 				Signature *lSig, *rSig, *resultSig; 
 				errcode = typeCheck(((AlgOpNode *) tn)->getLArg());
 				if (errcode != 0) return errcode;
 				errcode = typeCheck(((AlgOpNode *) tn)->getRArg());
 				if (errcode != 0) return errcode;
-				sQres->putToString();
 				//pop result signatures in reverted (stack) order...
-				cout << "qres size: " << sQres->getSize() << endl;
 				rSig = sQres->popSig();
 				lSig = sQres->popSig();
-				if (lSig == NULL || rSig == NULL) {Deb::ug("CANT GET TOP SIG OF sQRES"); return -1;}
-				lSig->putToString();
-				rSig->putToString();
-				cout << "qres size after 2 pops: " << sQres->getSize() << endl;				
+				if (lSig == NULL || rSig == NULL) {	Deb::ug("CANT GET TOP SIG OF sQRES"); 
+					return (ErrTypeChecker | ETCInnerFailure);
+				}
+				if (Deb::ugOn()) { cout << "args: " << lSig->toString() << " & " << rSig->toString() << endl;}
 				TypeCheckResult tcRes;
-				
-				errcode = this->getDTable("ALG", op)->getResult(tcRes, lSig, rSig);
-				cout << "ALGOP: got tcresult with errcode: " << errcode << endl;
+				DecisionTable *dTab = this->getDTable(DTable::ALG, op);
+				errcode = dTab->getResult(tcRes, lSig, rSig);
+				if (errcode != 0) return errcode;
 				cout << "ALGOP:got such tcresult: \n" << tcRes.printAllInfo() << endl;
 				if ((tcRes.isError()) && (op != AlgOpNode::refeq)) { //if (op != AlgOpNode::refeq)
-					errcode = augmentTreeDeref(tn, "ALG", op, tcRes, lSig, rSig);
+					errcode = augmentTreeDeref(tn, dTab, tcRes, lSig, rSig);
 					if (errcode != 0) return errcode;
-					cout << "AFTER augmentTreeDeref: tn: "<< endl;
-					tn->putToString();
 				}
 				if (tcRes.isCoerce()) {
-					Deb::ug("TC :: WOULD DO AUGMENT TREE COERCE HERE... i.e. do one of the actions suggested.");
+					augmentTreeCoerce(tn, lSig, rSig, tcRes);
 				}
 				if (!tcRes.isError()) {
 					resultSig = tcRes.getSig();
-	//				Here are things like:
-	//				if (ERROR) augmentTreeDeref(...)
-	//				if (COERCE) augmentTreeCoerce(...)
 	//				if (Still error) {reportTpeError, resultSig = restoreProcessAfterBadArg(oper, lSig, rSig)
 	//				then finally goes the 'pushsig' below...
 	
@@ -247,17 +223,15 @@ namespace TypeCheck
 					Deb::ug("Algebraic operation TYPECHECKED!");
 				} else {
 					//tryAugment ? deref first ? 
-
-					reportTypeError(TCError("BAD_ARG", "Args: ("+lSig->textType()+", "+rSig->textType()+") do not match for ALG operator: "+((AlgOpNode *) tn)->opStr()));
+					reportTypeError(TCError(TCError::ARG_ALG, lSig->toString(), rSig->textType(),((AlgOpNode *) tn)->opStr()));
 					//should try and restoreProcess here, and if that fails - return -1 to stop typechecking.
 					return -1;
-	//reportTypeError(TCError("BAD_ARG", lSig->textType(), rSig->textType(), ((AlgOpNode *) tn)->opStr()));
 				}
 				return 0;
 			}
 			case TreeNode::TNNONALGOP: {
+				if (Deb::ugOn()) cout << "TypeChecker::typeCheck(TN NONALG: " << ((NonAlgOpNode *) tn)->getOp() << ")\n";
 				NonAlgOpNode::nonAlgOp op = ((NonAlgOpNode *) tn)->getOp();
-				Deb::ug("Trying to handle NON alg op node !!! ");
 				cout << "operator: |" << ((NonAlgOpNode *) tn)->opStr() << "| " << endl;
 				Signature *lSig, *rSig, *resultSig;
 				errcode = typeCheck(((NonAlgOpNode *) tn)->getLArg());
@@ -295,7 +269,7 @@ namespace TypeCheck
 				TypeCheckResult tcRes;
 				cout << "LSIG: " << endl; lSig->putToString();
 				cout << "RSIG: " << endl; rSig->putToString();
-				errcode = this->getDTable("NONALG", op)->getResult(tcRes, lSig, rSig);
+				errcode = this->getDTable(DTable::NONALG, op)->getResult(tcRes, lSig, rSig);
 				Deb::ug("NONALGOP: got tcresult with errcode: %d .", errcode);
 				cout << "NONALG: got such tcresult: \n" << tcRes.printAllInfo() << endl;
 				if (!tcRes.isError()) {
@@ -304,10 +278,9 @@ namespace TypeCheck
 					if (errcode != 0) return errcode;
 					Deb::ug("NONAlgebraic operation TYPECHECKED!");
 				} else {
-					reportTypeError(TCError("BAD_ARG", "Args: ("+lSig->textType()+", "+rSig->textType()+") do not match for operator: "+((NonAlgOpNode *) tn)->opStr()));
+					reportTypeError(TCError(TCError::ARG_NALG,lSig->toString(),rSig->toString(),((NonAlgOpNode *) tn)->opStr()));
 					//should try and restoreProcess here, and if that fails - return -1 to stop typechecking.
 					return -1;
-	//reportTypeError(TCError("BAD_ARG", lSig->textType(), rSig->textType(), ((AlgOpNode *) tn)->opStr()));
 				}
 				return 0;
 			} //case TNNONALGOP
@@ -329,7 +302,7 @@ namespace TypeCheck
 					if (errcode != 0) return errcode;
 					Deb::ug("UN - OP operation TYPECHECKED!");
 				} else {
-					reportTypeError(TCError("BAD_ARG", "Arg: ("+argSig->textType()+") does not match for UNop: "+((UnOpNode *) tn)->opStr()));
+					reportTypeError(TCError(TCError::ARG_UNOP, argSig->toString(), ((UnOpNode *) tn)->opStr()));
 					//should try and restoreProcess here, and if that fails - return -1 to stop typechecking.
 					return -1;
 				}
@@ -356,12 +329,12 @@ namespace TypeCheck
 					if (errcode != 0) return errcode;
 					Deb::ug("NAMEAS operation TYPECHECKED!");
 				} else {
-					reportTypeError(TCError("BAD_ARG", "Arg: ("+argSig->textType()+") does not match for AS/GROUP AS"));
+					reportTypeError(TCError(TCError::ARG_AS, argSig->toString(), (grouped == 1 ? "group as" : "as")));
 					return -1;
 				}
 				return 0;
 			} //case TNAS ( 'as' or 'group as')
-			default: Deb::ug("Dont know such tree node, so will not apply type checking.."); 
+			default: Deb::ug("Tree node not recognised by TC, will not apply TypeChecking."); 
 				return (ErrTypeChecker | ETCNotApplicable);
 		}
 		return 0;
@@ -370,7 +343,7 @@ namespace TypeCheck
 	Signature* TypeChecker::extractSigFromBindVector(vector<BinderWrap*> *vec) {
 		if (bindError(vec)) return NULL;
 		Signature *sig = vec->at(0)->getBinder()->getValue()->clone();
-		Deb::ug("binded vector size: "); cout << vec->size() << endl;
+		/* Do not need this struct below - the signature we want is the first element of the vector.
 		for (unsigned int i = 1; i < vec->size(); i++){ // dodaje do sygnatury pozostale
 			BinderWrap *pombw = vec->at(i);
 			if (sig->type() == Signature::SSTRUCT) {
@@ -380,101 +353,93 @@ namespace TypeCheck
 				s->setElts(sig); s->addToMyList(pombw->getBinder()->getValue()->clone());
 				sig = s;		
 			}
-		}
-		cout << "Signature extracted from binding vector : ";
-		sig->putToString();
-		cout << endl << "Signature type: " << sig->textType() << endl;
+		}*/
 		return sig;
 	}
 	
+	int TypeChecker::trySingleDeref(Signature *sig, Signature *sigIn, TypeCheckResult &tmpTcRes, bool &doDeref) {
+		int errcode = 0;
+		if ((sig != NULL) && (sig->type() == Signature::SREF)) {
+			errcode = this->getDTables()->getUnOpDTable(UnOpNode::deref)->getResult(tmpTcRes, sig);
+			if (errcode != 0) return errcode;
+			sigIn = tmpTcRes.getSig()->clone();
+			doDeref = true;
+		} else {
+			sigIn = sig;
+		}
+		return errcode;
+	}
+	
 	int TypeChecker::augmentTreeEllipsis(TreeNode *tn, string name, vector<BinderWrap*> *vec, string expandName) {
-		cout << "AUGMENTING(ellipsis), ADDING '." << expandName << "' TO THE QUERY ..." << endl;
+		if (Deb::ugOn()) cout << "AUGMENTING(ellipsis), ADDING '." << expandName << "' TO THE QUERY ..." << endl;
 		TreeNode *parent = tn->getParent();
 		if (parent == NULL) {
-			Deb::ug("augmentEllipsis: parent is NULL, so... will not perform the ellipsis.. ? ");
+			Deb::ug("augmentEllipsis: parent is NULL, so cannot do augment ellipsis.");
 			return -1;
 		}
 		
 		TreeNode *dotNode = new NonAlgOpNode(new NameNode(expandName), (QueryNode *) tn, NonAlgOpNode::dot);
 		int errcode = parent->swapSon(tn, dotNode);
 		//debugs ... 
-		cout << "performed all augmentEllipsis. Now lets see the whole tree.." << endl;
-		TreeNode *ptr = tn;
-		while (ptr->getParent() != NULL) {
-			ptr = ptr->getParent();
+		if (Deb::ugOn()) {
+			TreeNode *ptr = tn;
+			while (ptr->getParent() != NULL) ptr = ptr->getParent();
+			cout << "Query tree afeter augmentEllipsis: \n"; ptr->serialize(); cout << endl;
 		}
-		cout << endl << endl << endl;
-		cout << "serialize(): " << endl;
-		ptr->serialize();
-		cout << endl;
 		return errcode;
 	}
 	
 	int TypeChecker::augmentTreeCoerce(TreeNode *tn, Signature *lSig, Signature *rSig, TypeCheckResult &tcRes) {
+		Deb::ug("TC :: WOULD DO AUGMENT TREE COERCE HERE... i.e. do  the actions suggested.");
+		//for( actions in tcRes) {
+		//	performAction(), reportCoerceAction(what action, dynCtrl,...) 
+		//}
 		return 0;
 	}
 	
-	int TypeChecker::augmentTreeDeref(TreeNode *tn, string opType, int oper, TypeCheckResult &tcRes, Signature *lSig, Signature *rSig) {
-//							  augmentTreeDeref(tn, "NONALG", op, tcRes, lSig, rSig);
-		Deb::ug("Trying to do augment tree dereference...");
+	int TypeChecker::augmentTreeDeref(TreeNode *tn, DecisionTable *dt, TypeCheckResult &tcRes, Signature *lSig, Signature *rSig) {
+		if (((AlgOpNode *) tn)->getOp() == AlgOpNode::refeq) return 0; // No deref for '=='
+		Deb::ug("TypeChecker::augmentTreeDeref()...");
 		int errcode = 0;
-		Signature *resultSig = NULL, *lSigIn, *rSigIn;
+		Signature *lSigIn, *rSigIn;
 		TypeCheckResult outTcRes, tmpTcResL, tmpTcResR;
 		bool derefLeft = false, derefRight = false;
-		if ((lSig != NULL) && (lSig->type() == Signature::SREF)) {
-			errcode = this->getDTables()->getUnOpDTable(UnOpNode::deref)->getResult(tmpTcResL, lSig);
-			if (errcode != 0) return errcode;
-			lSigIn = tmpTcResL.getSig()->clone();
-			derefLeft = true;
-		} else {
-			lSigIn = lSig;
-		}
-		Deb::ug("augmentDeref: done with left sig");
-		if ((rSig != NULL) && (rSig->type() == Signature::SREF)) {
-			errcode = this->getDTables()->getUnOpDTable(UnOpNode::deref)->getResult(tmpTcResR, rSig);
-			if (errcode != 0) return errcode;
-			rSigIn = tmpTcResR.getSig()->clone();
-			derefRight = true;
-		} else {
-			rSigIn = rSig;
-		}
-		Deb::ug("GOING to second phase of augment Tree deref. with tree: ");
-		tn->putToString();
-		cout << endl;
-		Deb::ug("my params...(tcresL, tcresR, lSig, rSig)");
-		cout << tmpTcResL.printAllInfo() << endl;
-		cout << tmpTcResR.printAllInfo() << endl;
-		if (lSigIn != NULL) lSigIn->putToString(); else cout << "lSigIn -- NULL ";
-		cout << endl;
-		if (rSigIn != NULL) rSigIn->putToString(); else cout << "rSigIn -- NULL ";
-		cout << endl;
+		
+		errcode = trySingleDeref(lSig, lSigIn, tmpTcResL, derefLeft);
+		if (errcode != 0) return errcode;
+		
+		errcode = trySingleDeref(rSig, rSigIn, tmpTcResR, derefRight);
+		if (errcode != 0) return errcode;
+		
+		Deb::ug("GOING to second phase of augment Tree deref. with deref params:");
+		cout << tmpTcResL.printAllInfo() << endl << tmpTcResR.printAllInfo() << endl;
+		
 		if (!tmpTcResL.isError() && !tmpTcResR.isError() && lSigIn != NULL && rSigIn != NULL) {
-			Deb::ug("AUGMENT DEREF - got these input signatures: ");
-			lSigIn->putToString();
-			rSigIn->putToString();
+			Deb::ug("AUGMENT DEREF sec. phase - got these input signatures: ");
+			cout << lSigIn->toString() << " & " << rSigIn->toString() << endl;
 			tcRes.clear();
-			errcode = this->getDTable(opType, oper)->getResult(tcRes, lSigIn, rSigIn);
+			errcode = dt->getResult(tcRes, lSigIn, rSigIn);
 			if (errcode != 0) return errcode;
-			cout << "after repeating getResult on dereffed signatures: " << endl;
-			cout << tcRes.printAllInfo() << endl;
+			cout << "After getResult on dereffed signatures: \n" << tcRes.printAllInfo() << endl;
 			if (!tcRes.isError() && tcRes.getSig() != NULL) {	//then modify the tree...
 				Deb::ug("AUGMENT DEREF - will modify the tree !!! ");
 				errcode = tn->augmentTreeDeref(derefLeft, derefRight);
 				if (errcode != 0) return errcode;
+				if (Deb::ugOn()) {tn->serialize(); cout << endl;}
 			}
-			Deb::ug("AUGMENT DEREF - ending... ");
 		}
+		Deb::ug("AUGMENT DEREF - ending... ");
 		return 0;
-//		errcode = this->getDTable(opType, op)->getResult(tcRes, lSig, rSig);
-//		errcode = this->getDTables().getUnOpDTable(UnOpNode::deref)->getResult(tcRes, sig);
-		
 	}
-	
+	int TypeChecker::augmentTreeDeref(TreeNode *tn, UnOpDecisionTable *dt, TypeCheckResult &tcRes, Signature *sig) {
+		Deb::ug("TypeChecker::augmentTreeDeref(UnOpDTable)...");
+		return 0;
+	}
 	
 	int TypeChecker::restoreAfterMisspelledName(TreeNode *tn, string name, vector<BinderWrap*> *vec) {
 		cout << "restoreAfterMisspelledName CALLED ! for name: " << name << endl;
 		//go through the stack and decide which name is 'the closest' to name. If none is really close, 
-		// return sth other than zero. Else - fill the vector in and return 0;
+		// return ECannotRestoreBadName. Else - fill the vector in and return 0;
 		return (ErrTypeChecker | ECannotRestoreBadName); //For now - lets presume we can never guess the right name. 
 	}
 	

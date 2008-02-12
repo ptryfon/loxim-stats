@@ -11,7 +11,6 @@
 #include "DecisionTable.h"
 #include "QueryParser/Deb.h"
 #include "QueryParser/Stack.h"
-//#include "../QueryParser/IndexNode.h"
 
 #include <string>
 #include <fstream>

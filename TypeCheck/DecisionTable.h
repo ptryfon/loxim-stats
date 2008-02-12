@@ -39,7 +39,7 @@ namespace TypeCheck
 	
 	public:
 		static DecisionTableHandler *getHandle();
-		DecisionTable *getDTable(string algOrNonAlg, int op);
+		DecisionTable *getDTable(int algOrNonAlg, int op);
 		UnOpDecisionTable *getUnOpDTable(int op);
 		UnOpDecisionTable *getUnOpDTable(int op, string param, int optParam);
 		~DecisionTableHandler();
@@ -48,6 +48,7 @@ namespace TypeCheck
 	class DTable {
 	
 	public: 
+		enum DTableKind {ALG, NONALG, UNOP};
 		DTable(){}
 		virtual void provideReturnLinks();
 		virtual void provideReturnLinksForVector(vector<Rule> v);
@@ -55,12 +56,9 @@ namespace TypeCheck
 		virtual vector<Rule> getCardRules() {return vector<Rule>();}
 		virtual vector<Rule> getTypeNameRules() {return vector<Rule>();}
 		virtual vector<Rule> getCollKindRules() {return vector<Rule>();}
-		/** result generators common for decisionTables, unOpDecisionTables and others */
+		/* result generators common for decisionTables, unOpDecisionTables and others ...*/
 		
 		
-		
-		
-		/** end of common result generators */
 		virtual ~DTable(){}
 	};
 
@@ -70,13 +68,13 @@ namespace TypeCheck
 		vector<TCRule> cardRules;
 		vector<TCRule> typeNameRules;
 		vector<TCRule> collKindRules;
-		string algOrNonAlg;
+		int algOrNonAlg;
 		int op;
 		//TypeChecker *tcOwner; use this only if function pointers require it to be here...  
 	public: 
 		enum ResultGenerator {CD_ADDBANDS, CD_MULTBANDS, BS_COPY_L, BS_COPY_R, ARG_COPY_L, ARG_COPY_R, CD_COPY_L_ZR, CK_COPY_L, BS_STRUCT};
 		DecisionTable() {/*tcOwner = NULL;*/}
-		DecisionTable(string opType, int op);
+		DecisionTable(int opType, int op);
 		virtual void provideReturnLinks();
 		virtual void provideReturnLinksForVector(vector<TCRule> &v);
 		/** methods being result generators.. */ //or should these be in Rule/TCResult?
