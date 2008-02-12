@@ -928,6 +928,15 @@ START_TEST (subqueries_calculation) {
 	qr1.reset(res);
 	fail_if(res->type() != QueryResult::QBOOL, "poza transakcja");
 	
+	//bedny typ podzapytania
+	err = con1->process("index emp_age = \"ala\"", QueryResult::QBAG);
+	fail_if(err != (EBadValue | ErrIndexes), "powinien byc blad - bledny typ podzapytania");
+	
+	err = con1->process("emp.age = 20", res);
+	test(err, "test czy nadal wewnatrz transakcji");
+	qr1.reset(res);
+	fail_if(res->type() != QueryResult::QBOOL, "poza transakcja");
+	
 	err = con1->end();
 	test(err, "commit");
 		
