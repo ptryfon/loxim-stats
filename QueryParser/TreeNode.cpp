@@ -7,6 +7,7 @@
 #include "Deb.h"
 #include "Errors/Errors.h"
 #include "Errors/ErrorConsole.h"
+#include "Indexes/Constraints.h"
 
 namespace QParser 
 {
@@ -1248,6 +1249,22 @@ TreeNode* TreeNode::getNodeByOid(vector<TreeNode*>* listVec, long oid){
  *		TypeCheck specific end.
  */
 
+IndexSelectNode::IndexSelectNode(QueryNode *exact) {
+	c = new ExactConstraints(exact);
+}
 
+IndexSelectNode::IndexSelectNode(IndexBoundaryNode *left, IndexBoundaryNode *right) {
+	c = new TwoSideConstraints(left->inclusive, left->value, right->value, right->inclusive);
+}
+	    	
+IndexSelectNode::IndexSelectNode(IndexBoundaryNode *left, bool right) {
+	c = new LeftBoundedConstraints(left->inclusive, left->value);
+}
+
+IndexSelectNode::IndexSelectNode(bool left, IndexBoundaryNode *right) {
+	c = new RightBoundedConstraints(right->value, right->inclusive);
+}
+
+string IndexSelectNode::deParse() {return " select index " + getIndexName()+ " " + c->toString();}
 
 }

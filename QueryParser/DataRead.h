@@ -143,7 +143,7 @@ namespace QParser {
 		virtual ~DataScheme() {
 			if (baseObjects != NULL) delete baseObjects; 
 			if (baseTypes != NULL) delete baseTypes; 
-			cout << "\n jsi \n !!!!!!!!!! \n destr dataSCHME !!!!!!\n";
+			//cout << "\n jsi \n !!!!!!!!!! \n destr dataSCHME !!!!!!\n";
 		};
 		int readData();	
 		int readData(Transaction *tr);

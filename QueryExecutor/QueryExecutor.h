@@ -221,7 +221,8 @@ namespace QExecutor
 
 	    public:
 		static QueryBuilder* getHandle();
-		
+		static void startup();
+		static void shutdown();
 		~QueryBuilder();
 		/* query builder functions */
 		string create_user_query(string user, string passwd);

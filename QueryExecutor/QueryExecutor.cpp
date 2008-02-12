@@ -43,7 +43,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, map<string, QueryResult*> *param
 	else if (errorcode == 0)
 	    return 0;		//query retrived
 #endif
-	printf("Debug: EQ: tree type is: %d\n", tree->type());
+	//printf("Debug: EQ: tree type is: %d\n", tree->type());
 	errcode = executeQuery(tree, result);
 #ifdef QUERY_CACHE
 	if (errorcode != 0)
@@ -69,7 +69,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 		int nodeType = tree->type();
 		//tworzenie i usuwanie indeksow nie podlega transakcjom
 		if (nodeType == (TreeNode::TNINDEXDDL)) {
-			errcode = (dynamic_cast< IndexNode*>(tree))->execute(result);
+			errcode = (dynamic_cast< IndexDDLNode*>(tree))->execute(result);
 			return errcode;	
 		} else	
 		if (! inTransaction) {
@@ -2385,11 +2385,25 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			*ec << "[QE] Condition operation Done!";
 			return 0;
 		} //case TNCOND
-		case TreeNode::TNINDEXDML: {
-			//IndexNode *id = ;
-			QueryResult* result;
-			errcode = (dynamic_cast< IndexNode*>(tree))->execute(&result);
-			//*result = new QueryNothingResult();
+			case TreeNode::TNINDEXDML: {
+			IndexSelectNode* isn = dynamic_cast< IndexSelectNode*>(tree);
+			vector<QueryNode*> subqueries = isn->getConstraints()->getSubqueries(); //maxymalnie 2 -> O(1)
+			QueryResult *tmp_result, *derefResult;
+			vector<QueryResult*> subresults;
+			for (unsigned int i = 0; i < subqueries.size(); i++) {
+				errcode = executeRecQuery(subqueries.at(i));
+				if (errcode != 0) return errcode;
+				errcode = qres->pop(tmp_result);
+				if (errcode != 0) return errcode;
+				errcode = this->derefQuery(tmp_result, derefResult);
+				if (errcode != 0) return errcode;
+				subresults.push_back(derefResult);
+			}
+			isn->getConstraints()->setSubresults(subresults);
+			QueryResult *result;
+			errcode = IndexManager::getHandle()->search((dynamic_cast< IndexSelectNode*>(tree)), tr , &result);
+			if (errcode) return errcode;
+			errcode = qres->push(result);
 			return errcode;	
 		}	
 		case TreeNode::TNLINK: {
@@ -5238,7 +5252,7 @@ QueryExecutor::~QueryExecutor() {
 	delete session_data;
 	*ec << "[QE] QueryExecutor shutting down\n";
 	delete ec;
-	delete QueryBuilder::getHandle();
+	//delete QueryBuilder::getHandle();
 }
 
 
@@ -5365,7 +5379,16 @@ ClassGraph* QueryExecutor::getCg() { return cg; }
     /*
      *	Query Builder begin
      */
-    QueryBuilder* QueryBuilder::builder = new QueryBuilder();
+    QueryBuilder* QueryBuilder::builder = NULL;
+    
+    void QueryBuilder::startup() {
+    	builder = new QueryBuilder();
+    }
+    
+    void QueryBuilder::shutdown() {
+    	delete builder;
+    }
+    
     QueryBuilder* QueryBuilder::getHandle() {
 	return builder;
     };

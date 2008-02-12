@@ -12,6 +12,7 @@
 #include "../Errors/ErrorConsole.h"
 #include "../Errors/Errors.h"
 #include "../Config/SBQLConfig.h"
+#include "Indexes/QueryOptimizer.h"
 #include "Deb.h"
 #include "TypeCheck/TypeChecker.h"
 
@@ -134,6 +135,9 @@ namespace QParser {
 		}	
 		delete lexer;
 		qTree = d;
+		
+		Indexes::QueryOptimizer::optimizeWithIndexes(qTree);
+		
 		//Nothing more needs to be done, if this is an internal query. (no screen logging, typechecking, optimization)
 		if (!toBeTypeChecked && !toBeOptimized) {
 			return 0;
@@ -231,10 +235,12 @@ namespace QParser {
 					testDeath("(EMP join (WORKS_IN.DEPT)).NAME;");
 					cout << "td3------------------------------------------------------------\n";
 		*/
-		cout << "===================================================================" << endl;
-		cout << "P    A    R    S    E    R        R    E    T    U    R    N    S :" << endl;
-		qTree->serialize();
-		cout << "\n===================================================================" << endl;
+		if (Deb::ugOn()) {
+			cout << "===================================================================" << endl;
+			cout << "P    A    R    S    E    R        R    E    T    U    R    N    S :" << endl;
+			qTree->serialize();
+			cout << "\n===================================================================" << endl;
+		}
 		return 0;
 	}
     

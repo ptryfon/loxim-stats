@@ -14,6 +14,9 @@ HEADERS	=	Listener.h \
 OBJECTS	=	$(SOURCES:.cpp=.o)
 DEPFILES =	$(SOURCES:.cpp=.d) $(PROGRAM).d
 
+#dla testow
+STATIC_LIB =	Server.a
+
 LIBS	=	../Config/Config.a \
 		../Errors/Errors.a \
 		../Log/Logs.a \

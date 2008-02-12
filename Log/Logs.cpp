@@ -72,9 +72,9 @@ int LogManager::start( StoreManager *store )
   errCode = cr->init( this, store );
   if( errCode == 0 )
   {
-    printf( "CrashRecovery::Recover BEGIN !\n" );
+    ec->printf( "CrashRecovery::Recover BEGIN !\n" );
     errCode = cr->Recover();
-    printf( "CrashRecovery::Recover END !\n" );
+    ec->printf( "CrashRecovery::Recover END !\n" );
   }
 
   delete cr;
@@ -119,6 +119,7 @@ int LogManager::checkForBackup()
     if( lr ) // jesli plik logow jest niepusty
       lr->getType( type );
 
+    cleanClosed = true;
     if( type != SHUTDOWN_LOG_REC_TYPE )
     {
       int result;

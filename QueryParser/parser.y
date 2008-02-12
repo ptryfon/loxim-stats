@@ -4,8 +4,9 @@
 #include "TreeNode.h"
 #include "IndexNode.h"
 #include "Privilige.h"
-  using namespace QParser;
+#include "../Indexes/BTree.h"
   using namespace Indexes;
+  using namespace QParser;
   int yylex();
   int yyerror(char* s);
   TreeNode *d;
@@ -32,6 +33,9 @@
   QParser::InterfaceMethod* method;
   QParser::InterfaceMethodListNode *methods;
   QParser::InterfaceMethodParamListNode* method_params;
+  ComparatorNode* comparatorNode;
+  IndexSelectNode* indexSelect;
+  IndexBoundaryNode* IndexBoundary;
   QParser::InterfaceStruct* iStruct;
   QParser::InterfaceBind* iBind;
   QParser::InterfaceInnerLinkage* iLinkage;
@@ -44,7 +48,7 @@
 %nonassoc CREATE_OR_UPDATE
 %token	<num> INTEGER
 %token	<dbl> DOUBLE
-%token	<str> STATIC SYSTEMVIEWNAME EXTNAME PARAMNAME NAME STRING SEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT DEREF REF NAMEOF RELOADSCHEME TCON TCOFF BEGINTR END ABORT CREATE IF FI DO OD ELSE WHILE LINK FOREACH THEN FIX_OP FIXPOINT RETURN BREAK VALIDATE READ MODIFY DELETE PASSWD WITH REVOKE REMOVE TO USER FROM ON GRANT OPTION PROCEDURE CLASS EXTENDS INSTANCE LEFTPROCPAR RIGHTPROCPAR VIEW ONRETRIEVE ONUPDATE ONCREATE ONDELETE INDEX VIRTUAL COLON INTERFACE SHOWS ASSOCIATE CARDCONST TYPEDEF CARD00 CARD01 CARD 11 CARD0INF CARD1INF LEFTSQUAREPAR RIGHTSQUAREPAR STRING_SIG DOUBLE_SIG INTEGER_SIG BOOLEAN_SIG
+%token	<str> STATIC SYSTEMVIEWNAME EXTNAME PARAMNAME NAME STRING SEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT DEREF REF NAMEOF RELOADSCHEME TCON TCOFF BEGINTR END ABORT CREATE IF FI DO OD ELSE WHILE LINK FOREACH THEN FIX_OP FIXPOINT RETURN BREAK VALIDATE READ MODIFY DELETE PASSWD WITH REVOKE REMOVE TO USER FROM ON GRANT OPTION PROCEDURE CLASS EXTENDS INSTANCE LEFTPROCPAR RIGHTPROCPAR VIEW ONRETRIEVE ONUPDATE ONCREATE ONDELETE INDEX VIRTUAL COLON INTERFACE SHOWS ASSOCIATE CARDCONST TYPEDEF CARD00 CARD01 CARD 11 CARD0INF CARD1INF LEFTSQUAREPAR RIGHTSQUAREPAR STRING_SIG DOUBLE_SIG INTEGER_SIG BOOLEAN_SIG INT_SIG LEFT_EXCLUSIVE LEFT_INCLUSIVE RIGHT_EXCLUSIVE RIGHT_INCLUSIVE
 		
 %start statement
 
@@ -93,7 +97,13 @@
 %type <proctree> viewproc
 %type <fxtree> queryfixlist
 %type <vectree> querycommalist
-%type <tree> index_stmt
+%type <tree> indexDDL_stmt
+%type <qtree> indexDML_query
+%type <comparatorNode> indexType
+%type <qtree> index_key_type
+%type <indexSelect> index_constraints
+%type <IndexBoundary> left_constraint
+%type <IndexBoundary> right_constraint
 %type <qtree> interface
 %type <iStruct> interface_struct
 %type <attributes> attributes
@@ -120,7 +130,7 @@ statement   : query semicolon_opt { d=$1; }
 	    | validate_stmt  semicolon_opt { d = $1; }
 	    | privilige_stmt semicolon_opt { d = $1; }
 	    | user_stmt	     semicolon_opt { d = $1; }
-	    | index_stmt	 semicolon_opt { d = $1; }
+	    | indexDDL_stmt	 semicolon_opt { d = $1; }
 	    | interfaceBind	semicolon_opt { d = $1;}
 		| type_decl_stmt  semicolon_opt { d = $1;}
 	    ;
@@ -202,6 +212,7 @@ query	    : SYSTEMVIEWNAME { char *s = $1; $$ = new NameNode(s); delete s; }
 	    | EXTNAME LEFTPAR querycommalist RIGHTPAR {$$ = new CallProcNode ($1, $3);}
 	    | CAST LEFTPAR query AS query RIGHTPAR {$$ = new ClassCastNode($3, $5);}
 	    | query INSTANCEOF query {$$ = new InstanceOfNode($1, $3);}
+	    | indexDML_query;
 	    ;
 
 queryfixlist   : NAME FIX_OP query { $$ = new FixPointNode ($1, $3); }
@@ -277,9 +288,37 @@ user_stmt:	CREATE USER NAME PASSWD NAME	{ $$ = new CreateUserNode($3, $5); }
 	    |	REMOVE USER NAME		{ $$ = new RemoveUserNode($3); 	   }
 	    ;
 	    
-index_stmt:	CREATE INDEX NAME ON NAME LEFTPAR NAME RIGHTPAR {$$ = new CreateIndexNode ($3, $5, $7);}
+indexDDL_stmt:	CREATE indexType INDEX NAME ON NAME LEFTPAR NAME RIGHTPAR {$$ = new CreateIndexNode ($4, $6, $8, $2->comp);}
 		|	INDEX {$$ = new ListIndexNode();}
 		|	DELETE INDEX NAME {$$ = new DropIndexNode($3);}
+		;
+
+indexType:	INT_SIG		{$$ = new ComparatorNode(new IntComparator());}
+		|	DOUBLE_SIG	{$$ = new ComparatorNode(new DoubleComparator());}
+		|	STRING_SIG	{$$ = new ComparatorNode(new StringComparator());}
+		;
+
+indexDML_query: INDEX NAME index_constraints { $3->setIndexName(string($2)); $$ = $3;};
+
+
+
+index_constraints:	left_constraint right_constraint {$$ = new IndexSelectNode($1, $2);}
+		|			EQUAL index_key_type {$$ = new IndexSelectNode($2);}
+		|			left_constraint {$$ = new IndexSelectNode($1, false);}
+		|			right_constraint {$$ = new IndexSelectNode(false, $1);}
+		;
+
+index_key_type:	query; /*STRING 			{$$ = new StringNode($1); }
+		|		INTEGER 		{$$ = new IntNode($1); }
+		|		DOUBLE 			{$$ = new DoubleNode($1); }
+		;*/
+
+left_constraint:	LEFT_INCLUSIVE index_key_type {$$ = new IndexBoundaryNode(true, $2);}
+		|			LEFT_EXCLUSIVE index_key_type {$$ = new IndexBoundaryNode(false, $2);}
+		;
+
+right_constraint:	index_key_type RIGHT_INCLUSIVE {$$ = new IndexBoundaryNode(true, $1);}
+		|			index_key_type RIGHT_EXCLUSIVE {$$ = new IndexBoundaryNode(false, $1);}
 		;
 
 semicolon_opt:  /* empty */	{}

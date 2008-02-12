@@ -10,7 +10,7 @@
 #include "Semaphore.h"
 
 /*
- *	Julian Krzemiñski (julian.krzeminski@students.mimuw.edu.pl)
+ *	Julian Krzemiï¿½ski (julian.krzeminski@students.mimuw.edu.pl)
  */
 namespace SemaphoreLib {
 
@@ -38,6 +38,7 @@ class RWUJSemaphore: public Semaphore
 	
 		int inside;
 		int _unlock();
+		int _lock_write();
 	public:
 		RWUJSemaphore();
 		virtual ~RWUJSemaphore();
@@ -46,6 +47,7 @@ class RWUJSemaphore: public Semaphore
 		virtual int destroy();
 		virtual int lock_read();
 		virtual int lock_write();
+		virtual int try_lock_write();
 		virtual int unlock();
 		virtual int lock_upgrade(int id);
 		int status();

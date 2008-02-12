@@ -27,7 +27,9 @@ namespace Store
 		virtual void setIsRoot(bool isRoot);
 		virtual vector<LogicalID*>* getClasses() const;
 		virtual void setClasses(vector<LogicalID*>* value);
-
+		virtual string getParentRoot() const;
+		virtual void setParentRoot(string parentRoot);
+				
 		virtual bool operator==(ObjectPointer& dv);
 	
 	private:
@@ -36,6 +38,7 @@ namespace Store
 		DataValue* value;
 		LogicalID* lid;
 		bool isRoot;
+		string parentRoot;
 	};
 }
 

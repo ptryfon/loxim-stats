@@ -1,24 +1,29 @@
 #include "IndexManager.h"
-
+#include "QueryOptimizer.h"
+#include "VisibilityResolver.h"
+#include "NonloggedDataSerializer.h"
 //#include <stdio.h>
 
-#define indexListParamName	"index_file_list"
-#define indexDataParamName	"index_file_data"
 #define indexMetadataParamName	"index_metadata"
+#define implicitIndexCallParamName	"implicit_index_call"
+#define indexMetaFileParamName			"index_file_metadata"
+
 #define loadIndexListErrMsg		"Cannot read index list\n"
 
 #define descInitValue		-1
 #define ROOT_DB_NAME	"root"
 #define FIELD_DB_NAME	"field"
+#define CMP_TYPE		"cmpType"
 
 namespace Indexes
 {
 	
 	IndexManager* IndexManager::handle = NULL;
 	ErrorConsole* IndexManager::ec = NULL; 
-	SBQLConfig IndexManager::config("IndexManager");
-	string IndexManager::indexLockFile = "";
-	string IndexManager::listFileName = "";
+	auto_ptr<SBQLConfig> IndexManager::config(NULL);
+	//auto_ptr< set<int> > IndexManager::rolledBack(NULL);
+	//string IndexManager::indexLockFile = "";
+	//string IndexManager::listFileName = "";
 	
 	
 	int IndexManager::lockDesc = descInitValue;
@@ -27,37 +32,50 @@ namespace Indexes
 
 	int IndexManager::init(bool cleanShutdown) {
 		ec = new ErrorConsole("IndexManager");
+		int err;
+		config.reset(new SBQLConfig("Index"));
+		//rolledBack.reset(new set<int>());
 		
 		handle = new IndexManager();
-		int err = handle->instanceInit(cleanShutdown);
-		if (err != 0) {
-			shutdown();
+		if( ( err = config->getString( "index_file", handle->indexDataFile) ) ) {
+	  		ec->printf("Cannot read 'indexFile' from configuration file\n");
+	  		return err;
+  		}
+		
+		if ((err = IndexHandler::init(handle->indexDataFile))) {
 			return err;
 		}
+		if ((err = handle->instanceInit(cleanShutdown))) {
+			return err;
+		}
+		
 		*ec << "started";		
 		return 0;
 	}
 	
 	int IndexManager::shutdown() {
-		int err;
+		int err = 0;
 		if (handle == NULL) {
-			return -1; //TODO IndexManager is already closed
+			return EIncorrectState | ErrIndexes;
 		}
 		
 		*ec << "shutting down...";
 		
-		//delete lock
-		
-		err = handle->finalize();
+		 //zapisanie metadanych
+		if ((err = handle->finalize())) {
+			return err;
+		}
+		if ((err = IndexHandler::destroy())) {
+			return err;
+		}
 		
 		delete handle;
 		handle = NULL;
-		
 		*ec << "closed";
 		delete ec;
 		return err;	
 	}
-	
+	/*
 	int IndexManager::fileOpen(string paramName, int &descriptor) {
 		
 		string value;
@@ -74,12 +92,12 @@ namespace Indexes
 		}
 		return 0;
 	}
-	
+	*/
 	int IndexManager::getFileName(string paramName, string &value) {
 		
 		int errCode;
 		
-		if( ( errCode = config.getString( paramName, value ) ) ) {
+		if( ( errCode = config->getString( paramName, value ) ) ) {
   			ec->printf("Cannot read %s from configuration file\n", paramName.c_str());
   			return errCode;
   		}
@@ -111,7 +129,7 @@ namespace Indexes
 	int IndexManager::instanceInit(bool cleanShutdown) {
 		int errCode = 0;
 
-  		SBQLConfig* config = new SBQLConfig( "IndexManager" );
+  		SBQLConfig* config = new SBQLConfig( "Index" );
   		tm = TransactionManager::getHandle();
   		
   		if( ( errCode = config->getString( indexMetadataParamName, indexMetadata ) ) ) {
@@ -119,9 +137,24 @@ namespace Indexes
   			return closeFiles(errCode);
   		}
 		
-		if ((errCode = DDLlock.init())) {
+  		if( ( errCode = config->getString( indexMetaFileParamName, indexMetaFile ) ) ) {
+  			ec->printf("Cannot read %s from configuration file\n", indexMetadataParamName);
+  			return closeFiles(errCode);
+  		}
+  		
+  		bool implicitIndexCall;
+  		if( ( errCode = config->getBool( implicitIndexCallParamName, implicitIndexCall ) ) ) {
+			ec->printf("Cannot read %s from configuration file\n", implicitIndexCallParamName);
+			return closeFiles(errCode);
+  		}
+  		QueryOptimizer::setImplicitIndexCall(implicitIndexCall);
+		
+		indexListSem = new RWUJSemaphore();
+		if ((errCode = indexListSem->init())) {
 			return errCode;
 		}
+		
+		resolver.reset(new VisibilityResolver());
 		
 		if ((errCode = loadIndexList(indexMetadata))) {
 			return errCode;
@@ -129,10 +162,58 @@ namespace Indexes
 		
 		if (!cleanShutdown) {
 			ec->printf("Shutdown wasn't clean. Rebuilding indexes...\n");
-			//TODO przebudowac wszystkie indeksy, skasowac stare pliki
+			
+			if ((errCode = rebuild())) {
+				return errCode;
+			}
+			
 			ec->printf("Indexes rebuilding done\n");
+		} else {
+			NonloggedDataSerializer* ds = new NonloggedDataSerializer();
+			errCode = ds->deserialize(indexMetaFile);
+			delete ds;
+			if (errCode) {
+				return errCode;
+			}
 		}
 		
+		return 0;
+	}
+	
+	/*
+	 * lista indeksow z comparatorami jest juz zaladowana
+	 */
+	int IndexManager::rebuild() {
+		int err;
+		indexLid.clear(); //metadane nie beda wczytywane - mapa nie bedzie potrzebna
+		
+		if ((err = unlink(indexMetaFile.c_str()))) {
+			return errno | ErrIndexes;
+		}
+		
+		if ((err = truncate(indexDataFile.c_str(), 0))) {
+			return errno | ErrIndexes;
+		}
+		
+		string2index::iterator it;
+		for (it = indexNames.begin(); it != indexNames.end(); it++) {
+			if ((err = it->second->reset())) {
+				return err;
+			}
+		}
+		
+		Transaction *tr;
+		if ((err = tm->createTransaction(tr))) {
+			return err;
+		}
+		
+		if ((err = buildIndex(NULL, tr->getId()))) {
+			return err;
+		}
+		
+		if ((err = tr->commit())) {
+			return err;
+		}
 		return 0;
 	}
 	
@@ -140,10 +221,7 @@ namespace Indexes
 		
 		int err;
 		 
-		ec->printf("wczytuje indeksy\n");
-		#ifdef INDEX_DEBUG_MODE
-				ec->printf("INDEX::wczytuje indeksy z rootow: |%s|\n", indexMetadata.c_str());
-		#endif
+		ec->printf("loading indexes\n");
 		
 		Transaction *tr;
 		if ((err = tm->createTransaction(tr))) {
@@ -160,24 +238,27 @@ namespace Indexes
 		}
 		
 		if (indexes->size() > 1) {
-			ec->printf("uwaga - wiecej niz jeden obiekt zawiera metadane indeksow\n");
+			ec->printf("wiecej niz jeden obiekt zawiera metadane indeksow\n");
+			return EMetaIncorrect | ErrIndexes;
 		}
 		
-		unsigned int i, j, k;
-		ObjectPointer* optr;
+		unsigned int j, k;
+		int compType;
+		ObjectPointer* optr, *indexOptr;
 		vector<LogicalID*> *nameLids, *fieldLids;
 		string fieldNameValue;
-		bool field, root;
+		bool field, root, type;
 		string indexName, rootName, fieldName;
 		
-		// dla kazdego root'a zawierajacego metadane wczytajmy indeksy ktore zawiera
-		for (i = 0; i < indexes->size(); i++) {
-			
+		if (indexes->size() == 1) {
+			// dla kazdego root'a zawierajacego metadane wczytajmy indeksy ktore zawiera
+			indexOptr = indexes->at(0);
+				
 			// obiekty w tych root'ach maja nazwe taka jak indeks i dwa obiekty typu string o nazwach "root" i "field"
-			DataValue* value = indexes->at(i)->getValue();
+			DataValue* value = indexOptr->getValue();
 			if (value->getType() != Store::Vector) {
-				ec->printf("bledny wpis w metadanych indeksow. korzen nie jest obiektem zlozonym - pomijam\n");
-				continue;
+				ec->printf("bledny wpis w metadanych indeksow. korzen nie jest obiektem zlozonym\n");
+				return EMetaIncorrect | ErrIndexes;
 			}
 			nameLids = value->getVector();
 			// iterowanie po zawartosci root'a
@@ -195,11 +276,11 @@ namespace Indexes
 					continue;
 				}
 				fieldLids = value->getVector();
-				if (fieldLids->size() != 2) {
+				if (fieldLids->size() != 3) {
 					ec->printf("bledny wpis w metadanych indeksow. obiekt %s metadanych indeksow ma niewlasciwa liczbe pol - pomijam\n", indexName.c_str());
 					continue;
 				}
-				field = root = false;
+				field = root = type = false;
 				// iteracja po zawartosci obiektu reprezentujacego indeks
 				for (k = 0; k < fieldLids->size(); k++) {
 					if ((err = tr->getObjectPointer(fieldLids->at(k), Store::Read, optr, false))) {
@@ -207,10 +288,12 @@ namespace Indexes
 						return err;
 					}
 					value = optr->getValue();
+					/*
 					if (value->getType() != Store::String) {
 						ec->printf("obiekt %s.%s metadanych indeksow ma niewlasciwy typ - pomijam\n", indexName.c_str(), optr->getName().c_str());
 						continue;
 					}
+					*/
 					if (optr->getName() == ROOT_DB_NAME) {
 						// znaleziono nazwe indeksowanego root'a
 						rootName = value->getString();
@@ -219,24 +302,26 @@ namespace Indexes
 						// znaleziono nazwe indeksowanego pola
 						fieldName = value->getString();
 						field = true;
+					} else if (optr->getName() == CMP_TYPE) {
+						compType = value->getInt();
+						type = true;
 					} else {
 						ec->printf("obiekt %s.%s metadanych indeksow ma niewlasciwa nazwe\n", indexName.c_str(), optr->getName().c_str());
 						continue;
 					}	
 				}
-				if (!(field && root)) {
+				if (!(field && root && type)) {
 					// nie znaleziono nazwy root'a albo nazwy pola 
-					ec->printf("obiekt %s metadanych indeksow nie zawiera informacji o indeksowanych polach - pomijam\n", indexName.c_str());
-					continue;
+					ec->printf("obiekt %s metadanych indeksow nie zawiera informacji o indeksowanych polach\n", indexName.c_str());
+					return EMetaIncorrect | ErrIndexes;
 				}
-				if ((err = testAndAddIndex(indexName, rootName, fieldName, nameLids->at(j)))) {
-					//TODO moze da sie wypisac wlasciwa przyczyne bledu
+				if ((err = testAndAddIndex(indexName, rootName, fieldName, compType, nameLids->at(j)))) {
 					ec->printf("nie udalo sie utworzyc indeksu: %s on %s(%s). Powtorzona nazwa lub wskazane pole jest juz indeksowane. Kod bledu: %d\n", indexName.c_str(), rootName.c_str(), fieldName.c_str(), err);
-					continue;
+					return err;
 				}
 			}
-		} //petla po root'ach
-		
+			
+		}
 		if (indexes->size() == 0) {
 			//jesli nie ma zadnego root'a z metadanymi to jednego trzeba zrobic
 			vector<LogicalID*>* vectorValue = new vector<LogicalID*>(0); 
@@ -263,6 +348,29 @@ namespace Indexes
 	}
 	
 	int IndexManager::finalize() {
+		//tutaj nie powinno byc juz zadnej aktywnej transakcji
+		int err = 0;
+		if ((err = IndexHandler::flushAll())) {
+			return err;
+		}
+		NonloggedDataSerializer* ds = new NonloggedDataSerializer();
+		if ((err = ds->serialize(indexMetaFile))) {
+			return err;
+		}
+		delete ds;
+		
+		//usuwanie wszystkich indeksow
+		string2index::iterator it;
+		for (it = indexNames.begin(); it != indexNames.end(); it++) {
+			delete it->second;
+		}
+		
+		if ((err = indexListSem->destroy())) {
+			return err;
+		}
+		
+		delete indexListSem;
+		
 		return 0;
 	}
 	
@@ -270,35 +378,42 @@ namespace Indexes
 	IndexManager::~IndexManager() {}
 	IndexManager* IndexManager::getHandle() {return handle;}
 	
-	int IndexManager::createIndexSynchronized(string indexName, string indexedRootName, string indexedFieldName, QueryResult **result) {
-		int err, err1;
-		
-		if ((err = DDLlock.down())) return err;
-		err = createIndex(indexName, indexedRootName, indexedFieldName, result);
-		if ((err1 = DDLlock.up())) {
-			ec->printf("fatal - failed to unlock mutex\n");
-			return err1;	
-		}
-		
-		return err;
-	}
+	VisibilityResolver* IndexManager::getResolver() {return resolver.get();}
 	
-	int IndexManager::createIndex(string indexName, string indexedRootName, string indexedFieldName, QueryResult **result) 
+	/**
+	 * tworzy indeks po wydaniu polecenia z palca
+	 */
+	int IndexManager::createIndex(string indexName, string indexedRootName, string indexedFieldName, Comparator* comp, QueryResult **result) 
 	{
 		int err = 0;
-		if ((err = isValuesUsed(indexName, indexedRootName, indexedFieldName))) {
+		// czy taki indeks mozna utworzyc
+		if ((err = indexListSem->lock_write())) {
 			return err;
 		}
 		
-		*ec << "adding index to database";
+		IndexHandler *ih = NULL;
 		
+		int err2 = 0;
+		if (!(err2 = isValuesUsed(indexName, indexedRootName, indexedFieldName))) {
+			// dodaje wpis do metadanych. lid bedzie podany pozniej
+			ih= addIndex(indexName, indexedRootName, indexedFieldName, NULL);
+		}
+		
+		if ((err = indexListSem->unlock())) {
+			return err;
+		}
+		
+		if (err2) {
+			return err2;
+		}
+		
+		*ec << "adding index to database";
 		Transaction *tr;
 		if ((err = tm->createTransaction(tr))) {
 			ec->printf("Cannot create index\n");
 			return err;
 		}
 	
-		//TODO smartPtr
 		vector<LogicalID*>* vectorValue = new vector<LogicalID*>(0); 
 		
 		ObjectPointer *optr;
@@ -306,6 +421,9 @@ namespace Indexes
 		err = tr->createObject(ROOT_DB_NAME, new DBDataValue(indexedRootName), optr);
 		if (err) {
 			ec->printf("Cannot create index\n");
+			if ((err2 = tr->abort())) {
+				return err2; 
+			}
 			return err;
 		}
 		
@@ -314,6 +432,20 @@ namespace Indexes
 		err = tr->createObject(FIELD_DB_NAME, new DBDataValue(indexedFieldName), optr);
 		if (err) {
 			ec->printf("Cannot create index\n");
+			if ((err2 = tr->abort())) {
+				return err2;
+			}
+			return err;
+		}
+		
+		vectorValue->push_back(optr->getLogicalID());
+		
+		err = tr->createObject(CMP_TYPE, new DBDataValue(comp->serialize()), optr);
+		if (err) {
+			ec->printf("Cannot create index\n");
+			if ((err2 = tr->abort())) {
+				return err2; 
+			}
 			return err;
 		}
 		
@@ -322,35 +454,73 @@ namespace Indexes
 		err = tr->createObject(indexName, new DBDataValue(vectorValue), optr);
 		if (err) {
 			ec->printf("Cannot create index\n");
+			if ((err2 = tr->abort())) {
+				return err2; 
+			}
 			return err;
 		}
-		
 		//w optr jest cala metainformacja o indexie. trzeba ten obiekt podpiac pod roota
-		
+
 		ObjectPointer *rootOptr;
 		
 		if ((err = tr->getObjectPointer(rootLid, Store::Write, rootOptr, false))) {
 			ec->printf("Cannot create index\n");
+			if ((err2 = tr->abort())) {
+				return err2; 
+			}
 			return err;
 		}
 		rootOptr->getValue()->getVector()->push_back(optr->getLogicalID());
 		
-		//czy to zadziala? moze trzeba zrobic nowy obiekt
+		//czy trzeba robic nowy obiekt?
 		DBDataValue *dbDataVal = new DBDataValue();
 		dbDataVal->setVector(rootOptr->getValue()->getVector());
+		
+		LogicalID* lid = optr->getLogicalID()->clone();
+		
+		ih->setLid(lid);
 		
 		err = tr->modifyObject(rootOptr, dbDataVal);
 		if (err) {
 			ec->printf("Cannot create index\n");
+			if ((err2 = tr->abort())) {
+				return err2; 
+			}
 			return err;
 		}
-	
+		
+		//fizyczne utworzenie indeksu
+		if ((err = ih->createNew(comp))) {
+			return err;	
+		}
+		
+		// buduje indeks w trakcie pracy bazy
+		if ((err = buildIndex(ih, tr->getId()))) {
+			//jesli byly niewlasciwe obiekty do indeksowania to nie jest blad krytyczny, usunac indeks z mapy i zwolnic wezly
+			if ((err2 = tr->abort())) {
+				return err2; 
+			}
+			if ((err2 = dropIndex(indexName))) {
+				ec->printf("Cannot undo 'create index'\n");
+				//fatal
+				return err2;
+			}
+			return err;
+		}
+		
 		if ((err = tr->commit())) {
 			ec->printf("Cannot create index\n");
+			if (dropIndex(indexName)) {
+				ec->printf("Cannot undo 'create index'\n");
+				//fatal
+				exit(1);
+			}
+			
 			return err;
 		}
-	
-		addIndex(indexName, indexedRootName, indexedFieldName, optr->getLogicalID());
+		if ((err = ih->changeState(IndexHandler::BUILDING, IndexHandler::READY))) {
+			return err;
+		}
 		
 		*result = new QueryNothingResult();
 		return 0;
@@ -359,7 +529,7 @@ namespace Indexes
 	int IndexManager::listIndex(QueryResult **result)
 	{
 		int err;
-		if ((err = DDLlock.down())) {
+		if ((err = indexListSem->lock_read())) {
 			return err;
 		}
 		*ec << "listing indexes";
@@ -372,29 +542,16 @@ namespace Indexes
 			ec->printf("index: %s on %s (%s)\n", ih->getName().c_str(), ih->getRoot().c_str(), ih->getField().c_str());
 			structResult = new QueryStructResult();
 			structResult->addResult(new QueryBinderResult("name", new QueryStringResult(ih->getName())));
+			structResult->addResult(new QueryBinderResult("type", new QueryStringResult(ih->getType())));
 			structResult->addResult(new QueryBinderResult("root", new QueryStringResult(ih->getRoot())));
 			structResult->addResult(new QueryBinderResult("field", new QueryStringResult(ih->getField())));
 			bagResult->addResult(structResult);
 		}
 		*result = bagResult;
-		if ((err = DDLlock.up())) {
-			ec->printf("fatal - failed to unlock mutex\n");
+		if ((err = indexListSem->unlock())) {
 			return err;
 		}
 		return 0;	
-	}
-
-	int IndexManager::dropIndexSynchronized(string indexName, QueryResult **result) {
-		int err, err1;
-		
-		if ((err = DDLlock.down())) return err;
-		err = dropIndex(indexName, result);
-		if ((err1 = DDLlock.up())) {
-			ec->printf("fatal - failed to unlock mutex\n");
-			return err1;	
-		}
-		
-		return err;
 	}
 
 	int IndexManager::dropIndex(string indexName, QueryResult **result) {
@@ -403,11 +560,22 @@ namespace Indexes
 		
 		string2index::iterator it;
 		LogicalID* indexLid;
-		
+		if ((err = indexListSem->lock_read())) {
+			return err;
+		}
 		if ((err = prepareToDrop(indexName, it, indexLid))) {
 			return err;
 		}
 		
+		int err2 = it->second->changeState(IndexHandler::READY, IndexHandler::DROPPING);
+
+		if ((err = indexListSem->unlock())) {
+			return err;
+		}
+		
+		if (err2) {
+			return err2;
+		}
 		Transaction *tr;
 		ObjectPointer* optr;
 		
@@ -441,9 +609,22 @@ namespace Indexes
 			return err;
 		}
 			
-		dropIndex(it);
+		dropIndex(indexName);
 		
 		*result = new QueryNothingResult();
 		return 0;
+	}
+	
+	void IndexManager::abort(tid_t id) {
+		resolver->abort(id);
+		//rolledBack.insert(id);
+	}
+
+	void IndexManager::begin(tid_t id) {
+		resolver->begin(id);
+	}
+	
+	void IndexManager::commit(tid_t tid, ts_t commitTimestamp) {
+		resolver->commit(tid, commitTimestamp);
 	}
 }

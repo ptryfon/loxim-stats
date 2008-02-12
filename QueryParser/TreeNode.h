@@ -11,9 +11,16 @@
 #include "ClassNames.h"
 #include "../Store/Store.h"
 #include "Privilige.h"
+#include "../QueryExecutor/QueryResult.h"
 #include "QueryParser.h"
+#include "Indexes/BTree.h"
 //using namespace std;
 
+namespace Indexes {
+class Constraints;
+};
+
+using namespace Indexes;
 namespace QParser {
 	enum CreateType { CT_CREATE, CT_UPDATE, CT_CREATE_OR_UPDATE };
 
@@ -2765,5 +2772,55 @@ class InterfaceInnerLinkage: public TreeNode {
 	};
 	/** End of TypeCheck TreeNode class declarations... */
 	
+	// Index Data Manipulation Language
+    class IndexDMLNode : public QueryNode {
+    	
+    	private:
+    		string name;
+    		
+    	public:
+    		IndexDMLNode() {}
+    		//virtual int execute(QueryResult **result)=0;//{return 0;};
+	    	virtual int type() {return TreeNode::TNINDEXDML;}
+	    	virtual void setIndexName(string name) {this->name = name;}
+	    	virtual string getIndexName() {return name;}
+	    	//IndexDMLNode(bool inclusiveLeft, bool inclusiveRight) : inclusiveLeft(inclusiveLeft) : inclusiveRight(inclusiveRight) {}
+    };
+    
+    class IndexBoundaryNode {
+    	friend class IndexSelectNode;
+    	private:
+    		bool inclusive;
+    		QueryNode* value;	
+    	public:
+    		IndexBoundaryNode(bool inclusive, QueryNode* value) : inclusive(inclusive), value(value) {}
+    };
+    
+    class IndexSelectNode : public IndexDMLNode {
+    	protected:
+    		Indexes::Constraints* c;
+    		IndexSelectNode(Constraints* c) : c(c){};
+    	public:
+	    	IndexSelectNode(IndexBoundaryNode *left, IndexBoundaryNode *right);
+	    	IndexSelectNode (QueryNode *exact);
+	    	IndexSelectNode(IndexBoundaryNode *left, bool right);
+	    	IndexSelectNode(bool left, IndexBoundaryNode *right);
+	    	
+	    	virtual ~IndexSelectNode(){}
+	    	
+	    	virtual Constraints* getConstraints(){return c;}
+	    	
+	    	virtual int putToString() {cout << "index select " << endl; return 0;}
+	    	virtual TreeNode* clone() {return new IndexSelectNode(c);}//TODO moze trzeba bedzie poprawic
+	    	//virtual int execute(QExecutor::QueryResult **result);//{return 0;};	
+	    	virtual string deParse();
+    };  
+        
+    class ComparatorNode {
+    	public:
+    		Indexes::Comparator* comp;
+    		ComparatorNode(Indexes::Comparator* comp) : comp(comp) {};
+    };
+    
 }
 #endif

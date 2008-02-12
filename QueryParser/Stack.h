@@ -108,6 +108,7 @@ namespace QParser {
 				cout << endl;
 		}
 //		virtual ~QStack() {if (this->elts != NULL) delete this->elts;}
+		virtual ~QStack(){}
     };
 	
 

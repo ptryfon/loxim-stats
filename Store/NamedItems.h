@@ -29,6 +29,7 @@ namespace Store
 #include "Buffer.h"
 #include "PagePointer.h"
 #include "Log/Logs.h"
+#include "Indexes/RootEntry.h"
 #ifdef IXR_DEBUG
 #include "Errors/ErrorConsole.h"
 #endif
@@ -128,10 +129,10 @@ namespace Store
 		int addItem(int logicalID, const char* name, int transactionID, int transactionTimeStamp);
 		int removeItem(int logicalID, int transactionID, int transactionTimeStamp);
 		vector<int>* getItems(int transactionID, int transactionTimeStamp);
-		vector<int>* getItems(const char* name, int transactionID, int transactionTimeStamp);
+		vector<int>* getItems(const char* name, int transactionID, int transactionTimeStamp, vector<Indexes::RootEntry*> *indexContent = NULL);
 		
 		template<typename Operation, typename DataType>
-		vector<int>* getItemsByAnything(Operation findTest, DataType thingToFind, int transactionID, int transactionTimeStamp);
+		vector<int>* getItemsByAnything(Operation findTest, DataType thingToFind, int transactionID, int transactionTimeStamp, vector<Indexes::RootEntry*> *indexContent = NULL);
 		
 	};
 	
@@ -219,8 +220,8 @@ namespace Store
 		vector<int>* getRoots(int transactionID, int transactionTimeStamp) {
 			return getItems(transactionID, transactionTimeStamp);
 		}
-		vector<int>* getRoots(const char* name, int transactionID, int transactionTimeStamp) {
-			return getItems(name, transactionID, transactionTimeStamp);
+		vector<int>* getRoots(const char* name, int transactionID, int transactionTimeStamp, vector<Indexes::RootEntry*> *indexContent = NULL) {
+			return getItems(name, transactionID, transactionTimeStamp, indexContent);
 		}
 		vector<int>* getRootsWithBegin(const char* nameBegin, int transactionID, int transactionTimeStamp);
 	};

@@ -17,7 +17,7 @@ namespace TypeCheck {
 		}
 		tr->getRoots(TC_MDN_NAME, roots);	
 		tr->getRoots(TC_MDNT_NAME, rootTypes);
-		cout <<"got all the roots / root types"<< endl;
+		if (Deb::ugOn()) cout <<"got all the roots / root types"<< endl;
 		
 		if (Deb::ugOn()) cout << "controL: " << roots->size() << " obiektow root MDN"<< endl;
 		if (Deb::ugOn()) cout << "controL DEFTYPES: " << rootTypes->size() << " obiektow rootType MDNT"<< endl;

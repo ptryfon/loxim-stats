@@ -3,7 +3,7 @@
 
 /**
  *	@author Dominik Klimczak (dominik.klimczak@students.mimuw.edu.pl)
- *	@author Julian Krzemiñski (julian.krzeminski@students.mimuw.edu.pl)
+ *	@author Julian Krzemiï¿½ski (julian.krzeminski@students.mimuw.edu.pl)
  */
 namespace LockMgr
 {
@@ -13,10 +13,14 @@ namespace LockMgr
 
 
     /* the only instance of class */
-    LockManager* LockManager::lockMgr = new LockManager();
+    LockManager* LockManager::lockMgr = NULL;
 
     LockManager* LockManager::getHandle() { return lockMgr; }
-
+    
+    void LockManager::init() {
+    	lockMgr = new LockManager();;
+    }
+    
     LockManager::LockManager() 
     {
 		err = ErrorConsole("LockManager");

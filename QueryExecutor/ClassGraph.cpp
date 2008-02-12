@@ -48,6 +48,10 @@ int ClassGraph::init() {
 		errcode = tmp->completeSubgraph(*i, tr, NULL);
 		if (errcode != 0) return errcode;
 	}
+	//transakcja nie byla konczona
+	if ((errcode = tr->commit())) {
+		return errcode;
+	}
 	ClassGraph::handle = tmp;
 	return 0;
 }

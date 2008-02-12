@@ -30,6 +30,7 @@ namespace Config {
 		public:
 			SBQLConfig(string module);
 
+			static void startup();
 			int init(void);
 			int init(string file);
 			void free(void);

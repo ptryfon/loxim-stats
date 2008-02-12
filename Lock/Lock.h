@@ -1,7 +1,7 @@
 #ifndef _LOCK_
 #define _LOCK_
 /**
- *	@author Julian Krzemiñski (julian.krzeminski@students.mimuw.edu.pl)
+ *	@author Julian Krzemiï¿½ski (julian.krzeminski@students.mimuw.edu.pl)
  *	@author Dominik Klimczak (dominik.klimczak@students.mimuw.edu.pl)
  */
 namespace LockMgr { class LockManager; }
@@ -81,6 +81,10 @@ class LockManager
 	    	 */
 	    	static LockManager* getHandle();
 	    
+	    	/*
+	    	 * Initialize LockManager
+	    	 */
+	    	static void init();
 	    	/*
 	    	 * destruct object - release all semaphores
 	    	 */

@@ -80,6 +80,14 @@ namespace Store
 	{
 		this->remoteID = remoteID;
 	}
+	
+	string DBLogicalID::getParentRoot() const {
+		return parentRoot;
+	}
+	
+	void DBLogicalID::setParentRoot(string parentRoot) {
+		this->parentRoot = parentRoot;
+	}
 
 	unsigned int DBLogicalID::toInteger() const
 	{

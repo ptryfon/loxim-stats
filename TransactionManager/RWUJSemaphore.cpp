@@ -5,7 +5,7 @@
 #include "../Errors/Errors.h"
 
 /*
- *	Julian Krzemiñski (julian.krzeminski@students.mimuw.edu.pl)
+ *	Julian Krzemiï¿½ski (julian.krzeminski@students.mimuw.edu.pl)
  */
 using namespace Errors;
 
@@ -59,6 +59,18 @@ namespace SemaphoreLib {
 		return 0;
 	}
 
+	int RWUJSemaphore::try_lock_write() {
+		pthread_mutex_lock( &mutex );
+		int errorCode;
+		if (current_mode != None) {
+			errorCode = ErrTManager | EBUSY;
+		} else {
+			errorCode = this->_lock_write();
+		}
+		pthread_mutex_unlock(&mutex);
+		return errorCode;
+	}
+	
 	int RWUJSemaphore::lock_read()
 	{
 		pthread_mutex_lock( &mutex );
@@ -86,7 +98,12 @@ namespace SemaphoreLib {
 	int RWUJSemaphore::lock_write()
 	{
 		pthread_mutex_lock( &mutex );
+		int errorCode = this->_lock_write();
+		pthread_mutex_unlock( &mutex );
+		return errorCode;
+	}
 
+	int RWUJSemaphore::_lock_write() {
 		if (current_mode == None)	current_mode = Write;
 
 		if (inside == 0)
@@ -101,7 +118,6 @@ namespace SemaphoreLib {
 			wait_writers--;
 			inside++;
 		}
-		pthread_mutex_unlock( &mutex );
 		return 0;
 	}
 

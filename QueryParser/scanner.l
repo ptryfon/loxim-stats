@@ -136,12 +136,17 @@ extern int szbderrno;
 "shows"			return SHOWS;
 "associate"		return ASSOCIATE;
 "typedef"		return TYPEDEF;
-"string"		return STRING_SIG;
-"double"		return DOUBLE_SIG;
+"string"		return STRING_SIG; /* uzywane tez przez indeksy */
+"double"		return DOUBLE_SIG; /* uzywane tez przez indeksy */
 "integer"		return INTEGER_SIG;
 "boolean"		return BOOLEAN_SIG;/* TO BE OR NOT TO BE... */
 "tcOFF"			return TCOFF;
 "tcON"			return TCON;
+"int"			return INT_SIG;
+"(|"			return LEFT_EXCLUSIVE;
+"|)"			return RIGHT_EXCLUSIVE;
+"<|"			return LEFT_INCLUSIVE;
+"|>"			return RIGHT_INCLUSIVE;
 
 ([_a-zA-Z][_a-zA-Z0-9]*)*::[_a-zA-Z][_a-zA-Z0-9]* yylval.str = new char[strlen(yytext) + 1]; yylval.str = strcpy(yylval.str,yytext); return EXTNAME;
 [_a-zA-Z][_a-zA-Z0-9]* 	yylval.str = new char[strlen(yytext) + 1]; yylval.str = strcpy(yylval.str,yytext); return NAME;

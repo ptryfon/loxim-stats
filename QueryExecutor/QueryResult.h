@@ -22,6 +22,10 @@ using namespace Errors;
 using namespace Store;
 using namespace std;
 
+namespace Indexes {
+	class IndexManager;
+}
+
 namespace QExecutor {
 
 	class QueryExecutor;
@@ -105,9 +109,15 @@ public:
 	virtual string toString( int level = 0, bool recursive = false, string name = "" ) { return ""; }
 };
 
-
-class QuerySequenceResult : public QueryResult
+class QueryContainerResult : public QueryResult
 {
+	public:
+		virtual int at(unsigned int i, QueryResult *&r)=0;
+};
+
+class QuerySequenceResult : public QueryContainerResult
+{
+	friend class Indexes::IndexManager;
 protected:
 	vector<QueryResult*> seq;
 	vector<QueryResult*>::iterator it;
@@ -157,9 +167,10 @@ public:
         }
 };
 
-class QueryBagResult : public QueryResult
+class QueryBagResult : public QueryContainerResult
 {
 protected:
+	friend class Indexes::IndexManager;
 	vector<QueryResult*> bag;
 	vector<QueryResult*>::iterator it;
 public:
@@ -212,7 +223,7 @@ public:
 };
 
 
-class QueryStructResult : public QueryResult
+class QueryStructResult : public QueryContainerResult
 {
 protected:
 	vector<QueryResult*> str;

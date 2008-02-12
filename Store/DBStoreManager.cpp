@@ -3,6 +3,7 @@
 #include "DBStoreManager.h"
 #include "DBDataValue.h"
 #include "SystemViews.h"
+#include "Indexes/IndexManager.h"
 
 #define LOGS
 
@@ -206,6 +207,9 @@ namespace Store
 			*ec << "Store::Manager::getObject failed";
 			return -1;
 		}
+		
+		IndexManager::getHandle()->setIndexMarker(lid, object);
+		
 #ifdef DEBUG_MODE
 		ec->printf("Store::Manager::getObject done: %s\n", object->toString().c_str());
 #endif
@@ -237,7 +241,10 @@ namespace Store
 		object->setIsRoot(isRoot);
 
 		Serialized sObj = object->serialize();
+
+#ifdef DEBUG_MODE
 		sObj.info();
+#endif
 
 		int freepage = pagemgr->getFreePage(sObj.size); // strona z wystaraczajaca iloscia miejsca na nowy obiekt
 #ifdef DEBUG_MODE
@@ -389,10 +396,15 @@ namespace Store
 #ifdef DEBUG_MODE
 		*ec << "Store::Manager::modifyObject start...";
 #endif		
+		string parentRoot;
+		if (object->isRoot()) {
+			parentRoot = object->getName();
+		}
 		deleteObject(tid, object);
 		ObjectPointer* newobj;
 		createObject(tid, object->getName(), dv, newobj, object->getLogicalID(), object->getIsRoot());
 		delete object;
+		newobj->setParentRoot(parentRoot);
 		object = newobj;
 #ifdef DEBUG_MODE
 		*ec << "Store::Manager::modifyObject done";

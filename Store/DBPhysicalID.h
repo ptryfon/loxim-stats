@@ -17,6 +17,7 @@ namespace Store
 		virtual unsigned int getPage() const;
 		virtual unsigned short getOffset() const;		
 		virtual long long getLockAddress() const;
+		virtual ~DBPhysicalID(){};
 
 	private:
 		unsigned short file;

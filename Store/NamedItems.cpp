@@ -424,7 +424,7 @@ namespace Store
 	}
 	
 	template<typename Operation, typename DataType>
-	vector<int>* NamedItems::getItemsByAnything(Operation findTest, DataType thingToFind, int transactionID, int transactionTimeStamp) {
+	vector<int>* NamedItems::getItemsByAnything(Operation findTest, DataType thingToFind, int transactionID, int transactionTimeStamp, vector<Indexes::RootEntry*> *indexContent) {
 		vector<int>* roots = new vector<int>();
 		int i = 0;
 		int offset = 0;
@@ -462,6 +462,10 @@ namespace Store
 				{
 					ix_entry* entry = (ix_entry*) (page_buf + offset);
 					ec->printf("@@@@@@@ !!! @@@@@@@ add_t: %i, l_id: %i del_t: %i, cur_tran: %i, name: %s\n", entry->add_t, entry->l_id, entry->del_t, entry->cur_tran, entry->name);
+					if (indexContent != NULL) {
+						//indeksy potrzebuja dostac wszystkie rooty, niezaleznie od tego czy sa widoczne dla danej transakcji
+						indexContent->push_back(new Indexes::RootEntry(entry->add_t, entry->del_t, entry->cur_tran, entry->l_id));
+					}
 					if
 					(
 						//(strlen(name) == 0 || strcmp(name, entry->name) == 0)
@@ -529,13 +533,13 @@ namespace Store
 		return getItemsByAnything(findNamesWithBegin, nameBegin, transactionID, transactionTimeStamp);
 	}
 
-	vector<int>* NamedItems::getItems(const char* name, int transactionID, int transactionTimeStamp)
+	vector<int>* NamedItems::getItems(const char* name, int transactionID, int transactionTimeStamp, vector<Indexes::RootEntry*> *indexContent)
 	{
 #ifdef IX_DEBUG
 		ec->printf("getItems(name=\"%s\", transactionID=%i, transactionTimeStamp=%i)\n", name, transactionID, transactionTimeStamp);
 #endif
 		
-		return getItemsByAnything(findByName, name, transactionID, transactionTimeStamp);
+		return getItemsByAnything(findByName, name, transactionID, transactionTimeStamp, indexContent);
 		
 		/* old version */
 		/*vector<int>* roots = new vector<int>();

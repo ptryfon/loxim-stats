@@ -2,7 +2,7 @@
 #define _MUTEX_
 
 /*
- *	Julian Krzemiñski (julian.krzeminski@students.mimuw.edu.pl)
+ *	Julian Krzemiï¿½ski (julian.krzeminski@students.mimuw.edu.pl)
  */
 namespace SemaphoreLib {
 
@@ -12,11 +12,21 @@ class Mutex
 		pthread_mutex_t mutex;
 	public:
 		Mutex();
-		~Mutex();
+		virtual ~Mutex();
 
-		int init();
-		int up();
-		int down();
+		virtual int init();
+		virtual int init(pthread_mutexattr_t* attr);
+		virtual int up();
+		virtual int down();
+};
+
+class RecursiveMutex : public Mutex {
+	private:
+		pthread_mutexattr_t attr;
+	public:
+		virtual ~RecursiveMutex();
+		
+		virtual int init();
 };
 
 } /* namespace SemaphoreLib */

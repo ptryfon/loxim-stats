@@ -63,9 +63,15 @@ struct {
 	{ENoHost,          "Host not found"},
 	{EUnknownPackage,  "Unknown Package Type"},
 // Indexes
-	{EIndexExists,		"Index already exists"},
-	{EFieldIndexed,		"Field is already indexed"},
-	{ENoIndex,			"No such index"},
+	{EIndexExists,				"Index already exists"},
+	{EFieldIndexed,				"Field is already indexed"},
+	{ENoIndex,					"No such index"},
+	{ENoIndexedField,			"Indexed field not found"},
+	{EIndexedFieldDuplicated,	"Indexed field already exists"},
+	{ERemoveIndexed,			"Indexed field cannot be removed"},
+	{EMetaIncorrect,			"Incorrect index metadata"},
+	{EIncorrectState,			"Incorrect object state"},
+	{ENoObject,					"Object not exists"},
 // TypeChecker
 	{ECannotRestore, 	"Unable to restore type checking process"},
 	{ECannotRestoreBadName, "Unable to restore type checking after Bad Name error"},

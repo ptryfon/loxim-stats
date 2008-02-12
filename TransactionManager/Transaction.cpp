@@ -64,8 +64,8 @@ namespace TManager
 	    	errorNumer = logm->beginTransaction(tid->getId(), id);
 		tid->setTimeStamp(id);
 		dmlStructs->init();
-		cout << dmlStructs->depsToString() << endl;
-		cout << dmlStructs->rootMdnsToString();
+		//cout << dmlStructs->depsToString() << endl;
+		//cout << dmlStructs->rootMdnsToString();
 		return errorNumer;
 	}
 	
@@ -107,7 +107,8 @@ namespace TManager
 		if (errorNumber) abort();
 		
 		if (p == NULL && !allowNullObject) {
-			err.printf("Transaction: %d getObjectPointer, object doesn't exist while we expect existing object\n");
+			err.printf("getObjectPointer, object doesn't exist while we expect existing object\n");
+			errorNumber = ENoObject | ErrTManager;
 			abort();
 		} 
 		
@@ -184,9 +185,15 @@ namespace TManager
 		if (errorNumber == 0)
 		{		
 		    sem->lock_write();				
-		    		    
-			errorNumber = sm->deleteObject(tid, object);		
-		    		    
+		    
+		    errorNumber = Indexes::IndexManager::getHandle()->deleteObject(object);
+		    
+		    if (!errorNumber) {
+		    
+		    	errorNumber = sm->deleteObject(tid, object);		
+		    
+		    }
+			
 		    sem->unlock();
 		}
 		
@@ -328,6 +335,9 @@ namespace TManager
 		    sem->lock_write();
 			errorNumber = sm->removeRoot(tid, p);		
 		    sem->unlock();
+		    
+		    if (errorNumber == 0)
+		    	errorNumber = Indexes::IndexManager::getHandle()->removeRoot(tid, p);
 		}
 				
 		if (errorNumber) abort();
@@ -696,12 +706,14 @@ namespace TManager
 		err.printf("Reader timeout %i\n", readerTimeout);
 		err.printf("Writer timeout %i\n", writerTimeout);*/
 		
-		transactionId = minimalTransactionId - 1;
-
+		//zeby leniwe czyszczenie indeksow dzialalo transactionId nie moga sie powtarzac po restarcie systemu
+		//transactionId = minimalTransactionId - 1;
+		transactionId = LogRecord::getIdSeq();
+		
 		return 0;
 	 }
 	
-	TransactionManager* TransactionManager::tranMgr = new TransactionManager();
+	TransactionManager* TransactionManager::tranMgr = NULL;//new TransactionManager();
 	
 	TransactionManager* TransactionManager::getHandle() { return tranMgr; };
 	
@@ -744,6 +756,7 @@ namespace TManager
 			else
 			    tid = new TransactionID(currentId);
 			addTransaction(tid);
+			IndexManager::getHandle()->begin(currentId);
 			err.printf("Transaction created -> number %d prio: %d\n", tid->getId(), tid->getPriority());
 	    mutex->up();
 	    	    
@@ -753,10 +766,11 @@ namespace TManager
 
 	int TransactionManager::init(StoreManager *strMgr, LogManager *logsMgr)
 	{
-	    err.printf("Transaction Manager's starting....\n");
-	    storeMgr = strMgr;
-	    logMgr = logsMgr;
-	    return loadConfig();
+		tranMgr = new TransactionManager();
+		getHandle()->err.printf("Transaction Manager's starting....\n");
+	    getHandle()->storeMgr = strMgr;
+	    getHandle()->logMgr = logsMgr;
+	    return getHandle()->loadConfig();
 	}
 
 	void TransactionManager::addTransaction(TransactionID* tid)
@@ -805,7 +819,7 @@ namespace TManager
 
 		/* remove transaction from active transactions list */
 	    	remove_from_list(tr->getId());
-		
+	    	IndexManager::getHandle()->commit(tr->getId()->getId(), id);
 		/* free memory */
 	    	delete tr;
 		
@@ -830,6 +844,8 @@ namespace TManager
 		/* remove transaction from active transactions list */
 	    	remove_from_list(tr->getId());
 		
+	    	IndexManager::getHandle()->abort(tr->getId()->getId());
+	    	
 		/* free memory */
 	    	delete tr;
 		

@@ -11,6 +11,10 @@ using namespace Errors;
 namespace Config {
 	struct ModuleOptions *SBQLConfig::config = NULL;
 
+	void SBQLConfig::startup() {
+		config = NULL;
+	}
+	
 	SBQLConfig::SBQLConfig(string module)
 	{
 		callerModule = module;

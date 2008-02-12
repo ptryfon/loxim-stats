@@ -106,21 +106,26 @@ namespace Errors {
 #define EUnknownPackage		0x2900
 
 // Indexes
-#define EIndexExists	0x2A00
-#define EFieldIndexed	0x2B00
-#define ENoIndex		0x2C00
+#define EIndexExists			0x2A00
+#define EFieldIndexed			0x2B00
+#define ENoIndex				0x2C00
+#define ENoIndexedField			0x2D00
+#define EIndexedFieldDuplicated	0x2E00
+#define ERemoveIndexed			0x2F00
+#define EMetaIncorrect			0x3000
+#define EIncorrectState			0x3100
+#define ENoObject				0x3200
 
 // Type Checker
-#define ECannotRestore			0x2E00
-#define ECannotRestoreBadName	0x2E10
-#define ENameNotBound			0x2E20
-#define EGeneralTCError			0x2E30
-#define ETCNotApplicable		0x2E40
-#define EIncompleteMetadata		0x2E50
-#define EMetadataOutdated		0x2E60
-
+#define ECannotRestore			0x3300
+#define ECannotRestoreBadName	0x3310
+#define ENameNotBound			0x3320
+#define EGeneralTCError			0x3330
+#define ETCNotApplicable		0x3340
+#define EIncompleteMetadata		0x3350
+#define EMetadataOutdated		0x3360
 // stopper
-#define EUnknown		0x2D00
+#define EUnknown		0x3400
 
 string *SBQLstrerror(int error);
 }

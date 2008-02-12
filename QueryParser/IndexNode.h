@@ -3,14 +3,18 @@
 
 #include "TreeNode.h"
 #include "../Indexes/IndexManager.h"
+#include "../QueryExecutor/QueryResult.h"
+#include "Indexes/BTree.h"
 
-using namespace QParser;
+using namespace Indexes;
+using namespace QExecutor;
 using namespace std;
 
-namespace Indexes {
+namespace QParser {
+//namespace Indexes {
 	
 
-	
+	/*
     class IndexNode : public TreeNode
     {
     	
@@ -21,37 +25,24 @@ namespace Indexes {
     		//getEc()
     	
     	public:
-    		virtual int execute(QueryResult **result)=0;//{return 0;};
+    		
     		//IndexNode(){}
     		virtual int type()=0;// {return TreeNode::TNINDEXDDL;}
     		virtual int putToString() {return 0;}
     		virtual ~IndexNode() {}
     		//virtual TreeNode* clone() {return new IndexNode();}
     };
-    
+    */
+    class Indexes::Comparator;
+	
     //data definition language
-    class IndexDDLNode : public IndexNode {
+    class IndexDDLNode : public TreeNode {
+    	public:
+    	virtual int execute(QueryResult **result)=0;//{return 0;};
     	virtual int type() {return TreeNode::TNINDEXDDL;}
     };
     
-    // create index emp_index on emp ( surname )
-    class CreateIndexNode : public IndexDDLNode
-    {
-    	private:
-    		string indexName,			// nazwa indeksu 
-    			   indexedRootName,		// jakie rooty indksujemy
-    			   indexedFieldName;	// po jakim polu indeksujemy
-    		//CreateIndexNode(){}
-    	
-    	public:
-	    	CreateIndexNode(string _indexName, string _indexedRootName, string _indexedFieldName)
-	    				: indexName(_indexName), indexedRootName(_indexedRootName),	indexedFieldName(_indexedFieldName) {}
-	    	virtual TreeNode* clone() {return new CreateIndexNode(indexName, indexedRootName, indexedFieldName);}
-	    	virtual int putToString() {cout << "create index " << indexName << " on " << indexedRootName << "(" << indexedFieldName<< ")" << endl; return 0;}
-	    	virtual int execute(QueryResult **result){return IndexManager::getHandle()->createIndexSynchronized(indexName, indexedRootName, indexedFieldName, result);};
-	    	virtual ~CreateIndexNode(){};
-	    	//virtual TreeNode* clone() {return new CreateIndexNode();}
-    };
+    
     
     class ListIndexNode : public IndexDDLNode
     {
@@ -72,11 +63,34 @@ namespace Indexes {
     	public:
     		DropIndexNode(string indexName) : indexName(indexName) {}
     		virtual ~DropIndexNode(){};
-    		virtual int execute(QueryResult **result) {return IndexManager::getHandle()->dropIndexSynchronized(indexName, result);};	
+    		virtual int execute(QueryResult **result) {return IndexManager::getHandle()->dropIndex(indexName, result);};	
     		
     		virtual TreeNode* clone() {return new DropIndexNode(indexName) ;}
 	    	virtual int putToString() {cout << "drop index " << indexName << endl; return 0;}	
     };
+    
+
+//  create index emp_index on emp ( surname )
+    class CreateIndexNode : public IndexDDLNode
+    {
+    	private:
+    		string indexName,			// nazwa indeksu 
+    			   indexedRootName,		// jakie rooty indksujemy
+    			   indexedFieldName;	// po jakim polu indeksujemy
+    		Comparator* comp;
+    		//CreateIndexNode(){}
+    	
+    	public:
+	    	CreateIndexNode(string _indexName, string _indexedRootName, string _indexedFieldName, Comparator* comp)
+	    				: indexName(_indexName), indexedRootName(_indexedRootName),	indexedFieldName(_indexedFieldName), comp(comp) {}
+	    	virtual TreeNode* clone() {return new CreateIndexNode(indexName, indexedRootName, indexedFieldName, comp);}
+	    	virtual int putToString() {cout << "create index " << indexName << " on " << indexedRootName << "(" << indexedFieldName<< ")" << endl; return 0;}
+	    	virtual int execute(QueryResult **result){return IndexManager::getHandle()->createIndex(indexName, indexedRootName, indexedFieldName, comp, result);};
+	    	virtual ~CreateIndexNode(){};
+	    	//virtual TreeNode* clone() {return new CreateIndexNode();}
+    };
+
+    
 }
 
 #endif /*INDEXNODE_H_*/

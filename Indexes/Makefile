@@ -1,8 +1,12 @@
 include ../make.defs
 
-SOURCES	=	IndexManager.cpp Metadata.cpp
+SOURCES	=	Node.cpp IndexManager.cpp Metadata.cpp IndexHandler.cpp BTree.cpp RootEntry.cpp \
+			CachedNode.cpp Monitor.cpp EntrySieve.cpp Constraints.cpp LeafTraveller.cpp Comparator.cpp \
+			ToStringBuilder.cpp QueryOptimizer.cpp OptimizedField.cpp VisibilityResolver.cpp \
+			TransactionImpact.cpp Cleaner.cpp NonloggedDataSerializer.cpp const.cpp
 
-HEADERS	=	IndexManager.h IndexHandler.h
+HEADERS	=	IndexManager.h IndexHandler.h BTree.h RootEntry.h CachedNode.h Monitor.h Node.h LeafTraveller.h \
+			Constraints.h Comparator.h QueryOptimizer.h OptimizedField.h
 
 STATIC_LIB =	IndexManager.a
 PROGRAM	=	
@@ -17,6 +21,7 @@ all: $(STATIC_LIB) $(PROGRAM)
 
 clean:
 	rm -f $(OBJECTS) $(DEPFILES) $(STATIC_LIB) $(PROGRAM)
+	make -C Tests clean
 
 $(STATIC_LIB): $(OBJECTS)
 	$(AR) r $(STATIC_LIB) $(OBJECTS)

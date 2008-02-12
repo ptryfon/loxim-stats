@@ -137,6 +137,14 @@ namespace Store
 		this->isRoot = isRoot;
 	};
 	
+	string DBObjectPointer::getParentRoot() const {
+			return parentRoot;
+	}
+		
+	void DBObjectPointer::setParentRoot(string parentRoot) {
+		this->parentRoot = parentRoot;
+	}
+	
 	vector<LogicalID*>* DBObjectPointer::getClasses() const
 	{
 		return 0;

@@ -171,7 +171,7 @@ int LogRecord::initialize( int fd )
     }
     delete lr;
     if( ::lseek( fd,0,SEEK_END ) < 0 ) return errno;
-    printf( "IDSeq: %d\n", idSeq );
+    //printf( "IDSeq: %d\n", idSeq );
   }
 
   return 0;
@@ -241,7 +241,7 @@ int LogRecord::readLogRecordForward( LogRecord *&result, int fileDes, StoreManag
   if( ( errCode = LogIO::readInt( fileDes, recordLen ) ) ) return errCode;
   if( ( errCode = LogIO::getFilePos( fileDes, filePosEnd ) ) ) return errCode;
 
-  printf("\n[type=%d, begin=%ld,%ld,%d]\n", recordType ,filePosBegin,(filePosEnd - filePosBegin), recordLen );
+  //printf("\n[type=%d, begin=%ld,%ld,%d]\n", recordType ,filePosBegin,(filePosEnd - filePosBegin), recordLen );
   if( filePosEnd - filePosBegin != recordLen ) return LOG_RECORD_LENGTH_MISMATCH_ERROR;
 
   return 0;
@@ -357,7 +357,7 @@ int WriteRecord::deleteFromStore(StoreManager* sm, DataValue *dv)
   ObjectPointer* op = sm->createObjectPointer( (lid ? lid->clone() : NULL), name, dv);
   err=sm->deleteObject( NULL, op );
   delete op;
-  printf( "Delete... (err=%d)\n", err );
+  //printf( "Delete... (err=%d)\n", err );
   return err;
 }
 
@@ -366,7 +366,7 @@ int WriteRecord::addToStore(StoreManager* sm, DataValue *dv)
 {
   LogicalID *lidCopy = NULL;
   int err = 0;
-  printf( "createObjectPointer( lid=%d, name='%s', dv='%s' )\n", lid->toInteger(), name.c_str(), dv->toString().c_str() );
+  //printf( "createObjectPointer( lid=%d, name='%s', dv='%s' )\n", lid->toInteger(), name.c_str(), dv->toString().c_str() );
   if( dv != NULL )
   {
     if( oldVal == dv ) freeOldValFlag = false;
@@ -391,7 +391,7 @@ int WriteRecord::changeValue(StoreManager* sm, DataValue* dv)
   int err = 0;
   ObjectPointer* op=NULL;
   //trzeba okreslic dokladnie jakie ma byc to err
-  printf( "LID: %d\n", lid->toInteger() );
+  //printf( "LID: %d\n", lid->toInteger() );
   if( (err = sm->getObject(NULL,(lid ? lid->clone() : NULL),Write,op)) == 0)
   {
     //Nie ma żadnej pewności, że to będzie działać z sensem

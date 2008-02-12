@@ -76,11 +76,15 @@ namespace Store
 		vector<int>* systemviews = new vector<int>();
 
 			if (mapOfViews[name]) {
+#ifdef DEBUG_MODE
 				*this->ec << "Store::SystemViews::mapOfViews[" << name << "]";
+#endif
 			ObjectPointer* object;
 			mapOfViews[name]->refresh(object);
 			if (object) {
+#ifdef DEBUG_MODE
 				*this->ec << "Store::SystemViews::mapOfViews - OBJECT";
+#endif
 				systemviews->push_back(object->getLogicalID()->toInteger());
 			}
 		}

@@ -40,6 +40,7 @@ public:
     //returns error code, gets buffer and it's size
     //it destroys the buffer
     virtual int deserialize(char* buffer, int size)=0;
+    virtual ~Package(){}
 };
 
 class SimpleQueryPackage : public Package {
@@ -51,6 +52,7 @@ class SimpleQueryPackage : public Package {
 		void setQuery(const char* query);
 		char* getQuery();
 		int getQuerySize();
+		virtual ~SimpleQueryPackage(){};
 
 	private:
 		const char* tmpBuffer;
@@ -69,6 +71,7 @@ class ErrorPackage : public Package {
 	    Result* getResult();
 	    void init();
 	    void deinit();
+	    virtual ~ErrorPackage(){}
 	private:
 	    Result* tmpRes;
 	    int errorNo;
@@ -93,6 +96,7 @@ class SimpleResultPackage : public Package {
 		char *bufferBegin;
 		int finalSize;
 		char * bufferEnd;
+		virtual ~SimpleResultPackage(){}
 		
 	private:
 		QueryResult* qr;
@@ -141,6 +145,8 @@ public:
 	void           setStmtNr(unsigned long stmtNr);
 	unsigned long  getStmtNr();
 	unsigned long  getSize();
+	virtual 		~StatementPackage(){}
+	
 protected:
 	unsigned long stmtNr; //What nr of parsed statment. Server will match TreeNode with this nr
 	char*         bufferBegin;
@@ -157,6 +163,7 @@ public:
 	packageType getType() { return PARAMQUERY; }
 	int         serialize(char** buffer, int* size);
 	int         deserialize(char* buffer, int size);
+	virtual ~ParamQueryPackage(){}
 };
 
 class ParamStatementPackage : public StatementPackage {

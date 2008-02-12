@@ -1,7 +1,7 @@
 #ifndef __STORE_H__
 #define __STORE_H__
 
-#define DEBUG_MODE
+//#define DEBUG_MODE
 
 #include <set>
 #include "QueryExecutor/HashMacro.h"
@@ -116,7 +116,9 @@ namespace Store
 		virtual void setPort(int port) = 0;
 		virtual LogicalID* getRemoteID()  const = 0;
 		virtual void setRemoteID(LogicalID* remoteID) = 0;
-
+		virtual string getParentRoot() const = 0;
+		virtual void setParentRoot(string parentRoot) = 0;
+		
 		// Operators
 		virtual bool operator==(LogicalID& lid) = 0;
 		virtual ~LogicalID() {};
@@ -211,7 +213,9 @@ namespace Store
 		virtual void setIsRoot(bool isRoot) = 0;
 		virtual vector<LogicalID*>* getClasses() const = 0;
 		virtual void setClasses(vector<LogicalID*>* value) = 0;
-
+		virtual string getParentRoot() const = 0;
+		virtual void setParentRoot(string parentRoot) = 0;
+		
 		// Operators
 		virtual bool operator==(ObjectPointer& dv) {
 			return (this->getLogicalID() == dv.getLogicalID()); }

@@ -34,6 +34,11 @@ using namespace Errors;
 using namespace SemaphoreLib;
 using namespace TypeCheck;
 
+namespace Indexes {
+	class IndexManager;
+	class Tester;
+}
+
 namespace TManager
 {
 
@@ -164,7 +169,7 @@ namespace TManager
 	      		static TransactionManager* getHandle();
 	      
 	   		/* called at server startup: */
-	      		int init(StoreManager*, LogManager*);
+	      		static int init(StoreManager*, LogManager*);
 	      
 	   		/* executor calls: */
 	     		int createTransaction(Transaction* &tr);
@@ -178,6 +183,9 @@ namespace TManager
 			
 			int getReaderTimeout();
 			int getWriterTimeout();
+			
+		friend class Indexes::IndexManager;
+		friend class Indexes::Tester;
 	};
 };
 

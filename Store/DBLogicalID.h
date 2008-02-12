@@ -27,9 +27,11 @@ namespace Store
         virtual void setServer(string server);
         virtual void setPort(int port);
         virtual int getPort() const;
-	virtual LogicalID* getRemoteID()  const;
-	virtual void setRemoteID(LogicalID* remoteID);
-
+        virtual LogicalID* getRemoteID()  const;
+        virtual void setRemoteID(LogicalID* remoteID);
+		virtual string getParentRoot() const;
+		virtual void setParentRoot(string parentRoot);
+			
 		virtual bool operator==(LogicalID& lid);
 		virtual DBLogicalID& operator=(const LogicalID& lid);
 
@@ -37,6 +39,7 @@ namespace Store
 
 		unsigned int value;
 	private:
+		string parentRoot;
 		string server;
 		int port;
 		LogicalID* remoteID;
