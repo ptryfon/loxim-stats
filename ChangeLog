@@ -1,5 +1,8 @@
 2008-02-12  Maksymilian Humpich  <mh209206@students.mimuw.edu.pl>
 
+	* Errors/Errors.h, QueryParser/QueryParser.cpp, QueryParser/Stack.h:
+	*** empty log message ***
+
 	* TypeCheck/Attic/ClassNames.h~, TypeCheck/Attic/DMLControl.h~, TypeCheck/Attic/DecisionTable.cpp~, TypeCheck/Attic/DecisionTable.h~, TypeCheck/Attic/MDLControl.h~, TypeCheck/Attic/Makefile~, TypeCheck/Attic/Rule.cpp~, TypeCheck/Attic/Rule.h~, TypeCheck/Attic/TypeCheckResult.cpp~, TypeCheck/Attic/TypeCheckResult.h~, TypeCheck/Attic/TypeChecker.cpp~, TypeCheck/Attic/TypeChecker.h~, TypeCheck/DecisionTable.cpp, TypeCheck/DecisionTable.h, TypeCheck/Rule.cpp, TypeCheck/Rule.h, TypeCheck/TypeCheckResult.cpp, TypeCheck/TypeChecker.cpp, TypeCheck/TypeChecker.h:
 	- removed trash files
 
