@@ -1,0 +1,22 @@
+skladnia:
+
+ddl - niepodlegajace transakcjom:
+
+create int index nazwa_indeksu on nazwa_roota ( nazwa_pola )
+create string index nazwa_indeksu on nazwa_roota ( nazwa_pola )
+create double index nazwa_indeksu on nazwa_roota ( nazwa_pola )
+
+wypisanie zalozonych indeksow: index
+
+delete index nazwa_indeksu
+
+dml - musza byc wewnatrz transakcji:
+
+wyszukanie wszystkich root'ow o wartosci indeksowanego pola rownej A: index nazwa_indeksu = zapytanie_A
+wyszukanie od A (wlacznie z A) do B (bez B): index nazwa_indeksu <| zapytanie_A zapytanie_B |)
+wyszukanie wszystkich mniejszych lub rownych A: index nazwa_indeksu zapytanie_A |>
+wyszukanie wszystkich wiekszych od A: index nazwa_indeksu (| zapytanie_A
+
+wiecej skladni w pliku Tests/Syntax.cpp
+
+zapytania uzywane w indeksach powinny wyliczac sie do wartosci odpowiedniego typu (zaleznie od typu indeksu) lub do zbioru/kolekcji/struktury zawierajacego jeden element
