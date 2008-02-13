@@ -1,3 +1,8 @@
+2008-02-13  Piotr Turski  <pt209301@students.mimuw.edu.pl>
+
+	* Indexes/IndexManager.cpp, Indexes/Tests/Bugs.cpp, Indexes/Tests/Makefile, Indexes/Tests/Suits.h, Indexes/Tests/testRun.cpp:
+	poprawiona obsluga bledow + testy do tej poprawki
+
 2008-02-12  Maksymilian Humpich  <mh209206@students.mimuw.edu.pl>
 
 	* Errors/Errors.h, QueryParser/QueryParser.cpp, QueryParser/Stack.h:
