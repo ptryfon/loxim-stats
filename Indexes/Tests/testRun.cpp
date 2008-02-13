@@ -32,6 +32,7 @@ int main(int argc, const char* argv[]) {
     srunner_add_suite(sr, cleaning());
     srunner_add_suite(sr, stateSaving());
     srunner_add_suite(sr, dropping());
+    srunner_add_suite(sr, bugs());
     
     if (Tester::isDebugMode()) {
     	srunner_set_fork_status(sr, CK_NOFORK); //NOFORK - wspolna przestrzen adresowa - latwieszy debug, mniej stabilne

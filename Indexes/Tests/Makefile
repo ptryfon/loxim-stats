@@ -3,7 +3,7 @@ include ../../make.defs
 #HEADERS	=		Suits.h
 SOURCES	=		NodeBuffer.cpp BTreeTest.cpp Tester.cpp testRun.cpp ComparatorTest.cpp ScopeSelection.cpp \
 				IntegrationTest.cpp ConnectionThread.cpp ParentName.cpp ImplicitCalling.cpp Syntax.cpp \
-				CleanTest.cpp StateSaving.cpp DropNodes.cpp
+				CleanTest.cpp StateSaving.cpp DropNodes.cpp Bugs.cpp
 PROGRAM	=		testRun
 STATIC_LIB=		
 

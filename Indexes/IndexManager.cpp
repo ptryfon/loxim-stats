@@ -563,12 +563,12 @@ namespace Indexes
 		if ((err = indexListSem->lock_read())) {
 			return err;
 		}
-		if ((err = prepareToDrop(indexName, it, indexLid))) {
-			return err;
+		int err2 = prepareToDrop(indexName, it, indexLid);
+		
+		if (err2 == 0) {
+			err2 = it->second->changeState(IndexHandler::READY, IndexHandler::DROPPING);
 		}
 		
-		int err2 = it->second->changeState(IndexHandler::READY, IndexHandler::DROPPING);
-
 		if ((err = indexListSem->unlock())) {
 			return err;
 		}

@@ -49,4 +49,5 @@ Suite * optimisation();
 Suite * cleaning();
 Suite * stateSaving();
 Suite * dropping();
+Suite * bugs();
 #endif /*__SUITS_H__*/
