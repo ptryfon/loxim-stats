@@ -17,6 +17,7 @@ namespace QParser{
 	class Deb;
 	class DeathRmver;
 	class Card;
+
 }
 
 namespace TManager{

@@ -34,7 +34,13 @@ namespace TypeCheck
 		if (actId >= 0)	this->actionIds.push_back(actId);
 	}
 	
+	void TypeCheckResult::addErrorPart(string part) {
+		this->errorParts.push_back(part);
+	}
+	
 	string TypeCheckResult::printAllInfo() {
+cout << "in printAll!\n";
+
 		string str = "";
 		str += "[sig: " +(getSig() != NULL ? getSig()->toString() : "NULL") + "] \n ";
 		str += "[effect: " + getEffect() + "] \n ";
@@ -43,21 +49,38 @@ namespace TypeCheck
 		str += "[dynCtrl: " + dynStr + "] \n ";
 		
 		sout << actionIds.size();
-		str += "[actions: " + sout.str() + "] \n ";
+		str += "[actions: " + sout.str() + "] ";
 		sout.str("");
+		
 		for (unsigned int i = 0; i < actionIds.size(); i++) {
 			if (i > 0) str += ", ";
 			sout << actionIds.at(i);
 			str += sout.str();
 			sout.str("");
 		} str += "\n";
+		
+		if (errorParts.size() > 0) {
+			str += "[errorPts: ";
+			for (unsigned int i = 0; i < errorParts.size(); i++) {
+				if (i > 0) str += ", ";
+				str += errorParts.at(i);
+			} str += "]\n";
+		} else {str += "No errorParts\n";}
 		return str;
 	}
 	
 	void TypeCheckResult::clear() {
-		resultSig = NULL; effect = ""; dynCtrl = false;
+		if (resultSig != NULL) delete resultSig;
+		resultSig = NULL; effect = ""; dynCtrl = false; errorParts.clear(); actionIds.clear();
 	}
-	
+	void TypeCheckResult::fill(TypeCheckResult &tcr) {
+		tcr.clear();
+		if (resultSig != NULL) tcr.setSig(resultSig->clone());
+		for (unsigned int i = 0; i < actionIds.size(); i++) tcr.addActionId(actionIds.at(i));
+		for (unsigned int i = 0; i < errorParts.size(); i++) tcr.addErrorPart(errorParts.at(i));
+		tcr.setEffect(effect);
+		tcr.setDynCtrl(dynCtrl);
+	}
 	TypeCheckResult::~TypeCheckResult() {
 		if (resultSig != NULL) { 
 			delete resultSig;

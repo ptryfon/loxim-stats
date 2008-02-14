@@ -24,24 +24,30 @@ using namespace QParser;
 using namespace TManager;
 using namespace std;
 
-//#define INDEX_DEBUG_MODE 
+
 
 namespace TypeCheck
 {
-
+#define SIG_BASE	"base"
+#define SIG_CARD	"card"
+#define SIG_CK		"collectionKind"
+#define SIG_TN		"typeName"
+#define SIG_MUT		"mutability"
+	
 	class DecisionTableHandler{
 	private:
 		static DecisionTableHandler *dTableHandler;
 		DecisionTableHandler(){}
-		map<int, UnOpDecisionTable*> unOpDTables;
 		map<int, DecisionTable*> algOpDTables;
 		map<int, DecisionTable*> nonAlgOpDTables;
+		map<int, UnOpDecisionTable*> unOpDTables;
+		map<int, DecisionTable*> otherBinaryDTables;
+		map<int, UnOpDecisionTable*> otherUnaryDTables;
 	
 	public:
 		static DecisionTableHandler *getHandle();
 		DecisionTable *getDTable(int algOrNonAlg, int op);
-		UnOpDecisionTable *getUnOpDTable(int op);
-		UnOpDecisionTable *getUnOpDTable(int op, string param, int optParam);
+		UnOpDecisionTable *getUnOpDTable(int treeType, int op);
 		~DecisionTableHandler();
 	};
 
@@ -73,7 +79,7 @@ namespace TypeCheck
 		//TypeChecker *tcOwner; use this only if function pointers require it to be here...  
 	public: 
 		enum ResultGenerator {CD_ADDBANDS, CD_MULTBANDS, BS_COPY_L, BS_COPY_R, ARG_COPY_L, ARG_COPY_R, CD_COPY_L_ZR, CK_COPY_L, BS_STRUCT};
-		DecisionTable() {/*tcOwner = NULL;*/}
+		DecisionTable() {}
 		DecisionTable(int opType, int op);
 		virtual void provideReturnLinks();
 		virtual void provideReturnLinksForVector(vector<TCRule> &v);
@@ -92,12 +98,14 @@ namespace TypeCheck
 		virtual Signature *doSig(int method, Signature *lSig, Signature *rSig);
 		virtual string doAttr(int method, string lArg, string rArg);
 		
-		virtual int applyRuleset (vector<TCRule> ruleSet, Signature *lSig, Signature *rSig, string leftArg, string rightArg, TypeCheckResult &finalResult);
+		virtual int applyRuleset (vector<TCRule> ruleSet, string atr, Signature *lSig, Signature *rSig, string leftArg, string rightArg, TypeCheckResult &finalResult);
 		virtual int getResult(TypeCheckResult &finalResult, Signature *lSig, Signature *rSig);
 		
 		virtual void initAlgOpRules(int op);
 		virtual void initNonAlgOpRules(int op);
-
+		//in case new operators are added...
+		virtual void initOtherBinaryRules(int op) {};
+		
 		void addTcRule (string lArg, string rArg, string result);
 		void addTcRule (string specArg, string lArg, string rArg, string result);
 		void addTcRule (string specArg, string lArg, string rArg, int resultGen);
@@ -134,40 +142,29 @@ namespace TypeCheck
 		vector<UnOpRule> typeNameRules;
 		vector<UnOpRule> collKindRules;
 		int op;
-		string param;	//often - name, e.g. :name as, group as, create... 
-		int optParam;	//when treeNode is defined by more params. Thats rare, but eg. nameAs may be grouped or not.
 	public:
 		enum ResultGenerator {BS_COPY, ARG_COPY, BS_NAMEAS, CD_NAMEAS, CK_NAMEAS, BS_REF_DEREF};
 		UnOpDecisionTable(){ }
-		UnOpDecisionTable(int oper) {
-			op = oper;
-			param = "";
-			initUnOpRules(op);	
-		}
-		UnOpDecisionTable(int oper, string _param, int _optParam) {
-			param = _param;
-			op = oper;	
-			optParam = _optParam;
-			initUnOpRules((-1) * op);//to differentiate from normal unOps - these will be compared to TreeNode enum types.
-		}
+		UnOpDecisionTable(int treeType, int oper) : op(oper) { initUnOpRules(treeType, op); }
+
 		virtual void provideReturnLinks();
 		virtual void provideReturnLinksForVector(vector<UnOpRule> &v);
 		
-		virtual string getParam() {return param;}
-		virtual void setParam(string newParam) {param = newParam;}
-		virtual TypeCheckResult getResult(int op, Signature arg);
 		virtual int getResult(TypeCheckResult &finalResult, Signature *sig);
-		virtual int applyRuleset (vector<UnOpRule> ruleSet, Signature *sig, string textArg, TypeCheckResult &finalResult);
-		virtual void initUnOpRules(int op);
+		// getResult for complex treeNodes (eg. name as / group as)...
+		virtual int getResult(TypeCheckResult &finalResult, Signature *sig, string param, int option); 
+		virtual int applyRuleset (vector<UnOpRule> ruleSet, string atr, Signature *sig, string textArg, TypeCheckResult &finalResult, string param, int option);
+		virtual void initUnOpRules(int treeType, int op);
 		
 		/** methods being result generators.. */ //or should these be in Rule/TCResult?
-		virtual Signature *nameAsSig(Signature *sig);
+		virtual Signature *nameAsSig(Signature *sig, string name, int grouped);
 		virtual Signature *refDerefSig(Signature *sig);
+		virtual Signature *copySig(Signature *sig);
 //		Signature *leftSig(Signature *lSig, Signature *rSig);
 //		Signature *rightSig(Signature *lSig, Signature *rSig);
 //		Signature *doStruct(Signature *lSig, Signature *rSig);
-		virtual string cdNameAs(string card);
-		virtual string ckNameAs(string card);
+		virtual string cdNameAs(string card, int grouped);
+		virtual string ckNameAs(string card, int grouped);
 //		string cdAddBands(string lCard, string rCard);
 //		string cdMultiplyBands(string lCard, string rCard);
 //		string copyLeftArg(string l, string r);
@@ -175,9 +172,8 @@ namespace TypeCheck
 //		string cdCopyLeftWithZero(string lCard, string rCard);
 		/** end of result generating methods..*/
 		
-		virtual Signature *doSig(int method, Signature *sig);
-		virtual string doAttr(int method, string arg);
-		
+		virtual Signature *doSig(int method, Signature *sig, string param, int option);
+		virtual string doAttr(int method, string arg, string param, int option);
 		
 //		void addTcRule (string arg, string result);
 		void addTcRule (string specArg, string arg, string result);

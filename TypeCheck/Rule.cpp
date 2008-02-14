@@ -39,10 +39,11 @@ namespace TypeCheck
 		return false; /* rule doesn't match given input. */
 	}
 	
-	int TCRule::getResult(Signature *lSig, Signature *rSig, TypeCheckResult &retResult) {
+	int TCRule::getResult(string atr, Signature *lSig, Signature *rSig, TypeCheckResult &retResult) {
 		if (this->result == TC_RS_ERROR) {
 			retResult.setEffect(TC_RS_ERROR); //should give more info on the error, but.. HERE?
-			//or outside this method- from typechecker?
+			cout << "tc rule: setting an error part: " << atr << endl;
+			retResult.addErrorPart(atr);
 			return 0;
 		}
 		cout << "RULE::getResult: not and error rule" << endl;
@@ -167,10 +168,12 @@ namespace TypeCheck
 		dynCtrl = (dStr == "DYN");
 	}
 	
-	int UnOpRule::getResult(Signature *sig, TypeCheckResult &retResult) {
+	int UnOpRule::getResult(string atr, Signature *sig, TypeCheckResult &retResult, string param, int option) {
 		cout << "in unoprule, getResult" << endl;
 		if (this->result == TC_RS_ERROR) {
 			retResult.setEffect(TC_RS_ERROR); 
+			cout << "gonna set error part: " << atr << endl;
+			retResult.addErrorPart(atr);
 			return 0;
 		}
 		if (needsAction()) {
@@ -183,7 +186,7 @@ namespace TypeCheck
 			return getSimpleResult(sig, retResult);
 		} else {
 			cout << "in unoprule, get GENERATEEDD Result" << endl;
-			return getGeneratedResult(sig, retResult);
+			return getGeneratedResult(sig, retResult, param, option);
 		}
 		return 0;
 	}
@@ -200,17 +203,15 @@ namespace TypeCheck
 				retResult.getSig()->setTypeName(this->result);
 				break;}
 			case Rule::COLLKIND: { 
-				if (retResult.getSig()->isColl()) {
-					((SigColl *)retResult.getSig())->setCollTypeByString(this->result);
-				}
+				retResult.getSig()->setCollKind(this->result);
 				break;}
 			default: return -1; //unknown Rule type... 
 		}
 		return 0;
 	}
-	
-	int UnOpRule::getGeneratedResult(Signature *argSig, TypeCheckResult &retResult) {
-		cout << "in unoprule, getGENResult" << endl;
+		
+	int UnOpRule::getGeneratedResult(Signature *argSig, TypeCheckResult &retResult, string param, int option) {
+		cout << "in unoprule, getGENResult extended" << endl;
 		if (dTable == NULL) {
 			cout << "in unoprule, dTable IS NULL" << endl;
 		} else {
@@ -218,24 +219,23 @@ namespace TypeCheck
 		}
 		switch (this->getRuleType()) {
 			case Rule::BASE: {
-				retResult.setSig(dTable->doSig(this->sigGen, argSig));
-				retResult.getSig()->putToString();
+				retResult.setSig(dTable->doSig(this->sigGen, argSig, param, option));
 				break;}
 			case Rule::CARD: {
-				retResult.getSig()->setCard(dTable->doAttr(attrGen, argSig->getCard()));
+				retResult.getSig()->setCard(dTable->doAttr(attrGen, argSig->getCard(), param, option));
 				break;}
 			case Rule::TYPENAME: { 
-				retResult.getSig()->setTypeName(dTable->doAttr(attrGen, argSig->getTypeName()));
+				retResult.getSig()->setTypeName(dTable->doAttr(attrGen, argSig->getTypeName(), param, option));
 				break;}
-			case Rule::COLLKIND: { 
-				if (retResult.getSig()->isColl()) {
-					((SigColl *)retResult.getSig())->setCollTypeByString(dTable->doAttr(attrGen, argSig->textType()));
-				}
+			case Rule::COLLKIND: {
+				retResult.getSig()->setCollKind(dTable->doAttr(attrGen, argSig->getCollKind(), param, option));
 				break;}
 			default: return -1; //unknown Rule type... 
 		}
 		return 0;
 	}
+	
+	
 	
 /** --------------- end of UnOpRule methods --------------- */
 

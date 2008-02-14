@@ -71,7 +71,7 @@ namespace TypeCheck
 		virtual void setDTable(DTable *dt) {dTable = (DecisionTable *)dt;};
 		//appliesTo(string arg); - makes no sense here, so returns false as in Rule.
 		virtual bool appliesTo(string lArg, string rArg);
-		virtual int getResult(Signature *lSig, Signature *rSig, TypeCheckResult &retResult);		
+		virtual int getResult(string atr, Signature *lSig, Signature *rSig, TypeCheckResult &retResult);		
 		virtual int getSimpleResult(Signature *lSig, Signature *rSig, TypeCheckResult &retResult);
 		virtual int getGeneratedResult(Signature *lSig, Signature *rSig, TypeCheckResult &retResult);
 		virtual void coutMe();
@@ -106,9 +106,9 @@ namespace TypeCheck
 			return false; /* rule doesn't match given input. */
 		}
 		virtual void setDTable(DTable *dt) {dTable = (UnOpDecisionTable *)dt;};
-		virtual int getResult(Signature *sig, TypeCheckResult &retResult);
-		virtual int getSimpleResult(Signature *sig, TypeCheckResult &retResult); // { Deb::ug("unopresult"); return 0;}
-		virtual int getGeneratedResult(Signature *sig, TypeCheckResult &retResult); // {Deb::ug("unopresult"); return 0;}
+		virtual int getResult(string atr, Signature *sig, TypeCheckResult &retResult, string param, int option);
+		virtual int getSimpleResult(Signature *sig, TypeCheckResult &retResult); 
+		virtual int getGeneratedResult(Signature *sig, TypeCheckResult &retResult, string param, int option);
 		virtual void coutMe() {cout << "unoprule, (" << arg << ")->" << result << "." << endl;}
 		virtual ~UnOpRule() {}
 	};

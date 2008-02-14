@@ -22,6 +22,9 @@ class Constraints;
 
 using namespace Indexes;
 namespace QParser {
+//for new treeNodes - make sure this is larger than the number of their inner operators/kinds. 
+#define _TN_MAX_OP		30
+	
 	enum CreateType { CT_CREATE, CT_UPDATE, CT_CREATE_OR_UPDATE };
 
 // statement (the starting symbol)
@@ -67,7 +70,7 @@ namespace QParser {
 	    TNINTERFACEMETHODLISTNODE, TNINTERFACEMETHOD, TNINTERFACEMETHODPARAMLISTNODE, TNINTERFACEMETHODPARAM,
 	    TNREGINTERFACE, TNREGCLASS, TNCLASS, TNDML, TNINCLUDES, TNEXCLUDES, TNCAST, TNINSTANCEOF, TNSYSTEMVIEWNAME,
 	 	TNINTERFACEBIND, TNINTERFACEINNERLINKAGELIST, TNINTERFACEINNERLINKAGE, TNSIGNATURE, TNOBJDECL, TNSTRUCTTYPE,
-		TNTYPEDEF};
+		TNTYPEDEF, TNCOERCE};
 	 
 	TreeNode() : parent(NULL) { 
 		this->needed = false;
@@ -157,8 +160,9 @@ namespace QParser {
 		return (tp == TNTRANS || tp == TNDML || tp == TNOBJDECL || tp == TNTYPEDEF || tp == TNVALIDATION);
 	}
 	virtual void qpLocalAction(QueryParser *qp);
-	virtual int augmentTreeDeref(bool derefLeft, bool derefRight) {Deb::ug("augmentTreeDeref at Treenode"); return 0;};
-	
+	virtual int augmentTreeDeref(bool derefLeft, bool derefRight) {Deb::ug("augmentDeref at Treenode"); return 0;};
+	virtual int augmentTreeCoerce(int coerceType, bool augLeft, bool augRight) {Deb::ug("augmentCoerce at TN");return 0;}
+	virtual int augmentTreeCoerce(int coerceType) {Deb::ug("augmentCoerce(1arg) at TN"); return 0;}
     };
 
 // statement := query
@@ -169,6 +173,7 @@ namespace QParser {
 	virtual int type()=0;
 	virtual int putToString()=0;
 	virtual string deParse()=0;
+	
 	virtual void getInfixList(vector<TreeNode*> *auxVec){
 		auxVec->push_back(this);
 	}
@@ -685,6 +690,7 @@ namespace QParser {
 		this->getRArg()->getInfixList(auxVec);
 	}
 	virtual int augmentTreeDeref(bool derefLeft, bool derefRight);
+	virtual int augmentTreeCoerce(int coerceType, bool augLeft, bool augRight);
     };
     
 // atomic nodes with string/int/double/bool value
@@ -1109,6 +1115,7 @@ namespace QParser {
 	}    	
 	
 	virtual int augmentTreeDeref(bool derefLeft, bool derefRight);
+	virtual int augmentTreeCoerce(int coerceType);
 	
 	virtual int staticEval (StatQResStack *&qres, StatEnvStack *&envs);		
 	virtual int optimizeTree() {return arg->optimizeTree();}
@@ -2770,6 +2777,100 @@ class InterfaceInnerLinkage: public TreeNode {
 			}
 			virtual ~TypeDefNode() {if (this->signature != NULL) delete this->signature;};
 	};
+	
+	
+	class CoerceNode : public QueryNode 
+	{
+		public:
+			enum CoerceType {to_string, to_double, to_bool, element, to_bag, to_seq};
+		protected:
+			QueryNode* arg;
+			int cType;
+		public:
+			CoerceNode(QueryNode* _arg, int _ctp) : arg(_arg), cType(_ctp) {arg->setParent(this);}
+			virtual TreeNode* clone();
+			virtual int type() { return TreeNode::TNCOERCE; }
+			virtual TreeNode* getArg() { return arg; }
+			int getCType() {return cType;}
+			void seCType(int ctp) { cType = ctp; }
+			virtual void setArg(QueryNode* _arg) { arg = _arg; arg->setParent(this); }
+			
+
+			virtual void markNeeded(){
+				this->setNeeded(true);
+				this->getArg()->markNeeded();	
+			}
+			virtual void markNeeded2(){
+				this->setNeeded(true);
+				this->getArg()->markNeeded2();	
+			}
+			virtual TreeNode * getDeath(){
+				return this->getArg()->getDeath();
+			}
+			virtual void getInfixList(vector<TreeNode*> *auxVec){
+				auxVec->push_back(this);
+				this->getArg()->getInfixList(auxVec);
+			}
+
+			virtual string toString( int level = 0, bool recursive = false, string name = "" ) {
+				string result = getPrefixForLevel( level, name ) + "[Coerce] cType=" + ctStr() + "\n";
+				if( recursive ) {
+					if( arg ) result += arg->toString( level+1, true, "arg" );
+				}
+				return result;
+			}
+			virtual int putToString() {
+				cout << "(" << ctStr();
+				if (arg!= NULL) arg->putToString();
+				else cout << "___";
+				cout << ")";    
+				return 0;
+			}
+			virtual void serialize(){
+				cout << "(" << ctStr();
+				if (arg!= NULL) arg->serialize();
+				else cout << "___";
+				cout << ")"; 
+			}
+			virtual string ctStr() {
+				switch (cType) {
+					case to_string : return "toString";
+					case to_double : return "toDouble";
+					case to_bool : return "toBoolean";
+					case element : return "element";
+					case to_bag : return "toBag";
+					case to_seq : return "toSequence";
+				}
+				return "_";
+			}
+
+			virtual int swapSon (TreeNode *oldSon, TreeNode *newSon) {
+				if (arg != oldSon) return -1;
+				newSon->setParent(this);
+				this->setArg((QueryNode *) newSon); 
+				return 0;
+			}    	
+	
+			virtual int staticEval (StatQResStack *&qres, StatEnvStack *&envs);		
+			virtual int optimizeTree() {return arg->optimizeTree();}
+			virtual ~CoerceNode() { if (arg != NULL) delete arg; }
+	
+			//coerces are hidden nodes - not seen through deparse - parser can't handle them.
+			virtual string deParse() { 
+				return arg->deParse();
+			}
+
+	};  
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	/** End of TypeCheck TreeNode class declarations... */
 	
 	// Index Data Manipulation Language

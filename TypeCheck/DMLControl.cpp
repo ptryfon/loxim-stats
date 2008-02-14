@@ -27,6 +27,7 @@ namespace TypeCheck {
 		delete roots;
 		delete rootTypes;
 		if (newTransaction) tr->commit();
+		return 0;
 	}
 	
 	int DMLControl::registerRootMdns(vector<ObjectPointer *> *vec, MdnRootKind mdnKind) {
@@ -36,6 +37,7 @@ namespace TypeCheck {
 			vector<LogicalID*> *v = mdnOp->getValue()->getVector();
 			registerRootMdnsRec(v, rootName, mdnKind, true);
 		}
+		return 0;
 	}
 			
 	int DMLControl::registerRootMdnsRec(vector<LogicalID*> *v, string rootName, MdnRootKind mdnKind, bool topLevel) {
@@ -65,6 +67,7 @@ namespace TypeCheck {
 				}
 			}
 		}
+		return 0;
 	}
 		
 	int DMLControl::findRoot(string name) {

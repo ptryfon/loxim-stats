@@ -316,7 +316,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 		    else {
 			*result = new QueryBoolResult(false);
 		    }
-		}	/** Type declarations / definitions */
+		}	/** Type declarations / definitions, TC nodes */
 		else if (nodeType == TreeNode::TNOBJDECL) {
 			*ec << "Will try execute object declaration\n";
 			errcode = this->executeObjectDeclarationOrTypeDefinition((DeclareDefineNode *) tree, false);
@@ -1718,8 +1718,6 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			return 0;
 		}
 		
-		
-		
 		case TreeNode::TNCREATE: {
 			*ec << "[QE] Type: TNCREATE";
 			QueryResult *result = new QueryBagResult();
@@ -2509,6 +2507,25 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			delete vec;
 			qres->push(r);
 			return 0;
+		}
+		case TreeNode::TNCOERCE : {
+			CoerceNode *cn = (CoerceNode *) tree;
+			int cType = cn->getCType();
+			*ec << "[QE] COERCE Node processed... ";
+			errcode = executeRecQuery(cn->getArg());
+			if (errcode != 0) return errcode;
+			QueryResult *tmp_result;
+			errcode = qres->pop(tmp_result);
+			if (errcode != 0) return errcode;
+			
+			QueryResult *op_result;
+			errcode = this->coerceOperate(cType, tmp_result, op_result);
+			if (errcode != 0) return errcode;
+			
+			errcode = qres->push(op_result);
+			if (errcode != 0) return errcode;
+			*ec << "[QE] COERCE Node Done!";
+			return 0;	
 		}
 		default:
 			{
@@ -3537,6 +3554,40 @@ int QueryExecutor::persistDelete(QueryResult* bagArg) {
 	}
 	return 0;
 }
+
+int QueryExecutor::coerceOperate(int cType, QueryResult *arg, QueryResult *&final) {
+	int errcode;
+	switch (cType) {
+		case CoerceNode::to_string : {
+			*ec << "	Coercing to string";
+			
+			break;
+		}
+		case CoerceNode::to_double : {
+			*ec << "	Coercing to double";
+		}
+		case CoerceNode::to_bool : {
+			*ec << "	Coercing to bool";
+			break;
+		}
+		case CoerceNode::element : {
+			*ec << "	Coercing - element()";
+			break;
+		}
+		case CoerceNode::to_bag : {
+			*ec << "	Coercing to bag";
+			break;
+		}
+		case CoerceNode::to_seq : {
+			*ec << "	Coercing to sequence";
+			break;
+		}
+		default: *ec << "	Coerce type not recognized";
+	}
+	final = arg;
+	return 0;
+}
+
 
 int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResult *rArg, QueryResult *&final) {
 	int errcode;

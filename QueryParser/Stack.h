@@ -67,6 +67,7 @@ namespace QParser {
 		int currSize;		/* the size of the stack (the number of QStackElem elements.
 						 * eg. for EnvStack - its the nr. of sections */
     public:
+		
 		virtual QStackElem *getElts() {return this->elts;}
 		virtual void setElts(QStackElem *newElts) { this->elts = newElts; }
 		virtual int getSize() {return this->currSize;}
@@ -177,7 +178,13 @@ namespace QParser {
 		virtual string getCard(){return this->card;}
 		virtual void setCard(string _card){
 			this->card = _card; //and set default collectionKind if needed...
-			if ((card[3] == '*') && (collectionKind == "")) collectionKind = "bag";
+			if (card[3] == '1') collectionKind = "";
+			else if ((card[3] == '*') && (collectionKind == "")) collectionKind = "bag";
+		}
+		virtual void setCardMultiple() {
+			stringstream conv;
+			conv << card[0] << ".." << '*';
+			card = conv.str();
 		}
 		virtual int type() {return 0;}
 		virtual bool isAtom () {return false;} /* overridden only in SigAtom */
@@ -189,6 +196,9 @@ namespace QParser {
 		virtual void putToString () { cout << "(signature) ";if (this->next != NULL) next->putToString();}
 		virtual string toString() { return "BaseSignature";}
 		virtual string attrsToString() {return distinctTypeName + "[" +card + "]" + collectionKind;}
+		virtual void copyAttrsOf(Signature *sig) {
+			setTypeName(sig->getTypeName()); setCollKind(sig->getCollKind()); setCard(sig->getCard());
+		}
 		virtual ~Signature() {}// cout << "entered top SIG destructor" << endl; if (this->next != NULL) delete this->next; }
 	};
 	
@@ -357,6 +367,11 @@ namespace QParser {
 				else value->putToString();
 				cout << ")) ";
 				if (next != NULL) next->putToString();
+			}
+			virtual string toString() {
+				string ret = "(" + name + "(" + (value == NULL ? "__" : value->toString()) + ")) ";
+				if (next != NULL) ret += next->toString();
+				return ret;
 			}
 			virtual ~StatBinder() {cout << "entered statBinder destr" << endl; if (value != NULL) {Deb::ug( "value to kil\n");delete value; }
 				if (next != NULL){ Deb::ug("next binder to kil\n"); delete next;}

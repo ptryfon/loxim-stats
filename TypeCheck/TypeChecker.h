@@ -65,8 +65,8 @@ namespace TypeCheck
 	private:
 		string type;		//"BAD_ARG", "BAD_NAME", ...
 		string outputText;
-		
-		string typeTostr(int errType) {
+		vector<string> errorParts;
+		string typeToStr(int errType) {
 			switch(errType) {
 				case BNAME : return "Bad Name";
 				case ARG_ALG : 
@@ -80,23 +80,35 @@ namespace TypeCheck
 	public:
 		enum TcErrorType {BNAME, ARG_ALG, ARG_NALG, ARG_UNOP, ARG_AS };
 		TCError(){};
-		TCError(string type, string output) {this->type = type; this->outputText = output;}
-		TCError(int errType, string attr1, string attr2 = "", string attr3 = "", string attr4 = "") {
-			this->type = typeTostr(errType);
+		TCError(int errType, string output) {
+			this->type = typeToStr(errType); 
+			this->outputText = generateOutputText(errType, output);
+		}
+		TCError(int errType, vector<string> er, string attr1, string attr2 = "", string attr3 = "", string attr4 = "") {
+			this->type = typeToStr(errType);
+			for (unsigned int i = 0; i < er.size(); i++) errorParts.push_back(er.at(i));
 			this->outputText = generateOutputText(errType, attr1, attr2, attr3, attr4);
 		}
 		string generateOutputText(int errType, string attr1, string attr2 = "", string attr3 = "", string attr4 = "") {
 			switch (errType) {
 				case BNAME : return "Name " + attr1 + " not found.";
 				case ARG_ALG : 
-				case ARG_NALG: return "Invalid arguments for operator " + attr3 + " : " + attr1 + ", " + attr2 + ".";
-				case ARG_UNOP: return "Invalid argument for operator " + attr2 + " : " + attr1 + ".";	
-				case ARG_AS: return "Invalid argument for operator '" + attr2 + "' : " + attr1 + ".";
+				case ARG_NALG: return "Bad arguments for operator " + attr3 + " :\n	" + attr1 + ", " + attr2 + ".";
+				case ARG_UNOP: return "Bad argument for operator " + attr2 + " :\n	" + attr1 + ".";	
+				case ARG_AS: return "Bad argument for operator '" + attr2 + "' " + attr3 + " : " + attr1 + ".";
 			}
 			return "Unspecified error";
 		}
 		virtual string getOutput() {
-			return "[error: " +type + "] : " + outputText;
+			string ret = "[error: " +type + "] : " + outputText + "\n";
+			if (errorParts.size() > 0) {
+				ret += "	Failed attributes: ";
+				for (unsigned int i = 0; i < errorParts.size(); i++) {
+					if (i > 0) ret += ", ";
+					ret += errorParts.at(i);
+				}
+			}
+			return ret;
 		}	
 		virtual ~TCError(){};
 	};
@@ -139,6 +151,7 @@ namespace TypeCheck
 			cout << "Added error to globalresult" << endl;
 		}
 		virtual void setOverallResult(string res) {this->overallResult = res;}
+		virtual bool isError() {return overallResult == TC_RS_ERROR;}
 		virtual void printOutput();
 		virtual string getOutput();
 		virtual ~TCGlobalResult(){};
@@ -153,8 +166,13 @@ namespace TypeCheck
 		TreeNode *tNode;			//	the query tree to be type-checked.
 		//DecisionTableHandler dTables;
 		
+		int openScope(Signature *sig);
+		int closeScope(Signature *sig);
+		int trySingleDeref(Signature *sig, Signature *&sigIn, TypeCheckResult &tmpTcRes, bool &doDeref);
 	public:
-		enum TcAction {CD_COERCE_11, CD_COERCE_11_L, CD_COERCE_11_R, BS_TOSTR_L, BS_TOSTR_R };
+		enum TcAction {	CD_COERCE_11, CD_COERCE_11_L, CD_COERCE_11_R, CD_COERCE_11_B, 
+						BS_TOSTR, BS_TOSTR_L, BS_TOSTR_R, BS_TOSTR_B,
+						BS_TOBOOL, BS_TOBOOL_L, BS_TOBOOL_R, BS_TOBOOL_B};
 
 		TypeChecker();
 		TypeChecker(TreeNode *tn);
@@ -165,12 +183,17 @@ namespace TypeCheck
 		virtual DecisionTableHandler *getDTables() {return DecisionTableHandler::getHandle();}
 		virtual DecisionTable *getDTable(int algOrNonAlg, int op) {return DecisionTableHandler::getHandle()->getDTable(algOrNonAlg, op);}
 		
-	/** augment...() methods, to be pointed to in TCResults.. */
-		virtual int coerceCardsTo11(TreeNode *tn, Signature *lSig, Signature*rSig);
-		virtual int coerceOneCardTo11(TreeNode *tn, Signature *sig);
-		virtual int coerceToString(bool leftArg, bool rightArg);
-	/** end of pointered methods... */
-		virtual int performAction(int actionId, TreeNode *tn, Signature *lSig, Signature *rSig, TypeCheckResult *tcr);
+		/** augment...() methods, to be pointed to in TCResults.. */
+		virtual int coerceCardsTo11(TreeNode *tn);
+		virtual int coerceOneCardTo11(TreeNode *tn, bool isLeft);
+		virtual int coerceCardTo11(TreeNode *tn);
+		virtual int coerceToString(TreeNode *tn, bool leftArg, bool rightArg);
+		virtual int coerceToString(TreeNode *tn);
+		virtual int coerceToBool(TreeNode *tn, bool augLeft, bool augRight);
+		virtual int coerceToBool(TreeNode *tn);
+	
+		/** end of pointered methods... */
+		virtual int performAction(int actionId, TreeNode *tn, Signature *lSig, Signature *rSig, TypeCheckResult &tcr);
 		virtual void reportTypeError(TCError err) { return this->globalResult.reportTypeError(err);};
 		virtual int doTypeChecking(string &s);
 		
@@ -178,16 +201,15 @@ namespace TypeCheck
 		virtual bool bindError(vector<BinderWrap*> *vec);
 		virtual Signature* extractSigFromBindVector(vector<BinderWrap*> *vec);
 		virtual int augmentTreeEllipsis(TreeNode *tn, string name, vector<BinderWrap*> *vec, string expander);
-		/** Will these arguments be enough... ? */
+
 		virtual int augmentTreeCoerce(TreeNode *tn, Signature *lSig, Signature *rSig, TypeCheckResult &tcRes);
 		
 		virtual int augmentTreeDeref(TreeNode *tn, DecisionTable *dt, TypeCheckResult &tcRes, Signature *lSig, Signature *rSig);
 		virtual int augmentTreeDeref(TreeNode *tn, UnOpDecisionTable *udt, TypeCheckResult &tcRes, Signature *sig);
 		
-		virtual int trySingleDeref(Signature *sig, Signature *sigIn, TypeCheckResult &tmpTcRes, bool &doDeref);
-		
 		virtual int restoreAfterMisspelledName(TreeNode *tn, string name, vector<BinderWrap*> *vec);
-		
+		virtual int restoreAfterBadArg(TreeNode *tn, DecisionTable *dt, TypeCheckResult &tcr, Signature *lSig, Signature *rSig);
+		virtual int restoreAfterBadArg(TreeNode *tn, UnOpDecisionTable *dt, TypeCheckResult &tcr, Signature *sig);	
 		virtual ~TypeChecker();
 		
 	};

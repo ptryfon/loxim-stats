@@ -22,6 +22,7 @@ namespace QParser
     TreeNode* DoubleNode::clone()   { DoubleNode * nowy = new DoubleNode(value); nowy->setOid(this->getOid()); return nowy; }
     TreeNode* NameAsNode::clone()   { NameAsNode * nowy =  new NameAsNode((QueryNode*)arg->clone(), name, group); nowy->setUsedBy(this->getUsedBy()); nowy->setOid(this->getOid()); return nowy;}
     TreeNode* UnOpNode::clone()     { TreeNode * nowy = new UnOpNode((QueryNode*)arg->clone(), op);  nowy->setOid(this->getOid()); return nowy;}
+	TreeNode* CoerceNode::clone()     { TreeNode * nowy = new CoerceNode((QueryNode*)arg->clone(), cType);  nowy->setOid(this->getOid()); return nowy;}
     TreeNode* AlgOpNode::clone()    { TreeNode * nowy = new AlgOpNode((QueryNode*)larg->clone(), (QueryNode*)rarg->clone(), op); nowy->setOid(this->getOid()); return nowy;}
     TreeNode* NonAlgOpNode::clone() { TreeNode * nowy = new NonAlgOpNode((QueryNode*)larg->clone(), (QueryNode*)rarg->clone(), op); nowy->setOid(this->getOid()); return nowy;}
     TreeNode* TransactNode::clone() { TreeNode * nowy = new TransactNode(op); nowy->setOid(this->getOid()); return nowy;}
@@ -1071,6 +1072,53 @@ namespace QParser
 		return 0;
 	}
 
+	
+	
+	int CoerceNode::staticEval (StatQResStack *&qres, StatEnvStack *&envs) {
+		Deb::ug("CoerceNode::staticEval()");
+		if (this->arg->staticEval(qres, envs) == -1) return -1;
+		Signature *topSig = qres->topSig();
+		qres->pop();
+		Signature *sig = NULL;
+		switch (cType) {
+			case CoerceNode::to_string : {
+				if (!topSig->isAtom()) return -1;
+				sig = new SigAtomType("string");
+				sig->copyAttrsOf(topSig);
+				qres->pushSig(sig);
+				break;
+			}
+			case CoerceNode::to_double : {
+				if (!topSig->isAtom()) return -1;
+				sig = new SigAtomType("double");
+				sig->copyAttrsOf(topSig);
+				qres->pushSig(sig);
+				break;
+			}
+			case CoerceNode::element : {
+				topSig->setCard("1..1");	// collKind autmatically set to "".
+				qres->pushSig(topSig->clone());
+				break;
+			} 
+			case CoerceNode::to_bag : {
+				topSig->setCardMultiple();
+				topSig->setCollKind("bag");
+				qres->pushSig(topSig->clone());
+				break;
+			}
+			case CoerceNode::to_seq : {
+				topSig->setCardMultiple();
+				topSig->setCollKind("sequence");
+				qres->pushSig(topSig->clone());
+                break;
+			}
+			default: qres->pushSig(topSig->clone()); break; 
+		}/*switch*/
+		this->evalCard();
+		return 0;
+	}
+
+	
 	string TreeNode::randomString(){
 	    char buf[21];
 	    buf[20] = 0;
@@ -1165,6 +1213,7 @@ TreeNode* TreeNode::getNodeByOid(vector<TreeNode*>* listVec, long oid){
 	return NULL;
 }
 
+
 /**
  *		TypeCheck specific begin...
  */
@@ -1183,7 +1232,26 @@ TreeNode* TreeNode::getNodeByOid(vector<TreeNode*>* listVec, long oid){
 		return 0;
 	}
 	
+	int TwoArgsNode::augmentTreeCoerce(int coerceType, bool augLeft, bool augRight) {
+		if (augLeft) {
+			CoerceNode *coerce = new CoerceNode(this->getLArg(), coerceType);
+			this->setLArg(coerce);
+		}
+		if (augRight) {
+			CoerceNode *coerce = new CoerceNode(this->getRArg(), coerceType);
+			this->setRArg(coerce);
+		}
+		return 0;
+	}
+	
+	int UnOpNode::augmentTreeCoerce(int coerceType) {
+		CoerceNode *coerce = new CoerceNode((QueryNode *)this->getArg(), coerceType);
+		this->setArg(coerce);
+		return 0;
+	}
+	
 	int UnOpNode::augmentTreeDeref(bool derefLeft, bool derefRight) {
+		//forget the second param
 		if (derefLeft) {
 			UnOpNode *deref = new UnOpNode(this->arg,UnOpNode::deref);
 			this->setArg(deref);
