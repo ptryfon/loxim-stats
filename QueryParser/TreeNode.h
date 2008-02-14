@@ -1073,7 +1073,7 @@ namespace QParser {
       }
 	virtual int putToString() {
 	    cout << "(";
-	    cout << this->opStr() ;
+	    cout << this->opStr() << " ";
 	    if (arg!= NULL) arg->putToString();
 	    else cout << "___";
 	    
@@ -1082,7 +1082,7 @@ namespace QParser {
 	}
 	virtual void serialize(){
 		cout << "(";
-	    cout << this->opStr() ;
+	    cout << this->opStr() << " ";
 	    if (arg!= NULL) arg->serialize();
 	    else cout << "___";
 	    
@@ -1271,7 +1271,7 @@ namespace QParser {
 		cout << "(";
 	    if (larg!= NULL) larg->serialize();
 	    else cout << "___";
-	    cout << this->opStr();
+	    cout << this->opStr() << " ";
 	    if (rarg!= NULL) rarg->serialize();
 	    else cout << "___";
 	    
@@ -2782,7 +2782,7 @@ class InterfaceInnerLinkage: public TreeNode {
 	class CoerceNode : public QueryNode 
 	{
 		public:
-			enum CoerceType {to_string, to_double, to_bool, element, to_bag, to_seq};
+			enum CoerceType {to_string, to_double, to_bool, to_int, element, to_bag, to_seq};
 		protected:
 			QueryNode* arg;
 			int cType;
@@ -2820,7 +2820,7 @@ class InterfaceInnerLinkage: public TreeNode {
 				return result;
 			}
 			virtual int putToString() {
-				cout << "(" << ctStr();
+				cout << "(" << ctStr() << " ";
 				if (arg!= NULL) arg->putToString();
 				else cout << "___";
 				cout << ")";    
@@ -2840,6 +2840,7 @@ class InterfaceInnerLinkage: public TreeNode {
 					case element : return "element";
 					case to_bag : return "toBag";
 					case to_seq : return "toSequence";
+					case to_int : return "toInteger";
 				}
 				return "_";
 			}

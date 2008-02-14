@@ -57,6 +57,13 @@ namespace Errors {
 
 // Executor
 #define ENumberExpected		0xC00
+#define ECrcToString		0xC10
+#define ECrcToDouble		0xC20
+#define ECrcToInt			0xC30
+#define ECrcToBool			0xC40
+#define ECrcEltEmptySet		0xC50
+#define ECrcEltMultiple		0xC60
+	
 #define EBoolExpected		0xD00
 #define ERefExpected		0xE00
 #define EBagOfRefExpected	0xE10
@@ -81,6 +88,7 @@ namespace Errors {
 #define EMdnCreateError		0x1980
 #define ERecurrentTypes		0x1990
 #define ESuchMdnExists		0x1991
+
 // Config
 #define ENotInit		0x1A00
 #define ENoValue		0x1B00

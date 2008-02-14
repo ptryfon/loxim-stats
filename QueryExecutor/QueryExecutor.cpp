@@ -2508,7 +2508,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			qres->push(r);
 			return 0;
 		}
-		case TreeNode::TNCOERCE : {
+		case TreeNode::TNCOERCE : { // May appear only through TC coerce augments
 			CoerceNode *cn = (CoerceNode *) tree;
 			int cType = cn->getCType();
 			*ec << "[QE] COERCE Node processed... ";
@@ -3555,34 +3555,176 @@ int QueryExecutor::persistDelete(QueryResult* bagArg) {
 	return 0;
 }
 
+// May appear only through TC coerce augments
 int QueryExecutor::coerceOperate(int cType, QueryResult *arg, QueryResult *&final) {
 	int errcode;
+	
 	switch (cType) {
 		case CoerceNode::to_string : {
 			*ec << "	Coercing to string";
-			
-			break;
+			string final_value = "";
+			stringstream ss;
+			switch(arg->type()) {
+				case QueryResult::QINT: {
+					ss << (((QueryIntResult *)arg)->getValue());
+					ss >> final_value;
+					break;
+				}
+				case QueryResult::QDOUBLE: {
+					ss << (((QueryDoubleResult *)arg)->getValue());
+					ss >> final_value;
+					break;
+				}
+				case QueryResult::QSTRING: {
+					final_value = ((QueryStringResult *)arg)->getValue();
+					break;
+				}
+				case QueryResult::QBOOL: {
+					final_value = (((QueryBoolResult *)arg)->getValue() ? "true" : "false");
+					break;
+				}
+				default: final = arg; return 0; // ignore the coerce
+			} 
+			final = new QueryStringResult(final_value);
+			return 0;
 		}
-		case CoerceNode::to_double : {
+		case CoerceNode::to_double : { // from int/double/string/bool
 			*ec << "	Coercing to double";
+			double final_value = 0.0;
+			stringstream ss;
+			switch (arg->type()) {
+				case QueryResult::QINT: {
+					final_value = double(((QueryIntResult *)arg)->getValue());
+					break;
+				}
+				case QueryResult::QDOUBLE: {
+					final_value = ((QueryDoubleResult *)arg)->getValue();
+					break;
+				}
+				case QueryResult::QSTRING: {
+					stringstream ss(((QueryStringResult *)arg)->getValue());
+					string rest = "";
+					bool wellDone = (ss >> final_value);
+					ss >> rest;
+					if (not wellDone || not rest.empty()) return (ErrQExecutor | ECrcToDouble);
+					break;
+				}
+				case QueryResult::QBOOL: {
+					final_value = (((QueryBoolResult *)arg)->getValue() ? 1.0 : 0.0);
+					break;
+				}
+				default: final = arg; return 0; // ignore the coerce
+			}
+			final = new QueryDoubleResult(final_value);
+			return 0;
 		}
-		case CoerceNode::to_bool : {
+		case CoerceNode::to_int : { // from int/double/string/bool (!) rounds doubles down to their int part
+			*ec << "	Coercing to integer";
+			int final_value = 0;
+			stringstream ss;
+			switch (arg->type()) {
+				case QueryResult::QINT: {
+					final_value = ((QueryIntResult *)arg)->getValue();
+					break;
+				}
+				case QueryResult::QDOUBLE: {
+					final_value = int(((QueryDoubleResult *)arg)->getValue());
+					break;
+				}
+				case QueryResult::QSTRING: {
+					stringstream ss(((QueryStringResult *)arg)->getValue());
+					string rest = "";
+					bool wellDone = (ss >> final_value);
+					ss >> rest;
+					if (not wellDone || (!rest.empty() && rest.at(0) != '.')) return (ErrQExecutor | ECrcToInt);
+					break;
+				}
+				case QueryResult::QBOOL : {
+					final_value = (((QueryBoolResult *)arg)->getValue() ? 1 : 0);
+					break;
+				}
+				default: final = arg; return 0; // ignore the coerce
+			}
+			final = new QueryDoubleResult(final_value);
+			return 0;
+		}
+		case CoerceNode::to_bool : { // from int / double / string
 			*ec << "	Coercing to bool";
-			break;
+			string fval = "";
+			stringstream ss;
+			switch(arg->type()) {
+				case QueryResult::QINT: {
+					ss << (((QueryIntResult *)arg)->getValue());
+					ss >> fval;
+					break;
+				}
+				case QueryResult::QDOUBLE: {
+					ss << (((QueryDoubleResult *)arg)->getValue());
+					ss >> fval;
+					break;
+				}
+				case QueryResult::QSTRING: {
+					fval = ((QueryStringResult *)arg)->getValue();
+					break;
+				}
+				default: final = arg; return 0; // ignore the coerce /  for QBOOL: no need to cast
+			} 
+			if (fval == "true" || fval == "TRUE" || fval == "1" || fval == "yes" || fval == "YES")
+				final = new QueryBoolResult(true);
+			else if(fval == "false" || fval == "FALSE" || fval == "0" || fval == "no" || fval == "NO")
+				final = new QueryBoolResult(false);
+			else return (ErrQExecutor | ECrcToBool);
+			return 0;
 		}
-		case CoerceNode::element : {
+		case CoerceNode::element : { 
 			*ec << "	Coercing - element()";
+			//Arg is already a single element...
+			if (arg->type() != QueryResult::QBAG && arg->type() != QueryResult::QSEQUENCE) {
+				final = arg;
+				return 0;
+			}
+			if (arg->type() == QueryResult::QBAG) {
+				QueryBagResult *bagArg = ((QueryBagResult *) arg);
+				//If collection is empty or has more than 1 elt - return error. 
+				if (bagArg->isEmpty())	return (ErrQExecutor | ECrcEltEmptySet);
+				if (bagArg->size() > 1) return (ErrQExecutor | ECrcEltMultiple);
+				QueryResult *elem;
+				errcode = bagArg->at(0, elem);
+				if (errcode != 0) return errcode;
+				final = elem;
+				return 0;
+			}
+			if (arg->type() == QueryResult::QSEQUENCE) {
+				QuerySequenceResult *seqArg = ((QuerySequenceResult *) arg);
+				//If collection is empty or has more than 1 elt - return error. 
+				if (seqArg->isEmpty())	return (ErrQExecutor | ECrcEltEmptySet);
+				if (seqArg->size() > 1) return (ErrQExecutor | ECrcEltMultiple);
+				QueryResult *elem;
+				errcode = seqArg->at(0, elem);
+				if (errcode != 0) return errcode;
+				final = elem;
+				return 0;
+			}
 			break;
 		}
-		case CoerceNode::to_bag : {
+		case CoerceNode::to_bag : { 
 			*ec << "	Coercing to bag";
-			break;
+			// AddResult() takes care of everything!
+			final = new QueryBagResult();
+			final->addResult(arg);
+			return 0;
+			// If arg is already a bag - nothing to be done.
+			//if (arg->type() == QueryResult::QBAG) { final = arg; return 0;}
+			// If arg is a seq - iterate through its elts, adding to a new bag. 
+			//if (arg->type() == QueryResult::QSEQUENCE) {}
 		}
 		case CoerceNode::to_seq : {
 			*ec << "	Coercing to sequence";
-			break;
+			final = new QuerySequenceResult();
+			final->addResult(arg);
+			return 0;
 		}
-		default: *ec << "	Coerce type not recognized";
+		default: *ec << "	Coerce type not recognized"; break;
 	}
 	final = arg;
 	return 0;

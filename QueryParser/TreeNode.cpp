@@ -1095,6 +1095,20 @@ namespace QParser
 				qres->pushSig(sig);
 				break;
 			}
+			case CoerceNode::to_int : {
+				if (!topSig->isAtom()) return -1;
+				sig = new SigAtomType("int");
+				sig->copyAttrsOf(topSig);
+				qres->pushSig(sig);
+				break;
+			}
+			case CoerceNode::to_bool : {
+				if (!topSig->isAtom()) return -1;
+				sig = new SigAtomType("boolean");
+				sig->copyAttrsOf(topSig);
+				qres->pushSig(sig);
+				break;
+			}
 			case CoerceNode::element : {
 				topSig->setCard("1..1");	// collKind autmatically set to "".
 				qres->pushSig(topSig->clone());

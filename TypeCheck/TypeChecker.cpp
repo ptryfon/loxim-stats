@@ -31,7 +31,7 @@ namespace TypeCheck
 	/* ------------ coerce methods --------------- */
 	
 	//	coerce types: to_string, to_double, to_bool, element, to_bag, to_seq	
-	
+/*	
 	int TypeChecker::coerceCardsTo11(TreeNode *tn) {
 		Deb::ug("Coercing cards to 1..1 ");
 		return tn->augmentTreeCoerce(CoerceNode::element, true, true);
@@ -50,7 +50,12 @@ namespace TypeCheck
 	int TypeChecker::coerceToBool(TreeNode *tn, bool augLeft, bool augRight) {
 		return tn->augmentTreeCoerce(CoerceNode::to_bool, augLeft, augRight);
 	}
-	
+	int TypeChecker::coerceToDouble(TreeNode *tn, bool augLeft, bool augRight) {
+		return tn->augmentTreeCoerce(CoerceNode::to_double, augLeft, augRight);
+	}
+	int TypeChecker::coerceToInt(TreeNode *tn, bool augLeft, bool augRight) {
+		return tn->augmentTreeCoerce(CoerceNode::to_int, augLeft, augRight);
+	}
 	int TypeChecker::coerceToString(TreeNode *tn) {
 		return tn->augmentTreeCoerce(CoerceNode::to_string);
 	}
@@ -60,26 +65,51 @@ namespace TypeCheck
 	int TypeChecker::coerceCardTo11(TreeNode *tn) {
 		return tn->augmentTreeCoerce(CoerceNode::element);
 	}
-	
+*/
+	int TypeChecker::modifyTreeCoerce(int coerceType, TreeNode *tn, bool augLeft, bool augRight) {
+		return tn->augmentTreeCoerce(coerceType, augLeft, augRight);
+	}
+	int TypeChecker::modifyTreeCoerce(int coerceType, TreeNode *tn) {
+		return tn->augmentTreeCoerce(coerceType);
+	}
 	/* ------------ end of coerce methods --------------- */
 	
 	int TypeChecker::performAction(int actionId, TreeNode *tn, Signature *lSig, Signature *rSig, TypeCheckResult &tcr) {
-	
 		switch (actionId) {
-			case TypeChecker::CD_COERCE_11_L : return coerceOneCardTo11(tn, true);
-			case TypeChecker::CD_COERCE_11_R : return coerceOneCardTo11(tn, false);
-			case TypeChecker::CD_COERCE_11_B : return coerceCardsTo11(tn);
-			case TypeChecker::CD_COERCE_11 : return coerceCardTo11(tn);
-			case TypeChecker::BS_TOSTR_L : return coerceToString(tn, true, false);	
-			case TypeChecker::BS_TOSTR_R : return coerceToString(tn, false, true);
-			case TypeChecker::BS_TOSTR_B : return coerceToString(tn, true, true);
-			case TypeChecker::BS_TOSTR : return coerceToString(tn);
-			case TypeChecker::BS_TOBOOL_L : return coerceToBool(tn, true, false);
-			case TypeChecker::BS_TOBOOL_R : return coerceToBool(tn, false, true);
-			case TypeChecker::BS_TOBOOL_B : return coerceToBool(tn, true, true);
-			case TypeChecker::BS_TOBOOL : return coerceToBool(tn);
+			case CD_COERCE_11_L : return modifyTreeCoerce(CoerceNode::element, tn, true, false); 
+			case CD_COERCE_11_R : return modifyTreeCoerce(CoerceNode::element, tn, false, true); 
+			case CD_COERCE_11_B : return modifyTreeCoerce(CoerceNode::element, tn, true, true);
+			case CD_COERCE_11 : modifyTreeCoerce(CoerceNode::element, tn);
+			case BS_TOSTR_L : return modifyTreeCoerce(CoerceNode::to_string, tn, true, false);
+			case BS_TOSTR_R : return modifyTreeCoerce(CoerceNode::to_string, tn, false, true);
+			case BS_TOSTR_B : return modifyTreeCoerce(CoerceNode::to_string, tn, true, true);
+			case BS_TOSTR : return modifyTreeCoerce(CoerceNode::to_string, tn);
+			case BS_TOBOOL_L : return modifyTreeCoerce(CoerceNode::to_bool, tn, true, false);
+			case BS_TOBOOL_R : return modifyTreeCoerce(CoerceNode::to_bool, tn, false, true);
+			case BS_TOBOOL_B : return modifyTreeCoerce(CoerceNode::to_bool, tn, true, true);
+			case BS_TOBOOL : return modifyTreeCoerce(CoerceNode::to_bool, tn);
+			case BS_TODBL_L : return modifyTreeCoerce(CoerceNode::to_double, tn, true, false);
+			case BS_TOINT_L : return modifyTreeCoerce(CoerceNode::to_int, tn, true, false);
 			default: return -1;
 		}
+		
+// 		switch (actionId) {
+// 			case TypeChecker::CD_COERCE_11_L : return coerceOneCardTo11(tn, true);
+// 			case TypeChecker::CD_COERCE_11_R : return coerceOneCardTo11(tn, false);
+// 			case TypeChecker::CD_COERCE_11_B : return coerceCardsTo11(tn);
+// 			case TypeChecker::CD_COERCE_11 : return coerceCardTo11(tn);
+// 			case TypeChecker::BS_TOSTR_L : return coerceToString(tn, true, false);	
+// 			case TypeChecker::BS_TOSTR_R : return coerceToString(tn, false, true);
+// 			case TypeChecker::BS_TOSTR_B : return coerceToString(tn, true, true);
+// 			case BS_TOSTR : return coerceToString(tn);
+// 			case BS_TOBOOL_L : return coerceToBool(tn, true, false);
+// 			case BS_TOBOOL_R : return coerceToBool(tn, false, true);
+// 			case BS_TOBOOL_B : return coerceToBool(tn, true, true);
+// 			case BS_TOBOOL : return coerceToBool(tn);
+// 			case BS_TODBL_L : return coerceToDouble(tn, true, false);
+// 			case BS_TOINT_L : return coerceToInt(tn, true, false);
+// 			default: return -1;
+// 		}
 	}
 	
 	/* ------------  Constructors & Destr. ------------  */
@@ -436,8 +466,8 @@ namespace TypeCheck
 	int TypeChecker::augmentTreeCoerce(TreeNode *tn, Signature *lSig, Signature *rSig, TypeCheckResult &tcRes) {
 		int actionsNumber = tcRes.actionsNumber();
 		Deb::ug("typeChecker::augmentTreeCoerce(): performing %d actions.", actionsNumber);
-		for (unsigned int i = 0; i < actionsNumber; i++) {
-			performAction(tcRes.getActionAt(i), tn, lSig, rSig, tcRes);
+		for (unsigned int i = actionsNumber; i > 0; i--) {
+			performAction(tcRes.getActionAt(i-1), tn, lSig, rSig, tcRes);
 		}
 		if (Deb::ugOn()) {
 			cout << "Tree after coerces:\n"; tn->serialize(); cout << endl;

@@ -25,6 +25,12 @@ struct {
 	{ENotParsed,       "Parse error"},
 // Executor
 	{ENumberExpected,  "NumberResult expected"},
+ 	{ECrcToString,		"Coerce failed: Cannot coerce to String"},
+  	{ECrcToDouble,		"Coerce failed: Cannot coerce to Double"},
+   	{ECrcToInt,			"Coerce failed: Cannot coerce to Integer"},
+	{ECrcToBool,		"Coerce failed: Cannot coerce to Bool"},
+ 	{ECrcEltEmptySet, 	"Coerce element() failed: Set is empty"},
+ 	{ECrcEltMultiple, 	"Coerce element() failed: Set has more than 1 element"}, 
 	{EBoolExpected,    "BoolResult expected"},
 	{ERefExpected,     "RefResult expected"},
 	{EOtherResExp,     "Other Result Type expected"},

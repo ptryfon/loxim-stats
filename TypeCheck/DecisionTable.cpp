@@ -75,7 +75,8 @@ namespace TypeCheck
 /*BASE*/		addTcRule(			"integer", 	"integer", 	"integer");
 				addTcRule(			"double", 	"double", 	"double");
 				addTcRule(			"integer", 	"double", 	"double");
-				addTcRule(			"double", 	"integer", 	"double");
+				addTcRule(			"string", 	"integer", 	"integer",	TypeChecker::BS_TOINT_L, "DYN");
+				addTcRule(			"string", 	"double", 	"double",	TypeChecker::BS_TODBL_L, "DYN");
 				addTcRule("ELSE", 	"", 		"", 		"ERROR");
 /*CARD*/		addCdRule(			"1..1", 	"1..1", 	"1..1");
 				addCdRule("M_BOTH",	"", 		"", 		"1..1", TypeChecker::CD_COERCE_11_B, "DYN"); //DYN
@@ -495,6 +496,7 @@ namespace TypeCheck
 		int result = 0;
 		result += applyRuleset(rules, SIG_BASE, sig, sig->textType(), finalResult, param, option);
 		if (!finalResult.isError()) {
+			if (finalResult.getSig() == NULL) return (ErrTypeChecker | ETCNotApplicable);
 			result += applyRuleset(cardRules, SIG_CARD, sig, sig->getCard(), finalResult, param, option);
 			result += applyRuleset(typeNameRules, SIG_TN, sig, sig->getTypeName(), finalResult, param, option);
 			result += applyRuleset(collKindRules, SIG_CK, sig, sig->getCollKind(),finalResult, param, option);

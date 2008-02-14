@@ -8,6 +8,7 @@
 #include "TransactionManager/Transaction.h"
 #include "TransactionManager/Mutex.h"
 #include "TypeCheckResult.h"
+//#include "TypeChecker.h"
 #include "DecisionTable.h"
 #include "QueryParser/Deb.h"
 #include "QueryParser/Stack.h"
@@ -28,6 +29,9 @@ using namespace std;
 
 namespace TypeCheck
 {
+	
+	typedef struct {int act; int arg;} ActionStruct;
+	
 	class Rule {	//all rule instances are members of a subclass..?
 	protected:
 		string specialArg;		//could add another attr: bool specialCondition, which - if present - 
@@ -36,6 +40,7 @@ namespace TypeCheck
 		int sigGen;
 		int attrGen;
 		int action;
+		vector<ActionStruct> actions;
 		bool dynCtrl;
 		int ruleType;	// "BASE", "CARD", "TYPENAME", "COLLKIND", ... see public enumerator
 		

@@ -172,7 +172,9 @@ namespace TypeCheck
 	public:
 		enum TcAction {	CD_COERCE_11, CD_COERCE_11_L, CD_COERCE_11_R, CD_COERCE_11_B, 
 						BS_TOSTR, BS_TOSTR_L, BS_TOSTR_R, BS_TOSTR_B,
-						BS_TOBOOL, BS_TOBOOL_L, BS_TOBOOL_R, BS_TOBOOL_B};
+						BS_TOBOOL, BS_TOBOOL_L, BS_TOBOOL_R, BS_TOBOOL_B,
+						BS_TODBL, BS_TODBL_L, BS_TODBL_R, BS_TODBL_B,
+						BS_TOINT, BS_TOINT_L, BS_TOINT_R, BS_TOINT_B};
 
 		TypeChecker();
 		TypeChecker(TreeNode *tn);
@@ -183,7 +185,10 @@ namespace TypeCheck
 		virtual DecisionTableHandler *getDTables() {return DecisionTableHandler::getHandle();}
 		virtual DecisionTable *getDTable(int algOrNonAlg, int op) {return DecisionTableHandler::getHandle()->getDTable(algOrNonAlg, op);}
 		
-		/** augment...() methods, to be pointed to in TCResults.. */
+		/** augmentCoerce methods, params taken from action ids in tcResult */
+		int modifyTreeCoerce(int coerceType, TreeNode *tn, bool augLeft, bool augRight);
+		int modifyTreeCoerce(int coerceType, TreeNode *tn);
+	/*
 		virtual int coerceCardsTo11(TreeNode *tn);
 		virtual int coerceOneCardTo11(TreeNode *tn, bool isLeft);
 		virtual int coerceCardTo11(TreeNode *tn);
@@ -191,7 +196,9 @@ namespace TypeCheck
 		virtual int coerceToString(TreeNode *tn);
 		virtual int coerceToBool(TreeNode *tn, bool augLeft, bool augRight);
 		virtual int coerceToBool(TreeNode *tn);
-	
+		virtual int coerceToDouble(TreeNode *tn, bool augLeft, bool augRight);
+		virtual int coerceToInt(TreeNode *tn, bool augLeft, bool augRight);
+	*/
 		/** end of pointered methods... */
 		virtual int performAction(int actionId, TreeNode *tn, Signature *lSig, Signature *rSig, TypeCheckResult &tcr);
 		virtual void reportTypeError(TCError err) { return this->globalResult.reportTypeError(err);};
