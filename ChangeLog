@@ -1,3 +1,9 @@
+2008-02-15  Maksymilian Humpich  <mh209206@students.mimuw.edu.pl>
+
+	* Errors/ErrorMsg.cpp, Errors/Errors.h, QueryExecutor/QueryExecutor.cpp, QueryParser/TreeNode.cpp, QueryParser/TreeNode.h, TypeCheck/Attic/DMLControl.cpp~, TypeCheck/DecisionTable.cpp, TypeCheck/Rule.h, TypeCheck/TypeChecker.cpp, TypeCheck/TypeChecker.h:
+	- coerce handling in TypeCheck enhanced
+	- dynamic coerces added, implemented in QE
+
 2008-02-14  Maksymilian Humpich  <mh209206@students.mimuw.edu.pl>
 
 	* QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryExecutor.h, QueryParser/ClassNames.h, QueryParser/Stack.h, QueryParser/TreeNode.cpp, QueryParser/TreeNode.h, Server/Server.conf, TypeCheck/DMLControl.cpp, TypeCheck/DecisionTable.cpp, TypeCheck/DecisionTable.h, TypeCheck/Rule.cpp, TypeCheck/Rule.h, TypeCheck/TypeCheckResult.cpp, TypeCheck/TypeCheckResult.h, TypeCheck/TypeChecker.cpp, TypeCheck/TypeChecker.h:
@@ -41,7 +47,7 @@
 	* TypeCheck/Attic/IndexHandler.h, TypeCheck/Attic/IndexManager.cpp, TypeCheck/Attic/IndexManager.h:
 	- removed trash files
 
-	* TypeCheck/Attic/TypeCheckResult.h~, TypeCheck/Attic/TypeChecker.cpp~, TypeCheck/Attic/TypeChecker.h~, TypeCheck/TypeCheckResult.h, TypeCheck/TypeChecker.cpp, TypeCheck/TypeChecker.h, TypeCheck/Attic/ClassNames.h~, TypeCheck/Attic/DMLControl.h~, TypeCheck/Attic/DecisionTable.cpp~, TypeCheck/Attic/DecisionTable.h~, TypeCheck/Attic/IndexHandler.h, TypeCheck/Attic/IndexManager.cpp, TypeCheck/Attic/IndexManager.h, TypeCheck/Attic/MDLControl.h~, TypeCheck/Attic/Makefile~, TypeCheck/Attic/Rule.cpp~, TypeCheck/Attic/Rule.h~, TypeCheck/Attic/TypeCheckResult.cpp~, TypeCheck/ClassNames.h, TypeCheck/DMLControl.cpp, TypeCheck/DMLControl.cpp~, TypeCheck/DMLControl.h, TypeCheck/DecisionTable.cpp, TypeCheck/DecisionTable.h, TypeCheck/Makefile, TypeCheck/Metadata.cpp, TypeCheck/Rule.cpp, TypeCheck/Rule.h, TypeCheck/TypeCheckResult.cpp:
+	* TypeCheck/Attic/TypeCheckResult.h~, TypeCheck/Attic/TypeChecker.cpp~, TypeCheck/Attic/TypeChecker.h~, TypeCheck/TypeCheckResult.h, TypeCheck/TypeChecker.cpp, TypeCheck/TypeChecker.h, TypeCheck/Attic/ClassNames.h~, TypeCheck/Attic/DMLControl.cpp~, TypeCheck/Attic/DMLControl.h~, TypeCheck/Attic/DecisionTable.cpp~, TypeCheck/Attic/DecisionTable.h~, TypeCheck/Attic/IndexHandler.h, TypeCheck/Attic/IndexManager.cpp, TypeCheck/Attic/IndexManager.h, TypeCheck/Attic/MDLControl.h~, TypeCheck/Attic/Makefile~, TypeCheck/Attic/Rule.cpp~, TypeCheck/Attic/Rule.h~, TypeCheck/Attic/TypeCheckResult.cpp~, TypeCheck/ClassNames.h, TypeCheck/DMLControl.cpp, TypeCheck/DMLControl.h, TypeCheck/DecisionTable.cpp, TypeCheck/DecisionTable.h, TypeCheck/Makefile, TypeCheck/Metadata.cpp, TypeCheck/Rule.cpp, TypeCheck/Rule.h, TypeCheck/TypeCheckResult.cpp:
 	- Added missing TypeCheck directory
 
 	* Errors/ErrorConsole.cpp, Errors/ErrorMsg.cpp, Errors/Errors.h, Makefile, QueryExecutor/EnvironmentStack.cpp, QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryExecutor.h, QueryExecutor/QueryResult.h, QueryParser/ClassNames.h, QueryParser/DataRead.cpp, QueryParser/DataRead.h, QueryParser/QueryParser.cpp, QueryParser/QueryParser.h, QueryParser/Stack.cpp, QueryParser/Stack.h, QueryParser/TreeNode.cpp, QueryParser/TreeNode.h, QueryParser/parser.y, QueryParser/scanner.l, SBQLCli/Makefile, Server/Makefile, Server/Server.conf, Server/Server.cpp, TransactionManager/Transaction.cpp, TransactionManager/Transaction.h:
