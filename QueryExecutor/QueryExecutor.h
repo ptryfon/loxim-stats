@@ -20,6 +20,7 @@
 #include "QueryParser/DataRead.h"
 #include "Errors/Errors.h"
 #include "Errors/ErrorConsole.h"
+#include "TypeCheck/TCConstants.h"
 #include "TypeCheck/TypeChecker.h"
 
 using namespace QParser;

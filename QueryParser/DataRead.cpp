@@ -245,6 +245,7 @@ namespace QParser {
 
 	int DataScheme::readData() {
 		readData(NULL);
+		return 0;
 	}
 
 	int DataScheme::readData(Transaction *tr){

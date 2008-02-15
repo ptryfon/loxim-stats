@@ -14,6 +14,7 @@
 #include "../Config/SBQLConfig.h"
 #include "Indexes/QueryOptimizer.h"
 #include "Deb.h"
+//#include "TypeCheck/TCConstants.h"
 #include "TypeCheck/TypeChecker.h"
 
 yyFlexLexer* lexer;

@@ -55,6 +55,9 @@ namespace TypeCheck
 	
 	public: 
 		enum DTableKind {ALG, NONALG, UNOP};
+		enum CoerceAction {CARD_TO_11, BS_TO_STR, BS_TO_BOOL, BS_TO_INT, BS_TO_DBL, CK_TO_BAG, CK_TO_SEQ };
+		enum CoerceArg { BOTH, LEFT, RIGHT, SINGLE };
+		enum CoerceKind {STATIC, DYNAMIC};
 		DTable(){}
 		virtual void provideReturnLinks();
 		virtual void provideReturnLinksForVector(vector<Rule> v);
@@ -78,7 +81,12 @@ namespace TypeCheck
 		int op;
 		//TypeChecker *tcOwner; use this only if function pointers require it to be here...  
 	public: 
-		enum ResultGenerator {CD_ADDBANDS, CD_MULTBANDS, BS_COPY_L, BS_COPY_R, ARG_COPY_L, ARG_COPY_R, CD_COPY_L_ZR, CK_COPY_L, BS_STRUCT};
+		enum ResultGenerator {CD_ADDBANDS, CD_MULTBANDS, BS_COPY_L, BS_COPY_R, ARG_COPY_L, ARG_COPY_R, 
+			CD_COPY_L_ZR, CK_COPY_L, BS_STRUCT};
+		
+		//{CD_COERCE_11, CD_COERCE_11_L, CD_COERCE_11_R, CD_COERCE_11_B, BS_TOSTR, BS_TOSTR_L, BS_TOSTR_R, BS_TOSTR_B, BS_TOBOOL, BS_TOBOOL_L, BS_TOBOOL_R, BS_TOBOOL_B, BS_TODBL, BS_TODBL_L, BS_TODBL_R, BS_TODBL_B, BS_TOINT, BS_TOINT_L, BS_TOINT_R, BS_TOINT_B};
+			//{to_string, to_double, to_bool, to_int, element, to_bag, to_seq};
+		
 		DecisionTable() {}
 		DecisionTable(int opType, int op);
 		virtual void provideReturnLinks();
@@ -104,23 +112,23 @@ namespace TypeCheck
 		virtual void initAlgOpRules(int op);
 		virtual void initNonAlgOpRules(int op);
 		//in case new operators are added...
-		virtual void initOtherBinaryRules(int op) {};
+		virtual void initOtherBinaryRules(int treeType, int op) {};
 		
 		void addTcRule (string lArg, string rArg, string result);
 		void addTcRule (string specArg, string lArg, string rArg, string result);
 		void addTcRule (string specArg, string lArg, string rArg, int resultGen);
 		void addTcRule (string specArg, string result);
-		void addTcRule (string lArg, string rArg, string result, int action, string dynStat);
-		void addTcRule (string specArg, string lArg, string rArg, string result, int action, string dynStat);
-		void addTcRule (string specArg, string lArg, string rArg, int resultGen, int action, string dynStat);
+		void addTcRule (string lArg, string rArg, string result, int act, int actArg, int dynStat);
+		void addTcRule (string specArg, string lArg, string rArg, string result, int act, int actArg, int dynStat);
+		void addTcRule (string specArg, string lArg, string rArg, int resultGen, int act, int actArg, int dynStat);
 		
 		void addCdRule (string lArg, string rArg, string result);
 		void addCdRule (string specArg, string lArg, string rArg, string result);
 		void addCdRule (string specArg, string lArg, string rArg, int resultGen);
 		void addCdRule (string specArg, string result);
-		void addCdRule (string lArg, string rArg, string result, int action, string dynStat);
-		void addCdRule (string specArg, string lArg, string rArg, string result, int action, string dynStat);
-		void addCdRule (string specArg, string lArg, string rArg, int resultGen, int action, string dynStat);
+		void addCdRule (string lArg, string rArg, string result, int act, int actArg, int dynStat);
+		void addCdRule (string specArg, string lArg, string rArg, string result, int act, int actArg, int dynStat);
+		void addCdRule (string specArg, string lArg, string rArg, int resultGen, int act, int actArg, int dynStat);
 		
 		void addTnRule (string lArg, string rArg, string result);
 		void addTnRule (string specArg, string lArg, string rArg, string result);

@@ -10,7 +10,7 @@
 #include "QueryParser/Stack.h"
 #include "QueryParser/TreeNode.h"
 #include "QueryParser/DataRead.h"
-	
+#include "TCConstants.h"
 #include "ClassNames.h"
 #include "DecisionTable.h"
 #include "Rule.h"
@@ -28,35 +28,7 @@ using namespace QParser;
 using namespace TManager;
 using namespace std;
 
-// some TC constants, to use across typechecking procs..
-#define TC_FINAL_ERROR -10
 
-#define TC_MDN_NAME			"__MDN__"
-#define TC_MDNT_NAME		"__MDNT__"
-#define	TC_SUB_OBJ_NAME		"subobject"
-#define TC_MDN_ATOMIC		"atomic"
-#define TC_MDN_LINK			"link"
-#define TC_MDN_COMPLEX		"complex"
-#define TC_MDN_DEFTYPE		"defined_type"
-#define TC_REF_TYPE_SUFF	"__REFTYPE_"
-#define TC_MDS_KIND			"kind"
-#define TC_MDS_NAME			"name"
-#define TC_MDS_CARD			"card"
-#define TC_MDS_ISDIST		"isDistinct"
-#define TC_MDS_REFNAME		"refName"
-#define TC_MDS_TYPENAME		"typeName"
-#define TC_MDS_TYPE			"type"
-#define TC_MDS_OWNER		"owner"
-#define TC_MDS_TARGET		"target"
-#define TC_CK_BAG			"bag"
-#define TC_CK_SEQ			"sequence"
-#define TC_RS_ERROR			"ERROR"
-#define TC_RS_COERCE		"COERCE"
-#define TC_RS_SUCCESS		"SUCCESS"
-
-#define TC_INTEGER			"integer"
-#define TC_STRING			"string"
-#define TC_BOOLEAN			"boolean"
 namespace TypeCheck
 {
 	
@@ -69,7 +41,7 @@ namespace TypeCheck
 		string typeToStr(int errType) {
 			switch(errType) {
 				case BNAME : return "Bad Name";
-				case ARG_ALG : 
+				case ARG_ALG : return "Bad Args";
 				case ARG_NALG: return "Bad Args";
 				case ARG_UNOP: return "Bad Arg";
 				case ARG_AS: return "Bad Arg";	
@@ -144,14 +116,9 @@ namespace TypeCheck
 		virtual vector<TCAction> getActions() {return implicitActions;}
 		virtual void addError(TCError err) {this->errors.push_back(err);}
 		virtual void addAction(TCAction act) {this->implicitActions.push_back(act);}
-		virtual void reportTypeError(TCError err) {
-			overallResult = TC_RS_ERROR;
-			cout << "will add error to globalresult" << endl;
-			addError(err);
-			cout << "Added error to globalresult" << endl;
-		}
+		virtual void reportTypeError(TCError err);
 		virtual void setOverallResult(string res) {this->overallResult = res;}
-		virtual bool isError() {return overallResult == TC_RS_ERROR;}
+		virtual bool isError();
 		virtual void printOutput();
 		virtual string getOutput();
 		virtual ~TCGlobalResult(){};
@@ -170,11 +137,11 @@ namespace TypeCheck
 		int closeScope(Signature *sig);
 		int trySingleDeref(Signature *sig, Signature *&sigIn, TypeCheckResult &tmpTcRes, bool &doDeref);
 	public:
-		enum TcAction {	CD_COERCE_11, CD_COERCE_11_L, CD_COERCE_11_R, CD_COERCE_11_B, 
-						BS_TOSTR, BS_TOSTR_L, BS_TOSTR_R, BS_TOSTR_B,
-						BS_TOBOOL, BS_TOBOOL_L, BS_TOBOOL_R, BS_TOBOOL_B,
-						BS_TODBL, BS_TODBL_L, BS_TODBL_R, BS_TODBL_B,
-						BS_TOINT, BS_TOINT_L, BS_TOINT_R, BS_TOINT_B};
+// 		enum TcAction {	CD_COERCE_11, CD_COERCE_11_L, CD_COERCE_11_R, CD_COERCE_11_B, 
+// 						BS_TOSTR, BS_TOSTR_L, BS_TOSTR_R, BS_TOSTR_B,
+// 						BS_TOBOOL, BS_TOBOOL_L, BS_TOBOOL_R, BS_TOBOOL_B,
+// 						BS_TODBL, BS_TODBL_L, BS_TODBL_R, BS_TODBL_B,
+// 						BS_TOINT, BS_TOINT_L, BS_TOINT_R, BS_TOINT_B};
 
 		TypeChecker();
 		TypeChecker(TreeNode *tn);
@@ -200,7 +167,8 @@ namespace TypeCheck
 		virtual int coerceToInt(TreeNode *tn, bool augLeft, bool augRight);
 	*/
 		/** end of pointered methods... */
-		virtual int performAction(int actionId, TreeNode *tn, Signature *lSig, Signature *rSig, TypeCheckResult &tcr);
+		virtual int performAction(ActionStruct actionId, TreeNode *tn);
+		virtual int performSingleArgAction(int actionId, TreeNode *tn);
 		virtual void reportTypeError(TCError err) { return this->globalResult.reportTypeError(err);};
 		virtual int doTypeChecking(string &s);
 		

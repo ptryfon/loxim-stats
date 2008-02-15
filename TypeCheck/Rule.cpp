@@ -25,16 +25,16 @@ namespace TypeCheck
 
 /** #################### Vital methods for TCRule ####################... */
 	bool TCRule::appliesTo(string lArg, string rArg) {
-		if (this->specialArg == "ELSE") return true;
-		if (this->specialArg == "M_BOTH") 
-			return !((this->leftArg == "NONE" && !isEmpty(lArg)) ||
-					(this->rightArg == "NONE" && !isEmpty(rArg)));
-		if (this->specialArg == "M_SAME") return (lArg == rArg);
-		if (this->specialArg == "M_LEFT")
-			return !(rArg != this->rightArg || (this->leftArg == "NONE" && !isEmpty(lArg)));
-		if (this->specialArg == "M_RIGHT")
-			return !(lArg != this->leftArg || (this->rightArg == "NONE" && !isEmpty(rArg)));
-		if ((this->specialArg == "ACCURATE" || isEmpty(this->specialArg)) &&
+		if (this->specialArg == M_ELSE) return true;
+		if (this->specialArg == M_B) 
+			return !((this->leftArg == M_0 && !isEmpty(lArg)) ||
+					(this->rightArg == M_0 && !isEmpty(rArg)));
+		if (this->specialArg == M_EQ) return (lArg == rArg);
+		if (this->specialArg == M_L)
+			return !(rArg != this->rightArg || (this->leftArg == M_0 && !isEmpty(lArg)));
+		if (this->specialArg == M_R)
+			return !(lArg != this->leftArg || (this->rightArg == M_0 && !isEmpty(rArg)));
+		if ((this->specialArg == M_MATCH || isEmpty(this->specialArg)) &&
 			(lArg == this->leftArg && rArg == this->rightArg)) return true;
 		return false; /* rule doesn't match given input. */
 	}
@@ -49,7 +49,7 @@ namespace TypeCheck
 		cout << "RULE::getResult: not and error rule" << endl;
 		if (needsAction()) {
 			retResult.setEffect(TC_RS_COERCE);
-			retResult.addActionId(this->action);
+			retResult.addActionId(this->action, this->actionArg);
 		}
 		retResult.setDynCtrl(retResult.isDynCtrl() || this->dynCtrl);
 		if (!needsResultGenerator()) {
@@ -110,19 +110,20 @@ namespace TypeCheck
 	}
 
 	TCRule::TCRule() {
-		specialArg = "ACCURATE";
+		specialArg = M_MATCH;
 		ruleType = Rule::BASE; 
-		sigGen = -1; attrGen = -1; action = -1;
-		leftArg = ""; rightArg = "";
+		sigGen = -1; attrGen = -1; action = -1; actionArg = -1;
+		leftArg = ""; rightArg = ""; result = "";
 		dTable = NULL;
 		dynCtrl = false;
 	};
 	// constructors used for simple rules 
 	TCRule::TCRule(int rType, string lArg, string rArg, string res) {
-		specialArg = "ACCURATE";
+		specialArg = M_MATCH;
 		ruleType = rType;
-		result = res;
-		sigGen = -1; attrGen = -1; action = -1; 
+		if (res == M_0) result = "";
+		else result = res; 
+		sigGen = -1; attrGen = -1; action = -1; actionArg = -1;
 		leftArg = lArg;
 		rightArg = rArg;
 		dTable = NULL;
@@ -130,24 +131,26 @@ namespace TypeCheck
 	}
 	
 	// constructors for more complicated rules		
-	TCRule::TCRule (int rType, string specArg, string lArg, string rArg, string resStr, int resGen, int actId, string dStr) {
+	TCRule::TCRule (int rType, string specArg, string lArg, string rArg, string resStr, int resGen, int actId, int actArg, int crcKind) {
 		specialArg = specArg;
 		ruleType = rType;
-		result = resStr;
+		if (resStr == M_0) result = "";
+		else result = resStr; 
 		sigGen = -1; attrGen = -1;
 		if (rType == Rule::BASE) sigGen = resGen; else attrGen = resGen;
 		leftArg = lArg;
 		rightArg = rArg;
 		dTable = NULL;
 		action = actId;
-		dynCtrl = (dStr == "DYN");
+		actionArg = actArg;
+		dynCtrl = (crcKind == DecisionTable::DYNAMIC);
 	}
 
 /** --------------- end of constructors & desctructors --------------- */
 /** #################### UnOpRule methods... ####################... */
 
 	UnOpRule::UnOpRule(int rType, string _arg, string res) {
-		specialArg = "ACCURATE";
+		specialArg = M_MATCH;
 		ruleType = rType;
 		result = res;
 		sigGen = -1, attrGen = -1; action = -1;
@@ -156,7 +159,7 @@ namespace TypeCheck
 		dynCtrl = false;
 	}
 	
-	UnOpRule::UnOpRule (int rType, string specArg, string _arg, string resStr, int resGen, int actId, string dStr) {
+	UnOpRule::UnOpRule (int rType, string specArg, string _arg, string resStr, int resGen, int actId, int crcKind) {
 		specialArg = specArg;
 		ruleType = rType;
 		result = resStr;
@@ -165,7 +168,16 @@ namespace TypeCheck
 		arg = _arg;
 		dTable = NULL;
 		action = actId;
-		dynCtrl = (dStr == "DYN");
+		dynCtrl = (crcKind == DecisionTable::DYNAMIC);
+	}
+	
+	bool UnOpRule::appliesTo(string arg) {
+		if (this->specialArg == M_ELSE) return true;
+		if (this->specialArg == META) return (arg == "" || this->arg != M_0);
+		if (this->specialArg == "" || this->specialArg == M_MATCH) {
+			return (arg == this->arg);
+		}
+		return false; /* rule doesn't match given input. */
 	}
 	
 	int UnOpRule::getResult(string atr, Signature *sig, TypeCheckResult &retResult, string param, int option) {
@@ -178,7 +190,7 @@ namespace TypeCheck
 		}
 		if (needsAction()) {
 			retResult.setEffect(TC_RS_COERCE);
-			retResult.addActionId(this->action);
+			retResult.addActionId(this->action, DecisionTable::SINGLE);
 		}
 		retResult.setDynCtrl(retResult.isDynCtrl() || this->dynCtrl);
 		if (!needsResultGenerator()) {

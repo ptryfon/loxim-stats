@@ -30,8 +30,6 @@ using namespace std;
 namespace TypeCheck
 {
 	
-	typedef struct {int act; int arg;} ActionStruct;
-	
 	class Rule {	//all rule instances are members of a subclass..?
 	protected:
 		string specialArg;		//could add another attr: bool specialCondition, which - if present - 
@@ -40,7 +38,6 @@ namespace TypeCheck
 		int sigGen;
 		int attrGen;
 		int action;
-		vector<ActionStruct> actions;
 		bool dynCtrl;
 		int ruleType;	// "BASE", "CARD", "TYPENAME", "COLLKIND", ... see public enumerator
 		
@@ -66,13 +63,14 @@ namespace TypeCheck
 		DecisionTable *dTable;
 		string leftArg;
 		string rightArg;
+		int actionArg;
 		
 	public:
 		TCRule();
 		// constructors used for simple rules 
 		TCRule(int rType, string lArg, string rArg, string res);
 		// constructors for more complicated rules		
-		TCRule (int rType, string specArg, string lArg, string rArg, string resStr, int resGen, int actId, string dStr);
+		TCRule (int rType, string specArg, string lArg, string rArg, string resStr, int resGen, int actId, int actArg, int crcKind);
 		virtual void setDTable(DTable *dt) {dTable = (DecisionTable *)dt;};
 		//appliesTo(string arg); - makes no sense here, so returns false as in Rule.
 		virtual bool appliesTo(string lArg, string rArg);
@@ -95,21 +93,15 @@ namespace TypeCheck
 		}
 		UnOpRule(int rType, string arg, string res);
 		// constructors for more complicated rules		
-		UnOpRule (int rType, string specArg, string arg, string resStr, int resGen, int actId, string dStr);
+		UnOpRule (int rType, string specArg, string arg, string resStr, int resGen, int actId, int dStr);
 
 		bool appliesTo(string lArg, string rArg) {
 			Deb::ug("(!!!) Two-arg UnOpRule::appliesTo() used only for first param.");
 			return appliesTo(lArg);
 		}
 		
-		bool appliesTo(string arg) {
-			if (this->specialArg == "ELSE") return true;
-			if (this->specialArg == "M") return (arg == "" || this->arg != "NONE");
-			if (this->specialArg == "" || this->specialArg == "ACCURATE") {
-				return (arg == this->arg);
-			}
-			return false; /* rule doesn't match given input. */
-		}
+		bool appliesTo(string arg);
+		
 		virtual void setDTable(DTable *dt) {dTable = (UnOpDecisionTable *)dt;};
 		virtual int getResult(string atr, Signature *sig, TypeCheckResult &retResult, string param, int option);
 		virtual int getSimpleResult(Signature *sig, TypeCheckResult &retResult); 

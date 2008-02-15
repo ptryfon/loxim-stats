@@ -30,8 +30,15 @@ namespace TypeCheck
 		}
 	}
 	
-	void TypeCheckResult::addActionId(int actId) {
-		if (actId >= 0)	this->actionIds.push_back(actId);
+	void TypeCheckResult::addActionId(ActionStruct action) {
+		if (action.id >= 0) this->actionIds.push_back(action);
+	}
+	
+	void TypeCheckResult::addActionId(int actId, int actArg) {
+		if (actId >= 0)	{
+			ActionStruct action = {actId, actArg};
+			this->actionIds.push_back(action);
+		}
 	}
 	
 	void TypeCheckResult::addErrorPart(string part) {
@@ -54,7 +61,7 @@ cout << "in printAll!\n";
 		
 		for (unsigned int i = 0; i < actionIds.size(); i++) {
 			if (i > 0) str += ", ";
-			sout << actionIds.at(i);
+			sout << actionIds.at(i).id;
 			str += sout.str();
 			sout.str("");
 		} str += "\n";

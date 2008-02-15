@@ -25,13 +25,14 @@ using namespace std;
 
 namespace TypeCheck
 {
-
+	typedef struct {int id; int arg;} ActionStruct;
+	
 	class TypeCheckResult {
 	private:
 		Signature *resultSig;
 		string effect;	//"ERROR" OR "SUCCESS" OR "COERCE" 
 		bool dynCtrl; //states if any part of the control is put off to qExecution phase.
-		vector<int> actionIds;
+		vector<ActionStruct> actionIds;
 		vector<string> errorParts;//which parts of the signature caused the error - a sig. attr. or base.
 		//int (*resultAction) (TypeChecker *, Singature *, Signature*);
 		//TODO: do I need the Signatures? resultAction is an implicit augmentTreeOperation:
@@ -50,11 +51,12 @@ namespace TypeCheck
 		virtual bool isCoerce() {return (effect == "COERCE");}
 		virtual bool isDynCtrl() {return dynCtrl;}
 		virtual void setDynCtrl(bool dc) {dynCtrl = dc;}
-		virtual void addActionId(int actId);
+		virtual void addActionId(int actId, int actArg);
+		virtual void addActionId(ActionStruct action);
 		virtual void addErrorPart(string atr);
-		virtual vector<int> getActionIds() {return this->actionIds;}
+		virtual vector<ActionStruct> getActionIds() {return this->actionIds;}
 		virtual int actionsNumber() {return actionIds.size();}
-		virtual int getActionAt(int position) {return actionIds.at(position);}
+		virtual ActionStruct getActionAt(int position) {return actionIds.at(position);}
 		virtual vector<string> getErrorParts() {return this->errorParts;}
 		virtual string printAllInfo();
 		virtual void clear();
