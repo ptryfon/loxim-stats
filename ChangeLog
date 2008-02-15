@@ -1,5 +1,8 @@
 2008-02-15  Maksymilian Humpich  <mh209206@students.mimuw.edu.pl>
 
+	* QueryExecutor/QueryExecutor.h, QueryParser/DataRead.cpp, QueryParser/QueryParser.cpp, TypeCheck/DecisionTable.cpp, TypeCheck/DecisionTable.h, TypeCheck/Rule.cpp, TypeCheck/Rule.h, TypeCheck/TCConstants.h, TypeCheck/TypeCheckResult.cpp, TypeCheck/TypeCheckResult.h, TypeCheck/TypeChecker.cpp, TypeCheck/TypeChecker.h:
+	- TypeCheck code improved
+
 	* Errors/ErrorMsg.cpp, Errors/Errors.h, QueryExecutor/QueryExecutor.cpp, QueryParser/TreeNode.cpp, QueryParser/TreeNode.h, TypeCheck/Attic/DMLControl.cpp~, TypeCheck/DecisionTable.cpp, TypeCheck/Rule.h, TypeCheck/TypeChecker.cpp, TypeCheck/TypeChecker.h:
 	- coerce handling in TypeCheck enhanced
 	- dynamic coerces added, implemented in QE
