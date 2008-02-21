@@ -70,7 +70,7 @@ namespace QParser {
 	    TNINTERFACEMETHODLISTNODE, TNINTERFACEMETHOD, TNINTERFACEMETHODPARAMLISTNODE, TNINTERFACEMETHODPARAM,
 	    TNREGINTERFACE, TNREGCLASS, TNCLASS, TNDML, TNINCLUDES, TNEXCLUDES, TNCAST, TNINSTANCEOF, TNSYSTEMVIEWNAME,
 	 	TNINTERFACEBIND, TNINTERFACEINNERLINKAGELIST, TNINTERFACEINNERLINKAGE, TNSIGNATURE, TNOBJDECL, TNSTRUCTTYPE,
-		TNTYPEDEF, TNCOERCE};
+		TNTYPEDEF, TNCOERCE, TNCASTTO};
 	 
 	TreeNode() : parent(NULL) { 
 		this->needed = false;
@@ -160,9 +160,13 @@ namespace QParser {
 		return (tp == TNTRANS || tp == TNDML || tp == TNOBJDECL || tp == TNTYPEDEF || tp == TNVALIDATION);
 	}
 	virtual void qpLocalAction(QueryParser *qp);
-	virtual int augmentTreeDeref(bool derefLeft, bool derefRight) {Deb::ug("augmentDeref at Treenode"); return 0;};
+	virtual int augmentTreeDeref(bool derefLeft, bool derefRight) {Deb::ug("TreeNode::augmentDeref(2arg)"); return 0;};
+	virtual int augmentTreeDeref() {Deb::ug("TreeNode;:augmentDeref()"); return 0;};
 	virtual int augmentTreeCoerce(int coerceType, bool augLeft, bool augRight) {Deb::ug("augmentCoerce at TN");return 0;}
 	virtual int augmentTreeCoerce(int coerceType) {Deb::ug("augmentCoerce(1arg) at TN"); return 0;}
+	virtual bool canDerefSon() {return true;}
+	virtual bool canDerefNode() {return true;}
+	virtual void canDerefSons(bool &canDerefL, bool &canDerefR){};
     };
 
 // statement := query
@@ -691,6 +695,7 @@ namespace QParser {
 	}
 	virtual int augmentTreeDeref(bool derefLeft, bool derefRight);
 	virtual int augmentTreeCoerce(int coerceType, bool augLeft, bool augRight);
+	virtual void canDerefSons(bool &canDerefL, bool &canDerefR);
     };
     
 // atomic nodes with string/int/double/bool value
@@ -1004,7 +1009,8 @@ namespace QParser {
 		auxVec->push_back(this);
 		this->getArg()->getInfixList(auxVec);
 	}
-
+	virtual int augmentTreeDeref();
+	virtual bool canDerefSon() {return this->getArg()->canDerefNode();}
 	virtual int staticEval(StatQResStack *&qres, StatEnvStack *&envs);
 	virtual int optimizeTree() {return arg->optimizeTree();}
 	virtual ~NameAsNode() { if (arg != NULL) delete arg; }
@@ -1114,9 +1120,11 @@ namespace QParser {
 	    else {/*an error from errorConsole is called;*/ return -1;}
 	}    	
 	
-	virtual int augmentTreeDeref(bool derefLeft, bool derefRight);
+	virtual int augmentTreeDeref();
 	virtual int augmentTreeCoerce(int coerceType);
-	
+	//'ref' flag forbids derefing...
+	virtual bool canDerefNode() {return (op != UnOpNode::ref);}
+	virtual bool canDerefSon() {return this->getArg()->canDerefNode();}
 	virtual int staticEval (StatQResStack *&qres, StatEnvStack *&envs);		
 	virtual int optimizeTree() {return arg->optimizeTree();}
 	virtual ~UnOpNode() { if (arg != NULL) delete arg; }
@@ -1279,13 +1287,13 @@ namespace QParser {
 	};  
 	virtual string opStr() {
 	    int op = this->getOp();
-	    if (op == 0) return "algop";
-	    if (op == 1) return "algop";
-	    if (op == 2) return "algop";
-	    if (op == 3) return "plus";
-	    if (op == 4) return "minus";
-	    if (op == 5) return "times";
-	    if (op == 6) return "divide";
+	    if (op == 0) return "union";
+	    if (op == 1) return "intersect ";
+	    if (op == 2) return "minus";
+	    if (op == 3) return " + ";  //"plus";
+	    if (op == 4) return " - ";	//"minus";
+	    if (op == 5) return " * ";	//times";
+	    if (op == 6) return " / ";	//divide";
 	    if (op == 7) return " = ";	    
 	    if (op == 8) return " == ";
 	    if (op == 9) return " != ";	    
@@ -1297,9 +1305,9 @@ namespace QParser {
 	    if (op == 15) return " || ";
 	    if (op == 16) return " , ";	    
 	    //if (op == 17) return "insert";
-	    if (op == 17) return ":<";
-	    if (op == 18) return ":<";
-	    if (op == 19) return ":=";
+	    if (op == 17) return " :< ";
+	    if (op == 18) return " :< ";
+	    if (op == 19) return " := ";
 	    if (op == 20) return " ; ";
 	    return "~~~";
 	}
@@ -2668,8 +2676,11 @@ class InterfaceInnerLinkage: public TreeNode {
 			virtual int getSigKind() {return sigKind;}
 			virtual StructureTypeNode *getStructArg() {return arg;}
 			virtual string getTypeName() {return typeName;}
+			virtual Signature *createSignature();
+			virtual Signature *recCreateSig(BinderWrap *bwObj, BinderWrap *bwTypes);
 			virtual int putToString();
 			virtual string getHeadline();
+			virtual string deParse();
 			virtual ~SignatureNode();
 	};
 	
@@ -2684,6 +2695,7 @@ class InterfaceInnerLinkage: public TreeNode {
 			virtual string getName() {return name;}
 			virtual SignatureNode *getSigNode() {return signature;}
 			virtual int putToString() = 0;
+			virtual string deParse() = 0;
 	};
 	
 	class ObjectDeclareNode : public DeclareDefineNode
@@ -2713,6 +2725,7 @@ class InterfaceInnerLinkage: public TreeNode {
 				cout << ">";
 				return 0;
 			}	
+			virtual string deParse();
 			virtual ~ObjectDeclareNode ();
 	};
 		
@@ -2744,11 +2757,8 @@ class InterfaceInnerLinkage: public TreeNode {
 				string result = "";
 				return result;
 			}
+			virtual string deParse();
 			virtual int putToString();
-			virtual string deParse() {
-				string result = "";
-				return result;
-			}
 			virtual ~StructureTypeNode();
 	};	
 	
@@ -2775,6 +2785,7 @@ class InterfaceInnerLinkage: public TreeNode {
 				cout << " >";
 				return 0;
 			}
+			virtual string deParse();
 			virtual ~TypeDefNode() {if (this->signature != NULL) delete this->signature;};
 	};
 	
@@ -2864,13 +2875,83 @@ class InterfaceInnerLinkage: public TreeNode {
 	};  
 	
 	
-	
-	
-	
-	
-	
-	
-	
+	class SimpleCastNode : public QueryNode 
+	{
+		protected:
+			QueryNode* arg;
+			SignatureNode* sig;
+			//string name;
+			//bool group;
+			//vector<TreeNode*> *usedBy;	// wezly drzewa ktore sa w nim wiazane
+
+		public:
+			SimpleCastNode(QueryNode* _arg, SignatureNode* _sig)
+			: arg(_arg), sig(_sig) { arg->setParent(this); }
+			virtual TreeNode* clone();
+			virtual int type() { return TreeNode::TNCASTTO; }
+			//string getName() { return name; }
+			TreeNode* getArg() { return arg; }
+			virtual void setArg(QueryNode* _arg) { arg = _arg; arg->setParent(this); }    
+			virtual SignatureNode* getSig() {return sig;}
+			virtual void setSig(SignatureNode *_sig) {sig = _sig;}
+			
+			virtual int putToString() {
+				cout << "( cast(";
+				if (arg!= NULL) arg->putToString();
+				else cout << "___";
+				cout << " to ";
+				if (sig != NULL) sig->putToString();
+				else cout << "___";
+				cout << "))";
+				return 0;
+			}
+			virtual void serialize(){ this->putToString();};  
+			
+			virtual int swapSon (TreeNode *oldSon, TreeNode *newSon) {
+				newSon->setParent(this);
+				if (arg == oldSon) {this->setArg((QueryNode *) newSon); return 0;}
+				else {return -1;}
+			}    	
+			virtual void markNeeded(){
+				this->setNeeded(true);
+				this->getArg()->markNeeded();	
+			}
+			virtual void markNeeded2(){
+				this->setNeeded(true);
+				this->getArg()->markNeeded2();	
+			}
+			virtual void evalCard(){this->setCard(this->getArg()->getCard());}
+			virtual TreeNode * getDeath(){
+				return this->getArg()->getDeath();
+			}
+			virtual void getInfixList(vector<TreeNode*> *auxVec){
+				//auxVec->push_back(this);
+				this->getArg()->getInfixList(auxVec);
+			}
+			//virtual int augmentTreeDeref();
+			virtual bool canDerefSon() {return this->getArg()->canDerefNode();}
+			virtual int staticEval(StatQResStack *&qres, StatEnvStack *&envs);
+			virtual Signature *createSignature() {return sig->createSignature();};
+			virtual int optimizeTree() {return arg->optimizeTree();}
+			virtual ~SimpleCastNode() { if (arg != NULL) delete arg; if (sig != NULL) delete sig;}
+			virtual string toString( int level = 0, bool recursive = false, string n = "" ) {
+				stringstream ss;
+				ss << (sig == NULL ? -1 : sig->getSigKind());
+				string result = getPrefixForLevel( level, n ) + "[SimpleCast] to '" + ss.str() + "'\n";
+				if( recursive ) {
+					if( arg )
+						result += arg->toString( level+1, true, "arg" );
+				}
+				return result;
+			}
+      
+			virtual string deParse() { 
+				string result, tmp_res = ""; 
+				result = " (cast (" + arg->deParse() + " to " + tmp_res + ")) "; 
+				return result; 
+			}
+	};  
+
 	
 	/** End of TypeCheck TreeNode class declarations... */
 	

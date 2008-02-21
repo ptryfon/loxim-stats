@@ -15,6 +15,7 @@
 #include "DecisionTable.h"
 #include "Rule.h"
 #include "TypeCheckResult.h"
+#include "RestoreAlgorithm.h"
 
 #include <string>
 #include <fstream>
@@ -45,41 +46,69 @@ namespace TypeCheck
 				case ARG_NALG: return "Bad Args";
 				case ARG_UNOP: return "Bad Arg";
 				case ARG_AS: return "Bad Arg";	
+				case ARG_CASTTO: return "Invalid Cast";
+				case UNKNOWN: return "Unknown";
 			}
 			return "Unknown";
 		}
 		
 	public:
-		enum TcErrorType {BNAME, ARG_ALG, ARG_NALG, ARG_UNOP, ARG_AS };
+		enum TcErrorType {BNAME, ARG_ALG, ARG_NALG, ARG_UNOP, ARG_AS, ARG_CASTTO, UNKNOWN };
+		enum ErAttr {_op = 0, _lsig = 1, _rsig = 2, _lsigD = 3, _rsigD = 4};
+		enum ErUnAttr {_sig = 1, _parm = 2};
+		
 		TCError(){};
 		TCError(int errType, string output) {
 			this->type = typeToStr(errType); 
 			this->outputText = generateOutputText(errType, output);
 		}
-		TCError(int errType, vector<string> er, string attr1, string attr2 = "", string attr3 = "", string attr4 = "") {
+		TCError(int errType, vector<string> er, vector<string> attr) {
 			this->type = typeToStr(errType);
 			for (unsigned int i = 0; i < er.size(); i++) errorParts.push_back(er.at(i));
-			this->outputText = generateOutputText(errType, attr1, attr2, attr3, attr4);
+			this->outputText = generateOutputText(errType, attr);
 		}
-		string generateOutputText(int errType, string attr1, string attr2 = "", string attr3 = "", string attr4 = "") {
+		string generateOutputText(int errType, string attr) {
 			switch (errType) {
-				case BNAME : return "Name " + attr1 + " not found.";
+				case BNAME : return "Name \"" + attr + "\" not found.";
+				case ARG_CASTTO: return "Cannot evaluate \"" + attr + "\" as proper signature.";
+				default: break;
+			}
+			return "Unspecified error";
+		}
+		string generateOutputText(int errType, vector<string> &at) {
+			string ret = "";
+			switch (errType) {
+				case BNAME : return "Name \"" + at[0] + "\" not found.";
 				case ARG_ALG : 
-				case ARG_NALG: return "Bad arguments for operator " + attr3 + " :\n	" + attr1 + ", " + attr2 + ".";
-				case ARG_UNOP: return "Bad argument for operator " + attr2 + " :\n	" + attr1 + ".";	
-				case ARG_AS: return "Bad argument for operator '" + attr2 + "' " + attr3 + " : " + attr1 + ".";
+				case ARG_NALG: 
+					ret = " of args: ";
+					ret += "" + at[_lsig] + ", " + at[_rsig];
+					if (at[_lsig] != at[_lsigD] || at[_rsig] != at[_rsigD])
+						ret += "\n	(derefed to:" + at[_lsigD] + ", " + at[_rsigD] + ")";
+					ret += "\n	invalid for operator  ' " + at[_op] + " '.";
+					return ret;
+				case ARG_UNOP: 
+					return " of arg: " + at[_sig] + " invalid for operator ' " + at[_op] + " '.";	
+				case ARG_AS: 
+					return " of arg: " + at[_sig] + " invalid for operator '" + at[_op] + " " + at[_parm] + ".";
+				case ARG_CASTTO: 
+					ret = " does not match. Cannot cast " + at[_lsig] + " to " + at[_rsig] + "";
+					if (at[_lsig] != at[_lsigD] || at[_rsig] != at[_rsigD])
+						ret += "\n	(After deref: cannot cast " + at[_lsigD] + " to " + at[_rsigD] + ")";
+					return ret;
 			}
 			return "Unspecified error";
 		}
 		virtual string getOutput() {
-			string ret = "[error: " +type + "] : " + outputText + "\n";
+			string ret = "[error: " +type + "] : ";
 			if (errorParts.size() > 0) {
-				ret += "	Failed attributes: ";
+				//ret += "	Failed attributes: ";
 				for (unsigned int i = 0; i < errorParts.size(); i++) {
 					if (i > 0) ret += ", ";
-					ret += errorParts.at(i);
+					ret += errorParts.at(i);	// ;-) nice to see it in plural. for 2-arg...
 				}
 			}
+			ret += " " + outputText;
 			return ret;
 		}	
 		virtual ~TCError(){};
@@ -131,11 +160,11 @@ namespace TypeCheck
 		StatQResStack *sQres;		//	static query result stack
 		StatEnvStack *sEnvs;		//	static environment stack
 		TreeNode *tNode;			//	the query tree to be type-checked.
-		//DecisionTableHandler dTables;
+		RestoreAlgorithm *restoreAlgorithm;
 		
 		int openScope(Signature *sig);
 		int closeScope(Signature *sig);
-		int trySingleDeref(Signature *sig, Signature *&sigIn, TypeCheckResult &tmpTcRes, bool &doDeref);
+		int trySingleDeref(bool canDeref, Signature *sig, Signature *&sigIn, TypeCheckResult &tmpTcRes, bool &doDeref);
 	public:
 // 		enum TcAction {	CD_COERCE_11, CD_COERCE_11_L, CD_COERCE_11_R, CD_COERCE_11_B, 
 // 						BS_TOSTR, BS_TOSTR_L, BS_TOSTR_R, BS_TOSTR_B,
@@ -175,16 +204,22 @@ namespace TypeCheck
 		virtual int typeCheck(TreeNode *tn);
 		virtual bool bindError(vector<BinderWrap*> *vec);
 		virtual Signature* extractSigFromBindVector(vector<BinderWrap*> *vec);
+		
+		virtual int processAugmentDerefCoerceRestore(int nodeType, int op, string opStr, Signature *lSig, Signature *rSig, TreeNode *tn);
+		
+		virtual int processAugmentDerefCoerceRestoreUnOp(int nodeType, int errType, int op, string opStr, Signature *argSig, TreeNode *tn);
+		virtual int processAugmentDerefCoerceRestoreUnOp(int nodeType, int errType, int op, string opStr, Signature *argSig, TreeNode *tn, string name, int option);
+		
 		virtual int augmentTreeEllipsis(TreeNode *tn, string name, vector<BinderWrap*> *vec, string expander);
 
 		virtual int augmentTreeCoerce(TreeNode *tn, Signature *lSig, Signature *rSig, TypeCheckResult &tcRes);
 		
-		virtual int augmentTreeDeref(TreeNode *tn, DecisionTable *dt, TypeCheckResult &tcRes, Signature *lSig, Signature *rSig);
-		virtual int augmentTreeDeref(TreeNode *tn, UnOpDecisionTable *udt, TypeCheckResult &tcRes, Signature *sig);
+		virtual int augmentTreeDeref(TreeNode *tn, DecisionTable *dt, TypeCheckResult &tcRes, Signature *lSig, Signature *rSig, Signature *&lSigIn, Signature *&rSigIn);
+		virtual int augmentTreeDeref(TreeNode *tn, UnOpDecisionTable *udt, TypeCheckResult &tcRes, Signature *sig, Signature *&sigIn);
 		
 		virtual int restoreAfterMisspelledName(TreeNode *tn, string name, vector<BinderWrap*> *vec);
-		virtual int restoreAfterBadArg(TreeNode *tn, DecisionTable *dt, TypeCheckResult &tcr, Signature *lSig, Signature *rSig);
-		virtual int restoreAfterBadArg(TreeNode *tn, UnOpDecisionTable *dt, TypeCheckResult &tcr, Signature *sig);	
+		virtual int restoreAfterBadArg(TreeNode *tn, int tType, int op, TypeCheckResult &tcr, Signature *lSig, Signature *rSig);
+		virtual int restoreAfterBadArg(TreeNode *tn, int tType, int op, TypeCheckResult &tcr, Signature *sig, string param, int option);	
 		virtual ~TypeChecker();
 		
 	};

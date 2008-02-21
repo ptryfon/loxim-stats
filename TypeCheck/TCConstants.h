@@ -33,15 +33,23 @@ namespace TypeCheckConstants {
 #define TC_STRING			"string"
 #define TC_BOOLEAN			"boolean"
 //Meta rules markers
-#define M_EQ		"__MS_"
-#define M_L			"__ML_"
-#define M_R			"__MR_"
+//structural equality
+#define M_EQ		"__MEQ_"	
+// left / right / both pos. are meta-rules.
+#define M_L			"__ML_"		
+#define M_R			"__MR_"		
 #define M_B			"__MB_"
+//meta-rule (for unop rules)
 #define META		"__MT_"
+//if no other rule matched
 #define M_ELSE		"__ME_"
+//exists (at least 1 sig/attr is as in the rule)
+#define M_EX		"__MEX_"	
+//empty attribute
 #define	M_0			"__N_N_"
+//accurate matching...
 #define M_MATCH		"__AC_"
-	
+
 	
 }
 

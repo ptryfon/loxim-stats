@@ -1,8 +1,8 @@
 include ../make.defs
 
-SOURCES	=	TypeChecker.cpp DecisionTable.cpp Rule.cpp TypeCheckResult.cpp DMLControl.cpp
+SOURCES	=	TypeChecker.cpp DecisionTable.cpp Rule.cpp TypeCheckResult.cpp DMLControl.cpp RestoreAlgorithm.cpp
 
-HEADERS	=	TypeChecker.h ClassNames.h DecisionTable.h Rule.h TypeCheckResult.h DMLControl.h
+HEADERS	=	TypeChecker.h TCConstants.h ClassNames.h DecisionTable.h Rule.h TypeCheckResult.h DMLControl.h RestoreAlgorithm.h
 
 STATIC_LIB =	TypeChecker.a
 PROGRAM	=	

@@ -26,7 +26,7 @@ namespace QParser {
 	void Signature::init() {
 		this->next = NULL; this->dependsOn = NULL; 
 		distinctTypeName = ""; collectionKind = ""; 
-		card = "1..1";
+		card = "1..1"; refed = false;
 	}
 	
 	
@@ -34,34 +34,41 @@ namespace QParser {
 	Signature* Signature::clone(){return NULL;}
 	Signature* SigColl::clone(){
 		SigColl *ns = new SigColl(type()); 
-		Signature *pom;
 		if (myList != NULL) {
 			ns->setElts (myList->clone()); 
 		    /*	tak bylo kiedys, tak jest zle, 
-			ns->setMyLast (this->myLast);
+			ns->setMyLast (this->myLast);	
 			*/
-			ns->setMyLast (ns->getMyList()); 
+			ns->setMyLast (ns->getMyList()); //recurrently goes through myList till it reaches the end..
+			//Signature *ptr = ns->getMyList();
+// 			while (ptr != NULL) {
+// 				ns->setMyLast(ptr);
+// 				ptr = ptr->getNext();
+// 			}
 		}
 		if (next != NULL) 
 			ns->setNext(next->clone());
-		ns->setCard(this->card);
-		ns->setTypeName(this->distinctTypeName);
+		ns->copyAttrsOf(this);
+// 		ns->setCard(this->card);
+// 		ns->setTypeName(this->distinctTypeName);
 		return ns;
 	}
 	Signature* SigAtomType::clone(){
 		SigAtomType *ns = new SigAtomType(atomType);
 		ns->setDependsOn(this->getDependsOn());			// death
 		if (next != NULL) ns->setNext(next->clone());
-		ns->setCard(this->card);
-		ns->setTypeName(this->distinctTypeName);
+		ns->copyAttrsOf(this);
+		//ns->setCard(this->card);
+		//ns->setTypeName(this->distinctTypeName);
 		return ns;
 	}
 	Signature* SigRef::clone(){
 		SigRef *ns = new SigRef(refNo);
 		ns->setDependsOn(this->getDependsOn());			// death
 		if (next != NULL) ns->setNext(next->clone());
-		ns->setCard(this->card);
-		ns->setTypeName(this->distinctTypeName);
+		ns->copyAttrsOf(this);
+		//ns->setCard(this->card);
+		//ns->setTypeName(this->distinctTypeName);
 		return ns;
 	}
 	Signature* StatBinder::clone(){
@@ -69,10 +76,62 @@ namespace QParser {
 		ns->setDependsOn(this->getDependsOn());			// death
 		if (value != NULL) ns->setValue (value->clone());
 		if (next != NULL) ns->setNext (next->clone());
-		ns->setCard(this->card);
-		ns->setTypeName(this->distinctTypeName);
+		ns->copyAttrsOf(this);
+		//ns->setCard(this->card);
+		//ns->setTypeName(this->distinctTypeName);
 		return ns;
 	}
+	
+	Signature *Signature::cloneSole() {return NULL;}
+	
+	Signature *SigColl::cloneSole() {
+		SigColl *ns = new SigColl(type()); 
+		if (myList != NULL) {
+			ns->setElts (myList->clone()); //use normal clone here, to handle the nexts automatically...
+			ns->setMyLast (ns->getMyList()); 
+		}
+		ns->copyAttrsOf(this);
+		return ns;
+	}
+	
+	Signature* SigAtomType::cloneSole(){
+		SigAtomType *ns = new SigAtomType(atomType);
+		ns->setDependsOn(this->getDependsOn());			// death
+		ns->copyAttrsOf(this);
+		return ns;
+	}
+	Signature* SigRef::cloneSole(){
+		SigRef *ns = new SigRef(refNo);
+		ns->setDependsOn(this->getDependsOn());			// death
+		ns->copyAttrsOf(this);
+		return ns;
+	}
+	Signature* StatBinder::cloneSole(){
+		StatBinder *ns = new StatBinder(name);
+		ns->setDependsOn(this->getDependsOn());			// death
+		if (value != NULL) ns->setValue (value->clone());
+		ns->copyAttrsOf(this);
+		return ns;
+	}
+	
+	Signature *SigVoid::clone() {
+		SigVoid *ns = new SigVoid();
+		ns->setDependsOn(this->getDependsOn());
+		if (next != NULL) ns->setNext(next->clone());
+		ns->copyAttrsOf(this);
+		return ns;
+	}
+	Signature *SigVoid::cloneSole() {
+		SigVoid *ns = new SigVoid();
+		ns->setDependsOn(this->getDependsOn());
+		ns->copyAttrsOf(this);
+		return ns;
+	}
+	
+	Signature *SigRef::deref() {
+		return DataScheme::dScheme()->signatureOfRef(this->getRefNo());
+	}
+	
 	BinderWrap* SigRef::statNested(TreeNode *treeNode) {
 		Deb::ug("doing statNested on DATA SCHEME ! "); 
 		if (treeNode != NULL && Deb::ugOn()) cout << "treeNode->getName(): " + treeNode->getName() << endl;
@@ -184,9 +243,10 @@ namespace QParser {
 		/* modify the tree setting special info in nameNodes and NonAlgOpNodes */
 		cout << "no, mam envs gotowy ze startowymi obiektami w pierwszej sekcji .. " << endl;
 		int res = tn->staticEval (sQres, sEnvs);
+		
 		tn->putToString();
 	
-		return 0;	
+		return res;	
 	}
 		
 

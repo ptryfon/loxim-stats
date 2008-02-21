@@ -56,7 +56,7 @@ namespace QParser {
 		DataObjectDef *typeObj;
 		
 	public:
-		DataObjectDef() {initPointers(); typeName = ""; refName = "";}
+		DataObjectDef() {initPointers(); typeName = ""; refName = ""; isDistinct = false;}
 		void initPointers() {
 			subObjects = NULL; target = NULL; owner = NULL; nextBase = NULL; nextSub = NULL; nextHash = NULL; typeObj = NULL;
 		}
@@ -153,6 +153,15 @@ namespace QParser {
 		static DataScheme *dScheme(Transaction *tr);
 		static void reloadDScheme(Transaction *tr);
 		static void reloadDScheme();
+		static bool bindError(vector<BinderWrap*> *vec) {
+			return (vec == NULL || vec->size() == 0 || vec->at(0) == NULL || vec->at(0)->getBinder() == NULL);
+		}
+		static Signature* extractSigFromBindVector(vector<BinderWrap*> *vec) {
+			if (bindError(vec)) return NULL;
+			Signature *sig = vec->at(0)->getBinder()->getValue()->clone();
+			return sig;
+		}
+	
 		
 		void addMissedRoot(string name);
 		vector<string> getMissedRoots() {return missedRoots;}
@@ -213,8 +222,11 @@ namespace QParser {
 		
 		virtual BinderWrap *statNested (int objId, TreeNode *treeNode);
 		virtual BinderWrap *statNested (DataObjectDef *candidate, TreeNode *treeNode, string obName, string obCard);
-		/*function below uses a list impl. of BinderWraps. you can change it ...  */
+		/*function below uses a list impl. of BinderWraps. can be changed ...  */
 		virtual BinderWrap* bindBaseObjects(); 
+		
+		virtual BinderWrap* bindBaseTypes();
+		virtual void addBindEntity(DataObjectDef *obt, BinderWrap *&bw);
 		virtual Signature *signatureOfRef(int objId);
 	};	
 		

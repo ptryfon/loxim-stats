@@ -1,0 +1,39 @@
+
+
+begin;
+/
+DEPT[0..1]:(DNAME: string, LOC[1..*]: string, CHIEF[0..1]: ref EMP);
+/
+EMP[0..*]:(	NAME: string, 
+			SURNAME: string,  
+			AGE: integer,
+			SAL[0..1]: PLN,
+			WORKS_IN: ref DEPT,
+			ADDRESS[0..*]: typAdr,
+			DOG: (IMIE: string, WIEK: integer),
+			CAT: typCAT,
+			FRIEND: ref typFrd);
+/			
+TRAIN[0..*] : (WAGON: (LENGTH: double, WIDTH: double, PASSNGR: integer),
+			   TAIL: ref TRAIN);
+/
+BOOK[0..*] : typBOOK;
+/
+typedef typAdr = (STREET: string, NO: integer);
+/
+typedef typAla = (BOOK[0..*] : typBOOK, CAT : typCAT);
+/
+typedef distinct typBOOK = (TITLE: string, AUTHOR: string, PAGES_NR: integer, PAGE[0..*]: string);
+/
+typedef typCAT = (COLOR: string, AGE: integer, BOWL[0..1]: string, OWNER : ref typAla);
+/
+typedef distinct PLN = integer;
+/
+typedef distinct typFrd = (NAME: string, JOB[0..*]: string);
+/
+reloadScheme;
+/
+end;
+/
+
+

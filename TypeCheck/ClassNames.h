@@ -16,6 +16,8 @@ namespace TypeCheck {
 	class TCAction;
 	class TCGlobalResult;	
 	class DMLControl;
+	class RestoreAlgorithm;
+	class RestoreParam;
 }
 #endif
 

@@ -10,7 +10,6 @@
 #include "Deb.h"
 #include "ClassNames.h"
 
-
 using namespace std;
 
 namespace QParser {
@@ -122,6 +121,7 @@ namespace QParser {
 		string card;			// death
 		string distinctTypeName;	//typeChecking system. this will often be empty/null. 
 		string collectionKind;	//sequence OR bag OR ""- empty means its not a collection
+		bool refed;				// was the 'ref' flag added.
 	public:
 		enum SigType {
 			SSEQ      = 1,	/*sigColl */ //should not be used any more. (functionality replaced by collectionKind
@@ -145,10 +145,10 @@ namespace QParser {
 		// operator on them... MH
 		
 		virtual string textType() {
-			switch (type()) {// ?? shouldn't this by typ? instead of type? MH.
-				case Signature::SSEQ: return "sequence";
+			switch (type()) {// ?? shouldn't this be typ? instead of type? its ok.
+				case Signature::SSEQ: return "list";
 				case Signature::SBAG: return "bag";
-				case Signature::SSTRUCT: return "structure";
+				case Signature::SSTRUCT: return "struct";
 				case Signature::SBINDER: return "binder";
 				case Signature::SINT: return "integer";
 				case Signature::SDOUBLE: return "double";
@@ -156,6 +156,7 @@ namespace QParser {
 				case Signature::SBOOL: return "boolean";
 				case Signature::SREF: return "ref";
 				case Signature::SVAR: return "variant";
+				case Signature::SNOTHING: return "void";
 				default: return "unknown";
 			}
 			return "";
@@ -186,23 +187,33 @@ namespace QParser {
 			conv << card[0] << ".." << '*';
 			card = conv.str();
 		}
+		virtual bool isRefed() {return refed;}
+		virtual void setRefed() {refed = true;}
 		virtual int type() {return 0;}
 		virtual bool isAtom () {return false;} /* overridden only in SigAtom */
 		virtual bool isColl () {return false;} /* overridden only in SigColl */
 		virtual bool isBinder () {return false;}
-		virtual string textCollKind() {return "";}
+		virtual string textCollKind() {return "";} //deprecated..now getCollKind() is enough.
 		virtual BinderWrap *statNested(TreeNode * treeNode) {return NULL;} /*the default behaviour of a signature*/
 		virtual Signature *clone();
+		virtual Signature *cloneSole();
 		virtual void putToString () { cout << "(signature) ";if (this->next != NULL) next->putToString();}
 		virtual string toString() { return "BaseSignature";}
 		virtual string attrsToString() {return distinctTypeName + "[" +card + "]" + collectionKind;}
 		virtual void copyAttrsOf(Signature *sig) {
 			setTypeName(sig->getTypeName()); setCollKind(sig->getCollKind()); setCard(sig->getCard());
 		}
+		virtual bool isStructurallyEqualTo(Signature *sig) {//by default
+			return ((sig != NULL) && (this->type() == sig->type()));
+		} 
+		virtual bool isSolelyEqualTo(Signature *sig) {//by default. in subclasses: does not compare nexts!
+			return ((sig != NULL) && (this->type() == sig->type()));
+		}
+		virtual Signature *deref(){return this->cloneSole();}//by default. works fine for atom signatures.s
 		virtual ~Signature() {}// cout << "entered top SIG destructor" << endl; if (this->next != NULL) delete this->next; }
 	};
 	
-	class SigColl : public Signature  /* podklasa sygnatur - sygnatury kolekcji .. */
+	class SigColl : public Signature  /* Structures or variants... */
 	{
 	protected:
 		/* this really ought to be a vector...would get rid of all the 'next' attributes... */
@@ -215,14 +226,17 @@ namespace QParser {
 		SigColl () {this->collType = Signature::SSTRUCT; myList = NULL; myLast = NULL; } /* STRUCT is the default sigcoll (now collections are handled through collectionKind attr.!*/
 		SigColl (int _collType, Signature *_myList) : myList(_myList), collType(_collType) {myLast = _myList; };
 		virtual bool isColl () {return true;}
+		//Mthd below deprecated. Wrong approach to sig. collkind. Now collkind is an attribute of every signature.
 		virtual string textCollKind() {if (this->collType == Signature::SSTRUCT) return ""; return this->textType();}
 		virtual bool isEmpty() {return (myList == NULL);}
 		virtual int type() {return this->collType;}
 		virtual void setCollType(int type) {this->collType = type;}
 		virtual void setCollTypeByString(string sType) {
-			if (sType == "structure") this->collType = Signature::SSTRUCT;
-			if (sType == "sequence") this->collType = Signature::SSEQ;		// deprecated - now use collectionKind attr
-			if (sType == "bag") this->collType = Signature::SBAG;			// deprecated - now use collectionKind attr
+			if (sType == "struct") this->collType = Signature::SSTRUCT;
+			if (sType == "variant") this->collType = Signature::SVAR;
+			//deprecated...
+			if (sType == "list") this->collType = Signature::SSEQ;		// deprecated - use collectionKind attr
+			if (sType == "bag") this->collType = Signature::SBAG;			// deprecated - use collectionKind attr
 		}
 		virtual Signature *getMyLast () {return myLast;}		
 		virtual void setMyLast (Signature *nl) {if (nl->getNext() == NULL) myLast = nl; else setMyLast (nl->getNext());}
@@ -233,42 +247,91 @@ namespace QParser {
 		
 			if (this->isEmpty()) {this->setElts(newElt);}
 			else {
-				this->myLast->setNext(newElt); 
-				newElt->setNext (NULL); 
-				myLast = newElt;
+				if (newElt != NULL) {
+					this->myLast->setNext(newElt); 
+					newElt->setNext (NULL); 
+					myLast = newElt;
+				}
 			}
 		}
+		
+		virtual bool isStructurallyEqualTo(Signature *sig) {
+			if (sig == NULL) return false;
+			if (this->type() != sig->type()) return false;
+			SigColl *s = (SigColl *) sig;
+			bool nextEqual = (next == NULL ? (s->getNext() == NULL) : next->isStructurallyEqualTo(s->getNext()));
+			if (not nextEqual) return false;
+			//recur. check subSignatures...
+			return (myList == NULL ? (s->getMyList() == NULL) : myList->isStructurallyEqualTo(s->getMyList()));
+		}
+		
+		virtual bool isSolelyEqualTo(Signature *sig) {
+			if (sig == NULL) return false;
+			if (this->type() != sig->type()) return false; //variant is not the same as struct.
+			SigColl *s = (SigColl *)sig;
+			Signature *ptr = myList;
+			Signature *sptr = s->getMyList();
+			if (ptr == NULL) return (sptr == NULL);
+			bool allSubsEqual = true;
+			while (ptr != NULL && allSubsEqual) {
+				allSubsEqual = ptr->isSolelyEqualTo(sptr);
+				ptr = ptr->getNext();
+				sptr = sptr->getNext();
+			}
+			return allSubsEqual;
+		}
+		
 		virtual BinderWrap *statNested(TreeNode * treeNode);
-		virtual Signature *clone();							
+		virtual Signature *clone();
+		virtual Signature *cloneSole();
 		virtual void putToString() {
-			cout << "(STRCT," << distinctTypeName << "[" << card << "]" << collectionKind << "{";
+			cout << "("<< textType() <<"," << distinctTypeName << "[" << card << "]" << collectionKind << "{";
 			if (this->myList != NULL) myList->putToString();
 			cout << "}) ";
 			if (next != NULL) next->putToString(); 
 		}
 		virtual string toString() {
-			string ret =  "(STRUCT," + attrsToString() + "{";
-			if (this->myList != NULL) ret += myList->toString();
+			string ret =  "(" + textType() + "," + attrsToString() + "{";
+			//if (this->myList != NULL) ret += myList->toString();
+			Signature *ptr = myList;
+			while (ptr != NULL) {
+				ret += ptr->toString();
+				ptr = ptr->getNext();
+			}
 			ret += "}) ";
-			if (next != NULL) ret += next->toString();
+			//if (next != NULL) ret += next->toString();
 			return ret;
 		}
-		virtual ~SigColl() {
-			cout << "entered sigcoll destructor" << endl;
-			if (next == NULL) { cout << "next is null " << endl;}
-			else {cout << "next AINT NULL!" << endl; next->putToString();}
-			if (myList != NULL) {
-				cout << "will delete sth from myList" << endl;
-				delete this->myList; 
-				cout << "deleted myList";
-			} else {
-				cout << "myList is null" << endl;
+		virtual Signature *deref() {
+			SigColl *retSig = new SigColl(collType);
+			Signature *ptr = myList;
+			while (ptr != NULL) {
+				retSig->addToMyList(ptr->deref());
+				ptr = ptr->getNext();
 			}
+			return retSig;
+		}
+		virtual ~SigColl() {
+			if (myList != NULL) delete myList;
+			if (next != NULL) delete next;
+		}
+		/*virtual ~SigColl() {
+			//cout << "entered sigcoll destructor" << endl;
+			//if (next == NULL) { cout << "next is null " << endl;}
+			//else {cout << "next AINT NULL!" << endl; next->putToString();}
+			if (myList != NULL) {
+				//cout << "will delete sth from myList" << endl;
+				delete this->myList; 
+				//cout << "deleted myList";
+			} 
+// 			else {
+// 				cout << "myList is null" << endl;
+// 			}
 			if (next != NULL) {
-				cout << "well, we know 'next' is not null, so lets delete it. ";
+				//cout << "well, we know 'next' is not null, so lets delete it. ";
 				delete next;
 			}
-		}	
+		}*/	
 	};
 	
 	class SigAtomType : public Signature 
@@ -289,16 +352,29 @@ namespace QParser {
 			virtual int type() {return this->getNumb(atomType);}
 			virtual void setType(string newType) {this->atomType = newType;}
 			virtual Signature *clone();
+			virtual Signature *cloneSole();
+			virtual bool isStructurallyEqualTo(Signature *sig) {
+				if (sig == NULL) return false;
+				if (this->type() != sig->type()) return false;
+				return (next == NULL ? (sig->getNext() == NULL) : next->isStructurallyEqualTo(sig->getNext()));
+			}
+			virtual bool isSolelyEqualTo(Signature *sig) {
+				if (sig == NULL) return false;
+				return (this->type() == sig->type());
+			}
 			virtual void putToString() {
 				cout << "(" << this->atomType << "," << distinctTypeName << "[" << card << "]" << collectionKind << ") ";
 				if (next != NULL) next->putToString();
 			}		
 			virtual string toString() {
 				string ret =  "(" + atomType + "," + attrsToString() + ") ";
-				if (next != NULL) ret += next->toString();
+				//if (next != NULL) ret += next->toString();
 				return ret;
 			}
-			virtual ~SigAtomType() {cout << "entered atom destructor"; this->putToString(); cout << endl; if (next != NULL) delete next; cout << "done with atom" << endl;}
+			virtual Signature *deref() {
+				return this->cloneSole();
+			}
+			virtual ~SigAtomType() {if (next != NULL) delete next; }
 	};
 		
 	class SigRef : public Signature 
@@ -313,36 +389,50 @@ namespace QParser {
 			virtual int type() {return Signature::SREF;}
 			virtual BinderWrap *statNested(TreeNode *treeNode);/*implmnted in Stack.cpp*/
 			virtual Signature *clone();
+			virtual Signature *cloneSole();
+			virtual bool isStructurallyEqualTo(Signature *sig) {
+				if (sig == NULL) return false;
+				if (this->type() != sig->type()) return false;
+				if (this->getRefNo() != ((SigRef *) sig)->getRefNo()) return false;
+				return (next == NULL ? (sig->getNext() == NULL) : next->isStructurallyEqualTo(sig->getNext()));
+			}
+			virtual bool isSolelyEqualTo(Signature *sig) {
+				if (sig == NULL) return false;
+				if (this->type() != sig->type()) return false;
+				return (this->getRefNo() == ((SigRef *) sig)->getRefNo());
+			}
+			
 			virtual void putToString() {
 				cout << "(ref->" << refNo << "," << distinctTypeName << "[" << card << "]" << collectionKind << ") ";
-				if (next != NULL) next->putToString();
+				//if (next != NULL) next->putToString();
 			}
+			virtual Signature *deref();
+			
 			virtual string toString() {
 				stringstream ss;
 				ss << refNo;
 				string ret = "(ref->" + ss.str() + "," + attrsToString() + ") ";
-				if (next != NULL) ret += next->toString();
+				//if (next != NULL) ret += next->toString();
 				return ret;
 			}
-			virtual ~SigRef() { cout << "entered sigref destructor:"; this->putToString(); cout << endl; if (next != NULL) delete next; Deb::ug("killed 1 ref\n");}
+			virtual ~SigRef() { if (next != NULL) delete next; }
 		
 	};
 	
-	class SigVariant : public Signature
-	{	//TODO: probably should look like SigColl - so be one of its subtypes. and introduced everywhere else in TC.
+	class SigVoid : public Signature
+	{	
 		public:
-			SigVariant(){}
-			virtual Signature *clone() {return new SigVariant();}
-			virtual int type() {return Signature::SVAR;}
-			virtual void putToString() {
-				cout << "VARIANT";
-			}
+			SigVoid(){}
+			virtual Signature *clone();
+			virtual Signature *cloneSole();
+			virtual int type() {return Signature::SNOTHING;}
+			virtual void putToString() {cout << "(void)";}
 			virtual string toString() {
-				string ret = "(VARIANT," + attrsToString() + ") ";
-				if (next != NULL) ret += next->toString();
+				string ret = "(void," + attrsToString() + ") ";
+				//if (next != NULL) ret += next->toString();
 				return ret;
 			}
-			virtual ~SigVariant() {cout <<" killing a variant signature" << endl;}
+			virtual ~SigVoid() {}
 	};
 	
 	class StatBinder : public Signature
@@ -361,6 +451,28 @@ namespace QParser {
 			virtual bool isBinder() {return true;}
 			virtual BinderWrap *statNested(TreeNode *treeNode);
 			virtual Signature *clone();
+			virtual Signature *cloneSole();
+			virtual bool isStructurallyEqualTo(Signature *sig) {
+				if (sig == NULL) return false;
+				bool valEqual;
+				if (this->type() != sig->type()) { //sig is not a binder
+					valEqual = (value != NULL && value->isStructurallyEqualTo(sig));
+				}//return false;
+				else { //sig is a binder
+				//No need for names to match - just the pointed signature...
+					StatBinder *s = (StatBinder *) sig;
+					valEqual = (value == NULL ? s->getValue() == NULL : value->isStructurallyEqualTo(s->getValue()));
+				}
+				if (not valEqual) return false;
+				return (next == NULL ? (sig->getNext() == NULL) : next->isStructurallyEqualTo(sig->getNext()));
+			}
+			virtual bool isSolelyEqualTo(Signature *sig) {
+				if (sig == NULL) return false;
+				if (this->type() != sig->type()) 
+					return (value != NULL && value->isStructurallyEqualTo(sig));
+				StatBinder *s = (StatBinder*) sig;
+				return (value == NULL ? s->getValue() == NULL : value->isSolelyEqualTo(s->getValue()));
+			}
 			virtual void putToString() {
 				cout << "(" << name <<"(";
 				if (value == NULL) cout << "__";
@@ -370,9 +482,14 @@ namespace QParser {
 			}
 			virtual string toString() {
 				string ret = "(" + name + "(" + (value == NULL ? "__" : value->toString()) + ")) ";
-				if (next != NULL) ret += next->toString();
+				//if (next != NULL) ret += next->toString();
 				return ret;
 			}
+			virtual Signature *deref() {
+				if (value == NULL) return new StatBinder(name);
+				else return new StatBinder(name, value->deref());
+			}
+			
 			virtual ~StatBinder() {cout << "entered statBinder destr" << endl; if (value != NULL) {Deb::ug( "value to kil\n");delete value; }
 				if (next != NULL){ Deb::ug("next binder to kil\n"); delete next;}
 				Deb::ug("killed a binder\n");};

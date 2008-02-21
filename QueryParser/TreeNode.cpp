@@ -173,6 +173,13 @@ namespace QParser
 		retNode->setOid(this->getOid());
 		return retNode;
 	}	
+	TreeNode* SimpleCastNode::clone() {
+		TreeNode *retNode = NULL;
+		if (arg != NULL && sig != NULL) retNode = new SimpleCastNode((QueryNode *)arg->clone(), (SignatureNode *)sig->clone());
+		else retNode = new SimpleCastNode (NULL, NULL);
+		retNode->setOid(this->getOid());
+		return retNode;
+	}
 	/** Typecheck clones end. */
 	
 /*  to be used when subT is an subTree independant of (this) and (this) is a non-alg operator.
@@ -1072,7 +1079,19 @@ namespace QParser
 		return 0;
 	}
 
-	
+	int SimpleCastNode::staticEval (StatQResStack *&qres, StatEnvStack *&envs) {
+		Deb::ug("SimpleCastNode::staticEval()");
+		if (this->arg->staticEval(qres, envs) == -1) return -1;
+		//This node may be either ignored - than do nothing more, leave the qres as it was.
+		//(instead of popping a sig and pushing its clone back on the stack!)
+		// OR : could pop qres, and push a createSignature(this->getSig())... given createSignature(SigNode*).
+		//qres->pop();
+		//Signature *sig = this->getSig()->createSignature();	//based on dScheme, for type reference...
+		//if (sig == NULL) return -1;
+		//qres->pushSig(sig);
+		this->evalCard();
+		return 0;
+	}
 	
 	int CoerceNode::staticEval (StatQResStack *&qres, StatEnvStack *&envs) {
 		Deb::ug("CoerceNode::staticEval()");
@@ -1122,7 +1141,7 @@ namespace QParser
 			}
 			case CoerceNode::to_seq : {
 				topSig->setCardMultiple();
-				topSig->setCollKind("sequence");
+				topSig->setCollKind("list");
 				qres->pushSig(topSig->clone());
                 break;
 			}
@@ -1264,15 +1283,23 @@ TreeNode* TreeNode::getNodeByOid(vector<TreeNode*>* listVec, long oid){
 		return 0;
 	}
 	
-	int UnOpNode::augmentTreeDeref(bool derefLeft, bool derefRight) {
-		//forget the second param
-		if (derefLeft) {
-			UnOpNode *deref = new UnOpNode(this->arg,UnOpNode::deref);
-			this->setArg(deref);
-		}
+	int UnOpNode::augmentTreeDeref() {
+		UnOpNode *deref = new UnOpNode(this->arg,UnOpNode::deref);
+		this->setArg(deref);
 		return 0;
 	}
 	
+	int NameAsNode::augmentTreeDeref() {
+		UnOpNode *deref = new UnOpNode(this->arg,UnOpNode::deref);
+		this->setArg(deref);
+		return 0;
+	}
+	
+	void TwoArgsNode::canDerefSons(bool &canDerefL, bool &canDerefR) {
+		canDerefL = this->getLArg()->canDerefNode();
+		canDerefR = this->getLArg()->canDerefNode();
+	}
+		
 	SignatureNode::~SignatureNode() {
 		if (arg != NULL) delete arg;
 	}
@@ -1314,6 +1341,64 @@ TreeNode* TreeNode::getNodeByOid(vector<TreeNode*>* listVec, long oid){
 		}
 	}
 	
+	Signature *SignatureNode::createSignature() { 
+		
+		BinderWrap *bwObj = DataScheme::dScheme()->bindBaseObjects();
+		cout << "bound base objects" << endl;
+		BinderWrap *bwTypes = DataScheme::dScheme()->bindBaseTypes();
+		cout << "bound base types" << endl;
+		if (sigKind != SignatureNode::defType) {
+			cout << "not a deftype signaturenode\n";
+			return this->recCreateSig(bwObj, bwTypes);
+		}
+		if (bwObj == NULL) {cout << "bwObj NULL" <<  endl; return NULL;}
+		if (bwTypes == NULL) {cout << "bwTypes NULL" <<  endl; return NULL;}
+		vector<BinderWrap*> *vec = new vector<BinderWrap*>();
+		bwObj->bindName2(typeName, vec);
+		if (DataScheme::bindError(vec)) //no object with this name...
+			bwTypes->bindName2(typeName, vec);
+		Signature *sig = DataScheme::extractSigFromBindVector(vec);
+		if (sig == NULL) {cout << "returning null sig straight away, not bound\n"; return NULL;}
+		if (sig->type() != Signature::SREF) return sig;
+		return DataScheme::dScheme()->signatureOfRef(((SigRef *)sig)->getRefNo());
+	}
+
+	Signature *SignatureNode::recCreateSig(BinderWrap *bwObj, BinderWrap *bwTypes) {	
+		string ret = "";
+		Signature *sig;
+		vector<BinderWrap*> *vec = new vector<BinderWrap*>();
+		switch (sigKind) {
+			case SignatureNode::atomic :
+				sig = new SigAtomType(atomType);
+				return sig;
+			case SignatureNode::ref :
+				bwObj->bindName2(typeName, vec);
+				if (DataScheme::bindError(vec))
+					bwTypes->bindName2(typeName, vec);
+				sig = DataScheme::extractSigFromBindVector(vec);
+				return sig;
+			case SignatureNode::defType : 
+				bwTypes->bindName2(typeName, vec);
+				sig = DataScheme::extractSigFromBindVector(vec);
+				if (sig == NULL) return NULL;
+				if (sig->type() != Signature::SREF) return sig;
+				return DataScheme::dScheme()->signatureOfRef(((SigRef *)sig)->getRefNo());
+			case SignatureNode::complex :
+				sig = new SigColl(Signature::SSTRUCT);
+				vector<ObjectDeclareNode*> *subs = NULL;
+				if (getStructArg() == NULL) return sig;
+				subs = this->getStructArg()->getSubDeclarations();
+				
+				for (unsigned int i = subs->size(); i > 0; i--) {
+					Signature *son = subs->at(i-1)->getSigNode()->createSignature();
+					if (son == NULL) return NULL;
+					((SigColl *)sig)->addToMyList(son);
+				}
+				return sig;
+		}
+		return NULL;
+	}
+	
 	int StructureTypeNode::putToString () { 
 		for (unsigned int i = 0; i < subDeclarations->size(); i++) {
 			if (i != 0) cout << ", ";
@@ -1327,6 +1412,41 @@ TreeNode* TreeNode::getNodeByOid(vector<TreeNode*>* listVec, long oid){
 			subDeclarations->push_back((ObjectDeclareNode *) q->at(i)->clone());
 		}
 	}
+	
+	string SignatureNode::deParse() {
+		switch (sigKind) {
+			case SignatureNode::atomic :
+				return atomType;
+			case SignatureNode::ref :
+				return "ref "+typeName;
+			case SignatureNode::defType :
+				return typeName;
+			case SignatureNode::complex :
+				return getStructArg()->deParse();
+		}
+		return "_";
+	}
+	string StructureTypeNode::deParse() {
+		string ret = "(";
+		for (unsigned int i = 0; i < subDeclarations->size(); i++) {
+			if (i != 0) ret += ", ";
+			ret += subDeclarations->at(i)->deParse();
+		}
+		ret += ")";
+		return ret;
+	}
+	string TypeDefNode::deParse() {
+		string ret = "typedef ";
+		ret += (isDistinct ? "distinct " : "") + name + " = " + getSigNode()->deParse();
+		return ret;
+	}
+	string ObjectDeclareNode::deParse() {
+		string ret = name + "[" + card + "]:" + getSigNode()->deParse();
+		return ret;
+	}
+	
+	
+	
 /**
  *		TypeCheck specific end.
  */

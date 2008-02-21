@@ -29,14 +29,24 @@ namespace TypeCheck
 		if (this->specialArg == M_B) 
 			return !((this->leftArg == M_0 && !isEmpty(lArg)) ||
 					(this->rightArg == M_0 && !isEmpty(rArg)));
-		if (this->specialArg == M_EQ) return (lArg == rArg);
+		if (this->specialArg == M_EQ) return (lArg == rArg);	//additional check for bases
 		if (this->specialArg == M_L)
 			return !(rArg != this->rightArg || (this->leftArg == M_0 && !isEmpty(lArg)));
 		if (this->specialArg == M_R)
 			return !(lArg != this->leftArg || (this->rightArg == M_0 && !isEmpty(rArg)));
+		if (this->specialArg == M_EX) {	//takes the leftArg to compare ! 
+			if (this->leftArg == M_0) return (isEmpty(lArg) || isEmpty(rArg));
+			return (lArg == this->leftArg || rArg == this->leftArg);
+		}
 		if ((this->specialArg == M_MATCH || isEmpty(this->specialArg)) &&
 			(lArg == this->leftArg && rArg == this->rightArg)) return true;
 		return false; /* rule doesn't match given input. */
+	}
+	
+	bool TCRule::appliesToBase(Signature *lSig, Signature *rSig) {
+		//Add. check only for equality of signatures.. 
+		if (this->specialArg != M_EQ) return true;
+		return lSig->isStructurallyEqualTo(rSig);
 	}
 	
 	int TCRule::getResult(string atr, Signature *lSig, Signature *rSig, TypeCheckResult &retResult) {
@@ -87,6 +97,12 @@ namespace TypeCheck
 			if (dTable != NULL) {
 				if (Deb::ugOn() && (lSig == NULL || rSig == NULL)) cout << "one of the signatures is NULL !\n";
 				retResult.setSig(dTable->doSig(this->sigGen, lSig, rSig));
+				if (retResult.getSig() == NULL) {
+					retResult.setEffect(TC_RS_ERROR);
+					retResult.addErrorPart(SIG_BASE);
+					Deb::ug("TCRule::getGenResult(): Setting alarm NULL base error");
+					return 0; //(ErrTypeChecker | EGeneralTCError);
+				}
 			} else return (ErrTypeChecker  | ETCInnerNULLFailure);
 			break;}
 		case Rule::CARD: {
@@ -232,6 +248,12 @@ namespace TypeCheck
 		switch (this->getRuleType()) {
 			case Rule::BASE: {
 				retResult.setSig(dTable->doSig(this->sigGen, argSig, param, option));
+				if (retResult.getSig() == NULL) {
+					retResult.setEffect(TC_RS_ERROR);
+					retResult.addErrorPart(SIG_BASE);
+					Deb::ug("UnOpRule::getGenResult(): Setting alarm NULL base error");
+					return 0; //(ErrTypeChecker | EGeneralTCError);
+				}
 				break;}
 			case Rule::CARD: {
 				retResult.getSig()->setCard(dTable->doAttr(attrGen, argSig->getCard(), param, option));

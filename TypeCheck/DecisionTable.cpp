@@ -31,12 +31,58 @@ namespace TypeCheck
 	void DecisionTable::initAlgOpRules(int op) {
 		cout << "[TC]: " << "initint AlgOpRules: " << op << " operator." << endl;
 		switch (op) {
-		case AlgOpNode::bagIntersect: 
-		case AlgOpNode::bagMinus: 
-		case AlgOpNode::bagUnion: { //PL: suma mnogosciowa..?
+		case AlgOpNode::bagIntersect: {
+			addTcRule(M_B,		"X",		"X",		BS_COPY_L);
+			addTcRule(M_ELSE,	"",			"",			TC_RS_ERROR);
+			/*CARD*/		
+			addCdRule(M_B,		"X",		"Y",		CD_INTST);
+			/*T-NAME*/		
+			addTnRule(M_B,		M_0, 		M_0, 		"");
+			addTnRule(M_EQ,		"X",		"X",		"");
+			addTnRule(M_ELSE, 							TC_RS_ERROR);
+			/*C-KIND*/		
+			addCkRule(M_B,		M_0,		M_0,		"bag");
+			addCkRule(M_L,		M_0,		"bag",		"bag");
+			addCkRule(M_R,		"bag",		M_0,		"bag");
+			addCkRule(			"bag",		"bag",		"bag");
+			addCkRule(M_ELSE,							TC_RS_ERROR);
+			break;
+		}
+		case AlgOpNode::bagMinus: {
+			addTcRule(M_B,		"X",		"X",		BS_COPY_L);
+			addTcRule(M_ELSE,	"",			"",			TC_RS_ERROR);
+			/*CARD*/		
+			addCdRule(M_B,		"X",		"Y",		CD_COPY_L_ZR);	//like for 'where'
+			/*T-NAME*/		
+			addTnRule(M_B,		M_0, 		M_0, 		"");
+			addTnRule(M_EQ,		"X",		"X",		"");
+			addTnRule(M_ELSE, 							TC_RS_ERROR);
+			/*C-KIND*/		
+			addCkRule(M_B,		M_0,		M_0,		"bag");
+			addCkRule(M_L,		M_0,		"bag",		"bag");
+			addCkRule(M_R,		"bag",		M_0,		"bag");
+			addCkRule(			"bag",		"bag",		"bag");
+			addCkRule(M_ELSE,							TC_RS_ERROR);
+			break;/*BASE*/	
+			addTcRule(M_EQ,		"X",		"X",		BS_COPY_L);
+			addTcRule(M_ELSE,	"X",		"Y",		BS_TO_VAR);
+/*CARD*/		
+			addCdRule(M_B,		"X",		"Y",		CD_ADDBANDS);
+/*T-NAME*/		
+			addTnRule(M_B,		M_0, 		M_0, 		"");
+			addTnRule(M_EQ,		"X",		"X",		"");
+			addTnRule(M_ELSE, 							TC_RS_ERROR);
+/*C-KIND*/		
+			addCkRule(M_B,		M_0,		M_0,		"bag");
+			addCkRule(M_L,		M_0,		"bag",		"bag");
+			addCkRule(M_R,		"bag",		M_0,		"bag");
+			addCkRule(			"bag",		"bag",		"bag");
+			addCkRule(M_ELSE,							TC_RS_ERROR);
+		}
+		case AlgOpNode::bagUnion: { 
 /*BASE*/	
 			addTcRule(M_EQ,		"X",		"X",		BS_COPY_L);
-			addTcRule(M_ELSE,							TC_RS_ERROR);
+			addTcRule(M_ELSE,	"X",		"Y",		BS_TO_VAR);
 /*CARD*/		
 			addCdRule(M_B,		"X",		"Y",		CD_ADDBANDS);
 /*T-NAME*/		
@@ -56,18 +102,19 @@ namespace TypeCheck
 			addTcRule(			"integer",	"integer",	"integer");
 			addTcRule(			"double",	"double",	"double");
 			addTcRule(			"string",	"string",	"string");
-			addTcRule(			"boolean",	"boolean",	"boolean"); //works like...  OR ? 
+			addTcRule(			"boolean",	"boolean",	"boolean"); 	//works like...  OR ? 
 			addTcRule(			"integer",	"double",	"double");
 			addTcRule(			"double",	"integer",	"double");
 			addTcRule(			"integer",	"string",	"string",	BS_TO_STR, LEFT, STATIC);
 			addTcRule(			"string",	"integer",	"string",	BS_TO_STR, RIGHT, STATIC);
+			addTcRule(			"double",	"string",	"string",	BS_TO_STR, LEFT, STATIC);
+			addTcRule(			"string",	"double",	"string",	BS_TO_STR, RIGHT, STATIC);
 			addTcRule(M_ELSE, 							TC_RS_ERROR);
 /*CARD*/		
 			addCdRule(			"1..1",		"1..1",		"1..1");
 			addCdRule(M_L,		"",			"1..1", 	"1..1", 	CARD_TO_11, LEFT, DYNAMIC);
 			addCdRule(M_R,		"1..1",		"", 		"1..1", 	CARD_TO_11, RIGHT, DYNAMIC);
-			addCdRule(M_B,		"", 		"", 		"1..1", 	CARD_TO_11, BOTH, DYNAMIC);//DYN_CTRL!
-			addCdRule(M_ELSE,							TC_RS_ERROR);
+			addCdRule(M_B,		"", 		"", 		"1..1", 	CARD_TO_11, BOTH, DYNAMIC);
 /*T-NAME*/		
 			addTnRule(M_B,		M_0,		M_0,		"");
 			addTnRule(M_ELSE, 							TC_RS_ERROR);
@@ -75,20 +122,25 @@ namespace TypeCheck
 		}
 		case AlgOpNode::minus: {
 /*BASE*/		
-			addTcRule(			"integer", 	"integer", 	"integer");
-			addTcRule(			"double", 	"double", 	"double");
-			addTcRule(			"integer", 	"double", 	"double");
-			addTcRule(			"string", 	"integer", 	"integer",	BS_TO_INT, LEFT, DYNAMIC);
-			addTcRule(			"string", 	"double", 	"double",	BS_TO_DBL, LEFT, DYNAMIC);
-			addTcRule(M_ELSE, 	"", 		"", 		TC_RS_ERROR);
+			addTcRule(			"integer",	"integer",	"integer");
+			addTcRule(			"double",	"double",	"double");
+			addTcRule(			"integer",	"double",	"double");
+			addTcRule(			"string",	"integer",	"integer",	BS_TO_INT, LEFT, DYNAMIC);
+			addTcRule(			"integer",	"string",	"integer",	BS_TO_INT, RIGHT, DYNAMIC);
+			addTcRule(			"string",	"double",	"double",	BS_TO_DBL, LEFT, DYNAMIC);
+			addTcRule(			"double",	"string",	"double",	BS_TO_DBL, RIGHT, DYNAMIC);
+			addTcRule(M_ELSE, 	"", 		"", 		TC_RS_ERROR);	//so eg. cant subtract strings...
 /*CARD*/		
 			addCdRule(			"1..1", 	"1..1", 	"1..1");
-			addCdRule(M_B,		"", 		"", 		"1..1", 	CARD_TO_11, BOTH, DYNAMIC); //DYN
+			addCdRule(M_L,		"",			"1..1", 	"1..1", 	CARD_TO_11, LEFT, DYNAMIC);
+			addCdRule(M_R,		"1..1",		"", 		"1..1", 	CARD_TO_11, RIGHT, DYNAMIC);
+			addCdRule(M_B,		"", 		"", 		"1..1", 	CARD_TO_11, BOTH, DYNAMIC);
 /*T-NAME*/		
 			addTnRule(M_B,		M_0,		M_0,		"");
 			addTnRule(M_ELSE, 	"", 		"", 		TC_RS_ERROR);
 			break;
 		}
+		case AlgOpNode::divide: 	// BELOW
 		case AlgOpNode::times: {
 /*BASE*/
 			addTcRule(			"integer",	"integer",	"integer");	
@@ -96,230 +148,375 @@ namespace TypeCheck
 			addTcRule(			"integer",	"double",	"double");
 			addTcRule(			"double",	"integer",	"double");
 			addTcRule(			"boolean",	"boolean",	"boolean"); //works like  AND 
+			addTcRule(			"string",	"double",	"double",	BS_TO_DBL, LEFT, DYNAMIC);
+			addTcRule(			"double",	"string",	"double",	BS_TO_DBL, RIGHT, DYNAMIC);
 			addTcRule(M_ELSE, 							TC_RS_ERROR);
 /*CARD*/		
-			addCdRule("			1..1",		"1..1",		"1..1");
-			addCdRule(M_B, 		"",			"",			"1..1",		CARD_TO_11, BOTH, DYNAMIC); //DYN
+			addCdRule(			"1..1",		"1..1",		"1..1");
+			addCdRule(M_L,		"",			"1..1", 	"1..1", 	CARD_TO_11, LEFT, DYNAMIC);
+			addCdRule(M_R,		"1..1",		"", 		"1..1", 	CARD_TO_11, RIGHT, DYNAMIC);
+			addCdRule(M_B,		"", 		"", 		"1..1", 	CARD_TO_11, BOTH, DYNAMIC);
 /*T-NAME*/		
 			addTnRule(M_B,		M_0,		M_0,		"");
 			addTnRule(M_ELSE, TC_RS_ERROR);
 			break;
 		}
-		case AlgOpNode::divide: { 
-/*BASE*/		
-			addTcRule("integer", "integer", "integer");
-			addTcRule("double", "double", "double");
-			addTcRule("integer", "double", "double");
-			addTcRule("double", "integer", "double");
-			addTcRule(M_ELSE, TC_RS_ERROR);
-/*CARD*/		
-			addCdRule("1..1", "1..1", "1..1");
-			addCdRule(M_B, "", "", "1..1", CARD_TO_11, BOTH, DYNAMIC); //DYN
-/*T-NAME*/		
-			addTnRule("M", M_0, M_0, "");
-			addTnRule(M_ELSE, TC_RS_ERROR);
-			break;
-		}
+		case AlgOpNode::neq: 	// BELOW
 		case AlgOpNode::eq: {
 /*BASE*/	
-			addTcRule("integer", "integer", "boolean");
-			addTcRule("string", "string", "boolean");
-			//addTcRule("double", "double", "boolean");	// equality of two doubles...! are yousure?
-			addTcRule("string", "integer", "boolean", BS_TO_STR, RIGHT, STATIC);
-			addTcRule("integer", "string", "boolean", BS_TO_STR, LEFT, STATIC);
+			addTcRule(			"double",	"double",	TC_RS_ERROR);	// not allowed to compare doubles!
+			addTcRule(M_EX,		"variant",	"",			TC_RS_ERROR);	// not allowed to compare variants.
+			addTcRule(M_EQ,		"",			"",			"boolean");		//structural equality
+			addTcRule(			"string",	"integer",	"boolean",	BS_TO_STR, RIGHT, STATIC);
+			addTcRule(			"integer",	"string",	"boolean",	BS_TO_STR, LEFT, STATIC);
+			addTcRule(			"string",	"double",	"boolean",	BS_TO_STR, RIGHT, STATIC);
+			addTcRule(			"double",	"string",	"boolean",	BS_TO_STR, LEFT, STATIC);
 			addTcRule(M_ELSE, TC_RS_ERROR);
 /*CARD*/		
-			addCdRule("1..1", "1..1", "1..1");
-			addCdRule(M_B, "", "", "1..1", CARD_TO_11, BOTH, DYNAMIC); //DYN
+			addCdRule(			"1..1",		"1..1",		"1..1");
+			addCdRule(M_L,		"",			"1..1", 	"1..1", 	CARD_TO_11, LEFT, DYNAMIC);
+			addCdRule(M_R,		"1..1",		"", 		"1..1", 	CARD_TO_11, RIGHT, DYNAMIC);
+			addCdRule(M_B,		"", 		"", 		"1..1", 	CARD_TO_11, BOTH, DYNAMIC);
 /*T-NAME*/		
-			addTnRule(M_B, M_0, M_0, "");
-			addTnRule(M_EQ, "", "", "");
+			addTnRule(M_B,		M_0,		M_0,		"");
+			addTnRule(M_EQ,		"",			"",			"");
 			addTnRule(M_ELSE, TC_RS_ERROR);
 			break;
 		}
-		case AlgOpNode::neq: { 
-/*BASE*/		
-			addTcRule("integer", "integer", "boolean");
-			addTcRule("string", "string", "boolean");
-			//addTcRule("double", "double", "boolean");	// comparing two doubles...!?
-			addTcRule("string", "integer", "boolean", BS_TO_STR, RIGHT, STATIC);
-			addTcRule("integer", "string", "boolean", BS_TO_STR, LEFT, STATIC);
-			addTcRule(M_ELSE, TC_RS_ERROR);
-/*CARD*/		
-			addCdRule("1..1", "1..1", "1..1");
-			addCdRule(M_B, "", "", "1..1", CARD_TO_11, BOTH, DYNAMIC);
-/*T-NAME*/		
-			addTnRule(M_B, M_0, M_0, "");
-			addTnRule(M_EQ, "", "", "");
-			addTnRule(M_ELSE, TC_RS_ERROR);
-			break;
-		}
-		//all comparisons ( < , > , <= , >= ) have the same rules :
-		case AlgOpNode::lt: 
-		case AlgOpNode::gt:
-		case AlgOpNode::le:
+		//all following comparisons ( < , > , <= , >= ) have the same rules :
+		case AlgOpNode::lt: 	// BELOW
+		case AlgOpNode::gt:		// BELOW	
+		case AlgOpNode::le:		// BELOW
 		case AlgOpNode::ge:{ 
 /*BASE*/	
-			addTcRule("integer", "integer", "boolean");
-			addTcRule("string", "string", "boolean");
-			addTcRule("double", "double", "boolean");
-			//suggest not to compare strings vs. integers, OR...! to try and coerce str TO_INTEGER!:
-			//addTcRule("string", "integer", "boolean", TypeChecker::BS_TOINT_L, DYNAMIC);
+			addTcRule(			"integer",	"integer",	"boolean");
+			addTcRule(			"string",	"string",	"boolean");
+			addTcRule(			"double",	"double",	"boolean");
+			addTcRule(			"string",	"integer",	"boolean",	BS_TO_INT, LEFT, DYNAMIC);
+			addTcRule(			"integer",	"string",	"boolean",	BS_TO_INT, RIGHT, DYNAMIC);
+			addTcRule(			"string",	"double",	"boolean",	BS_TO_DBL, LEFT, DYNAMIC);
+			addTcRule(			"double",	"string",	"boolean",	BS_TO_DBL, RIGHT, DYNAMIC);
 			addTcRule(M_ELSE, TC_RS_ERROR); 
 /*CARD*/		
-			addCdRule("1..1", "1..1", "1..1");
-			addCdRule(M_B, "", "", "1..1", CARD_TO_11, BOTH, DYNAMIC); //DYN
+			addCdRule(			"1..1",		"1..1",		"1..1");
+			addCdRule(M_L,		"",			"1..1", 	"1..1", 	CARD_TO_11, LEFT, DYNAMIC);
+			addCdRule(M_R,		"1..1",		"", 		"1..1", 	CARD_TO_11, RIGHT, DYNAMIC);
+			addCdRule(M_B,		"", 		"", 		"1..1", 	CARD_TO_11, BOTH, DYNAMIC);
 /*T-NAME*/		
-			addTnRule(M_B, M_0, M_0, "");
-			addTnRule(M_EQ, "", "", "");
+			addTnRule(M_B,		M_0,		M_0,		"");
 			addTnRule(M_ELSE, TC_RS_ERROR);
 			break;
 		}
 		//TODO: fill the rulesets...:
-		case AlgOpNode::boolAnd:
+		case AlgOpNode::boolAnd:	// BELOW
 		case AlgOpNode::boolOr: {
 /*BASE*/	
-			addTcRule("bool", "bool", "bool");
-			addTcRule(M_ELSE, "", "", TC_RS_ERROR);
-/*CARD*/		
-			addCdRule("1..1", "1..1", "1..1");
-			addCdRule(M_B, "", "", "1..1", CARD_TO_11, BOTH, DYNAMIC);//DYN_CTRL!
-			addCdRule(M_ELSE, TC_RS_ERROR);
+			addTcRule(			"boolean",	"boolean",	"boolean");
+			addTcRule(M_ELSE, TC_RS_ERROR);
+/*CARD*/
+			addCdRule(			"1..1",		"1..1",		"1..1");
+			addCdRule(M_L,		"",			"1..1", 	"1..1", 	CARD_TO_11, LEFT, DYNAMIC);
+			addCdRule(M_R,		"1..1",		"", 		"1..1", 	CARD_TO_11, RIGHT, DYNAMIC);
+			addCdRule(M_B,		"", 		"", 		"1..1", 	CARD_TO_11, BOTH, DYNAMIC);
+			
 			break;
 		}
 		case AlgOpNode::comma: {
-/*BASE*/		
-			addTcRule(M_B, "X", "Y", BS_STRUCT);
-/*CARD*/		
-			addCdRule(M_B, "X", "Y", CD_MULTBANDS);
-/*T-NAME*/		
-			addTnRule(M_B, "X", "Y", "");	//struct always gets an empty distinct typename... 
-/*C-KIND*/		
-			addCkRule(M_B,	M_0,	M_0, "bag");
-			addCkRule(M_L,	M_0,	"bag",	"bag");
-			addCkRule(M_R,"bag",	M_0,	"bag");
-			addCkRule("bag", "bag",	"bag");
-			addCkRule(M_ELSE, TC_RS_ERROR);
+			/*BASE*/		
+			addTcRule(M_EX,		"variant",	"",			TC_RS_ERROR);
+			addTcRule(M_B,		"X",		"Y",		BS_STRUCT);
+			/*CARD*/
+			addCdRule(M_B,		"X",		"Y",		CD_MULTBANDS);
+			/*T-NAME*/		
+			addTnRule(M_B,		"X",		"Y",		"");//struct always gets an empty distinct typename... 
+			/*C-KIND*/	
+			addCkRule(M_B,		M_0,		M_0,		"bag");
+			addCkRule(M_L,		M_0,		"bag",		"bag");
+			addCkRule(M_R,		"bag",		M_0,		"bag");
+			addCkRule(			"bag",		"bag",		"bag");
+			addCkRule(M_ELSE, 							TC_RS_ERROR);
 			break;			
-		} //structure constructor ... ??? 
-		case AlgOpNode::insertInto: { }					// impertative
-		case AlgOpNode::assign: { }						// impertative
-		case AlgOpNode::semicolon: { break;}			// ?? does nth. 
-		case AlgOpNode::insert: { }						// impertative
-		case AlgOpNode::refeq: { }	//arguments must be references, else - error ? 
+		}
+		case AlgOpNode::insert: {	//TODO: impertative
+			break;
+		}
+		case AlgOpNode::assign: {	//TODO: impertative
+			break;
+		}
+		case AlgOpNode::semicolon: { // does nthing, but returns right signature.
+			addTcRule(M_B,		"X",		"Y",		BS_COPY_R);
+			addCdRule(M_B,		"X",		"Y",		ARG_COPY_R);
+			addTnRule(M_B,		"X",		"Y",		ARG_COPY_R);
+			addCkRule(M_B,		"X",		"Y",		ARG_COPY_R);
+			break;
+		}
+		case AlgOpNode::refeq: { 
+			/*BASE*/
+			addTcRule(			"ref",		"ref",	"boolean");
+			addTcRule(M_ELSE,						TC_RS_ERROR);
+			/*CARD*/
+			addCdRule(			"1..1",		"1..1",		"1..1");
+			addCdRule(M_L,		"",			"1..1", 	"1..1", 	CARD_TO_11, LEFT, DYNAMIC);
+			addCdRule(M_R,		"1..1",		"", 		"1..1", 	CARD_TO_11, RIGHT, DYNAMIC);
+			addCdRule(M_B,		"", 		"", 		"1..1", 	CARD_TO_11, BOTH, DYNAMIC);
+			/*T-NAME*/		
+			addTnRule(M_B,		M_0,		M_0,		"");
+			addTnRule(M_EQ,		"",			"",			"");
+			addTnRule(M_ELSE, TC_RS_ERROR);
+			break;
+		}	//arguments must be references, else - error  
 		default: break;
 		}
 		provideReturnLinks();
 	}
 	
 	void DecisionTable::initNonAlgOpRules(int op) {
+		//cout << "[TC]: " << "initint NONAlgOpRules: " << op << " operator." << endl;
 		switch (op) {//TODO: fill the rulesets
 		case NonAlgOpNode::dot: {
 /*BASE*/	
-			addTcRule(M_B, "whatever", "X", BS_COPY_R);
+			addTcRule(M_EX,		"variant",	"",			TC_RS_ERROR);
+			addTcRule(M_B,		"X",		"Y", 		BS_COPY_R);
 /*CARD*/		
-			addCdRule(M_B, "X", "Y", CD_MULTBANDS);
+			addCdRule(M_B,		"X",		"Y",		CD_MULTBANDS);
 /*T-NAME*/		
-			addTnRule(M_B, "whatever", "X", ARG_COPY_R);
+			addTnRule(M_B,		"X",		"Y",		ARG_COPY_R);
 /*C-KIND*/		
-			addCkRule(M_B,	M_0,	M_0, "bag");
-			addCkRule(M_L,	M_0,	"bag",	"bag");
-			addCkRule(M_R,	"bag",	M_0,	"bag");
-			addCkRule("bag", "bag",	"bag");
-			addCkRule(M_L, M_0, "sequence", "sequence");
-			addCkRule(M_R, "sequence", M_0, "sequence");
-			addCkRule("sequence", "sequence", "sequence");
-			addCkRule(M_ELSE,TC_RS_ERROR);				
+			addCkRule(M_B,		M_0,		M_0, 		"bag");
+			addCkRule(M_L,		M_0,		"bag",		"bag");
+			addCkRule(M_R,		"bag",		M_0,		"bag");
+			addCkRule(			"bag", 		"bag",		"bag");
+			addCkRule(M_L,		M_0,		"list",		"list");
+			addCkRule(M_R,		"list",		M_0,		"list");
+			addCkRule(			"list",		"list",		"list");
+			addCkRule(M_ELSE, TC_RS_ERROR);				
 			break;
 		}
 		case NonAlgOpNode::join: { //same rules as in struct, collKind taken from dot...
-/*BASE*/
-			addTcRule(M_B, "X", "Y", BS_STRUCT);
+/*BASE*/	addTcRule(M_EX,		"variant",	"",			TC_RS_ERROR);
+			addTcRule(M_B,		"X",		"Y",		BS_STRUCT);
 /*CARD*/	
-			addCdRule(M_B, "X", "Y", CD_MULTBANDS);
+			addCdRule(M_B,		"X",		"Y",		CD_MULTBANDS);
 /*T-NAME*/	
-			addTnRule(M_B, "X", "Y", "");	//struct always gets an EMPTY distinct typename... 
+			addTnRule(M_B,		"X",		"Y",		"");	//empty distinct typename for struct
 /*C-KIND*/	
-			addCkRule(M_B,	M_0,	M_0, "bag");
-			addCkRule(M_L,	M_0,	"bag",	"bag");
-			addCkRule(M_R,	"bag",	M_0,	"bag");
-			addCkRule("bag", "bag",	"bag");
-			addCkRule(M_L, M_0, "sequence", "sequence");
-			addCkRule(M_R, "sequence", M_0, "sequence");
-			addCkRule("sequence", "sequence", "sequence");
-			addCkRule(M_ELSE,TC_RS_ERROR);
+			addCkRule(M_B,		M_0,		M_0,		"bag");
+			addCkRule(M_L,		M_0,		"bag",		"bag");
+			addCkRule(M_R,		"bag",		M_0,		"bag");
+			addCkRule(			"bag",		"bag",		"bag");
+			addCkRule(M_ELSE, TC_RS_ERROR);
 			break;
 		}
 		case NonAlgOpNode::where: {
 /*BASE*/
-			addTcRule(M_L, "", "boolean", BS_COPY_L);
-			addTcRule(M_ELSE, 	TC_RS_ERROR);
+			addTcRule(M_EX,		"variant",	"",			TC_RS_ERROR);
+			addTcRule(M_L,		"X",		"boolean",	BS_COPY_L);
+			addTcRule(M_ELSE, TC_RS_ERROR);
 /*CARD*/	
-			addCdRule(M_L, "X..Y", "1..1", CD_COPY_L_ZR);
-			addCdRule(M_ELSE, "", "", CD_COPY_L_ZR, CARD_TO_11, RIGHT, DYNAMIC);
+			addCdRule(M_L,		"X..Y",		"1..1",		CD_COPY_L_ZR);
+			addCdRule(M_ELSE, 	"X..Y",		"a..b",		CD_COPY_L_ZR,	CARD_TO_11, RIGHT, DYNAMIC);
 /*T-NAME*/	
-			addTnRule(M_B, "X", "whatever", ARG_COPY_L);
+			addTnRule(M_B,		"X",		"Y",		ARG_COPY_L);
 /*C-KIND*/	
-			addCkRule(M_B, "X", "whatever", ARG_COPY_L);
+			addCkRule(M_B,		"X",		"Y",		ARG_COPY_L);
 			break;
 		}
-		case NonAlgOpNode::closeBy: { }
-		case NonAlgOpNode::closeUniqueBy: { }
-		case NonAlgOpNode::leavesBy: { }
-		case NonAlgOpNode::leavesUniqueBy: { }
-		case NonAlgOpNode::orderBy: { }
-		case NonAlgOpNode::exists: { }
-		case NonAlgOpNode::forAll: { }
-		case NonAlgOpNode::forEach: { }
+		//Four similar operators, as for TC...
+		case NonAlgOpNode::closeBy: 		// BELOW
+		case NonAlgOpNode::closeUniqueBy: 	// BELOW
+		case NonAlgOpNode::leavesBy: 		// BELOW
+		case NonAlgOpNode::leavesUniqueBy: { 	//as in union...
+			/*BASE*/	
+			addTcRule(M_EX,		"variant",	"",			TC_RS_ERROR);
+			addTcRule(M_B,		"X",		"Y",		BS_COPY_L);
+			/*CARD*/		
+			addCdRule(M_B,		"X",		"Y",		CD_ADDBANDS);
+			/*T-NAME*/		
+			addTnRule(M_B,		M_0, 		M_0, 		"");
+			addTnRule(M_EQ,		"X",		"X",		"");
+			addTnRule(M_ELSE, 							TC_RS_ERROR);
+			/*C-KIND*/		
+			addCkRule(M_B,		M_0,		M_0,		"bag");
+			addCkRule(M_L,		M_0,		"bag",		"bag");
+			addCkRule(M_R,		"bag",		M_0,		"bag");
+			addCkRule(			"bag",		"bag",		"bag");
+			addCkRule(M_ELSE,							TC_RS_ERROR);
+			break;
+		}
+		case NonAlgOpNode::orderBy: { 
+			addTcRule(M_EX,		"variant",	"",			TC_RS_ERROR);
+			addTcRule(M_B,		"X",		"Y",		BS_COPY_L);
+			addCdRule(M_B,		"X",		"Y",		ARG_COPY_L);
+			addTnRule(M_B,		"X", 		M_0, 		ARG_COPY_L);
+			addTnRule(M_ELSE, TC_RS_ERROR);
+			break;
+		}
+		case NonAlgOpNode::exists: //same as forAll..: BELOW
+		case NonAlgOpNode::forAll: {
+			/*BASE*/
+			addTcRule(M_EX,		"variant",	"",			TC_RS_ERROR);
+			addTcRule(M_L,		"X",		"boolean",	"boolean");
+			addTcRule(M_ELSE, TC_RS_ERROR);
+			/*CARD*/	
+			addCdRule(M_L,		"X..Y",		"1..1",		"1..1");
+			addCdRule(M_ELSE, 	"X..Y",		"a..b",		"1..1",			CARD_TO_11, RIGHT, DYNAMIC);
+			
+			break;
+		}
+		case NonAlgOpNode::forEach: {
+			/*BASE*/	
+			addTcRule(M_EX,		"variant",	"",			TC_RS_ERROR);
+			addTcRule(M_B,		"X",		"Y", 		"void");
+			/*CARD*/		
+			addCdRule(M_B,		"X",		"Y",		ARG_COPY_L);
+			/*T-NAME*/		
+			addTnRule(M_B,		"X",		"Y",		"");
+			/*C-KIND*/		
+			addCkRule(M_B,		"",			"", 		ARG_COPY_L);
+			break;
+		}
 		default: break;
 		}
 		provideReturnLinks();
 	}
 
+	void DecisionTable::initOtherBinaryRules(int treeType, int op) {
+		switch (treeType) {
+		case TreeNode::TNCASTTO : {
+			/*BASE*/	
+			addTcRule(M_EQ,		"X",		"X",		BS_COPY_L); //"boolean", "boolean", "boolean");
+			addTcRule(M_R,		"variant",	"X",		BS_CAST_VAR);
+			addTcRule(M_R,		"struct",	"X",		BS_CAST_VAR);
+			addTcRule(M_ELSE, TC_RS_ERROR);
+			/*CARD*/		
+			addCdRule(M_B,		"",			"",			ARG_COPY_L);
+			/*T-NAME*/	
+			addTnRule(M_B, 		"X",		"whatever", ARG_COPY_R);	//may set typename by such a cast... ?
+			/*C-KIND*/	
+			addCkRule(M_B,		"X",		"whatever", ARG_COPY_L);	
+		}
+		default: break;	
+		}
+		provideReturnLinks();
+	}
+	
 	void UnOpDecisionTable::initUnOpRules(int treeType, int op) {
 		switch (treeType) {
 		case TreeNode::TNUNOP :
-			switch (op) {//TODO: fill the rulesets
-			case UnOpNode::count: { }
-			case UnOpNode::sum: { }
-			case UnOpNode::avg:	{ }
-			case UnOpNode::min: { }
-			case UnOpNode::max: { break;}
-			case UnOpNode::deref:{
-				cout << "filling in deref rules\n";
-			//must fill'em in so that augmentTreeDeref works 
-				addTcRule("", "ref", BS_REF_DEREF);
-				addTcRule("", "string", "string");
-				addTcRule("", "integer", "integer");
-				addTcRule("", "double", "double");
-				addTcRule("", "boolean", "boolean");
-				// struct(s1,s2..): return struct(deref(s1), deref(s2), ...); 
-				// binder (n, S): return binder (n, deref(S));
-				addTcRule(M_ELSE, "", TC_RS_ERROR); // for now - finally should also consider structs/binders/.
-				addCdRule(META, "x", ARG_COPY);
-				addTnRule(META, "x", ARG_COPY);//OR maybe derefed sig should have no typename..? 
-				addCkRule(META, "x", ARG_COPY);
+			switch (op) {
+			case UnOpNode::count: { //Alway successful, can even count variant.- returns 1 integer, no t-name, no c-kind
+				addTcRule(META,		"x",		"integer");
+				addCdRule(META,		"x",		"1..1");
 				break;
 			}
-			case UnOpNode::ref: {  }
-			case UnOpNode::distinct: { }
-			case UnOpNode::unMinus: { }
-			case UnOpNode::boolNot: { }
-			case UnOpNode::deleteOp: { }
-			case UnOpNode::nameof: { }
+			case UnOpNode::sum: 	// AS BELOW	 //lets say you can sum all that can have '+' applied 
+			case UnOpNode::avg:	{
+				addTcRule("",		"integer",	"integer");
+				addTcRule("",		"double",	"double");
+				addTcRule("",		"string",	"string");
+				addTcRule(M_ELSE,	"",			TC_RS_ERROR);
+				/*CARD*/		
+				addCdRule(META,		"",			"1..1");
+				/*T-NAME*/		
+				addTnRule(META,		M_0,		"");
+				addTnRule(M_ELSE, 	"",			TC_RS_ERROR);
+				break;
+			}
+			case UnOpNode::min: 	// AS BELOW
+			case UnOpNode::max: {
+				addTcRule("",		"integer",	"integer");
+				addTcRule("",		"double",	"double");
+				addTcRule("",		"string",	"string");
+				addTcRule("",		"boolean",	"boolean"); 	//works like grouped OR for max, AND for min.
+				addTcRule(M_ELSE, 	"",			TC_RS_ERROR);
+				/*CARD*/		
+				addCdRule(META,		"",			"1..1");
+				/*T-NAME*/		
+				addTnRule(META,		M_0,		"");
+				addTnRule(M_ELSE, 	"",			TC_RS_ERROR);
+				break;
+			}
+			case UnOpNode::deref:{	
+				addTcRule("",		"ref",		BS_REF_DEREF);	//deprecated - now can be within Else-> BS_DEREF..
+				addTcRule("",		"string",	"string");
+				addTcRule("",		"integer",	"integer");
+				addTcRule("",		"double",	"double");
+				addTcRule("",		"boolean",	"boolean");
+				addTcRule(M_ELSE, 	"", 		BS_DEREF); 	
+				addCdRule(META, 	"x", 		ARG_COPY);
+				addTnRule(META, 	"x", 		ARG_COPY);	
+				addCkRule(META, 	"x", 		ARG_COPY);
+				break;
+			}
+			case UnOpNode::ref: {	// copies argument, just setting the 'ref' flag.
+				addTcRule("",		"variant",	TC_RS_ERROR);
+				addTcRule(META,		"",			BS_COPY_REF);
+				addCdRule(META, 	"x", 		ARG_COPY);
+				addTnRule(META, 	"x", 		ARG_COPY);	
+				addCkRule(META, 	"x", 		ARG_COPY);
+				break;
+			}
+			case UnOpNode::distinct: {
+				addTcRule("",		"variant",	TC_RS_ERROR);
+				addTcRule(META,		"",			BS_COPY_REF);
+				addCdRule(META, 	"x", 		ARG_COPY);	//nr of elts changes, but card stays as it is !
+				addTnRule(META, 	"x", 		ARG_COPY);	//elements can keep the typename.
+				addCkRule(META, 	M_0, 		"");
+				break;
+			}
+			case UnOpNode::unMinus: {
+				addTcRule("",		"integer",	"integer");
+				addTcRule("",		"double",	"double");
+				//addTcRule("",		"boolean",	"boolean");		// could work like NOT 
+				addTcRule("",		"string",	"double",	BS_TO_DBL, DYNAMIC);
+				addTcRule(M_ELSE,	"",			TC_RS_ERROR);
+				/*CARD*/		
+				addCdRule("",		"1..1",		"1..1");
+				addCdRule(META,		"",			"1..1",		CARD_TO_11, DYNAMIC);
+				/*T-NAME*/		
+				addTnRule(META,		M_0,		"");
+				addTnRule(M_ELSE, 	"",			TC_RS_ERROR);
+				break;
+			}
+			case UnOpNode::boolNot: { 
+				addTcRule("",		"boolean",	"boolean");
+				addTcRule("",		"integer",	"boolean",	BS_TO_BOOL, DYNAMIC);
+				addTcRule("",		"double",	"boolean",	BS_TO_BOOL, DYNAMIC);
+				addTcRule("",		"string",	"boolean",	BS_TO_BOOL, DYNAMIC);
+				addTcRule(M_ELSE,	"",			TC_RS_ERROR);
+				/*CARD*/		
+				addCdRule("",		"1..1",		"1..1");
+				addCdRule(META,		"",			"1..1",		CARD_TO_11, DYNAMIC);
+				/*T-NAME*/		
+				addTnRule(META,		M_0,		"");
+				addTnRule(M_ELSE, 	"",			TC_RS_ERROR);
+				break;
+			}
+			case UnOpNode::deleteOp: { //Todo... ! (complex check)
+/*				addTcRule("",		"ref",		"void");
+				addTcRule(M_ELSE,	"",			TC_RS_ERROR);
+				addCdRule("",		"1..1",		TC_RS_ERROR);
+				addCdRule("",		"1..*",		"1..*",		CD_ATLST_2, DYNAMIC);*/
+				break;
+			}
+			case UnOpNode::nameof: { 
+				break;
+			}
 			default: break;
 			}
 			break;
-		case TreeNode::TNAS: 
-			addTcRule("M", "Base", BS_NAMEAS);
-			addCdRule("M", "CD", CD_NAMEAS);
-			addTnRule("M", "TN", "");
-			addCkRule("M", "CK", CK_NAMEAS);	
-			break;
+		case TreeNode::TNAS: {
+				addTcRule("",		"variant",	TC_RS_ERROR);
+				addTcRule(META,		"Base", 	BS_NAMEAS);
+				addCdRule(META,		"CD",		CD_NAMEAS);
+				addTnRule(META,		"TN",		"");
+				addCkRule(META,		"CK",		CK_NAMEAS);	
+				break;
+		}
 		case TreeNode::TNCREATE: 
-				//base : argument has to be a binder. else : error. 
-				// but when its abinder... bind the name??, and check that args sig = name's sig... ?!
-			// cd: well... 
+				// TODO: fill in together with AlgOp::insert, most responsibility on base-generator.
+				//base : argument has to be a binder, & fulfill other reqs. 
+				
 			break;
 		default: break;
 		}
@@ -332,13 +529,14 @@ namespace TypeCheck
 	/** ***********		Result generator dispatchers. 	*********** */ 
 	
 	Signature *DecisionTable::doSig(int method, Signature *lSig, Signature *rSig) {
-		cout << "doing sig based on lSig and rSig: " << endl;
-		lSig->putToString();
-		rSig->putToString();
+		// << "doing sig based on lSig and rSig: " << endl;	lSig->putToString();	rSig->putToString();
 		switch(method) {
 			case DecisionTable::BS_COPY_L : return leftSig(lSig, rSig);
 			case DecisionTable::BS_COPY_R : return rightSig(lSig, rSig);
 			case DecisionTable::BS_STRUCT : return doStruct(lSig, rSig);
+			case DecisionTable::BS_CAST_VAR: return castVar(lSig, rSig);
+			case DecisionTable::BS_TO_VAR: return createVar(lSig, rSig);
+			
 			default: return NULL;
 		}
 	}
@@ -350,6 +548,8 @@ namespace TypeCheck
 			case DecisionTable::ARG_COPY_L : return copyLeftArg(lArg, rArg);		
 			case DecisionTable::CD_COPY_L_ZR : return cdCopyLeftWithZero(lArg, rArg);
 			case DecisionTable::ARG_COPY_R : return copyRightArg(lArg, rArg);
+			case DecisionTable::CD_INTST : return cdIntersect(lArg, rArg);
+			
 			default: return "";
 		}
 	}
@@ -358,6 +558,8 @@ namespace TypeCheck
 		switch(method) {
 			case UnOpDecisionTable::BS_COPY : return copySig(sig);
 			case UnOpDecisionTable::BS_REF_DEREF : return refDerefSig(sig);
+			case UnOpDecisionTable::BS_DEREF : return derefSig(sig);
+			case UnOpDecisionTable::BS_COPY_REF : return copyAndRefSig(sig);
 			case UnOpDecisionTable::BS_NAMEAS : return nameAsSig(sig, param, option);
 			default: return NULL;
 		}
@@ -387,6 +589,52 @@ namespace TypeCheck
 		((SigColl *)sig)->setElts(lSig);
 		((SigColl *)sig)->addToMyList(rSig);
 		return sig;
+	}
+	
+	//to be used for casting variant subSignatures...
+	Signature *DecisionTable::castVar(Signature *lSig, Signature *rSig) {
+		if (lSig->isStructurallyEqualTo(rSig)) {
+			//cout << "Structurally equal !!! " << endl;
+			return lSig->clone();
+		} else {
+			//cout << "lSig isnt struct. equal to rSig. lets check if its a variant and has at least 1 matching sig\n";
+			//if (lSig->type() != Signature::SVAR) {cout << "NOT a var sig\n";}
+			if (lSig->type() == Signature::SSTRUCT || lSig->type() == Signature::SVAR) {
+				//cout << "Struct or var sig - works the same, will check out on it\n";
+				bool foundMatch = false;
+				Signature *ptr = ((SigColl *)lSig)->getMyList();
+				if (ptr != NULL) {
+					foundMatch = ptr->isSolelyEqualTo(rSig);
+				}
+				while ((ptr->getNext() != NULL) && (not foundMatch)) {
+					ptr = ptr->getNext();
+					foundMatch = ptr->isSolelyEqualTo(rSig);
+				}
+				if (foundMatch) return rSig->clone();
+				else return NULL;
+			}
+		}
+		cout << "castVar seems not allowed, will return NULL as result signature..." << endl;
+		return NULL;
+	}
+	
+	Signature *DecisionTable::createVar(Signature *lSig, Signature *rSig) {
+		if (lSig == NULL || rSig == NULL) return NULL;
+		SigColl *ret = new SigColl(Signature::SVAR);
+		if (lSig->type() != Signature::SVAR) ret->addToMyList(lSig->clone());
+		else addVariants(ret, (SigColl *)lSig);
+		if (rSig->type() != Signature::SVAR) ret->addToMyList(rSig->clone());
+		else addVariants(ret, (SigColl *)rSig);
+		return ret;
+	}
+	
+	void DecisionTable::addVariants(SigColl *sig, SigColl *tbAdded) {
+		Signature *ptr = tbAdded->getMyList();
+		//now - clone also clones all the nexts! so no need for a 'while' loop.
+		if (ptr != NULL) {
+			sig->addToMyList(ptr->clone());
+			sig->setMyLast(sig->getMyList());
+		}
 	}
 	
 	string DecisionTable::cdAddBands(string lCard, string rCard) {
@@ -423,6 +671,15 @@ namespace TypeCheck
 		return conv.str();
 	}
 	
+	string DecisionTable::cdIntersect(string lCard, string rCard) {
+		stringstream conv;
+		conv << "0..";
+		if (lCard[3] == '*' && rCard[3] == '*') conv << "*";
+		else if (lCard[3] == '0' || rCard[3] == '0') conv << "0";
+		else conv << "1";
+		return conv.str();
+	}
+	
 	string DecisionTable::copyLeftArg(string lArg, string rArg) {return lArg;}
 	
 	string DecisionTable::copyRightArg(string lArg, string rArg) {return rArg;}
@@ -436,7 +693,14 @@ namespace TypeCheck
 	}
 	
 	Signature *UnOpDecisionTable::refDerefSig(Signature *sig) {
-		return DataScheme::dScheme()->signatureOfRef(((SigRef *)sig)->getRefNo());
+		if (!sig->isRefed()) return DataScheme::dScheme()->signatureOfRef(((SigRef *)sig)->getRefNo());
+		else return sig->cloneSole();
+	}
+	
+	Signature *UnOpDecisionTable::derefSig(Signature *sig) {
+		if (sig == NULL) return NULL;
+		if (sig->isRefed()) return sig->cloneSole();
+		return sig->deref();
 	}
 	
 	string UnOpDecisionTable::cdNameAs(string arg, int grouped) {
@@ -449,6 +713,7 @@ namespace TypeCheck
 	
 	Signature *UnOpDecisionTable::copySig(Signature *sig) {return sig->clone();}
 	
+	Signature *UnOpDecisionTable::copyAndRefSig(Signature *sig) {Signature *s = sig->clone(); s->setRefed(); return s;}
 		
 	/** end of result generating methods..*/
 	
@@ -456,6 +721,10 @@ namespace TypeCheck
 	/** ***************		DecisionTable (bin) methods	   ******************** */	
 	
 	DecisionTable::DecisionTable(int opType, int oper) {
+		create(opType, oper);
+	}
+	
+	void DecisionTable::create(int opType, int oper) {
 		this->op = oper; 
 		this->algOrNonAlg = opType;
 		switch (opType) {
@@ -468,8 +737,8 @@ namespace TypeCheck
 	int DecisionTable::getResult(TypeCheckResult &finalResult, Signature *lSig, Signature *rSig) {
 		int result = 0;
 		result = applyRuleset(rules, SIG_BASE, lSig, rSig, lSig->textType(), rSig->textType(), finalResult);
-		if (!finalResult.isError()) { //don't apply rules for attributes when the base is wrong.
-			//return 'ETCNotApplicable' if no rules were given.
+		if (result == 0 && !finalResult.isError()) { //don't apply rules for attributes when the base is wrong.
+			//return 'ETCNotApplicable' if no rules were given.(finalRes is SUCCESS, but has null signature);
 			if (finalResult.getSig() == NULL) return (ErrTypeChecker | ETCNotApplicable);
 			result += applyRuleset(cardRules, SIG_CARD, lSig, rSig, lSig->getCard(), rSig->getCard(), finalResult);
 			result += applyRuleset(typeNameRules, SIG_TN, lSig, rSig, lSig->getTypeName(), rSig->getTypeName(), finalResult);
@@ -482,7 +751,9 @@ namespace TypeCheck
 	int DecisionTable::applyRuleset (vector<TCRule> ruleSet, string atr, Signature *lSig, Signature *rSig, string leftArg, string rightArg, TypeCheckResult &finalResult) {
 		cout << "[TC]: " << "APPLYING RULESET WITH 	" << ruleSet.size() << " rules..." << endl; 
 		for (unsigned int i = 0; i < ruleSet.size(); i++) {
-			if (ruleSet.at(i).appliesTo(leftArg, rightArg)) {
+			if (ruleSet.at(i).appliesTo(leftArg, rightArg) &&
+			   (atr != SIG_BASE || ruleSet.at(i).appliesToBase(lSig, rSig))) {
+
 				cout << "[TC]: " << " applied rule: nr "<< i << endl; 
 				ruleSet.at(i).coutMe();
 				cout << "[TC]: gonna getResult of this rule" << endl;
@@ -496,6 +767,11 @@ namespace TypeCheck
 	}
 
 	/** ***************		UnOpDecisionTable methods	   ******************** */	
+	
+	void UnOpDecisionTable::create(int treeType, int oper) {
+		op = oper;
+		initUnOpRules(treeType, op);
+	}
 	
 	int UnOpDecisionTable::applyRuleset (vector<UnOpRule> ruleSet, string atr, Signature *sig, string textArg, TypeCheckResult &finalResult, string param, int option) {
 		cout << "[TC]: " << "APPLYING RULESET WITH 	" << ruleSet.size() << " rules..." << endl; 
@@ -520,22 +796,23 @@ namespace TypeCheck
 		cout << "unOpT::getResult(finResult, sig,...);" << endl;
 		int result = 0;
 		result += applyRuleset(rules, SIG_BASE, sig, sig->textType(), finalResult, param, option);
-		if (!finalResult.isError()) {
+		
+		if (result == 0 && !finalResult.isError()) {
 			if (finalResult.getSig() == NULL) return (ErrTypeChecker | ETCNotApplicable);
 			result += applyRuleset(cardRules, SIG_CARD, sig, sig->getCard(), finalResult, param, option);
 			result += applyRuleset(typeNameRules, SIG_TN, sig, sig->getTypeName(), finalResult, param, option);
 			result += applyRuleset(collKindRules, SIG_CK, sig, sig->getCollKind(),finalResult, param, option);
 		}
-		cout << "applied all rulesets" << endl;
-		cout << result;
-		cout << "unOpT::getResult: ret int: <-- \n";
-		cout << ", tcRes:\n" << finalResult.printAllInfo() << endl;
+// 		cout << "applied all rulesets" << endl;
+// 		cout << result;
+// 		cout << "unOpT::getResult: ret int: <-- \n";
+// 		cout << ", tcRes:\n" << finalResult.printAllInfo() << endl;
 		return result;
 	}
 				
 
 	/** ***************		DTable methods	   ******************** */	
-	/* :/ :\ :/ ugly design ... with class A : B- can't put A into vector< B >..? */
+	/* :/ :\ :/ ugly design ... with class A : B- can't put A into vector< B >.. */
 	void DTable::provideReturnLinks() {
 		cout << "DOING UPPER CLASS PROV. RETURN LINKS, IS THIS CORRECT ? " << endl;
 		provideReturnLinksForVector(getRules());
@@ -602,71 +879,31 @@ namespace TypeCheck
 		return (*tableMap)[place];
 	}	
 	
-// 	DecisionTable *DecisionTableHandler::getDTable(int algOrNonAlg, int op) {
-// 		map<int, DecisionTable*> *tableMap;
-// 		switch (algOrNonAlg) {
-// 			case TreeNode::TNALGOP : {
-// 				if (algOpDTables.find(op) == algOpDTables.end()) {
-// 					algOpDTables[op] = new DecisionTable(algOrNonAlg, op);
-// 				}
-// 				return algOpDTables[op];
-// 			}
-// 			case TreeNode::TNNONALGOP : 
-// 			default :{
-// 				if (nonAlgOpDTables.find(op) == nonAlgOpDTables.end()) {
-// 					nonAlgOpDTables[op] = new DecisionTable(algOrNonAlg, op);
-// 				}
-// 				return nonAlgOpDTables[op];	
-// 			}
-// 		}
-// 	}
-	
-// 	UnOpDecisionTable *DecisionTableHandler::getUnOpDTable(int treeType, int op) {
-// 		
-// 		if (unOpDTables.find(op) == unOpDTables.end()) {
-// 			unOpDTables[op] = new UnOpDecisionTable(op);
-// 		}
-// 		return unOpDTables[op];
-// 	}
-// 	
-// 	UnOpDecisionTable *DecisionTableHandler::getUnOpDTable(int op, string param, int optParam) {
-// 		if (unOpDTables.find(op) == unOpDTables.end()) {
-// 			unOpDTables[op] = new UnOpDecisionTable(op, param, optParam);
-// 		}
-// 		return unOpDTables[op];
-// 	}
-
 	UnOpDecisionTable *DecisionTableHandler::getUnOpDTable(int treeType, int op) {
 		map<int, UnOpDecisionTable*> *tableMap;
 		int place = op;
-		cout << "place: " << place << endl;
+		//cout << "place: " << place << endl;
 		if (treeType == TreeNode::TNUNOP) tableMap = &unOpDTables;
 		else { 
 			tableMap = &otherUnaryDTables;
-			cout << "place changed: " << place << endl;
+			//cout << "place changed: " << place << endl;
 			place = (_TN_MAX_OP * treeType) + op;
 		}
 		
 		if ((*tableMap).find(place) == (*tableMap).end()) {
-			cout << "creating unopDTable(" << treeType << ", " << op << ") at " << place << "\n";
+			//cout << "creating unopDTable(" << treeType << ", " << op << ") at " << place << "\n";
 			(*tableMap)[place] = new UnOpDecisionTable(treeType, op);
 		}
 		return (*tableMap)[place];
 	}
-	/*
-	UnOpDecisionTable *DecisionTableHandler::getUnOpDTable(int treeType, int op, string param, int optParam) {
-		map<int, UnOpDecisionTable*> *tableMap;
-		if (unOpDTables.find(op) == unOpDTables.end()) {
-			unOpDTables[op] = new UnOpDecisionTable(op, param, optParam);
-		}
-		return unOpDTables[op];
-	}
-	*/
+	
 	DecisionTableHandler::~DecisionTableHandler(){
 	//do I have to clear these maps by hand? 
 		unOpDTables.clear();
 		algOpDTables.clear();
 		nonAlgOpDTables.clear();
+		otherBinaryDTables.clear();
+		otherUnaryDTables.clear();
 	}
 	
 	/** *********** 		Methods adding rules to decision tables 	***************************** */	
@@ -749,7 +986,16 @@ namespace TypeCheck
 	}
 	void UnOpDecisionTable::addTcRule (string specArg, string arg, int resultGen) {
 		this->rules.push_back(UnOpRule(Rule::BASE, specArg, arg, "", resultGen, -1, STATIC));
+	}	
+	void UnOpDecisionTable::addTcRule (string specArg, string arg, string result, int act, int dynStat) {
+		this->rules.push_back(UnOpRule(Rule::BASE, specArg, arg, result, -1, act, dynStat));
 	}
+	void UnOpDecisionTable::addTcRule (string specArg, string arg, int resultGen, int act, int dynStat) {
+		this->rules.push_back(UnOpRule(Rule::BASE, specArg, arg, "", resultGen, act, dynStat));
+	}
+	
+	
+	
 //		void addTcRule (string arg, string result, int action, string dynStat);
 //		void addTcRule (string specArg, string arg, string result, int action, string dynStat);
 //		void addTcRule (string specArg, string arg, int resultGen, int action, string dynStat);
@@ -759,6 +1005,13 @@ namespace TypeCheck
 	}
 	void UnOpDecisionTable::addCdRule (string specArg, string arg, int resultGen) {
 		this->cardRules.push_back(UnOpRule(Rule::CARD, specArg, arg, "", resultGen, -1, STATIC));
+	}
+	
+	void UnOpDecisionTable::addCdRule (string specArg, string arg, string result, int act, int dynStat) {
+		this->cardRules.push_back(UnOpRule(Rule::CARD, specArg, arg, result, -1, act, dynStat));
+	}
+	void UnOpDecisionTable::addCdRule (string specArg, string arg, int resultGen, int act, int dynStat) {
+		this->cardRules.push_back(UnOpRule(Rule::CARD, specArg, arg, "", resultGen, act, dynStat));
 	}
 //		void addCdRule (string arg, string result, int action, string dynStat);
 //		void addCdRule (string specArg, string arg, string result, int action, string dynStat);

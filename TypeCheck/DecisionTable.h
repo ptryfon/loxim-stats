@@ -40,8 +40,8 @@ namespace TypeCheck
 		DecisionTableHandler(){}
 		map<int, DecisionTable*> algOpDTables;
 		map<int, DecisionTable*> nonAlgOpDTables;
-		map<int, UnOpDecisionTable*> unOpDTables;
 		map<int, DecisionTable*> otherBinaryDTables;
+		map<int, UnOpDecisionTable*> unOpDTables;
 		map<int, UnOpDecisionTable*> otherUnaryDTables;
 	
 	public:
@@ -82,22 +82,27 @@ namespace TypeCheck
 		//TypeChecker *tcOwner; use this only if function pointers require it to be here...  
 	public: 
 		enum ResultGenerator {CD_ADDBANDS, CD_MULTBANDS, BS_COPY_L, BS_COPY_R, ARG_COPY_L, ARG_COPY_R, 
-			CD_COPY_L_ZR, CK_COPY_L, BS_STRUCT};
+			CD_COPY_L_ZR, CK_COPY_L, BS_STRUCT, CD_MINUS, CD_INTST, BS_CAST_VAR, BS_TO_VAR};
 		
 		//{CD_COERCE_11, CD_COERCE_11_L, CD_COERCE_11_R, CD_COERCE_11_B, BS_TOSTR, BS_TOSTR_L, BS_TOSTR_R, BS_TOSTR_B, BS_TOBOOL, BS_TOBOOL_L, BS_TOBOOL_R, BS_TOBOOL_B, BS_TODBL, BS_TODBL_L, BS_TODBL_R, BS_TODBL_B, BS_TOINT, BS_TOINT_L, BS_TOINT_R, BS_TOINT_B};
 			//{to_string, to_double, to_bool, to_int, element, to_bag, to_seq};
 		
 		DecisionTable() {}
 		DecisionTable(int opType, int op);
+		virtual void create(int opType, int op);	//simulating virtual constructors...
 		virtual void provideReturnLinks();
 		virtual void provideReturnLinksForVector(vector<TCRule> &v);
-		/** methods being result generators.. */ //or should these be in Rule/TCResult?
+		virtual void addVariants(SigColl *sig, SigColl *tbAdded);
+		/** methods being result generators.. */ 
 		virtual	Signature *leftSig(Signature *lSig, Signature *rSig);
 		virtual	Signature *rightSig(Signature *lSig, Signature *rSig);
 		virtual	Signature *doStruct(Signature *lSig, Signature *rSig);
+		virtual Signature *castVar(Signature *lSig, Signature *rSig);
+		virtual Signature *createVar(Signature *lSig, Signature *rSig);
 			
 		virtual	string cdAddBands(string lCard, string rCard);
 		virtual	string cdMultiplyBands(string lCard, string rCard);
+		virtual string cdIntersect(string lCard, string rCard);
 		virtual	string copyLeftArg(string l, string r);
 		virtual	string copyRightArg(string l, string r);
 		virtual	string cdCopyLeftWithZero(string lCard, string rCard);
@@ -112,7 +117,7 @@ namespace TypeCheck
 		virtual void initAlgOpRules(int op);
 		virtual void initNonAlgOpRules(int op);
 		//in case new operators are added...
-		virtual void initOtherBinaryRules(int treeType, int op) {};
+		virtual void initOtherBinaryRules(int treeType, int op);
 		
 		void addTcRule (string lArg, string rArg, string result);
 		void addTcRule (string specArg, string lArg, string rArg, string result);
@@ -151,10 +156,10 @@ namespace TypeCheck
 		vector<UnOpRule> collKindRules;
 		int op;
 	public:
-		enum ResultGenerator {BS_COPY, ARG_COPY, BS_NAMEAS, CD_NAMEAS, CK_NAMEAS, BS_REF_DEREF};
+		enum ResultGenerator {BS_COPY, ARG_COPY, BS_NAMEAS, CD_NAMEAS, CK_NAMEAS, BS_REF_DEREF, BS_DEREF, BS_COPY_REF};
 		UnOpDecisionTable(){ }
 		UnOpDecisionTable(int treeType, int oper) : op(oper) { initUnOpRules(treeType, op); }
-
+		virtual void create(int treeType, int oper);
 		virtual void provideReturnLinks();
 		virtual void provideReturnLinksForVector(vector<UnOpRule> &v);
 		
@@ -168,6 +173,9 @@ namespace TypeCheck
 		virtual Signature *nameAsSig(Signature *sig, string name, int grouped);
 		virtual Signature *refDerefSig(Signature *sig);
 		virtual Signature *copySig(Signature *sig);
+		virtual Signature *derefSig(Signature *sig);
+		virtual Signature *copyAndRefSig(Signature *sig);
+		
 //		Signature *leftSig(Signature *lSig, Signature *rSig);
 //		Signature *rightSig(Signature *lSig, Signature *rSig);
 //		Signature *doStruct(Signature *lSig, Signature *rSig);
@@ -186,6 +194,10 @@ namespace TypeCheck
 //		void addTcRule (string arg, string result);
 		void addTcRule (string specArg, string arg, string result);
 		void addTcRule (string specArg, string arg, int resultGen);
+		void addTcRule (string specArg, string arg, string result, int act, int dynStat);
+		void addTcRule (string specArg, string arg, int resultGen, int act, int dynStat);
+		
+		
 //		void addTcRule (string arg, string result, int action, string dynStat);
 //		void addTcRule (string specArg, string arg, string result, int action, string dynStat);
 //		void addTcRule (string specArg, string arg, int resultGen, int action, string dynStat);
@@ -193,6 +205,8 @@ namespace TypeCheck
 //		void addCdRule (string arg, string result);
 		void addCdRule (string specArg, string arg, string result);
 		void addCdRule (string specArg, string arg, int resultGen);
+		void addCdRule (string specArg, string arg, string result, int act, int dynStat);
+		void addCdRule (string specArg, string arg, int resultGen, int act, int dynStat);
 //		void addCdRule (string arg, string result, int action, string dynStat);
 //		void addCdRule (string specArg, string arg, string result, int action, string dynStat);
 //		void addCdRule (string specArg, string arg, int resultGen, int action, string dynStat);

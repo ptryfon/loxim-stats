@@ -23,6 +23,7 @@ namespace TypeCheck
 		if (res == "double") resultSig = new SigAtomType("double");
 		if (res == "boolean") resultSig = new SigAtomType("boolean");
 		if (res == "string") resultSig = new SigAtomType("string");
+		if (res == "void")	resultSig = new SigVoid();
 		//the case below will not be valid any more.
 		if (res == "bag" || res == "list") {
 			resultSig = new SigColl();

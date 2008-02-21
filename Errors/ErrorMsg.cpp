@@ -82,7 +82,13 @@ struct {
 	{ECannotRestore, 	"Unable to restore type checking process"},
 	{ECannotRestoreBadName, "Unable to restore type checking after Bad Name error"},
 	{EIncompleteMetadata, "Metadata incomplete, unable to typecheck query. "},
-	{EMetadataOutdated, "Metadata not up to date, unable to typecheck query. Try: reloadScheme; \n"},
+	{EMetadataOutdated, "Metadata not up to date, unable to typecheck query. Try: reloadScheme; "},
+	{ENameNotBound, "Name could not be bound"},
+ 	{EGeneralTCError, "TypeCheck general error - query invalid"},
+	{ETCNotApplicable, "TypeChecking not applicable to query - unknown operators included."},
+	{ETCInnerFailure, "TypeCheck inner failure."},
+	{ETCInnerRuleUnknown, "TypeCheck error caused by unknown rule type."},
+	{ETCInnerNULLFailure, "TypeCheck error caused by a NULL pointer, non-NULL expected."},
 // THIS MUST BE THE LAST ENTRY
 	{EUnknown,         "Unknown error"}
 };

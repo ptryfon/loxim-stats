@@ -13,6 +13,7 @@
 #include "Errors/Errors.h"
 #include "TransactionManager/Transaction.h"
 #include "TypeCheck/TypeChecker.h"
+#include "QueryParser/Stack.h"
 #include "Deb.h"
 using namespace std;
 //using namespace QExecutor;
@@ -45,7 +46,7 @@ namespace QParser {
 			sigRef->setDependsOn(NULL);
 			sigRef->setCard(obCard);
 			string binderName = pom->getName();
-			if (pom->getIsTypedef()) { //make it an artificial name, to be able to detect when binding.
+			if (pom->getIsTypedef()) { //make it an artificial name, to be able to detect when binding.and not for typename not be be used, eg. emp.works_in.deptType.loc isn't correct.deptType will not be bound.
 				binderName = TC_REF_TYPE_SUFF + binderName;
 			}
 			StatBinder * sb = new StatBinder (binderName, sigRef);	
@@ -98,25 +99,38 @@ namespace QParser {
 		return resultSig;
 	};			
 
+	
+	void DataScheme::addBindEntity(DataObjectDef *obt, BinderWrap *&bw) {
+		SigRef *sigRef = new SigRef (obt->getMyId());
+		sigRef->setCard(obt->getCard());						// ?? ??- ktore trzeba?
+		if (obt->getKind() == TC_MDN_DEFTYPE && obt->getTypeObj() != NULL && obt->getTypeObj()->getIsDistinct()) {
+			sigRef->setTypeName(obt->getTypeName());
+		}
+		sigRef->setDependsOn(NULL);		// death
+		StatBinder * sb = new StatBinder (obt->getName(), sigRef);
+		sb->setCard(obt->getCard());							// ?? ??czy obydwa?
+		sb->setTypeName(obt->getTypeName());
+		sb->setDependsOn(NULL);
+		if (bw == NULL) bw = new BinderList (sb);
+		else bw = (BinderList *) bw->addPureBinder(sb);			
+	}
+	
 	BinderWrap* DataScheme::bindBaseObjects() {
-		BinderList *bw = NULL;
+		BinderWrap *bw = NULL;
 		for (DataObjectDef *obt = this->getBaseObjects(); obt != NULL; obt = obt->getNextBase()) {
-			SigRef *sigRef = new SigRef (obt->getMyId());
-			sigRef->setCard(obt->getCard());						// ?? ??- ktore trzeba?
-			if (obt->getKind() == TC_MDN_DEFTYPE && obt->getTypeObj() != NULL && obt->getTypeObj()->getIsDistinct()) {
-				sigRef->setTypeName(obt->getTypeName());
-			}
-			sigRef->setDependsOn(NULL);		// death
-			StatBinder * sb = new StatBinder (obt->getName(), sigRef);
-			sb->setCard(obt->getCard());							// ?? ??czy obydwa?
-			sb->setTypeName(obt->getTypeName());
-			sb->setDependsOn(NULL);
-			if (bw == NULL) bw = new BinderList (sb);
-			else bw = (BinderList *) bw->addPureBinder(sb);			
+			addBindEntity(obt, bw);
 		}
 		return bw;
 	};
-
+	
+	BinderWrap* DataScheme::bindBaseTypes() {
+		BinderWrap *bw = NULL;
+		for (DataObjectDef *obt = this->getBaseTypes(); obt != NULL; obt = obt->getNextBase()) {
+			addBindEntity(obt, bw);
+		}
+		return bw;
+	}
+	
 	Signature *DataObjectDef::createSignature() {
 		Deb::ug("creating signature of myself, my id: %d.", this->getMyId());
 		Signature *sig = NULL;
@@ -140,9 +154,10 @@ namespace QParser {
 		} else {
 			sig = new SigRef(getMyId()); // default behavior, if unkown kind appears.
 		}
-		if (sig != NULL) {
+		
+		if (sig != NULL) { //set all its attributes.
 			sig->setCard(card);
-			if (typeName != "") sig->setTypeName(typeName);
+			if (isDistinct) sig->setTypeName((typeName != "" ? typeName : name));
 		}
 			//could try set other attributes, like... distinct typename? mutability? 
 		return sig;
@@ -181,6 +196,7 @@ namespace QParser {
 				datObDef->setCard(op->getValue()->getString());
 			} else if (op->getName() == TC_MDS_ISDIST) {
 				datObDef->setIsDistinct(op->getValue()->getString() == "1" ? true : false);
+				//datObDef->setTypeName
 			} else if (op->getName() == TC_MDS_REFNAME) {
 				string refName = op->getValue()->getString();
 				datObDef->setRefName(refName);

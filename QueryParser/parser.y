@@ -211,6 +211,7 @@ query	    : SYSTEMVIEWNAME { char *s = $1; $$ = new NameNode(s); delete s; }
 	    | EXTNAME LEFTPAR RIGHTPAR {$$ = new CallProcNode ($1);}
 	    | EXTNAME LEFTPAR querycommalist RIGHTPAR {$$ = new CallProcNode ($1, $3);}
 	    | CAST LEFTPAR query AS query RIGHTPAR {$$ = new ClassCastNode($3, $5);}
+		| CAST LEFTPAR query TO signature RIGHTPAR {$$ = new SimpleCastNode($3, $5); }
 	    | query INSTANCEOF query {$$ = new InstanceOfNode($1, $3);}
 	    | indexDML_query;
 	    ;
@@ -404,7 +405,7 @@ classprocs: classproc { $$ = $1}
     | classprocs classproc { $1->addContent($2); delete $2; }
     ;
 
-	type_decl_stmt: object_decl {$$ = $1;}
+type_decl_stmt: object_decl {$$ = $1;}
 	| TYPEDEF NAME EQUAL signature {$$ = new TypeDefNode($2, $4, false);}
 	| TYPEDEF DISTINCT NAME EQUAL signature {$$ = new TypeDefNode($3, $5, true);}
 		/* other kinds of declarations may be added here...
@@ -412,16 +413,16 @@ classprocs: classproc { $$ = $1}
 		* already been added elsewhere. */
 	;
 			
-	object_decl: NAME COLON signature semicolon_opt {char *s = $1; $$ = new ObjectDeclareNode(s, $3); delete s;}
+object_decl: NAME COLON signature semicolon_opt {char *s = $1; $$ = new ObjectDeclareNode(s, $3); delete s;}
 	| NAME LEFTSQUAREPAR CARDCONST RIGHTSQUAREPAR COLON signature semicolon_opt
-{ char *s = $3; char *s2 = $1; $$ = new ObjectDeclareNode(s2, $6, s); delete s; delete s2;}
+		{ char *s = $3; char *s2 = $1; $$ = new ObjectDeclareNode(s2, $6, s); delete s; delete s2;}
 	;
 				
-	object_decl_commalist : object_decl {$$ = new StructureTypeNode ($1); }
+object_decl_commalist : object_decl {$$ = new StructureTypeNode ($1); }
 	| object_decl_commalist COMMA object_decl {$$ = new StructureTypeNode ($3, $1); }
 	;
 			
-	signature: STRING_SIG {$$ = new SignatureNode(SignatureNode::atomic, "string"); }
+signature: STRING_SIG {$$ = new SignatureNode(SignatureNode::atomic, "string"); }
 	| INTEGER_SIG {$$ = new SignatureNode(SignatureNode::atomic, "int");}
 	| DOUBLE_SIG {$$ = new SignatureNode(SignatureNode::atomic, "double");}	
 	| REF NAME {char *s = $2; $$ = new SignatureNode(SignatureNode::ref, s); delete s;}

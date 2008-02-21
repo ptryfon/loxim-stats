@@ -71,9 +71,11 @@ namespace TypeCheck
 		TCRule(int rType, string lArg, string rArg, string res);
 		// constructors for more complicated rules		
 		TCRule (int rType, string specArg, string lArg, string rArg, string resStr, int resGen, int actId, int actArg, int crcKind);
+		TCRule (int rType, string specArg, string lArg, string rArg, string resStr, int resGen);
 		virtual void setDTable(DTable *dt) {dTable = (DecisionTable *)dt;};
 		//appliesTo(string arg); - makes no sense here, so returns false as in Rule.
 		virtual bool appliesTo(string lArg, string rArg);
+		virtual bool appliesToBase(Signature *lSig, Signature *rSig); //for structural equality..
 		virtual int getResult(string atr, Signature *lSig, Signature *rSig, TypeCheckResult &retResult);		
 		virtual int getSimpleResult(Signature *lSig, Signature *rSig, TypeCheckResult &retResult);
 		virtual int getGeneratedResult(Signature *lSig, Signature *rSig, TypeCheckResult &retResult);

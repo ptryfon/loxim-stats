@@ -2511,7 +2511,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		case TreeNode::TNCOERCE : { // May appear only through TC coerce augments
 			CoerceNode *cn = (CoerceNode *) tree;
 			int cType = cn->getCType();
-			*ec << "[QE] COERCE Node processed... ";
+			*ec << "[QE] COERCE Node to be processed... ";
 			errcode = executeRecQuery(cn->getArg());
 			if (errcode != 0) return errcode;
 			QueryResult *tmp_result;
@@ -2526,6 +2526,16 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			if (errcode != 0) return errcode;
 			*ec << "[QE] COERCE Node Done!";
 			return 0;	
+		}
+		case TreeNode::TNCASTTO : {// May appear when variant result appears (eg. through union)...
+			//QE ignores this node - it assumes typechecker checked it correct. 
+			*ec << "[QE] CAST TO Node ...";
+			errcode = executeRecQuery(((SimpleCastNode *)tree)->getArg());
+			if (errcode != 0) return errcode;
+			*ec << "[QE] CAST TO Node Done!";
+			return 0;
+			//do not touch the qres stack - let superior node read what arg left there.
+			//if the loopCHECK was introduced - it would just throw 'CastNode' error on error...
 		}
 		default:
 			{
@@ -5519,7 +5529,7 @@ int QueryExecutor::objDeclRec(DeclareDefineNode *obd, string rootName, bool type
 				}
 			}
 			break;
-			default: *ec << "Unknown signature node kind"; break;
+		default: *ec << "Unknown signature node kind"; break;
 	}
 	if (!isTopLevel) {
 		//decide whether owner(parent node) is __MDN__, or __MDNT__, or some subobject somewhere...

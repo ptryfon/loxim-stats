@@ -1,0 +1,80 @@
+# Schemat danych -- w SBQLCli/ jest TestMdn.txt - przykladowy poprawny schemat. 
+Mozna sprobowac:
+- usunąc z tego pliku jakas znaczaca definicje typu / elementu, do ktorych istnieja odwolania. 
+	wtedy reloadScheme zwroci 'dataScheme incomplete, i wskaze brakujace elementy.
+- sprobowac zadeklarowac obiekt, ktory juz istnieje (lub typ o tej nazwie istnieje) - bedzie blad.
+- zdefiniowac typ rekurencyjnie, lub odwolujacy sie rekurencyjnei do innego typu. 
+	(np: 
+* typedef tA = tB; 
+* typedef tB = (name: string, paramA: tA); 
+	- bedzie blad, nie typechecker nie pozwoli tak zdefiniowac tB. za to :
+* typedef tB = (name: string, paramA: ref tA); 
+	jest OK.
+	
+(!) Uwaga - po jakichkolwiek operacjach na schemacie danych, aby zapytania byly kontrolowane - nalezy zrobic reloadScheme.
+	Wpp. Schemat ma ustawioną flagę 'not up to date'. Mozna definiowac kolejne typy/ deklarowac obiekty, ale nie wykonywac
+	zapytania. przy zwyklym zapytaniu kontrola bedzie omijana lub zwracany bedzie blad (zalezy jak ustawiono w Server.conf)
+
+
+# Przykladowe zapytania i oczekiwane wyniki
+# (Nalezy je wykonac po zaladowaniu pliku TestMdn.txt. Wpp pewnie bedzie wiecej Errors typu name not bound)
+
+1. Automatyczne rozwinięcia elips, odczytywanie 'ref TypeName' przez elipsę lub deref.
+
+*	EMP where (WORKS_IN.DNAME = FRIEND.JOB);	
+
+	- kontrola konczy sie sukcesem. WORKS_IN.DNAME: tu jest rozwijana elipsa. (WORKS_IN.DEPT.DNAME)
+									FRIEND.JOB;		tu tez jest elipsa, ale 'wewnętrzna - typechecker zaznacza, ze to typ.
+											to znaczy,ze FRIEND.typFrd.JOB nie zadziala.
+									dodane automatyczne dereferencje i rzutowanie na 1..1.
+		
+	- poniższe zapytanie bedzie bledne:
+	*	EMP where (WORKS_IN.DNAME = FRIEND.typFrd.JOB);	
+	
+	- a to poprawne:
+	*	EMP where (WORKS_IN.DNAME = deref(FRIEND).JOB);
+	
+2. Zapytanie z koercją dynamiczną - zatrzymane w czasie wykonania:
+*	(EMP where (WORKS_IN.DNAME = deref(FRIEND).JOB)).SURNAME + " is cool";
+
+	- przekształcane do:
+	(element(deref ((EMP where ((element(deref (WORKS_IN . (DEPT . DNAME)))) =  (element(deref ((deref FRIEND) . JOB))))) . SURNAME))) +  " is cool"
+	- blad czasu wykonania rzuca pierwsze 'element()'. (Bo nie ma danych. jesli wprowadzimy dane - i znajdzie 1 elt - 
+		wykona sie do konca. Jak znajdzie wiecej niz 1 - tez bedzie blad wykonania, 'more than 1 element'.
+	
+3. Blad, nieznaleziona nazwa, np:
+*	EMP.DNAME; (DNAME jest tylko w DEPT).
+
+4. Restore process after failure - wypisanie wielu bledow przy pojedynczej kompilacji.
+   Zapytanie probuje wykonac jakies obliczenia na stringach i polaczyc to z pensją, ale rzuci 3 bledy 
+* (("123" - "23") - "70") union SAL
+	- bledne jest string - string (2 razy) , oraz niezwiązana nazwa SAL. 
+	- PRAWIE poprawną wersją tego zapytania byloby np:
+ 	* ((123 - 23) - 70) union EMP.SAL -- tu union nie dozwolony ze wzgl. na typename dla SAL. (tak ustawione tablice:) )
+ 	- poprawne bedzie za to:
+ 	* (("123" - 23) - 70.8) union EMP.AGE;
+ 	i - przy braku pracowników - zwroci 29.2, robiąc przy okazji koercję string->to integer, dynamiczną:
+ 	((((toInteger"123") -  23) -  70.8)union (EMP . AGE))
+
+5. Koercje dynamiczne typow prostych:
+
+* "123.8" - 23.7; --> ((toDouble"123.8") -  23.7)   --> 100.1
+* "234.r" - 34.3; -->  Error: Query Executor: Coerce failed: Cannot coerce to Double
+* "12e3" - 23;    -->  Error: Query Executor: Coerce failed: Cannot coerce to Integer
+* "123" - 23;	  -->  ((toInteger"123") -  23)		--> 100
+
+6. Sygnatury variantowe   (mozna na nich tylko union / deref, a do wszystkiego innego: trzeba cast..to..)
+
+- ("bolek" union "lolek") + " bolecki"; - zglosi blad, ale czasu wykonania! bo tu nie powstaje sygn. variantowa,
+	tylko string, z card: 1..*, ck: bag. kontrola każe ją zrzutować na 1..1, a to sie nie uda.
+ -("bolek" union deref(EMP.NAME)) + " bolecki"; - poprawne, zwroci: "bolek bolecki";
+ 
+ - ("bokek" union 123) + " bolecki"; - blad, variantow nie mozna dodać.
+ - (EMP.NAME union 123) + "bolecki; -  blad, to samo.
+ - cast (EMP.NAME union 123 to string) + " bolecki"; -- poprawne ! (automatyczny deref (EMP.NAME) = string)
+ - cast (EMP.AGE union 123 to string) - " bolecki"; -- niepoprawne, bo cast nie zadziala. - variant(int, int)-> string!. co wiecej restore process przyjmie, ze cast sie udal, i znajdzie drugi blad: odejmowanie stringow jest niedozwolone.
+ 
+
+
+
+

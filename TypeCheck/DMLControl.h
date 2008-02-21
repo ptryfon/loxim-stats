@@ -21,9 +21,9 @@ namespace TypeCheck {
 	
 	public: enum MdnRootKind {absent, object, type};
 		private: 
-			Transaction *tr;	//always received from executor who evokes it. 
+			Transaction *tr;	//always received from executor 
 			map<string, vector<string>* > typeDeps;//defined type dependencies (names only),to prevent from infinite recurrence 
-			map<string, MdnRootKind> rootMdns;	//each elt: if present - then either object declaration or type definition
+			map<string, MdnRootKind> rootMdns;	//each elt: if present - either object declaration or type definition
 				
 			int registerRootMdns(vector<ObjectPointer *> *v, MdnRootKind mdnKind);
 			int registerRootMdnsRec(vector<LogicalID*> *v, string rootName, MdnRootKind mdnKind, bool topLevel);
