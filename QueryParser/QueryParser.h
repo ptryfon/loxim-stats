@@ -10,7 +10,7 @@ using namespace std;
 namespace QParser 
 {
 #define DML_AC_RETURN_ERROR		"return_error"
-#define DML_AC_DO_QUERY			"perform_query
+#define DML_AC_DO_QUERY			"perform_query"
 	
     class QueryParser 
     {
