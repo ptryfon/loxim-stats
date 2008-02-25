@@ -1,3 +1,8 @@
+2008-02-25  Piotr Turski  <pt209301@students.mimuw.edu.pl>
+
+	* Indexes/Tests/IntegrationTest.cpp, Indexes/Tests/Tester.h:
+	dodatkowe testy indeksow. sprawdzaja poprawna widocznosc dla skomplikowanych zaleznosci miedzy transakcjami
+
 2008-02-21  Maksymilian Humpich  <mh209206@students.mimuw.edu.pl>
 
 	* QueryParser/QueryParser.h: - define string ended with "
