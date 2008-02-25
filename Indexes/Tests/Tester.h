@@ -65,6 +65,7 @@ namespace Indexes {
 			static void addRollback();
 			static void visibilityMap();
 			static void testMultiRollback();
+			static void testHorizonMove();
 	};
 
 }

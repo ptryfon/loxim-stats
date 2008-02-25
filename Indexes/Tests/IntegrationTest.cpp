@@ -457,6 +457,68 @@ START_TEST (visibility_map) {
 	Tester::visibilityMap();
 }END_TEST
 
+void Tester::testHorizonMove() {
+	auto_ptr<VisibilityResolver> v(new VisibilityResolver());
+	tid_t h;
+	
+	fail_if(v->horizon >= 10, "horyzont: %d", v->horizon);
+	h = v->horizon;
+	
+	v->begin(10);
+	v->entryAdded(10, 1); //udawajmy ze transakcja nr 10 zmienila indeks 1
+	
+	fail_if(v->horizon != h, "horyzont: %d", v->horizon);
+	
+	v->begin(20);
+	v->entryAdded(20, 1); //udawajmy ze transakcja nr 20 zmienila indeks 1
+	
+	fail_if(v->horizon != h, "horyzont: %d", v->horizon);
+	
+	v->begin(30);
+	v->entryAdded(30, 1);
+	
+	fail_if(v->horizon != h, "horyzont: %d", v->horizon);
+	
+	v->commit(10, 40);
+	
+	fail_if(v->horizon != h, "horyzont: %d", v->horizon);
+	
+	v->begin(50);
+	v->entryAdded(50, 1);
+	
+	fail_if(v->horizon != h, "horyzont: %d", v->horizon);
+	
+	v->begin(60);
+	v->entryAdded(60, 1);
+	
+	fail_if(v->horizon != h, "horyzont: %d", v->horizon);
+	
+	v->commit(60, 70);
+	
+	fail_if(v->horizon != h, "horyzont: %d", v->horizon);
+	
+	v->commit(20, 80);
+	
+	fail_if(v->horizon != h, "horyzont: %d", v->horizon);
+	
+	v->begin(90);
+	v->entryAdded(90, 1);
+	
+	fail_if(v->horizon != h, "horyzont: %d", v->horizon);
+	
+	v->commit(50, 100);
+	
+	fail_if(v->horizon != h, "horyzont: %d", v->horizon);
+	
+	v->commit(30, 110);
+	
+	fail_if(v->horizon != 60, "horyzont: %d", v->horizon);
+	
+}
+
+START_TEST (horizonMove) {
+	Tester::testHorizonMove();
+}END_TEST
 
 START_TEST (visibility) {
 	int len;
@@ -973,6 +1035,7 @@ Suite * integration() {
 	tcase_add_test (tc_core, visibility_map);
 	tcase_add_test (tc_core, root_remove);
 	tcase_add_test (tc_core, subqueries_calculation);
+	tcase_add_test (tc_core, horizonMove);
 	
    // tcase_add_test (tc_core, loop);
 	//tcase_add_test_raise_signal(tc_core, segfault, SIGSEGV);
