@@ -89,6 +89,9 @@ struct {
 	{ETCInnerFailure, "TypeCheck inner failure."},
 	{ETCInnerRuleUnknown, "TypeCheck error caused by unknown rule type."},
 	{ETCInnerNULLFailure, "TypeCheck error caused by a NULL pointer, non-NULL expected."},
+// UserProgram
+	{EUserUnknown, "Exception Thrown in Query Execution - Unknown User Error"},
+ 	{EUserWrongParam, "Exception Thrown in Query Execution - Wrong Parameter"},
 // THIS MUST BE THE LAST ENTRY
 	{EUnknown,         "Unknown error"}
 };
@@ -139,6 +142,9 @@ struct {
 				break;
 			case ErrTypeChecker:
 				src_mod = "Type Checker";
+				break;
+			case ErrUserProgram:
+				src_mod = "User Program";
 				break;
 			default:
 				src_mod = "Unknown";

@@ -703,6 +703,34 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			return EEvalStopped;
 		}//case TNRETURN
 		
+		case TreeNode::TNTHROWEXCEPTION: {
+			*ec << "[QE] Type: TN THROW EXCEPTION (begin)";
+			QueryNode *query = ((ThrowExceptionNode *) tree)->getQuery();
+			string exception_name = "";
+			if(query != NULL) {
+				errcode = executeRecQuery(query);
+				if(errcode != 0) return errcode;
+			}
+			QueryResult *execution_result;
+			errcode = qres->pop(execution_result);
+			if (errcode != 0) return errcode;
+			if (execution_result->type() == QueryResult::QSTRING) {
+				exception_name = ((QueryStringResult *)execution_result)->getValue();
+			}
+			
+			if (exception_name == "WrongParameterException") {
+				*ec << "[QE] USER EXCEPTION THROWN (done)";
+				return ErrUserProgram | EUserWrongParam;
+			}
+			else {
+				*ec << "[QE] UNKNOWN EXCEPTION THROWN (done)";
+				return ErrUserProgram | EUserUnknown;
+			}
+			
+			return 0;
+		
+		}//case TNTHROWEXCEPTION
+		
 		case TreeNode::TNVIEW: {
 			*ec << "[QE] Type: TNVIEW";
 			

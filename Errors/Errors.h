@@ -26,7 +26,8 @@ namespace Errors {
 #define	ErrTManager		0x2800000
 #define ErrTCPProto		0x4000000
 #define ErrIndexes		0x4200000
-#define ErrTypeChecker	0x4400000
+#define ErrTypeChecker		0x4400000
+#define ErrUserProgram		0x6600000
 #define ErrAllModules		0xFF00000
 
 // error codes 1-255 (0x01 - 0xFF) reserved for system errno.h
@@ -138,6 +139,10 @@ namespace Errors {
 
 // stopper
 #define EUnknown		0x3400
+
+// User Program Errors
+#define EUserUnknown		0x8000
+#define EUserWrongParam		0x8100
 
 string *SBQLstrerror(int error);
 }

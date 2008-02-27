@@ -70,7 +70,7 @@ namespace QParser {
 	    TNINTERFACEMETHODLISTNODE, TNINTERFACEMETHOD, TNINTERFACEMETHODPARAMLISTNODE, TNINTERFACEMETHODPARAM,
 	    TNREGINTERFACE, TNREGCLASS, TNCLASS, TNDML, TNINCLUDES, TNEXCLUDES, TNCAST, TNINSTANCEOF, TNSYSTEMVIEWNAME,
 	 	TNINTERFACEBIND, TNINTERFACEINNERLINKAGELIST, TNINTERFACEINNERLINKAGE, TNSIGNATURE, TNOBJDECL, TNSTRUCTTYPE,
-		TNTYPEDEF, TNCOERCE, TNCASTTO};
+		TNTYPEDEF, TNCOERCE, TNCASTTO, TNTHROWEXCEPTION};
 	 
 	TreeNode() : parent(NULL) { 
 		this->needed = false;
@@ -1944,6 +1944,47 @@ namespace QParser {
       		result = " (return " + query->deParse() + ") ";
       	else
       		result = " break "; 
+      	return result; 
+      	};
+    };
+    
+    class ThrowExceptionNode : public QueryNode
+    {
+    protected:
+	QueryNode* query;
+    public:
+	ThrowExceptionNode(QueryNode *q) { this->query = q; }
+	
+	virtual TreeNode* clone();
+	virtual int type() {return TreeNode::TNTHROWEXCEPTION;}
+	virtual QueryNode *getQuery() {return this->query;}
+	virtual int putToString() {
+	    cout << " throw < ";
+	    if (query != NULL) query->putToString();
+	    else cout << "_no_query_";
+	    cout << ">";
+	    return 0;
+	}
+	
+	virtual ~ThrowExceptionNode() {if (query != NULL) delete query;} 
+      
+      virtual string toString( int level = 0, bool recursive = false, string name = "" ) {
+        string result = getPrefixForLevel( level, name ) + "[Throw]\n";
+
+        if( recursive ) {
+          if( query != NULL )
+            result += query->toString( level+1, true, "query" );
+        }
+
+        return result;
+      }
+      
+      virtual string deParse() { 
+      	string result;
+      	if( query != NULL )
+      		result = " (throw " + query->deParse() + ") ";
+      	else
+      		result = " "; 
       	return result; 
       	};
     };

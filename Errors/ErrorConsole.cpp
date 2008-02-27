@@ -88,6 +88,9 @@ namespace Errors {
 			case ErrTypeChecker:
 				src_mod = "Type Checker";
 				break;
+			case ErrUserProgram:
+				src_mod = "User Program";
+				break;
 			default:
 				src_mod = "Unknown";
 				break;

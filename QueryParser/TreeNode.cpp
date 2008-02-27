@@ -56,6 +56,7 @@ namespace QParser
     	else
     		return new ReturnNode();
     }
+    TreeNode* ThrowExceptionNode::clone() { return new ThrowExceptionNode((QueryNode*) query->clone()); }
     TreeNode* ProcedureNode::clone() { return new ProcedureNode(name, code, params, paramsNumb); }
     TreeNode* RegisterProcNode::clone() { return new RegisterProcNode((QueryNode*) query->clone()); }
     TreeNode* RegisterViewNode::clone() { return new RegisterViewNode((QueryNode*) query->clone()); }
