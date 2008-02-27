@@ -1,3 +1,24 @@
+2008-02-27  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
+
+	* Errors/ErrorConsole.cpp, Errors/ErrorMsg.cpp, Errors/Errors.h, QueryExecutor/QueryExecutor.cpp, QueryParser/TreeNode.cpp, QueryParser/TreeNode.h, QueryParser/parser.y, QueryParser/scanner.l:
+	Do gramatyki jezyka dodana konstrukcja:
+
+	throw <query>
+
+	- gdzie <query> powinno sie ewaluowac do stringa - nazwy rzucanego wyjatku
+
+	Obecnie w Errors.h/ErrorMsg.cpp zdefiniowalem jeden typ wyjatkow mozliwych do rzucenia z programu na wypadek blednego paramatru znalezionego w zapytaniu
+	rzuca sie nim tak:
+
+	throw "WrongParameterException"
+	/
+
+	By dodac inny tp wyjatku nalezy dopisac odpowiedni kod bledu do Errors.h/ErrorMsg.cpp oraz
+	w QueryExecutor.cpp w miejscu gdzie obslugiwany jest wezel TNTHROWEXCEPTION dopisac kolejna galaz IFa.
+
+	Na razie mozna jedynie rzucic wyjatkiem by przerwac zapytanie.
+	Nie ma mozliwosci zlapania wyjatku.
+
 2008-02-25  Piotr Turski  <pt209301@students.mimuw.edu.pl>
 
 	* Indexes/Tests/IntegrationTest.cpp, Indexes/Tests/Tester.h:
