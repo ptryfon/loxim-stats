@@ -1,3 +1,9 @@
+2008-02-28  Maksymilian Humpich  <mh209206@students.mimuw.edu.pl>
+
+	* SBQLCli/SBQLCli.cpp, Store/DBLogicalID.cpp, Store/DBLogicalID.h, Store/Store.h, TypeCheck/DecisionTable.cpp, TypeCheck/DecisionTable.h, TypeCheck/RestoreAlgorithm.cpp, TypeCheck/Rule.cpp, TypeCheck/TC_test_queries.txt, TypeCheck/TypeCheckResult.cpp, TypeCheck/TypeCheckResult.h, TypeCheck/TypeChecker.cpp, TypeCheck/TypeChecker.h, QueryParser/Stack.cpp, QueryParser/Stack.h, QueryParser/TreeNode.cpp, QueryParser/TreeNode.h, Errors/ErrorMsg.cpp, Errors/Errors.h, QueryExecutor/EnvironmentStack.cpp, QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryExecutor.h, QueryParser/DataRead.cpp, QueryParser/DataRead.h:
+	- TypeCheck for remaining operators (create, insert, assign, delete) added
+	- ref Types properly compared (safe recursive check done)
+
 2008-02-27  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
 
 	* Errors/ErrorConsole.cpp, Errors/ErrorMsg.cpp, Errors/Errors.h, QueryExecutor/QueryExecutor.cpp, QueryParser/TreeNode.cpp, QueryParser/TreeNode.h, QueryParser/parser.y, QueryParser/scanner.l:
