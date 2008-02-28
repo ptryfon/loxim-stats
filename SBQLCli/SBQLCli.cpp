@@ -10,7 +10,7 @@
 #include "../Driver/Result.h"
 
 /** If defined the $ans parameter holds the result of the last query. */
-#define ANS_PARAMETER_ADDITION_ACTIVE
+//#define ANS_PARAMETER_ADDITION_ACTIVE
 /** Client version number. */
 #define VERSION "1.1"
 /** If defined the program prints a verbose output. */

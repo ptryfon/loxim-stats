@@ -56,7 +56,7 @@ namespace QParser {
 		DataObjectDef *typeObj;
 		
 	public:
-		DataObjectDef() {initPointers(); typeName = ""; refName = ""; isDistinct = false;}
+		DataObjectDef() {initPointers(); typeName = ""; refName = ""; isDistinct = false; isBase = false; isTypedef = false;}
 		void initPointers() {
 			subObjects = NULL; target = NULL; owner = NULL; nextBase = NULL; nextSub = NULL; nextHash = NULL; typeObj = NULL;
 		}
@@ -112,6 +112,7 @@ namespace QParser {
 		virtual void setTargetId(int id){targetId = id;};
 		virtual int getTargetId(){return targetId;};
 		virtual Signature *createSignature();
+		virtual Signature *createNamedSignature();
 	};
 	
 	class DataScheme 
@@ -219,7 +220,7 @@ namespace QParser {
 			return point; /*it can be NULL if wasnt found*/
 			
 		};
-		
+		virtual bool isTypeDefId(int objId);
 		virtual BinderWrap *statNested (int objId, TreeNode *treeNode);
 		virtual BinderWrap *statNested (DataObjectDef *candidate, TreeNode *treeNode, string obName, string obCard);
 		/*function below uses a list impl. of BinderWraps. can be changed ...  */
@@ -228,6 +229,7 @@ namespace QParser {
 		virtual BinderWrap* bindBaseTypes();
 		virtual void addBindEntity(DataObjectDef *obt, BinderWrap *&bw);
 		virtual Signature *signatureOfRef(int objId);
+		virtual Signature *namedSignatureOfRef(int objId);
 	};	
 		
 }

@@ -64,6 +64,9 @@ namespace Errors {
 #define ECrcToBool			0xC40
 #define ECrcEltEmptySet		0xC50
 #define ECrcEltMultiple		0xC60
+#define ECrcDelNonOptional	0xC70
+#define ECrcInsExtTooMany	0xC72
+#define EBadInternalCd		0xC74
 	
 #define EBoolExpected		0xD00
 #define ERefExpected		0xE00
@@ -89,7 +92,8 @@ namespace Errors {
 #define EMdnCreateError		0x1980
 #define ERecurrentTypes		0x1990
 #define ESuchMdnExists		0x1991
-
+#define ECrcCrtExtTooMany	0x1992
+	
 // Config
 #define ENotInit		0x1A00
 #define ENoValue		0x1B00
@@ -136,6 +140,12 @@ namespace Errors {
 #define ETCInnerFailure			0x3370
 #define ETCInnerRuleUnknown		0x3371
 #define ETCInnerNULLFailure		0x3372
+#define ESigTypesDiffer			0x3373
+#define ESigCdOverflow			0x3374
+#define ESigMissedSubs			0x3375
+#define ESigCdDynamic			0x3376
+#define ESigTNamesDiffer		0x3377
+
 
 // stopper
 #define EUnknown		0x3400

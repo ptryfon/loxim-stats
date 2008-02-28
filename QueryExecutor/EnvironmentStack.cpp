@@ -652,6 +652,8 @@ int QueryReferenceResult::nested(Transaction *&tr, QueryExecutor * qe) {
 						return errcode;
 					}
 					string tmp_name = optr->getName();
+					//MH TODO: add a 'this->value' reference to each tmp_logID ?
+					tmp_logID->setDirectParent(this->value);
 					QueryReferenceResult *final_ref = new QueryReferenceResult(tmp_logID);
 					QueryBinderResult *final_binder = new QueryBinderResult(tmp_name, final_ref);
 					ec->printf("[QE] nested(): vector element number %d\n", i);

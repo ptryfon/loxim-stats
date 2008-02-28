@@ -9,6 +9,7 @@ namespace Store
 		server = "";
 		value = 0;
 		remoteID = NULL;
+		directParentID = NULL;
 	};
 
 	DBLogicalID::DBLogicalID(unsigned int v)
@@ -16,6 +17,7 @@ namespace Store
 		server = "";
 		value = v;
 		remoteID = NULL;
+		directParentID = NULL;
 	};
 
 	DBLogicalID::DBLogicalID(const LogicalID& lid)
@@ -26,6 +28,7 @@ namespace Store
 		if (remoteID != NULL) {
 			remoteID = new DBLogicalID(*lid.getRemoteID());
 		}
+		directParentID = lid.getDirectParent();
 	};
 
 	DBLogicalID::~DBLogicalID()
@@ -80,6 +83,17 @@ namespace Store
 	{
 		this->remoteID = remoteID;
 	}
+	
+	LogicalID* DBLogicalID::getDirectParent() const
+	{
+		return directParentID;
+	}
+
+	void DBLogicalID::setDirectParent(LogicalID* parentID)
+	{
+		this->directParentID = parentID;
+	}
+	
 	
 	string DBLogicalID::getParentRoot() const {
 		return parentRoot;

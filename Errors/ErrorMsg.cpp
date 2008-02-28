@@ -31,6 +31,10 @@ struct {
 	{ECrcToBool,		"Coerce failed: Cannot coerce to Bool"},
  	{ECrcEltEmptySet, 	"Coerce element() failed: Set is empty"},
  	{ECrcEltMultiple, 	"Coerce element() failed: Set has more than 1 element"}, 
+  	{ECrcDelNonOptional,"Coerce delete check failed: Cannot delete non-optional elements"},
+   	{ECrcCrtExtTooMany, "Coerce create check failed: Cannot create more objects than declared."},
+	{ECrcInsExtTooMany, "Coerce insert check failed: Inserting more subobjects than declaration allows."},
+ 	{EBadInternalCd, 	"Coerce dynamic check failed: Cards of subobjects do not match."},
 	{EBoolExpected,    "BoolResult expected"},
 	{ERefExpected,     "RefResult expected"},
 	{EOtherResExp,     "Other Result Type expected"},
@@ -89,9 +93,16 @@ struct {
 	{ETCInnerFailure, "TypeCheck inner failure."},
 	{ETCInnerRuleUnknown, "TypeCheck error caused by unknown rule type."},
 	{ETCInnerNULLFailure, "TypeCheck error caused by a NULL pointer, non-NULL expected."},
+	{ESigTypesDiffer, "Error while comparing signatures: miss-matched types."},
+	{ESigCdOverflow, "Too many objects/subobjects as compared to cards declared."},
+	{ESigMissedSubs, " Non-optional fields missing."},
+	{ESigCdDynamic, "TC dynamic coertion: checking cardinalities in runtime."},
+	{ESigTNamesDiffer, "Error while comparing signatures: distinct typenames don't match."},
+
 // UserProgram
 	{EUserUnknown, "Exception Thrown in Query Execution - Unknown User Error"},
  	{EUserWrongParam, "Exception Thrown in Query Execution - Wrong Parameter"},
+
 // THIS MUST BE THE LAST ENTRY
 	{EUnknown,         "Unknown error"}
 };

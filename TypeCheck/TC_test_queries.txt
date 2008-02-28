@@ -40,7 +40,7 @@ Mozna sprobowac:
 	- przekształcane do:
 	(element(deref ((EMP where ((element(deref (WORKS_IN . (DEPT . DNAME)))) =  (element(deref ((deref FRIEND) . JOB))))) . SURNAME))) +  " is cool"
 	- blad czasu wykonania rzuca pierwsze 'element()'. (Bo nie ma danych. jesli wprowadzimy dane - i znajdzie 1 elt - 
-		wykona sie do konca. Jak znajdzie wiecej niz 1 - tez bedzie blad wykonania, 'more than 1 element'.
+		wykona sie do konca. Jak znajdzie wiecej niz 1 - tez bedzie blad wykonania, typu 'more than 1 element'.
 	
 3. Blad, nieznaleziona nazwa, np:
 *	EMP.DNAME; (DNAME jest tylko w DEPT).
@@ -75,6 +75,90 @@ Mozna sprobowac:
  - cast (EMP.AGE union 123 to string) - " bolecki"; -- niepoprawne, bo cast nie zadziala. - variant(int, int)-> string!. co wiecej restore process przyjmie, ze cast sie udal, i znajdzie drugi blad: odejmowanie stringow jest niedozwolone.
  
 
+--------------------------------------------------------------------
+
+ > eemp[0..*]:(n:string, a[0..1]:integer, b[0..*]:integer, c[1..*]:integer);
+ \ /
+<Connection::deserialize> tworze obiekt VOID
+void
+ 
+> reloadScheme;
+ \ /
+<Connection::deserialize> tworze obiekt STRING
+ Datascheme consistent.
+ 
+> create (3 as a, 3 as a, 4 as b, 5 as c) as eemp;
+ \ /
+<Connection::deserialize> tworze obiekt STRING
+ TypeCheck result: ERROR
+* [error: Create failure] : Type Checker: TypeCheck error: too many objects/subobjects as compared to declaration. 
+        signature: eemp,[1..1](struct,[1..1]{a,[1..1]((int,[1..1]) ) struct,[1..1]{a,[1..1]((int,[1..1]) ) struct,[1..1]{b,[1..1]((int,[1..1]) ) c,[1..1]((int,[1..1]) ) } } } ) 
+        does not match declaration of 'eemp'.
+
+ > create (3 as a, 4 as b, 5 as c) as eemp;
+<Connection::deserialize> tworze obiekt STRING
+ TypeCheck result: ERROR
+* [error: Create failure] : Type Checker: TypeCheck error: Non-optional fields missing. 
+        signature: eemp,[1..1](struct,[1..1]{a,[1..1]((int,[1..1]) ) struct,[1..1]{b,[1..1]((int,[1..1]) ) c,[1..1]((int,[1..1]) ) } } ) 
+        does not match declaration of 'eemp'.
+
+ > create ("a" as n, 3 as a, 4 as b, 5 as b, 5 as b) as eemp;
+ \ /
+<Connection::deserialize> tworze obiekt STRING
+ TypeCheck result: ERROR
+* [error: Create failure] : Type Checker: TypeCheck error: Non-optional fields missing. 
+        signature: eemp,[1..1](struct,[1..1]{n,[1..1]((string,[1..1]) ) struct,[1..1]{a,[1..1]((int,[1..1]) ) struct,[1..1]{b,[1..1]((int,[1..1]) ) struct,[1..1]{b,[1..1]((int,[1..1]) ) b,[1..1]((int,[1..1]) ) } } } } ) 
+        does not match declaration of 'eemp'.
+
+ > create (4 as n, 5 as c) as eemp;
+<Connection::deserialize> tworze obiekt STRING
+ TypeCheck result: ERROR
+* [error: Create failure] : Type Checker: TypeCheck error while comparing signatures: miss-matched types. 
+        signature: eemp,[1..1](struct,[1..1]{n,[1..1]((int,[1..1]) ) c,[1..1]((int,[1..1]) ) } ) 
+        does not match declaration of 'eemp'.
 
 
+OK:
+ > create ("a" as n, 2 as a, 4 as c, 5 as c) as eemp;
+<Connection::deserialize> tworze obiekt REFERENCE
+{ ref(76) } 
 
+ > create ("N" as n, 4 as c) as eemp;
+<Connection::deserialize> tworze obiekt REFERENCE
+{ ref(79) } 
+
+
+ > typedef distinct PLN = integer;
+ > sal : PLN;
+ > reloadScheme;
+
+ > create 34 as sal;
+<Connection::deserialize> tworze obiekt REFERENCE
+{ ref(90) } 
+
+ > create 23 as sal;
+Error: Query Executor: Coerce create check failed: Cannot create more objects than declared.
+
+ > delete sal;
+<Connection::deserialize> tworze obiekt STRING
+ TypeCheck result: ERROR
+* [error: Bad Arg] : card  of arg: (ref->89,PLN[1..1])  invalid for operator 'deleteOp .
+
+
+======================================================================
+nice declaration for checking creates / assigns / inserts, and their dynamic coerces : 
+
+> emp[0..*]:(name[0..1]:string, age: integer, sal[0..*]:PLN, sr[1..*]:string);
+
+> typedef PLN = integer; 
+(or could have it distinct and see how typecheck changes..)
+
+OR:
+
+ > ala[0..*]: (name: string, sal[0..*]:ref PLN, age[0..1]:integer);
+ > typedef PLN = integer;
+ > sal: PLN;
+
+ > reloadScheme; (  (!) if we don't reload datascheme after we've changed it - queries will not be typechecked);
+ 
+ 

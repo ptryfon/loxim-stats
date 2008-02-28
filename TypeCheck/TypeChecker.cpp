@@ -41,9 +41,11 @@ namespace TypeCheck
 	
 	int TypeChecker::performAction(ActionStruct action, TreeNode *tn) {
 		
+		if (action.arg == DTable::MARK_NODE) return performMarkAction(action.id, tn);
+		if (action.arg == DTable::SINGLE) return performSingleArgAction(action.id, tn);
+		
 		bool augLeft = (action.arg == DTable::LEFT || action.arg == DTable::BOTH);
 		bool augRight = (action.arg == DTable::RIGHT || action.arg == DTable::BOTH);
-		if (action.arg == DTable::SINGLE) return performSingleArgAction(action.id, tn);
 		int coerceAction = 0;
 		switch (action.id) {//Now this simply maps one enum to the other, but has be so in case new ops come
 			case DTable::CARD_TO_11 : coerceAction = CoerceNode::element; break;
@@ -67,8 +69,20 @@ namespace TypeCheck
 			case DTable::BS_TO_INT : return modifyTreeCoerce(CoerceNode::to_int, tn);
 			case DTable::CK_TO_BAG : return modifyTreeCoerce(CoerceNode::to_bag, tn);
 			case DTable::CK_TO_SEQ : return modifyTreeCoerce(CoerceNode::to_seq, tn);
+			case DTable::CD_CAN_DEL: return modifyTreeCoerce(CoerceNode::can_del, tn);
+			case DTable::CD_CAN_CRT: return modifyTreeCoerce(CoerceNode::can_crt, tn);
+			case DTable::CD_EXT_CRT: return modifyTreeCoerce(CoerceNode::ext_crt, tn);
 			default: return -1;
 		}
+	}
+	
+	int TypeChecker::performMarkAction(int actionId, TreeNode *tn) {
+		return tn->markTreeCoerce(actionId);
+		//action ids: {CD_CAN_ASGN, CD_CAN_INS, CD_EXT_INS}
+// 		switch(actionId) {
+// 			case DTable::CD_CAN_INS  : return markTreeCoerce(CoerceNode::...);
+// 			case DTable::CD_CAN_ASGN : return markTreeCoerce(CoerceNode::...);
+// 		}
 	}
 	
 	/* ------------  Constructors & Destr. ------------  */
@@ -189,7 +203,9 @@ namespace TypeCheck
 				//pop result signatures in reverted (stack) order...
 				Signature *rSig = sQres->popSig();
 				Signature *lSig = sQres->popSig();
-				
+				//imperative operators: make sure left sig isn't aut. derefed:
+				if (op == AlgOpNode::insert || op == AlgOpNode::assign) lSig->setRefed();
+
 				return processAugmentDerefCoerceRestore(nodeType, op, opStr, lSig, rSig, tn);
 			}
 			case TreeNode::TNNONALGOP: {
@@ -243,10 +259,10 @@ namespace TypeCheck
 				
 				argSig = sQres->popSig();
 				
-				return processAugmentDerefCoerceRestoreUnOp(nodeType, TCError::ARG_AS, op, opStr, argSig, tn, name, grouped);
+				return processAugmentDerefCoerceRestoreUnOp(nodeType, TCError::ARG_AS, op, opStr, argSig, tn, name, grouped, true);
 			} //case TNAS ( 'as' or 'group as')
 			case TreeNode::TNCASTTO: {
-				Deb::ug("TypeChecker::typeCheck( TN CAST TO !!!");
+				Deb::ug("TypeChecker::typeCheck( TN CAST TO !)");
 				string opStr = "cast(X to Y)";
 				errcode = typeCheck(((SimpleCastNode *) tn)->getArg());
 				if (errcode != 0) return errcode;
@@ -263,6 +279,18 @@ namespace TypeCheck
 					cout << "CASTTO SIGS: " << lSig->toString() <<", " << rSig->toString() <<endl;
 				}
 				return processAugmentDerefCoerceRestore(nodeType, 0, opStr, lSig, rSig, tn);
+			}
+			case TreeNode::TNCREATE: {
+				if (((CreateNode *) tn)->isClassMember()) return (ErrTypeChecker | ETCNotApplicable);
+				Deb::ug("TypeChecker::typeCheck( TN CREATE )");
+				string opStr = "create";
+				errcode = typeCheck(((CreateNode *) tn)->getArg());
+				if (errcode != 0) return errcode;
+				Signature *argSig = sQres->popSig();
+				string name = "";
+				if (argSig->type() == Signature::SBINDER) name = ((StatBinder *)argSig)->getName();
+				return processAugmentDerefCoerceRestoreUnOp(nodeType, TCError::CREATE, nodeType, opStr, argSig, tn, name, 0, false); //false: do not deref
+				break;
 			}
 			default: Deb::ug("Tree node not recognised by TC, will not apply TypeChecking."); 
 				return (ErrTypeChecker | ETCNotApplicable);
@@ -283,9 +311,9 @@ namespace TypeCheck
 		Signature *rSigDf = NULL;
 		if (tcRes.isError()) {	//Try to augment by DEREF
 			if ((errcode = augmentTreeDeref(tn, dTab, tcRes, lSig, rSig, lSigDf, rSigDf)) != 0) return errcode;
-			if (lSigDf == NULL) lSigDf = lSig;
-			if (rSigDf == NULL) rSigDf = rSig;
 		}
+		if (lSigDf == NULL) lSigDf = lSig;
+		if (rSigDf == NULL) rSigDf = rSig;
 		if (tcRes.isCoerce()) {	//Perform the listed COERCE operations
 			if ((errcode = augmentTreeCoerce(tn, lSig, rSig, tcRes)) != 0) return errcode;
 		}
@@ -316,10 +344,10 @@ namespace TypeCheck
 	}
 	
 	int TypeChecker::processAugmentDerefCoerceRestoreUnOp(int nodeType, int errType, int op, string opStr, Signature *argSig, TreeNode *tn) {
-		return processAugmentDerefCoerceRestoreUnOp(nodeType, errType, op, opStr, argSig, tn, "", 0);
+		return processAugmentDerefCoerceRestoreUnOp(nodeType, errType, op, opStr, argSig, tn, "", 0, true);
 	}
 	
-	int TypeChecker::processAugmentDerefCoerceRestoreUnOp(int nodeType, int errType, int op, string opStr, Signature *argSig, TreeNode *tn, string name, int option) {
+	int TypeChecker::processAugmentDerefCoerceRestoreUnOp(int nodeType, int errType, int op, string opStr, Signature *argSig, TreeNode *tn, string name, int option, bool doDeref) {
 		int errcode = 0;
 		if (argSig == NULL) return (ErrTypeChecker | ETCInnerFailure);
 		TypeCheckResult tcRes;
@@ -328,15 +356,17 @@ namespace TypeCheck
 		errcode = uDTab->getResult(tcRes, argSig, name, option);
 		if (errcode != 0) return errcode;
 		if (Deb::ugOn()) cout << "UNOP(" << opStr << "), got such tcresult: \n" << tcRes.printAllInfo() << endl;
-		if (tcRes.isError()) {	//Try to augment by DEREF
+		
+		if (doDeref && tcRes.isError()) {	//Try to augment by DEREF
 			if ((errcode = augmentTreeDeref(tn, uDTab, tcRes, argSig, argSigD)) != 0) return errcode;
 		}
+		if (argSigD == NULL) argSigD = argSig;
 		if (tcRes.isCoerce()) {	//perform COERCE operations
 			if ((errcode = augmentTreeCoerce(tn, argSig, NULL, tcRes)) != 0) return errcode;
 		}
 		if (tcRes.isError()) {
-			string attr[] = {opStr, argSig->toString(), name};
-			reportTypeError(TCError(errType, tcRes.getErrorParts(), vector<string>(attr, attr + 3)));
+			string attr[] = {opStr, argSig->toString(), name, argSigD->toString()};
+			reportTypeError(TCError(errType, tcRes.getErrorParts(), vector<string>(attr, attr + 4)));
 			errcode = restoreAfterBadArg(tn, nodeType, op, tcRes, argSig, name, option);
 			if (errcode != 0) return (errcode != (ErrTypeChecker | ETCNotApplicable) ? errcode : (ErrTypeChecker | EGeneralTCError));
 		}
@@ -401,21 +431,25 @@ namespace TypeCheck
 	int TypeChecker::trySingleDeref(bool canDeref, Signature *sig, Signature *&sigIn, TypeCheckResult &tmpTcRes, bool &doDeref) {
 		int errcode = 0;
 		if (not canDeref) {sigIn = sig; return 0;}
+		
 		//code below can be simplified when deref dec. table properly filled.
 		//if ((sig != NULL) && (sig->type() == Signature::SBINDER)) sig = ((StatBinder *)sig)->getValue();
 		//if ((sig != NULL) && (sig->type() == Signature::SREF)) {
 		if (sig != NULL) {
+			if (sig->isRefed()) {sigIn = sig; return 0;}
 			errcode = this->getDTables()->getUnOpDTable(TreeNode::TNUNOP, UnOpNode::deref)->getResult(tmpTcRes, sig);
 			if (errcode != 0) return errcode;
 			if (tmpTcRes.getSig() == NULL) return (ErrTypeChecker | ETCInnerFailure);
 			if (tmpTcRes.isError() || tmpTcRes.getSig()->isSolelyEqualTo(sig)) sigIn = sig;
 			else {
 				sigIn = tmpTcRes.getSig()->clone();
+				//typenames hold when derefing implicitly. they don't have to when deref is explicit. ..?
+				//sigIn->setTypeName(sig->getTypeName());
 				doDeref = true;
 			}
 		} else {
 			sigIn = sig;
-		}
+		} 
 		return errcode;
 	}
 	
@@ -445,7 +479,7 @@ namespace TypeCheck
 			cout << lSigIn->toString() << " & " << rSigIn->toString() << endl;
 			errcode = dt->getResult(outTcRes, lSigIn, rSigIn);
 			if (errcode != 0) return errcode;
-			outTcRes.fill(tcRes);
+			if (not (outTcRes.isBaseError())) outTcRes.fill(tcRes);
 			cout << "After getResult on dereffed signatures: \n" << outTcRes.printAllInfo() << endl;
 			if (!outTcRes.isError() && outTcRes.getSig() != NULL) {	//then modify the tree...
 				//outTcRes.fill(tcRes);
@@ -475,7 +509,7 @@ namespace TypeCheck
 			cout << "UNOP Augment deref sec. ph with sig: " << sigIn->toString() << endl;
 			errcode = udt->getResult(outTcRes, sigIn);
 			if (errcode != 0) return errcode;
-			outTcRes.fill(tcRes);
+			if (not (outTcRes.isBaseError())) outTcRes.fill(tcRes);
 			if (!outTcRes.isError() && outTcRes.getSig() != NULL) {
 				tn->augmentTreeDeref();
 				if (Deb::ugOn()) {tn->serialize(); cout << endl;}

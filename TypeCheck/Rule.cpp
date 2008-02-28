@@ -96,13 +96,14 @@ namespace TypeCheck
 			if (Deb::ugOn()) {cout << "TCRule::getGenRes: my sigGen: "<< sigGen << ", my attrGen: " << attrGen << endl;}
 			if (dTable != NULL) {
 				if (Deb::ugOn() && (lSig == NULL || rSig == NULL)) cout << "one of the signatures is NULL !\n";
-				retResult.setSig(dTable->doSig(this->sigGen, lSig, rSig));
-				if (retResult.getSig() == NULL) {
+				retResult.setSig(dTable->doSig(this->sigGen, lSig, rSig, retResult));
+				if (retResult.getSig() == NULL && !retResult.isError()) {
 					retResult.setEffect(TC_RS_ERROR);
 					retResult.addErrorPart(SIG_BASE);
 					Deb::ug("TCRule::getGenResult(): Setting alarm NULL base error");
 					return 0; //(ErrTypeChecker | EGeneralTCError);
 				}
+
 			} else return (ErrTypeChecker  | ETCInnerNULLFailure);
 			break;}
 		case Rule::CARD: {
@@ -247,14 +248,14 @@ namespace TypeCheck
 		}
 		switch (this->getRuleType()) {
 			case Rule::BASE: {
-				retResult.setSig(dTable->doSig(this->sigGen, argSig, param, option));
-				if (retResult.getSig() == NULL) {
+				retResult.setSig(dTable->doSig(this->sigGen, argSig, param, option, retResult));
+				if (retResult.getSig() == NULL && !retResult.isError()) {
 					retResult.setEffect(TC_RS_ERROR);
 					retResult.addErrorPart(SIG_BASE);
 					Deb::ug("UnOpRule::getGenResult(): Setting alarm NULL base error");
 					return 0; //(ErrTypeChecker | EGeneralTCError);
 				}
-				break;}
+				break;}				
 			case Rule::CARD: {
 				retResult.getSig()->setCard(dTable->doAttr(attrGen, argSig->getCard(), param, option));
 				break;}

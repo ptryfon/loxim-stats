@@ -50,6 +50,7 @@ namespace TypeCheck
 		virtual bool isError() {return (effect == "ERROR");}
 		virtual bool isCoerce() {return (effect == "COERCE");}
 		virtual bool isDynCtrl() {return dynCtrl;}
+		virtual bool isBaseError();
 		virtual void setDynCtrl(bool dc) {dynCtrl = dc;}
 		virtual void addActionId(int actId, int actArg);
 		virtual void addActionId(ActionStruct action);

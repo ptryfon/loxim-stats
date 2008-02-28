@@ -1,5 +1,6 @@
 #include "TypeCheckResult.h"
 #include "QueryParser/Stack.h"
+#include "DecisionTable.h"
 
 #include <vector>
 #include <sstream>
@@ -89,6 +90,11 @@ cout << "in printAll!\n";
 		tcr.setEffect(effect);
 		tcr.setDynCtrl(dynCtrl);
 	}
+	
+	bool TypeCheckResult::isBaseError() {
+		return (this->isError() && errorParts.size() > 0 && errorParts.at(0) == SIG_BASE);
+	}
+	
 	TypeCheckResult::~TypeCheckResult() {
 		if (resultSig != NULL) { 
 			delete resultSig;

@@ -15,26 +15,37 @@ namespace QParser
 	long TreeNode::getUv(){return uv++;};
 	
 	
-    TreeNode* NameNode::clone()     { NameNode * nowy =  new NameNode(name); nowy->setUsedBy(this->getUsedBy()); nowy->setBoundIn(this->getBoundIn()); nowy->setOid(this->getOid()); return nowy; }
-    TreeNode* ParamNode::clone()    { TreeNode * nowy =  new ParamNode(name); nowy->setOid(this->getOid()); return nowy;}
-    TreeNode* IntNode::clone()      { IntNode * nowy = new IntNode(value); nowy->setOid(this->getOid());  return nowy;}
-    TreeNode* StringNode::clone()   { StringNode * nowy = new StringNode(value);  nowy->setOid(this->getOid()); return nowy;}
-    TreeNode* DoubleNode::clone()   { DoubleNode * nowy = new DoubleNode(value); nowy->setOid(this->getOid()); return nowy; }
-    TreeNode* NameAsNode::clone()   { NameAsNode * nowy =  new NameAsNode((QueryNode*)arg->clone(), name, group); nowy->setUsedBy(this->getUsedBy()); nowy->setOid(this->getOid()); return nowy;}
-    TreeNode* UnOpNode::clone()     { TreeNode * nowy = new UnOpNode((QueryNode*)arg->clone(), op);  nowy->setOid(this->getOid()); return nowy;}
-	TreeNode* CoerceNode::clone()     { TreeNode * nowy = new CoerceNode((QueryNode*)arg->clone(), cType);  nowy->setOid(this->getOid()); return nowy;}
-    TreeNode* AlgOpNode::clone()    { TreeNode * nowy = new AlgOpNode((QueryNode*)larg->clone(), (QueryNode*)rarg->clone(), op); nowy->setOid(this->getOid()); return nowy;}
-    TreeNode* NonAlgOpNode::clone() { TreeNode * nowy = new NonAlgOpNode((QueryNode*)larg->clone(), (QueryNode*)rarg->clone(), op); nowy->setOid(this->getOid()); return nowy;}
-    TreeNode* TransactNode::clone() { TreeNode * nowy = new TransactNode(op); nowy->setOid(this->getOid()); return nowy;}
+    TreeNode* NameNode::clone()     { NameNode * nowy =  new NameNode(name); nowy->setUsedBy(this->getUsedBy()); nowy->setBoundIn(this->getBoundIn()); nowy->copyAttrsOf(this); return nowy; }
+	TreeNode* ParamNode::clone()    { TreeNode * nowy =  new ParamNode(name); nowy->copyAttrsOf(this); return nowy;}
+	TreeNode* IntNode::clone()      { IntNode * nowy = new IntNode(value); nowy->copyAttrsOf(this); return nowy;}
+	TreeNode* StringNode::clone()   { StringNode * nowy = new StringNode(value);  nowy->copyAttrsOf(this); return nowy;}
+	TreeNode* DoubleNode::clone()   { DoubleNode * nowy = new DoubleNode(value); nowy->copyAttrsOf(this); return nowy; }
+	TreeNode* NameAsNode::clone()   { NameAsNode * nowy =  new NameAsNode((QueryNode*)arg->clone(), name, group); nowy->setUsedBy(this->getUsedBy()); nowy->copyAttrsOf(this); return nowy;}
+	TreeNode* UnOpNode::clone()     { TreeNode * nowy = new UnOpNode((QueryNode*)arg->clone(), op);  nowy->copyAttrsOf(this); return nowy;}
+	TreeNode* CoerceNode::clone()     { TreeNode * nowy = new CoerceNode((QueryNode*)arg->clone(), cType);  nowy->copyAttrsOf(this); return nowy;}
+	TreeNode* AlgOpNode::clone()    { TreeNode * nowy = new AlgOpNode((QueryNode*)larg->clone(), (QueryNode*)rarg->clone(), op); nowy->copyAttrsOf(this); return nowy;}
+	TreeNode* NonAlgOpNode::clone() { TreeNode * nowy = new NonAlgOpNode((QueryNode*)larg->clone(), (QueryNode*)rarg->clone(), op); nowy->copyAttrsOf(this); return nowy;}
+	TreeNode* TransactNode::clone() { TreeNode * nowy = new TransactNode(op); nowy->copyAttrsOf(this); return nowy;}
     TreeNode* DMLNode::clone() { TreeNode * nowy = new DMLNode(inst); nowy->setOid(this->getOid()); return nowy;}
         
     TreeNode* CreateNode::clone()   { 
-		if (arg != NULL) return new CreateNode(name, (QueryNode*)arg->clone()); 
-		else return new CreateNode(name, NULL);}
+		TreeNode *cloned = NULL;
+		if (arg != NULL) 
+			cloned = new CreateNode(name, (QueryNode*)arg->clone()); 
+		else 
+			cloned = new CreateNode(name, NULL);
+		cloned->copyAttrsOf(this);
+		return cloned;
+	}
     TreeNode* LinkNode::clone() {return new LinkNode(nodeName, ip, port); }
     TreeNode* CondNode::clone() {
-		if (rarg != NULL) return new CondNode((QueryNode*)condition->clone(), (QueryNode*)larg->clone(), (QueryNode*)rarg->clone(), op);
-		else return new CondNode((QueryNode*)condition->clone(), (QueryNode*)larg->clone(), op);
+		TreeNode *cloned = NULL;
+		if (rarg != NULL) 
+			cloned = new CondNode((QueryNode*)condition->clone(), (QueryNode*)larg->clone(), (QueryNode*)rarg->clone(), op);
+		else 
+			cloned = new CondNode((QueryNode*)condition->clone(), (QueryNode*)larg->clone(), op);
+		cloned->copyAttrsOf(this);
+		return cloned;
     }
     TreeNode* FixPointNode::clone() {
 		vector<QueryNode*> q;
@@ -47,6 +58,7 @@ namespace QParser
 		fn->setQueries(q);
 		fn->setNames(n);
 		fn->setPartsNumb(partsNumb);
+		fn->copyAttrsOf(this);
 		return fn;
     }
 
@@ -79,6 +91,7 @@ namespace QParser
 		}
 		VectorNode *vn = new VectorNode();
 		vn->setQueries(q);
+		//vn->copyAttrsOf(this);
 		return vn;
     }
     TreeNode* ViewNode::clone() {
@@ -89,6 +102,7 @@ namespace QParser
 		for (unsigned int i=0; i < subviews.size(); i++) {
 			vn->subviews.push_back(subviews[i]);
 		}
+		//vn->copyAttrsOf(this);
 		return vn;
     }
 
@@ -151,37 +165,53 @@ namespace QParser
 			if (this->sigKind == SignatureNode::atomic) retNode = new SignatureNode(sigKind, atomType);
 			else retNode = new SignatureNode(sigKind, typeName);
 		}
-		retNode->setOid(this->getOid());
+		retNode->copyAttrsOf(this);
 		return retNode;
 	}
 	TreeNode* ObjectDeclareNode::clone() {
 		TreeNode * retNode = NULL;
 		if (signature != NULL) retNode = new ObjectDeclareNode(name, (SignatureNode *)signature->clone(), card);
 		else retNode = new ObjectDeclareNode(name, NULL, card);
-		retNode->setOid(this->getOid());
+		retNode->copyAttrsOf(this);
 		return retNode;
 	}
 	TreeNode* StructureTypeNode::clone() {
 		StructureTypeNode *newStrct = new StructureTypeNode();
 		newStrct->setSubDeclarations(subDeclarations);
-		newStrct->setOid(this->getOid());
+		newStrct->copyAttrsOf(this);
 		return newStrct;
 	}
 	TreeNode* TypeDefNode::clone() {
 		TreeNode * retNode = NULL;
 		if (signature != NULL) retNode = new TypeDefNode(name, (SignatureNode *)signature->clone(), isDistinct);
 		else retNode = new TypeDefNode(name, NULL, isDistinct);
-		retNode->setOid(this->getOid());
+		retNode->copyAttrsOf(this);
 		return retNode;
 	}	
 	TreeNode* SimpleCastNode::clone() {
 		TreeNode *retNode = NULL;
 		if (arg != NULL && sig != NULL) retNode = new SimpleCastNode((QueryNode *)arg->clone(), (SignatureNode *)sig->clone());
 		else retNode = new SimpleCastNode (NULL, NULL);
-		retNode->setOid(this->getOid());
+		retNode->copyAttrsOf(this);
 		return retNode;
 	}
 	/** Typecheck clones end. */
+	
+	void TreeNode::copyAttrsOf(TreeNode *tn) {
+		coerceFlag = tn->isCoerced();
+		for (int i = 0; i < tn->nrOfCoerceActions(); i++) {
+			coerceActions.push_back(tn->getCoerceAction(i));
+		}
+		setOid(tn->getOid());
+		//setCard(tn->getCard()); //wasn't done previously in clone, so not doing it here. MH
+	}
+	bool TreeNode::needsCoerce(int actionId) {
+		if (not isCoerced()) return false;
+		for (unsigned int i = 0; i < coerceActions.size(); i++) {
+			if (coerceActions.at(i) == actionId) return true;
+		}
+		return false;
+	}
 	
 /*  to be used when subT is an subTree independant of (this) and (this) is a non-alg operator.
     called eg. for node  nd = nonalgop (where) ... 
@@ -189,7 +219,7 @@ namespace QParser
     (!!!) when used for optimization purposes, should not be called when 
 	  subT is a NameNode, because this does not help optimise a query.. */
     TreeNode* TreeNode::factorSubQuery(TreeNode *subT, string newName) {
-    
+
 		subT->getParent()->swapSon((QueryNode *) subT, new NameNode(newName));
 		TreeNode *nickNode = new NameAsNode ((QueryNode *) subT, newName, true);	
 		TreeNode *topNode = new NonAlgOpNode ((QueryNode *) nickNode, (QueryNode *) this, NonAlgOpNode::dot);
@@ -1278,6 +1308,30 @@ TreeNode* TreeNode::getNodeByOid(vector<TreeNode*>* listVec, long oid){
 		return 0;
 	}
 	
+	int SimpleCastNode::augmentTreeDeref(bool derefLeft, bool derefRight) {
+		if (derefLeft) {
+			cout << "SimpleCastNode::augmentTreeDeref left " << endl;
+			UnOpNode *deref = new UnOpNode(this->arg,UnOpNode::deref);
+			this->setArg(deref);
+		}
+		if (derefRight) {
+			cout << "SimpleCastNode::augmentTreeDeref RIGHT - sig not derefed." << endl;
+		}
+		return 0;
+	}
+	
+	int CreateNode::augmentTreeCoerce(int coerceType) {
+		CoerceNode *coerce = new CoerceNode((QueryNode *)this->getArg(), coerceType);
+		this->setArg(coerce);
+		return 0;
+	}
+	
+	int NameAsNode::augmentTreeCoerce(int coerceType) {
+		CoerceNode *coerce = new CoerceNode((QueryNode *)this->getArg(), coerceType);
+		this->setArg(coerce);
+		return 0;
+	}
+	
 	int UnOpNode::augmentTreeCoerce(int coerceType) {
 		CoerceNode *coerce = new CoerceNode((QueryNode *)this->getArg(), coerceType);
 		this->setArg(coerce);
@@ -1445,7 +1499,18 @@ TreeNode* TreeNode::getNodeByOid(vector<TreeNode*>* listVec, long oid){
 		string ret = name + "[" + card + "]:" + getSigNode()->deParse();
 		return ret;
 	}
-	
+	int TreeNode::markTreeCoerce(int actionId) {
+		if (actionId != -1) {
+			coerceFlag = true;
+			bool actionPresent = false;
+			for (unsigned int i = 0; i < coerceActions.size(); i++) {
+				if (coerceActions.at(i) == actionId) actionPresent = true;
+			}
+			if (not actionPresent)
+				this->coerceActions.push_back(actionId);
+		}
+		return 0;
+	}
 	
 	
 /**

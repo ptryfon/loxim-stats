@@ -63,21 +63,7 @@ namespace TypeCheck
 			addCkRule(M_R,		"bag",		M_0,		"bag");
 			addCkRule(			"bag",		"bag",		"bag");
 			addCkRule(M_ELSE,							TC_RS_ERROR);
-			break;/*BASE*/	
-			addTcRule(M_EQ,		"X",		"X",		BS_COPY_L);
-			addTcRule(M_ELSE,	"X",		"Y",		BS_TO_VAR);
-/*CARD*/		
-			addCdRule(M_B,		"X",		"Y",		CD_ADDBANDS);
-/*T-NAME*/		
-			addTnRule(M_B,		M_0, 		M_0, 		"");
-			addTnRule(M_EQ,		"X",		"X",		"");
-			addTnRule(M_ELSE, 							TC_RS_ERROR);
-/*C-KIND*/		
-			addCkRule(M_B,		M_0,		M_0,		"bag");
-			addCkRule(M_L,		M_0,		"bag",		"bag");
-			addCkRule(M_R,		"bag",		M_0,		"bag");
-			addCkRule(			"bag",		"bag",		"bag");
-			addCkRule(M_ELSE,							TC_RS_ERROR);
+			break;
 		}
 		case AlgOpNode::bagUnion: { 
 /*BASE*/	
@@ -166,11 +152,11 @@ namespace TypeCheck
 /*BASE*/	
 			addTcRule(			"double",	"double",	TC_RS_ERROR);	// not allowed to compare doubles!
 			addTcRule(M_EX,		"variant",	"",			TC_RS_ERROR);	// not allowed to compare variants.
-			addTcRule(M_EQ,		"",			"",			"boolean");		//structural equality
 			addTcRule(			"string",	"integer",	"boolean",	BS_TO_STR, RIGHT, STATIC);
 			addTcRule(			"integer",	"string",	"boolean",	BS_TO_STR, LEFT, STATIC);
 			addTcRule(			"string",	"double",	"boolean",	BS_TO_STR, RIGHT, STATIC);
 			addTcRule(			"double",	"string",	"boolean",	BS_TO_STR, LEFT, STATIC);
+			addTcRule(M_EQ,		"X",		"X",		"boolean");
 			addTcRule(M_ELSE, TC_RS_ERROR);
 /*CARD*/		
 			addCdRule(			"1..1",		"1..1",		"1..1");
@@ -237,10 +223,25 @@ namespace TypeCheck
 			addCkRule(M_ELSE, 							TC_RS_ERROR);
 			break;			
 		}
-		case AlgOpNode::insert: {	//TODO: impertative
+		case AlgOpNode::insert: {	//complex checks under base generators BS_INS_BND, BS_INS_REF
+			addTcRule(M_MATCH,	"ref",		"binder",	BS_INS_BND);
+			addTcRule(M_MATCH,	"ref",		"ref",		BS_INS_REF);
+			addTcRule(M_ELSE,							TC_RS_ERROR);
+			
+			addCdRule(M_R,		"1..1",		"x..y",		"1..1");
+			addCdRule(M_ELSE,	"",			"",			"1..1",		CARD_TO_11, LEFT, DYNAMIC);
+			
 			break;
 		}
-		case AlgOpNode::assign: {	//TODO: impertative
+		case AlgOpNode::assign: {	//complex checks under base generator: BS_ASSIGN
+			addTcRule(M_R,		"ref",		"match",	BS_ASSIGN);	//this takes care of sigs' compatibility
+			addTcRule(M_ELSE,							TC_RS_ERROR);
+			
+			addCdRule(			"1..1",		"1..1",		"1..1");
+			addCdRule(M_L,		"",			"1..1", 	"1..1", 	CARD_TO_11, LEFT, DYNAMIC);
+			addCdRule(M_R,		"1..1",		"", 		"1..1", 	CARD_TO_11, RIGHT, DYNAMIC);
+			addCdRule(M_B,		"", 		"", 		"1..1", 	CARD_TO_11, BOTH, DYNAMIC);
+			
 			break;
 		}
 		case AlgOpNode::semicolon: { // does nthing, but returns right signature.
@@ -311,6 +312,8 @@ namespace TypeCheck
 /*BASE*/
 			addTcRule(M_EX,		"variant",	"",			TC_RS_ERROR);
 			addTcRule(M_L,		"X",		"boolean",	BS_COPY_L);
+			//One could try and coerce right arg to boolean dynamically. Such coerce node exists and can be used.
+			//addTcRule(M_B,	"X",		"Y",		BS_COPY_L,		BS_TO_BOOL, RIGHT, DYNAMIC);
 			addTcRule(M_ELSE, TC_RS_ERROR);
 /*CARD*/	
 			addCdRule(M_L,		"X..Y",		"1..1",		CD_COPY_L_ZR);
@@ -391,7 +394,7 @@ namespace TypeCheck
 			/*CARD*/		
 			addCdRule(M_B,		"",			"",			ARG_COPY_L);
 			/*T-NAME*/	
-			addTnRule(M_B, 		"X",		"whatever", ARG_COPY_R);	//may set typename by such a cast... ?
+			addTnRule(M_B, 		"X",		"whatever", ARG_COPY_R);	//may set typename by such a cast... 
 			/*C-KIND*/	
 			addCkRule(M_B,		"X",		"whatever", ARG_COPY_L);	
 		}
@@ -444,7 +447,7 @@ namespace TypeCheck
 				addTcRule("",		"boolean",	"boolean");
 				addTcRule(M_ELSE, 	"", 		BS_DEREF); 	
 				addCdRule(META, 	"x", 		ARG_COPY);
-				addTnRule(META, 	"x", 		ARG_COPY);	
+				//addTnRule(META, 	"x", 		ARG_COPY);	
 				addCkRule(META, 	"x", 		ARG_COPY);
 				break;
 			}
@@ -459,7 +462,7 @@ namespace TypeCheck
 			case UnOpNode::distinct: {
 				addTcRule("",		"variant",	TC_RS_ERROR);
 				addTcRule(META,		"",			BS_COPY_REF);
-				addCdRule(META, 	"x", 		ARG_COPY);	//nr of elts changes, but card stays as it is !
+				addCdRule(META, 	"x", 		ARG_COPY);	//nr of elts may change, but card stays as it is !
 				addTnRule(META, 	"x", 		ARG_COPY);	//elements can keep the typename.
 				addCkRule(META, 	M_0, 		"");
 				break;
@@ -492,14 +495,15 @@ namespace TypeCheck
 				addTnRule(M_ELSE, 	"",			TC_RS_ERROR);
 				break;
 			}
-			case UnOpNode::deleteOp: { //Todo... ! (complex check)
-/*				addTcRule("",		"ref",		"void");
-				addTcRule(M_ELSE,	"",			TC_RS_ERROR);
-				addCdRule("",		"1..1",		TC_RS_ERROR);
-				addCdRule("",		"1..*",		"1..*",		CD_ATLST_2, DYNAMIC);*/
-				break;
-			}
-			case UnOpNode::nameof: { 
+			case UnOpNode::deleteOp: { 
+				//this could be done this standard way either thanks to A) some 
+				//pre-processing in TypeChecker::typeCheck() method, or B) a trick in the BS_DELETE generator.
+				//B) is chosen here: it actually overrides the card attr. with card of the sig from datascheme!
+				addTcRule("",		"ref",		BS_DELETE); 	//only refs may be removed.
+				addTcRule(M_ELSE,	"",			TC_RS_ERROR);	
+				addCdRule("",		"1..1",		TC_RS_ERROR);	//(See comment above) delete forbidden if card == 1..1
+				addCdRule("",		"1..*",		"1..1",		CD_CAN_DEL, DYNAMIC);	//check that >= 1 would be left.
+				addCdRule(M_ELSE,	"",			"1..1");	//if card is [0..x] than delete allowed.
 				break;
 			}
 			default: break;
@@ -513,11 +517,15 @@ namespace TypeCheck
 				addCkRule(META,		"CK",		CK_NAMEAS);	
 				break;
 		}
-		case TreeNode::TNCREATE: 
+		case TreeNode::TNCREATE: {
 				// TODO: fill in together with AlgOp::insert, most responsibility on base-generator.
 				//base : argument has to be a binder, & fulfill other reqs. 
-				
+				addTcRule("",		"binder",	BS_CREATE);	//returns sigref - to the created object.
+				addTcRule(M_ELSE,	"",			TC_RS_ERROR);
+				addCdRule(META,		"CD",		ARG_COPY);	//may create a bunch of objects at once.
+				addCkRule(META,		"CK",		ARG_COPY);
 			break;
+		}
 		default: break;
 		}
 		provideReturnLinks();
@@ -528,7 +536,7 @@ namespace TypeCheck
 
 	/** ***********		Result generator dispatchers. 	*********** */ 
 	
-	Signature *DecisionTable::doSig(int method, Signature *lSig, Signature *rSig) {
+	Signature *DecisionTable::doSig(int method, Signature *lSig, Signature *rSig, TypeCheckResult &retResult) {
 		// << "doing sig based on lSig and rSig: " << endl;	lSig->putToString();	rSig->putToString();
 		switch(method) {
 			case DecisionTable::BS_COPY_L : return leftSig(lSig, rSig);
@@ -536,12 +544,15 @@ namespace TypeCheck
 			case DecisionTable::BS_STRUCT : return doStruct(lSig, rSig);
 			case DecisionTable::BS_CAST_VAR: return castVar(lSig, rSig);
 			case DecisionTable::BS_TO_VAR: return createVar(lSig, rSig);
+			case DecisionTable::BS_INS_REF: return insertRefCheck(lSig, rSig, retResult);
+			case DecisionTable::BS_INS_BND: return insertBndCheck(lSig, rSig, retResult);
+			case DecisionTable::BS_ASSIGN : return assignCheck(lSig, rSig, retResult);
 			
 			default: return NULL;
 		}
 	}
 	
-	string DecisionTable::doAttr(int method, string lArg, string rArg) {
+	string DecisionTable::doAttr(int method, string lArg, string rArg) { 
 		switch(method) {
 			case DecisionTable::CD_ADDBANDS : return cdAddBands(lArg, rArg);
 			case DecisionTable::CD_MULTBANDS : return cdMultiplyBands(lArg, rArg);
@@ -554,13 +565,16 @@ namespace TypeCheck
 		}
 	}
 	
-	Signature *UnOpDecisionTable::doSig(int method, Signature *sig, string param, int option) {
+	Signature *UnOpDecisionTable::doSig(int method, Signature *sig, string param, int option, TypeCheckResult &retResult) {
 		switch(method) {
 			case UnOpDecisionTable::BS_COPY : return copySig(sig);
 			case UnOpDecisionTable::BS_REF_DEREF : return refDerefSig(sig);
 			case UnOpDecisionTable::BS_DEREF : return derefSig(sig);
 			case UnOpDecisionTable::BS_COPY_REF : return copyAndRefSig(sig);
 			case UnOpDecisionTable::BS_NAMEAS : return nameAsSig(sig, param, option);
+			case UnOpDecisionTable::BS_DELETE : return deleteCheck(sig, retResult);
+			case UnOpDecisionTable::BS_CREATE : return createCheck(sig, retResult);
+			
 			default: return NULL;
 		}
 	}
@@ -715,6 +729,232 @@ namespace TypeCheck
 	
 	Signature *UnOpDecisionTable::copyAndRefSig(Signature *sig) {Signature *s = sig->clone(); s->setRefed(); return s;}
 		
+	
+	Signature *UnOpDecisionTable::deleteCheck(Signature *sig, TypeCheckResult &retResult) {
+		//just set sig's card attribute to what you find in datascheme - we really know sig is a SigRef.
+		if (sig->type() != Signature::SREF) return NULL;
+		DataObjectDef *obj = DataScheme::dScheme()->getObjById(((SigRef *)sig)->getRefNo());
+		if (obj == NULL) return NULL;
+		//trick below - its the Objects cardinality that matters, not sigs real card. 
+		sig->setCard(obj->getCard());	
+		return new SigVoid();	//delete just returns void.
+	}
+	
+	Signature *UnOpDecisionTable::createCheck(Signature *sig, TypeCheckResult &retResult) {
+		int newObjId = 0;
+		if (sig->type() != Signature::SBINDER) return NULL;
+		//Signature *valSig = ((StatBinder *) sig)->getValue();
+		string name = ((StatBinder *) sig)->getName();
+		
+		BinderWrap *bwObj = DataScheme::dScheme()->bindBaseObjects();
+		cout << "[TC] DTable::createCheck(): bound base objects" << endl;
+		if (bwObj == NULL) {cout << "no base objects\n";
+			retResult.setEffect(TC_RS_ERROR);
+			retResult.addErrorPart("Name '" + name + "' could not be bound\n	");
+			return NULL;
+		}
+		vector<BinderWrap*> *vec = new vector<BinderWrap*>();
+		bwObj->bindName2(name, vec);
+		if (DataScheme::bindError(vec)) {//no object with this name...
+			cout << "[TC] DTable::createCheck(): name:  "<< name << " not found in roots, can't create such object\n";
+			retResult.setEffect(TC_RS_ERROR);
+			retResult.addErrorPart("Name '" + name + "' not found\n	");
+			return NULL;
+		}
+		Signature *bSig = DataScheme::extractSigFromBindVector(vec);
+		if (bSig == NULL || bSig->type() != Signature::SREF) {
+			cout << "[TC] DTable::createCheck(): name not bound properly: sig is null or not a ref.\n"; 
+			retResult.setEffect(TC_RS_ERROR);
+			retResult.addErrorPart("Name '"+ name + "' not bound properly\n	");
+			return NULL;
+		}
+		//check if we're not creating to many objects..
+		char maxAlwd = (bSig->getCard())[3];
+		char maxCrtd = (sig->getCard())[3];
+		//such condition as below would not suffice: we don't know how many such objects already exist...
+		//if (maxAlwd != '*' && (maxCrtd == '*' || (maxAlwd-'0') < (maxCrtd-'0'))) {
+		if (maxAlwd != '*' && maxCrtd != '0') {
+			retResult.setEffect(TC_RS_COERCE);
+			retResult.addActionId(CD_EXT_CRT, SINGLE);
+		}
+		newObjId = ((SigRef *) bSig)->getRefNo();
+		Signature *fullBSig = DataScheme::dScheme()->namedSignatureOfRef(newObjId);
+		Signature *flatSig = sig->cloneFlat();
+		if (fullBSig == NULL || flatSig == NULL || ((StatBinder *) flatSig)->getValue() == NULL) {
+			return NULL; //bad arg for create..
+		}
+		
+		cout << "[TC] comparing " << flatSig->toString() << " \nto sig from datascheme: \n" << fullBSig->toString() << ".\n";
+		int comparison = fullBSig->compareNamedSigCrt(flatSig, false);
+		ErrorConsole ec("TypeChecker");
+		ec << "[TC] result of comparing the 2 signatures:";
+		ec << comparison;
+		if (comparison == 0) {
+			cout << "CREATE comparison worked out, 0 result !" << endl;
+			return bSig; //reference to created object
+		} else if (comparison == (ErrTypeChecker | ESigCdDynamic)) {
+			cout << "DYNAMIC CHECKING !!! have to return it somehow, so that it can be performed...\n";
+			cout <<"OK, now we've got retResult, so may set coerce (with coerce action and SINGLE parm)\n";
+			retResult.setEffect(TC_RS_COERCE);
+			retResult.addActionId(CD_CAN_CRT, SINGLE);
+			return bSig;
+		}
+		cout <<"[TC] - create check failed, so will return null, which will trigger TCError\n";
+		retResult.setEffect(TC_RS_ERROR);
+		retResult.addErrorPart(*SBQLstrerror(comparison));
+		return NULL;
+	}
+	
+	Signature *DecisionTable::assignCheck(Signature *lSig, Signature *rSig, TypeCheckResult &retResult) {
+		if (lSig == NULL || rSig == NULL) return NULL;
+		if (lSig->type() != Signature::SREF) {cout << "[TC] DTable::assignCheck(): base sig not a ref\n"; return NULL;}
+		int leftId = ((SigRef *) lSig)->getRefNo();
+		Signature *namedLSig = DataScheme::dScheme()->namedSignatureOfRef(leftId);
+		if (namedLSig == NULL || namedLSig->type() != Signature::SBINDER || ((StatBinder *)namedLSig)->getValue() == NULL)
+			return NULL;
+		//now make rSig a binder with fRSigs name..
+		Signature *fRSig = NULL;
+		if (rSig->type() == Signature::SREF && !rSig->isRefed()) {
+			fRSig = DataScheme::dScheme()->namedSignatureOfRef(((SigRef *)rSig)->getRefNo());
+			if (fRSig == NULL) return NULL;
+			((StatBinder *)fRSig)->setName(((StatBinder *)namedLSig)->getName());
+		} else { //atom or struct or binder or (sigRef which was refed)
+			Signature *rVal = rSig->cloneFlat();
+			if (rVal == NULL || (rVal->type() == Signature::SBINDER && ((StatBinder *)rVal)->getValue() == NULL)) {
+				return NULL;
+			}
+			if (rVal->type() == Signature::SBINDER) {
+				fRSig = rVal;
+			} else {
+				fRSig = new StatBinder(((StatBinder *)namedLSig)->getName(), rVal);
+			}
+		}
+		//now check that fRSig suits namedLSig well... (exactly like in createCheck..)
+		cout << "[TC]SDDIGN:  comparing base sig:" << namedLSig->toString() << " \nto assigned: \n" << fRSig->toString() << ".\n";
+		int comparison = namedLSig->compareNamedSigCrt(fRSig, true);
+		ErrorConsole ec("TypeChecker");
+		ec << "[TC] result of comparing the 2 signatures for assignment:";
+		ec << comparison;
+		if (comparison == 0) {	//SUCCESS
+			cout << "ASSIGN comparison worked out, 0 result !" << endl;
+			return new SigVoid(); 
+		} else if (comparison == (ErrTypeChecker | ESigCdDynamic)) {
+			cout << "ASSIGN needs DYNAMIC CHECKING !!! for sub cardinalities.\n";
+			retResult.setEffect(TC_RS_COERCE);
+			retResult.addActionId(CD_CAN_ASGN, MARK_NODE);
+			return new SigVoid();
+		}
+		cout <<"[TC] - assign check failed, so will return null, and trigger TCError\n";
+		retResult.setEffect(TC_RS_ERROR);
+		retResult.addErrorPart(*SBQLstrerror(comparison) + "\n	bases");
+		return NULL;	//on error
+	}
+	
+	
+	Signature *DecisionTable::insertCheck(Signature *lSig, Signature *flatRSig, TypeCheckResult &retResult) {
+		//flatRSig is a not-null, flattened, named binder signature.
+		if (lSig == NULL || lSig->type() != Signature::SREF) return NULL;
+		
+		int leftId = ((SigRef *) lSig)->getRefNo();
+		//TODO: check its not a ref. to a type? so getObjById(leftId)->getIsTypedef() == false)
+		Signature *namedLSig = DataScheme::dScheme()->namedSignatureOfRef(leftId);
+
+		if (namedLSig == NULL || namedLSig->type() != Signature::SBINDER || ((StatBinder *)namedLSig)->getValue() == NULL)
+			return NULL;
+		string outerName = ((StatBinder *)namedLSig)->getName();
+		Signature *outerSig = ((StatBinder *)namedLSig)->getValue();
+		if (outerSig->type() != Signature::SSTRUCT) {
+			retResult.setEffect(TC_RS_ERROR);
+			retResult.addErrorPart("Left argument does not point to a complex object definition\n	bases");	
+			return NULL;
+		}
+		SigColl *bSig = (SigColl *) outerSig;
+		Signature *bPtr = bSig->getMyList();
+		string rName = ((StatBinder *) flatRSig)->getName();
+		bool foundName = false;
+		Signature *match = NULL;
+		while (bPtr != NULL && not foundName) {
+			if (((StatBinder *) bPtr)->getName() == rName) {
+				foundName = true;
+				match = bPtr;
+			}
+			bPtr = bPtr->getNext();
+		}
+		if (not foundName || match == NULL) {
+			retResult.setEffect(TC_RS_ERROR);
+			retResult.addErrorPart("No '"+rName+"' subobjects in declaration of "+outerName+".\n	bases");
+			return NULL;
+		}
+		int comparison = match->compareNamedSigCrt(flatRSig, true);
+		ErrorConsole ec("TypeChecker");
+		ec << "[TC] result of comparing a chosen sub of left sig, with the right sig, for insert:";
+		ec << comparison;
+		if (comparison == 0) {//SUCCESS - just check the cardinalities.
+			cout << "INSERT comparison worked out, 0 result ! Will just check ext cards." << endl;
+			if (match->getCard() == "1..1") {
+				retResult.setEffect(TC_RS_ERROR);
+				retResult.addErrorPart("Only one '"+rName+"' subobject allowed in "+outerName+"\n	bases");	
+				return NULL;
+			}
+			if (match->getCard() == "0..1") {
+				cout <<"Marking insert node to be checked dynamically for presence of '"+rName+"' subobjects.\n";
+				retResult.setEffect(TC_RS_COERCE);
+				retResult.addActionId(CD_EXT_INS, MARK_NODE);
+			}
+			return new SigVoid(); 
+		} else if (comparison == (ErrTypeChecker | ESigCdDynamic)) {
+			cout << "ASSIGN needs DYNAMIC CHECKING !!! for sub cardinalities.\n";
+			retResult.setEffect(TC_RS_COERCE);
+			retResult.addActionId(CD_CAN_INS, MARK_NODE);
+			return new SigVoid();
+		}
+		cout <<"[TC] - insert check on chosen sub failed, so will return null, and trigger TCError\n";
+		retResult.setEffect(TC_RS_ERROR);
+		retResult.addErrorPart(*SBQLstrerror(comparison) + "\n	bases");
+		return NULL;
+	}
+	
+	Signature *DecisionTable::insertRefCheck(Signature *lSig, Signature *rSig, TypeCheckResult &retResult) {
+		if (rSig == NULL || rSig->type() != Signature::SREF) return NULL;
+		Signature *flatSig = NULL;
+		int refNo = ((SigRef *)rSig)->getRefNo();
+		//check its a root
+		DataObjectDef *obd = DataScheme::dScheme()->getObjById(refNo);
+		if (obd == NULL || not (obd->getIsBase()) || obd->getIsTypedef()) {
+			retResult.setEffect(TC_RS_ERROR);
+			retResult.addErrorPart("Right argument does not point to a root object\n	bases");	
+			return NULL;
+		}
+		//check card 
+		if (obd->getCard() == "1..1") {
+			retResult.setEffect(TC_RS_ERROR);
+			retResult.addErrorPart("Cannot delete single root pointed by right arg.\n	cards");	
+			return NULL;
+		} 
+		if (obd->getCard() == "1..*") {
+			retResult.setEffect(TC_RS_COERCE);
+			retResult.addActionId(CD_CAN_DEL, RIGHT);
+		}
+		
+		flatSig = obd->createNamedSignature();
+		if (flatSig == NULL || flatSig->type() != Signature::SBINDER || ((StatBinder *) flatSig)->getValue() == NULL) 
+			return NULL; //bad right arg for insert..
+		if (Deb::ugOn()) cout << "Created NAMED signature from dScheme: \n" << flatSig->toString() << endl;
+		
+		return insertCheck(lSig, flatSig, retResult);
+	}
+	
+	Signature *DecisionTable::insertBndCheck(Signature *lSig, Signature *rSig, TypeCheckResult &retResult) {
+		if (rSig == NULL || rSig->type() != Signature::SBINDER) return NULL;
+		Signature *flatSig = rSig->cloneFlat();
+		if (flatSig == NULL || flatSig->type() != Signature::SBINDER || ((StatBinder *) flatSig)->getValue() == NULL) 
+			return NULL; //bad right arg for insert..
+		
+		return insertCheck(lSig, flatSig, retResult);
+	}
+	
+	
+	
 	/** end of result generating methods..*/
 	
 	

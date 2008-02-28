@@ -14,6 +14,8 @@
 #include "../QueryExecutor/QueryResult.h"
 #include "QueryParser.h"
 #include "Indexes/BTree.h"
+//#include "../TypeCheck/DecisionTable.h"
+
 //using namespace std;
 
 namespace Indexes {
@@ -42,7 +44,9 @@ namespace QParser {
 	TreeNode* parent;
 	bool needed;		// is not death
 	string card;		// cardinality
-
+	bool coerceFlag;
+	vector<int> coerceActions;
+	
       string getPrefixForLevel( int level, string name ) {
         string result = "";
 
@@ -79,6 +83,7 @@ namespace QParser {
 		#ifdef QUERY_CACHE
 			this->isCacheable = false;
 		#endif
+		this->coerceFlag = false;
 	}
 	
 	#ifdef QUERY_CACHE
@@ -160,14 +165,21 @@ namespace QParser {
 		return (tp == TNTRANS || tp == TNDML || tp == TNOBJDECL || tp == TNTYPEDEF || tp == TNVALIDATION);
 	}
 	virtual void qpLocalAction(QueryParser *qp);
-	virtual int augmentTreeDeref(bool derefLeft, bool derefRight) {Deb::ug("TreeNode::augmentDeref(2arg)"); return 0;};
-	virtual int augmentTreeDeref() {Deb::ug("TreeNode;:augmentDeref()"); return 0;};
-	virtual int augmentTreeCoerce(int coerceType, bool augLeft, bool augRight) {Deb::ug("augmentCoerce at TN");return 0;}
-	virtual int augmentTreeCoerce(int coerceType) {Deb::ug("augmentCoerce(1arg) at TN"); return 0;}
+	virtual int augmentTreeDeref(bool derefLeft, bool derefRight) {Deb::ug("TreeNode::augmtDeref(2arg)"); return 0;};
+	virtual int augmentTreeDeref() {Deb::ug("TreeNode;:augmtDeref()"); return 0;};
+	virtual int augmentTreeCoerce(int coerceType, bool augLeft, bool augRight) {Deb::ug("augmtCoerce(l,r) at TN");return 0;}
+	virtual int augmentTreeCoerce(int coerceType) {Deb::ug("augmentCoerce(arg) at TN"); return 0;}
 	virtual bool canDerefSon() {return true;}
 	virtual bool canDerefNode() {return true;}
 	virtual void canDerefSons(bool &canDerefL, bool &canDerefR){};
+	virtual int markTreeCoerce(int actionId);
+	virtual bool isCoerced() {return coerceFlag;}
+	virtual int nrOfCoerceActions() {return coerceActions.size();}
+	virtual int getCoerceAction(int pos) {return coerceActions.at(pos);}
+	virtual bool needsCoerce(int actionId);
+	virtual void copyAttrsOf(TreeNode *tn);
     };
+	
 
 // statement := query
     class QueryNode : public TreeNode 
@@ -1010,6 +1022,7 @@ namespace QParser {
 		this->getArg()->getInfixList(auxVec);
 	}
 	virtual int augmentTreeDeref();
+	virtual int augmentTreeCoerce(int coerceType);
 	virtual bool canDerefSon() {return this->getArg()->canDerefNode();}
 	virtual int staticEval(StatQResStack *&qres, StatEnvStack *&envs);
 	virtual int optimizeTree() {return arg->optimizeTree();}
@@ -1674,6 +1687,7 @@ namespace QParser {
 
         return result;
       }
+	  virtual int augmentTreeCoerce(int coerceType);
 		virtual int swapSon (TreeNode *oldSon, TreeNode *newSon) {
 			newSon->setParent(this);
 		    if (arg == oldSon) {this->setArg((QueryNode *) newSon); return 0;}
@@ -1682,7 +1696,7 @@ namespace QParser {
 	
         virtual ~CreateNode() { if (arg != NULL) delete arg; }
 	
-	virtual string deParse() { string result; result = " (create" + arg->deParse() + ") "; return result; };
+	virtual string deParse() { string result; result = " (create " + arg->deParse() + ") "; return result; };
     };  
 
 
@@ -2834,7 +2848,7 @@ class InterfaceInnerLinkage: public TreeNode {
 	class CoerceNode : public QueryNode 
 	{
 		public:
-			enum CoerceType {to_string, to_double, to_bool, to_int, element, to_bag, to_seq};
+			enum CoerceType {to_string, to_double, to_bool, to_int, element, to_bag, to_seq, can_del, can_crt,ext_crt};
 		protected:
 			QueryNode* arg;
 			int cType;
@@ -2886,13 +2900,16 @@ class InterfaceInnerLinkage: public TreeNode {
 			}
 			virtual string ctStr() {
 				switch (cType) {
-					case to_string : return "toString";
-					case to_double : return "toDouble";
-					case to_bool : return "toBoolean";
-					case element : return "element";
-					case to_bag : return "toBag";
-					case to_seq : return "toSequence";
-					case to_int : return "toInteger";
+					case to_string : return "toString ";
+					case to_double : return "toDouble ";
+					case to_bool : return "toBoolean ";
+					case element : return "element ";
+					case to_bag : return "toBag ";
+					case to_seq : return "toSequence ";
+					case to_int : return "toInteger ";
+					case can_del: return "canDelete ";
+					case can_crt: return "createCheck ";
+					case ext_crt: return "canCreateExt ";
 				}
 				return "_";
 			}
@@ -2970,6 +2987,7 @@ class InterfaceInnerLinkage: public TreeNode {
 				this->getArg()->getInfixList(auxVec);
 			}
 			//virtual int augmentTreeDeref();
+			virtual int augmentTreeDeref(bool derefLeft, bool derefRight);
 			virtual bool canDerefSon() {return this->getArg()->canDerefNode();}
 			virtual int staticEval(StatQResStack *&qres, StatEnvStack *&envs);
 			virtual Signature *createSignature() {return sig->createSignature();};

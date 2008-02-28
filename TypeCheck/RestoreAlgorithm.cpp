@@ -226,8 +226,16 @@ namespace TypeCheck {
 				addCkRule(M_B,		"X",		"Y", 		"bag");
 				break;			
 			} //structure constructor ... ??? 
-			case AlgOpNode::assign: { break;}	// impertative - todo
-			case AlgOpNode::insert: { break;}	// impertative - todo
+			case AlgOpNode::assign: { // impertative - just ret. void
+				addTcRule(M_B,		"X",		"Y",		"void");
+				addCdRule(M_B,		"x..y",		"a..b",		"1..1");
+				break;
+			}	
+			case AlgOpNode::insert: { 	// impertative - just ret. void
+				addTcRule(M_B,		"X",		"Y",		"void");
+				addCdRule(M_B,		"x..y",		"a..b",		"1..1");
+				break;
+			}
 			case AlgOpNode::semicolon: { 
 				addTcRule(M_B,		"X",		"Y",		BS_COPY_R);
 				addCdRule(M_B,		"X",		"Y",		ARG_COPY_R);
@@ -381,7 +389,7 @@ namespace TypeCheck {
 				addTcRule("",		"boolean",	"boolean");
 				addTcRule(M_ELSE, 	"", 		BS_DEREF); 	
 				addCdRule(META, 	"x", 		ARG_COPY);
-				addTnRule(META, 	"x", 		ARG_COPY);	
+				//addTnRule(META, 	"x", 		ARG_COPY);	
 				addCkRule(META, 	"x", 		ARG_COPY);
 				break;
 			}
@@ -394,8 +402,8 @@ namespace TypeCheck {
 			}
 			case UnOpNode::distinct: {
 				addTcRule(META,		"",			BS_COPY_REF);
-				addCdRule(META, 	"x", 		ARG_COPY);	//nr of elts changes, but card stays as it is !
-				addTnRule(META, 	"x", 		ARG_COPY);	//elements can keep the typename.
+				addCdRule(META, 	"x", 		ARG_COPY);		//nr of elts may change, but card stays as it is !
+				addTnRule(META, 	"x", 		ARG_COPY);		//elements can keep their typename.
 				addCkRule(META, 	M_0, 		"");
 				break;
 			}
@@ -416,8 +424,12 @@ namespace TypeCheck {
 				addTnRule(META,		"X",		"");
 				break;
 			}
-			case UnOpNode::deleteOp: { }
-			case UnOpNode::nameof: { }
+			case UnOpNode::deleteOp: { 
+				addTcRule("",		"ref",		"void"); 	//only refs may be removed.
+				addTcRule(M_ELSE,	"",			TC_RS_ERROR);
+				addCdRule(META,	"",			"1..1");	
+				break;
+			}
 			default: break;
 			}
 			break;
@@ -427,10 +439,14 @@ namespace TypeCheck {
 				addTnRule(META,		"TN",		"");
 				addCkRule(META,		"CK",		CK_NAMEAS);	
 				break;
-		case TreeNode::TNCREATE: 
-		//base : argument has to be a binder. else : error. 
-		// but when its abinder... check against Datascheme that its valid for its name
-			break;
+		case TreeNode::TNCREATE: {
+				addTcRule("",		"binder",	BS_CREATE);	//returns sigref - to the created object.
+				addTcRule("",		"ref",		BS_COPY);	// decent sig to return as restore result
+				addTcRule(M_ELSE,	"",			TC_RS_ERROR);
+				addCdRule(META,		"CD",		ARG_COPY);	
+				addCkRule(META,		"CK",		ARG_COPY);
+				break;
+		}
 		default: break;
 		}
 		provideReturnLinks();

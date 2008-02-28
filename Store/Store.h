@@ -118,7 +118,8 @@ namespace Store
 		virtual void setRemoteID(LogicalID* remoteID) = 0;
 		virtual string getParentRoot() const = 0;
 		virtual void setParentRoot(string parentRoot) = 0;
-		
+		virtual void setDirectParent (LogicalID *lid) = 0; //MH TC
+		virtual LogicalID* getDirectParent() const = 0;	//MH TC
 		// Operators
 		virtual bool operator==(LogicalID& lid) = 0;
 		virtual ~LogicalID() {};

@@ -9,6 +9,8 @@
 #include <list>
 #include "Deb.h"
 #include "ClassNames.h"
+#include "Errors/ErrorConsole.h"
+#include "../Errors/Errors.h"
 
 using namespace std;
 
@@ -168,9 +170,9 @@ namespace QParser {
 		virtual void setNext (Signature *newNext) {this->next = newNext;}
 		virtual Signature *getNext () {return this->next;}
 	
-		virtual string getTypeName() {cout << "tname:" <<this->distinctTypeName << ":"<< endl; return this->distinctTypeName;}
+		virtual string getTypeName() {return this->distinctTypeName;}
 		virtual bool emptyTypeName() {return (this->distinctTypeName == "");} 
-		virtual bool isDisctinct() {return emptyTypeName();}
+		virtual bool isDistinct() {return emptyTypeName();}
 		virtual void setTypeName(string typeName) {this->distinctTypeName = typeName;}
 		virtual string getCollKind() {return collectionKind;}
 		virtual void setCollKind(string ck) {collectionKind = ck;}
@@ -197,11 +199,13 @@ namespace QParser {
 		virtual BinderWrap *statNested(TreeNode * treeNode) {return NULL;} /*the default behaviour of a signature*/
 		virtual Signature *clone();
 		virtual Signature *cloneSole();
+		virtual Signature *cloneFlat();
 		virtual void putToString () { cout << "(signature) ";if (this->next != NULL) next->putToString();}
 		virtual string toString() { return "BaseSignature";}
 		virtual string attrsToString() {return distinctTypeName + "[" +card + "]" + collectionKind;}
 		virtual void copyAttrsOf(Signature *sig) {
 			setTypeName(sig->getTypeName()); setCollKind(sig->getCollKind()); setCard(sig->getCard());
+			refed = sig->isRefed();
 		}
 		virtual bool isStructurallyEqualTo(Signature *sig) {//by default
 			return ((sig != NULL) && (this->type() == sig->type()));
@@ -209,6 +213,9 @@ namespace QParser {
 		virtual bool isSolelyEqualTo(Signature *sig) {//by default. in subclasses: does not compare nexts!
 			return ((sig != NULL) && (this->type() == sig->type()));
 		}
+		virtual int compareNamedSigCrt(Signature *flatSig, bool needTName) {return 0;}
+		virtual int compareRecNamedSigCrt(Signature *flatSig, bool needTName, vector<pair<int, int> > &vPairs);
+		std::pair<int, int> cardToMapPair(string card);
 		virtual Signature *deref(){return this->cloneSole();}//by default. works fine for atom signatures.s
 		virtual ~Signature() {}// cout << "entered top SIG destructor" << endl; if (this->next != NULL) delete this->next; }
 	};
@@ -221,6 +228,8 @@ namespace QParser {
 		Signature *myList;
 		Signature *myLast;
 		int collType;	
+		
+		virtual int compareSigCrt(Signature *flatSig, bool needTName, bool isRec, vector<pair<int, int> > &vPairs);
 	public:
 		SigColl (int _collType) : collType(_collType) {myList = NULL; myLast = NULL;}
 		SigColl () {this->collType = Signature::SSTRUCT; myList = NULL; myLast = NULL; } /* STRUCT is the default sigcoll (now collections are handled through collectionKind attr.!*/
@@ -273,6 +282,7 @@ namespace QParser {
 			Signature *sptr = s->getMyList();
 			if (ptr == NULL) return (sptr == NULL);
 			bool allSubsEqual = true;
+			//naive comparison - requires proper order to match
 			while (ptr != NULL && allSubsEqual) {
 				allSubsEqual = ptr->isSolelyEqualTo(sptr);
 				ptr = ptr->getNext();
@@ -280,10 +290,14 @@ namespace QParser {
 			}
 			return allSubsEqual;
 		}
+		virtual int compareNamedSigCrt(Signature *flatSig, bool needTName);
+		virtual int compareRecNamedSigCrt(Signature *flatSig, bool needTName, vector<pair<int, int> > &vPairs);
 		
 		virtual BinderWrap *statNested(TreeNode * treeNode);
 		virtual Signature *clone();
 		virtual Signature *cloneSole();
+		virtual Signature *cloneFlat();
+		virtual int addFlat(Signature *son);
 		virtual void putToString() {
 			cout << "("<< textType() <<"," << distinctTypeName << "[" << card << "]" << collectionKind << "{";
 			if (this->myList != NULL) myList->putToString();
@@ -291,14 +305,14 @@ namespace QParser {
 			if (next != NULL) next->putToString(); 
 		}
 		virtual string toString() {
-			string ret =  "(" + textType() + "," + attrsToString() + "{";
+			string ret =  textType() + "," + attrsToString() + "{";
 			//if (this->myList != NULL) ret += myList->toString();
 			Signature *ptr = myList;
 			while (ptr != NULL) {
 				ret += ptr->toString();
 				ptr = ptr->getNext();
 			}
-			ret += "}) ";
+			ret += "} ";
 			//if (next != NULL) ret += next->toString();
 			return ret;
 		}
@@ -353,6 +367,7 @@ namespace QParser {
 			virtual void setType(string newType) {this->atomType = newType;}
 			virtual Signature *clone();
 			virtual Signature *cloneSole();
+			virtual Signature *cloneFlat();
 			virtual bool isStructurallyEqualTo(Signature *sig) {
 				if (sig == NULL) return false;
 				if (this->type() != sig->type()) return false;
@@ -362,6 +377,7 @@ namespace QParser {
 				if (sig == NULL) return false;
 				return (this->type() == sig->type());
 			}
+			virtual int compareNamedSigCrt(Signature *flatSig, bool needTName);
 			virtual void putToString() {
 				cout << "(" << this->atomType << "," << distinctTypeName << "[" << card << "]" << collectionKind << ") ";
 				if (next != NULL) next->putToString();
@@ -390,18 +406,30 @@ namespace QParser {
 			virtual BinderWrap *statNested(TreeNode *treeNode);/*implmnted in Stack.cpp*/
 			virtual Signature *clone();
 			virtual Signature *cloneSole();
+			virtual Signature *cloneFlat();
 			virtual bool isStructurallyEqualTo(Signature *sig) {
 				if (sig == NULL) return false;
 				if (this->type() != sig->type()) return false;
-				if (this->getRefNo() != ((SigRef *) sig)->getRefNo()) return false;
+				if (this->getRefNo() != ((SigRef *) sig)->getRefNo()) {
+					vector<pair<int, int> > vPairs;	//vector of pairs visited.
+					cout << "[TC] SigRef::StructuralyEqual(): entering compare Rec in Sig ref..." << endl;
+					return this->compareRecNamedSigCrt(sig, false, vPairs);
+					//return false;
+				}
 				return (next == NULL ? (sig->getNext() == NULL) : next->isStructurallyEqualTo(sig->getNext()));
 			}
 			virtual bool isSolelyEqualTo(Signature *sig) {
 				if (sig == NULL) return false;
-				if (this->type() != sig->type()) return false;
+				if (this->type() != sig->type()) {
+					vector<pair<int, int> > vPairs;	//vector of pairs visited.
+					cout << "[TC] SigRef::SolelyEqual(): entering compare Rec in Sig ref..." << endl;
+					return this->compareRecNamedSigCrt(sig, false, vPairs);
+					//return false;
+				}
 				return (this->getRefNo() == ((SigRef *) sig)->getRefNo());
 			}
-			
+			virtual int compareNamedSigCrt(Signature *flatSig, bool needTName);
+			virtual int compareRecNamedSigCrt(Signature *flatSig, bool needTName, vector<pair<int, int> > &vPairs);
 			virtual void putToString() {
 				cout << "(ref->" << refNo << "," << distinctTypeName << "[" << card << "]" << collectionKind << ") ";
 				//if (next != NULL) next->putToString();
@@ -425,7 +453,10 @@ namespace QParser {
 			SigVoid(){}
 			virtual Signature *clone();
 			virtual Signature *cloneSole();
+			virtual Signature *cloneFlat();
 			virtual int type() {return Signature::SNOTHING;}
+			virtual int compareNamedSigCrt(Signature *flatSig, bool needTName) {
+				return (this->type() == flatSig->type() ? 0 : (ErrTypeChecker | ESigTypesDiffer));}
 			virtual void putToString() {cout << "(void)";}
 			virtual string toString() {
 				string ret = "(void," + attrsToString() + ") ";
@@ -452,6 +483,7 @@ namespace QParser {
 			virtual BinderWrap *statNested(TreeNode *treeNode);
 			virtual Signature *clone();
 			virtual Signature *cloneSole();
+			virtual Signature *cloneFlat();
 			virtual bool isStructurallyEqualTo(Signature *sig) {
 				if (sig == NULL) return false;
 				bool valEqual;
@@ -473,6 +505,8 @@ namespace QParser {
 				StatBinder *s = (StatBinder*) sig;
 				return (value == NULL ? s->getValue() == NULL : value->isSolelyEqualTo(s->getValue()));
 			}
+			virtual int compareNamedSigCrt(Signature *flatSig, bool needTName);
+			virtual int compareRecNamedSigCrt(Signature *flatSig, bool needTName, vector<pair<int, int> > &vPairs);
 			virtual void putToString() {
 				cout << "(" << name <<"(";
 				if (value == NULL) cout << "__";
@@ -481,7 +515,7 @@ namespace QParser {
 				if (next != NULL) next->putToString();
 			}
 			virtual string toString() {
-				string ret = "(" + name + "(" + (value == NULL ? "__" : value->toString()) + ")) ";
+				string ret = name + "," + attrsToString() + "(" + (value == NULL ? "__" : value->toString()) + ") ";
 				//if (next != NULL) ret += next->toString();
 				return ret;
 			}

@@ -47,15 +47,16 @@ namespace TypeCheck
 				case ARG_UNOP: return "Bad Arg";
 				case ARG_AS: return "Bad Arg";	
 				case ARG_CASTTO: return "Invalid Cast";
+				case CREATE: return "Create failure";
 				case UNKNOWN: return "Unknown";
 			}
 			return "Unknown";
 		}
 		
 	public:
-		enum TcErrorType {BNAME, ARG_ALG, ARG_NALG, ARG_UNOP, ARG_AS, ARG_CASTTO, UNKNOWN };
+		enum TcErrorType {BNAME, ARG_ALG, ARG_NALG, ARG_UNOP, ARG_AS, ARG_CASTTO, CREATE, UNKNOWN };
 		enum ErAttr {_op = 0, _lsig = 1, _rsig = 2, _lsigD = 3, _rsigD = 4};
-		enum ErUnAttr {_sig = 1, _parm = 2};
+		enum ErUnAttr {_sig = 1, _parm = 2, _sigD = 3};
 		
 		TCError(){};
 		TCError(int errType, string output) {
@@ -70,7 +71,7 @@ namespace TypeCheck
 		string generateOutputText(int errType, string attr) {
 			switch (errType) {
 				case BNAME : return "Name \"" + attr + "\" not found.";
-				case ARG_CASTTO: return "Cannot evaluate \"" + attr + "\" as proper signature.";
+				case ARG_CASTTO: return "Cannot evaluate '" + attr + "' as proper signature.";
 				default: break;
 			}
 			return "Unspecified error";
@@ -84,17 +85,23 @@ namespace TypeCheck
 					ret = " of args: ";
 					ret += "" + at[_lsig] + ", " + at[_rsig];
 					if (at[_lsig] != at[_lsigD] || at[_rsig] != at[_rsigD])
-						ret += "\n	(derefed to:" + at[_lsigD] + ", " + at[_rsigD] + ")";
+						ret += "\n	(derefed to: " + at[_lsigD] + ", " + at[_rsigD] + ")";
 					ret += "\n	invalid for operator  ' " + at[_op] + " '.";
 					return ret;
 				case ARG_UNOP: 
-					return " of arg: " + at[_sig] + " invalid for operator ' " + at[_op] + " '.";	
+					ret = " of arg: " + at[_sig] + " ";
+					if (at[_sigD] != "" && at[_sig] != at[_sigD])
+						ret += "  (derefed to: " + at[_sigD] + ")\n	";
+					ret += "invalid for operator ' " + at[_op] + " '.";
 				case ARG_AS: 
 					return " of arg: " + at[_sig] + " invalid for operator '" + at[_op] + " " + at[_parm] + ".";
 				case ARG_CASTTO: 
 					ret = " does not match. Cannot cast " + at[_lsig] + " to " + at[_rsig] + "";
 					if (at[_lsig] != at[_lsigD] || at[_rsig] != at[_rsigD])
 						ret += "\n	(After deref: cannot cast " + at[_lsigD] + " to " + at[_rsigD] + ")";
+					return ret;
+				case CREATE:
+					ret = " error - cannot create " + at[_parm] + " with signature: " + at[_sig] + ".";
 					return ret;
 			}
 			return "Unspecified error";
@@ -114,8 +121,8 @@ namespace TypeCheck
 		virtual ~TCError(){};
 	};
 	
-	//TODO: does this class REALLY differ from TCError? if not - maybe lets just add an attribute
-	//		saying if its an error, or an action, huh?
+	//Does this class REALLY differ from TCError? 
+	// Class not used any more.
 	class TCAction {	
 	private:
 		string type;		//"DEREF", "COERCE", "ELLIPSIS", ...
@@ -140,7 +147,7 @@ namespace TypeCheck
 		//done on error, in order to restore the typechecking process. So, eg.: if
 		//a name'd been miss-spelled, then what name was chosen to replace it, etc.
 	public:
-		TCGlobalResult(){overallResult = "SUCCESS";}; //let's presume best-case scenario...
+		TCGlobalResult(){overallResult = "SUCCESS";}; 	//let's presume default success...
 		virtual vector<TCError> getErrors() {return errors;}
 		virtual vector<TCAction> getActions() {return implicitActions;}
 		virtual void addError(TCError err) {this->errors.push_back(err);}
@@ -166,11 +173,6 @@ namespace TypeCheck
 		int closeScope(Signature *sig);
 		int trySingleDeref(bool canDeref, Signature *sig, Signature *&sigIn, TypeCheckResult &tmpTcRes, bool &doDeref);
 	public:
-// 		enum TcAction {	CD_COERCE_11, CD_COERCE_11_L, CD_COERCE_11_R, CD_COERCE_11_B, 
-// 						BS_TOSTR, BS_TOSTR_L, BS_TOSTR_R, BS_TOSTR_B,
-// 						BS_TOBOOL, BS_TOBOOL_L, BS_TOBOOL_R, BS_TOBOOL_B,
-// 						BS_TODBL, BS_TODBL_L, BS_TODBL_R, BS_TODBL_B,
-// 						BS_TOINT, BS_TOINT_L, BS_TOINT_R, BS_TOINT_B};
 
 		TypeChecker();
 		TypeChecker(TreeNode *tn);
@@ -198,6 +200,7 @@ namespace TypeCheck
 		/** end of pointered methods... */
 		virtual int performAction(ActionStruct actionId, TreeNode *tn);
 		virtual int performSingleArgAction(int actionId, TreeNode *tn);
+		virtual int performMarkAction(int actionId, TreeNode *tn);
 		virtual void reportTypeError(TCError err) { return this->globalResult.reportTypeError(err);};
 		virtual int doTypeChecking(string &s);
 		
@@ -208,7 +211,7 @@ namespace TypeCheck
 		virtual int processAugmentDerefCoerceRestore(int nodeType, int op, string opStr, Signature *lSig, Signature *rSig, TreeNode *tn);
 		
 		virtual int processAugmentDerefCoerceRestoreUnOp(int nodeType, int errType, int op, string opStr, Signature *argSig, TreeNode *tn);
-		virtual int processAugmentDerefCoerceRestoreUnOp(int nodeType, int errType, int op, string opStr, Signature *argSig, TreeNode *tn, string name, int option);
+		virtual int processAugmentDerefCoerceRestoreUnOp(int nodeType, int errType, int op, string opStr, Signature *argSig, TreeNode *tn, string name, int option, bool doDeref);
 		
 		virtual int augmentTreeEllipsis(TreeNode *tn, string name, vector<BinderWrap*> *vec, string expander);
 

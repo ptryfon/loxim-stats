@@ -6,6 +6,8 @@
 #include <fstream>
 #include <ios>
 #include <list>
+#include <map>
+//#include <pair>
 
 #include "QueryResult.h"
 #include "../QueryParser/ClassNames.h"
@@ -22,6 +24,7 @@
 #include "Errors/ErrorConsole.h"
 #include "RemoteExecutor.h"
 #include "InterfaceMatcher.h"
+#include "TypeCheck/DecisionTable.h"
 
 using namespace QParser;
 using namespace TManager;
@@ -1968,7 +1971,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			errcode = qres->pop(lResult);
 			if (errcode != 0) return errcode;
 			QueryResult *op_result;
-			errcode = this->algOperate(op, lResult, rResult, op_result);
+			errcode = this->algOperate(op, lResult, rResult, op_result, (AlgOpNode *) tree);
 			if (errcode != 0) return errcode;
 			//delete lResult;
 			//delete rResult;
@@ -2760,6 +2763,8 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 						    continue;
 						}*/						
 						string currName = currOptr->getName();
+						//MH set direct parent id...
+						currID->setDirectParent(ref_value);
 						QueryResult *currIDRes = new QueryReferenceResult(currID);
 						QueryResult *currInside;
 						this->derefQuery(currIDRes, currInside);
@@ -3595,7 +3600,7 @@ int QueryExecutor::persistDelete(QueryResult* bagArg) {
 
 // May appear only through TC coerce augments
 int QueryExecutor::coerceOperate(int cType, QueryResult *arg, QueryResult *&final) {
-	int errcode;
+	int errcode = 0;
 	
 	switch (cType) {
 		case CoerceNode::to_string : {
@@ -3762,14 +3767,164 @@ int QueryExecutor::coerceOperate(int cType, QueryResult *arg, QueryResult *&fina
 			final->addResult(arg);
 			return 0;
 		}
+		case CoerceNode::can_del : {
+			*ec << "	Coerce checking if delete allowed, with card 1..*";
+			return checkDelCard(arg, final);
+		}
+		case CoerceNode::can_crt : {
+			*ec << "	Coerce checking if cardinalities inside created object are correct";
+			return checkCrtCard(arg, final);
+		}
+		case CoerceNode::ext_crt : {
+			*ec << "	Coerce checking if cardinality of created object allows more creates.";
+			QueryResult *bagRes = new QueryBagResult();
+			bagRes->addResult(arg);
+			map<string, int> rootCdMap;
+			//Assumption: this dynamic coerce only made when card of this root is != '?..*'. So 
+			//it means there can only be 1 such obj. If one day more cards are available (eg. 0..3 ?)
+			//this check below would have to be enhanced, size() would need be checked against upper bound.
+			int maxAllowed = 1;
+			for (unsigned int i = 0; i < bagRes->size(); i++) {
+				QueryResult *binder;
+				errcode = ((QueryBagResult *) bagRes)->at(i, binder);
+				if (errcode != 0) return errcode;
+				if ((binder->type()) != QueryResult::QBINDER) {
+					return qeErrorOccur("[QE] objectFromBinder() expected a binder, got something else", EOtherResExp);
+				}
+				string crtName = ((QueryBinderResult*)binder)->getName();
+				
+				errcode = checkUpInRootCardMap(crtName, rootCdMap);
+				if (errcode != 0) return errcode;
+				if ((++rootCdMap[crtName]) > maxAllowed) {
+					*ec << "[QE] would create too many '" + crtName + "' roots. Returning coerce error.";
+					return (ErrQExecutor | ECrcCrtExtTooMany);
+				}
+			}
+			break;
+		}
 		default: *ec << "	Coerce type not recognized"; break;
 	}
 	final = arg;
 	return 0;
 }
 
+int QueryExecutor::checkDelCard(QueryResult *arg, QueryResult *&final) {
+	int errcode = 0;
+	QueryBagResult* bagArg = new QueryBagResult();
+	bagArg->addResult(arg);
+	//Map below holds: for each parent-log-id, for a name of its subobject: how many are there. (so if -
+	// after delete - the nr was to be zero - throw error - can't delete non-optional object.
+	map<std::pair<unsigned int, string>, int> delSubMap;
+	map<string, int> delRootMap;
+	int objectsLeft = 0;
+	for (unsigned int i = 0; i < bagArg->size(); i++) {
+		QueryResult* toDelete;  //the object to be deleted
+		errcode = bagArg->at(i, toDelete);
+		if (errcode != 0) return errcode;
+		if (toDelete->type() != QueryResult::QREFERENCE) return (ErrQExecutor | ERefExpected);
+		LogicalID *lid = ((QueryReferenceResult *) toDelete)->getValue();
+		ObjectPointer *optr;
+		errcode = tr->getObjectPointer (lid, Store::Read, optr, false); 
+		if (errcode != 0) {
+			*ec << "[QE] check delete card - Error in getObjectPointer.";
+			antyStarveFunction(errcode);
+			inTransaction = false;
+			return errcode;
+		}
+		string optrName = optr->getName();
+		if (optr->getIsRoot()) {
+			errcode = checkUpInRootCardMap(optrName, delRootMap);
+			if (errcode != 0) return errcode;
+			if ((objectsLeft = --delRootMap[optrName]) == 0) {
+				*ec << "[QE] would leave no more roots with this name, but their card is >= 1.";
+				return (ErrQExecutor | ECrcDelNonOptional);
+			}
+		} else {// complex ! - reach for the parent and check local card...
+			if (lid->getDirectParent() == NULL) {
+				*ec << "[QE] check delete card - Cannot delete child element, because parent not set.";
+				return (ErrQExecutor | EQEUnexpectedErr);
+			}
+			LogicalID *ptLid = lid->getDirectParent();
+			errcode = checkUpInDelSubMap(ptLid, optrName, delSubMap);
+			if (errcode != 0) return errcode;
+			std::pair<unsigned int, string> key(ptLid->toInteger(), optrName);
+			if ((objectsLeft = --delSubMap[key]) == 0) {
+				*ec << "[QE] would delete all subobjects with this name, but their card is >= 1.";
+				return (ErrQExecutor | ECrcDelNonOptional);
+			}
+		}
+	}
+	// May proceed with delete...
+	final = arg;
+	return 0;
+}
 
-int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResult *rArg, QueryResult *&final) {
+int QueryExecutor::checkUpInDelSubMap(LogicalID *ptLid, string name, map<std::pair<unsigned int, string>, int> &delMap) {
+	int errcode = 0;
+	std::pair<unsigned int, string> key(ptLid->toInteger(),name);
+	cout << "[in QE]::checkUpInDelSubMap !!\n";
+	if (delMap.find(key) == delMap.end()) {
+		cout << "		[QE]::checkUpInDelSubMap - no entry for key: (" << key.first << ", " << key.second <<")! \n";
+		ObjectPointer *optr;
+		errcode = tr->getObjectPointer (ptLid, Store::Read, optr, false); 
+		if (errcode != 0) {
+			*ec << "[QE] check delete non-root - Error in getObjectPointer.";
+			antyStarveFunction(errcode);
+			inTransaction = false;
+			return errcode;
+		}
+		int vType = optr->getValue()->getType();
+		if (vType != Store::Vector) {
+			*ec << "[QE] check delete non-root  - ERROR! the l-Value has to be a reference to Vector";
+			return ErrQExecutor | EOtherResExp;
+		}
+		vector<LogicalID*> *vec = optr->getValue()->getVector();
+		int sameNameObjectsNum = 0;
+		for (unsigned int i = 0; i < vec->size(); i++) {
+			errcode = tr->getObjectPointer(vec->at(i), Store::Read, optr, false);
+			if (errcode != 0) {
+				*ec << "[QE] check delete non-root - Error in getObjectPointer for one of the siblings.";
+				antyStarveFunction(errcode);
+				inTransaction = false;
+				return errcode;
+			}
+			if (optr->getName() == name) sameNameObjectsNum++;
+		}
+		delMap[key] = sameNameObjectsNum;
+	}
+	return 0;
+}
+
+int QueryExecutor::checkUpInRootCardMap(string optrName, map<string, int> &delRootMap) {
+	int errcode = 0;
+	if (delRootMap.find(optrName) == delRootMap.end()) {
+		//add root with its number to map.
+		vector<LogicalID*>* vec;
+		if ((errcode = tr->getRootsLID(optrName, vec)) != 0) {
+			*ec << "[QE] check up in root Card map card - error in getRootsLID";
+			antyStarveFunction(errcode);
+			inTransaction = false;
+			return errcode;
+		}
+		delRootMap[optrName] = vec->size();
+		delete vec;
+	}
+	return 0;
+}
+
+int QueryExecutor::checkCrtCard(QueryResult *arg, QueryResult *&final) {
+	*ec << "Checking create cards - for now suppose all's ok.";
+	//Ah, this one is going to be really shitty, cause you have to check all subs against... the signature!
+	//which isn't done anywhere - comparing qResult to signatures has to be done here, unfortunately.
+	
+	
+	
+	//May proceed with create
+	final = arg;
+	return 0;
+}
+
+int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResult *rArg, QueryResult *&final, AlgOpNode *tn) {
 	int errcode;
 	if ((op == AlgOpNode::plus) || (op == AlgOpNode::minus) || (op == AlgOpNode::times) || (op == AlgOpNode::divide)) {
 		QueryResult *derefL, *derefR;
@@ -4064,6 +4219,18 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 	}
 	else if (op == AlgOpNode::insert) {
 		*ec << "[QE] INSERT operation";
+		if (tn->isCoerced()) {
+			*ec << "[QE][TC] INSERT operation is COERCED !";
+			for (int i = 0; i < tn->nrOfCoerceActions(); i++) {
+				int actId = tn->getCoerceAction(i);
+				cout << actId << "- ";
+				switch (actId) {
+					case TypeCheck::DTable::CD_CAN_ASGN : cout << "insert: ASSIGN CHECK\n";
+					case TypeCheck::DTable::CD_CAN_INS : cout << "insert: INSERT CHECK\n";
+					case TypeCheck::DTable::CD_EXT_INS : cout << "insert: INSERT SHALLOW CD CHECK\n";
+				}
+			}
+		}
 		QueryResult *lBag = new QueryBagResult();
 		lBag->addResult(lArg);
 		if (lBag->size() != 1) {
@@ -4222,6 +4389,28 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 			ec->printf("[QE] Vec.size = %d\n", insVector->size());
 			QueryResult *rBag = new QueryBagResult();
 			rBag->addResult(rArg);
+			bool needsExtCoerce = tn->needsCoerce(TypeCheck::DTable::CD_EXT_INS);
+			bool needsDeepCheck = tn->needsCoerce(TypeCheck::DTable::CD_CAN_INS);
+			map<string, int> subCardMap;
+			if (needsExtCoerce) {
+				*ec << "[QE][TC] Fill maps that help check card constraints are met on inserted objects.";
+				for (unsigned int j = 0;  j < insVector->size(); j++) {
+					ObjectPointer *subPtr;
+					errcode = tr->getObjectPointer (insVector->at(j), Store::Read, subPtr, true); 
+					if (errcode != 0) {
+						*ec << "[QE] insert operation - ext coerce - Error in getObjectPointer.";
+						antyStarveFunction(errcode);
+						inTransaction = false;
+						return errcode;
+					}
+					if (subPtr == NULL) break;
+					string sName = subPtr->getName();
+					if (subCardMap.find(sName) == subCardMap.end()) 
+						subCardMap[sName] = 0;
+					subCardMap[sName]++;
+					cout << "---" << sName << ": " << subCardMap[sName] << "\n";
+				}
+			}
 			for (unsigned int i = 0; i < rBag->size(); i++) {
 				ec->printf("[QE] trying to INSERT %d element of rightArg into leftArg\n", i);
 				QueryResult *toInsert;
@@ -4230,6 +4419,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 				ObjectPointer *optrIn;
 				LogicalID *lidIn;
 				int rightResultType = toInsert->type();
+				string object_name = "";
 				switch (rightResultType) {
 					case QueryResult::QREFERENCE: {
 						lidIn = ((QueryReferenceResult *) toInsert)->getValue();
@@ -4243,7 +4433,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 						if (optrIn == NULL) {
 							break;
 						}
-						string object_name = optrIn->getName();
+						object_name = optrIn->getName();
 						if(ClassGraph::isExtName( object_name )) {
 							/*
 							* Dobrze by bylo zaznaczac w obiekcie, ze jest statyczna skladowa,
@@ -4259,6 +4449,17 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 							//out.close();					    
 							return 0;
 						}*/
+						if (needsExtCoerce) {
+							*ec << "[QE][TC] insert:ref:: checking that no '"+object_name+"' here yet.";
+							if (subCardMap.find(object_name) == subCardMap.end())
+								subCardMap[object_name] = 0;
+							int subNum = (++subCardMap[object_name]);
+							if (subNum > 1) {
+								*ec << "[QE][TC] insert:ref:: coerce ERROR - card of inserted object exceeded.";
+								*ec << (ErrQExecutor | ECrcInsExtTooMany);
+								return ErrQExecutor | ECrcInsExtTooMany;	
+							}
+						}
 						ec->printf("[QE] getObjectPointer on %d element of rightArg done\n", i);
 						if (optrIn->getIsRoot()) {
 							errcode = tr->removeRoot(optrIn); 
@@ -4278,6 +4479,19 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 						break;
 					}
 					case QueryResult::QBINDER: {
+						object_name = ((QueryBinderResult *)toInsert)->getName();
+						if (needsExtCoerce) {
+							*ec << "[QE][TC] insert:binder:: checking that no '"+object_name+"' here yet.";
+							if (subCardMap.find(object_name) == subCardMap.end())
+								subCardMap[object_name] = 0;
+							int subNum = (++subCardMap[object_name]);
+							if (subNum > 1) {
+								*ec << "[QE][TC] insert:binder:: coerce ERROR- card of inserted object exceeded.";
+								*ec << (ErrQExecutor | ECrcInsExtTooMany);
+								return ErrQExecutor | ECrcInsExtTooMany;	
+							}
+						}
+						
 						errcode = this->objectFromBinder(toInsert, optrIn);
 						if (errcode != 0) return errcode;
 						lidIn = (optrIn->getLogicalID());
@@ -4319,6 +4533,18 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 	}
 	else if (op == AlgOpNode::assign) {
 		*ec << "[QE] ASSIGN operation";
+		if (tn->isCoerced()) {
+			*ec << "[QE][TC] ASSIGN operation is COERCED !";
+			for (int i = 0; i < tn->nrOfCoerceActions(); i++) {
+				int actId = tn->getCoerceAction(i);
+				cout << actId << "- ";
+				switch (actId) {
+					case TypeCheck::DTable::CD_CAN_ASGN : cout << "ASSIGN CHECK\n";
+					case TypeCheck::DTable::CD_CAN_INS : cout << "INSERT CHECK\n";
+					case TypeCheck::DTable::CD_EXT_INS : cout << "INSERT SHALLOW CD CHECK\n";
+				}
+			} 
+		}
 		QueryResult *lBag = new QueryBagResult();
 		lBag->addResult(lArg);
 		if (lBag->size() != 1) {

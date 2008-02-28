@@ -93,12 +93,28 @@ namespace QParser {
 			return NULL; 
 		}
 		Signature *resultSig = candidate->createSignature();
-		cout << "Created signature based on dataobject def. Sig: " << endl;
-		resultSig->putToString();
-		cout << endl << "that was it" << endl;
+		if (Deb::ugOn()) {
+			cout << "Created signature based on dataobject def. Sig: " << endl;
+			resultSig->putToString();
+		}
 		return resultSig;
 	};			
 
+	Signature *DataScheme::namedSignatureOfRef(int objId) {
+		Deb::ug("DataScheme: getting NAMED signature of ref: %d.", objId);
+		DataObjectDef *candidate = this->getObjById(objId);
+		if (candidate == NULL){	
+			Deb::ug("object with this id is NULL !!!!\n");
+			return NULL; 
+		}
+		Signature *resultSig = candidate->createNamedSignature();
+		if (Deb::ugOn()) {
+			cout << "Created NAMED signature based on dataobject def. Sig: " << endl;
+			resultSig->putToString();
+			cout << "\n";
+		}
+		return resultSig;
+	}
 	
 	void DataScheme::addBindEntity(DataObjectDef *obt, BinderWrap *&bw) {
 		SigRef *sigRef = new SigRef (obt->getMyId());
@@ -131,6 +147,12 @@ namespace QParser {
 		return bw;
 	}
 	
+	bool DataScheme::isTypeDefId(int objId) {
+		DataObjectDef *obd = this->getObjById(objId);
+		if (obd == NULL) return false;
+		return obd->getIsTypedef();
+	}
+	
 	Signature *DataObjectDef::createSignature() {
 		Deb::ug("creating signature of myself, my id: %d.", this->getMyId());
 		Signature *sig = NULL;
@@ -150,6 +172,8 @@ namespace QParser {
 		} else if (kind == TC_MDN_DEFTYPE) {
 			if (this->getTypeObj() != NULL) {
 				sig = this->getTypeObj()->createSignature();
+				if (this->getTypeObj()->getIsDistinct())
+					sig->setTypeName(this->getTypeObj()->getName());
 			}
 		} else {
 			sig = new SigRef(getMyId()); // default behavior, if unkown kind appears.
@@ -157,12 +181,50 @@ namespace QParser {
 		
 		if (sig != NULL) { //set all its attributes.
 			sig->setCard(card);
-			if (isDistinct) sig->setTypeName((typeName != "" ? typeName : name));
+			if (getIsTypedef() && getIsDistinct()) sig->setTypeName(name);
 		}
-			//could try set other attributes, like... distinct typename? mutability? 
 		return sig;
 	}
 	
+	Signature *DataObjectDef::createNamedSignature() {
+		Deb::ug("creating namedSignature of myself, my id: %d.", this->getMyId());
+		Signature *sig = NULL;
+		Signature *valSig = NULL;
+		if (kind == TC_MDN_LINK) {
+			valSig = new SigRef(targetId);
+		} else if (kind == TC_MDN_ATOMIC) {
+			valSig = new SigAtomType(type);
+		} else if (kind == TC_MDN_COMPLEX) {
+			valSig = new SigColl(Signature::SSTRUCT);
+			DataObjectDef *point = this->getSubObjects();
+			while (point != NULL) {
+				Signature *son = point->createNamedSignature();
+				((SigColl *)valSig)->addToMyList(son);
+				point = point->getNextSub();
+			}
+		} else if (kind == TC_MDN_DEFTYPE) {
+			if (this->getTypeObj() != NULL) {
+				valSig = this->getTypeObj()->createNamedSignature();
+				cout << "deftype namedSig: " << valSig->toString() << ", but will return...\n";
+				if (valSig->type() == Signature::SBINDER) {
+					valSig = ((StatBinder *) valSig)->getValue();
+				}
+			}
+		} else {
+			valSig = new SigRef(getMyId()); // default behavior, if unkown kind appears.
+		}
+		if (valSig != NULL) {
+			valSig->setCard(card);
+			if (getIsTypedef() && getIsDistinct()) valSig->setTypeName(name);
+		}
+		sig = new StatBinder(this->name, valSig);
+		if (valSig != NULL) sig->copyAttrsOf(valSig);
+// 		if (sig != NULL) { //set all its attributes.
+// 			sig->setCard(card);
+// 			if (isDistinct) sig->setTypeName((typeName != "" ? typeName : name));
+// 		}
+		return sig;
+	}
 		
 	DataObjectDef * DataScheme::createDataObjectDef(ObjectPointer *mainOp, Transaction *tr){
 		Deb::ug("start createDataObjectDef \n");
@@ -177,9 +239,11 @@ namespace QParser {
 		vector<LogicalID*>* v = mainOp->getValue()->getVector();
 		if (mainOp->getName() == TC_MDN_NAME){
 			datObDef->setIsTypedef(false);
+			datObDef->setIsBase(true);
 			this->addBaseObj(datObDef);
 		} else if (mainOp->getName() == TC_MDNT_NAME) {
 			datObDef->setIsTypedef(true);
+			datObDef->setIsBase(true);
 			this->addBaseType(datObDef);
 		} else {
 			datObDef->setIsTypedef(false);

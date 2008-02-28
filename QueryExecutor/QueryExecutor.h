@@ -104,7 +104,7 @@ namespace QExecutor
 		int merge(NonAlgOpNode::nonAlgOp op, QueryResult *partial, QueryResult *&final);
 		int unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&final);
 		int coerceOperate(int cType, QueryResult *arg, QueryResult *&final);
-		int algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResult *rArg, QueryResult *&final);
+		int algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResult *rArg, QueryResult *&final, AlgOpNode *tn);
 		int derefQuery(QueryResult *arg, QueryResult *&res);
 		int refQuery(QueryResult *arg, QueryResult *&res);
         	int nameofQuery(QueryResult *arg, QueryResult *&res);
@@ -169,8 +169,11 @@ namespace QExecutor
 		//int executeObjectDeclaration(ObjectDeclareNode *tree);
 		//int executeTypeDefinition(TypeDefNode *tree);
 		int objDeclRec(DeclareDefineNode *obd, string rootName, bool typeDef, string ownerName, vector<string> *queries, bool topLevel);
-	
 		/** end of typedefs...  */
+		int checkUpInRootCardMap(string optrName, map<string, int> &delRootMap);
+		int checkUpInDelSubMap(LogicalID *ptLid, string name, map<std::pair<unsigned int, string>, int> &delRootMap);
+		int checkDelCard(QueryResult *arg, QueryResult *&final);
+		int checkCrtCard(QueryResult *arg, QueryResult *&final);
 			
 	public:
 		bool inTransaction;

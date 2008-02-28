@@ -31,7 +31,9 @@ namespace Store
         virtual void setRemoteID(LogicalID* remoteID);
 		virtual string getParentRoot() const;
 		virtual void setParentRoot(string parentRoot);
-			
+		virtual void setDirectParent (LogicalID *lid); //MH TC
+		virtual LogicalID* getDirectParent() const;	//MH TC
+		
 		virtual bool operator==(LogicalID& lid);
 		virtual DBLogicalID& operator=(const LogicalID& lid);
 
@@ -43,6 +45,8 @@ namespace Store
 		string server;
 		int port;
 		LogicalID* remoteID;
+		LogicalID* directParentID;	//often NULLs here
+		//^ONLY subobjects of complex objts. pointing to their parents.
 	};
 }
 
