@@ -198,9 +198,9 @@ namespace TypeCheck
 		virtual int coerceToInt(TreeNode *tn, bool augLeft, bool augRight);
 	*/
 		/** end of pointered methods... */
-		virtual int performAction(ActionStruct actionId, TreeNode *tn);
-		virtual int performSingleArgAction(int actionId, TreeNode *tn);
-		virtual int performMarkAction(int actionId, TreeNode *tn);
+		virtual int performAction(ActionStruct actionId, TreeNode *tn, Signature *coerceSig);
+		virtual int performSingleArgAction(int actionId, TreeNode *tn, Signature *coerceSig);
+		virtual int performMarkAction(int actionId, TreeNode *tn, Signature *coerceSig);
 		virtual void reportTypeError(TCError err) { return this->globalResult.reportTypeError(err);};
 		virtual int doTypeChecking(string &s);
 		

@@ -203,6 +203,7 @@ namespace QParser
 			coerceActions.push_back(tn->getCoerceAction(i));
 		}
 		setOid(tn->getOid());
+		setCoerceSig(tn->getCoerceSig());
 		//setCard(tn->getCard()); //wasn't done previously in clone, so not doing it here. MH
 	}
 	bool TreeNode::needsCoerce(int actionId) {
@@ -1499,7 +1500,7 @@ TreeNode* TreeNode::getNodeByOid(vector<TreeNode*>* listVec, long oid){
 		string ret = name + "[" + card + "]:" + getSigNode()->deParse();
 		return ret;
 	}
-	int TreeNode::markTreeCoerce(int actionId) {
+	int TreeNode::markTreeCoerce(int actionId, Signature *cSig) {
 		if (actionId != -1) {
 			coerceFlag = true;
 			bool actionPresent = false;
@@ -1508,6 +1509,9 @@ TreeNode* TreeNode::getNodeByOid(vector<TreeNode*>* listVec, long oid){
 			}
 			if (not actionPresent)
 				this->coerceActions.push_back(actionId);
+		}
+		if (cSig != NULL) {
+			this->setCoerceSig(cSig->clone());
 		}
 		return 0;
 	}

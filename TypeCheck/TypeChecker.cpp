@@ -39,10 +39,10 @@ namespace TypeCheck
 	}
 	/* ------------ end of coerce methods --------------- */
 	
-	int TypeChecker::performAction(ActionStruct action, TreeNode *tn) {
+	int TypeChecker::performAction(ActionStruct action, TreeNode *tn, Signature *coerceSig) {
 		
-		if (action.arg == DTable::MARK_NODE) return performMarkAction(action.id, tn);
-		if (action.arg == DTable::SINGLE) return performSingleArgAction(action.id, tn);
+		if (action.arg == DTable::MARK_NODE) return performMarkAction(action.id, tn, coerceSig);
+		if (action.arg == DTable::SINGLE) return performSingleArgAction(action.id, tn, coerceSig);
 		
 		bool augLeft = (action.arg == DTable::LEFT || action.arg == DTable::BOTH);
 		bool augRight = (action.arg == DTable::RIGHT || action.arg == DTable::BOTH);
@@ -60,7 +60,8 @@ namespace TypeCheck
 		return modifyTreeCoerce(coerceAction, tn, augLeft, augRight);	
 	}
 
-	int TypeChecker::performSingleArgAction(int actionId, TreeNode *tn) {
+	int TypeChecker::performSingleArgAction(int actionId, TreeNode *tn, Signature *coerceSig) {
+		
 		switch (actionId) {
 			case DTable::CARD_TO_11 : return modifyTreeCoerce(CoerceNode::element, tn);
 			case DTable::BS_TO_STR : return modifyTreeCoerce(CoerceNode::to_string, tn);
@@ -70,19 +71,14 @@ namespace TypeCheck
 			case DTable::CK_TO_BAG : return modifyTreeCoerce(CoerceNode::to_bag, tn);
 			case DTable::CK_TO_SEQ : return modifyTreeCoerce(CoerceNode::to_seq, tn);
 			case DTable::CD_CAN_DEL: return modifyTreeCoerce(CoerceNode::can_del, tn);
-			case DTable::CD_CAN_CRT: return modifyTreeCoerce(CoerceNode::can_crt, tn);
+			//case DTable::CD_CAN_CRT: return modifyTreeCoerce(CoerceNode::can_crt, tn); //now done by markAction.
 			case DTable::CD_EXT_CRT: return modifyTreeCoerce(CoerceNode::ext_crt, tn);
 			default: return -1;
 		}
 	}
 	
-	int TypeChecker::performMarkAction(int actionId, TreeNode *tn) {
-		return tn->markTreeCoerce(actionId);
-		//action ids: {CD_CAN_ASGN, CD_CAN_INS, CD_EXT_INS}
-// 		switch(actionId) {
-// 			case DTable::CD_CAN_INS  : return markTreeCoerce(CoerceNode::...);
-// 			case DTable::CD_CAN_ASGN : return markTreeCoerce(CoerceNode::...);
-// 		}
+	int TypeChecker::performMarkAction(int actionId, TreeNode *tn, Signature *coerceSig) {
+		return tn->markTreeCoerce(actionId, coerceSig);
 	}
 	
 	/* ------------  Constructors & Destr. ------------  */
@@ -289,7 +285,7 @@ namespace TypeCheck
 				Signature *argSig = sQres->popSig();
 				string name = "";
 				if (argSig->type() == Signature::SBINDER) name = ((StatBinder *)argSig)->getName();
-				return processAugmentDerefCoerceRestoreUnOp(nodeType, TCError::CREATE, nodeType, opStr, argSig, tn, name, 0, false); //false: do not deref
+				return processAugmentDerefCoerceRestoreUnOp(nodeType, TCError::CREATE, nodeType, opStr, argSig, tn, name, 0, true); //false: do not deref
 				break;
 			}
 			default: Deb::ug("Tree node not recognised by TC, will not apply TypeChecking."); 
@@ -419,7 +415,7 @@ namespace TypeCheck
 		int actionsNumber = tcRes.actionsNumber();
 		Deb::ug("typeChecker::augmentTreeCoerce(): performing %d actions.", actionsNumber);
 		for (unsigned int i = actionsNumber; i > 0; i--) {
-			performAction(tcRes.getActionAt(i-1), tn);
+			performAction(tcRes.getActionAt(i-1), tn, tcRes.getCoerceSig());
 		}
 		if (Deb::ugOn()) {
 			cout << "Tree after coerces:\n"; tn->serialize(); cout << endl;

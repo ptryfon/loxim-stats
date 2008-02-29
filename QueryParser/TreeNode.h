@@ -46,7 +46,7 @@ namespace QParser {
 	string card;		// cardinality
 	bool coerceFlag;
 	vector<int> coerceActions;
-	
+	Signature *coerceSig;
       string getPrefixForLevel( int level, string name ) {
         string result = "";
 
@@ -84,6 +84,7 @@ namespace QParser {
 			this->isCacheable = false;
 		#endif
 		this->coerceFlag = false;
+		coerceSig = NULL;
 	}
 	
 	#ifdef QUERY_CACHE
@@ -172,10 +173,12 @@ namespace QParser {
 	virtual bool canDerefSon() {return true;}
 	virtual bool canDerefNode() {return true;}
 	virtual void canDerefSons(bool &canDerefL, bool &canDerefR){};
-	virtual int markTreeCoerce(int actionId);
+	virtual int markTreeCoerce(int actionId, Signature *coerceSig);
 	virtual bool isCoerced() {return coerceFlag;}
 	virtual int nrOfCoerceActions() {return coerceActions.size();}
 	virtual int getCoerceAction(int pos) {return coerceActions.at(pos);}
+	virtual Signature *getCoerceSig() {return coerceSig;}
+	virtual void setCoerceSig(Signature *sig) {coerceSig = sig;}
 	virtual bool needsCoerce(int actionId);
 	virtual void copyAttrsOf(TreeNode *tn);
     };

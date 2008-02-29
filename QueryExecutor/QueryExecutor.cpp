@@ -1760,6 +1760,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			QueryResult *bagRes = new QueryBagResult();
 			bagRes->addResult(tmp_result);
 			bool isStaticMember = ((CreateNode*)tree)->isClassMember();
+			bool needsDeepCardCheck = tree->needsCoerce(TypeCheck::DTable::CD_CAN_CRT);
 			for (unsigned int i = 0; i < bagRes->size(); i++) {
 				QueryResult *binder;
 				errcode = ((QueryBagResult *) bagRes)->at(i, binder);
@@ -1769,6 +1770,12 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 					return qeErrorOccur("[QE] objectFromBinder() expected a binder, got something else", EOtherResExp);
 				}
 				string newobject_name = ((QueryBinderResult*)binder)->getName();
+				
+				if (needsDeepCardCheck) {
+					int cum;
+					errcode = this->checkSubCardsRec(tree->getCoerceSig(), binder, true, cum);
+					if (errcode != 0) return errcode;
+				}
 				
 				if(isStaticMember) {
 					//statyczne skladowe klas moga byc tworzone tylko
@@ -2550,7 +2557,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			if (errcode != 0) return errcode;
 			
 			QueryResult *op_result;
-			errcode = this->coerceOperate(cType, tmp_result, op_result);
+			errcode = this->coerceOperate(cType, tmp_result, op_result, tree);
 			if (errcode != 0) return errcode;
 			
 			errcode = qres->push(op_result);
@@ -3599,7 +3606,7 @@ int QueryExecutor::persistDelete(QueryResult* bagArg) {
 }
 
 // May appear only through TC coerce augments
-int QueryExecutor::coerceOperate(int cType, QueryResult *arg, QueryResult *&final) {
+int QueryExecutor::coerceOperate(int cType, QueryResult *arg, QueryResult *&final, TreeNode *tree) {
 	int errcode = 0;
 	
 	switch (cType) {
@@ -3771,10 +3778,6 @@ int QueryExecutor::coerceOperate(int cType, QueryResult *arg, QueryResult *&fina
 			*ec << "	Coerce checking if delete allowed, with card 1..*";
 			return checkDelCard(arg, final);
 		}
-		case CoerceNode::can_crt : {
-			*ec << "	Coerce checking if cardinalities inside created object are correct";
-			return checkCrtCard(arg, final);
-		}
 		case CoerceNode::ext_crt : {
 			*ec << "	Coerce checking if cardinality of created object allows more creates.";
 			QueryResult *bagRes = new QueryBagResult();
@@ -3789,7 +3792,7 @@ int QueryExecutor::coerceOperate(int cType, QueryResult *arg, QueryResult *&fina
 				errcode = ((QueryBagResult *) bagRes)->at(i, binder);
 				if (errcode != 0) return errcode;
 				if ((binder->type()) != QueryResult::QBINDER) {
-					return qeErrorOccur("[QE] objectFromBinder() expected a binder, got something else", EOtherResExp);
+					return qeErrorOccur("[QE] [TC] ext_create check() expected a binder, got something else", EOtherResExp);
 				}
 				string crtName = ((QueryBinderResult*)binder)->getName();
 				
@@ -3912,15 +3915,184 @@ int QueryExecutor::checkUpInRootCardMap(string optrName, map<string, int> &delRo
 	return 0;
 }
 
-int QueryExecutor::checkCrtCard(QueryResult *arg, QueryResult *&final) {
-	*ec << "Checking create cards - for now suppose all's ok.";
-	//Ah, this one is going to be really shitty, cause you have to check all subs against... the signature!
-	//which isn't done anywhere - comparing qResult to signatures has to be done here, unfortunately.
+int QueryExecutor::checkSubCardsRec(Signature *sig, ObjectPointer *optr) {
+	cout << "[QE][TC] checkSubCardsRec(optr) START\n";
+	if (optr == NULL) cout <<"optr is null!\n";
+	if (sig == NULL) cout <<"sig is null!\n";
+	if (sig == NULL || optr == NULL) return (ErrQExecutor | EOtherResExp);
+	cout << "[QE][TC] checkSubCardsRec(optr) not nulls...\n";
+	int errcode = 0;
+	int result = 0;
+	int vType = optr->getValue()->getType();
+	if (vType != Store::Vector) return 0;
+	*ec << "[QE][TC] checkSubCardsRec(optr) - ObjectValue = Vector";
+	vector<LogicalID*>* tmp_vec = optr->getValue()->getVector();
+	int tmp_vec_size = tmp_vec->size();
 	
-	
-	
-	//May proceed with create
-	final = arg;
+	SigColl *sigc = (sig->type() == Signature::SBINDER ? (SigColl *) ((StatBinder *)sig)->getValue() : (SigColl *) sig);
+	map<string, int> subMap;
+	for (int i = 0; i < tmp_vec_size; i++) {
+		cout << "[QE][TC] checkSubCardsRec(optr) AT son: " << i << "\n";	
+		LogicalID *currID = tmp_vec->at(i);
+		ObjectPointer *currOptr;
+		errcode = tr->getObjectPointer(currID, Store::Read, currOptr, false); 
+		if (errcode != 0) {
+			*ec << "[QE] Error in getObjectPointer, in checkSubCardsRec(optr)";
+			antyStarveFunction(errcode);
+			inTransaction = false;
+			return errcode;
+		}
+
+		string currName = currOptr->getName();
+		Signature *mptr = sigc->getMyList();
+		bool foundName = false;
+		Signature *match = NULL;
+		while (mptr != NULL && not foundName) {
+			if (((StatBinder *) mptr)->getName() == currName) {
+				foundName = true;
+				match = mptr;
+			}
+			mptr = mptr->getNext();
+		}
+		cout << "[QE][TC] checkSubCardsRec(optr) looked through left sigs children to find: '" <<currName<<"'..\n";
+		if (not foundName || match == NULL) return (ErrQExecutor | EOtherResExp);
+		//recursively check each elt
+		result = checkSubCardsRec(match, currOptr);
+		if (result != 0) return result;
+		//register subobject in map. (adjusting the nr of same objects registered)
+		if (subMap.find(currName) == subMap.end()) {
+			subMap[currName] = 0;
+		} 
+		subMap[currName]++;
+		
+	}
+	Signature *ptr = sigc->getMyList();
+	while (ptr != NULL) {
+		string name = ((StatBinder *)ptr)->getName();
+		string card = ptr->getCard();
+		if (subMap.find(name) == subMap.end()) {
+			subMap[name] = 0;
+		}
+		//check if its missing: not found in subMap  -> error
+		if (card[0] != '0' && subMap[name] == 0) return (ErrQExecutor | ESigMissedSubs);
+		
+		//check for overflow: if rightBound of card '<' subMap[name].first -> error
+		if (card[3]!= '*' && (card[3]-'0') < subMap[name]) return (ErrQExecutor | ESigCdOverflow);
+
+		ptr = ptr->getNext();
+	}
+	return 0;
+}
+
+int QueryExecutor::checkSubCardsRec(Signature *sig, QueryResult *res, bool isBinder, int &obtsSize) {
+	if (sig == NULL || res == NULL) return (ErrQExecutor | EOtherResExp);
+	if (sig->type() != Signature::SBINDER && sig->type() != Signature::SSTRUCT) { obtsSize = 1; return 0; }
+	int result = 0;
+	if (sig->type() == Signature::SBINDER) {
+		QueryResult *toCompare = (isBinder ? ((QueryBinderResult *)res)->getItem() : res);
+		Signature *sigVal = ((StatBinder *)sig)->getValue();
+		int cmpType = toCompare->type();
+		
+		//in case of multiple objects ...
+		if (cmpType == QueryResult::QBAG || cmpType == QueryResult::QSEQUENCE) {
+			string card = sig->getCard();
+			int compSize = toCompare->size();
+			obtsSize = 0;
+			for (int pos = 0; pos < compSize; pos++) {
+				QueryResult *single;
+				int singleSize = 0;
+				if (cmpType == QueryResult::QBAG) {
+					result = ((QueryBagResult *)toCompare)->at(pos, single);
+				} else {
+					result = ((QuerySequenceResult *)toCompare)->at(pos, single);
+				}
+				if (result == 0) {
+					result = checkSubCardsRec(sigVal, single, true, singleSize);
+				}
+				if (result != 0) return result;
+				obtsSize += singleSize;
+			}
+			if ((card[0] != '0' && obtsSize == 0) || (card[3] != '*' && obtsSize > 1))
+				return (ErrQExecutor | EBadInternalCd);
+			return 0;
+		}
+		//'toCompare' is some single object...
+		obtsSize = 1;
+		return checkSubCardsRec(sigVal, toCompare, true, obtsSize);
+	}
+	//sig is a STRUCT signature, res - a QueryStructResult
+	SigColl *sigc = (SigColl *) sig;
+	QueryStructResult *obj = (QueryStructResult *)res;
+	obtsSize = 1;
+	map<string, int> subMap;
+	//for each elt of guest obj - check it doesn't violate card constraints of some subobject of sig.
+	for (unsigned int i = 0; i < (obj->size()); i++) {
+		QueryResult *tmp_res = NULL;
+		result = obj->at(i, tmp_res);
+		if (result != 0) return result;
+		//in case of multiple objects ...
+		if (tmp_res->type() == QueryResult::QBAG || tmp_res->type() == QueryResult::QSEQUENCE) {
+			for (unsigned int pos = 0; pos < tmp_res->size(); pos++) {
+				QueryResult *single;
+				if (tmp_res->type() == QueryResult::QBAG) {
+					result = ((QueryBagResult *)tmp_res)->at(pos, single);
+				} else {
+					result = ((QuerySequenceResult *)tmp_res)->at(pos, single);
+				}
+				if (result != 0) return result;
+				result = checkSingleSubCard(sigc, single, subMap);
+				if (result != 0) return result;
+			}
+		} else {
+			result = checkSingleSubCard(sigc, tmp_res, subMap);
+			if (result != 0) return result;
+		}
+	}
+	//now -knowing the subMap - check for: subOverflows, subsMissing.		
+	Signature *ptr = sigc->getMyList();
+	while (ptr != NULL) {
+		string name = ((StatBinder *)ptr)->getName();
+		string card = ptr->getCard();
+		if (subMap.find(name) == subMap.end()) {
+			subMap[name] = 0;
+		}
+		//check if its missing: not found in subMap  -> error
+		if (card[0] != '0' && subMap[name] == 0) return (ErrQExecutor | ESigMissedSubs);
+		
+		//check for overflow: if rightBound of card '<' subMap[name].first -> error
+		if (card[3]!= '*' && (card[3]-'0') < subMap[name]) return (ErrQExecutor | ESigCdOverflow);
+
+		ptr = ptr->getNext();
+	}
+	return 0;
+}
+
+int QueryExecutor::checkSingleSubCard(SigColl *sigc, QueryResult *tmp_res, map<string, int> &subMap) {
+	int result = 0;
+	if (tmp_res == NULL || (tmp_res->type()) != QueryResult::QBINDER) return (ErrQExecutor | EOtherResExp);
+	string binderName = ((QueryBinderResult *) tmp_res)->getName();
+		//QueryResult *binderItem = ((QueryBinderResult *) tmp_res)->getItem();
+	Signature *mptr = sigc->getMyList();
+	bool foundName = false;
+	Signature *match = NULL;
+	while (mptr != NULL && not foundName) {
+		if (((StatBinder *) mptr)->getName() == binderName) {
+			foundName = true;
+			match = mptr;
+		}
+		mptr = mptr->getNext();
+	}
+	if (not foundName || match == NULL) return (ErrQExecutor | EOtherResExp);
+		//recursively check each elt
+	int eltSize = 0;
+	result = checkSubCardsRec(match, tmp_res, true, eltSize);
+	if (result != 0) return result;
+		//register subobject in map. (adjusting the nr of same objects registered)
+	if (subMap.find(binderName) == subMap.end()) {
+		subMap[binderName] = 0;
+	} 
+	subMap[binderName] += eltSize;
+	cout << "[QE][TC] ----- subMap[" << binderName << "] := " << subMap[binderName] << "...\n";
 	return 0;
 }
 
@@ -4389,8 +4561,9 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 			ec->printf("[QE] Vec.size = %d\n", insVector->size());
 			QueryResult *rBag = new QueryBagResult();
 			rBag->addResult(rArg);
+			//----------	TC dynamic coerce input 	---------- //
 			bool needsExtCoerce = tn->needsCoerce(TypeCheck::DTable::CD_EXT_INS);
-			bool needsDeepCheck = tn->needsCoerce(TypeCheck::DTable::CD_CAN_INS);
+			bool needsDeepCardCheck = tn->needsCoerce(TypeCheck::DTable::CD_CAN_INS);
 			map<string, int> subCardMap;
 			if (needsExtCoerce) {
 				*ec << "[QE][TC] Fill maps that help check card constraints are met on inserted objects.";
@@ -4411,18 +4584,50 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 					cout << "---" << sName << ": " << subCardMap[sName] << "\n";
 				}
 			}
+			//-------------------------------------------------- //
 			for (unsigned int i = 0; i < rBag->size(); i++) {
 				ec->printf("[QE] trying to INSERT %d element of rightArg into leftArg\n", i);
 				QueryResult *toInsert;
 				errcode = ((QueryBagResult *) rBag)->at(i, toInsert);
 				if (errcode != 0) return errcode;
 				ObjectPointer *optrIn;
+				ObjectPointer *checkIn;
 				LogicalID *lidIn;
 				int rightResultType = toInsert->type();
 				string object_name = "";
 				switch (rightResultType) {
 					case QueryResult::QREFERENCE: {
 						lidIn = ((QueryReferenceResult *) toInsert)->getValue();
+						errcode = tr->getObjectPointer (lidIn, Store::Read, checkIn, true); 
+						if (errcode != 0) {
+							*ec << "[QE] insert operation - Error in getObjectPointer.";
+							antyStarveFunction(errcode);
+							inTransaction = false;
+							return errcode;
+						}
+						object_name = checkIn->getName();
+						//Check external card constraints on inserted object
+						if (needsExtCoerce) {
+							*ec << "[QE][TC] insert:ref:: checking that no '"+object_name+"' here yet.";
+							if (subCardMap.find(object_name) == subCardMap.end())
+								subCardMap[object_name] = 0;
+							int subNum = (++subCardMap[object_name]);
+							if (subNum > 1) {
+								*ec << "[QE][TC] insert:ref:: coerce ERROR - card of inserted object exceeded.";
+								*ec << (ErrQExecutor | ECrcInsExtTooMany);
+								return ErrQExecutor | ECrcInsExtTooMany;	
+							}
+						}
+						//Check internal cards constraints (for subobjects)
+						if (needsDeepCardCheck) {
+							string txt = (optrIn == NULL ? " NULL!" : "NOT null...");
+							*ec << "optr is " + txt;
+							txt = (tn->getCoerceSig() == NULL ? " NULL!" : "NOT null...");
+							*ec << "coerceSig is " + txt;
+							errcode = this->checkSubCardsRec(tn->getCoerceSig(), checkIn);
+							if (errcode != 0) return errcode;
+						}
+						
 						errcode = tr->getObjectPointer (lidIn, Store::Write, optrIn, true); 
 						if (errcode != 0) {
 							*ec << "[QE] insert operation - Error in getObjectPointer.";
@@ -4449,18 +4654,8 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 							//out.close();					    
 							return 0;
 						}*/
-						if (needsExtCoerce) {
-							*ec << "[QE][TC] insert:ref:: checking that no '"+object_name+"' here yet.";
-							if (subCardMap.find(object_name) == subCardMap.end())
-								subCardMap[object_name] = 0;
-							int subNum = (++subCardMap[object_name]);
-							if (subNum > 1) {
-								*ec << "[QE][TC] insert:ref:: coerce ERROR - card of inserted object exceeded.";
-								*ec << (ErrQExecutor | ECrcInsExtTooMany);
-								return ErrQExecutor | ECrcInsExtTooMany;	
-							}
-						}
 						ec->printf("[QE] getObjectPointer on %d element of rightArg done\n", i);
+						
 						if (optrIn->getIsRoot()) {
 							errcode = tr->removeRoot(optrIn); 
 							if (errcode != 0) {
@@ -4491,7 +4686,11 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 								return ErrQExecutor | ECrcInsExtTooMany;	
 							}
 						}
-						
+						if (needsDeepCardCheck) {
+							int cum;
+							errcode = this->checkSubCardsRec(tn->getCoerceSig(), toInsert, true, cum);
+							if (errcode != 0) return errcode;
+						}
 						errcode = this->objectFromBinder(toInsert, optrIn);
 						if (errcode != 0) return errcode;
 						lidIn = (optrIn->getLogicalID());
@@ -4614,6 +4813,8 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 			errcode = this->derefQuery(rArg, derefed);
 			if (errcode != 0) return errcode;
 			int derefed_type = derefed->type();
+			//TC dynamic coerce... might need only if derefed_type is struct or binder...
+			bool needsDeepCardCheck = tn->needsCoerce(TypeCheck::DTable::CD_CAN_ASGN);
 			switch (derefed_type) {
 				case QueryResult::QINT: {
 					int intValue = ((QueryIntResult *) derefed)->getValue();
@@ -4640,6 +4841,11 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 					break;
 				}
 				case QueryResult::QSTRUCT: {
+					if (needsDeepCardCheck) {
+						int cum;
+						errcode = this->checkSubCardsRec(tn->getCoerceSig(), derefed, false, cum);
+						if (errcode != 0) return errcode;
+					}
 					vector<LogicalID*> vectorValue;
 					for (unsigned int i=0; i < (derefed->size()); i++) {
 						QueryResult *tmp_res;
@@ -4656,6 +4862,11 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 					break;
 				}
 				case QueryResult::QBINDER: {
+					if (needsDeepCardCheck) {
+						int cum;
+						errcode = this->checkSubCardsRec(tn->getCoerceSig(), derefed, true, cum);
+						if (errcode != 0) return errcode;
+					}
 					vector<LogicalID*> vectorValue;
 					ObjectPointer *optr_tmp;
 					errcode = this->objectFromBinder(derefed, optr_tmp);

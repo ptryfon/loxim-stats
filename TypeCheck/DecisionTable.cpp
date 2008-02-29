@@ -794,9 +794,10 @@ namespace TypeCheck
 			return bSig; //reference to created object
 		} else if (comparison == (ErrTypeChecker | ESigCdDynamic)) {
 			cout << "DYNAMIC CHECKING !!! have to return it somehow, so that it can be performed...\n";
-			cout <<"OK, now we've got retResult, so may set coerce (with coerce action and SINGLE parm)\n";
+			cout <<"OK, now we've got retResult, so may set coerce (with coerce action and MARK_NODE parm)\n";
 			retResult.setEffect(TC_RS_COERCE);
-			retResult.addActionId(CD_CAN_CRT, SINGLE);
+			retResult.addActionId(CD_CAN_CRT, MARK_NODE);
+			retResult.setCoerceSig(fullBSig);
 			return bSig;
 		}
 		cout <<"[TC] - create check failed, so will return null, which will trigger TCError\n";
@@ -842,6 +843,7 @@ namespace TypeCheck
 			cout << "ASSIGN needs DYNAMIC CHECKING !!! for sub cardinalities.\n";
 			retResult.setEffect(TC_RS_COERCE);
 			retResult.addActionId(CD_CAN_ASGN, MARK_NODE);
+			retResult.setCoerceSig(namedLSig);
 			return new SigVoid();
 		}
 		cout <<"[TC] - assign check failed, so will return null, and trigger TCError\n";
@@ -856,7 +858,6 @@ namespace TypeCheck
 		if (lSig == NULL || lSig->type() != Signature::SREF) return NULL;
 		
 		int leftId = ((SigRef *) lSig)->getRefNo();
-		//TODO: check its not a ref. to a type? so getObjById(leftId)->getIsTypedef() == false)
 		Signature *namedLSig = DataScheme::dScheme()->namedSignatureOfRef(leftId);
 
 		if (namedLSig == NULL || namedLSig->type() != Signature::SBINDER || ((StatBinder *)namedLSig)->getValue() == NULL)
@@ -885,6 +886,7 @@ namespace TypeCheck
 			retResult.addErrorPart("No '"+rName+"' subobjects in declaration of "+outerName+".\n	bases");
 			return NULL;
 		}
+		cout << "[TC] comparing chosen sub from DSCHEME sig: \n" << match->toString() << " \nto sig to be inserted: \n" << flatRSig->toString() << ".\n";
 		int comparison = match->compareNamedSigCrt(flatRSig, true);
 		ErrorConsole ec("TypeChecker");
 		ec << "[TC] result of comparing a chosen sub of left sig, with the right sig, for insert:";
@@ -906,6 +908,7 @@ namespace TypeCheck
 			cout << "ASSIGN needs DYNAMIC CHECKING !!! for sub cardinalities.\n";
 			retResult.setEffect(TC_RS_COERCE);
 			retResult.addActionId(CD_CAN_INS, MARK_NODE);
+			retResult.setCoerceSig(match);
 			return new SigVoid();
 		}
 		cout <<"[TC] - insert check on chosen sub failed, so will return null, and trigger TCError\n";

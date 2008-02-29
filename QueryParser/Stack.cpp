@@ -269,6 +269,7 @@ namespace QParser {
 			return (ErrTypeChecker | ESigTNamesDiffer);
 		SigColl *s = (SigColl *)flatSig;
 		//now comparing complex structural equality... !
+		//map: for each subObj. name: keep lowest and highest cardinality of all adequate subObjcts from flatSig.
 		map<string, std::pair<int, int> > subMap;
 		Signature *sptr = s->getMyList();
 		int result = 0;

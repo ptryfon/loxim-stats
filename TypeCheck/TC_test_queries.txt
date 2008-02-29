@@ -162,3 +162,40 @@ OR:
  > reloadScheme; (  (!) if we don't reload datascheme after we've changed it - queries will not be typechecked);
  
  
+ ======================================================================
+--checking the in-depth dynamic card coertions..
+
+emp[0..*]:(name:string, book[0..*]:(cover[0..1]:string, page[1..*]:string, nr[0..1]:integer), age[0..*]:integer);
+book[0..*]:(cover[0..*]:string, page[0..*]:string, nr[1..*]:integer);
+
+reloadScheme;
+--and try doing...:
+
+create ("Adam" as name, 4 as age) as emp;
+create ("c1" as cover, "c2" as cover, "str" as page, 8 as nr) as book;
+
+
+emp :< ("c1" as cover, "c2" as cover, "str" as page, 8 as nr) as book;
+--> powinno od razu wykryc, ze jest za duzo cover. Ale:
+
+emp :< book;
+--> tu statycznie sie nie wykryje - sygnatury mowia, ze moze byc dobrze, a moze byc zle. za to w dyn. check'u - powinno byc wykryte...
+
+create ("c3" as cover, "str" as page, 9 as nr) as book;
+
+emp :< book where nr = 9;
+-- > to bedzie OK.
+
+(book where nr = 10) := ("cnew" as cover, "cee" as cover, "string" as page, 12 as nr);
+--> to tez bedzie ok.
+
+
+
+
+
+
+
+
+
+
+

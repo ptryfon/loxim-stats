@@ -48,7 +48,6 @@ namespace TypeCheck
 	}
 	
 	string TypeCheckResult::printAllInfo() {
-cout << "in printAll!\n";
 
 		string str = "";
 		str += "[sig: " +(getSig() != NULL ? getSig()->toString() : "NULL") + "] \n ";
@@ -67,7 +66,9 @@ cout << "in printAll!\n";
 			str += sout.str();
 			sout.str("");
 		} str += "\n";
-		
+		if (coerceSig != NULL) {
+			str += "[coerceSig: " + coerceSig->toString() + "]\n";
+		}
 		if (errorParts.size() > 0) {
 			str += "[errorPts: ";
 			for (unsigned int i = 0; i < errorParts.size(); i++) {
@@ -80,11 +81,13 @@ cout << "in printAll!\n";
 	
 	void TypeCheckResult::clear() {
 		if (resultSig != NULL) delete resultSig;
-		resultSig = NULL; effect = ""; dynCtrl = false; errorParts.clear(); actionIds.clear();
+		if (coerceSig != NULL) delete coerceSig;
+		resultSig = NULL; coerceSig = NULL; effect = ""; dynCtrl = false; errorParts.clear(); actionIds.clear();
 	}
 	void TypeCheckResult::fill(TypeCheckResult &tcr) {
 		tcr.clear();
 		if (resultSig != NULL) tcr.setSig(resultSig->clone());
+		if (coerceSig != NULL) tcr.setCoerceSig(coerceSig->clone());
 		for (unsigned int i = 0; i < actionIds.size(); i++) tcr.addActionId(actionIds.at(i));
 		for (unsigned int i = 0; i < errorParts.size(); i++) tcr.addErrorPart(errorParts.at(i));
 		tcr.setEffect(effect);
@@ -96,10 +99,8 @@ cout << "in printAll!\n";
 	}
 	
 	TypeCheckResult::~TypeCheckResult() {
-		if (resultSig != NULL) { 
-			delete resultSig;
-			cout << "deleted resultSig in tcResult" << endl;
-		}
+		if (resultSig != NULL) delete resultSig;
+		if (coerceSig != NULL) delete coerceSig;
 	}
 
 

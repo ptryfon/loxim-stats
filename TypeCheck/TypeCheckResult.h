@@ -33,18 +33,21 @@ namespace TypeCheck
 		string effect;	//"ERROR" OR "SUCCESS" OR "COERCE" 
 		bool dynCtrl; //states if any part of the control is put off to qExecution phase.
 		vector<ActionStruct> actionIds;
+		Signature *coerceSig;
 		vector<string> errorParts;//which parts of the signature caused the error - a sig. attr. or base.
 		//int (*resultAction) (TypeChecker *, Singature *, Signature*);
 		//TODO: do I need the Signatures? resultAction is an implicit augmentTreeOperation:
 		//coertion, elipsis handling, dereference. 
 
 	public:
-		TypeCheckResult() {resultSig = NULL; effect = ""; dynCtrl = false;}
+		TypeCheckResult() {resultSig = NULL; coerceSig = NULL; effect = ""; dynCtrl = false;}
 		TypeCheckResult(string res);
 		virtual string getEffect() {return effect;}
 		virtual string setEffect(string e);
 		virtual Signature *getSig() {return resultSig;}
 		virtual void setSig(Signature *sig) {resultSig = sig;};
+		virtual Signature *getCoerceSig() {return coerceSig;}
+		virtual void setCoerceSig(Signature *sig) {coerceSig = sig;}
 		virtual void setResultSig(string res);
 		virtual bool isSuccess() {return (effect == "SUCCESS" || effect == "");}
 		virtual bool isError() {return (effect == "ERROR");}

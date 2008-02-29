@@ -103,7 +103,7 @@ namespace QExecutor
 		int combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryResult *lRes, QueryResult *&partial);
 		int merge(NonAlgOpNode::nonAlgOp op, QueryResult *partial, QueryResult *&final);
 		int unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&final);
-		int coerceOperate(int cType, QueryResult *arg, QueryResult *&final);
+		int coerceOperate(int cType, QueryResult *arg, QueryResult *&final, TreeNode *tree);
 		int algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResult *rArg, QueryResult *&final, AlgOpNode *tn);
 		int derefQuery(QueryResult *arg, QueryResult *&res);
 		int refQuery(QueryResult *arg, QueryResult *&res);
@@ -173,7 +173,10 @@ namespace QExecutor
 		int checkUpInRootCardMap(string optrName, map<string, int> &delRootMap);
 		int checkUpInDelSubMap(LogicalID *ptLid, string name, map<std::pair<unsigned int, string>, int> &delRootMap);
 		int checkDelCard(QueryResult *arg, QueryResult *&final);
-		int checkCrtCard(QueryResult *arg, QueryResult *&final);
+		//int checkCrtCard(QueryResult *arg, QueryResult *&final, TreeNode *tree); - removed, moved to mark_node check.
+		int checkSubCardsRec(Signature *sig, ObjectPointer *optr);
+		int checkSubCardsRec(Signature *sig, QueryResult *res, bool isBinder, int &obtsSize);
+		int checkSingleSubCard(SigColl *sigc, QueryResult *single, map<string, int> &subMap);
 			
 	public:
 		bool inTransaction;
