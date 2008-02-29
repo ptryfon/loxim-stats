@@ -1,3 +1,7 @@
+2008-02-29  Krzysztof Stencel  <stencel@students.mimuw.edu.pl>
+
+	* TypeCheck/.cvsignore: Added ignore file.
+
 2008-02-29  Maksymilian Humpich  <mh209206@students.mimuw.edu.pl>
 
 	* QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryExecutor.h, QueryParser/Stack.cpp, QueryParser/TreeNode.cpp, QueryParser/TreeNode.h, TypeCheck/DecisionTable.cpp, TypeCheck/TC_test_queries.txt, TypeCheck/TypeCheckResult.cpp, TypeCheck/TypeCheckResult.h, TypeCheck/TypeChecker.cpp, TypeCheck/TypeChecker.h:
