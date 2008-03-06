@@ -1,3 +1,8 @@
+2008-03-06  Piotr Turski  <pt209301@students.mimuw.edu.pl>
+
+	* Indexes/Comparator.cpp, Indexes/IndexHandler.cpp, Indexes/Node.cpp, Indexes/Node.h:
+	czyszczenie kodu
+
 2008-02-29  Krzysztof Stencel  <stencel@students.mimuw.edu.pl>
 
 	* TypeCheck/.cvsignore: Added ignore file.
