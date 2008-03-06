@@ -526,7 +526,7 @@ namespace Indexes {
 	}
 	
 	int DoubleComparator::setValue(int value) {
-		this->value = value + 0.0;
+		this->value = value;
 		return 0;
 	}
 	

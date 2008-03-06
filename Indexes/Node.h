@@ -41,7 +41,6 @@ namespace Indexes {
 		/** glebokosc w b-drzewie */
 		int level;
 		
-		//bool cleanNeeded;
 		
 		// dalej beda kolejne NodeEntry numerowane od 0
 		

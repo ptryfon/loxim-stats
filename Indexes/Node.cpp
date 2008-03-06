@@ -10,7 +10,6 @@ namespace Indexes {
 	
 	void Node::init() {
 		this->left = NODE_SIZE - sizeof(Node);
-		//cleanNeeded = false;
 	}
 	
 	nodeAddress_t Node::init(nodeAddress_t id) {

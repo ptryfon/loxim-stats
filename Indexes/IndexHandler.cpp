@@ -517,13 +517,7 @@ namespace Indexes {
 		}
 		return 0;
 	}
-	/*
-	void IndexHandler::cleanNode(CachedNode* cnode) {
-		Node* node;
-		cnode->getNode(node);
-		Cleaner::getHandle()->clean(node, tree->getNewComparator());
-	}
-	*/
+	
 	int IndexHandler::flush(CachedNode* cnode) {
 		if (!cnode->dirty) {
 			return 0;
