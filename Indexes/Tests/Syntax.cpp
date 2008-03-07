@@ -62,19 +62,19 @@ START_TEST (simple_syntax) {
 	test(err, "blad parsowania");
 	tree.reset(tNode);
 	
-	err = p->parseIt("index emp_age (|4 5 |>", tNode);
+	err = p->parseIt("index emp_age (|4 to 5 |>", tNode);
 	test(err, "blad parsowania");
 	tree.reset(tNode);
 	
-	err = p->parseIt("index emp_age <|4 5|)", tNode);
+	err = p->parseIt("index emp_age <|4 to 5|)", tNode);
 	test(err, "blad parsowania");
 	tree.reset(tNode);
 	
-	err = p->parseIt("index emp_age <|4 5.6|)", tNode);
+	err = p->parseIt("index emp_age <|4 to 5.6|)", tNode);
 	test(err, "blad parsowania");
 	tree.reset(tNode);
 
-	err = p->parseIt("index emp_age <|4 \"ala\"|)", tNode);
+	err = p->parseIt("index emp_age <|4 to \"ala\"|)", tNode);
 	test(err, "blad parsowania");
 	tree.reset(tNode);
 	
@@ -155,19 +155,19 @@ START_TEST (subqueries) {
 	test(err, "blad parsowania");
 	tree.reset(tNode);
 	
-	err = p->parseIt("index emp_age (|4 + 5 5 + 7 |>", tNode);
+	err = p->parseIt("index emp_age (|4 + 5 to 5 + 7 |>", tNode);
 	test(err, "blad parsowania");
 	tree.reset(tNode);
 	
-	err = p->parseIt("index emp_age (|(4 + 5)(5 + 7)|>", tNode);
+	err = p->parseIt("index emp_age (|(4 + 5)to(5 + 7)|>", tNode);
 	test(err, "blad parsowania");
 	tree.reset(tNode);
 	
-	err = p->parseIt("index emp_age <|4+6 8+5|)", tNode);
+	err = p->parseIt("index emp_age <|4+6 to 8+5|)", tNode);
 	test(err, "blad parsowania");
 	tree.reset(tNode);
 	
-	err = p->parseIt("index emp_age <|7+4 5.6+\"ala\"|)", tNode);
+	err = p->parseIt("index emp_age <|7+4 to 5.6+\"ala\"|)", tNode);
 	test(err, "blad parsowania");
 	tree.reset(tNode);
 	

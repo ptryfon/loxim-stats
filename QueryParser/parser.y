@@ -73,7 +73,6 @@
 %left TIMES DIVIDE_BY
 %nonassoc UMINUS
 %right DOT
-%nonassoc INDEX_LEFT
 
 %type <bool_val> grant_option_opt
 %type <tree> statement
@@ -304,14 +303,15 @@ indexDML_query: INDEX NAME index_constraints { $3->setIndexName(string($2)); $$ 
 
 
 
-index_constraints:	left_constraint right_constraint {$$ = new IndexSelectNode($1, $2);}
-		|			EQUAL query {$$ = new IndexSelectNode($2);}
+index_constraints:	
+					EQUAL query {$$ = new IndexSelectNode($2);}
 		|			left_constraint INDEXPAR {$$ = new IndexSelectNode($1, false);}
 		|			INDEXPAR right_constraint {$$ = new IndexSelectNode(false, $2);}
+		|			left_constraint TO right_constraint {$$ = new IndexSelectNode($1, $3);}
 		;
 
-left_constraint:	LEFT_INCLUSIVE query %prec INDEX_LEFT {$$ = new IndexBoundaryNode(true, $2);}
-		|			LEFT_EXCLUSIVE query %prec INDEX_LEFT {$$ = new IndexBoundaryNode(false, $2);} 
+left_constraint:	LEFT_INCLUSIVE query  {$$ = new IndexBoundaryNode(true, $2);}
+		|			LEFT_EXCLUSIVE query  {$$ = new IndexBoundaryNode(false, $2);} 
 		;
 
 right_constraint:	query RIGHT_INCLUSIVE {$$ = new IndexBoundaryNode(true, $1);}

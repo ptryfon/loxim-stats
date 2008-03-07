@@ -242,7 +242,7 @@ START_TEST (index_and_create) {
 	fail_unless(qr1->type() == QueryResult::QBAG, "zwrocono inny obiekt niz oczekiwano");
 	fail_if(qr1->size() != 0, "zwrocono inna liczba elementow niz oczekiwano");
 		
-	err = con->process("index emp_age <| 4 5 |>", res);
+	err = con->process("index emp_age <| 4 to 5 |>", res);
 	test(err, "wyszukanie po indeksie");
 	qr1.reset(res);
 	fail_unless(qr1->type() == QueryResult::QBAG, "zwrocono inny obiekt niz oczekiwano");
@@ -834,7 +834,7 @@ START_TEST (modify) {
 	fail_unless(qr1->type() == QueryResult::QNOTHING, "zwrocono inny obiekt niz oczekiwano");
 	//fail_if(qr1->size() != 1, "zwrocono inna liczba elementow niz oczekiwano. %d", qr1->size());
 
-	err = con1->process("index emp_age <|10 40|>", res);
+	err = con1->process("index emp_age <|10 to 40|>", res);
 	test(err, "zliczanie indeksow");
 		
 	qr1.reset(res);
