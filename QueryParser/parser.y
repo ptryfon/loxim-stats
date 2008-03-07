@@ -48,7 +48,7 @@
 %nonassoc CREATE_OR_UPDATE
 %token	<num> INTEGER
 %token	<dbl> DOUBLE
-%token	<str> STATIC SYSTEMVIEWNAME EXTNAME PARAMNAME NAME STRING SEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT DEREF REF NAMEOF RELOADSCHEME TCON TCOFF BEGINTR END ABORT CREATE IF FI DO OD ELSE WHILE LINK FOREACH THEN FIX_OP FIXPOINT RETURN BREAK VALIDATE READ MODIFY DELETE PASSWD WITH REVOKE REMOVE TO USER FROM ON GRANT OPTION PROCEDURE CLASS EXTENDS INSTANCE LEFTPROCPAR RIGHTPROCPAR VIEW ONRETRIEVE ONUPDATE ONCREATE ONDELETE INDEX VIRTUAL COLON INTERFACE SHOWS ASSOCIATE CARDCONST TYPEDEF CARD00 CARD01 CARD 11 CARD0INF CARD1INF LEFTSQUAREPAR RIGHTSQUAREPAR STRING_SIG DOUBLE_SIG INTEGER_SIG BOOLEAN_SIG INT_SIG LEFT_EXCLUSIVE LEFT_INCLUSIVE RIGHT_EXCLUSIVE RIGHT_INCLUSIVE THROW
+%token	<str> STATIC SYSTEMVIEWNAME EXTNAME PARAMNAME NAME STRING SEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT DEREF REF NAMEOF RELOADSCHEME TCON TCOFF BEGINTR END ABORT CREATE IF FI DO OD ELSE WHILE LINK FOREACH THEN FIX_OP FIXPOINT RETURN BREAK VALIDATE READ MODIFY DELETE PASSWD WITH REVOKE REMOVE TO USER FROM ON GRANT OPTION PROCEDURE CLASS EXTENDS INSTANCE LEFTPROCPAR RIGHTPROCPAR VIEW ONRETRIEVE ONUPDATE ONCREATE ONDELETE INDEX VIRTUAL COLON INTERFACE SHOWS ASSOCIATE CARDCONST TYPEDEF CARD00 CARD01 CARD 11 CARD0INF CARD1INF LEFTSQUAREPAR RIGHTSQUAREPAR STRING_SIG DOUBLE_SIG INTEGER_SIG BOOLEAN_SIG INT_SIG LEFT_EXCLUSIVE LEFT_INCLUSIVE RIGHT_EXCLUSIVE RIGHT_INCLUSIVE INDEXPAR THROW
 		
 %start statement
 
@@ -73,6 +73,7 @@
 %left TIMES DIVIDE_BY
 %nonassoc UMINUS
 %right DOT
+%nonassoc INDEX_LEFT
 
 %type <bool_val> grant_option_opt
 %type <tree> statement
@@ -101,7 +102,6 @@
 %type <tree> indexDDL_stmt
 %type <qtree> indexDML_query
 %type <comparatorNode> indexType
-%type <qtree> index_key_type
 %type <indexSelect> index_constraints
 %type <IndexBoundary> left_constraint
 %type <IndexBoundary> right_constraint
@@ -305,22 +305,17 @@ indexDML_query: INDEX NAME index_constraints { $3->setIndexName(string($2)); $$ 
 
 
 index_constraints:	left_constraint right_constraint {$$ = new IndexSelectNode($1, $2);}
-		|			EQUAL index_key_type {$$ = new IndexSelectNode($2);}
-		|			left_constraint {$$ = new IndexSelectNode($1, false);}
-		|			right_constraint {$$ = new IndexSelectNode(false, $1);}
+		|			EQUAL query {$$ = new IndexSelectNode($2);}
+		|			left_constraint INDEXPAR {$$ = new IndexSelectNode($1, false);}
+		|			INDEXPAR right_constraint {$$ = new IndexSelectNode(false, $2);}
 		;
 
-index_key_type:	query; /*STRING 			{$$ = new StringNode($1); }
-		|		INTEGER 		{$$ = new IntNode($1); }
-		|		DOUBLE 			{$$ = new DoubleNode($1); }
-		;*/
-
-left_constraint:	LEFT_INCLUSIVE index_key_type {$$ = new IndexBoundaryNode(true, $2);}
-		|			LEFT_EXCLUSIVE index_key_type {$$ = new IndexBoundaryNode(false, $2);}
+left_constraint:	LEFT_INCLUSIVE query %prec INDEX_LEFT {$$ = new IndexBoundaryNode(true, $2);}
+		|			LEFT_EXCLUSIVE query %prec INDEX_LEFT {$$ = new IndexBoundaryNode(false, $2);} 
 		;
 
-right_constraint:	index_key_type RIGHT_INCLUSIVE {$$ = new IndexBoundaryNode(true, $1);}
-		|			index_key_type RIGHT_EXCLUSIVE {$$ = new IndexBoundaryNode(false, $1);}
+right_constraint:	query RIGHT_INCLUSIVE {$$ = new IndexBoundaryNode(true, $1);}
+		|			query RIGHT_EXCLUSIVE {$$ = new IndexBoundaryNode(false, $1);}
 		;
 
 semicolon_opt:  /* empty */	{}

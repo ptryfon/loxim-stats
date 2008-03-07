@@ -143,11 +143,11 @@ START_TEST (simple_optimisation) {
 	fail_if (s1 != s2, "rozne wyniki po sparsowaniu: s1=%s, s2=%s", s1.c_str(), s2.c_str());
 	*/
 	s1 = optResult(p.get(), "emp where age < 3");
-	s2 = optResult(p.get(), "index emp_age 3 |)");
+	s2 = optResult(p.get(), "index emp_age |3 |)");
 	fail_if (s1 != s2, "rozne wyniki po sparsowaniu: s1=%s, s2=%s", s1.c_str(), s2.c_str());
 	
 	s1 = optResult(p.get(), "emp where 3 > age");
-	s2 = optResult(p.get(), "index emp_age 3 |)");
+	s2 = optResult(p.get(), "index emp_age |3 |)");
 	fail_if (s1 != s2, "rozne wyniki po sparsowaniu: s1=%s, s2=%s", s1.c_str(), s2.c_str());
 	
 	s1 = optResult(p.get(), "emp where 3 > age and age > 1");
@@ -155,7 +155,7 @@ START_TEST (simple_optimisation) {
 	fail_if (s1 != s2, "rozne wyniki po sparsowaniu: s1=%s, s2=%s", s1.c_str(), s2.c_str());
 	
 	s1 = optResult(p.get(), "emp where 3 >= age");
-	s2 = optResult(p.get(), "index emp_age 3 |>");
+	s2 = optResult(p.get(), "index emp_age |3 |>");
 	fail_if (s1 != s2, "rozne wyniki po sparsowaniu: s1=%s, s2=%s", s1.c_str(), s2.c_str());
 	
 	s1 = optResult(p.get(), "emp where 3 > age and age >= 1");
@@ -163,19 +163,19 @@ START_TEST (simple_optimisation) {
 	fail_if (s1 != s2, "rozne wyniki po sparsowaniu: s1=%s, s2=%s", s1.c_str(), s2.c_str());
 	
 	s1 = optResult(p.get(), "emp where 3 < age");
-	s2 = optResult(p.get(), "index emp_age (|3 ");
+	s2 = optResult(p.get(), "index emp_age (|3 |");
 	fail_if (s1 != s2, "rozne wyniki po sparsowaniu: s1=%s, s2=%s", s1.c_str(), s2.c_str());
 	
 	s1 = optResult(p.get(), "emp where age > 3");
-	s2 = optResult(p.get(), "index emp_age (|3 ");
+	s2 = optResult(p.get(), "index emp_age (|3 |");
 	fail_if (s1 != s2, "rozne wyniki po sparsowaniu: s1=%s, s2=%s", s1.c_str(), s2.c_str());
 	
 	s1 = optResult(p.get(), "emp where 3 <= age");
-	s2 = optResult(p.get(), "index emp_age <|3 ");
+	s2 = optResult(p.get(), "index emp_age <|3 |");
 	fail_if (s1 != s2, "rozne wyniki po sparsowaniu: s1=%s, s2=%s", s1.c_str(), s2.c_str());
 	
 	s1 = optResult(p.get(), "emp where age >= 3");
-	s2 = optResult(p.get(), "index emp_age <|3 ");
+	s2 = optResult(p.get(), "index emp_age <|3 |");
 	fail_if (s1 != s2, "rozne wyniki po sparsowaniu: s1=%s, s2=%s", s1.c_str(), s2.c_str());
 
 }END_TEST

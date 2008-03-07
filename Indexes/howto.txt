@@ -14,8 +14,8 @@ dml - musza byc wewnatrz transakcji:
 
 wyszukanie wszystkich root'ow o wartosci indeksowanego pola rownej A: index nazwa_indeksu = zapytanie_A
 wyszukanie od A (wlacznie z A) do B (bez B): index nazwa_indeksu <| zapytanie_A zapytanie_B |)
-wyszukanie wszystkich mniejszych lub rownych A: index nazwa_indeksu zapytanie_A |>
-wyszukanie wszystkich wiekszych od A: index nazwa_indeksu (| zapytanie_A
+wyszukanie wszystkich mniejszych lub rownych A: index nazwa_indeksu | zapytanie_A |>
+wyszukanie wszystkich wiekszych od A: index nazwa_indeksu (| zapytanie_A |
 
 wiecej skladni w pliku Tests/Syntax.cpp
 

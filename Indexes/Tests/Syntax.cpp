@@ -16,33 +16,33 @@ START_TEST (simple_syntax) {
 	QueryOptimizer::setImplicitIndexCall(false);
 	
 	
-	err = p->parseIt("index emp_age <| 5", tNode);
+	err = p->parseIt("index emp_age <| 5 |", tNode);
 	test(err, "blad parsowania");
 	tree.reset(tNode);
 	
-	err = p->parseIt("index emp_age <| 5", tNode);
+	err = p->parseIt("index emp_age <| 5|", tNode);
 	test(err, "blad parsowania");
 	tree.reset(tNode);
 	
-	err = p->parseIt("index emp_age <| \"ala\"", tNode);
+	err = p->parseIt("index emp_age <| \"ala\"|", tNode);
 	test(err, "blad parsowania");
 	tree.reset(tNode);
 	
-	err = p->parseIt("index emp_age <| 2.5", tNode);
+	err = p->parseIt("index emp_age <| 2.5|", tNode);
 	test(err, "blad parsowania");
 	tree.reset(tNode);
 	mark_point();
 	
 	tree.reset(NULL);
 	mark_point();
-	err = p->parseIt("index emp_age <| 2,5", tNode);
+	err = p->parseIt("index emp_age <| 2,5|", tNode);
 	fail_unless(err, "powinien byc blad");
 	//tree.reset(tNode);
 	
 	err = p->parseIt("index emp_age 2", tNode);
 	fail_unless(err, "powinien byc blad");
 		
-	err = p->parseIt("index emp_age (| 5", tNode);
+	err = p->parseIt("index emp_age (| 5|", tNode);
 	test(err, "blad parsowania");
 	tree.reset(tNode);
 
@@ -50,15 +50,15 @@ START_TEST (simple_syntax) {
 	test(err, "blad parsowania");
 	tree.reset(tNode);
 	
-	err = p->parseIt("index emp_age (5) |>", tNode);
+	err = p->parseIt("index emp_age |(5) |>", tNode);
 	test(err, "blad parsowania");
 	tree.reset(tNode);
 	
-	err = p->parseIt("index emp_age 5 |)", tNode);
+	err = p->parseIt("index emp_age |5 |)", tNode);
 	test(err, "blad parsowania");
 	tree.reset(tNode);
 	
-	err = p->parseIt("index emp_age 5|>", tNode);
+	err = p->parseIt("index emp_age |5|>", tNode);
 	test(err, "blad parsowania");
 	tree.reset(tNode);
 	
@@ -87,11 +87,15 @@ START_TEST (complex_query) {
 	auto_ptr<TreeNode> tree;
 	QueryOptimizer::setImplicitIndexCall(false);
 	
-	err = p->parseIt("(index emp_age <| 5) where a = 3", tNode);
+	err = p->parseIt("(index emp_age <| 5| ) where a = 3", tNode);
 	test(err, "blad parsowania");
 	tree.reset(tNode);
 		
-	err = p->parseIt("(index emp_age 5|)) where a = 3", tNode);
+	err = p->parseIt("(index emp_age |5|)) where a = 3", tNode);
+	test(err, "blad parsowania");
+	tree.reset(tNode);
+	
+	err = p->parseIt("index emp_age <| \"ala\"| + 4", tNode);
 	test(err, "blad parsowania");
 	tree.reset(tNode);
 	
@@ -104,15 +108,15 @@ START_TEST (subqueries) {
 	auto_ptr<TreeNode> tree;
 	QueryOptimizer::setImplicitIndexCall(false);
 	
-	err = p->parseIt("index emp_age <| (5 + 5)", tNode);
+	err = p->parseIt("index emp_age <| (5 + 5)|", tNode);
 	test(err, "blad parsowania");
 	tree.reset(tNode);
 	
-	err = p->parseIt("index emp_age <| (\"ala\" + 4)", tNode);
+	err = p->parseIt("index emp_age <| (\"ala\" + 4)|", tNode);
 	test(err, "blad parsowania");
 	tree.reset(tNode);
 	
-	err = p->parseIt("index emp_age <| 2.5", tNode);
+	err = p->parseIt("index emp_age <| 2.5 |", tNode);
 	test(err, "blad parsowania");
 	tree.reset(tNode);
 	mark_point();
@@ -123,7 +127,7 @@ START_TEST (subqueries) {
 	fail_unless(err, "powinien byc blad");
 	//tree.reset(tNode);
 		
-	err = p->parseIt("index emp_age (| (5)", tNode);
+	err = p->parseIt("index emp_age (| (5)|", tNode);
 	test(err, "blad parsowania");
 	tree.reset(tNode);
 
@@ -139,15 +143,15 @@ START_TEST (subqueries) {
 	test(err, "blad parsowania");
 	tree.reset(tNode);
 	
-	err = p->parseIt("index emp_age (5) |>", tNode);
+	err = p->parseIt("index emp_age |(5) |>", tNode);
 	test(err, "blad parsowania");
 	tree.reset(tNode);
 	
-	err = p->parseIt("index emp_age (5+5) |)", tNode);
+	err = p->parseIt("index emp_age |(5+5) |)", tNode);
 	test(err, "blad parsowania");
 	tree.reset(tNode);
 	
-	err = p->parseIt("index emp_age 5 + 7 |>", tNode);
+	err = p->parseIt("index emp_age | 5 + 7 |>", tNode);
 	test(err, "blad parsowania");
 	tree.reset(tNode);
 	
