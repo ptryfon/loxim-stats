@@ -1,3 +1,8 @@
+2008-03-07  Piotr Turski  <pt209301@students.mimuw.edu.pl>
+
+	* Indexes/Tests/ImplicitCalling.cpp, Indexes/Tests/IntegrationTest.cpp, Indexes/Tests/Syntax.cpp, Indexes/howto.txt, QueryParser/parser.y, QueryParser/scanner.l:
+	usuniecie konfliktow przesuniecie/redukcja. drobna zmiana skladni, testy do nowej skladni, manual
+
 2008-03-07  Krzysztof Stencel  <stencel@students.mimuw.edu.pl>
 
 	* QueryParser/AuxRmver.cpp, QueryParser/JoinRpcer.cpp:
