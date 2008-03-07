@@ -210,7 +210,7 @@ query	    : SYSTEMVIEWNAME { char *s = $1; $$ = new NameNode(s); delete s; }
 	    | NAME LEFTPAR querycommalist RIGHTPAR {$$ = new CallProcNode ($1, $3);}
 	    | EXTNAME LEFTPAR RIGHTPAR {$$ = new CallProcNode ($1);}
 	    | EXTNAME LEFTPAR querycommalist RIGHTPAR {$$ = new CallProcNode ($1, $3);}
-	    | CAST LEFTPAR query AS query RIGHTPAR {$$ = new ClassCastNode($3, $5);}
+	    | CAST LEFTPAR query AS LEFTPAR query RIGHTPAR RIGHTPAR {$$ = new ClassCastNode($3, $6);}
 		| CAST LEFTPAR query TO signature RIGHTPAR {$$ = new SimpleCastNode($3, $5); }
 	    | query INSTANCEOF query {$$ = new InstanceOfNode($1, $3);}
 	    | indexDML_query
@@ -409,8 +409,8 @@ type_decl_stmt: object_decl {$$ = $1;}
 		* already been added elsewhere. */
 	;
 			
-object_decl: NAME COLON signature semicolon_opt {char *s = $1; $$ = new ObjectDeclareNode(s, $3); delete s;}
-	| NAME LEFTSQUAREPAR CARDCONST RIGHTSQUAREPAR COLON signature semicolon_opt
+object_decl: NAME COLON signature {char *s = $1; $$ = new ObjectDeclareNode(s, $3); delete s;}
+	| NAME LEFTSQUAREPAR CARDCONST RIGHTSQUAREPAR COLON signature
 		{ char *s = $3; char *s2 = $1; $$ = new ObjectDeclareNode(s2, $6, s); delete s; delete s2;}
 	;
 				
