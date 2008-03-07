@@ -86,7 +86,6 @@ int JoinRpcer::replaceJoin(TreeNode *&qTree){
 	bool JoinRpcer::canReplace(NonAlgOpNode* dotNode){
 		// wiem ze lewym drzewem jest join
 		TreeNode* q1 = ((NonAlgOpNode*)dotNode->getLArg())->getLArg();
-		TreeNode* q2 = ((NonAlgOpNode*)dotNode->getLArg())->getRArg();
 		TreeNode* q3 = (NonAlgOpNode*)dotNode->getRArg();
 		
 		vector<NameNode*> *q3NamesVec = new vector<NameNode*>();
