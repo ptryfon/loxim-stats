@@ -1,3 +1,19 @@
+2008-03-08  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
+
+	* QueryParser/parser.y, QueryParser/scanner.l:
+	Wyczyszczona gramatyka, by usunac konflikty reduce/reduce konieczna byla zmiana w instrukcji CAST:
+	konflikt powodowaly konstrukcje:
+
+	query 	: NAME
+		: query AS NAME
+		: CAST LEFTPAR query AS query RIGHTPAR
+
+	By uniknac konfliktow reduce/reduce ta ostatnia konstrukcja zostala zmieniona - dodane nawiasy wokol drugiego query:
+
+	query : CAST LEFTPAR query AS LEFTPAR query RIGHTPAR RIGHTPAR
+
+	W tym momencie gramtyka nie ma juz zadnych konfliktow reduce/reduce ani shift/reduce :)
+
 2008-03-07  Piotr Turski  <pt209301@students.mimuw.edu.pl>
 
 	* Indexes/Tests/ImplicitCalling.cpp, Indexes/Tests/IntegrationTest.cpp, Indexes/Tests/Syntax.cpp, Indexes/howto.txt, QueryParser/parser.y, QueryParser/scanner.l:
