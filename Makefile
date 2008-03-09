@@ -35,7 +35,8 @@ doc:
 bin:
 	cp Server/Server.conf .
 	tar c Server/Listener SBQLCli/SBQLCli Backup/Backup Server.conf server.sh client.sh |gzip -c >loxim.tar.gz
-
+	rm Server.conf
+	
 clean:
 	@find -name "*.d" | xargs rm -f
 	@for i in $(SUBDIRS); do \
