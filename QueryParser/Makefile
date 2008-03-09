@@ -50,7 +50,7 @@ $(STATIC_LIB): $(OBJECTS)
 	$(RANLIB) $(STATIC_LIB)
 
 parser.tab.cpp: parser.y
-	if $(YACC) -d -v parser.y; then mv parser.tab.c parser.tab.cpp; else echo "Conflicts cause error!"; test 1 == 3; fi
+	$(YACC) -d -v parser.y -o parser.tab.cpp
 
 lex.yy.cpp: scanner.l parser.tab.cpp
 	$(LEX) scanner.l

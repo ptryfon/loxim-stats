@@ -8,7 +8,7 @@
 %{
 #include <iostream>
 #include "TreeNode.h"
-#include "parser.tab.h"
+#include "parser.tab.hpp"
 #include <string>
 #  ifndef YYERRCODE
 #    define YYERRCODE 256
