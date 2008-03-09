@@ -243,7 +243,6 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 				}
 				else {
 					if (vecSize_virt == 1) {
-						//DG TODO
 						LogicalID *view_lid = vec_virt->at(0);
 						string view_code;
 						errcode = qe->checkViewAndGetVirtuals(view_lid, name, view_code);
@@ -685,64 +684,121 @@ int QueryReferenceResult::nested(Transaction *&tr, QueryExecutor * qe) {
 
 
 
-// DG TODO
 int QueryVirtualResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe) {
 	int errcode;
 	ec->printf("[QE] nested(): QueryVirtualResult\n");
 	
-	vector<LogicalID *> subviews;
-	vector<LogicalID *> others;
-	errcode = qe->getSubviews(view_def, vo_name, subviews, others);
+	vector<QueryBagResult*> envs_sections;
+	for (int k = ((seeds.size()) - 1); k >= 0; k-- ) {
+		QueryResult *current_seed = seeds.at(k);
+		QueryResult *nested_seed = new QueryBagResult();
+		errcode = current_seed->nested(tr, nested_seed, qe);
+		if(errcode != 0) return errcode;
+		envs_sections.push_back((QueryBagResult *) nested_seed);
+	}
+	
+	string on_navigate_code;
+	string on_navigate_paramname;
+	errcode = qe->getOn_procedure(view_def, "on_navigate", on_navigate_code, on_navigate_paramname);
 	if (errcode != 0) return errcode;
-	for (unsigned int i = 0; i < subviews.size(); i++ ) {
-		LogicalID *subview_lid = subviews.at(i);
-		string subview_name = "";
-		string subview_code = "";
-		errcode = qe->checkViewAndGetVirtuals(subview_lid, subview_name, subview_code);
-		if (errcode != 0) return errcode;
-		vector<QueryBagResult*> envs_sections;
-		for (int k = ((seeds.size()) - 1); k >= 0; k-- ) {
-			QueryResult *bagged_seed = new QueryBagResult();
-			((QueryBagResult *) bagged_seed)->addResult(seeds.at(k));
-			envs_sections.push_back((QueryBagResult *) bagged_seed);
-		}
-		
-		errcode = qe->callProcedure(subview_code, envs_sections);
+	
+	// Gdy znaleziona jest procedura on_navigate, wykonywane jest przejscie po wirtualnym pointerze.
+	if (on_navigate_code != "") {
+	
+		errcode = qe->callProcedure(on_navigate_code, envs_sections);
 		if(errcode != 0) return errcode;
 		
-		QueryResult *res;
-		qe->pop_qres(res);
-		QueryResult *bagged_res = new QueryBagResult();
-		((QueryBagResult *) bagged_res)->addResult(res);
-		for (unsigned int j = 0; j < bagged_res->size(); j++) {
-			QueryResult *sub_seed;
-			errcode = ((QueryBagResult *) bagged_res)->at(j, sub_seed);
+		QueryResult *result;
+		qe->pop_qres(result);
+		QueryResult *bagged_result = new QueryBagResult();
+		((QueryBagResult *) bagged_result)->addResult(result);
+		for (unsigned int k = 0; k < bagged_result->size(); k++) {
+			QueryResult *next_res;
+			errcode = ((QueryBagResult *) bagged_result)->at(k, next_res);
 			if (errcode != 0) return errcode;
-			vector<QueryResult *> sub_seeds;
-			sub_seeds.push_back(sub_seed);
-			for (unsigned int k = 0; k < (seeds.size()); k++ ) {
-				sub_seeds.push_back(seeds.at(k));
+			
+			int next_res_type = next_res->type();
+			switch (next_res_type) {
+				case QueryResult::QVIRTUAL: {
+					string next_res_name = ((QueryVirtualResult *) next_res)->vo_name;
+					QueryBinderResult *next_res_binder = new QueryBinderResult(next_res_name, next_res);
+					r->addResult(next_res_binder);
+					break;
+				}
+				case QueryResult::QREFERENCE: {
+					ObjectPointer *optr;
+					LogicalID *tmp_logID = ((QueryReferenceResult *) next_res)->getValue();
+					if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, optr, false)) != 0) {
+						*ec << "[QE] Error in getObjectPointer";
+						qe->antyStarveFunction(errcode);
+						qe->inTransaction = false;
+						return errcode;
+					}
+					string next_res_name = optr->getName();
+					
+					QueryBinderResult *next_res_binder = new QueryBinderResult(next_res_name, next_res);
+					r->addResult(next_res_binder);
+					break;
+				}
+				case QueryResult::QBINDER: {
+					r->addResult(next_res);
+					break;
+				}
 			}
-			QueryResult *virt_res = new QueryVirtualResult(subview_name, subview_lid, sub_seeds);
-			QueryBinderResult *final_binder = new QueryBinderResult(subview_name, virt_res);
+		}
+	}
+	// Przymujac semantyke, ktora wyklucza jednoczesne podperspektywy, gdy jest on_navigate
+	// trzeba odkomentowac else { i }
+	
+	//else {
+		vector<LogicalID *> subviews;
+		vector<LogicalID *> others;
+		errcode = qe->getSubviews(view_def, vo_name, subviews, others);
+		if (errcode != 0) return errcode;
+		for (unsigned int i = 0; i < subviews.size(); i++ ) {
+			LogicalID *subview_lid = subviews.at(i);
+			string subview_name = "";
+			string subview_code = "";
+			errcode = qe->checkViewAndGetVirtuals(subview_lid, subview_name, subview_code);
+			if (errcode != 0) return errcode;
+			
+			errcode = qe->callProcedure(subview_code, envs_sections);
+			if(errcode != 0) return errcode;
+			
+			QueryResult *res;
+			qe->pop_qres(res);
+			QueryResult *bagged_res = new QueryBagResult();
+			((QueryBagResult *) bagged_res)->addResult(res);
+			for (unsigned int j = 0; j < bagged_res->size(); j++) {
+				QueryResult *sub_seed;
+				errcode = ((QueryBagResult *) bagged_res)->at(j, sub_seed);
+				if (errcode != 0) return errcode;
+				vector<QueryResult *> sub_seeds;
+				sub_seeds.push_back(sub_seed);
+				for (unsigned int k = 0; k < (seeds.size()); k++ ) {
+					sub_seeds.push_back(seeds.at(k));
+				}
+				QueryResult *virt_res = new QueryVirtualResult(subview_name, subview_lid, sub_seeds);
+				QueryBinderResult *final_binder = new QueryBinderResult(subview_name, virt_res);
+				r->addResult(final_binder);
+			}
+			
+		}
+		for (unsigned int i = 0; i < others.size(); i++ ) {
+			LogicalID *tmp_logID = others.at(i);
+			ObjectPointer *tmp_optr;
+			if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, tmp_optr, false)) != 0) {
+				*ec << "[QE] Error in getObjectPointer";
+				qe->antyStarveFunction(errcode);
+				qe->inTransaction = false;
+				return errcode;
+			}
+			string tmp_name = tmp_optr->getName();
+			QueryReferenceResult *final_ref = new QueryReferenceResult(tmp_logID);
+			QueryBinderResult *final_binder = new QueryBinderResult(tmp_name, final_ref);
 			r->addResult(final_binder);
 		}
-		
-	}
-	for (unsigned int i = 0; i < others.size(); i++ ) {
-		LogicalID *tmp_logID = others.at(i);
-		ObjectPointer *tmp_optr;
-		if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, tmp_optr, false)) != 0) {
-			*ec << "[QE] Error in getObjectPointer";
-			qe->antyStarveFunction(errcode);
-			qe->inTransaction = false;
-			return errcode;
-		}
-		string tmp_name = tmp_optr->getName();
-		QueryReferenceResult *final_ref = new QueryReferenceResult(tmp_logID);
-		QueryBinderResult *final_binder = new QueryBinderResult(tmp_name, final_ref);
-		r->addResult(final_binder);
-	}
+	//}
 	return 0;
 }
 
