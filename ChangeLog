@@ -1,5 +1,10 @@
 2008-03-09  Krzysztof Stencel  <stencel@students.mimuw.edu.pl>
 
+	* QueryExecutor/ClassGraph.cpp: Removed a warning from ClassGraph.cpp.
+
+	* Makefile:
+	Added rm Server.conf to make target bin so that 'make bin' will not litter.
+
 	* QueryParser/Makefile, QueryParser/scanner.l:
 	Second attempt to make bison treat warnings as errors.
 	Bison outputs files parser.tab.cpp and parser.tab.hpp.
