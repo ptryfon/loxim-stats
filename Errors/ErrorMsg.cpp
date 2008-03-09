@@ -5,7 +5,7 @@ using namespace std;
 
 namespace Errors {
 
-struct {
+struct ErrorMessages {
 	int e;
 	string s;
 } ErrorMsg[] = {

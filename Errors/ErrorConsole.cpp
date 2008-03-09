@@ -10,7 +10,7 @@ using namespace std;
 using namespace Config;
 
 namespace Errors {
-	extern struct {
+	extern struct ErrorMessages {
 		int e;
 		char *s;
 	} ErrorMsg[];
