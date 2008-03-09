@@ -13,7 +13,6 @@ HEADERS	=	Connection.h \
 LIBS	=	../TCPProto/TCPProto.a
 
 STATIC_LIB =	Driver.a
-PROGRAM =	ResultTest
 
 OBJECTS	=	$(SOURCES:.cpp=.o)
 DEPFILES =	$(OBJECTS:.o=.d)
