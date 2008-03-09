@@ -2261,6 +2261,51 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			}//if
 			else { // this is normal (not recursive) non algebraic operation
 				if (((lResult->type()) == QueryResult::QSEQUENCE) || ((lResult->type()) == QueryResult::QBAG)) {
+					
+					string virtualize_as_name;
+					LogicalID* referenced_view_lid;
+					string referenced_view_code;
+					string referenced_view_param;
+					if (op == NonAlgOpNode::virtualizeAs) {
+						QueryNode *right_query = ((NonAlgOpNode *) tree)->getRArg();
+						if (right_query->type() == TreeNode::TNNAME) {
+						
+							virtualize_as_name = right_query->getName();
+							vector<LogicalID*>* vec_virt;
+							if ((errcode = tr->getViewsLID(virtualize_as_name, vec_virt)) != 0) {
+								*ec << "[QE] error in getViewsLID";
+								antyStarveFunction(errcode);
+								inTransaction = false;
+								return errcode;
+							}
+							int vecSize_virt = vec_virt->size();
+							ec->printf("[QE] %d Views LID by name taken\n", vecSize_virt);
+							
+							if (vecSize_virt != 1) {
+								*ec << "[QE] bindName error, while searching for a view";
+								*ec << (ErrQExecutor | EBadBindName);
+								return ErrQExecutor | EBadBindName;
+							}
+							
+							referenced_view_lid = vec_virt->at(0);
+							errcode = getOn_procedure(referenced_view_lid, "on_virtualize", referenced_view_code, referenced_view_param);
+							if (errcode != 0) return errcode;
+							if (referenced_view_code == "") {
+								*ec << "[QE] operator <virtualize as> - this VirtualObject doesn't have this operation defined";
+								*ec << (ErrQExecutor | EOperNotDefined);
+								return ErrQExecutor | EOperNotDefined;
+							}
+						}
+						else if (false /* odpowiedni warunek */) {
+							// DG TODO pointer do nie korzeniowej perspektywy
+						}
+						else {
+							*ec << "[QE] wrong argument in <virtualize as> opeartion";
+							*ec << (ErrQExecutor | EUnknownNode);
+							return ErrQExecutor | EUnknownNode;
+						}
+					}
+					
 					*ec << "[QE] For each row of this score, the right argument will be computed";
 					for (unsigned int i = 0; i < (lResult->size()); i++) {
 						QueryResult *currentResult;
@@ -2271,30 +2316,52 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 							errcode = (((QueryBagResult *) lResult)->at(i, currentResult));
 						if (errcode != 0) return errcode;
 						
-						/*QueryResult *newStackSection = new QueryBagResult();
-						ec->printf("[QE] zaczynam nested()\n");
-						errcode = (currentResult)->nested(tr, newStackSection, this);
-						if (errcode != 0) return errcode;
-						ec->printf("[QE] nested(): function calculated for current row number %d\n", i);
-						errcode = envs->push((QueryBagResult *) newStackSection, tr, this);
-						if (errcode != 0) return errcode;*/
-						
-						ec->printf("[QE] zaczynam nested()\n");
-						errcode = (currentResult)->nested(tr, this);
-						if (errcode != 0) return errcode;
-						
-						
 						QueryResult *rResult;
-						errcode = executeRecQuery (((NonAlgOpNode *) tree)->getRArg());
-						if (errcode != 0) return errcode;
-						errcode = qres->pop(rResult);
-						if (errcode != 0) return errcode;
-						*ec << "[QE] Computing right Argument with a new scope of ES";
-						errcode = this->combine(op,currentResult,rResult,partial_result);
-						if (errcode != 0) return errcode;
-						*ec << "[QE] Combined partial results";
-						errcode = envs->pop();
-						if (errcode != 0) return errcode;
+						if (op == NonAlgOpNode::virtualizeAs) {
+							
+							vector<QueryBagResult*> envs_sections;
+							QueryResult *param_binder = new QueryBinderResult(referenced_view_param, currentResult);
+							QueryResult *param_bag = new QueryBagResult();
+							((QueryBagResult *) param_bag)->addResult(param_binder);
+							envs_sections.push_back((QueryBagResult *) param_bag);
+							
+							errcode = callProcedure(referenced_view_code, envs_sections);
+							if(errcode != 0) return errcode;
+							
+							QueryResult *callproc_res;
+							pop_qres(callproc_res);
+							QueryResult *bagged_callproc_res = new QueryBagResult();
+							((QueryBagResult *) bagged_callproc_res)->addResult(callproc_res);
+							
+							for (unsigned int ii = 0; ii < bagged_callproc_res->size(); ii++) {
+								QueryResult *seed;
+								errcode = ((QueryBagResult *) bagged_callproc_res)->at(ii, seed);
+								if (errcode != 0) return errcode;
+								
+								vector<QueryResult *> seeds;
+								seeds.push_back(seed);
+								QueryResult *virt_res = new QueryVirtualResult(virtualize_as_name, referenced_view_lid, seeds);
+								partial_result->addResult(virt_res);
+							}
+						}
+						else {
+							ec->printf("[QE] nested operation started()\n");
+							errcode = (currentResult)->nested(tr, this);
+							if (errcode != 0) return errcode;
+							
+							*ec << "[QE] Computing right Argument with a new scope of ES";
+							errcode = executeRecQuery (((NonAlgOpNode *) tree)->getRArg());
+							if (errcode != 0) return errcode;
+							errcode = qres->pop(rResult);
+							if (errcode != 0) return errcode;
+							
+							errcode = envs->pop();
+							if (errcode != 0) return errcode;
+							
+							errcode = this->combine(op,currentResult,rResult,partial_result);
+							if (errcode != 0) return errcode;
+							*ec << "[QE] Combined partial results";
+						}
 					}
 				}
 				else {
@@ -5021,6 +5088,11 @@ int QueryExecutor::combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryRe
 			*ec << "[QE] combine(): NonAlgebraic operator <forEach>";
 			break;
 		}
+		case NonAlgOpNode::virtualizeAs: {
+			*ec << "[QE] combine(): NonAlgebraic operator <virtualizaAs>";
+			partial->addResult(rRes);
+			break;
+		}
 		default: {
 			*ec << "[QE] combine(): unknown NonAlgebraic operator!";
 			*ec << (ErrQExecutor | EUnknownNode);
@@ -5105,6 +5177,11 @@ int QueryExecutor::merge(NonAlgOpNode::nonAlgOp op, QueryResult *partial, QueryR
 		}
 		case NonAlgOpNode::forEach: {
 			*ec << "[QE] merge(): NonAlgebraic operator <forEach>";
+			final = partial;
+			break;
+		}
+		case NonAlgOpNode::virtualizeAs: {
+			*ec << "[QE] merge(): NonAlgebraic operator <virtualizeAs>";
 			final = partial;
 			break;
 		}

@@ -1447,7 +1447,7 @@ namespace QParser {
     {
     public:
 	enum nonAlgOp { dot, join, where, closeBy, closeUniqueBy, leavesBy,
-                  leavesUniqueBy, orderBy, exists, forAll, forEach };
+                  leavesUniqueBy, orderBy, exists, forAll, forEach, virtualizeAs };
     protected:
 	QueryNode* larg;
 	QueryNode* rarg;
@@ -1572,7 +1572,8 @@ namespace QParser {
 	    if (op == 7) return "orderBy";	    
 	    if (op == 8) return "exists";	    
 	    if (op == 9) return "forAll";
-	    if (op == 10) return "forEach";	    
+	    if (op == 10) return "forEach";
+	    if (op == 11) return "virtualizeAs";	    
 	    return "~~~";	}
 	virtual int staticEval (StatQResStack *&qres, StatEnvStack *&envs);	
 	virtual int optimizeTree();	
@@ -1625,6 +1626,10 @@ namespace QParser {
 			}
 			case NonAlgOpNode::forEach: { 
 				result = " for each" + larg->deParse() + "do" + rarg->deParse() + "od "; 
+				return result; 
+			}
+			case NonAlgOpNode::virtualizeAs: { 
+				result = " (" + larg->deParse() + "virtualize as" + rarg->deParse() + ") "; 
 				return result; 
 			}
 		}
