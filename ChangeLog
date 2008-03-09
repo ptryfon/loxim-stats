@@ -1,3 +1,17 @@
+2008-03-09  Krzysztof Stencel  <stencel@students.mimuw.edu.pl>
+
+	* QueryParser/Makefile, QueryParser/scanner.l:
+	Second attempt to make bison treat warnings as errors.
+	Bison outputs files parser.tab.cpp and parser.tab.hpp.
+	A small change in #include in scanner.l was reuired.
+
+	* QueryParser/Makefile, QueryParser/parser.y:
+	First try to make parser conflicts unacceptable.
+
+	The clause %exptect 0 added to parser.y.
+
+	Makefile bails out when a conflict is encountered.
+
 2008-03-09  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
 
 	* QueryExecutor/QueryExecutor.cpp, QueryParser/TreeNode.h, QueryParser/parser.y, QueryParser/scanner.l:
