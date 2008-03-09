@@ -1,3 +1,8 @@
+2008-03-09  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
+
+	* QueryExecutor/EnvironmentStack.cpp, QueryExecutor/QueryExecutor.cpp:
+	Wirtualny Pointer wersja 0.99
+
 2008-03-09  Krzysztof Stencel  <stencel@students.mimuw.edu.pl>
 
 	* Log/Backup.h: Removed a warning from Backup.h.
