@@ -1,5 +1,15 @@
 2008-03-09  Krzysztof Stencel  <stencel@students.mimuw.edu.pl>
 
+	* Log/Backup.h: Removed a warning from Backup.h.
+
+	* Errors/ErrorConsole.cpp, Errors/ErrorMsg.cpp:
+	Removed last warnings from Error module.
+
+	* Driver/Attic/ResultTest.cpp, Driver/Makefile:
+	Removed unneccesary ResultTest.cpp which caused warnings BTW.
+
+	* Errors/ErrorMsg.cpp: Removed warnings from ErrorMsg.cpp.
+
 	* QueryExecutor/ClassGraph.cpp: Removed a warning from ClassGraph.cpp.
 
 	* Makefile:
@@ -1366,7 +1376,7 @@
 
 2006-06-29  Cezary Tkaczyk  <ct201224@students.mimuw.edu.pl>
 
-	* Driver/Connection.cpp, Driver/Connection.h, Driver/ResultTest.cpp, SBQLCli/SBQLCli.cpp, TCPProto/Makefile, TCPProto/Package.h, TCPProto/ParamStatementPackage.cpp, TCPProto/StatementPackage.cpp, TCPProto/Tcp.cpp:
+	* Driver/Attic/ResultTest.cpp, Driver/Connection.cpp, Driver/Connection.h, SBQLCli/SBQLCli.cpp, TCPProto/Makefile, TCPProto/Package.h, TCPProto/ParamStatementPackage.cpp, TCPProto/StatementPackage.cpp, TCPProto/Tcp.cpp:
 	Uzupelnienie poprzedniego commitu o ParamStatementPackage. Teraz jest
 	juz zaimplementowane wszystko dotyczace serializacji w celu
 	parametryzacji zapytan, za wyjatkiem przesylania Result ->
@@ -3580,7 +3590,7 @@
 
 2006-01-12  Piotr Turski  <pt209301@students.mimuw.edu.pl>
 
-	* Driver/Connection.cpp, Driver/Connection.h, Driver/DriverManager.cpp, Driver/DriverManager.h, Driver/Result.cpp, Driver/Result.h, Driver/ResultTest.cpp, SBQLCli/SBQLCli.cpp, Server/Server.cpp, TCPProto/Tcp.cpp:
+	* Driver/Attic/ResultTest.cpp, Driver/Connection.cpp, Driver/Connection.h, Driver/DriverManager.cpp, Driver/DriverManager.h, Driver/Result.cpp, Driver/Result.h, SBQLCli/SBQLCli.cpp, Server/Server.cpp, TCPProto/Tcp.cpp:
 	teraz driver jest w swoim namespacie
 
 2006-01-12  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
@@ -3767,7 +3777,7 @@
 
 2005-12-16  Cezary Tkaczyk  <ct201224@students.mimuw.edu.pl>
 
-	* Driver/Makefile, Driver/ResultTest.cpp: Dodane testy do Result*
+	* Driver/Attic/ResultTest.cpp, Driver/Makefile: Dodane testy do Result*
 
 2005-12-16  Michal Drausowski  <md243003@students.mimuw.edu.pl>
 
