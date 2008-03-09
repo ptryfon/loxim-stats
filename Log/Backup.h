@@ -136,7 +136,7 @@ class BackupManager
       int fileDes = ::open( logsPath.c_str(), O_WRONLY, S_IWUSR | S_IRUSR );
 
       ::lseek( fileDes, 0, SEEK_END );
-      int err = LogRecord::writeLogRecord( lr, fileDes );
+      LogRecord::writeLogRecord( lr, fileDes );
 
       close( fileDes );
     }
