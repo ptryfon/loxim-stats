@@ -838,8 +838,8 @@ ClassGraphVertex::~ClassGraphVertex() {
 }
 
 ClassGraph::ClassGraph():lazy(false) { 
-	char* str = QE_NAMES_SEPARATOR;
-	separatorLen = strlen(str);
+	string str = QE_NAMES_SEPARATOR;
+	separatorLen = str.length();
 }
 
 }
