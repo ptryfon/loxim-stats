@@ -7,7 +7,7 @@ namespace Errors {
 
 struct {
 	int e;
-	char *s;
+	string s;
 } ErrorMsg[] = {
 	{ENoError,         "No error"},
 	{ENoFile,          "No such file"},
