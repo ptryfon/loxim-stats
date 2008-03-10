@@ -455,13 +455,6 @@ int QueryResult::nested(Transaction *&tr, QueryExecutor * qe) {
 	return qe->getEnvs()->push((QueryBagResult *) newStackSection, tr, qe);
 }
 
-/*int QueryReferenceResult::nested(Transaction *&tr, QueryExecutor * qe) {
-	QueryResult *newStackSection = new QueryBagResult();
-	int errcode = this->nested(tr, newStackSection, qe);
-	if (errcode != 0) return errcode;
-	return qe->getEnvs()->push((QueryBagResult *) newStackSection, tr, qe);
-}*/
-
 int QuerySequenceResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe) {
 	*ec << "[QE] nested(): ERROR! QuerySequenceResult shouldn't be nested";
 	*ec << (ErrQExecutor | EOtherResExp);
@@ -544,7 +537,6 @@ int QueryReferenceResult::nested(Transaction *&tr, QueryExecutor * qe) {
 		*ec << "remote logicalID\n";
 		return qe->getEnvs()->push(r, tr, qe);
 	}
-	*ec << "this is not logicalId\n";
 	/* end of remoteID processing */
 	
 	DataValue* tmp_data_value;
@@ -691,8 +683,12 @@ int QueryVirtualResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor 
 	vector<QueryBagResult*> envs_sections;
 	for (int k = ((seeds.size()) - 1); k >= 0; k-- ) {
 		QueryResult *current_seed = seeds.at(k);
-		QueryResult *nested_seed = new QueryBagResult();
-		errcode = current_seed->nested(tr, nested_seed, qe);
+		errcode = current_seed->nested(tr, qe);
+		if(errcode != 0) return errcode;
+		QueryBagResult *nested_seed;
+		errcode = qe->getEnvs()->top(nested_seed);
+		if(errcode != 0) return errcode;
+		errcode = qe->getEnvs()->pop();
 		if(errcode != 0) return errcode;
 		envs_sections.push_back((QueryBagResult *) nested_seed);
 	}

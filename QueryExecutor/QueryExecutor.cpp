@@ -5698,9 +5698,7 @@ int QueryExecutor::getOn_procedure(LogicalID *lid, string procName, string &code
 int QueryExecutor::callProcedure(string code, vector<QueryBagResult*> sections) {
 	
 	*ec << "[QE] TNCALLPROC";
-	*ec << "  *  ";
 	*ec << code;
-	*ec << "  *  ";
 	
 	int errcode;
 	QueryParser* tmpQP = new QueryParser();
