@@ -1,3 +1,8 @@
+2008-03-11  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
+
+	* QueryExecutor/EnvironmentStack.cpp, QueryExecutor/QueryExecutor.cpp:
+	bug fixed
+
 2008-03-10  Krzysztof Stencel  <stencel@students.mimuw.edu.pl>
 
 	* QueryCacher/.cvsignore: Added missing .cvsignore.
