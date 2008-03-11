@@ -674,7 +674,6 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				new_envs_sect->addResult(new_binder);
 			}
 			
-			// DG TODO
 			// callProcedure wklada na stos sekcje w takiej kolejnosci jak sa w podanym wektorze
 			// envs_sections(0) bedzie najnizej, envs_sections(n) bedzie na wierzcholku stosu
 			vector<QueryBagResult*> envs_sections;
@@ -2861,7 +2860,7 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 			break;
 		}
 		case QueryResult::QVIRTUAL: {
-			// DG TODO
+			// DG TODO m.in. sprawdzenie wasRefed()
 			LogicalID *view_def = ((QueryVirtualResult*) arg)->view_def;
 			vector<QueryResult *> seeds = ((QueryVirtualResult*) arg)->seeds;
 			string proc_code = "";
@@ -2873,11 +2872,18 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 				*ec << (ErrQExecutor | EOperNotDefined);
 				return ErrQExecutor | EOperNotDefined;
 			}
+			
 			vector<QueryBagResult*> envs_sections;
 			for (int k = ((seeds.size()) - 1); k >= 0; k-- ) {
-				QueryResult *bagged_seed = new QueryBagResult();
-				((QueryBagResult *) bagged_seed)->addResult(seeds.at(k));
-				envs_sections.push_back((QueryBagResult *) bagged_seed);
+				QueryResult *current_seed = seeds.at(k);
+				errcode = current_seed->nested(tr, this);
+				if(errcode != 0) return errcode;
+				QueryBagResult *nested_seed;
+				errcode = envs->top(nested_seed);
+				if(errcode != 0) return errcode;
+				errcode = envs->pop();
+				if(errcode != 0) return errcode;
+				envs_sections.push_back((QueryBagResult *) nested_seed);
 			}
 			
 			errcode = callProcedure(proc_code, envs_sections);
@@ -3650,9 +3656,15 @@ int QueryExecutor::persistDelete(QueryResult* bagArg) {
 			
 			vector<QueryBagResult*> envs_sections;
 			for (int k = ((seeds.size()) - 1); k >= 0; k-- ) {
-				QueryResult *bagged_seed = new QueryBagResult();
-				((QueryBagResult *) bagged_seed)->addResult(seeds.at(k));
-				envs_sections.push_back((QueryBagResult *) bagged_seed);
+				QueryResult *current_seed = seeds.at(k);
+				errcode = current_seed->nested(tr, this);
+				if(errcode != 0) return errcode;
+				QueryBagResult *nested_seed;
+				errcode = envs->top(nested_seed);
+				if(errcode != 0) return errcode;
+				errcode = envs->pop();
+				if(errcode != 0) return errcode;
+				envs_sections.push_back((QueryBagResult *) nested_seed);
 			}
 				
 			errcode = callProcedure(proc_code, envs_sections);
@@ -4555,10 +4567,17 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 							
 							vector<QueryBagResult*> envs_sections;
 							for (int k = ((main_seeds.size()) - 1); k >= 0; k-- ) {
-								QueryResult *bagged_seed = new QueryBagResult();
-								((QueryBagResult *) bagged_seed)->addResult(main_seeds.at(k));
-								envs_sections.push_back((QueryBagResult *) bagged_seed);
+								QueryResult *current_seed = main_seeds.at(k);
+								errcode = current_seed->nested(tr, this);
+								if(errcode != 0) return errcode;
+								QueryBagResult *nested_seed;
+								errcode = envs->top(nested_seed);
+								if(errcode != 0) return errcode;
+								errcode = envs->pop();
+								if(errcode != 0) return errcode;
+								envs_sections.push_back((QueryBagResult *) nested_seed);
 							}
+							
 							QueryResult *param_binder = new QueryBinderResult(proc_param, toInsert_value);
 							QueryResult *param_bag = new QueryBagResult();
 							((QueryBagResult *) param_bag)->addResult(param_binder);
@@ -4840,12 +4859,20 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 					*ec << (ErrQExecutor | EOperNotDefined);
 					return ErrQExecutor | EOperNotDefined;
 				}
+				
 				vector<QueryBagResult*> envs_sections;
 				for (int k = ((seeds.size()) - 1); k >= 0; k-- ) {
-					QueryResult *bagged_seed = new QueryBagResult();
-					((QueryBagResult *) bagged_seed)->addResult(seeds.at(k));
-					envs_sections.push_back((QueryBagResult *) bagged_seed);
+					QueryResult *current_seed = seeds.at(k);
+					errcode = current_seed->nested(tr, this);
+					if(errcode != 0) return errcode;
+					QueryBagResult *nested_seed;
+					errcode = envs->top(nested_seed);
+					if(errcode != 0) return errcode;
+					errcode = envs->pop();
+					if(errcode != 0) return errcode;
+					envs_sections.push_back((QueryBagResult *) nested_seed);
 				}
+			
 				QueryResult *param_binder = new QueryBinderResult(proc_param, rArg);
 				QueryResult *param_bag = new QueryBagResult();
 				((QueryBagResult *) param_bag)->addResult(param_binder);
@@ -5822,7 +5849,7 @@ int QueryExecutor::deVirtualize(QueryResult *arg, QueryResult *&res) {
 			res = arg;
 			break;
 		}
-		//TODO poprawic devirtualizajce
+		//DG TODO poprawic devirtualizajce nie zwracac ziaren, tylko jakies sztuczne LID
 		case QueryResult::QVIRTUAL: {
 			if ((((QueryVirtualResult *)arg)->seeds.size() > 0) && (((QueryVirtualResult *)arg)->seeds.at(0) != NULL))
 				res = ((QueryVirtualResult *)arg)->seeds.at(0);
