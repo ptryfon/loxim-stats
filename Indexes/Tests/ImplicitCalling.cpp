@@ -73,6 +73,9 @@ START_TEST (possibility) {
 	ok = optPossible(p.get(), true, "emp where age2 > 3 and age = 7");
 	fail_unless(ok, "bledne wyliczenie mozliwosci optymalizacji");
 	
+	ok = optPossible(p.get(), true, "emp where (age2 > 3 or whatever) and age = 7");
+	fail_unless(ok, "bledne wyliczenie mozliwosci optymalizacji");
+	
 	ok = optPossible(p.get(), true, "emp where age2 > 3 and age = 7 and age3 = 3");
 	fail_unless(ok, "bledne wyliczenie mozliwosci optymalizacji");
 	
@@ -206,6 +209,14 @@ START_TEST (complex_optimisation) {
 	
 	s1 = optResult(p.get(), "emp where age > 3 and not_age = 5 and age <= 6");
 	s2 = optResult(p.get(), "(index emp_age (|3 to 6|>) where not_age = 5");
+	fail_if (s1 != s2, "rozne wyniki po sparsowaniu: s1=%s, s2=%s", s1.c_str(), s2.c_str());
+	
+	s1 = optResult(p.get(), "emp where age > 3 and (whatever or not_age = 5) and age <= 6");
+	s2 = optResult(p.get(), "(index emp_age (|3 to 6|>) where (whatever or not_age = 5)");
+	fail_if (s1 != s2, "rozne wyniki po sparsowaniu: s1=%s, s2=%s", s1.c_str(), s2.c_str());
+	
+	s1 = optResult(p.get(), "emp where age > 3 and (age = 1 or not_age = 5) and age <= 6");
+	s2 = optResult(p.get(), "(index emp_age (|3 to 6|>) where (age = 1 or not_age = 5)");
 	fail_if (s1 != s2, "rozne wyniki po sparsowaniu: s1=%s, s2=%s", s1.c_str(), s2.c_str());
 	
 	//sprawdzenie czy toString dziala
