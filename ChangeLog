@@ -1,5 +1,8 @@
 2008-03-12  Piotr Turski  <pt209301@students.mimuw.edu.pl>
 
+	* Indexes/Tests/ImplicitCalling.cpp, Indexes/Tests/IntegrationTest.cpp:
+	dodatkowe testy optymalizacji przy uzyciu indeksow i testy uzywania indeksow jako podzapytan
+
 	* Indexes/Tests/ImplicitCalling.cpp:
 	dodatkowe testy optymalizacji przy uzyciu indeksow
 
