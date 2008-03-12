@@ -1004,6 +1004,57 @@ START_TEST (subqueries_calculation) {
 		
 }END_TEST
 
+START_TEST (additional_where) {
+	QueryResult* res;
+	auto_ptr<QueryResult> qr1;
+	int err;
+	auto_ptr<IndexTesting::ConnectionThread> con1(new IndexTesting::ConnectionThread());
+	auto_ptr<IndexTesting::ConnectionThread> con2(new IndexTesting::ConnectionThread());
+	
+	err = con1->process("create int index emp_age on emp(age)", QueryResult::QNOTHING);
+	test(err, "tworzenie indeksu");
+	
+	err = con1->begin();
+	test(err, "begin");
+	
+	err = con1->process("create (20 as age, 30 as not_age) as emp", QueryResult::QBAG);
+	test(err, "dodanie obiektu");
+	
+	err = con1->process("create (20 as age, 30 as not_age) as emp", QueryResult::QBAG);
+	test(err, "dodanie obiektu");
+	
+	err = con1->process("create (20 as age, 30 as not_age) as emp", QueryResult::QBAG);
+	test(err, "dodanie obiektu");
+	
+	err = con1->process("create (20 as age, 40 as not_age) as emp", QueryResult::QBAG);
+	test(err, "dodanie obiektu");
+	
+	err = con1->process("create (30 as age, 30 as not_age) as emp", QueryResult::QBAG);
+	test(err, "dodanie obiektu");
+	
+	err = con1->process("create (40 as age, 30 as not_age) as emp", QueryResult::QBAG);
+	test(err, "dodanie obiektu");
+	
+	err = con1->process("(index emp_age = 20) where not_age = 30", res);
+	test(err, "zliczanie indeksow");
+	qr1.reset(res);
+	
+	fail_if(qr1->size() != 3, "zle zlicza obiekty: %d obiektow", qr1->size());
+	
+	err = con1->process("(index emp_age <| 19 to 35 |) ) where age = 20", res);
+	test(err, "zliczanie indeksow");
+	qr1.reset(res);
+	
+	fail_if(qr1->size() != 4, "zle zlicza obiekty: %d obiektow", qr1->size());
+	
+	err = con1->process("(index emp_age <| 19 to 35 |) ) where age = 30", res);
+	test(err, "zliczanie indeksow");
+	qr1.reset(res);
+	
+	fail_if(qr1->size() != 1, "zle zlicza obiekty: %d obiektow", qr1->size());
+	
+}END_TEST
+
 /** template
 
 START_TEST (name) {
@@ -1036,6 +1087,7 @@ Suite * integration() {
 	tcase_add_test (tc_core, root_remove);
 	tcase_add_test (tc_core, subqueries_calculation);
 	tcase_add_test (tc_core, horizonMove);
+	tcase_add_test (tc_core, additional_where);
 	
    // tcase_add_test (tc_core, loop);
 	//tcase_add_test_raise_signal(tc_core, segfault, SIGSEGV);
