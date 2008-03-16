@@ -23,6 +23,7 @@
   QParser::VectorNode* vectree;
   QParser::ProcedureNode* proctree;
   QParser::ViewNode* viewtree;
+  QParser::VirtualizeAsNode* virtualized;
   QParser::ClassNode* classtree;
   QParser::ClassCastNode* classcast;
   QParser::Privilige *privilige;
@@ -97,6 +98,7 @@
 %type <viewtree> viewrecdef
 %type <viewtree> viewdef
 %type <proctree> viewproc
+%type <virtualized> virtualize_query
 %type <fxtree> queryfixlist
 %type <vectree> querycommalist
 %type <tree> indexDDL_stmt
@@ -186,7 +188,6 @@ query	    : SYSTEMVIEWNAME { char *s = $1; $$ = new NameNode(s); delete s; }
 	    | query ORDER_BY query { $$ = new NonAlgOpNode($1,$3,NonAlgOpNode::orderBy); }
 	    | query EXISTS query { $$ = new NonAlgOpNode($1,$3,NonAlgOpNode::exists); }
 	    | query FOR_ALL query { $$ = new NonAlgOpNode($1,$3,NonAlgOpNode::forAll); }
-	    | query VIRTUALIZE_AS query { $$ = new NonAlgOpNode($1,$3,NonAlgOpNode::virtualizeAs); }
 	    | CREATE query { $$ = new CreateNode($2); }
 	    | query INSERTINTO query { $$ = new AlgOpNode($1,$3,AlgOpNode::insert); }
 	    | DELETE query  { $$ = new UnOpNode($2,UnOpNode::deleteOp); }
@@ -216,7 +217,9 @@ query	    : SYSTEMVIEWNAME { char *s = $1; $$ = new NameNode(s); delete s; }
 		| CAST LEFTPAR query TO signature RIGHTPAR {$$ = new SimpleCastNode($3, $5); }
 	    | query INSTANCEOF query {$$ = new InstanceOfNode($1, $3);}
 	    | indexDML_query
-    	    | THROW query {$$ = new ThrowExceptionNode ($2); };
+    	    | THROW query {$$ = new ThrowExceptionNode ($2); }
+    	    | virtualize_query {$$ = $1}
+    	    ;
 
 queryfixlist   : NAME FIX_OP query { $$ = new FixPointNode ($1, $3); }
 	    | queryfixlist NAME FIX_OP query {$$ = new FixPointNode ($2, $4, $1); }
@@ -265,6 +268,10 @@ viewproc    : procquery { $$ = $1; }
             | PROCEDURE ONVITRUALIZE LEFTPAR NAME RIGHTPAR LEFTPROCPAR query RIGHTPROCPAR {
 		$$ = new ProcedureNode(); char *p = $4; $$->addContent("on_virtualize", $7); $$->addParam(p); delete p; }
             ;
+
+virtualize_query : query VIRTUALIZE_AS NAME { $$ = new VirtualizeAsNode($1, $3); }
+	    | query VIRTUALIZE_AS LEFTPAR virtualize_query RIGHTPAR DOT NAME { $$ = new VirtualizeAsNode($1, $4, $7); }
+	    ;
 
 validate_stmt: VALIDATE NAME NAME  { $$ = new ValidationNode($2, $3); }
 	    ;

@@ -207,6 +207,7 @@ namespace QExecutor
 		int callProcedure(string code, vector<QueryBagResult*> sections);
 		int checkViewAndGetVirtuals(LogicalID *lid, string &name, string &code);
 		int getSubviews(LogicalID *lid, string vo_name, vector<LogicalID *> &subviews, vector<LogicalID *> &others);
+		int getSubview(LogicalID *lid, string name, LogicalID *&subview_lid);
 		int getOn_procedure(LogicalID *lid, string procName, string &code, string &param);
 		int pop_qres(QueryResult *&r) { return qres->pop(r); };
 		

@@ -369,7 +369,6 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			QueryResult *tmp_result;
 			if (errcode == 0) errcode = qres->pop(tmp_result);
 			
-			// DG TODO nie moge na zewnatrz oddac QueryVirtualResultow...
 			int next_errcode;
 			if (errcode == 0) next_errcode = deVirtualize(tmp_result, *result);
 			
@@ -934,6 +933,159 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			
 			return 0;
 		}//case TNREGVIEW
+		
+		case TreeNode::TNVIRTUALIZEAS: {
+			*ec << "[QE] Type: TNVIRTUALIZEAS";
+			QueryResult *final_result = new QueryBagResult();
+			
+			QueryResult *l_tmp;
+			errcode = executeRecQuery (((VirtualizeAsNode *) tree)->getQuery());
+			if (errcode != 0) return errcode;
+			errcode = qres->pop(l_tmp);
+			if (errcode != 0) return errcode;
+			QueryResult *lResult;
+			if (((l_tmp->type()) != QueryResult::QSEQUENCE) && ((l_tmp->type()) != QueryResult::QBAG)) {
+				lResult = new QueryBagResult();
+				lResult->addResult(l_tmp);
+			}
+			else lResult = l_tmp;
+			
+			string virtualizeAsName = (((VirtualizeAsNode *) tree)->getName());
+			LogicalID* referenced_view_lid = NULL;
+			string referenced_view_code;
+			string referenced_view_param;
+			QueryResult *subqueryResult = NULL;
+			
+			if (((VirtualizeAsNode *) tree)->getSubQuery() == NULL) {
+				vector<LogicalID*>* vec_virt;
+				if ((errcode = tr->getViewsLID(virtualizeAsName, vec_virt)) != 0) {
+					*ec << "[QE] error in getViewsLID";
+					antyStarveFunction(errcode);
+					inTransaction = false;
+					return errcode;
+				}
+				int vecSize_virt = vec_virt->size();
+				ec->printf("[QE] %d Views LID by name taken\n", vecSize_virt);
+				if (vecSize_virt != 1) {
+					*ec << "[QE] bindName error, while searching for a view";
+					*ec << (ErrQExecutor | EBadBindName);
+					return ErrQExecutor | EBadBindName;
+				}
+				
+				referenced_view_lid = vec_virt->at(0);
+				errcode = getOn_procedure(referenced_view_lid, "on_virtualize", referenced_view_code, referenced_view_param);
+				if (errcode != 0) return errcode;
+				if (referenced_view_code == "") {
+					*ec << "[QE] operator <virtualize as> - this VirtualObject doesn't have this operation defined";
+					*ec << (ErrQExecutor | EOperNotDefined);
+					return ErrQExecutor | EOperNotDefined;
+				}
+			}
+			else {
+				errcode = executeRecQuery (((VirtualizeAsNode *) tree)->getSubQuery());
+				if (errcode != 0) return errcode;
+				QueryResult *r_tmp;
+				errcode = qres->pop(r_tmp);
+				if ((r_tmp->type() == QueryResult::QBAG) && (r_tmp->size() == 1)) {
+					errcode = (((QueryBagResult *) r_tmp)->at(0, subqueryResult));
+					if (errcode != 0) return errcode;
+					if (subqueryResult->type() == QueryResult::QVIRTUAL) {
+						LogicalID* sub_lid = ((QueryVirtualResult *) subqueryResult)->view_def;
+						errcode = getSubview(sub_lid, virtualizeAsName, referenced_view_lid);
+						if (errcode != 0) return errcode;
+						if (referenced_view_lid != NULL) {
+							errcode = getOn_procedure(referenced_view_lid, "on_virtualize", referenced_view_code, referenced_view_param);
+							if (errcode != 0) return errcode;
+							if (referenced_view_code == "") {
+								*ec << "[QE] operator <virtualize as> - this VirtualObject doesn't have this operation defined";
+								*ec << (ErrQExecutor | EOperNotDefined);
+								return ErrQExecutor | EOperNotDefined;
+							}
+						
+						}
+						else {
+							*ec << "[QE] <virtualize as> - error evaluating subquery";
+							*ec << (ErrQExecutor | EQEUnexpectedErr);
+							return ErrQExecutor | EQEUnexpectedErr;
+						}
+					}
+					else {
+						*ec << "[QE] <virtualize as> - subquery should evaluate to single virtual result";
+						*ec << (ErrQExecutor | EQEUnexpectedErr);
+						return ErrQExecutor | EQEUnexpectedErr;
+					}
+				}
+				else {
+					*ec << "[QE] operator <virtualize as> - subquery should evaluate to one element bag";
+					*ec << (ErrQExecutor | EQEUnexpectedErr);
+					return ErrQExecutor | EQEUnexpectedErr;
+				}
+			}
+			
+			if (((lResult->type()) == QueryResult::QSEQUENCE) || ((lResult->type()) == QueryResult::QBAG)) {
+				*ec << "[QE] For each row of this score, the right argument will be computed";
+				for (unsigned int i = 0; i < (lResult->size()); i++) {
+					QueryResult *currentResult;
+					if ((lResult->type()) == QueryResult::QSEQUENCE)
+						errcode = (((QuerySequenceResult *) lResult)->at(i, currentResult));
+					else
+						errcode = (((QueryBagResult *) lResult)->at(i, currentResult));
+					if (errcode != 0) return errcode;
+					
+					vector<QueryBagResult*> envs_sections;
+					
+					if (subqueryResult != NULL) {
+						for (int k = ((((QueryVirtualResult *) subqueryResult)->seeds.size()) - 1); k >= 0; k-- ) {
+							QueryResult *current_seed = ((QueryVirtualResult *) subqueryResult)->seeds.at(k);
+							errcode = current_seed->nested(tr, this);
+							if(errcode != 0) return errcode;
+							QueryBagResult *nested_seed;
+							errcode = envs->top(nested_seed);
+							if(errcode != 0) return errcode;
+							errcode = envs->pop();
+							if(errcode != 0) return errcode;
+							envs_sections.push_back((QueryBagResult *) nested_seed);
+						}
+					}
+					
+					QueryResult *param_binder = new QueryBinderResult(referenced_view_param, currentResult);
+					QueryResult *param_bag = new QueryBagResult();
+					((QueryBagResult *) param_bag)->addResult(param_binder);
+					envs_sections.push_back((QueryBagResult *) param_bag);
+					errcode = callProcedure(referenced_view_code, envs_sections);
+					if (errcode != 0) return errcode;
+					QueryResult *callproc_res;
+					errcode = qres->pop(callproc_res);
+					if (errcode != 0) return errcode;
+					
+					QueryResult *bagged_callproc_res = new QueryBagResult();
+					((QueryBagResult *) bagged_callproc_res)->addResult(callproc_res);
+					for (unsigned int ii = 0; ii < bagged_callproc_res->size(); ii++) {
+						QueryResult *seed;
+						errcode = ((QueryBagResult *) bagged_callproc_res)->at(ii, seed);
+						if (errcode != 0) return errcode;
+						vector<QueryResult *> seeds;
+						seeds.push_back(seed);
+						if (subqueryResult != NULL) {
+							for (unsigned int k = 0; k < (((QueryVirtualResult *) subqueryResult)->seeds.size()); k++ ) {
+								seeds.push_back(((QueryVirtualResult *) subqueryResult)->seeds.at(k));
+							}
+						}
+						QueryResult *virt_res = new QueryVirtualResult(virtualizeAsName, referenced_view_lid, seeds);
+						final_result->addResult(virt_res);
+					}
+				}
+			}
+			else {
+				*ec << "[QE] ERROR! Virtualize As operation, bad left argument";
+				*ec << (ErrQExecutor | EOtherResExp);
+				return ErrQExecutor | EOtherResExp;
+			}
+			errcode = qres->push(final_result);
+			if (errcode != 0) return errcode;
+			*ec << "[QE] Virtualize As operation Done!";
+			return 0;
+		}//case TNVIRTUALIZEAS
 		
 		//ADTODO
 		case TreeNode::TNINTERFACEBIND: {
@@ -2261,50 +2413,6 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			else { // this is normal (not recursive) non algebraic operation
 				if (((lResult->type()) == QueryResult::QSEQUENCE) || ((lResult->type()) == QueryResult::QBAG)) {
 					
-					string virtualize_as_name;
-					LogicalID* referenced_view_lid;
-					string referenced_view_code;
-					string referenced_view_param;
-					if (op == NonAlgOpNode::virtualizeAs) {
-						QueryNode *right_query = ((NonAlgOpNode *) tree)->getRArg();
-						if (right_query->type() == TreeNode::TNNAME) {
-						
-							virtualize_as_name = right_query->getName();
-							vector<LogicalID*>* vec_virt;
-							if ((errcode = tr->getViewsLID(virtualize_as_name, vec_virt)) != 0) {
-								*ec << "[QE] error in getViewsLID";
-								antyStarveFunction(errcode);
-								inTransaction = false;
-								return errcode;
-							}
-							int vecSize_virt = vec_virt->size();
-							ec->printf("[QE] %d Views LID by name taken\n", vecSize_virt);
-							
-							if (vecSize_virt != 1) {
-								*ec << "[QE] bindName error, while searching for a view";
-								*ec << (ErrQExecutor | EBadBindName);
-								return ErrQExecutor | EBadBindName;
-							}
-							
-							referenced_view_lid = vec_virt->at(0);
-							errcode = getOn_procedure(referenced_view_lid, "on_virtualize", referenced_view_code, referenced_view_param);
-							if (errcode != 0) return errcode;
-							if (referenced_view_code == "") {
-								*ec << "[QE] operator <virtualize as> - this VirtualObject doesn't have this operation defined";
-								*ec << (ErrQExecutor | EOperNotDefined);
-								return ErrQExecutor | EOperNotDefined;
-							}
-						}
-						else if (false /* odpowiedni warunek */) {
-							// DG TODO pointer do nie korzeniowej perspektywy
-						}
-						else {
-							*ec << "[QE] wrong argument in <virtualize as> opeartion";
-							*ec << (ErrQExecutor | EUnknownNode);
-							return ErrQExecutor | EUnknownNode;
-						}
-					}
-					
 					*ec << "[QE] For each row of this score, the right argument will be computed";
 					for (unsigned int i = 0; i < (lResult->size()); i++) {
 						QueryResult *currentResult;
@@ -2316,51 +2424,23 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 						if (errcode != 0) return errcode;
 						
 						QueryResult *rResult;
-						if (op == NonAlgOpNode::virtualizeAs) {
+
+						ec->printf("[QE] nested operation started()\n");
+						errcode = (currentResult)->nested(tr, this);
+						if (errcode != 0) return errcode;
 							
-							vector<QueryBagResult*> envs_sections;
-							QueryResult *param_binder = new QueryBinderResult(referenced_view_param, currentResult);
-							QueryResult *param_bag = new QueryBagResult();
-							((QueryBagResult *) param_bag)->addResult(param_binder);
-							envs_sections.push_back((QueryBagResult *) param_bag);
+						*ec << "[QE] Computing right Argument with a new scope of ES";
+						errcode = executeRecQuery (((NonAlgOpNode *) tree)->getRArg());
+						if (errcode != 0) return errcode;
+						errcode = qres->pop(rResult);
+						if (errcode != 0) return errcode;
 							
-							errcode = callProcedure(referenced_view_code, envs_sections);
-							if(errcode != 0) return errcode;
+						errcode = envs->pop();
+						if (errcode != 0) return errcode;
 							
-							QueryResult *callproc_res;
-							pop_qres(callproc_res);
-							QueryResult *bagged_callproc_res = new QueryBagResult();
-							((QueryBagResult *) bagged_callproc_res)->addResult(callproc_res);
-							
-							for (unsigned int ii = 0; ii < bagged_callproc_res->size(); ii++) {
-								QueryResult *seed;
-								errcode = ((QueryBagResult *) bagged_callproc_res)->at(ii, seed);
-								if (errcode != 0) return errcode;
-								
-								vector<QueryResult *> seeds;
-								seeds.push_back(seed);
-								QueryResult *virt_res = new QueryVirtualResult(virtualize_as_name, referenced_view_lid, seeds);
-								partial_result->addResult(virt_res);
-							}
-						}
-						else {
-							ec->printf("[QE] nested operation started()\n");
-							errcode = (currentResult)->nested(tr, this);
-							if (errcode != 0) return errcode;
-							
-							*ec << "[QE] Computing right Argument with a new scope of ES";
-							errcode = executeRecQuery (((NonAlgOpNode *) tree)->getRArg());
-							if (errcode != 0) return errcode;
-							errcode = qres->pop(rResult);
-							if (errcode != 0) return errcode;
-							
-							errcode = envs->pop();
-							if (errcode != 0) return errcode;
-							
-							errcode = this->combine(op,currentResult,rResult,partial_result);
-							if (errcode != 0) return errcode;
-							*ec << "[QE] Combined partial results";
-						}
+						errcode = this->combine(op,currentResult,rResult,partial_result);
+						if (errcode != 0) return errcode;
+						*ec << "[QE] Combined partial results";
 					}
 				}
 				else {
@@ -5115,11 +5195,6 @@ int QueryExecutor::combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryRe
 			*ec << "[QE] combine(): NonAlgebraic operator <forEach>";
 			break;
 		}
-		case NonAlgOpNode::virtualizeAs: {
-			*ec << "[QE] combine(): NonAlgebraic operator <virtualizaAs>";
-			partial->addResult(rRes);
-			break;
-		}
 		default: {
 			*ec << "[QE] combine(): unknown NonAlgebraic operator!";
 			*ec << (ErrQExecutor | EUnknownNode);
@@ -5204,11 +5279,6 @@ int QueryExecutor::merge(NonAlgOpNode::nonAlgOp op, QueryResult *partial, QueryR
 		}
 		case NonAlgOpNode::forEach: {
 			*ec << "[QE] merge(): NonAlgebraic operator <forEach>";
-			final = partial;
-			break;
-		}
-		case NonAlgOpNode::virtualizeAs: {
-			*ec << "[QE] merge(): NonAlgebraic operator <virtualizeAs>";
 			final = partial;
 			break;
 		}
@@ -5609,6 +5679,71 @@ int QueryExecutor::getSubviews(LogicalID *lid, string vo_name, vector<LogicalID 
 	}
 	else {
 		*ec << "[QE] getSubviews error: This is not a view";
+		*ec << (ErrQExecutor | EBadViewDef);
+		return ErrQExecutor | EBadViewDef;
+	}
+	return 0;
+}
+
+int QueryExecutor::getSubview(LogicalID *lid, string name, LogicalID *&subview_lid) {
+	int errcode;
+	ObjectPointer *optr;
+	errcode = tr->getObjectPointer (lid, Store::Read, optr, false);
+	if (errcode != 0) {
+		*ec << "[QE] getSubview - Error in getObjectPointer.";
+		antyStarveFunction(errcode);
+		inTransaction = false;
+		return errcode;
+	}
+	DataValue* data_value = optr->getValue();
+	int vType = data_value->getType();
+	ExtendedType extType = data_value->getSubtype();
+	if ((vType == Store::Vector) && (extType == Store::View)) {
+		vector<LogicalID*>* tmp_vec = (data_value->getVector());
+		int vec_size = tmp_vec->size();
+		for (int i = 0; i < vec_size; i++ ) {
+			LogicalID *tmp_logID = tmp_vec->at(i);
+			ObjectPointer *tmp_optr;
+			if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, tmp_optr, false)) != 0) {
+				*ec << "[QE] getSubview - Error in getObjectPointer";
+				antyStarveFunction(errcode);
+				inTransaction = false;
+				return errcode;
+			}
+			string tmp_name = tmp_optr->getName();
+			DataValue* tmp_data_value = tmp_optr->getValue();
+			int tmp_vType = tmp_data_value->getType();
+			ExtendedType tmp_extType = tmp_data_value->getSubtype();
+			if ((tmp_vType == Store::Vector) && (tmp_extType == Store::View)) {
+				vector<LogicalID*>* tmp_vec2 = (tmp_data_value->getVector());
+				int vec_size2 = tmp_vec2->size();
+				for (int j = 0; j < vec_size2; j++) {
+					LogicalID *tmp_logID2 = tmp_vec2->at(j);
+					ObjectPointer *tmp_optr2;
+					if ((errcode = tr->getObjectPointer(tmp_logID2, Store::Read, tmp_optr2, false)) != 0) {
+						*ec << "[QE] getSubview - Error in getObjectPointer";
+						antyStarveFunction(errcode);
+						inTransaction = false;
+						return errcode;
+					}
+					string tmp_name2 = tmp_optr2->getName();
+					if (tmp_name2 == "virtual_objects") {
+						DataValue* tmp_data_value2 = tmp_optr2->getValue();
+						int tmp_vType2 = tmp_data_value2->getType();
+						if (tmp_vType2 == Store::String) {
+							string curr_subwiew_name = tmp_data_value2->getString();
+							if (curr_subwiew_name == name) {
+								subview_lid = tmp_logID;
+								return 0;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	else {
+		*ec << "[QE] getSubview error: This is not a view";
 		*ec << (ErrQExecutor | EBadViewDef);
 		return ErrQExecutor | EBadViewDef;
 	}

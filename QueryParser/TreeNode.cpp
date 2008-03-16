@@ -68,6 +68,17 @@ namespace QParser
     	else
     		return new ReturnNode();
     }
+    
+    TreeNode* VirtualizeAsNode::clone() {
+    	if (query != NULL) {
+    		if (sub_query != NULL) {
+    			return new VirtualizeAsNode((QueryNode*) query->clone(), (VirtualizeAsNode*) sub_query->clone(), name);
+    		}
+    		else return new VirtualizeAsNode((QueryNode*) query->clone(), name);
+    	}
+    	else return new VirtualizeAsNode();
+    }
+    
     TreeNode* ThrowExceptionNode::clone() { return new ThrowExceptionNode((QueryNode*) query->clone()); }
     TreeNode* ProcedureNode::clone() { return new ProcedureNode(name, code, params, paramsNumb); }
     TreeNode* RegisterProcNode::clone() { return new RegisterProcNode((QueryNode*) query->clone()); }

@@ -74,7 +74,7 @@ namespace QParser {
 	    TNINTERFACEMETHODLISTNODE, TNINTERFACEMETHOD, TNINTERFACEMETHODPARAMLISTNODE, TNINTERFACEMETHODPARAM,
 	    TNREGINTERFACE, TNREGCLASS, TNCLASS, TNDML, TNINCLUDES, TNEXCLUDES, TNCAST, TNINSTANCEOF, TNSYSTEMVIEWNAME,
 	 	TNINTERFACEBIND, TNINTERFACEINNERLINKAGELIST, TNINTERFACEINNERLINKAGE, TNSIGNATURE, TNOBJDECL, TNSTRUCTTYPE,
-		TNTYPEDEF, TNCOERCE, TNCASTTO, TNTHROWEXCEPTION};
+		TNTYPEDEF, TNCOERCE, TNCASTTO, TNTHROWEXCEPTION, TNVIRTUALIZEAS};
 	 
 	TreeNode() : parent(NULL) { 
 		this->needed = false;
@@ -1447,7 +1447,7 @@ namespace QParser {
     {
     public:
 	enum nonAlgOp { dot, join, where, closeBy, closeUniqueBy, leavesBy,
-                  leavesUniqueBy, orderBy, exists, forAll, forEach, virtualizeAs };
+                  leavesUniqueBy, orderBy, exists, forAll, forEach };
     protected:
 	QueryNode* larg;
 	QueryNode* rarg;
@@ -1572,8 +1572,7 @@ namespace QParser {
 	    if (op == 7) return "orderBy";	    
 	    if (op == 8) return "exists";	    
 	    if (op == 9) return "forAll";
-	    if (op == 10) return "forEach";
-	    if (op == 11) return "virtualizeAs";	    
+	    if (op == 10) return "forEach";	    
 	    return "~~~";	}
 	virtual int staticEval (StatQResStack *&qres, StatEnvStack *&envs);	
 	virtual int optimizeTree();	
@@ -1626,10 +1625,6 @@ namespace QParser {
 			}
 			case NonAlgOpNode::forEach: { 
 				result = " for each" + larg->deParse() + "do" + rarg->deParse() + "od "; 
-				return result; 
-			}
-			case NonAlgOpNode::virtualizeAs: { 
-				result = " (" + larg->deParse() + "virtualize as" + rarg->deParse() + ") "; 
 				return result; 
 			}
 		}
@@ -2303,6 +2298,83 @@ class ViewNode : public QueryNode
 		cout << result;
 		return result; };
     }; 
+
+
+class VirtualizeAsNode : public QueryNode {
+protected:
+	QueryNode* query;
+	VirtualizeAsNode* sub_query;
+	string name;
+	
+public:
+	VirtualizeAsNode() { }
+	VirtualizeAsNode(QueryNode* q, string n) { query = q; name = n; sub_query = NULL; }
+	VirtualizeAsNode(QueryNode* q, VirtualizeAsNode *v, string n) { query = q; sub_query = v, name = n; }
+	virtual ~VirtualizeAsNode() { 
+		if (query != NULL) delete query;
+		if (sub_query != NULL) delete sub_query;
+	} 
+	virtual TreeNode* clone();
+	
+	virtual int type() {
+		return TreeNode::TNVIRTUALIZEAS;
+	}
+	
+	virtual QueryNode* getQuery() {
+		return query;
+	}
+	
+	virtual VirtualizeAsNode* getSubQuery() {
+		return sub_query;
+	}
+	
+	virtual string getName() {
+		return name;
+	}
+	
+	virtual int putToString() {
+		if (query != NULL) {
+			query->putToString();
+			cout << endl;
+		}
+		else cout << " no query " << endl;
+		cout << " virtualize as ";
+		if (sub_query != NULL) {
+			cout << "(" << endl;
+			sub_query->putToString();
+			cout << ")." << endl;
+		}
+		cout << name;
+		return 0;
+	}
+	
+	virtual string toString(int level = 0, bool recursive = false, string _name = "") {
+		string result;
+		if (query != NULL) result = query->toString(level+1, true, "query" ) + "\n";
+		else result = getPrefixForLevel(level, _name) + " no query " + "\n";
+		result = result + getPrefixForLevel(level, _name) + " virtualize as ";
+		if (sub_query != NULL) {
+			result = result + getPrefixForLevel(level, _name) + "(" + "\n";
+			result = result + query->toString(level+1, true, "query" ) + "\n";
+			result = result + getPrefixForLevel(level, _name) + ").";
+		}
+		result = result + getPrefixForLevel(level, _name) + name + "\n"; 
+		return result;
+	}
+
+	virtual string deParse() { 
+		string result;
+		string tmp_res;
+		if (sub_query != NULL) tmp_res = "(" + sub_query->deParse() + ").";
+		else tmp_res = "";
+		if( query != NULL ) result = query->deParse() + "virtualize as " + tmp_res + name + " ";
+		else result = " "; 
+		return result; 
+	};
+};
+
+
+
 
 class ClassesObjectsNode : public TwoArgsNode {
 protected:
