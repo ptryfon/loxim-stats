@@ -42,9 +42,9 @@ QueryBoolResult::QueryBoolResult(bool v) 			{ value=v; ec = new ErrorConsole("Qu
 QueryReferenceResult::QueryReferenceResult()			{ ec = new ErrorConsole("QueryExecutor"); refed = false; }
 QueryReferenceResult::QueryReferenceResult(LogicalID* v) 	{ value=v; ec = new ErrorConsole("QueryExecutor"); refed = false; }
 QueryNothingResult::QueryNothingResult() 			{ ec = new ErrorConsole("QueryExecutor"); }
-QueryVirtualResult::QueryVirtualResult() 			{ ec = new ErrorConsole("QueryExecutor"); }
+QueryVirtualResult::QueryVirtualResult() 			{ ec = new ErrorConsole("QueryExecutor"); refed = false;}
 QueryVirtualResult::QueryVirtualResult(string _vo_name, LogicalID *_view_def, vector<QueryResult *> _seeds) {
-vo_name = _vo_name; view_def = _view_def; seeds = _seeds; ec = new ErrorConsole("QueryExecutor");}
+vo_name = _vo_name; view_def = _view_def; seeds = _seeds; ec = new ErrorConsole("QueryExecutor"); refed = false;}
 
 //function clone()
 QueryResult* QuerySequenceResult::clone()	{ return new QuerySequenceResult(seq); }

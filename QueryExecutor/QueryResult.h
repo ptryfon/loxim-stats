@@ -546,6 +546,7 @@ public:
 	string vo_name;
 	LogicalID *view_def;
 	vector<QueryResult *> seeds;
+	bool refed;
 	
 	QueryVirtualResult();
 	QueryVirtualResult(string _vo_name, LogicalID *_view_def, vector<QueryResult *> _seeds);

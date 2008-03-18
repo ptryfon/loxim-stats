@@ -2943,7 +2943,10 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 			break;
 		}
 		case QueryResult::QVIRTUAL: {
-			// DG TODO m.in. sprawdzenie wasRefed()
+			if (((QueryVirtualResult *) arg)->refed) {
+				res = arg;
+				break;
+			}
 			LogicalID *view_def = ((QueryVirtualResult*) arg)->view_def;
 			vector<QueryResult *> seeds = ((QueryVirtualResult*) arg)->seeds;
 			string proc_code = "";
@@ -3074,6 +3077,11 @@ int QueryExecutor::refQuery(QueryResult *arg, QueryResult *&res) {
 		}
 		case QueryResult::QNOTHING: {
 			res = arg;
+			break;
+		}
+		case QueryResult::QVIRTUAL: {
+			res = arg;
+			((QueryVirtualResult *) res)->refed = true;
 			break;
 		}
 		default: {
@@ -5987,14 +5995,16 @@ int QueryExecutor::deVirtualize(QueryResult *arg, QueryResult *&res) {
 			res = arg;
 			break;
 		}
-		//DG TODO poprawic devirtualizajce nie zwracac ziaren, tylko jakies sztuczne LID
 		case QueryResult::QVIRTUAL: {
 			unsigned int current_virtual_index = sent_virtuals.size();
 			sent_virtuals.push_back(arg);
 			LogicalID *tmp_lid = new DBLogicalID(QE_VIRTUALS_TO_SEND_MIN_ID + current_virtual_index);
 			res = new QueryReferenceResult(tmp_lid);
-			/*if ((((QueryVirtualResult *)arg)->seeds.size() > 0) && (((QueryVirtualResult *)arg)->seeds.at(0) != NULL))
-				res = ((QueryVirtualResult *)arg)->seeds.at(0);*/
+			// DG TODO zakomentowany kod zwraca ziarna zamiast sztucznych LIDow, przydatny do testow
+			/*
+			if ((((QueryVirtualResult *)arg)->seeds.size() > 0) && (((QueryVirtualResult *)arg)->seeds.at(0) != NULL))
+				res = ((QueryVirtualResult *)arg)->seeds.at(0);
+			*/
 			break;
 		}
 		default: {
@@ -6074,7 +6084,6 @@ int QueryExecutor::reVirtualize(QueryResult *arg, QueryResult *&res) {
 			res = arg;
 			break;
 		}
-		//DG TODO poprawic reVirtualizajce gdy wraca sztuczne LID, oddac QVirtual zapamietany na wektorze
 		case QueryResult::QREFERENCE: {
 			unsigned int lid_number = (((QueryReferenceResult *) arg)->getValue())->toInteger();
 			if (lid_number >= QE_VIRTUALS_TO_SEND_MIN_ID) {
@@ -6254,22 +6263,11 @@ int QueryExecutor::createObjectAndPutOnQRes(DBDataValue* dbValue, string objectN
 
 QueryExecutor::~QueryExecutor() {
 	if (inTransaction) tr->abort();
-	//*ec << "1\n";
 	inTransaction = false;
-	//*ec << "2\n";
 	delete envs;
-	//*ec << "3\n";
 	delete qres;
-	//*ec << "4\n";
 	delete session_data;
-	//*ec << "5\n";
-	//for(unsigned int i = 0; i < sent_virtuals.size(); i++) {
-	//	*ec << "6\n";
-	//	delete sent_virtuals.at(i);
-	//	*ec << "7\n";
-	//}
 	sent_virtuals.clear();
-	//*ec << "8\n";
 	*ec << "[QE] QueryExecutor shutting down\n";
 	delete ec;
 	//delete QueryBuilder::getHandle();
