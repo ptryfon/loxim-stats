@@ -1,5 +1,8 @@
 2008-03-18  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
 
+	* QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryResult.cpp, QueryExecutor/QueryResult.h:
+	ref(QueryViryualResult)
+
 	* QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryExecutor.h:
 	Procedury deVirtualze i reVirtualize.
 	Klient pytajacy o obiekt wirtualny nie dostaje juz ziaren tylko sztuczne LogicalID.
