@@ -2217,8 +2217,11 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				*ec << "[QE] error! Parametr operation - index out of range";
 				*ec << (ErrQExecutor | EQEUnexpectedErr);
 				return ErrQExecutor | EQEUnexpectedErr;
-			} 
-			errcode = qres->push(res);
+			}
+			QueryResult *final_res;
+			errcode = reVirtualize(res, final_res);
+			if (errcode != 0) return errcode;
+			errcode = qres->push(final_res);
 			if (errcode != 0) return errcode;
 			*ec << "[QE] Parametr operation Done!";
 			return 0;
@@ -5986,12 +5989,106 @@ int QueryExecutor::deVirtualize(QueryResult *arg, QueryResult *&res) {
 		}
 		//DG TODO poprawic devirtualizajce nie zwracac ziaren, tylko jakies sztuczne LID
 		case QueryResult::QVIRTUAL: {
-			if ((((QueryVirtualResult *)arg)->seeds.size() > 0) && (((QueryVirtualResult *)arg)->seeds.at(0) != NULL))
-				res = ((QueryVirtualResult *)arg)->seeds.at(0);
+			unsigned int current_virtual_index = sent_virtuals.size();
+			sent_virtuals.push_back(arg);
+			LogicalID *tmp_lid = new DBLogicalID(QE_VIRTUALS_TO_SEND_MIN_ID + current_virtual_index);
+			res = new QueryReferenceResult(tmp_lid);
+			/*if ((((QueryVirtualResult *)arg)->seeds.size() > 0) && (((QueryVirtualResult *)arg)->seeds.at(0) != NULL))
+				res = ((QueryVirtualResult *)arg)->seeds.at(0);*/
 			break;
 		}
 		default: {
 			*ec << "[QE] ERROR in deVirtualize() - unknown result type";
+			*ec << (ErrQExecutor | EOtherResExp);
+			return ErrQExecutor | EOtherResExp;
+		}
+	}
+	return 0;
+}
+
+int QueryExecutor::reVirtualize(QueryResult *arg, QueryResult *&res) {
+	*ec << "[QE] reVirtualize()";
+	int errcode;
+	int argType = arg->type();
+	switch (argType) {
+		case QueryResult::QSEQUENCE: {
+			res = new QuerySequenceResult();
+			for (unsigned int i = 0; i < (arg->size()); i++) {
+				QueryResult *tmp_item;
+				errcode = ((QuerySequenceResult *) arg)->at(i, tmp_item);
+				if (errcode != 0) return errcode;
+				QueryResult *tmp_res;
+				errcode = this->reVirtualize(tmp_item, tmp_res);
+				if (errcode != 0) return errcode;
+				res->addResult(tmp_res);
+			}
+			break;
+		}
+		case QueryResult::QBAG: {
+			res = new QueryBagResult();
+			for (unsigned int i = 0; i < (arg->size()); i++) {
+				QueryResult *tmp_item;
+				errcode = ((QueryBagResult *) arg)->at(i, tmp_item);
+				if (errcode != 0) return errcode;
+				QueryResult *tmp_res;
+				errcode = this->reVirtualize(tmp_item, tmp_res);
+				if (errcode != 0) return errcode;
+				res->addResult(tmp_res);
+			}
+			break;
+		}
+		case QueryResult::QSTRUCT: {
+			res = new QueryStructResult();
+			for (unsigned int i = 0; i < (arg->size()); i++) {
+				QueryResult *tmp_item;
+				errcode = ((QueryStructResult *) arg)->at(i, tmp_item);
+				if (errcode != 0) return errcode;
+				QueryResult *tmp_res;
+				errcode = this->reVirtualize(tmp_item, tmp_res);
+				if (errcode != 0) return errcode;
+				res->addResult(tmp_res);
+			}
+			break;
+		}
+		case QueryResult::QBINDER: {
+			string tmp_name = ((QueryBinderResult *) arg)->getName();
+			QueryResult *tmp_item;
+			errcode = this->reVirtualize(((QueryBinderResult *) arg)->getItem(), tmp_item);
+			if (errcode != 0) return errcode;
+			res = new QueryBinderResult(tmp_name, tmp_item);
+			break;
+		}
+		case QueryResult::QBOOL: {
+			res = arg;
+			break;
+		}
+		case QueryResult::QINT: {
+			res = arg;
+			break;
+		}
+		case QueryResult::QDOUBLE: {
+			res = arg;
+			break;
+		}
+		case QueryResult::QSTRING: {
+			res = arg;
+			break;
+		}
+		//DG TODO poprawic reVirtualizajce gdy wraca sztuczne LID, oddac QVirtual zapamietany na wektorze
+		case QueryResult::QREFERENCE: {
+			unsigned int lid_number = (((QueryReferenceResult *) arg)->getValue())->toInteger();
+			if (lid_number >= QE_VIRTUALS_TO_SEND_MIN_ID) {
+				res = sent_virtuals.at(lid_number - QE_VIRTUALS_TO_SEND_MIN_ID);
+			}
+			else res = arg;
+			break;
+		}
+		case QueryResult::QNOTHING: {
+			res = arg;
+			break;
+		}
+		default: {
+			*ec << "[QE] ERROR in reVirtualize() - unknown result type";
 			*ec << (ErrQExecutor | EOtherResExp);
 			return ErrQExecutor | EOtherResExp;
 		}
@@ -6157,10 +6254,22 @@ int QueryExecutor::createObjectAndPutOnQRes(DBDataValue* dbValue, string objectN
 
 QueryExecutor::~QueryExecutor() {
 	if (inTransaction) tr->abort();
+	//*ec << "1\n";
 	inTransaction = false;
+	//*ec << "2\n";
 	delete envs;
+	//*ec << "3\n";
 	delete qres;
+	//*ec << "4\n";
 	delete session_data;
+	//*ec << "5\n";
+	//for(unsigned int i = 0; i < sent_virtuals.size(); i++) {
+	//	*ec << "6\n";
+	//	delete sent_virtuals.at(i);
+	//	*ec << "7\n";
+	//}
+	sent_virtuals.clear();
+	//*ec << "8\n";
 	*ec << "[QE] QueryExecutor shutting down\n";
 	delete ec;
 	//delete QueryBuilder::getHandle();

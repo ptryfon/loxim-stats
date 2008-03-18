@@ -46,7 +46,7 @@ namespace QExecutor
 #define QE_METHOD_PARAM_BIND_NAME		"param"
 #define QE_NAME_BIND_NAME			"name"
 #define QE_TYPE_BIND_NAME			"type"
-
+#define QE_VIRTUALS_TO_SEND_MIN_ID		2000000000
 
 
 //     class ProcedureInfo
@@ -94,6 +94,7 @@ namespace QExecutor
 		EnvironmentStack *envs;
 		ResultStack *qres;
 		map<string, QueryResult*> *prms;
+		vector<QueryResult*> sent_virtuals;
 		int stop;
 		int transactionNumber;
 		bool antyStarve;
@@ -150,6 +151,7 @@ namespace QExecutor
 		
 		
 		int deVirtualize(QueryResult *arg, QueryResult *&res);
+		int reVirtualize(QueryResult *arg, QueryResult *&res);
         	
         	void set_user_data(ValidationNode *node);
         	int execute_locally(string query, QueryResult **result);
