@@ -1,3 +1,8 @@
+2008-04-06  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
+
+	* QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryExecutor.h:
+	poprawiona wersja deVirtualize()
+
 2008-03-18  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
 
 	* QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryResult.cpp, QueryExecutor/QueryResult.h:
