@@ -46,8 +46,27 @@ namespace QExecutor
 #define QE_METHOD_PARAM_BIND_NAME		"param"
 #define QE_NAME_BIND_NAME			"name"
 #define QE_TYPE_BIND_NAME			"type"
-#define QE_VIRTUALS_TO_SEND_MIN_ID		2000000000
 
+#define QE_VIRTUALS_TO_SEND_MIN_ID		0xFE000000
+#define QE_VIRTUALS_TO_SEND_MAX_COUNT		0x01000000
+
+	class hashOfString {
+	private:
+		hash<const char*> hasher;
+		
+	public:
+		size_t operator()(const string& s) const {
+			return hasher(s.c_str());
+		}
+	};
+	
+	struct eqOfString{
+		bool operator()(const string& s1, const string& s2) const{
+			return s1 == s2;
+		}
+	};
+
+	typedef hash_map<string, LogicalID*, hashOfString, eqOfString> QVirtualsToFakeLidMap;
 
 //     class ProcedureInfo
 //     {
@@ -95,6 +114,7 @@ namespace QExecutor
 		ResultStack *qres;
 		map<string, QueryResult*> *prms;
 		vector<QueryResult*> sent_virtuals;
+		QVirtualsToFakeLidMap fakeLid_map;
 		int stop;
 		int transactionNumber;
 		bool antyStarve;

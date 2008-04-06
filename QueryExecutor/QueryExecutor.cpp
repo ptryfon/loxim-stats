@@ -2197,12 +2197,13 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 
 		case TreeNode::TNPARAM: {
 			*ec << "[QE] Parametr opeartion";
+			QueryResult *res;
+			string paramName = ((ParamNode *) tree)->getName();
 			if (prms == NULL) {
 				*ec << "[QE] error! Parametr operation - params == NULL";
 				*ec << (ErrQExecutor | EQEUnexpectedErr);
 				return ErrQExecutor | EQEUnexpectedErr;
 			}
-			string paramName = ((ParamNode *) tree)->getName();
 			int howMany = prms->count(paramName);
 			if (howMany != 1) {
 				*ec << "[QE] error! Parametr operation - wrong parametr";
@@ -2210,7 +2211,6 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				return ErrQExecutor | EQEUnexpectedErr;
 			}
 			map<string, QueryResult*>::iterator pos;
-			QueryResult *res;
 			pos = prms->find(paramName);
 			if (pos != prms->end()) res = pos->second;
 			else {
@@ -5996,15 +5996,25 @@ int QueryExecutor::deVirtualize(QueryResult *arg, QueryResult *&res) {
 			break;
 		}
 		case QueryResult::QVIRTUAL: {
-			unsigned int current_virtual_index = sent_virtuals.size();
-			sent_virtuals.push_back(arg);
-			LogicalID *tmp_lid = new DBLogicalID(QE_VIRTUALS_TO_SEND_MIN_ID + current_virtual_index);
+			LogicalID *tmp_lid;
+			string virtualToString = arg->toString(0, true);
+			if (fakeLid_map.find(virtualToString) != fakeLid_map.end()) {
+				tmp_lid = fakeLid_map[virtualToString];
+			}
+			else {
+				unsigned int current_virtual_index = sent_virtuals.size();
+				if (current_virtual_index >= QE_VIRTUALS_TO_SEND_MAX_COUNT) {
+					*ec << "[QE] No more space left to remember next virtual object.";
+					*ec << (ErrQExecutor | EQEUnexpectedErr);
+					res = new QueryNothingResult();
+					return ErrQExecutor | EQEUnexpectedErr;
+				}
+				sent_virtuals.push_back(arg);
+				unsigned int new_id = QE_VIRTUALS_TO_SEND_MIN_ID + current_virtual_index;
+				tmp_lid = new DBLogicalID(new_id);
+				fakeLid_map[virtualToString] = tmp_lid;
+			}
 			res = new QueryReferenceResult(tmp_lid);
-			// DG TODO zakomentowany kod zwraca ziarna zamiast sztucznych LIDow, przydatny do testow
-			/*
-			if ((((QueryVirtualResult *)arg)->seeds.size() > 0) && (((QueryVirtualResult *)arg)->seeds.at(0) != NULL))
-				res = ((QueryVirtualResult *)arg)->seeds.at(0);
-			*/
 			break;
 		}
 		default: {
@@ -6086,7 +6096,8 @@ int QueryExecutor::reVirtualize(QueryResult *arg, QueryResult *&res) {
 		}
 		case QueryResult::QREFERENCE: {
 			unsigned int lid_number = (((QueryReferenceResult *) arg)->getValue())->toInteger();
-			if (lid_number >= QE_VIRTUALS_TO_SEND_MIN_ID) {
+			if ((lid_number >= QE_VIRTUALS_TO_SEND_MIN_ID) && 
+			(lid_number < (QE_VIRTUALS_TO_SEND_MIN_ID + QE_VIRTUALS_TO_SEND_MAX_COUNT))) {
 				res = sent_virtuals.at(lid_number - QE_VIRTUALS_TO_SEND_MIN_ID);
 			}
 			else res = arg;
@@ -6268,6 +6279,7 @@ QueryExecutor::~QueryExecutor() {
 	delete qres;
 	delete session_data;
 	sent_virtuals.clear();
+	fakeLid_map.clear();
 	*ec << "[QE] QueryExecutor shutting down\n";
 	delete ec;
 	//delete QueryBuilder::getHandle();
