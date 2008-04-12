@@ -1,3 +1,17 @@
+2008-04-12  Piotr Turski  <pt209301@students.mimuw.edu.pl>
+
+	* Indexes/Tests/Bugs.cpp, Indexes/Tests/Suits.h:
+	testy do znalezionego bledu przeksztalcania drzewa
+
+	* Indexes/Tests/Syntax.cpp: testy skladni polecen ddl indeksow
+
+	* Indexes/Constraints.cpp, Indexes/QueryOptimizer.cpp, QueryParser/TreeNode.cpp:
+	komunikaty diagnostyczne o niejawnym uzyciu indeksow + poprawki optymalizacji
+
+	* Indexes/IndexHandler.h: komentarz
+
+	* Indexes/IndexManager.cpp: poprawka obslugi usunietego pliku
+
 2008-04-06  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
 
 	* QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryExecutor.h:
