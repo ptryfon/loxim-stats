@@ -188,7 +188,11 @@ namespace Indexes
 		indexLid.clear(); //metadane nie beda wczytywane - mapa nie bedzie potrzebna
 		
 		if ((err = unlink(indexMetaFile.c_str()))) {
-			return errno | ErrIndexes;
+			if (errno != ENOENT) {
+				//int errc = errno;
+				//printf("%s: %s\n",indexMetaFile.c_str(), strerror(errc));
+				return errno | ErrIndexes;
+			}
 		}
 		
 		if ((err = truncate(indexDataFile.c_str(), 0))) {
