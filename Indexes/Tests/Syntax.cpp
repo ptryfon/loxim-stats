@@ -80,6 +80,35 @@ START_TEST (simple_syntax) {
 	
 }END_TEST
 
+START_TEST (ddl_syntax) {
+	int err;
+	TreeNode *tNode;
+	auto_ptr<QueryParser> p(new QueryParser());
+	auto_ptr<TreeNode> tree;
+	QueryOptimizer::setImplicitIndexCall(false);
+	
+	err = p->parseIt("create int index emp_age on emp(age)", tNode);
+	test(err, "blad parsowania");
+	tree.reset(tNode);
+	
+	err = p->parseIt("create double index emp_age on emp(age)", tNode);
+	test(err, "blad parsowania");
+	tree.reset(tNode);
+	
+	err = p->parseIt("create string index emp_age on emp(age)", tNode);
+	test(err, "blad parsowania");
+	tree.reset(tNode);
+	
+	err = p->parseIt("delete index emp_age", tNode);
+	test(err, "blad parsowania");
+	tree.reset(tNode);
+	
+	err = p->parseIt("index", tNode);
+	test(err, "blad parsowania");
+	tree.reset(tNode);
+		
+}END_TEST
+
 START_TEST (complex_query) {
 	int err;
 	TreeNode *tNode;
@@ -186,6 +215,7 @@ Suite * syntax() {
 	TCase *tc_core = tcase_create ("syntax");
 	tcase_set_timeout(tc_core, 3); //timeout = 1s
 	tcase_add_checked_fixture(tc_core, setup_listener, teardown_listener);
+	tcase_add_test (tc_core, ddl_syntax);
 	tcase_add_test (tc_core, simple_syntax);
 	tcase_add_test (tc_core, complex_query);
 	tcase_add_test (tc_core, subqueries);
