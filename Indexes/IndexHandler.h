@@ -43,7 +43,7 @@ namespace Indexes
 			/** pierwszy wezel na liscie wszystkich wezlow tego indeksu */
 			nodeAddress_t firstNode;
 			
-			/** ostatni wezel na liscie wszystkich wezlow tego indeksu */
+			/** ostatni wezel na liscie wszystkich wezlow tego indeksu. potrzebne tylko po to zeby usuwac caly indeks bez wczytywania pierwszego wezla */
 			nodeAddress_t lastNode;
 			
 			/** adres ostatnio usunietego wezla. w tym wezle zapisany adres do nastepnego
