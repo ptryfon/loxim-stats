@@ -30,6 +30,19 @@ START_TEST (create_drop_lock) {
 	
 }END_TEST
 
+START_TEST (query_tree_transform) {
+	int err;
+	string s1, s2;
+	auto_ptr<QueryParser> p(new QueryParser());
+	auto_ptr<IndexTesting::ConnectionThread> con(new IndexTesting::ConnectionThread());
+	
+	err = con->process("create int index emp_age on emp(age)", QueryResult::QNOTHING);
+	test(err, "tworze indeks");
+	
+	s1 = optResult(p.get(), "emp where age <= 40 and 4 < age and ala = 5");
+	s2 = optResult(p.get(), "(index emp_age (|4 to 40|>) where (ala = 5)");
+	fail_if (s1 != s2, "rozne wyniki po sparsowaniu: s1=%s, s2=%s", s1.c_str(), s2.c_str());
+}END_TEST
 
 /** template
 
@@ -45,6 +58,7 @@ Suite * bugs() {
 	tcase_set_timeout(tc_core, 8); //timeout = 1s
 	tcase_add_checked_fixture(tc_core, setup_listener, teardown_listener);
 	tcase_add_test (tc_core, create_drop_lock);
+	tcase_add_test (tc_core, query_tree_transform);
 	
    // tcase_add_test (tc_core, loop);
 	//tcase_add_test_raise_signal(tc_core, segfault, SIGSEGV);

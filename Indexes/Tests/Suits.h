@@ -31,6 +31,9 @@ const char* errmsg(int err);
 void teardown_listener();
 void setup_listener();
 
+//do testowania niejawnych optymalizacji 
+string optResult(QueryParser* p, string query);
+
 extern SBQLConfig *config;
 extern ErrorConsole *con;
 extern LogManager *lm;
