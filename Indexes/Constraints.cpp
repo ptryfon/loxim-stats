@@ -87,7 +87,7 @@ namespace Indexes
 	}
 	
 	string ExactConstraints::toString() {
-		return value->toString();
+		return "=" + subqueries[0]->deParse();
 	}
 	
 	/**************************************
@@ -148,7 +148,7 @@ namespace Indexes
 	}
 	
 	string LeftBoundedConstraints::toString() {
-		return inclusive ? "<" : "(" + value->toString() + " +inf)";
+		return (inclusive ? "<" : "(") + subqueries[0]->deParse() + " to +inf)";
 	}
 	
 	/**************************************
@@ -199,7 +199,7 @@ namespace Indexes
 	}
 	
 	string RightBoundedConstraints::toString() {
-		return "(-inf " + value->toString() + (inclusive ? ">" : ")");
+		return "(-inf to " + subqueries[0]->deParse() + (inclusive ? ">" : ")");
 	}
 	
 	/**************************************
@@ -263,6 +263,6 @@ namespace Indexes
 	}
 	
 	string TwoSideConstraints::toString() {
-		return inclusiveLeft ? "<" : "(" + subqueries[0]->toString() + " " + subqueries[1]->toString() + (inclusiveRight ? ">" : ")");
+		return (inclusiveLeft ? "<" : "(") + subqueries[0]->deParse() + " to " + subqueries[1]->deParse() + (inclusiveRight ? ">" : ")");
 	}
 }

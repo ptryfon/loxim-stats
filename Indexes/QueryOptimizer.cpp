@@ -139,9 +139,17 @@ namespace Indexes {
 		AlgOpNode* andOp = dynamic_cast<AlgOpNode*>(compOp->getParent()); // and lub where? raczej tylko and?
 		TwoArgsNode* overAnd = dynamic_cast<TwoArgsNode*>(andOp->getParent());
 		
-		QueryNode* toUp = andOp->getLArg() == compOp ? andOp->getRArg() : andOp->getLArg(); //w gore trzeba podniesc nie ten wezel ktory usuwamy
+		QueryNode* toUp; //w gore trzeba podniesc ten wezel ktory nie jest usuwany
+		if (andOp->getLArg() == compOp) {
+			toUp = andOp->getRArg();
+			andOp->setRArg(new IntNode(0)); //nie da sie wstawic null
+		} else {
+			toUp = andOp->getLArg();
+			andOp->setLArg(new IntNode(0)); //nie da sie wstawic null
+		}
 		
-		toUp = dynamic_cast<QueryNode*>(toUp->clone());
+	//	toUp = dynamic_cast<QueryNode*>(toUp->clone());
+	//	toUp->setParent(overAnd);
 		
 		if (overAnd->getLArg() == andOp) {
 			overAnd->setLArg(toUp);
@@ -227,7 +235,16 @@ namespace Indexes {
 		if (implicitIndexCall) {
 			QueryOptimizer opt;
 			opt.whereReplace(tree);
+				//tylko do wydruku kontrolnego
+				bool possible = opt.optimizationPossible();
 			opt.createResult(tree);
+			
+			//wydruk kontrolny po optymalizacji
+			if (possible) {
+				(IndexManager::getHandle())->ec->printf("index implicitly used: %s\n", ((dynamic_cast<QueryNode*>(tree))->deParse()).c_str());
+			} else {
+				(*((IndexManager::getHandle())->ec)) << "no implicit index optimisation";
+			}
 		}
 	}
 	

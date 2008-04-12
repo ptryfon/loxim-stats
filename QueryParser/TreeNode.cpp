@@ -1548,6 +1548,6 @@ IndexSelectNode::IndexSelectNode(bool left, IndexBoundaryNode *right) {
 	c = new RightBoundedConstraints(right->value, right->inclusive);
 }
 
-string IndexSelectNode::deParse() {return " select index " + getIndexName()+ " " + c->toString();}
+string IndexSelectNode::deParse() {return " index " + getIndexName()+ " " + c->toString() + " ";}
 
 }
