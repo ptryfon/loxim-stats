@@ -1,3 +1,7 @@
+2008-04-15  Adam Michalik  <am209482@students.mimuw.edu.pl>
+
+	* JDBCDriver/info.txt: JDBC Driver directory created
+
 2008-04-12  Piotr Turski  <pt209301@students.mimuw.edu.pl>
 
 	* Indexes/Tests/Bugs.cpp, Indexes/Tests/Suits.h:
