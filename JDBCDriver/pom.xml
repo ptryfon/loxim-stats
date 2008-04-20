@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>edu.mimuw.loxim</groupId>
+	<artifactId>jdbc</artifactId>
+	<version>1.0</version>
+	<packaging>jar</packaging>
+	<name>LoXiM JDBC driver</name>
+	<description>JDBC driver for LoXiM</description>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<dependencies>
+		<dependency>
+			<groupId>commons-logging</groupId>
+			<artifactId>commons-logging</artifactId>
+			<version>1.1.1</version>
+		</dependency>	
+	
+	</dependencies>
+
+	<inceptionYear>2008</inceptionYear>
+
+	<developers>
+		<developer>
+			<name>Adam Michalik</name>
+			<email>a1m@o2.pl</email>
+			<roles>
+				<role>Project Manager</role>
+				<role>Developer</role>
+				<role>Tester</role>
+			</roles>
+		</developer>
+	</developers>
+</project>
