@@ -1,3 +1,8 @@
+2008-04-20  Adam Michalik  <am209482@students.mimuw.edu.pl>
+
+	* JDBCDriver/pom.xml, JDBCDriver/src/main/java/edu/mimuw/loxim/jdbc/LoXiMDatabaseMetaData.java, JDBCDriver/src/main/java/edu/mimuw/loxim/jdbc/LoXiMDatabaseMetaDataImpl.java, JDBCDriver/src/main/java/edu/mimuw/loxim/jdbc/LoXiMDriver.java, JDBCDriver/src/main/java/edu/mimuw/loxim/jdbc/LoXiMDriverImpl.java, JDBCDriver/src/main/java/edu/mimuw/loxim/jdbc/LoXiMProperties.java, JDBCDriver/src/main/java/edu/mimuw/loxim/jdbc/LoXiMRuntimeException.java, JDBCDriver/src/main/resources/META-INF/loxim.properties, JDBCDriver/src/main/resources/META-INF/services/java.sql.Driver:
+	JDBC Driver first stubs
+
 2008-04-15  Adam Michalik  <am209482@students.mimuw.edu.pl>
 
 	* JDBCDriver/info.txt: JDBC Driver directory created
