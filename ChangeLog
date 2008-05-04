@@ -1,3 +1,11 @@
+2008-05-04  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
+
+	* QueryExecutor/EnvironmentStack.cpp, QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryExecutor.h, QueryParser/TreeNode.cpp, QueryParser/TreeNode.h, QueryParser/parser.y, QueryParser/scanner.l:
+	W miare ostateczna wersja implementacji aktualizowalnych perspektyw obiekektowych
+	do skladni perspekty dodane procedury on_store i on_insert
+	dodatkowe pomocnicze skladniki perspekty, mozliwosc tworzenia perspektyw ze stanem
+	Dzialania administracyjne na definicjach perpektyw, dodawanie, usuwanie i modyfikacji poszczegolnych skladnikow.
+
 2008-04-24  Adam Michalik  <am209482@students.mimuw.edu.pl>
 
 	* JDBCDriver/Makefile: Makefile (a make-to-maven2 port) added
