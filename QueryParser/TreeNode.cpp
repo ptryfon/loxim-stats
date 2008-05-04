@@ -109,12 +109,15 @@ namespace QParser
     	ViewNode *vn = new ViewNode(name);
     	for (unsigned int i=0; i < procedures.size(); i++) {
 		vn->procedures.push_back(procedures[i]);
-		}
-		for (unsigned int i=0; i < subviews.size(); i++) {
-			vn->subviews.push_back(subviews[i]);
-		}
-		//vn->copyAttrsOf(this);
-		return vn;
+	}
+	for (unsigned int i=0; i < subviews.size(); i++) {
+		vn->subviews.push_back(subviews[i]);
+	}
+	for (unsigned int i=0; i < objects.size(); i++) {
+		vn->objects.push_back(objects[i]);
+	}
+	//vn->copyAttrsOf(this);
+	return vn;
     }
 
     TreeNode* ClassNode::clone() {

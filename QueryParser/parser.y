@@ -49,7 +49,7 @@
 %nonassoc CREATE_OR_UPDATE
 %token	<num> INTEGER
 %token	<dbl> DOUBLE
-%token	<str> STATIC SYSTEMVIEWNAME EXTNAME PARAMNAME NAME STRING SEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT DEREF REF NAMEOF RELOADSCHEME TCON TCOFF BEGINTR END ABORT CREATE IF FI DO OD ELSE WHILE LINK FOREACH THEN FIX_OP FIXPOINT RETURN BREAK VALIDATE READ MODIFY DELETE PASSWD WITH REVOKE REMOVE TO USER FROM ON GRANT OPTION PROCEDURE CLASS EXTENDS INSTANCE LEFTPROCPAR RIGHTPROCPAR VIEW ONRETRIEVE ONUPDATE ONCREATE ONDELETE ONNAVIGATE ONVITRUALIZE INDEX VIRTUAL COLON INTERFACE SHOWS ASSOCIATE CARDCONST TYPEDEF CARD00 CARD01 CARD 11 CARD0INF CARD1INF LEFTSQUAREPAR RIGHTSQUAREPAR STRING_SIG DOUBLE_SIG INTEGER_SIG BOOLEAN_SIG INT_SIG LEFT_EXCLUSIVE LEFT_INCLUSIVE RIGHT_EXCLUSIVE RIGHT_INCLUSIVE INDEXPAR THROW VIRTUALIZE_AS
+%token	<str> STATIC SYSTEMVIEWNAME EXTNAME PARAMNAME NAME STRING SEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT DEREF REF NAMEOF RELOADSCHEME TCON TCOFF BEGINTR END ABORT CREATE IF FI DO OD ELSE WHILE LINK FOREACH THEN FIX_OP FIXPOINT RETURN BREAK VALIDATE READ MODIFY DELETE PASSWD WITH REVOKE REMOVE TO USER FROM ON GRANT OPTION PROCEDURE CLASS EXTENDS INSTANCE LEFTPROCPAR RIGHTPROCPAR VIEW ONRETRIEVE ONUPDATE ONCREATE ONDELETE ONINSERT ONNAVIGATE ONVITRUALIZE ONSTORE INDEX VIRTUAL COLON INTERFACE SHOWS ASSOCIATE CARDCONST TYPEDEF CARD00 CARD01 CARD 11 CARD0INF CARD1INF LEFTSQUAREPAR RIGHTSQUAREPAR STRING_SIG DOUBLE_SIG INTEGER_SIG BOOLEAN_SIG INT_SIG LEFT_EXCLUSIVE LEFT_INCLUSIVE RIGHT_EXCLUSIVE RIGHT_INCLUSIVE INDEXPAR THROW VIRTUALIZE_AS
 		
 %start statement
 %expect 0
@@ -188,12 +188,6 @@ query	    : SYSTEMVIEWNAME { char *s = $1; $$ = new NameNode(s); delete s; }
 	    | query ORDER_BY query { $$ = new NonAlgOpNode($1,$3,NonAlgOpNode::orderBy); }
 	    | query EXISTS query { $$ = new NonAlgOpNode($1,$3,NonAlgOpNode::exists); }
 	    | query FOR_ALL query { $$ = new NonAlgOpNode($1,$3,NonAlgOpNode::forAll); }
-	    | CREATE query { $$ = new CreateNode($2); }
-	    | query INSERTINTO query { $$ = new AlgOpNode($1,$3,AlgOpNode::insert); }
-	    | DELETE query  { $$ = new UnOpNode($2,UnOpNode::deleteOp); }
-	    | query ASSIGN query { $$ = new AlgOpNode($1,$3,AlgOpNode::assign); }
-	    | query ASSIGN procquery { $$ = new AlgOpNode($1,$3,AlgOpNode::assign); }
-	    | query ASSIGN viewquery { $$ = new AlgOpNode($1,$3,AlgOpNode::assign); }
 	    | IF query THEN query ELSE query FI { $$ = new CondNode($2, $4, $6,CondNode::ifElsee); }
 	    | IF query THEN query FI { $$ = new CondNode($2, $4, CondNode::iff); }
 	    | WHILE query DO query OD { $$ = new CondNode($2, $4, CondNode::whilee); }
@@ -203,12 +197,20 @@ query	    : SYSTEMVIEWNAME { char *s = $1; $$ = new NameNode(s); delete s; }
 	    | FIXPOINT LEFTPAR queryfixlist RIGHTPAR { $$ = $3; }
 	    | BREAK {$$ = new ReturnNode (); }
 	    | RETURN query {$$ = new ReturnNode ($2); }
+	    | CREATE query { $$ = new CreateNode($2); }
 	    | CREATE procquery {$$ = new RegisterProcNode ($2);}
 	    | CREATE viewquery {$$ = new RegisterViewNode ($2);}
 	    | CREATE_OR_UPDATE classquery {$$ = new RegisterClassNode ($2, CT_CREATE_OR_UPDATE);}
 	    | UPDATE classquery {$$ = new RegisterClassNode ($2, CT_UPDATE);}
 	    | CREATE classquery {$$ = new RegisterClassNode ($2, CT_CREATE);}
 	    | CREATE interface {$$ = new RegisterInterfaceNode ($2);}
+	    | query INSERTINTO query { $$ = new AlgOpNode($1,$3,AlgOpNode::insert); }
+	    | query INSERTINTO viewproc { $$ = new AlgOpNode($1,$3,AlgOpNode::insert_viewproc); }
+	    | query INSERTINTO viewquery { $$ = new AlgOpNode($1,$3,AlgOpNode::insert_viewproc); }
+	    | DELETE query  { $$ = new UnOpNode($2,UnOpNode::deleteOp); }
+	    | query ASSIGN query { $$ = new AlgOpNode($1,$3,AlgOpNode::assign); }
+	    | query ASSIGN viewproc { $$ = new AlgOpNode($1,$3,AlgOpNode::assign_viewproc); }
+	    | query ASSIGN viewquery { $$ = new AlgOpNode($1,$3,AlgOpNode::assign_viewproc); }
 	    | NAME LEFTPAR RIGHTPAR {$$ = new CallProcNode ($1);}
 	    | NAME LEFTPAR querycommalist RIGHTPAR {$$ = new CallProcNode ($1, $3);}
 	    | EXTNAME LEFTPAR RIGHTPAR {$$ = new CallProcNode ($1);}
@@ -219,6 +221,14 @@ query	    : SYSTEMVIEWNAME { char *s = $1; $$ = new NameNode(s); delete s; }
 	    | indexDML_query
     	    | THROW query {$$ = new ThrowExceptionNode ($2); }
     	    | virtualize_query {$$ = $1}
+    	    | ONUPDATE {$$ = new NameNode("on_update");}
+    	    | ONCREATE {$$ = new NameNode("on_create");}
+    	    | ONDELETE {$$ = new NameNode("on_delete");}
+    	    | ONRETRIEVE {$$ = new NameNode("on_retrieve");}
+    	    | ONINSERT {$$ = new NameNode("on_insert");}
+    	    | ONNAVIGATE {$$ = new NameNode("on_navigate");}
+    	    | ONVITRUALIZE {$$ = new NameNode("on_virtualize");}
+    	    | ONSTORE {$$ = new NameNode("on_store");}
     	    ;
 
 queryfixlist   : NAME FIX_OP query { $$ = new FixPointNode ($1, $3); }
@@ -252,6 +262,7 @@ viewrecdef  : viewdef		 { $$ = $1; }
 
 viewdef     : viewproc	{ $$ = new ViewNode($1); }
             | viewquery	{ $$ = new ViewNode($1); }
+            | CREATE query { $$ = new ViewNode($2); }
             ;
 
 viewproc    : procquery { $$ = $1; }
@@ -263,10 +274,14 @@ viewproc    : procquery { $$ = $1; }
 		$$ = new ProcedureNode(); $$->addContent("on_delete", $6); }
             | PROCEDURE ONRETRIEVE LEFTPAR RIGHTPAR LEFTPROCPAR query RIGHTPROCPAR {
 		$$ = new ProcedureNode(); $$->addContent("on_retrieve", $6); }
+            | PROCEDURE ONINSERT LEFTPAR NAME RIGHTPAR LEFTPROCPAR query RIGHTPROCPAR {
+		$$ = new ProcedureNode(); char *p = $4; $$->addContent("on_insert", $7); $$->addParam(p); delete p; }
             | PROCEDURE ONNAVIGATE LEFTPAR RIGHTPAR LEFTPROCPAR query RIGHTPROCPAR {
 		$$ = new ProcedureNode(); $$->addContent("on_navigate", $6); }
             | PROCEDURE ONVITRUALIZE LEFTPAR NAME RIGHTPAR LEFTPROCPAR query RIGHTPROCPAR {
 		$$ = new ProcedureNode(); char *p = $4; $$->addContent("on_virtualize", $7); $$->addParam(p); delete p; }
+            | PROCEDURE ONSTORE LEFTPAR RIGHTPAR LEFTPROCPAR query RIGHTPROCPAR {
+		$$ = new ProcedureNode(); $$->addContent("on_store", $6); }
             ;
 
 virtualize_query : query VIRTUALIZE_AS NAME { $$ = new VirtualizeAsNode($1, $3); }

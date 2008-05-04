@@ -1239,7 +1239,7 @@ namespace QParser {
      * i insertInto beda robic w opStr i deParse to samo.
      */
 	enum algOp { bagUnion, bagIntersect, bagMinus, plus, minus, times, divide,
-   	         eq, refeq, neq, lt, gt, le, ge, boolAnd, boolOr, comma, insert, insertInto, assign, semicolon }; 
+   	         eq, refeq, neq, lt, gt, le, ge, boolAnd, boolOr, comma, insert, insert_viewproc, insertInto, assign, assign_viewproc, semicolon }; 
    	static QueryNode* newNode(VectorNode* vec, algOp _op) {
         	vector<QueryNode*> q = vec->getQueries();
         	unsigned int q_size = q.size();
@@ -1320,11 +1320,12 @@ namespace QParser {
 	    if (op == 14) return " && ";
 	    if (op == 15) return " || ";
 	    if (op == 16) return " , ";	    
-	    //if (op == 17) return "insert";
 	    if (op == 17) return " :< ";
 	    if (op == 18) return " :< ";
-	    if (op == 19) return " := ";
-	    if (op == 20) return " ; ";
+	    if (op == 19) return " :< ";
+	    if (op == 20) return " := ";
+	    if (op == 21) return " := ";
+	    if (op == 22) return " ; ";
 	    return "~~~";
 	}
 	
@@ -1425,11 +1426,19 @@ namespace QParser {
 				result = " (" + larg->deParse() + ":=" + rarg->deParse() + ") "; 
 				return result; 
 			}
+			case AlgOpNode::assign_viewproc: { 
+				result = " (" + larg->deParse() + ":=" + rarg->deParse() + ") "; 
+				return result; 
+			}
 			case AlgOpNode::semicolon: { 
 				result = " (" + larg->deParse() + ";" + rarg->deParse() + ") "; 
 				return result; 
 			}
 			case AlgOpNode::insert: { 
+				result = " (" + larg->deParse() + ":<" + rarg->deParse() + ") "; 
+				return result; 
+			}
+			case AlgOpNode::insert_viewproc: { 
 				result = " (" + larg->deParse() + ":<" + rarg->deParse() + ") "; 
 				return result; 
 			}
@@ -2225,9 +2234,11 @@ class ViewNode : public QueryNode
 	ProcedureNode* virtual_objects;
 	vector<QueryNode*> procedures;
 	vector<QueryNode*> subviews;
+	vector<QueryNode*> objects;
     public:
 	ViewNode(ViewNode *v) { subviews.push_back(v); }
 	ViewNode(ProcedureNode *p) { procedures.push_back(p); }
+	ViewNode(QueryNode *q) { objects.push_back(q); }
 	ViewNode(string n) { name = n; }
 	
 	virtual TreeNode* clone();
@@ -2239,6 +2250,9 @@ class ViewNode : public QueryNode
 		for (unsigned int i=0; i < subviews.size(); i++) {
 			if (subviews[i] != NULL) delete subviews[i]; }
 		subviews.clear();
+		for (unsigned int i=0; i < objects.size(); i++) {
+			if (objects[i] != NULL) delete objects[i]; }
+		objects.clear();
 		if (virtual_objects != NULL) delete virtual_objects;
 		
 	} 
@@ -2255,9 +2269,13 @@ class ViewNode : public QueryNode
 		for (unsigned int i=0; i < v->subviews.size(); i++) {
 			subviews.push_back(v->subviews[i]);
 		}
+		for (unsigned int i=0; i < v->objects.size(); i++) {
+			objects.push_back(v->objects[i]);
+		}
 	}
 	virtual vector<QueryNode*> getProcedures() { return this->procedures; }
 	virtual vector<QueryNode*> getSubviews() { return this->subviews; }
+	virtual vector<QueryNode*> getObjects() { return this->objects; }
 	virtual string getName() { return name; }
 	virtual QueryNode* getVirtualObjects() { return virtual_objects; }
       
@@ -2269,6 +2287,9 @@ class ViewNode : public QueryNode
 		}
 		for (unsigned int i=0; i < subviews.size(); i++) {
 			result = result + (subviews[i])->toString( level+1, true, "query" );
+		}
+		for (unsigned int i=0; i < objects.size(); i++) {
+			result = result + " create " + (objects[i])->toString( level+1, true, "query" );
 		}
         	return result;
       	}
@@ -2282,6 +2303,10 @@ class ViewNode : public QueryNode
 	    for (unsigned int i=0; i < subviews.size(); i++) {
 		subviews.at(i)->putToString();
 	    }
+	    for (unsigned int i=0; i < objects.size(); i++) {
+		cout << " create ";
+		objects.at(i)->putToString();
+	    }
 	    return 0;
 	}
 	
@@ -2293,6 +2318,9 @@ class ViewNode : public QueryNode
 		}
 		for (unsigned int i=0; i < subviews.size(); i++) {
 			result = result + subviews[i]->deParse();
+		}
+		for (unsigned int i=0; i < objects.size(); i++) {
+			result = result + " create " + objects[i]->deParse();
 		}
 		result = result + " } ";
 		cout << result;

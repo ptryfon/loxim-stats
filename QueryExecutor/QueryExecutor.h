@@ -49,6 +49,7 @@ namespace QExecutor
 
 #define QE_VIRTUALS_TO_SEND_MIN_ID		0xFE000000
 #define QE_VIRTUALS_TO_SEND_MAX_COUNT		0x01000000
+#define QE_NOTROOT_VIEW_PARENT_NAME		"ViewParent"
 
 	class hashOfString {
 	private:
@@ -228,7 +229,7 @@ namespace QExecutor
 		int procCheck(unsigned int qSize, LogicalID *lid, string &code, vector<string> &prms, int &founded);
 		int callProcedure(string code, vector<QueryBagResult*> sections);
 		int checkViewAndGetVirtuals(LogicalID *lid, string &name, string &code);
-		int getSubviews(LogicalID *lid, string vo_name, vector<LogicalID *> &subviews, vector<LogicalID *> &others);
+		int getSubviews(LogicalID *lid, string vo_name, vector<LogicalID *> &subviews);
 		int getSubview(LogicalID *lid, string name, LogicalID *&subview_lid);
 		int getOn_procedure(LogicalID *lid, string procName, string &code, string &param);
 		int pop_qres(QueryResult *&r) { return qres->pop(r); };

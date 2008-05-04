@@ -249,7 +249,15 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 						if (errcode != 0) return errcode;
 						
 						vector<QueryBagResult*> envs_sections;
-						envs_sections.push_back(new QueryBagResult);
+						QueryResult *tmp_View_LID_result = new QueryReferenceResult(view_lid);
+						errcode = tmp_View_LID_result->nested(tr, qe);
+						if(errcode != 0) return errcode;
+						QueryBagResult *nested_tmp_View_LID_result;
+						errcode = qe->getEnvs()->top(nested_tmp_View_LID_result);
+						if(errcode != 0) return errcode;
+						errcode = qe->getEnvs()->pop();
+						if(errcode != 0) return errcode;
+						envs_sections.push_back((QueryBagResult *) nested_tmp_View_LID_result);
 						
 						errcode = qe->callProcedure(view_code, envs_sections);
 						if(errcode != 0) return errcode;
@@ -598,6 +606,8 @@ int QueryReferenceResult::nested(Transaction *&tr, QueryExecutor * qe) {
 			 return qe->getEnvs()->push(r, tr, qe);
 		}
 		/* end of link processing */
+		
+		vector<LogicalID*> subviews_vector;
 
 		int vType = tmp_data_value->getType();
 		switch (vType) {
@@ -650,6 +660,12 @@ int QueryReferenceResult::nested(Transaction *&tr, QueryExecutor * qe) {
 					ec->printf("[QE] nested(): vector element number %d\n", i);
 					r->addResult(final_binder);
 					ec->printf("[QE] nested(): new QueryBinderResult returned name: %s\n", tmp_name.c_str());
+					
+					DataValue* tdv;
+					tdv = optr->getValue();
+					if ((tmp_data_value->getSubtype() != Store::View) && (tdv->getType() == Store::Vector) && (tdv->getSubtype() == Store::View)) {
+						subviews_vector.push_back(tmp_logID);
+					}
 				}
 				break;
 			}
@@ -660,16 +676,61 @@ int QueryReferenceResult::nested(Transaction *&tr, QueryExecutor * qe) {
 				break;
 			}
 		}
-		//if(vType == Store::Vector || vType == Store::Pointer) {
+		QueryBinderResult *selfBinder = new QueryBinderResult(QE_SELF_KEYWORD, this);
+		r->addResult(selfBinder);
+		
+		//DG TODO
+		//Gdy obiekt nie bedacy perspektywa mial jako podobiekt perspektywe, wynikiem nested sa tez wirtualne obiekty -- Na razie zakomentowane, by ta funkcjonalnosc dzialala potrzebne sa zmiany w zakresie widzialnosci nazw, tak zeby w procedurach on_ widoczne bylo srodowisko tego zewnetrznego obiektu
+		if (subviews_vector.size() > 0) {
+			QueryBinderResult *viewParentBinder = new QueryBinderResult(QE_NOTROOT_VIEW_PARENT_NAME, this);
+			r->addResult(viewParentBinder);
+		}
+		for (unsigned int i = 0; i < subviews_vector.size(); i++ ) {
+			LogicalID *tmp_logID = subviews_vector.at(i);
+			string view_name = "";
+			string view_code = "";
+			errcode = qe->checkViewAndGetVirtuals(tmp_logID, view_name, view_code);
+			if (errcode != 0) return errcode;
+			
+			vector<QueryBagResult*> envs_sections;
+			envs_sections.push_back(r);
+			
+			QueryResult *tmp_View_LID_result = new QueryReferenceResult(tmp_logID);
+			errcode = tmp_View_LID_result->nested(tr, qe);
+			if(errcode != 0) return errcode;
+			QueryBagResult *nested_tmp_View_LID_result;
+			errcode = qe->getEnvs()->top(nested_tmp_View_LID_result);
+			if(errcode != 0) return errcode;
+			errcode = qe->getEnvs()->pop();
+			if(errcode != 0) return errcode;
+			envs_sections.push_back((QueryBagResult *) nested_tmp_View_LID_result);
+			
+			errcode = qe->callProcedure(view_code, envs_sections);
+			if(errcode != 0) return errcode;
+			
+			QueryResult *res;
+			qe->pop_qres(res);
+			QueryResult *bagged_res = new QueryBagResult();
+			((QueryBagResult *) bagged_res)->addResult(res);
+			for (unsigned int j = 0; j < bagged_res->size(); j++) {
+				QueryResult *seed;
+				errcode = ((QueryBagResult *) bagged_res)->at(j, seed);
+				if (errcode != 0) return errcode;
+				vector<QueryResult *> seeds;
+				seeds.push_back(seed);
+				QueryResult *virt_res = new QueryVirtualResult(view_name, tmp_logID, seeds);
+				QueryBinderResult *virt_binder = new QueryBinderResult(view_name, virt_res);
+				r->addResult(virt_binder);
+				ec->printf("[QE] nested(): new QueryVirtualResult returned name: %s\n", view_name.c_str());
+			}
+		}
+		
 		errcode = qe->getEnvs()->push(r, tr, qe);
 		if(errcode != 0) return errcode;
 		bool classFound = false;
 		errcode = qe->getEnvs()->pushClasses(tmp_data_value, qe, classFound);
 		if(errcode != 0) return errcode;
-		QueryBinderResult *selfBinder = new QueryBinderResult(QE_SELF_KEYWORD, this);
-		r->addResult(selfBinder);
 		return 0;
-		//}
 	}
 	return qe->getEnvs()->push(r, tr, qe);
 }
@@ -681,6 +742,17 @@ int QueryVirtualResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor 
 	ec->printf("[QE] nested(): QueryVirtualResult\n");
 	
 	vector<QueryBagResult*> envs_sections;
+	
+	QueryResult *tmp_View_LID_result = new QueryReferenceResult(view_def);
+	errcode = tmp_View_LID_result->nested(tr, qe);
+	if(errcode != 0) return errcode;
+	QueryBagResult *nested_tmp_View_LID_result;
+	errcode = qe->getEnvs()->top(nested_tmp_View_LID_result);
+	if(errcode != 0) return errcode;
+	errcode = qe->getEnvs()->pop();
+	if(errcode != 0) return errcode;
+	envs_sections.push_back((QueryBagResult *) nested_tmp_View_LID_result);
+	
 	for (int k = ((seeds.size()) - 1); k >= 0; k-- ) {
 		QueryResult *current_seed = seeds.at(k);
 		errcode = current_seed->nested(tr, qe);
@@ -748,8 +820,7 @@ int QueryVirtualResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor 
 	
 	//else {
 		vector<LogicalID *> subviews;
-		vector<LogicalID *> others;
-		errcode = qe->getSubviews(view_def, vo_name, subviews, others);
+		errcode = qe->getSubviews(view_def, vo_name, subviews);
 		if (errcode != 0) return errcode;
 		for (unsigned int i = 0; i < subviews.size(); i++ ) {
 			LogicalID *subview_lid = subviews.at(i);
@@ -779,20 +850,6 @@ int QueryVirtualResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor 
 				r->addResult(final_binder);
 			}
 			
-		}
-		for (unsigned int i = 0; i < others.size(); i++ ) {
-			LogicalID *tmp_logID = others.at(i);
-			ObjectPointer *tmp_optr;
-			if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, tmp_optr, false)) != 0) {
-				*ec << "[QE] Error in getObjectPointer";
-				qe->antyStarveFunction(errcode);
-				qe->inTransaction = false;
-				return errcode;
-			}
-			string tmp_name = tmp_optr->getName();
-			QueryReferenceResult *final_ref = new QueryReferenceResult(tmp_logID);
-			QueryBinderResult *final_binder = new QueryBinderResult(tmp_name, final_ref);
-			r->addResult(final_binder);
 		}
 	//}
 	return 0;
