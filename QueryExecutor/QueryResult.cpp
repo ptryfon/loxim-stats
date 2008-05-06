@@ -43,8 +43,8 @@ QueryReferenceResult::QueryReferenceResult()			{ ec = new ErrorConsole("QueryExe
 QueryReferenceResult::QueryReferenceResult(LogicalID* v) 	{ value=v; ec = new ErrorConsole("QueryExecutor"); refed = false; }
 QueryNothingResult::QueryNothingResult() 			{ ec = new ErrorConsole("QueryExecutor"); }
 QueryVirtualResult::QueryVirtualResult() 			{ ec = new ErrorConsole("QueryExecutor"); refed = false;}
-QueryVirtualResult::QueryVirtualResult(string _vo_name, LogicalID *_view_def, vector<QueryResult *> _seeds) {
-vo_name = _vo_name; view_def = _view_def; seeds = _seeds; ec = new ErrorConsole("QueryExecutor"); refed = false;}
+QueryVirtualResult::QueryVirtualResult(string _vo_name, vector<LogicalID *> _view_defs, vector<QueryResult *> _seeds, LogicalID *_view_parent) {
+vo_name = _vo_name; view_defs = _view_defs; seeds = _seeds; ec = new ErrorConsole("QueryExecutor"); refed = false; view_parent = _view_parent;}
 
 //function clone()
 QueryResult* QuerySequenceResult::clone()	{ return new QuerySequenceResult(seq); }
@@ -57,7 +57,7 @@ QueryResult* QueryDoubleResult::clone()		{ return new QueryDoubleResult(value); 
 QueryResult* QueryBoolResult::clone()		{ return new QueryBoolResult(value); }
 QueryResult* QueryReferenceResult::clone()	{ return new QueryReferenceResult(value); }
 QueryResult* QueryNothingResult::clone()	{ return new QueryNothingResult(); }
-QueryResult* QueryVirtualResult::clone()	{ return new QueryVirtualResult(vo_name, view_def, seeds); }
+QueryResult* QueryVirtualResult::clone()	{ return new QueryVirtualResult(vo_name, view_defs, seeds, view_parent); }
 
 //function type() - returns type of a result
 int QueryResult::type()			{ return QueryResult::QRESULT; }
@@ -1110,7 +1110,6 @@ bool QueryNothingResult::less_eq(QueryResult *r) {
 	return ((this->less_than(r)) || (this->equal(r)));
 }
 
-//TODO jak uporzadkowac QueryVirtualResulty
 bool QueryVirtualResult::equal(QueryResult *r){ 
 	return false; 
 }

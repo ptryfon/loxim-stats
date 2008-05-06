@@ -544,17 +544,19 @@ protected:
 	
 public:
 	string vo_name;
-	LogicalID *view_def;
+	vector<LogicalID *> view_defs;
 	vector<QueryResult *> seeds;
 	bool refed;
+	LogicalID *view_parent;
 	
 	QueryVirtualResult();
-	QueryVirtualResult(string _vo_name, LogicalID *_view_def, vector<QueryResult *> _seeds);
+	QueryVirtualResult(string _vo_name, vector<LogicalID *> _view_defs, vector<QueryResult *> _seeds, LogicalID *_view_parent);
 	QueryResult* clone();
 	virtual ~QueryVirtualResult() { 
-		for (unsigned int i = 0; i < (seeds.size()); i++ ) { delete (seeds.at(i)); };
-		if (view_def != NULL) delete view_def;
-		if (ec != NULL) delete ec; 
+		seeds.clear();
+		view_defs.clear();
+		if (ec != NULL) delete ec;
+		if (view_parent != NULL) delete view_parent; 
 	};
 	
 	int type();
@@ -575,7 +577,7 @@ public:
 	int getReferenceValue(QueryResult *&r);
 	
         virtual string toString( int level = 0, bool recursive = false, string n = "" ) {
-		string valueS = view_def ? view_def->toString() : "<null>";
+		string valueS = view_defs.at(0) ? view_defs.at(0)->toString() : "<null>";
 		string res = getPrefixForLevel( level, n ) + "[Virtual] name=" + vo_name + " definition lid=" + valueS + "\n";
 		for (unsigned int i = 0; i < (seeds.size()); i++ ) {
 			res = res +  getPrefixForLevel( level + 1, n ) + "  [seed] " + seeds.at(i)->toString(level, recursive, n) + "\n";

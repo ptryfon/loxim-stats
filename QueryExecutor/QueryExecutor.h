@@ -232,6 +232,7 @@ namespace QExecutor
 		int getSubviews(LogicalID *lid, string vo_name, vector<LogicalID *> &subviews);
 		int getSubview(LogicalID *lid, string name, LogicalID *&subview_lid);
 		int getOn_procedure(LogicalID *lid, string procName, string &code, string &param);
+		int createNewSections(QueryVirtualResult *qvirt, QueryBinderResult *param, LogicalID *viewdef, vector<QueryBagResult*> &sections);
 		int pop_qres(QueryResult *&r) { return qres->pop(r); };
 		
 		EnvironmentStack* getEnvs() { return envs; }

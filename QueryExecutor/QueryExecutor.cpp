@@ -1030,7 +1030,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 					errcode = (((QueryBagResult *) r_tmp)->at(0, subqueryResult));
 					if (errcode != 0) return errcode;
 					if (subqueryResult->type() == QueryResult::QVIRTUAL) {
-						LogicalID* sub_lid = ((QueryVirtualResult *) subqueryResult)->view_def;
+						LogicalID* sub_lid = ((QueryVirtualResult *) subqueryResult)->view_defs.at(0);
 						errcode = getSubview(sub_lid, virtualizeAsName, referenced_view_lid);
 						if (errcode != 0) return errcode;
 						if (referenced_view_lid != NULL) {
@@ -1074,34 +1074,10 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 					
 					vector<QueryBagResult*> envs_sections;
 					
-					QueryResult *tmp_View_LID_result = new QueryReferenceResult(referenced_view_lid);
-					errcode = tmp_View_LID_result->nested(tr, this);
-					if(errcode != 0) return errcode;
-					QueryBagResult *nested_tmp_View_LID_result;
-					errcode = envs->top(nested_tmp_View_LID_result);
-					if(errcode != 0) return errcode;
-					errcode = envs->pop();
-					if(errcode != 0) return errcode;
-					envs_sections.push_back((QueryBagResult *) nested_tmp_View_LID_result);
-					
-					if (subqueryResult != NULL) {
-						for (int k = ((((QueryVirtualResult *) subqueryResult)->seeds.size()) - 1); k >= 0; k-- ) {
-							QueryResult *current_seed = ((QueryVirtualResult *) subqueryResult)->seeds.at(k);
-							errcode = current_seed->nested(tr, this);
-							if(errcode != 0) return errcode;
-							QueryBagResult *nested_seed;
-							errcode = envs->top(nested_seed);
-							if(errcode != 0) return errcode;
-							errcode = envs->pop();
-							if(errcode != 0) return errcode;
-							envs_sections.push_back((QueryBagResult *) nested_seed);
-						}
-					}
-					
 					QueryResult *param_binder = new QueryBinderResult(referenced_view_param, currentResult);
-					QueryResult *param_bag = new QueryBagResult();
-					((QueryBagResult *) param_bag)->addResult(param_binder);
-					envs_sections.push_back((QueryBagResult *) param_bag);
+					errcode = createNewSections((QueryVirtualResult*) subqueryResult, (QueryBinderResult*) param_binder, referenced_view_lid, envs_sections);
+					if (errcode != 0) return errcode;
+					
 					errcode = callProcedure(referenced_view_code, envs_sections);
 					if (errcode != 0) return errcode;
 					QueryResult *callproc_res;
@@ -1116,12 +1092,20 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 						if (errcode != 0) return errcode;
 						vector<QueryResult *> seeds;
 						seeds.push_back(seed);
+						vector<LogicalID *> view_defs;
+						view_defs.push_back(referenced_view_lid);
+						LogicalID *subquery_view_parent = NULL;
 						if (subqueryResult != NULL) {
+							for (unsigned int k = 0; k < (((QueryVirtualResult *) subqueryResult)->view_defs.size()); k++ ) {
+								view_defs.push_back(((QueryVirtualResult *) subqueryResult)->view_defs.at(k));
+							}
 							for (unsigned int k = 0; k < (((QueryVirtualResult *) subqueryResult)->seeds.size()); k++ ) {
 								seeds.push_back(((QueryVirtualResult *) subqueryResult)->seeds.at(k));
 							}
+							subquery_view_parent = ((QueryVirtualResult *) subqueryResult)->view_parent;
 						}
-						QueryResult *virt_res = new QueryVirtualResult(virtualizeAsName, referenced_view_lid, seeds);
+						//DG TODO virtualize as - do poprawki
+						QueryResult *virt_res = new QueryVirtualResult(virtualizeAsName, view_defs, seeds, subquery_view_parent);
 						final_result->addResult(virt_res);
 					}
 				}
@@ -2017,21 +2001,11 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 					}
 					vector<QueryBagResult*> envs_sections;
 					
-					QueryResult *tmp_View_LID_result = new QueryReferenceResult(view_def);
-					errcode = tmp_View_LID_result->nested(tr, this);
-					if(errcode != 0) return errcode;
-					QueryBagResult *nested_tmp_View_LID_result;
-					errcode = envs->top(nested_tmp_View_LID_result);
-					if(errcode != 0) return errcode;
-					errcode = envs->pop();
-					if(errcode != 0) return errcode;
-					envs_sections.push_back((QueryBagResult *) nested_tmp_View_LID_result);
-					
 					QueryResult *create_arg = ((QueryBinderResult*)binder)->getItem();
 					QueryResult *param_binder = new QueryBinderResult(proc_param, create_arg);
-					QueryResult *param_bag = new QueryBagResult();
-					((QueryBagResult *) param_bag)->addResult(param_binder);
-					envs_sections.push_back((QueryBagResult *) param_bag);
+					
+					errcode = createNewSections(NULL, (QueryBinderResult*) param_binder, view_def, envs_sections);
+					if (errcode != 0) return errcode;
 					
 					errcode = callProcedure(proc_code, envs_sections);
 					if(errcode != 0) return errcode;
@@ -2048,7 +2022,10 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 						
 						vector<QueryResult *> seeds;
 						seeds.push_back(seed);
-						QueryResult *virt_res = new QueryVirtualResult(newobject_name, view_def, seeds);
+						vector<LogicalID *> view_defs;
+						view_defs.push_back(view_def);
+						
+						QueryResult *virt_res = new QueryVirtualResult(newobject_name, view_defs, seeds, NULL);
 						((QueryBagResult *) result)->addResult(virt_res);
 					}
 				}
@@ -3005,7 +2982,7 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 				res = arg;
 				break;
 			}
-			LogicalID *view_def = ((QueryVirtualResult*) arg)->view_def;
+			LogicalID *view_def = ((QueryVirtualResult*) arg)->view_defs.at(0);
 			vector<QueryResult *> seeds = ((QueryVirtualResult*) arg)->seeds;
 			string proc_code = "";
 			string proc_param = "";
@@ -3019,27 +2996,8 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 			
 			vector<QueryBagResult*> envs_sections;
 			
-			QueryResult *tmp_View_LID_result = new QueryReferenceResult(view_def);
-			errcode = tmp_View_LID_result->nested(tr, this);
-			if(errcode != 0) return errcode;
-			QueryBagResult *nested_tmp_View_LID_result;
-			errcode = envs->top(nested_tmp_View_LID_result);
-			if(errcode != 0) return errcode;
-			errcode = envs->pop();
-			if(errcode != 0) return errcode;
-			envs_sections.push_back((QueryBagResult *) nested_tmp_View_LID_result);
-			
-			for (int k = ((seeds.size()) - 1); k >= 0; k-- ) {
-				QueryResult *current_seed = seeds.at(k);
-				errcode = current_seed->nested(tr, this);
-				if(errcode != 0) return errcode;
-				QueryBagResult *nested_seed;
-				errcode = envs->top(nested_seed);
-				if(errcode != 0) return errcode;
-				errcode = envs->pop();
-				if(errcode != 0) return errcode;
-				envs_sections.push_back((QueryBagResult *) nested_seed);
-			}
+			errcode = createNewSections((QueryVirtualResult*) arg, NULL, NULL, envs_sections);
+			if (errcode != 0) return errcode;
 			
 			errcode = callProcedure(proc_code, envs_sections);
 			if(errcode != 0) return errcode;
@@ -3800,7 +3758,7 @@ int QueryExecutor::persistDelete(QueryResult* bagArg) {
 			if(errcode != 0) return errcode;
 		}
 		else if (toDeleteType == QueryResult::QVIRTUAL) {
-			LogicalID *view_def = ((QueryVirtualResult*) toDelete)->view_def;
+			LogicalID *view_def = ((QueryVirtualResult*) toDelete)->view_defs.at(0);
 			vector<QueryResult *> seeds = ((QueryVirtualResult*) toDelete)->seeds;
 			string proc_code = "";
 			string proc_param = "";
@@ -3815,27 +3773,8 @@ int QueryExecutor::persistDelete(QueryResult* bagArg) {
 			
 			vector<QueryBagResult*> envs_sections;
 			
-			QueryResult *tmp_View_LID_result = new QueryReferenceResult(view_def);
-			errcode = tmp_View_LID_result->nested(tr, this);
-			if(errcode != 0) return errcode;
-			QueryBagResult *nested_tmp_View_LID_result;
-			errcode = envs->top(nested_tmp_View_LID_result);
-			if(errcode != 0) return errcode;
-			errcode = envs->pop();
-			if(errcode != 0) return errcode;
-			envs_sections.push_back((QueryBagResult *) nested_tmp_View_LID_result);
-			
-			for (int k = ((seeds.size()) - 1); k >= 0; k-- ) {
-				QueryResult *current_seed = seeds.at(k);
-				errcode = current_seed->nested(tr, this);
-				if(errcode != 0) return errcode;
-				QueryBagResult *nested_seed;
-				errcode = envs->top(nested_seed);
-				if(errcode != 0) return errcode;
-				errcode = envs->pop();
-				if(errcode != 0) return errcode;
-				envs_sections.push_back((QueryBagResult *) nested_seed);
-			}
+			errcode = createNewSections((QueryVirtualResult*) toDelete, NULL, NULL, envs_sections);
+			if (errcode != 0) return errcode;
 				
 			errcode = callProcedure(proc_code, envs_sections);
 			if(errcode != 0) return errcode;
@@ -4665,7 +4604,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 		int leftResultType = outer->type();
 		if (leftResultType == QueryResult::QVIRTUAL) {
 			
-			LogicalID *main_view_def = ((QueryVirtualResult*) outer)->view_def;
+			LogicalID *main_view_def = ((QueryVirtualResult*) outer)->view_defs.at(0);
 			string main_vo_name = ((QueryVirtualResult*) outer)->vo_name;
 			vector<QueryResult *> main_seeds = ((QueryVirtualResult*) outer)->seeds;
 			
@@ -4679,7 +4618,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 				if (errcode != 0) return errcode;
 				
 				while (toInsert->type() == QueryResult::QVIRTUAL) {
-					LogicalID *view_def = ((QueryVirtualResult*) toInsert)->view_def;
+					LogicalID *view_def = ((QueryVirtualResult*) toInsert)->view_defs.at(0);
 					vector<QueryResult *> seeds = ((QueryVirtualResult*) toInsert)->seeds;
 					string proc_code = "";
 					string proc_param = "";
@@ -4693,27 +4632,8 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 					
 					vector<QueryBagResult*> envs_sections;
 					
-					QueryResult *tmp_View_LID_result = new QueryReferenceResult(view_def);
-					errcode = tmp_View_LID_result->nested(tr, this);
-					if(errcode != 0) return errcode;
-					QueryBagResult *nested_tmp_View_LID_result;
-					errcode = envs->top(nested_tmp_View_LID_result);
-					if(errcode != 0) return errcode;
-					errcode = envs->pop();
-					if(errcode != 0) return errcode;
-					envs_sections.push_back((QueryBagResult *) nested_tmp_View_LID_result);
-					
-					for (int k = ((seeds.size()) - 1); k >= 0; k-- ) {
-						QueryResult *current_seed = seeds.at(k);
-						errcode = current_seed->nested(tr, this);
-						if(errcode != 0) return errcode;
-						QueryBagResult *nested_seed;
-						errcode = envs->top(nested_seed);
-						if(errcode != 0) return errcode;
-						errcode = envs->pop();
-						if(errcode != 0) return errcode;
-						envs_sections.push_back((QueryBagResult *) nested_seed);
-					}
+					errcode = createNewSections((QueryVirtualResult*) toInsert, NULL, NULL, envs_sections);
+					if (errcode != 0) return errcode;
 					
 					errcode = callProcedure(proc_code, envs_sections);
 					if(errcode != 0) return errcode;
@@ -4747,33 +4667,10 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 					}
 					
 					vector<QueryBagResult*> envs_sections;
-					
-					QueryResult *tmp_View_LID_result = new QueryReferenceResult(main_view_def);
-					errcode = tmp_View_LID_result->nested(tr, this);
-					if(errcode != 0) return errcode;
-					QueryBagResult *nested_tmp_View_LID_result;
-					errcode = envs->top(nested_tmp_View_LID_result);
-					if(errcode != 0) return errcode;
-					errcode = envs->pop();
-					if(errcode != 0) return errcode;
-					envs_sections.push_back((QueryBagResult *) nested_tmp_View_LID_result);
-					
-					for (int k = ((main_seeds.size()) - 1); k >= 0; k-- ) {
-						QueryResult *current_seed = main_seeds.at(k);
-						errcode = current_seed->nested(tr, this);
-						if(errcode != 0) return errcode;
-						QueryBagResult *nested_seed;
-						errcode = envs->top(nested_seed);
-						if(errcode != 0) return errcode;
-						errcode = envs->pop();
-						if(errcode != 0) return errcode;
-						envs_sections.push_back((QueryBagResult *) nested_seed);
-					}
 						
 					QueryResult *param_binder = new QueryBinderResult(proc_param, toInsert);
-					QueryResult *param_bag = new QueryBagResult();
-					((QueryBagResult *) param_bag)->addResult(param_binder);
-					envs_sections.push_back((QueryBagResult *) param_bag);
+					errcode = createNewSections((QueryVirtualResult*) outer, (QueryBinderResult*) param_binder, NULL, envs_sections);
+					if (errcode != 0) return errcode;
 					
 					errcode = callProcedure(proc_code, envs_sections);
 					if(errcode != 0) return errcode;
@@ -4827,33 +4724,10 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 					}
 					
 					vector<QueryBagResult*> envs_sections;
-					
-					QueryResult *tmp_View_LID_result = new QueryReferenceResult(sub_view_def);
-					errcode = tmp_View_LID_result->nested(tr, this);
-					if(errcode != 0) return errcode;
-					QueryBagResult *nested_tmp_View_LID_result;
-					errcode = envs->top(nested_tmp_View_LID_result);
-					if(errcode != 0) return errcode;
-					errcode = envs->pop();
-					if(errcode != 0) return errcode;
-					envs_sections.push_back((QueryBagResult *) nested_tmp_View_LID_result);
-					
-					for (int k = ((main_seeds.size()) - 1); k >= 0; k-- ) {
-						QueryResult *current_seed = main_seeds.at(k);
-						errcode = current_seed->nested(tr, this);
-						if(errcode != 0) return errcode;
-						QueryBagResult *nested_seed;
-						errcode = envs->top(nested_seed);
-						if(errcode != 0) return errcode;
-						errcode = envs->pop();
-						if(errcode != 0) return errcode;
-						envs_sections.push_back((QueryBagResult *) nested_seed);
-					}
 						
 					QueryResult *param_binder = new QueryBinderResult(proc_param, toInsert_value);
-					QueryResult *param_bag = new QueryBagResult();
-					((QueryBagResult *) param_bag)->addResult(param_binder);
-					envs_sections.push_back((QueryBagResult *) param_bag);
+					errcode = createNewSections((QueryVirtualResult*) outer, (QueryBinderResult*) param_binder, sub_view_def, envs_sections);
+					if (errcode != 0) return errcode;
 					
 					errcode = callProcedure(proc_code, envs_sections);
 					if(errcode != 0) return errcode;
@@ -4939,7 +4813,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 				LogicalID *lidIn;
 				
 				while (toInsert->type() == QueryResult::QVIRTUAL) {
-					LogicalID *view_def = ((QueryVirtualResult*) toInsert)->view_def;
+					LogicalID *view_def = ((QueryVirtualResult*) toInsert)->view_defs.at(0);
 					vector<QueryResult *> seeds = ((QueryVirtualResult*) toInsert)->seeds;
 					string proc_code = "";
 					string proc_param = "";
@@ -4953,27 +4827,8 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 					
 					vector<QueryBagResult*> envs_sections;
 					
-					QueryResult *tmp_View_LID_result = new QueryReferenceResult(view_def);
-					errcode = tmp_View_LID_result->nested(tr, this);
-					if(errcode != 0) return errcode;
-					QueryBagResult *nested_tmp_View_LID_result;
-					errcode = envs->top(nested_tmp_View_LID_result);
-					if(errcode != 0) return errcode;
-					errcode = envs->pop();
-					if(errcode != 0) return errcode;
-					envs_sections.push_back((QueryBagResult *) nested_tmp_View_LID_result);
-					
-					for (int k = ((seeds.size()) - 1); k >= 0; k-- ) {
-						QueryResult *current_seed = seeds.at(k);
-						errcode = current_seed->nested(tr, this);
-						if(errcode != 0) return errcode;
-						QueryBagResult *nested_seed;
-						errcode = envs->top(nested_seed);
-						if(errcode != 0) return errcode;
-						errcode = envs->pop();
-						if(errcode != 0) return errcode;
-						envs_sections.push_back((QueryBagResult *) nested_seed);
-					}
+					errcode = createNewSections((QueryVirtualResult*) toInsert, NULL, NULL, envs_sections);
+					if (errcode != 0) return errcode;
 					
 					errcode = callProcedure(proc_code, envs_sections);
 					if(errcode != 0) return errcode;
@@ -5179,7 +5034,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 		if (errcode != 0) return errcode;
 		int leftResultType = lArg->type();
 		if (leftResultType == QueryResult::QVIRTUAL) {
-			LogicalID *view_def = ((QueryVirtualResult*) lArg)->view_def;
+			LogicalID *view_def = ((QueryVirtualResult*) lArg)->view_defs.at(0);
 			vector<QueryResult *> seeds = ((QueryVirtualResult*) lArg)->seeds;
 			string proc_code = "";
 			string proc_param = "";
@@ -5193,32 +5048,9 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 			
 			vector<QueryBagResult*> envs_sections;
 			
-			QueryResult *tmp_View_LID_result = new QueryReferenceResult(view_def);
-			errcode = tmp_View_LID_result->nested(tr, this);
-			if(errcode != 0) return errcode;
-			QueryBagResult *nested_tmp_View_LID_result;
-			errcode = envs->top(nested_tmp_View_LID_result);
-			if(errcode != 0) return errcode;
-			errcode = envs->pop();
-			if(errcode != 0) return errcode;
-			envs_sections.push_back((QueryBagResult *) nested_tmp_View_LID_result);
-			
-			for (int k = ((seeds.size()) - 1); k >= 0; k-- ) {
-				QueryResult *current_seed = seeds.at(k);
-				errcode = current_seed->nested(tr, this);
-				if(errcode != 0) return errcode;
-				QueryBagResult *nested_seed;
-				errcode = envs->top(nested_seed);
-				if(errcode != 0) return errcode;
-				errcode = envs->pop();
-				if(errcode != 0) return errcode;
-				envs_sections.push_back((QueryBagResult *) nested_seed);
-			}
-			
 			QueryResult *param_binder = new QueryBinderResult(proc_param, rArg);
-			QueryResult *param_bag = new QueryBagResult();
-			((QueryBagResult *) param_bag)->addResult(param_binder);
-			envs_sections.push_back((QueryBagResult *) param_bag);
+			errcode = createNewSections((QueryVirtualResult*) lArg, (QueryBinderResult*) param_binder, NULL, envs_sections);
+			if (errcode != 0) return errcode;
 			
 			errcode = callProcedure(proc_code, envs_sections);
 			if(errcode != 0) return errcode;
@@ -5257,7 +5089,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 				errcode = this->derefQuery(rArg, derefed);
 				if (errcode != 0) return errcode;
 				while (derefed->type() == QueryResult::QVIRTUAL) {
-					LogicalID *view_def = ((QueryVirtualResult*) derefed)->view_def;
+					LogicalID *view_def = ((QueryVirtualResult*) derefed)->view_defs.at(0);
 					vector<QueryResult *> seeds = ((QueryVirtualResult*) derefed)->seeds;
 					string proc_code = "";
 					string proc_param = "";
@@ -5271,27 +5103,8 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 					
 					vector<QueryBagResult*> envs_sections;
 					
-					QueryResult *tmp_View_LID_result = new QueryReferenceResult(view_def);
-					errcode = tmp_View_LID_result->nested(tr, this);
-					if(errcode != 0) return errcode;
-					QueryBagResult *nested_tmp_View_LID_result;
-					errcode = envs->top(nested_tmp_View_LID_result);
-					if(errcode != 0) return errcode;
-					errcode = envs->pop();
-					if(errcode != 0) return errcode;
-					envs_sections.push_back((QueryBagResult *) nested_tmp_View_LID_result);
-					
-					for (int k = ((seeds.size()) - 1); k >= 0; k-- ) {
-						QueryResult *current_seed = seeds.at(k);
-						errcode = current_seed->nested(tr, this);
-						if(errcode != 0) return errcode;
-						QueryBagResult *nested_seed;
-						errcode = envs->top(nested_seed);
-						if(errcode != 0) return errcode;
-						errcode = envs->pop();
-						if(errcode != 0) return errcode;
-						envs_sections.push_back((QueryBagResult *) nested_seed);
-					}
+					errcode = createNewSections((QueryVirtualResult*) derefed, NULL, NULL, envs_sections);
+					if (errcode != 0) return errcode;
 					
 					errcode = callProcedure(proc_code, envs_sections);
 					if(errcode != 0) return errcode;
@@ -5812,7 +5625,7 @@ int QueryExecutor::objectFromBinder(QueryResult *res, ObjectPointer *&newObject)
 		}
 		case QueryResult::QVIRTUAL: {
 			
-			LogicalID *view_def = ((QueryVirtualResult*) binderItem)->view_def;
+			LogicalID *view_def = ((QueryVirtualResult*) binderItem)->view_defs.at(0);
 			vector<QueryResult *> seeds = ((QueryVirtualResult*) binderItem)->seeds;
 			string proc_code = "";
 			string proc_param = "";
@@ -5826,27 +5639,8 @@ int QueryExecutor::objectFromBinder(QueryResult *res, ObjectPointer *&newObject)
 			
 			vector<QueryBagResult*> envs_sections;
 			
-			QueryResult *tmp_View_LID_result = new QueryReferenceResult(view_def);
-			errcode = tmp_View_LID_result->nested(tr, this);
-			if(errcode != 0) return errcode;
-			QueryBagResult *nested_tmp_View_LID_result;
-			errcode = envs->top(nested_tmp_View_LID_result);
-			if(errcode != 0) return errcode;
-			errcode = envs->pop();
-			if(errcode != 0) return errcode;
-			envs_sections.push_back((QueryBagResult *) nested_tmp_View_LID_result);
-			
-			for (int k = ((seeds.size()) - 1); k >= 0; k-- ) {
-				QueryResult *current_seed = seeds.at(k);
-				errcode = current_seed->nested(tr, this);
-				if(errcode != 0) return errcode;
-				QueryBagResult *nested_seed;
-				errcode = envs->top(nested_seed);
-				if(errcode != 0) return errcode;
-				errcode = envs->pop();
-				if(errcode != 0) return errcode;
-				envs_sections.push_back((QueryBagResult *) nested_seed);
-			}
+			errcode = createNewSections((QueryVirtualResult*) binderItem, NULL, NULL, envs_sections);
+			if (errcode != 0) return errcode;
 			
 			errcode = callProcedure(proc_code, envs_sections);
 			if(errcode != 0) return errcode;
@@ -5886,6 +5680,71 @@ int QueryExecutor::objectFromBinder(QueryResult *res, ObjectPointer *&newObject)
 		inTransaction = false;
 		return errcode;
 	}
+	return 0;
+}
+
+int QueryExecutor::createNewSections(QueryVirtualResult *qvirt, QueryBinderResult *param, LogicalID *viewdef, vector<QueryBagResult*> &sections) {
+
+	int errcode;
+	
+	if ((qvirt != NULL) && (qvirt->view_parent != NULL)) {
+		QueryResult *tmp_result_1 = new QueryReferenceResult(qvirt->view_parent);
+		errcode = tmp_result_1->nested(tr, this);
+		if(errcode != 0) return errcode;
+		QueryBagResult *nested_tmp_result_1;
+		errcode = envs->top(nested_tmp_result_1);
+		if(errcode != 0) return errcode;
+		errcode = envs->pop();
+		if(errcode != 0) return errcode;
+		sections.push_back((QueryBagResult *) nested_tmp_result_1);
+	}
+	
+	if (qvirt != NULL) {
+		for (int i = ((qvirt->view_defs.size()) - 1); i >= 0; i-- ) {
+			QueryResult *tmp_result_2 = new QueryReferenceResult(qvirt->view_defs.at(i));
+			errcode = tmp_result_2->nested(tr, this);
+			if(errcode != 0) return errcode;
+			QueryBagResult *nested_tmp_result_2;
+			errcode = envs->top(nested_tmp_result_2);
+			if(errcode != 0) return errcode;
+			errcode = envs->pop();
+			if(errcode != 0) return errcode;
+			sections.push_back((QueryBagResult *) nested_tmp_result_2);
+		}
+	}
+	
+	if (viewdef != NULL) {
+		QueryResult *tmp_result_3 = new QueryReferenceResult(viewdef);
+		errcode = tmp_result_3->nested(tr, this);
+		if(errcode != 0) return errcode;
+		QueryBagResult *nested_tmp_result_3;
+		errcode = envs->top(nested_tmp_result_3);
+		if(errcode != 0) return errcode;
+		errcode = envs->pop();
+		if(errcode != 0) return errcode;
+		sections.push_back((QueryBagResult *) nested_tmp_result_3);
+	}
+	
+	if (qvirt != NULL) {
+		for (int i = ((qvirt->seeds.size()) - 1); i >= 0; i-- ) {
+			QueryResult *tmp_result_4 = qvirt->seeds.at(i);
+			errcode = tmp_result_4->nested(tr, this);
+			if(errcode != 0) return errcode;
+			QueryBagResult *nested_tmp_result_4;
+			errcode = envs->top(nested_tmp_result_4);
+			if(errcode != 0) return errcode;
+			errcode = envs->pop();
+			if(errcode != 0) return errcode;
+			sections.push_back((QueryBagResult *) nested_tmp_result_4);
+		}
+	}
+	
+	if (param != NULL) {
+		QueryBagResult *param_bag = new QueryBagResult();
+		param_bag->addResult(param);
+		sections.push_back(param_bag);
+	}
+
 	return 0;
 }
 
