@@ -1,3 +1,10 @@
+2008-05-07  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
+
+	* QueryExecutor/EnvironmentStack.cpp, QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryExecutor.h, QueryExecutor/QueryResult.cpp, QueryExecutor/QueryResult.h:
+	Bug fixed.
+	Poprawiony sposób inicjowania sekcji stosu przed wywolaniem procedur 'on_'.
+	Obecnie procedury dzialaja takze, gdy perspektywa nie jest rootem, jest podobiektem obiektu rzeczywistego.
+
 2008-05-04  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
 
 	* QueryExecutor/EnvironmentStack.cpp, QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryExecutor.h, QueryParser/TreeNode.cpp, QueryParser/TreeNode.h, QueryParser/parser.y, QueryParser/scanner.l:
