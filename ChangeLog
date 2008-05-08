@@ -1,3 +1,9 @@
+2008-05-09  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
+
+	* QueryExecutor/EnvironmentStack.cpp, QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryResult.cpp, QueryParser/TreeNode.cpp, QueryParser/TreeNode.h, QueryParser/parser.y:
+	ostatnie drobne poprawki, operator virtualize as dziala tez dla perspektyw niekorzeniowych
+	Oficjalna wersja (1.0) implementacji 'Aktualizowalnych perspektyw obiektowych w systemie LoXiM'
+
 2008-05-08  Adam Michalik  <am209482@students.mimuw.edu.pl>
 
 	* JDBCDriver/src/main/java/edu/mimuw/loxim/jdbc/DatabaseURL.java, JDBCDriver/src/main/java/edu/mimuw/loxim/jdbc/LoXiMConnection.java, JDBCDriver/src/main/java/edu/mimuw/loxim/jdbc/LoXiMConnectionImpl.java, JDBCDriver/src/main/java/edu/mimuw/loxim/jdbc/LoXiMDatabaseMetaDataImpl.java, JDBCDriver/src/main/java/edu/mimuw/loxim/jdbc/LoXiMDriverImpl.java, JDBCDriver/src/main/java/edu/mimuw/loxim/jdbc/LoXiMResultSet.java, JDBCDriver/src/main/java/edu/mimuw/loxim/jdbc/LoXiMResultSetImpl.java:
