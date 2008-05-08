@@ -1,3 +1,8 @@
+2008-05-08  Marek Dopiera  <md219418@students.mimuw.edu.pl>
+
+	* LoximServer/Attic/KeepAlive.h, LoximClient/Attic/Authenticator.cpp, LoximClient/Attic/Authenticator.h, LoximClient/Attic/ConsoleAuthenticator.cpp, LoximClient/Attic/ConsoleAuthenticator.h, LoximServer/Attic/KeepAlive.cpp:
+	New file.
+
 2008-05-07  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
 
 	* QueryExecutor/EnvironmentStack.cpp, QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryExecutor.h, QueryExecutor/QueryResult.cpp, QueryExecutor/QueryResult.h:
