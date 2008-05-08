@@ -1,3 +1,8 @@
+2008-05-08  Adam Michalik  <am209482@students.mimuw.edu.pl>
+
+	* JDBCDriver/src/main/java/edu/mimuw/loxim/jdbc/DatabaseURL.java, JDBCDriver/src/main/java/edu/mimuw/loxim/jdbc/LoXiMConnection.java, JDBCDriver/src/main/java/edu/mimuw/loxim/jdbc/LoXiMConnectionImpl.java, JDBCDriver/src/main/java/edu/mimuw/loxim/jdbc/LoXiMDatabaseMetaDataImpl.java, JDBCDriver/src/main/java/edu/mimuw/loxim/jdbc/LoXiMDriverImpl.java, JDBCDriver/src/main/java/edu/mimuw/loxim/jdbc/LoXiMResultSet.java, JDBCDriver/src/main/java/edu/mimuw/loxim/jdbc/LoXiMResultSetImpl.java:
+	More new stubs + Driver code
+
 2008-05-08  Marek Dopiera  <md219418@students.mimuw.edu.pl>
 
 	* LoximServer/Attic/KeepAlive.h, LoximClient/Attic/Authenticator.cpp, LoximClient/Attic/Authenticator.h, LoximClient/Attic/ConsoleAuthenticator.cpp, LoximClient/Attic/ConsoleAuthenticator.h, LoximServer/Attic/KeepAlive.cpp:
