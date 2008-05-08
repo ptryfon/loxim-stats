@@ -148,6 +148,9 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 	ec->printf("[QE] bindName: ES got %u sections\n", number);
 	r = new QueryBagResult();
 	bool found_one = false;
+	bool found_normal = false;
+	bool found_virtual = false;
+	
 	QueryBagResult *section;
 	unsigned int sectionSize;
 	QueryResult *sth;
@@ -221,14 +224,14 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 				}
 				else if (vecSize != 0) {
 					if (vecSize_virt != 0) {
-						*ec << "[QE] bindName error: Real and virtual objects have the sam name";
+						*ec << "[QE] bindName error: Real and virtual objects have the same name";
 					} else {
-						*ec << "[QE] bindName error: Real and system view objects have the sam name";
+						*ec << "[QE] bindName error: Real and system view objects have the same name";
 					}
 					*ec << (ErrQExecutor | EBadBindName);
 					return ErrQExecutor | EBadBindName;
 				} else if(vecSize_virt != 0 && vecSize_sysvirt != 0) {
-					*ec << "[QE] bindName error: virtual objects and system view objects have the sam name";
+					*ec << "[QE] bindName error: virtual objects and system view objects have the same name";
 					*ec << (ErrQExecutor | EBadBindName);
 					return ErrQExecutor | EBadBindName;
 				} else if (vecSize_virt > 1) {
@@ -298,6 +301,14 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 						ec->printf("[QE] bindName: current %u name is: %s\n", j, current.c_str());
 						if (current == name) {
 							found_one = true;
+							int found_type = (((QueryBinderResult*) sth)->getItem())->type();
+							if (found_type == QueryResult::QVIRTUAL) found_virtual = true;
+							else found_normal = true;
+							if ((found_virtual) && (found_normal)) {
+								*ec << "[QE] bindName error: Real and virtual objects have the same name";
+								*ec << (ErrQExecutor | EBadBindName);
+								return ErrQExecutor | EBadBindName;
+							}
 							*ec << "[QE] bindName: Object added to Result";
 							r->addResult(((QueryBinderResult *) sth)->getItem());
 						}
@@ -676,8 +687,6 @@ int QueryReferenceResult::nested(Transaction *&tr, QueryExecutor * qe) {
 		QueryBinderResult *selfBinder = new QueryBinderResult(QE_SELF_KEYWORD, this);
 		r->addResult(selfBinder);
 		
-		//DG TODO
-		//Gdy obiekt nie bedacy perspektywa mial jako podobiekt perspektywe, wynikiem nested sa tez wirtualne obiekty -- Na razie zakomentowane, by ta funkcjonalnosc dzialala potrzebne sa zmiany w zakresie widzialnosci nazw, tak zeby w procedurach on_ widoczne bylo srodowisko tego zewnetrznego obiektu
 		if (subviews_vector.size() > 0) {
 			QueryBinderResult *viewParentBinder = new QueryBinderResult(QE_NOTROOT_VIEW_PARENT_NAME, this);
 			r->addResult(viewParentBinder);

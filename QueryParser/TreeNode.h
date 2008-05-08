@@ -2331,13 +2331,13 @@ class ViewNode : public QueryNode
 class VirtualizeAsNode : public QueryNode {
 protected:
 	QueryNode* query;
-	VirtualizeAsNode* sub_query;
+	QueryNode* sub_query;
 	string name;
 	
 public:
 	VirtualizeAsNode() { }
 	VirtualizeAsNode(QueryNode* q, string n) { query = q; name = n; sub_query = NULL; }
-	VirtualizeAsNode(QueryNode* q, VirtualizeAsNode *v, string n) { query = q; sub_query = v, name = n; }
+	VirtualizeAsNode(QueryNode* q, QueryNode *v, string n) { query = q; sub_query = v, name = n; }
 	virtual ~VirtualizeAsNode() { 
 		if (query != NULL) delete query;
 		if (sub_query != NULL) delete sub_query;
@@ -2352,7 +2352,7 @@ public:
 		return query;
 	}
 	
-	virtual VirtualizeAsNode* getSubQuery() {
+	virtual QueryNode* getSubQuery() {
 		return sub_query;
 	}
 	

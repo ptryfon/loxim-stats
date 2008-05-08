@@ -995,6 +995,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			string referenced_view_code;
 			string referenced_view_param;
 			QueryResult *subqueryResult = NULL;
+			LogicalID *subquery_view_parent = NULL;
 			
 			if (((VirtualizeAsNode *) tree)->getSubQuery() == NULL) {
 				vector<LogicalID*>* vec_virt;
@@ -1027,10 +1028,11 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				QueryResult *r_tmp;
 				errcode = qres->pop(r_tmp);
 				if ((r_tmp->type() == QueryResult::QBAG) && (r_tmp->size() == 1)) {
-					errcode = (((QueryBagResult *) r_tmp)->at(0, subqueryResult));
+					QueryResult *tmp_subquery_res;
+					errcode = (((QueryBagResult *) r_tmp)->at(0, tmp_subquery_res));
 					if (errcode != 0) return errcode;
-					if (subqueryResult->type() == QueryResult::QVIRTUAL) {
-						LogicalID* sub_lid = ((QueryVirtualResult *) subqueryResult)->view_defs.at(0);
+					if (tmp_subquery_res->type() == QueryResult::QVIRTUAL) {
+						LogicalID* sub_lid = ((QueryVirtualResult *) tmp_subquery_res)->view_defs.at(0);
 						errcode = getSubview(sub_lid, virtualizeAsName, referenced_view_lid);
 						if (errcode != 0) return errcode;
 						if (referenced_view_lid != NULL) {
@@ -1041,7 +1043,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 								*ec << (ErrQExecutor | EOperNotDefined);
 								return ErrQExecutor | EOperNotDefined;
 							}
-						
+							subqueryResult = tmp_subquery_res;
 						}
 						else {
 							*ec << "[QE] <virtualize as> - error evaluating subquery";
@@ -1049,8 +1051,81 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 							return ErrQExecutor | EQEUnexpectedErr;
 						}
 					}
+					else if (tmp_subquery_res->type() == QueryResult::QREFERENCE) {
+						LogicalID *maybe_parent = ((QueryReferenceResult *) tmp_subquery_res)->getValue();
+						
+						ObjectPointer *optrOut;
+						errcode = tr->getObjectPointer (maybe_parent, Store::Read, optrOut, false); 
+						if (errcode != 0) {
+							*ec << "[QE] <virtualize as> - Error in getObjectPointer.";
+							antyStarveFunction(errcode);
+							inTransaction = false;
+							return errcode;
+						}
+						
+						//TODO powinna byc mozliwosc zapisania w objectPointerze ze zawiera jako podobiekty perspektywy
+						//ObjectPointer powinien miec funkcje nazwa->LID perspektywy definiujacej obiekty o takiej nazwie
+						//cos na ksztalt getViews(name), wtedy ponizszy kawalek kodu moznaby uspawnic znacznie
+						DataValue* db_value = optrOut->getValue();
+						int vType = db_value->getType();
+						if (vType != Store::Vector) {
+							*ec << "[QE] <virtualize as> - ERROR! looking for subview in referenced object, object is not vector type";
+							*ec << (ErrQExecutor | EOtherResExp);
+							return ErrQExecutor | EOtherResExp;
+						}
+						vector<LogicalID*> *insVector = db_value->getVector();
+						if (insVector == NULL) {
+							*ec << "[QE] <virtualize as> - insVector == NULL";
+							*ec << (ErrQExecutor | EQEUnexpectedErr);
+							return ErrQExecutor | EQEUnexpectedErr;
+						}
+						
+						for (unsigned int j = 0; j < insVector->size(); j++) {
+							LogicalID *maybe_subview_logID = insVector->at(j);
+							ObjectPointer *maybe_subview_optr;
+							if ((errcode = tr->getObjectPointer(maybe_subview_logID, Store::Read, maybe_subview_optr, false)) != 0) {
+								*ec << "[QE] <virtualize as> - Error in getObjectPointer";
+								antyStarveFunction(errcode);
+								inTransaction = false;
+								return errcode;
+							}
+							DataValue* maybe_subview_value = maybe_subview_optr->getValue();
+							int maybe_subview_vType = maybe_subview_value->getType();
+							ExtendedType maybe_subview_extType = maybe_subview_value->getSubtype();
+							if ((maybe_subview_vType == Store::Vector) && (maybe_subview_extType == Store::View)) {
+								string maybe_subview_name = "";
+								string maybe_subview_code = "";
+								errcode = checkViewAndGetVirtuals(maybe_subview_logID, maybe_subview_name, maybe_subview_code);
+								if (errcode != 0) return errcode;
+								if (maybe_subview_name == virtualizeAsName) {
+									if (referenced_view_lid != NULL){
+										*ec << "[QE] ERROR! More then one subview defining virtual objects with same name";
+										*ec << (ErrQExecutor | EBadViewDef);
+										return ErrQExecutor | EBadViewDef;
+									}
+									else referenced_view_lid = maybe_subview_logID;
+								}
+							}
+						}
+						
+						if (referenced_view_lid == NULL) {
+							*ec << "[QE] operator <virtualize as> - this object doesn't have this operation defined, subview missing";
+							*ec << (ErrQExecutor | EOperNotDefined);
+							return ErrQExecutor | EOperNotDefined;
+						}
+						else {
+							errcode = getOn_procedure(referenced_view_lid, "on_virtualize", referenced_view_code, referenced_view_param);
+							if (errcode != 0) return errcode;
+							if (referenced_view_code == "") {
+								*ec << "[QE] operator <virtualize as> - this VirtualObject doesn't have this operation defined";
+								*ec << (ErrQExecutor | EOperNotDefined);
+								return ErrQExecutor | EOperNotDefined;
+							}
+							subquery_view_parent = maybe_parent;
+						}
+					}
 					else {
-						*ec << "[QE] <virtualize as> - subquery should evaluate to single virtual result";
+						*ec << "[QE] <virtualize as> - subquery should evaluate to single virtual result or single reference";
 						*ec << (ErrQExecutor | EQEUnexpectedErr);
 						return ErrQExecutor | EQEUnexpectedErr;
 					}
@@ -1094,7 +1169,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 						seeds.push_back(seed);
 						vector<LogicalID *> view_defs;
 						view_defs.push_back(referenced_view_lid);
-						LogicalID *subquery_view_parent = NULL;
+						
 						if (subqueryResult != NULL) {
 							for (unsigned int k = 0; k < (((QueryVirtualResult *) subqueryResult)->view_defs.size()); k++ ) {
 								view_defs.push_back(((QueryVirtualResult *) subqueryResult)->view_defs.at(k));
@@ -1104,7 +1179,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 							}
 							subquery_view_parent = ((QueryVirtualResult *) subqueryResult)->view_parent;
 						}
-						//DG TODO virtualize as - do poprawki
+						
 						QueryResult *virt_res = new QueryVirtualResult(virtualizeAsName, view_defs, seeds, subquery_view_parent);
 						final_result->addResult(virt_res);
 					}
@@ -4777,8 +4852,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 			}
 			*ec << "[QE] Vector taken";
 			ec->printf("[QE] Vec.size = %d\n", insVector->size());
-			QueryResult *rBag = new QueryBagResult();
-			rBag->addResult(rArg);
+			
 			//----------	TC dynamic coerce input 	---------- //
 			bool needsExtCoerce = tn->needsCoerce(TypeCheck::DTable::CD_EXT_INS);
 			bool needsDeepCardCheck = tn->needsCoerce(TypeCheck::DTable::CD_CAN_INS);
@@ -4802,7 +4876,11 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 					cout << "---" << sName << ": " << subCardMap[sName] << "\n";
 				}
 			}
-			//-------------------------------------------------- //
+			//-------------------------------------------------------//
+			
+			QueryResult *rBag = new QueryBagResult();
+			rBag->addResult(rArg);
+			vector<LogicalID*> toInsVector;
 			for (unsigned int i = 0; i < rBag->size(); i++) {
 				ec->printf("[QE] trying to INSERT %d element of rightArg into leftArg\n", i);
 				QueryResult *toInsert;
@@ -4940,10 +5018,13 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 							*ec << (ErrQExecutor | EQEUnexpectedErr);
 							return ErrQExecutor | EQEUnexpectedErr;
 						}
+						toInsVector.push_back(lidIn);
 						break;
 					}
 					case QueryResult::QBINDER: {
 						object_name = ((QueryBinderResult *)toInsert)->getName();
+						LogicalID *maybe_sub_view_def = NULL;
+						
 						if (needsExtCoerce) {
 							*ec << "[QE][TC] insert:binder:: checking that no '"+object_name+"' here yet.";
 							if (subCardMap.find(object_name) == subCardMap.end())
@@ -4960,9 +5041,79 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 							errcode = this->checkSubCardsRec(tn->getCoerceSig(), toInsert, true, cum);
 							if (errcode != 0) return errcode;
 						}
-						errcode = this->objectFromBinder(toInsert, optrIn);
-						if (errcode != 0) return errcode;
-						lidIn = (optrIn->getLogicalID());
+						
+						//TODO powinna byc mozliwosc zapisania w objectPointerze ze zawiera jako podobiekty perspektywy
+						//ObjectPointer powinien miec funkcje nazwa->LID perspektywy definiujacej obiekty o takiej nazwie
+						//cos na ksztalt getViews(name), wtedy ponizszy kawalek kodu moznaby uspawnic znacznie
+						int insVector_size = insVector->size();
+						for (int j = 0; j < insVector_size; j++ ) {
+							LogicalID *maybe_subview_logID = insVector->at(j);
+							ObjectPointer *maybe_subview_optr;
+							if ((errcode = tr->getObjectPointer(maybe_subview_logID, Store::Read, maybe_subview_optr, false)) != 0) {
+								*ec << "[QE] INSERT operator - Error in getObjectPointer";
+								antyStarveFunction(errcode);
+								inTransaction = false;
+								return errcode;
+							}
+							DataValue* maybe_subview_value = maybe_subview_optr->getValue();
+							int maybe_subview_vType = maybe_subview_value->getType();
+							ExtendedType maybe_subview_extType = maybe_subview_value->getSubtype();
+							if ((maybe_subview_vType == Store::Vector) && (maybe_subview_extType == Store::View)) {
+								string maybe_subview_name = "";
+								string maybe_subview_code = "";
+								errcode = checkViewAndGetVirtuals(maybe_subview_logID, maybe_subview_name, maybe_subview_code);
+								if (errcode != 0) return errcode;
+								if (maybe_subview_name == object_name) {
+									if (maybe_sub_view_def != NULL){
+										*ec << "[QE] ERROR! More then one subview defining virtual objects with same name";
+										*ec << (ErrQExecutor | EBadViewDef);
+										return ErrQExecutor | EBadViewDef;
+									}
+									else maybe_sub_view_def = maybe_subview_logID;
+								}
+							}
+						}
+						if (maybe_sub_view_def == NULL) {
+							errcode = this->objectFromBinder(toInsert, optrIn);
+							if (errcode != 0) return errcode;
+							lidIn = (optrIn->getLogicalID());
+							toInsVector.push_back(lidIn);
+						}
+						else {
+							string proc_code = "";
+							string proc_param = "";
+							errcode = getOn_procedure(maybe_sub_view_def, "on_create", proc_code, proc_param);
+							if (errcode != 0) return errcode;
+							if (proc_code == "") {
+								*ec << "[QE] operator <insert into> - this VirtualObject doesn't have this operation defined";
+								*ec << (ErrQExecutor | EOperNotDefined);
+								return ErrQExecutor | EOperNotDefined;
+							}
+							
+							vector<QueryBagResult*> envs_sections;
+							
+							QueryResult *tmp_result_1 = new QueryReferenceResult(lidOut);
+							errcode = tmp_result_1->nested(tr, this);
+							if(errcode != 0) return errcode;
+							QueryBagResult *nested_tmp_result_1;
+							errcode = envs->top(nested_tmp_result_1);
+							if(errcode != 0) return errcode;
+							errcode = envs->pop();
+							if(errcode != 0) return errcode;
+							envs_sections.push_back((QueryBagResult *) nested_tmp_result_1);
+							
+							QueryResult *toInsert_value = ((QueryBinderResult *)toInsert)->getItem();
+							QueryResult *param_binder = new QueryBinderResult(proc_param, toInsert_value);
+							errcode = createNewSections(NULL, (QueryBinderResult*) param_binder, maybe_sub_view_def, envs_sections);
+							if (errcode != 0) return errcode;
+							
+							errcode = callProcedure(proc_code, envs_sections);
+							if(errcode != 0) return errcode;
+				
+							QueryResult *maybe_sub_view_res;
+							errcode = qres->pop(maybe_sub_view_res);
+							if (errcode != 0) return errcode;
+						}
 						break;
 					}
 					default: {
@@ -4971,10 +5122,36 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 						return ErrQExecutor | ERefExpected;
 					}
 				}
+			}
+			
+			errcode = tr->getObjectPointer (lidOut, Store::Write, optrOut, false); 
+			if (errcode != 0) {
+				*ec << "[QE] insert operation - Error in getObjectPointer.";
+				antyStarveFunction(errcode);
+				inTransaction = false;
+				return errcode;
+			}
+			db_value = optrOut->getValue();
+			optrOut_extType = db_value->getSubtype();
+			vType = db_value->getType();
+			if (vType != Store::Vector) {
+				*ec << "[QE] insert operation - ERROR! the l-Value has to be a reference to Vector";
+				*ec << (ErrQExecutor | EOtherResExp);
+				return ErrQExecutor | EOtherResExp;
+			}
+			insVector = db_value->getVector();
+			if (insVector == NULL) {
+				*ec << "[QE] insert operation - insVector == NULL";
+				*ec << (ErrQExecutor | EQEUnexpectedErr);
+				return ErrQExecutor | EQEUnexpectedErr;
+			}
+			
+			for (unsigned int i = 0; i < toInsVector.size(); i++) {
 				*ec << "[QE] Inserting the object";
-				insVector->push_back(lidIn);
+				insVector->push_back(toInsVector.at(i));
 				ec->printf("[QE] New Vec.size = %d\n", insVector->size());
 			}
+			
 			DBDataValue *dbDataVal = new DBDataValue();
 			dbDataVal->setVector(insVector);
 			dbDataVal->setClassMarks(db_value->getClassMarks());
@@ -4997,8 +5174,6 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 				return errcode;
 			}
 			*ec << "[QE] insert operation: value of the object was changed";
-			
-			
 		}
 		else {
 			*ec << "[QE] ERROR! Left argument of insert operation must consist of QREFERENCE";

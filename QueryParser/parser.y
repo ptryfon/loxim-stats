@@ -23,7 +23,6 @@
   QParser::VectorNode* vectree;
   QParser::ProcedureNode* proctree;
   QParser::ViewNode* viewtree;
-  QParser::VirtualizeAsNode* virtualized;
   QParser::ClassNode* classtree;
   QParser::ClassCastNode* classcast;
   QParser::Privilige *privilige;
@@ -98,7 +97,6 @@
 %type <viewtree> viewrecdef
 %type <viewtree> viewdef
 %type <proctree> viewproc
-%type <virtualized> virtualize_query
 %type <fxtree> queryfixlist
 %type <vectree> querycommalist
 %type <tree> indexDDL_stmt
@@ -220,7 +218,8 @@ query	    : SYSTEMVIEWNAME { char *s = $1; $$ = new NameNode(s); delete s; }
 	    | query INSTANCEOF query {$$ = new InstanceOfNode($1, $3);}
 	    | indexDML_query
     	    | THROW query {$$ = new ThrowExceptionNode ($2); }
-    	    | virtualize_query {$$ = $1}
+    	    | query VIRTUALIZE_AS NAME { $$ = new VirtualizeAsNode($1, $3); }
+	    | query VIRTUALIZE_AS LEFTPAR query RIGHTPAR DOT NAME { $$ = new VirtualizeAsNode($1, $4, $7); }
     	    | ONUPDATE {$$ = new NameNode("on_update");}
     	    | ONCREATE {$$ = new NameNode("on_create");}
     	    | ONDELETE {$$ = new NameNode("on_delete");}
@@ -268,12 +267,12 @@ viewdef     : viewproc	{ $$ = new ViewNode($1); }
 viewproc    : procquery { $$ = $1; }
             | PROCEDURE ONUPDATE LEFTPAR NAME RIGHTPAR LEFTPROCPAR query RIGHTPROCPAR {
 		$$ = new ProcedureNode(); char *p = $4; $$->addContent("on_update", $7); $$->addParam(p); delete p; }
+            | PROCEDURE ONRETRIEVE LEFTPAR RIGHTPAR LEFTPROCPAR query RIGHTPROCPAR {
+		$$ = new ProcedureNode(); $$->addContent("on_retrieve", $6); }
             | PROCEDURE ONCREATE LEFTPAR NAME RIGHTPAR LEFTPROCPAR query RIGHTPROCPAR {
 		$$ = new ProcedureNode(); char *p = $4; $$->addContent("on_create", $7); $$->addParam(p); delete p; }
             | PROCEDURE ONDELETE LEFTPAR RIGHTPAR LEFTPROCPAR query RIGHTPROCPAR {
 		$$ = new ProcedureNode(); $$->addContent("on_delete", $6); }
-            | PROCEDURE ONRETRIEVE LEFTPAR RIGHTPAR LEFTPROCPAR query RIGHTPROCPAR {
-		$$ = new ProcedureNode(); $$->addContent("on_retrieve", $6); }
             | PROCEDURE ONINSERT LEFTPAR NAME RIGHTPAR LEFTPROCPAR query RIGHTPROCPAR {
 		$$ = new ProcedureNode(); char *p = $4; $$->addContent("on_insert", $7); $$->addParam(p); delete p; }
             | PROCEDURE ONNAVIGATE LEFTPAR RIGHTPAR LEFTPROCPAR query RIGHTPROCPAR {
@@ -283,10 +282,6 @@ viewproc    : procquery { $$ = $1; }
             | PROCEDURE ONSTORE LEFTPAR RIGHTPAR LEFTPROCPAR query RIGHTPROCPAR {
 		$$ = new ProcedureNode(); $$->addContent("on_store", $6); }
             ;
-
-virtualize_query : query VIRTUALIZE_AS NAME { $$ = new VirtualizeAsNode($1, $3); }
-	    | query VIRTUALIZE_AS LEFTPAR virtualize_query RIGHTPAR DOT NAME { $$ = new VirtualizeAsNode($1, $4, $7); }
-	    ;
 
 validate_stmt: VALIDATE NAME NAME  { $$ = new ValidationNode($2, $3); }
 	    ;

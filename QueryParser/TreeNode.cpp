@@ -72,7 +72,7 @@ namespace QParser
     TreeNode* VirtualizeAsNode::clone() {
     	if (query != NULL) {
     		if (sub_query != NULL) {
-    			return new VirtualizeAsNode((QueryNode*) query->clone(), (VirtualizeAsNode*) sub_query->clone(), name);
+    			return new VirtualizeAsNode((QueryNode*) query->clone(), (QueryNode*) sub_query->clone(), name);
     		}
     		else return new VirtualizeAsNode((QueryNode*) query->clone(), name);
     	}

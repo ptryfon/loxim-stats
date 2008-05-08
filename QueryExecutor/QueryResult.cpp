@@ -1111,23 +1111,33 @@ bool QueryNothingResult::less_eq(QueryResult *r) {
 }
 
 bool QueryVirtualResult::equal(QueryResult *r){ 
-	return false; 
+	bool tmp_value = ((this->toString(0,true)) == (r->toString(0,true))); 
+	return tmp_value;
 }
 
 bool QueryVirtualResult::not_equal(QueryResult *r){ 
-	return false; 
+	bool tmp_value = ((this->toString(0,true)) != (r->toString(0,true))); 
+	return tmp_value;
 }
+
 bool QueryVirtualResult::greater_than(QueryResult *r){ 
-	return false; 
+	bool tmp_value = ((this->toString(0,true)) > (r->toString(0,true))); 
+	return tmp_value;
 }
+
 bool QueryVirtualResult::less_than(QueryResult *r){ 
-	return false; 
+	bool tmp_value = ((this->toString(0,true)) < (r->toString(0,true))); 
+	return tmp_value;
 }
+
 bool QueryVirtualResult::greater_eq(QueryResult *r){ 
-	return false; 
+	bool tmp_value = ((this->toString(0,true)) >= (r->toString(0,true))); 
+	return tmp_value;
 }
+
 bool QueryVirtualResult::less_eq(QueryResult *r){ 
-	return false; 
+	bool tmp_value = ((this->toString(0,true)) <= (r->toString(0,true))); 
+	return tmp_value;
 }
 
 //function isBool() - returns true if result is a boolean (also if it is table 1x1 containing one bollean), false if not
