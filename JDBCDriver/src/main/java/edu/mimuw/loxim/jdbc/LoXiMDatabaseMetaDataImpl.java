@@ -628,19 +628,16 @@ public class LoXiMDatabaseMetaDataImpl implements LoXiMDatabaseMetaData {
 
 	@Override
 	public boolean supportsANSI92EntryLevelSQL() throws SQLException {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public boolean supportsANSI92FullSQL() throws SQLException {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public boolean supportsANSI92IntermediateSQL() throws SQLException {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
@@ -712,7 +709,6 @@ public class LoXiMDatabaseMetaDataImpl implements LoXiMDatabaseMetaData {
 
 	@Override
 	public boolean supportsCoreSQLGrammar() throws SQLException {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
@@ -748,7 +744,6 @@ public class LoXiMDatabaseMetaDataImpl implements LoXiMDatabaseMetaData {
 
 	@Override
 	public boolean supportsExtendedSQLGrammar() throws SQLException {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
@@ -831,8 +826,7 @@ public class LoXiMDatabaseMetaDataImpl implements LoXiMDatabaseMetaData {
 
 	@Override
 	public boolean supportsMultipleTransactions() throws SQLException {
-		// TODO Auto-generated method stub
-		return false;
+		return true;
 	}
 
 	@Override
@@ -1010,8 +1004,7 @@ public class LoXiMDatabaseMetaDataImpl implements LoXiMDatabaseMetaData {
 
 	@Override
 	public boolean supportsTransactions() throws SQLException {
-		// TODO Auto-generated method stub
-		return false;
+		return true;
 	}
 
 	@Override

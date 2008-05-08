@@ -29,8 +29,7 @@ public class LoXiMDriverImpl implements LoXiMDriver {
 	
 	@Override
 	public boolean acceptsURL(String url) throws SQLException {
-		// TODO Auto-generated method stub
-		return false;
+		return (url != null && url.startsWith(DatabaseURL.PROTOCOL_PREFIX));
 	} 
 
 	@Override
