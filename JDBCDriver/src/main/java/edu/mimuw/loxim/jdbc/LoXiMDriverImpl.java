@@ -1,5 +1,6 @@
 package edu.mimuw.loxim.jdbc;
 
+import java.net.MalformedURLException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.DriverPropertyInfo;
@@ -24,7 +25,7 @@ public class LoXiMDriverImpl implements LoXiMDriver {
 	}
 	
 	public LoXiMDriverImpl() {
-		// TODO Auto-generated constructor stub
+		
 	}
 	
 	@Override
@@ -33,8 +34,19 @@ public class LoXiMDriverImpl implements LoXiMDriver {
 	} 
 
 	@Override
-	public Connection connect(String url, Properties info) throws SQLException {
-		// TODO Auto-generated method stub
+	public Connection connect(String jdbcURL, Properties info) throws SQLException {
+		if (acceptsURL(jdbcURL)) {
+			try {
+				ConnectionInfo conInfo = DatabaseURL.parseURL(jdbcURL);
+				conInfo.setInfo(info);
+				return new LoXiMConnectionImpl(conInfo);
+			} catch (MalformedURLException e) {
+				throw new SQLException(e);
+			}
+		}
+		if (log.isErrorEnabled()) {
+			log.error("The URL: " + jdbcURL + " is not accepted");
+		}
 		return null;
 	}
 
@@ -50,8 +62,20 @@ public class LoXiMDriverImpl implements LoXiMDriver {
 
 	@Override
 	public DriverPropertyInfo[] getPropertyInfo(String url, Properties info) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+        DriverPropertyInfo[] pinfo   = new DriverPropertyInfo[2];
+        DriverPropertyInfo p;
+		
+        p          = new DriverPropertyInfo("user", null);
+        p.value    = info.getProperty("user");
+        p.required = true;
+        pinfo[0]   = p;
+        
+        p          = new DriverPropertyInfo("password", null);
+        p.value    = info.getProperty("password");
+        p.required = true;
+        pinfo[1]   = p;
+        
+		return pinfo;
 	}
 
 	/**

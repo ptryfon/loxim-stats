@@ -23,6 +23,10 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 	private boolean autoCommit = true;
 	private boolean isClosed = true;
 	
+	public LoXiMConnectionImpl(ConnectionInfo info) {
+		// TODO
+	}
+	
 	@Override
 	public void clearWarnings() throws SQLException {
 		// TODO Auto-generated method stub

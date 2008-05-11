@@ -20,6 +20,8 @@ class LoXiMProperties {
 	static final int JDBCVerMajor = 4;
 	static final int JDBCVerMinor = 0;
 	
+	static final int defaultPort = 1234;
+	
 	static {
 		try {
 			prop = loadProperties();
