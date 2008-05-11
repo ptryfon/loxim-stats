@@ -1,3 +1,7 @@
+2008-05-12  Marek Dopiera  <md219418@students.mimuw.edu.pl>
+
+	* Testy/Attic/basic_dot.sbql: New file.
+
 2008-05-11  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
 
 	* Errors/ErrorMsg.cpp, Errors/Errors.h, QueryExecutor/QueryExecutor.cpp:
