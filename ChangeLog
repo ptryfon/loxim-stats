@@ -1,3 +1,8 @@
+2008-05-11  Marek Dopiera  <md219418@students.mimuw.edu.pl>
+
+	* protocol/ptools/Attic/.cvsignore, protocol/sockets/Attic/.cvsignore, protocol/streams/Attic/.cvsignore, protocol/auth/Attic/.cvsignore, protocol/layers/Attic/.cvsignore, protocol/packages/Attic/.cvsignore, protocol/packages/data/Attic/.cvsignore, protocol/pstreams/Attic/.cvsignore:
+	New file.
+
 2008-05-09  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
 
 	* QueryExecutor/EnvironmentStack.cpp, QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryResult.cpp, QueryParser/TreeNode.cpp, QueryParser/TreeNode.h, QueryParser/parser.y:
