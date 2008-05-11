@@ -1,3 +1,8 @@
+2008-05-11  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
+
+	* Errors/ErrorMsg.cpp, Errors/Errors.h, QueryExecutor/QueryExecutor.cpp:
+	Dodany opis bledu: ETransactionOpened, zwracanego gdy uzytkownik probuje otworzyc transakcje, gdy ta jest juz otwarta.
+
 2008-05-11  Adam Michalik  <am209482@students.mimuw.edu.pl>
 
 	* JDBCDriver/src/main/java/edu/mimuw/loxim/jdbc/ConnectionInfo.java, JDBCDriver/src/main/java/edu/mimuw/loxim/jdbc/DatabaseURL.java, JDBCDriver/src/main/java/edu/mimuw/loxim/jdbc/LoXiMConnectionImpl.java, JDBCDriver/src/main/java/edu/mimuw/loxim/jdbc/LoXiMDataSource.java, JDBCDriver/src/main/java/edu/mimuw/loxim/jdbc/LoXiMDataSourceImpl.java, JDBCDriver/src/main/java/edu/mimuw/loxim/jdbc/LoXiMDriverImpl.java, JDBCDriver/src/main/java/edu/mimuw/loxim/jdbc/LoXiMProperties.java:
