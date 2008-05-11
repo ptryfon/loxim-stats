@@ -124,8 +124,8 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 				case TransactNode::begin: {
 					*ec << "[QE] ERROR! Transaction already opened. It can't be opened once more!";
 					*result = new QueryNothingResult();
-					*ec << (ErrQExecutor | EQEUnexpectedErr);
-					return ErrQExecutor | EQEUnexpectedErr;
+					*ec << (ErrQExecutor | ETransactionOpened);
+					return ErrQExecutor | ETransactionOpened;
 				}
 				case TransactNode::end: {
 					errcode = tr->commit();
