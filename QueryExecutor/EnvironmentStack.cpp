@@ -62,12 +62,12 @@ int EnvironmentStack::push(QueryBagResult *r, Transaction *&tr, QueryExecutor *q
 int EnvironmentStack::pop(){
 	if (es.empty()) {
 		*ec << (ErrQExecutor | EQEmptySet);
-		return ErrQExecutor | EQEmptySet;
+		return (ErrQExecutor | EQEmptySet);
 	}
 	if (es.size() == sectionDBnumber) {
 		*ec << "error: trying to pop() Data Base section";
 		*ec << (ErrQExecutor | EQEUnexpectedErr);
-		return ErrQExecutor | EQEUnexpectedErr;
+		return (ErrQExecutor | EQEUnexpectedErr);
 	}
 	// delete ??
 	unsigned int popedSectionNo = es.size();
@@ -86,7 +86,7 @@ int EnvironmentStack::pushDBsection() {
 	if (sectionDBnumber != 0) {
 		*ec << "error: DBsection already pushed, can't be pushed once more";
 		*ec << (ErrQExecutor | EQEUnexpectedErr);
-		return ErrQExecutor | EQEUnexpectedErr;
+		return (ErrQExecutor | EQEUnexpectedErr);
 	}
 	QueryResult *r = new QueryBagResult();
 	es.push_back((QueryBagResult *)r);
@@ -100,16 +100,16 @@ int EnvironmentStack::popDBsection() {
 	if (sectionDBnumber == 0) {
 		*ec << "error: DBsection wasn't pushed, can't be poped";
 		*ec << (ErrQExecutor | EQEUnexpectedErr);
-		return ErrQExecutor | EQEUnexpectedErr;
+		return (ErrQExecutor | EQEUnexpectedErr);
 	}
 	if (es.empty()) {
 		*ec << (ErrQExecutor | EQEmptySet);
-		return ErrQExecutor | EQEmptySet;
+		return (ErrQExecutor | EQEmptySet);
 	}
 	if (sectionDBnumber > es.size()) {
 		*ec <<"error: DBsection number is greater then environment stack size";
 		*ec << (ErrQExecutor | EQEUnexpectedErr);
-		return ErrQExecutor | EQEUnexpectedErr;
+		return (ErrQExecutor | EQEUnexpectedErr);
 	}
 	while (sectionDBnumber <= es.size()) {
 		// delete ??
@@ -124,12 +124,12 @@ int EnvironmentStack::popDBsection() {
 int EnvironmentStack::top(QueryBagResult *&r) {
 	if (es.empty()) {
 		*ec << (ErrQExecutor | EQEmptySet);
-		return ErrQExecutor | EQEmptySet;
+		return (ErrQExecutor | EQEmptySet);
 	}
 	if (es.size() == sectionDBnumber) {
 		*ec << "error: trying to top() Data Base section";
 		*ec << (ErrQExecutor | EQEUnexpectedErr);
-		return ErrQExecutor | EQEUnexpectedErr;
+		return (ErrQExecutor | EQEUnexpectedErr);
 	}
 	r=(es.back());
 	return 0;
@@ -229,20 +229,20 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 						*ec << "[QE] bindName error: Real and system view objects have the same name";
 					}
 					*ec << (ErrQExecutor | EBadBindName);
-					return ErrQExecutor | EBadBindName;
+					return (ErrQExecutor | EBadBindName);
 				} else if(vecSize_virt != 0 && vecSize_sysvirt != 0) {
 					*ec << "[QE] bindName error: virtual objects and system view objects have the same name";
 					*ec << (ErrQExecutor | EBadBindName);
-					return ErrQExecutor | EBadBindName;
+					return (ErrQExecutor | EBadBindName);
 				} else if (vecSize_virt > 1) {
 					*ec << "[QE] bindName error: Multiple views defining virtual objects with the same name";
 					*ec << (ErrQExecutor | EBadBindName);
-					return ErrQExecutor | EBadBindName;
+					return (ErrQExecutor | EBadBindName);
 				}
 				else if (vecSize_sysvirt > 1) {
 					*ec << "[QE] bindName error: Multiple system views defining objects with the same name";
 					*ec << (ErrQExecutor | EBadBindName);
-					return ErrQExecutor | EBadBindName;
+					return (ErrQExecutor | EBadBindName);
 				}
 				else {
 					if (vecSize_virt == 1) {
@@ -307,7 +307,7 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 							if ((found_virtual) && (found_normal)) {
 								*ec << "[QE] bindName error: Real and virtual objects have the same name";
 								*ec << (ErrQExecutor | EBadBindName);
-								return ErrQExecutor | EBadBindName;
+								return (ErrQExecutor | EBadBindName);
 							}
 							*ec << "[QE] bindName: Object added to Result";
 							r->addResult(((QueryBinderResult *) sth)->getItem());
@@ -474,14 +474,14 @@ int QueryResult::nested(Transaction *&tr, QueryExecutor * qe) {
 int QuerySequenceResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe) {
 	*ec << "[QE] nested(): ERROR! QuerySequenceResult shouldn't be nested";
 	*ec << (ErrQExecutor | EOtherResExp);
-	return ErrQExecutor | EOtherResExp;
+	return (ErrQExecutor | EOtherResExp);
 	// nested () function is applied to rows of a QueryResult and so, it shouldn't be applied to sequences and bags
 }
 
 int QueryBagResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe) {
 	*ec << "[QE] nested(): ERROR! QueryBagResult shouldn't be nested";
 	*ec << (ErrQExecutor | EOtherResExp);
-	return ErrQExecutor | EOtherResExp;
+	return (ErrQExecutor | EOtherResExp);
 	// nested () function is applied to rows of a QueryResult and so, it shouldn't be applied to sequences and bags
 }
 
@@ -491,7 +491,7 @@ int QueryStructResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor *
 	for (unsigned int i = 0; i < str.size(); i++) {
 		if ((str.at(i))->type() == QueryResult::QSTRUCT) {
 			*ec << (ErrQExecutor | EOtherResExp);
-			return ErrQExecutor | EOtherResExp; // one row shouldn't contain another row;
+			return (ErrQExecutor | EOtherResExp); // one row shouldn't contain another row;
 		}
 		else {
 			errcode = ((str.at(i))->nested(tr, r, qe));
@@ -680,7 +680,7 @@ int QueryReferenceResult::nested(Transaction *&tr, QueryExecutor * qe) {
 			default : {
 				*ec << "[QE] nested(): ERROR! QueryReferenceResult pointing unknown format value";
 				*ec << (ErrQExecutor | EUnknownValue);
-				return ErrQExecutor | EUnknownValue;
+				return (ErrQExecutor | EUnknownValue);
 				break;
 			}
 		}

@@ -572,13 +572,13 @@ namespace QParser
     int NameListNode::namesFromUniqueList( set<string>*& names ) {
     	NameListNode *name_list_or_null = this->try_get_name_list();
     	if(names->end() != names->find(name)) {
-    		return ErrQParser | ENotUniqueNameList;
+    		return (ErrQParser | ENotUniqueNameList);
     	}
     	names->insert(name);
 		while (name_list_or_null != NULL) {
 		    string tmpName = name_list_or_null->get_name();
 		    if(names->end() != names->find(tmpName)) {
-    			return ErrQParser | ENotUniqueNameList;
+    			return (ErrQParser | ENotUniqueNameList);
     		}
     		names->insert(tmpName);
 		    name_list_or_null = name_list_or_null->try_get_name_list();
