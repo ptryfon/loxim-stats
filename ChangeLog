@@ -1,3 +1,8 @@
+2008-05-12  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
+
+	* QueryExecutor/EnvironmentStack.cpp, QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryResult.cpp, QueryParser/TreeNode.cpp:
+	Poprawione nawiasowanie wokol operatora |
+
 2008-05-12  Marek Dopiera  <md219418@students.mimuw.edu.pl>
 
 	* Testy/Attic/basic_dot.sbql: New file.
