@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 #include <sstream>
-#include <FlexLexer.h>
+#include "QueryLexer.h"
 #include "TreeNode.h"
 #include "Stack.h"
 #include "DataRead.h"
@@ -17,9 +17,6 @@
 //#include "TypeCheck/TCConstants.h"
 #include "TypeCheck/TypeChecker.h"
 
-yyFlexLexer* lexer;
-extern QParser::TreeNode *d;
-int yyparse();
 
 // using namespace std;
 using namespace Errors;	
@@ -34,8 +31,12 @@ namespace QParser {
 	void QueryParser::incStatEvalRun(){statEvalRun++;};
 	void QueryParser::setQres(StatQResStack *nq) {this->sQres = nq;}
 	void QueryParser::setEnvs(StatEnvStack *nq) {this->sEnvs = nq;}
-	QueryParser::~QueryParser() {if (sQres != NULL) delete sQres;
-		if (sEnvs != NULL) delete sEnvs;}
+	QueryParser::~QueryParser() {
+		if (sQres != NULL) delete sQres;
+		if (sEnvs != NULL) delete sEnvs;
+		delete parser;
+		delete lexer;
+	}
 	QueryParser::QueryParser() {
 		sQres = NULL; 
 		sEnvs = NULL; 
@@ -50,6 +51,8 @@ namespace QParser {
 		if (shouldOptimize || shouldTypeCheck) {
 			DataScheme::reloadDScheme();
 		}
+		lexer = new QueryLexer();
+		parser = new QueryParserGen(lexer, &d);
 	}
 	
 	//for internal use of parser.
@@ -125,8 +128,8 @@ namespace QParser {
 
 		stringstream ss (stringstream::in | stringstream::out);
 		ss << query;
-		lexer = new yyFlexLexer(&ss); 
-		int res = yyparse();
+		lexer->switch_streams(&ss, 0);
+		int res = parser->parse();
 		if (res != 0){
 			ec << "Query not parsed properly...\n";
 			ec << (ErrQParser | ENotParsed);	 
@@ -134,7 +137,6 @@ namespace QParser {
 		} else {
 			Deb::ug("Query parsed OK.");
 		}	
-		delete lexer;
 		qTree = d;
 		
 		Indexes::QueryOptimizer::optimizeWithIndexes(qTree);
@@ -250,11 +252,9 @@ namespace QParser {
 	    cout << "TESTDEATH START---------------------------------------------------------------------------------" << endl;
 	    stringstream ss (stringstream::in | stringstream::out);
 	    ss << _zap;
-	    lexer = new yyFlexLexer(&ss); 
-	    int res = yyparse();
-	
-		cout << "parse result: " << res << endl;
-	    delete lexer;
+	    lexer->switch_streams(&ss, 0);
+	    int res = parser->parse();
+			cout << "parse result: " << res << endl;
 	    TreeNode *tree = d;
 
 	    printf( "po parsowaniu treeNode: %d. \n", (int) tree);
@@ -280,11 +280,10 @@ namespace QParser {
 	    cout << "TEST START---------------------------------------------------------------------------------" << endl;
 	    stringstream ss (stringstream::in | stringstream::out);
 	    ss << zap;
-	    lexer = new yyFlexLexer(&ss); 
-	    int res = yyparse();
+	    lexer->switch_streams(&ss, 0); 
+	    int res = parser->parse();
 	
 	cout << "parse result: " << res << endl;
-	    delete lexer;
 	    TreeNode *tree = d;
 
 	    //printf( "po parsowaniu treeNode: %d. \n", tree);

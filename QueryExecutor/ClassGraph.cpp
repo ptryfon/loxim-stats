@@ -1,7 +1,6 @@
 #include "ClassGraph.h"
 
 using namespace QParser;
-using namespace SessionDataNms;
 using namespace TManager;
 using namespace Errors;
 using namespace Store;

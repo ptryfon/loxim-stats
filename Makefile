@@ -1,6 +1,7 @@
 include make.defs
 
-SUBDIRS	=	Backup \
+SUBDIRS	=	AdminParser \
+		Backup \
 		QueryExecutor \
 		QueryParser \
 		TypeCheck \
@@ -13,8 +14,9 @@ SUBDIRS	=	Backup \
 		Lock \
 		Log \
 		Indexes \
-		SBQLCli \
-		Server 		
+		protocol \
+		LoximClient \
+		LoximServer 
 
 all: subdirs
 

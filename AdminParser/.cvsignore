@@ -1,0 +1,10 @@
+*~
+*.o
+*.a
+*.d
+admin.tab.cpp
+admin.tab.hpp
+lex.Admin.cpp
+location.hh
+position.hh
+stack.hh

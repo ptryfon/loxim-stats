@@ -4,4 +4,8 @@
 parser.tab.*
 parser.output
 lex.yy.*
+lex.Query.cpp
+location.hh
+position.hh
+stack.hh
 *.d

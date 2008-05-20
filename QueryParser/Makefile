@@ -11,7 +11,7 @@ SOURCES	=	QueryParser.cpp \
 		Deb.cpp \
 		Privilige.cpp \
 		parser.tab.cpp \
-		lex.yy.cpp
+		lex.Query.cpp
 
 HEADERS	=	QueryParser.h \
 		TreeNode.h \
@@ -27,9 +27,12 @@ HEADERS	=	QueryParser.h \
 		Privilige.h \
 		parser.tab.h
 		
-GENERATED_SOURCES =	lex.yy.cpp \
+GENERATED_SOURCES =	lex.Query.cpp \
 					parser.tab.cpp \
-					parser.tab.h
+					parser.tab.h \
+					location.hh \
+					stack.hh \
+					position.hh
 
 STATIC_LIB =	QueryParser.a
 PROGRAM	=	
@@ -52,9 +55,9 @@ $(STATIC_LIB): $(OBJECTS)
 parser.tab.cpp: parser.y
 	$(YACC) -d -v parser.y -o parser.tab.cpp
 
-lex.yy.cpp: scanner.l parser.tab.cpp
+lex.Query.cpp: scanner.l parser.tab.cpp
 	$(LEX) scanner.l
-	mv lex.yy.cc lex.yy.cpp
+	mv lex.Query.cc lex.Query.cpp
 
 %.o: %.cpp
 	$(CXX) -c $(CXXFLAGS) $< -o $@

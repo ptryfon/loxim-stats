@@ -13,7 +13,6 @@ namespace QExecutor {
 #include "QueryExecutor.h"
 #include "QueryResult.h"
 #include "EnvironmentStack.h"
-#include "SessionData.h"
 #include "TransactionManager/Transaction.h"
 #include "Store/Store.h"
 #include "Store/DBDataValue.h"
@@ -25,7 +24,6 @@ namespace QExecutor {
 #include "Errors/ErrorConsole.h"
 
 using namespace QParser;
-using namespace SessionDataNms;
 using namespace TManager;
 using namespace Errors;
 using namespace Store;

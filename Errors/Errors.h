@@ -27,7 +27,9 @@ namespace Errors {
 #define ErrTCPProto		0x4000000
 #define ErrIndexes		0x4200000
 #define ErrTypeChecker		0x4400000
-#define ErrUserProgram		0x6600000
+#define ErrUserProgram		0x4800000
+#define ErrLoximServer		0x8000000
+#define ErrLoximClient		0x8200000
 #define ErrAllModules		0xFF00000
 
 // error codes 1-255 (0x01 - 0xFF) reserved for system errno.h
@@ -108,6 +110,7 @@ namespace Errors {
 #define ESend			0x2100
 #define EBadResult		0x2200
 #define EClientLost		0x2300
+#define EProtocol		0x2320
 
 // Transaction
 #define EDeadlock		0x2400

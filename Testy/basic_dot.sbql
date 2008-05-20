@@ -1,0 +1,14 @@
+begin;
+create 1 as kilof;
+create 2 as kilof;
+create 10 as kilof;
+create 8.3 as kilof;
+create (8.4 as kilof) as mlot;
+kilof
+deref(kilof)
+mlot
+deref(mlot.kilof);
+mlot.deref(kilof);
+count(kilof);
+mlot.count(kilof);
+end;

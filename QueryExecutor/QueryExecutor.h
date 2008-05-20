@@ -9,7 +9,6 @@
 #include "ClassGraph.h"
 #include "QueryResult.h"
 #include "EnvironmentStack.h"
-#include "SessionData.h"
 #include "TransactionManager/Transaction.h"
 #include "Store/Store.h"
 #include "Store/DBDataValue.h"
@@ -23,8 +22,11 @@
 #include "TypeCheck/TCConstants.h"
 #include "TypeCheck/TypeChecker.h"
 
+namespace LoximServer{
+	class LoximSession;
+}
+
 using namespace QParser;
-using namespace SessionDataNms;
 using namespace TManager;
 using namespace Errors;
 using namespace Store;
@@ -203,8 +205,9 @@ namespace QExecutor
 			
 	public:
 		bool inTransaction;
-		SessionData *session_data;
-		QueryExecutor() { 
+		//SessionData *session_data;
+		LoximServer::LoximSession *session;
+		QueryExecutor(LoximServer::LoximSession *session) { 
 			envs = new EnvironmentStack(); 
 			qres = new ResultStack(); 
 			prms = NULL; 
@@ -214,7 +217,7 @@ namespace QExecutor
 			transactionNumber = 0;
 			ec = new ErrorConsole("QueryExecutor"); 
 			stop = 0; 
-			session_data = new SessionData(); 
+			this->session = session; 
 			system_privilige_checking = false; 
 		};
 		~QueryExecutor();

@@ -158,6 +158,12 @@ struct ErrorMessages {
 			case ErrUserProgram:
 				src_mod = "User Program";
 				break;
+			case ErrLoximServer:
+				src_mod = "Loxim Server";
+				break;
+			case ErrLoximClient:
+				src_mod = "Loxim Client";
+				break;
 			default:
 				src_mod = "Unknown";
 				break;

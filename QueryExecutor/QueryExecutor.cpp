@@ -25,6 +25,7 @@
 #include "RemoteExecutor.h"
 #include "InterfaceMatcher.h"
 #include "TypeCheck/DecisionTable.h"
+#include "LoximServer/LoximSession.h"
 
 using namespace QParser;
 using namespace TManager;
@@ -32,6 +33,7 @@ using namespace Errors;
 using namespace Store;
 using namespace Indexes;
 using namespace std;
+using namespace LoximServer;
 
 namespace QExecutor {
 
@@ -161,7 +163,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			return 0;
 		} 
 		else if (nodeType == (TreeNode::TNVALIDATION)) {
-		    UserData *user_data = session_data->get_user_data();
+		    UserData *user_data = session->get_user_data();
 		    /* if user_data != NULL -> user id logged in, cannot log twice in one sesion */ 
 		    if (user_data != NULL) {
 			*result = new QueryBoolResult(false);
@@ -399,7 +401,7 @@ void QueryExecutor::set_user_data(ValidationNode *val_node) {
     string passwd = val_node->get_passwd();
 
     UserData *user_data = new UserData(login, passwd);
-    session_data->set_user_data(user_data);    
+    session->set_user_data(user_data);    
 };
 int QueryExecutor::execute_locally(string query, QueryResult **res) {
     
@@ -454,14 +456,14 @@ int QueryExecutor::execute_locally(string query, QueryResult **res, QueryParser 
 }
 
 bool QueryExecutor::is_dba() {
-    string login = session_data->get_user_data()->get_login();
+    string login = session->get_user_data()->get_login();
     return "root" == login;
 };
 
 bool QueryExecutor::assert_privilige(string priv_name, string object) {
     if (is_dba()) return true;
     string query = QueryBuilder::getHandle()->
-			query_for_privilige(session_data->get_user_data()->get_login(), priv_name, object);
+			query_for_privilige(session->get_user_data()->get_login(), priv_name, object);
 /*
     ofstream out("privilige.debug", ios::app);
     out << query << endl;
@@ -485,7 +487,7 @@ bool QueryExecutor::assert_grant_priv(string priv_name, string name) {
     if (is_dba()) return true;
     
     string query = QueryBuilder::getHandle()->
-			query_for_privilige_grant(session_data->get_user_data()->get_login(), priv_name, name);
+			query_for_privilige_grant(session->get_user_data()->get_login(), priv_name, name);
 			
     return assert_bool_query(query);
 };
@@ -499,7 +501,7 @@ bool QueryExecutor::assert_create_user_priv() {
     if (is_dba()) return true;
 
     string query = QueryBuilder::getHandle()->
-			query_for_privilige(session_data->get_user_data()->get_login(), Privilige::CREATE_PRIV, "xuser");
+			query_for_privilige(session->get_user_data()->get_login(), Privilige::CREATE_PRIV, "xuser");
     return assert_bool_query(query);    
 };
 
@@ -507,7 +509,7 @@ bool QueryExecutor::assert_remove_user_priv() {
     if (is_dba()) return true;
 
     string query = QueryBuilder::getHandle()->
-			query_for_privilige(session_data->get_user_data()->get_login(), Privilige::DELETE_PRIV, "xuser");
+			query_for_privilige(session->get_user_data()->get_login(), Privilige::DELETE_PRIV, "xuser");
     return assert_bool_query(query);
 };
 
@@ -6730,7 +6732,6 @@ QueryExecutor::~QueryExecutor() {
 	inTransaction = false;
 	delete envs;
 	delete qres;
-	delete session_data;
 	sent_virtuals.clear();
 	fakeLid_map.clear();
 	*ec << "[QE] QueryExecutor shutting down\n";

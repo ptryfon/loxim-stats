@@ -1,11 +1,23 @@
+2008-05-13  Marek Dopiera  <md219418@students.mimuw.edu.pl>
+
+	* LoximClient/ClientConsole.cpp:
+	Porzadki, dodana historia polecen, poprawki wczytywania z pliku,
+	zmiana trybu dot tak, zeby akceptowal / jako koniec trybu
+	wielolinijkowego
+	
+	* LoximClient/LoximClient.cpp, LoximServer/LoximSession.cpp:
+	Poprawienie przesylania struktur
+	
+	* LoximClient/Lsbql.cpp: zmiana domyslnego trybu zadawania zapytan,
+	poprawka uzywania portu podanego w parametrze
+
+	* protocol/packages/data/BindingData.cpp: poprawka segfaulta przy
+	deserializacji bindinga
+
 2008-05-12  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
 
 	* QueryExecutor/EnvironmentStack.cpp, QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryResult.cpp, QueryParser/TreeNode.cpp:
 	Poprawione nawiasowanie wokol operatora |
-
-2008-05-12  Marek Dopiera  <md219418@students.mimuw.edu.pl>
-
-	* Testy/Attic/basic_dot.sbql: New file.
 
 2008-05-11  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
 
@@ -18,9 +30,41 @@
 	More stubs and full (beta) Driver implementation
 
 2008-05-11  Marek Dopiera  <md219418@students.mimuw.edu.pl>
+	* LoximClient/ClientConsole.h, LoximClient/ClientConsole.cpp,
+	LoximClient/ConsoleAuthenticator.h, LoximClient/ConsoleAuthenticator.cpp
+	LoximClient/Lsbql.cpp: dodanie alternatywnego sposobu czytania polecen
+	w kliencie, dodanie mozliwosci wczytywania tego z pliku oraz dodanie
+	mozliwo¶ci podania loginu i has³a w parametrach
 
-	* protocol/ptools/Attic/.cvsignore, protocol/sockets/Attic/.cvsignore, protocol/streams/Attic/.cvsignore, protocol/auth/Attic/.cvsignore, protocol/layers/Attic/.cvsignore, protocol/packages/Attic/.cvsignore, protocol/packages/data/Attic/.cvsignore, protocol/pstreams/Attic/.cvsignore:
-	New file.
+	* Testy/basic_dot.sbql: odpowiednik basic.sbql dla alternatywnego sposobu
+	podawania polecen
+
+2008-05-11  Marek Dopiera  <md219418@students.mimuw.edu.pl>
+	* LoximClient/ConsoleAuthenticator.cpp, LoximClient/ClientConsole.cpp:
+	poprawiona obsluga CTRL+D
+
+	* protocol/packages/data/Sint16Data.h,
+	protocol/packages/data/Sint32Data.h
+	protocol/packages/data/Sint64Data.h
+	protocol/packages/data/Uint16Data.h
+	protocol/packages/data/Uint32Data.h
+	protocol/packages/data/Uint64Data.h: poprawione rozmiary zmiennych
+
+	* LoximServer/LoximSession.cpp: poprawione raportowanie bledow z 
+	egzekutora
+
+2008-05-11  Marek Dopiera  <md219418@students.mimuw.edu.pl>
+	* protocol/sockets/TCPIPServerSocket.cpp: dodanie SO_REUSEADDR do
+	socketa w celu wyeliminowania koniecznosci czekania az system
+	operacyjny wyjdzie ze stanu TIMED_WAIT, do ktorego wchodzil jezeli to
+	on konczyl polaczenia
+
+	* AdminParser/.cvsignore, QueryParser/.cvsignore,
+	protocol/auth/.cvsignore, protocol/layers/.cvsignore,
+	protocol/packages/.cvsignore, protocol/packages/data/.cvsignore,
+	protocol/pstreams/.cvsignore, protocol/ptools/.cvsignore,
+	protocol/sockets/.cvsignorem protocol/sockets/TCPIPServerSocket.cpp, 
+	protocol/streams/.cvsignore: Trywialne poprawki cvsignore
 
 2008-05-09  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
 
@@ -28,15 +72,61 @@
 	ostatnie drobne poprawki, operator virtualize as dziala tez dla perspektyw niekorzeniowych
 	Oficjalna wersja (1.0) implementacji 'Aktualizowalnych perspektyw obiektowych w systemie LoXiM'
 
+2008-05-09  Marek Dopiera  <md219418@students.mimuw.edu.pl>
+	* LoximClient/LoximClient.cpp, LoximClient/LoximClient.h: poprawiona
+	obsluga konczenia polaczenia, poprawiony blad skutkujacy segfaultem 
+	po otrzymaniu komunikatu o bledzie
+
+	* LoximClient/ClientConsole.cpp: klient od teraz ignoruje komentarze,
+	bo parser nie umie ich parsowac
+
+	* AdminParser/admin.yy: #shutdown dziala teraz tez bez srednika
+
+2008-05-08  Marek Dopiera  <md219418@students.mimuw.edu.pl>
+	* QueryExecutor/SessionData.h, QueryExetuor/SessionData.cpp,
+	QueryExecutor/Makefile, LoximServer/Server.cpp,
+	QueryExecutor/ClassGraph.cpp, QueryExecutor/ClassGraph.h, 
+	QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryExecutor.h,
+	QueryExecutor/RemoteExecutor.cpp: usuniecie SessionData i
+	kosmetyczne poprawki z tym zwiazane (poniewaz zostala
+	zintegrowana z LoximSession)
+
+	* Server, SBQLCli, Makefile: usuniecie starego serwera i starego
+	klienta
+
+	* LoximServer/LoximSession.h, LoximServer/LoximSession.cpp: dodanie
+	obslugi keepalive-a, poprawione logowanie, dodana obsluga bledow,
+	dodanie odpowiednika klasy SessionData, dodane generowanie salt-a dla
+	sesji na rzecz przyszï¿½ego uwierzytelniania, poprawne konczenie
+	polaczenia, 
+	
+	* LoximServer/Makefile, LoximServer/KeepAlive.h,
+	LoximServer/KeepAlive.cpp: Dodana implementacja
+	keepalive-a
+
+	* LoximServer/LoximServer.h LoximServer/LoximServer.cpp: dodanie
+	czytania pliku konfiguracyjnego oraz poprawki formatowania
+
+	* LoximServer/Server.conf: dodanie nowych pol konfiguracyjnych
+
+	* LoximClient/Authenticator.h: API do pisania interfejsï¿½w do 
+	logowania dla klienta
+
+	* LoximClient/ConsoleAuthenticator.h,
+	LoximClient/ConsoleAuthenticator.cpp: powstal fragment tekstowego
+	interfejsu odpowiedzialny za uwierzytelnianie
+
+	* LoximClient/ClientConsole.h, LoximClient/ClientConsole.cpp: drobne
+	poprawki
+
+	* LoximClient/Lsbql.cpp: wylaczenie obslugi SIGINT
+
+	* protocol/layers/ProtocolLayer0.h: poprawki formatowania
+
 2008-05-08  Adam Michalik  <am209482@students.mimuw.edu.pl>
 
 	* JDBCDriver/src/main/java/edu/mimuw/loxim/jdbc/DatabaseURL.java, JDBCDriver/src/main/java/edu/mimuw/loxim/jdbc/LoXiMConnection.java, JDBCDriver/src/main/java/edu/mimuw/loxim/jdbc/LoXiMConnectionImpl.java, JDBCDriver/src/main/java/edu/mimuw/loxim/jdbc/LoXiMDatabaseMetaDataImpl.java, JDBCDriver/src/main/java/edu/mimuw/loxim/jdbc/LoXiMDriverImpl.java, JDBCDriver/src/main/java/edu/mimuw/loxim/jdbc/LoXiMResultSet.java, JDBCDriver/src/main/java/edu/mimuw/loxim/jdbc/LoXiMResultSetImpl.java:
 	More new stubs + Driver code
-
-2008-05-08  Marek Dopiera  <md219418@students.mimuw.edu.pl>
-
-	* LoximServer/Attic/KeepAlive.h, LoximClient/Attic/Authenticator.cpp, LoximClient/Attic/Authenticator.h, LoximClient/Attic/ConsoleAuthenticator.cpp, LoximClient/Attic/ConsoleAuthenticator.h, LoximServer/Attic/KeepAlive.cpp:
-	New file.
 
 2008-05-07  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
 
@@ -53,14 +143,41 @@
 	dodatkowe pomocnicze skladniki perspekty, mozliwosc tworzenia perspektyw ze stanem
 	Dzialania administracyjne na definicjach perpektyw, dodawanie, usuwanie i modyfikacji poszczegolnych skladnikow.
 
+2008-04-27  Marek Dopiera  <md219418@students.mimuw.edu.pl>
+	
+	* LoximSession/LoximSession.h, LoximSession/LoximSession.cpp
+	LoximServer/LoximServer.h, LoximServer/LoximServer.cpp: dodanie
+	faktycznego przesylania wyniku zapytan, zmiana domyslnych timeoutow,
+	wprowadzenie faktycznego logowania
+	
 2008-04-24  Adam Michalik  <am209482@students.mimuw.edu.pl>
 
 	* JDBCDriver/Makefile: Makefile (a make-to-maven2 port) added
 
-2008-04-21  Marek Dopiera  <md219418@students.mimuw.edu.pl>
+2008-04-23  Marek Dopiera  <md219418@students.mimuw.edu.pl>
 
-	* protocol/streams/Attic/DescriptorOutputStream.h, protocol/streams/Attic/Makefile, protocol/streams/Attic/PriorityOutputStream.cpp, protocol/streams/Attic/PriorityOutputStream.h, protocol/ptools/Attic/StringBufferStack.cpp, protocol/ptools/Attic/StringBufferStack.h, protocol/sockets/Attic/AbstractSocket.cpp, protocol/sockets/Attic/AbstractSocket.h, protocol/sockets/Attic/Makefile, protocol/sockets/Attic/TCPIPClientSocket.cpp, protocol/sockets/Attic/TCPIPClientSocket.h, protocol/sockets/Attic/TCPIPServerSingleSocket.cpp, protocol/sockets/Attic/TCPIPServerSingleSocket.h, protocol/sockets/Attic/TCPIPServerSocket.cpp, protocol/sockets/Attic/TCPIPServerSocket.h, protocol/streams/Attic/AbstractInputStream.cpp, protocol/streams/Attic/AbstractInputStream.h, protocol/streams/Attic/AbstractOutputStream.cpp, protocol/streams/Attic/AbstractOutputStream.h, protocol/streams/Attic/DescriptorInputStream.cpp, protocol/streams/Attic/DescriptorInputStream.h, protocol/streams/Attic/DescriptorOutputStream.cpp, protocol/pstreams/Attic/Makefile, protocol/pstreams/Attic/PackageInputStream.cpp, protocol/pstreams/Attic/PackageInputStream.h, protocol/pstreams/Attic/PackageOutputStream.cpp, protocol/pstreams/Attic/PackageOutputStream.h, protocol/ptools/Attic/CharArray.cpp, protocol/ptools/Attic/CharArray.h, protocol/ptools/Attic/Endianness.cpp, protocol/ptools/Attic/Endianness.h, protocol/ptools/Attic/Makefile, protocol/ptools/Attic/Package.cpp, protocol/ptools/Attic/Package.h, protocol/ptools/Attic/PackageBufferReader.cpp, protocol/ptools/Attic/PackageBufferReader.h, protocol/ptools/Attic/PackageBufferWriter.cpp, protocol/ptools/Attic/PackageBufferWriter.h, protocol/ptools/Attic/PackageHeader.cpp, protocol/ptools/Attic/PackageHeader.h, protocol/packages/data/Attic/Sint8Data.cpp, protocol/packages/data/Attic/Sint8Data.h, protocol/packages/data/Attic/StructData.cpp, protocol/packages/data/Attic/StructData.h, protocol/packages/data/Attic/TimeData.cpp, protocol/packages/data/Attic/TimeData.h, protocol/packages/data/Attic/TimeTZData.cpp, protocol/packages/data/Attic/TimeTZData.h, protocol/packages/data/Attic/Uint16Data.cpp, protocol/packages/data/Attic/Uint16Data.h, protocol/packages/data/Attic/Uint32Data.cpp, protocol/packages/data/Attic/Uint32Data.h, protocol/packages/data/Attic/Uint64Data.cpp, protocol/packages/data/Attic/Uint64Data.h, protocol/packages/data/Attic/Uint8Data.cpp, protocol/packages/data/Attic/Uint8Data.h, protocol/packages/data/Attic/VOIDData.cpp, protocol/packages/data/Attic/VOIDData.h, protocol/packages/data/Attic/VarcharData.cpp, protocol/packages/data/Attic/VarcharData.h, protocol/packages/data/Attic/gen.sh, protocol/packages/data/Attic/uppercase.sh, protocol/packages/data/Attic/DoubleData.h, protocol/packages/data/Attic/ExtReferenceData.cpp, protocol/packages/data/Attic/ExtReferenceData.h, protocol/packages/data/Attic/LinkData.cpp, protocol/packages/data/Attic/LinkData.h, protocol/packages/data/Attic/Makefile, protocol/packages/data/Attic/ReferenceData.cpp, protocol/packages/data/Attic/ReferenceData.h, protocol/packages/data/Attic/SequenceData.cpp, protocol/packages/data/Attic/SequenceData.h, protocol/packages/data/Attic/Sint16Data.cpp, protocol/packages/data/Attic/Sint16Data.h, protocol/packages/data/Attic/Sint32Data.cpp, protocol/packages/data/Attic/Sint32Data.h, protocol/packages/data/Attic/Sint64Data.cpp, protocol/packages/data/Attic/Sint64Data.h, protocol/packages/data/Attic/BOBData.h, protocol/packages/data/Attic/BagData.cpp, protocol/packages/data/Attic/BagData.h, protocol/packages/data/Attic/BindingData.cpp, protocol/packages/data/Attic/BindingData.h, protocol/packages/data/Attic/BoolData.cpp, protocol/packages/data/Attic/BoolData.h, protocol/packages/data/Attic/CollectionData.cpp, protocol/packages/data/Attic/CollectionData.h, protocol/packages/data/Attic/DataFactory.cpp, protocol/packages/data/Attic/DataFactory.h, protocol/packages/data/Attic/DataPart.h, protocol/packages/data/Attic/DateData.cpp, protocol/packages/data/Attic/DateData.h, protocol/packages/data/Attic/DatePart.cpp, protocol/packages/data/Attic/DateTimeData.cpp, protocol/packages/data/Attic/DateTimeData.h, protocol/packages/data/Attic/DateTimeTZData.cpp, protocol/packages/data/Attic/DateTimeTZData.h, protocol/packages/data/Attic/DoubleData.cpp, protocol/packages/Attic/VSCFinishedPackage.cpp, protocol/packages/Attic/VSCFinishedPackage.h, protocol/packages/Attic/VSCSendValuePackage.cpp, protocol/packages/Attic/VSCSendValuePackage.h, protocol/packages/Attic/VSCSendValuesPackage.cpp, protocol/packages/Attic/VSCSendValuesPackage.h, protocol/packages/Attic/WCHelloPackage.cpp, protocol/packages/Attic/WCHelloPackage.h, protocol/packages/Attic/WCLoginPackage.cpp, protocol/packages/Attic/WCLoginPackage.h, protocol/packages/Attic/WCModePackage.cpp, protocol/packages/Attic/WCModePackage.h, protocol/packages/Attic/WCPasswordPackage.cpp, protocol/packages/Attic/WCPasswordPackage.h, protocol/packages/Attic/WSAuthorizedPackage.cpp, protocol/packages/Attic/WSAuthorizedPackage.h, protocol/packages/Attic/WSHelloPackage.cpp, protocol/packages/Attic/WSHelloPackage.h, protocol/packages/Attic/gen.sh, protocol/packages/Attic/uppercase.sh, protocol/packages/data/Attic/BOBData.cpp, protocol/packages/Attic/ASCPingPackage.cpp, protocol/packages/Attic/ASCPingPackage.h, protocol/packages/Attic/ASCPongPackage.cpp, protocol/packages/Attic/ASCPongPackage.h, protocol/packages/Attic/ASCSetOptPackage.cpp, protocol/packages/Attic/ASCSetOptPackage.h, protocol/packages/Attic/Makefile, protocol/packages/Attic/PackagesFactory.cpp, protocol/packages/Attic/PackagesFactory.h, protocol/packages/Attic/QCExecutePackage.cpp, protocol/packages/Attic/QCExecutePackage.h, protocol/packages/Attic/QCStatementPackage.cpp, protocol/packages/Attic/QCStatementPackage.h, protocol/packages/Attic/QSExecutingPackage.cpp, protocol/packages/Attic/QSExecutingPackage.h, protocol/packages/Attic/QSExecutionFinishedPackage.cpp, protocol/packages/Attic/QSExecutionFinishedPackage.h, protocol/packages/Attic/QSStmtParsedPackage.cpp, protocol/packages/Attic/QSStmtParsedPackage.h, protocol/packages/Attic/VSCAbortPackage.cpp, protocol/packages/Attic/VSCAbortPackage.h, QueryParser/Attic/QueryLexer.h, protocol/Attic/Makefile, protocol/Attic/constants.h, protocol/auth/Attic/AuthPassMySQL.cpp, protocol/auth/Attic/AuthPassMySQL.h, protocol/auth/Attic/AuthTrust.cpp, protocol/auth/Attic/AuthTrust.h, protocol/auth/Attic/DataFactory.h, protocol/auth/Attic/Makefile, protocol/auth/Attic/auth.h, protocol/auth/Attic/sha1.cpp, protocol/auth/Attic/sha1.h, protocol/layers/Attic/Makefile, protocol/layers/Attic/ProtocolLayer0.cpp, protocol/layers/Attic/ProtocolLayer0.h, protocol/packages/Attic/ASCByePackage.cpp, protocol/packages/Attic/ASCByePackage.h, protocol/packages/Attic/ASCErrorPackage.cpp, protocol/packages/Attic/ASCErrorPackage.h, protocol/packages/Attic/ASCOkPackage.cpp, protocol/packages/Attic/ASCOkPackage.h, LoximClient/Attic/ReadlineReader.cpp, LoximClient/Attic/ReadlineReader.h, LoximClient/Attic/StatementProvider.cpp, LoximClient/Attic/StatementProvider.h, LoximClient/Attic/StatementSimpleParser.cpp, LoximClient/Attic/StatementSimpleParser.h, LoximServer/Attic/.cvsignore, LoximServer/Attic/Clipboard.cpp, LoximServer/Attic/Clipboard.h, LoximServer/Attic/LoximServer.cpp, LoximServer/Attic/LoximServer.h, LoximServer/Attic/LoximSession.cpp, LoximServer/Attic/LoximSession.h, LoximServer/Attic/Makefile, LoximServer/Attic/Server.conf, LoximServer/Attic/Server.cpp, AdminParser/Attic/.cvsignore, AdminParser/Attic/AdminExecutableTreeNode.cpp, AdminParser/Attic/AdminExecutableTreeNode.h, AdminParser/Attic/AdminExecutor.cpp, AdminParser/Attic/AdminExecutor.h, AdminParser/Attic/AdminLexer.h, AdminParser/Attic/AdminTreeNode.cpp, AdminParser/Attic/AdminTreeNode.h, AdminParser/Attic/Makefile, AdminParser/Attic/ShutdownTreeNode.cpp, AdminParser/Attic/ShutdownTreeNode.h, AdminParser/Attic/admin.ll, AdminParser/Attic/admin.yy, LoximClient/Attic/.cvsignore, LoximClient/Attic/ClientConsole.cpp, LoximClient/Attic/ClientConsole.h, LoximClient/Attic/LoximClient.cpp, LoximClient/Attic/LoximClient.h, LoximClient/Attic/Lsbql.cpp, LoximClient/Attic/Makefile:
-	New file.
+	* protocol/streams/DescriptorInputStream.cpp: poprawka czytania z
+	timeoutem ktore zamienialo sie w aktywne oczekiwanie
+
+2008-04-22  Marek Dopiera  <md219418@students.mimuw.edu.pl>
+
+	* LoximClient/StatementProvider.h: API do klienta
+
+	* QueryParser/Makefile, QueryParser/QueryLexer.h, QueryParser/QueryParser.cpp, QueryParser/QueryParser.h, QueryParser/parser.y, QueryParser/scanner.l:
+	Parser przestal byc globalny i stal sie obiektem.
+	
+	* AdminParser: powstal parser instrukcji administracyjnych
+	
+	* Errors/Errors.h, Errors/ErrorMsg.cpp: dodanie komunikatow
+	dotyczacych nowego protokolu
+	
+	* LoximClient: nowy klient
+	
+	* LoximServer: nowy serwer
+	
+	* protocol: protokol wykorzystywany w nowym serwerze
+	
+	* Server/Server.cpp: dodatkowy komunikat diagnostyczny
 
 2008-04-20  Adam Michalik  <am209482@students.mimuw.edu.pl>
 
@@ -871,7 +988,7 @@
 	Poprawka w Makefile'u parsera - make clean spowoduje usuniecie plikow
 	wygenerowanych przez lexa i yacca
 
-	* .cvsignore, Server/.cvsignore: Dodane kilka plików do .cvsignore
+	* .cvsignore, Server/.cvsignore: Dodane kilka plikï¿½w do .cvsignore
 
 2007-01-23  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
 
@@ -1286,12 +1403,12 @@
 2006-09-06  Cezary Tkaczyk  <ct201224@students.mimuw.edu.pl>
 
 	* Driver/Connection.cpp, SBQLCli/SBQLCli.cpp, TCPProto/ParamStatementPackage.cpp:
-	Ostatnia poprawka od strony drivera i serwera do parametryzacji. Naprawiony b³±d z obs³ug± ErrorPackage i kolekcjami. Odkomentowana linijka w³±czaj±ca dodawanie do ka¿dego zapytania poprzedniego wyniku jako parametru $ans.
+	Ostatnia poprawka od strony drivera i serwera do parametryzacji. Naprawiony bï¿½ï¿½d z obsï¿½ugï¿½ ErrorPackage i kolekcjami. Odkomentowana linijka wï¿½ï¿½czajï¿½ca dodawanie do kaï¿½dego zapytania poprzedniego wyniku jako parametru $ans.
 
 	* SBQLCli/SBQLCli.cpp, Server/Server.cpp, Server/Server.h, TCPProto/Package.h, TCPProto/ParamStatementPackage.cpp:
-	Parametryzacja zapytañ kolejne zmiany. Zmieniony znacznie serwer, dopisana
+	Parametryzacja zapytaï¿½ kolejne zmiany. Zmieniony znacznie serwer, dopisana
 	serializacja/deserializacja  Result->QueryResult w ParamStatementPackage.
-	Opcjê parametryzacji mo¿na uruchomiæ odkomentowuj±c linijkê:
+	Opcjï¿½ parametryzacji moï¿½na uruchomiï¿½ odkomentowujï¿½c linijkï¿½:
 	#define ANS_PARAMETER_ADDITION_ACTIVE
 	w pliku SBQLCli/SBQLCli.cpp
 
@@ -1360,16 +1477,16 @@
 2006-08-31  Tomasz Rosiek  <tr201089@students.mimuw.edu.pl>
 
 	* Navigator/META-INF/MANIFEST.MF, Navigator/src/objectBrowser/driver/loxim/Attic/Package.java, Navigator/src/objectBrowser/driver/loxim/Attic/SimpleResultPackage.java, Navigator/src/objectBrowser/driver/loxim/Attic/TcpConnection.java:
-	Uwzglêdnione zmiany w protokole (obs³uga pakietów)
+	Uwzglï¿½dnione zmiany w protokole (obsï¿½uga pakietï¿½w)
 
 	* Navigator/.classpath, Navigator/.project: Navigator cd
 
 	* Navigator/META-INF/MANIFEST.MF, Navigator/build.properties, Navigator/icons/sample.gif, Navigator/plugin.xml, Navigator/src/objectBrowser/ObjectBrowserPlugin.java, Navigator/src/objectBrowser/connections/DatabaseConnection.java, Navigator/src/objectBrowser/connections/DatabaseConnectionPool.java, Navigator/src/objectBrowser/connections/DatabaseQuery.java, Navigator/src/objectBrowser/connections/ITreeListener.java, Navigator/src/objectBrowser/connections/TreeObject.java, Navigator/src/objectBrowser/connections/TreeParent.java, Navigator/src/objectBrowser/driver/loxim/Attic/Connection.java, Navigator/src/objectBrowser/driver/loxim/Attic/ConversionUtils.java, Navigator/src/objectBrowser/driver/loxim/Attic/Package.java, Navigator/src/objectBrowser/driver/loxim/Attic/ResultStream.java, Navigator/src/objectBrowser/driver/loxim/Attic/SBQLException.java, Navigator/src/objectBrowser/driver/loxim/Attic/SimpleQueryPackage.java, Navigator/src/objectBrowser/driver/loxim/Attic/SimpleResultPackage.java, Navigator/src/objectBrowser/driver/loxim/Attic/TcpConnection.java, Navigator/src/objectBrowser/driver/loxim/Attic/TcpConnectionFactory.java, Navigator/src/objectBrowser/driver/loxim/result/Attic/Result.java, Navigator/src/objectBrowser/driver/loxim/result/Attic/ResultBag.java, Navigator/src/objectBrowser/driver/loxim/result/Attic/ResultBase.java, Navigator/src/objectBrowser/driver/loxim/result/Attic/ResultBinder.java, Navigator/src/objectBrowser/driver/loxim/result/Attic/ResultBool.java, Navigator/src/objectBrowser/driver/loxim/result/Attic/ResultCollection.java, Navigator/src/objectBrowser/driver/loxim/result/Attic/ResultError.java, Navigator/src/objectBrowser/driver/loxim/result/Attic/ResultInt.java, Navigator/src/objectBrowser/driver/loxim/result/Attic/ResultReference.java, Navigator/src/objectBrowser/driver/loxim/result/Attic/ResultSequence.java, Navigator/src/objectBrowser/driver/loxim/result/Attic/ResultSimple.java, Navigator/src/objectBrowser/driver/loxim/result/Attic/ResultString.java, Navigator/src/objectBrowser/driver/loxim/result/Attic/ResultStruct.java, Navigator/src/objectBrowser/driver/loxim/result/Attic/ResultType.java, Navigator/src/objectBrowser/driver/loxim/result/Attic/ResultVoid.java, Navigator/src/objectBrowser/editors/CompositeDataObjectEditPart.java, Navigator/src/objectBrowser/editors/DiagramContainerEditPolicy.java, Navigator/src/objectBrowser/editors/DiagramEditPart.java, Navigator/src/objectBrowser/editors/DiagramEditPolicy.java, Navigator/src/objectBrowser/editors/DiagramElementEditPart.java, Navigator/src/objectBrowser/editors/DiagramPartEditPolicy.java, Navigator/src/objectBrowser/editors/DimensionPropertySource.java, Navigator/src/objectBrowser/editors/IXMLColorConstants.java, Navigator/src/objectBrowser/editors/LocationPropertySource.java, Navigator/src/objectBrowser/editors/LogicNumberCellEditorValidator.java, Navigator/src/objectBrowser/editors/NonRuleBasedDamagerRepairer.java, Navigator/src/objectBrowser/editors/OBEditPartFactory.java, Navigator/src/objectBrowser/editors/ObjectiveDataEditor.java, Navigator/src/objectBrowser/editors/ReferenceDataObjectEditPart.java, Navigator/src/objectBrowser/editors/RelationBendpointEditPolicy.java, Navigator/src/objectBrowser/editors/RelationEditPart.java, Navigator/src/objectBrowser/editors/RelationEditPolicy.java, Navigator/src/objectBrowser/editors/ResultNodeEditPart.java, Navigator/src/objectBrowser/editors/SimpleDataObjectEditPart.java, Navigator/src/objectBrowser/editors/query/ColorManager.java, Navigator/src/objectBrowser/editors/query/QueryEditor.java, Navigator/src/objectBrowser/editors/query/QueryEditorActionContributor.java, Navigator/src/objectBrowser/editors/query/QueryEditorActionDelegate.java, Navigator/src/objectBrowser/editors/query/QueryLauncher.java, Navigator/src/objectBrowser/editors/query/SBQLDocumentProvider.java, Navigator/src/objectBrowser/editors/query/TagRule.java, Navigator/src/objectBrowser/editors/query/XMLConfiguration.java, Navigator/src/objectBrowser/editors/query/XMLDoubleClickStrategy.java, Navigator/src/objectBrowser/editors/query/XMLPartitionScanner.java, Navigator/src/objectBrowser/editors/query/XMLScanner.java, Navigator/src/objectBrowser/editors/query/XMLTagScanner.java, Navigator/src/objectBrowser/editors/query/XMLWhitespaceDetector.java, Navigator/src/objectBrowser/figures/AntialiasUtil.java, Navigator/src/objectBrowser/figures/CompartmentFigure.java, Navigator/src/objectBrowser/figures/CompositeDataObjectFigure.java, Navigator/src/objectBrowser/figures/DataObjectFigure.java, Navigator/src/objectBrowser/figures/FixedConnectionAnchor.java, Navigator/src/objectBrowser/figures/OBFigureFactory.java, Navigator/src/objectBrowser/figures/ReferenceDataObjectFigure.java, Navigator/src/objectBrowser/figures/ResultNodeFigure.java, Navigator/src/objectBrowser/figures/SimpleDataObjectFigure.java, Navigator/src/objectBrowser/model/Attic/LoximModelGenerator.java, Navigator/src/objectBrowser/model/CircleLayout.java, Navigator/src/objectBrowser/model/CompositeDataObject.java, Navigator/src/objectBrowser/model/DataObject.java, Navigator/src/objectBrowser/model/DataProperty.java, Navigator/src/objectBrowser/model/Diagram.java, Navigator/src/objectBrowser/model/DiagramElement.java, Navigator/src/objectBrowser/model/DiagramNode.java, Navigator/src/objectBrowser/model/ReferenceDataObject.java, Navigator/src/objectBrowser/model/RelationBendpoint.java, Navigator/src/objectBrowser/model/Relationship.java, Navigator/src/objectBrowser/model/ResultNode.java, Navigator/src/objectBrowser/model/SimpleDataObject.java, Navigator/src/objectBrowser/model/commands/BendpointCommand.java, Navigator/src/objectBrowser/model/commands/CreateBendpointCommand.java, Navigator/src/objectBrowser/model/commands/DeleteBendpointCommand.java, Navigator/src/objectBrowser/model/commands/DeleteConnetionCommand.java, Navigator/src/objectBrowser/model/commands/MoveBendpointCommand.java, Navigator/src/objectBrowser/model/commands/SetConstraintCommand.java, Navigator/src/objectBrowser/perspectives/ObjectBrowsingPerspectiveFactory.java, Navigator/src/objectBrowser/tests/DataGenerator1.java, Navigator/src/objectBrowser/views/ObjectDatabaseExplorer.java, Navigator/src/objectBrowser/views/ResultView.java, Navigator/src/objectBrowser/views/ResultViewText.java, Navigator/src/objectBrowser/wizards/NewConnectionWizard.java, Navigator/src/objectBrowser/wizards/NewConnectionWizardName.java, Navigator/src/objectBrowser/wizards/NewQueryWizard.java, Navigator/src/objectBrowser/wizards/NewQueryWizardPage.java:
-	Nowa wersja Navigatora - plugin do Eclipsa realizuj±cy
-	konsolê bazodanow±
+	Nowa wersja Navigatora - plugin do Eclipsa realizujï¿½cy
+	konsolï¿½ bazodanowï¿½
 
 	* Navigator/Attic/build-user.xml, Navigator/Attic/build.xml, Navigator/szbd/Attic/SBQLException.java, Navigator/szbd/client/Attic/TcpConnection.java, Navigator/szbd/client/Attic/TcpConnectionFactory.java, Navigator/szbd/client/result/Attic/Result.java, Navigator/szbd/client/result/Attic/ResultBag.java, Navigator/szbd/client/result/Attic/ResultBinder.java, Navigator/szbd/client/result/Attic/ResultBool.java, Navigator/szbd/client/result/Attic/ResultCollection.java, Navigator/szbd/client/result/Attic/ResultError.java, Navigator/szbd/client/result/Attic/ResultInt.java, Navigator/szbd/client/result/Attic/ResultReference.java, Navigator/szbd/client/result/Attic/ResultSequence.java, Navigator/szbd/client/result/Attic/ResultString.java, Navigator/szbd/client/result/Attic/ResultStruct.java, Navigator/szbd/client/result/Attic/ResultType.java, Navigator/szbd/client/result/Attic/ResultVoid.java, Navigator/szbd/console/Attic/ConnectionDialog.java, Navigator/szbd/console/Attic/ConnectionOptions.java, Navigator/szbd/console/Attic/ConsoleFrame.java, Navigator/szbd/console/Attic/Main.java, Navigator/szbd/test/Attic/MetadataBrowser.java, Navigator/szbd/test/Attic/MetadataTest1.java, Navigator/szbd/test/Attic/Test1.java, Navigator/szbd/client/Attic/Connection.java, Navigator/szbd/client/Attic/ResultStream.java, Navigator/szbd/metadata/Attic/AtomTypeDefinition.java, Navigator/szbd/metadata/Attic/CardinalityType.java, Navigator/szbd/metadata/Attic/ComplexTypeDefinition.java, Navigator/szbd/metadata/Attic/DataType.java, Navigator/szbd/metadata/Attic/LinkTypeDefinition.java, Navigator/szbd/metadata/Attic/MetadataFactory.java, Navigator/szbd/metadata/Attic/TypeDefinition.java, Navigator/szbd/metadata/Attic/TypeKind.java:
-	Usuniêcie starej wersji Navigatora
+	Usuniï¿½cie starej wersji Navigatora
 
 2006-08-30  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
@@ -1806,7 +1923,7 @@
 2006-05-12  Cezary Tkaczyk  <ct201224@students.mimuw.edu.pl>
 
 	* SBQLCli/SBQLCli.cpp:
-	zapytanie musi siê koñczyæ linijk± z pierszym znakiem "/".
+	zapytanie musi siï¿½ koï¿½czyï¿½ linijkï¿½ z pierszym znakiem "/".
 
 2006-05-11  Maksymilian Humpich  <mh209206@students.mimuw.edu.pl>
 
@@ -1898,7 +2015,7 @@
 2006-04-15  Tomasz Rosiek  <tr201089@students.mimuw.edu.pl>
 
 	* Navigator/.classpath, Navigator/.project, Navigator/Attic/build-user.xml, Navigator/Attic/build.xml, Navigator/Attic/test, Navigator/szbd/Attic/SBQLException.java, Navigator/szbd/client/Attic/Connection.java, Navigator/szbd/client/Attic/ResultStream.java, Navigator/szbd/client/Attic/TcpConnection.java, Navigator/szbd/client/Attic/TcpConnectionFactory.java, Navigator/szbd/client/result/Attic/Result.java, Navigator/szbd/client/result/Attic/ResultBag.java, Navigator/szbd/client/result/Attic/ResultBinder.java, Navigator/szbd/client/result/Attic/ResultBool.java, Navigator/szbd/client/result/Attic/ResultCollection.java, Navigator/szbd/client/result/Attic/ResultError.java, Navigator/szbd/client/result/Attic/ResultInt.java, Navigator/szbd/client/result/Attic/ResultReference.java, Navigator/szbd/client/result/Attic/ResultSequence.java, Navigator/szbd/client/result/Attic/ResultString.java, Navigator/szbd/client/result/Attic/ResultStruct.java, Navigator/szbd/client/result/Attic/ResultType.java, Navigator/szbd/client/result/Attic/ResultVoid.java, Navigator/szbd/console/Attic/ConnectionDialog.java, Navigator/szbd/console/Attic/ConnectionOptions.java, Navigator/szbd/console/Attic/ConsoleFrame.java, Navigator/szbd/console/Attic/Main.java, Navigator/szbd/metadata/Attic/AtomTypeDefinition.java, Navigator/szbd/metadata/Attic/CardinalityType.java, Navigator/szbd/metadata/Attic/ComplexTypeDefinition.java, Navigator/szbd/metadata/Attic/DataType.java, Navigator/szbd/metadata/Attic/LinkTypeDefinition.java, Navigator/szbd/metadata/Attic/MetadataFactory.java, Navigator/szbd/metadata/Attic/TypeDefinition.java, Navigator/szbd/metadata/Attic/TypeKind.java, Navigator/szbd/test/Attic/MetadataBrowser.java, Navigator/szbd/test/Attic/MetadataTest1.java, Navigator/szbd/test/Attic/Test1.java:
-	Dzia³aj±cy klient do Javy i pocz±tki browsera metadanych.
+	Dziaï¿½ajï¿½cy klient do Javy i poczï¿½tki browsera metadanych.
 
 	* Navigator/Attic/test: Utworzony katalog na Navigatora
 
@@ -2452,7 +2569,7 @@
 
 2006-01-31  Cezary Tkaczyk  <ct201224@students.mimuw.edu.pl>
 
-	* Driver/Connection.h: Jeszcze jedna poprawka do wyj±tków.
+	* Driver/Connection.h: Jeszcze jedna poprawka do wyjï¿½tkï¿½w.
 
 2006-01-31  Michal Drausowski  <md243003@students.mimuw.edu.pl>
 
@@ -2462,9 +2579,9 @@
 2006-01-31  Cezary Tkaczyk  <ct201224@students.mimuw.edu.pl>
 
 	* Driver/Connection.h, Driver/Result.cpp, Driver/Result.h, SBQLCli/SBQLCli.cpp:
-	Sensowniejsze wy¶wietlanie b³êdów w kliencie (przedefiniowane wyj±tki),
+	Sensowniejsze wyï¿½wietlanie bï¿½ï¿½dï¿½w w kliencie (przedefiniowane wyjï¿½tki),
 	uproszczenie klienta,
-	wy¶wietlanie ResultStruct jako < zawartosc >
+	wyï¿½wietlanie ResultStruct jako < zawartosc >
 
 2006-01-31  Michal Drausowski  <md243003@students.mimuw.edu.pl>
 
@@ -3308,10 +3425,10 @@
 
 2006-01-20  Cezary Tkaczyk  <ct201224@students.mimuw.edu.pl>
 
-	* Driver/Connection.h: Jescze jedna zmiana w hierarchi wyj±tków
+	* Driver/Connection.h: Jescze jedna zmiana w hierarchi wyjï¿½tkï¿½w
 
 	* Driver/Connection.cpp, Driver/Connection.h, Driver/DriverManager.cpp, Driver/DriverManager.h:
-	Nowa hierarchia wyj±tków.
+	Nowa hierarchia wyjï¿½tkï¿½w.
 
 2006-01-20  Maksymilian Humpich  <mh209206@students.mimuw.edu.pl>
 
@@ -3768,12 +3885,12 @@
 
 2006-01-06  Cezary Tkaczyk  <ct201224@students.mimuw.edu.pl>
 
-	* Driver/Connection.h: Poprzednio zabrak³o commit Connection.h
+	* Driver/Connection.h: Poprzednio zabrakï¿½o commit Connection.h
 
 	* Driver/Connection.cpp, SBQLCli/SBQLCli.cpp, TCPProto/Tcp.cpp, TCPProto/Tcp.h:
-	Dodana obsluga skryptów przekazywanych na stdin bez wypisywania promptów.
-	Obs³uga wielolinijkowych zapytañ (zapytanie koñczy siê je¶li w
-		ostatniej linijce, w dowolnym miejscu wyst±pi³ ';').
+	Dodana obsluga skryptï¿½w przekazywanych na stdin bez wypisywania promptï¿½w.
+	Obsï¿½uga wielolinijkowych zapytaï¿½ (zapytanie koï¿½czy siï¿½ jeï¿½li w
+		ostatniej linijce, w dowolnym miejscu wystï¿½piï¿½ ';').
 
 2006-01-06  Michal Drausowski  <md243003@students.mimuw.edu.pl>
 
@@ -3812,7 +3929,7 @@
 2006-01-06  Cezary Tkaczyk  <ct201224@students.mimuw.edu.pl>
 
 	* Driver/Connection.cpp, Server/Server.cpp:
-	naprawione przesy³anie stringa po sieci
+	naprawione przesyï¿½anie stringa po sieci
 
 2006-01-06  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
 
@@ -4005,7 +4122,7 @@
 
 2005-12-11  Marcin Komor  <mk189406@students.mimuw.edu.pl>
 
-	* Store/File.cpp: Pliki poprawnie siê inicjalizuj±.
+	* Store/File.cpp: Pliki poprawnie siï¿½ inicjalizujï¿½.
 
 	* Store/File.cpp: Zmiany w start()
 
@@ -4122,7 +4239,7 @@
 2005-12-05  Cezary Tkaczyk  <ct201224@students.mimuw.edu.pl>
 
 	* Driver/Connection.cpp, Driver/Connection.h, Driver/DriverManager.cpp, SBQLCli/SBQLCli.cpp, Driver/DriverManager.h:
-	Dodany wyj±tek ConnectionException. Zmiany w Connection, DriverManager i SBQLCli
+	Dodany wyjï¿½tek ConnectionException. Zmiany w Connection, DriverManager i SBQLCli
 
 2005-12-04  Piotr Karpiuk  <pk167277@students.mimuw.edu.pl>
 
@@ -4530,7 +4647,7 @@
 
 2005-11-25  Cezary Tkaczyk  <ct201224@students.mimuw.edu.pl>
 
-	* QueryExecutor/QueryResult.h: W QueryResult.h dodane sta³e w enum
+	* QueryExecutor/QueryResult.h: W QueryResult.h dodane staï¿½e w enum
 
 2005-11-25  Tomasz Romanczuk  <tr209287@students.mimuw.edu.pl>
 
@@ -4648,7 +4765,7 @@
 	Usuniete zostaly stare pliki typu Result*.h i Result*.cpp
 
 	* Driver/Result.cpp, Driver/Result.h:
-	Napisa³em implementacje zdefiniowanego wczesniej interfejsu. Destruktory nie dzialaja jeszcze dobrze.
+	Napisaï¿½em implementacje zdefiniowanego wczesniej interfejsu. Destruktory nie dzialaja jeszcze dobrze.
 
 2005-11-22  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
 
@@ -5102,7 +5219,7 @@
 2005-10-31  Cezary Tkaczyk  <ct201224@students.mimuw.edu.pl>
 
 	* SBQLCli/Attic/client.cpp:
-	Miejmy nadzieje ostatnia wersja tego pliku. Poprawione formatowanie wyników.
+	Miejmy nadzieje ostatnia wersja tego pliku. Poprawione formatowanie wynikï¿½w.
 
 2005-10-31  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
 
@@ -5146,7 +5263,7 @@
 	Dodany include ../make.defs
 
 	* SBQLCli/Attic/client.cpp:
-	Zmieny wynikaj¹ce z aktualizacji innych modu³ów, po przeprowadzonych testach. Jeszcze s¹ problemy z QueryExecutor.
+	Zmieny wynikajï¿½ce z aktualizacji innych moduï¿½ï¿½w, po przeprowadzonych testach. Jeszcze sï¿½ problemy z QueryExecutor.
 
 2005-10-28  Dominik Klimczak  <dk189404@students.mimuw.edu.pl>
 

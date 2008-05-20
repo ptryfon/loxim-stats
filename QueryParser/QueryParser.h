@@ -2,19 +2,25 @@
 #define _QUERY_PARSER_H_
 
 #include <string>
-//#include "TreeNode.h"
 #include "ClassNames.h"
 
 using namespace std;
+
 
 namespace QParser 
 {
 #define DML_AC_RETURN_ERROR		"return_error"
 #define DML_AC_DO_QUERY			"perform_query"
-	
+    class QueryParserGen;
+    class QueryLexer;    
+    class TreeNode;
+    	
     class QueryParser 
     {
     	protected:
+	    QueryParserGen *parser;
+	    QueryLexer *lexer;
+	    TreeNode *d; //for the parser to return values
 	    StatQResStack *sQres;
 	    StatEnvStack *sEnvs;
 	    static int statEvalRun;	// for which time the stat eval is called - some things can be set only once
@@ -22,6 +28,7 @@ namespace QParser
 		bool shouldTypeCheck;
 		bool tcTurnedOffTmp;		// to switch typechecking off temporarily. 
 		string dmlIncompleteAction;
+		
 	public:
 		QueryParser();
 		QueryParser(bool readConfig);

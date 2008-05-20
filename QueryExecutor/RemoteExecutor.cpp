@@ -13,8 +13,8 @@
 #include "../TCPProto/Tcp.h"
 //#include "../TCPProto/TCPParam.h"
 //#include "../TCPProto/Package.h"
-#include "SessionData.h"
 #include "QueryExecutor.h"
+#include "LoximServer/LoximServer.h"
 #define SLEEP			10000
 #define CONNECT_SLEEP	10000
 
@@ -51,7 +51,7 @@ namespace QExecutor {
 		
 		*ec << "mam connection";
 		SimpleQueryPackage spackage;
-		Package *package;
+		TCPProto::Package *package;
 		//cerr << "zaczynam execute\n";
 		spackage.setQuery("begin");
 		err = packageSend(&spackage, newSock);
@@ -68,8 +68,8 @@ namespace QExecutor {
 		
 		usleep(SLEEP);
 		
-		string login= qe->session_data->get_user_data()->get_login();
-		string passwd = qe->session_data->get_user_data()->get_passwd();
+		string login= qe->session->get_user_data()->get_login();
+		string passwd = qe->session->get_user_data()->get_passwd();
 		
 		q = string("validate ") + string(login) + string(" ") + string(passwd) + ";";
 		*ec << "wysylam 2, login";
@@ -158,11 +158,11 @@ namespace QExecutor {
 		
 		usleep(SLEEP);
 		
-		Package* package;
+		TCPProto::Package* package;
 		TCPParam* param = new TCPParam();
 		param->setServer(ip);
 		param->setPort(port);
-		err = packageReceive(&package, sock, (void*)param, Package::REMOTERESULT);
+		err = packageReceive(&package, sock, (void*)param, TCPProto::Package::REMOTERESULT);
 		if (err != 0) {
 			return err;
 		}

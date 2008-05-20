@@ -1,3 +1,9 @@
+%pure-parser
+%skeleton "lalr1.cc"
+%defines
+%define "parser_class_name" "QueryParserGen"
+%name-prefix="QParser"
+
 %{
 #include <string>
 #include <vector>
@@ -7,9 +13,8 @@
 #include "../Indexes/BTree.h"
   using namespace Indexes;
   using namespace QParser;
-  int yylex();
-  int yyerror(char* s);
-  TreeNode *d;
+  class QueryLexer;
+  int QParserlex(void *lval, QParser::QueryLexer *lexer);
 %}
 
 %union {
@@ -44,6 +49,11 @@
   QParser::StructureTypeNode* stucturetree;
   QParser::ObjectDeclareNode* obdecltree;
 }
+
+%lex-param{ QueryLexer *lexer }
+%parse-param{ QueryLexer *lexer }
+%parse-param{ TreeNode **result }
+
 
 %nonassoc CREATE_OR_UPDATE
 %token	<num> INTEGER
@@ -121,19 +131,19 @@
 %type <stucturetree> object_decl_commalist
 %%
 
-statement   : query semicolon_opt { d=$1; }
-	    | BEGINTR semicolon_opt { d=new TransactNode(TransactNode::begin); }
-	    | ABORT   semicolon_opt { d=new TransactNode(TransactNode::abort); }
-	    | END     semicolon_opt { d=new TransactNode(TransactNode::end); }
-	    | RELOADSCHEME semicolon_opt { d=new DMLNode(DMLNode::reload); }	
-		| TCON	semicolon_opt { d=new DMLNode(DMLNode::tcon); }
-		| TCOFF semicolon_opt { d=new DMLNode(DMLNode::tcoff);}
-	    | validate_stmt  semicolon_opt { d = $1; }
-	    | privilige_stmt semicolon_opt { d = $1; }
-	    | user_stmt	     semicolon_opt { d = $1; }
-	    | indexDDL_stmt	 semicolon_opt { d = $1; }
-	    | interfaceBind	semicolon_opt { d = $1;}
-		| type_decl_stmt  semicolon_opt { d = $1;}
+statement   : query semicolon_opt { *result=$1; }
+	    | BEGINTR semicolon_opt { *result=new TransactNode(TransactNode::begin); }
+	    | ABORT   semicolon_opt { *result=new TransactNode(TransactNode::abort); }
+	    | END     semicolon_opt { *result=new TransactNode(TransactNode::end); }
+	    | RELOADSCHEME semicolon_opt { *result=new DMLNode(DMLNode::reload); }	
+		| TCON	semicolon_opt { *result=new DMLNode(DMLNode::tcon); }
+		| TCOFF semicolon_opt { *result=new DMLNode(DMLNode::tcoff);}
+	    | validate_stmt  semicolon_opt { *result = $1; }
+	    | privilige_stmt semicolon_opt { *result = $1; }
+	    | user_stmt	     semicolon_opt { *result = $1; }
+	    | indexDDL_stmt	 semicolon_opt { *result = $1; }
+	    | interfaceBind	semicolon_opt { *result = $1;}
+		| type_decl_stmt  semicolon_opt { *result = $1;}
 	    ;
 
 query	    : SYSTEMVIEWNAME { char *s = $1; $$ = new NameNode(s); delete s; }
@@ -454,3 +464,10 @@ name_defs_semicolon:  NAME { $$ = new NameListNode($1);    }
         |   name_defs_semicolon SEMICOLON NAME { $$ = new NameListNode($3, $1);    }
 
 //subclass: EXTENDS name_defs SEMICOLON {}
+%%
+
+void QParser::QueryParserGen::error(const QParser::QueryParserGen::location_type& l, const std::string& m)
+{
+
+}
+
