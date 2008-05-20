@@ -1,23 +1,16 @@
-2008-05-13  Marek Dopiera  <md219418@students.mimuw.edu.pl>
+2008-05-20  Marek Dopiera  <md219418@students.mimuw.edu.pl>
 
-	* LoximClient/ClientConsole.cpp:
-	Porzadki, dodana historia polecen, poprawki wczytywania z pliku,
-	zmiana trybu dot tak, zeby akceptowal / jako koniec trybu
-	wielolinijkowego
-	
-	* LoximClient/LoximClient.cpp, LoximServer/LoximSession.cpp:
-	Poprawienie przesylania struktur
-	
-	* LoximClient/Lsbql.cpp: zmiana domyslnego trybu zadawania zapytan,
-	poprawka uzywania portu podanego w parametrze
-
-	* protocol/packages/data/BindingData.cpp: poprawka segfaulta przy
-	deserializacji bindinga
+	* protocol/ptools/PackageBufferReader.h, protocol/ptools/PackageBufferWriter.cpp, protocol/ptools/PackageBufferWriter.h, protocol/ptools/PackageHeader.cpp, protocol/ptools/PackageHeader.h, protocol/ptools/StringBufferStack.cpp, protocol/ptools/StringBufferStack.h, protocol/sockets/.cvsignore, protocol/sockets/AbstractSocket.cpp, protocol/sockets/AbstractSocket.h, protocol/sockets/Makefile, protocol/sockets/TCPIPClientSocket.cpp, protocol/sockets/TCPIPClientSocket.h, protocol/sockets/TCPIPServerSingleSocket.cpp, protocol/sockets/TCPIPServerSingleSocket.h, protocol/sockets/TCPIPServerSocket.cpp, protocol/sockets/TCPIPServerSocket.h, protocol/streams/.cvsignore, protocol/streams/AbstractInputStream.cpp, protocol/streams/AbstractInputStream.h, protocol/streams/AbstractOutputStream.cpp, protocol/streams/AbstractOutputStream.h, protocol/streams/DescriptorInputStream.cpp, protocol/streams/DescriptorInputStream.h, protocol/streams/DescriptorOutputStream.cpp, protocol/streams/DescriptorOutputStream.h, protocol/streams/Makefile, protocol/streams/PriorityOutputStream.cpp, protocol/streams/PriorityOutputStream.h, protocol/packages/data/DataFactory.h, protocol/packages/data/DataPart.h, protocol/packages/data/DateData.cpp, protocol/packages/data/DateData.h, protocol/packages/data/DatePart.cpp, protocol/packages/data/DateTimeData.cpp, protocol/packages/data/DateTimeData.h, protocol/packages/data/DateTimeTZData.cpp, protocol/packages/data/DateTimeTZData.h, protocol/packages/data/DoubleData.cpp, protocol/packages/data/DoubleData.h, protocol/packages/data/ExtReferenceData.cpp, protocol/packages/data/ExtReferenceData.h, protocol/packages/data/LinkData.cpp, protocol/packages/data/LinkData.h, protocol/packages/data/Makefile, protocol/packages/data/ReferenceData.cpp, protocol/packages/data/ReferenceData.h, protocol/packages/data/SequenceData.cpp, protocol/packages/data/SequenceData.h, protocol/packages/data/Sint16Data.cpp, protocol/packages/data/Sint16Data.h, protocol/packages/data/Sint32Data.cpp, protocol/packages/data/Sint32Data.h, protocol/packages/data/Sint64Data.cpp, protocol/packages/data/Sint64Data.h, protocol/packages/data/Sint8Data.cpp, protocol/packages/data/Sint8Data.h, protocol/packages/data/StructData.cpp, protocol/packages/data/StructData.h, protocol/packages/data/TimeData.cpp, protocol/packages/data/TimeData.h, protocol/packages/data/TimeTZData.cpp, protocol/packages/data/TimeTZData.h, protocol/packages/data/Uint16Data.cpp, protocol/packages/data/Uint16Data.h, protocol/packages/data/Uint32Data.cpp, protocol/packages/data/Uint32Data.h, protocol/packages/data/Uint64Data.cpp, protocol/packages/data/Uint64Data.h, protocol/packages/data/Uint8Data.cpp, protocol/packages/data/Uint8Data.h, protocol/packages/data/VOIDData.cpp, protocol/packages/data/VOIDData.h, protocol/packages/data/VarcharData.cpp, protocol/packages/data/VarcharData.h, protocol/packages/data/gen.sh, protocol/packages/data/uppercase.sh, protocol/pstreams/.cvsignore, protocol/pstreams/Makefile, protocol/pstreams/PackageInputStream.cpp, protocol/pstreams/PackageInputStream.h, protocol/pstreams/PackageOutputStream.cpp, protocol/pstreams/PackageOutputStream.h, protocol/ptools/.cvsignore, protocol/ptools/CharArray.cpp, protocol/ptools/CharArray.h, protocol/ptools/Endianness.cpp, protocol/ptools/Endianness.h, protocol/ptools/Makefile, protocol/ptools/Package.cpp, protocol/ptools/Package.h, protocol/ptools/PackageBufferReader.cpp, protocol/auth/.cvsignore, protocol/auth/AuthPassMySQL.cpp, protocol/auth/AuthPassMySQL.h, protocol/auth/AuthTrust.cpp, protocol/auth/AuthTrust.h, protocol/auth/DataFactory.h, protocol/auth/Makefile, protocol/auth/auth.h, protocol/auth/sha1.cpp, protocol/auth/sha1.h, protocol/layers/.cvsignore, protocol/layers/Makefile, protocol/layers/ProtocolLayer0.cpp, protocol/layers/ProtocolLayer0.h, protocol/packages/.cvsignore, protocol/packages/ASCByePackage.cpp, protocol/packages/ASCByePackage.h, protocol/packages/ASCErrorPackage.cpp, protocol/packages/ASCErrorPackage.h, protocol/packages/ASCOkPackage.cpp, protocol/packages/ASCOkPackage.h, protocol/packages/ASCPingPackage.cpp, protocol/packages/ASCPingPackage.h, protocol/packages/ASCPongPackage.cpp, protocol/packages/ASCPongPackage.h, protocol/packages/ASCSetOptPackage.cpp, protocol/packages/ASCSetOptPackage.h, protocol/packages/Makefile, protocol/packages/PackagesFactory.cpp, protocol/packages/PackagesFactory.h, protocol/packages/QCExecutePackage.cpp, protocol/packages/QCExecutePackage.h, protocol/packages/QCStatementPackage.cpp, protocol/packages/QCStatementPackage.h, protocol/packages/QSExecutingPackage.cpp, protocol/packages/QSExecutingPackage.h, protocol/packages/QSExecutionFinishedPackage.cpp, protocol/packages/QSExecutionFinishedPackage.h, protocol/packages/QSStmtParsedPackage.cpp, protocol/packages/QSStmtParsedPackage.h, protocol/packages/VSCAbortPackage.cpp, protocol/packages/VSCAbortPackage.h, protocol/packages/VSCFinishedPackage.cpp, protocol/packages/VSCFinishedPackage.h, protocol/packages/VSCSendValuePackage.cpp, protocol/packages/VSCSendValuePackage.h, protocol/packages/VSCSendValuesPackage.cpp, protocol/packages/VSCSendValuesPackage.h, protocol/packages/WCHelloPackage.cpp, protocol/packages/WCHelloPackage.h, protocol/packages/WCLoginPackage.cpp, protocol/packages/WCLoginPackage.h, protocol/packages/WCModePackage.cpp, protocol/packages/WCModePackage.h, protocol/packages/WCPasswordPackage.cpp, protocol/packages/WCPasswordPackage.h, protocol/packages/WSAuthorizedPackage.cpp, protocol/packages/WSAuthorizedPackage.h, protocol/packages/WSHelloPackage.cpp, protocol/packages/WSHelloPackage.h, protocol/packages/data/.cvsignore, protocol/packages/data/BOBData.cpp, protocol/packages/data/BOBData.h, protocol/packages/data/BagData.cpp, protocol/packages/data/BagData.h, protocol/packages/data/BindingData.cpp, protocol/packages/data/BindingData.h, protocol/packages/data/BoolData.cpp, protocol/packages/data/BoolData.h, protocol/packages/data/CollectionData.cpp, protocol/packages/data/CollectionData.h, protocol/packages/data/DataFactory.cpp, protocol/packages/gen.sh, protocol/packages/uppercase.sh, LoximClient/ConsoleAuthenticator.cpp, LoximClient/ConsoleAuthenticator.h, LoximClient/LoximClient.cpp, LoximClient/LoximClient.h, LoximClient/Lsbql.cpp, LoximClient/Makefile, LoximClient/ReadlineReader.cpp, LoximClient/ReadlineReader.h, LoximClient/StatementProvider.cpp, LoximClient/StatementProvider.h, LoximClient/StatementSimpleParser.cpp, LoximClient/StatementSimpleParser.h, LoximServer/.cvsignore, LoximServer/Clipboard.cpp, LoximServer/Clipboard.h, LoximServer/KeepAlive.cpp, LoximServer/KeepAlive.h, LoximServer/LoximServer.cpp, LoximServer/LoximServer.h, LoximServer/LoximSession.cpp, LoximServer/LoximSession.h, LoximServer/Makefile, LoximServer/Server.conf, LoximServer/Server.cpp, QueryExecutor/Attic/SessionData.cpp, QueryExecutor/Attic/SessionData.h, QueryExecutor/ClassGraph.cpp, QueryExecutor/ClassGraph.h, QueryExecutor/Makefile, QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryExecutor.h, QueryExecutor/RemoteExecutor.cpp, QueryParser/.cvsignore, QueryParser/Makefile, QueryParser/QueryLexer.h, QueryParser/QueryParser.cpp, QueryParser/QueryParser.h, QueryParser/parser.y, QueryParser/scanner.l, SBQLCli/Attic/Makefile, SBQLCli/Attic/SBQLCli.cpp, SBQLCli/Attic/TestMdn.txt, Server/Attic/ConnectionThread.cpp, Server/Attic/ConnectionThread.h, Server/Attic/Listener.cpp, Server/Attic/Listener.h, Server/Attic/ListenerTcp.cpp, Server/Attic/Makefile, Server/Attic/Makefile.smm, Server/Attic/Sender.cpp, Server/Attic/Server.conf, Server/Attic/Server.cpp, Server/Attic/Server.h, Server/Attic/ServerTcp.cpp, Server/Attic/do, Server/Attic/ipcrmall.bat, Testy/basic_dot.sbql, Testy/tescik.sbql, protocol/Makefile, protocol/constants.h, AdminParser/.cvsignore, AdminParser/AdminExecutableTreeNode.cpp, AdminParser/AdminExecutableTreeNode.h, AdminParser/AdminExecutor.cpp, AdminParser/AdminExecutor.h, AdminParser/AdminLexer.h, AdminParser/AdminTreeNode.cpp, AdminParser/AdminTreeNode.h, AdminParser/Makefile, AdminParser/ShutdownTreeNode.cpp, AdminParser/ShutdownTreeNode.h, AdminParser/admin.ll, AdminParser/admin.yy, Errors/ErrorMsg.cpp, Errors/Errors.h, LoximClient/.cvsignore, LoximClient/Authenticator.cpp, LoximClient/Authenticator.h, LoximClient/ClientConsole.cpp, LoximClient/ClientConsole.h, Makefile:
+	Merge z branchem nowego serwera, poprawki w protokole i kliencie
 
 2008-05-12  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
 
 	* QueryExecutor/EnvironmentStack.cpp, QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryResult.cpp, QueryParser/TreeNode.cpp:
 	Poprawione nawiasowanie wokol operatora |
+
+2008-05-12  Marek Dopiera  <md219418@students.mimuw.edu.pl>
+
+	* Testy/basic_dot.sbql: New file.
 
 2008-05-11  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
 
@@ -30,41 +23,9 @@
 	More stubs and full (beta) Driver implementation
 
 2008-05-11  Marek Dopiera  <md219418@students.mimuw.edu.pl>
-	* LoximClient/ClientConsole.h, LoximClient/ClientConsole.cpp,
-	LoximClient/ConsoleAuthenticator.h, LoximClient/ConsoleAuthenticator.cpp
-	LoximClient/Lsbql.cpp: dodanie alternatywnego sposobu czytania polecen
-	w kliencie, dodanie mozliwosci wczytywania tego z pliku oraz dodanie
-	mozliwo¶ci podania loginu i has³a w parametrach
 
-	* Testy/basic_dot.sbql: odpowiednik basic.sbql dla alternatywnego sposobu
-	podawania polecen
-
-2008-05-11  Marek Dopiera  <md219418@students.mimuw.edu.pl>
-	* LoximClient/ConsoleAuthenticator.cpp, LoximClient/ClientConsole.cpp:
-	poprawiona obsluga CTRL+D
-
-	* protocol/packages/data/Sint16Data.h,
-	protocol/packages/data/Sint32Data.h
-	protocol/packages/data/Sint64Data.h
-	protocol/packages/data/Uint16Data.h
-	protocol/packages/data/Uint32Data.h
-	protocol/packages/data/Uint64Data.h: poprawione rozmiary zmiennych
-
-	* LoximServer/LoximSession.cpp: poprawione raportowanie bledow z 
-	egzekutora
-
-2008-05-11  Marek Dopiera  <md219418@students.mimuw.edu.pl>
-	* protocol/sockets/TCPIPServerSocket.cpp: dodanie SO_REUSEADDR do
-	socketa w celu wyeliminowania koniecznosci czekania az system
-	operacyjny wyjdzie ze stanu TIMED_WAIT, do ktorego wchodzil jezeli to
-	on konczyl polaczenia
-
-	* AdminParser/.cvsignore, QueryParser/.cvsignore,
-	protocol/auth/.cvsignore, protocol/layers/.cvsignore,
-	protocol/packages/.cvsignore, protocol/packages/data/.cvsignore,
-	protocol/pstreams/.cvsignore, protocol/ptools/.cvsignore,
-	protocol/sockets/.cvsignorem protocol/sockets/TCPIPServerSocket.cpp, 
-	protocol/streams/.cvsignore: Trywialne poprawki cvsignore
+	* protocol/ptools/.cvsignore, protocol/sockets/.cvsignore, protocol/streams/.cvsignore, protocol/auth/.cvsignore, protocol/layers/.cvsignore, protocol/packages/.cvsignore, protocol/packages/data/.cvsignore, protocol/pstreams/.cvsignore:
+	New file.
 
 2008-05-09  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
 
@@ -72,61 +33,15 @@
 	ostatnie drobne poprawki, operator virtualize as dziala tez dla perspektyw niekorzeniowych
 	Oficjalna wersja (1.0) implementacji 'Aktualizowalnych perspektyw obiektowych w systemie LoXiM'
 
-2008-05-09  Marek Dopiera  <md219418@students.mimuw.edu.pl>
-	* LoximClient/LoximClient.cpp, LoximClient/LoximClient.h: poprawiona
-	obsluga konczenia polaczenia, poprawiony blad skutkujacy segfaultem 
-	po otrzymaniu komunikatu o bledzie
-
-	* LoximClient/ClientConsole.cpp: klient od teraz ignoruje komentarze,
-	bo parser nie umie ich parsowac
-
-	* AdminParser/admin.yy: #shutdown dziala teraz tez bez srednika
-
-2008-05-08  Marek Dopiera  <md219418@students.mimuw.edu.pl>
-	* QueryExecutor/SessionData.h, QueryExetuor/SessionData.cpp,
-	QueryExecutor/Makefile, LoximServer/Server.cpp,
-	QueryExecutor/ClassGraph.cpp, QueryExecutor/ClassGraph.h, 
-	QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryExecutor.h,
-	QueryExecutor/RemoteExecutor.cpp: usuniecie SessionData i
-	kosmetyczne poprawki z tym zwiazane (poniewaz zostala
-	zintegrowana z LoximSession)
-
-	* Server, SBQLCli, Makefile: usuniecie starego serwera i starego
-	klienta
-
-	* LoximServer/LoximSession.h, LoximServer/LoximSession.cpp: dodanie
-	obslugi keepalive-a, poprawione logowanie, dodana obsluga bledow,
-	dodanie odpowiednika klasy SessionData, dodane generowanie salt-a dla
-	sesji na rzecz przyszï¿½ego uwierzytelniania, poprawne konczenie
-	polaczenia, 
-	
-	* LoximServer/Makefile, LoximServer/KeepAlive.h,
-	LoximServer/KeepAlive.cpp: Dodana implementacja
-	keepalive-a
-
-	* LoximServer/LoximServer.h LoximServer/LoximServer.cpp: dodanie
-	czytania pliku konfiguracyjnego oraz poprawki formatowania
-
-	* LoximServer/Server.conf: dodanie nowych pol konfiguracyjnych
-
-	* LoximClient/Authenticator.h: API do pisania interfejsï¿½w do 
-	logowania dla klienta
-
-	* LoximClient/ConsoleAuthenticator.h,
-	LoximClient/ConsoleAuthenticator.cpp: powstal fragment tekstowego
-	interfejsu odpowiedzialny za uwierzytelnianie
-
-	* LoximClient/ClientConsole.h, LoximClient/ClientConsole.cpp: drobne
-	poprawki
-
-	* LoximClient/Lsbql.cpp: wylaczenie obslugi SIGINT
-
-	* protocol/layers/ProtocolLayer0.h: poprawki formatowania
-
 2008-05-08  Adam Michalik  <am209482@students.mimuw.edu.pl>
 
 	* JDBCDriver/src/main/java/edu/mimuw/loxim/jdbc/DatabaseURL.java, JDBCDriver/src/main/java/edu/mimuw/loxim/jdbc/LoXiMConnection.java, JDBCDriver/src/main/java/edu/mimuw/loxim/jdbc/LoXiMConnectionImpl.java, JDBCDriver/src/main/java/edu/mimuw/loxim/jdbc/LoXiMDatabaseMetaDataImpl.java, JDBCDriver/src/main/java/edu/mimuw/loxim/jdbc/LoXiMDriverImpl.java, JDBCDriver/src/main/java/edu/mimuw/loxim/jdbc/LoXiMResultSet.java, JDBCDriver/src/main/java/edu/mimuw/loxim/jdbc/LoXiMResultSetImpl.java:
 	More new stubs + Driver code
+
+2008-05-08  Marek Dopiera  <md219418@students.mimuw.edu.pl>
+
+	* LoximServer/KeepAlive.h, LoximClient/Authenticator.cpp, LoximClient/Authenticator.h, LoximClient/ConsoleAuthenticator.cpp, LoximClient/ConsoleAuthenticator.h, LoximServer/KeepAlive.cpp:
+	New file.
 
 2008-05-07  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
 
@@ -143,41 +58,14 @@
 	dodatkowe pomocnicze skladniki perspekty, mozliwosc tworzenia perspektyw ze stanem
 	Dzialania administracyjne na definicjach perpektyw, dodawanie, usuwanie i modyfikacji poszczegolnych skladnikow.
 
-2008-04-27  Marek Dopiera  <md219418@students.mimuw.edu.pl>
-	
-	* LoximSession/LoximSession.h, LoximSession/LoximSession.cpp
-	LoximServer/LoximServer.h, LoximServer/LoximServer.cpp: dodanie
-	faktycznego przesylania wyniku zapytan, zmiana domyslnych timeoutow,
-	wprowadzenie faktycznego logowania
-	
 2008-04-24  Adam Michalik  <am209482@students.mimuw.edu.pl>
 
 	* JDBCDriver/Makefile: Makefile (a make-to-maven2 port) added
 
-2008-04-23  Marek Dopiera  <md219418@students.mimuw.edu.pl>
+2008-04-21  Marek Dopiera  <md219418@students.mimuw.edu.pl>
 
-	* protocol/streams/DescriptorInputStream.cpp: poprawka czytania z
-	timeoutem ktore zamienialo sie w aktywne oczekiwanie
-
-2008-04-22  Marek Dopiera  <md219418@students.mimuw.edu.pl>
-
-	* LoximClient/StatementProvider.h: API do klienta
-
-	* QueryParser/Makefile, QueryParser/QueryLexer.h, QueryParser/QueryParser.cpp, QueryParser/QueryParser.h, QueryParser/parser.y, QueryParser/scanner.l:
-	Parser przestal byc globalny i stal sie obiektem.
-	
-	* AdminParser: powstal parser instrukcji administracyjnych
-	
-	* Errors/Errors.h, Errors/ErrorMsg.cpp: dodanie komunikatow
-	dotyczacych nowego protokolu
-	
-	* LoximClient: nowy klient
-	
-	* LoximServer: nowy serwer
-	
-	* protocol: protokol wykorzystywany w nowym serwerze
-	
-	* Server/Server.cpp: dodatkowy komunikat diagnostyczny
+	* protocol/streams/DescriptorOutputStream.h, protocol/streams/Makefile, protocol/streams/PriorityOutputStream.cpp, protocol/streams/PriorityOutputStream.h, protocol/ptools/StringBufferStack.cpp, protocol/ptools/StringBufferStack.h, protocol/sockets/AbstractSocket.cpp, protocol/sockets/AbstractSocket.h, protocol/sockets/Makefile, protocol/sockets/TCPIPClientSocket.cpp, protocol/sockets/TCPIPClientSocket.h, protocol/sockets/TCPIPServerSingleSocket.cpp, protocol/sockets/TCPIPServerSingleSocket.h, protocol/sockets/TCPIPServerSocket.cpp, protocol/sockets/TCPIPServerSocket.h, protocol/streams/AbstractInputStream.cpp, protocol/streams/AbstractInputStream.h, protocol/streams/AbstractOutputStream.cpp, protocol/streams/AbstractOutputStream.h, protocol/streams/DescriptorInputStream.cpp, protocol/streams/DescriptorInputStream.h, protocol/streams/DescriptorOutputStream.cpp, protocol/pstreams/Makefile, protocol/pstreams/PackageInputStream.cpp, protocol/pstreams/PackageInputStream.h, protocol/pstreams/PackageOutputStream.cpp, protocol/pstreams/PackageOutputStream.h, protocol/ptools/CharArray.cpp, protocol/ptools/CharArray.h, protocol/ptools/Endianness.cpp, protocol/ptools/Endianness.h, protocol/ptools/Makefile, protocol/ptools/Package.cpp, protocol/ptools/Package.h, protocol/ptools/PackageBufferReader.cpp, protocol/ptools/PackageBufferReader.h, protocol/ptools/PackageBufferWriter.cpp, protocol/ptools/PackageBufferWriter.h, protocol/ptools/PackageHeader.cpp, protocol/ptools/PackageHeader.h, protocol/packages/data/Sint8Data.cpp, protocol/packages/data/Sint8Data.h, protocol/packages/data/StructData.cpp, protocol/packages/data/StructData.h, protocol/packages/data/TimeData.cpp, protocol/packages/data/TimeData.h, protocol/packages/data/TimeTZData.cpp, protocol/packages/data/TimeTZData.h, protocol/packages/data/Uint16Data.cpp, protocol/packages/data/Uint16Data.h, protocol/packages/data/Uint32Data.cpp, protocol/packages/data/Uint32Data.h, protocol/packages/data/Uint64Data.cpp, protocol/packages/data/Uint64Data.h, protocol/packages/data/Uint8Data.cpp, protocol/packages/data/Uint8Data.h, protocol/packages/data/VOIDData.cpp, protocol/packages/data/VOIDData.h, protocol/packages/data/VarcharData.cpp, protocol/packages/data/VarcharData.h, protocol/packages/data/gen.sh, protocol/packages/data/uppercase.sh, protocol/packages/data/DoubleData.h, protocol/packages/data/ExtReferenceData.cpp, protocol/packages/data/ExtReferenceData.h, protocol/packages/data/LinkData.cpp, protocol/packages/data/LinkData.h, protocol/packages/data/Makefile, protocol/packages/data/ReferenceData.cpp, protocol/packages/data/ReferenceData.h, protocol/packages/data/SequenceData.cpp, protocol/packages/data/SequenceData.h, protocol/packages/data/Sint16Data.cpp, protocol/packages/data/Sint16Data.h, protocol/packages/data/Sint32Data.cpp, protocol/packages/data/Sint32Data.h, protocol/packages/data/Sint64Data.cpp, protocol/packages/data/Sint64Data.h, protocol/packages/data/BOBData.h, protocol/packages/data/BagData.cpp, protocol/packages/data/BagData.h, protocol/packages/data/BindingData.cpp, protocol/packages/data/BindingData.h, protocol/packages/data/BoolData.cpp, protocol/packages/data/BoolData.h, protocol/packages/data/CollectionData.cpp, protocol/packages/data/CollectionData.h, protocol/packages/data/DataFactory.cpp, protocol/packages/data/DataFactory.h, protocol/packages/data/DataPart.h, protocol/packages/data/DateData.cpp, protocol/packages/data/DateData.h, protocol/packages/data/DatePart.cpp, protocol/packages/data/DateTimeData.cpp, protocol/packages/data/DateTimeData.h, protocol/packages/data/DateTimeTZData.cpp, protocol/packages/data/DateTimeTZData.h, protocol/packages/data/DoubleData.cpp, protocol/packages/VSCFinishedPackage.cpp, protocol/packages/VSCFinishedPackage.h, protocol/packages/VSCSendValuePackage.cpp, protocol/packages/VSCSendValuePackage.h, protocol/packages/VSCSendValuesPackage.cpp, protocol/packages/VSCSendValuesPackage.h, protocol/packages/WCHelloPackage.cpp, protocol/packages/WCHelloPackage.h, protocol/packages/WCLoginPackage.cpp, protocol/packages/WCLoginPackage.h, protocol/packages/WCModePackage.cpp, protocol/packages/WCModePackage.h, protocol/packages/WCPasswordPackage.cpp, protocol/packages/WCPasswordPackage.h, protocol/packages/WSAuthorizedPackage.cpp, protocol/packages/WSAuthorizedPackage.h, protocol/packages/WSHelloPackage.cpp, protocol/packages/WSHelloPackage.h, protocol/packages/data/BOBData.cpp, protocol/packages/gen.sh, protocol/packages/uppercase.sh, protocol/packages/ASCPingPackage.cpp, protocol/packages/ASCPingPackage.h, protocol/packages/ASCPongPackage.cpp, protocol/packages/ASCPongPackage.h, protocol/packages/ASCSetOptPackage.cpp, protocol/packages/ASCSetOptPackage.h, protocol/packages/Makefile, protocol/packages/PackagesFactory.cpp, protocol/packages/PackagesFactory.h, protocol/packages/QCExecutePackage.cpp, protocol/packages/QCExecutePackage.h, protocol/packages/QCStatementPackage.cpp, protocol/packages/QCStatementPackage.h, protocol/packages/QSExecutingPackage.cpp, protocol/packages/QSExecutingPackage.h, protocol/packages/QSExecutionFinishedPackage.cpp, protocol/packages/QSExecutionFinishedPackage.h, protocol/packages/QSStmtParsedPackage.cpp, protocol/packages/QSStmtParsedPackage.h, protocol/packages/VSCAbortPackage.cpp, protocol/packages/VSCAbortPackage.h, QueryParser/QueryLexer.h, protocol/Makefile, protocol/auth/AuthPassMySQL.cpp, protocol/auth/AuthPassMySQL.h, protocol/auth/AuthTrust.cpp, protocol/auth/AuthTrust.h, protocol/auth/DataFactory.h, protocol/auth/Makefile, protocol/auth/auth.h, protocol/auth/sha1.cpp, protocol/auth/sha1.h, protocol/constants.h, protocol/layers/Makefile, protocol/layers/ProtocolLayer0.cpp, protocol/layers/ProtocolLayer0.h, protocol/packages/ASCByePackage.cpp, protocol/packages/ASCByePackage.h, protocol/packages/ASCErrorPackage.cpp, protocol/packages/ASCErrorPackage.h, protocol/packages/ASCOkPackage.cpp, protocol/packages/ASCOkPackage.h, LoximClient/ReadlineReader.cpp, LoximClient/ReadlineReader.h, LoximClient/StatementProvider.cpp, LoximClient/StatementProvider.h, LoximClient/StatementSimpleParser.cpp, LoximClient/StatementSimpleParser.h, LoximServer/.cvsignore, LoximServer/Clipboard.cpp, LoximServer/Clipboard.h, LoximServer/LoximServer.cpp, LoximServer/LoximServer.h, LoximServer/LoximSession.cpp, LoximServer/LoximSession.h, LoximServer/Makefile, LoximServer/Server.conf, LoximServer/Server.cpp, AdminParser/.cvsignore, AdminParser/AdminExecutableTreeNode.cpp, AdminParser/AdminExecutableTreeNode.h, AdminParser/AdminExecutor.cpp, AdminParser/AdminExecutor.h, AdminParser/AdminLexer.h, AdminParser/AdminTreeNode.cpp, AdminParser/AdminTreeNode.h, AdminParser/Makefile, AdminParser/ShutdownTreeNode.cpp, AdminParser/ShutdownTreeNode.h, AdminParser/admin.ll, AdminParser/admin.yy, LoximClient/.cvsignore, LoximClient/ClientConsole.cpp, LoximClient/ClientConsole.h, LoximClient/LoximClient.cpp, LoximClient/LoximClient.h, LoximClient/Lsbql.cpp, LoximClient/Makefile:
+	New file.
 
 2008-04-20  Adam Michalik  <am209482@students.mimuw.edu.pl>
 
@@ -323,7 +211,7 @@
 
 2008-02-28  Maksymilian Humpich  <mh209206@students.mimuw.edu.pl>
 
-	* SBQLCli/SBQLCli.cpp, Store/DBLogicalID.cpp, Store/DBLogicalID.h, Store/Store.h, TypeCheck/DecisionTable.cpp, TypeCheck/DecisionTable.h, TypeCheck/RestoreAlgorithm.cpp, TypeCheck/Rule.cpp, TypeCheck/TC_test_queries.txt, TypeCheck/TypeCheckResult.cpp, TypeCheck/TypeCheckResult.h, TypeCheck/TypeChecker.cpp, TypeCheck/TypeChecker.h, QueryParser/Stack.cpp, QueryParser/Stack.h, QueryParser/TreeNode.cpp, QueryParser/TreeNode.h, Errors/ErrorMsg.cpp, Errors/Errors.h, QueryExecutor/EnvironmentStack.cpp, QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryExecutor.h, QueryParser/DataRead.cpp, QueryParser/DataRead.h:
+	* SBQLCli/Attic/SBQLCli.cpp, Store/DBLogicalID.cpp, Store/DBLogicalID.h, Store/Store.h, TypeCheck/DecisionTable.cpp, TypeCheck/DecisionTable.h, TypeCheck/RestoreAlgorithm.cpp, TypeCheck/Rule.cpp, TypeCheck/TC_test_queries.txt, TypeCheck/TypeCheckResult.cpp, TypeCheck/TypeCheckResult.h, TypeCheck/TypeChecker.cpp, TypeCheck/TypeChecker.h, QueryParser/Stack.cpp, QueryParser/Stack.h, QueryParser/TreeNode.cpp, QueryParser/TreeNode.h, Errors/ErrorMsg.cpp, Errors/Errors.h, QueryExecutor/EnvironmentStack.cpp, QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryExecutor.h, QueryParser/DataRead.cpp, QueryParser/DataRead.h:
 	- TypeCheck for remaining operators (create, insert, assign, delete) added
 	- ref Types properly compared (safe recursive check done)
 
@@ -357,7 +245,7 @@
 
 	* QueryParser/QueryParser.h: - define string ended with "
 
-	* Errors/ErrorMsg.cpp, QueryExecutor/QueryExecutor.cpp, QueryParser/DataRead.cpp, QueryParser/DataRead.h, QueryParser/Stack.cpp, QueryParser/Stack.h, QueryParser/TreeNode.cpp, QueryParser/TreeNode.h, QueryParser/parser.y, SBQLCli/TestMdn.txt, Server/Server.conf, TypeCheck/ClassNames.h, TypeCheck/DMLControl.h, TypeCheck/DecisionTable.cpp, TypeCheck/DecisionTable.h, TypeCheck/Makefile, TypeCheck/RestoreAlgorithm.cpp, TypeCheck/RestoreAlgorithm.h, TypeCheck/Rule.cpp, TypeCheck/Rule.h, TypeCheck/TCConstants.h, TypeCheck/TC_test_queries.txt, TypeCheck/TypeCheckResult.cpp, TypeCheck/TypeChecker.cpp, TypeCheck/TypeChecker.h:
+	* Errors/ErrorMsg.cpp, QueryExecutor/QueryExecutor.cpp, QueryParser/DataRead.cpp, QueryParser/DataRead.h, QueryParser/Stack.cpp, QueryParser/Stack.h, QueryParser/TreeNode.cpp, QueryParser/TreeNode.h, QueryParser/parser.y, SBQLCli/Attic/TestMdn.txt, Server/Attic/Server.conf, TypeCheck/ClassNames.h, TypeCheck/DMLControl.h, TypeCheck/DecisionTable.cpp, TypeCheck/DecisionTable.h, TypeCheck/Makefile, TypeCheck/RestoreAlgorithm.cpp, TypeCheck/RestoreAlgorithm.h, TypeCheck/Rule.cpp, TypeCheck/Rule.h, TypeCheck/TCConstants.h, TypeCheck/TC_test_queries.txt, TypeCheck/TypeCheckResult.cpp, TypeCheck/TypeChecker.cpp, TypeCheck/TypeChecker.h:
 	- TypeCheck upgrade, some bugs corrected, restore process(on bad args) done, dec. tables filled in.
 	- some test files added
 
@@ -372,7 +260,7 @@
 
 2008-02-14  Maksymilian Humpich  <mh209206@students.mimuw.edu.pl>
 
-	* QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryExecutor.h, QueryParser/ClassNames.h, QueryParser/Stack.h, QueryParser/TreeNode.cpp, QueryParser/TreeNode.h, Server/Server.conf, TypeCheck/DMLControl.cpp, TypeCheck/DecisionTable.cpp, TypeCheck/DecisionTable.h, TypeCheck/Rule.cpp, TypeCheck/Rule.h, TypeCheck/TypeCheckResult.cpp, TypeCheck/TypeCheckResult.h, TypeCheck/TypeChecker.cpp, TypeCheck/TypeChecker.h:
+	* QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryExecutor.h, QueryParser/ClassNames.h, QueryParser/Stack.h, QueryParser/TreeNode.cpp, QueryParser/TreeNode.h, Server/Attic/Server.conf, TypeCheck/DMLControl.cpp, TypeCheck/DecisionTable.cpp, TypeCheck/DecisionTable.h, TypeCheck/Rule.cpp, TypeCheck/Rule.h, TypeCheck/TypeCheckResult.cpp, TypeCheck/TypeCheckResult.h, TypeCheck/TypeChecker.cpp, TypeCheck/TypeChecker.h:
 	- TypeCheck upgrade, coerces introduced, augmentDeref corrected, collection handling improved, some errors removed
 
 2008-02-13  Piotr Turski  <pt209301@students.mimuw.edu.pl>
@@ -395,12 +283,12 @@
 	* Indexes/Attic/create_test.txt, Indexes/howto.txt:
 	informacja jak uzywac indeksow
 
-	* Config/SBQLConfig.cpp, Config/SBQLConfig.h, Errors/ErrorMsg.cpp, Errors/Errors.h, Indexes/OptimizedField.h, Indexes/Tests/.cvsignore, Indexes/Tests/BTreeTest.cpp, Indexes/Tests/CleanTest.cpp, Indexes/Tests/ComparatorTest.cpp, Indexes/Tests/ConnectionThread.cpp, Indexes/Tests/ConnectionThread.h, Indexes/Tests/DropNodes.cpp, Indexes/Tests/ImplicitCalling.cpp, Indexes/Tests/IntegrationTest.cpp, Indexes/Tests/Makefile, Indexes/Tests/NodeBuffer.cpp, Indexes/Tests/ParentName.cpp, Indexes/Tests/ScopeSelection.cpp, Indexes/Tests/StateSaving.cpp, Indexes/Tests/Suits.h, Indexes/Tests/Syntax.cpp, Indexes/Tests/Tester.cpp, Indexes/Tests/Tester.h, Indexes/Tests/testRun.cpp, Lock/Lock.cpp, Lock/Lock.h, Log/LogRecord.cpp, Log/Logs.cpp, QueryExecutor/ClassGraph.cpp, QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryExecutor.h, QueryExecutor/QueryResult.h, QueryParser/DataRead.h, QueryParser/IndexNode.h, QueryParser/QueryParser.cpp, QueryParser/Stack.h, QueryParser/TreeNode.cpp, QueryParser/TreeNode.h, QueryParser/parser.y, QueryParser/scanner.l, Server/Listener.cpp, Server/Makefile, Server/Server.conf, Store/DBLogicalID.cpp, Store/DBLogicalID.h, Store/DBObjectPointer.cpp, Store/DBObjectPointer.h, Store/DBPhysicalID.h, Store/DBStoreManager.cpp, Store/NamedItems.cpp, Store/NamedItems.h, Store/Store.h, Store/SystemViews.cpp, TCPProto/Package.h, TransactionManager/Mutex.cpp, TransactionManager/Mutex.h, TransactionManager/RWUJSemaphore.cpp, TransactionManager/RWUJSemaphore.h, TransactionManager/Transaction.cpp, TransactionManager/Transaction.h, TypeCheck/DMLControl.cpp, Indexes/Attic/create_test.txt, Indexes/BTree.cpp, Indexes/BTree.h, Indexes/CachedNode.cpp, Indexes/CachedNode.h, Indexes/Cleaner.cpp, Indexes/Cleaner.h, Indexes/Comparator.cpp, Indexes/Comparator.h, Indexes/Constraints.cpp, Indexes/Constraints.h, Indexes/EntrySieve.cpp, Indexes/EntrySieve.h, Indexes/IndexHandler.cpp, Indexes/IndexHandler.h, Indexes/IndexManager.cpp, Indexes/IndexManager.h, Indexes/LeafTraveller.cpp, Indexes/LeafTraveller.h, Indexes/Makefile, Indexes/Metadata.cpp, Indexes/Monitor.cpp, Indexes/Monitor.h, Indexes/Node.cpp, Indexes/Node.h, Indexes/NonloggedDataSerializer.cpp, Indexes/NonloggedDataSerializer.h, Indexes/OptimizedField.cpp, Indexes/QueryOptimizer.cpp, Indexes/QueryOptimizer.h, Indexes/RootEntry.cpp, Indexes/RootEntry.h, Indexes/ToStringBuilder.cpp, Indexes/ToStringBuilder.h, Indexes/TransactionImpact.cpp, Indexes/TransactionImpact.h, Indexes/VisibilityResolver.cpp, Indexes/VisibilityResolver.h, Indexes/const.cpp, Indexes/const.h:
+	* Config/SBQLConfig.cpp, Config/SBQLConfig.h, Errors/ErrorMsg.cpp, Errors/Errors.h, Indexes/OptimizedField.h, Indexes/Tests/.cvsignore, Indexes/Tests/BTreeTest.cpp, Indexes/Tests/CleanTest.cpp, Indexes/Tests/ComparatorTest.cpp, Indexes/Tests/ConnectionThread.cpp, Indexes/Tests/ConnectionThread.h, Indexes/Tests/DropNodes.cpp, Indexes/Tests/ImplicitCalling.cpp, Indexes/Tests/IntegrationTest.cpp, Indexes/Tests/Makefile, Indexes/Tests/NodeBuffer.cpp, Indexes/Tests/ParentName.cpp, Indexes/Tests/ScopeSelection.cpp, Indexes/Tests/StateSaving.cpp, Indexes/Tests/Suits.h, Indexes/Tests/Syntax.cpp, Indexes/Tests/Tester.cpp, Indexes/Tests/Tester.h, Indexes/Tests/testRun.cpp, Lock/Lock.cpp, Lock/Lock.h, Log/LogRecord.cpp, Log/Logs.cpp, QueryExecutor/ClassGraph.cpp, QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryExecutor.h, QueryExecutor/QueryResult.h, QueryParser/DataRead.h, QueryParser/IndexNode.h, QueryParser/QueryParser.cpp, QueryParser/Stack.h, QueryParser/TreeNode.cpp, QueryParser/TreeNode.h, QueryParser/parser.y, QueryParser/scanner.l, Server/Attic/Listener.cpp, Server/Attic/Makefile, Server/Attic/Server.conf, Store/DBLogicalID.cpp, Store/DBLogicalID.h, Store/DBObjectPointer.cpp, Store/DBObjectPointer.h, Store/DBPhysicalID.h, Store/DBStoreManager.cpp, Store/NamedItems.cpp, Store/NamedItems.h, Store/Store.h, Store/SystemViews.cpp, TCPProto/Package.h, TransactionManager/Mutex.cpp, TransactionManager/Mutex.h, TransactionManager/RWUJSemaphore.cpp, TransactionManager/RWUJSemaphore.h, TransactionManager/Transaction.cpp, TransactionManager/Transaction.h, TypeCheck/DMLControl.cpp, Indexes/Attic/create_test.txt, Indexes/BTree.cpp, Indexes/BTree.h, Indexes/CachedNode.cpp, Indexes/CachedNode.h, Indexes/Cleaner.cpp, Indexes/Cleaner.h, Indexes/Comparator.cpp, Indexes/Comparator.h, Indexes/Constraints.cpp, Indexes/Constraints.h, Indexes/EntrySieve.cpp, Indexes/EntrySieve.h, Indexes/IndexHandler.cpp, Indexes/IndexHandler.h, Indexes/IndexManager.cpp, Indexes/IndexManager.h, Indexes/LeafTraveller.cpp, Indexes/LeafTraveller.h, Indexes/Makefile, Indexes/Metadata.cpp, Indexes/Monitor.cpp, Indexes/Monitor.h, Indexes/Node.cpp, Indexes/Node.h, Indexes/NonloggedDataSerializer.cpp, Indexes/NonloggedDataSerializer.h, Indexes/OptimizedField.cpp, Indexes/QueryOptimizer.cpp, Indexes/QueryOptimizer.h, Indexes/RootEntry.cpp, Indexes/RootEntry.h, Indexes/ToStringBuilder.cpp, Indexes/ToStringBuilder.h, Indexes/TransactionImpact.cpp, Indexes/TransactionImpact.h, Indexes/VisibilityResolver.cpp, Indexes/VisibilityResolver.h, Indexes/const.cpp, Indexes/const.h:
 	scalanie indeksow do glownej galezi projektu
 
 2008-02-11  Maksymilian Humpich  <mh209206@students.mimuw.edu.pl>
 
-	* QueryExecutor/QueryExecutor.cpp, QueryParser/QueryParser.cpp, QueryParser/QueryParser.h, QueryParser/Stack.cpp, QueryParser/Stack.h, QueryParser/TreeNode.cpp, QueryParser/TreeNode.h, QueryParser/parser.y, QueryParser/scanner.l, Server/Server.conf, TypeCheck/DecisionTable.cpp, TypeCheck/Rule.cpp, TypeCheck/TypeCheckResult.cpp, TypeCheck/TypeChecker.cpp, TypeCheck/TypeChecker.h:
+	* QueryExecutor/QueryExecutor.cpp, QueryParser/QueryParser.cpp, QueryParser/QueryParser.h, QueryParser/Stack.cpp, QueryParser/Stack.h, QueryParser/TreeNode.cpp, QueryParser/TreeNode.h, QueryParser/parser.y, QueryParser/scanner.l, Server/Attic/Server.conf, TypeCheck/DecisionTable.cpp, TypeCheck/Rule.cpp, TypeCheck/TypeCheckResult.cpp, TypeCheck/TypeChecker.cpp, TypeCheck/TypeChecker.h:
 	- upgraded TypeChecking
 	- slight changes to Signatures (Stack.h)
 	- some errors in TypeCheck corrected
@@ -416,7 +304,7 @@
 	* TypeCheck/Attic/TypeCheckResult.h~, TypeCheck/Attic/TypeChecker.cpp~, TypeCheck/Attic/TypeChecker.h~, TypeCheck/TypeCheckResult.h, TypeCheck/TypeChecker.cpp, TypeCheck/TypeChecker.h, TypeCheck/Attic/ClassNames.h~, TypeCheck/Attic/DMLControl.cpp~, TypeCheck/Attic/DMLControl.h~, TypeCheck/Attic/DecisionTable.cpp~, TypeCheck/Attic/DecisionTable.h~, TypeCheck/Attic/IndexHandler.h, TypeCheck/Attic/IndexManager.cpp, TypeCheck/Attic/IndexManager.h, TypeCheck/Attic/MDLControl.h~, TypeCheck/Attic/Makefile~, TypeCheck/Attic/Rule.cpp~, TypeCheck/Attic/Rule.h~, TypeCheck/Attic/TypeCheckResult.cpp~, TypeCheck/ClassNames.h, TypeCheck/DMLControl.cpp, TypeCheck/DMLControl.h, TypeCheck/DecisionTable.cpp, TypeCheck/DecisionTable.h, TypeCheck/Makefile, TypeCheck/Metadata.cpp, TypeCheck/Rule.cpp, TypeCheck/Rule.h, TypeCheck/TypeCheckResult.cpp:
 	- Added missing TypeCheck directory
 
-	* Errors/ErrorConsole.cpp, Errors/ErrorMsg.cpp, Errors/Errors.h, Makefile, QueryExecutor/EnvironmentStack.cpp, QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryExecutor.h, QueryExecutor/QueryResult.h, QueryParser/ClassNames.h, QueryParser/DataRead.cpp, QueryParser/DataRead.h, QueryParser/QueryParser.cpp, QueryParser/QueryParser.h, QueryParser/Stack.cpp, QueryParser/Stack.h, QueryParser/TreeNode.cpp, QueryParser/TreeNode.h, QueryParser/parser.y, QueryParser/scanner.l, SBQLCli/Makefile, Server/Makefile, Server/Server.conf, Server/Server.cpp, TransactionManager/Transaction.cpp, TransactionManager/Transaction.h:
+	* Errors/ErrorConsole.cpp, Errors/ErrorMsg.cpp, Errors/Errors.h, Makefile, QueryExecutor/EnvironmentStack.cpp, QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryExecutor.h, QueryExecutor/QueryResult.h, QueryParser/ClassNames.h, QueryParser/DataRead.cpp, QueryParser/DataRead.h, QueryParser/QueryParser.cpp, QueryParser/QueryParser.h, QueryParser/Stack.cpp, QueryParser/Stack.h, QueryParser/TreeNode.cpp, QueryParser/TreeNode.h, QueryParser/parser.y, QueryParser/scanner.l, SBQLCli/Attic/Makefile, Server/Attic/Makefile, Server/Attic/Server.conf, Server/Attic/Server.cpp, TransactionManager/Transaction.cpp, TransactionManager/Transaction.h:
 	- Type checking module added (yet to be finished)
 	- minor corrections in QueryParser (Stack.h, TreeNode.h)
 
@@ -517,7 +405,7 @@
 
 	* Store/SystemViews.cpp, Store/SystemViews.h: Widoki Systemowe
 
-	* Store/Makefile, Store/Store.h, TransactionManager/Transaction.cpp, TransactionManager/Transaction.h, Navigator/src/loxim/driver/SimpleQueryPackage.java, QueryExecutor/EnvironmentStack.cpp, QueryParser/TreeNode.cpp, QueryParser/TreeNode.h, QueryParser/parser.y, QueryParser/scanner.l, Server/Server.cpp, Store/DBDataValue.cpp, Store/DBStoreManager.cpp, Store/DBStoreManager.h:
+	* Store/Makefile, Store/Store.h, TransactionManager/Transaction.cpp, TransactionManager/Transaction.h, Navigator/src/loxim/driver/SimpleQueryPackage.java, QueryExecutor/EnvironmentStack.cpp, QueryParser/TreeNode.cpp, QueryParser/TreeNode.h, QueryParser/parser.y, QueryParser/scanner.l, Server/Attic/Server.cpp, Store/DBDataValue.cpp, Store/DBStoreManager.cpp, Store/DBStoreManager.h:
 	Widoki systemowe.
 
 2007-09-09  Sebastian Kaczanowski  <sk153407@students.mimuw.edu.pl>
@@ -545,7 +433,7 @@
 
 2007-09-05  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* QueryExecutor/QueryExecutor.cpp, QueryParser/TreeNode.cpp, QueryParser/TreeNode.h, Server/Server.conf, Store/Buffer.cpp, Store/DBStoreManager.cpp, Store/File.cpp, Store/File.h, Store/NamedItems.cpp, Store/NamedItems.h, TransactionManager/Transaction.cpp, TransactionManager/Transaction.h:
+	* QueryExecutor/QueryExecutor.cpp, QueryParser/TreeNode.cpp, QueryParser/TreeNode.h, Server/Attic/Server.conf, Store/Buffer.cpp, Store/DBStoreManager.cpp, Store/File.cpp, Store/File.h, Store/NamedItems.cpp, Store/NamedItems.h, TransactionManager/Transaction.cpp, TransactionManager/Transaction.h:
 	Interfejsy cz. 3
 
 2007-09-05  Piotr Turski  <pt209301@students.mimuw.edu.pl>
@@ -648,11 +536,11 @@
 	* QueryExecutor/ClassGraph.cpp, QueryExecutor/ClassGraph.h, QueryExecutor/EnvironmentStack.cpp, QueryExecutor/EnvironmentStack.h, QueryExecutor/Makefile, QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryExecutor.h, QueryExecutor/QueryResult.h:
 	Dodanie wywolywania metod w klasach wraz z obsluga self. Uwaga metody chwilowo nie widza rootow.
 
-	* Server/Server.conf: Przywrocenie normalnych nazw sciezek.
+	* Server/Attic/Server.conf: Przywrocenie normalnych nazw sciezek.
 
 2007-07-30  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* QueryExecutor/QueryExecutor.cpp, QueryParser/TreeNode.cpp, QueryParser/TreeNode.h, QueryParser/parser.y, Server/Server.conf, Store/Store.h, TransactionManager/Transaction.h:
+	* QueryExecutor/QueryExecutor.cpp, QueryParser/TreeNode.cpp, QueryParser/TreeNode.h, QueryParser/parser.y, Server/Attic/Server.conf, Store/Store.h, TransactionManager/Transaction.h:
 	Interfejsy cz 1.
 
 2007-07-27  Tomasz Rosiek  <tr201089@students.mimuw.edu.pl>
@@ -662,7 +550,7 @@
 
 2007-07-26  Sebastian Kaczanowski  <sk153407@students.mimuw.edu.pl>
 
-	* QueryExecutor/ClassGraph.cpp, QueryExecutor/ClassGraph.h, QueryExecutor/EnvironmentStack.cpp, QueryExecutor/EnvironmentStack.h, QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryExecutor.h, Server/Listener.cpp, Server/Server.cpp, Testy/skladnia_klas.sbql:
+	* QueryExecutor/ClassGraph.cpp, QueryExecutor/ClassGraph.h, QueryExecutor/EnvironmentStack.cpp, QueryExecutor/EnvironmentStack.h, QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryExecutor.h, Server/Attic/Listener.cpp, Server/Attic/Server.cpp, Testy/skladnia_klas.sbql:
 	Dodanie podmieniania na poziomie kolekcji (nie tylko dla rootow, poki co wydaje sie byc nie wpelni sprawne)
 
 2007-07-24  Sebastian Kaczanowski  <sk153407@students.mimuw.edu.pl>
@@ -713,7 +601,7 @@
 
 2007-07-12  Sebastian Kaczanowski  <sk153407@students.mimuw.edu.pl>
 
-	* Errors/Errors.h, QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryExecutor.h, QueryParser/TreeNode.cpp, QueryParser/TreeNode.h, QueryParser/parser.y, Server/Server.conf, Store/Buffer.cpp, Store/DBStoreManager.cpp, Store/DBStoreManager.h, Store/File.cpp, Store/File.h, Store/Makefile, Store/NamedItems.cpp, Store/NamedItems.h, Store/Store.h, Store/Struct.h, Testy/skladnia_klas.sbql, TransactionManager/Transaction.cpp, TransactionManager/Transaction.h:
+	* Errors/Errors.h, QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryExecutor.h, QueryParser/TreeNode.cpp, QueryParser/TreeNode.h, QueryParser/parser.y, Server/Attic/Server.conf, Store/Buffer.cpp, Store/DBStoreManager.cpp, Store/DBStoreManager.h, Store/File.cpp, Store/File.h, Store/Makefile, Store/NamedItems.cpp, Store/NamedItems.h, Store/Store.h, Store/Struct.h, Testy/skladnia_klas.sbql, TransactionManager/Transaction.cpp, TransactionManager/Transaction.h:
 	Implementacja dodawanie klas.
 
 2007-07-07  Tomasz Rosiek  <tr201089@students.mimuw.edu.pl>
@@ -725,7 +613,7 @@
 
 2007-07-05  Krzysztof Stencel  <stencel@students.mimuw.edu.pl>
 
-	* SBQLCli/SBQLCli.cpp: Changed the doxygen main page description.
+	* SBQLCli/Attic/SBQLCli.cpp: Changed the doxygen main page description.
 
 2007-07-05  Tomasz Rosiek  <tr201089@students.mimuw.edu.pl>
 
@@ -742,7 +630,7 @@
 
 2007-07-04  Piotr Turski  <pt209301@students.mimuw.edu.pl>
 
-	* Server/Server.conf: poprawka konfiguracji indexow
+	* Server/Attic/Server.conf: poprawka konfiguracji indexow
 
 2007-06-25  Tomasz Rosiek  <tr201089@students.mimuw.edu.pl>
 
@@ -819,10 +707,10 @@
 
 2007-05-19  Piotr Turski  <pt209301@students.mimuw.edu.pl>
 
-	* Indexes/IndexManager.cpp, Indexes/IndexManager.h, Server/Listener.cpp:
+	* Indexes/IndexManager.cpp, Indexes/IndexManager.h, Server/Attic/Listener.cpp:
 	wczytywanie i dodawanie nowych indeksow do listy
 
-	* Server/Server.conf: konfiguracja indeksow
+	* Server/Attic/Server.conf: konfiguracja indeksow
 
 	* Log/Logs.cpp, Log/Logs.h:
 	logi mowia czy ostatnio serwer zostal czysto zamkniety
@@ -935,7 +823,7 @@
 
 2007-04-18  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
 
-	* Errors/ErrorMsg.cpp, Errors/Errors.h, QueryExecutor/EnvironmentStack.cpp, QueryExecutor/EnvironmentStack.h, QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryExecutor.h, QueryExecutor/QueryResult.cpp, QueryExecutor/QueryResult.h, QueryParser/TreeNode.cpp, QueryParser/TreeNode.h, QueryParser/parser.y, QueryParser/scanner.l, Server/Server.conf:
+	* Errors/ErrorMsg.cpp, Errors/Errors.h, QueryExecutor/EnvironmentStack.cpp, QueryExecutor/EnvironmentStack.h, QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryExecutor.h, QueryExecutor/QueryResult.cpp, QueryExecutor/QueryResult.h, QueryParser/TreeNode.cpp, QueryParser/TreeNode.h, QueryParser/parser.y, QueryParser/scanner.l, Server/Attic/Server.conf:
 	Aktualizowalne perspektywy obiektowe.
 	wersja 0.99
 	dziala obsluga zdarzen on_retrieve, on_delete i on_update
@@ -959,9 +847,9 @@
 
 2007-04-01  Piotr Turski  <pt209301@students.mimuw.edu.pl>
 
-	* Server/Server.conf: wycofanie zbednych zmian
+	* Server/Attic/Server.conf: wycofanie zbednych zmian
 
-	* Makefile, QueryExecutor/QueryExecutor.cpp, QueryParser/IndexNode.h, QueryParser/Makefile, QueryParser/TreeNode.h, QueryParser/parser.y, QueryParser/scanner.l, SBQLCli/Makefile, Server/Listener.cpp, Server/Makefile, Server/Server.conf:
+	* Makefile, QueryExecutor/QueryExecutor.cpp, QueryParser/IndexNode.h, QueryParser/Makefile, QueryParser/TreeNode.h, QueryParser/parser.y, QueryParser/scanner.l, SBQLCli/Attic/Makefile, Server/Attic/Listener.cpp, Server/Attic/Makefile, Server/Attic/Server.conf:
 	tworzenie indeksow, skladnia, wezly drzewa
 
 	* Indexes/IndexManager.cpp, Indexes/IndexManager.h, Indexes/Makefile:
@@ -988,7 +876,7 @@
 	Poprawka w Makefile'u parsera - make clean spowoduje usuniecie plikow
 	wygenerowanych przez lexa i yacca
 
-	* .cvsignore, Server/.cvsignore: Dodane kilka plikï¿½w do .cvsignore
+	* .cvsignore, Server/.cvsignore: Dodane kilka plików do .cvsignore
 
 2007-01-23  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
 
@@ -1136,10 +1024,10 @@
 
 2006-11-23  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
 
-	* Server/Server.conf:
+	* Server/Attic/Server.conf:
 	przywracam standardowa, przypadkowo skasowana wersje pliku Server.conf
 
-	* QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryExecutor.h, Server/Server.conf, TransactionManager/Transaction.h:
+	* QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryExecutor.h, Server/Attic/Server.conf, TransactionManager/Transaction.h:
 	Executor potrafi odroznic blad spowodowany przez deadlock i ponowne zapytanie <begin>
 	realizuje poprzez metode createTransaction(Transaction, int),
 	gdzie int jest zapamietanym id transakcji zabitej poprzednio.
@@ -1152,7 +1040,7 @@
 
 2006-11-14  Dominik Klimczak  <dk189404@students.mimuw.edu.pl>
 
-	* Lock/Comparator.cpp, Lock/Comparator.h, Lock/Lock.cpp, Lock/Lock.h, Lock/SingleLock.cpp, Lock/SingleLock.h, Makefile, Server/Server.conf, TransactionManager/Transaction.cpp, TransactionManager/Transaction.h:
+	* Lock/Comparator.cpp, Lock/Comparator.h, Lock/Lock.cpp, Lock/Lock.h, Lock/SingleLock.cpp, Lock/SingleLock.h, Makefile, Server/Attic/Server.conf, TransactionManager/Transaction.cpp, TransactionManager/Transaction.h:
 	Deadlock prevention now uses priorities instead of id's
 	Prepare to change to locks with timeouts
 	Makefile now can produce binaries: make bin
@@ -1203,7 +1091,7 @@
 
 2006-10-09  Bartlomiej Budzynski  <bb174782@students.mimuw.edu.pl>
 
-	* SBQLCli/SBQLCli.cpp:
+	* SBQLCli/Attic/SBQLCli.cpp:
 	Skomentowana wersja zrodel klienta zgodna z Doxygenem.
 
 	* Makefile:
@@ -1213,7 +1101,7 @@
 
 2006-10-03  Bartlomiej Budzynski  <bb174782@students.mimuw.edu.pl>
 
-	* SBQLCli/SBQLCli.cpp:
+	* SBQLCli/Attic/SBQLCli.cpp:
 	Klient powodowal blad naruszenia ochrony pamieci (segmentation fault) przy probie
 	wczytania pliku komenda @, a takze przy probie polaczenia z nieistniejacym serwerem.
 
@@ -1256,13 +1144,13 @@
 
 2006-09-18  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Listener.cpp, Server/Listener.h, Server/ListenerTcp.cpp, Server/Server.cpp, Server/Server.h:
+	* Server/Attic/Listener.cpp, Server/Attic/Listener.h, Server/Attic/ListenerTcp.cpp, Server/Attic/Server.cpp, Server/Attic/Server.h:
 	Poprawa tragicznego bledu (nieskonczony while w funkcji getPTIndex), ktory przezyl juz w bazie chyba dobre kilka miesiecy.
 	Pelna rewizja i poprawki w mechanizmie synchronizacji Serwer/PulseChecker/Listener.
 	Przetestowane na scenariuszu, ktory poprzednia wersje wywalal - teraz dziala.
 	Statyczny CloseSocket w ListenerTcp.cpp
 
-	* SBQLCli/SBQLCli.cpp:
+	* SBQLCli/Attic/SBQLCli.cpp:
 	poprawiona synchronizacja watkow - dodalem zmienna warunkowa dla watku clientPC i jej obsluge oraz mechanizm poprawnego zakanczania oraz poprawke dla Ctrl-D
 
 2006-09-17  Jakub Sitek  <js209298@students.mimuw.edu.pl>
@@ -1277,7 +1165,7 @@
 
 2006-09-15  Piotr Turski  <pt209301@students.mimuw.edu.pl>
 
-	* QueryExecutor/EnvironmentStack.cpp, QueryExecutor/QueryExecutor.cpp, QueryExecutor/RemoteExecutor.cpp, QueryExecutor/RemoteExecutor.h, QueryParser/TreeNode.h, Server/Server.cpp, Store/DBLogicalID.cpp, Store/DBLogicalID.h, Store/Store.h, TCPProto/Makefile, TCPProto/Package.h, TCPProto/RemoteQueryPackage.cpp, TCPProto/RemoteResultPackage.cpp, TCPProto/TCPParam.h, TCPProto/Tcp.cpp, TCPProto/Tcp.h:
+	* QueryExecutor/EnvironmentStack.cpp, QueryExecutor/QueryExecutor.cpp, QueryExecutor/RemoteExecutor.cpp, QueryExecutor/RemoteExecutor.h, QueryParser/TreeNode.h, Server/Attic/Server.cpp, Store/DBLogicalID.cpp, Store/DBLogicalID.h, Store/Store.h, TCPProto/Makefile, TCPProto/Package.h, TCPProto/RemoteQueryPackage.cpp, TCPProto/RemoteResultPackage.cpp, TCPProto/TCPParam.h, TCPProto/Tcp.cpp, TCPProto/Tcp.h:
 	laczenie serwerow
 
 2006-09-15  Jakub Sitek  <js209298@students.mimuw.edu.pl>
@@ -1322,7 +1210,7 @@
 
 2006-09-12  Cezary Tkaczyk  <ct201224@students.mimuw.edu.pl>
 
-	* SBQLCli/SBQLCli.cpp, Server/Server.cpp, TCPProto/Package.h, TCPProto/ParamStatementPackage.cpp:
+	* SBQLCli/Attic/SBQLCli.cpp, Server/Attic/Server.cpp, TCPProto/Package.h, TCPProto/ParamStatementPackage.cpp:
 	Od teraz dziala juz parametryzacja. Mozna sprawdzic jej dzialanie przez SBQLCli przy uzyciu zmiennej $ans w zapytaniu. Mianowicie: 1) Robimy dowolne zapytanie 2) robimy kolejne zapytanie z uzyciem zmiennej $ans. SBQLCli podstawi na $ans wynik poprzedniego zapytania.
 
 2006-09-12  Jakub Sitek  <js209298@students.mimuw.edu.pl>
@@ -1381,13 +1269,13 @@
 
 2006-09-10  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* SBQLCli/SBQLCli.cpp:
+	* SBQLCli/Attic/SBQLCli.cpp:
 	dwuwatkowy klient - oddzielne polaczenie diagnostyczne (nowy PulseChecker)
 
 	* Driver/DriverManager.cpp, Driver/DriverManager.h:
 	Drobna zmiana w glownej funkcji - dodany zostal jeden argument (opcjonalnosc weryfikacji)
 
-	* Server/Listener.cpp, Server/Listener.h, Server/ListenerTcp.cpp, Server/Server.cpp, Server/Server.h:
+	* Server/Attic/Listener.cpp, Server/Attic/Listener.h, Server/Attic/ListenerTcp.cpp, Server/Attic/Server.cpp, Server/Attic/Server.h:
 	Nowy, trwaly pulseChecker - oddzielne gniazdo, sporo zmian w logice
 
 2006-09-10  Jakub Sitek  <js209298@students.mimuw.edu.pl>
@@ -1402,13 +1290,13 @@
 
 2006-09-06  Cezary Tkaczyk  <ct201224@students.mimuw.edu.pl>
 
-	* Driver/Connection.cpp, SBQLCli/SBQLCli.cpp, TCPProto/ParamStatementPackage.cpp:
-	Ostatnia poprawka od strony drivera i serwera do parametryzacji. Naprawiony bï¿½ï¿½d z obsï¿½ugï¿½ ErrorPackage i kolekcjami. Odkomentowana linijka wï¿½ï¿½czajï¿½ca dodawanie do kaï¿½dego zapytania poprzedniego wyniku jako parametru $ans.
+	* Driver/Connection.cpp, SBQLCli/Attic/SBQLCli.cpp, TCPProto/ParamStatementPackage.cpp:
+	Ostatnia poprawka od strony drivera i serwera do parametryzacji. Naprawiony b³±d z obs³ug± ErrorPackage i kolekcjami. Odkomentowana linijka w³±czaj±ca dodawanie do ka¿dego zapytania poprzedniego wyniku jako parametru $ans.
 
-	* SBQLCli/SBQLCli.cpp, Server/Server.cpp, Server/Server.h, TCPProto/Package.h, TCPProto/ParamStatementPackage.cpp:
-	Parametryzacja zapytaï¿½ kolejne zmiany. Zmieniony znacznie serwer, dopisana
+	* SBQLCli/Attic/SBQLCli.cpp, Server/Attic/Server.cpp, Server/Attic/Server.h, TCPProto/Package.h, TCPProto/ParamStatementPackage.cpp:
+	Parametryzacja zapytañ kolejne zmiany. Zmieniony znacznie serwer, dopisana
 	serializacja/deserializacja  Result->QueryResult w ParamStatementPackage.
-	Opcjï¿½ parametryzacji moï¿½na uruchomiï¿½ odkomentowujï¿½c linijkï¿½:
+	Opcjê parametryzacji mo¿na uruchomiæ odkomentowuj±c linijkê:
 	#define ANS_PARAMETER_ADDITION_ACTIVE
 	w pliku SBQLCli/SBQLCli.cpp
 
@@ -1460,33 +1348,33 @@
 
 2006-09-01  Piotr Turski  <pt209301@students.mimuw.edu.pl>
 
-	* QueryExecutor/QueryExecutor.cpp, QueryExecutor/RemoteExecutor.cpp, QueryParser/TreeNode.h, Server/Server.cpp:
+	* QueryExecutor/QueryExecutor.cpp, QueryExecutor/RemoteExecutor.cpp, QueryParser/TreeNode.h, Server/Attic/Server.cpp:
 	do drugiego serwera dochodzi juz prosba o rooty
 
 2006-08-31  Piotr Turski  <pt209301@students.mimuw.edu.pl>
 
-	* QueryExecutor/RemoteExecutor.cpp, Server/Server.cpp, TCPProto/Makefile, TCPProto/Package.h, TCPProto/RemoteQueryPackage.cpp, TCPProto/Tcp.cpp:
+	* QueryExecutor/RemoteExecutor.cpp, Server/Attic/Server.cpp, TCPProto/Makefile, TCPProto/Package.h, TCPProto/RemoteQueryPackage.cpp, TCPProto/Tcp.cpp:
 	paczka zdalnej refencji
 
 	* QueryExecutor/EnvironmentStack.cpp, QueryExecutor/QueryExecutor.h, QueryExecutor/RemoteExecutor.cpp, QueryExecutor/RemoteExecutor.h:
 	laczenie serwerow
 
-	* Server/Server.cpp:
+	* Server/Attic/Server.cpp:
 	serwer przygotowany do obslugi roznych typow paczek
 
 2006-08-31  Tomasz Rosiek  <tr201089@students.mimuw.edu.pl>
 
 	* Navigator/META-INF/MANIFEST.MF, Navigator/src/objectBrowser/driver/loxim/Attic/Package.java, Navigator/src/objectBrowser/driver/loxim/Attic/SimpleResultPackage.java, Navigator/src/objectBrowser/driver/loxim/Attic/TcpConnection.java:
-	Uwzglï¿½dnione zmiany w protokole (obsï¿½uga pakietï¿½w)
+	Uwzglêdnione zmiany w protokole (obs³uga pakietów)
 
 	* Navigator/.classpath, Navigator/.project: Navigator cd
 
 	* Navigator/META-INF/MANIFEST.MF, Navigator/build.properties, Navigator/icons/sample.gif, Navigator/plugin.xml, Navigator/src/objectBrowser/ObjectBrowserPlugin.java, Navigator/src/objectBrowser/connections/DatabaseConnection.java, Navigator/src/objectBrowser/connections/DatabaseConnectionPool.java, Navigator/src/objectBrowser/connections/DatabaseQuery.java, Navigator/src/objectBrowser/connections/ITreeListener.java, Navigator/src/objectBrowser/connections/TreeObject.java, Navigator/src/objectBrowser/connections/TreeParent.java, Navigator/src/objectBrowser/driver/loxim/Attic/Connection.java, Navigator/src/objectBrowser/driver/loxim/Attic/ConversionUtils.java, Navigator/src/objectBrowser/driver/loxim/Attic/Package.java, Navigator/src/objectBrowser/driver/loxim/Attic/ResultStream.java, Navigator/src/objectBrowser/driver/loxim/Attic/SBQLException.java, Navigator/src/objectBrowser/driver/loxim/Attic/SimpleQueryPackage.java, Navigator/src/objectBrowser/driver/loxim/Attic/SimpleResultPackage.java, Navigator/src/objectBrowser/driver/loxim/Attic/TcpConnection.java, Navigator/src/objectBrowser/driver/loxim/Attic/TcpConnectionFactory.java, Navigator/src/objectBrowser/driver/loxim/result/Attic/Result.java, Navigator/src/objectBrowser/driver/loxim/result/Attic/ResultBag.java, Navigator/src/objectBrowser/driver/loxim/result/Attic/ResultBase.java, Navigator/src/objectBrowser/driver/loxim/result/Attic/ResultBinder.java, Navigator/src/objectBrowser/driver/loxim/result/Attic/ResultBool.java, Navigator/src/objectBrowser/driver/loxim/result/Attic/ResultCollection.java, Navigator/src/objectBrowser/driver/loxim/result/Attic/ResultError.java, Navigator/src/objectBrowser/driver/loxim/result/Attic/ResultInt.java, Navigator/src/objectBrowser/driver/loxim/result/Attic/ResultReference.java, Navigator/src/objectBrowser/driver/loxim/result/Attic/ResultSequence.java, Navigator/src/objectBrowser/driver/loxim/result/Attic/ResultSimple.java, Navigator/src/objectBrowser/driver/loxim/result/Attic/ResultString.java, Navigator/src/objectBrowser/driver/loxim/result/Attic/ResultStruct.java, Navigator/src/objectBrowser/driver/loxim/result/Attic/ResultType.java, Navigator/src/objectBrowser/driver/loxim/result/Attic/ResultVoid.java, Navigator/src/objectBrowser/editors/CompositeDataObjectEditPart.java, Navigator/src/objectBrowser/editors/DiagramContainerEditPolicy.java, Navigator/src/objectBrowser/editors/DiagramEditPart.java, Navigator/src/objectBrowser/editors/DiagramEditPolicy.java, Navigator/src/objectBrowser/editors/DiagramElementEditPart.java, Navigator/src/objectBrowser/editors/DiagramPartEditPolicy.java, Navigator/src/objectBrowser/editors/DimensionPropertySource.java, Navigator/src/objectBrowser/editors/IXMLColorConstants.java, Navigator/src/objectBrowser/editors/LocationPropertySource.java, Navigator/src/objectBrowser/editors/LogicNumberCellEditorValidator.java, Navigator/src/objectBrowser/editors/NonRuleBasedDamagerRepairer.java, Navigator/src/objectBrowser/editors/OBEditPartFactory.java, Navigator/src/objectBrowser/editors/ObjectiveDataEditor.java, Navigator/src/objectBrowser/editors/ReferenceDataObjectEditPart.java, Navigator/src/objectBrowser/editors/RelationBendpointEditPolicy.java, Navigator/src/objectBrowser/editors/RelationEditPart.java, Navigator/src/objectBrowser/editors/RelationEditPolicy.java, Navigator/src/objectBrowser/editors/ResultNodeEditPart.java, Navigator/src/objectBrowser/editors/SimpleDataObjectEditPart.java, Navigator/src/objectBrowser/editors/query/ColorManager.java, Navigator/src/objectBrowser/editors/query/QueryEditor.java, Navigator/src/objectBrowser/editors/query/QueryEditorActionContributor.java, Navigator/src/objectBrowser/editors/query/QueryEditorActionDelegate.java, Navigator/src/objectBrowser/editors/query/QueryLauncher.java, Navigator/src/objectBrowser/editors/query/SBQLDocumentProvider.java, Navigator/src/objectBrowser/editors/query/TagRule.java, Navigator/src/objectBrowser/editors/query/XMLConfiguration.java, Navigator/src/objectBrowser/editors/query/XMLDoubleClickStrategy.java, Navigator/src/objectBrowser/editors/query/XMLPartitionScanner.java, Navigator/src/objectBrowser/editors/query/XMLScanner.java, Navigator/src/objectBrowser/editors/query/XMLTagScanner.java, Navigator/src/objectBrowser/editors/query/XMLWhitespaceDetector.java, Navigator/src/objectBrowser/figures/AntialiasUtil.java, Navigator/src/objectBrowser/figures/CompartmentFigure.java, Navigator/src/objectBrowser/figures/CompositeDataObjectFigure.java, Navigator/src/objectBrowser/figures/DataObjectFigure.java, Navigator/src/objectBrowser/figures/FixedConnectionAnchor.java, Navigator/src/objectBrowser/figures/OBFigureFactory.java, Navigator/src/objectBrowser/figures/ReferenceDataObjectFigure.java, Navigator/src/objectBrowser/figures/ResultNodeFigure.java, Navigator/src/objectBrowser/figures/SimpleDataObjectFigure.java, Navigator/src/objectBrowser/model/Attic/LoximModelGenerator.java, Navigator/src/objectBrowser/model/CircleLayout.java, Navigator/src/objectBrowser/model/CompositeDataObject.java, Navigator/src/objectBrowser/model/DataObject.java, Navigator/src/objectBrowser/model/DataProperty.java, Navigator/src/objectBrowser/model/Diagram.java, Navigator/src/objectBrowser/model/DiagramElement.java, Navigator/src/objectBrowser/model/DiagramNode.java, Navigator/src/objectBrowser/model/ReferenceDataObject.java, Navigator/src/objectBrowser/model/RelationBendpoint.java, Navigator/src/objectBrowser/model/Relationship.java, Navigator/src/objectBrowser/model/ResultNode.java, Navigator/src/objectBrowser/model/SimpleDataObject.java, Navigator/src/objectBrowser/model/commands/BendpointCommand.java, Navigator/src/objectBrowser/model/commands/CreateBendpointCommand.java, Navigator/src/objectBrowser/model/commands/DeleteBendpointCommand.java, Navigator/src/objectBrowser/model/commands/DeleteConnetionCommand.java, Navigator/src/objectBrowser/model/commands/MoveBendpointCommand.java, Navigator/src/objectBrowser/model/commands/SetConstraintCommand.java, Navigator/src/objectBrowser/perspectives/ObjectBrowsingPerspectiveFactory.java, Navigator/src/objectBrowser/tests/DataGenerator1.java, Navigator/src/objectBrowser/views/ObjectDatabaseExplorer.java, Navigator/src/objectBrowser/views/ResultView.java, Navigator/src/objectBrowser/views/ResultViewText.java, Navigator/src/objectBrowser/wizards/NewConnectionWizard.java, Navigator/src/objectBrowser/wizards/NewConnectionWizardName.java, Navigator/src/objectBrowser/wizards/NewQueryWizard.java, Navigator/src/objectBrowser/wizards/NewQueryWizardPage.java:
-	Nowa wersja Navigatora - plugin do Eclipsa realizujï¿½cy
-	konsolï¿½ bazodanowï¿½
+	Nowa wersja Navigatora - plugin do Eclipsa realizuj±cy
+	konsolê bazodanow±
 
 	* Navigator/Attic/build-user.xml, Navigator/Attic/build.xml, Navigator/szbd/Attic/SBQLException.java, Navigator/szbd/client/Attic/TcpConnection.java, Navigator/szbd/client/Attic/TcpConnectionFactory.java, Navigator/szbd/client/result/Attic/Result.java, Navigator/szbd/client/result/Attic/ResultBag.java, Navigator/szbd/client/result/Attic/ResultBinder.java, Navigator/szbd/client/result/Attic/ResultBool.java, Navigator/szbd/client/result/Attic/ResultCollection.java, Navigator/szbd/client/result/Attic/ResultError.java, Navigator/szbd/client/result/Attic/ResultInt.java, Navigator/szbd/client/result/Attic/ResultReference.java, Navigator/szbd/client/result/Attic/ResultSequence.java, Navigator/szbd/client/result/Attic/ResultString.java, Navigator/szbd/client/result/Attic/ResultStruct.java, Navigator/szbd/client/result/Attic/ResultType.java, Navigator/szbd/client/result/Attic/ResultVoid.java, Navigator/szbd/console/Attic/ConnectionDialog.java, Navigator/szbd/console/Attic/ConnectionOptions.java, Navigator/szbd/console/Attic/ConsoleFrame.java, Navigator/szbd/console/Attic/Main.java, Navigator/szbd/test/Attic/MetadataBrowser.java, Navigator/szbd/test/Attic/MetadataTest1.java, Navigator/szbd/test/Attic/Test1.java, Navigator/szbd/client/Attic/Connection.java, Navigator/szbd/client/Attic/ResultStream.java, Navigator/szbd/metadata/Attic/AtomTypeDefinition.java, Navigator/szbd/metadata/Attic/CardinalityType.java, Navigator/szbd/metadata/Attic/ComplexTypeDefinition.java, Navigator/szbd/metadata/Attic/DataType.java, Navigator/szbd/metadata/Attic/LinkTypeDefinition.java, Navigator/szbd/metadata/Attic/MetadataFactory.java, Navigator/szbd/metadata/Attic/TypeDefinition.java, Navigator/szbd/metadata/Attic/TypeKind.java:
-	Usuniï¿½cie starej wersji Navigatora
+	Usuniêcie starej wersji Navigatora
 
 2006-08-30  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
@@ -1508,7 +1396,7 @@
 	* TCPProto/ErrorPackage.cpp, TCPProto/Makefile, TCPProto/Package.h, TCPProto/SimpleResultPackage.cpp, TCPProto/Tcp.cpp:
 	nowa klasa ErrorPackage odpowiadajaca za paczki przesylajace bledy. Poprawiony krytyczny blad serializacji w SimpleResultPackage - teraz dziala. Propagacja zmian w protokole.
 
-	* Server/Server.cpp:
+	* Server/Attic/Server.cpp:
 	przywrocenie obslugi pakietowej - poprawienie bledow, obsluga ErrorPackage w reakcji na blad parsera czy egzekutora itp.
 
 	* Driver/Connection.cpp:
@@ -1523,7 +1411,7 @@
 
 	* Documentation/uprawnienia.txt: Kosmetyka.
 
-	* SBQLCli/SBQLCli.cpp:
+	* SBQLCli/Attic/SBQLCli.cpp:
 	Dla polaczenia lokalnego haslo nie jest wymagane, poprzednio wymagane bylo
 	by haslo niekoniecznie bylo prawidlowe ale musialo byc niepuste.
 	Obecnie hasla mozemy nie podowac wcale (wszystko dotyczy polaczenia lokalnego).
@@ -1538,7 +1426,7 @@
 	Po pomyslnej weryfikacji wykonywane jest zapytanie.
 	W przypadku niepowodzenia zwracany jest pusty wynik.
 
-	* Server/Listener.cpp, Server/Listener.h: Kosmetyka.
+	* Server/Attic/Listener.cpp, Server/Attic/Listener.h: Kosmetyka.
 
 	* QueryParser/Makefile, QueryParser/TreeNode.cpp, QueryParser/TreeNode.h, QueryParser/parser.y, QueryParser/scanner.l:
 	Zmiany wymuszone przez modul uprawnien.
@@ -1549,7 +1437,7 @@
 	grant read, modify, create on emp, dept to scott with grant option
 	revoke read on dept, emp from scott
 
-	* Server/Server.cpp, Server/Server.h:
+	* Server/Attic/Server.cpp, Server/Attic/Server.h:
 	Zmiany wymuszone przez modul uprawnien.
 	Zalozenie dotyczace modulu uprawnien jest takie ze jezeli laczymy sie z serwerem lokalnie
 	(czyli adres przychodzacy jest 127.0.0.1), to polaczenie to uwazane jest jako bezpieczne i nie
@@ -1557,7 +1445,7 @@
 	Informacja o tym czy polaczenie jest bezpieczne musi zostac przekazana przez serwer do executora
 	tak by executor pomyslnie przeprowadzil weryfikacje.
 
-	* SBQLCli/Makefile, SBQLCli/SBQLCli.cpp:
+	* SBQLCli/Attic/Makefile, SBQLCli/Attic/SBQLCli.cpp:
 	Zmiany wymuszone przez modul uprawnien.
 	Po pierwsze uzytkownik zanim zacznie prace musi podac login i haslo.
 	Przy pomyslnej weryfikacji moze przystapic do pracy.
@@ -1579,7 +1467,7 @@
 	Dane te przesylane sa przez sterownik, weryfikowane przez serwer i odsylana jest
 	odpowiedz true/false. Po pomyslnej weryfikacji uzytkownik moze przystapic do pracy.
 
-	* QueryExecutor/SessionData.cpp, QueryExecutor/SessionData.h:
+	* QueryExecutor/Attic/SessionData.cpp, QueryExecutor/Attic/SessionData.h:
 	Klasa SessionData przechowuje parametry charakterystyczne dla danej sesji.
 	Przykladowo jest to login i haslo uzytkownika zalogowanego w sesji.
 	W przyszlosci klasa ta powinna byc rozszerzana o kolejne parametry sesji.
@@ -1621,13 +1509,13 @@
 
 2006-06-29  Cezary Tkaczyk  <ct201224@students.mimuw.edu.pl>
 
-	* Driver/Attic/ResultTest.cpp, Driver/Connection.cpp, Driver/Connection.h, SBQLCli/SBQLCli.cpp, TCPProto/Makefile, TCPProto/Package.h, TCPProto/ParamStatementPackage.cpp, TCPProto/StatementPackage.cpp, TCPProto/Tcp.cpp:
+	* Driver/Attic/ResultTest.cpp, Driver/Connection.cpp, Driver/Connection.h, SBQLCli/Attic/SBQLCli.cpp, TCPProto/Makefile, TCPProto/Package.h, TCPProto/ParamStatementPackage.cpp, TCPProto/StatementPackage.cpp, TCPProto/Tcp.cpp:
 	Uzupelnienie poprzedniego commitu o ParamStatementPackage. Teraz jest
 	juz zaimplementowane wszystko dotyczace serializacji w celu
 	parametryzacji zapytan, za wyjatkiem przesylania Result ->
 	QueryResult. Czekam na Adama.
 
-	* Driver/Connection.cpp, Driver/Connection.h, SBQLCli/SBQLCli.cpp, TCPProto/Makefile, TCPProto/Package.h, TCPProto/ParamQueryPackage.cpp, TCPProto/StatementPackage.cpp:
+	* Driver/Connection.cpp, Driver/Connection.h, SBQLCli/Attic/SBQLCli.cpp, TCPProto/Makefile, TCPProto/Package.h, TCPProto/ParamQueryPackage.cpp, TCPProto/StatementPackage.cpp:
 	Interfejs uzytkownika do parametryzacji zapytan gotowy. Zakomentowany przyklad uzycia mozna zobaczyc w kodzie SBQLCli/SBQLCli.cpp. Sama parametryzacja jeszcze nie dziala. Czekam na implementacje serializacji wynikow od klienta do serwera.
 
 2006-06-27  Maciej Olesinski  <mo201077@students.mimuw.edu.pl>
@@ -1640,7 +1528,7 @@
 	* TCPProto/Package.h, TCPProto/SimpleResultPackage.cpp:
 	nowy lepszy serialize
 
-	* Server/Server.cpp: pamiec w ::Run
+	* Server/Attic/Server.cpp: pamiec w ::Run
 
 2006-06-13  Krzysztof Stencel  <stencel@students.mimuw.edu.pl>
 
@@ -1650,18 +1538,18 @@
 
 2006-06-08  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* SBQLCli/Makefile:
+	* SBQLCli/Attic/Makefile:
 	Zmiany potrzebne, by sie linkowalo po grzebaniu w TCPProto
 
 	* TCPProto/Package.h, TCPProto/SimpleResultPackage.cpp:
 	serializacja Package i przeniesienie oraz adaptacja kodu serwera
 
-	* Server/Server.cpp, Server/Server.h:
+	* Server/Attic/Server.cpp, Server/Attic/Server.h:
 	zmiany do wysylania package - na razie objete wykomentowanym makro PACKAGE_SENDING
 
 2006-06-08  Cezary Tkaczyk  <ct201224@students.mimuw.edu.pl>
 
-	* SBQLCli/SBQLCli.cpp:
+	* SBQLCli/Attic/SBQLCli.cpp:
 	Pierwsza przymiarka od strony klienta do PulsCheckera opartego na podwojmyn polaczeniu. Adam, odkomentuj odpowiednia linijke w SBQLCli.cpp.
 
 2006-06-08  Piotr Turski  <pt209301@students.mimuw.edu.pl>
@@ -1779,7 +1667,7 @@
 
 2006-05-31  Piotr Turski  <pt209301@students.mimuw.edu.pl>
 
-	* Driver/Connection.cpp, Server/Server.cpp, TCPProto/SimpleQueryPackage.cpp:
+	* Driver/Connection.cpp, Server/Attic/Server.cpp, TCPProto/SimpleQueryPackage.cpp:
 	poprawione bledy nowego protokolu
 
 2006-05-30  Piotr Karpiuk  <pk167277@students.mimuw.edu.pl>
@@ -1788,7 +1676,8 @@
 
 2006-05-30  Piotr Turski  <pt209301@students.mimuw.edu.pl>
 
-	* Driver/Connection.cpp, Server/Server.cpp: wycofanie zmian protokolu
+	* Driver/Connection.cpp, Server/Attic/Server.cpp:
+	wycofanie zmian protokolu
 
 2006-05-30  Michal Drausowski  <md243003@students.mimuw.edu.pl>
 
@@ -1807,7 +1696,7 @@
 
 2006-05-28  Piotr Turski  <pt209301@students.mimuw.edu.pl>
 
-	* Driver/Connection.cpp, Driver/Connection.h, Driver/Makefile, Server/Server.cpp, TCPProto/Makefile, TCPProto/Package.h, TCPProto/SimpleQueryPackage.cpp, TCPProto/SimpleResultPackage.cpp, TCPProto/Tcp.cpp:
+	* Driver/Connection.cpp, Driver/Connection.h, Driver/Makefile, Server/Attic/Server.cpp, TCPProto/Makefile, TCPProto/Package.h, TCPProto/SimpleQueryPackage.cpp, TCPProto/SimpleResultPackage.cpp, TCPProto/Tcp.cpp:
 	przesylanie do serwera juz po nowym protokole
 
 2006-05-28  Michal Drausowski  <md243003@students.mimuw.edu.pl>
@@ -1859,10 +1748,10 @@
 
 2006-05-23  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
 
-	* Server/Server.conf:
+	* Server/Attic/Server.conf:
 	Serwer.conf zamieniony przez przypadek, poprawiony teraz na taki jaki byl
 
-	* QueryExecutor/QueryExecutor.cpp, Server/Server.conf:
+	* QueryExecutor/QueryExecutor.cpp, Server/Attic/Server.conf:
 	dostosowanie QE do zmian w storze, zmiana wolanej funkcji isRoot na getIsRoot
 
 2006-05-23  Michal Drausowski  <md243003@students.mimuw.edu.pl>
@@ -1884,20 +1773,21 @@
 
 2006-05-18  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Listener.cpp, Server/Server.cpp, Server/Server.h:
+	* Server/Attic/Listener.cpp, Server/Attic/Server.cpp, Server/Attic/Server.h:
 	czystki w kodzie serwera
 
 2006-05-17  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Server.cpp: *** empty log message ***
+	* Server/Attic/Server.cpp: *** empty log message ***
 
 2006-05-17  Cezary Tkaczyk  <ct201224@students.mimuw.edu.pl>
 
-	* SBQLCli/SBQLCli.cpp: Linijka zaczynajaca sie od "--" jest komentarzem
+	* SBQLCli/Attic/SBQLCli.cpp:
+	Linijka zaczynajaca sie od "--" jest komentarzem
 
 2006-05-15  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Server.cpp: poprawka do pulseCheckera
+	* Server/Attic/Server.cpp: poprawka do pulseCheckera
 
 2006-05-14  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
 
@@ -1922,8 +1812,8 @@
 
 2006-05-12  Cezary Tkaczyk  <ct201224@students.mimuw.edu.pl>
 
-	* SBQLCli/SBQLCli.cpp:
-	zapytanie musi siï¿½ koï¿½czyï¿½ linijkï¿½ z pierszym znakiem "/".
+	* SBQLCli/Attic/SBQLCli.cpp:
+	zapytanie musi siê koñczyæ linijk± z pierszym znakiem "/".
 
 2006-05-11  Maksymilian Humpich  <mh209206@students.mimuw.edu.pl>
 
@@ -1971,7 +1861,7 @@
 
 2006-04-28  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Listener.cpp, Server/Server.cpp, Server/Server.h:
+	* Server/Attic/Listener.cpp, Server/Attic/Server.cpp, Server/Attic/Server.h:
 	zmiany dt. PulseCheckera - reakcja na bledy zwracane z serwera, odzyskiwanie tablicy (wiecej niz MAX_CLIENTS w czasie dzialania)
 
 2006-04-28  Piotr Karpiuk  <pk167277@students.mimuw.edu.pl>
@@ -1995,7 +1885,7 @@
 
 2006-04-18  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Listener.cpp, Server/Listener.h, Server/Server.cpp, Server/Server.h:
+	* Server/Attic/Listener.cpp, Server/Attic/Listener.h, Server/Attic/Server.cpp, Server/Attic/Server.h:
 	Obsluga przerywania zapytania przez nowy watek - pulseChecker.
 	Aby wylaczyc ta obsluge (i np. porownac wydajnosc/czas) nalezy wykomentowac
 	linie #define PULSE_CHECKER_ACTIVE w Server.cpp
@@ -2015,7 +1905,7 @@
 2006-04-15  Tomasz Rosiek  <tr201089@students.mimuw.edu.pl>
 
 	* Navigator/.classpath, Navigator/.project, Navigator/Attic/build-user.xml, Navigator/Attic/build.xml, Navigator/Attic/test, Navigator/szbd/Attic/SBQLException.java, Navigator/szbd/client/Attic/Connection.java, Navigator/szbd/client/Attic/ResultStream.java, Navigator/szbd/client/Attic/TcpConnection.java, Navigator/szbd/client/Attic/TcpConnectionFactory.java, Navigator/szbd/client/result/Attic/Result.java, Navigator/szbd/client/result/Attic/ResultBag.java, Navigator/szbd/client/result/Attic/ResultBinder.java, Navigator/szbd/client/result/Attic/ResultBool.java, Navigator/szbd/client/result/Attic/ResultCollection.java, Navigator/szbd/client/result/Attic/ResultError.java, Navigator/szbd/client/result/Attic/ResultInt.java, Navigator/szbd/client/result/Attic/ResultReference.java, Navigator/szbd/client/result/Attic/ResultSequence.java, Navigator/szbd/client/result/Attic/ResultString.java, Navigator/szbd/client/result/Attic/ResultStruct.java, Navigator/szbd/client/result/Attic/ResultType.java, Navigator/szbd/client/result/Attic/ResultVoid.java, Navigator/szbd/console/Attic/ConnectionDialog.java, Navigator/szbd/console/Attic/ConnectionOptions.java, Navigator/szbd/console/Attic/ConsoleFrame.java, Navigator/szbd/console/Attic/Main.java, Navigator/szbd/metadata/Attic/AtomTypeDefinition.java, Navigator/szbd/metadata/Attic/CardinalityType.java, Navigator/szbd/metadata/Attic/ComplexTypeDefinition.java, Navigator/szbd/metadata/Attic/DataType.java, Navigator/szbd/metadata/Attic/LinkTypeDefinition.java, Navigator/szbd/metadata/Attic/MetadataFactory.java, Navigator/szbd/metadata/Attic/TypeDefinition.java, Navigator/szbd/metadata/Attic/TypeKind.java, Navigator/szbd/test/Attic/MetadataBrowser.java, Navigator/szbd/test/Attic/MetadataTest1.java, Navigator/szbd/test/Attic/Test1.java:
-	Dziaï¿½ajï¿½cy klient do Javy i poczï¿½tki browsera metadanych.
+	Dzia³aj±cy klient do Javy i pocz±tki browsera metadanych.
 
 	* Navigator/Attic/test: Utworzony katalog na Navigatora
 
@@ -2076,11 +1966,11 @@
 	* Log/LogRecord.cpp, Log/Logs.cpp:
 	Zabezpieczenie na wypadek gdyby plik logow byl pusty
 
-	* Server/Server.conf: bezwzgledna sciezka do pliku logow
+	* Server/Attic/Server.conf: bezwzgledna sciezka do pliku logow
 
 	* Backup/Backup.cpp, Backup/Backup.h: *** empty log message ***
 
-	* Server/Listener.cpp: odtwarzanie backupu przy awariach
+	* Server/Attic/Listener.cpp: odtwarzanie backupu przy awariach
 
 	* Log/Backup.cpp, Log/Backup.h, Log/LogRecord.cpp, Log/Logs.cpp:
 	odtwarzanie backupu przy awariach (2)
@@ -2226,7 +2116,7 @@
 
 2006-02-09  Cezary Tkaczyk  <ct201224@students.mimuw.edu.pl>
 
-	* SBQLCli/SBQLCli.cpp: Pare komentarzy i czyszczenie kodu.
+	* SBQLCli/Attic/SBQLCli.cpp: Pare komentarzy i czyszczenie kodu.
 
 2006-02-08  Tomasz Rosiek  <tr201089@students.mimuw.edu.pl>
 
@@ -2241,7 +2131,7 @@
 	* Errors/ErrorConsole.cpp, Errors/ErrorMsg.cpp, Errors/Errors.h:
 	- bezpieczniejsza i wygodniejsza implementacja komunikatow bledow
 
-	* SBQLCli/Makefile: - linkuj Errors.a
+	* SBQLCli/Attic/Makefile: - linkuj Errors.a
 
 	* Driver/Connection.h: - zastosowanie funkcji SBQLstrerror
 
@@ -2298,7 +2188,7 @@
 	* Backup/Backup.cpp, Backup/Backup.h:
 	backup uwzglednia wszystkie pliki bazy danych
 
-	* Server/Server.conf: backup - konfiguracja
+	* Server/Attic/Server.conf: backup - konfiguracja
 
 	* Log/LogRecord.cpp, Log/Logs.cpp, Log/Logs.h, Log/CrashRecovery.cpp:
 	odtwarzanie nie dzialalo
@@ -2311,7 +2201,7 @@
 
 2006-02-05  Piotr Karpiuk  <pk167277@students.mimuw.edu.pl>
 
-	* Server/Listener.cpp: odtwarzanie
+	* Server/Attic/Listener.cpp: odtwarzanie
 
 2006-02-05  Marcin Komor  <mk189406@students.mimuw.edu.pl>
 
@@ -2347,7 +2237,7 @@
 
 2006-02-04  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Listener.cpp, Server/Server.cpp, Server/Server.h:
+	* Server/Attic/Listener.cpp, Server/Attic/Server.cpp, Server/Attic/Server.h:
 	Teraz w funkcji SExit() wywolywany jest QE->abort() i niszczone QE i QP.
 	Czyli jak serwer sie konczy to niszczone sa obiekty i puszczany abort()
 
@@ -2379,11 +2269,11 @@
 
 2006-02-03  Cezary Tkaczyk  <ct201224@students.mimuw.edu.pl>
 
-	* SBQLCli/SBQLCli.cpp: Auto abort on exit.
+	* SBQLCli/Attic/SBQLCli.cpp: Auto abort on exit.
 
 2006-02-03  Piotr Karpiuk  <pk167277@students.mimuw.edu.pl>
 
-	* Server/Server.conf, Server/Listener.cpp: shutdown
+	* Server/Attic/Server.conf, Server/Attic/Listener.cpp: shutdown
 
 	* Log/Logs.cpp, Log/TestLogs.cpp: checkpoint
 
@@ -2397,7 +2287,7 @@
 
 	* Log/TestLogs.cpp: - test checkpointa
 
-	* Server/Listener.cpp:
+	* Server/Attic/Listener.cpp:
 	- dodany sleep(1) na poczatku dzialania nowego watku
 
 2006-02-03  Julian Krzeminski  <jk209476@students.mimuw.edu.pl>
@@ -2421,7 +2311,7 @@
 
 2006-02-03  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Listener.cpp:
+	* Server/Attic/Listener.cpp:
 	Zmiana w Listenerze w celu unikniecia zakleszczenia
 
 2006-02-03  Sebastian Kaczanowski  <sk153407@students.mimuw.edu.pl>
@@ -2452,7 +2342,7 @@
 
 2006-02-02  Michal Drausowski  <md243003@students.mimuw.edu.pl>
 
-	* Server/Listener.cpp: setTManager
+	* Server/Attic/Listener.cpp: setTManager
 
 2006-02-02  Marcin Komor  <mk189406@students.mimuw.edu.pl>
 
@@ -2493,7 +2383,8 @@
 
 2006-02-01  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Listener.cpp, Server/Server.cpp: *** empty log message ***
+	* Server/Attic/Listener.cpp, Server/Attic/Server.cpp:
+	*** empty log message ***
 
 2006-02-01  Julian Krzeminski  <jk209476@students.mimuw.edu.pl>
 
@@ -2569,7 +2460,7 @@
 
 2006-01-31  Cezary Tkaczyk  <ct201224@students.mimuw.edu.pl>
 
-	* Driver/Connection.h: Jeszcze jedna poprawka do wyjï¿½tkï¿½w.
+	* Driver/Connection.h: Jeszcze jedna poprawka do wyj±tków.
 
 2006-01-31  Michal Drausowski  <md243003@students.mimuw.edu.pl>
 
@@ -2578,10 +2469,10 @@
 
 2006-01-31  Cezary Tkaczyk  <ct201224@students.mimuw.edu.pl>
 
-	* Driver/Connection.h, Driver/Result.cpp, Driver/Result.h, SBQLCli/SBQLCli.cpp:
-	Sensowniejsze wyï¿½wietlanie bï¿½ï¿½dï¿½w w kliencie (przedefiniowane wyjï¿½tki),
+	* Driver/Connection.h, Driver/Result.cpp, Driver/Result.h, SBQLCli/Attic/SBQLCli.cpp:
+	Sensowniejsze wy¶wietlanie b³êdów w kliencie (przedefiniowane wyj±tki),
 	uproszczenie klienta,
-	wyï¿½wietlanie ResultStruct jako < zawartosc >
+	wy¶wietlanie ResultStruct jako < zawartosc >
 
 2006-01-31  Michal Drausowski  <md243003@students.mimuw.edu.pl>
 
@@ -2589,12 +2480,12 @@
 
 2006-01-31  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Server.cpp:
+	* Server/Attic/Server.cpp:
 	Zmiana w wysylaniu bledu parsera - teraz do klienta dociera wlasciwy numer
 
 2006-01-30  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Listener.cpp, Server/Server.cpp:
+	* Server/Attic/Listener.cpp, Server/Attic/Server.cpp:
 	Store i LM inicjalizowane i zamykane raz, w Listenerze.
 
 	Store rzuca start() LM rzuca start(store). Stop jest tylko dla Store, a co ma robic LM?
@@ -2643,12 +2534,12 @@
 
 2006-01-28  Piotr Turski  <pt209301@students.mimuw.edu.pl>
 
-	* Server/Listener.cpp, Server/Listener.h, Server/ListenerTcp.cpp, Server/Server.conf, Server/ServerTcp.cpp:
+	* Server/Attic/Listener.cpp, Server/Attic/Listener.h, Server/Attic/ListenerTcp.cpp, Server/Attic/Server.conf, Server/Attic/ServerTcp.cpp:
 	wczytywanie z configa
 
 2006-01-27  Piotr Turski  <pt209301@students.mimuw.edu.pl>
 
-	* Server/ListenerTcp.cpp, Server/Server.conf, Server/ServerTcp.cpp:
+	* Server/Attic/ListenerTcp.cpp, Server/Attic/Server.conf, Server/Attic/ServerTcp.cpp:
 	wczytywanie z configa
 
 2006-01-27  Maksymilian Humpich  <mh209206@students.mimuw.edu.pl>
@@ -2659,7 +2550,7 @@
 	* QueryParser/Attic/Optymalizator.cpp, QueryParser/ClassNames.h, QueryParser/DataRead.cpp, QueryParser/Makefile, QueryParser/Optimizer.cpp, QueryParser/QueryParser.cpp, QueryParser/QueryParser.h, QueryParser/Stack.cpp, QueryParser/Stack.h, QueryParser/TreeNode.cpp, QueryParser/TreeNode.h:
 	czesciowo poprawione wypisywanie na ekran. teraz czesc idzie na errorConsole, czesc przez nasze Deb::ug, nie wszystkie bledy sa zglaszane wlasciwie.
 
-	* Server/Server.conf:
+	* Server/Attic/Server.conf:
 	dodana opcja Queryparsera - mozna wylaczyc calkiem wypisywanie debuggowe.
 
 2006-01-27  Piotr Karpiuk  <pk167277@students.mimuw.edu.pl>
@@ -2667,7 +2558,7 @@
 	* Log/CrashRecovery.cpp, Log/LogRecord.cpp, Log/Logs.cpp, Log/TestLogs.cpp:
 	usuniecie debugujacych printfow
 
-	* Server/Server.conf: uzupelniony config
+	* Server/Attic/Server.conf: uzupelniony config
 
 2006-01-27  Michal Drausowski  <md243003@students.mimuw.edu.pl>
 
@@ -2683,7 +2574,8 @@
 	* QueryParser/QueryParser.cpp:
 	korzystanie z configa przy optymalizacji przez przepisywanie.
 
-	* Server/Server.conf: dorzucone wlaczanie / wylaczanie optymalizacji.
+	* Server/Attic/Server.conf:
+	dorzucone wlaczanie / wylaczanie optymalizacji.
 
 2006-01-27  Julian Krzeminski  <jk209476@students.mimuw.edu.pl>
 
@@ -2723,14 +2615,14 @@
 
 2006-01-27  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
 
-	* Server/Server.conf: - konfiguracja bledow we wlasciwym miejscu
+	* Server/Attic/Server.conf: - konfiguracja bledow we wlasciwym miejscu
 
 	* Errors/ErrorConsole.cpp, Errors/Makefile, Errors/consoletest.cpp:
 	- dodane czytanie konfiguracji
 
 2006-01-27  Krzysztof Stencel  <stencel@students.mimuw.edu.pl>
 
-	* Server/Server.conf: Dodanie konfiguracji Store.
+	* Server/Attic/Server.conf: Dodanie konfiguracji Store.
 
 2006-01-27  Adam Michalik  <am209482@students.mimuw.edu.pl>
 
@@ -2743,7 +2635,7 @@
 
 2006-01-27  Piotr Karpiuk  <pk167277@students.mimuw.edu.pl>
 
-	* Server/Server.cpp: *** empty log message ***
+	* Server/Attic/Server.cpp: *** empty log message ***
 
 2006-01-27  Dominik Klimczak  <dk189404@students.mimuw.edu.pl>
 
@@ -2753,7 +2645,7 @@
 
 	* Log/CrashRecovery.cpp: crash recover (2)
 
-	* Server/Server.cpp:
+	* Server/Attic/Server.cpp:
 	dodane wywolanie LogManager::start( storeManager );
 
 	* Log/CrashRecovery.cpp, Log/LogRecord.cpp, Log/Logs.cpp, Log/Logs.h, Log/TestLogs.cpp:
@@ -2792,9 +2684,9 @@
 
 2006-01-27  Piotr Turski  <pt209301@students.mimuw.edu.pl>
 
-	* Server/ListenerTcp.cpp: drobne poprawki
+	* Server/Attic/ListenerTcp.cpp: drobne poprawki
 
-	* Driver/Connection.cpp, Server/ServerTcp.cpp, Server/ListenerTcp.cpp:
+	* Driver/Connection.cpp, Server/Attic/ServerTcp.cpp, Server/Attic/ListenerTcp.cpp:
 	mniej niepotrzebnych komunikatow
 
 	* TCPProto/Tcp.cpp: nie wypisuje nic na ekran
@@ -2810,13 +2702,13 @@
 
 2006-01-27  Piotr Turski  <pt209301@students.mimuw.edu.pl>
 
-	* Server/ListenerTcp.cpp:
+	* Server/Attic/ListenerTcp.cpp:
 	wypisywanie na konsole
 	VS: ----------------------------------------------------------------------
 
 2006-01-27  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Listener.cpp: *** empty log message ***
+	* Server/Attic/Listener.cpp: *** empty log message ***
 
 2006-01-27  Michal Drausowski  <md243003@students.mimuw.edu.pl>
 
@@ -2825,7 +2717,7 @@
 
 2006-01-27  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Server.cpp: *** empty log message ***
+	* Server/Attic/Server.cpp: *** empty log message ***
 
 2006-01-27  Michal Drausowski  <md243003@students.mimuw.edu.pl>
 
@@ -2834,7 +2726,7 @@
 
 2006-01-27  Piotr Turski  <pt209301@students.mimuw.edu.pl>
 
-	* Server/Listener.cpp, Server/ListenerTcp.cpp:
+	* Server/Attic/Listener.cpp, Server/Attic/ListenerTcp.cpp:
 	opcjonalnie mozliwosc ponownego uzycia adresu uzywanego przez zamkniete juz gniazdo
 
 2006-01-26  Piotr Karpiuk  <pk167277@students.mimuw.edu.pl>
@@ -2850,11 +2742,12 @@
 
 2006-01-26  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Server.conf: *** empty log message ***
+	* Server/Attic/Server.conf: *** empty log message ***
 
 2006-01-26  Piotr Turski  <pt209301@students.mimuw.edu.pl>
 
-	* Server/Listener.h, Server/ListenerTcp.cpp: lepsza obsluga gniazd tcp
+	* Server/Attic/Listener.h, Server/Attic/ListenerTcp.cpp:
+	lepsza obsluga gniazd tcp
 
 2006-01-26  Sebastian Kaczanowski  <sk153407@students.mimuw.edu.pl>
 
@@ -2906,7 +2799,7 @@
 
 2006-01-26  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
 
-	* Store/DBStoreManager.cpp, Store/DBStoreManager.h, Server/Listener.cpp, Server/Listener.h, Server/ListenerTcp.cpp, Server/Server.cpp, Server/Server.h, Server/ServerTcp.cpp:
+	* Store/DBStoreManager.cpp, Store/DBStoreManager.h, Server/Attic/Listener.cpp, Server/Attic/Listener.h, Server/Attic/ListenerTcp.cpp, Server/Attic/Server.cpp, Server/Attic/Server.h, Server/Attic/ServerTcp.cpp:
 	- uporzadkowane uzycie errorconsole i config
 
 2006-01-26  Marcin Komor  <mk189406@students.mimuw.edu.pl>
@@ -2919,7 +2812,7 @@
 
 2006-01-26  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Listener.cpp, Server/Listener.h, Server/Server.cpp:
+	* Server/Attic/Listener.cpp, Server/Attic/Listener.h, Server/Attic/Server.cpp:
 	*** empty log message ***
 
 2006-01-26  Marcin Komor  <mk189406@students.mimuw.edu.pl>
@@ -2930,7 +2823,7 @@
 
 2006-01-26  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Listener.cpp: *** empty log message ***
+	* Server/Attic/Listener.cpp: *** empty log message ***
 
 2006-01-26  Marcin Komor  <mk189406@students.mimuw.edu.pl>
 
@@ -2938,16 +2831,18 @@
 
 2006-01-26  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Listener.h, Server/Server.cpp: *** empty log message ***
+	* Server/Attic/Listener.h, Server/Attic/Server.cpp:
+	*** empty log message ***
 
 2006-01-26  Piotr Turski  <pt209301@students.mimuw.edu.pl>
 
-	* Server/ListenerTcp.cpp, Server/ServerTcp.cpp, TCPProto/Tcp.cpp:
+	* Server/Attic/ListenerTcp.cpp, Server/Attic/ServerTcp.cpp, TCPProto/Tcp.cpp:
 	diagnostyka
 
 2006-01-26  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Listener.cpp, Server/Server.cpp: *** empty log message ***
+	* Server/Attic/Listener.cpp, Server/Attic/Server.cpp:
+	*** empty log message ***
 
 2006-01-26  Maksymilian Humpich  <mh209206@students.mimuw.edu.pl>
 
@@ -2968,7 +2863,8 @@
 
 2006-01-26  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Listener.cpp, Server/Server.cpp: *** empty log message ***
+	* Server/Attic/Listener.cpp, Server/Attic/Server.cpp:
+	*** empty log message ***
 
 2006-01-26  Marcin Komor  <mk189406@students.mimuw.edu.pl>
 
@@ -2976,11 +2872,11 @@
 
 2006-01-26  Piotr Turski  <pt209301@students.mimuw.edu.pl>
 
-	* Server/ListenerTcp.cpp, TCPProto/Tcp.cpp:
+	* Server/Attic/ListenerTcp.cpp, TCPProto/Tcp.cpp:
 	lepsza diagnostyka
 	: ----------------------------------------------------------------------
 
-	* SBQLCli/SBQLCli.cpp:
+	* SBQLCli/Attic/SBQLCli.cpp:
 	obsluga bledow servera
 
 2006-01-26  Michal Drausowski  <md243003@students.mimuw.edu.pl>
@@ -2989,7 +2885,8 @@
 
 2006-01-26  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Listener.cpp, Server/Server.cpp: *** empty log message ***
+	* Server/Attic/Listener.cpp, Server/Attic/Server.cpp:
+	*** empty log message ***
 
 2006-01-26  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
 
@@ -3023,7 +2920,7 @@
 
 2006-01-26  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Listener.cpp, Server/Server.cpp, Server/Server.h:
+	* Server/Attic/Listener.cpp, Server/Attic/Server.cpp, Server/Attic/Server.h:
 	*** empty log message ***
 
 2006-01-26  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
@@ -3119,14 +3016,15 @@
 	* TransactionManager/Transaction.cpp, TransactionManager/RWUJSemaphore.cpp:
 	- wyczyszczone uzycie errorconsole
 
-	* Server/Server.cpp: - dodalem parametr do konstruktora errorconsole
+	* Server/Attic/Server.cpp:
+	- dodalem parametr do konstruktora errorconsole
 
 	* Store/PageManager.cpp, Store/Buffer.cpp, Store/Buffer.h, Store/DBStoreManager.cpp, Store/DBStoreManager.h:
 	- errorconsole zamiast cout
 
 2006-01-25  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Server.cpp: *** empty log message ***
+	* Server/Attic/Server.cpp: *** empty log message ***
 
 2006-01-25  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
 
@@ -3135,7 +3033,7 @@
 
 2006-01-25  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Server.cpp, Errors/Errors.h: *** empty log message ***
+	* Server/Attic/Server.cpp, Errors/Errors.h: *** empty log message ***
 
 2006-01-25  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
 
@@ -3163,9 +3061,9 @@
 
 2006-01-25  Piotr Turski  <pt209301@students.mimuw.edu.pl>
 
-	* Server/Listener.cpp: zeby kompilowalo sie pod cygwinem
+	* Server/Attic/Listener.cpp: zeby kompilowalo sie pod cygwinem
 
-	* Server/Listener.h, Server/ListenerTcp.cpp:
+	* Server/Attic/Listener.h, Server/Attic/ListenerTcp.cpp:
 	dodana mozliwosc ustawienia dlugosci kolejki oczekujacych polaczen
 
 2006-01-25  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
@@ -3193,7 +3091,8 @@
 
 2006-01-25  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Listener.cpp, Server/Server.cpp: *** empty log message ***
+	* Server/Attic/Listener.cpp, Server/Attic/Server.cpp:
+	*** empty log message ***
 
 2006-01-25  Michal Drausowski  <md243003@students.mimuw.edu.pl>
 
@@ -3202,7 +3101,7 @@
 
 2006-01-25  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Listener.cpp, Server/Listener.h, Server/Server.cpp, Server/Server.h:
+	* Server/Attic/Listener.cpp, Server/Attic/Listener.h, Server/Attic/Server.cpp, Server/Attic/Server.h:
 	*** empty log message ***
 
 2006-01-25  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
@@ -3212,7 +3111,7 @@
 
 2006-01-24  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Server.cpp: *** empty log message ***
+	* Server/Attic/Server.cpp: *** empty log message ***
 
 2006-01-24  Piotr Karpiuk  <pk167277@students.mimuw.edu.pl>
 
@@ -3228,7 +3127,7 @@
 	Dodalem funkcje do pobierania i ustawiania obiektu TransactionManager
 	u nas.
 
-	* Server/Server.cpp:
+	* Server/Attic/Server.cpp:
 	Store potrzebuje dostepu do TransactionManagera (chca tego od nas Log),
 	dlatego w inicjalizacji serwera, dodalem jedna linijke kodu.
 
@@ -3244,7 +3143,7 @@
 
 2006-01-24  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Server.cpp: *** empty log message ***
+	* Server/Attic/Server.cpp: *** empty log message ***
 
 2006-01-24  Adam Michalik  <am209482@students.mimuw.edu.pl>
 
@@ -3258,7 +3157,7 @@
 
 2006-01-23  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Server.cpp: *** empty log message ***
+	* Server/Attic/Server.cpp: *** empty log message ***
 
 2006-01-23  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
 
@@ -3282,7 +3181,7 @@
 
 2006-01-23  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Listener.cpp, Server/Server.cpp, Server/Server.h:
+	* Server/Attic/Listener.cpp, Server/Attic/Server.cpp, Server/Attic/Server.h:
 	*** empty log message ***
 
 2006-01-23  Piotr Karpiuk  <pk167277@students.mimuw.edu.pl>
@@ -3375,7 +3274,7 @@
 
 2006-01-21  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Server.cpp: *** empty log message ***
+	* Server/Attic/Server.cpp: *** empty log message ***
 
 2006-01-21  Michal Drausowski  <md243003@students.mimuw.edu.pl>
 
@@ -3387,7 +3286,7 @@
 
 2006-01-21  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Server.cpp: *** empty log message ***
+	* Server/Attic/Server.cpp: *** empty log message ***
 
 2006-01-21  Sebastian Kaczanowski  <sk153407@students.mimuw.edu.pl>
 
@@ -3425,10 +3324,10 @@
 
 2006-01-20  Cezary Tkaczyk  <ct201224@students.mimuw.edu.pl>
 
-	* Driver/Connection.h: Jescze jedna zmiana w hierarchi wyjï¿½tkï¿½w
+	* Driver/Connection.h: Jescze jedna zmiana w hierarchi wyj±tków
 
 	* Driver/Connection.cpp, Driver/Connection.h, Driver/DriverManager.cpp, Driver/DriverManager.h:
-	Nowa hierarchia wyjï¿½tkï¿½w.
+	Nowa hierarchia wyj±tków.
 
 2006-01-20  Maksymilian Humpich  <mh209206@students.mimuw.edu.pl>
 
@@ -3560,7 +3459,7 @@
 
 2006-01-20  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Server.cpp: *** empty log message ***
+	* Server/Attic/Server.cpp: *** empty log message ***
 
 2006-01-20  Cezary Tkaczyk  <ct201224@students.mimuw.edu.pl>
 
@@ -3683,7 +3582,7 @@
 
 2006-01-17  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Server.cpp, Server/Server.h: Bledy, c-C
+	* Server/Attic/Server.cpp, Server/Attic/Server.h: Bledy, c-C
 
 	* Errors/Errors.h: bledy serwera
 
@@ -3707,7 +3606,7 @@
 
 2006-01-15  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Server.cpp: *** empty log message ***
+	* Server/Attic/Server.cpp: *** empty log message ***
 
 2006-01-15  Jakub Sitek  <js209298@students.mimuw.edu.pl>
 
@@ -3835,7 +3734,7 @@
 
 2006-01-12  Piotr Turski  <pt209301@students.mimuw.edu.pl>
 
-	* Driver/Attic/ResultTest.cpp, Driver/Connection.cpp, Driver/Connection.h, Driver/DriverManager.cpp, Driver/DriverManager.h, Driver/Result.cpp, Driver/Result.h, SBQLCli/SBQLCli.cpp, Server/Server.cpp, TCPProto/Tcp.cpp:
+	* Driver/Attic/ResultTest.cpp, Driver/Connection.cpp, Driver/Connection.h, Driver/DriverManager.cpp, Driver/DriverManager.h, Driver/Result.cpp, Driver/Result.h, SBQLCli/Attic/SBQLCli.cpp, Server/Attic/Server.cpp, TCPProto/Tcp.cpp:
 	teraz driver jest w swoim namespacie
 
 2006-01-12  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
@@ -3885,12 +3784,12 @@
 
 2006-01-06  Cezary Tkaczyk  <ct201224@students.mimuw.edu.pl>
 
-	* Driver/Connection.h: Poprzednio zabrakï¿½o commit Connection.h
+	* Driver/Connection.h: Poprzednio zabrak³o commit Connection.h
 
-	* Driver/Connection.cpp, SBQLCli/SBQLCli.cpp, TCPProto/Tcp.cpp, TCPProto/Tcp.h:
-	Dodana obsluga skryptï¿½w przekazywanych na stdin bez wypisywania promptï¿½w.
-	Obsï¿½uga wielolinijkowych zapytaï¿½ (zapytanie koï¿½czy siï¿½ jeï¿½li w
-		ostatniej linijce, w dowolnym miejscu wystï¿½piï¿½ ';').
+	* Driver/Connection.cpp, SBQLCli/Attic/SBQLCli.cpp, TCPProto/Tcp.cpp, TCPProto/Tcp.h:
+	Dodana obsluga skryptów przekazywanych na stdin bez wypisywania promptów.
+	Obs³uga wielolinijkowych zapytañ (zapytanie koñczy siê je¶li w
+		ostatniej linijce, w dowolnym miejscu wyst±pi³ ';').
 
 2006-01-06  Michal Drausowski  <md243003@students.mimuw.edu.pl>
 
@@ -3928,8 +3827,8 @@
 
 2006-01-06  Cezary Tkaczyk  <ct201224@students.mimuw.edu.pl>
 
-	* Driver/Connection.cpp, Server/Server.cpp:
-	naprawione przesyï¿½anie stringa po sieci
+	* Driver/Connection.cpp, Server/Attic/Server.cpp:
+	naprawione przesy³anie stringa po sieci
 
 2006-01-06  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
 
@@ -3968,7 +3867,7 @@
 
 2006-01-04  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Server.cpp: obsluga nowych typeow
+	* Server/Attic/Server.cpp: obsluga nowych typeow
 
 2006-01-02  Adam Michalik  <am209482@students.mimuw.edu.pl>
 
@@ -4081,7 +3980,7 @@
 
 2005-12-13  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Server.cpp: *** empty log message ***
+	* Server/Attic/Server.cpp: *** empty log message ***
 
 2005-12-13  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
 
@@ -4090,7 +3989,8 @@
 
 2005-12-12  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Server.cpp, Server/Server.h: *** empty log message ***
+	* Server/Attic/Server.cpp, Server/Attic/Server.h:
+	*** empty log message ***
 
 2005-12-12  Piotr Turski  <pt209301@students.mimuw.edu.pl>
 
@@ -4122,7 +4022,7 @@
 
 2005-12-11  Marcin Komor  <mk189406@students.mimuw.edu.pl>
 
-	* Store/File.cpp: Pliki poprawnie siï¿½ inicjalizujï¿½.
+	* Store/File.cpp: Pliki poprawnie siê inicjalizuj±.
 
 	* Store/File.cpp: Zmiany w start()
 
@@ -4133,7 +4033,7 @@
 
 2005-12-10  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Server.cpp, Server/do, Server/Server.h:
+	* Server/Attic/Server.cpp, Server/Attic/do, Server/Attic/Server.h:
 	*** empty log message ***
 
 2005-12-10  Julian Krzeminski  <jk209476@students.mimuw.edu.pl>
@@ -4157,7 +4057,7 @@
 
 2005-12-09  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
 
-	* Server/Server.cpp: - wyprostowane uzycie wskaznikow
+	* Server/Attic/Server.cpp: - wyprostowane uzycie wskaznikow
 
 2005-12-09  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
 
@@ -4170,7 +4070,8 @@
 
 	* Log/.cvsignore: - uzupelnienia
 
-	* Server/Server.cpp: - poprawione wywolanie konstruktora SBQLConfig
+	* Server/Attic/Server.cpp:
+	- poprawione wywolanie konstruktora SBQLConfig
 
 	* Config/SBQLConfig.cpp, Config/SBQLConfig.h:
 	- zlikwidowany bezparametrowy konstruktor
@@ -4181,7 +4082,7 @@
 
 	* make.defs: - dodane wersja CXXFLAGS dla debug
 
-	* Server/Server.cpp: - poprawione uzywanie wskaznikow (za duzo &)
+	* Server/Attic/Server.cpp: - poprawione uzywanie wskaznikow (za duzo &)
 
 2005-12-09  Dominik Klimczak  <dk189404@students.mimuw.edu.pl>
 
@@ -4190,7 +4091,7 @@
 
 2005-12-09  Krzysztof Stencel  <stencel@students.mimuw.edu.pl>
 
-	* Server/ipcrmall.bat: Usuwanie semaforow.
+	* Server/Attic/ipcrmall.bat: Usuwanie semaforow.
 
 2005-12-09  Dominik Klimczak  <dk189404@students.mimuw.edu.pl>
 
@@ -4221,14 +4122,14 @@
 
 2005-12-06  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Listener.cpp, Server/Server.cpp:
+	* Server/Attic/Listener.cpp, Server/Attic/Server.cpp:
 	nowy lepszy bufor
 
 2005-12-05  Piotr Turski  <pt209301@students.mimuw.edu.pl>
 
 	* Driver/Connection.cpp: lepsza diagnostyka przy odbiorze wynikow
 
-	* Driver/Connection.cpp, Driver/Connection.h, Driver/DriverManager.cpp, SBQLCli/SBQLCli.cpp:
+	* Driver/Connection.cpp, Driver/Connection.h, Driver/DriverManager.cpp, SBQLCli/Attic/SBQLCli.cpp:
 	dodana obsluga watkow w driverze i cliencie
 
 2005-12-05  Adam Michalik  <am209482@students.mimuw.edu.pl>
@@ -4238,8 +4139,8 @@
 
 2005-12-05  Cezary Tkaczyk  <ct201224@students.mimuw.edu.pl>
 
-	* Driver/Connection.cpp, Driver/Connection.h, Driver/DriverManager.cpp, SBQLCli/SBQLCli.cpp, Driver/DriverManager.h:
-	Dodany wyjï¿½tek ConnectionException. Zmiany w Connection, DriverManager i SBQLCli
+	* Driver/Connection.cpp, Driver/Connection.h, Driver/DriverManager.cpp, SBQLCli/Attic/SBQLCli.cpp, Driver/DriverManager.h:
+	Dodany wyj±tek ConnectionException. Zmiany w Connection, DriverManager i SBQLCli
 
 2005-12-04  Piotr Karpiuk  <pk167277@students.mimuw.edu.pl>
 
@@ -4253,7 +4154,7 @@
 	* Store/DBPhysicalID.cpp, Store/DBPhysicalID.h:
 	Dodanie const przy metodach
 
-	* Server/Server.cpp: Destruktor do LockManager
+	* Server/Attic/Server.cpp: Destruktor do LockManager
 
 	* TransactionManager/Attic/Semlib.h, TransactionManager/Transaction.cpp, TransactionManager/Transaction.h:
 	Dodanie ErrorConsole
@@ -4296,7 +4197,7 @@
 
 2005-12-02  Cezary Tkaczyk  <ct201224@students.mimuw.edu.pl>
 
-	* Server/Server.cpp: Inicjowanie ErrorConsole
+	* Server/Attic/Server.cpp: Inicjowanie ErrorConsole
 
 2005-12-02  Jakub Sitek  <js209298@students.mimuw.edu.pl>
 
@@ -4333,7 +4234,7 @@
 
 2005-12-02  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Server.cpp: *** empty log message ***
+	* Server/Attic/Server.cpp: *** empty log message ***
 
 2005-12-02  Michal Drausowski  <md243003@students.mimuw.edu.pl>
 
@@ -4348,7 +4249,7 @@
 
 2005-12-02  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Server.cpp: Server dziala w petli teraz
+	* Server/Attic/Server.cpp: Server dziala w petli teraz
 
 2005-12-02  Jakub Sitek  <js209298@students.mimuw.edu.pl>
 
@@ -4393,7 +4294,7 @@
 
 2005-12-01  Piotr Turski  <pt209301@students.mimuw.edu.pl>
 
-	* Driver/Connection.cpp, Driver/Makefile, Makefile, SBQLCli/Makefile, Server/Makefile, Server/ServerTcp.cpp, TCPProto/Makefile, TCPProto/Tcp.cpp, TCPProto/Tcp.h:
+	* Driver/Connection.cpp, Driver/Makefile, Makefile, SBQLCli/Attic/Makefile, Server/Attic/Makefile, Server/Attic/ServerTcp.cpp, TCPProto/Makefile, TCPProto/Tcp.cpp, TCPProto/Tcp.h:
 	zmiany wynikajace z utworzenia nowego katalogu odpowiedzialnego za obsluge sieci
 
 2005-12-01  Adam Michalik  <am209482@students.mimuw.edu.pl>
@@ -4416,7 +4317,8 @@
 
 2005-11-30  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Server.cpp, Server/Server.h: *** empty log message ***
+	* Server/Attic/Server.cpp, Server/Attic/Server.h:
+	*** empty log message ***
 
 2005-11-30  Piotr Turski  <pt209301@students.mimuw.edu.pl>
 
@@ -4454,7 +4356,7 @@
 
 2005-11-28  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Server.cpp: *** empty log message ***
+	* Server/Attic/Server.cpp: *** empty log message ***
 
 2005-11-27  Maksymilian Humpich  <mh209206@students.mimuw.edu.pl>
 
@@ -4463,7 +4365,8 @@
 
 2005-11-27  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* SBQLCli/SBQLCli.cpp, Server/Server.cpp: *** empty log message ***
+	* SBQLCli/Attic/SBQLCli.cpp, Server/Attic/Server.cpp:
+	*** empty log message ***
 
 2005-11-26  Michal Drausowski  <md243003@students.mimuw.edu.pl>
 
@@ -4472,7 +4375,7 @@
 
 2005-11-26  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Server.cpp: *** empty log message ***
+	* Server/Attic/Server.cpp: *** empty log message ***
 
 2005-11-26  Michal Drausowski  <md243003@students.mimuw.edu.pl>
 
@@ -4507,7 +4410,7 @@
 
 2005-11-25  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
 
-	* SBQLCli/Makefile, Driver/Makefile: - wlaczona obsluga wyjatkow
+	* SBQLCli/Attic/Makefile, Driver/Makefile: - wlaczona obsluga wyjatkow
 
 2005-11-25  Maksymilian Humpich  <mh209206@students.mimuw.edu.pl>
 
@@ -4516,17 +4419,19 @@
 
 2005-11-25  Cezary Tkaczyk  <ct201224@students.mimuw.edu.pl>
 
-	* SBQLCli/SBQLCli.cpp: *** empty log message ***
+	* SBQLCli/Attic/SBQLCli.cpp: *** empty log message ***
 
 2005-11-25  Piotr Turski  <pt209301@students.mimuw.edu.pl>
 
 	* Driver/Connection.cpp: komunikaty ulatwiajace debbugowanie
 
-	* SBQLCli/SBQLCli.cpp: sprawdzanie czy zapytanie wykonalo sie poprawnie
+	* SBQLCli/Attic/SBQLCli.cpp:
+	sprawdzanie czy zapytanie wykonalo sie poprawnie
 
 2005-11-25  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Server.cpp, Server/Server.h: *** empty log message ***
+	* Server/Attic/Server.cpp, Server/Attic/Server.h:
+	*** empty log message ***
 
 2005-11-25  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
 
@@ -4550,7 +4455,7 @@
 
 2005-11-25  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
 
-	* Server/Makefile:
+	* Server/Attic/Makefile:
 	- koszerne rozwiazanie problemu kolejnosci linkowania
 
 2005-11-25  Michal Drausowski  <md243003@students.mimuw.edu.pl>
@@ -4560,12 +4465,12 @@
 
 2005-11-25  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
 
-	* Server/Makefile, Errors/ErrorConsole.cpp:
+	* Server/Attic/Makefile, Errors/ErrorConsole.cpp:
 	- poprawione linkowanie bledow
 
 2005-11-25  Piotr Turski  <pt209301@students.mimuw.edu.pl>
 
-	* Server/Server.cpp: server wysyla stringa do parsera
+	* Server/Attic/Server.cpp: server wysyla stringa do parsera
 
 2005-11-25  Tomasz Romanczuk  <tr209287@students.mimuw.edu.pl>
 
@@ -4578,7 +4483,7 @@
 
 2005-11-25  Piotr Turski  <pt209301@students.mimuw.edu.pl>
 
-	* Server/Server.cpp: *** empty log message ***
+	* Server/Attic/Server.cpp: *** empty log message ***
 
 2005-11-25  Tomasz Romanczuk  <tr209287@students.mimuw.edu.pl>
 
@@ -4598,7 +4503,7 @@
 
 2005-11-25  Piotr Turski  <pt209301@students.mimuw.edu.pl>
 
-	* Server/Server.cpp: danianie cd
+	* Server/Attic/Server.cpp: danianie cd
 
 2005-11-25  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
 
@@ -4615,11 +4520,12 @@
 
 2005-11-25  Piotr Turski  <pt209301@students.mimuw.edu.pl>
 
-	* Server/Server.cpp: tosowanie server do executora
+	* Server/Attic/Server.cpp: tosowanie server do executora
 
 2005-11-25  Cezary Tkaczyk  <ct201224@students.mimuw.edu.pl>
 
-	* SBQLCli/SBQLCli.cpp: Automatycznie wybierany jest localhost i port
+	* SBQLCli/Attic/SBQLCli.cpp:
+	Automatycznie wybierany jest localhost i port
 
 2005-11-25  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
 
@@ -4638,7 +4544,7 @@
 
 2005-11-25  Piotr Turski  <pt209301@students.mimuw.edu.pl>
 
-	* Server/Server.cpp: uzgodnienie servera z executorem
+	* Server/Attic/Server.cpp: uzgodnienie servera z executorem
 
 2005-11-25  Adam Michalik  <am209482@students.mimuw.edu.pl>
 
@@ -4647,7 +4553,7 @@
 
 2005-11-25  Cezary Tkaczyk  <ct201224@students.mimuw.edu.pl>
 
-	* QueryExecutor/QueryResult.h: W QueryResult.h dodane staï¿½e w enum
+	* QueryExecutor/QueryResult.h: W QueryResult.h dodane sta³e w enum
 
 2005-11-25  Tomasz Romanczuk  <tr209287@students.mimuw.edu.pl>
 
@@ -4724,13 +4630,14 @@
 
 2005-11-24  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Server.cpp, Server/Server.h: Serialize
+	* Server/Attic/Server.cpp, Server/Attic/Server.h: Serialize
 
 2005-11-23  Cezary Tkaczyk  <ct201224@students.mimuw.edu.pl>
 
 	* SBQLCli/Attic/client.cpp: Usuniety plik client.cpp
 
-	* SBQLCli/SBQLCli.cpp: SBQLCli - otrzymywanie i wypisywanie wyniku
+	* SBQLCli/Attic/SBQLCli.cpp:
+	SBQLCli - otrzymywanie i wypisywanie wyniku
 
 2005-11-23  Julian Krzeminski  <jk209476@students.mimuw.edu.pl>
 
@@ -4765,7 +4672,7 @@
 	Usuniete zostaly stare pliki typu Result*.h i Result*.cpp
 
 	* Driver/Result.cpp, Driver/Result.h:
-	Napisaï¿½em implementacje zdefiniowanego wczesniej interfejsu. Destruktory nie dzialaja jeszcze dobrze.
+	Napisa³em implementacje zdefiniowanego wczesniej interfejsu. Destruktory nie dzialaja jeszcze dobrze.
 
 2005-11-22  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
 
@@ -4783,7 +4690,7 @@
 
 	* Driver/Result.h: enumerator - typ wyniku
 
-	* Server/Server.cpp: dostosowanie servera do queryExecutora
+	* Server/Attic/Server.cpp: dostosowanie servera do queryExecutora
 
 2005-11-21  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
 
@@ -4882,7 +4789,7 @@
 
 2005-11-18  Cezary Tkaczyk  <ct201224@students.mimuw.edu.pl>
 
-	* Driver/Result.h, SBQLCli/Makefile, SBQLCli/SBQLCli.cpp:
+	* Driver/Result.h, SBQLCli/Attic/Makefile, SBQLCli/Attic/SBQLCli.cpp:
 	SBQLCli uaktualniony
 
 	* Driver/Connection.cpp, Driver/Makefile, Driver/Result.cpp, Driver/Result.h:
@@ -4909,7 +4816,7 @@
 
 2005-11-18  Piotr Turski  <pt209301@students.mimuw.edu.pl>
 
-	* Server/Server.cpp: parseIt
+	* Server/Attic/Server.cpp: parseIt
 
 2005-11-18  Krzysztof Stencel  <stencel@students.mimuw.edu.pl>
 
@@ -4935,7 +4842,7 @@
 
 	* make.defs: - zmieniony yacc na bison
 
-	* Store/Makefile, TransactionManager/Makefile, Server/Makefile, SBQLCli/Makefile, QueryParser/Makefile, QueryExecutor/Makefile, Errors/Makefile, Lock/Makefile, Driver/Makefile, Config/Makefile, Backup/Makefile:
+	* Store/Makefile, TransactionManager/Makefile, Server/Attic/Makefile, SBQLCli/Attic/Makefile, QueryParser/Makefile, QueryExecutor/Makefile, Errors/Makefile, Lock/Makefile, Driver/Makefile, Config/Makefile, Backup/Makefile:
 	- dodane LDFLAGS
 
 	* Log/Makefile, make.defs: - -lpthread przeniesione do LDFLAGS
@@ -4960,7 +4867,7 @@
 
 2005-11-18  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Server.cpp: *** empty log message ***
+	* Server/Attic/Server.cpp: *** empty log message ***
 
 2005-11-18  Cezary Tkaczyk  <ct201224@students.mimuw.edu.pl>
 
@@ -4969,7 +4876,8 @@
 
 2005-11-17  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Server.cpp, Server/Server.h: *** empty log message ***
+	* Server/Attic/Server.cpp, Server/Attic/Server.h:
+	*** empty log message ***
 
 2005-11-17  Jan Rekorajski  <jr243017@students.mimuw.edu.pl>
 
@@ -5037,7 +4945,7 @@
 
 2005-11-16  Piotr Turski  <pt209301@students.mimuw.edu.pl>
 
-	* Driver/Connection.cpp, Server/Server.h, Server/ServerTcp.cpp:
+	* Driver/Connection.cpp, Server/Attic/Server.h, Server/Attic/ServerTcp.cpp:
 	po tcp mozna juz przesylac dlugie bufory
 
 2005-11-15  Adam Michalik  <am209482@students.mimuw.edu.pl>
@@ -5089,11 +4997,11 @@
 
 2005-11-07  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
 
-	* Server/Makefile: - uzywaj CXXFLAGS przy kazdej kompilacji
+	* Server/Attic/Makefile: - uzywaj CXXFLAGS przy kazdej kompilacji
 
 2005-11-07  Cezary Tkaczyk  <ct201224@students.mimuw.edu.pl>
 
-	* SBQLCli/Makefile, SBQLCli/SBQLCli.cpp, Server/Makefile:
+	* SBQLCli/Attic/Makefile, SBQLCli/Attic/SBQLCli.cpp, Server/Attic/Makefile:
 	SBQLCli.cpp - dostosowanie do Driver.a;
 	Poprawiony Makefile w SBQLCli i w Server
 
@@ -5102,28 +5010,28 @@
 
 2005-11-07  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Listener.cpp, Server/ListenerTcp.cpp, Server/Server.h, Server/ServerTcp.cpp, Server/Server.cpp:
+	* Server/Attic/Listener.cpp, Server/Attic/ListenerTcp.cpp, Server/Attic/Server.h, Server/Attic/ServerTcp.cpp, Server/Attic/Server.cpp:
 	nowy server i listener budujace sie do programu Listener
 
-	* Server/Makefile: *** empty log message ***
+	* Server/Attic/Makefile: *** empty log message ***
 
 2005-11-07  Piotr Turski  <pt209301@students.mimuw.edu.pl>
 
-	* Server/ListenerTcp.cpp:
+	* Server/Attic/ListenerTcp.cpp:
 	server pokaze swoj adres - latwiej sie bedzie podlaczyc
 
 	* Driver/Attic/ResultSet.cpp, Driver/Attic/ResultSet.h, Driver/DriverManager.h, Driver/Makefile:
 	drobne poprawki makefile'a, zmiana niektorych metod na statyczne, dodanie plikow naglowkowych
 
-	* .cdtproject, Server/ListenerTcp.cpp, Driver/Connection.cpp, Driver/Connection.h, Driver/DriverManager.cpp, Driver/DriverManager.h:
+	* .cdtproject, Server/Attic/ListenerTcp.cpp, Driver/Connection.cpp, Driver/Connection.h, Driver/DriverManager.cpp, Driver/DriverManager.h:
 	tcp przepisane na linuxa
 
 2005-11-06  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
-	* Server/Listener.cpp, Server/Listener.h, Server/ListenerTcp.cpp, Server/Makefile.smm, Server/Sender.cpp, Server/Server.cpp, Server/Server.h, Server/ServerTcp.cpp:
+	* Server/Attic/Listener.cpp, Server/Attic/Listener.h, Server/Attic/ListenerTcp.cpp, Server/Attic/Makefile.smm, Server/Attic/Sender.cpp, Server/Attic/Server.cpp, Server/Attic/Server.h, Server/Attic/ServerTcp.cpp:
 	Kompilujaca sie wersja. Nie mialem czasu testowac, ale sie kompiluje i odpala z nasluchem. Zalaczam Makefile.smm (robilem swoj bo tamten cos sie wyp.adal) ktory to buduje. Trzeba jeszcze skopiowac tworzenie obiektow z client.cpp
 
-	* Server/Listener.h: dziewiczy naglowek, zglaszajcie uwagi
+	* Server/Attic/Listener.h: dziewiczy naglowek, zglaszajcie uwagi
 
 2005-11-04  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
 
@@ -5137,7 +5045,7 @@
 
 2005-11-04  Adam Michalik  <am209482@students.mimuw.edu.pl>
 
-	* Makefile, SBQLCli/Attic/client.cpp, SBQLCli/Makefile:
+	* Makefile, SBQLCli/Attic/Makefile, SBQLCli/Attic/client.cpp:
 	*** empty log message ***
 
 2005-11-04  Krzysztof Stencel  <stencel@students.mimuw.edu.pl>
@@ -5174,13 +5082,13 @@
 
 2005-11-02  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
 
-	* Config/Makefile, Driver/Makefile, Errors/Makefile, Log/Makefile, QueryExecutor/Makefile, QueryParser/Makefile, SBQLCli/Makefile, Server/Makefile, Store/Makefile, TransactionManager/Makefile, Backup/Makefile:
+	* Config/Makefile, Driver/Makefile, Errors/Makefile, Log/Makefile, QueryExecutor/Makefile, QueryParser/Makefile, SBQLCli/Attic/Makefile, Server/Attic/Makefile, Store/Makefile, TransactionManager/Makefile, Backup/Makefile:
 	- nie wypisuj niepotrzebnych komunikatow o bledach
 
 	* Backup/.cvsignore, Config/.cvsignore, Driver/.cvsignore, Errors/.cvsignore, Lock/.cvsignore, Log/.cvsignore, QueryExecutor/.cvsignore, QueryParser/.cvsignore, SBQLCli/.cvsignore, Server/.cvsignore, Store/.cvsignore, TransactionManager/.cvsignore, .cvsignore:
 	- dodane zaleznosci dla Makefile do .cvsignore
 
-	* Backup/Makefile, Config/Makefile, Driver/Makefile, Errors/Makefile, Log/Makefile, QueryExecutor/Makefile, QueryParser/Makefile, SBQLCli/Makefile, Server/Makefile, Store/Makefile, TransactionManager/Makefile, Makefile, make.defs:
+	* Backup/Makefile, Config/Makefile, Driver/Makefile, Errors/Makefile, Log/Makefile, QueryExecutor/Makefile, QueryParser/Makefile, SBQLCli/Attic/Makefile, Server/Attic/Makefile, Store/Makefile, TransactionManager/Makefile, Makefile, make.defs:
 	- porzadny system Makefile
 
 	* Store/DBStoreManager.h, Store/Makefile, Store/Store.h, TransactionManager/Makefile, TransactionManager/Transaction.cpp, QueryExecutor/QueryExecutor.cpp, SBQLCli/Attic/client.cpp, Log/Logs.cpp, Log/Logs.h, Log/Makefile:
@@ -5203,7 +5111,8 @@
 	* kierownicy.txt: Dodanie maili ludzi do pliku kierownikow.
 	Kazdy jest tez swoim kierownikiem.
 
-	* SBQLCli/Makefile: Poprawka tak zeby client zalezal od bibliotek.
+	* SBQLCli/Attic/Makefile:
+	Poprawka tak zeby client zalezal od bibliotek.
 
 	* TransactionManager/Makefile, TransactionManager/Transaction.cpp, TransactionManager/Transaction.h:
 	Zastosowanie wzorca projektowego Singleton do TransactionManager.
@@ -5219,11 +5128,11 @@
 2005-10-31  Cezary Tkaczyk  <ct201224@students.mimuw.edu.pl>
 
 	* SBQLCli/Attic/client.cpp:
-	Miejmy nadzieje ostatnia wersja tego pliku. Poprawione formatowanie wynikï¿½w.
+	Miejmy nadzieje ostatnia wersja tego pliku. Poprawione formatowanie wyników.
 
 2005-10-31  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
 
-	* SBQLCli/SBQLCli.cpp, Server/ConnectionThread.cpp, Server/ConnectionThread.h, Server/Server.cpp, Server/Server.h, QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryExecutor.h, Driver/Attic/ResultSet.cpp, Driver/Attic/ResultSet.h, Driver/Connection.cpp, Driver/Connection.h, Driver/DriverManager.cpp, Driver/DriverManager.h:
+	* SBQLCli/Attic/SBQLCli.cpp, Server/Attic/ConnectionThread.cpp, Server/Attic/ConnectionThread.h, Server/Attic/Server.cpp, Server/Attic/Server.h, QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryExecutor.h, Driver/Attic/ResultSet.cpp, Driver/Attic/ResultSet.h, Driver/Connection.cpp, Driver/Connection.h, Driver/DriverManager.cpp, Driver/DriverManager.h:
 	- przekonwertowane konce linii do formatu uniksowego
 
 	* Makefile: - poprawiona kolejnosc budowania
@@ -5258,12 +5167,12 @@
 
 2005-10-29  Cezary Tkaczyk  <ct201224@students.mimuw.edu.pl>
 
-	* SBQLCli/Makefile:
+	* SBQLCli/Attic/Makefile:
 	Dodane WSZYSTKIE biblioteki do ostatecznego linkowania.
 	Dodany include ../make.defs
 
 	* SBQLCli/Attic/client.cpp:
-	Zmieny wynikajï¿½ce z aktualizacji innych moduï¿½ï¿½w, po przeprowadzonych testach. Jeszcze sï¿½ problemy z QueryExecutor.
+	Zmieny wynikaj¹ce z aktualizacji innych modu³ów, po przeprowadzonych testach. Jeszcze s¹ problemy z QueryExecutor.
 
 2005-10-28  Dominik Klimczak  <dk189404@students.mimuw.edu.pl>
 
@@ -5406,7 +5315,7 @@
 
 2005-10-28  Cezary Tkaczyk  <ct201224@students.mimuw.edu.pl>
 
-	* .cdtproject, .project, Driver/Makefile, SBQLCli/Attic/client.cpp, SBQLCli/Makefile, Server/Makefile:
+	* .cdtproject, .project, Driver/Makefile, SBQLCli/Attic/Makefile, SBQLCli/Attic/client.cpp, Server/Attic/Makefile:
 	Wykomentowane Makfile w Server i Driver
 	Dziala tylko client.cpp
 
@@ -5475,7 +5384,7 @@
 
 	* Makefile, make.defs: - main Makefile and global definitions
 
-	* Server/ConnectionThread.cpp, Server/ConnectionThread.h, Server/Makefile, Server/Server.cpp, Server/Server.h, SBQLCli/Makefile, SBQLCli/SBQLCli.cpp, Driver/Attic/ResultSet.cpp, Driver/Attic/ResultSet.h, Driver/Connection.cpp, Driver/Connection.h, Driver/DriverManager.cpp, Driver/DriverManager.h, Driver/Makefile, TransactionManager/Transaction.h, Log/Logs.h:
+	* Server/Attic/ConnectionThread.cpp, Server/Attic/ConnectionThread.h, Server/Attic/Makefile, Server/Attic/Server.cpp, Server/Attic/Server.h, SBQLCli/Attic/Makefile, SBQLCli/Attic/SBQLCli.cpp, Driver/Attic/ResultSet.cpp, Driver/Attic/ResultSet.h, Driver/Connection.cpp, Driver/Connection.h, Driver/DriverManager.cpp, Driver/DriverManager.h, Driver/Makefile, TransactionManager/Transaction.h, Log/Logs.h:
 	- initial revision
 
 	* QueryExecutor/QueryExecutor.cpp: - get Store.h from proper place
