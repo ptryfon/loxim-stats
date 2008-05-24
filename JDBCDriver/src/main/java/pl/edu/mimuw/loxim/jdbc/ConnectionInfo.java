@@ -1,4 +1,4 @@
-package edu.mimuw.loxim.jdbc;
+package pl.edu.mimuw.loxim.jdbc;
 
 import java.util.Properties;
 
@@ -31,6 +31,10 @@ class ConnectionInfo {
 
 	public String getHost() {
 		return host;
+	}
+	
+	public int getPort() {
+		return port;
 	}
 
 	public String getDb() {

@@ -1,5 +1,6 @@
-package edu.mimuw.loxim.jdbc;
+package pl.edu.mimuw.loxim.jdbc;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -40,7 +41,7 @@ public class LoXiMDriverImpl implements LoXiMDriver {
 				ConnectionInfo conInfo = DatabaseURL.parseURL(jdbcURL);
 				conInfo.setInfo(info);
 				return new LoXiMConnectionImpl(conInfo);
-			} catch (MalformedURLException e) {
+			} catch (IOException e) {
 				throw new SQLException(e);
 			}
 		}

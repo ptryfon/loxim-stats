@@ -1,4 +1,4 @@
-package edu.mimuw.loxim.jdbc;
+package pl.edu.mimuw.loxim.jdbc;
 
 import java.net.MalformedURLException;
 import java.util.regex.Matcher;

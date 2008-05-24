@@ -1,5 +1,8 @@
-package edu.mimuw.loxim.jdbc;
+package pl.edu.mimuw.loxim.jdbc;
 
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.Socket;
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.CallableStatement;
@@ -15,16 +18,43 @@ import java.sql.SQLXML;
 import java.sql.Savepoint;
 import java.sql.Statement;
 import java.sql.Struct;
+import java.util.Calendar;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
+
+import pl.edu.mimuw.loxim.protocol.enums.CollationsEnum;
+import pl.edu.mimuw.loxim.protocol.packages.W_c_helloPackage;
+import pl.edu.mimuw.loxim.protogen.lang.java.template.pstreams.PackageInputStream;
+import pl.edu.mimuw.loxim.protogen.lang.java.template.pstreams.PackageOutputStream;
+import pl.edu.mimuw.loxim.protogen.lang.java.template.ptools.Package;
 
 public class LoXiMConnectionImpl implements LoXiMConnection {
 
 	private boolean autoCommit = true;
 	private boolean isClosed = true;
 	
-	public LoXiMConnectionImpl(ConnectionInfo info) {
-		// TODO
+	private PackageOutputStream pos;
+	private PackageInputStream pis;
+	
+	public LoXiMConnectionImpl(ConnectionInfo info) throws IOException {
+		
+		Socket outSocket = new Socket(info.getHost(), info.getPort());
+		pos = new PackageOutputStream(outSocket.getOutputStream());
+		
+		Package pac;
+		
+		pac = new W_c_helloPackage(
+			0L,
+			InetAddress.getLocalHost().getHostName(),
+			LoXiMProperties.LoXiMDriverMajor + "." + LoXiMProperties.LoXiMDriverMinor, 
+			InetAddress.getLocalHost().getHostName(), 
+			Locale.getDefault().getLanguage(), 
+			CollationsEnum.coll_default, 
+			(byte) ((Calendar.getInstance().get(Calendar.ZONE_OFFSET) + Calendar.getInstance().get(Calendar.DST_OFFSET)) / (1000 * 60 * 60)));
+	
+		
+		
 	}
 	
 	@Override
@@ -34,7 +64,7 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 	}
 
 	@Override
-	public void close() throws SQLException {
+	public void close() throws SQLException {		
 		// TODO Auto-generated method stub
 
 	}

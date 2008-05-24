@@ -1,4 +1,4 @@
-package edu.mimuw.loxim.jdbc;
+package pl.edu.mimuw.loxim.jdbc;
 
 public class LoXiMRuntimeException extends RuntimeException {
 
