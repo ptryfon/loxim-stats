@@ -16,7 +16,7 @@ class BoolData: public DataPart
 		BoolData(bool a_value);
 		virtual ~BoolData();
 		
-		uint8_t getValue(){return value;};
+		bool getValue(){return value;};
 		
 		virtual uint64_t getDataType(){return DATAPART_TYPE_BOOL;};
 		

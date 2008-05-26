@@ -280,7 +280,7 @@ void LoximClient::LoximClient::print_result(DataPart *part, int indent)
 		cout << ind_gen(indent) << ((DoubleData*)part)->getValue() << endl;
 		break;
 	    case DATAPART_TYPE_BOOL:
-		cout << ind_gen(indent) << ((BoolData*)part)->getValue() << endl;
+		cout << ind_gen(indent) << (((BoolData*)part)->getValue()?"true":"false") << endl;
 		break;
 	    case DATAPART_TYPE_BINDING:
 		cout << ind_gen(indent) << "Binding" << endl;
