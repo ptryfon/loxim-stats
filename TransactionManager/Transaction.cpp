@@ -104,7 +104,10 @@ namespace TManager
 			
 		}
 		
-		if (errorNumber) abort();
+		if (errorNumber) {
+			abort();
+			return errorNumber;
+		}
 		
 		if (p == NULL && !allowNullObject) {
 			err.printf("getObjectPointer, object doesn't exist while we expect existing object\n");
