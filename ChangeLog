@@ -1,3 +1,8 @@
+2008-06-02  Marek Dopiera  <md219418@students.mimuw.edu.pl>
+
+	* LoximClient/LoximClient.cpp, TransactionManager/Transaction.cpp:
+	Poprawka segfaulta przy wycofywaniu transakcji i ładniejsze wypisywanie bindingów
+
 2008-05-26  Marek Dopiera  <md219418@students.mimuw.edu.pl>
 
 	* LoximClient/LoximClient.cpp, protocol/packages/data/BoolData.h:
