@@ -21,12 +21,16 @@ union zupkachinska.woda.sod union jogurt.ovocki.woda.sod union
 kawa.woda.sod)
 /
 -- Liczba chemikaliow w zupkach chinskich 
-count(zupkachinska.nazwa, zupkachinska.chemikalium)
+count((zupkachinska.nazwa, zupkachinska.chemikalium))
+/
+1
 /
 -- Produkty zwiazane z imieniem Zosia 
 jajecznica where jajko.kura.imie = "Zosia" or boczek.krowa.imie = 
 "Zosia" union chleb where maka.mlynarz.zona.imie = "Zosia" union jogurt 
 where mleko.krowa.imie = "Zosia" 
+/
+2
 /
 -- Wsciekle kawy 
 kawa where mleko.krowa.BSE = "true"
@@ -38,7 +42,7 @@ deref((jajecznica.jajko.kura.ziarno.rodzaj,jajecznica.jajko.kura.ptasia_grypa) u
 /
 
 -- Zaleznosc miedzy imieniem zony mlynarza, a rodzajem wypiekanego chleba 
-deref(chleb.maka.zboze,chleb.maka.mlynarz.zona.imie)
+deref((chleb.maka.zboze,chleb.maka.mlynarz.zona.imie))
 /
 
 -- Laczna liczba produktow z chemikaliami 
