@@ -1,3 +1,8 @@
+2008-06-12  Krzysztof Stencel  <stencel@students.mimuw.edu.pl>
+
+	* Testy/kuchnia-query.sbql:
+	Adjusted the test file to new syntax of comma.
+
 2008-06-09  Krzysztof Stencel  <stencel@students.mimuw.edu.pl>
 
 	* Testy/emp-views.sbql: Changed the name of virtual objects.
