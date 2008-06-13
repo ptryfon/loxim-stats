@@ -1,3 +1,8 @@
+2008-06-14  Marek Dopiera  <md219418@students.mimuw.edu.pl>
+
+	* LoximClient/LoximClient.cpp:
+	Zwiekszona szerokosc przy wypisywaniu doubla w kliencie i przesiadka na printfy
+
 2008-06-13  Marek Dopiera  <md219418@students.mimuw.edu.pl>
 
 	* LoximClient/ClientConsole.cpp, LoximClient/ClientConsole.h:
