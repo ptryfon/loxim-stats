@@ -1,5 +1,11 @@
 2008-06-13  Marek Dopiera  <md219418@students.mimuw.edu.pl>
 
+	* LoximClient/Lsbql.cpp:
+	Poprawka poprawki w kliencie dotyczaca wykrywania terminala
+
+	* LoximClient/Lsbql.cpp:
+	Poprawka zwyswietlania info o pomocy w kliencie
+
 	* Errors/ErrorMsg.cpp, LoximClient/ClientConsole.cpp, LoximClient/ClientConsole.h, LoximClient/Lsbql.cpp:
 	Drobne poprawki klienta
 
