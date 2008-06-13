@@ -1,3 +1,8 @@
+2008-06-13  Marek Dopiera  <md219418@students.mimuw.edu.pl>
+
+	* Errors/ErrorMsg.cpp, LoximClient/ClientConsole.cpp, LoximClient/ClientConsole.h, LoximClient/Lsbql.cpp:
+	Drobne poprawki klienta
+
 2008-06-12  Krzysztof Stencel  <stencel@students.mimuw.edu.pl>
 
 	* Testy/kuchnia-query.sbql:
