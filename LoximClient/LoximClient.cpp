@@ -247,47 +247,47 @@ void LoximClient::LoximClient::print_result(DataPart *part, int indent)
 	int cnt;
 	switch (part->getDataType()){
 	    case DATAPART_TYPE_BAG:
-		cout << ind_gen(indent) << "Bag" << endl;
+		printf("%sBag\n", ind_gen(indent).c_str());
 		cnt = ((BagData*)part)->getCount();
 		for (int i = 0; i < cnt; i++)
 			print_result(((BagData*)part)->getDataParts()[i], indent + 2);
 		break;
 	    case DATAPART_TYPE_STRUCT:
-		cout << ind_gen(indent) << "Sequence" << endl;
+		printf("%sStruct\n", ind_gen(indent).c_str());
 		cnt = ((StructData*)part)->getCount();
 		for (int i = 0; i < cnt; i++)
 			print_result(((StructData*)part)->getDataParts()[i], indent + 2);
 		break;
 	    case DATAPART_TYPE_SEQUENCE:
-		cout << ind_gen(indent) << "Sequence" << endl;
+		printf("%sSequence\n", ind_gen(indent).c_str());
 		cnt = ((SequenceData*)part)->getCount();
 		for (int i = 0; i < cnt; i++)
 			print_result(((SequenceData*)part)->getDataParts()[i], indent + 2);
 		break;
 	    case DATAPART_TYPE_REFERENCE:
-		cout << ind_gen(indent) << "ref(" << ((ReferenceData*)part)->getValue() << ")" << endl;
+		printf("%sref(%lld)\n", ind_gen(indent).c_str(), ((ReferenceData*)part)->getValue());
 		break;
 	    case DATAPART_TYPE_VARCHAR:
-		cout << ind_gen(indent) << ((VarcharData*)part)->getValue()->getBuffor() << endl;
+		printf("%s%s\n", ind_gen(indent).c_str(), ((VarcharData*)part)->getValue()->getBuffor());
 		break;
 	    case DATAPART_TYPE_VOID:
-		cout << ind_gen(indent) << "void" << endl;
+		printf("%svoid\n", ind_gen(indent).c_str());
 		break;
 	    case DATAPART_TYPE_SINT32:
-		cout << ind_gen(indent) << ((Sint32Data*)part)->getValue() << endl;
+		printf("%s%d\n", ind_gen(indent).c_str(), ((Sint32Data*)part)->getValue());
 		break;
 	    case DATAPART_TYPE_DOUBLE:
-		cout << ind_gen(indent) << ((DoubleData*)part)->getValue() << endl;
+		printf("%s%0.14g\n", ind_gen(indent).c_str(), ((DoubleData*)part)->getValue());
 		break;
 	    case DATAPART_TYPE_BOOL:
-		cout << ind_gen(indent) << (((BoolData*)part)->getValue()?"true":"false") << endl;
+		printf("%s%s\n", ind_gen(indent).c_str(), (((BoolData*)part)->getValue()?"true":"false"));
 		break;
 	    case DATAPART_TYPE_BINDING:
-		cout << ind_gen(indent) << ((BindingData*)part)->getBindingName()->getBuffor() << " => " << endl;
+		printf("%s%s =>\n", ind_gen(indent).c_str(), ((BindingData*)part)->getBindingName()->getBuffor());
 		print_result(((BindingData*)part)->getDataPart(), indent+2);
 		break;
 	    default:
-		printf("Nieznany mi typ danych\n");	    
+		printf("Nieznany mi typ danych\n");
 	}
 }
 
