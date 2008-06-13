@@ -23,9 +23,11 @@ namespace LoximClient{
 			regex_t dot_mode_regex;
 			regex_t slash_mode_regex;
 			regex_t ext_file_regex;
+			regex_t help_regex;
 			FILE *file;
 			bool line_empty(char *);
 			void open_file(const char *);
+			void regex_init();
 		public:
 			ClientConsole();
 			ClientConsole(int mode);

@@ -66,7 +66,7 @@ struct ErrorMessages {
 	{EBadResult,       "EBadResult"},
 	{EClientLost,      "EClientLost"},
 // Transaction
-	{EDeadlock,        "EDeadlock"},
+	{EDeadlock,        "Deadlock prevention caused transaction abort"},
 	{ESemaphoreInit,   "ESemaphoreInit"},
 	{EUpgradeLock,     "EUpgradeLock"},
 	{EMutexInit,       "EMutexInit"},

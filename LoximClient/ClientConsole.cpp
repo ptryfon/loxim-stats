@@ -7,35 +7,38 @@
 
 using namespace std;
 
-#define DOT_MODE_REGEX "^\\$set[[:space:]]+mode[[:space:]]+dot[[:space:]]*$"
-#define SLASH_MODE_REGEX "^\\$set[[:space:]]+mode[[:space:]]+slash[[:space:]]*$"
+#define DOT_MODE_REGEX "^(\\$set[[:space:]]+mode[[:space:]]+dot[[:space:]]*)|(\\$dot[[:space:]]*)$"
+#define SLASH_MODE_REGEX "^(\\$set[[:space:]]+mode[[:space:]]+slash[[:space:]]*)|(\\$slash[[:space:]]*)$"
+#define HELP_REGEX "^\\$help$"
 #define FILE_REGEX "^\\$file[[:space:]]+[^[:space:]]+.*"
 
+
+void LoximClient::ClientConsole::regex_init()
+{
+	regcomp(&dot_mode_regex, DOT_MODE_REGEX, REG_EXTENDED);
+	regcomp(&slash_mode_regex, SLASH_MODE_REGEX, REG_EXTENDED);
+	regcomp(&ext_file_regex, FILE_REGEX, REG_EXTENDED);
+	regcomp(&help_regex, HELP_REGEX, REG_EXTENDED);
+}
 
 LoximClient::ClientConsole::ClientConsole(int mode, FILE *file)
 {
 	this->mode = mode;
-	regcomp(&dot_mode_regex, DOT_MODE_REGEX, REG_EXTENDED);
-	regcomp(&slash_mode_regex, SLASH_MODE_REGEX, REG_EXTENDED);
-	regcomp(&ext_file_regex, FILE_REGEX, REG_EXTENDED);
+	regex_init();
 	this->file = file;
 }
 
 LoximClient::ClientConsole::ClientConsole(int mode)
 {
 	this->mode = mode;
-	regcomp(&dot_mode_regex, DOT_MODE_REGEX, REG_EXTENDED);
-	regcomp(&slash_mode_regex, SLASH_MODE_REGEX, REG_EXTENDED);
-	regcomp(&ext_file_regex, FILE_REGEX, REG_EXTENDED);
+	regex_init();
 	file = 0;
 }
 
 LoximClient::ClientConsole::ClientConsole()
 {
 	this->mode = CC_SLASH;
-	regcomp(&dot_mode_regex, DOT_MODE_REGEX, REG_EXTENDED);
-	regcomp(&slash_mode_regex, SLASH_MODE_REGEX, REG_EXTENDED);
-	regcomp(&ext_file_regex, FILE_REGEX, REG_EXTENDED);
+	regex_init();
 	file = 0;
 }
 
@@ -81,6 +84,8 @@ string LoximClient::ClientConsole::read_slash()
 		if (line[0] != '-' || line[1] != '-')
 			stmt += string(line);
 		if (!strcmp(stmt.c_str(), "quit"))
+			return stmt;
+		if (is_meta_stmt(stmt))
 			return stmt;
 		free(line);
 		line = line_provider(" \\ ");
@@ -163,6 +168,17 @@ void LoximClient::ClientConsole::execute_meta_stmt(string stmt)
 		while (isspace(*buf))
 			buf++;
 		open_file(buf);
+		return;
+	}
+	if (!regexec(&help_regex, stmt.c_str(), 0, 0, 0)){
+		printf("Available client commands:\n");
+		printf("$set mode (dot|slash)  - change the input mode\n");
+		printf("$dot                   - same as $set mode dot\n");
+		printf("$slash                 - same as $set mode slash\n");
+		printf("$file <file>           - load an external file <file>. It will be interpeted in current mode.\n");
+		printf("                         Spaces should be escaped with \\\n");
+		printf("quit                   - close the session\n");
+		printf("$help                  - this help\n");
 		return;
 	}
 	printf("Invalid meta command\n");

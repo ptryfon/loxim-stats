@@ -167,6 +167,7 @@ int main(int argc, char* argv[])
 	if (res>0)
 	{	
 		printf("Connected :)\n");
+		printf("Type $help to see the available commands\n");
 		LoximClient::ConsoleAuthenticator *auth;
 		if (login && password)
 			auth = new LoximClient::ConsoleAuthenticator(login, password);
