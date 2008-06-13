@@ -18,6 +18,7 @@ namespace LoximClient{
 			string read_dot();
 			string read_slash();
 			bool is_meta_stmt(string stmt);
+			bool is_admin_stmt(string stmt);
 			void execute_meta_stmt(string stmt);
 			char *line_provider (const char *);
 			regex_t dot_mode_regex;

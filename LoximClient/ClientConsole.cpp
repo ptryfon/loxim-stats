@@ -87,6 +87,8 @@ string LoximClient::ClientConsole::read_slash()
 			return stmt;
 		if (is_meta_stmt(stmt))
 			return stmt;
+		if (is_admin_stmt(stmt))
+			return stmt;
 		free(line);
 		line = line_provider(" \\ ");
 		if (!line)
@@ -187,6 +189,11 @@ void LoximClient::ClientConsole::execute_meta_stmt(string stmt)
 bool LoximClient::ClientConsole::is_meta_stmt(string stmt)
 {
 	return stmt.c_str()[0] == '$';
+}
+
+bool LoximClient::ClientConsole::is_admin_stmt(string stmt)
+{
+	return stmt.c_str()[0] == '#';
 }
 
 bool LoximClient::ClientConsole::line_empty(char *buf)
