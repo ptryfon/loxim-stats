@@ -1,5 +1,8 @@
 2008-06-13  Marek Dopiera  <md219418@students.mimuw.edu.pl>
 
+	* LoximClient/ClientConsole.cpp, LoximClient/ClientConsole.h:
+	Poprawione szybkie wysylanie linijek z # na poczÄatku w kliencie.
+
 	* LoximClient/Lsbql.cpp:
 	Poprawka poprawki w kliencie dotyczaca wykrywania terminala
 
