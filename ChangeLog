@@ -1,3 +1,11 @@
+2008-06-24  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
+
+	* QueryExecutor/EnvironmentStack.cpp, QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryResult.cpp, QueryExecutor/QueryResult.h, Store/NamedItems.cpp, Testy/parts-query.sbql:
+	Zalatane kilka dziur.
+	order by wreszcie w miare sensownie dziala
+	wyprostowana semantyka operacji porownywania
+	naprawiona funkcja nested dla QueryReferenceResult
+
 2008-06-14  Marek Dopiera  <md219418@students.mimuw.edu.pl>
 
 	* LoximClient/LoximClient.cpp:
