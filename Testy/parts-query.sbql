@@ -1,7 +1,7 @@
 begin
 /
 
--- czesci w skladzie calosci
+/* czesci w skladzie calosci */
 
 (Part where name = "whole") close by (Component.leadsTo.Part)
 /
@@ -14,7 +14,7 @@ deref(name)
 /
 
 
--- ile poszczegolnych czesci w calosci?
+/* ile poszczegolnych czesci w calosci? 8 */
 
 ((Part where name="whole"), (1 as howMany))
 close by (Component.((leadsTo.Part), (howMany*amount) as howMany))
@@ -31,7 +31,7 @@ close by (Component.((leadsTo.Part), (howMany*amount) as howMany))
 /
 
 
--- ile kazdej czesci w calosci? 
+/* ile kazdej czesci w calosci? */
 
 (
    (  
@@ -47,7 +47,7 @@ close by (Component.((leadsTo.Part), (howMany*amount) as howMany))
 )
 /
 
--- ile kazdej czesci w calosci? Z wydrukiem nazw
+/* ile kazdej czesci w calosci? Z wydrukiem nazw */
 
 
 (
@@ -65,7 +65,7 @@ close by (Component.((leadsTo.Part), (howMany*amount) as howMany))
 /
 
 
--- ile kazdej czesci detalowej w calosci? Z leaves by
+/* ile kazdej czesci detalowej w calosci? Z leaves by */
 
 (
    (  
@@ -81,7 +81,7 @@ close by (Component.((leadsTo.Part), (howMany*amount) as howMany))
 )
 /
 
--- koszt i masa calosci
+/* koszt i masa calosci */
 
 (   
    (       
@@ -105,7 +105,7 @@ end
 /
 
 
--- a to przybliza pierwiastek z 2
+/* a to przybliza pierwiastek z 2 */
 
 (       (1 as x, 1 as counter)
        close by (((2/x + x)/2 as x, (counter + 1) as counter) where counter <= 20)

@@ -44,6 +44,18 @@ public:
 
 template<typename T> int Countable<T>::count = 0;
 
+template<typename T> struct ptr_less {
+	bool operator () (T *a, T *b) {
+		return a->less_than(b);
+	}
+};
+
+template<typename T> struct ptr_less_in_orderBy {
+	bool operator () (T *a, T *b) {
+		return a->sorting_strict_less(b);
+	}
+};
+
 class QueryResult : public Countable<QueryResult>
 {
 protected:
@@ -51,17 +63,17 @@ protected:
 public:
 	enum QueryResultType {
 		QRESULT   = 0,
-		QSEQUENCE = 1,
-		QBAG      = 2,
-		QSTRUCT   = 3,
-		QBINDER   = 4,
-		QSTRING   = 5,
-		QINT      = 6,
-		QDOUBLE   = 7,
-		QBOOL     = 8,
-		QREFERENCE= 9,
-		QNOTHING  =10,
-		QVIRTUAL  =11
+		QREFERENCE= 1,
+		QVIRTUAL  = 2,
+		QSTRING   = 3,
+		QINT      = 4,
+		QDOUBLE   = 5,
+		QBOOL     = 6,
+		QBINDER   = 7,
+		QSTRUCT   = 8,
+		QBAG      = 9,
+		QSEQUENCE =10,
+		QNOTHING  =11
 		};
 
 	//QueryResult () {};
@@ -93,11 +105,11 @@ public:
 	virtual void addResult(QueryResult *r) {};
 	virtual int getResult(QueryResult *&r) { return 0; };
 	virtual bool equal(QueryResult *r)=0;
-	virtual bool not_equal(QueryResult *r)=0;
-	virtual bool greater_than(QueryResult *r)=0;
+	bool not_equal(QueryResult *r);
+	bool greater_than(QueryResult *r);
 	virtual bool less_than(QueryResult *r)=0;
-	virtual bool greater_eq(QueryResult *r)=0;
-	virtual bool less_eq(QueryResult *r)=0;
+	bool greater_eq(QueryResult *r);
+	bool less_eq(QueryResult *r);
 	virtual int nested(Transaction *&tr, QueryExecutor * qe);
 	virtual int nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe);
 	virtual bool isBool()=0;
@@ -105,7 +117,7 @@ public:
 	virtual int getBoolValue(bool &b)=0;
 	virtual bool isReferenceValue()=0;
 	virtual int getReferenceValue(QueryResult *&r)=0;
-	virtual bool sorting_less_eq(QueryResult *arg);
+	virtual bool sorting_strict_less(QueryResult *arg);
 	virtual string toString( int level = 0, bool recursive = false, string name = "" ) { return ""; }
 };
 
@@ -152,8 +164,8 @@ public:
 	int getBoolValue(bool &b);
 	bool isReferenceValue();
 	int getReferenceValue(QueryResult *&r);
-	int sortCollection(QueryResult *r);
-	int postSort(QueryResult *&f);
+	void sortSequence();
+	
         virtual string toString( int level = 0, bool recursive = false, string name = "" ) {
           string result = getPrefixForLevel( level, name ) + "[Sequence]\n";
           
@@ -204,8 +216,9 @@ public:
 	int getBoolValue(bool &b);
 	bool isReferenceValue();
 	int getReferenceValue(QueryResult *&r);
-	int divideBag(QueryResult *&left, QueryResult *&right);
-	int sortBag(QueryBagResult *&outBag);
+	void sortBag();
+	void sortBag_in_orderBy();
+	int postSort(QueryResult *&f);
         virtual string toString( int level = 0, bool recursive = false, string name = "" ) {
           stringstream c;
           string sizeS;
@@ -259,6 +272,8 @@ public:
 	int getBoolValue(bool &b);
 	bool isReferenceValue();
 	int getReferenceValue(QueryResult *&r);
+	void sortStruct();
+	
         virtual string toString( int level = 0, bool recursive = false, string name = "" ) {
           string result = getPrefixForLevel( level, name ) + "[Struct]\n";
           
@@ -495,7 +510,7 @@ public:
 	bool greater_eq(QueryResult *r);
 	bool less_eq(QueryResult *r);
 	int nested(Transaction *&tr, QueryExecutor * qe);
-	//int nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe);
+	int nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe);
 	bool isBool();
 	bool isNothing();
 	int getBoolValue(bool &b);

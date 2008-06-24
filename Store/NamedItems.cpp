@@ -461,7 +461,7 @@ namespace Store
 				while (offset < STORE_PAGESIZE - page->free)
 				{
 					ix_entry* entry = (ix_entry*) (page_buf + offset);
-					ec->printf("@@@@@@@ !!! @@@@@@@ add_t: %i, l_id: %i del_t: %i, cur_tran: %i, name: %s\n", entry->add_t, entry->l_id, entry->del_t, entry->cur_tran, entry->name);
+					//ec->printf("@@@@@@@ !!! @@@@@@@ add_t: %i, l_id: %i del_t: %i, cur_tran: %i, name: %s\n", entry->add_t, entry->l_id, entry->del_t, entry->cur_tran, entry->name);
 					if (indexContent != NULL) {
 						//indeksy potrzebuja dostac wszystkie rooty, niezaleznie od tego czy sa widoczne dla danej transakcji
 						indexContent->push_back(new Indexes::RootEntry(entry->add_t, entry->del_t, entry->cur_tran, entry->l_id));

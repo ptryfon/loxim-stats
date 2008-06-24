@@ -503,640 +503,192 @@ int QueryBoolResult::bool_not(QueryResult *&res){
 // functions equal, not_equal etc.
 
 bool QuerySequenceResult::equal(QueryResult *r){
-	if (r->type() != QueryResult::QSEQUENCE ) {
-		return false; 
-	}
-	if (r->size() != seq.size() ) {
-		return false; 
-	}
-	bool tmp_value = true;
+	if (r->type() != QueryResult::QSEQUENCE) return false; 
+	if (r->size() != seq.size()) return false;
+	this->sortSequence();
+	((QuerySequenceResult *) r)->sortSequence();
 	for (unsigned int i = 0; i < (seq.size()); i++ ) {
 		QueryResult* tmp_res;
-		if ( ((QuerySequenceResult*) r)->at(i, tmp_res) != 0 ) {
-			return false;
-		};
-		tmp_value = tmp_value && ( (seq.at(i))->equal(tmp_res) );
+		if (((QuerySequenceResult*) r)->at(i, tmp_res) != 0) return false;
+		if (not ((seq.at(i))->equal(tmp_res))) return false;
 	};
-	return tmp_value;
+	return true;
 }
 
 bool QueryBagResult::equal(QueryResult *r){
-	int errcode;
-	if (r->type() != QueryResult::QBAG ) {
-		return false; 
-	}
-	if (r->size() != bag.size() ) {
-		return false; 
-	}
-	QueryBagResult *thisSorted;
-	errcode = this->sortBag(thisSorted);
-	if (errcode != 0) return false;
-	QueryBagResult *rSorted;
-	errcode = ((QueryBagResult *)r)->sortBag(rSorted);
-	if (errcode != 0) return false;
-	bool tmp_value = true;
+	if (r->type() != QueryResult::QBAG) return false; 
+	if (r->size() != bag.size()) return false; 
+	this->sortBag();
+	((QueryBagResult *) r)->sortBag();
 	for (unsigned int i = 0; i < (bag.size()); i++ ) { 
-		QueryResult* this_tmp_res;
-		if ( ((QueryBagResult*) thisSorted)->at(i, this_tmp_res) != 0 ) {
-			return false;
-		};
-		QueryResult* r_tmp_res;
-		if ( ((QueryBagResult*) rSorted)->at(i, r_tmp_res) != 0 ) {
-			return false;
-		};
-		tmp_value = tmp_value && ( (this_tmp_res)->equal(r_tmp_res) );
+		QueryResult* tmp_res;
+		if (((QueryBagResult*) r)->at(i, tmp_res) != 0) return false;
+		if (not ((bag.at(i))->equal(tmp_res))) return false;
 	};
-	return tmp_value;
+	return true;
 }
 
 bool QueryStructResult::equal(QueryResult *r){
-	if (r->type() != QueryResult::QSTRUCT ) {
-		return false; 
-	}
-	if (r->size() != str.size() ) {
-		return false; 
-	}
-	bool tmp_value = true;
+	if (r->type() != QueryResult::QSTRUCT) return false; 
+	if (r->size() != str.size()) return false; 
+	this->sortStruct();
+	((QueryStructResult *) r)->sortStruct();
 	for (unsigned int i = 0; i < (str.size()); i++ ) { 
 		QueryResult* tmp_res;
-		if ( ((QueryStructResult*) r)->at(i, tmp_res) != 0 ) {
-			return false;
-		};
-		tmp_value = tmp_value && ( (str.at(i))->equal(tmp_res) );
+		if (((QueryStructResult*) r)->at(i, tmp_res) != 0) return false;
+		if (not ((str.at(i))->equal(tmp_res))) return false;
 	};
-	return tmp_value;
+	return true;
 }
 
 bool QueryBinderResult::equal(QueryResult *r){
-	if (r->type() != QueryResult::QBINDER ) {
-		return false; 
-	}
-	bool tmp_value1 = (name == ((QueryBinderResult*) r)->getName());
-	bool tmp_value2 = (item->equal(((QueryBinderResult*) r)->getItem()));
-	return (tmp_value1 && tmp_value2);
+	if (r->type() != QueryResult::QBINDER ) return false; 
+	if (name != ((QueryBinderResult*) r)->getName()) return false;
+	return (item->equal(((QueryBinderResult*) r)->getItem()));
 }
 
 bool QueryStringResult::equal(QueryResult *r){
-	if (r->type() != QueryResult::QSTRING ) {
-		return false; 
-	}
-	bool tmp_value = (value == ((QueryStringResult*) r)->getValue());
-	return tmp_value;
+	if (r->type() != QueryResult::QSTRING ) return false; 
+	return (value == ((QueryStringResult*) r)->getValue());
 }
 
 bool QueryIntResult::equal(QueryResult *r){
-	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
-		return false; 
-	}
-	bool tmp_value;
-	if (r->type() == QueryResult::QINT)
-		tmp_value = (value == ((QueryIntResult*) r)->getValue());
-	else
-		tmp_value = ((double)value == ((QueryDoubleResult*) r)->getValue());
-	return tmp_value;
+	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) return false; 
+	if (r->type() == QueryResult::QINT) return (value == ((QueryIntResult*) r)->getValue());
+	else return ((double)value == ((QueryDoubleResult*) r)->getValue());
 }
 
 bool QueryDoubleResult::equal(QueryResult *r){
-	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
-		return false; 
-	}
-	bool tmp_value;
-	if (r->type() == QueryResult::QINT)
-		tmp_value = (value == (double)(((QueryIntResult*) r)->getValue()));
-	else
-		tmp_value = (value == ((QueryDoubleResult*) r)->getValue());
-	return tmp_value;
+	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) return false; 
+	if (r->type() == QueryResult::QINT) return (value == (double)(((QueryIntResult*) r)->getValue()));
+	else return (value == ((QueryDoubleResult*) r)->getValue());
 }
 
 bool QueryBoolResult::equal(QueryResult *r){
-	if (r->type() != QueryResult::QBOOL ) {
-		return false; 
-	}
-	bool tmp_value = (value == ((QueryBoolResult*) r)->getValue());
-	return tmp_value;
+	if (r->type() != QueryResult::QBOOL ) return false; 
+	return (value == ((QueryBoolResult*) r)->getValue());
 }
 
 bool QueryReferenceResult::equal(QueryResult *r){
-	if (r->type() != QueryResult::QREFERENCE ) {
-		return false; 
-	}
-	unsigned int first = value->toInteger();
-	unsigned int second = (((QueryReferenceResult*) r)->getValue())->toInteger();
-	bool tmp_value = (first == second);
-	return tmp_value;
+	if (r->type() != QueryResult::QREFERENCE ) return false; 
+	return ((value->toInteger()) == ((((QueryReferenceResult*) r)->getValue())->toInteger()));
 }
 
 bool QueryNothingResult::equal(QueryResult *r){ 
-	if (r->type() != QueryResult::QNOTHING ) {
-		return false; 
-	}
+	if (r->type() != QueryResult::QNOTHING ) return false; 
 	return true; 
 }
 
-
-
-bool QuerySequenceResult::not_equal(QueryResult *r){
-	bool tmp_value = not ( this->equal(r) ); 
-	return tmp_value;
+bool QueryVirtualResult::equal(QueryResult *r){ 
+	if (r->type() != QueryResult::QVIRTUAL) return false; 
+	return ((this->toString(0,true)) == (r->toString(0,true)));
 }
 
-bool QueryBagResult::not_equal(QueryResult *r){
-	bool tmp_value = not ( this->equal(r) );
-	return tmp_value;
-}
-
-bool QueryStructResult::not_equal(QueryResult *r){
-	bool tmp_value = not ( this->equal(r) );
-	return tmp_value;
-}
-
-bool QueryBinderResult::not_equal(QueryResult *r){
-	bool tmp_value = not ( this->equal(r) );
-	return tmp_value;
-}
-
-bool QueryStringResult::not_equal(QueryResult *r){
-	bool tmp_value = not ( this->equal(r) );
-	return tmp_value;
-}
-
-bool QueryIntResult::not_equal(QueryResult *r){
-	bool tmp_value = not ( this->equal(r) );
-	return tmp_value;
-}
-
-bool QueryDoubleResult::not_equal(QueryResult *r){
-	bool tmp_value = not ( this->equal(r) );
-	return tmp_value;
-}
-
-bool QueryBoolResult::not_equal(QueryResult *r){
-	bool tmp_value = not ( this->equal(r) );
-	return tmp_value;
-}
-
-bool QueryReferenceResult::not_equal(QueryResult *r){
-	bool tmp_value = not ( this->equal(r) );
-	return tmp_value;
-}
-
-bool QueryNothingResult::not_equal(QueryResult *r){
-	bool tmp_value = not ( this->equal(r) );
-	return tmp_value;
-}
-
-
-
-
-bool QuerySequenceResult::greater_than(QueryResult *r) {
-	if (r->type() != QueryResult::QSEQUENCE ) {
-		return false; 
-	}
-	if (seq.size() > r->size() ) {
-		return true; 
-	}
-	else if (seq.size() < r->size() ) {
-		return false;
-	}
-	bool tmp_value = false;
+bool QuerySequenceResult::less_than(QueryResult *r){
+	if (r->type() != QueryResult::QSEQUENCE) return ((this->type()) < (r->type())); 
+	if (r->size() != seq.size()) return (seq.size() < r->size());
+	this->sortSequence();
+	((QuerySequenceResult *) r)->sortSequence();
 	for (unsigned int i = 0; i < (seq.size()); i++ ) {
 		QueryResult* tmp_res;
-		if ( ((QuerySequenceResult*) r)->at(i, tmp_res) != 0 ) {
-			return false;
-		};
-		tmp_value = ( (seq.at(i))->greater_than(tmp_res) );
-		if (tmp_value) return tmp_value;
+		if (((QuerySequenceResult*) r)->at(i, tmp_res) != 0) return false;
+		if ((seq.at(i))->less_than(tmp_res)) return true;
+		else if ((seq.at(i))->greater_than(tmp_res)) return false;
 	};
-	return tmp_value;
-}
-
-bool QueryBagResult::greater_than(QueryResult *r) {
-	int errcode;
-	if (r->type() != QueryResult::QBAG ) {
-		return false; 
-	}
-	if (bag.size() > r->size() ) {
-		return true; 
-	}
-	else if (bag.size() < r->size() ) {
-		return false;
-	}
-	QueryBagResult *thisSorted;
-	errcode = this->sortBag(thisSorted);
-	if (errcode != 0) return false;
-	QueryBagResult *rSorted;
-	errcode = ((QueryBagResult *)r)->sortBag(rSorted);
-	if (errcode != 0) return false;
-	bool tmp_value = false;
-	for (unsigned int i = 0; i < (bag.size()); i++ ) { 
-		QueryResult* this_tmp_res;
-		if ( ((QueryBagResult*) thisSorted)->at(i, this_tmp_res) != 0 ) {
-			return false;
-		};
-		QueryResult* r_tmp_res;
-		if ( ((QueryBagResult*) rSorted)->at(i, r_tmp_res) != 0 ) {
-			return false;
-		};
-		tmp_value = ((this_tmp_res)->greater_than(r_tmp_res) );
-		if (tmp_value) return tmp_value;
-	};
-	return tmp_value;
-}
-
-bool QueryStructResult::greater_than(QueryResult *r) {
-	if (r->type() != QueryResult::QSTRUCT ) {
-		return false; 
-	}
-	if (str.size() > r->size() ) {
-		return true; 
-	}
-	else if (str.size() < r->size() ) {
-		return false;
-	}
-	bool tmp_value = false;
-	for (unsigned int i = 0; i < (str.size()); i++ ) {
-		QueryResult* tmp_res;
-		if ( ((QueryStructResult*) r)->at(i, tmp_res) != 0 ) {
-			return false;
-		};
-		tmp_value = ( (str.at(i))->greater_than(tmp_res) );
-		if (tmp_value) return tmp_value;
-	};
-	return tmp_value;
-}
-
-bool QueryBinderResult::greater_than(QueryResult *r) {
-	if (r->type() != QueryResult::QBINDER ) {
-		return false; 
-	}
-	bool tmp_value1 = (name > ((QueryBinderResult*) r)->getName());
-	if (tmp_value1) return tmp_value1;
-	bool tmp_value2 = (item->greater_than(((QueryBinderResult*) r)->getItem()));
-	return tmp_value2;
-}
-
-bool QueryStringResult::greater_than(QueryResult *r){
-	if (r->type() != QueryResult::QSTRING ) {
-		return false; 
-	}
-	bool tmp_value = (value > ((QueryStringResult*) r)->getValue());
-	return tmp_value;
-}
-
-bool QueryIntResult::greater_than(QueryResult *r){
-	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
-		return false; 
-	}
-	bool tmp_value;
-	if (r->type() == QueryResult::QINT)
-		tmp_value = (value > ((QueryIntResult*) r)->getValue());
-	else
-		tmp_value = ((double)value > ((QueryDoubleResult*) r)->getValue());
-	return tmp_value;
-}
-
-bool QueryDoubleResult::greater_than(QueryResult *r){
-	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
-		return false; 
-	}
-	bool tmp_value;
-	if (r->type() == QueryResult::QINT)
-		tmp_value = (value > (double)(((QueryIntResult*) r)->getValue()));
-	else
-		tmp_value = (value > ((QueryDoubleResult*) r)->getValue());
-	return tmp_value;
-}
-
-bool QueryBoolResult::greater_than(QueryResult *r){
-	if (r->type() != QueryResult::QBOOL ) {
-		return false; 
-	}
-	bool tmp_value = (value > ((QueryBoolResult*) r)->getValue());
-	return tmp_value;
-}
-
-bool QueryReferenceResult::greater_than(QueryResult *r){
-	if (r->type() != QueryResult::QREFERENCE ) {
-		return false; 
-	}
-	unsigned int first = value->toInteger();
-	unsigned int second = (((QueryReferenceResult*) r)->getValue())->toInteger();
-	bool tmp_value = (first > second);
-	return tmp_value;
-}
-
-bool QueryNothingResult::greater_than(QueryResult *r) {
 	return false;
 }
 
-bool QuerySequenceResult::less_than(QueryResult *r) {
-	if (r->type() != QueryResult::QSEQUENCE ) {
-		return false; 
-	}
-	if (seq.size() < r->size() ) {
-		return true; 
-	}
-	else if (seq.size() > r->size() ) {
-		return false;
-	}
-	bool tmp_value = false;
-	for (unsigned int i = 0; i < (seq.size()); i++ ) {
-		QueryResult* tmp_res;
-		if ( ((QuerySequenceResult*) r)->at(i, tmp_res) != 0 ) {
-			return false;
-		};
-		tmp_value = ( (seq.at(i))->less_than(tmp_res) );
-		if (tmp_value) return tmp_value;
-	};
-	return tmp_value;
-}
-
-bool QueryBagResult::less_than(QueryResult *r) {
-	int errcode;
-	if (r->type() != QueryResult::QBAG ) {
-		return false; 
-	}
-	if (bag.size() < r->size() ) {
-		return true; 
-	}
-	else if (bag.size() > r->size() ) {
-		return false;
-	}
-	QueryBagResult *thisSorted;
-	errcode = this->sortBag(thisSorted);
-	if (errcode != 0) return false;
-	QueryBagResult *rSorted;
-	errcode = ((QueryBagResult *)r)->sortBag(rSorted);
-	if (errcode != 0) return false;
-	bool tmp_value = false;
+bool QueryBagResult::less_than(QueryResult *r){
+	if (r->type() != QueryResult::QBAG) return ((this->type()) < (r->type())); 
+	if (r->size() != bag.size()) return (bag.size() < r->size()); 
+	this->sortBag();
+	((QueryBagResult *) r)->sortBag();
 	for (unsigned int i = 0; i < (bag.size()); i++ ) { 
-		QueryResult* this_tmp_res;
-		if ( ((QueryBagResult*) thisSorted)->at(i, this_tmp_res) != 0 ) {
-			return false;
-		};
-		QueryResult* r_tmp_res;
-		if ( ((QueryBagResult*) rSorted)->at(i, r_tmp_res) != 0 ) {
-			return false;
-		};
-		tmp_value = ((this_tmp_res)->less_than(r_tmp_res) );
-		if (tmp_value) return tmp_value;
-	};
-	return tmp_value;
-}
-
-bool QueryStructResult::less_than(QueryResult *r) {
-	if (r->type() != QueryResult::QSTRUCT ) {
-		return false; 
-	}
-	if (str.size() < r->size() ) {
-		return true; 
-	}
-	else if (str.size() > r->size() ) {
-		return false;
-	}
-	bool tmp_value = false;
-	for (unsigned int i = 0; i < (str.size()); i++ ) {
 		QueryResult* tmp_res;
-		if ( ((QueryStructResult*) r)->at(i, tmp_res) != 0 ) {
-			return false;
-		};
-		tmp_value = ( (str.at(i))->less_than(tmp_res) );
-		if (tmp_value) return tmp_value;
+		if (((QueryBagResult*) r)->at(i, tmp_res) != 0) return false;
+		if ((bag.at(i))->less_than(tmp_res)) return true;
+		else if ((bag.at(i))->greater_than(tmp_res)) return false;
 	};
-	return tmp_value;
+	return false;
 }
 
-bool QueryBinderResult::less_than(QueryResult *r) {
-	if (r->type() != QueryResult::QBINDER ) {
-		return false; 
-	}
-	bool tmp_value1 = (name < ((QueryBinderResult*) r)->getName());
-	if (tmp_value1) return tmp_value1;
-	bool tmp_value2 = (item->less_than(((QueryBinderResult*) r)->getItem()));
-	return tmp_value2;
+bool QueryStructResult::less_than(QueryResult *r){
+	if (r->type() != QueryResult::QSTRUCT) return ((this->type()) < (r->type())); 
+	if (r->size() != str.size()) return (str.size() < r->size()); 
+	this->sortStruct();
+	((QueryStructResult *) r)->sortStruct();
+	for (unsigned int i = 0; i < (str.size()); i++ ) { 
+		QueryResult* tmp_res;
+		if (((QueryStructResult*) r)->at(i, tmp_res) != 0) return false;
+		if ((str.at(i))->less_than(tmp_res)) return true;
+		else if ((str.at(i))->greater_than(tmp_res)) return false;
+	};
+	return false;
+}
+
+bool QueryBinderResult::less_than(QueryResult *r){
+	if (r->type() != QueryResult::QBINDER ) return ((this->type()) < (r->type())); 
+	if (name != ((QueryBinderResult*) r)->getName()) 
+		return (name < ((QueryBinderResult*) r)->getName());
+	return (item->less_than(((QueryBinderResult*) r)->getItem()));
 }
 
 bool QueryStringResult::less_than(QueryResult *r){
-	if (r->type() != QueryResult::QSTRING ) {
-		return false; 
-	}
-	bool tmp_value = (value < ((QueryStringResult*) r)->getValue());
-	return tmp_value;
+	if (r->type() != QueryResult::QSTRING ) return ((this->type()) < (r->type())); 
+	return (value < ((QueryStringResult*) r)->getValue());
 }
 
 bool QueryIntResult::less_than(QueryResult *r){
-	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
-		return false; 
-	}
-	bool tmp_value;
-	if (r->type() == QueryResult::QINT)
-		tmp_value = (value < ((QueryIntResult*) r)->getValue());
-	else
-		tmp_value = ((double)value < ((QueryDoubleResult*) r)->getValue());
-	return tmp_value;
+	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) 
+		return ((this->type()) < (r->type())); 
+	if (r->type() == QueryResult::QINT) return (value < ((QueryIntResult*) r)->getValue());
+	else return ((double)value < ((QueryDoubleResult*) r)->getValue());
 }
 
 bool QueryDoubleResult::less_than(QueryResult *r){
-	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
-		return false; 
-	}
-	bool tmp_value;
-	if (r->type() == QueryResult::QINT)
-		tmp_value = (value < (double)(((QueryIntResult*) r)->getValue()));
-	else
-		tmp_value = (value < ((QueryDoubleResult*) r)->getValue());
-	return tmp_value;
+	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) 
+		return ((this->type()) < (r->type())); 
+	if (r->type() == QueryResult::QINT) return (value < (double)(((QueryIntResult*) r)->getValue()));
+	else return (value < ((QueryDoubleResult*) r)->getValue());
 }
 
 bool QueryBoolResult::less_than(QueryResult *r){
-	if (r->type() != QueryResult::QBOOL ) {
-		return false; 
-	}
-	bool tmp_value = (value < ((QueryBoolResult*) r)->getValue());
-	return tmp_value;
+	if (r->type() != QueryResult::QBOOL ) return ((this->type()) < (r->type())); 
+	return (value < ((QueryBoolResult*) r)->getValue());
 }
 
 bool QueryReferenceResult::less_than(QueryResult *r){
-	if (r->type() != QueryResult::QREFERENCE ) {
-		return false; 
-	}
-	unsigned int first = value->toInteger();
-	unsigned int second = (((QueryReferenceResult*) r)->getValue())->toInteger();
-	bool tmp_value = (first < second);
-	return tmp_value;
+	if (r->type() != QueryResult::QREFERENCE ) return ((this->type()) < (r->type())); 
+	return ((value->toInteger()) < ((((QueryReferenceResult*) r)->getValue())->toInteger()));
 }
 
-bool QueryNothingResult::less_than(QueryResult *r) {
-	return false;
-}
-
-bool QuerySequenceResult::greater_eq(QueryResult *r) {
-	return ((this->greater_than(r)) || (this->equal(r)));
-}
-
-bool QueryBagResult::greater_eq(QueryResult *r) {
-	return ((this->greater_than(r)) || (this->equal(r)));
-}
-
-bool QueryStructResult::greater_eq(QueryResult *r) {
-	return ((this->greater_than(r)) || (this->equal(r)));
-}
-
-bool QueryBinderResult::greater_eq(QueryResult *r) {
-	return ((this->greater_than(r)) || (this->equal(r)));
-}
-
-bool QueryStringResult::greater_eq(QueryResult *r){
-	if (r->type() != QueryResult::QSTRING ) {
-		return false; 
-	}
-	bool tmp_value = (value >= ((QueryStringResult*) r)->getValue());
-	return tmp_value;
-}
-
-bool QueryIntResult::greater_eq(QueryResult *r){
-	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
-		return false; 
-	}
-	bool tmp_value;
-	if (r->type() == QueryResult::QINT)
-		tmp_value = (value >= ((QueryIntResult*) r)->getValue());
-	else
-		tmp_value = ((double)value >= ((QueryDoubleResult*) r)->getValue());
-	return tmp_value;
-}
-
-bool QueryDoubleResult::greater_eq(QueryResult *r){
-	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
-		return false; 
-	}
-	bool tmp_value;
-	if (r->type() == QueryResult::QINT)
-		tmp_value = (value >= (double)(((QueryIntResult*) r)->getValue()));
-	else
-		tmp_value = (value >= ((QueryDoubleResult*) r)->getValue());
-	return tmp_value;
-}
-
-bool QueryBoolResult::greater_eq(QueryResult *r){
-	if (r->type() != QueryResult::QBOOL ) {
-		return false; 
-	}
-	bool tmp_value = (value >= ((QueryBoolResult*) r)->getValue());
-	return tmp_value;
-}
-
-bool QueryReferenceResult::greater_eq(QueryResult *r){
-	if (r->type() != QueryResult::QREFERENCE ) {
-		return false; 
-	}
-	unsigned int first = value->toInteger();
-	unsigned int second = (((QueryReferenceResult*) r)->getValue())->toInteger();
-	bool tmp_value = (first >= second);
-	return tmp_value;
-}
-
-bool QueryNothingResult::greater_eq(QueryResult *r) {
-	return ((this->greater_than(r)) || (this->equal(r)));
-}
-
-bool QuerySequenceResult::less_eq(QueryResult *r) {
-	return ((this->less_than(r)) || (this->equal(r)));
-}
-
-bool QueryBagResult::less_eq(QueryResult *r) {
-	return ((this->less_than(r)) || (this->equal(r)));
-}
-
-bool QueryStructResult::less_eq(QueryResult *r) {
-	return ((this->less_than(r)) || (this->equal(r)));
-}
-
-bool QueryBinderResult::less_eq(QueryResult *r) {
-	return ((this->less_than(r)) || (this->equal(r)));
-}
-
-bool QueryStringResult::less_eq(QueryResult *r){
-	if (r->type() != QueryResult::QSTRING ) {
-		return false; 
-	}
-	bool tmp_value = (value <= ((QueryStringResult*) r)->getValue());
-	return tmp_value;
-}
-
-bool QueryIntResult::less_eq(QueryResult *r){
-	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
-		return false; 
-	}
-	bool tmp_value;
-	if (r->type() == QueryResult::QINT)
-		tmp_value = (value <= ((QueryIntResult*) r)->getValue());
-	else
-		tmp_value = ((double)value <= ((QueryDoubleResult*) r)->getValue());
-	return tmp_value;
-}
-
-bool QueryDoubleResult::less_eq(QueryResult *r){
-	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
-		return false; 
-	}
-	bool tmp_value;
-	if (r->type() == QueryResult::QINT)
-		tmp_value = (value <= (double)(((QueryIntResult*) r)->getValue()));
-	else
-		tmp_value = (value <= ((QueryDoubleResult*) r)->getValue());
-	return tmp_value;
-}
-
-bool QueryBoolResult::less_eq(QueryResult *r){
-	if (r->type() != QueryResult::QBOOL ) {
-		return false; 
-	}
-	bool tmp_value = (value <= ((QueryBoolResult*) r)->getValue());
-	return tmp_value;
-}
-
-bool QueryReferenceResult::less_eq(QueryResult *r){
-	if (r->type() != QueryResult::QREFERENCE ) {
-		return false; 
-	}
-	unsigned int first = value->toInteger();
-	unsigned int second = (((QueryReferenceResult*) r)->getValue())->toInteger();
-	bool tmp_value = (first <= second);
-	return tmp_value;
-}
-
-bool QueryNothingResult::less_eq(QueryResult *r) {
-	return ((this->less_than(r)) || (this->equal(r)));
-}
-
-bool QueryVirtualResult::equal(QueryResult *r){ 
-	bool tmp_value = ((this->toString(0,true)) == (r->toString(0,true))); 
-	return tmp_value;
-}
-
-bool QueryVirtualResult::not_equal(QueryResult *r){ 
-	bool tmp_value = ((this->toString(0,true)) != (r->toString(0,true))); 
-	return tmp_value;
-}
-
-bool QueryVirtualResult::greater_than(QueryResult *r){ 
-	bool tmp_value = ((this->toString(0,true)) > (r->toString(0,true))); 
-	return tmp_value;
+bool QueryNothingResult::less_than(QueryResult *r){ 
+	if (r->type() != QueryResult::QNOTHING ) return ((this->type()) < (r->type())); 
+	return false; 
 }
 
 bool QueryVirtualResult::less_than(QueryResult *r){ 
-	bool tmp_value = ((this->toString(0,true)) < (r->toString(0,true))); 
+	if (r->type() != QueryResult::QVIRTUAL) return ((this->type()) < (r->type())); 
+	return ((this->toString(0,true)) < (r->toString(0,true)));
+}
+
+bool QueryResult::not_equal(QueryResult *r){
+	bool tmp_value = not (this->equal(r)); 
 	return tmp_value;
 }
 
-bool QueryVirtualResult::greater_eq(QueryResult *r){ 
-	bool tmp_value = ((this->toString(0,true)) >= (r->toString(0,true))); 
+bool QueryResult::greater_than(QueryResult *r) {
+	bool tmp_value = not ((this->equal(r)) || (this->less_than(r)));
 	return tmp_value;
 }
 
-bool QueryVirtualResult::less_eq(QueryResult *r){ 
-	bool tmp_value = ((this->toString(0,true)) <= (r->toString(0,true))); 
+bool QueryResult::greater_eq(QueryResult *r) {
+	bool tmp_value = not (this->less_than(r));
+	return tmp_value;
+}
+
+bool QueryResult::less_eq(QueryResult *r) {
+	bool tmp_value = ((this->equal(r)) || (this->less_than(r)));
 	return tmp_value;
 }
 
@@ -1359,249 +911,62 @@ int QueryVirtualResult::getReferenceValue(QueryResult *&r) {
 	return (ErrQExecutor | ERefExpected);
 }
 
-bool QueryResult::sorting_less_eq(QueryResult *arg) {
-	if (((this->type()) == (arg->type())) || 
-	(((this->type()) == (QueryResult::QINT)) && ((arg->type()) == (QueryResult::QDOUBLE))) || 
-	(((arg->type()) == (QueryResult::QINT)) && ((this->type()) == (QueryResult::QDOUBLE)))) {
-		if (this->less_eq(arg))
-			return true;
-		else 
-			return false;
+
+
+bool QueryResult::sorting_strict_less(QueryResult *arg) {
+	
+	QueryResult *tmp_left_order_seq;
+	if ((((QueryStructResult *) this)->at(1, tmp_left_order_seq)) != 0) return false;
+	QueryResult *left_order_seq = new QueryStructResult();
+	((QueryStructResult *) left_order_seq)->addResult(tmp_left_order_seq);
+	
+	QueryResult *tmp_right_order_seq;
+	if ((((QueryStructResult *) arg)->at(1, tmp_right_order_seq)) != 0) return false;
+	QueryResult *right_order_seq = new QueryStructResult();
+	((QueryStructResult *) right_order_seq)->addResult(tmp_right_order_seq);
+	
+	if (left_order_seq->size() < right_order_seq->size()) return true;
+	if (left_order_seq->size() > right_order_seq->size()) return false;
+	
+	for (unsigned int i = 0; i < left_order_seq->size(); i++) {
+		QueryResult *left_order_seq_elem;
+		if ((((QueryStructResult *) left_order_seq)->at(i, left_order_seq_elem)) != 0) return false;
+		QueryResult *right_order_seq_elem;
+		if ((((QueryStructResult *) right_order_seq)->at(i, right_order_seq_elem)) != 0) return false;
+		if (left_order_seq_elem->less_than(right_order_seq_elem)) return true;
+		else if (left_order_seq_elem->greater_than(right_order_seq_elem)) return false;
 	}
-	else if ((this->type()) < (arg->type())) {
-			return true;
-	}
+	
 	return false;
 }
 
-int QueryBagResult::divideBag(QueryResult *&left, QueryResult *&right) {
-	*ec << "[QE] divideBag()";
-	unsigned int bagSize = bag.size();
-	div_t temp;
-	temp = div (bagSize,2);
-	unsigned int bagHalf = temp.quot;
-	left = new QueryBagResult();
-	right = new QueryBagResult();
-	for (unsigned int i = 0; i < bagHalf; i++) {
-		left->addResult(bag.at(i));
-	}
-	for (unsigned int i = bagHalf; i < bagSize; i++) {
-		right->addResult(bag.at(i));
-	}
-	return 0;
+void QuerySequenceResult::sortSequence() {
+	sort(seq.begin(), seq.end(), ptr_less<QueryResult>());
 }
 
-int QueryBagResult::sortBag(QueryBagResult *&outBag) {
-	int errcode;
-	outBag = new QueryBagResult();
-	if ((this->size()) == 1) { 
-		outBag->addResult(this);
-	}
-	else if ((this->size()) == 2) {
-		QueryResult *first;
-		QueryResult *second;
-		errcode = this->at(0, first);
-		if (errcode != 0) return errcode;
-		errcode = this->at(1, second);
-		if (errcode != 0) return errcode;
-		if (first->sorting_less_eq(second)) {
-			outBag->addResult(first);
-			outBag->addResult(second);
-		}
-		else {
-			outBag->addResult(second);
-			outBag->addResult(first);
-		}
-	}
-	else if ((this->size()) > 2) {
-		QueryResult *firstHalf;
-		QueryResult *secondHalf;
-		errcode = this->divideBag(firstHalf, secondHalf);
-		if (errcode != 0) return errcode;
-		QueryBagResult *firstHalfSorted;
-		QueryBagResult *secondHalfSorted;
-		errcode = ((QueryBagResult *)firstHalf)->sortBag(firstHalfSorted);
-		if (errcode != 0) return errcode;
-		errcode = ((QueryBagResult *)secondHalf)->sortBag(secondHalfSorted);
-		if (errcode != 0) return errcode;
-		unsigned int total_size = (firstHalfSorted->size()) + (secondHalfSorted->size());
-		if (total_size != (this->size())) {
-			*ec << "[QE] sortCollection() ERROR! - i lost some elements somewhere...";
-			*ec << (ErrQExecutor | EQEUnexpectedErr);
-			return (ErrQExecutor | EQEUnexpectedErr); // something is wrong, those sizes should be equal
-		}
-		for (unsigned int i = 0; i < total_size; i++) {
-			QueryResult *first_elem;
-			QueryResult *second_elem;
-			if ((firstHalfSorted->size()) == 0) { // first half ended
-				errcode = secondHalfSorted->getResult(second_elem);
-				if (errcode != 0) return errcode;
-				outBag->addResult(second_elem);
-			} 
-			else if ((secondHalfSorted->size()) == 0) { // second sequence ended
-				errcode = firstHalfSorted->getResult(first_elem);
-				if (errcode != 0) return errcode;
-				outBag->addResult(first_elem);
-			} 
-			else {
-				errcode = firstHalfSorted->at(0,first_elem);
-				if (errcode != 0) return errcode;
-				errcode = secondHalfSorted->at(0,second_elem);
-				if (errcode != 0) return errcode;
-				if (first_elem->sorting_less_eq(second_elem)) {
-					outBag->addResult(first_elem);
-					errcode = firstHalfSorted->getResult(first_elem);
-					if (errcode != 0) return errcode;
-				}
-				else {
-					outBag->addResult(second_elem);
-					errcode = secondHalfSorted->getResult(second_elem);
-					if (errcode != 0) return errcode;
-				}
-			}
-		}
-	}
-	return 0;
+void QueryBagResult::sortBag() {
+	sort(bag.begin(), bag.end(), ptr_less<QueryResult>());
 }
 
-int QuerySequenceResult::sortCollection(QueryResult *r) {
-	*ec << "[QE] sortCollection()";
-	int errcode;
-	unsigned int bagSize = r->size();
-	switch (bagSize) {
-		case 0: { 
-			break; 
-		}
-		case 1: {
-			QueryResult *current;
-			errcode = r->getResult(current);
-			if (errcode != 0) return errcode;
-			seq.push_back(current);
-			break;
-		}
-		default: {
-			QueryResult *first_bag;
-			QueryResult *second_bag;
-			errcode = ((QueryBagResult *) r)->divideBag(first_bag, second_bag);
-			if (errcode != 0) return errcode;
-			QueryResult *first_seq = new QuerySequenceResult();
-			errcode = ((QuerySequenceResult *) first_seq)->sortCollection(first_bag);
-			delete first_bag;
-			if (errcode != 0) return errcode;
-			QueryResult *second_seq = new QuerySequenceResult();
-			errcode = ((QuerySequenceResult *) second_seq)->sortCollection(second_bag);
-			delete second_bag;
-			if (errcode != 0) return errcode;
-			unsigned int seq_size = (first_seq->size()) + (second_seq->size());
-			if (seq_size != bagSize) {
-				*ec << "[QE] sortCollection() ERROR! - i lost some elements somewhere...";
-				*ec << (ErrQExecutor | EQEUnexpectedErr);
-				return (ErrQExecutor | EQEUnexpectedErr);
-			}
-			for (unsigned int i = 0; i < seq_size; i++) {
-				QueryResult *first_elem;
-				QueryResult *second_elem;
-				if ((first_seq->size()) == 0) { // first sequence ended
-					errcode = second_seq->getResult(second_elem);
-					if (errcode != 0) return errcode;
-					seq.push_back(second_elem);
-				} 
-				else if ((second_seq->size()) == 0) { // second sequence ended
-					errcode = first_seq->getResult(first_elem);
-					if (errcode != 0) return errcode;
-					seq.push_back(first_elem);
-				} 
-				else {
-					errcode = ((QuerySequenceResult *) first_seq)->at(0,first_elem);
-					if (errcode != 0) return errcode;
-					errcode = ((QuerySequenceResult *) second_seq)->at(0,second_elem);
-					if (errcode != 0) return errcode;
-					if ((first_elem->type() != QueryResult::QSTRUCT) || (second_elem->type() != QueryResult::QSTRUCT)) {
-						*ec << "[QE] sortCollection() ERROR - sorted elements must be struct type";
-						*ec << (ErrQExecutor | EQEUnexpectedErr);
-						return (ErrQExecutor | EQEUnexpectedErr);
-					}
-					QueryResult *first_sorting;
-					QueryResult *second_sorting;
-					errcode = ((QueryStructResult *) first_elem)->at(1, first_sorting);
-					if (errcode != 0) return errcode;
-					errcode = ((QueryStructResult *) second_elem)->at(1, second_sorting);
-					if (errcode != 0) return errcode;
-					QueryResult *first_sStr;
-					if ((first_sorting->type()) == QueryResult::QSTRUCT) {
-						first_sStr = first_sorting;
-					}
-					else {
-						first_sStr = new QueryStructResult();
-						first_sStr->addResult(first_sorting);
-					}
-					QueryResult *second_sStr;
-					if ((second_sorting->type()) == QueryResult::QSTRUCT) {
-						second_sStr = second_sorting;
-					}
-					else {
-						second_sStr = new QueryStructResult();
-						second_sStr->addResult(second_sorting);
-					}
-					if ((first_sStr->size()) != (second_sStr->size())) {
-						*ec << "[QE] sortCollection() ERROR - sorted elements must have equal number of elements";
-						*ec << (ErrQExecutor | EQEUnexpectedErr);
-						return (ErrQExecutor | EQEUnexpectedErr);
-					}
-					QueryResult *first_sElem;
-					QueryResult *second_sElem;
-					bool first_lessEQ = false;
-					bool second_lessEQ = false;
-					unsigned int jj = 0;
-					while ((jj < first_sStr->size()) && (first_lessEQ == second_lessEQ)) {
-						errcode = ((QueryStructResult*)first_sStr)->at(jj, first_sElem);
-						if (errcode != 0) return errcode;
-						errcode = ((QueryStructResult*)second_sStr)->at(jj, second_sElem);
-						if (errcode != 0) return errcode;
-						first_lessEQ = first_sElem->sorting_less_eq(second_sElem);
-						second_lessEQ = second_sElem->sorting_less_eq(first_sElem);
-						if ((first_lessEQ) && (not(second_lessEQ))) {
-							errcode = first_seq->getResult(first_elem);
-							if (errcode != 0) return errcode;
-							seq.push_back(first_elem);
-						}
-						else if ((second_lessEQ) && (not(first_lessEQ))) {
-							errcode = second_seq->getResult(second_elem);
-							if (errcode != 0) return errcode;
-							seq.push_back(second_elem);
-						}
-						jj++;
-					}
-					if ((first_lessEQ) == (second_lessEQ)) {
-						errcode = first_seq->getResult(first_elem);
-						if (errcode != 0) return errcode;
-						seq.push_back(first_elem);
-					}
-					if ((first_sorting->type()) != QueryResult::QSTRUCT) delete first_sStr;
-					if ((second_sorting->type()) != QueryResult::QSTRUCT) delete second_sStr;
-				}
-			}
-			delete first_seq;
-			delete second_seq;
-			break;
-		}
-	}
-	return 0;
+void QueryStructResult::sortStruct() {
+	sort(str.begin(), str.end(), ptr_less<QueryResult>());
 }
 
-int QuerySequenceResult::postSort(QueryResult *&f) {
+void QueryBagResult::sortBag_in_orderBy() {
+	sort(bag.begin(), bag.end(), ptr_less_in_orderBy<QueryResult>());
+}
+
+int QueryBagResult::postSort(QueryResult *&f) {
 	*ec << "[QE] postSort()";
 	int errcode;
 	f = new QuerySequenceResult();
-	for (unsigned int i = 0; i < seq.size(); i++) {
-		QueryResult *tmp_res = seq.at(i);
+	for (unsigned int i = 0; i < bag.size(); i++) {
 		QueryResult *elem;
-		errcode = ((QueryStructResult *)tmp_res)->at(0,elem);
+		errcode = ((QueryStructResult *) bag.at(i))->at(0, elem);
 		if (errcode != 0) return errcode;
 		f->addResult(elem);
 	}
 	return 0;
 };
-
 
 }

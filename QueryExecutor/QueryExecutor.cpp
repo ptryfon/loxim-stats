@@ -567,7 +567,6 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			unsigned int paramsNumb = ((ProcedureNode *) tree)->getParamsNumb();
 			
 			string code = tmpQN->deParse();
-			delete tmpQN;
 			
 			QueryResult *strct = new QueryStructResult();
 			QueryResult *code_str = new QueryStringResult(code);
@@ -3640,18 +3639,15 @@ int QueryExecutor::unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&
 			final = new QueryBagResult();
 			QueryResult *bagArg = new QueryBagResult();
 			bagArg->addResult(arg);
-			if ((bagArg->size()) == 0)
-				break;
-			QueryBagResult *argSorted;
-			errcode = ((QueryBagResult *) bagArg)->sortBag(argSorted);
-			if (errcode != 0) return errcode;
+			if ((bagArg->size()) == 0) break;
+			((QueryBagResult *) bagArg)->sortBag();
 			QueryResult *current;
-			errcode = argSorted->getResult(current);
+			errcode = ((QueryBagResult *) bagArg)->getResult(current);
 			if (errcode != 0) return errcode;
 			final->addResult(current);
-			while ((argSorted->size()) > 0) {
+			while ((bagArg->size()) > 0) {
 				QueryResult *next;
-				errcode = argSorted->getResult(next);
+				errcode = ((QueryBagResult *) bagArg)->getResult(next);
 				if (errcode != 0) return errcode;
 				if (next->not_equal(current)) {
 					current = next;
@@ -4564,67 +4560,69 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 		}
 		return 0;
 	}
-	else if ((op == AlgOpNode::bagUnion) || (op == AlgOpNode::bagIntersect) || (op == AlgOpNode::bagMinus)) {
-		QueryResult *leftBag = new QueryBagResult();
-		QueryResult *rightBag = new QueryBagResult();
+	else if (op == AlgOpNode::bagUnion) {
+		*ec << "[QE] BAG_UNION operation";
 		final = new QueryBagResult();
+		((QueryBagResult *) final)->addResult(lArg);
+		((QueryBagResult *) final)->addResult(rArg);
+		return 0;
+	}
+	else if ((op == AlgOpNode::bagIntersect) || (op == AlgOpNode::bagMinus)) {
+		if (op == (AlgOpNode::bagIntersect)) *ec << "[QE] BAG_INTERSECT operation";
+		if (op == (AlgOpNode::bagMinus)) *ec << "[QE] BAG_MINUS operation";
+		
+		final = new QueryBagResult();
+		QueryResult *leftBag = new QueryBagResult();
 		leftBag->addResult(lArg);
+		QueryResult *rightBag = new QueryBagResult();
 		rightBag->addResult(rArg);
-		if (op == (AlgOpNode::bagUnion)) {
-			*ec << "[QE] BAG_UNION operation";
-			((QueryBagResult *) final)->addResult(leftBag);
-			((QueryBagResult *) final)->addResult(rightBag);
-			return 0;
-		} else {
-			if (op == (AlgOpNode::bagIntersect))
-				*ec << "[QE] BAG_INTERSECT operation";
+		if (((leftBag->size()) == 0) || ((rightBag->size()) == 0)) {
 			if (op == (AlgOpNode::bagMinus))
-				*ec << "[QE] BAG_MINUS operation";
-			final = new QueryBagResult();
-			QueryBagResult *firstSorted;
-			errcode = ((QueryBagResult *) leftBag)->sortBag(firstSorted);
-			if (errcode != 0) return errcode;
-			QueryBagResult *secondSorted;
-			errcode = ((QueryBagResult *) rightBag)->sortBag(secondSorted);
-			if (errcode != 0) return errcode;
-			while ((firstSorted->size()) != 0) {
-				QueryResult *first_elem;
-				QueryResult *second_elem;
-				if ((secondSorted->size()) != 0) {
-					errcode = firstSorted->at(0,first_elem);
+				((QueryBagResult *) final)->addResult(lArg);
+		}
+		else {
+			((QueryBagResult *) leftBag)->sortBag();
+			((QueryBagResult *) rightBag)->sortBag();
+			
+			QueryResult *left_elem;
+			QueryResult *right_elem;
+			
+			while ((leftBag->size()) != 0) {
+				errcode = ((QueryBagResult *) leftBag)->at(0, left_elem);
+				if (errcode != 0) return errcode;
+				
+				if ((rightBag->size()) != 0) {
+					errcode = ((QueryBagResult *) rightBag)->at(0, right_elem);
 					if (errcode != 0) return errcode;
-					errcode = secondSorted->at(0,second_elem);
-					if (errcode != 0) return errcode;
-					if (first_elem->equal(second_elem)) {
+					
+					if (left_elem->equal(right_elem)) {
 						if (op == (AlgOpNode::bagIntersect))
-							((QueryBagResult *) final)->addResult(first_elem);
-						errcode = firstSorted->getResult(first_elem);
+							((QueryBagResult *) final)->addResult(left_elem);
+						errcode = ((QueryBagResult *) leftBag)->getResult(left_elem);
 						if (errcode != 0) return errcode;
-						errcode = secondSorted->getResult(second_elem);
+						errcode = ((QueryBagResult *) rightBag)->getResult(right_elem);
 						if (errcode != 0) return errcode;
 					}
-					else if (first_elem->sorting_less_eq(second_elem)) {
+					else if (left_elem->sorting_strict_less(right_elem)) {
 						if (op == (AlgOpNode::bagMinus))
-							((QueryBagResult *) final)->addResult(first_elem);
-						errcode = firstSorted->getResult(first_elem);
+							((QueryBagResult *) final)->addResult(left_elem);
+						errcode = ((QueryBagResult *) leftBag)->getResult(left_elem);
 						if (errcode != 0) return errcode;
 					}
 					else {
-						errcode = secondSorted->getResult(second_elem);
+						errcode = ((QueryBagResult *) rightBag)->getResult(right_elem);
 						if (errcode != 0) return errcode;
 					}
 				}
 				else {
-					errcode = firstSorted->at(0,first_elem);
-					if (errcode != 0) return errcode;
 					if (op == (AlgOpNode::bagMinus))
-						((QueryBagResult *) final)->addResult(first_elem);
-					errcode = firstSorted->getResult(first_elem);
+						((QueryBagResult *) final)->addResult(left_elem);
+					errcode = ((QueryBagResult *) leftBag)->getResult(left_elem);
 					if (errcode != 0) return errcode;
 				}
 			}
-			return 0;
 		}
+		return 0;
 	}
 	else if (op == AlgOpNode::comma) {
 		*ec << "[QE] COMMA operation";
@@ -5601,10 +5599,8 @@ int QueryExecutor::merge(NonAlgOpNode::nonAlgOp op, QueryResult *partial, QueryR
 		}
 		case NonAlgOpNode::orderBy: {
 			*ec << "[QE] merge(): NonAlgebraic operator <orderBy>";
-			QueryResult *tmp_seq = new QuerySequenceResult();
-			errcode = ((QuerySequenceResult *) tmp_seq)->sortCollection(partial);
-			if (errcode != 0) return errcode;
-			errcode = ((QuerySequenceResult *) tmp_seq)->postSort(final);
+			((QueryBagResult *) partial)->sortBag_in_orderBy();
+			errcode = ((QueryBagResult *) partial)->postSort(final);
 			if (errcode != 0) return errcode;
 			break;
 		}
@@ -6376,7 +6372,7 @@ int QueryExecutor::callProcedure(string code, vector<QueryBagResult*> sections) 
 }
 
 int QueryExecutor::deVirtualize(QueryResult *arg, QueryResult *&res) {
-	*ec << "[QE] deVirtualize()";
+	//*ec << "[QE] deVirtualize()";
 	int errcode;
 	int argType = arg->type();
 	switch (argType) {
@@ -6482,7 +6478,7 @@ int QueryExecutor::deVirtualize(QueryResult *arg, QueryResult *&res) {
 }
 
 int QueryExecutor::reVirtualize(QueryResult *arg, QueryResult *&res) {
-	*ec << "[QE] reVirtualize()";
+	//*ec << "[QE] reVirtualize()";
 	int errcode;
 	int argType = arg->type();
 	switch (argType) {

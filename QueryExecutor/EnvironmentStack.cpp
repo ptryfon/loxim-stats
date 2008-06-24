@@ -535,6 +535,19 @@ int QueryBinderResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor *
 	return 0;
 }
 
+int QueryReferenceResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe) {
+	int errcode;
+	errcode = this->nested(tr, qe);
+	if(errcode != 0) return errcode;
+	QueryBagResult *nested_tmp_result;
+	errcode = qe->getEnvs()->top(nested_tmp_result);
+	if(errcode != 0) return errcode;
+	errcode = qe->getEnvs()->pop();
+	if(errcode != 0) return errcode;
+	r->addResult(nested_tmp_result);
+	return 0;
+}
+
 int QueryReferenceResult::nested(Transaction *&tr, QueryExecutor * qe) {
 	QueryBagResult *r = new QueryBagResult();
 	int errcode;
