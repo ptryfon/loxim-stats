@@ -1,3 +1,11 @@
+2008-06-26  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
+
+	* Errors/ErrorMsg.cpp, Errors/Errors.h, QueryExecutor/EnvironmentStack.cpp, QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryResult.h, Testy/emp-views.sbql, Testy/test_klas.sbql:
+	Naprawiona funkcja nested.
+	Dodany kod bledu dla sytuacji, gdy stos srodowisk ulega uszkodzeniu.
+	Zmiana w tescie dla klas - poprawiona skladania wokol operatora cast.
+	Poprawka w tescie dla perspektyw: zmiana warunku z 'sal > 2700' na 'count(sal) = 1 and sal > 2700'.
+
 2008-06-24  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
 
 	* QueryExecutor/EnvironmentStack.cpp, QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryResult.cpp, QueryExecutor/QueryResult.h, Store/NamedItems.cpp, Testy/parts-query.sbql:
