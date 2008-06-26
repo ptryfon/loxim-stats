@@ -110,8 +110,8 @@ public:
 	virtual bool less_than(QueryResult *r)=0;
 	bool greater_eq(QueryResult *r);
 	bool less_eq(QueryResult *r);
-	virtual int nested(Transaction *&tr, QueryExecutor * qe);
-	virtual int nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe);
+	int nested_and_push_on_envs(QueryExecutor * qe, Transaction *&tr);
+	virtual int nested(QueryExecutor * qe, Transaction *&tr, QueryResult *&r, vector<DataValue*> &dataVal_vec)=0;
 	virtual bool isBool()=0;
 	virtual bool isNothing()=0;
 	virtual int getBoolValue(bool &b)=0;
@@ -158,7 +158,7 @@ public:
 	bool less_than(QueryResult *r);
 	bool greater_eq(QueryResult *r);
 	bool less_eq(QueryResult *r);
-	int nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe);
+	int nested(QueryExecutor * qe, Transaction *&tr, QueryResult *&r, vector<DataValue*> &dataVal_vec);
 	bool isBool();
 	bool isNothing();
 	int getBoolValue(bool &b);
@@ -210,7 +210,7 @@ public:
 	bool less_than(QueryResult *r);
 	bool greater_eq(QueryResult *r);
 	bool less_eq(QueryResult *r);
-	int nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe);
+	int nested(QueryExecutor * qe, Transaction *&tr, QueryResult *&r, vector<DataValue*> &dataVal_vec);
 	bool isBool();
 	bool isNothing();
 	int getBoolValue(bool &b);
@@ -266,7 +266,7 @@ public:
 	bool less_than(QueryResult *r);
 	bool greater_eq(QueryResult *r);
 	bool less_eq(QueryResult *r);
-	int nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe);
+	int nested(QueryExecutor * qe, Transaction *&tr, QueryResult *&r, vector<DataValue*> &dataVal_vec);
 	bool isBool();
 	bool isNothing();
 	int getBoolValue(bool &b);
@@ -314,7 +314,7 @@ public:
 	bool less_than(QueryResult *r);
 	bool greater_eq(QueryResult *r);
 	bool less_eq(QueryResult *r);
-	int nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe);
+	int nested(QueryExecutor * qe, Transaction *&tr, QueryResult *&r, vector<DataValue*> &dataVal_vec);
 	bool isBool();
 	bool isNothing();
 	int getBoolValue(bool &b);
@@ -354,7 +354,7 @@ public:
 	bool less_than(QueryResult *r);
 	bool greater_eq(QueryResult *r);
 	bool less_eq(QueryResult *r);
-	int nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe);
+	int nested(QueryExecutor * qe, Transaction *&tr, QueryResult *&r, vector<DataValue*> &dataVal_vec);
 	bool isBool();
 	bool isNothing();
 	int getBoolValue(bool &b);
@@ -392,7 +392,7 @@ public:
 	bool less_than(QueryResult *r);
 	bool greater_eq(QueryResult *r);
 	bool less_eq(QueryResult *r);
-	int nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe);
+	int nested(QueryExecutor * qe, Transaction *&tr, QueryResult *&r, vector<DataValue*> &dataVal_vec);
 	bool isBool();
 	bool isNothing();
 	int getBoolValue(bool &b);
@@ -434,7 +434,7 @@ public:
 	bool less_than(QueryResult *r);
 	bool greater_eq(QueryResult *r);
 	bool less_eq(QueryResult *r);
-	int nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe);
+	int nested(QueryExecutor * qe, Transaction *&tr, QueryResult *&r, vector<DataValue*> &dataVal_vec);
 	bool isBool();
 	bool isNothing();
 	int getBoolValue(bool &b);
@@ -473,7 +473,7 @@ public:
 	bool less_than(QueryResult *r);
 	bool greater_eq(QueryResult *r);
 	bool less_eq(QueryResult *r);
-	int nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe);
+	int nested(QueryExecutor * qe, Transaction *&tr, QueryResult *&r, vector<DataValue*> &dataVal_vec);
 	bool isBool();
 	bool isNothing();
 	int getBoolValue(bool &b);
@@ -509,8 +509,7 @@ public:
 	bool less_than(QueryResult *r);
 	bool greater_eq(QueryResult *r);
 	bool less_eq(QueryResult *r);
-	int nested(Transaction *&tr, QueryExecutor * qe);
-	int nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe);
+	int nested(QueryExecutor * qe, Transaction *&tr, QueryResult *&r, vector<DataValue*> &dataVal_vec);
 	bool isBool();
 	bool isNothing();
 	int getBoolValue(bool &b);
@@ -541,7 +540,7 @@ public:
 	bool less_than(QueryResult *r);
 	bool greater_eq(QueryResult *r);
 	bool less_eq(QueryResult *r);
-	int nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe);
+	int nested(QueryExecutor * qe, Transaction *&tr, QueryResult *&r, vector<DataValue*> &dataVal_vec);
 	bool isBool();
 	bool isNothing();
 	int getBoolValue(bool &b);
@@ -584,7 +583,7 @@ public:
 	bool less_than(QueryResult *r);
 	bool greater_eq(QueryResult *r);
 	bool less_eq(QueryResult *r);
-	int nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe);
+	int nested(QueryExecutor * qe, Transaction *&tr, QueryResult *&r, vector<DataValue*> &dataVal_vec);
 	bool isBool();
 	bool isNothing();
 	int getBoolValue(bool &b);

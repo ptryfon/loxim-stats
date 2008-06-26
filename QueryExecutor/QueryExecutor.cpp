@@ -2274,14 +2274,12 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 					*ec << (ErrQExecutor | EEvalStopped);
 					return (ErrQExecutor | EEvalStopped);
 				}
-				errcode = (final)->nested(tr, this);
-				if (errcode != 0) return errcode;
+				
 				QueryResult *next_final = new QueryStructResult();
-				/*QueryResult *newStackSection = new QueryBagResult();
-				errcode = (final)->nested(tr, newStackSection, this);
+				
+				errcode = (final)->nested_and_push_on_envs(this, tr);
 				if (errcode != 0) return errcode;
-				errcode = envs->push((QueryBagResult *) newStackSection, tr, this);
-				if (errcode != 0) return errcode;*/
+				
 				for (int i = 0; i<howManyOps; i++) {
 					string currName = ((FixPointNode *) tree)->getName(i);
 					errcode = executeRecQuery (((FixPointNode *) tree)->getQuery(i));
@@ -2404,13 +2402,10 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 					QueryResult *currentResult;
 					errcode = partial_result->getResult(currentResult);
 					if (errcode != 0) return errcode;
-					errcode = (currentResult)->nested(tr, this);
+					
+					errcode = (currentResult)->nested_and_push_on_envs(this, tr);
 					if (errcode != 0) return errcode;
-					/*QueryResult *newStackSection = new QueryBagResult();
-					errcode = (currentResult)->nested(tr, newStackSection, this);
-					if (errcode != 0) return errcode;
-					errcode = envs->push((QueryBagResult *) newStackSection, tr, this);
-					if (errcode != 0) return errcode;*/
+					
 					QueryResult *newResult;
 					errcode = executeRecQuery (((NonAlgOpNode *) tree)->getRArg());
 					if (errcode != 0) return errcode;
@@ -2540,7 +2535,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 						QueryResult *rResult;
 
 						ec->printf("[QE] nested operation started()\n");
-						errcode = (currentResult)->nested(tr, this);
+						errcode = (currentResult)->nested_and_push_on_envs(this, tr);
 						if (errcode != 0) return errcode;
 							
 						*ec << "[QE] Computing right Argument with a new scope of ES";
@@ -2773,12 +2768,12 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			*ec << "remote 1";
 			if (lid != NULL) {
 				ec->printf("prosba o nested na obiekcie zdalnym\n");
-				/*QueryResult *newStackSection = new QueryBagResult();
-				errcode = qrr->nested(tr, newStackSection, this);
+				
+				QueryResult *newStackSection;
+				vector<DataValue*> _tmp_dataVal_vec;
+				errcode = (qrr)->nested(const_cast<QueryExecutor*>(this), tr, newStackSection, _tmp_dataVal_vec);
 				if (errcode != 0) return errcode;
 				errcode = qres->push(newStackSection);
-				if (errcode != 0) return errcode;*/
-				errcode = (qrr)->nested(tr, const_cast<QueryExecutor*>(this));
 				if (errcode != 0) return errcode;
 				ec->printf("nested na obiekcie zdalnym udalo sie. nowa sekcja stosu gotowa");
 				return 0;
@@ -5093,12 +5088,9 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 							vector<QueryBagResult*> envs_sections;
 							
 							QueryResult *tmp_result_1 = new QueryReferenceResult(lidOut);
-							errcode = tmp_result_1->nested(tr, this);
-							if(errcode != 0) return errcode;
-							QueryBagResult *nested_tmp_result_1;
-							errcode = envs->top(nested_tmp_result_1);
-							if(errcode != 0) return errcode;
-							errcode = envs->pop();
+							QueryResult *nested_tmp_result_1;
+							vector<DataValue*> _tmp_dataVal_vec;
+							errcode = tmp_result_1->nested(this, tr, nested_tmp_result_1, _tmp_dataVal_vec);
 							if(errcode != 0) return errcode;
 							envs_sections.push_back((QueryBagResult *) nested_tmp_result_1);
 							
@@ -5859,15 +5851,12 @@ int QueryExecutor::objectFromBinder(QueryResult *res, ObjectPointer *&newObject)
 int QueryExecutor::createNewSections(QueryVirtualResult *qvirt, QueryBinderResult *param, LogicalID *viewdef, vector<QueryBagResult*> &sections) {
 
 	int errcode;
+	vector<DataValue*> _tmp_dataVal_vec;
 	
 	if ((qvirt != NULL) && (qvirt->view_parent != NULL)) {
 		QueryResult *tmp_result_1 = new QueryReferenceResult(qvirt->view_parent);
-		errcode = tmp_result_1->nested(tr, this);
-		if(errcode != 0) return errcode;
-		QueryBagResult *nested_tmp_result_1;
-		errcode = envs->top(nested_tmp_result_1);
-		if(errcode != 0) return errcode;
-		errcode = envs->pop();
+		QueryResult *nested_tmp_result_1;
+		errcode = tmp_result_1->nested(this, tr, nested_tmp_result_1, _tmp_dataVal_vec);
 		if(errcode != 0) return errcode;
 		sections.push_back((QueryBagResult *) nested_tmp_result_1);
 	}
@@ -5875,12 +5864,8 @@ int QueryExecutor::createNewSections(QueryVirtualResult *qvirt, QueryBinderResul
 	if (qvirt != NULL) {
 		for (int i = ((qvirt->view_defs.size()) - 1); i >= 0; i-- ) {
 			QueryResult *tmp_result_2 = new QueryReferenceResult(qvirt->view_defs.at(i));
-			errcode = tmp_result_2->nested(tr, this);
-			if(errcode != 0) return errcode;
-			QueryBagResult *nested_tmp_result_2;
-			errcode = envs->top(nested_tmp_result_2);
-			if(errcode != 0) return errcode;
-			errcode = envs->pop();
+			QueryResult *nested_tmp_result_2;
+			errcode = tmp_result_2->nested(this, tr, nested_tmp_result_2, _tmp_dataVal_vec);
 			if(errcode != 0) return errcode;
 			sections.push_back((QueryBagResult *) nested_tmp_result_2);
 		}
@@ -5888,12 +5873,8 @@ int QueryExecutor::createNewSections(QueryVirtualResult *qvirt, QueryBinderResul
 	
 	if (viewdef != NULL) {
 		QueryResult *tmp_result_3 = new QueryReferenceResult(viewdef);
-		errcode = tmp_result_3->nested(tr, this);
-		if(errcode != 0) return errcode;
-		QueryBagResult *nested_tmp_result_3;
-		errcode = envs->top(nested_tmp_result_3);
-		if(errcode != 0) return errcode;
-		errcode = envs->pop();
+		QueryResult *nested_tmp_result_3;
+		errcode = tmp_result_3->nested(this, tr, nested_tmp_result_3, _tmp_dataVal_vec);
 		if(errcode != 0) return errcode;
 		sections.push_back((QueryBagResult *) nested_tmp_result_3);
 	}
@@ -5901,12 +5882,8 @@ int QueryExecutor::createNewSections(QueryVirtualResult *qvirt, QueryBinderResul
 	if (qvirt != NULL) {
 		for (int i = ((qvirt->seeds.size()) - 1); i >= 0; i-- ) {
 			QueryResult *tmp_result_4 = qvirt->seeds.at(i);
-			errcode = tmp_result_4->nested(tr, this);
-			if(errcode != 0) return errcode;
-			QueryBagResult *nested_tmp_result_4;
-			errcode = envs->top(nested_tmp_result_4);
-			if(errcode != 0) return errcode;
-			errcode = envs->pop();
+			QueryResult *nested_tmp_result_4;
+			errcode = tmp_result_4->nested(this, tr, nested_tmp_result_4, _tmp_dataVal_vec);
 			if(errcode != 0) return errcode;
 			sections.push_back((QueryBagResult *) nested_tmp_result_4);
 		}

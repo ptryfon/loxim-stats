@@ -44,6 +44,7 @@ struct ErrorMessages {
 	{EDivBy0,          "Division by 0"},
 	{EQEUnexpectedErr, "Unexpected QE Error"},
 	{ETransactionOpened, "Transaction already opened"},
+	{EEnvStackCorrupt, "Environment Stack was Corrupted"},
 	{EEvalStopped,     "Query evaluation stopped by Server"},
 	{EProcNotSingle,   "Not one Procedure with this signature"},
 	{EBadViewDef,      "Error in View definition"},

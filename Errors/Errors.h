@@ -80,6 +80,7 @@ namespace Errors {
 #define EDivBy0			0x1300
 #define EQEUnexpectedErr	0x1400
 #define ETransactionOpened	0x1410
+#define EEnvStackCorrupt	0x1410
 #define EEvalStopped		0x1500
 #define EProcNotSingle		0x1600
 #define EBadViewDef		0x1700

@@ -322,7 +322,7 @@ amplituner.cenaWGroszach()
 -- Rzutowanie wybiera te produkty, które s± jednocze¶nie
 -- instancjami klasy DoWypozyczenia.
 -- Operator "deref" jest prostym sposobem na wypisanie zawarto¶ci obiektów.
-deref(cast(produkt as DoWypozyczenia))
+deref(cast(produkt as (DoWypozyczenia)))
 /
 
 -- Wynik: { }, nie ma produktów klasy DoWypozyczenia.
@@ -331,7 +331,7 @@ deref(cast(produkt as DoWypozyczenia))
 (DoWypozyczenia includes amplituner).konstruktor()
 /
 
-deref(cast(produkt as DoWypozyczenia))
+deref(cast(produkt as (DoWypozyczenia)))
 /
 
 -- Wynik: {
@@ -357,7 +357,7 @@ deref(cast(produkt as DoWypozyczenia))
 -- Uruchomienie destruktora z dok³adnie wskazanej klasy.
 -- To, ¿e destruktor zwraca zmieniane obiekty zosta³o wykorzystane
 -- do ich wypisania przez "deref".
-deref(cast(produkt as DoWypozyczenia).DoWypozyczenia::destruktor())
+deref(cast(produkt as (DoWypozyczenia)).DoWypozyczenia::destruktor())
 /
 
 -- Wynik: {
@@ -367,7 +367,7 @@ deref(cast(produkt as DoWypozyczenia).DoWypozyczenia::destruktor())
 --   mocMuzyczna(40)  naIleStacji(9)  >  }
 -- Jak widaæ nast±pi³o usuniêcie w³a¶ciwo¶ci: "wypozyczony".
 
-deref(cast(produkt as DoWypozyczenia))
+deref(cast(produkt as (DoWypozyczenia)))
 /
 
 -- Wynik: { }, czyli tak jak przed wywo³aniem konstruktorów,

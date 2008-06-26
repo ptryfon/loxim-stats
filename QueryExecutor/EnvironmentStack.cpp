@@ -454,39 +454,41 @@ void EnvironmentStack::deleteAll() {
 
 // nested function returns bag of binders, which will be pushed on the environment stack
 
-//Zmiana metody nested, teraz dokonuje też wstawienia na stos.
-//Refaktoryzacja wykorzystuje zrealizowane wczesniej metody nested trzyargumentowa
-//i dodaje w nadklasie metode nested dwoargumentowa, ktora wstawia cos na stos.
-//Metody trzyargumentowe zmienione na protected.
-//Dodana implementacja pusta metody trzyargumentowej w nadklasie.
-
-int QueryResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe) {
+int QueryResult::nested_and_push_on_envs(QueryExecutor * qe, Transaction *&tr) {
+	int errcode;
+	QueryResult *r;
+	vector<DataValue*> dataVal_vec;
+	errcode = this->nested(qe, tr, r, dataVal_vec);
+	if (errcode != 0) return errcode;
+	errcode = qe->getEnvs()->push(((QueryBagResult *) r), tr, qe);
+	if(errcode != 0) return errcode;
+	bool classFound;
+	for (unsigned int i = 0; i < dataVal_vec.size(); i++) {
+		classFound = false;
+		errcode = qe->getEnvs()->pushClasses(dataVal_vec.at(i), qe, classFound);
+		if(errcode != 0) return errcode;
+	}
 	return 0;
 }
 
-int QueryResult::nested(Transaction *&tr, QueryExecutor * qe) {
-	QueryResult *newStackSection = new QueryBagResult();
-	int errcode = this->nested(tr, newStackSection, qe);
-	if (errcode != 0) return errcode;
-	return qe->getEnvs()->push((QueryBagResult *) newStackSection, tr, qe);
-}
 
-int QuerySequenceResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe) {
+int QuerySequenceResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult *&r, vector<DataValue*> &dataVal_vec) {
 	*ec << "[QE] nested(): ERROR! QuerySequenceResult shouldn't be nested";
 	*ec << (ErrQExecutor | EOtherResExp);
 	return (ErrQExecutor | EOtherResExp);
 	// nested () function is applied to rows of a QueryResult and so, it shouldn't be applied to sequences and bags
 }
 
-int QueryBagResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe) {
+int QueryBagResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult *&r, vector<DataValue*> &dataVal_vec) {
 	*ec << "[QE] nested(): ERROR! QueryBagResult shouldn't be nested";
 	*ec << (ErrQExecutor | EOtherResExp);
 	return (ErrQExecutor | EOtherResExp);
 	// nested () function is applied to rows of a QueryResult and so, it shouldn't be applied to sequences and bags
 }
 
-int QueryStructResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe) {
+int QueryStructResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult *&r, vector<DataValue*> &dataVal_vec) {
 	*ec << "[QE] nested(): QueryStructResult";
+	r = new QueryBagResult();
 	int errcode;
 	for (unsigned int i = 0; i < str.size(); i++) {
 		if ((str.at(i))->type() == QueryResult::QSTRUCT) {
@@ -494,39 +496,47 @@ int QueryStructResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor *
 			return (ErrQExecutor | EOtherResExp); // one row shouldn't contain another row;
 		}
 		else {
-			errcode = ((str.at(i))->nested(tr, r, qe));
+			QueryResult *tmp_res;
+			errcode = ((str.at(i))->nested(qe, tr, tmp_res, dataVal_vec));
 			if (errcode != 0) return errcode;
+			r->addResult(tmp_res);
 		}
 	}
 	return 0;
 }
 
-int QueryStringResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe) {
+int QueryStringResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult *&r, vector<DataValue*> &dataVal_vec) {
 	*ec << "[QE] nested(): QueryStringResult can't be nested";
+	r = new QueryBagResult();
 	return 0;
 }
 
-int QueryIntResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe) {
+int QueryIntResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult *&r, vector<DataValue*> &dataVal_vec) {
 	*ec << "[QE] nested(): QueryIntResult can't be nested";
+	r = new QueryBagResult();
 	return 0;
 }
 
-int QueryDoubleResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe) {
+int QueryDoubleResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult *&r, vector<DataValue*> &dataVal_vec) {
 	*ec << "[QE] nested(): QueryDoubleResult can't be nested";
+	r = new QueryBagResult();
 	return 0;
 }
 
-int QueryBoolResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe) {
+int QueryBoolResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult *&r, vector<DataValue*> &dataVal_vec) {
 	*ec << "[QE] nested(): QueryBoolResult can't be nested";
+	r = new QueryBagResult();
 	return 0;
 }
 
-int QueryNothingResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe) {
+int QueryNothingResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult *&r, vector<DataValue*> &dataVal_vec) {
 	*ec << "[QE] nested(): QueryNothingResult can't be nested";
+	r = new QueryBagResult();
 	return 0;
 }
 
-int QueryBinderResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe) {
+int QueryBinderResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult *&r, vector<DataValue*> &dataVal_vec) {
+	r = new QueryBagResult();
 	if (item != NULL) {
 		QueryBinderResult *tmp_value = new QueryBinderResult(name,item);
 		ec->printf("[QE] nested(): QueryBinderResult copy returned name: %s\n", name.c_str());
@@ -535,21 +545,8 @@ int QueryBinderResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor *
 	return 0;
 }
 
-int QueryReferenceResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe) {
-	int errcode;
-	errcode = this->nested(tr, qe);
-	if(errcode != 0) return errcode;
-	QueryBagResult *nested_tmp_result;
-	errcode = qe->getEnvs()->top(nested_tmp_result);
-	if(errcode != 0) return errcode;
-	errcode = qe->getEnvs()->pop();
-	if(errcode != 0) return errcode;
-	r->addResult(nested_tmp_result);
-	return 0;
-}
-
-int QueryReferenceResult::nested(Transaction *&tr, QueryExecutor * qe) {
-	QueryBagResult *r = new QueryBagResult();
+int QueryReferenceResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult *&r, vector<DataValue*> &dataVal_vec) {
+	r = new QueryBagResult();
 	int errcode;
 	ec->printf("[QE] nested(): QueryReferenceResult\n");
 	/* remote ID */
@@ -564,11 +561,9 @@ int QueryReferenceResult::nested(Transaction *&tr, QueryExecutor * qe) {
 		}
 		r->addResult(qr);
 		*ec << "remote logicalID\n";
-		return qe->getEnvs()->push(r, tr, qe);
+		return 0;
 	}
 	/* end of remoteID processing */
-	
-	DataValue* tmp_data_value;
 	
 	ObjectPointer *optr;
 	if (value != NULL) {
@@ -579,12 +574,13 @@ int QueryReferenceResult::nested(Transaction *&tr, QueryExecutor * qe) {
 			return errcode;
 		}
 
-		tmp_data_value = optr->getValue();
+		DataValue* dataVal = optr->getValue();
+		dataVal_vec.push_back(dataVal);
 		
 		/* Link */
-		if (tmp_data_value->getSubtype() == Store::Link) {
+		if (dataVal->getSubtype() == Store::Link) {
 			 *ec << "nested on Link object\n";
-			 vector<LogicalID*>*  tmp_vec =tmp_data_value->getVector();
+			 vector<LogicalID*>*  tmp_vec =dataVal->getVector();
 			 int vec_size = tmp_vec->size();
 			 int errcode;
 			 int port;
@@ -624,13 +620,13 @@ int QueryReferenceResult::nested(Transaction *&tr, QueryExecutor * qe) {
 			 	return errcode;
 			 }
 			 r->addResult(qr);
-			 return qe->getEnvs()->push(r, tr, qe);
+			 return 0;
 		}
 		/* end of link processing */
 		
 		vector<LogicalID*> subviews_vector;
 
-		int vType = tmp_data_value->getType();
+		int vType = dataVal->getType();
 		switch (vType) {
 			case Store::Integer: {
 				*ec << "[QE] nested(): QueryReferenceResult pointing integer value - can't be nested";
@@ -645,7 +641,7 @@ int QueryReferenceResult::nested(Transaction *&tr, QueryExecutor * qe) {
 				break;
 			}
 			case Store::Pointer: {
-				LogicalID *tmp_logID = (tmp_data_value->getPointer());
+				LogicalID *tmp_logID = (dataVal->getPointer());
 				if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, optr, false)) != 0) {
 					*ec << "[QE] Error in getObjectPointer";
 					qe->antyStarveFunction(errcode);
@@ -662,7 +658,7 @@ int QueryReferenceResult::nested(Transaction *&tr, QueryExecutor * qe) {
 				break;
 			}
 			case Store::Vector: {
-				vector<LogicalID*>* tmp_vec = (tmp_data_value->getVector());
+				vector<LogicalID*>* tmp_vec = (dataVal->getVector());
 				*ec << "[QE] nested(): QueryReferenceResult pointing vector value";
 				int vec_size = tmp_vec->size();
 				for (int i = 0; i < vec_size; i++ ) {
@@ -684,7 +680,7 @@ int QueryReferenceResult::nested(Transaction *&tr, QueryExecutor * qe) {
 					
 					DataValue* tdv;
 					tdv = optr->getValue();
-					if ((tmp_data_value->getSubtype() != Store::View) && (tdv->getType() == Store::Vector) && (tdv->getSubtype() == Store::View)) {
+					if ((dataVal->getSubtype() != Store::View) && (tdv->getType() == Store::Vector) && (tdv->getSubtype() == Store::View)) {
 						subviews_vector.push_back(tmp_logID);
 					}
 				}
@@ -712,7 +708,7 @@ int QueryReferenceResult::nested(Transaction *&tr, QueryExecutor * qe) {
 			if (errcode != 0) return errcode;
 			
 			vector<QueryBagResult*> envs_sections;
-			envs_sections.push_back(r);
+			envs_sections.push_back((QueryBagResult *) r);
 			
 			errcode = qe->createNewSections(NULL, NULL, tmp_logID, envs_sections);
 			if (errcode != 0) return errcode;
@@ -738,20 +734,14 @@ int QueryReferenceResult::nested(Transaction *&tr, QueryExecutor * qe) {
 				ec->printf("[QE] nested(): new QueryVirtualResult returned name: %s\n", view_name.c_str());
 			}
 		}
-		
-		errcode = qe->getEnvs()->push(r, tr, qe);
-		if(errcode != 0) return errcode;
-		bool classFound = false;
-		errcode = qe->getEnvs()->pushClasses(tmp_data_value, qe, classFound);
-		if(errcode != 0) return errcode;
-		return 0;
 	}
-	return qe->getEnvs()->push(r, tr, qe);
+	return 0;
 }
 
 
 
-int QueryVirtualResult::nested(Transaction *&tr, QueryResult *&r, QueryExecutor * qe) {
+int QueryVirtualResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult *&r, vector<DataValue*> &dataVal_vec) {
+	r = new QueryBagResult();
 	int errcode;
 	ec->printf("[QE] nested(): QueryVirtualResult\n");
 	
