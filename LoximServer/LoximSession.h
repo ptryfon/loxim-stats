@@ -11,9 +11,11 @@
 #include <Errors/ErrorConsole.h>
 #include "Clipboard.h"
 #include "KeepAlive.h"
-
+#include <string>
+#include <SystemStats/SessionStats.h>
 
 using namespace protocol;
+using namespace SystemStatsLib;
 
 namespace LoximServer{
 	class LoximServer;
@@ -40,7 +42,7 @@ namespace LoximServer{
 		public:
 			/** the creator should take care to create objects synchronously,
 			 * however only LoximServer should do this, so there is no problem
-			 */  
+			 */
 			LoximSession(LoximServer *server, AbstractSocket *socket, ErrorConsole *err_cons);
 			~LoximSession();
 			void start();
@@ -78,6 +80,8 @@ namespace LoximServer{
 			DataPart *serialize_res(QueryResult *res);
 			int respond(DataPart *qres);
 			KeepAliveThread *KAthread;
+			string sessionid;
+			SessionStats* stats;
 	};
 }
 

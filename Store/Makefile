@@ -20,6 +20,8 @@ SOURCES	=	Buffer.cpp \
 		SystemViews.cpp
 
 HEADERS	=	../QueryExecutor/HashMacro.h \
+			../SystemStats/AllStats.h \
+			../SystemStats/SystemStats.h \
 		Buffer.h \
 		DBDataValue.h \
 		DBLogicalID.h \
@@ -48,6 +50,7 @@ test: $(PROGRAM)
 
 $(PROGRAM): $(STATIC_LIB) $(PROGRAM).cpp
 	make -C ../TransactionManager
+	make -C ../SystemStats
 	make -C ../Lock
 	make -C ../Errors
 	make -C ../Log

@@ -11,6 +11,7 @@ SOURCES	=	Server.cpp \
 
 HEADERS	= 	../Driver \
 		../protocol \
+		../SystemStats
 
 
 OBJECTS	=	$(SOURCES:.cpp=.o)
@@ -22,6 +23,7 @@ LIBS	=	../Driver/Driver.a \
 		../Log/Logs.a \
 		../QueryParser/QueryParser.a \
 		../Store/Store.a \
+		../SystemStats/SystemStats.a \
 		../TransactionManager/TransactionManager.a \
 		../QueryExecutor/QueryExecutor.a \
 		../Lock/Lock.a \
@@ -36,7 +38,7 @@ LIBS	=	../Driver/Driver.a \
 		../protocol/streams/streams.a \
 		../protocol/layers/layers.a \
 		../protocol/ptools/ptools.a \
-		../AdminParser/AdminParser.a
+		../AdminParser/AdminParser.a 
 
 
 

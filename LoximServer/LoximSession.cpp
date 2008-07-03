@@ -2,6 +2,7 @@
 #include <iostream>
 #include <pthread.h>
 #include <math.h>
+#include <sstream>
 #include <protocol/ptools/Package.h>
 #include <protocol/packages/WCHelloPackage.h>
 #include <protocol/packages/WSHelloPackage.h>
@@ -36,7 +37,11 @@
 #include <AdminParser/AdminExecutor.h>
 #include <Errors/Errors.h>
 
+#include <SystemStats/AllStats.h>
+#include <SystemStats/SessionStats.h>
+
 using namespace std;
+using namespace SystemStatsLib;
 
 	#define recieve_or_die(package, layer0, cond) \
 	    package = layer0->readPackage(); \
@@ -46,14 +51,14 @@ using namespace std;
 		delete package; \
 		return EProtocol; \
 	    }
-	
+
 	#define send_or_die(package, layer0) \
 	    if (!layer0->writePackage(package)){ \
 		delete package; \
 		return ESend; \
 	    } else { \
 		delete package; \
-	    } 
+	    }
 
 
 
@@ -71,10 +76,20 @@ LoximServer::LoximSession::LoximSession(LoximServer *server, AbstractSocket *soc
 	pthread_mutex_init(&send_mutex, 0);
 	for (int i = 0; i < 20; i++)
 		salt[i] = (char)(rand()%256-128);
+	stats = new SessionStats();
+	stats->setId(this->id);
+
+	/* Utworzenie numeru sesji */
+	stringstream ss;
+	ss << "SESSION_" << (this->id);
+	ss >> sessionid;
+
+	AllStats::getHandle()->getSessionsStats()->addSessionStats(sessionid, stats);
 }
 
-LoximServer::LoximSession::~LoximSession() 
+LoximServer::LoximSession::~LoximSession()
 {
+	AllStats::getHandle()->getSessionsStats()->removeSessionStats(sessionid);
 	delete socket;
 	if (user_data)
 		delete user_data;
@@ -130,30 +145,34 @@ bool LoximServer::LoximSession::authorize(const char *login, const char *passwd)
 	if (res)
 		return false;
 	delete qres;
+
+	if (correct) {
+		stats->setUserLogin(string(login));
+	}
 	return correct;
 }
 
 int LoximServer::LoximSession::init_phase()
 {
-	    
+
 	Package *package;
-	
+
 	recieve_or_die(package, layer0, package->getPackageType() == ID_WCHelloPackage);
 	delete package;
 	err_cons->printf("Got WCHELLO\n");
-	
+
 	package = new WSHelloPackage(PROTO_VERSION_MAJOR, PROTO_VERSION_MINOR, LOXIM_VERSION_MAJOR, LOXIM_VERSION_MINOR, get_server()->get_config_max_package_size(), 0, AUTH_TRUST | AUTH_PASS_MYSQL, salt);
 	send_or_die(package, layer0);
 	err_cons->printf("WSHELLO sent\n");
-	
+
 	recieve_or_die(package, layer0, package->getPackageType() == ID_WCLoginPackage);
 	err_cons->printf("Got WCLOGIN\n");
-	delete package;		
+	delete package;
 
 	package = new ASCOkPackage();
 	send_or_die(package, layer0);
 	err_cons->printf("ASCOK sent\n");
-	
+
 	recieve_or_die(package, layer0, package->getPackageType() == ID_WCPasswordPackage);
 	err_cons->printf("Got login: %s\n", ((WCPasswordPackage*)package)->getLogin()->getBuffor());
 	if (authorize(((WCPasswordPackage*)package)->getLogin()->getBuffor(), ((WCPasswordPackage*)package)->getPassword()->getBuffor())){
@@ -167,7 +186,7 @@ int LoximServer::LoximSession::init_phase()
 		return EUserUnknown;
 	}
 	return 0;
-	
+
 }
 
 
@@ -203,7 +222,7 @@ int LoximServer::LoximSession::free_state()
 			continue;
 		KAthread->set_answered();
 		switch (package->getPackageType()){
-			case ID_VSCSendValuesPackage : 
+			case ID_VSCSendValuesPackage :
 				err_cons->printf("Got VSCSendValues - ignoring\n");
 				break;
 			case ID_QCStatementPackage:{
@@ -269,7 +288,7 @@ bool LoximServer::LoximSession::is_white(char c)
 
 int LoximServer::LoximSession::execute_statement(const char *stmt, QueryResult **qres)
 {
-	
+
 	const char *nw;
 	for (nw = stmt; *nw != 0 && is_white(*nw); nw++){};
 	if (*nw == '#'){
@@ -312,11 +331,11 @@ int LoximServer::LoximSession::respond(DataPart *qres)
 	package = new VSCSendValuesPackage();
 	send_or_die(package, layer0);
 	err_cons->printf("SendValues sent\n");
-	
+
 	package = new VSCSendValuePackage(0, 0, qres);
 	send_or_die(package, layer0);
 	err_cons->printf("Sent query result\n");
-	
+
 	package = new VSCFinishedPackage();
 	send_or_die(package, layer0);
 	err_cons->printf("Sending values finished\n");
@@ -327,7 +346,7 @@ int LoximServer::LoximSession::respond(DataPart *qres)
 void LoximServer::LoximSession::main_loop()
 {
 	qEx->set_priviliged_mode(true);
-	qEx->initCg();	
+	qEx->initCg();
 	err_cons->printf("session %d bootstrapped. active sessions: %d\n", get_id(), server->get_sessions_count());
 	layer0 = new ProtocolLayer0(socket);
 	int err_code = 0;
@@ -422,7 +441,7 @@ void LoximServer::LoximSession::set_user_data(UserData *user_data)
 	this->user_data = user_data;
 }
 
-LoximServer::UserData *LoximServer::LoximSession::get_user_data() 
+LoximServer::UserData *LoximServer::LoximSession::get_user_data()
 {
 	return user_data;
 }
@@ -435,7 +454,7 @@ LoximServer::UserData::UserData(string login, string passwd)
 
 LoximServer::UserData::~UserData() {}
 
-string LoximServer::UserData::to_string() 
+string LoximServer::UserData::to_string()
 {
 	string message = "User data object: " + login + ", " + passwd;
 	return message;

@@ -1,6 +1,7 @@
 include make.defs
 
 SUBDIRS	=	AdminParser \
+	    SystemStats \
 		Backup \
 		QueryExecutor \
 		QueryParser \
