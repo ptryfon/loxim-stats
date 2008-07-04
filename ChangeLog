@@ -1,3 +1,11 @@
+2008-07-04  Damian Klata  <dk209472@students.mimuw.edu.pl>
+
+	* SystemStats/AllStats.cpp, SystemStats/AllStats.h, SystemStats/Makefile, SystemStats/SessionStats.cpp, SystemStats/SessionStats.h, SystemStats/SystemStats.cpp, SystemStats/SystemStats.h:
+	Statystyki połączeń
+
+	* LoximServer/LoximSession.cpp, LoximServer/LoximSession.h, LoximServer/Makefile, Makefile, Store/Makefile, Store/SystemViews.cpp, Store/SystemViews.h:
+	Dynamiczne statystyki systemowe - statysyka połączeń
+
 2008-06-26  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
 
 	* Errors/ErrorMsg.cpp, Errors/Errors.h, QueryExecutor/EnvironmentStack.cpp, QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryResult.h, Testy/emp-views.sbql, Testy/test_klas.sbql:
