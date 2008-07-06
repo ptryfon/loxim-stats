@@ -4,10 +4,12 @@ include ../make.defs
 PROGRAM	=	
 
 SOURCES	= SessionStats.cpp \
+	 ConfigStats.cpp \
 	 SystemStats.cpp \
 	 AllStats.cpp
 
 HEADERS	= SessionStats.h \
+		ConfigStats.h \
     SystemStats.h \
     AllStats.h
 

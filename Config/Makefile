@@ -2,9 +2,12 @@ include ../make.defs
 
 SOURCES	=	SBQLConfig.cpp
 
-HEADERS	=	SBQLConfig.h
+HEADERS	=	SBQLConfig.h \
+			../SystemStats
 
-STATIC_LIB =	Config.a
+STATIC_LIB =	Config.a \
+			../SystemStats/SystemStats.a
+
 PROGRAM	=	conftest
 
 OBJECTS	=	$(SOURCES:.cpp=.o)

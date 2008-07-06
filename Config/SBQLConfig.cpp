@@ -4,6 +4,7 @@
 #include <iostream>
 #include "Errors/Errors.h"
 #include "SBQLConfig.h"
+#include "SystemStats/ConfigStats.h"
 
 using namespace std;
 using namespace Errors;
@@ -14,7 +15,7 @@ namespace Config {
 	void SBQLConfig::startup() {
 		config = NULL;
 	}
-	
+
 	SBQLConfig::SBQLConfig(string module)
 	{
 		callerModule = module;
@@ -24,7 +25,7 @@ namespace Config {
 	int SBQLConfig::init(void) {
 		return init("");
 	};
-	
+
 	int SBQLConfig::init(string file)
 	{
 		ifstream configFile;
@@ -40,7 +41,7 @@ namespace Config {
 
 		if (!configFile.is_open())
 			return ErrConfig | ENoFile;
-		
+
 		while (!configFile.eof()) {
 			configFile.getline(line, 255);
 			line[255] = '\0';
@@ -200,7 +201,7 @@ namespace Config {
 		struct ModuleOptions *mod;
 		struct ConfOpt *opt;
 
-		mod = config;		
+		mod = config;
 		while (mod != NULL) {
 			cout << "[" << mod->name << "]" << endl;
 			opt = mod->options;
@@ -230,7 +231,7 @@ namespace Config {
 				(strcasecmp(opt->value, "true") == 0)) {
 			value = true;
 		} else {
-			if ((strcasecmp(opt->value, "no") == 0) || 
+			if ((strcasecmp(opt->value, "no") == 0) ||
 					(strcasecmp(opt->value, "0") == 0) ||
 					(strcasecmp(opt->value, "off") == 0) ||
 					(strcasecmp(opt->value, "false") == 0)) {
@@ -242,7 +243,7 @@ namespace Config {
 
 		return 0;
 	};
-	
+
 	int SBQLConfig::getInt(string param, int& value)
 	{
 		struct ConfOpt *opt;
@@ -296,7 +297,7 @@ namespace Config {
 
 		return 0;
 	};
-	
+
 	int SBQLConfig::getString(string param, string& value)
 	{
 		struct ConfOpt *opt;
@@ -311,13 +312,13 @@ namespace Config {
 		value = opt->value;
 		return 0;
 	};
-	
+
 	void SBQLConfig::free(void)
 	{
 		struct ModuleOptions *mod, *pmod;
 		struct ConfOpt *opt, *popt;
 
-		mod = config;		
+		mod = config;
 		while (mod != NULL) {
 			opt = mod->options;
 			while (opt != NULL) {

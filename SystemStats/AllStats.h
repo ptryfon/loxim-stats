@@ -10,6 +10,7 @@
 
 #include "SystemStats.h"
 #include "SessionStats.h"
+#include "ConfigStats.h"
 
 using namespace std;
 
@@ -24,6 +25,7 @@ namespace SystemStatsLib{
 				static AllStats* getHandle();
 
 				SessionsStats* getSessionsStats();
+				ConfigsStats* getConfigsStats();
 
 				~AllStats();
 		};

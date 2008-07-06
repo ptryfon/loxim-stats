@@ -32,6 +32,7 @@ namespace Store
 		registerView("%AllViews", new AllViewsView());
 		registerView("%Counter", new CounterView());
 		registerView("%Sessions", new SystemStatsView("SESSIONS_STATS"));
+		registerView("%Configs", new SystemStatsView("CONFIGS_STATS"));
 
 		/* Init views */
 		map<const char*,SystemView*>::iterator iter;
