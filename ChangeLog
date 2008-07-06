@@ -1,3 +1,11 @@
+2008-07-06  Damian Klata  <dk209472@students.mimuw.edu.pl>
+
+	* SystemStats/ConfigStats.cpp, SystemStats/ConfigStats.h:
+	Dodanie plików brakujący widoku systemowego konfiguracji
+
+	* Config/Makefile, Config/SBQLConfig.cpp, Store/SystemViews.cpp, SystemStats/AllStats.cpp, SystemStats/AllStats.h, SystemStats/Makefile:
+	Dodanie widoku systemowego konfiguracji
+
 2008-07-04  Damian Klata  <dk209472@students.mimuw.edu.pl>
 
 	* SystemStats/AllStats.cpp, SystemStats/AllStats.h, SystemStats/Makefile, SystemStats/SessionStats.cpp, SystemStats/SessionStats.h, SystemStats/SystemStats.cpp, SystemStats/SystemStats.h:
