@@ -1,3 +1,8 @@
+2008-07-15  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
+
+	* QueryExecutor/QueryExecutor.cpp, QueryParser/TreeNode.cpp, QueryParser/TreeNode.h, QueryParser/parser.y, Store/Buffer.cpp, Store/DBStoreManager.cpp, Store/File.cpp:
+	Pakiet zwiazany z interfejsami - poprawki koncepcyjne i implementacyjne na poziomie tworzenia/odpytywania/trwalosci
+
 2008-07-06  Damian Klata  <dk209472@students.mimuw.edu.pl>
 
 	* SystemStats/ConfigStats.cpp, SystemStats/ConfigStats.h:
