@@ -1,5 +1,5 @@
 /**
- * $Id: Buffer.cpp,v 1.37 2007-09-05 17:58:20 ad197852 Exp $
+ * $Id: Buffer.cpp,v 1.38 2008-07-15 14:07:34 ad197852 Exp $
  *
  */
 #include "Buffer.h"
@@ -153,7 +153,6 @@ namespace Store
 							store->getClasses()->initializePage(i, n_page->page); 
 							break;
 						case STORE_FILE_INTERFACES:
-							ec->printf("Buffer::getPagePointer INTERFACES CASE \n");
 							store->getInterfaces()->initializePage(i, n_page->page);
 							break;
 						default:

@@ -50,6 +50,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, map<string, QueryResult*> *param
 #endif
 	//printf("Debug: EQ: tree type is: %d\n", tree->type());
 	errcode = executeQuery(tree, result);
+	*ec << "[QE] past inner executeQuery";
 #ifdef QUERY_CACHE
 	if (errorcode != 0)
 	    return errorcode;
@@ -1200,18 +1201,13 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		//ADTODO
 		case TreeNode::TNINTERFACEBIND: {
 		    *ec << "[QE] Type: TNINTERFACEBIND";
-		    
-		    NameNode *interfaceNameNode = ((InterfaceBind *)tree)->getInterfaceName();
-		    NameNode *implementationNameNode = ((InterfaceBind *)tree)->getImplementationName(); 
-		    if ((!interfaceNameNode) || (!implementationNameNode))
-			ec->printf("NULL NameNode in InterfaceBind!!!\n");
-		    
-		    string interfaceName = interfaceNameNode->getName();
-		    string implementationName = implementationNameNode->getName();
+		    string interfaceName = ((InterfaceBind *)tree)->getInterfaceName();
+		    string implementationName = ((InterfaceBind *)tree)->getImplementationName();
 		    
 		    /********************************************** 
 		    Check if interface and implementation are in DB 
 		    ***********************************************/
+		    
 		    ec->printf("[QE] TNINTERFACEBIND: Checking interface presence by name: %s\n", interfaceName.c_str());
 		    bool taken;
 		    if ((errcode = interfaceNameTaken(interfaceName, taken)) != 0) {
@@ -1223,20 +1219,22 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		    
 		    *ec << "[QE] TNINTERFACEBIND: interface found, checking implementation presence";    
 			
-		    /* ADTODO - check views also! */
+		    // ADTODO - check views also! 
 		    bool impNameTaken;
 		    errcode = implementationNameTaken(implementationName, impNameTaken);
 		    if(errcode != 0) {
 		    	*ec << "[QE] TNINTERFACEBIND: returning error from implementationNameTaken";
 		    	return errcode;
 		    }
-		    if(impNameTaken)
+		    if(!impNameTaken)
 		    	return qeErrorOccur("[QE] Implementation: \"" + implementationName + "\" does not exist.", ENoImplementationFound);
 		    
 		    /**********************************************
 		    Get objects (bag results) from DB 
 		    **********************************************/
-		    errcode = executeRecQuery(interfaceNameNode);
+		    
+		    NameNode interfaceNameNode(interfaceName); 
+		    errcode = executeRecQuery(&interfaceNameNode);
 		    if (errcode !=0) return errcode;
 		    QueryResult *interfaceResult; 
 		    errcode = qres->pop(interfaceResult);
@@ -1247,7 +1245,8 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			return (ErrQExecutor | ERefExpected); //ADTODO - other error
 		    }
 		    
-		    errcode = executeRecQuery(implementationNameNode);
+		    NameNode implementationNameNode(implementationName);
+		    errcode = executeRecQuery(&implementationNameNode);
 		    if (errcode !=0) return errcode;
 		    QueryResult *implementationResult; 
 		    errcode = qres->pop(implementationResult);
@@ -1257,8 +1256,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			ec->printf("TNINTERFACEBIND bad result for implementation NameNode\n");
 			return (ErrQExecutor | ERefExpected); //ADTODO - other error
 		    }
-		    
-		    		    
+		    		    		    
 		    /**********************************************
 		    Check if implementation fits interface
 		    **********************************************/
@@ -1364,7 +1362,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				i++;
 				ec->printf("[QE] TNINTERFACEMETHOD processing parameter %d of %d\n", i, argums.size());  
 				paramName = new QueryStringResult((*arg)->getValueName());
-				paramType = new QueryStringResult((*arg)->getTypeName());
+				paramType = new QueryStringResult("TODO");
 				paramNameBinder = new QueryBinderResult(QE_NAME_BIND_NAME, paramName);
 				paramTypeBinder = new QueryBinderResult(QE_TYPE_BIND_NAME, paramType);
 				paramStruct = new QueryStructResult();
@@ -1404,7 +1402,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		case TreeNode::TNINTERFACEATTRIBUTE: {
 		    *ec << "[QE] Type: TNINTERFACEATTRIBUTE";
 		    string name = ((InterfaceAttribute *) tree)->getValueName();
-		    string type = ((InterfaceAttribute *) tree)->getTypeName();		
+		    string type = "TODO";//((InterfaceAttribute *) tree)->getTypeName();		
 		    ec->printf("[QE] Type: TNINTERFACEATTRIBUTE Name = %s, Type = %s\n", name.c_str(), type.c_str());
 		    		    
 		    //ADTODO - constantize TYPE
@@ -1412,7 +1410,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		    QueryResult *typeString = new QueryStringResult(type);
 		    QueryResult *typeBinder = new QueryBinderResult(QE_TYPE_BIND_NAME, typeString);
 		    QueryResult *nameString = new QueryStringResult(name);
-		    QueryResult *nameBinder = new QueryBinderResult(QE_TYPE_BIND_NAME, nameString);
+		    QueryResult *nameBinder = new QueryBinderResult(QE_NAME_BIND_NAME, nameString);
 		    attribStruct->addResult(nameBinder);
 		    attribStruct->addResult(typeBinder);
 		    QueryResult *attributeBinder = new QueryBinderResult(name, attribStruct);
@@ -6607,13 +6605,12 @@ int QueryExecutor::classesLIDsFromNames(set<string>* names, vector<LogicalID*>& 
 
 /* ADTODO - if both class and view of that name exist! */
 int QueryExecutor::implementationNameTaken(string name, bool &taken) {
-    bool exists;
-    int errorCode = classExists(name, exists);
+    int errorCode = classExists(name, taken);
     if (errorCode !=0)
 	return errorCode;
-    if (exists)
+    if (taken)
 	return 0;
-    errorCode = viewExists(name, exists);
+    errorCode = viewExists(name, taken);
     if (errorCode !=0)
 	return errorCode;
     return 0;	
@@ -6628,6 +6625,8 @@ int QueryExecutor::interfaceNameTaken(string name, bool& taken) {
 	return trErrorOccur("[QE] Error in getInterfacesLID", errorcode);
     }
     taken = interfaces->size() != 0;
+    if (interfaces->size() == 0)
+	*ec << "[QE]interfaceNameTaken - no interface " << name;
     delete interfaces;
     return 0;
 }

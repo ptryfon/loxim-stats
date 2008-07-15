@@ -73,7 +73,7 @@ namespace Store
 		if (store->getConfig()->getString("store_file_fclasses", sclasses) != 0)
 			sclasses = "/tmp/sbclasses";
 		if (store->getConfig()->getString("store_file_interfaces", sinterfaces) != 0)
-			sclasses = "/tmp/sbinterfaces";
+			sinterfaces = "/tmp/sbinterfaces";
 
 		fmap = ::open(smap.c_str(), O_RDWR);
 		ec->printf("fmap = %d, errno = %d, errmsg = %s",

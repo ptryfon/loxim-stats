@@ -379,7 +379,9 @@ attributes: attribute { $$ = new InterfaceAttributeListNode($1);}
 	| attributes SEMICOLON attribute { $$ = new InterfaceAttributeListNode($3, $1);}
 	;
 
-attribute: NAME COLON NAME {$$ = new InterfaceAttribute ($1, $3);};
+attribute: NAME {$$ = new InterfaceAttribute ($1);}
+	| NAME COLON signature {$$ = new InterfaceAttribute ($1, $3);}
+	;
 
 methods: method { $$ = new InterfaceMethodListNode($1);}
 	| methods method { $$ = new InterfaceMethodListNode($2, $1);}

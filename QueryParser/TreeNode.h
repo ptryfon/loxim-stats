@@ -225,25 +225,21 @@ namespace QParser {
     
     
     /* Interface Nodes */
-    
-    
-    
-    	    
-
-    
+    class SignatureNode;    
     class InterfaceAttribute: public TreeNode {
 	private:
-	    string valueName;
-	    string typeName;
+	    string m_name;
+	    SignatureNode* m_signature;
 	public:
-	    InterfaceAttribute(string valueName, string typeName);
+	    InterfaceAttribute(string name, SignatureNode* signature = NULL);
 	    virtual ~InterfaceAttribute();
-	    virtual string getValueName() {return valueName;};
-	    virtual string getTypeName() {return typeName;};
+	    string getValueName() const {return m_name;}
+	    bool hasSignature() const {return (m_signature != NULL);}
+	    const SignatureNode* getSignature() const {return m_signature;};
 	    
 	    virtual TreeNode* clone();
 	    virtual int type() {return TNINTERFACEATTRIBUTE;};
-	    virtual int putToString() {cout << "InterfaceAttribute valueName = " + valueName + " type =" + typeName + "\n"; return 0;};
+	    virtual int putToString() {cout << "InterfaceAttribute valueName = " + m_name + " type =" + "TODO" + "\n"; return 0;};
 	    virtual string toString(int level = 0, bool recursive = false, string name = "") {
 		string result = getPrefixForLevel( level, name) + "([InterfaceAttribute] " + this->deParse() +  ") ";
 		return result;
@@ -251,10 +247,12 @@ namespace QParser {
 	    
 	    virtual string deParse() { 
     		string result;
-		result = valueName + ": " + typeName + "; ";
+		result = m_name;
+		if (m_signature)
+		    result = result + ": " + "TODO";
+		result = result + "; ";
     		return result;
-	    };
-	    
+	    }
     };
     
     class InterfaceMethodParamListNode: public TreeNode {
@@ -2782,26 +2780,24 @@ class InterfaceInnerLinkage: public TreeNode {
 	    };
     };
     
-    class InterfaceBind: public TreeNode {
+    class InterfaceBind: public QueryNode {
     private:
-	/* ADTODO use ids */
-	NameNode *interfaceName;
-	NameNode *implementationName;
-	InterfaceInnerLinkageList* arbitraryLinks;
+	string m_interfaceName;
+	string m_implementationName;
+	InterfaceInnerLinkageList* m_arbLinks;
     public:
-	InterfaceBind(string interfaceName, string implementationName);
-	InterfaceBind(string interfaceName, string implementationName, InterfaceInnerLinkageList *arbitraryBinds);
-	vector<InterfaceInnerLinkage *> getLinkages();
-	NameNode *getInterfaceName();
-	NameNode *getImplementationName();
+	InterfaceBind(string interfaceName, string implementationName, InterfaceInnerLinkageList *arbitraryBinds=NULL);
+	string getInterfaceName();
+	string getImplementationName();
 	virtual ~InterfaceBind();
 	virtual TreeNode* clone();
 	virtual int type() {return TNINTERFACEBIND;};
-	virtual int putToString() {cout << "InterfaceBind interface = " + interfaceName->getName() + " implementation = "
-		+ implementationName->getName() + "\n"; return 0;};
+	virtual int putToString() {cout << "InterfaceBind interface = " + m_interfaceName + " implementation = "
+		+ m_implementationName + "\n"; return 0;};
 	virtual string toString(int level = 0, bool recursive = false, string name = "") {
-	    return getPrefixForLevel(level, name) + "([InterfaceBind] " + interfaceName->toString() + " " +
-	     implementationName->toString() + ") ";};
+	    return getPrefixForLevel(level, name) + "([InterfaceBind] " + m_interfaceName + " " +
+	     m_implementationName + ") ";};
+	virtual string deParse() { return "InterfaceBind interface=" + m_interfaceName + ", implementation=" + m_implementationName +";"; }
     }; 
     
 	/** TypeCheck TreeNode class declarations... */

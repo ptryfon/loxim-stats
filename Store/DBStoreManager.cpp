@@ -809,15 +809,7 @@ int DBStoreManager::getClassesLID(TransactionID* tid, vector<LogicalID*>*& p_cla
 		    *ec << "Store::Manager::addInterface: error in Interfaces::addInterface";
 		    return err;
 		}
-		/*
-		char *entryBuf;
-		int size = 0;
-		interfaces->createEntry(lid, name, tid->getId(), tid->getTimeStamp(), size, entryBuf);
-		interfaces->addItem(size, entryBuf);
-		if (entryBuf != NULL)
-		    delete entryBuf;
-		*/
-
+		
 #ifdef DEBUG_MODE
 		ec->printf("Store::Manager::addInterface done: %s\n", name);
 #endif
@@ -890,6 +882,9 @@ int DBStoreManager::getClassesLID(TransactionID* tid, vector<LogicalID*>*& p_cla
 		err = classes->abortTransaction(tid->getId());
 		if (err != 0)
 			return err;
+		err = interfaces->abortTransaction(tid->getId());
+		if (err != 0)
+			return err;
 
 		return err;
 	}
@@ -906,7 +901,10 @@ int DBStoreManager::getClassesLID(TransactionID* tid, vector<LogicalID*>*& p_cla
 		err = classes->commitTransaction(tid->getId());
 		if (err != 0)
 			return err;
-
+		err = interfaces->commitTransaction(tid->getId());
+		if (err != 0)
+			return err;
+		
 		return err;
 	}
 

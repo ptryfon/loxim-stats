@@ -245,36 +245,25 @@ namespace QParser
     
     /* INTERFACE NODES */
     
-    InterfaceBind::InterfaceBind(string interfaceName, string implementationName) {
-	this->interfaceName = new NameNode(interfaceName);
-	this->implementationName = new NameNode(implementationName);
-    };
-    
-    InterfaceBind::InterfaceBind(string interfaceName, string implementationName, InterfaceInnerLinkageList *arbLinks) {
-	this->interfaceName = new NameNode(interfaceName);
-	this->implementationName = new NameNode(implementationName);
-	this->arbitraryLinks = arbLinks;    
-    };
+    InterfaceBind::InterfaceBind(string interfaceName, string implementationName, InterfaceInnerLinkageList *arbLinks)
+    : m_interfaceName(interfaceName), m_implementationName(implementationName), m_arbLinks(arbLinks) {};
     
     InterfaceBind::~InterfaceBind() {
-	if (arbitraryLinks)
-	    delete arbitraryLinks;
-	if (interfaceName)
-	    delete interfaceName;
-	if (implementationName)
-	    delete implementationName;
+	if (m_arbLinks)
+	    delete m_arbLinks;
     };
     
     TreeNode* InterfaceBind::clone() {
-	return new InterfaceBind(interfaceName->getName(), implementationName->getName());
+	InterfaceInnerLinkageList *cpy = new InterfaceInnerLinkageList(*m_arbLinks);
+	return new InterfaceBind(m_interfaceName, m_implementationName, cpy);
     };
     
-    NameNode *InterfaceBind::getInterfaceName() {
-	return interfaceName;
+    string InterfaceBind::getInterfaceName() {
+	return m_interfaceName;
     };
     
-    NameNode *InterfaceBind::getImplementationName() {
-	return implementationName;
+    string InterfaceBind::getImplementationName() {
+	return m_implementationName;
     };
     
     InterfaceInnerLinkage::InterfaceInnerLinkage(string intName, string impName) {
@@ -398,15 +387,13 @@ namespace QParser
 	return vec;
     };
     
-    InterfaceAttribute::InterfaceAttribute(string valueName, string typeName) {
-	this->valueName = valueName;
-	this->typeName = typeName;
-    };
-    
-    InterfaceAttribute::~InterfaceAttribute() {};
-    
+    InterfaceAttribute::InterfaceAttribute(string name, SignatureNode* signature) : m_name(name), m_signature(signature) {};
+    InterfaceAttribute::~InterfaceAttribute() {if (m_signature) delete m_signature;};
     TreeNode* InterfaceAttribute::clone() {
-	return new InterfaceAttribute(valueName, typeName);    
+	SignatureNode *sigCpy = NULL;
+	if (m_signature)
+	    sigCpy = new SignatureNode(*m_signature);
+	return new InterfaceAttribute(m_name, sigCpy);    
     };
     
     
