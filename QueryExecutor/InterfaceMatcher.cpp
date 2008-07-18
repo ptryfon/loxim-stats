@@ -1,151 +1,175 @@
 #include "InterfaceMatcher.h"
+#include "BindNames.h"
 
 using namespace Schemas;
+using namespace QExecutor;
 
-/****************
-    Stringizer
-****************/
-
-string Stringizer::ToStrName(TName name) 
+namespace
 {
-    return name;
-};
-
-string Stringizer::ToStrType(TType type)
-{
-    return type;
-};
-
-string Stringizer::ToStrAccess(TAccess access)
-{
-    switch (access)
+    struct AscendingLexFieldsSort
     {
-	case aPrivate: return "private";
-	case aPublic: return "public";
-	case aProtected: return "protected";
-	default: return "accessNotSupported!";
+	bool operator() (Field * const& left, Field * const& right)
+	{
+	    return left->getName() < right->getName();
+	}
     };
-};
 
-
-/*************
-    Field
-*************/
-
-//ADTODO - comparisions!
-bool Field::Equals(Field other) 
-{
-    if ((other.name == name) && (other.type == type) && (other.access == access))
-	return true;
-    else 
-	return false;
-};
-
-bool Field::ComparesTo(Field other)
-{
-    if (other.name == name)
-	return true; 
-    else 
-	return false;
-};
-
-bool Field::Matches(Field other)
-{
-    if ((other.type == type) && (other.access == access))
-	return true;
-    else 
-	return false;
-};
-
-string Field::ToString()
-{
-    string res("");
-    res += Stringizer::ToStrAccess(access) + " ";
-    res += Stringizer::ToStrName(name) + " ";
-    res += Stringizer::ToStrType(type);  
-    return res;
-};
+    struct AscendingMethodSort
+    {
+	bool operator() (Method * const& left, Method * const& right)
+	{
+	    string lName = left->getName();
+	    string rName = right->getName();
+	    if (lName < rName)
+		return true;
+	    else if (lName > rName)
+		return false;
+	    else
+		return (left->getParamsCount() < right->getParamsCount());
+	}
+    };
+}
 
 /*************
     Method
 *************/
-
-bool Method::Equals(Method other)
+void Method::sortParams()
 {
-    //ADTODO - parameters equal
-    return ((other.name == name) && (other.type == type) && (other.access == access)
-	&& (other.returnedValueType == returnedValueType) && (other.params == params));
-};
+    sort(m_params.begin(), m_params.end(), AscendingLexFieldsSort());
+    m_paramsSorted = true;
+}
+
+bool Method::Matches(Method other) const
+{	//both are sorted
+    if (m_name != other.getName())
+	return false;
+	
+    int count = getParamsCount();
+    if (count != other.getParamsCount()) 
+	return false;	
+    
+    TFields oP = other.getParams();
+    TFields::const_iterator thisIt, otherIt;
+    for (thisIt = m_params.begin(), otherIt = oP.begin(); thisIt != m_params.end(), otherIt != oP.end(); ++thisIt, ++otherIt)
+    {
+	Field *f1 = *thisIt;
+	Field *f2 = *otherIt;
+	if (!f1->Matches(*f2))
+	    return false; 
+    }
+    return true;
+}
 
 /*************
     Schema
 *************/
-
-//ADTODO - implement!
-Schema::Schema(QueryBagResult qBag)
+void Schema::sortVectors()
 {
-    cout << "SCHEMA CONSTRUCTOR: I am not implemented yet\n";
-};
+    sort(m_fields.begin(), m_fields.end(), AscendingLexFieldsSort());
+    sort(m_methods.begin(), m_methods.end(), AscendingMethodSort());
+}
 
-Schema::AddParent(QueryBagResult qBag)
+Schema::Schema() {}
+
+Schema *Schema::fromClassQBResult(QueryBagResult classResultBag)
+{	//ADTODO
+    return fromInterfaceQBResult(classResultBag);
+}
+
+Schema *Schema::fromViewQBResult(QueryBagResult viewResultBag)
+{	//ADTODO
+    return fromInterfaceQBResult(viewResultBag);
+}
+
+Schema *Schema::fromInterfaceQBResult(QueryBagResult interfaceResultBag)
 {
-    cout << "SCHEMA ADDPARENT: I am not implemented yet\n";
-};
-
-/****************
-    MatchResult
-*****************/
-
-string MatchResult::GetExplanation()
-{
-    string descr;
-    string fieldDescr = "Field " + field->ToString() + " ";
-    switch ( matchingResult)
+    cout << "Schema: fromInterfaceQBResult() \n";
+    Schema *s = new Schema();
+    QueryResult *res;
+    interfaceResultBag.getResult(res);
+    QueryStructResult *innerResult = (QueryStructResult *)res;
+    vector<QueryResult *> structVec = innerResult->getVector();
+    vector<QueryResult *>::iterator it;
+    for (it = structVec.begin(); it != structVec.end(); ++it)
     {
-	case NotInitialized:
-	    descr = "no matching occured!";
-	case AllOk:
-	    descr = "matching successful";
-	case NoSuchField:
-	    descr = fieldDescr + "not matched in implementation";
-	case AccessMismatch:
-	    descr = fieldDescr + "has mismatch access";
-	default:
-	    descr = "Error - no explanation!";
+	QueryResult *qr = *it;
+	QueryBinderResult *qbR = (QueryBinderResult *)qr;
+	string name = qbR->getName();
+	if (name.compare(QE_OBJECT_NAME_BIND_NAME))
+	{
+		cout << "OBJECT_NAME_BIND\n";//this does not affect matching
+	}
+	else if (name.compare(QE_FIELD_BIND_NAME))
+	{
+	    QueryStructResult *fieldStruct = (QueryStructResult *)qbR->getItem();
+	    QueryBinderResult *nameBinder = (QueryBinderResult *)fieldStruct->getVector().front();
+	    QueryStringResult *nameString = (QueryStringResult *)nameBinder->getItem();
+	    string fieldName = nameString->getValue();
+	    Field *f = new Field(fieldName);
+	    s->addField(f);		
+	    cout << "Field: " << fieldName << "\n"; 	
+	}
+	else if (name.compare(QE_METHOD_BIND_NAME))
+	{
+	    QueryStructResult *fieldStruct = (QueryStructResult *)qbR->getItem();
+	    vector<QueryResult *> methodInnerBinders = fieldStruct->getVector();
+	    vector<QueryResult *>::iterator mIt;
+	    Method *m = new Method();
+	    for (mIt = methodInnerBinders.begin(); mIt != methodInnerBinders.end(); ++mIt)
+	    {
+		QueryResult *mQr = *mIt;
+		QueryBinderResult *mQbr = (QueryBinderResult *)mQr;
+		string mBinderName = mQbr->getName();
+		QueryStringResult *nameString = (QueryStringResult *)mQbr->getItem();    
+		if (mBinderName.compare(QE_NAME_BIND_NAME))
+		{   //method Name
+		    m->setName(nameString->getValue());
+		    cout << "Method name: " << nameString->getValue() << "\n";
+		}
+		else if (mBinderName.compare(QE_METHOD_PARAM_BIND_NAME))
+		{   //parameter Name
+		    Field *f = new Field(nameString->getValue());
+		    m->addParam(f);    
+		    cout << "Method param name: " << nameString->getValue() << "\n";
+		}
+	    }
+	    s->addMethod(m);
+	}
+	else
+	{
+	    cout << "Schema::fromInterfaceQBResult: INVALID result bag!";
 	    break;
-    };	
-};
-
-bool MatchResult::isOk()
-{
-    if (matchingResult == AllOk)
-	return true;
-    else 
-	return false;    
-};
+	}
+    }
+    
+    cout << "Schema: fromInterfaceQBResult(), returning...\n";
+    return s;
+}
 
 /**************
     Matcher
 **************/
-
 //ADTODO - implement
-MatchResult Matcher::MatchFields(vector<Field *> intF, vector<Field *> impF)
+bool Matcher::MatchFields(vector<Field *> intF, vector<Field *> impF)
 {
-    return new MatchResult();
-};
+    return false;
+}
 
-MatchResult Matcher::MatchMethods(vector<Method *> intM, vector<Method *> impM)
+bool Matcher::MatchMethods(vector<Method *> intM, vector<Method *> impM)
 {
-    return new MatchResult();
-};
+    return false;
+}
 
-MatchResult Matcher::MatchInterfaceWithImplementation(Schema interface, Schema implementation)
+bool Matcher::MatchInterfaceWithImplementation(Schema interface, Schema implementation)
 {
-    MatchResult result = MatchFields(interface.GetFields(), implementation.GetFields());
-    if (!result.isOk())	return result;
-    result = MatchMethods(interface.GetMethods(), implementation.GetMethods());
+    bool result = MatchFields(interface.getFields(), implementation.getFields());
+    if (!result) return result;
+    result = MatchMethods(interface.getMethods(), implementation.getMethods());
     return result;
-};
+}
+
+
+
 
 
 

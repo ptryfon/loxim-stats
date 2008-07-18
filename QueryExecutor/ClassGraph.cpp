@@ -1,4 +1,5 @@
 #include "ClassGraph.h"
+#include "BindNames.h"
 
 using namespace QParser;
 using namespace TManager;

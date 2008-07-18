@@ -14,6 +14,7 @@ SOURCES	=	Buffer.cpp \
 		Views.cpp \
 		NamedItems.cpp \
 		Classes.cpp \
+		Interfaces.cpp \
 		PagePointer.cpp \
 		PageManager.cpp \
 		Misc.cpp \

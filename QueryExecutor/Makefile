@@ -1,8 +1,8 @@
 include ../make.defs
 
-SOURCES	=	EnvironmentStack.cpp QueryResult.cpp QueryExecutor.cpp RemoteExecutor.cpp ClassGraph.cpp
+SOURCES	=	EnvironmentStack.cpp QueryResult.cpp QueryExecutor.cpp RemoteExecutor.cpp ClassGraph.cpp InterfaceMatcher.cpp
 
-HEADERS	=	HashMacro.h QueryResult.h EnvironmentStack.h RemoteExecutor.h ClassGraph.h
+HEADERS	=	HashMacro.h QueryResult.h EnvironmentStack.h RemoteExecutor.h ClassGraph.h BindNames.h InterfaceMatcher.h
 
 STATIC_LIB =	QueryExecutor.a
 PROGRAM	=	

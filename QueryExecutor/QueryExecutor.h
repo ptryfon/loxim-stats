@@ -35,20 +35,8 @@ using namespace std;
 namespace QExecutor
 {
 
-#define QE_INVARIANT_BIND_NAME	 		"invariant"
-#define QE_CLASS_BIND_NAME 			"class"
-#define QE_METHOD_BIND_NAME			"method"
-#define QE_STATIC_METHOD_BIND_NAME		"smethod"
-#define QE_EXTEND_BIND_NAME			"extends"
-#define QE_FIELD_BIND_NAME			"field"
-#define QE_STATIC_FIELD_BIND_NAME		"sfield"
 #define QE_SELF_KEYWORD				"self"
 #define QE_SUPER_KEYWORD			"super"
-#define QE_NAMES_SEPARATOR			"::"
-#define QE_METHOD_PARAM_BIND_NAME		"param"
-#define QE_NAME_BIND_NAME			"name"
-#define QE_TYPE_BIND_NAME			"type"
-
 #define QE_VIRTUALS_TO_SEND_MIN_ID		0xFE000000
 #define QE_VIRTUALS_TO_SEND_MAX_COUNT		0x01000000
 #define QE_NOTROOT_VIEW_PARENT_NAME		"ViewParent"

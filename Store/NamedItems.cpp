@@ -488,36 +488,6 @@ namespace Store
 		return roots;
 	}
 
-
-	Interfaces::~Interfaces() {
-	    ec->printf("Interfaces destructor called, my last message\n");
-	    delete(this->ec);
-	}
-
-	int Interfaces::addInterface(int lid, const char* name, int tid, int tTimeStamp) {
-	
-	    char *entryBuf;
-	    int size = 0;
-	    int err;
-	    
-	    ec->printf("Interfaces::addInterface creating entry\n");
-	    
-	    if ((err=createEntry(lid, name, tid, tTimeStamp, size, entryBuf))!=0)
-		return err;
-		
-	    ec->printf("Interfaces::addInterface Entry created\n");	
-		
-	    if ((err=addItem(size, entryBuf))!=0)
-		return err;
-	    
-	    ec->printf("Interfaces::addInterface item added\n");	
-	    
-	    if (entryBuf != NULL) 
-		delete entryBuf;
-	
-	    return 0;
-	}
-
 	vector<int>* Classes::getClassByInvariant(const char* invariantName, int transactionID, int transactionTimeStamp) {
 #ifdef IX_DEBUG
 		ec->printf("getClassByInvariant(invariantName=\"%s\", transactionID=%i, transactionTimeStamp=%i)\n", invariantName, transactionID, transactionTimeStamp);

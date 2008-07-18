@@ -58,7 +58,7 @@
 %nonassoc CREATE_OR_UPDATE
 %token	<num> INTEGER
 %token	<dbl> DOUBLE
-%token	<str> STATIC SYSTEMVIEWNAME EXTNAME PARAMNAME NAME STRING SEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT DEREF REF NAMEOF RELOADSCHEME TCON TCOFF BEGINTR END ABORT CREATE IF FI DO OD ELSE WHILE LINK FOREACH THEN FIX_OP FIXPOINT RETURN BREAK VALIDATE READ MODIFY DELETE PASSWD WITH REVOKE REMOVE TO USER FROM ON GRANT OPTION PROCEDURE CLASS EXTENDS INSTANCE LEFTPROCPAR RIGHTPROCPAR VIEW ONRETRIEVE ONUPDATE ONCREATE ONDELETE ONINSERT ONNAVIGATE ONVITRUALIZE ONSTORE INDEX VIRTUAL COLON INTERFACE SHOWS ASSOCIATE CARDCONST TYPEDEF CARD00 CARD01 CARD 11 CARD0INF CARD1INF LEFTSQUAREPAR RIGHTSQUAREPAR STRING_SIG DOUBLE_SIG INTEGER_SIG BOOLEAN_SIG INT_SIG LEFT_EXCLUSIVE LEFT_INCLUSIVE RIGHT_EXCLUSIVE RIGHT_INCLUSIVE INDEXPAR THROW VIRTUALIZE_AS
+%token	<str> STATIC SYSTEMVIEWNAME EXTNAME PARAMNAME NAME STRING SEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT DEREF REF NAMEOF RELOADSCHEME TCON TCOFF BEGINTR END ABORT CREATE IF FI DO OD ELSE WHILE LINK FOREACH THEN FIX_OP FIXPOINT RETURN BREAK VALIDATE READ MODIFY DELETE PASSWD WITH REVOKE REMOVE TO USER FROM ON GRANT OPTION PROCEDURE CLASS EXTENDS INSTANCE LEFTPROCPAR RIGHTPROCPAR VIEW ONRETRIEVE ONUPDATE ONCREATE ONDELETE ONINSERT ONNAVIGATE ONVITRUALIZE ONSTORE INDEX VIRTUAL COLON INTERFACE SHOWS ASSOCIATE CARDCONST TYPEDEF CARD00 CARD01 CARD 11 CARD0INF CARD1INF LEFTSQUAREPAR RIGHTSQUAREPAR STRING_SIG DOUBLE_SIG INTEGER_SIG BOOLEAN_SIG INT_SIG LEFT_EXCLUSIVE LEFT_INCLUSIVE RIGHT_EXCLUSIVE RIGHT_INCLUSIVE INDEXPAR THROW VIRTUALIZE_AS OBJECT_NAME_IS
 		
 %start statement
 %expect 0
@@ -369,28 +369,32 @@ interfaceInnerLinkage: LEFTPAR NAME COMMA NAME RIGHTPAR {$$ = new InterfaceInner
 
 
 
-interface: INTERFACE NAME LEFTPROCPAR interface_struct RIGHTPROCPAR {$$ = new InterfaceNode($2, $4);};
+interface: INTERFACE NAME LEFTPROCPAR OBJECT_NAME_IS NAME SEMICOLON interface_struct RIGHTPROCPAR {$$ = new InterfaceNode($2, $5, $7);};
 
 interface_struct: LEFTPAR attributes RIGHTPAR semicolon_opt  methods { $$ = new InterfaceStruct ($2, $5);}
 	| LEFTPAR attributes RIGHTPAR semicolon_opt { $$ = new InterfaceStruct ($2);}	
 	;
 
 attributes: attribute { $$ = new InterfaceAttributeListNode($1);}
-	| attributes SEMICOLON attribute { $$ = new InterfaceAttributeListNode($3, $1);}
+	| attribute SEMICOLON attributes { $$ = new InterfaceAttributeListNode($1, $3);}
 	;
 
 attribute: NAME {$$ = new InterfaceAttribute ($1);}
 	| NAME COLON signature {$$ = new InterfaceAttribute ($1, $3);}
 	;
 
-methods: method { $$ = new InterfaceMethodListNode($1);}
-	| methods method { $$ = new InterfaceMethodListNode($2, $1);}
+methods: method semicolon_opt { $$ = new InterfaceMethodListNode($1);}
+	| method SEMICOLON methods { $$ = new InterfaceMethodListNode($1, $3);}
 	;
 
-method: NAME LEFTPAR method_params RIGHTPAR COLON NAME SEMICOLON { $$ = new InterfaceMethod($1, $6, $3);};
-
+method: NAME LEFTPAR RIGHTPAR { $$ = new InterfaceMethod($1);}
+	| NAME LEFTPAR RIGHTPAR COLON signature { $$ = new InterfaceMethod($1, NULL, $5);}
+	| NAME LEFTPAR method_params RIGHTPAR { $$ = new InterfaceMethod($1, $3);}
+	| NAME LEFTPAR method_params RIGHTPAR COLON signature { $$ = new InterfaceMethod($1, $3, $6);}
+	;
+	
 method_params: attribute { $$ = new InterfaceMethodParamListNode($1);} 
-	| method_params COMMA attribute { $$ = new InterfaceMethodParamListNode($3, $1);}
+	| attribute COMMA method_params { $$ = new InterfaceMethodParamListNode($1, $3);}
 	;
 
 classquery: CLASS NAME LEFTPROCPAR classbody RIGHTPROCPAR {char *n = $2; $4->setName(n); $$ = $4; delete n;}

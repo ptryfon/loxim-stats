@@ -571,13 +571,13 @@ namespace TManager
 		return errorNumber;
 	}
 	
-	int Transaction::addInterface(const char* name, ObjectPointer* &p)
+	int Transaction::addInterface(const char* name, const char* objectName, ObjectPointer* &p)
 	{
 		int errorNumber;
 		err.printf("Transaction: %d addInterface\n", tid->getId());
 	
 		sem->lock_write();
-			errorNumber = sm->addInterface(tid, name, p);
+			errorNumber = sm->addInterface(tid, name, objectName, p);
 			if (errorNumber == 0)
 			    errorNumber = lm->lock( p->getLogicalID(), tid, Write);
 		sem->unlock();

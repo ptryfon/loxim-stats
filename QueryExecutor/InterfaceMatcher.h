@@ -4,93 +4,71 @@
 #include <vector>
 #include "QueryResult.h"
 
-typedef string TName;
-typedef string TType;
-typedef enum TAccess { aPrivate, aPublic, aProtected };
-
 namespace Schemas
-{
-
-    class Stringizer 
-    {
-	public:
-	    static string ToStrName(TName name);
-	    static string ToStrType(TType type);
-	    static string ToStrAccess(TAccess access); 
-    };
-    
+{    
     class Member 
     {
-	protected:
-	    Member();
 	public:
-	    TName name;
-	    TType type;
-	    TAccess access;
+	    string getName() const {return m_name;}
+	protected:
+	    Member() {};
+	    string m_name;
     };
 
-    class Field : Member
+    class Field : public Member
     {
 	public:
-	    bool Equals(Field other);
-	    bool Matches(Field other);
-	    Field(TName n, TType t, TAccess a) {name=n; type=t; access=a;};
+	    bool Matches(Field other) const {return m_name == other.getName();}
+	    Field(string n) {m_name=n;}
     };
+    typedef vector<Field *> TFields;
     
-    class Method : Member
+    class Method : public Member
     {
 	public:
-	    bool Equals(Method other);
-	    Method(TName n, TType t, TAccess a, TType r, vector<Member *> p) {name=n;type=t;access=a;
-			returnedValueType=r;params=p;paramCount=p.size();};
-	    TType returnedValueType;
+	    bool Matches(Method other) const;
+	    Method() {};
+	    Method(string n) {m_name = n; m_paramsSorted = true;}
+	    void setName(string n) {m_name = n;} 
+	    void addParam(Field *f) {m_params.push_back(f); m_paramsSorted = false;}
+	    void sortParams();
+	    bool paramsSorted() const {return m_paramsSorted;}  
+	    int getParamsCount() const {return m_params.size();}
+	    TFields getParams() const {return m_params;}
 	protected:
-	    vector<Member *> params;
-	    int paramCount;
+	    bool m_paramsSorted;
+	
+	    TFields m_params;
     };
-
-    //any member is unique in terms of (name, paramcount) pair
+    typedef vector<Method *> TMethods;
+    
     class Schema 
     {
 	public:
-	    Schema(QueryBagResult resultBag); 
-	    void AddParent(QueryBagResult parentBag);    
-	    vector<Field *> GetFields() {return fields;};
-	    vector<Method *> GetMethods() {return methods;}; 
+	    Schema();
+	    ~Schema();
+	    TFields getFields() {return m_fields;}
+	    TMethods getMethods() {return m_methods;}   
+	    void addField(Field *f) {m_fields.push_back(f);}
+	    void addMethod(Method *m) {m_methods.push_back(m);}
+	
+	    static Schema* fromInterfaceQBResult(QExecutor::QueryBagResult interfaceResultBag);
+	    static Schema* fromClassQBResult(QExecutor::QueryBagResult classResultBag); 
+	    static Schema* fromViewQBResult(QExecutor::QueryBagResult viewResultBag);
 	private:
-	    TName name;
-	    vector<Field *> fields;
-	    vector<Method *> methods;
+	    bool m_isInterfaceSchema;
+	    TFields m_fields;
+	    TMethods m_methods;
 	    
-    };
-    
-    class MatchResult
-    {
-	public:
-	    enum Result 
-	    {
-		NotInitialized = -1,
-		AllOk,
-		NoSuchField,
-		AccessMismatch	    
-	    };
-	    
-	    bool isOk();
-	    string GetExplanation();
-	    MatchResult(Field *f, Result reason) { field = f; matchingResult = reason; };
-	    MatchResult() {matchingResult = AllOk;};
-	private:
-	    Field *field;
-	    Result matchingResult;
+	    void sortVectors();
     };
     
     class Matcher 
     {
-	private:
-	    static MatchResult MatchFields(vector<Field *> intFields, vector<Field *> impFields);
-	    static MatchResult MatchMethods(vector<Method *> intMethods, vector<Method *> impMethods);
 	public:
-	    static MatchResult MatchInterfaceWithImplementation(Schema Interface, Schema Implementation);
+	    static bool MatchFields(TFields intFields, TFields impFields);
+	    static bool MatchMethods(TMethods intMethods, TMethods impMethods);
+	    static bool MatchInterfaceWithImplementation(Schema Interface, Schema Implementation);
     };
 
 }

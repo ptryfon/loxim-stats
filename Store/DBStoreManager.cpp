@@ -792,7 +792,7 @@ int DBStoreManager::getClassesLID(TransactionID* tid, vector<LogicalID*>*& p_cla
 		return 0;
 	}
 
-	int DBStoreManager::addInterface(TransactionID* tid, const char* name, ObjectPointer*& object)
+	int DBStoreManager::addInterface(TransactionID* tid, const char* name, const char* objectName, ObjectPointer*& object)
 	{
 #ifdef DEBUG_MODE
 		*ec << "Store::Manager::addInterface begin..";
@@ -801,7 +801,7 @@ int DBStoreManager::getClassesLID(TransactionID* tid, vector<LogicalID*>*& p_cla
 		
 		ec->printf("Store::Manager::addInterface lid = %d\n", lid);
 
-		int err = interfaces->addInterface(lid, name, tid->getId(), tid->getTimeStamp());
+		int err = interfaces->addInterface(lid, name, objectName, tid->getId(), tid->getTimeStamp());
 		
 		ec->printf("Store::Manager::addInterface after interfaces->addInterface");
 		

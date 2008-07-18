@@ -111,13 +111,13 @@ namespace TManager
 		    	int addClass(const char* name, const char* invariantName, ObjectPointer* &p);
 		    	int removeClass(ObjectPointer* &p);
 
-				int getInterfacesLID(vector<LogicalID*>* &p);
+			int getInterfacesLID(vector<LogicalID*>* &p);
 		    	int getInterfacesLID(string name, vector<LogicalID*>* &p);
 
-				int getSystemViewsLID(vector<LogicalID*>* &p);
+			int getSystemViewsLID(vector<LogicalID*>* &p);
 		    	int getSystemViewsLID(string name, vector<LogicalID*>* &p);
 
-				int addInterface(const char* name, ObjectPointer* &p);
+		    	int addInterface(const char* name, const char* objectName, ObjectPointer* &p);
 		    	int removeInterface(ObjectPointer* &p);
 	
 		    	TransactionID* getId();

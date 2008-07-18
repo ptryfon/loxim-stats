@@ -94,7 +94,7 @@ namespace Store
 
 		virtual int getInterfacesLID(TransactionID* tid, vector<LogicalID*>*& roots);
 		virtual int getInterfacesLID(TransactionID* tid, string name, vector<LogicalID*>*& roots);
-		virtual int addInterface(TransactionID* tid, const char* name, ObjectPointer*& object);
+		virtual int addInterface(TransactionID* tid, const char* name, const char* objectName, ObjectPointer*& object);
 		virtual int removeInterface(TransactionID* tid, ObjectPointer*& object);
 
 		virtual int getSystemViewsLID(TransactionID* tid, vector<LogicalID*>*& p_systemviews);

@@ -313,19 +313,17 @@ namespace QParser
 	return new RegisterInterfaceNode((QueryNode*) query->clone());
     };
     
-    InterfaceNode::InterfaceNode(string name, InterfaceStruct* iStruct) {
-	this->interfaceName = name;
-	this->iStruct = iStruct;
-    };
+    InterfaceNode::InterfaceNode(string interfaceName, string objectName, InterfaceStruct* iStruct) :
+    m_interfaceName(interfaceName), m_objectName(objectName), m_iStruct(iStruct) {};
     
     InterfaceNode::~InterfaceNode() {
-	if (iStruct)
-	    delete iStruct;
+	if (m_iStruct)
+	    delete m_iStruct;
     };
     
     
     TreeNode *InterfaceNode::clone() {
-	return new InterfaceNode(interfaceName, (InterfaceStruct *) iStruct->clone());
+	return new InterfaceNode(m_interfaceName, m_objectName, (InterfaceStruct *) m_iStruct->clone());
     };
     
     
@@ -351,7 +349,7 @@ namespace QParser
 	return new InterfaceStruct(NULL, NULL); 
     };
     
-    vector<InterfaceMethod *> InterfaceStruct::getMethods() {
+    vector<InterfaceMethod *> InterfaceStruct::getMethods() const {
 	vector<InterfaceMethod *> vec;
 	InterfaceMethod *met;
 	InterfaceMethodListNode *metList = this->get_methodList();
@@ -363,7 +361,7 @@ namespace QParser
 	return vec;
     };
     
-    vector<InterfaceAttribute *> InterfaceStruct::getAttribs() {
+    vector<InterfaceAttribute *> InterfaceStruct::getAttribs() const {
 	vector<InterfaceAttribute *> vec;
 	InterfaceAttribute *attrib;
 	InterfaceAttributeListNode *attrList = this->get_attributeList();
@@ -378,7 +376,7 @@ namespace QParser
     vector<InterfaceAttribute *> InterfaceMethod::getMethodParams() {
 	vector<InterfaceAttribute *> vec;
 	InterfaceAttribute *attrib;
-	InterfaceMethodParamListNode *mpList = this->get_methodParams();
+	InterfaceMethodParamListNode *mpList = m_params;
 	while (mpList != NULL) {
 	    attrib = mpList->get_methodParam();
 	    mpList = mpList->get_methodParamList();
@@ -436,19 +434,18 @@ namespace QParser
     };
     
 
-    InterfaceMethod::InterfaceMethod(string methodName, string methodType, InterfaceMethodParamListNode *methodParams) {
-	this->methodName = methodName;
-	this->methodType = methodType;
-	this->methodParams = methodParams;    
-    };
+    InterfaceMethod::InterfaceMethod(string name, InterfaceMethodParamListNode *params, SignatureNode* signature)
+    : m_name(name), m_params(params) {m_signature = signature;};
     
     InterfaceMethod::~InterfaceMethod() {
-	if (methodParams)
-	    delete methodParams;    
+	if (m_params)
+	    delete m_params;    
     };
     
     TreeNode *InterfaceMethod::clone() {
-	return new InterfaceMethod(methodName, methodType, (InterfaceMethodParamListNode *)methodParams->clone());
+	InterfaceMethodParamListNode *clonedParams = m_params?(InterfaceMethodParamListNode *)m_params->clone():NULL;
+	SignatureNode *clonedSignature = m_signature?(SignatureNode *)m_signature->clone():NULL;
+	return new InterfaceMethod(m_name, clonedParams, clonedSignature);
     };
     
     InterfaceMethodParamListNode::InterfaceMethodParamListNode(InterfaceAttribute *methodParam, InterfaceMethodParamListNode *rest) {
@@ -469,19 +466,6 @@ namespace QParser
     else 
 	return new InterfaceMethodParamListNode((InterfaceAttribute *)methodParam->clone(), NULL);
     };
-    
-    /*
-    InterfaceMethodParam::InterfaceMethodParam(string valueName, string typeName) {
-	this->valueName = valueName;
-	this->typeName = typeName;
-    };
-    
-    InterfaceMethodParam::~InterfaceMethodParam() {};
-    
-    TreeNode* InterfaceMethodParam::clone() {
-	return new InterfaceMethodParam(valueName, typeName);
-    };
-    */
     
     /**
       *		VALIDATION NODE	BEGIN

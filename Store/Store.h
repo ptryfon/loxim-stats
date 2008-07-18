@@ -262,7 +262,7 @@ namespace Store
 		// Interfaces
 		virtual int getInterfacesLID(TransactionID* tid, vector<LogicalID*>*& roots) = 0;
 		virtual int getInterfacesLID(TransactionID* tid, string name, vector<LogicalID*>*& roots) = 0;
-		virtual int addInterface(TransactionID* tid, const char* name, ObjectPointer*& object) = 0;
+		virtual int addInterface(TransactionID* tid, const char* name, const char* objectName, ObjectPointer*& object) = 0;
 		virtual int removeInterface(TransactionID* tid, ObjectPointer*& object) = 0;
 
 		// System views

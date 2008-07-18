@@ -139,19 +139,11 @@ namespace Store
 	class Interfaces : public NamedItems {
 	private: 
 	    ErrorConsole *ec;
+	    int createEntry(int logicalID, const char* name, const char* objectName, int transactionID, int transactionTimeStamp, int& size_needed, char*& entry_buf);
 	public: 
 	    ~Interfaces();
-	    Interfaces() {
-		this->ec = new ErrorConsole("Store: Interfaces");
-		*ec << "Interfaces constructed!";
-		STORE_IX_INITIALPAGECOUNT = STORE_IXC_INITIALPAGECOUNT;
-		STORE_IX_NAMEMAXLEN = STORE_IXC_NAMEMAXLEN;
-		STORE_IX_NULLVALUE = STORE_IXC_NULLVALUE;
-		STORE_FILE_ = STORE_FILE_INTERFACES;
-		STORE_PAGE_HEADER = STORE_PAGE_INTERFACESHEADER;
-		STORE_PAGE_PAGE = STORE_PAGE_INTERFACESPAGE;		
-	    }
-	    int addInterface(int logicalID, const char* name, int transactionID, int transactionTimeStamp);
+	    Interfaces();
+	    int addInterface(int logicalID, const char* name, const char* objectName, int transactionID, int transactionTimeStamp);
 	};
 	
 	class Classes : public NamedItems {
