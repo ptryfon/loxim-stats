@@ -1,3 +1,8 @@
+2008-07-18  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
+
+	* QueryExecutor/BindNames.h, QueryExecutor/ClassGraph.cpp, QueryExecutor/InterfaceMatcher.cpp, QueryExecutor/InterfaceMatcher.h, QueryExecutor/Makefile, QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryExecutor.h, QueryParser/TreeNode.cpp, QueryParser/TreeNode.h, QueryParser/parser.y, QueryParser/scanner.l, Store/DBStoreManager.cpp, Store/DBStoreManager.h, Store/Interfaces.cpp, Store/Makefile, Store/NamedItems.cpp, Store/NamedItems.h, Store/Store.h, TransactionManager/Transaction.cpp, TransactionManager/Transaction.h:
+	interfejsy - rozszerzenie skladni, refaktoryzacje, poprawki
+
 2008-07-15  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
 	* QueryExecutor/QueryExecutor.cpp, QueryParser/TreeNode.cpp, QueryParser/TreeNode.h, QueryParser/parser.y, Store/Buffer.cpp, Store/DBStoreManager.cpp, Store/File.cpp:
