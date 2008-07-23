@@ -72,6 +72,8 @@ namespace QParser {
 			shouldOptimize = false;
 			shouldTypeCheck = false;
 		} 
+		lexer = new QueryLexer();
+		parser = new QueryParserGen(lexer, &d);
 	}
 	
 	void QueryParser::setTcOffTmp(bool tcoff) {

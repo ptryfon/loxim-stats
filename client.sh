@@ -1,2 +1,2 @@
-
-./SBQLCli/SBQLCli
+#!/bin/bash
+./LoximClient/Lsbql
