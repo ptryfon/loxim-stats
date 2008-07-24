@@ -1204,10 +1204,11 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		    *ec << "[QE] Type: TNINTERFACEBIND";
 		    string interfaceName = ((InterfaceBind *)tree)->getInterfaceName();
 		    string implementationName = ((InterfaceBind *)tree)->getImplementationName();
-		    
-		    /********************************************** 
-		    Check if interface and implementation are in DB 
+
+		    /**********************************************
+		    Check if interface and implementation are in DB
 		    ***********************************************/
+
 		    ec->printf("[QE] TNINTERFACEBIND: Checking interface presence by name: %s\n", interfaceName.c_str());
 		    bool taken;
 		    if ((errcode = interfaceNameTaken(interfaceName, taken)) != 0) {
@@ -1232,8 +1233,8 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		    /**********************************************
 		    Get objects (bag results) from DB
 		    **********************************************/
-		    
-		    NameNode interfaceNameNode(interfaceName); 
+
+		    NameNode interfaceNameNode(interfaceName);
 		    errcode = executeRecQuery(&interfaceNameNode);
 		    if (errcode !=0) return errcode;
 		    QueryResult *interfaceResult;
@@ -1318,7 +1319,24 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		    *ec << optr->getName().c_str();
 		    ec->printf("[QE] TNREGINTERFACE got name");
 
-		    errcode = tr->addInterface(optr->getName().c_str(), optr);
+		    string object_name = "";
+		    vector<LogicalID*>* inner_vec = (optr->getValue())->getVector();
+		    for (unsigned int i=0; i < inner_vec->size(); i++)
+		    {
+			ObjectPointer *inner_optr;
+			errcode = tr->getObjectPointer (inner_vec->at(i), Store::Read, inner_optr, false);
+			if (errcode != 0)
+			    return trErrorOccur("[QE] register interface operation - Error in getObjectPointer.", errcode);
+			if (inner_optr->getName() == QE_OBJECT_NAME_BIND_NAME)
+			{
+			    object_name = (inner_optr->getValue())->getString();
+			    break;
+			}
+		    }
+		    ec->printf("[QE] TNREGINTERFACE got object name");
+		    *ec << object_name;
+
+		    errcode = tr->addInterface(optr->getName().c_str(), object_name.c_str(), optr);
 		    if (errcode != 0) {
 		    	return trErrorOccur("[QE] Error in addInterface", errcode);
 		    }
@@ -1333,13 +1351,12 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 
 		case TreeNode::TNINTERFACEMETHOD: {
 		    *ec << "[QE] Type: TNINTERFACEMETHOD";
-		    string name = ((InterfaceMethod *) tree)->getMethodName();
-		    string type = ((InterfaceMethod *) tree)->getMethodType();
+		    string name = ((InterfaceMethod *) tree)->getName();
+		    string type = "TODO";//((InterfaceMethod *) tree)->getSignature();
 		    vector<LogicalID *> methodLids;
 
-		    ec->printf("[QE] TYpe: TNINTERFACEMETHOD name=%s, type=%s\n", name.c_str(), type.c_str());
+		    ec->printf("[QE] Type: TNINTERFACEMETHOD name=%s, type=%s\n", name.c_str(), type.c_str());
 
-		    //ADTODO - constantize TYPE
 		    QueryResult *methodStruct = new QueryStructResult();
 		    QueryResult *typeString = new QueryStringResult(type);
 		    QueryResult *typeBinder = new QueryBinderResult(QE_TYPE_BIND_NAME, typeString);
@@ -1352,7 +1369,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 
 
 		    // get and process arguments (ADTODO-check name uniqueness)
-		    InterfaceMethodParamListNode *argumentList = ((InterfaceMethod *) tree)->get_methodParams();
+		    const InterfaceMethodParamListNode *argumentList = ((InterfaceMethod *) tree)->getParams();
 			if (argumentList==NULL)
 			    ec->printf("[QE] TNINTERFACEMETHOD NULL argument(parameter)list\n");
 			else {
@@ -1379,7 +1396,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		        }
 
 		    //ADTODO-check memory!
-		    
+
 		    QueryResult *methodBinder = new QueryBinderResult(name, methodStruct);
 		    ObjectPointer *optr;
 
@@ -1402,7 +1419,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		case TreeNode::TNINTERFACEATTRIBUTE: {
 		    *ec << "[QE] Type: TNINTERFACEATTRIBUTE";
 		    string name = ((InterfaceAttribute *) tree)->getValueName();
-		    string type = ((InterfaceAttribute *) tree)->getTypeName();
+		    string type = "TODO";//((InterfaceAttribute *) tree)->getTypeName();
 		    ec->printf("[QE] Type: TNINTERFACEATTRIBUTE Name = %s, Type = %s\n", name.c_str(), type.c_str());
 
 		    //ADTODO - constantize TYPE
@@ -1450,9 +1467,9 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			const InterfaceStruct *iStruct = ((InterfaceNode *) tree)->getIStruct();
 			// vector that holds all the logical ids
 			vector<LogicalID *> interfaceLids;
-			
+
 			pushStringToLIDs(objectName, QE_OBJECT_NAME_BIND_NAME, interfaceLids);
-									
+
 			// get and process attributes (ADTODO-check name uniqueness)
 			InterfaceAttributeListNode *attributeList = iStruct->get_attributeList();
 			if (attributeList==NULL)

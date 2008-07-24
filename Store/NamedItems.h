@@ -139,11 +139,11 @@ namespace Store
 	class Interfaces : public NamedItems {
 	private:
 	    ErrorConsole *ec;
-	    int createEntry(int logicalID, const char* name, const char* objectName, int transactionID, int transactionTimeStamp, int& size_needed, char*& entry_buf);
-	public: 
+	    int createEntry(TransactionID* tid, int logicalID, const char* name, const char* objectName, int& size_needed, char*& entry_buf);
+	public:
 	    ~Interfaces();
 	    Interfaces();
-	    int addInterface(int logicalID, const char* name, const char* objectName, int transactionID, int transactionTimeStamp);
+	    int addInterface(TransactionID* tid, int logicalID, const char* name, const char* objectName);
 	};
 
 	class Classes : public NamedItems {

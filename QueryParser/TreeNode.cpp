@@ -249,16 +249,13 @@ namespace QParser
     : m_interfaceName(interfaceName), m_implementationName(implementationName), m_arbLinks(arbLinks) {};
 
     InterfaceBind::~InterfaceBind() {
-	if (arbitraryLinks)
-	    delete arbitraryLinks;
-	if (interfaceName)
-	    delete interfaceName;
-	if (implementationName)
-	    delete implementationName;
+	if (m_arbLinks)
+	    delete m_arbLinks;
     };
 
     TreeNode* InterfaceBind::clone() {
-	return new InterfaceBind(interfaceName->getName(), implementationName->getName());
+	InterfaceInnerLinkageList *cpy = new InterfaceInnerLinkageList(*m_arbLinks);
+	return new InterfaceBind(m_interfaceName, m_implementationName, cpy);
     };
     
     string InterfaceBind::getInterfaceName() {
@@ -320,13 +317,13 @@ namespace QParser
     m_interfaceName(interfaceName), m_objectName(objectName), m_iStruct(iStruct) {};
     
     InterfaceNode::~InterfaceNode() {
-	if (iStruct)
-	    delete iStruct;
+	if (m_iStruct)
+	    delete m_iStruct;
     };
-
-
+    
+    
     TreeNode *InterfaceNode::clone() {
-	return new InterfaceNode(interfaceName, (InterfaceStruct *) iStruct->clone());
+	return new InterfaceNode(m_interfaceName, m_objectName, (InterfaceStruct *) m_iStruct->clone());
     };
 
 
@@ -379,7 +376,7 @@ namespace QParser
     vector<InterfaceAttribute *> InterfaceMethod::getMethodParams() {
 	vector<InterfaceAttribute *> vec;
 	InterfaceAttribute *attrib;
-	InterfaceMethodParamListNode *mpList = this->get_methodParams();
+	InterfaceMethodParamListNode *mpList = m_params;
 	while (mpList != NULL) {
 	    attrib = mpList->get_methodParam();
 	    mpList = mpList->get_methodParamList();
@@ -445,7 +442,9 @@ namespace QParser
     };
 
     TreeNode *InterfaceMethod::clone() {
-	return new InterfaceMethod(methodName, methodType, (InterfaceMethodParamListNode *)methodParams->clone());
+	InterfaceMethodParamListNode *clonedParams = m_params?(InterfaceMethodParamListNode *)m_params->clone():NULL;
+	SignatureNode *clonedSignature = m_signature?(SignatureNode *)m_signature->clone():NULL;
+	return new InterfaceMethod(m_name, clonedParams, clonedSignature);
     };
 
     InterfaceMethodParamListNode::InterfaceMethodParamListNode(InterfaceAttribute *methodParam, InterfaceMethodParamListNode *rest) {

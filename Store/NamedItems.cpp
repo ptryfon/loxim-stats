@@ -488,7 +488,7 @@ namespace Store
 		return roots;
 	}
 
-	vector<int>* Classes::getClassByInvariant(const char* invariantName, int transactionID, int transactionTimeStamp) {
+	vector<int>* Classes::getClassByInvariant(TransactionID* tid, const char* invariantName) {
 #ifdef IX_DEBUG
 		ec->printf("getClassByInvariant(invariantName=\"%s\", transactionID=%i, transactionTimeStamp=%i)\n", invariantName, tid->getId(), tid->getTimeStamp());
 #endif
