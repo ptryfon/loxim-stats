@@ -55,15 +55,17 @@ namespace TManager
 			TransactionID* clone();
 		        int id;
 			int priority;
+			int sessionId;
 			unsigned timeStamp;
 
 	      public:
 			int getId() const;
+			int getSessionId() const;
 			int getPriority() const;
 			unsigned getTimeStamp() const;
 			void setTimeStamp(unsigned t);
-		        TransactionID(int n);
-		        TransactionID(int n, int priority);
+		        TransactionID(int sessionId, int n, int* nothing);
+		        TransactionID(int sessionId, int n, int priority);
 	};
 
 	/**
@@ -91,7 +93,7 @@ namespace TManager
 			int modifyObject(ObjectPointer* &op, DataValue* dv);
 		    	int createObject(string name, DataValue* value, ObjectPointer* &p);
 		    	int deleteObject(ObjectPointer* object);
-		    
+
 		    	int getRoots(vector<ObjectPointer*>* &p);
 		    	int getRoots(string name, vector<ObjectPointer*>* &p);
 		    	int getRootsLID(vector<LogicalID*>* &p);
@@ -99,12 +101,12 @@ namespace TManager
 		    	int getRootsLIDWithBegin(string nameBegin, vector<LogicalID*>* &p);
 		    	int addRoot(ObjectPointer* &p);
 		    	int removeRoot(ObjectPointer* &p);
-		    	
+
 		    	int getViewsLID(vector<LogicalID*>* &p);
 		    	int getViewsLID(string name, vector<LogicalID*>* &p);
 		    	int addView(const char* name, ObjectPointer* &p);
 		    	int removeView(ObjectPointer* &p);
-		    	
+
 		    	int getClassesLID(vector<LogicalID*>* &p);
 		    	int getClassesLID(string name, vector<LogicalID*>* &p);
 		    	int getClassesLIDByInvariant(string invariantName, vector<LogicalID*>* &p);
@@ -119,7 +121,7 @@ namespace TManager
 
 		    	int addInterface(const char* name, const char* objectName, ObjectPointer* &p);
 		    	int removeInterface(ObjectPointer* &p);
-	
+
 		    	TransactionID* getId();
 
 			/* Data creation: */
@@ -135,22 +137,22 @@ namespace TManager
 
 		private:
 			int init(StoreManager*, LogManager*);
-	}; 
+	};
 
 	/**
 	 *	TransactionManager - factory of Transactions, handles rollback operation
 	 *      Sigleton Design Pattern
 	 */
 	class TransactionManager
-	{ 
+	{
 		private:
 			Mutex* mutex;
 			Semaphore* sem;
-			int transactionId;    /* counter of TransactionID objects */	
-			static TransactionManager *tranMgr;   	   
+			int transactionId;    /* counter of TransactionID objects */
+			static TransactionManager *tranMgr;
 			StoreManager* storeMgr;
 			LogManager* logMgr;
-			
+
 			int minimalTransactionId;
 			bool semaphoresTimeout;
 			int readerTimeout;
@@ -163,27 +165,27 @@ namespace TManager
 	      		list<TransactionID*>* transactions;
 	      		int remove_from_list(TransactionID*);
 	      		ErrorConsole err;
-	      
-	   	public:	   	      
+
+	   	public:
 	      		~TransactionManager();
 	      		static TransactionManager* getHandle();
-	      
+
 	   		/* called at server startup: */
 	      		static int init(StoreManager*, LogManager*);
-	      
+
 	   		/* executor calls: */
-	     		int createTransaction(Transaction* &tr);
-	     		int createTransaction(Transaction* &tr, int id);
+	     		int createTransaction(int sessionId, Transaction* &tr);
+	     		int createTransaction(int sessionId, Transaction* &tr, int id);
 	      		int commit(Transaction*);
 	      		int abort(Transaction*);
-	      
+
 	   		/* log calls: */
 	      		list<TransactionID*>* getTransactions();
 	      		vector<int>* getTransactionsIds();
-			
+
 			int getReaderTimeout();
 			int getWriterTimeout();
-			
+
 		friend class Indexes::IndexManager;
 		friend class Indexes::Tester;
 	};

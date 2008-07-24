@@ -1,11 +1,13 @@
 /**
- * $Id: Buffer.cpp,v 1.38 2008-07-15 14:07:34 ad197852 Exp $
+ * $Id: Buffer.cpp,v 1.39 2008-07-24 21:55:27 dk209472 Exp $
  *
  */
 #include "Buffer.h"
 #include "Log/Logs.h"
+#include "SystemStats/AllStats.h"
 
 using namespace std;
+using namespace SystemStatsLib;
 
 namespace Store
 {
@@ -80,10 +82,14 @@ namespace Store
 		return 0;
 	};
 
-	int Buffer::readPage(unsigned short fileID, unsigned int pageID, buffer_page*& n_page)
+	int Buffer::readPage(TransactionID* tid, unsigned short fileID, unsigned int pageID, buffer_page*& n_page)
 	{
 		int retval;
-
+		if (tid != NULL) {
+			AllStats::getHandle()->addDiskPageReads(tid->getSessionId(), tid->getId(), 1);
+		} else {
+			AllStats::getHandle()->addDiskPageReads(-1, -1, 1);
+		}
 		n_page = new buffer_page;
 		n_page->page = new char[STORE_PAGESIZE];
 
@@ -92,6 +98,7 @@ namespace Store
 			delete n_page;
 			return retval;
 		}
+
 		n_page->haspage = 1;
 		n_page->dirty = 0;
 		n_page->lock = 0;
@@ -99,19 +106,19 @@ namespace Store
 		return 0;
 	}
 
-	PagePointer* Buffer::getPagePointer(unsigned short fileID, unsigned int pageID)
-	{	
+	PagePointer* Buffer::getPagePointer(TransactionID* tid, unsigned short fileID, unsigned int pageID)
+	{
 		unsigned int pnum;
 		buffer_page* n_page;
-	
-		if (!started) {	
+
+		if (!started) {
 		    return 0;
 		}
-		
+
 		::pthread_mutex_lock(&dbwriter.mutex);
 		buffer_addr_t buffer_addr = make_pair(fileID, pageID);
 		buffer_hash_t::iterator it = buffer_hash.find(buffer_addr);
-		
+
 		if (it != buffer_hash.end() && (*it).second.haspage) {
 			n_page = &((*it).second);
 			::pthread_mutex_unlock(&dbwriter.mutex);
@@ -119,7 +126,7 @@ namespace Store
 		}
 
 		if ((pnum = file->hasPage(fileID, pageID)) > pageID) {
-			if (readPage(fileID, pageID, n_page) < 0) {
+			if (readPage(tid, fileID, pageID, n_page) < 0) {
 				::pthread_mutex_unlock(&dbwriter.mutex);
 				return NULL;
 			}
@@ -132,25 +139,25 @@ namespace Store
 					n_page = new buffer_page;
 					n_page->page = new char[STORE_PAGESIZE];
 					switch (fileID) {
-						case STORE_FILE_DEFAULT: 
-							store->getPageManager()->initializePage(i, n_page->page); 
+						case STORE_FILE_DEFAULT:
+							store->getPageManager()->initializePage(i, n_page->page);
 							break;
 
-						case STORE_FILE_MAP: 
-							store->getMap()->initializePage(i, n_page->page); 
+						case STORE_FILE_MAP:
+							store->getMap()->initializePage(i, n_page->page);
 							break;
 
-						case STORE_FILE_ROOTS: 
-							store->getRoots()->initializePage(i, n_page->page); 
+						case STORE_FILE_ROOTS:
+							store->getRoots()->initializePage(i, n_page->page);
 							break;
 
-						case STORE_FILE_VIEWS: 
-							store->getViews()->initializePage(i, n_page->page); 
+						case STORE_FILE_VIEWS:
+							store->getViews()->initializePage(i, n_page->page);
 							break;
-						
+
 						//TODO - opisacjako zmieniane miejsce
-						case STORE_FILE_CLASSES: 
-							store->getClasses()->initializePage(i, n_page->page); 
+						case STORE_FILE_CLASSES:
+							store->getClasses()->initializePage(i, n_page->page);
 							break;
 						case STORE_FILE_INTERFACES:
 							store->getInterfaces()->initializePage(i, n_page->page);
@@ -158,7 +165,7 @@ namespace Store
 						default:
 							break;
 					}
-				
+
 					n_page->haspage = 1;
 					n_page->dirty = 1;
 					n_page->lock = 0;
@@ -174,7 +181,7 @@ namespace Store
 		return new PagePointer(fileID, pageID, n_page->page, this);
 	};
 
-	int Buffer::acquirePage(PagePointer* pp)
+	int Buffer::acquirePage(TransactionID* tid, PagePointer* pp)
 	{
 		int retval;
 
@@ -182,6 +189,12 @@ namespace Store
 			return -1;
 
 		::pthread_mutex_lock(&dbwriter.mutex);
+
+		if (tid != NULL) {
+			AllStats::getHandle()->addPageReads(tid->getSessionId(), tid->getId(), 1);
+		} else {
+			AllStats::getHandle()->addPageReads(-1, -1, 1);
+		}
 		buffer_addr_t buffer_addr = make_pair(pp->getFileID(), pp->getPageID());
 		buffer_hash_t::iterator it = buffer_hash.find(buffer_addr);
 		buffer_page* n_page;
@@ -193,7 +206,7 @@ namespace Store
 			::pthread_mutex_unlock(&dbwriter.mutex);
 			return 0;
 		} else if (it != buffer_hash.end()) {
-			if ((retval = readPage(pp->getFileID(), pp->getPageID(), n_page)) != 0) {
+			if ((retval = readPage(tid, pp->getFileID(), pp->getPageID(), n_page)) != 0) {
 				::pthread_mutex_unlock(&dbwriter.mutex);
 				return retval;
 			}
@@ -216,7 +229,7 @@ namespace Store
 /*		int retval;
 
 		if (!started)
-			return -1; 
+			return -1;
 
 		::pthread_mutex_lock(&dbwriter.mutex);
 		buffer_addr_t buffer_addr = make_pair(pp->getFileID(), pp->getPageID());
@@ -231,12 +244,19 @@ namespace Store
 		}*/
 	};
 
-	int Buffer::releasePage(PagePointer* pp)
+	int Buffer::releasePage(TransactionID* tid, PagePointer* pp)
 	{
 		if (!started)
 			return -1;
 
 		::pthread_mutex_lock(&dbwriter.mutex);
+
+		if (tid != NULL) {
+					AllStats::getHandle()->addPageWrites(tid->getSessionId(), tid->getId(), 1);
+				} else {
+					AllStats::getHandle()->addPageWrites(-1, -1, 1);
+				}
+
 		buffer_addr_t buffer_addr = make_pair(pp->getFileID(), pp->getPageID());
 		buffer_hash_t::iterator it = buffer_hash.find(buffer_addr);
 		buffer_page* n_page;
@@ -251,6 +271,11 @@ namespace Store
 					::pthread_cond_signal(&dbwriter.cond);
 
 				n_page->dirty = 1;
+				if (tid != NULL) {
+							AllStats::getHandle()->addDiskPageWrites(tid->getSessionId(), tid->getId(), 1);
+						} else {
+							AllStats::getHandle()->addDiskPageWrites(-1, -1, 1);
+						}
 				dbwriter.dirty_pages++;
 			}
 
@@ -262,7 +287,7 @@ namespace Store
 		}
 	};
 
-	int Buffer::releasePageSync(PagePointer* pp)
+	int Buffer::releasePageSync(TransactionID* tid, PagePointer* pp)
 	{
 		if (!started)
 			return -1;
@@ -274,7 +299,13 @@ namespace Store
 
 		if (it != buffer_hash.end() && (*it).second.haspage) {
 			n_page = &((*it).second);
-
+			if (tid != NULL) {
+				AllStats::getHandle()->addPageWrites(tid->getSessionId(), tid->getId(), 1);
+				AllStats::getHandle()->addDiskPageWrites(tid->getSessionId(), tid->getId(), 1);
+			} else {
+				AllStats::getHandle()->addPageWrites(-1, -1, 1);
+				AllStats::getHandle()->addDiskPageWrites(-1, -1, 1);
+			}
 			file->writePage((*it).first.first, (*it).first.second, n_page->page);
 			n_page->dirty = 0;
 			dbwriter.dirty_pages--;
@@ -293,7 +324,7 @@ namespace Store
 		return b->dbWriterMain();
 	};
 
-	void* Buffer::dbWriterMain(void) 
+	void* Buffer::dbWriterMain(void)
 	{
 		for ( ; ; ) {
 			::pthread_mutex_lock(&dbwriter.mutex);

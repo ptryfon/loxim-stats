@@ -35,11 +35,11 @@ namespace Store
 #endif
 
 using namespace std;
-using namespace Logs; 
+using namespace Logs;
 
 namespace Store
 {
-	
+
 	struct ix_entry {
 		int size;
 		int l_id;
@@ -48,7 +48,7 @@ namespace Store
 		int del_t;
 		char name[];
 	};
-	
+
 	struct ixc_entry : public ix_entry {
 		char* getInvariant() {
 			return name + strlen(name) + 1;
@@ -60,7 +60,7 @@ namespace Store
 			return (strlen(name) == 0 || strcmp(name, entry->name) == 0);
 		}
 	};
-	
+
 	struct FindByInvariantName {
 		bool operator()(const char* invariant, ix_entry* entry) {
 			//cout << "********************** ------------------> ";
@@ -68,7 +68,7 @@ namespace Store
 			return (strcmp(invariant, (static_cast<ixc_entry*>(entry))->getInvariant()) == 0);
 		}
 	};
-	
+
 	struct FindNamesWithBegin {
 		bool operator()(const char* nameBegin, ix_entry* entry) {
 			//cout << "********************** ------------------> ";
@@ -76,22 +76,22 @@ namespace Store
 			return (strstr(entry->name, nameBegin) == entry->name);
 		}
 	};
-	
+
 	class NamedItems
 	{
-	protected: 
+	protected:
 		unsigned int STORE_IX_INITIALPAGECOUNT;
 		int STORE_IX_NAMEMAXLEN;
 		int STORE_IX_NULLVALUE;
 		int STORE_FILE_;
 		int STORE_PAGE_HEADER;
 		int STORE_PAGE_PAGE;
-		
-		virtual int createEntry(int logicalID, const char* name, int transactionID, int transactionTimeStamp, int& size_needed, char*& entry_buf);
-		virtual int addItem(int size_needed, char* entry_buf);
-		
+
+		virtual int createEntry(TransactionID* tid, int logicalID, const char* name, int& size_needed, char*& entry_buf);
+		virtual int addItem(TransactionID* tid, int size_needed, char* entry_buf);
+
 		static FindByName findByName;
-		
+
 	private:
 		typedef struct ixr_header
 		{
@@ -112,7 +112,7 @@ namespace Store
 		ErrorConsole* ec;
 #endif
 
-		int modifyTransaction(int transactionID, int mode);
+		int modifyTransaction(TransactionID* tid, int mode);
 
 	public:
 		NamedItems();
@@ -122,22 +122,22 @@ namespace Store
 		int initializeFile(File* file);
 		int initializePage(unsigned int pageID, char* page);
 
-		int commitTransaction(int transactionID);
-		int abortTransaction(int transactionID);
+		int commitTransaction(TransactionID* tid);
+		int abortTransaction(TransactionID* tid);
 		int abortAllTransactions();
 
-		int addItem(int logicalID, const char* name, int transactionID, int transactionTimeStamp);
-		int removeItem(int logicalID, int transactionID, int transactionTimeStamp);
-		vector<int>* getItems(int transactionID, int transactionTimeStamp);
-		vector<int>* getItems(const char* name, int transactionID, int transactionTimeStamp, vector<Indexes::RootEntry*> *indexContent = NULL);
-		
+		int addItem(TransactionID* tid, int logicalID, const char* name);
+		int removeItem(TransactionID* tid, int logicalID);
+		vector<int>* getItems(TransactionID* tid);
+		vector<int>* getItems(TransactionID* tid, const char* name, vector<Indexes::RootEntry*> *indexContent = NULL);
+
 		template<typename Operation, typename DataType>
-		vector<int>* getItemsByAnything(Operation findTest, DataType thingToFind, int transactionID, int transactionTimeStamp, vector<Indexes::RootEntry*> *indexContent = NULL);
-		
+		vector<int>* getItemsByAnything(TransactionID* tid, Operation findTest, DataType thingToFind, vector<Indexes::RootEntry*> *indexContent = NULL);
+
 	};
-	
+
 	class Interfaces : public NamedItems {
-	private: 
+	private:
 	    ErrorConsole *ec;
 	    int createEntry(int logicalID, const char* name, const char* objectName, int transactionID, int transactionTimeStamp, int& size_needed, char*& entry_buf);
 	public: 
@@ -145,20 +145,20 @@ namespace Store
 	    Interfaces();
 	    int addInterface(int logicalID, const char* name, const char* objectName, int transactionID, int transactionTimeStamp);
 	};
-	
+
 	class Classes : public NamedItems {
 	private:
 #ifdef IXR_DEBUG
 		ErrorConsole* ec;
 #endif
-	
+
 	protected:
-		
+
 		static FindByInvariantName findByInvariantName;
-		
+
 		int invaraint_maxlen;
-		virtual int createEntry(int logicalID, const char* name, int transactionID, int transactionTimeStamp, int& size_needed, char*& entry_buf);
-		virtual int createEntry(int logicalID, const char* name, const char* invariantName, int transactionID, int transactionTimeStamp, int& size_needed, char*& entry_buf);
+		virtual int createEntry(TransactionID* tid, int logicalID, const char* name, int& size_needed, char*& entry_buf);
+		virtual int createEntry(TransactionID* tid, int logicalID, const char* name, const char* invariantName, int& size_needed, char*& entry_buf);
 	public:
 		~Classes();
 		Classes() {
@@ -173,22 +173,22 @@ namespace Store
 			STORE_PAGE_PAGE = STORE_PAGE_CLASSESPAGE;
 			invaraint_maxlen = STORE_IXR_NAMEMAXLEN;
 		}
-		
-		int addClass(int logicalID, const char* name, const char* invariantName, int transactionID, int transactionTimeStamp);
 
-		vector<int>* getClassByInvariant(const char* invariantName, int transactionID, int transactionTimeStamp);
+		int addClass(TransactionID* tid, int logicalID, const char* name, const char* invariantName);
+
+		vector<int>* getClassByInvariant(TransactionID* tid, const char* invariantName);
 	};
-	
+
 	class NamedRoots : public NamedItems {
 	private:
 #ifdef IXR_DEBUG
 		ErrorConsole* ec;
 #endif
-	
+
 	protected:
-	
+
 		static FindNamesWithBegin findNamesWithBegin;
-	
+
 	public:
 		~NamedRoots();
 		NamedRoots() {
@@ -202,20 +202,20 @@ namespace Store
 			STORE_PAGE_HEADER = STORE_PAGE_ROOTSHEADER;
 			STORE_PAGE_PAGE = STORE_PAGE_ROOTSPAGE;
 		}
-		
-		int addRoot(int logicalID, const char* name, int transactionID, int transactionTimeStamp) {
-			return addItem(logicalID, name, transactionID, transactionTimeStamp);
+
+		int addRoot(TransactionID* tid, int logicalID, const char* name) {
+			return addItem(tid, logicalID, name);
 		}
-		int removeRoot(int logicalID, int transactionID, int transactionTimeStamp) {
-			return removeItem(logicalID, transactionID, transactionTimeStamp);
+		int removeRoot(TransactionID* tid, int logicalID) {
+			return removeItem(tid, logicalID);
 		}
-		vector<int>* getRoots(int transactionID, int transactionTimeStamp) {
-			return getItems(transactionID, transactionTimeStamp);
+		vector<int>* getRoots(TransactionID* tid) {
+			return getItems(tid);
 		}
-		vector<int>* getRoots(const char* name, int transactionID, int transactionTimeStamp, vector<Indexes::RootEntry*> *indexContent = NULL) {
-			return getItems(name, transactionID, transactionTimeStamp, indexContent);
+		vector<int>* getRoots(TransactionID* tid, const char* name, vector<Indexes::RootEntry*> *indexContent = NULL) {
+			return getItems(tid, name, indexContent);
 		}
-		vector<int>* getRootsWithBegin(const char* nameBegin, int transactionID, int transactionTimeStamp);
+		vector<int>* getRootsWithBegin(TransactionID* tid, const char* nameBegin);
 	};
 
 };

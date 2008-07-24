@@ -104,7 +104,7 @@ namespace Store
 	{
 	public:
 		// Class functions
-		virtual DBPhysicalID* getPhysicalID() = 0;
+		virtual DBPhysicalID* getPhysicalID(TransactionID* tid) = 0;
 		virtual void toByteArray(unsigned char** lid, int* length) = 0;
 		virtual string toString() const = 0;
 		virtual unsigned int toInteger() const = 0;
@@ -128,25 +128,25 @@ namespace Store
 	struct LIDComparator {
 		bool operator()(LogicalID* lid1, LogicalID* lid2) const {
 			return lid1->toInteger() < lid2->toInteger();
-		} 
+		}
 	};
-	
+
 	class hashLogicalID {
 	private:
 		hash<unsigned> hasher;
-		
+
 	public:
 		size_t operator()(const LogicalID* lid) const {
 			return hasher(lid->toInteger());
 		}
 	};
-	
+
 	struct eqLogicalID{
 		bool operator()(const LogicalID* s1, const LogicalID* s2) const{
 			return s1->toInteger() == s2->toInteger();
 		}
 	};
-	
+
 
 	class DataValue
 	{
@@ -154,7 +154,7 @@ namespace Store
 		// Class functions
 		virtual DataType getType() const = 0;
 		virtual ExtendedType getSubtype() const = 0;
-		
+
 		// ClassMarks methods
 		virtual SetOfLids* getClassMarks() const = 0;
 		virtual void addClassMark(LogicalID* classMark) = 0;
@@ -162,14 +162,14 @@ namespace Store
 		virtual void addClassMarks(SetOfLids* toAdd) = 0;
 		virtual void removeClassMarks(SetOfLids* toDel) = 0;
 		virtual void removeClassMark(LogicalID* lid) = 0;
-		
+
 		// Subclass methods
 		virtual SetOfLids* getSubclasses() const = 0;
 		virtual void addSubclass(LogicalID* subclass) = 0;
 		virtual void setSubclasses(SetOfLids* subclasses) = 0;
 		virtual void addSubclasses(SetOfLids* toAdd) = 0;
 		virtual void removeSubclass(LogicalID* lid) = 0;
-		
+
 		virtual void setSubtype(ExtendedType type) = 0;
 		virtual string toString() = 0;
 		virtual Serialized serialize() const = 0;
@@ -216,7 +216,7 @@ namespace Store
 		virtual void setClasses(vector<LogicalID*>* value) = 0;
 		virtual string getParentRoot() const = 0;
 		virtual void setParentRoot(string parentRoot) = 0;
-		
+
 		// Operators
 		virtual bool operator==(ObjectPointer& dv) {
 			return (this->getLogicalID() == dv.getLogicalID()); }
@@ -245,13 +245,13 @@ namespace Store
 		virtual int getRootsLIDWithBegin(TransactionID* tid, string nameBegin, vector<LogicalID*>*& roots) = 0;
 		virtual int addRoot(TransactionID* tid, ObjectPointer*& object) = 0;
 		virtual int removeRoot(TransactionID* tid, ObjectPointer*& object) = 0;
-		
+
 		// Views
 		virtual int getViewsLID(TransactionID* tid, vector<LogicalID*>*& roots) = 0;
 		virtual int getViewsLID(TransactionID* tid, string name, vector<LogicalID*>*& roots) = 0;
 		virtual int addView(TransactionID* tid, const char* name, ObjectPointer*& object) = 0;
 		virtual int removeView(TransactionID* tid, ObjectPointer*& object) = 0;
-		
+
 		// Classes
 		virtual int getClassesLID(TransactionID* tid, vector<LogicalID*>*& roots) = 0;
 		virtual int getClassesLID(TransactionID* tid, string name, vector<LogicalID*>*& roots) = 0;
@@ -286,11 +286,11 @@ namespace Store
 
 		// Deserialization
 		virtual int logicalIDFromByteArray(unsigned char* buffer, LogicalID*& lid) = 0;
-		virtual int dataValueFromByteArray(unsigned char* buffer, DataValue*& value) = 0;
+		virtual int dataValueFromByteArray(TransactionID* id, unsigned char* buffer, DataValue*& value) = 0;
 
 		// Misc
 		virtual LogManager* getLogManager() = 0;
-		virtual DBPhysicalID* getPhysicalID(LogicalID* lid) = 0;
+		virtual DBPhysicalID* getPhysicalID(TransactionID* tid, LogicalID* lid) = 0;
 		virtual int checkpoint(unsigned int& cid) = 0;
 		virtual int endCheckpoint(unsigned int& cid) = 0;
 
