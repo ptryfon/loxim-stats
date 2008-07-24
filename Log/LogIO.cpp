@@ -49,14 +49,14 @@ int LogIO::readLogicalID( LogicalID *&lid, int fileDes, StoreManager* sm )
   return 0;
 }
 
-int LogIO::writeLogicalID( LogicalID *lid, int fileDes ) 
-{ 
+int LogIO::writeLogicalID( LogicalID *lid, int fileDes )
+{
   int result = 0;
-  
+
   //gdy lid = NULL zapisujemy długość łańcucha = 0
   if( lid == NULL)
     return writeInt(fileDes, 0);
-    
+
 
   Serialized serial1 = lid->serialize();
   string lidS = string( (const char*) serial1.bytes, serial1.size );
@@ -79,7 +79,7 @@ int LogIO::readDataValue( DataValue *&dv, int fileDes, StoreManager* sm )
   else
   {
     if( sm )
-      sm->dataValueFromByteArray((unsigned char*) (s.data()), dv);
+      sm->dataValueFromByteArray(new TransactionID(-1, -1, NULL), (unsigned char*) (s.data()), dv);
   }
   return 0;
 }

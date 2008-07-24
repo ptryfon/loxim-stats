@@ -20,12 +20,13 @@ DEPFILES =	$(OBJECTS:.o=.d)
 all: $(STATIC_LIB) $(PROGRAM)
 
 $(PROGRAM): $(STATIC_LIB)
+	make -C ../SystemStats
 	make -C ../Errors
 	make -C ../Lock
 	make -C ../Store	
 	make -C ../Log
 	make -C ../Config
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $@.cpp $< ../Log/Logs.a ../Lock/Lock.a ../Errors/Errors.a ../Config/Config.a ../Store/Store.a -o $@
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $@.cpp $< ../Log/Logs.a ../Lock/Lock.a ../Errors/Errors.a ../Config/Config.a ../Store/Store.a ../SystemStats/SystemStats.a -o $@
 
 clean:
 	rm -f $(OBJECTS) $(DEPFILES) $(STATIC_LIB) $(PROGRAM)

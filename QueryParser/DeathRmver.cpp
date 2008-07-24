@@ -17,7 +17,7 @@ int DeathRmver::rmvDeath(TreeNode *&qTree){
 	cout <<"=============================================================================" << endl;
 	cout <<"-----------------------------------------------------------------------------" << endl;
 	cout <<"-----------------------------------------------------------------------------" << endl;
-	
+
 	this->qTree = qTree;
 	cout << "received :" << endl;
 	qTree->serialize();
@@ -25,8 +25,8 @@ int DeathRmver::rmvDeath(TreeNode *&qTree){
 	cout << endl;
 	while(true){
 //		Deb::ug("\n rmvDeath loop start -------------------------------------------------------\n");
-		qParser->statEvaluate(qTree);
-		// qTree->markNeeded();		
+		qParser->statEvaluate(-1, qTree);
+		// qTree->markNeeded();
 		qTree->markNeeded2();
 		if (Deb::ugOn()){
 		    cout << "\n it is searching in \n";
@@ -47,10 +47,10 @@ int DeathRmver::rmvDeath(TreeNode *&qTree){
 			qTree = live;
 			qTree->setParent(NULL);
 		} else {
-			parent->getParent()->swapSon(parent, live);	
+			parent->getParent()->swapSon(parent, live);
 		}
 //		Deb::ug("\nrmvDeath loop end -------------------------------------------------------\n");
-	}		
+	}
 	cout <<"=============================================================================" << endl;
 	cout <<"-----------------------------------------------------------------------------" << endl;
 	cout <<"-----------------------------------------------------------------------------" << endl;
@@ -58,7 +58,7 @@ int DeathRmver::rmvDeath(TreeNode *&qTree){
 //	qTree->putToString();
 	qTree->serialize();
 	cout << endl;
-	return 0;	
+	return 0;
 }
 
 }

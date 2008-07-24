@@ -14,7 +14,7 @@ all: $(PROGRAM)
 
 $(PROGRAM): $(STATIC_LIB)
 	make -C ../Config
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $@.cpp $< ../Config/Config.a -o $@
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $@.cpp $< ../Config/Config.a ../SystemStats/SystemStats.a -o $@
 
 clean:
 	rm -f $(OBJECTS) $(DEPFILES) $(STATIC_LIB) $(PROGRAM)

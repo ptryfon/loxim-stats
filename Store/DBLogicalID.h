@@ -6,6 +6,7 @@
 #include "DBStoreManager.h"
 
 using namespace std;
+using namespace TManager;
 
 namespace Store
 {
@@ -16,7 +17,7 @@ namespace Store
 		DBLogicalID(unsigned int value);
 		DBLogicalID(const LogicalID& lid);
 
-		virtual DBPhysicalID* getPhysicalID();
+		virtual DBPhysicalID* getPhysicalID(TransactionID* tid);
 		virtual void toByteArray(unsigned char** lid, int* length);
 		virtual string toString() const;
 		virtual unsigned int toInteger() const;
@@ -33,7 +34,7 @@ namespace Store
 		virtual void setParentRoot(string parentRoot);
 		virtual void setDirectParent (LogicalID *lid); //MH TC
 		virtual LogicalID* getDirectParent() const;	//MH TC
-		
+
 		virtual bool operator==(LogicalID& lid);
 		virtual DBLogicalID& operator=(const LogicalID& lid);
 

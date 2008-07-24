@@ -38,9 +38,9 @@ namespace Store
 		}
 	}
 
-	DBPhysicalID* DBLogicalID::getPhysicalID()
+	DBPhysicalID* DBLogicalID::getPhysicalID(TransactionID* tid)
 	{
-		return StoreManager::theStore->getPhysicalID(this);
+		return StoreManager::theStore->getPhysicalID(tid, this);
 	};
 
 	void DBLogicalID::toByteArray(unsigned char** lid, int* length)
@@ -73,7 +73,7 @@ namespace Store
 	{
 		port = p;
 	};
-	
+
 	LogicalID* DBLogicalID::getRemoteID()  const
 	{
 		return remoteID;
@@ -83,7 +83,7 @@ namespace Store
 	{
 		this->remoteID = remoteID;
 	}
-	
+
 	LogicalID* DBLogicalID::getDirectParent() const
 	{
 		return directParentID;
@@ -93,12 +93,12 @@ namespace Store
 	{
 		this->directParentID = parentID;
 	}
-	
-	
+
+
 	string DBLogicalID::getParentRoot() const {
 		return parentRoot;
 	}
-	
+
 	void DBLogicalID::setParentRoot(string parentRoot) {
 		this->parentRoot = parentRoot;
 	}

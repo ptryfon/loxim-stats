@@ -22,9 +22,9 @@ namespace Store
 		return pageID;
 	};
 
-	int PagePointer::aquire()
+	int PagePointer::aquire(TransactionID* tid)
 	{
-		int err = buffer->acquirePage(this);
+		int err = buffer->acquirePage(tid, this);
 
 		if (!err)
 		{
@@ -37,36 +37,36 @@ namespace Store
 		return err;
 	};
 
-	int PagePointer::release(int dirty)
+	int PagePointer::release(TransactionID* tid, int dirty)
 	{
 		if (dirty && pageOriginal)
 		{
 			// log->write(***TRANSACTION ID***, fileID, pageID, pageOriginal, pagePointer);
 		}
-		
+
 		if (pageOriginal)
 		{
 			delete [] pageOriginal;
 			pageOriginal = 0;
-		}		
+		}
 
-		return buffer->releasePage(this);
+		return buffer->releasePage(tid, this);
 	};
 
-	int PagePointer::releaseSync(int dirty)
+	int PagePointer::releaseSync(TransactionID* tid, int dirty)
 	{
 		if (dirty && pageOriginal)
 		{
 			// log->write(***TRANSACTION ID***, fileID, pageID, pageOriginal, pagePointer);
 		}
-		
+
 		if (pageOriginal)
 		{
 			delete [] pageOriginal;
 			pageOriginal = 0;
-		}		
+		}
 
-		return buffer->releasePageSync(this);
+		return buffer->releasePageSync(tid, this);
 	};
 
 	char* PagePointer::getPage()

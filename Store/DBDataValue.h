@@ -5,6 +5,7 @@
 #include "DBLogicalID.h"
 
 using namespace std;
+using namespace TManager;
 
 namespace Store
 {
@@ -21,7 +22,7 @@ namespace Store
 				vector<LogicalID*>* vector_value;
 //			} v;
 		} complex_value;
-		
+
 	static void cloneSetOfLid(SetOfLids* fromSet, SetOfLids*& toSet) ;
 	static void deleteSetOfLid(SetOfLids* toDel);
 
@@ -51,7 +52,7 @@ namespace Store
 		virtual void addSubclasses(SetOfLids* toAdd);
 		virtual string toString();
 		virtual Serialized serialize() const;
-		static int deserialize(unsigned char* bytes, DBDataValue*& value, bool AutoRemove=false);
+		static int deserialize(TransactionID* tid, unsigned char* bytes, DBDataValue*& value, bool AutoRemove=false);
 		static void deserializeSetOfLids(unsigned char*& curpos, SetOfLids*& lids);
 		virtual DataValue* clone() const;
 
@@ -73,21 +74,21 @@ namespace Store
 		virtual DataValue& operator=(const string& val);
 		virtual DataValue& operator=(const LogicalID& val);
 		virtual DataValue& operator=(const vector<LogicalID*>& val);
-		
+
 	private:
 		DataType type;
 		ExtendedType subtype;
-		
+
 		//this two vector type properties may be consider as usefull for role.
-		
+
 		/** Object class LogicalID or 0 if this object has no class.
 		 * If object is a class it contains extended classes. */
 		SetOfLids* classMarks;
-		
+
 		/** If object is a class it contains lids to all subclasses.
 		 * NULL if object is not a class. */
 		SetOfLids* subclasses;
-		
+
 		complex_value value;
 
 		void p_init();

@@ -16,16 +16,16 @@ namespace LockMgr
     LockManager* LockManager::lockMgr = NULL;
 
     LockManager* LockManager::getHandle() { return lockMgr; }
-    
+
     void LockManager::init() {
     	lockMgr = new LockManager();;
     }
-    
-    LockManager::LockManager() 
+
+    LockManager::LockManager()
     {
 		err = ErrorConsole("LockManager");
 		transaction_locks = new TransactionIdMap;
-		map_of_locks      = new DBPhysicalIdMap; 
+		map_of_locks      = new DBPhysicalIdMap;
 		single_lock_id	  = 0;
 		mutex = new Mutex();
 		mutex->init();
@@ -35,43 +35,43 @@ namespace LockMgr
     {
 		err.printf("LockManager - destructor\n");
 		delete mutex;
-		
-		/* 
+
+		/*
 		 * TransactionManager removes all locks that is why structures:
-		 * transaction_locks, map_of_locks should be empty, 
+		 * transaction_locks, map_of_locks should be empty,
 		 * hovever, just in case, we erase (lost) elements from these structures
 		 */
 		for (TransactionIdMap::iterator iter = transaction_locks->begin();
 	    	iter != transaction_locks->end(); iter++ )
-	
-	    	delete (iter->second);	
-		
+
+	    	delete (iter->second);
+
 		delete transaction_locks;
 		delete map_of_locks;
     }
-        
+
     int LockManager::lock(LogicalID* lid, TransactionID* tid, AccessMode mode)
     {
 		int errorCode = 0;
-      
+
 		mutex->down();
-		
+
 		errorCode = lock_primitive(lid, tid, mode);
-		
+
 		mutex->up();
-		
+
 		return errorCode;
     }
 
     int LockManager::lock_primitive(LogicalID* lid, TransactionID* tid, AccessMode mode)
-    {  
+    {
 		int errorNumber = 0;
 
-	    	DBPhysicalID* phid = lid->getPhysicalID();
+	    	DBPhysicalID* phid = lid->getPhysicalID(tid);
 	    	DBPhysicalIdMap::iterator pos = map_of_locks->find(phid);
-	    
+
 		SingleLock* lock = NULL;
-		
+
 	    	if (pos == map_of_locks->end())
 	    	{
 			err.printf("New lock, tid = %d\n", tid->getId() );
@@ -80,9 +80,9 @@ namespace LockMgr
 			rwsem->init();
 			lock = new SingleLock(tid, mode, rwsem, single_lock_id);
 			lock->setPHID(phid);
-			
+
 			single_lock_id++;
-			(*map_of_locks)[phid] = lock;	
+			(*map_of_locks)[phid] = lock;
 	    	}
 	    	else
 	    	{
@@ -91,18 +91,18 @@ namespace LockMgr
 			mutex->up();
 			lock = pos->second;
 			errorNumber = lock->wait_for_lock(tid, mode);
-			
+
 			if (errorNumber) return errorNumber;
-			
+
 			mutex->down();
 		}
 		err.printf("Lock received\n");
 		if ((*transaction_locks)[tid] == 0 )
 		    (*transaction_locks)[tid] = new SingleLockSet;
-			    
+
 		((*transaction_locks)[tid])->insert(lock);
-			
-		
+
+
 		return errorNumber;
     }
 
@@ -112,7 +112,7 @@ namespace LockMgr
 
 		err.printf("LockAll, tid = %d\n", tid->getId());
 		mutex->down();
-		
+
 		set<LogicalID*>::iterator pos = lock_set->begin();
 		while(!errorCode && pos != lock_set->end())
 		{
@@ -137,19 +137,19 @@ namespace LockMgr
 		    {
 				err.printf("Unlock single, tid = %d\n", transaction_id->getId());
 				int delete_lock = unlock((*iter), transaction_id);
-				
-				if (delete_lock) 
+
+				if (delete_lock)
 				{
 				    DBPhysicalID* phid = (*iter)->getPHID();
 				    map_of_locks->erase( phid );
-				    
-				    delete (*iter);				    
+
+				    delete (*iter);
 				}
 		    }
-		    transaction_locks->erase(transaction_id);		    
+		    transaction_locks->erase(transaction_id);
 		    delete locks;
-		}	
-	
+		}
+
 		mutex->up();
 		return 0;
     }
@@ -161,22 +161,22 @@ namespace LockMgr
 	err.printf("modifyLockLID, tid = %d\n", tid->getId());
 
 	mutex->down();
-	    DBPhysicalID* newPHID = newLID->getPhysicalID();
+	    DBPhysicalID* newPHID = newLID->getPhysicalID(tid);
 	    DBPhysicalIdMap::iterator pos = map_of_locks->find(oldPHID);
 	    if (pos != map_of_locks->end())
 	    {
 		    SingleLock* lock = pos->second;
 		    map_of_locks->erase(oldPHID);
 		    lock->setPHID(newPHID);
-		    (*map_of_locks)[newPHID] = lock;	
+		    (*map_of_locks)[newPHID] = lock;
 	    }
 	    else errorNumber = -1;
-	
+
 	mutex->up();
 
 	return errorNumber;
     }
-    
+
     int LockManager::unlock(SingleLock* lock, TransactionID* tid)
     {
 		return lock->unlock(tid);

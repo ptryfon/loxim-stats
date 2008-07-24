@@ -1,6 +1,9 @@
 #ifndef __STORE_PAGEPOINTER_H__
 #define __STORE_PAGEPOINTER_H__
 
+#include "TransactionManager/Transaction.h"
+
+using namespace TManager;
 
 namespace Store
 {
@@ -18,9 +21,9 @@ namespace Store
 
 		unsigned short getFileID();
 		unsigned int getPageID();
-		int aquire();
-		int release(int dirty);
-		int releaseSync(int dirty);
+		int aquire(TransactionID* tid);
+		int release(TransactionID* tid, int dirty);
+		int releaseSync(TransactionID* tid, int dirty);
 		char* getPage();
 		void setPage(char* pagePointer);
 	};

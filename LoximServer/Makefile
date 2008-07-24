@@ -18,12 +18,12 @@ OBJECTS	=	$(SOURCES:.cpp=.o)
 DEPFILES =	$(SOURCES:.cpp=.d) $(PROGRAM).d
 
 LIBS	=	../Driver/Driver.a \
-		../Config/Config.a \
 		../Errors/Errors.a \
 		../Log/Logs.a \
 		../QueryParser/QueryParser.a \
 		../Store/Store.a \
 		../SystemStats/SystemStats.a \
+		../Config/Config.a \
 		../TransactionManager/TransactionManager.a \
 		../QueryExecutor/QueryExecutor.a \
 		../Lock/Lock.a \

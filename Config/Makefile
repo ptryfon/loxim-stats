@@ -1,28 +1,37 @@
 include ../make.defs
 
+CXXFLAGS=-I./ -I./../ -Wall -g
+
 SOURCES	=	SBQLConfig.cpp
-
+			
 HEADERS	=	SBQLConfig.h \
-			../SystemStats
+			../SystemStats/AllStats.h \
+			../SystemStats/ConfigStats.h \
 
-STATIC_LIB =	Config.a \
-			../SystemStats/SystemStats.a
+
+LIBS	=	../SystemStats/SystemStats.a
+
+STATIC_LIB =	Config.a
 
 PROGRAM	=	conftest
 
 OBJECTS	=	$(SOURCES:.cpp=.o)
-DEPFILES =	$(OBJECTS:.o=.d) $(PROGRAM).d
+DEPFILES =	$(OBJECTS:.o=.d)
 
-all: $(STATIC_LIB) $(PROGRAM)
+all: $(STATIC_LIB) $(PROGRAM) $(HEADERS)
 
-$(PROGRAM): $(STATIC_LIB)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $@.cpp $< -o $@
+#$(PROGRAM): $(STATIC_LIB)
+#	$(CXX) $(CXXFLAGS) $(LDFLAGS) $@.cpp $< -o $@
+
+$(PROGRAM): $(STATIC_LIB) $(PROGRAM).cpp
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $@.cpp $< $(LIBS) -o $@
+
 
 clean:
 	rm -f $(OBJECTS) $(DEPFILES) $(STATIC_LIB) $(PROGRAM)
 
 $(STATIC_LIB): $(OBJECTS)
-	$(AR) r $(STATIC_LIB) $(OBJECTS)
+	$(AR) r $(STATIC_LIB) $(OBJECTS) $(LIBS)
 	$(RANLIB) $(STATIC_LIB)
 
 %.o: %.cpp

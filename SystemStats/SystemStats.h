@@ -42,6 +42,8 @@ namespace SystemStatsLib{
 
 			map<string, StatsValue*> getAllStats();
 			virtual ~SystemStats();
+
+			void refreshStats();
 	};
 
 	class StatsValue {

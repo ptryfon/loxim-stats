@@ -16,21 +16,21 @@
 using namespace TManager;
 
 namespace TypeCheck {
-	
+
 	class DMLControl {
-	
+
 	public: enum MdnRootKind {absent, object, type};
-		private: 
-			Transaction *tr;	//always received from executor 
-			map<string, vector<string>* > typeDeps;//defined type dependencies (names only),to prevent from infinite recurrence 
+		private:
+			Transaction *tr;	//always received from executor
+			map<string, vector<string>* > typeDeps;//defined type dependencies (names only),to prevent from infinite recurrence
 			map<string, MdnRootKind> rootMdns;	//each elt: if present - either object declaration or type definition
-				
+
 			int registerRootMdns(vector<ObjectPointer *> *v, MdnRootKind mdnKind);
 			int registerRootMdnsRec(vector<LogicalID*> *v, string rootName, MdnRootKind mdnKind, bool topLevel);
-		public: 
+		public:
 			DMLControl(Transaction *t);
 			DMLControl(){};
-			int init();
+			int init(int sessionId);
 			void setTransaction(Transaction *t);
 			int findDependency (string masterType, string subType);
 			int findRoot(string name);
@@ -40,7 +40,7 @@ namespace TypeCheck {
 			string rootMdnsToString();
 			~DMLControl();
 	};
-	
+
 }
 
 #endif

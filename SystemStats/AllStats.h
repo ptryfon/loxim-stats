@@ -27,6 +27,11 @@ namespace SystemStatsLib{
 				SessionsStats* getSessionsStats();
 				ConfigsStats* getConfigsStats();
 
+				void addDiskPageReads(int sessionId, int transactionId, int count);
+				void addPageReads(int sessionId, int transactionId, int count);
+				void addDiskPageWrites(int sessionId, int transactionId, int count);
+				void addPageWrites(int sessionId, int transactionId, int count);
+
 				~AllStats();
 		};
 }

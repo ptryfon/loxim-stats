@@ -26,13 +26,13 @@ namespace Store
 //		static int binarizeSize(ObjectPointer *obj);
 //		static int binarize(ObjectPointer *obj, BinaryObject*& binobj);
 //		static int writeNewHeader(PagePointer *ptr);
-		static int insertObject(PagePointer *ptr, Serialized& obj, int* pidoffset, unsigned log_id);
-		static int deserialize(PagePointer *ptr, int objindex, ObjectPointer*& newobj);
+		static int insertObject(TransactionID* tid, PagePointer *ptr, Serialized& obj, int* pidoffset, unsigned log_id);
+		static int deserialize(TransactionID* tid, PagePointer *ptr, int objindex, ObjectPointer*& newobj);
 		static int initializeFile(File* file);
 		static int initializePage(unsigned int page_num, char* page);
-		int getFreePage();
-		int getFreePage(int objsize);
-		int updateFreeMap(PagePointer *ptr);
+		int getFreePage(TransactionID* tid);
+		int getFreePage(TransactionID* tid, int objsize);
+		int updateFreeMap(TransactionID* tid, PagePointer *ptr);
 		static void printPage(PagePointer *ptr, int lines=4);
 		static void printPage(unsigned char* bytes, int lines);
 	private:

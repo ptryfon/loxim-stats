@@ -17,6 +17,7 @@ namespace Store
 #include <map>
 
 using namespace std;
+using namespace TManager;
 
 namespace Store
 {
@@ -64,14 +65,14 @@ namespace Store
 		int start();
 		int stop();
 
-		PagePointer* getPagePointer(unsigned short fileID, unsigned int pageID);
-		int readPage(unsigned short fileID, unsigned int pageID, buffer_page*& n_page);
+		PagePointer* getPagePointer(TransactionID* tid, unsigned short fileID, unsigned int pageID);
+		int readPage(TransactionID* tid, unsigned short fileID, unsigned int pageID, buffer_page*& n_page);
 
-		int acquirePage(PagePointer* pp);
+		int acquirePage(TransactionID* tid, PagePointer* pp);
 		int acquirePageRead(PagePointer* pp);
 
-		int releasePage(PagePointer* pp);
-		int releasePageSync(PagePointer* pp);
+		int releasePage(TransactionID* tid, PagePointer* pp);
+		int releasePageSync(TransactionID* tid, PagePointer* pp);
 
 		static void* dbWriterThread(void* arg);
 		void* dbWriterMain(void);

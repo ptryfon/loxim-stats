@@ -20,9 +20,9 @@ using namespace std;
 namespace QParser {
 
 
-	
-	
-	
+
+
+
 	/*******************************************************
 	 *													   *
 	 *	Implementation of metabase in memory               *
@@ -33,17 +33,17 @@ namespace QParser {
 	{
 	protected:
 		DataObjectDef *nextBase;	/* list of definitions of base objects */
-/* jsi ??? */	DataObjectDef *nextColl;	/* !=NULL only if it belongs to a collection */	
+/* jsi ??? */	DataObjectDef *nextColl;	/* !=NULL only if it belongs to a collection */
 		DataObjectDef *nextSub;		/* list of subobjects of a complex object.*/
 		DataObjectDef *nextHash;	/* list for one field in a hash table */
-		int myId;	
+		int myId;
 		string name;
 		string card;
 		string kind;
 		bool isBase;	/*if owner is NULL*/
 		bool isTypedef;		/*true for typedef nodes. */
 		bool isDistinct;	/* only for typedef base nodes.*/
-		
+
 		string type; 				/* only in ATOMIC */
 		DataObjectDef *subObjects;	/* only in COMPLEX */
 		//list<DataObjectDef *> subObjects;	/* only in COMPLEX */
@@ -54,7 +54,7 @@ namespace QParser {
 		int 		ownerId;
 		string typeName;			/* for objects/subobjects declared by a defined type..*/
 		DataObjectDef *typeObj;
-		
+
 	public:
 		DataObjectDef() {initPointers(); typeName = ""; refName = ""; isDistinct = false; isBase = false; isTypedef = false;}
 		void initPointers() {
@@ -77,9 +77,9 @@ namespace QParser {
 		virtual void setName(string nname) {name = nname;}
 		virtual string getCard(){return card;}
 		virtual void setCard(string ncard){card = ncard;}
-		
+
 		virtual void setIsBase(bool b){isBase = b;}
-		
+
 		virtual bool getIsBase(){return isBase;}
 		/** TC add-ons .. */
 		virtual void setIsTypedef(bool isTd) {isTypedef = isTd;}
@@ -89,16 +89,16 @@ namespace QParser {
 		virtual void setRefName(string rName) {refName = rName;}
 		virtual string getRefName() {return refName;}
 		virtual void setTypeName(string tName) {typeName = tName;}
-		virtual string getTypeName() {return typeName;}		
+		virtual string getTypeName() {return typeName;}
 		virtual DataObjectDef *getTypeObj() {return typeObj;}
 		virtual void setTypeObj(DataObjectDef * type) {typeObj = type;}
 		/** TC add-ons - end.. */
 		virtual string getKind(){return kind;}
-		
+
 		virtual void setKind(string k){kind = k;}
 		virtual DataObjectDef * getTarget(){return target;}
 		virtual void  setTarget(DataObjectDef * t){target = t;}
-		
+
 		virtual void addSubObject(DataObjectDef * nobj){
 		    nobj->nextSub = this->subObjects;
 		    this->subObjects = nobj;
@@ -106,7 +106,7 @@ namespace QParser {
 		virtual void setType(string t){type = t;}
 		virtual string getType(){return type;}
 		virtual void setOwner(DataObjectDef * o){owner = o;}
-		virtual DataObjectDef * getOwner(){return owner;} 
+		virtual DataObjectDef * getOwner(){return owner;}
 		virtual void setOwnerId(int id){ownerId = id;};
 		virtual int getOwnerId(){return ownerId;};
 		virtual void setTargetId(int id){targetId = id;};
@@ -114,24 +114,24 @@ namespace QParser {
 		virtual Signature *createSignature();
 		virtual Signature *createNamedSignature();
 	};
-	
-	class DataScheme 
-	{	
+
+	class DataScheme
+	{
 
 	static DataScheme* datScheme;
 	protected:
 	DataObjectDef *baseObjects;
 	DataObjectDef *baseTypes;
-	DataObjectDef *refTable[100]; 
+	DataObjectDef *refTable[100];
 	map<string, LogicalID*> rootMap;
 	bool isComplete;	/* flag saying if the whole data scheme is ok (eg. not missing any pointer elts) */
 	bool isUpToDate;
 	vector<string> missedRoots;
-	
+
 	DataObjectDef *createDataObjectDef(ObjectPointer *op, Transaction * tr);
 	void registerRoots(vector<ObjectPointer *> *roots, Transaction *tr);
 	void createObjectDefs(vector<ObjectPointer *> *roots, Transaction *tr);
-	
+
 	public:
 		DataScheme(){
 			this->baseObjects = NULL;
@@ -142,18 +142,18 @@ namespace QParser {
 				refTable[i] = NULL;
 		};
 		virtual ~DataScheme() {
-			if (baseObjects != NULL) delete baseObjects; 
-			if (baseTypes != NULL) delete baseTypes; 
+			if (baseObjects != NULL) delete baseObjects;
+			if (baseTypes != NULL) delete baseTypes;
 			//cout << "\n jsi \n !!!!!!!!!! \n destr dataSCHME !!!!!!\n";
 		};
-		int readData();	
-		int readData(Transaction *tr);
-	    	
+		int readData(int sessionId);
+		int readData(int sessionId, Transaction *tr);
+
 		LogicalID *getRootIdByName(string name); //looks for roots with given name. returns NULL value when name not found.
-		static DataScheme *dScheme();
-		static DataScheme *dScheme(Transaction *tr);
-		static void reloadDScheme(Transaction *tr);
-		static void reloadDScheme();
+		static DataScheme *dScheme(int sessionId);
+		static DataScheme *dScheme(int sessionId, Transaction *tr);
+		static void reloadDScheme(int sessionId, Transaction *tr);
+		static void reloadDScheme(int sessionId);
 		static bool bindError(vector<BinderWrap*> *vec) {
 			return (vec == NULL || vec->size() == 0 || vec->at(0) == NULL || vec->at(0)->getBinder() == NULL);
 		}
@@ -162,44 +162,44 @@ namespace QParser {
 			Signature *sig = vec->at(0)->getBinder()->getValue()->clone();
 			return sig;
 		}
-	
-		
+
+
 		void addMissedRoot(string name);
 		vector<string> getMissedRoots() {return missedRoots;}
 		void setComplete(bool complete) {isComplete = complete;}
 		bool getIsComplete() {return isComplete;}
 		bool getIsUpToDate() {return isUpToDate;}
 		void setUpToDate(bool uptd) {isUpToDate = uptd;}
-		
+
 		virtual int hashFun (int objId) {return (objId % 100); }
-	
+
 		virtual void hashIn (int tabPos, DataObjectDef *newObj) {
-			newObj->setNextHash(refTable[tabPos]);	
-			refTable[tabPos] = newObj;			
+			newObj->setNextHash(refTable[tabPos]);
+			refTable[tabPos] = newObj;
 		}
-		
+
 		virtual DataObjectDef *getBaseObjects() {return baseObjects;}
 		virtual DataObjectDef *getBaseTypes() {return baseTypes;}
-		
+
 		virtual void addObj(DataObjectDef *obj){
 		    int newPlace = this->hashFun(obj->getMyId());
 		    this->hashIn(newPlace, obj);
 		}
-			
+
 		virtual void addBaseType (DataObjectDef *newOne) {
 			newOne->setNextBase(this->baseTypes);
 			this->baseTypes = newOne;
 			addObj(newOne);
 		}
-		
-		virtual void addBaseObj (DataObjectDef *newOne) {	
+
+		virtual void addBaseObj (DataObjectDef *newOne) {
 			newOne->setNextBase(this->baseObjects);
 			this->baseObjects = newOne;		/*no matter if it was empty before or not. */
 			/* now insert it to the hashtable... */
 			addObj(newOne);
 		}
-		
-		
+
+
 		virtual DataObjectDef *getObjById (int objId) {
 			int itsPlace = this->hashFun (objId);
 			DataObjectDef *point = refTable [itsPlace];
@@ -207,31 +207,31 @@ namespace QParser {
 			bool halt = false;
 			while (not halt) {
 				if (point == NULL) {halt = true;}
-				else { 
+				else {
 				    if (point->getMyId() == objId) {
 						halt = true;
 				    }
 				    else {
 						point = point->getNextHash();
-				    }	
+				    }
 				}
 			};
 	;
 			return point; /*it can be NULL if wasnt found*/
-			
+
 		};
 		virtual bool isTypeDefId(int objId);
 		virtual BinderWrap *statNested (int objId, TreeNode *treeNode);
 		virtual BinderWrap *statNested (DataObjectDef *candidate, TreeNode *treeNode, string obName, string obCard);
 		/*function below uses a list impl. of BinderWraps. can be changed ...  */
-		virtual BinderWrap* bindBaseObjects(); 
-		
+		virtual BinderWrap* bindBaseObjects();
+
 		virtual BinderWrap* bindBaseTypes();
 		virtual void addBindEntity(DataObjectDef *obt, BinderWrap *&bw);
 		virtual Signature *signatureOfRef(int objId);
 		virtual Signature *namedSignatureOfRef(int objId);
-	};	
-		
+	};
+
 }
 
 #endif

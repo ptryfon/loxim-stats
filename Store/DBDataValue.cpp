@@ -16,7 +16,7 @@ namespace Store
 #endif
 		p_init();
 	};
-	
+
 	DBDataValue::DBDataValue(int val)
 	{
 #ifdef DBDV_DEBUG
@@ -85,12 +85,12 @@ namespace Store
 			case Store::Double:  setDouble(dv.getDouble()); break;
 			case Store::String:  setString(dv.getString()); break;
 			case Store::Pointer:	setPointer(dv.getPointer()); break;
-			case Store::Vector:  setVector(dv.getVector()); break; 
+			case Store::Vector:  setVector(dv.getVector()); break;
 			default:
 				cout << "DV ERROR\n"; break;
 		}
 	};
-	
+
 	void DBDataValue::cloneSetOfLid(SetOfLids* fromSet, SetOfLids*& toSet) {
 		if(fromSet == NULL) {
 			toSet = NULL;
@@ -101,7 +101,7 @@ namespace Store
 			toSet->insert((*i)->clone());
 		}
 	}
-	
+
 	void DBDataValue::deleteSetOfLid(SetOfLids* toDel)
 	{
 		if(toDel == NULL) {
@@ -128,7 +128,7 @@ namespace Store
 		this->classMarks = NULL;
 		p_destroyVal();
 	};
-	 
+
 	DataType DBDataValue::getType() const
 	{
 		return type;
@@ -143,17 +143,17 @@ namespace Store
 	{
 		this->subtype = subtype;
 	};
-	
+
 	SetOfLids* DBDataValue::getClassMarks() const
 	{
 		return classMarks;
 	}
-	
+
 	void DBDataValue::setClassMarks(SetOfLids* classMarks)
 	{
 		this->classMarks = classMarks;
 	}
-	
+
 	void DBDataValue::addClassMark(LogicalID* classMark)
 	{
 		if(this->classMarks == NULL) {
@@ -164,7 +164,7 @@ namespace Store
 			(this->classMarks)->insert(classMark->clone());
 		}
 	}
-	 
+
 	SetOfLids* DBDataValue::getSubclasses() const
 	{
 		return this->subclasses;
@@ -180,11 +180,11 @@ namespace Store
 			(this->subclasses)->insert(subclass->clone());
 		}
 	}
-	
+
 	void DBDataValue::setSubclasses(SetOfLids* subclasses) {
 		this->subclasses = subclasses;
 	}
-	
+
 	void DBDataValue::addClassMarks(SetOfLids* toAdd) {
 		if(toAdd == NULL) {
 			return;
@@ -193,21 +193,21 @@ namespace Store
 			addClassMark(*i);
 		}
 	}
-	
+
 	void DBDataValue::removeSubclass(LogicalID* lid) {
 		if(subclasses == NULL || lid == NULL) {
 			return;
 		}
 		subclasses->erase(lid);
 	}
-	
+
 	void DBDataValue::removeClassMark(LogicalID* lid) {
 		if(lid == NULL || classMarks == NULL) {
 			return;
 		}
 		classMarks->erase(lid);
 	}
-	
+
 	void DBDataValue::removeClassMarks(SetOfLids* toDel) {
 		if(toDel == NULL || classMarks == NULL) {
 			return;
@@ -216,7 +216,7 @@ namespace Store
 			this->classMarks->erase(*i);
 		}
 	}
-	
+
 	void DBDataValue::addSubclasses(SetOfLids* toAdd) {
 		if(toAdd == NULL) {
 			return;
@@ -299,7 +299,7 @@ namespace Store
 		}
 		return s;
 	};
-	
+
 	void DBDataValue::deserializeSetOfLids(unsigned char*& curpos, SetOfLids*& lids) {
 		lids = new SetOfLids();
 		unsigned int setSize = *(reinterpret_cast<unsigned int*>(curpos));
@@ -311,7 +311,7 @@ namespace Store
 		}
 	}
 
-	int DBDataValue::deserialize(unsigned char* bytes, DBDataValue*& value, bool AutoRemove)
+	int DBDataValue::deserialize(TransactionID* tid, unsigned char* bytes, DBDataValue*& value, bool AutoRemove)
 	{
 #ifdef DBDV_DEBUG
 		cout << "Store::DBDataValue::deserialize\n";
@@ -324,21 +324,21 @@ namespace Store
 
 		ExtendedType subtype = static_cast<ExtendedType>(*(reinterpret_cast<int*>(curpos)));
 		curpos += sizeof(int);
-		
+
 		SetOfLids* classMarks;
 		deserializeSetOfLids(curpos, classMarks);
-		
+
 		SetOfLids* subclasses = NULL;
 		if(subtype == Store::Class) {
 			deserializeSetOfLids(curpos, subclasses);
 		}
-		
+
 		value = new DBDataValue();
 		value->setSubtype(subtype);
 		value->setClassMarks(classMarks);
 		value->setSubclasses(subclasses);
-		
-		
+
+
 		switch(type) {
 			case Store::Integer:
 				value->setInt(*(reinterpret_cast<int*>(curpos)));
@@ -374,7 +374,7 @@ namespace Store
 
 					if( AutoRemove ) {
 						physical_id *p_id = 0;
-						int rval = ((DBStoreManager*) DBStoreManager::theStore)->getMap()->getPhysicalID(lid->toInteger(), &p_id);
+						int rval = ((DBStoreManager*) DBStoreManager::theStore)->getMap()->getPhysicalID(tid, lid->toInteger(), &p_id);
 						if( rval > 0 ) {
 							if( rval == 1 )
 								cout << "ERR: bad lid\n";
@@ -388,7 +388,7 @@ namespace Store
 					}
 					else
 						v->push_back(lid);
-					
+
 					curpos += ub;
 				}
 				value->setVector(v);
@@ -396,7 +396,7 @@ namespace Store
 			} break;
 			default:
 				break;
-		}	
+		}
 		// W poprzedniej wersji tego kodu, gdy dochodzilo sie tu nie byl tworzony obiekt DataValue
 		// teraz jest, wiec trzeba go usunac.
 		delete value;
@@ -412,7 +412,7 @@ namespace Store
 	{
 		if( type == Store::Integer )
 			return *(value.int_value);
-		return 0;    	
+		return 0;
 	};
 
 	double DBDataValue::getDouble() const
@@ -499,7 +499,7 @@ namespace Store
 		}
 		return false;
 	};
-	
+
 	DataValue& DBDataValue::operator=(const int& val)
 	{
 		p_destroyVal();
@@ -553,7 +553,7 @@ namespace Store
 		subclasses = NULL;
 		value.int_value = new int(0);
 	};
-	
+
 	void DBDataValue::p_destroyVal()
 	{
 		switch(type) {
@@ -577,7 +577,7 @@ namespace Store
 		}
 		p_clearPtr();
 	};
-	
+
 	void DBDataValue::p_clearPtr()
 	{
 		value.int_value = NULL;

@@ -52,7 +52,7 @@ namespace Store
 		}
 	}
 
-	vector<int>* SystemViews::getItems(int transactionID, int transactionTimeStamp)
+	vector<int>* SystemViews::getItems(TransactionID* tid)
 	{
 		vector<int>* systemviews = new vector<int>();
 
@@ -71,7 +71,7 @@ namespace Store
 		return systemviews;
 	};
 
-	vector<int>* SystemViews::getItems(const char* name, int transactionID, int transactionTimeStamp)
+	vector<int>* SystemViews::getItems(TransactionID* tid, const char* name)
 	{
 #ifdef DEBUG_MODE
 		*this->ec << "Store::SystemViews::getItems";

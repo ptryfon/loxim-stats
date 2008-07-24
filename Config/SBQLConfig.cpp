@@ -2,12 +2,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include <iostream>
+
 #include "Errors/Errors.h"
 #include "SBQLConfig.h"
 #include "SystemStats/ConfigStats.h"
+#include "SystemStats/AllStats.h"
 
 using namespace std;
 using namespace Errors;
+using namespace SystemStatsLib;
 
 namespace Config {
 	struct ModuleOptions *SBQLConfig::config = NULL;
@@ -157,6 +160,23 @@ namespace Config {
 
 		configFile.close();
 
+		/* Add config to stats */
+		ConfigsStats* cs = AllStats::getHandle()->getConfigsStats();
+		ModuleOptions* module = config;
+		while (module != NULL) {
+			ConfOpt* opt = module->options;
+			ConfigModuleStats* cms = new ConfigModuleStats();
+			cms->setModuleName(module->name);
+			while (opt != NULL) {
+				ConfigOptStats* cos = new ConfigOptStats();
+				cos->setKey(opt->name);
+				cos->setValue(opt->value);
+				cms->addConfigOptStats(opt->name, cos);
+				opt = opt->nextOpt;
+			}
+			cs->addConfigModuleStats(module->name, cms);
+			module = module->nextMod;
+		}
 		return 0;
 	};
 

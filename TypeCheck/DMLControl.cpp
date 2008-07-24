@@ -6,19 +6,19 @@
 
 namespace TypeCheck {
 
-	int DMLControl::init() {
+	int DMLControl::init(int sessionId) {
 		vector<ObjectPointer *> * roots;
 		vector<ObjectPointer *> * rootTypes;
 		bool newTransaction = false;
 		if (tr == NULL) {
 			Deb::ug("Have to create new transaction to init control structures!");
-			TransactionManager::getHandle()->createTransaction(tr);
+			TransactionManager::getHandle()->createTransaction(sessionId, tr);
 			newTransaction = true;
 		}
-		tr->getRoots(TC_MDN_NAME, roots);	
+		tr->getRoots(TC_MDN_NAME, roots);
 		tr->getRoots(TC_MDNT_NAME, rootTypes);
 		if (Deb::ugOn()) cout <<"got all the roots / root types"<< endl;
-		
+
 		if (Deb::ugOn()) cout << "controL: " << roots->size() << " obiektow root MDN"<< endl;
 		if (Deb::ugOn()) cout << "controL DEFTYPES: " << rootTypes->size() << " obiektow rootType MDNT"<< endl;
 		registerRootMdns(roots, DMLControl::object);
@@ -29,7 +29,7 @@ namespace TypeCheck {
 		if (newTransaction) tr->commit();
 		return 0;
 	}
-	
+
 	int DMLControl::registerRootMdns(vector<ObjectPointer *> *vec, MdnRootKind mdnKind) {
 		for (unsigned int i = 0; i < vec->size(); i++){
 			ObjectPointer * mdnOp = (*vec)[i];
@@ -39,7 +39,7 @@ namespace TypeCheck {
 		}
 		return 0;
 	}
-			
+
 	int DMLControl::registerRootMdnsRec(vector<LogicalID*> *v, string rootName, MdnRootKind mdnKind, bool topLevel) {
 		if (topLevel) {
 			for (unsigned int j = 0; j < v->size(); j++) {
@@ -69,22 +69,22 @@ namespace TypeCheck {
 		}
 		return 0;
 	}
-		
+
 	int DMLControl::findRoot(string name) {
 		if (rootMdns.find(name) == rootMdns.end()) return DMLControl::absent;
 		return rootMdns[name];
 	}
-	
+
 	void DMLControl::addRoot(string name, MdnRootKind mdnKind) {
 		rootMdns[name] = mdnKind;
 	}
-	
+
 	DMLControl::~DMLControl() {
 		for (map<string, vector<string>* >::iterator iter = typeDeps.begin(); iter != typeDeps.end(); iter++) {
 			delete (iter->second);
 		}
 	}
-	
+
 	void DMLControl::markDependency(string masterType, string subType) {
 		if (typeDeps.find(masterType) == typeDeps.end()) {
 			typeDeps[masterType] = new vector<string>();
@@ -95,7 +95,7 @@ namespace TypeCheck {
 		}
 		v->push_back(subType);
 	}
-	//return 0 if masterType does not depend on subType, else - sth. other than 0 
+	//return 0 if masterType does not depend on subType, else - sth. other than 0
 	int DMLControl::findDependency (string masterType, string subType) {
 		// no self-recurrence
 		if (masterType == subType) return 1;
@@ -117,11 +117,11 @@ namespace TypeCheck {
 		}
 		return 0;
 	}
-	
+
 	DMLControl::DMLControl(Transaction *t) {tr = t;}
-	
+
 	void DMLControl::setTransaction(Transaction *t) {tr = t;};
-	
+
 	string DMLControl::depsToString() {
 		string ret = "TYPE DEPENDENCIES: typeA --> tB, tC :: typeA DEPENDS_ON tB & tC.\n";
 		map<string, vector<string> * >::iterator iter;

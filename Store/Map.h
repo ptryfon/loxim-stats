@@ -18,6 +18,7 @@ namespace Store
 #define STORE_MAP_MAPOFFSET(i)		(sizeof(map_page) + sizeof(physical_id) * ((i) % STORE_MAP_PERPAGE))
 
 using namespace std;
+using namespace TManager;
 
 namespace Store
 {
@@ -28,8 +29,8 @@ namespace Store
 		LogManager* log;
 		PagePointer* header;
 
-		unsigned int getLastAssigned();
-		void setLastAssigned(unsigned int);
+		unsigned int getLastAssigned(TransactionID* tid);
+		void setLastAssigned(TransactionID* tid, unsigned int);
 
 	public:
 		Map();
@@ -42,9 +43,9 @@ namespace Store
 		int initializeFile(File* file);
 		int initializePage(unsigned int pageID, char* page);
 
-		unsigned int createLogicalID();
-		int getPhysicalID(unsigned int logicalID, physical_id** physicalID);
-		int setPhysicalID(unsigned int logicalID, physical_id* physicalID);
+		unsigned int createLogicalID(TransactionID* tid);
+		int getPhysicalID(TransactionID* tid, unsigned int logicalID, physical_id** physicalID);
+		int setPhysicalID(TransactionID* tid, unsigned int logicalID, physical_id* physicalID);
 	};
 };
 

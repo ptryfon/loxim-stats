@@ -27,12 +27,13 @@ all: $(STATIC_LIB)
 program: $(PROGRAM)
 
 $(PROGRAM): $(STATIC_LIB)
+	make -C ../SystemStats
 	make -C ../TransactionManager
 	make -C ../Lock
 	make -C ../Errors
 	make -C ../Store
 	make -C ../Config
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $@.cpp ../Store/Store.a ../TransactionManager/TransactionManager.a ../Lock/Lock.a ../Errors/Errors.a ../Config/Config.a $< -o $@
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $@.cpp ../Store/Store.a ../TransactionManager/TransactionManager.a ../Lock/Lock.a ../Errors/Errors.a ../SystemStats/SystemStats.a ../Config/Config.a $< -o $@
 
 clean:
 	rm -f $(OBJECTS) $(DEPFILES) $(STATIC_LIB) $(PROGRAM) core*

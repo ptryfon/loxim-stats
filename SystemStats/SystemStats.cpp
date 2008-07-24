@@ -107,6 +107,17 @@ map<string, StatsValue*>  SystemStats::getAllStats() {
 SystemStats::~SystemStats() {
 }
 
+void SystemStats::refreshStats() {
+	map<string, StatsValue*>::const_iterator itr;
+
+	for(itr = mapOfValues.begin(); itr != mapOfValues.end(); ++itr){
+		StatsValue* v = (*itr).second;
+		if (v->getType() == 4) {
+			dynamic_cast<StatsStatsValue*>(v)->getValue()->refreshStats();
+		}
+	}
+}
+
 StatsValue::StatsValue(string key) {
 	this->key = key;
 }

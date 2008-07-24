@@ -307,7 +307,7 @@ int LoximServer::LoximSession::execute_statement(const char *stmt, QueryResult *
 		err_cons->printf("EXECUTING REGULAR STATEMENT:\n%s\n\n", stmt);
 		TreeNode *tn;
 		string tcrs;
-		int tcr = qPa.parseIt(stmt, tn, tcrs, true, true);
+		int tcr = qPa.parseIt(id, stmt, tn, tcrs, true, true);
 		if (tcr){
 			err_cons->printf("Query not parsed\n");
 			return EParse;

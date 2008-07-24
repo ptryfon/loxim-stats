@@ -20,19 +20,19 @@ using namespace std;
 //using namespace Store;
 
 namespace QParser {
-	
+
 	BinderWrap *DataScheme::statNested (int objId, TreeNode *treeNode) {
 		Deb::ug("dataScheme::statNested start\n");
 		DataObjectDef *candidate = this->getObjById(objId);
 		return statNested(candidate, treeNode, candidate->getName(), candidate->getCard());
 	}
-		
-	
+
+
 	BinderWrap *DataScheme::statNested (DataObjectDef *candidate, TreeNode *treeNode, string obName, string obCard) {
 		DataObjectDef *pom = NULL;
 		BinderList *bindersCol = NULL;
-			
-		if (candidate == NULL){	
+
+		if (candidate == NULL){
 			Deb::ug("NULL !!!!\n");
 			return bindersCol; //<empty collection>;
 		}
@@ -49,16 +49,16 @@ namespace QParser {
 			if (pom->getIsTypedef()) { //make it an artificial name, to be able to detect when binding.and not for typename not be be used, eg. emp.works_in.deptType.loc isn't correct.deptType will not be bound.
 				binderName = TC_REF_TYPE_SUFF + binderName;
 			}
-			StatBinder * sb = new StatBinder (binderName, sigRef);	
+			StatBinder * sb = new StatBinder (binderName, sigRef);
 			sb->setDependsOn(treeNode);
 			sb->setCard(obCard);
 			bindersCol = new BinderList(sb);
-			return bindersCol;	//<kolekcja 1-eltowa zawierajaca sb>;	
+			return bindersCol;	//<kolekcja 1-eltowa zawierajaca sb>;
 		} else if (candidate->getKind() == TC_MDN_DEFTYPE) {
-			Deb::ug("object defined by its type !!!\n");	
-			pom = candidate->getTypeObj();	
-			BinderList *retList = (BinderList *) statNested(pom, treeNode, obName, obCard);	
-			return retList;				
+			Deb::ug("object defined by its type !!!\n");
+			pom = candidate->getTypeObj();
+			BinderList *retList = (BinderList *) statNested(pom, treeNode, obName, obCard);
+			return retList;
 		};
 		/* further we assume that kind == "complex" -- objekt zlozony. */
 		Deb::ug("the object is a complex one ! \n");
@@ -82,15 +82,15 @@ namespace QParser {
 			/**! pom = pom->getNextSub() ! >:-0 */
 		}
 		if (bindersCol == NULL) Deb::ug("dataScheme::statNested returns with NULL!!!\n");
-		return bindersCol;		
+		return bindersCol;
 	};
 
 	Signature *DataScheme::signatureOfRef(int objId) {
 		Deb::ug("DataScheme: getting signature of ref: %d.", objId);
 		DataObjectDef *candidate = this->getObjById(objId);
-		if (candidate == NULL){	
+		if (candidate == NULL){
 			Deb::ug("object with this id is NULL !!!!\n");
-			return NULL; 
+			return NULL;
 		}
 		Signature *resultSig = candidate->createSignature();
 		if (Deb::ugOn()) {
@@ -98,14 +98,14 @@ namespace QParser {
 			resultSig->putToString();
 		}
 		return resultSig;
-	};			
+	};
 
 	Signature *DataScheme::namedSignatureOfRef(int objId) {
 		Deb::ug("DataScheme: getting NAMED signature of ref: %d.", objId);
 		DataObjectDef *candidate = this->getObjById(objId);
-		if (candidate == NULL){	
+		if (candidate == NULL){
 			Deb::ug("object with this id is NULL !!!!\n");
-			return NULL; 
+			return NULL;
 		}
 		Signature *resultSig = candidate->createNamedSignature();
 		if (Deb::ugOn()) {
@@ -115,7 +115,7 @@ namespace QParser {
 		}
 		return resultSig;
 	}
-	
+
 	void DataScheme::addBindEntity(DataObjectDef *obt, BinderWrap *&bw) {
 		SigRef *sigRef = new SigRef (obt->getMyId());
 		sigRef->setCard(obt->getCard());						// ?? ??- ktore trzeba?
@@ -128,9 +128,9 @@ namespace QParser {
 		sb->setTypeName(obt->getTypeName());
 		sb->setDependsOn(NULL);
 		if (bw == NULL) bw = new BinderList (sb);
-		else bw = (BinderList *) bw->addPureBinder(sb);			
+		else bw = (BinderList *) bw->addPureBinder(sb);
 	}
-	
+
 	BinderWrap* DataScheme::bindBaseObjects() {
 		BinderWrap *bw = NULL;
 		for (DataObjectDef *obt = this->getBaseObjects(); obt != NULL; obt = obt->getNextBase()) {
@@ -138,7 +138,7 @@ namespace QParser {
 		}
 		return bw;
 	};
-	
+
 	BinderWrap* DataScheme::bindBaseTypes() {
 		BinderWrap *bw = NULL;
 		for (DataObjectDef *obt = this->getBaseTypes(); obt != NULL; obt = obt->getNextBase()) {
@@ -146,13 +146,13 @@ namespace QParser {
 		}
 		return bw;
 	}
-	
+
 	bool DataScheme::isTypeDefId(int objId) {
 		DataObjectDef *obd = this->getObjById(objId);
 		if (obd == NULL) return false;
 		return obd->getIsTypedef();
 	}
-	
+
 	Signature *DataObjectDef::createSignature() {
 		Deb::ug("creating signature of myself, my id: %d.", this->getMyId());
 		Signature *sig = NULL;
@@ -178,14 +178,14 @@ namespace QParser {
 		} else {
 			sig = new SigRef(getMyId()); // default behavior, if unkown kind appears.
 		}
-		
+
 		if (sig != NULL) { //set all its attributes.
 			sig->setCard(card);
 			if (getIsTypedef() && getIsDistinct()) sig->setTypeName(name);
 		}
 		return sig;
 	}
-	
+
 	Signature *DataObjectDef::createNamedSignature() {
 		Deb::ug("creating namedSignature of myself, my id: %d.", this->getMyId());
 		Signature *sig = NULL;
@@ -225,7 +225,7 @@ namespace QParser {
 // 		}
 		return sig;
 	}
-		
+
 	DataObjectDef * DataScheme::createDataObjectDef(ObjectPointer *mainOp, Transaction *tr){
 		Deb::ug("start createDataObjectDef \n");
 		if (mainOp == NULL || mainOp->getLogicalID() == NULL) { return NULL;}
@@ -234,7 +234,7 @@ namespace QParser {
 			Deb::ug("Object already created and hashed\n");
 			return oldOp;
 		};
-		DataObjectDef * datObDef = new DataObjectDef();	// this object is to be created and filled in. 
+		DataObjectDef * datObDef = new DataObjectDef();	// this object is to be created and filled in.
 		datObDef->setMyId(mainOp->getLogicalID()->toInteger());
 		vector<LogicalID*>* v = mainOp->getValue()->getVector();
 		if (mainOp->getName() == TC_MDN_NAME){
@@ -297,7 +297,7 @@ namespace QParser {
 					}
 				}
 			} else if (op->getName() == TC_MDS_TYPE) {
-				datObDef->setType(op->getValue()->getString());    
+				datObDef->setType(op->getValue()->getString());
 			} else if (op->getName() == TC_MDS_OWNER) {
 				datObDef->setOwnerId(op->getValue()->getPointer()->toInteger());
 				ObjectPointer * pom;
@@ -314,7 +314,7 @@ namespace QParser {
 			} else if (op->getName() == TC_SUB_OBJ_NAME) {
 				ObjectPointer * pom;
 				tr->getObjectPointer(op->getLogicalID(), Store::Read, pom, false);
-				DataObjectDef * subobj = this->createDataObjectDef(pom, tr);	    
+				DataObjectDef * subobj = this->createDataObjectDef(pom, tr);
 				if (subobj != NULL && subobj->getOwner() == datObDef){
 					datObDef->addSubObject(subobj);
 				}
@@ -323,12 +323,12 @@ namespace QParser {
 		return datObDef;
 	}
 
-	int DataScheme::readData() {
-		readData(NULL);
+	int DataScheme::readData(int sessionId) {
+		readData(sessionId, NULL);
 		return 0;
 	}
 
-	int DataScheme::readData(Transaction *tr){
+	int DataScheme::readData(int sessionId, Transaction *tr){
 		Deb::ug("-------------------readData START--------------------------------------");
 		vector<ObjectPointer *> * roots;
 		vector<ObjectPointer *> * rootTypes;
@@ -336,16 +336,16 @@ namespace QParser {
 		bool newTransaction = false;
 		if (tr == NULL) {
 			Deb::ug("Have to create new transaction to read datascheme.");
-			TransactionManager::getHandle()->createTransaction(tr);
+			TransactionManager::getHandle()->createTransaction(sessionId, tr);
 			newTransaction = true;
-		}	
-		tr->getRoots(TC_MDN_NAME, roots);	
+		}
+		tr->getRoots(TC_MDN_NAME, roots);
 		tr->getRoots(TC_MDNT_NAME, rootTypes);
-		if (Deb::ugOn()) 
+		if (Deb::ugOn())
 			cout << "GOT " << roots->size() << " roots(MDN) and " << rootTypes->size() << " rootTypes(MDNT)\n";
 		registerRoots(roots, tr);
 		registerRoots(rootTypes, tr);
-	
+
 		createObjectDefs(roots, tr);
 		createObjectDefs(rootTypes, tr);
 
@@ -366,7 +366,7 @@ namespace QParser {
 				if (op->getName() == "name") {
 					rootMap[op->getValue()->getString()] = mdnOp->getLogicalID();
 					break;
-				} 
+				}
 			}
 		}
 	}
@@ -377,7 +377,7 @@ namespace QParser {
 			createDataObjectDef(mdnOp, tr);
 		}
 	}
-	
+
 	//all existing metadata roots should be available this way
 	LogicalID *DataScheme::getRootIdByName(string name) {
 		if (rootMap.find(name) == rootMap.end()) return NULL;
@@ -394,45 +394,45 @@ namespace QParser {
 /***********************************************************************************************************/
 
 	DataScheme* DataScheme::datScheme;
-	
-	DataScheme* DataScheme::dScheme() {
+
+	DataScheme* DataScheme::dScheme(int sessionId) {
 		if (datScheme == NULL) {
 			ErrorConsole ec("QueryParser");
 			ec << "dScheme initialized out of any transactions.\n";
 			datScheme = new DataScheme();
-			datScheme->readData();
+			datScheme->readData(sessionId);
 		}
 		return datScheme;
 	}
-	
-	DataScheme* DataScheme::dScheme(Transaction *tr) {
+
+	DataScheme* DataScheme::dScheme(int sessionId, Transaction *tr) {
 		Deb::ug("DataScheme::dScheme(tr) \n");
 		if (datScheme == NULL) {
 			datScheme = new DataScheme();
-			datScheme->readData(tr);
+			datScheme->readData(sessionId, tr);
 			Deb::ug("DataScheme::dScheme() has just read its objects and types\n");
-		}		
+		}
 		DataObjectDef *pom = datScheme->getBaseObjects();
 		Deb::ug("DataScheme has these base objects: ");
 		if (Deb::ugOn()) {
 		/* ?? segfault used to come up here, at first call */
 			while (pom != NULL) {
-				fprintf(stderr, "[%d]", pom->getMyId());	
+				fprintf(stderr, "[%d]", pom->getMyId());
 				pom = pom->getNextBase();
 			}
 		}
 		return datScheme;
 	};
-	
-	void DataScheme::reloadDScheme() {
-		reloadDScheme(NULL);
+
+	void DataScheme::reloadDScheme(int sessionId) {
+		reloadDScheme(sessionId, NULL);
 	}
-	
-	void DataScheme::reloadDScheme(Transaction *tr){
+
+	void DataScheme::reloadDScheme(int sessionId, Transaction *tr){
 		Deb::ug("reloading data scheme\n");
 		if (datScheme != NULL) delete datScheme;
 		datScheme = new DataScheme();
-		datScheme->readData(tr);
+		datScheme->readData(sessionId, tr);
 	}
 
 
@@ -451,22 +451,22 @@ namespace QParser {
 void reczny(){
     // -----------------------------------------------------------------------
     // recznie tworze przykladowy schemat
-    
+
     DataObjectDef * obj1 = new DataObjectDef();
     obj1->setMyId(1);
     obj1->setName("EMP");
     obj1->setCard("0..*");
     obj1->setKind("complex");
     this->addBaseObj(obj1);
-    
+
     DataObjectDef * obj10 = new DataObjectDef();
     obj10->setMyId(10);
     obj10->setName("NAME");
     obj10->setCard("1..1");
     obj10->setKind("atomic");
     obj10->setType("string");
-    this->addObj(obj10);    
-    
+    this->addObj(obj10);
+
     DataObjectDef * obj11 = new DataObjectDef();
     obj11->setMyId(11);
     obj11->setName("SAL");
@@ -474,21 +474,21 @@ void reczny(){
     obj11->setKind("atomic");
     obj11->setType("int");
     this->addObj(obj11);
-    
+
     DataObjectDef * obj12 = new DataObjectDef();
     obj12->setMyId(12);
     obj12->setName("WORKS_IN");
     obj12->setCard("1..1");
     obj12->setKind("link");
     this->addObj(obj12);
-    
+
     DataObjectDef * obj30 = new DataObjectDef();
     obj30->setMyId(30);
     obj30->setName("DEPT");
     obj30->setCard("0..*");
     obj30->setKind("complex");
     this->addBaseObj(obj30);
-    
+
     DataObjectDef * obj37 = new DataObjectDef();
     obj37->setMyId(37);
     obj37->setName("DNAME");
@@ -496,7 +496,7 @@ void reczny(){
     obj37->setKind("atomic");
     obj37->setType("string");
     this->addObj(obj37);
-    
+
     DataObjectDef * obj38 = new DataObjectDef();
     obj38->setMyId(38);
     obj38->setName("LOC");
@@ -504,9 +504,9 @@ void reczny(){
     obj38->setKind("atomic");
     obj38->setType("string");
     this->addObj(obj38);
-    
-    
-    obj10->setOwner(getObjById(1));    
+
+
+    obj10->setOwner(getObjById(1));
     obj11->setOwner(getObjById(1));
 obj12->setOwner(getObjById(1));
     obj12->setTarget(getObjById(30));

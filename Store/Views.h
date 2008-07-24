@@ -26,7 +26,7 @@ namespace Store
 #endif
 
 using namespace std;
-using namespace Logs; 
+using namespace Logs;
 
 namespace Store
 {
@@ -61,7 +61,7 @@ namespace Store
 		ErrorConsole* ec;
 #endif
 
-		int modifyTransaction(int transactionID, int mode);
+		int modifyTransaction(TransactionID* tid, int mode);
 
 	public:
 		Views();
@@ -71,14 +71,14 @@ namespace Store
 		int initializeFile(File* file);
 		int initializePage(unsigned int pageID, char* page);
 
-		int commitTransaction(int transactionID);
-		int abortTransaction(int transactionID);
+		int commitTransaction(TransactionID* tid);
+		int abortTransaction(TransactionID* tid);
 		int abortAllTransactions();
 
-		int addView(int logicalID, const char* name, int transactionID, int transactionTimeStamp);
-		int removeView(int logicalID, int transactionID, int transactionTimeStamp);
-		vector<int>* getViews(int transactionID, int transactionTimeStamp);
-		vector<int>* getViews(const char* name, int transactionID, int transactionTimeStamp);
+		int addView(TransactionID* tid, int logicalID, const char* name);
+		int removeView(TransactionID* tid, int logicalID);
+		vector<int>* getViews(TransactionID* tid);
+		vector<int>* getViews(TransactionID* tid, const char* name);
 	};
 };
 

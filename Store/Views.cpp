@@ -75,10 +75,10 @@ namespace Store
 		return 0;
 	}
 
-	int Views::addView(int logicalID, const char* name, int transactionID, int transactionTimeStamp)
+	int Views::addView(TransactionID* tid, int logicalID, const char* name)
 	{
 #ifdef IXV_DEBUG
-		ec->printf("addView(logicalID=%i, name=\"%s\", transactionID=%i, transactionTimeStamp=%i)\n", logicalID, name, transactionID, transactionTimeStamp);
+		ec->printf("addView(logicalID=%i, name=\"%s\", transactionID=%i, transactionTimeStamp=%i)\n", logicalID, name, tid->getId(), tid->getTimeStamp());
 #endif
 
 		int i = 0;
@@ -101,16 +101,16 @@ namespace Store
 		entry = (ixv_entry*) entry_buf;
 		entry->size = size_needed;
 		entry->l_id = logicalID;
-		entry->cur_tran = transactionID;
-		entry->add_t = transactionTimeStamp;
+		entry->cur_tran = tid->getId();
+		entry->add_t = tid->getTimeStamp();
 		entry->del_t = STORE_IXV_NULLVALUE;
 		memcpy(entry->name, name, name_len);
 
 		i = 1;
 		while (i > 0)
 		{
-			page_pointer = buffer->getPagePointer(STORE_FILE_VIEWS, (unsigned int) i);
-			page_pointer->aquire();
+			page_pointer = buffer->getPagePointer(tid, STORE_FILE_VIEWS, (unsigned int) i);
+			page_pointer->aquire(tid);
 
 			page_buf = page_pointer->getPage();
 			page = (ixv_page*) page_buf;
@@ -128,9 +128,9 @@ namespace Store
 				i++;
 
 			if (i == 0)
-				page_pointer->releaseSync(1);
+				page_pointer->releaseSync(tid, 1);
 			else
-				page_pointer->release(0);
+				page_pointer->release(tid, 0);
 
 			delete page_pointer;
 		}
@@ -140,10 +140,10 @@ namespace Store
 		return 0;
 	};
 
-	int Views::removeView(int logicalID, int transactionID, int transactionTimeStamp)
+	int Views::removeView(TransactionID* tid, int logicalID)
 	{
 #ifdef IXV_DEBUG
-		ec->printf("removeView(logicalID=%i, transactionID=%i, transactionTimeStamp=%i)\n", logicalID, transactionID, transactionTimeStamp);
+		ec->printf("removeView(logicalID=%i, tid->getId()=%i, tid->getTimeStamp()=%i)\n", logicalID, tid->getId(), tid->getTimeStamp());
 #endif
 
 		int i = 0;
@@ -157,8 +157,8 @@ namespace Store
 		i = 1;
 		while (i > 0)
 		{
-			page_pointer = buffer->getPagePointer(STORE_FILE_VIEWS, (unsigned int) i);
-			page_pointer->aquire();
+			page_pointer = buffer->getPagePointer(tid, STORE_FILE_VIEWS, (unsigned int) i);
+			page_pointer->aquire(tid);
 
 			page_buf = page_pointer->getPage();
 			page = (ixv_page*) page_buf;
@@ -178,8 +178,8 @@ namespace Store
 					{
 						if (entry->cur_tran == STORE_IXV_NULLVALUE)
 						{
-							entry->cur_tran = transactionID;
-							entry->del_t = transactionTimeStamp;
+							entry->cur_tran = tid->getId();
+							entry->del_t = tid->getTimeStamp();
 						}
 						else
 						{
@@ -203,9 +203,9 @@ namespace Store
 			}
 
 			if (i == 0)
-				page_pointer->releaseSync(1);
+				page_pointer->releaseSync(tid, 1);
 			else
-				page_pointer->release(0);
+				page_pointer->release(tid, 0);
 
 			delete page_pointer;
 		}
@@ -213,22 +213,22 @@ namespace Store
 		return 0;
 	};
 
-	int Views::commitTransaction(int transactionID)
+	int Views::commitTransaction(TransactionID* tid)
 	{
 #ifdef IXV_DEBUG
-		ec->printf("commitTransaction(transactionID=%i)\n", transactionID);
+		ec->printf("commitTransaction(tid->getId()=%i)\n", tid->getId());
 #endif
 
-		return modifyTransaction(transactionID, 0);
+		return modifyTransaction(tid, 0);
 	}
 
-	int Views::abortTransaction(int transactionID)
+	int Views::abortTransaction(TransactionID* tid)
 	{
 #ifdef IXV_DEBUG
-		ec->printf("abortTransaction(transactionID=%i)\n", transactionID);
+		ec->printf("abortTransaction(tid->getId()=%i)\n", tid->getId());
 #endif
 
-		return modifyTransaction(transactionID, 1);
+		return modifyTransaction(tid, 1);
 	}
 
 	int Views::abortAllTransactions()
@@ -240,7 +240,7 @@ namespace Store
 		return modifyTransaction(0, 2);
 	}
 
-	int Views::modifyTransaction(int transactionID, int mode)
+	int Views::modifyTransaction(TransactionID* tid, int mode)
 	{
 		int i = 0;
 		int offset = 0;
@@ -255,8 +255,8 @@ namespace Store
 		while (i > 0)
 		{
 			changed = 0;
-			page_pointer = buffer->getPagePointer(STORE_FILE_VIEWS, (unsigned int) i);
-			page_pointer->aquire();
+			page_pointer = buffer->getPagePointer(tid, STORE_FILE_VIEWS, (unsigned int) i);
+			page_pointer->aquire(tid);
 
 			page_buf = page_pointer->getPage();
 			page = (ixv_page*) page_buf;
@@ -273,7 +273,7 @@ namespace Store
 					entry = (ixv_entry*) (page_buf + offset);
 					entry_size = entry->size;
 
-					if (entry->cur_tran == transactionID || (mode == 2 && entry->cur_tran != STORE_IXV_NULLVALUE))
+					if (entry->cur_tran == tid->getId() || (mode == 2 && entry->cur_tran != STORE_IXV_NULLVALUE))
 					{
 						// Commiting remove
 						if (entry->del_t != STORE_IXV_NULLVALUE && mode == 0)
@@ -314,9 +314,9 @@ namespace Store
 			}
 
 			if (changed != 0)
-				page_pointer->releaseSync(1);
+				page_pointer->releaseSync(tid, 1);
 			else
-				page_pointer->release(0);
+				page_pointer->release(tid, 0);
 
 			delete page_pointer;
 		}
@@ -324,19 +324,19 @@ namespace Store
 		return 0;
 	}
 
-	vector<int>* Views::getViews(int transactionID, int transactionTimeStamp)
+	vector<int>* Views::getViews(TransactionID* tid)
 	{
 #ifdef IXV_DEBUG
-		ec->printf("getViews(transactionID=%i, transactionTimeStamp=%i)\n", transactionID, transactionTimeStamp);
+		ec->printf("getViews(tid->getId()=%i, tid->getTimeStamp()=%i)\n", tid->getId(), tid->getTimeStamp());
 #endif
 
-		return getViews("", transactionID, transactionTimeStamp);
+		return getViews(tid, "");
 	}
 
-	vector<int>* Views::getViews(const char* name, int transactionID, int transactionTimeStamp)
+	vector<int>* Views::getViews(TransactionID* tid, const char* name)
 	{
 #ifdef IXV_DEBUG
-		ec->printf("getViews(name=\"%s\", transactionID=%i, transactionTimeStamp=%i)\n", name, transactionID, transactionTimeStamp);
+		ec->printf("getViews(name=\"%s\", tid->getId()=%i, tid->getTimeStamp()=%i)\n", name, tid->getId(), tid->getTimeStamp());
 #endif
 
 		vector<int>* views = new vector<int>();
@@ -350,8 +350,8 @@ namespace Store
 		i = 1;
 		while (i > 0)
 		{
-			page_pointer = buffer->getPagePointer(STORE_FILE_VIEWS, (unsigned int) i);
-			page_pointer->aquire();
+			page_pointer = buffer->getPagePointer(tid, STORE_FILE_VIEWS, (unsigned int) i);
+			page_pointer->aquire(tid);
 
 			page_buf = page_pointer->getPage();
 			page = (ixv_page*) page_buf;
@@ -370,9 +370,9 @@ namespace Store
 					if
 					(
 						(strlen(name) == 0 || strcmp(name, entry->name) == 0)
-						&& entry->add_t <= transactionTimeStamp
+						&& entry->add_t <= tid->getTimeStamp()
 						&& entry->del_t == STORE_IXV_NULLVALUE
-						&& (entry->cur_tran == STORE_IXV_NULLVALUE || entry->cur_tran == transactionID)
+						&& (entry->cur_tran == STORE_IXV_NULLVALUE || entry->cur_tran == tid->getId())
 					)
 						views->push_back(entry->l_id);
 
@@ -382,7 +382,7 @@ namespace Store
 				i++;
 			}
 
-			page_pointer->release(0);
+			page_pointer->release(tid, 0);
 			delete page_pointer;
 		}
 

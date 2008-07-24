@@ -70,8 +70,8 @@ int main(int argc, char **argv) {
 	QueryBuilder::startup();
 	con.printf("[Listener.Start]--> Starting Index manager.. \n");
 	Indexes::IndexManager::init(LogManager::isCleanClosed());
-	ClassGraph::ClassGraph::init();
-																																	
+	ClassGraph::ClassGraph::init(-1);
+
 	::LoximServer::LoximServer serv(hostname, port, &config);
 	if (!serv.prepare()){
 		serv.main_loop();
@@ -82,7 +82,7 @@ int main(int argc, char **argv) {
 		lm->shutdown(idx);//nie wiem czy tu to ma znaczenie,
 		//ale z reguly najlepiej niszczyc w odwrotnej kolejnosci niz sie otwieralo.
 		ClassGraph::ClassGraph::shutdown();
-		delete TransactionManager::getHandle();												 
+		delete TransactionManager::getHandle();
 	}
 	else
 		cout << "prepare failed" << endl;

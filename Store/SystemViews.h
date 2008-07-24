@@ -59,8 +59,8 @@ namespace Store
 		SystemViews();
 		virtual ~SystemViews();
 
-		vector<int>* getItems(int transactionID, int transactionTimeStamp);
-		vector<int>* getItems(const char* name, int transactionID, int transactionTimeStamp);
+		vector<int>* getItems(TransactionID* tid);
+		vector<int>* getItems(TransactionID* tid, const char* name);
 
 		virtual int getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object);
 

@@ -11,7 +11,7 @@ namespace Store
 	Map::~Map()
 	{
 		delete RIP;
-	
+
 		if (header)
 			delete header;
 	}
@@ -62,80 +62,80 @@ namespace Store
 		return 0;
 	}
 
-	unsigned int Map::getLastAssigned()
+	unsigned int Map::getLastAssigned(TransactionID* tid)
 	{
 		unsigned int last;
 
 //		if (!header)
-			header = buffer->getPagePointer(STORE_FILE_MAP, 0);
+			header = buffer->getPagePointer(tid, STORE_FILE_MAP, 0);
 
-		header->aquire();
+		header->aquire(tid);
 		last = ((map_header*) header->getPage())->last_assigned;
-		header->release(0);
+		header->release(tid, 0);
 
 		return last;
 	};
 
-	void Map::setLastAssigned(unsigned int last)
+	void Map::setLastAssigned(TransactionID* tid, unsigned int last)
 	{
 		if (!header)
-			header = buffer->getPagePointer(STORE_FILE_MAP, 0);
+			header = buffer->getPagePointer(tid, STORE_FILE_MAP, 0);
 
-		header->aquire();
+		header->aquire(tid);
 		((page_header*) header->getPage())->timestamp = log->getLogicalTimerValue();
 		((map_header*) header->getPage())->last_assigned = last;
-		header->releaseSync(1);
+		header->releaseSync(tid, 1);
 	};
 
-	unsigned int Map::createLogicalID()
+	unsigned int Map::createLogicalID(TransactionID* tid)
 	{
-		unsigned int last = getLastAssigned();
-		PagePointer* page = buffer->getPagePointer(STORE_FILE_MAP, STORE_MAP_MAPPAGE(last + 1));
+		unsigned int last = getLastAssigned(tid);
+		PagePointer* page = buffer->getPagePointer(tid, STORE_FILE_MAP, STORE_MAP_MAPPAGE(last + 1));
 
-		page->aquire();
+		page->aquire(tid);
 
 		memset(page->getPage() + STORE_MAP_MAPOFFSET(last + 1), 0xFF, sizeof(physical_id));
 		((page_header*) page->getPage())->timestamp = log->getLogicalTimerValue();
 
-		page->releaseSync(1);
+		page->releaseSync(tid, 1);
 
-		setLastAssigned(last + 1);
+		setLastAssigned(tid, last + 1);
 		delete page;
 
 		return last + 1;
 	};
 
-	int Map::getPhysicalID(unsigned int logicalID, physical_id** physicalID)
+	int Map::getPhysicalID(TransactionID* tid, unsigned int logicalID, physical_id** physicalID)
 	{
 		*physicalID = 0;
 
 		if (!logicalID)
 			return 1;
 
-		unsigned int last = getLastAssigned();
+		unsigned int last = getLastAssigned(tid);
 
 		if (last < logicalID)
 			return 2;
 
-		PagePointer* page = buffer->getPagePointer(STORE_FILE_MAP, STORE_MAP_MAPPAGE(logicalID));
+		PagePointer* page = buffer->getPagePointer(tid, STORE_FILE_MAP, STORE_MAP_MAPPAGE(logicalID));
 
-		page->aquire();
+		page->aquire(tid);
 
 		*physicalID = (physical_id*) new char[sizeof(physical_id)];
 		memcpy(*physicalID, page->getPage() + STORE_MAP_MAPOFFSET(logicalID), sizeof(physical_id));
 
-		page->release(0);
+		page->release(tid, 0);
 		delete page;
 
 		return 0;
 	};
 
-	int Map::setPhysicalID(unsigned int logicalID, physical_id* physicalID)
+	int Map::setPhysicalID(TransactionID* tid, unsigned int logicalID, physical_id* physicalID)
 	{
 		if (!logicalID || !physicalID)
 			return 1;
 
-		unsigned int last = getLastAssigned();
+		unsigned int last = getLastAssigned(tid);
 
 		if (logicalID > 10000000) // md
 			return 2;              // md
@@ -144,20 +144,20 @@ namespace Store
 			int ll;                                   // md
 			physical_id pp;                           // md
 			memset(&pp, 0xFF, sizeof pp);             // md
-			while(getLastAssigned() < logicalID) {    // md
-				ll = createLogicalID();                // md
-				setPhysicalID(ll, &pp);                // md
+			while(getLastAssigned(tid) < logicalID) {    // md
+				ll = createLogicalID(tid);                // md
+				setPhysicalID(tid, ll, &pp);                // md
 			}                                         // md
 		//	return 2;
 		}
 
-		PagePointer* page = buffer->getPagePointer(STORE_FILE_MAP, STORE_MAP_MAPPAGE(logicalID));
-		page->aquire();
+		PagePointer* page = buffer->getPagePointer(tid, STORE_FILE_MAP, STORE_MAP_MAPPAGE(logicalID));
+		page->aquire(tid);
 
 		memcpy(page->getPage() + STORE_MAP_MAPOFFSET(logicalID), physicalID, sizeof(physical_id));
 		((page_header*) page->getPage())->timestamp = log->getLogicalTimerValue();
 
-		page->releaseSync(1);
+		page->releaseSync(tid, 1);
 		delete page;
 
 		return 0;

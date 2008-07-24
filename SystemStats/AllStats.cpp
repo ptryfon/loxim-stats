@@ -28,7 +28,27 @@ SessionsStats* AllStats::getSessionsStats() {
 }
 
 ConfigsStats* AllStats::getConfigsStats() {
-	return dynamic_cast<ConfigsStats*>(getStatsStats("CCONFIGS_STATS"));
+	return dynamic_cast<ConfigsStats*>(getStatsStats("CONFIGS_STATS"));
+}
+
+void AllStats::addDiskPageReads(int sessionId, int transactionId, int count) {
+	getSessionsStats()->addDiskPageReads(sessionId, count);
+	//getStoreStats()->addDiskPageReads(count);
+}
+
+void AllStats::addPageReads(int sessionId, int transactionId, int count) {
+	getSessionsStats()->addPageReads(sessionId, count);
+	//getStoreStats()->addPageReads(count);
+}
+
+void AllStats::addDiskPageWrites(int sessionId, int transactionId, int count) {
+	getSessionsStats()->addDiskPageWrites(sessionId, count);
+	//getStoreStats()->addDiskPageReads(count);
+}
+
+void AllStats::addPageWrites(int sessionId, int transactionId, int count) {
+	getSessionsStats()->addPageWrites(sessionId, count);
+	//getStoreStats()->addPageReads(count);
 }
 
 AllStats::~AllStats() {

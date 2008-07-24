@@ -27,13 +27,13 @@ namespace Store
 		buffer = store->getBuffer();
 	}
 
-	int PageManager::insertObject(PagePointer *pPtr, Serialized& obj, int* pidoffset, unsigned log_id)
+	int PageManager::insertObject(TransactionID* tid, PagePointer *pPtr, Serialized& obj, int* pidoffset, unsigned log_id)
 	{
 		ErrorConsole ec("Store");
 		ec << "Store::PageManager::insertObject begin...";
 		page_data *page = reinterpret_cast<page_data*>(pPtr->getPage());
 		int roffset = -1;
-		
+
 		if( page->free_space < static_cast<int>(obj.size) ) {
 			ec << "Store::PageManager::insertObject not enough free space on page";
 			return -1;
@@ -68,7 +68,7 @@ namespace Store
 				ec << "Store::PageManager::insertObject not enough free space on page";
 				return -2;
 			}
-		
+
 		if( roffset == -1 ) {
 		// dokladamy nowy obiekt na koncu
 			int lastoffset = page->object_count > 0 ?
@@ -100,14 +100,14 @@ namespace Store
 		// ustawic pidoffset dla mapy
 			*pidoffset = roffset;
 		}
-		
+
 		page->header.timestamp = static_cast<int>(log_id);
-		
+
 		ec << "Store::PageManager::insertObject done";
 		return 0;
 	}
-	
-	int PageManager::deserialize(PagePointer *ptr, int objindex, ObjectPointer*& newobj)
+
+	int PageManager::deserialize(TransactionID* tid, PagePointer *ptr, int objindex, ObjectPointer*& newobj)
 	{
 		ErrorConsole ec("Store");
 		ec << "Store::PageManager::deserializeObj begin...";
@@ -130,41 +130,41 @@ namespace Store
 		int random = *(reinterpret_cast<int*>(curpos));
 		random = random;	// Warning suspenser
 		curpos += sizeof(int);
-		
+
 		int slen = *(reinterpret_cast<int*>(curpos));
 		curpos += sizeof(int);
 		string name;
 		for(int i=0; i<slen; i++)
 			name += *(reinterpret_cast<char*>(curpos++));
-		
+
 		DBDataValue *value;
-		usedbytes = DBDataValue::deserialize(curpos, value, true);
-		if(usedbytes > 0 ) curpos = curpos + usedbytes; else return -1;		
-		
+		usedbytes = DBDataValue::deserialize(tid, curpos, value, true);
+		if(usedbytes > 0 ) curpos = curpos + usedbytes; else return -1;
+
 		if(curpos-startpos > osize) return -1;
-		
+
 		newobj = new DBObjectPointer(name, value, lid);
 		newobj->setIsRoot(isRoot == 1);
-		
+
 		ec << "Store::PageManager::deserializeObj done";
 		return 0;
 	}
-	
+
 	int PageManager::initializeFile(File* file)
 	{
 		ErrorConsole ec("Store");
 		ec << "Store::PageManager::initializeFile begin...";
 		char* rawpage = new char[STORE_PAGESIZE];
 		page_data* p = reinterpret_cast<page_data*>(rawpage);
-		
+
 		memset(rawpage, 0, STORE_PAGESIZE);
 		initializePage(0, rawpage);
 		p->header.page_type = STORE_PAGE_DATAHEADER;
 		p->object_count = 0;
 		p->free_space = MAX_FREE_SPACE / sizeof(int);
-		
+
 		file->writePage(STORE_FILE_DEFAULT, 0, rawpage);
-		
+
 		delete[] rawpage;
 		ec << "Store::PageManager::initializeFile done";
 		return 0;
@@ -177,9 +177,9 @@ namespace Store
 
 		bool isFreeMapPage = (page_num%(MAX_OBJECT_COUNT+1) == 0);
 
-		memset(page, 0, STORE_PAGESIZE);	
+		memset(page, 0, STORE_PAGESIZE);
 		page_data *p = reinterpret_cast<page_data*>(page);
-		
+
 		p->header.file_id = STORE_FILE_DEFAULT;
 		p->header.page_id = page_num;
 		p->header.timestamp = 0;
@@ -196,12 +196,12 @@ namespace Store
 		return 0;
 	}
 
-	int PageManager::getFreePage()
+	int PageManager::getFreePage(TransactionID* tid)
 	{
-		return getFreePage(MAX_FREE_SPACE-sizeof(int));
+		return getFreePage(tid, MAX_FREE_SPACE-sizeof(int));
 	}
-	
-	int PageManager::getFreePage(int objsize)
+
+	int PageManager::getFreePage(TransactionID* tid, int objsize)
 	{
 	// objsize to rozmiar obiektu jaki StoreManager chce umiescic na stronie
 	// w ogolnosci trzeba wyszukac strone ktora bedzie miala dodatkowo
@@ -210,34 +210,34 @@ namespace Store
 		ec.printf("Store::PageManager::getFreePage(%i) begin...\n", objsize);
 		int pii = 0;
 		do	{
-			PagePointer* pPtr = buffer->getPagePointer(STORE_FILE_DEFAULT, pii);
-			pPtr->aquire();
+			PagePointer* pPtr = buffer->getPagePointer(tid, STORE_FILE_DEFAULT, pii);
+			pPtr->aquire(tid);
 			page_data* p = reinterpret_cast<page_data*>(pPtr->getPage());
-			
+
 			for(int i=0; i<p->object_count; i++) {
 				if( p->object_offset[i] >= static_cast<int>(objsize+sizeof(int)) ) {
 					int rid = pPtr->getPageID()+i+1;
-					pPtr->release(0);
+					pPtr->release(tid, 0);
 					ec << "Store::PageManager::getFreePage done";
 					return (rid);
 				}
 			}
 			if(p->object_count < static_cast<int>(MAX_OBJECT_COUNT)) {
 				int rid = pPtr->getPageID()+p->object_count+1;
-				pPtr->release(0);
+				pPtr->release(tid, 0);
 				ec << "Store::PageManager::getFreePage done";
 				return (rid);
 			}
-			
-			pPtr->release(0);
+
+			pPtr->release(tid, 0);
 			pii += MAX_OBJECT_COUNT+1;
 		} while(pii > 0);
-		
+
 		ec << "Store::PageManager::getFreePage done";
 		return 0;
 	}
 
-	int PageManager::updateFreeMap(PagePointer *pPtr)
+	int PageManager::updateFreeMap(TransactionID* tid, PagePointer *pPtr)
 	{
 		ErrorConsole ec("Store");
 		ec << "Store::PageManager::updateFreeMap begin...";
@@ -245,14 +245,14 @@ namespace Store
 
 		int pii = p->header.page_id - (p->header.page_id % (MAX_OBJECT_COUNT + 1));
 
-		PagePointer* pFree = buffer->getPagePointer(STORE_FILE_DEFAULT, pii);
-		pFree->aquire();
+		PagePointer* pFree = buffer->getPagePointer(tid, STORE_FILE_DEFAULT, pii);
+		pFree->aquire(tid);
 		page_data* f = reinterpret_cast<page_data*>(pFree->getPage());
 
 		int offset = (p->header.page_id % (MAX_OBJECT_COUNT + 1)) - 1;
 
 		ec.printf("p->header.page_id = %i, pii = %i, offset = %i\n", p->header.page_id, pii, offset);
-	
+
 		if(f->object_count < offset) {
 			ec << "Store::PageManager::updateFreeMap ERROR: HEADER PAGE FAULT";
 			return -1;
@@ -262,13 +262,13 @@ namespace Store
 			f->free_space--;
 		}
 		f->object_offset[offset] =	p->free_space;
-		
-		pFree->releaseSync(1);
+
+		pFree->releaseSync(tid, 1);
 
 		ec << "Store::PageManager::updateFreeMap done";
 		return 0;
 	}
-	
+
 	void PageManager::printPage(PagePointer* ptr, int lines)
 	{
 		unsigned char* bytes = reinterpret_cast<unsigned char*>(ptr->getPage());
@@ -302,5 +302,5 @@ namespace Store
 		}
 		ec << ostr.str();
 	}
-	
+
 }
