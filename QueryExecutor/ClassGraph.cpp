@@ -10,7 +10,7 @@ using namespace std;
 
 namespace QExecutor
 {
-	
+
 string ClassGraph::classNameToExtPrefix(const string& className) { return className + QE_NAMES_SEPARATOR;}
 
 ClassGraph* ClassGraph::handle = NULL;
@@ -28,11 +28,11 @@ int ClassGraph::getHandle(ClassGraph*& cg) {
 	return 0;
 }
 
-int ClassGraph::init() {
+int ClassGraph::init(int sessionId) {
 	ec = new ErrorConsole("QueryExecutor");
 	int errcode = 0;
 	Transaction *tr;
-	errcode = (TransactionManager::getHandle())->createTransaction(tr);
+	errcode = (TransactionManager::getHandle())->createTransaction(sessionId, tr);
 	if (errcode != 0) {
 		ec->printf("Error in loading Class Graph.");
 		return errcode;
@@ -131,17 +131,17 @@ bool ClassGraphVertex::hasStaticField(string& staticField) {
 int ClassGraphVertex::fetchMethod(LogicalID* lid, Transaction *&tr, QueryExecutor *qe, Method*& method, unsigned int & params_count, string& name) {
 	int errcode;
 	ObjectPointer *optr;
-	
-	errcode = tr->getObjectPointer (lid, Store::Read, optr, false); 
+
+	errcode = tr->getObjectPointer (lid, Store::Read, optr, false);
 	if (errcode != 0) {
 		return ClassGraph::trErrorOccur(qe, "[ClassGraph] initMethod - Error in getObjectPointer.", errcode);
 	}
-	
+
 	DataValue* data_value = optr->getValue();
 	name = optr->getName();
 	int vType = data_value->getType();
 	ExtendedType extType = data_value->getSubtype();
-	
+
 	int procBody_count = 0;
 
 	params_count = 0;
@@ -173,19 +173,19 @@ int ClassGraphVertex::fetchMethod(LogicalID* lid, Transaction *&tr, QueryExecuto
 			}
 		}
 	}
-	
+
 	return 0;
 }
 
 int ClassGraphVertex::insertIntoMethods(string& name, unsigned int argsCount, Method* m) {
 	NameToArgCountToMethodMap::iterator methodI = methods.find(name);
-	ArgsCountToMethodMap* map; 
+	ArgsCountToMethodMap* map;
 	if(methodI == methods.end()) {
 		map = new ArgsCountToMethodMap();
 		methods[name] = map;
 		(*map)[argsCount] = m;
 		return 0;
-	} 
+	}
 	map = (*methodI).second;
 	if(map->find(argsCount) != map->end()) {
 		//TODO: blad zduplikowane metody
@@ -276,7 +276,7 @@ int ClassGraph::findMethod(string name, unsigned int argsCount, SetOfLids* class
 				findMethod(name, argsCount, &(cgv->extends), method, found, classLidToStartSearching, SEARCHING, bindClassLid);
 			}
 			if(found) return 0;
-		}  
+		}
 	}
 	return 0;
 }
@@ -356,7 +356,7 @@ int ClassGraph::findMethod(string name, unsigned int argsCount, SetOfLids* class
 		//Uwaga: mozna wywolac wprost na obiekcie super::metoda(),
 		//wtedy wykonanie zacznie sie od nadklasy,
 		//jesli mialoby tak nie byc to tu trzeba zglosic blad.
-		return findMethod(methodName, argsCount, newClassesToSearch, method, found, NULL, SKIP_ONE_STEP, bindClassLid);		
+		return findMethod(methodName, argsCount, newClassesToSearch, method, found, NULL, SKIP_ONE_STEP, bindClassLid);
 	}
 	if(!classExist(className)) {
 		return 1;//TODO blad "class def not found"
@@ -460,14 +460,14 @@ int ClassGraph::removeClass(LogicalID* lid) {
 	if(cgvI == classGraph.end()) {
 		return 0;
 	}
-	
+
 	removeFromNameIndex((*cgvI).second->name);
 	removeFromInvariant(lid, (*cgvI).second->invariant);
 	removeFromSubclasses(&((*cgvI).second->extends), lid);
 	removeFromExtends(&((*cgvI).second->subclasses), lid);
-	
+
 	LogicalID* lidToDel = (*cgvI).first;
-	
+
 	delete (*cgvI).second;
 	classGraph.erase(cgvI);
 	delete lidToDel;
@@ -537,7 +537,7 @@ int ClassGraph::completeSubgraph(LogicalID* lid, Transaction *&tr, QueryExecutor
 	}
 	LogicalID* newLid = lid->clone();
 	ObjectPointer *optr;
-	int errcode = tr->getObjectPointer(newLid, Store::Read, optr, false); 
+	int errcode = tr->getObjectPointer(newLid, Store::Read, optr, false);
 	if (errcode != 0) {
 			delete newLid;
 			return trErrorOccur(qe, "[QE] Error in geting class (from lid).", errcode );
@@ -581,7 +581,7 @@ int ClassGraph::fetchExtInvariantNames(string& invariantName, Transaction *&tr, 
 
 int ClassGraph::fetchExtInvariantNamesForLid(LogicalID* lid, Transaction *&tr, QueryExecutor *qe, stringHashSet& invariantsNames,  bool noObjectName) {
 	ObjectPointer *optr;
-	int errcode = tr->getObjectPointer(lid, Store::Read, optr, false); 
+	int errcode = tr->getObjectPointer(lid, Store::Read, optr, false);
 	if (errcode != 0) {
 			return trErrorOccur(qe, "[QE] Error in geting object.", errcode );
 	}
@@ -755,7 +755,7 @@ int ClassGraph::isCastAllowed(string& className, ObjectPointer *optr, bool& incl
 }
 
 /*int ClassGraph::classBelongsToInvariant(LogicalID* lid, string& invariantUpName, bool& inInvariant) {
-	
+
 }*/
 
 int ClassGraph::belongsToInvariant(SetOfLids* extClasses, string& invariantUpName, bool& inInvariant, bool isObject) {
@@ -785,7 +785,7 @@ int ClassGraph::belongsToInvariant(SetOfLids* extClasses, string& invariantUpNam
 	inInvariant = false;
 	return 0;
 }
-		
+
 int ClassGraph::belongsToInvariant(LogicalID* lid, string& invariantUpName, Transaction *&tr, QueryExecutor *qe, bool& inUpInvariant) {
 	if(invariantUpName.empty()) {
 		inUpInvariant = false;
@@ -837,7 +837,7 @@ ClassGraphVertex::~ClassGraphVertex() {
 	}
 }
 
-ClassGraph::ClassGraph():lazy(false) { 
+ClassGraph::ClassGraph():lazy(false) {
 	string str = QE_NAMES_SEPARATOR;
 	separatorLen = str.length();
 }
