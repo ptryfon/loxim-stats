@@ -9,12 +9,12 @@
 #include "Errors/ErrorConsole.h"
 #include "Indexes/Constraints.h"
 
-namespace QParser 
+namespace QParser
 {
 	long TreeNode::uv = 0;
 	long TreeNode::getUv(){return uv++;};
-	
-	
+
+
     TreeNode* NameNode::clone()     { NameNode * nowy =  new NameNode(name); nowy->setUsedBy(this->getUsedBy()); nowy->setBoundIn(this->getBoundIn()); nowy->copyAttrsOf(this); return nowy; }
 	TreeNode* ParamNode::clone()    { TreeNode * nowy =  new ParamNode(name); nowy->copyAttrsOf(this); return nowy;}
 	TreeNode* IntNode::clone()      { IntNode * nowy = new IntNode(value); nowy->copyAttrsOf(this); return nowy;}
@@ -27,12 +27,12 @@ namespace QParser
 	TreeNode* NonAlgOpNode::clone() { TreeNode * nowy = new NonAlgOpNode((QueryNode*)larg->clone(), (QueryNode*)rarg->clone(), op); nowy->copyAttrsOf(this); return nowy;}
 	TreeNode* TransactNode::clone() { TreeNode * nowy = new TransactNode(op); nowy->copyAttrsOf(this); return nowy;}
     TreeNode* DMLNode::clone() { TreeNode * nowy = new DMLNode(inst); nowy->setOid(this->getOid()); return nowy;}
-        
-    TreeNode* CreateNode::clone()   { 
+
+    TreeNode* CreateNode::clone()   {
 		TreeNode *cloned = NULL;
-		if (arg != NULL) 
-			cloned = new CreateNode(name, (QueryNode*)arg->clone()); 
-		else 
+		if (arg != NULL)
+			cloned = new CreateNode(name, (QueryNode*)arg->clone());
+		else
 			cloned = new CreateNode(name, NULL);
 		cloned->copyAttrsOf(this);
 		return cloned;
@@ -40,9 +40,9 @@ namespace QParser
     TreeNode* LinkNode::clone() {return new LinkNode(nodeName, ip, port); }
     TreeNode* CondNode::clone() {
 		TreeNode *cloned = NULL;
-		if (rarg != NULL) 
+		if (rarg != NULL)
 			cloned = new CondNode((QueryNode*)condition->clone(), (QueryNode*)larg->clone(), (QueryNode*)rarg->clone(), op);
-		else 
+		else
 			cloned = new CondNode((QueryNode*)condition->clone(), (QueryNode*)larg->clone(), op);
 		cloned->copyAttrsOf(this);
 		return cloned;
@@ -54,7 +54,7 @@ namespace QParser
 		for (int i = 0; i < partsNumb; i++) {
 		    q.push_back((QueryNode*) queries.at(i)->clone());
 	    	n.push_back(names.at(i));
-		} 
+		}
 		fn->setQueries(q);
 		fn->setNames(n);
 		fn->setPartsNumb(partsNumb);
@@ -62,13 +62,13 @@ namespace QParser
 		return fn;
     }
 
-    TreeNode* ReturnNode::clone() { 
+    TreeNode* ReturnNode::clone() {
     	if( query != NULL )
-    		return new ReturnNode((QueryNode*) query->clone()); 
+    		return new ReturnNode((QueryNode*) query->clone());
     	else
     		return new ReturnNode();
     }
-    
+
     TreeNode* VirtualizeAsNode::clone() {
     	if (query != NULL) {
     		if (sub_query != NULL) {
@@ -78,7 +78,7 @@ namespace QParser
     	}
     	else return new VirtualizeAsNode();
     }
-    
+
     TreeNode* ThrowExceptionNode::clone() { return new ThrowExceptionNode((QueryNode*) query->clone()); }
     TreeNode* ProcedureNode::clone() { return new ProcedureNode(name, code, params, paramsNumb); }
     TreeNode* RegisterProcNode::clone() { return new RegisterProcNode((QueryNode*) query->clone()); }
@@ -89,11 +89,11 @@ namespace QParser
 		vector<QueryNode*> q;
 		CallProcNode *cpn = new CallProcNode(name);
 		for (unsigned int i = 0; i < partsNumb; i++) {
-		    q.push_back((QueryNode*) queries.at(i)->clone());   
-		} 
+		    q.push_back((QueryNode*) queries.at(i)->clone());
+		}
 		cpn->setQueries(q);
 		cpn->setPartsNumb(partsNumb);
-		return cpn;    
+		return cpn;
     }
     TreeNode* VectorNode::clone() {
 		vector<QueryNode*> q;
@@ -135,44 +135,44 @@ namespace QParser
         }
         return cn;
     }
-    
+
     /*TreeNode* ClassCastNode::clone() {
     	ClassCastNode* ccn = new ClassCastNode(name, (queryToCast == NULL)?NULL:dynamic_cast<QueryNode*>(queryToCast->clone()));
     	return ccn;
     }*/
-    
+
     TreeNode* ClassCastNode::clone() {
     	return new ClassCastNode(
     		(getObjectsQuery() == NULL)?NULL:dynamic_cast<QueryNode*>(getObjectsQuery()->clone()),
     		(getClassesQuery() == NULL)?NULL:dynamic_cast<QueryNode*>(getClassesQuery()->clone()));
     }
-    
+
     /*TreeNode* InstanceOfNode::clone() {
     	InstanceOfNode* ion = new InstanceOfNode(
     		(queryToCheck == NULL)?NULL:dynamic_cast<QueryNode*>(queryToCheck->clone()),
     		(classes == NULL)?NULL:dynamic_cast<QueryNode*>(classes->clone()));
     	return ion;
     }*/
-    
+
     TreeNode* InstanceOfNode::clone() {
     	return new InstanceOfNode(
     		(getObjectsQuery() == NULL)?NULL:dynamic_cast<QueryNode*>(getObjectsQuery()->clone()),
     		(getClassesQuery() == NULL)?NULL:dynamic_cast<QueryNode*>(getClassesQuery()->clone()));
     }
-    
+
     TreeNode* ExcludesNode::clone() {
     	return new ExcludesNode(
     		getClassesQuery()==NULL ? NULL : dynamic_cast<QueryNode*>(getClassesQuery()->clone()),
     		getObjectsQuery()==NULL ? NULL : dynamic_cast<QueryNode*>(getObjectsQuery()->clone()) );
     }
-    
+
     TreeNode* IncludesNode::clone() {
     	return new ExcludesNode(
     		getClassesQuery()==NULL ? NULL : dynamic_cast<QueryNode*>(getClassesQuery()->clone()),
     		getObjectsQuery()==NULL ? NULL : dynamic_cast<QueryNode*>(getObjectsQuery()->clone()) );
     }
 	/** Typecheck clones...*/
-	TreeNode* SignatureNode::clone() { 
+	TreeNode* SignatureNode::clone() {
 		TreeNode * retNode = NULL;
 		if (arg != NULL) retNode = new SignatureNode((StructureTypeNode *)arg->clone());
 		else {
@@ -201,7 +201,7 @@ namespace QParser
 		else retNode = new TypeDefNode(name, NULL, isDistinct);
 		retNode->copyAttrsOf(this);
 		return retNode;
-	}	
+	}
 	TreeNode* SimpleCastNode::clone() {
 		TreeNode *retNode = NULL;
 		if (arg != NULL && sig != NULL) retNode = new SimpleCastNode((QueryNode *)arg->clone(), (SignatureNode *)sig->clone());
@@ -210,7 +210,7 @@ namespace QParser
 		return retNode;
 	}
 	/** Typecheck clones end. */
-	
+
 	void TreeNode::copyAttrsOf(TreeNode *tn) {
 		coerceFlag = tn->isCoerced();
 		for (int i = 0; i < tn->nrOfCoerceActions(); i++) {
@@ -227,35 +227,38 @@ namespace QParser
 		}
 		return false;
 	}
-	
+
 /*  to be used when subT is an subTree independant of (this) and (this) is a non-alg operator.
-    called eg. for node  nd = nonalgop (where) ... 
-    newTree = nd->factorSubQuery(subT, "randName")    
-    (!!!) when used for optimization purposes, should not be called when 
+    called eg. for node  nd = nonalgop (where) ...
+    newTree = nd->factorSubQuery(subT, "randName")
+    (!!!) when used for optimization purposes, should not be called when
 	  subT is a NameNode, because this does not help optimise a query.. */
     TreeNode* TreeNode::factorSubQuery(TreeNode *subT, string newName) {
 
 		subT->getParent()->swapSon((QueryNode *) subT, new NameNode(newName));
-		TreeNode *nickNode = new NameAsNode ((QueryNode *) subT, newName, true);	
+		TreeNode *nickNode = new NameAsNode ((QueryNode *) subT, newName, true);
 		TreeNode *topNode = new NonAlgOpNode ((QueryNode *) nickNode, (QueryNode *) this, NonAlgOpNode::dot);
 		return topNode;
     }
-    
-    
-    
+
+
+
     /* INTERFACE NODES */
     
     InterfaceBind::InterfaceBind(string interfaceName, string implementationName, InterfaceInnerLinkageList *arbLinks)
     : m_interfaceName(interfaceName), m_implementationName(implementationName), m_arbLinks(arbLinks) {};
-    
+
     InterfaceBind::~InterfaceBind() {
-	if (m_arbLinks)
-	    delete m_arbLinks;
+	if (arbitraryLinks)
+	    delete arbitraryLinks;
+	if (interfaceName)
+	    delete interfaceName;
+	if (implementationName)
+	    delete implementationName;
     };
-    
+
     TreeNode* InterfaceBind::clone() {
-	InterfaceInnerLinkageList *cpy = new InterfaceInnerLinkageList(*m_arbLinks);
-	return new InterfaceBind(m_interfaceName, m_implementationName, cpy);
+	return new InterfaceBind(interfaceName->getName(), implementationName->getName());
     };
     
     string InterfaceBind::getInterfaceName() {
@@ -265,50 +268,50 @@ namespace QParser
     string InterfaceBind::getImplementationName() {
 	return m_implementationName;
     };
-    
+
     InterfaceInnerLinkage::InterfaceInnerLinkage(string intName, string impName) {
 	this->nameAtInterface = intName;
 	this->nameAtImplementation = impName;
     };
-    
+
     InterfaceInnerLinkage::~InterfaceInnerLinkage() {};
-    
+
     TreeNode* InterfaceInnerLinkage::clone() {
-	return new InterfaceInnerLinkage(nameAtInterface, nameAtImplementation);    
+	return new InterfaceInnerLinkage(nameAtInterface, nameAtImplementation);
     };
-    
+
     InterfaceInnerLinkageList::InterfaceInnerLinkageList(InterfaceInnerLinkage *linkage, InterfaceInnerLinkageList *lst) {
 	this->linkage = linkage;
 	this->linkageList = lst;
     };
-    
+
     InterfaceInnerLinkageList::~InterfaceInnerLinkageList() {
-	if (linkage) 
+	if (linkage)
 	    delete linkage;
 	if (linkageList)
 	    delete linkageList;
     };
-    
+
     TreeNode* InterfaceInnerLinkageList::clone() {
     if (linkageList)
 	return new InterfaceInnerLinkageList((InterfaceInnerLinkage *)linkage->clone(), (InterfaceInnerLinkageList *)linkageList->clone());
-    else 
+    else
 	return new InterfaceInnerLinkageList((InterfaceInnerLinkage *)linkage->clone(), NULL);
     };
-    
-    
-    
-    
-    
+
+
+
+
+
     RegisterInterfaceNode::RegisterInterfaceNode(QueryNode *q) {
 	this->query = q;
     };
-    
+
     RegisterInterfaceNode::~RegisterInterfaceNode() {
 	if (query!=NULL)
-	    delete query;	
+	    delete query;
     };
-    
+
     TreeNode* RegisterInterfaceNode::clone() {
 	return new RegisterInterfaceNode((QueryNode*) query->clone());
     };
@@ -317,28 +320,28 @@ namespace QParser
     m_interfaceName(interfaceName), m_objectName(objectName), m_iStruct(iStruct) {};
     
     InterfaceNode::~InterfaceNode() {
-	if (m_iStruct)
-	    delete m_iStruct;
+	if (iStruct)
+	    delete iStruct;
     };
-    
-    
+
+
     TreeNode *InterfaceNode::clone() {
-	return new InterfaceNode(m_interfaceName, m_objectName, (InterfaceStruct *) m_iStruct->clone());
+	return new InterfaceNode(interfaceName, (InterfaceStruct *) iStruct->clone());
     };
-    
-    
+
+
     InterfaceStruct::InterfaceStruct(InterfaceAttributeListNode *attList, InterfaceMethodListNode *methods) {
 	this->attributeList = attList;
 	this->methodList = methods;
     };
-    
+
     InterfaceStruct::~InterfaceStruct() {
 	if (attributeList)
 	    delete attributeList;
 	if (methodList)
 	    delete methodList;
     };
-    
+
     TreeNode* InterfaceStruct::clone() {
 	if ((attributeList) && (methodList))
 	    return new InterfaceStruct((InterfaceAttributeListNode *)attributeList->clone(), (InterfaceMethodListNode *) methodList->clone());
@@ -346,7 +349,7 @@ namespace QParser
 	    return new InterfaceStruct((InterfaceAttributeListNode *)attributeList->clone(), NULL);
 	if (methodList)
 	    return new InterfaceStruct(NULL, (InterfaceMethodListNode *) methodList->clone());
-	return new InterfaceStruct(NULL, NULL); 
+	return new InterfaceStruct(NULL, NULL);
     };
     
     vector<InterfaceMethod *> InterfaceStruct::getMethods() const {
@@ -372,11 +375,11 @@ namespace QParser
 	}
 	return vec;
     };
-    
+
     vector<InterfaceAttribute *> InterfaceMethod::getMethodParams() {
 	vector<InterfaceAttribute *> vec;
 	InterfaceAttribute *attrib;
-	InterfaceMethodParamListNode *mpList = m_params;
+	InterfaceMethodParamListNode *mpList = this->get_methodParams();
 	while (mpList != NULL) {
 	    attrib = mpList->get_methodParam();
 	    mpList = mpList->get_methodParamList();
@@ -393,46 +396,45 @@ namespace QParser
 	    sigCpy = new SignatureNode(*m_signature);
 	return new InterfaceAttribute(m_name, sigCpy);    
     };
-    
-    
+
+
     InterfaceAttributeListNode::InterfaceAttributeListNode(InterfaceAttribute *attribute, InterfaceAttributeListNode *rest) {
 	this->attribute = attribute;
 	this->attributeList = rest;
     };
-    
+
     InterfaceAttributeListNode::~InterfaceAttributeListNode() {
-	if (attribute) 
+	if (attribute)
 	    delete attribute;
 	if (attributeList)
 	    delete attributeList;
     };
-    
+
     TreeNode* InterfaceAttributeListNode::clone() {
     if (attributeList)
 	return new InterfaceAttributeListNode((InterfaceAttribute *)attribute->clone(), (InterfaceAttributeListNode *)attributeList->clone());
-    else 
+    else
 	return new InterfaceAttributeListNode((InterfaceAttribute *)attribute->clone(), NULL);
     };
-    
+
     InterfaceMethodListNode::InterfaceMethodListNode(InterfaceMethod *method, InterfaceMethodListNode *rest) {
 	this->method = method;
-	this->methodList = rest;    
+	this->methodList = rest;
     };
-    
+
     InterfaceMethodListNode::~InterfaceMethodListNode() {
 	if (method)
 	    delete method;
 	if (methodList)
 	    delete methodList;
     };
-    
+
     TreeNode* InterfaceMethodListNode::clone() {
     if (methodList)
 	return new InterfaceMethodListNode((InterfaceMethod *)method->clone(), (InterfaceMethodListNode *)methodList->clone());
-    else 
+    else
 	return new InterfaceMethodListNode((InterfaceMethod *)method->clone(), NULL);
     };
-    
 
     InterfaceMethod::InterfaceMethod(string name, InterfaceMethodParamListNode *params, SignatureNode* signature)
     : m_name(name), m_params(params) {m_signature = signature;};
@@ -441,32 +443,30 @@ namespace QParser
 	if (m_params)
 	    delete m_params;    
     };
-    
+
     TreeNode *InterfaceMethod::clone() {
-	InterfaceMethodParamListNode *clonedParams = m_params?(InterfaceMethodParamListNode *)m_params->clone():NULL;
-	SignatureNode *clonedSignature = m_signature?(SignatureNode *)m_signature->clone():NULL;
-	return new InterfaceMethod(m_name, clonedParams, clonedSignature);
+	return new InterfaceMethod(methodName, methodType, (InterfaceMethodParamListNode *)methodParams->clone());
     };
-    
+
     InterfaceMethodParamListNode::InterfaceMethodParamListNode(InterfaceAttribute *methodParam, InterfaceMethodParamListNode *rest) {
 	this->methodParam = methodParam;
 	this->methodParamList = rest;
     };
-    
+
     InterfaceMethodParamListNode::~InterfaceMethodParamListNode() {
 	if (methodParam)
 	    delete methodParam;
 	if (methodParamList)
-	    delete methodParamList;    
+	    delete methodParamList;
     };
-    
+
     TreeNode* InterfaceMethodParamListNode::clone() {
     if (methodParamList)
 	return new InterfaceMethodParamListNode((InterfaceAttribute *)methodParam->clone(), (InterfaceMethodParamListNode *)methodParamList->clone());
-    else 
+    else
 	return new InterfaceMethodParamListNode((InterfaceAttribute *)methodParam->clone(), NULL);
     };
-    
+
     /**
       *		VALIDATION NODE	BEGIN
       */
@@ -479,7 +479,7 @@ namespace QParser
     };
     string ValidationNode::get_passwd() {
 	return passwd;
-    };    
+    };
     TreeNode* ValidationNode::clone() {
 	return new ValidationNode(login, passwd);
     };
@@ -489,7 +489,7 @@ namespace QParser
     int ValidationNode::putToString() {
 	cout << "Validation node. Login: " << login << ", Password: " << passwd << endl;
 	return 0;
-    };      
+    };
 
     PriviligeListNode::PriviligeListNode(Privilige *priv, PriviligeListNode *priv_list) {
 	this->priv = priv;
@@ -531,7 +531,7 @@ namespace QParser
 	if (name_list)
 	    delete name_list;
     };
-	    
+
     /* getters */
     string NameListNode::get_name() {
 	return name;
@@ -539,7 +539,7 @@ namespace QParser
     NameListNode* NameListNode::try_get_name_list() {
 	return name_list;
     };
-    
+
     int NameListNode::namesFromUniqueList( set<string>*& names ) {
     	NameListNode *name_list_or_null = this->try_get_name_list();
     	if(names->end() != names->find(name)) {
@@ -573,7 +573,7 @@ namespace QParser
 	    name_list->putToString();
 	return 0;
     };
-    
+
     GrantPrivNode::GrantPrivNode(PriviligeListNode *priv_list, NameListNode *name_list, string user, bool with_grant_option) {
     	this->priv_list = priv_list;
     	this->name_list = name_list;
@@ -584,7 +584,7 @@ namespace QParser
 	delete name_list;
 	delete priv_list;
     };
-	    
+
     PriviligeListNode*  GrantPrivNode::get_priv_list() {
 	return priv_list;
     };
@@ -599,8 +599,8 @@ namespace QParser
     };
 
     TreeNode* 	GrantPrivNode::clone() {
-	return new GrantPrivNode(   (PriviligeListNode *) priv_list->clone(), 
-				    (NameListNode *) name_list->clone(), 
+	return new GrantPrivNode(   (PriviligeListNode *) priv_list->clone(),
+				    (NameListNode *) name_list->clone(),
 				    user,
 				    with_grant_option);
     };
@@ -614,7 +614,7 @@ namespace QParser
 	cout << user << " ";
 	return 0;
     };
-    
+
     RevokePrivNode::RevokePrivNode(PriviligeListNode *priv_list, NameListNode *name_list, string user ) {
 	this->priv_list = priv_list;
 	this->name_list = name_list;
@@ -624,7 +624,7 @@ namespace QParser
 	delete priv_list;
 	delete name_list;
     };
-	    
+
     PriviligeListNode* 	RevokePrivNode::get_priv_list() {
 	return priv_list;
     };
@@ -635,8 +635,8 @@ namespace QParser
 	return user;
     };
     TreeNode* RevokePrivNode::clone() {
-	return new RevokePrivNode( (PriviligeListNode *) priv_list->clone(), 
-				    (NameListNode *) name_list->clone(), 
+	return new RevokePrivNode( (PriviligeListNode *) priv_list->clone(),
+				    (NameListNode *) name_list->clone(),
 				    user);
     };
     int RevokePrivNode::type() {
@@ -652,13 +652,13 @@ namespace QParser
     CreateUserNode::CreateUserNode(string user, string passwd) {
 	this->user = user;
 	this->passwd = passwd;
-    };	
+    };
     string CreateUserNode::get_user() {
 	return user;
     };
     string CreateUserNode::get_passwd() {
 	return passwd;
-    };	    
+    };
     TreeNode* CreateUserNode::clone() {
 	return new CreateUserNode(user, passwd);
     };
@@ -669,7 +669,7 @@ namespace QParser
 	cout << "Create user node. User " << user << ", passwd " << passwd;
 	return 0;
     };
-    
+
     RemoveUserNode::RemoveUserNode(string user) {
 	this->user = user;
     };
@@ -687,25 +687,25 @@ namespace QParser
 	return 0;
     };
 
-      
-/* wartosci zwracane ? : 0 -- nic nie znalezione, szukaj dalej 
+
+/* wartosci zwracane ? : 0 -- nic nie znalezione, szukaj dalej
 						(cale drzewo daje 0 =>nie ma niez. podz.)
-						-1 -- blad, przerwij. 
-						-2 -- znalazlem i przenioslem niez. poddrzewo, trzeba przerwac, 
+						-1 -- blad, przerwij.
+						-2 -- znalazlem i przenioslem niez. poddrzewo, trzeba przerwac,
 						      powtorzyc static eval i znow te procedure ... */
 
 	int AlgOpNode::optimizeTree() {
 		Deb::ug("alg: %d.", op);
 		int pRes = larg->optimizeTree();	/*partial result*/
 		if (pRes < 0) return pRes;
-		else return rarg->optimizeTree();		
+		else return rarg->optimizeTree();
 	}
 //	TreeNode* NonAlgOpNode::getHighestIndependant() {return NULL;};
-	
+
 	int NonAlgOpNode::optimizeTree() {
 		int pRes = 0;
 		Optimizer *optimiser = new Optimizer();
-		
+
 		TreeNode *hInd = optimiser->getIndependant(this);
 		//LL; //this->getHighestIndependant();
 			Deb::ug("NONalg: %d.\n", op);
@@ -732,18 +732,18 @@ namespace QParser
 			prt-> swapSon (this, this->factorSubQuery(hInd, randomString()));
 		        Deb::ug("swapped old son with factoredSubQuery\n");
 		} else this->factorSubQuery(hInd, randomString());
-		return -2;	
+		return -2;
 		/*found ind. subq and factored it. restart the whole stEval & optimisation procedure. */
 	}
 
 	int NameNode::staticEval (StatQResStack *&qres, StatEnvStack *&envs) {
-		
-		
-		
+
+
+
 		return staticEval2(qres, envs);
-		
-		
-		
+
+
+
 		Deb::ug("staticEval(Name) \n");
 		if (Deb::ugOn()) cout << name << endl;
 		BinderWrap *bw = envs->bindName(this->name);
@@ -754,7 +754,7 @@ namespace QParser
 		Deb::ug("name bound on envs, section nr set to %d, ", bw->getSectNumb());
 		//Deb::ug("ok:%d, ", ((SigRef *) (bw->getBinder()->getValue()))->getRefNo());
 		Signature *sig = bw->getBinder()->getValue()->clone();	//death
-	
+
 		if (sig->getDependsOn() == NULL){
 			sig->setDependsOn(this);
 		} else {
@@ -765,16 +765,16 @@ namespace QParser
 		Deb::ug("result pushed on qres - end nameNode stEval\n");
 		return 0;
 	}
-	
+
 	int NameNode::staticEval2 (StatQResStack *&qres, StatEnvStack *&envs) {
 		vector<BinderWrap*> *vec = new vector<BinderWrap*>();
-		
+
 		Deb::ug("staticEval2(Name) \n");
 		if (Deb::ugOn()) cout << name << endl;
 		BinderWrap *bw = NULL;
 		envs->bindName2(this->name, vec);
 		if (vec->size() > 0){
-			//bw = vec->at(0);	// pierwszy ktory zostal znaleziony, wynik powinien byc taki jak w starym	
+			//bw = vec->at(0);	// pierwszy ktory zostal znaleziony, wynik powinien byc taki jak w starym
 			bw = vec->at(vec->size()-1);	// teraz wynik powinien byc inny!
 		}
 		if (bw == NULL) { Deb::ug("name could NOT be bound ! will exit..\n"); return -1;}
@@ -783,7 +783,7 @@ namespace QParser
 		this->setCard(bw->getBinder()->getCard());		// to jest zamiast wyw evalCard
 
 		printf("size: %d \n", ((BinderWrap*)  envs->getElt(this->getBindSect())->getContent())->size());
-		
+
 		this->setStatEnvSecSize(((BinderWrap*)envs->getElt(this->getBindSect())->getContent())->size());
 		cout << "jsi after setting StatEnvSecSize\n";
 		Deb::ug("name bound on envs, section nr set to %d, ", bw->getSectNumb());
@@ -795,38 +795,38 @@ namespace QParser
 		} else {							// a moze inaczej - zalezy od nazwy kora ja wklada na stos ?? taka interpretacja bylaby lepsza
 			Deb::ug("jsi death sygnatura juz miala ustawione dependsOn, nie ustawia go ponownie\n");
 		}
-		
+
 		for (unsigned int i = 1; i < vec->size(); i++){ // dodaje do sygnatury pozostale
 			BinderWrap *pombw = vec->at(i);
-			
+
 			if (sig->type() == Signature::SSTRUCT) {
 				((SigColl *) sig)->addToMyList (pombw->getBinder()->getValue()->clone());
-			} else 
+			} else
 			{
 				SigColl *s = new SigColl(Signature::SSTRUCT);
 				s->setElts(sig); s->addToMyList(pombw->getBinder()->getValue()->clone());
-				sig = s;		
+				sig = s;
 			}
 		}
-		
+
 		qres->pushSig (sig);
 		 this->setDependsOn(bw->getBinder()->getDependsOn());		// tak bylo kiedys, nie wiem czy to jest poprawne, co z pozostalymi z vec ?? w ktorych tez jest wiazana ??
 		Deb::ug("result pushed on qres - end nameNode stEval\n");
 		calculateBoundUsed(vec);
 		return 0;
 	}
-	
+
 	void NameNode::calculateBoundUsed(vector<BinderWrap*> *vec){
 		cout << "calculateBoundUsed " << vec->size() << endl;
 		if (QueryParser::getStatEvalRun() == 1){
 			for (unsigned int i = 0; i < vec->size(); i++){
-				cout << i << " " << vec->at(i)->getBinder()->getName() << " binder: " << endl;	
+				cout << i << " " << vec->at(i)->getBinder()->getName() << " binder: " << endl;
 				vec->at(i)->getBinder()->putToString() ;
 				cout << endl << "zalezy od: " << endl;
 				if (vec->at(i)->getBinder()->getDependsOn() != NULL){
 					vec->at(i)->getBinder()->getDependsOn()->putToString();
 				} else cout << "NULL";
-			
+
 				cout << endl;
 				TreeNode * wiazanyW = vec->at(i)->getBinder()->getDependsOn();
 				this->getBoundIn()->push_back(wiazanyW);
@@ -841,11 +841,11 @@ namespace QParser
 					}
 				}
 			}
-		} else 
+		} else
 			cout << "to jest " << QueryParser::getStatEvalRun() << " przebieg statycznej ewaluacji" << endl;
 		cout << "---------------------------------------------" << endl;
 	}
-	
+
 	int ValueNode::staticEval (StatQResStack *&qres, StatEnvStack *&envs) {
 		Deb::ug("staticEval:value node ");
 		switch (this->type()) {
@@ -855,7 +855,7 @@ namespace QParser
 	    	case TNSTRING: {
 				qres->pushSig (new SigAtomType ("string"));
 				break;}
-	    	case TNDOUBLE: { 
+	    	case TNDOUBLE: {
 				qres->pushSig (new SigAtomType ("double"));
 	    		break;}
 	    	default: {return -1; break;}
@@ -886,9 +886,9 @@ namespace QParser
     	this->evalCard();
     	return 0;
 	}
-	
+
 	int UnOpNode::staticEval (StatQResStack *&qres, StatEnvStack *&envs) {
-//	enum unOp { unMinus, count, sum, avg, min, max, distinct, boolNot, deleteOp, deref };		 
+//	enum unOp { unMinus, count, sum, avg, min, max, distinct, boolNot, deleteOp, deref };
 		if (this->arg->staticEval(qres, envs) == -1) return -1;
 		Signature *topSig = qres->topSig();
 		Deb::ug("eval::UNOP -- finished with ARG.");
@@ -906,17 +906,17 @@ namespace QParser
 			case UnOpNode::boolNot:	{
 				Deb::ug("static_eval::UNOP::boolNot -- starting");
 				if (topSig->type() != Signature::SBOOL) {return 0;}
-				/*if topSig is a value signature, the type doesn't change.. */				
-				qres->pushSig (topSig->clone());									
+				/*if topSig is a value signature, the type doesn't change.. */
+				qres->pushSig (topSig->clone());
 				return 0;
-				}//case boolNOT				
+				}//case boolNOT
 			case UnOpNode::deref: {
 				Deb::ug("static_eval::UNOP::deref -- starting");
 				int argType = topSig->type();
 				if (argType != Signature::SREF) {return -1;}
 				/*TODO: should also allow topSig to be a bag or sequence, huh? what about struct? */
 				/*we make use of the global DataScheme *dScheme */
-				DataObjectDef *obj = DataScheme::dScheme()->getObjById (((SigRef *)topSig)->getRefNo());
+				DataObjectDef *obj = DataScheme::dScheme(-1)->getObjById (((SigRef *)topSig)->getRefNo());
 				if (obj == NULL) return -1;
 				/*error: invalid object def id. */
 				string objKind = obj->getKind();
@@ -926,27 +926,27 @@ namespace QParser
 					return -1;}	// deref moze byc zupelnie przezroczysty
 				if (objKind == "atomic") qres->pushSig (new SigAtomType (obj->getType()));
 				else if (objKind == "link") qres->pushSig (new SigRef (obj->getTarget()->getMyId()));
-				return 0;	
+				return 0;
 				} /*case deref */
             case UnOpNode::nameof: {
-                
+
                 Deb::ug("static_eval::UNOP::nameof -- starting");
-                
+
                 int argType = topSig->type();
-                
+
                 if (argType != Signature::SREF) return -1;
-                /* TODO: should also allow topSig to be a bag or sequence, 
-                 * huh? what about struct? 
+                /* TODO: should also allow topSig to be a bag or sequence,
+                 * huh? what about struct?
                  * we make use of the global DataScheme *dScheme */
-                                                
-                DataObjectDef *obj = DataScheme::dScheme()->getObjById (((SigRef *)topSig)->getRefNo());
-                
+
+                DataObjectDef *obj = DataScheme::dScheme(-1)->getObjById (((SigRef *)topSig)->getRefNo());
+
                 if (obj == NULL) return -1;
-                
-                qres->pushSig(new SigAtomType("string"));                    	               
-                                    
+
+                qres->pushSig(new SigAtomType("string"));
+
                 return 0;
-                }					
+                }
 			default: break; // not implemented yet. or in {count, sum, avg, min, max}
 		}/*switch*/
 		if (op == UnOpNode::count || op == UnOpNode::sum || op == UnOpNode::avg || op == UnOpNode::min || op == UnOpNode::max) {
@@ -958,10 +958,10 @@ namespace QParser
 		this->evalCard();
 		return -1;
 	}
-	
+
 	int AlgOpNode::staticEval (StatQResStack *&qres, StatEnvStack *&envs) {
-//  DONE:  {eq, neq, lt, gt, le, ge, boolAnd, boolOr, plus, minus, 
-//			times, divide, bagUnion, bagIntersect, bagMinus }; 	
+//  DONE:  {eq, neq, lt, gt, le, ge, boolAnd, boolOr, plus, minus,
+//			times, divide, bagUnion, bagIntersect, bagMinus };
 		Deb::ug("staticEval(algOp) - starting\n");
 		if (this->larg->staticEval(qres, envs) == -1) return -1;
 		Signature *lSig = qres->topSig();
@@ -972,22 +972,22 @@ namespace QParser
 		qres->pop();
 		qres->pop();
 		this->evalCard();
-		if (op == AlgOpNode::eq || op == AlgOpNode::neq || op == AlgOpNode::lt || 
-				op == AlgOpNode::gt || op == AlgOpNode::le || op == AlgOpNode::ge || 
+		if (op == AlgOpNode::eq || op == AlgOpNode::neq || op == AlgOpNode::lt ||
+				op == AlgOpNode::gt || op == AlgOpNode::le || op == AlgOpNode::ge ||
 				op == AlgOpNode::boolAnd || op == AlgOpNode::boolOr) {
 			/* !!! not checking on types !!! */
 			/*TODO: check, if this is really independant of lSig and rSig ? ...*/
 			qres->pushSig (new SigAtomType ("bool"));
 			return 0;
-		}		
-		if (op == AlgOpNode::plus || op == AlgOpNode::minus || 
-			op == AlgOpNode::times || op == AlgOpNode::divide) {				
-			qres->pushSig (new SigAtomType ("double"));				
+		}
+		if (op == AlgOpNode::plus || op == AlgOpNode::minus ||
+			op == AlgOpNode::times || op == AlgOpNode::divide) {
+			qres->pushSig (new SigAtomType ("double"));
 			return 0;
 		}
 		if (op == AlgOpNode::bagUnion || op == AlgOpNode::bagIntersect || op == AlgOpNode::bagMinus) {
 			Deb::ug("can't handle Union,intersect and Minus now.. ");
-			return -1;	
+			return -1;
 		}
 		if (op == AlgOpNode::comma) {
 			if (Deb::ugOn()) {
@@ -997,21 +997,21 @@ namespace QParser
 			if (lSig->type() == Signature::SSTRUCT) {
 				((SigColl *) lSig)->addToMyList (rSig);
 				qres->pushSig (lSig);
-			} else 
+			} else
 			{
 				SigColl *s = new SigColl(Signature::SSTRUCT);
 				s->setElts(lSig); s->addToMyList(rSig);
-				qres->pushSig(s);				
+				qres->pushSig(s);
 			}
-			return 0; 
+			return 0;
 		}
 		if (op == AlgOpNode::insert) {
-			return -1; //change to return 0 when this case is implemented. 
+			return -1; //change to return 0 when this case is implemented.
 		}
 		this->evalCard();
-		return 0;	
+		return 0;
 	}
-	
+
 	int NonAlgOpNode::staticEval (StatQResStack *&qres, StatEnvStack *&envs) {
 /*TODO: !!! first do dot, join and where, the rest will follow ... */
 		Deb::ug( "staticEval(nonalg) - start\n");
@@ -1030,33 +1030,33 @@ namespace QParser
 			BinderWrap *bindersColl = toPush->statNested(toPush->getDependsOn());
 			//sToPop+= bindersColl->size();
 			sToPop++;
-			
+
 			/*
 			BinderWrap *pom = bindersColl;
-			
+
 			cout << "wklada na envs: \n";
 			while(pom!=NULL){
 			    cout << " name: " << pom->getBinder()->getName();
 			    pom = pom->getNext();
 			}
 			cout << " koniec\n";
-			*/		
-			if (envs->pushBinders(bindersColl) != 0) 
+			*/
+			if (envs->pushBinders(bindersColl) != 0)
 					cout << "EROOR jsi zobacz nonalgopnode steval dla sigcoll \n" <<endl;
 
-			
+
 			/*
 			Signature *pt = ((SigColl *) toPush)->getMyList();
-			while (pt != NULL) { 
-				if (envs->pushBinders(pt->statNested(pt->getDependsOn())) == 0) 
-					sToPop++; 
+			while (pt != NULL) {
+				if (envs->pushBinders(pt->statNested(pt->getDependsOn())) == 0)
+					sToPop++;
 				pt = pt->getNext();
 			}
 			*/
-		} else 	{			
-			if (envs->pushBinders(toPush->statNested(toPush->getDependsOn())) == 0) 
-				sToPop = 1; 
-			else 
+		} else 	{
+			if (envs->pushBinders(toPush->statNested(toPush->getDependsOn())) == 0)
+				sToPop = 1;
+			else
 				sToPop = 0;
 		}
 		if (toPush->getDependsOn() == NULL)
@@ -1065,7 +1065,7 @@ namespace QParser
 		this->setLastOpenSect(envs->getSize());
 		if (this->rarg->staticEval(qres, envs) == -1) return -1;
 		Signature *rSig = qres->topSig();
-		
+
 		Deb::ug("static_eval::NON ALG OP -- finished with RIGHT arg\n");
 		Deb::ug( "static_eval(nonalg): will pop 2 off qres, %d off envs\n", sToPop);
 
@@ -1081,15 +1081,15 @@ namespace QParser
 			case NonAlgOpNode::where: {/*TODO: do we assume the <where> condition is fulfilled ?? */
 				if (rSig->type() != Signature::SBOOL) {
 				Deb::ug("no bool after 'where' !"); return -1;}
-				qres->pushSig(lSig->clone());				
-				break;} 
+				qres->pushSig(lSig->clone());
+				break;}
 			case NonAlgOpNode::join: {/* eg. EMP.SAL --> push (struct(EMP, SAL)) ... */
 				SigColl *s = new SigColl(Signature::SSTRUCT);
 				s->setElts(lSig); s->addToMyList(rSig);
 				qres->pushSig(s->clone());
 				break;}
 			default: {Deb::ug("statEval::nonalg operator not handled yet.."); return -1;}
-		
+
 		}
 		this->evalCard();
 		Deb::ug("stEv will return 0\n");
@@ -1109,7 +1109,7 @@ namespace QParser
 		this->evalCard();
 		return 0;
 	}
-	
+
 	int CoerceNode::staticEval (StatQResStack *&qres, StatEnvStack *&envs) {
 		Deb::ug("CoerceNode::staticEval()");
 		if (this->arg->staticEval(qres, envs) == -1) return -1;
@@ -1149,7 +1149,7 @@ namespace QParser
 				topSig->setCard("1..1");	// collKind autmatically set to "".
 				qres->pushSig(topSig->clone());
 				break;
-			} 
+			}
 			case CoerceNode::to_bag : {
 				topSig->setCardMultiple();
 				topSig->setCollKind("bag");
@@ -1162,49 +1162,49 @@ namespace QParser
 				qres->pushSig(topSig->clone());
                 break;
 			}
-			default: qres->pushSig(topSig->clone()); break; 
+			default: qres->pushSig(topSig->clone()); break;
 		}/*switch*/
 		this->evalCard();
 		return 0;
 	}
 
-	
+
 	string TreeNode::randomString(){
 	    char buf[21];
 	    buf[20] = 0;
 	    for (int i = 0; i < 20; i++){
 		int z = rand() % 22;
 		buf[i] = (char) ('a' + z);
-	    } 
+	    }
 	    string s(buf);
 	    if (Deb::ugOn()) {
 		cout << "funkcja randomString zwraca 20 literowy napis: " << s << endl;
 	    }
 	    return s;
 	}
-	
+
 	int TreeNode::minCard(string card){
 		if (card[0] == '0') return 0;
 		if (card[0] == '1') return 1;
-		return 10;	
+		return 10;
 	}
 	int TreeNode::maxCard(string card){
 		if (card[3] == '0') return 0;
 		if (card[3] == '1') return 1;
-		return 10;		
+		return 10;
 	}
 	string TreeNode::int2card(int card){
 		if (card == 0) return "0";
 		if (card == 1) return "1";
-		return "*";	
+		return "*";
 	}
-	
+
 	string TreeNode::mulCard(string leftCard, string rightCard){
-		int min = ((this->minCard(leftCard) < this->minCard(rightCard)) ? this->minCard(leftCard): this->minCard(rightCard));	
+		int min = ((this->minCard(leftCard) < this->minCard(rightCard)) ? this->minCard(leftCard): this->minCard(rightCard));
 		int max = this->maxCard(leftCard) * this->maxCard(rightCard);
 		return this->int2card(min) + ".." + this->int2card(max);
 	}
-	
+
 	DMLNode::DMLNode (dmlInst _inst) : inst(_inst) {/*DataScheme::reloadDScheme(); - done through executor!*/}
 	void TreeNode::qpLocalAction(QueryParser *qp) {/*By default does nothing*/}
 	void DMLNode::qpLocalAction(QueryParser *qp) {
@@ -1214,20 +1214,20 @@ namespace QParser
 			case DMLNode::tcon : qp->setTcOffTmp(false); break;
 		}
 	}
-	
+
 bool TreeNode::containsOid(long oid){
 	vector<TreeNode*> *listVec = new vector<TreeNode*>();
 	this->getInfixList(listVec);
-	for(vector<TreeNode*>::iterator iter = listVec->begin(); iter != listVec->end(); iter++){	
+	for(vector<TreeNode*>::iterator iter = listVec->begin(); iter != listVec->end(); iter++){
 		if ((*iter)->getOid() == oid  ){
 			return true;
 		}
 	}
 	return false;
 }
-	
+
 void TreeNode::getBoundIn(TreeNode *node, vector<TreeNode*> *treeVec, vector<TreeNode*> *boundVec){
-	for(vector<TreeNode*>::iterator iter = treeVec->begin(); iter != treeVec->end(); iter++){	
+	for(vector<TreeNode*>::iterator iter = treeVec->begin(); iter != treeVec->end(); iter++){
 		if ((*iter)->type()==TreeNode::TNNAME  ){
 			if ( ((NameNode*)(*iter))->getDependsOn() == node ){
 				boundVec->push_back(*iter);
@@ -1238,7 +1238,7 @@ void TreeNode::getBoundIn(TreeNode *node, vector<TreeNode*> *treeVec, vector<Tre
 // ustawia w tym drzewie used i needen na puste wektory
 void TreeNode::resetUsedNeeded(TreeNode *qTree){
 
-	vector<TreeNode*> * listVec = new vector<TreeNode*>();	// wszystkie wezly w drzewie 
+	vector<TreeNode*> * listVec = new vector<TreeNode*>();	// wszystkie wezly w drzewie
 	qTree->getInfixList(listVec);
 	for(vector<TreeNode*>::iterator iter = listVec->begin(); iter != listVec->end(); iter++){
 		if ((*iter)->type() == TreeNode::TNNAME){
@@ -1248,16 +1248,16 @@ void TreeNode::resetUsedNeeded(TreeNode *qTree){
 		} else if ((*iter)->type() == TreeNode::TNAS){
 			((NameAsNode*) *iter)->setUsedBy(new vector<TreeNode*>());
 		} else {
-			
+
 		}
-	}			
+	}
 }
 
 TreeNode* TreeNode::getNodeByOid(vector<TreeNode*>* listVec, long oid){
 	for(vector<TreeNode*>::iterator iter = listVec->begin(); iter != listVec->end(); iter++){
 		if ((*iter)->getOid() == oid) {
-			
-			return (*iter);	
+
+			return (*iter);
 		}
 	}
 	return NULL;
@@ -1281,7 +1281,7 @@ TreeNode* TreeNode::getNodeByOid(vector<TreeNode*>* listVec, long oid){
 		}
 		return 0;
 	}
-	
+
 	int TwoArgsNode::augmentTreeCoerce(int coerceType, bool augLeft, bool augRight) {
 		if (augLeft) {
 			CoerceNode *coerce = new CoerceNode(this->getLArg(), coerceType);
@@ -1293,7 +1293,7 @@ TreeNode* TreeNode::getNodeByOid(vector<TreeNode*>* listVec, long oid){
 		}
 		return 0;
 	}
-	
+
 	int SimpleCastNode::augmentTreeDeref(bool derefLeft, bool derefRight) {
 		if (derefLeft) {
 			cout << "SimpleCastNode::augmentTreeDeref left " << endl;
@@ -1305,48 +1305,48 @@ TreeNode* TreeNode::getNodeByOid(vector<TreeNode*>* listVec, long oid){
 		}
 		return 0;
 	}
-	
+
 	int CreateNode::augmentTreeCoerce(int coerceType) {
 		CoerceNode *coerce = new CoerceNode((QueryNode *)this->getArg(), coerceType);
 		this->setArg(coerce);
 		return 0;
 	}
-	
+
 	int NameAsNode::augmentTreeCoerce(int coerceType) {
 		CoerceNode *coerce = new CoerceNode((QueryNode *)this->getArg(), coerceType);
 		this->setArg(coerce);
 		return 0;
 	}
-	
+
 	int UnOpNode::augmentTreeCoerce(int coerceType) {
 		CoerceNode *coerce = new CoerceNode((QueryNode *)this->getArg(), coerceType);
 		this->setArg(coerce);
 		return 0;
 	}
-	
+
 	int UnOpNode::augmentTreeDeref() {
 		UnOpNode *deref = new UnOpNode(this->arg,UnOpNode::deref);
 		this->setArg(deref);
 		return 0;
 	}
-	
+
 	int NameAsNode::augmentTreeDeref() {
 		UnOpNode *deref = new UnOpNode(this->arg,UnOpNode::deref);
 		this->setArg(deref);
 		return 0;
 	}
-	
+
 	void TwoArgsNode::canDerefSons(bool &canDerefL, bool &canDerefR) {
 		canDerefL = this->getLArg()->canDerefNode();
 		canDerefR = this->getLArg()->canDerefNode();
 	}
-		
+
 	SignatureNode::~SignatureNode() {
 		if (arg != NULL) delete arg;
 	}
 	StructureTypeNode::~StructureTypeNode() {
 		for (unsigned int i=0; i < subDeclarations->size(); i++) {
-			if (subDeclarations->at(i) != NULL) delete subDeclarations->at(i); 
+			if (subDeclarations->at(i) != NULL) delete subDeclarations->at(i);
 		}
 		subDeclarations->clear();
 		delete subDeclarations;
@@ -1354,7 +1354,7 @@ TreeNode* TreeNode::getNodeByOid(vector<TreeNode*>* listVec, long oid){
 	ObjectDeclareNode::~ObjectDeclareNode () {
 		if (this->signature != NULL) delete this->signature;
 	}
-	
+
 	int SignatureNode::putToString () {
 		cout << "{sig" << this->sigKind << ";";
 		switch (sigKind) {
@@ -1367,7 +1367,7 @@ TreeNode* TreeNode::getNodeByOid(vector<TreeNode*>* listVec, long oid){
 		cout << "}";
 		return 0;
 	}
-	
+
 	string SignatureNode::getHeadline() {
 		switch (sigKind) {
 			case SignatureNode::atomic :
@@ -1381,12 +1381,12 @@ TreeNode* TreeNode::getNodeByOid(vector<TreeNode*>* listVec, long oid){
 				default: return "";
 		}
 	}
-	
-	Signature *SignatureNode::createSignature() { 
-		
-		BinderWrap *bwObj = DataScheme::dScheme()->bindBaseObjects();
+
+	Signature *SignatureNode::createSignature() {
+
+		BinderWrap *bwObj = DataScheme::dScheme(-1)->bindBaseObjects();
 		cout << "bound base objects" << endl;
-		BinderWrap *bwTypes = DataScheme::dScheme()->bindBaseTypes();
+		BinderWrap *bwTypes = DataScheme::dScheme(-1)->bindBaseTypes();
 		cout << "bound base types" << endl;
 		if (sigKind != SignatureNode::defType) {
 			cout << "not a deftype signaturenode\n";
@@ -1401,10 +1401,10 @@ TreeNode* TreeNode::getNodeByOid(vector<TreeNode*>* listVec, long oid){
 		Signature *sig = DataScheme::extractSigFromBindVector(vec);
 		if (sig == NULL) {cout << "returning null sig straight away, not bound\n"; return NULL;}
 		if (sig->type() != Signature::SREF) return sig;
-		return DataScheme::dScheme()->signatureOfRef(((SigRef *)sig)->getRefNo());
+		return DataScheme::dScheme(-1)->signatureOfRef(((SigRef *)sig)->getRefNo());
 	}
 
-	Signature *SignatureNode::recCreateSig(BinderWrap *bwObj, BinderWrap *bwTypes) {	
+	Signature *SignatureNode::recCreateSig(BinderWrap *bwObj, BinderWrap *bwTypes) {
 		string ret = "";
 		Signature *sig;
 		vector<BinderWrap*> *vec = new vector<BinderWrap*>();
@@ -1418,18 +1418,18 @@ TreeNode* TreeNode::getNodeByOid(vector<TreeNode*>* listVec, long oid){
 					bwTypes->bindName2(typeName, vec);
 				sig = DataScheme::extractSigFromBindVector(vec);
 				return sig;
-			case SignatureNode::defType : 
+			case SignatureNode::defType :
 				bwTypes->bindName2(typeName, vec);
 				sig = DataScheme::extractSigFromBindVector(vec);
 				if (sig == NULL) return NULL;
 				if (sig->type() != Signature::SREF) return sig;
-				return DataScheme::dScheme()->signatureOfRef(((SigRef *)sig)->getRefNo());
+				return DataScheme::dScheme(-1)->signatureOfRef(((SigRef *)sig)->getRefNo());
 			case SignatureNode::complex :
 				sig = new SigColl(Signature::SSTRUCT);
 				vector<ObjectDeclareNode*> *subs = NULL;
 				if (getStructArg() == NULL) return sig;
 				subs = this->getStructArg()->getSubDeclarations();
-				
+
 				for (unsigned int i = subs->size(); i > 0; i--) {
 					Signature *son = subs->at(i-1)->getSigNode()->createSignature();
 					if (son == NULL) return NULL;
@@ -1439,21 +1439,21 @@ TreeNode* TreeNode::getNodeByOid(vector<TreeNode*>* listVec, long oid){
 		}
 		return NULL;
 	}
-	
-	int StructureTypeNode::putToString () { 
+
+	int StructureTypeNode::putToString () {
 		for (unsigned int i = 0; i < subDeclarations->size(); i++) {
 			if (i != 0) cout << ", ";
 			subDeclarations->at(i)->putToString();
 		}
-		return 0; 
+		return 0;
 	}
-	
+
 	void StructureTypeNode::setSubDeclarations(vector<ObjectDeclareNode*> *q) {
 		for (unsigned int i = 0; i < q->size(); i++) {
 			subDeclarations->push_back((ObjectDeclareNode *) q->at(i)->clone());
 		}
 	}
-	
+
 	string SignatureNode::deParse() {
 		switch (sigKind) {
 			case SignatureNode::atomic :
@@ -1500,8 +1500,8 @@ TreeNode* TreeNode::getNodeByOid(vector<TreeNode*>* listVec, long oid){
 		}
 		return 0;
 	}
-	
-	
+
+
 /**
  *		TypeCheck specific end.
  */
@@ -1513,7 +1513,7 @@ IndexSelectNode::IndexSelectNode(QueryNode *exact) {
 IndexSelectNode::IndexSelectNode(IndexBoundaryNode *left, IndexBoundaryNode *right) {
 	c = new TwoSideConstraints(left->inclusive, left->value, right->value, right->inclusive);
 }
-	    	
+
 IndexSelectNode::IndexSelectNode(IndexBoundaryNode *left, bool right) {
 	c = new LeftBoundedConstraints(left->inclusive, left->value);
 }
