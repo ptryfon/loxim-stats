@@ -1,3 +1,8 @@
+2008-07-24  Damian Klata  <dk209472@students.mimuw.edu.pl>
+
+	* TransactionManager/Transaction.cpp, Store/Buffer.cpp, Store/DBStoreManager.cpp, Store/DBStoreManager.h, Store/NamedItems.cpp, Store/NamedItems.h, Store/Store.h, TransactionManager/Transaction.h, QueryParser/QueryParser.cpp, QueryParser/TreeNode.cpp, QueryExecutor/ClassGraph.cpp, QueryExecutor/QueryExecutor.cpp, QueryExecutor/ClassGraph.h, QueryParser/IndexNode.h, Store/Buffer.h, Store/Classes.cpp, Store/DBDataValue.cpp, Store/DBDataValue.h, Store/DBLogicalID.cpp, Store/DBLogicalID.h, Store/Map.cpp, Store/Map.h, Store/PageManager.cpp, Store/PageManager.h, Store/PagePointer.cpp, Store/PagePointer.h, Store/SystemViews.cpp, Store/SystemViews.h, Store/Views.cpp, Store/Views.h, TransactionManager/Makefile, QueryParser/AuxRmver.cpp, QueryParser/DataRead.cpp, QueryParser/DataRead.h, QueryParser/DeathRmver.cpp, QueryParser/JoinRpcer.cpp, QueryParser/QueryParser.h, QueryParser/Stack.cpp, Backup/Makefile, Config/Makefile, Config/SBQLConfig.cpp, Indexes/IndexManager.cpp, Indexes/IndexManager.h, Indexes/Metadata.cpp, Lock/Lock.cpp, Log/LogIO.cpp, Log/Makefile, LoximServer/LoximSession.cpp, LoximServer/Makefile, LoximServer/Server.cpp, SystemStats/AllStats.cpp, SystemStats/AllStats.h, SystemStats/SessionStats.cpp, SystemStats/SessionStats.h, SystemStats/SystemStats.cpp, SystemStats/SystemStats.h, SystemStats/TimeStats.cpp, SystemStats/TimeStats.h, TypeCheck/DMLControl.cpp, TypeCheck/DMLControl.h, TypeCheck/DecisionTable.cpp, TypeCheck/TypeChecker.cpp:
+	Statysyki odczytu i zapisu w widokach systemowych.
+
 2008-07-24  Marek Dopiera  <md219418@students.mimuw.edu.pl>
 
 	* QueryParser/QueryParser.cpp, client.sh, server.sh:
