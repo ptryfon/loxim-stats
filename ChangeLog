@@ -1,3 +1,8 @@
+2008-07-27  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
+
+	* QueryExecutor/InterfaceMatcher.cpp, QueryExecutor/InterfaceMatcher.h, QueryExecutor/QueryExecutor.cpp, QueryParser/TreeNode.h, Testy/interfejsy.sbql, Testy/interfejsyMatch.sbql:
+	konwersja bag -> schemat, bazowe dopasowywanie interfejs->implementacja, rozszerzenie resultBag dla procedur o ich nazwe, testy..
+
 2008-07-25  Damian Klata  <dk209472@students.mimuw.edu.pl>
 
 	* QueryExecutor/QueryExecutor.cpp, QueryParser/TreeNode.cpp, Store/DBStoreManager.cpp, Store/Interfaces.cpp, Store/NamedItems.cpp, Store/NamedItems.h:
