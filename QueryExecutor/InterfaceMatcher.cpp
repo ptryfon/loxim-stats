@@ -69,47 +69,64 @@ void Schema::sortVectors()
     sort(m_methods.begin(), m_methods.end(), AscendingMethodSort());
 }
 
+void Schema::debugPrint()
+{
+    cout << "Schema:\n";
+    string isInt = m_isInterfaceSchema?"yes":"no";
+    cout << "\tisInterface = " << isInt << endl;
+    cout << "\tFields:\n";
+    TFields::iterator itF;
+    int i = 0;
+    for (itF = m_fields.begin(); itF != m_fields.end(); ++itF)
+    {
+	i++;
+        cout << "\t\t" << i << ". " << (*itF)->getName() << endl;
+    }
+    cout << "\tMethods:\n";
+    TMethods::iterator itM;
+    i = 0;
+    for (itM = m_methods.begin(); itM != m_methods.end(); ++itM)
+    {
+	i++;
+	Method *m = *itM;
+        cout << "\t\t" << i << ". " << m->getName() << endl;
+        int j = 0;
+        TFields params = m->getParams();
+        TFields::iterator itP;
+        for (itP = params.begin(); itP != params.end(); ++itP)
+        {
+    	    j++;
+    	    cout << "\t\t\t" << (*itP)->getName() << endl;
+        }
+    }
+}
+
 Schema::Schema() {}
 
-Schema *Schema::fromClassQBResult(QueryBagResult classResultBag)
-{	//ADTODO
-    return fromInterfaceQBResult(classResultBag);
-}
+Schema::~Schema() {}
 
-Schema *Schema::fromViewQBResult(QueryBagResult viewResultBag)
-{	//ADTODO
-    return fromInterfaceQBResult(viewResultBag);
-}
-
-Schema *Schema::fromInterfaceQBResult(QueryBagResult interfaceResultBag)
+Schema *Schema::fromQBResult(QueryBagResult resultBag)
 {
-    cout << "Schema: fromInterfaceQBResult() \n";
+    cout << "Schema: fromQBResult() \n";
     Schema *s = new Schema();
-    QueryResult *res;
-    interfaceResultBag.getResult(res);
-    QueryStructResult *innerResult = (QueryStructResult *)res;
-    vector<QueryResult *> structVec = innerResult->getVector();
+    vector<QueryResult *> structVec = resultBag.getVector();
     vector<QueryResult *>::iterator it;
     for (it = structVec.begin(); it != structVec.end(); ++it)
     {
 	QueryResult *qr = *it;
 	QueryBinderResult *qbR = (QueryBinderResult *)qr;
 	string name = qbR->getName();
-	if (name.compare(QE_OBJECT_NAME_BIND_NAME))
+	if (!name.compare(QE_FIELD_BIND_NAME))
 	{
-		cout << "OBJECT_NAME_BIND\n";//this does not affect matching
-	}
-	else if (name.compare(QE_FIELD_BIND_NAME))
-	{
-	    QueryStructResult *fieldStruct = (QueryStructResult *)qbR->getItem();
-	    QueryBinderResult *nameBinder = (QueryBinderResult *)fieldStruct->getVector().front();
-	    QueryStringResult *nameString = (QueryStringResult *)nameBinder->getItem();
+	    QueryResult *r = qbR->getItem();
+	    if (r->type()!=QueryResult::QSTRING) { cout << "ERR"; return s; }
+	    QueryStringResult *nameString = (QueryStringResult *)r;    
 	    string fieldName = nameString->getValue();
 	    Field *f = new Field(fieldName);
 	    s->addField(f);		
-	    cout << "Field: " << fieldName << "\n"; 	
+	    //cout << "Field: " << fieldName << endl; 	
 	}
-	else if (name.compare(QE_METHOD_BIND_NAME))
+	else if (!name.compare(QE_METHOD_BIND_NAME))
 	{
 	    QueryStructResult *fieldStruct = (QueryStructResult *)qbR->getItem();
 	    vector<QueryResult *> methodInnerBinders = fieldStruct->getVector();
@@ -121,50 +138,91 @@ Schema *Schema::fromInterfaceQBResult(QueryBagResult interfaceResultBag)
 		QueryBinderResult *mQbr = (QueryBinderResult *)mQr;
 		string mBinderName = mQbr->getName();
 		QueryStringResult *nameString = (QueryStringResult *)mQbr->getItem();    
-		if (mBinderName.compare(QE_NAME_BIND_NAME))
+		if (!mBinderName.compare(QE_NAME_BIND_NAME))
 		{   //method Name
 		    m->setName(nameString->getValue());
-		    cout << "Method name: " << nameString->getValue() << "\n";
+		    //cout << "Method name: " << nameString->getValue() << "\n";
 		}
-		else if (mBinderName.compare(QE_METHOD_PARAM_BIND_NAME))
+		else if (!mBinderName.compare(QE_METHOD_PARAM_BIND_NAME))
 		{   //parameter Name
 		    Field *f = new Field(nameString->getValue());
 		    m->addParam(f);    
-		    cout << "Method param name: " << nameString->getValue() << "\n";
+		    //cout << "Method param name: " << nameString->getValue() << "\n";
 		}
 	    }
 	    s->addMethod(m);
-	}
-	else
-	{
-	    cout << "Schema::fromInterfaceQBResult: INVALID result bag!";
-	    break;
+	    //cout << "Method: " << m->getName() << "\n";
 	}
     }
-    
-    cout << "Schema: fromInterfaceQBResult(), returning...\n";
+    s->debugPrint();
+    //cout << "Schema: fromQBResult(), returning...\n";
     return s;
 }
 
 /**************
     Matcher
 **************/
-//ADTODO - implement
-bool Matcher::MatchFields(vector<Field *> intF, vector<Field *> impF)
+
+bool Matcher::matchesAny(Field *f, TFields impF)
 {
+    TFields::iterator it;
+    for (it = impF.begin(); it != impF.end(); ++it)
+    {
+	Field *cand = (*it);
+	if (f->Matches(*cand))
+	    return true;
+    }
     return false;
 }
 
-bool Matcher::MatchMethods(vector<Method *> intM, vector<Method *> impM)
+bool Matcher::matchesAny(Method *m, TMethods impM)
 {
+    TMethods::iterator it;
+    m->sortParams();
+    for (it = impM.begin(); it != impM.end(); ++it)
+    {
+	Method *cand = (*it);
+	cand->sortParams();
+	if (m->Matches(*cand))
+	    return true;
+    }
     return false;
+}
+
+bool Matcher::MatchFields(TFields intF, TFields impF)
+{
+    TFields::iterator intI;
+    for (intI = intF.begin(); intI != intF.end(); ++intI)
+    {
+	Field *intField = (*intI);
+	if (!Matcher::matchesAny(intField, impF))
+	    return false;
+    }
+    return true;
+}
+
+
+bool Matcher::MatchMethods(TMethods intM, TMethods impM)
+{
+    TMethods::iterator intI;
+    for (intI = intM.begin(); intI != intM.end(); ++intI)
+    {
+	Method *intMethod = (*intI);
+	if (!Matcher::matchesAny(intMethod, impM))
+	    return false;
+    }
+    return true;
 }
 
 bool Matcher::MatchInterfaceWithImplementation(Schema interface, Schema implementation)
 {
+    interface.sortVectors();
+    implementation.sortVectors();
+    
     bool result = MatchFields(interface.getFields(), implementation.getFields());
-    if (!result) return result;
+    if (!result) {cout << "Fields mismatch" << endl; return result;}
     result = MatchMethods(interface.getMethods(), implementation.getMethods());
+    if (!result) cout << "Methods mismatch" << endl; else cout << "Match!" << endl;
     return result;
 }
 

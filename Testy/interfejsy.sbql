@@ -1,0 +1,9 @@
+begin;
+
+create interface Ibabcia {object name is OIbabcia; (imie) upieczCiasto(maka, jaja, innySyf); };
+
+create class Cbabcia {instance Obabcia : {imie} procedure upieczCiasto(maka, jaja, innySyf) {return 0} };
+
+interface Ibabcia shows Cbabcia;
+
+end;

@@ -51,20 +51,22 @@ namespace Schemas
 	    TMethods getMethods() {return m_methods;}   
 	    void addField(Field *f) {m_fields.push_back(f);}
 	    void addMethod(Method *m) {m_methods.push_back(m);}
+	    void debugPrint();
+	    void sortVectors();
 	
-	    static Schema* fromInterfaceQBResult(QExecutor::QueryBagResult interfaceResultBag);
-	    static Schema* fromClassQBResult(QExecutor::QueryBagResult classResultBag); 
-	    static Schema* fromViewQBResult(QExecutor::QueryBagResult viewResultBag);
+	    static Schema* fromQBResult(QExecutor::QueryBagResult resultBag);
 	private:
 	    bool m_isInterfaceSchema;
 	    TFields m_fields;
 	    TMethods m_methods;
-	    
-	    void sortVectors();
     };
     
     class Matcher 
     {
+	private:
+	    static bool matchesAny(Field *intField, TFields impFields);
+	    static bool matchesAny(Method *intMethod, TMethods impMethods); 
+    
 	public:
 	    static bool MatchFields(TFields intFields, TFields impFields);
 	    static bool MatchMethods(TMethods intMethods, TMethods impMethods);

@@ -239,7 +239,7 @@ namespace QParser {
 	    
 	    virtual TreeNode* clone();
 	    virtual int type() {return TNINTERFACEATTRIBUTE;};
-	    virtual int putToString() {cout << "InterfaceAttribute valueName = " + m_name + " type =" + "TODO" + "\n"; return 0;};
+	    virtual int putToString() {cout << "InterfaceAttribute valueName = " + m_name + "\n"; return 0;};
 	    virtual string toString(int level = 0, bool recursive = false, string name = "") {
 		string result = getPrefixForLevel( level, name) + "([InterfaceAttribute] " + this->deParse() +  ") ";
 		return result;
@@ -248,8 +248,6 @@ namespace QParser {
 	    virtual string deParse() { 
     		string result;
 		result = m_name;
-		if (m_signature)
-		    result = result + ": " + "TODO";
 		result = result + "; ";
     		return result;
 	    }
@@ -304,7 +302,7 @@ namespace QParser {
 	    int putToString() {cout << "InterfaceMethod name = " + m_name + "\n"; return 0;};
 	    string toString(int level = 0, bool recursive = false, string name = "") {
 		string methodParamsString = m_params ? m_params->toString() : "<null>";
-		string result = getPrefixForLevel( level, name) + "([InterfaceMethod] " + m_name + " ( " + methodParamsString + " ) : " + "TODO" + ") ";
+		string result = getPrefixForLevel( level, name) + "([InterfaceMethod] " + m_name + " ( " + methodParamsString + " ) ";
 		
 		return result;	    
 	    }

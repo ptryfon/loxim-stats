@@ -569,14 +569,19 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			unsigned int paramsNumb = ((ProcedureNode *) tree)->getParamsNumb();
 
 			string code = tmpQN->deParse();
-
 			QueryResult *strct = new QueryStructResult();
+			
+			QueryResult *nameString = new QueryStringResult(name);
+			QueryResult *nameBind = new QueryBinderResult(QE_NAME_BIND_NAME, nameString);
+			strct->addResult(nameBind);
+			    
 			QueryResult *code_str = new QueryStringResult(code);
 			QueryResult *code_bind = new QueryBinderResult("ProcBody", code_str);
 			strct->addResult(code_bind);
+			
 			for (unsigned int i=0; i<paramsNumb; i++) {
 				QueryResult *param_str = new QueryStringResult(params[i]);
-				QueryResult *param_bind = new QueryBinderResult("Param", param_str);
+				QueryResult *param_bind = new QueryBinderResult(QE_METHOD_PARAM_BIND_NAME, param_str);
 				strct->addResult(param_bind);
 			}
 			QueryResult *final_binder = new QueryBinderResult(name, strct);
@@ -1262,8 +1267,25 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		    Check if implementation fits interface
 		    **********************************************/
 
-
-
+		    //Deref 
+		    QueryResult *tmp;
+		    errcode = derefQuery(interfaceResult, tmp);
+		    if (errcode != 0) return errcode;
+		    errcode = derefQuery(tmp, interfaceResult);
+		    if (errcode != 0) return errcode;
+		    errcode = derefQuery(implementationResult, tmp);
+		    if (errcode != 0) return errcode;	
+		    errcode = derefQuery(tmp, implementationResult);
+		    if (errcode != 0) return errcode;
+		    
+		    QueryBagResult *bag = (QueryBagResult *)interfaceResult;
+		    Schemas::Schema *intS = Schemas::Schema::fromQBResult(*bag);
+		    bag = (QueryBagResult *)implementationResult;
+		    Schemas::Schema *impS = Schemas::Schema::fromQBResult(*bag);
+		    bool res = Schemas::Matcher::MatchInterfaceWithImplementation(*intS, *impS);
+		    string resS = res? "fits": "does not fit";
+		    ec->printf("[QE] TNINTERFACEBIND - interface %s %s implementation %s\n",interfaceName.c_str(),resS.c_str(),implementationName.c_str());
+		    		    
 		    /******************
 		    Cleanup and return
 		    *******************/
@@ -1352,21 +1374,16 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		case TreeNode::TNINTERFACEMETHOD: {
 		    *ec << "[QE] Type: TNINTERFACEMETHOD";
 		    string name = ((InterfaceMethod *) tree)->getName();
-		    string type = "TODO";//((InterfaceMethod *) tree)->getSignature();
 		    vector<LogicalID *> methodLids;
 
-		    ec->printf("[QE] Type: TNINTERFACEMETHOD name=%s, type=%s\n", name.c_str(), type.c_str());
+		    ec->printf("[QE] Type: TNINTERFACEMETHOD name=%s\n", name.c_str());
 
 		    QueryResult *methodStruct = new QueryStructResult();
-		    QueryResult *typeString = new QueryStringResult(type);
-		    QueryResult *typeBinder = new QueryBinderResult(QE_TYPE_BIND_NAME, typeString);
 		    QueryResult *nameString = new QueryStringResult(name);
 		    QueryResult *nameBinder = new QueryBinderResult(QE_NAME_BIND_NAME, nameString);
 		    methodStruct->addResult(nameBinder);
-		    methodStruct->addResult(typeBinder);
-		    QueryResult *paramName, *paramNameBinder, *paramType, *paramTypeBinder;
+		    QueryResult *paramName, *paramNameBinder;
 		    int i=0;
-
 
 		    // get and process arguments (ADTODO-check name uniqueness)
 		    const InterfaceMethodParamListNode *argumentList = ((InterfaceMethod *) tree)->getParams();
@@ -1379,17 +1396,8 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				i++;
 				ec->printf("[QE] TNINTERFACEMETHOD processing parameter %d of %d\n", i, argums.size());
 				paramName = new QueryStringResult((*arg)->getValueName());
-				paramType = new QueryStringResult("Type-TODO");
 				paramNameBinder = new QueryBinderResult(QE_METHOD_PARAM_BIND_NAME, paramName);
-				paramTypeBinder = new QueryBinderResult(QE_TYPE_BIND_NAME, paramType);
-				/*
-				paramStruct = new QueryStructResult();
-				paramStruct->addResult(paramNameBinder);
-				paramStruct->addResult(paramTypeBinder);
-				paramBinder = new QueryBinderResult(QE_METHOD_PARAM_BIND_NAME, paramStruct);
-				*/
 				methodStruct->addResult(paramNameBinder);
-				methodStruct->addResult(paramTypeBinder);
 				ec->printf("[QE] TNINTERFACEMETHOD parameter (%s) added\n", (*arg)->getValueName().c_str());
 			    }
 
@@ -1417,23 +1425,14 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 
 		// ADTODO-get rid of that
 		case TreeNode::TNINTERFACEATTRIBUTE: {
-		    *ec << "[QE] Type: TNINTERFACEATTRIBUTE";
 		    string name = ((InterfaceAttribute *) tree)->getValueName();
-		    string type = "TODO";//((InterfaceAttribute *) tree)->getTypeName();
-		    ec->printf("[QE] Type: TNINTERFACEATTRIBUTE Name = %s, Type = %s\n", name.c_str(), type.c_str());
-
-		    //ADTODO - constantize TYPE
-		    QueryResult *attribStruct = new QueryStructResult();
-		    QueryResult *typeString = new QueryStringResult(type);
-		    QueryResult *typeBinder = new QueryBinderResult(QE_TYPE_BIND_NAME, typeString);
+		    ec->printf("[QE] Type: TNINTERFACEATTRIBUTE Name = %s\n", name.c_str());
+		    		    
 		    QueryResult *nameString = new QueryStringResult(name);
 		    QueryResult *nameBinder = new QueryBinderResult(QE_NAME_BIND_NAME, nameString);
-		    attribStruct->addResult(nameBinder);
-		    attribStruct->addResult(typeBinder);
-		    QueryResult *attributeBinder = new QueryBinderResult(name, attribStruct);
 
 		    ObjectPointer *optr;
-		    if ((errcode = objectFromBinder(attributeBinder, optr))!=0)
+		    if ((errcode = objectFromBinder(nameBinder, optr))!=0)
 			return errcode;
 
 		    QueryResult *lidres = new QueryReferenceResult(optr->getLogicalID());
