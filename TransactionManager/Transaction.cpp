@@ -2,7 +2,9 @@
 #include "Transaction.h"
 #include "../Indexes/IndexManager.h"
 #include "TypeCheck/TypeChecker.h"
+#include "SystemStats/AllStats.h"
 
+using namespace SystemStatsLib;
 /**
  *	@author Julian Krzemiski (julian.krzeminski@students.mimuw.edu.pl)
  *	@author Dominik Klimczak (dominik.klimczak@students.mimuw.edu.pl)
@@ -157,7 +159,7 @@ namespace TManager
 
 	int Transaction::createObject(string name, DataValue* value, ObjectPointer* &p)
 	{
-		int errorNumber;
+ 		int errorNumber;
 
 		err.printf("Transaction: %d createObject\n", tid->getId());
 
@@ -573,7 +575,7 @@ namespace TManager
 
 		return errorNumber;
 	}
-	
+
 	int Transaction::addInterface(const char* name, const char* objectName, ObjectPointer* &p)
 	{
 		int errorNumber;
@@ -767,7 +769,11 @@ namespace TManager
 	    mutex->up();
 
 	    tr = new Transaction(tid, sem);
-	    return tr->init(storeMgr, logMgr);
+	    int ret = tr->init(storeMgr, logMgr);
+	    if (ret == 0) {
+	    	AllStats::getHandle()->getTransactionsStats()->startTransaction(tid->getId());
+	    }
+	    return ret;
 	}
 
 	int TransactionManager::init(StoreManager *strMgr, LogManager *logsMgr)
@@ -827,6 +833,9 @@ namespace TManager
 	    	remove_from_list(tr->getId());
 	    	IndexManager::getHandle()->commit(tr->getId()->getId(), id);
 		/* free memory */
+
+	    	AllStats::getHandle()->getTransactionsStats()->commitTransaction(tr->getId()->getId());
+
 	    	delete tr;
 
 	    	return errorNumber;
@@ -852,8 +861,10 @@ namespace TManager
 
 	    	IndexManager::getHandle()->abort(tr->getId()->getId());
 
+	    	AllStats::getHandle()->getTransactionsStats()->abortTransaction(tr->getId()->getId());
 		/* free memory */
 	    	delete tr;
+
 
 	    	return errorNumber;
 	}

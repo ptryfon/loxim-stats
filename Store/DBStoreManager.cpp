@@ -4,6 +4,9 @@
 #include "DBDataValue.h"
 #include "SystemViews.h"
 #include "Indexes/IndexManager.h"
+#include "SystemStats/AllStats.h"
+
+using namespace SystemStatsLib;
 
 #define LOGS
 
@@ -226,6 +229,8 @@ namespace Store
 #ifdef DEBUG_MODE
 		*ec << "Store::Manager::createObject start...";
 #endif
+	   	AllStats::getHandle()->getTransactionsStats()->incCreateObject();
+
 		LogicalID* lid;
 		if(p_lid == NULL)
 			lid = new DBLogicalID(map->createLogicalID(tid));
@@ -279,6 +284,8 @@ namespace Store
 #ifdef DEBUG_MODE
 		*ec << "Store::Manager::deleteObject start...";
 #endif
+	   	AllStats::getHandle()->getTransactionsStats()->incDeleteObject();
+
 		unsigned log_id;
 		int itid = tid==NULL ? -1 : tid->getId();
 #ifdef LOGS
@@ -396,6 +403,8 @@ namespace Store
 #ifdef DEBUG_MODE
 		*ec << "Store::Manager::modifyObject start...";
 #endif
+	   	AllStats::getHandle()->getTransactionsStats()->incModifyObject();
+
 		string parentRoot;
 		if (object->isRoot()) {
 			parentRoot = object->getName();

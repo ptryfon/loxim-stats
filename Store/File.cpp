@@ -9,6 +9,9 @@
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
+#include "SystemStats/AllStats.h";
+#include <time.h>
+#include <sys/time.h>
 
 namespace Store
 {
@@ -126,7 +129,7 @@ namespace Store
 
 			store->getViews()->initializeFile(this);
 		}
-		
+
 		if (fclasses == -1)
 		{
 			if ((fclasses = ::open(sclasses.c_str(), O_CREAT | O_RDWR, S_IRUSR | S_IWUSR)) == -1)
@@ -134,7 +137,7 @@ namespace Store
 
 			store->getClasses()->initializeFile(this);
 		}
-		
+
 		if (finterfaces == -1)
 		{
 			if ((finterfaces = ::open(sinterfaces.c_str(), O_CREAT | O_RDWR, S_IRUSR | S_IWUSR)) == -1)
@@ -142,8 +145,8 @@ namespace Store
 
 			store->getInterfaces()->initializeFile(this);
 		}
-		
-		
+
+
 
 		started = 1;
 		return 0;
@@ -173,9 +176,15 @@ namespace Store
 
 		if ((err = getStream(fileID, &file)) != 0)
 			return err;
+		timeval begin, end;
 
+		gettimeofday(&begin,NULL);
 		::lseek(file, offset, SEEK_SET);
 		::read(file, buffer, length);
+		gettimeofday(&end,NULL);
+
+		double milisec = (end.tv_sec - begin.tv_sec) * 1000 + (end.tv_usec - begin.tv_usec);
+		AllStats::getHandle()->getStoreStats()->addReadTime(length, milisec);
 
 		return 0;
 	};
