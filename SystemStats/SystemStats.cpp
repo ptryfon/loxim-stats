@@ -122,6 +122,9 @@ StatsValue::StatsValue(string key) {
 	this->key = key;
 }
 
+StatsValue::~StatsValue() {
+}
+
 int StatsValue::getType() {
 	return -1;
 }

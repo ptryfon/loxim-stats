@@ -7,7 +7,9 @@ SOURCES	=	Server.cpp \
 		LoximSession.cpp \
 		LoximServer.cpp \
 		Clipboard.cpp \
-		KeepAlive.cpp
+		KeepAlive.cpp \
+		SignalRouter.cpp \
+		Worker.cpp
 
 HEADERS	= 	../Driver \
 		../protocol \

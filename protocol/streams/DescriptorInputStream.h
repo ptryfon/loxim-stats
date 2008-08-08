@@ -17,7 +17,7 @@ class DescriptorInputStream: public AbstractInputStream
 		virtual void close(void);
 		
 		virtual int read(char* buffor, unsigned long int off, unsigned long int length);
-		virtual int read(char* buffor, unsigned long int off, unsigned long int length, long timeout);	
+		virtual int read(char* buffor, unsigned long int off, unsigned long int length, sigset_t *sigmask, int *cancel);	
 			
 		virtual int getStatus() {return status;};
 };

@@ -6,6 +6,7 @@
 #include "LoximSession.h"
 #include <protocol/sockets/TCPIPServerSocket.h>
 #include <Config/SBQLConfig.h>
+#include <pthread.h>
 
 using namespace std;
 using namespace protocol;
@@ -24,8 +25,12 @@ using namespace protocol;
 #define CONFIG_KEEP_ALIVE_INTERVAL_DEFAULT 60
 
 namespace LoximServer{
+
+	void LSrv_signal_handler(pthread_t, int, void*);
+
 	class LoximSession;
 	class LoximServer{
+		friend void LSrv_signal_handler(pthread_t, int, void*);
 		private:
 			int config_accept_interval;
 			int config_read_interval;
@@ -33,7 +38,8 @@ namespace LoximServer{
 			int config_max_package_size;
 			int config_keep_alive_interval;
 			bool config_auth_trust_allowed;
-
+			pthread_t thread;
+			void handle_signal(int sig);
 		public:
 
 			// server settings specified in the configuration file

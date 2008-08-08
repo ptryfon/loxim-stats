@@ -43,7 +43,7 @@ int TCPIPServerSocket::bind()
 {	
 	struct sockaddr_in server;
 	struct hostent *hp;
-		
+	int res;	
 	sock = socket (PF_INET, SOCK_STREAM, 0);
 	if (sock < 0)
 	{
@@ -72,8 +72,9 @@ int TCPIPServerSocket::bind()
 	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
 
 	/* Associate the address with the socket. */
-  	if (::bind (sock, (struct sockaddr *) &server, sizeof server) < 0)
+  	if ((res = ::bind (sock, (struct sockaddr *) &server, sizeof server) < 0))
     {
+	 perror("bind returned %d\n");
     	 return SOCKET_BIND_ERROR;
     }
     
@@ -112,17 +113,22 @@ AbstractSocket *TCPIPServerSocket::accept()
 }
 
 
-AbstractSocket *TCPIPServerSocket::accept(long timeout)
+AbstractSocket *TCPIPServerSocket::accept(sigset_t *sigmask, int *cancel)
 {
-	while (true){
+	sigset_t old_mask;
+	while (!*cancel){
 		fd_set rdfd;
 		FD_ZERO(&rdfd);
 		FD_SET(sock, &rdfd);
-		struct timeval tv;
-		tv.tv_sec = timeout;
-		tv.tv_usec = 0;
 		setNonBlock(false);
-		int res = select(sock + 1, &rdfd, NULL, NULL, &tv);
+		pthread_sigmask(SIG_SETMASK, sigmask, &old_mask);
+		if (*cancel){
+			acceptError = ECANCELED;
+			pthread_sigmask(SIG_SETMASK, &old_mask, NULL);
+			return NULL;
+		}
+		int res = pselect(sock + 1, &rdfd, NULL, NULL, NULL, &old_mask);
+		pthread_sigmask(SIG_SETMASK, &old_mask, NULL);
 		if (res > 0){
 			setNonBlock(true);			
 			res = ::accept(sock, NULL, NULL);
@@ -136,9 +142,12 @@ AbstractSocket *TCPIPServerSocket::accept(long timeout)
 				return new TCPIPServerSingleSocket(res);
 			}
 		}else{
-			if (res < 0)
-				acceptError = errno;
-			else
+			if (res < 0){
+				if (errno == EINTR)
+					acceptError = ECANCELED;
+				else
+					acceptError = errno;
+			} else
 				acceptError = ETIMEDOUT;
 			return NULL;	
 		}

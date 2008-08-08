@@ -18,26 +18,12 @@
 
 using namespace protocol;
 
-void add_sig_handler(int sig, void (*handler)(int))
-{
-	struct sigaction s_action;
-	s_action.sa_handler = handler;
-	s_action.sa_flags = 0;
-	s_action.sa_restorer = 0;
-	if (sigemptyset(&s_action.sa_mask)){
-		fprintf(stderr, "Error while initializing empty signal set\n");
-		exit(1);
-	};
-	if (sigaction(sig, &s_action, NULL)){
-		fprintf(stderr, "Error while adding signal handler (%d)\n", sig);
-		exit(1);
-	};
-
-}
+LoximClient::LoximClient *loximClient;
 
 void sig_handler(int a)
 {
-	printf("In order to quit, type \"quit\"\n");	
+//	printf("Sig handler, %d\n", pthread_self());
+	loximClient->aborter->trigger();
 }
 
 void print_usage(FILE *stream, char* program_name, int exit_code)
@@ -153,8 +139,7 @@ int main(int argc, char* argv[])
 		}
 	}while (next_option != -1);
 	
-	LoximClient::LoximClient *loximClient=new LoximClient::LoximClient(hostname?hostname:DEFAULT_HOST, port);
-	add_sig_handler(SIGINT, sig_handler);
+	loximClient=new LoximClient::LoximClient(hostname?hostname:DEFAULT_HOST, port);
 	int res=loximClient->connect();
 	if (res<0)
 	{

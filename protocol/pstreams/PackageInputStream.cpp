@@ -19,14 +19,14 @@ PackageInputStream::~PackageInputStream()
 	
 Package *PackageInputStream::readPackage()
 {
-	return readPackage(0);
+	return readPackage(NULL, NULL);
 }
 
-Package *PackageInputStream::readPackage(long timeout)
+Package *PackageInputStream::readPackage(sigset_t *sigmask, int *cancel)
 {
 	char header[5];
 	
-	if(readNbytes(header,5, timeout)!=5)
+	if(readNbytes(header,5, sigmask, cancel)!=5)
 	{
 		//printf("Urwany header\n");
 		return NULL;
@@ -43,7 +43,7 @@ Package *PackageInputStream::readPackage(long timeout)
 	if (!data) //Za ma³o pamiêci na bufor pakietu
 		return NULL;
 		
-	if (readNbytes(data+5,size, timeout)!=size)
+	if (readNbytes(data+5,size, sigmask, cancel)!=size)
 	{   /*Nie uda³o siê wczytaæ ca³ego pakietu*/
 		free(data);   
 		//printf("Za ma³o danych\n"); 
@@ -55,14 +55,14 @@ Package *PackageInputStream::readPackage(long timeout)
 	return resPackage;
 }
 
-unsigned int PackageInputStream::readNbytes(char* buffor,unsigned long int n, long timeout)
+unsigned int PackageInputStream::readNbytes(char* buffor,unsigned long int n, sigset_t *sigmask, int *cancel)
 {
 	unsigned int readlen=0;
 	while(readlen<n)
 	{
 		int res;
-		if (timeout)
-			res = inputStream->read(buffor,readlen,n-readlen, timeout);
+		if (sigmask)
+			res = inputStream->read(buffor,readlen,n-readlen, sigmask, cancel);
 		else
 			res = inputStream->read(buffor,readlen,n-readlen);
 		//printf("\n - got bytes: %d - \n",res);

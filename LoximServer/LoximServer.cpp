@@ -5,6 +5,7 @@
 #include <string>
 #include <list>
 #include <iostream>
+#include <SignalRouter.h>
 
 using namespace std;
 
@@ -43,6 +44,8 @@ namespace LoximServer{
 
 	int LoximServer::prepare()
 	{
+		thread = pthread_self();
+		SignalRouter::register_thread(thread, LSrv_signal_handler, this);
 		socket = new TCPIPServerSocket(const_cast<char*>(hostname.c_str()), port);
 		int res;
 		if ((res = socket->bind()) == SOCKET_CONNECTION_STATUS_OK){
@@ -57,7 +60,11 @@ namespace LoximServer{
 		AbstractSocket *session_socket;
 		if (!prepared)
 			return -1;
-		while (!shutting_down && ((session_socket = socket->accept(get_config_accept_interval())) || socket->getAcceptError() == ETIMEDOUT)){
+		sigset_t sigset_tmpl, sigset;
+		pthread_sigmask(0, NULL, &sigset_tmpl);
+		sigaddset(&sigset_tmpl, SIGUSR1);
+		sigset = sigset_tmpl;
+		while (!shutting_down && (session_socket = socket->accept(&sigset, &shutting_down))){
 			if (!session_socket)
 				continue;
 			pthread_mutex_lock(&open_sessions_mutex);
@@ -70,11 +77,14 @@ namespace LoximServer{
 				delete session_socket;
 			}
 			pthread_mutex_unlock(&open_sessions_mutex);
+			sigset = sigset_tmpl;
 		}
+		pthread_mutex_lock(&open_sessions_mutex);
 		err_cons->printf("Telling sessions to shutdown\n");
 		for (set<LoximSession *>::iterator i = open_sessions.begin(); i != open_sessions.end(); i++){
 			(*i)->shutdown();
 		}
+		pthread_mutex_unlock(&open_sessions_mutex);
 		err_cons->printf("Joining threads\n");
 		for (set<LoximSession *>::iterator i = open_sessions.begin(); i != open_sessions.end(); i++){
 			pthread_join((*i)->get_thread(), NULL);
@@ -88,16 +98,13 @@ namespace LoximServer{
 	void LoximServer::shutdown()
 	{
 		err_cons->printf("Server shutdown called\n");
-		pthread_mutex_lock(&open_sessions_mutex);
-		if (shutting_down){
-			pthread_mutex_unlock(&open_sessions_mutex);
-			return; //someone was faster
-		} else {
-			shutting_down = 1;
-			pthread_mutex_unlock(&open_sessions_mutex);
-		}
+		pthread_kill(thread, SIGUSR1);
 	}
 
+	void LoximServer::handle_signal(int sig)
+	{
+		shutting_down = 1;
+	}
 
 	/**
 	 * It should take care of destroying the thread, the session or
@@ -105,6 +112,7 @@ namespace LoximServer{
 	 */
 	void LoximServer::end_session(LoximSession *session, int code)
 	{
+		int session_nr = session->get_id();
 		pthread_mutex_lock(&open_sessions_mutex);
 		if (!shutting_down){
 			pthread_detach(session->get_thread());
@@ -112,7 +120,13 @@ namespace LoximServer{
 			delete session;
 		}	
 		pthread_mutex_unlock(&open_sessions_mutex);
-		err_cons->printf("Session ended with code %d, working sessions left: %d\n", code, get_sessions_count());
+		err_cons->printf("Session %d ended with code %d, working sessions left: %d\n", session_nr, code, get_sessions_count());
+	}
+
+	void LSrv_signal_handler(pthread_t thread, int sig, void *arg)
+	{
+		LoximServer *serv = (LoximServer*)arg;
+		serv->handle_signal(sig);
 	}
 
 	int LoximServer::get_sessions_count()

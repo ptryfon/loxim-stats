@@ -34,7 +34,18 @@ namespace protocol{
 			virtual ~ProtocolLayer0();
 
 			Package *readPackage();
-			Package *readPackage(long timeout);
+
+			/** 
+			 * read a package until successful completion or cancel
+			 * turns into true. To avoid race conditions, sometimes
+			 * asynchronous changes of cancel should be blocked. It
+			 * is assumed that it will be changed only by signal
+			 * handlers, so blocking is done through setting the
+			 * sigmask. It is the callers duty to take care that
+			 * sigmask is proper, that is, that setting it would
+			 * really block the handlers which touch cancel.
+			 */
+			Package *readPackage(sigset_t *sigmask, int *cancel);
 			int getLastError();
 			bool writePackage(Package *package);
 			bool writePackagePriority(Package *package);

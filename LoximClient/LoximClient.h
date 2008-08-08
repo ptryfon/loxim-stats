@@ -10,6 +10,7 @@
 #include <protocol/packages/VSCSendValuePackage.h>
 #include "StatementProvider.h"
 #include "Authenticator.h"
+#include "Aborter.h"
 
 #include <string.h>
 
@@ -18,15 +19,18 @@ using namespace protocol;
 namespace LoximClient{
 
 	void *result_handler_starter(void *a);
+	void signal_handler(int sig);
+	class Aborter;
 
 	class LoximClient
 	{
 		friend void *result_handler_starter(void *a);
+		friend void signal_handler(int sig);
 		private:
-
+		static LoximClient *instance;
 		/*Ustawiane w konstruktorze*/
 		char* hostname;
-		int port; 
+		int port;
 		
 		/*Ustawianie w connect()*/
 		AbstractSocket *socket;
@@ -38,6 +42,9 @@ namespace LoximClient{
 
 		/*Ustawiane w authorize()*/
 		WSHelloPackage *ws_hello;
+
+		struct sigaction old_action;
+
 
 
 		public:
@@ -58,7 +65,9 @@ namespace LoximClient{
 		 */
 		int authorize(Authenticator *auth);
 		int send_statement();
+		void abort();
 
+		Aborter *aborter;
 		protected:
 		int error;
 		bool waiting_for_result;
@@ -69,6 +78,8 @@ namespace LoximClient{
 		string ind_gen(int width);
 		void print_result(DataPart *part, int indent);
 		void print_error(ASCErrorPackage *package);
+		void register_handler();
+		void unregister_handler();
 	};
 }
 

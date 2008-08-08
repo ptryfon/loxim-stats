@@ -214,6 +214,7 @@ namespace QExecutor
 		int executeQuery(TreeNode *tree, map<string, QueryResult*>* params, QueryResult **result);
 		int executeQuery(TreeNode *tree, QueryResult **result);
 		void stopExecuting() { stop = 65535; };
+		void contExecuting() { stop = 0; };
 		void antyStarveFunction(int errcode);
 		int abort();
 		void set_priviliged_mode(bool mode);

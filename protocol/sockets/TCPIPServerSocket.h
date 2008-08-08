@@ -3,6 +3,7 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <signal.h>
 
 #include "TCPIPClientSocket.h"
 //#define SOCKET_CONNECTION_STATUS_OK     1
@@ -30,7 +31,7 @@ class TCPIPServerSocket
 		
 		int bind();					
 		AbstractSocket *accept();
-		AbstractSocket *accept(long timeout);
+		AbstractSocket *accept(sigset_t *sigmask, int *cancel);
 		int getAcceptError();
 		void close();
 		

@@ -1,6 +1,7 @@
 #ifndef PACKAGEINPUTSTREAM_H
 #define PACKAGEINPUTSTREAM_H
 
+#include <signal.h>
 #include "../ptools/Package.h"
 #include "../streams/AbstractInputStream.h"
 
@@ -29,7 +30,7 @@ class PackageInputStream
 		virtual ~PackageInputStream();
 	
 		Package *readPackage();
-		Package *readPackage(long timeout);
+		Package *readPackage(sigset_t *sigmask, int *cancel);
 
 		int getStatus();
 	private:
@@ -37,7 +38,7 @@ class PackageInputStream
 		 * Próbuje odczytaæ dok³adnie n-bajtów. W razie potrzeby ponawia odczyt fizyczny.
 		 *  - Zwraca liczbê bajtów, któr± uda³o siê odczytaæ - oraz wype³nia buffor. 
 		 */
-		unsigned int readNbytes(char* buffor,unsigned long int n, long timeout);
+		unsigned int readNbytes(char* buffor,unsigned long int n, sigset_t *sigmask, int *cancel);
 };
 }
 #endif /*PACKAGEINPUTSTREAM_H*/

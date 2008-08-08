@@ -7,6 +7,7 @@
 #include <protocol/layers/ProtocolLayer0.h>
 #include <protocol/packages/VSCSendValuesPackage.h>
 #include <protocol/packages/VSCSendValuePackage.h>
+#include <protocol/packages/VSCAbortPackage.h>
 #include <protocol/packages/VSCFinishedPackage.h>
 #include <protocol/packages/WCHelloPackage.h>
 #include <protocol/packages/WSHelloPackage.h>
@@ -45,17 +46,27 @@
 using namespace protocol;
 using namespace std;
 
+LoximClient::LoximClient *LoximClient::LoximClient::instance;
+
+void LoximClient::signal_handler(int sig)
+{
+	LoximClient::instance->abort();
+}
+
 LoximClient::LoximClient::LoximClient(const char* a_hostname, int a_port)
 {
 	hostname=strdup(a_hostname);
 	port=a_port;
+	aborter = new Aborter(this);
 	socket=NULL;
 	proto=NULL;
 	ws_hello=NULL;
+	instance = this;
 }
 
 LoximClient::LoximClient::~LoximClient()
 {
+	delete aborter;
 	if (hostname)
 		free(hostname);
 	
@@ -64,6 +75,7 @@ LoximClient::LoximClient::~LoximClient()
 		
 	if (proto)
 		delete proto;
+	instance = NULL;
 }
 
 int LoximClient::LoximClient::connect()
@@ -96,6 +108,8 @@ int LoximClient::LoximClient::run(StatementProvider *provider)
 	pthread_mutex_t cond_mutex;
 	pthread_mutex_init(&cond_mutex, 0);
 
+	//printf("run, thread %d\n", pthread_self());
+	aborter->start();
 	while (true){
 		stmt = provider->read_stmt();
 		pthread_mutex_lock(&logic_mutex);
@@ -115,7 +129,9 @@ int LoximClient::LoximClient::run(StatementProvider *provider)
 		}
 		else{
 			waiting_for_result = true;
+			register_handler();
 			pthread_cond_wait(&read_cond, &logic_mutex);
+			unregister_handler();
 			pthread_mutex_unlock(&logic_mutex);
 			if (error)
 				return error;
@@ -123,6 +139,22 @@ int LoximClient::LoximClient::run(StatementProvider *provider)
 	}
 }
 
+void LoximClient::LoximClient::abort()
+{
+	pthread_mutex_lock(&logic_mutex);
+	if (!waiting_for_result)
+		printf("Nothing to abort\n");
+	else{
+		/*sending*/
+		VSCAbortPackage package(0, "");
+		if (!proto->writePackage(&package)){
+			printf("I was unable to send abort command to the server\n");
+		}
+		waiting_for_result = false;
+		pthread_cond_signal(&read_cond);
+	}
+		pthread_mutex_unlock(&logic_mutex);
+}
 
 void *::LoximClient::result_handler_starter(void *a)
 {
@@ -140,6 +172,7 @@ void LoximClient::LoximClient::result_handler()
 {
 	VSCSendValuePackage *pack;
 	ASCErrorPackage *err_pack;
+	//printf("result handler, thread %d\n", pthread_self());
 	while(true){
 		int res = receive_result(&pack, &err_pack);
 		//if error in protocol occurred or the server wants to close the connection
@@ -438,4 +471,18 @@ int LoximClient::LoximClient::authPassMySQL(CharArray* user, CharArray* pass)
 	return 1;
 };
 
+void LoximClient::LoximClient::register_handler()
+{
+	struct sigaction s_action;
+	s_action.sa_handler = signal_handler;
+	s_action.sa_flags = 0;
+	s_action.sa_restorer = 0;
+	sigemptyset(&s_action.sa_mask);
+	sigaction(SIGINT, &s_action, &old_action);
+}
+
+void LoximClient::LoximClient::unregister_handler()
+{
+	sigaction(SIGINT, &old_action, NULL);
+}
 

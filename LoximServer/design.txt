@@ -1,0 +1,140 @@
+LoXiM server design.
+
+The purpose of this document is to present the design of the LoXiM's server.
+It contains the threading model, locking strategy and tips for further
+modifications. It should be also a good start to understand the code base as it
+shortly summarizes some techniques.
+
+
+Key decisions:
+- we use pthreads
+- we avoid using signals as much as possible and, if unavoidable, we use an extra
+  abstraction layer for them
+
+
+Tools:
+- SignalRouter class:
+  the only argument which signal handlers are given is the signal number; to
+  make programming more OO, it is a good idea to introduce a new level of
+  abstraction over the signal handlers which would allow associating signal
+  handlers with objects and their particular methods. SignalRouter serves such
+  a purpose, however it is currently very simplistic, but may be extended in the
+  future. There is one thing which is not obvious and not elegant: instead of
+  somehow passing the object and its method to the signal router, the object and
+  a simple function are passed. The function takes one parameter: the object cast
+  to void* and its task is to merely cast the argument back and call the
+  appropriate method. It might have been a good idea to use templates here to do
+  it in a more elegant fasion, but they haven't been used in order to avoid 
+  redundand complexity. The key method is spawn_and_register which creates a new
+  thread and registers a signal handler to it (it takes care of appropriate signal
+  masking to do it right). The arguments are:
+    - a pointer to pthread_t, where the newly created thread's id will be stored
+    - starter function (starter) typed as a function passed to pthread_create
+    - the signal handler function (handler - typed as described above)
+    - takes the object which is passed to both functions (arg)
+    - the signal number (sig) to which the handler should be registered
+  Currently, only one signal may be handled for a thread, but this can be easilly
+  extended if needed. The implementation is very straight-forward.
+
+- KeepAliveThread:
+  As the name suggests, it is the class where the `keep alive'
+  functionality is implemented. This is the place where the asynchronous
+  keepalive messages to the clients are sent and where LoximSession reports all
+  the client's activity. If it turns out that the client is not responding,
+  LoximSession is asynchronously told that it should end by using the regular
+  LoximSessions interface (shutdown() method).
+
+
+Thread model:
+
+There is one thread responsible for accepting connections (main thread). This is
+the initial thread. There are 3 threads associated with each session: a thread
+responsible for receiving packages from a client (protocol thread), a thread
+responsible for their execution (worker thread) and a keep-alive thread. When
+the main thread spawns a session it creates the protocol thread, which should
+initiate the connection and authenticate the client. If it succeeds, it creates
+the worker thread and the keep-alive thread.
+In order to protect the open session statistics there is an open_sessions_mutex
+mutex.
+
+
+Session bootstrap:
+
+(in the main thread)
+ - acquire open_session_mutex
+ - create LoximSession object
+ - add the object to open_sessions
+ - start a new thread through SingalRouter making it sensitive to SIGINT
+ - release the mutex
+
+(in the newly created protocol thread)
+ - set up the connection
+ - start the keep-alive thread
+ - start the worker thread
+ - keep receiving messages from the client and submitting them to the worker
+   thread
+ 
+
+Session shutdown:
+
+The session may be shut down because of:
+ - server shutdown
+ - regular end of connection
+ - error in the protocol or a communication breakdown detected in the worker
+   thread
+ - error in the protocol or a communication breakdown detected in the protocol 
+   thread
+ - lack of response from the client
+ - an asynchronous request from some other thread (currently not implemented)
+
+Each of the above are issued by sending a SIGINT to the protocol thread except
+for the errors detected in the protocol thread because there is no need to do so.
+The signal handler sets a session shutting_down attribute and and informs the
+executor associated with the session to stop. It is crucial to check the
+shutting_down attribute in the session's main loop and to mask signals before
+each blocking operation to avoid race conditions. The protocol has the
+functionality to atomically unmask the signals and wait.
+The shutdown logic is as follows:
+ - if it is not a protocol error, send a BYE package
+ - signal the worker thread to shutdown (through pthread_cond_signal) and wait
+   for completion (through pthread_join)
+ - the same with keep-alive thread
+ - close the socket
+ - acquire open_sessions_mutex
+ - if server is not shutting down, detach the thread, remove it from
+   open_sessions and delete the LoximSession object
+ - release open_sessions_mutex
+
+
+Query processing:
+
+In order to be able to handle asynchronous messages from the client, the
+queries are executed in a separate thread: the worker thread. The communication
+between the protocol thread and the worker thread is done by using one session
+attribute: worker_package, which stores the package for which the result is calculated.
+Synchronization is done with worker_mutex. If the protocol thread receives a
+message different from abort during the execution, it is considered to be a
+protocol error. Otherwise, the execution is aborted using an appropriate
+executors flag.
+
+The worker's loop is:
+ - wait on the condition worker_cond
+ - mask SIGINT
+ - if shutting_down then unmask SIGINT and exit
+ - atomically unmask SIGINT and start executing the query
+ - if a protocol error occurred, shutdown the session
+ - if not shutting_down, send the result or exit
+
+
+Notes:
+
+Currently, there is no need to prevent a session from being closed, but it may
+appear useful (for example if dynamic objects such as session statistics are a
+subejct to transactions). If it emerges, a simple reference counting mechanism
+should be added: everyone, who wants a session to last until some particular
+moment (eg. end of transaction) should lock the open_sessions_mutex, increase
+the session's reference count and unlock open_sessions_mutex. When the reference
+is not needed anymore, the counter should be decreased and if it hits 0, the
+object should be destroyed. The first reference should be from the protocol
+thread and it should be decreased when it ends (the open_sessions_mutex is then
+acquired).

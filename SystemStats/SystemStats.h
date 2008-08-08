@@ -51,6 +51,7 @@ namespace SystemStatsLib{
 			string key;
 	public:
 			StatsValue(string key);
+			virtual ~StatsValue();
 			virtual int getType();
 			string getKey();
 	};

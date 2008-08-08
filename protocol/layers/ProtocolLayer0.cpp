@@ -38,10 +38,10 @@ ProtocolLayer0::~ProtocolLayer0()
 
 Package *ProtocolLayer0::readPackage()
 {
-	return readPackage(0);
+	return readPackage(NULL, NULL);
 }
 
-Package *ProtocolLayer0::readPackage(long timeout)
+Package *ProtocolLayer0::readPackage(sigset_t *sigmask, int *cancel)
 {
 	bool interpreted=true;
 	Package *p=NULL;
@@ -51,7 +51,10 @@ Package *ProtocolLayer0::readPackage(long timeout)
 		/*Czytaj pakiety - a¿ trafisz na taki, którego nie zinterpretujesz
 		 * w tej warstwie - wtedy zwróæ go.
   		 */
-		p=inputStream->readPackage(timeout);
+		if (sigmask)
+			p = inputStream->readPackage(sigmask, cancel);
+		else
+			p = inputStream->readPackage();
 		if (!p)
 		{
 			lastError = inputStream->getStatus();

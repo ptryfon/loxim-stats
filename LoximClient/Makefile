@@ -11,7 +11,8 @@ SOURCES	=	LoximClient.cpp \
 		ClientConsole.cpp \
 		StatementProvider.cpp \
 		Authenticator.cpp \
-		ConsoleAuthenticator.cpp
+		ConsoleAuthenticator.cpp \
+		Aborter.cpp
 
 HEADERS	= 	LoximClient.h \
 		ReadlineReader.h \
@@ -19,7 +20,8 @@ HEADERS	= 	LoximClient.h \
 		Authenticator.h \
 		ClientConsole.h \
 		StatementProvider.h \
-		ConsoleAuthenticator.h
+		ConsoleAuthenticator.h \
+		Aborter.h
 
 OBJECTS	=	$(SOURCES:.cpp=.o)
 DEPFILES =	$(SOURCES:.cpp=.d) $(PROGRAM).d

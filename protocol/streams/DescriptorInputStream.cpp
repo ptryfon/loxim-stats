@@ -43,31 +43,34 @@ int DescriptorInputStream::read(char* buffor, unsigned long int off,unsigned lon
 
 
 
-int DescriptorInputStream::read(char *buffer, unsigned long int off, unsigned long int length, long timeout)
+int DescriptorInputStream::read(char *buffer, unsigned long int off, unsigned long int length, sigset_t *sigmask, int *cancel)
 {
-        struct timeval tv;
         fd_set rfds;
 	int res;
+	sigset_t old_mask;
 	if (status < 0 && status != IS_STATUS_TIMEDOUT)
 		return status;
 	
         FD_ZERO(&rfds);
         FD_SET(fd, &rfds);
-        tv.tv_usec = 0;
-        tv.tv_sec = timeout;
-	
-	res = select(fd+1, &rfds, NULL, NULL, &tv);
+	pthread_sigmask(SIG_SETMASK, sigmask, &old_mask);
+	if (*cancel){
+		status = IS_STATUS_CANCEL;
+		return status;
+	}
+	res = pselect(fd+1, &rfds, NULL, NULL, NULL, &old_mask);
+	pthread_sigmask(SIG_SETMASK, &old_mask, NULL);
 	if (res == 1){
 		return read(buffer, off, length);
 		
 	} else {
-		if (res == 0){
-		        status = IS_STATUS_TIMEDOUT;
-			return status;
-		} else {
-			status = IS_STATUS_OTHERERROR;
-			return status;
-		}
+		if (res == 0)
+			status = IS_STATUS_TIMEDOUT;
+		else 
+			if (errno == EINTR && *cancel)
+				status = IS_STATUS_CANCEL;
+			else 
+				status = IS_STATUS_OTHERERROR;
+		return status;
 	}
-		
 }
