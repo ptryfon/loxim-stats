@@ -1,3 +1,12 @@
+2008-08-08  Marek Dopiera  <md219418@students.mimuw.edu.pl>
+
+	* LoximClient/Aborter.cpp, LoximClient/Aborter.h, LoximClient/LoximClient.cpp, LoximClient/LoximClient.h, LoximClient/Lsbql.cpp, LoximClient/Makefile, LoximServer/LoximServer.cpp, LoximServer/LoximServer.h, LoximServer/LoximSession.cpp, LoximServer/LoximSession.h, LoximServer/Makefile, LoximServer/Server.conf, LoximServer/SignalRouter.cpp, LoximServer/SignalRouter.h, LoximServer/Worker.cpp, LoximServer/Worker.h, LoximServer/design.txt, QueryExecutor/QueryExecutor.h, SystemStats/SystemStats.cpp, SystemStats/SystemStats.h, protocol/layers/ProtocolLayer0.cpp, protocol/layers/ProtocolLayer0.h, protocol/pstreams/PackageInputStream.cpp, protocol/pstreams/PackageInputStream.h, protocol/sockets/TCPIPServerSocket.cpp, protocol/sockets/TCPIPServerSocket.h, protocol/streams/AbstractInputStream.h, protocol/streams/DescriptorInputStream.cpp, protocol/streams/DescriptorInputStream.h:
+	Big modifications to the server architecture allowing intepreting asynchronous
+	packages. Signals are now used rather than timeouts; this implied changes to
+	the protocol implementation. Changes to the client to be able to make use of
+	the above changes. Slight corrections to SystemStats to remove compilation
+	errors. First part of the server's documentation.
+
 2008-07-29  Damian Klata  <dk209472@students.mimuw.edu.pl>
 
 	* Store/DBStoreManager.cpp, Store/File.cpp, Store/SystemViews.cpp, SystemStats/AllStats.cpp, SystemStats/AllStats.h, SystemStats/Attic/TimeStats.cpp, SystemStats/Attic/TimeStats.h, SystemStats/Makefile, SystemStats/StoreStats.cpp, SystemStats/StoreStats.h, SystemStats/TransactionsStats.cpp, SystemStats/TransactionsStats.h, TransactionManager/Transaction.cpp:
