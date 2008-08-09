@@ -161,11 +161,11 @@ int ClassGraphVertex::fetchMethod(LogicalID* lid, Transaction *&tr, QueryExecuto
 			DataValue* tmp_data_value = tmp_optr->getValue();
 			int tmp_vType = tmp_data_value->getType();
 			if (tmp_vType == Store::String) {
-				if (tmp_name == "ProcBody") {
+				if (tmp_name == QE_METHOD_PROCBODY_BIND_NAME) {
 					method->code = tmp_data_value->getString();
 					procBody_count++;
 				}
-				else if (tmp_name == "Param") {
+				else if (tmp_name == QE_METHOD_PARAM_BIND_NAME) {
 					method->params.push_back(tmp_data_value->getString());
 					params_count++;
 				}

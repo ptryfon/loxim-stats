@@ -571,12 +571,16 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			string code = tmpQN->deParse();
 			QueryResult *strct = new QueryStructResult();
 			
-			QueryResult *nameString = new QueryStringResult(name);
-			QueryResult *nameBind = new QueryBinderResult(QE_NAME_BIND_NAME, nameString);
-			strct->addResult(nameBind);
+			//????? po co cos takiego zapisywac? kazdy obiekt ma nazwe, procedura tez, nie trzeba miec podobiektu co te nazwe trzyma dodatkowo.
+			//wywalam ten kod bo przez niego przestaly dzialac zwykle procedury - to jeszcze daloby sie dosc latwo poprawic
+			//przestaly tez dzialac perspektywy i w tym wypadku konieczne byloby sporo zmian by zaczely dzialac przy takim zapisie procedur
+			
+			//QueryResult *nameString = new QueryStringResult(name);
+			//QueryResult *nameBind = new QueryBinderResult(QE_NAME_BIND_NAME, nameString);
+			//strct->addResult(nameBind);
 			    
 			QueryResult *code_str = new QueryStringResult(code);
-			QueryResult *code_bind = new QueryBinderResult("ProcBody", code_str);
+			QueryResult *code_bind = new QueryBinderResult(QE_METHOD_PROCBODY_BIND_NAME, code_str);
 			strct->addResult(code_bind);
 			
 			for (unsigned int i=0; i<paramsNumb; i++) {
@@ -795,7 +799,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				return (ErrQExecutor | EBadViewDef);
 			}
 
-			QueryResult *tmp_bndr =new QueryBinderResult("VirtualObjects", new QueryStringResult(virt_obj_name));
+			QueryResult *tmp_bndr =new QueryBinderResult(QE_VIEWDEF_VIRTUALOBJECTS_NAME, new QueryStringResult(virt_obj_name));
 			ObjectPointer *tmp_optr;
 			errcode = objectFromBinder(tmp_bndr, tmp_optr);
 			if (errcode != 0) return errcode;
@@ -927,7 +931,9 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			QueryResult *execution_result;
 			errcode = qres->pop(execution_result);
 			if (errcode != 0) return errcode;
-
+			
+			int errcode2;
+			
 			if (execution_result->type() != QueryResult::QREFERENCE) {
 				*ec << "[QE] TNREGVIEW error - execution result is not QueryReference";
 				*ec << (ErrQExecutor | ERefExpected);
@@ -935,17 +941,12 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			}
 
 			ObjectPointer *optr;
-			errcode = tr->getObjectPointer (((QueryReferenceResult*)execution_result)->getValue(), Store::Read, optr, false);
+			LogicalID *execution_result_lid = ((QueryReferenceResult*)execution_result)->getValue();
+			errcode = tr->getObjectPointer (execution_result_lid, Store::Read, optr, false);
 			if (errcode != 0) {
+				errcode2 = persistDelete(execution_result_lid);
+				if(errcode2 != 0) return errcode2;
 				*ec << "[QE] register view operation - Error in getObjectPointer.";
-				antyStarveFunction(errcode);
-				inTransaction = false;
-				return errcode;
-			}
-
-			errcode = tr->addRoot(optr);
-			if (errcode != 0) {
-				*ec << "[QE] Error in addRoot";
 				antyStarveFunction(errcode);
 				inTransaction = false;
 				return errcode;
@@ -957,31 +958,158 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				ObjectPointer *inner_optr;
 				errcode = tr->getObjectPointer (inner_vec->at(i), Store::Read, inner_optr, false);
 				if (errcode != 0) {
+					errcode2 = persistDelete(execution_result_lid);
+					if(errcode2 != 0) return errcode2;
 					*ec << "[QE] register view operation - Error in getObjectPointer.";
 					antyStarveFunction(errcode);
 					inTransaction = false;
 					return errcode;
 				}
-				if (inner_optr->getName() == "VirtualObjects") {
+				if (inner_optr->getName() == QE_VIEWDEF_VIRTUALOBJECTS_NAME) {
 					virtual_objects_name = (inner_optr->getValue())->getString();
 					break;
 				}
 			}
-
+			
+			vector<LogicalID*>* vec_sysvirt;
+			if ((errcode = tr->getSystemViewsLID(virtual_objects_name, vec_sysvirt)) != 0) {
+				errcode2 = persistDelete(execution_result_lid);
+				if(errcode2 != 0) return errcode2;
+				*ec << "[QE] register view operation - error in getSystemViewsLID";
+				antyStarveFunction(errcode);
+				inTransaction = false;
+				return errcode;
+			}
+			int vecSize_sysvirt = vec_sysvirt->size();
+			ec->printf("[QE] %d SystemViews LID by name taken\n", vecSize_sysvirt);
+			
+			if (vecSize_sysvirt > 0) {
+				*ec << "[QE] register view operation error: new virtual objects and a system view have the same name";
+				
+				errcode = persistDelete(execution_result_lid);
+				if(errcode != 0) return errcode;
+				
+				*ec << (ErrQExecutor | EBadViewDef);
+				return (ErrQExecutor | EBadViewDef);
+			}
+			
+			vector<LogicalID*>* vec_virt;
+			if ((errcode = tr->getViewsLID(virtual_objects_name, vec_virt)) != 0) {
+				errcode2 = persistDelete(execution_result_lid);
+				if(errcode2 != 0) return errcode2;
+				*ec << "[QE] register view operation - error in getViewsLID";
+				antyStarveFunction(errcode);
+				inTransaction = false;
+				return errcode;
+			}
+			int vecSize_virt = vec_virt->size();
+			ec->printf("[QE] %d Views LID by name taken\n", vecSize_virt);
+			
+			if (vecSize_virt > 0) {
+				*ec << "[QE] register view operation error: virtual objects name already taken";
+				
+				errcode = persistDelete(execution_result_lid);
+				if(errcode != 0) return errcode;
+				
+				*ec << (ErrQExecutor | EBadViewDef);
+				return (ErrQExecutor | EBadViewDef);
+			}
+			
+			vector<LogicalID*>* vec_roots;
+			if ((errcode = tr->getRootsLID(virtual_objects_name, vec_roots)) != 0) {
+				errcode2 = persistDelete(execution_result_lid);
+				if(errcode2 != 0) return errcode2;
+				*ec << "[QE] register view operation - error in getRootsLID";
+				antyStarveFunction(errcode);
+				inTransaction = false;
+				return errcode;
+			}
+			unsigned int vecSize_roots = vec_roots->size();
+			
+			if (vecSize_roots > 0) {
+				ec->printf("[QE] %d Roots LID by name taken\n", vecSize_roots);
+				*ec << "[QE] WARNING, root objects with the same name as new virtual objects found. These objects will be transformed into virtuals.";
+				
+				string proc_code = "";
+				string proc_param = "";
+				errcode = getOn_procedure(execution_result_lid, "on_create", proc_code, proc_param);
+				if (errcode != 0) return errcode;
+				if (proc_code == "") {
+					*ec << "[QE] operator <create> - this VirtualObject doesn't have this operation defined";
+					
+					errcode = persistDelete(execution_result_lid);
+					if(errcode != 0) return errcode;
+					
+					*ec << (ErrQExecutor | EOperNotDefined);
+					return (ErrQExecutor | EOperNotDefined);
+				}
+				
+				for (unsigned int i=0; i<vecSize_roots; i++) {
+					LogicalID *curr_root = vec_roots->at(i);
+					QueryResult *curr_root_before_deref = new QueryReferenceResult(curr_root);
+					QueryResult *curr_root_after_deref;
+					errcode = this->derefQuery(curr_root_before_deref, curr_root_after_deref);
+					if (errcode != 0) {
+						errcode2 = persistDelete(execution_result_lid);
+						if(errcode2 != 0) return errcode2;
+						return errcode;
+					}
+					QueryResult *param_binder = new QueryBinderResult(proc_param, curr_root_after_deref);
+					
+					vector<QueryBagResult*> envs_sections;
+					errcode = createNewSections(NULL, (QueryBinderResult*) param_binder, execution_result_lid, envs_sections);
+					if (errcode != 0) {
+						errcode2 = persistDelete(execution_result_lid);
+						if(errcode2 != 0) return errcode2;
+						return errcode;
+					}
+					
+					errcode = callProcedure(proc_code, envs_sections);
+					if(errcode != 0) {
+						errcode2 = persistDelete(execution_result_lid);
+						if(errcode2 != 0) return errcode2;
+						return errcode;
+					}
+					
+					QueryResult *tmp_res;
+					errcode = qres->pop(tmp_res);
+					if (errcode != 0) {
+						errcode2 = persistDelete(execution_result_lid);
+						if(errcode2 != 0) return errcode2;
+						return errcode;
+					}
+					
+					errcode = persistDelete(curr_root);
+					if(errcode != 0) return errcode;
+				}
+			}
+			
 			errcode = tr->addView(virtual_objects_name.c_str(), optr);
-			if (errcode != 0) {
+			if (errcode != 0) { 
+				errcode2 = persistDelete(execution_result_lid);
+				if(errcode2 != 0) return errcode2;
 				*ec << "[QE] Error in addView";
 				antyStarveFunction(errcode);
 				inTransaction = false;
 				return errcode;
 			}
-
+			
+			errcode = tr->addRoot(optr);
+			if (errcode != 0) { 
+				errcode2 = persistDelete(execution_result_lid);
+				if(errcode2 != 0) return errcode2;
+				*ec << "[QE] Error in addRoot";
+				antyStarveFunction(errcode);
+				inTransaction = false;
+				return errcode;
+			}
+			
 			errcode = qres->push(execution_result);
 			if (errcode != 0) return errcode;
 
 			return 0;
 		}//case TNREGVIEW
-
+		
 		case TreeNode::TNVIRTUALIZEAS: {
 			*ec << "[QE] Type: TNVIRTUALIZEAS";
 			QueryResult *final_result = new QueryBagResult();
@@ -1296,8 +1424,6 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		    *ec << "[QE] TNINTERFACEBIND done";
 		    return 0;
 		}
-
-
 
 		case TreeNode::TNREGINTERFACE: {
 
@@ -3771,10 +3897,6 @@ int QueryExecutor::persistDelete(LogicalID *lid) {
 	}
 
 	if (optr->getIsRoot()) {
-		//Nie rozumiem czemu to jest tu, a potem nizej jeszcze raz.
-		//Usuwam oba i przesuwam do gory.
-		//( 1 )
-		//string object_name = optr->getName();
 		if (!system_privilige_checking &&
 			assert_privilige(Privilige::DELETE_PRIV, object_name) == false) {
 			/*
@@ -3800,8 +3922,6 @@ int QueryExecutor::persistDelete(LogicalID *lid) {
 		}
 		*ec << "[QE] Root removed";
 	}
-	//( 2 )
-	//string object_name = optr->getName();
 	if (!system_privilige_checking &&
 		assert_privilige(Privilige::DELETE_PRIV, object_name) == false) {
 		/*
@@ -5004,7 +5124,114 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 							return 0;
 						}*/
 						ec->printf("[QE] getObjectPointer on %d element of rightArg done\n", i);
-
+						
+						if ((((optrIn->getValue())->getType()) == Store::Vector) && (((optrIn->getValue())->getSubtype()) == Store::View)) {
+							string virtual_objects_name = "";
+							vector<LogicalID*>* view_inner_vec = (optrIn->getValue())->getVector();
+							
+							for (unsigned int k=0; k < view_inner_vec->size(); k++) {
+								ObjectPointer *view_inner_optr;
+								errcode = tr->getObjectPointer (view_inner_vec->at(k), Store::Read, view_inner_optr, false);
+								if (errcode != 0) {
+									*ec << "[QE] insert view operation - Error in getObjectPointer.";
+									antyStarveFunction(errcode);
+									inTransaction = false;
+									return errcode;
+								}
+								if (view_inner_optr->getName() == QE_VIEWDEF_VIRTUALOBJECTS_NAME) {
+									virtual_objects_name = (view_inner_optr->getValue())->getString();
+									break;
+								}
+							}
+							
+							errcode = tr->getObjectPointer (lidOut, Store::Write, optrOut, false); 
+							if (errcode != 0) {
+								*ec << "[QE] insert operation - Error in getObjectPointer.";
+								antyStarveFunction(errcode);
+								inTransaction = false;
+								return errcode;
+							}
+							db_value = optrOut->getValue();
+							optrOut_extType = db_value->getSubtype();
+							vType = db_value->getType();
+							if (vType != Store::Vector) {
+								*ec << "[QE] insert operation - ERROR! the l-Value has to be a reference to Vector";
+								*ec << (ErrQExecutor | EOtherResExp);
+								return (ErrQExecutor | EOtherResExp);
+							}
+							insVector = db_value->getVector();
+							if (insVector == NULL) {
+								*ec << "[QE] insert operation - insVector == NULL";
+								*ec << (ErrQExecutor | EQEUnexpectedErr);
+								return (ErrQExecutor | EQEUnexpectedErr);
+							}
+							
+							vector<LogicalID*> subobjects_to_virtualize;
+							for (unsigned int k=0; k < insVector->size(); k++) {
+								ObjectPointer *to_virtualize_optr;
+								errcode = tr->getObjectPointer (insVector->at(k), Store::Read, to_virtualize_optr, false);
+								if (errcode != 0) {
+									*ec << "[QE] insert view operation - Error in getObjectPointer.";
+									antyStarveFunction(errcode);
+									inTransaction = false;
+									return errcode;
+								}
+								if (to_virtualize_optr->getName() == virtual_objects_name) {
+									subobjects_to_virtualize.push_back(insVector->at(k));;
+								}
+							}
+							
+							if (subobjects_to_virtualize.size() > 0) {
+								*ec << "[QE] WARNING, subobjects with the same name as new virtual objects found. These objects will be transformed into virtuals.";
+								string proc_code = "";
+								string proc_param = "";
+								errcode = getOn_procedure(lidIn, "on_create", proc_code, proc_param);
+								if (errcode != 0) {
+									return errcode;
+								}
+								if (proc_code == "") {
+									*ec << "[QE] insert view <create operation> - this View doesn't have this operation defined";
+									
+									errcode = persistDelete(lidIn);
+									if(errcode != 0) return errcode;
+									
+									*ec << (ErrQExecutor | EOperNotDefined);
+									return (ErrQExecutor | EOperNotDefined);
+								}
+								
+								for (unsigned int k=0; k < subobjects_to_virtualize.size(); k++) {
+									LogicalID *curr_subobject = subobjects_to_virtualize.at(k);
+									QueryResult *curr_subobject_before_deref = new QueryReferenceResult(curr_subobject);
+									QueryResult *curr_subobject_after_deref;
+									errcode = this->derefQuery(curr_subobject_before_deref, curr_subobject_after_deref);
+									if (errcode != 0) {
+										return errcode;
+									}
+									QueryResult *param_binder = new QueryBinderResult(proc_param, curr_subobject_after_deref);
+									
+									vector<QueryBagResult*> envs_sections;
+									QueryResult *lidOut_tmp_qr = new QueryReferenceResult(lidOut);
+									QueryBinderResult *viewParentBinder = new QueryBinderResult(QE_NOTROOT_VIEW_PARENT_NAME, lidOut_tmp_qr);
+									QueryBagResult *viewParentBag = new QueryBagResult();
+									viewParentBag->addResult(viewParentBinder);
+									envs_sections.push_back(viewParentBag);
+									
+									errcode = createNewSections(NULL, (QueryBinderResult*) param_binder, lidIn, envs_sections);
+									if (errcode != 0) return errcode;
+									
+									errcode = callProcedure(proc_code, envs_sections);
+									if(errcode != 0) return errcode;
+									
+									QueryResult *tmp_res;
+									errcode = qres->pop(tmp_res);
+									if (errcode != 0) return errcode;
+									
+									errcode = persistDelete(curr_subobject);
+									if(errcode != 0) return errcode;
+								}
+							}
+						}
+						
 						if (optrIn->getIsRoot()) {
 							if ((((optrIn->getValue())->getType()) == Store::Vector) && (((optrIn->getValue())->getSubtype()) == Store::View)) {
 								errcode = tr->removeView(optrIn);
@@ -5421,7 +5648,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 								inTransaction = false;
 								return errcode;
 							}
-							if (inner_optr->getName() == "VirtualObjects") {
+							if (inner_optr->getName() == QE_VIEWDEF_VIRTUALOBJECTS_NAME) {
 								virtual_objects_name = (inner_optr->getValue())->getString();
 								break;
 							}
@@ -5954,11 +6181,11 @@ int QueryExecutor::procCheck(unsigned int qSize, LogicalID *lid, string &code, v
 			DataValue* tmp_data_value = tmp_optr->getValue();
 			int tmp_vType = tmp_data_value->getType();
 			if (tmp_vType == Store::String) {
-				if (tmp_name == "ProcBody") {
+				if (tmp_name == QE_METHOD_PROCBODY_BIND_NAME) {
 					tmp_code = tmp_data_value->getString();
 					procBody_count++;
 				}
-				else if (tmp_name == "Param") {
+				else if (tmp_name == QE_METHOD_PARAM_BIND_NAME) {
 					tmp_prms.push_back(tmp_data_value->getString());
 					params_count++;
 				}
@@ -6011,7 +6238,7 @@ int QueryExecutor::checkViewAndGetVirtuals(LogicalID *lid, string &name, string 
 			DataValue* tmp_data_value = tmp_optr->getValue();
 			int tmp_vType = tmp_data_value->getType();
 			ExtendedType tmp_extType = tmp_data_value->getSubtype();
-			if ((tmp_name == "VirtualObjects") && (tmp_vType == Store::String) && (tmp_extType == Store::None)) {
+			if ((tmp_name == QE_VIEWDEF_VIRTUALOBJECTS_NAME) && (tmp_vType == Store::String) && (tmp_extType == Store::None)) {
 				actual_name = tmp_data_value->getString();
 				actual_name_count++;
 			}
@@ -6068,7 +6295,7 @@ int QueryExecutor::checkViewAndGetVirtuals(LogicalID *lid, string &name, string 
 					DataValue* proc_code_data_value = proc_code_optr->getValue();
 					int proc_code_vType = proc_code_data_value->getType();
 					ExtendedType proc_code_extType = proc_code_data_value->getSubtype();
-					if ((proc_code_vType == Store::String) && (proc_code_extType == Store::None) && (proc_code_name == "ProcBody")) {
+					if ((proc_code_vType == Store::String) && (proc_code_extType == Store::None) && (proc_code_name == QE_METHOD_PROCBODY_BIND_NAME)) {
 						proc_code = proc_code_data_value->getString();
 					}
 					else {
@@ -6184,7 +6411,7 @@ int QueryExecutor::getSubview(LogicalID *lid, string name, LogicalID *&subview_l
 						return errcode;
 					}
 					string tmp_name2 = tmp_optr2->getName();
-					if (tmp_name2 == "VirtualObjects") {
+					if (tmp_name2 == QE_VIEWDEF_VIRTUALOBJECTS_NAME) {
 						DataValue* tmp_data_value2 = tmp_optr2->getValue();
 						int tmp_vType2 = tmp_data_value2->getType();
 						if (tmp_vType2 == Store::String) {
@@ -6260,10 +6487,10 @@ int QueryExecutor::getOn_procedure(LogicalID *lid, string procName, string &code
 				DataValue* first_data_value = first_optr->getValue();
 				int first_vType = first_data_value->getType();
 				ExtendedType first_extType = first_data_value->getSubtype();
-				if ((first_name == "ProcBody") && (first_vType == Store::String) && (first_extType == Store::None)) {
+				if ((first_name == QE_METHOD_PROCBODY_BIND_NAME) && (first_vType == Store::String) && (first_extType == Store::None)) {
 					code = first_data_value->getString();
 				}
-				else if ((first_name == "Param") && (first_vType == Store::String) && (first_extType == Store::None)) {
+				else if ((first_name == QE_METHOD_PARAM_BIND_NAME) && (first_vType == Store::String) && (first_extType == Store::None)) {
 					param = first_data_value->getString();
 				}
 				else {
@@ -6285,10 +6512,10 @@ int QueryExecutor::getOn_procedure(LogicalID *lid, string procName, string &code
 					DataValue* second_data_value = second_optr->getValue();
 					int second_vType = second_data_value->getType();
 					ExtendedType second_extType = second_data_value->getSubtype();
-					if ((second_name == "ProcBody") && (second_vType == Store::String) && (second_extType == Store::None) && code == "") {
+					if ((second_name == QE_METHOD_PROCBODY_BIND_NAME) && (second_vType == Store::String) && (second_extType == Store::None) && code == "") {
 						code = second_data_value->getString();
 					}
-					else if ((second_name == "Param") && (second_vType == Store::String) && (second_extType == Store::None) && param == "") {
+					else if ((second_name == QE_METHOD_PARAM_BIND_NAME) && (second_vType == Store::String) && (second_extType == Store::None) && param == "") {
 						param = second_data_value->getString();
 					}
 					else {

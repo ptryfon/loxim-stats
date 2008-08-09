@@ -39,6 +39,7 @@ namespace QExecutor
 #define QE_SUPER_KEYWORD			"super"
 #define QE_VIRTUALS_TO_SEND_MIN_ID		0xFE000000
 #define QE_VIRTUALS_TO_SEND_MAX_COUNT		0x01000000
+#define QE_VIEWDEF_VIRTUALOBJECTS_NAME		"VirtualObjects"
 #define QE_NOTROOT_VIEW_PARENT_NAME		"ViewParent"
 
 	class hashOfString {
