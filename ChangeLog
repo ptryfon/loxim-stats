@@ -1,3 +1,9 @@
+2008-08-09  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
+
+	* QueryExecutor/BindNames.h, QueryExecutor/ClassGraph.cpp, QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryExecutor.h:
+	Naprawione dzialanie perspektyw.
+	Dodany nowy feature: gdy w danym srodowisku pojawia sie perspektywa definiujaca wirtualne obiekty o nazwie x, wszystkie istniejace w tym srodowisku dotychczas obiekty x sa wirtulizowane przy uzyciu 'on_create' tej perspektywy. Gdy perspektywa nie ma zdefiniowanej tej operacji zglaszany jest stososwny blad.
+
 2008-08-08  Marek Dopiera  <md219418@students.mimuw.edu.pl>
 
 	* LoximClient/Aborter.cpp, LoximClient/Aborter.h, LoximClient/LoximClient.cpp, LoximClient/LoximClient.h, LoximClient/Lsbql.cpp, LoximClient/Makefile, LoximServer/LoximServer.cpp, LoximServer/LoximServer.h, LoximServer/LoximSession.cpp, LoximServer/LoximSession.h, LoximServer/Makefile, LoximServer/Server.conf, LoximServer/SignalRouter.cpp, LoximServer/SignalRouter.h, LoximServer/Worker.cpp, LoximServer/Worker.h, LoximServer/design.txt, QueryExecutor/QueryExecutor.h, SystemStats/SystemStats.cpp, SystemStats/SystemStats.h, protocol/layers/ProtocolLayer0.cpp, protocol/layers/ProtocolLayer0.h, protocol/pstreams/PackageInputStream.cpp, protocol/pstreams/PackageInputStream.h, protocol/sockets/TCPIPServerSocket.cpp, protocol/sockets/TCPIPServerSocket.h, protocol/streams/AbstractInputStream.h, protocol/streams/DescriptorInputStream.cpp, protocol/streams/DescriptorInputStream.h:
