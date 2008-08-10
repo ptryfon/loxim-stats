@@ -1,3 +1,8 @@
+2008-08-10  Krzysztof Stencel  <stencel@students.mimuw.edu.pl>
+
+	* Testy/emp-dept-create.sbql, Testy/emp-dept-query.sbql:
+	Changed the files to unix format.
+
 2008-08-09  Dariusz Gryglas  <dg203087@students.mimuw.edu.pl>
 
 	* QueryExecutor/BindNames.h, QueryExecutor/ClassGraph.cpp, QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryExecutor.h:
