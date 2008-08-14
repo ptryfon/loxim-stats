@@ -1,5 +1,8 @@
 2008-08-14  Damian Klata  <dk209472@students.mimuw.edu.pl>
 
+	* .cproject, SystemStats/AllStats.h, SystemStats/ConfigStats.h, SystemStats/QueriesStats.h, SystemStats/SessionStats.h, SystemStats/StoreStats.h, SystemStats/SystemStats.cpp, SystemStats/SystemStats.h, SystemStats/TransactionsStats.h:
+	Comments and destructors
+
 	* Store/SystemViews.cpp, SystemStats/SessionStats.cpp, SystemStats/SessionStats.h, SystemStats/SystemStats.h:
 	Time and duration in seconds in SessionStats
 
