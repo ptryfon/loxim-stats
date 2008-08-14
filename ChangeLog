@@ -1,3 +1,11 @@
+2008-08-14  Damian Klata  <dk209472@students.mimuw.edu.pl>
+
+	* Store/SystemViews.cpp, SystemStats/SessionStats.cpp, SystemStats/SessionStats.h, SystemStats/SystemStats.h:
+	Time and duration in seconds in SessionStats
+
+	* LoximServer/LoximSession.cpp, Store/File.cpp, Store/SystemViews.cpp, SystemStats/AllStats.cpp, SystemStats/AllStats.h, SystemStats/Makefile, SystemStats/QueriesStats.cpp, SystemStats/QueriesStats.h:
+	Queries statistics
+
 2008-08-10  Krzysztof Stencel  <stencel@students.mimuw.edu.pl>
 
 	* Testy/emp-dept-create.sbql, Testy/emp-dept-query.sbql:
