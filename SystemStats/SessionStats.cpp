@@ -13,8 +13,27 @@ SessionStats::SessionStats(): SystemStats("SESSION") {
 	addPageReads(0);
 	addDiskPageWrites(0);
 	addPageWrites(0);
+	gettimeofday(&begin,NULL);
+
+	time_t rawtime;
+    struct tm * timeinfo;
+
+	time ( &rawtime );
+	timeinfo = localtime ( &rawtime );
+	setStartTime(asctime(timeinfo));
+	setDurationInSeconds(0);
 }
 
+void SessionStats::refreshStats() {
+	timeval act;
+	gettimeofday(&act,NULL);
+
+	setDurationInSeconds(act.tv_sec - begin.tv_sec);
+}
+
+void SessionStats::setDurationInSeconds(int seconds) {
+	setIntStats("DURATION_IN_SECONDS", seconds);
+}
 
 void SessionStats::setStartTime(string value) {
 	setStringStats("START_TIME", value);

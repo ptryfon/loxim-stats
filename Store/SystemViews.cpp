@@ -421,6 +421,7 @@ namespace Store
 		delete bag;
 
 		SystemStats* ss = AllStats::getHandle()->getStatsStats(name);
+		ss->refreshStats();
 
 		viewsName = new vector<ObjectPointer*>();
 		bag = createObjectFromSystemStats(ss);

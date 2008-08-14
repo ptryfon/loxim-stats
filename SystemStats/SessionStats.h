@@ -2,6 +2,8 @@
 #define SESSIONSTATS_H
 
 #include "SystemStats.h"
+#include <time.h>
+#include <sys/time.h>
 
 using namespace std;
 
@@ -13,8 +15,11 @@ namespace SystemStatsLib{
 			int pageReads;
 			int diskPageWrites;
 			int pageWrites;
+			timeval begin;
 		public:
 			SessionStats();
+
+			void setDurationInSeconds(int seconds);
 
 			void setStartTime(string value);
 			string getStartTime();
@@ -42,6 +47,8 @@ namespace SystemStatsLib{
 
 			void setId(int value);
 			int getId();
+
+			void refreshStats();
 			~SessionStats();
 	};
 

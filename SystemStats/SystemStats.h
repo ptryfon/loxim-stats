@@ -43,7 +43,7 @@ namespace SystemStatsLib{
 			map<string, StatsValue*> getAllStats();
 			virtual ~SystemStats();
 
-			void refreshStats();
+			virtual void refreshStats();
 	};
 
 	class StatsValue {
