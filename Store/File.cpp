@@ -183,7 +183,7 @@ namespace Store
 		::read(file, buffer, length);
 		gettimeofday(&end,NULL);
 
-		double milisec = (end.tv_sec - begin.tv_sec) * 1000 + (end.tv_usec - begin.tv_usec);
+		double milisec = (end.tv_sec - begin.tv_sec) * 1000 + (end.tv_usec - begin.tv_usec) / 1000;
 		AllStats::getHandle()->getStoreStats()->addReadTime(length, milisec);
 
 		return 0;

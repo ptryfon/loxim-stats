@@ -12,6 +12,7 @@
 #include "SessionStats.h"
 #include "ConfigStats.h"
 #include "StoreStats.h"
+#include "QueriesStats.h"
 #include "TransactionsStats.h"
 
 using namespace std;
@@ -30,6 +31,7 @@ namespace SystemStatsLib{
 				ConfigsStats* getConfigsStats();
 				StoreStats* getStoreStats();
 				TransactionsStats* getTransactionsStats();
+				QueriesStats* getQueriesStats();
 
 				void addDiskPageReads(int sessionId, int transactionId, int count);
 				void addPageReads(int sessionId, int transactionId, int count);

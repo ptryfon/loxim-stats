@@ -35,6 +35,7 @@ namespace Store
 		registerView("%Store", new SystemStatsView("STORE_STATS"));
 		registerView("%Configs", new SystemStatsView("CONFIGS_STATS"));
 		registerView("%Transactions", new SystemStatsView("TRANSACTIONS_STATS"));
+		registerView("%Queries", new SystemStatsView("QUERIES_STATS"));
 
 		/* Init views */
 		map<const char*,SystemView*>::iterator iter;

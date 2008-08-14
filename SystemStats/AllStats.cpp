@@ -14,6 +14,7 @@ AllStats::AllStats(): SystemStats("ALL_STATS") {
 	setStatsStats("STORE_STATS", new StoreStats());
 	setStatsStats("CONFIGS_STATS", new ConfigsStats());
 	setStatsStats("TRANSACTIONS_STATS", new TransactionsStats());
+	setStatsStats("QUERIES_STATS", new QueriesStats());
 }
 
 AllStats* AllStats::allStats = NULL;//new TransactionManager();
@@ -41,9 +42,14 @@ TransactionsStats* AllStats::getTransactionsStats() {
 	return dynamic_cast<TransactionsStats*>(getStatsStats("TRANSACTIONS_STATS"));
 }
 
+QueriesStats* AllStats::getQueriesStats() {
+	return dynamic_cast<QueriesStats*>(getStatsStats("QUERIES_STATS"));
+}
+
 void AllStats::addDiskPageReads(int sessionId, int transactionId, int count) {
 	getSessionsStats()->addDiskPageReads(sessionId, count);
 	getStoreStats()->addDiskPageReads(count);
+	getQueriesStats()->addDiskIO(sessionId, count);
 }
 
 void AllStats::addPageReads(int sessionId, int transactionId, int count) {
@@ -54,6 +60,7 @@ void AllStats::addPageReads(int sessionId, int transactionId, int count) {
 void AllStats::addDiskPageWrites(int sessionId, int transactionId, int count) {
 	getSessionsStats()->addDiskPageWrites(sessionId, count);
 	getStoreStats()->addDiskPageWrites(count);
+	getQueriesStats()->addDiskIO(sessionId, count);
 }
 
 void AllStats::addPageWrites(int sessionId, int transactionId, int count) {

@@ -7,12 +7,14 @@ SOURCES	= SessionStats.cpp \
 	 StoreStats.cpp \
 	 ConfigStats.cpp \
 	 TransactionsStats.cpp \
+	 QueriesStats.cpp \
 	 SystemStats.cpp \
 	 AllStats.cpp
 
 HEADERS	= SessionStats.h \
 	StoreStats.h \
 	TransactionsStats.h \
+	QueriesStats.h \
 	ConfigStats.h \
     SystemStats.h \
     AllStats.h

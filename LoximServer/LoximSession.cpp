@@ -108,6 +108,7 @@ LoximServer::LoximSession::LoximSession(LoximServer *server, AbstractSocket *soc
 LoximServer::LoximSession::~LoximSession()
 {
 	AllStats::getHandle()->getSessionsStats()->removeSessionStats(sessionid);
+	AllStats::getHandle()->getQueriesStats()->endSession(this->id);
 	delete socket;
 	if (user_data)
 		delete user_data;
@@ -395,11 +396,12 @@ int LoximServer::LoximSession::free_state()
 			return error;
 	}
 	return EReceive;
-		
+
 }
 
 int LoximServer::LoximSession::execute_statement(const char *stmt, QueryResult **qres)
 {
+	AllStats::getHandle()->getQueriesStats()->beginExecuteQuery(get_id(), stmt);
 
 	const char *nw;
 	for (nw = stmt; *nw != 0 && is_white(*nw); nw++){};
@@ -409,10 +411,12 @@ int LoximServer::LoximSession::execute_statement(const char *stmt, QueryResult *
 //		}
 		err_cons->printf("Executing administrative statement: %s\n", stmt);
 		int error = AdminParser::AdminExecutor::get_instance()->execute(stmt, this);
-		if (error)
+		if (error) {
+			AllStats::getHandle()->getQueriesStats()->endExecuteQuery(get_id());
 			return error;
-		else{
+		} else{
 			*qres = new QueryNothingResult();
+			AllStats::getHandle()->getQueriesStats()->endExecuteQuery(get_id());
 			return 0;
 		}
 	}else{
@@ -422,16 +426,19 @@ int LoximServer::LoximSession::execute_statement(const char *stmt, QueryResult *
 		int tcr = qPa.parseIt(id, stmt, tn, tcrs, true, true);
 		if (tcr){
 			err_cons->printf("Query not parsed\n");
+			AllStats::getHandle()->getQueriesStats()->endExecuteQuery(get_id());
 			return EParse;
 		}
 		int res = qEx->executeQuery(tn, qres);
 		delete tn;
 		if (res){
 			err_cons->printf("Execute failed\n");
+			AllStats::getHandle()->getQueriesStats()->endExecuteQuery(get_id());
 			return res;
 		}
 		err_cons->printf("Executed\n");
 		err_cons->printf("%s\n", (*qres)->toString().c_str());
+		AllStats::getHandle()->getQueriesStats()->endExecuteQuery(get_id());
 		return 0;
 	}
 }
