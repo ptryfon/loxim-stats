@@ -16,6 +16,12 @@
 using namespace std;
 
 namespace SystemStatsLib{
+/*
+ * Trasaction statistics collect information about:
+ * - modify, create and delete object calls in trasactions
+ * - amount of active, aborted and commited trasactions
+ * - maximum and average transaction time
+ */
 	class TransactionsStats: public SystemStats{
 		protected:
 			int activeTransactions;

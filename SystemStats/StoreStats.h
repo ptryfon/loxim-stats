@@ -14,6 +14,14 @@ using namespace std;
 
 
 namespace SystemStatsLib{
+/*
+ * Store stats collect stats related with store module:
+ * - amount of readed pages in memory (or disk)
+ * - amount of readed pages from disk
+ * - hit ratio - (1 - disk reads / all reads)
+ * - the same for write
+ * - minimum, maximum and average time of page read
+ */
 	class StoreStats: public SystemStats{
 		protected:
 			int diskPageReads;

@@ -105,6 +105,12 @@ map<string, StatsValue*>  SystemStats::getAllStats() {
 }
 
 SystemStats::~SystemStats() {
+	map<string, StatsValue*>::const_iterator itr;
+
+	for(itr = mapOfValues.begin(); itr != mapOfValues.end(); ++itr){
+		StatsValue* v = (*itr).second;
+		delete v;
+	}
 }
 
 void SystemStats::refreshStats() {
@@ -192,3 +198,7 @@ void StatsStatsValue::setValue(SystemStats* value) {
 SystemStats* StatsStatsValue::getValue() {
 	return value;
 };
+
+StatsStatsValue::~StatsStatsValue() {
+	delete value;
+}

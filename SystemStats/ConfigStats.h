@@ -12,6 +12,10 @@
 using namespace std;
 
 namespace SystemStatsLib {
+/*
+ * Configs stats is the simples stats that show
+ * only configuration file readed from disk.
+ */
 	class ConfigOptStats: public SystemStats {
 
 	public:

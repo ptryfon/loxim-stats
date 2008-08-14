@@ -19,6 +19,12 @@ using namespace std;
 
 
 namespace SystemStatsLib{
+/*
+ * This is class that collect all statistics that
+ * we use in database. We can access to this class
+ * in static way (getHandle method). Through this
+ * class we have access from others modules.
+ */
 	class AllStats: public SystemStats{
 	protected:
 			static AllStats* allStats;

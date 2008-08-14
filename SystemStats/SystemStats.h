@@ -15,8 +15,37 @@
 using namespace std;
 
 namespace SystemStatsLib{
+	/* This class contains value or set of values of
+	 * specified type. Now there exists 4 subclasses
+	 * that may contains string, int, double or set of values.
+	 */
 	class StatsValue;
 
+
+	/*
+	 * Base class for statistics. This class contains
+	 * map of values. Pair of string key (unique) and
+	 * value. All statistic that we whan't to write must
+	 * inherits from this class. Because store have
+	 * quite abstract mechanism to present stats as
+	 * result of loxim query. Example:
+	 *
+	 * class ConfigOptStats: public SystemStats {
+	 *
+     * public:
+	 *   ConfigOptStats();
+	 *
+	 *	 void setKey(string value);
+	 *	 string getKey();
+     *
+	 *	 void setValue(string value);
+	 *	 string getValue();
+     *
+	 *	 ~ConfigOptStats();
+	 * };
+	 *
+	 * See: ConfigStats.cpp
+	 */
 	class SystemStats{
 		protected:
 			map<string, StatsValue*> mapOfValues;
@@ -45,6 +74,11 @@ namespace SystemStatsLib{
 
 			virtual void refreshStats();
 	};
+
+	/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= */
+	/* Base class and 4 subclasses that contains
+	 * values in map of statistics
+	 */
 
 	class StatsValue {
 	protected:
@@ -94,6 +128,7 @@ namespace SystemStatsLib{
 		int getType();
 		void setValue(SystemStats* value);
 		SystemStats* getValue();
+		~StatsStatsValue();
 	};
 
 }

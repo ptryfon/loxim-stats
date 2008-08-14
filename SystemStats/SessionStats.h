@@ -9,6 +9,16 @@ using namespace std;
 
 
 namespace SystemStatsLib{
+/*
+ * Session stats contains information about:
+ * - amount of readed pages in memory (or disk)
+ * - amount of readed pages from disk
+ * - hit ratio - (1 - disk reads / all reads)
+ * - the same for write
+ * - logged user
+ * - start session time
+ * - duration time in seconds
+ */
 	class SessionStats: public SystemStats{
 		protected:
 			int diskPageReads;
@@ -52,6 +62,10 @@ namespace SystemStatsLib{
 			~SessionStats();
 	};
 
+	/*
+	 * Sessions statistics contains set of
+	 * session statistics
+	 */
 	class SessionsStats: public SystemStats{
 
 			public:
