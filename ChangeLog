@@ -1,3 +1,8 @@
+2008-08-23  Adam Michalik  <am209482@students.mimuw.edu.pl>
+
+	* JDBCDriver/pom.xml, JDBCDriver/src/main/java/pl/edu/mimuw/loxim/jdbc/ConnectionInfo.java, JDBCDriver/src/main/java/pl/edu/mimuw/loxim/jdbc/LoXiMConnectionImpl.java, JDBCDriver/src/main/java/pl/edu/mimuw/loxim/jdbc/LoXiMDriverImpl.java, JDBCDriver/src/main/java/pl/edu/mimuw/loxim/jdbc/LoximException.java, JDBCDriver/src/main/java/pl/edu/mimuw/loxim/protogen/lang/java/template/pstreams/PackageIO.java:
+	Login sequence done
+
 2008-08-14  Damian Klata  <dk209472@students.mimuw.edu.pl>
 
 	* .cproject, SystemStats/AllStats.h, SystemStats/ConfigStats.h, SystemStats/QueriesStats.h, SystemStats/SessionStats.h, SystemStats/StoreStats.h, SystemStats/SystemStats.cpp, SystemStats/SystemStats.h, SystemStats/TransactionsStats.h:
