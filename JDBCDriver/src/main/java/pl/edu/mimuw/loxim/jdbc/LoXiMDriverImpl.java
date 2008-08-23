@@ -1,7 +1,6 @@
 package pl.edu.mimuw.loxim.jdbc;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.DriverPropertyInfo;
@@ -10,6 +9,9 @@ import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import pl.edu.mimuw.loxim.protogen.lang.java.template.auth.AuthException;
+import pl.edu.mimuw.loxim.protogen.lang.java.template.exception.ProtocolException;
 
 public class LoXiMDriverImpl implements LoXiMDriver {
 
@@ -42,6 +44,10 @@ public class LoXiMDriverImpl implements LoXiMDriver {
 				conInfo.setInfo(info);
 				return new LoXiMConnectionImpl(conInfo);
 			} catch (IOException e) {
+				throw new SQLException(e);
+			} catch (ProtocolException e) {
+				throw new SQLException(e);
+			} catch (AuthException e) {
 				throw new SQLException(e);
 			}
 		}

@@ -13,50 +13,137 @@ import java.sql.PreparedStatement;
 import java.sql.SQLClientInfoException;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
+import java.sql.SQLInvalidAuthorizationSpecException;
 import java.sql.SQLWarning;
 import java.sql.SQLXML;
 import java.sql.Savepoint;
 import java.sql.Statement;
 import java.sql.Struct;
 import java.util.Calendar;
+import java.util.EnumSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import pl.edu.mimuw.loxim.protocol.enums.Auth_methodsEnum;
 import pl.edu.mimuw.loxim.protocol.enums.CollationsEnum;
+import pl.edu.mimuw.loxim.protocol.packages.A_sc_okPackage;
+import pl.edu.mimuw.loxim.protocol.packages.PackagesFactory;
+import pl.edu.mimuw.loxim.protocol.packages.W_c_authorizedPackage;
 import pl.edu.mimuw.loxim.protocol.packages.W_c_helloPackage;
+import pl.edu.mimuw.loxim.protocol.packages.W_c_loginPackage;
+import pl.edu.mimuw.loxim.protocol.packages.W_c_passwordPackage;
+import pl.edu.mimuw.loxim.protocol.packages.W_s_helloPackage;
+import pl.edu.mimuw.loxim.protogen.lang.java.template.auth.AuthException;
+import pl.edu.mimuw.loxim.protogen.lang.java.template.auth.AuthPassMySQL;
+import pl.edu.mimuw.loxim.protogen.lang.java.template.exception.ProtocolException;
+import pl.edu.mimuw.loxim.protogen.lang.java.template.pstreams.PackageIO;
 import pl.edu.mimuw.loxim.protogen.lang.java.template.pstreams.PackageInputStream;
 import pl.edu.mimuw.loxim.protogen.lang.java.template.pstreams.PackageOutputStream;
 import pl.edu.mimuw.loxim.protogen.lang.java.template.ptools.Package;
 
 public class LoXiMConnectionImpl implements LoXiMConnection {
 
+	private static final Log log = LogFactory.getLog(LoXiMConnectionImpl.class);
+
 	private boolean autoCommit = true;
 	private boolean isClosed = true;
-	
-	private PackageOutputStream pos;
-	private PackageInputStream pis;
-	
-	public LoXiMConnectionImpl(ConnectionInfo info) throws IOException {
-		
-		Socket outSocket = new Socket(info.getHost(), info.getPort());
-		pos = new PackageOutputStream(outSocket.getOutputStream());
-		
+	private PackageIO pacIO;
+
+	public LoXiMConnectionImpl(ConnectionInfo info) throws IOException, ProtocolException,
+			SQLInvalidAuthorizationSpecException, AuthException {
+
+		log.debug("Creating connection");
+
+		Socket socket = new Socket(info.getHost(), info.getPort());
+		pacIO = getPackageIO(socket);
+
 		Package pac;
-		
-		pac = new W_c_helloPackage(
-			0L,
-			InetAddress.getLocalHost().getHostName(),
-			LoXiMProperties.LoXiMDriverMajor + "." + LoXiMProperties.LoXiMDriverMinor, 
-			InetAddress.getLocalHost().getHostName(), 
-			Locale.getDefault().getLanguage(), 
-			CollationsEnum.coll_default, 
-			(byte) ((Calendar.getInstance().get(Calendar.ZONE_OFFSET) + Calendar.getInstance().get(Calendar.DST_OFFSET)) / (1000 * 60 * 60)));
-	
-		
-		
+
+		try {
+			// HELLO
+			pac = new W_c_helloPackage(0L, InetAddress.getLocalHost().getHostName(), LoXiMProperties.LoXiMDriverMajor
+					+ "." + LoXiMProperties.LoXiMDriverMinor, InetAddress.getLocalHost().getHostName(), Locale
+					.getDefault().getLanguage(), CollationsEnum.coll_default, (byte) ((Calendar.getInstance().get(
+					Calendar.ZONE_OFFSET) + Calendar.getInstance().get(Calendar.DST_OFFSET)) / (1000 * 60 * 60)));
+
+			log.debug("Sending WCHello");
+			pacIO.write(pac);
+			log.debug("Receiving WSHello");
+			pac = pacIO.read();
+			if (pac.getPackageType() != W_s_helloPackage.ID) {
+				throw new ProtocolException("Unexpected package. Expecting W_s_helloPackage");
+			}
+			W_s_helloPackage sHelloPackage = (W_s_helloPackage) pac;
+			log.debug("Received WSHello");
+			
+			// LOGIN
+			if (login(info.getUser(), info.getPassword(), sHelloPackage.getAuth_methods(), sHelloPackage.getSalt())) {
+				log.debug("Client logged in");
+			} else {
+				log.debug("Client rejected");
+				throw new SQLInvalidAuthorizationSpecException("No authorization");
+			}
+		} finally {
+			socket.close();
+		}
 	}
-	
+
+	private PackageIO getPackageIO(Socket socket) throws IOException {
+		PackageOutputStream pos = new PackageOutputStream(socket.getOutputStream());
+		PackageInputStream pis = new PackageInputStream(socket.getInputStream(), PackagesFactory.getInstance());
+		return new PackageIO(pis, pos);
+	}
+
+	private boolean login(String login, String password, EnumSet<Auth_methodsEnum> authMethods, byte[] salt)
+			throws ProtocolException, AuthException {
+		log.info("Logging in");
+		Auth_methodsEnum authMethod = selectAuthMethod(authMethods);
+		log.debug("Authorization method selected: " + authMethod);
+		log.debug("Sending login package");
+		W_c_loginPackage cLoginPackage = new W_c_loginPackage(authMethod);
+		pacIO.write(cLoginPackage);
+		long pacType = pacIO.read().getPackageType();
+		if (pacType != A_sc_okPackage.ID) {
+			throw new ProtocolException("Server did not respond OK to login. Server responded with package #" + pacType);
+		}
+
+		log.debug("Sending authorization request");
+		
+		switch (authMethod) {
+		case am_mysql5:
+			sendAuth(login, new String(AuthPassMySQL.encodePassword(password, salt)));
+			break;
+		case am_trust:
+			sendAuth(login, null);
+			break;
+		default:
+			throw new ProtocolException("No authorization method provided");
+		}
+
+		log.debug("Reading authorization response");
+		Package authResponse = pacIO.read();
+		return authResponse.getPackageType() == W_c_authorizedPackage.ID; // FIXME W_*S*_AUTH...???
+	}
+
+	private Auth_methodsEnum selectAuthMethod(EnumSet<Auth_methodsEnum> authMethods) throws ProtocolException {
+		log.debug("Authorization methods supported: " + authMethods);
+		if (authMethods.contains(Auth_methodsEnum.am_mysql5)) {
+			return Auth_methodsEnum.am_mysql5;
+		}
+		if (authMethods.contains(Auth_methodsEnum.am_trust)) {
+			return Auth_methodsEnum.am_trust;
+		}
+		throw new ProtocolException("No authorization method provided");
+	}
+
+	private void sendAuth(String login, String password) throws ProtocolException {
+		pacIO.write(new W_c_passwordPackage(login, password));
+	}
+
 	@Override
 	public void clearWarnings() throws SQLException {
 		// TODO Auto-generated method stub
@@ -64,7 +151,7 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 	}
 
 	@Override
-	public void close() throws SQLException {		
+	public void close() throws SQLException {
 		// TODO Auto-generated method stub
 
 	}
@@ -343,4 +430,8 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 		throw new SQLException("Not a wrapper for " + iface);
 	}
 
+	@Override
+	protected void finalize() throws Throwable {
+		close();
+	}
 }

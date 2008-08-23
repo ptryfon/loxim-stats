@@ -41,12 +41,24 @@ class ConnectionInfo {
 		return db;
 	}
 
-	public Properties getInfo() {
-		return info;
+	public String getProperty(String key) {
+		return info.getProperty(key);
+	}
+	
+	public void setProperty(String key, String value) {
+		info.setProperty(key, value);
 	}
 	
 	public void setInfo(Properties info) {
 		this.info = info;
+	}
+	
+	public String getUser() {
+		return getProperty("user");
+	}
+	
+	public String getPassword() {
+		return getProperty("password");
 	}
 	
 	@Override
