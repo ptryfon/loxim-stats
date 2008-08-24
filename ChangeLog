@@ -1,3 +1,8 @@
+2008-08-24  Adam Michalik  <am209482@students.mimuw.edu.pl>
+
+	* JDBCDriver/src/main/java/pl/edu/mimuw/loxim/jdbc/LoXiMConnectionImpl.java, JDBCDriver/src/main/java/pl/edu/mimuw/loxim/jdbc/LoXiMPreparedStatement.java, JDBCDriver/src/main/java/pl/edu/mimuw/loxim/jdbc/LoXiMPreparedStatementImpl.java, JDBCDriver/src/main/java/pl/edu/mimuw/loxim/jdbc/LoXiMStatement.java, JDBCDriver/src/main/java/pl/edu/mimuw/loxim/jdbc/LoXiMStatementImpl.java, JDBCDriver/src/main/java/pl/edu/mimuw/loxim/protogen/lang/java/template/pstreams/PackageIO.java:
+	Close connection implemented. All required JDBC 4.0 interfaces' stubs implemented.
+
 2008-08-23  Adam Michalik  <am209482@students.mimuw.edu.pl>
 
 	* JDBCDriver/pom.xml, JDBCDriver/src/main/java/pl/edu/mimuw/loxim/jdbc/ConnectionInfo.java, JDBCDriver/src/main/java/pl/edu/mimuw/loxim/jdbc/LoXiMConnectionImpl.java, JDBCDriver/src/main/java/pl/edu/mimuw/loxim/jdbc/LoXiMDriverImpl.java, JDBCDriver/src/main/java/pl/edu/mimuw/loxim/jdbc/LoximException.java, JDBCDriver/src/main/java/pl/edu/mimuw/loxim/protogen/lang/java/template/pstreams/PackageIO.java:
