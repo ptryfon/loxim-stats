@@ -29,9 +29,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import pl.edu.mimuw.loxim.protocol.enums.Auth_methodsEnum;
+import pl.edu.mimuw.loxim.protocol.enums.Bye_reasonsEnum;
 import pl.edu.mimuw.loxim.protocol.enums.CollationsEnum;
+import pl.edu.mimuw.loxim.protocol.packages.A_sc_byePackage;
 import pl.edu.mimuw.loxim.protocol.packages.A_sc_okPackage;
-import pl.edu.mimuw.loxim.protocol.packages.PackagesFactory;
 import pl.edu.mimuw.loxim.protocol.packages.W_c_authorizedPackage;
 import pl.edu.mimuw.loxim.protocol.packages.W_c_helloPackage;
 import pl.edu.mimuw.loxim.protocol.packages.W_c_loginPackage;
@@ -41,8 +42,6 @@ import pl.edu.mimuw.loxim.protogen.lang.java.template.auth.AuthException;
 import pl.edu.mimuw.loxim.protogen.lang.java.template.auth.AuthPassMySQL;
 import pl.edu.mimuw.loxim.protogen.lang.java.template.exception.ProtocolException;
 import pl.edu.mimuw.loxim.protogen.lang.java.template.pstreams.PackageIO;
-import pl.edu.mimuw.loxim.protogen.lang.java.template.pstreams.PackageInputStream;
-import pl.edu.mimuw.loxim.protogen.lang.java.template.pstreams.PackageOutputStream;
 import pl.edu.mimuw.loxim.protogen.lang.java.template.ptools.Package;
 
 public class LoXiMConnectionImpl implements LoXiMConnection {
@@ -59,11 +58,12 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 		log.debug("Creating connection");
 
 		Socket socket = new Socket(info.getHost(), info.getPort());
-		pacIO = getPackageIO(socket);
-
-		Package pac;
+		boolean creationSuccess = false;
 
 		try {
+			pacIO = new PackageIO(socket);
+			Package pac;
+
 			// HELLO
 			pac = new W_c_helloPackage(0L, InetAddress.getLocalHost().getHostName(), LoXiMProperties.LoXiMDriverMajor
 					+ "." + LoXiMProperties.LoXiMDriverMinor, InetAddress.getLocalHost().getHostName(), Locale
@@ -87,15 +87,12 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 				log.debug("Client rejected");
 				throw new SQLInvalidAuthorizationSpecException("No authorization");
 			}
+			creationSuccess = true;
 		} finally {
-			socket.close();
+			if (!creationSuccess) {
+				socket.close();	
+			}
 		}
-	}
-
-	private PackageIO getPackageIO(Socket socket) throws IOException {
-		PackageOutputStream pos = new PackageOutputStream(socket.getOutputStream());
-		PackageInputStream pis = new PackageInputStream(socket.getInputStream(), PackagesFactory.getInstance());
-		return new PackageIO(pis, pos);
 	}
 
 	private boolean login(String login, String password, EnumSet<Auth_methodsEnum> authMethods, byte[] salt)
@@ -152,8 +149,19 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 
 	@Override
 	public void close() throws SQLException {
-		// TODO Auto-generated method stub
-
+		if (isClosed) {
+			return;
+		}
+		
+		try {
+			pacIO.write(new A_sc_byePackage(Bye_reasonsEnum.br_reason1, null));
+			pacIO.close();
+		} catch (ProtocolException e) {
+			throw new SQLException(e);
+		} catch (IOException e) {
+			throw new SQLException(e);
+		}
+		isClosed = true;
 	}
 
 	@Override
@@ -431,7 +439,7 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 	}
 
 	@Override
-	protected void finalize() throws Throwable {
+	protected void finalize() throws SQLException {
 		close();
 	}
 }
