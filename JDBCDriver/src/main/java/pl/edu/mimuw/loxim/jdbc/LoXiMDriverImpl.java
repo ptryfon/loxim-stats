@@ -15,8 +15,8 @@ import pl.edu.mimuw.loxim.protogen.lang.java.template.exception.ProtocolExceptio
 
 public class LoXiMDriverImpl implements LoXiMDriver {
 
-	private static final Log log = LogFactory.getLog(LoXiMDriverImpl.class); 
-	
+	private static final Log log = LogFactory.getLog(LoXiMDriverImpl.class);
+
 	static {
 		try {
 			DriverManager.registerDriver(new LoXiMDriverImpl());
@@ -26,35 +26,39 @@ public class LoXiMDriverImpl implements LoXiMDriver {
 			}
 		}
 	}
-	
+
 	public LoXiMDriverImpl() {
-		
+
 	}
-	
+
 	@Override
 	public boolean acceptsURL(String url) throws SQLException {
 		return (url != null && url.startsWith(DatabaseURL.PROTOCOL_PREFIX));
-	} 
+	}
 
 	@Override
 	public Connection connect(String jdbcURL, Properties info) throws SQLException {
 		if (acceptsURL(jdbcURL)) {
-			try {
-				ConnectionInfo conInfo = DatabaseURL.parseURL(jdbcURL);
-				conInfo.setInfo(info);
-				return new LoXiMConnectionImpl(conInfo);
-			} catch (IOException e) {
-				throw new SQLException(e);
-			} catch (ProtocolException e) {
-				throw new SQLException(e);
-			} catch (AuthException e) {
-				throw new SQLException(e);
-			}
+			return getConnection(jdbcURL, info);
 		}
 		if (log.isErrorEnabled()) {
 			log.error("The URL: " + jdbcURL + " is not accepted");
 		}
 		return null;
+	}
+
+	public static Connection getConnection(String jdbcURL, Properties info) throws SQLException {
+		try {
+			ConnectionInfo conInfo = DatabaseURL.parseURL(jdbcURL);
+			conInfo.setInfo(info);
+			return new LoXiMConnectionImpl(conInfo);
+		} catch (IOException e) {
+			throw new SQLException(e);
+		} catch (ProtocolException e) {
+			throw new SQLException(e);
+		} catch (AuthException e) {
+			throw new SQLException(e);
+		}
 	}
 
 	@Override
@@ -69,19 +73,19 @@ public class LoXiMDriverImpl implements LoXiMDriver {
 
 	@Override
 	public DriverPropertyInfo[] getPropertyInfo(String url, Properties info) throws SQLException {
-        DriverPropertyInfo[] pinfo   = new DriverPropertyInfo[2];
-        DriverPropertyInfo p;
-		
-        p          = new DriverPropertyInfo("user", null);
-        p.value    = info.getProperty("user");
-        p.required = true;
-        pinfo[0]   = p;
-        
-        p          = new DriverPropertyInfo("password", null);
-        p.value    = info.getProperty("password");
-        p.required = true;
-        pinfo[1]   = p;
-        
+		DriverPropertyInfo[] pinfo = new DriverPropertyInfo[2];
+		DriverPropertyInfo p;
+
+		p = new DriverPropertyInfo("user", null);
+		p.value = info.getProperty("user");
+		p.required = true;
+		pinfo[0] = p;
+
+		p = new DriverPropertyInfo("password", null);
+		p.value = info.getProperty("password");
+		p.required = true;
+		pinfo[1] = p;
+
 		return pinfo;
 	}
 

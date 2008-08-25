@@ -3,19 +3,32 @@ package pl.edu.mimuw.loxim.jdbc;
 import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Properties;
 
 public class LoXiMDataSourceImpl implements LoXiMDataSource {
 
+	private String databaseUrl;
+	private String user;
+	private String password;
+	
 	@Override
 	public Connection getConnection() throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		return getConnection(user, password);
 	}
 
 	@Override
 	public Connection getConnection(String username, String password) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+        Properties info = new Properties();
+
+        if (username != null) {
+            info.put("user", username);
+        }
+
+        if (password != null) {
+            info.put("password", password);
+        }
+		
+		return LoXiMDriverImpl.getConnection(databaseUrl, info);
 	}
 
 	@Override
@@ -55,4 +68,27 @@ public class LoXiMDataSourceImpl implements LoXiMDataSource {
 		throw new SQLException("Not a wrapper for " + iface);
 	}
 
+	public String getDatabaseUrl() {
+		return databaseUrl;
+	}
+
+	public void setDatabaseUrl(String databaseUrl) {
+		this.databaseUrl = databaseUrl;
+	}
+
+	public String getUser() {
+		return user;
+	}
+
+	public void setUser(String user) {
+		this.user = user;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
 }

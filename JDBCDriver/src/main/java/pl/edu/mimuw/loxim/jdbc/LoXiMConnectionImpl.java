@@ -65,10 +65,14 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 			Package pac;
 
 			// HELLO
-			pac = new W_c_helloPackage(0L, InetAddress.getLocalHost().getHostName(), LoXiMProperties.LoXiMDriverMajor
-					+ "." + LoXiMProperties.LoXiMDriverMinor, InetAddress.getLocalHost().getHostName(), Locale
-					.getDefault().getLanguage(), CollationsEnum.coll_default, (byte) ((Calendar.getInstance().get(
-					Calendar.ZONE_OFFSET) + Calendar.getInstance().get(Calendar.DST_OFFSET)) / (1000 * 60 * 60)));
+			pac = new W_c_helloPackage(
+					0L,
+					InetAddress.getLocalHost().getHostName(), 
+					LoXiMProperties.LoXiMDriverMajor + "." + LoXiMProperties.LoXiMDriverMinor, 
+					InetAddress.getLocalHost().getHostName(), 
+					Locale.getDefault().getLanguage(), 
+					CollationsEnum.coll_default, 
+					(byte) ((Calendar.getInstance().get(Calendar.ZONE_OFFSET) + Calendar.getInstance().get(Calendar.DST_OFFSET)) / (1000 * 60 * 60)));
 
 			log.debug("Sending WCHello");
 			pacIO.write(pac);
