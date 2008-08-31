@@ -14,13 +14,13 @@ class LoXiMProperties {
 	private static final Properties prop;
 	private static final Log log = LogFactory.getLog(LoXiMProperties.class);
 	
-	static final String LoXiMDriverName = "LoXiM JDBC driver";
-	static final int LoXiMDriverMajor = 1;
-	static final int LoXiMDriverMinor = 0;
-	static final int JDBCVerMajor = 4;
-	static final int JDBCVerMinor = 0;
+	public static final String LoXiMDriverName = "LoXiM JDBC driver";
+	public static final int LoXiMDriverMajor = 1;
+	public static final int LoXiMDriverMinor = 0;
+	public static final int JDBCVerMajor = 4;
+	public static final int JDBCVerMinor = 0;
 	
-	static final int defaultPort = 1234;
+	public static final int defaultPort = 1234;
 	
 	static {
 		try {

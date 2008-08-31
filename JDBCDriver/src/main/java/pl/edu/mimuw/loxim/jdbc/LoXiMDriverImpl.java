@@ -1,7 +1,6 @@
 package pl.edu.mimuw.loxim.jdbc;
 
 import java.io.IOException;
-import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.DriverPropertyInfo;
 import java.sql.SQLException;
@@ -33,11 +32,14 @@ public class LoXiMDriverImpl implements LoXiMDriver {
 
 	@Override
 	public boolean acceptsURL(String url) throws SQLException {
-		return (url != null && url.startsWith(DatabaseURL.PROTOCOL_PREFIX));
+		if (url == null) {
+			return false;
+		}
+		return url.matches(DatabaseURL.PROTOCOL_REGEX);
 	}
 
 	@Override
-	public Connection connect(String jdbcURL, Properties info) throws SQLException {
+	public LoXiMConnection connect(String jdbcURL, Properties info) throws SQLException {
 		if (acceptsURL(jdbcURL)) {
 			return getConnection(jdbcURL, info);
 		}
@@ -47,7 +49,7 @@ public class LoXiMDriverImpl implements LoXiMDriver {
 		return null;
 	}
 
-	public static Connection getConnection(String jdbcURL, Properties info) throws SQLException {
+	static LoXiMConnection getConnection(String jdbcURL, Properties info) throws SQLException {
 		try {
 			ConnectionInfo conInfo = DatabaseURL.parseURL(jdbcURL);
 			conInfo.setInfo(info);

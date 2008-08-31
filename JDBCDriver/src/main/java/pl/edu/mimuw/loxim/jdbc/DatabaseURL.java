@@ -14,6 +14,10 @@ class DatabaseURL {
 	public static final String HOST_REGEX = "[^:" + CONNECTION_SEPARATOR + "]*?";
 	public static final String PORT_REGEX = "\\p{Digit}{1,5}";
 	public static final String DB_NAME_REGEX = ".*";
+	
+	/**
+	 * <code>jdbc:loxim:&lt;host&gt;[:&lt;port&gt;]/&lt;database&gt;</code>
+	 */
 	public static final String PROTOCOL_REGEX = PROTOCOL_PREFIX + "("+ HOST_REGEX + ")(:("+ PORT_REGEX + "))?" + CONNECTION_SEPARATOR + "(" + DB_NAME_REGEX + ")";
 	private static final Pattern protocolPattern = Pattern.compile(PROTOCOL_REGEX);
 

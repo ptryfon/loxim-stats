@@ -10,6 +10,9 @@ public class LoXiMDataSourceImpl implements LoXiMDataSource {
 	private String databaseUrl;
 	private String user;
 	private String password;
+	private final int loginTimeout = 0; 
+	
+	private transient PrintWriter logWriter;
 	
 	@Override
 	public Connection getConnection() throws SQLException {
@@ -17,7 +20,7 @@ public class LoXiMDataSourceImpl implements LoXiMDataSource {
 	}
 
 	@Override
-	public Connection getConnection(String username, String password) throws SQLException {
+	public LoXiMConnection getConnection(String username, String password) throws SQLException {
         Properties info = new Properties();
 
         if (username != null) {
@@ -33,26 +36,22 @@ public class LoXiMDataSourceImpl implements LoXiMDataSource {
 
 	@Override
 	public PrintWriter getLogWriter() throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		return logWriter;
 	}
 
 	@Override
 	public int getLoginTimeout() throws SQLException {
-		// TODO Auto-generated method stub
-		return 0;
+		return loginTimeout;
 	}
 
 	@Override
 	public void setLogWriter(PrintWriter out) throws SQLException {
-		// TODO Auto-generated method stub
-
+		logWriter = out;
 	}
 
 	@Override
 	public void setLoginTimeout(int seconds) throws SQLException {
-		// TODO Auto-generated method stub
-
+		// NO-OP
 	}
 
 	@Override

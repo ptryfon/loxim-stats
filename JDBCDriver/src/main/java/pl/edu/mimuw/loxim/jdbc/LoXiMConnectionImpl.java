@@ -55,7 +55,7 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 	public LoXiMConnectionImpl(ConnectionInfo info) throws IOException, ProtocolException,
 			SQLInvalidAuthorizationSpecException, AuthException {
 
-		log.debug("Creating connection");
+		log.debug("Creating connection with info:" + info);
 
 		Socket socket = new Socket(info.getHost(), info.getPort());
 		boolean creationSuccess = false;
@@ -295,8 +295,7 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 
 	@Override
 	public boolean isValid(int timeout) throws SQLException {
-		// TODO Auto-generated method stub
-		return false;
+		return isClosed();
 	}
 
 	@Override
@@ -307,21 +306,18 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 
 	@Override
 	public CallableStatement prepareCall(String sql) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		throw new SQLFeatureNotSupportedException();
 	}
 
 	@Override
 	public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		throw new SQLFeatureNotSupportedException();
 	}
 
 	@Override
 	public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency,
 			int resultSetHoldability) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		throw new SQLFeatureNotSupportedException();
 	}
 
 	@Override
