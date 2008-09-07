@@ -38,7 +38,7 @@ namespace Store
 		registerView("%Queries", new SystemStatsView("QUERIES_STATS"));
 
 		/* Init views */
-		map<const char*,SystemView*>::iterator iter;
+		map<string,SystemView*>::iterator iter;
 		for( iter = mapOfViews.begin(); iter != mapOfViews.end(); iter++ ) {
 			iter->second->init(this);
 		}
@@ -57,10 +57,11 @@ namespace Store
 
 	vector<int>* SystemViews::getItems(TransactionID* tid)
 	{
+		//cout << "===> SystemViews::getItems(" << tid->getId() << ")" << endl;
 		vector<int>* systemviews = new vector<int>();
 
 		ObjectPointer* object;
-		map<const char*,SystemView*>::iterator iter;
+		map<string,SystemView*>::iterator iter;
 		for( iter = mapOfViews.begin(); iter != mapOfViews.end(); iter++ ) {
 			iter->second->refresh(object);
 			if (object) {
@@ -81,13 +82,13 @@ namespace Store
 #endif
 
 		vector<int>* systemviews = new vector<int>();
-
-		if (mapOfViews[name]) {
+		string sname(name);
+		if (mapOfViews.find(sname) != mapOfViews.end()) {
 #ifdef DEBUG_MODE
 			*this->ec << "Store::SystemViews::mapOfViews[" << name << "]";
 #endif
 			ObjectPointer* object;
-			mapOfViews[name]->refresh(object);
+			mapOfViews[sname]->refresh(object);
 			if (object) {
 #ifdef DEBUG_MODE
 				*this->ec << "Store::SystemViews::mapOfViews - OBJECT";
@@ -100,16 +101,21 @@ namespace Store
 
 	int SystemViews::getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object)
 	{
+		//cout << "===> SystemViews::getObject(" << tid->getId() << ", " << lid->toInteger() << ")" << endl;
 		ObjectPointer* foundObject;
-		map<char const*,SystemView*>::iterator iter;
+		map<string, SystemView*>::iterator iter;
+		if (mapOfViews.size() > 0) {
 		for( iter = mapOfViews.begin(); iter != mapOfViews.end(); iter++ ) {
-			iter->second->getObject(tid, lid, mode, foundObject);
-			if (iter->second->getObject(tid, lid, mode, foundObject) == 0) {
-				if (foundObject) {
-					object = foundObject;
-					return 0;
+			//cout << "===> SystemViews::" << (iter->first) << "-" << (iter->second) << endl;
+			if (iter->second) {
+				if (iter->second->getObject(tid, lid, mode, foundObject) == 0) {
+					if (foundObject) {
+						object = foundObject;
+						return 0;
+					}
 				}
 			}
+		}
 		}
 		/* Id Object is still null then put empty object */
 		object = emptyObject;
@@ -167,7 +173,7 @@ namespace Store
 		usedIdCount--;
 	}
 
-	void SystemViews::registerView(const char* name, SystemView* view) {
+	void SystemViews::registerView(string name, SystemView* view) {
 		mapOfViews[name] = view;
 	}
 
@@ -257,7 +263,7 @@ namespace Store
 		vector<LogicalID*>* val = new vector<LogicalID*>();
 
 		viewsName = new vector<ObjectPointer*>();
-		map<char const*,SystemView*>::iterator iter;
+		map<string,SystemView*>::iterator iter;
 		for( iter = views->mapOfViews.begin(); iter != views->mapOfViews.end(); iter++ ) {
 			DataValue* dbNameValue = new DBDataValue();
 			dbNameValue->setString(iter->first);
@@ -398,14 +404,19 @@ namespace Store
 	}
 
 	int SystemStatsView::getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object) {
-		if (bag && (lid->toInteger() == bag->getLogicalID()->toInteger())) object = bag;
+		if (bag && (lid->toInteger() == bag->getLogicalID()->toInteger())) {
+			//cout << "    ===> SystemStatsViews::getObject(" << tid->getId() << ", " << lid->toInteger() << ") = BAG" << endl;
+			object = bag;
+		}
 		else {
 			for (unsigned int i=0; i<viewsName->size(); i++) {
 				if ((*viewsName)[i]->getLogicalID()->toInteger() == lid->toInteger()) {
+					//cout << "    ===> SystemStatsViews::getObject(" << tid->getId() << ", " << lid->toInteger() << ") = FOUND" << endl;
 					object = (*viewsName)[i];
 					return 0;
 				}
 			}
+			//cout << "    ===> SystemStatsViews::getObject(" << tid->getId() << ", " << lid->toInteger() << ") = NOT FOUND !!!" << endl;
 			return -1;
 		}
 		return 0;

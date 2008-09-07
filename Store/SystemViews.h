@@ -36,12 +36,6 @@ using namespace SystemStatsLib;
 
 namespace Store
 {
-	struct strCmp {
-    	bool operator()( const char* s1, const char* s2 ) const {
-      		return strcmp( s1, s2 ) < 0;
-    	}
-  	};
-
 	class SystemViews
 	{
 	protected:
@@ -54,7 +48,7 @@ namespace Store
 
 		ObjectPointer* emptyObject;
 	public:
-		map<const char*, SystemView*, strCmp> mapOfViews;
+		map<string, SystemView*> mapOfViews;
 
 		SystemViews();
 		virtual ~SystemViews();
@@ -67,7 +61,7 @@ namespace Store
 		int createNextId(LogicalID*& id);
 		void releaseID(LogicalID* id);
 
-		void registerView(const char* name, SystemView* view);
+		void registerView(string name, SystemView* view);
 	};
 
 	class SystemView
