@@ -1,3 +1,8 @@
+2008-09-07  Adam Michalik  <am209482@students.mimuw.edu.pl>
+
+	* JDBCDriver/src/main/java/pl/edu/mimuw/loxim/jdbc/LoXiMDataSourceImpl.java, JDBCDriver/src/test/java/pl/edu/mimuw/loxim/jdbc/DBTestInfo.java, JDBCDriver/src/test/java/pl/edu/mimuw/loxim/jdbc/LoXiMDataSourceImplTest.java, JDBCDriver/src/test/java/pl/edu/mimuw/loxim/jdbc/LoXiMDriverImplTest.java:
+	More tests
+
 2008-08-31  Adam Michalik  <am209482@students.mimuw.edu.pl>
 
 	* JDBCDriver/pom.xml, JDBCDriver/src/main/java/pl/edu/mimuw/loxim/jdbc/DatabaseURL.java, JDBCDriver/src/main/java/pl/edu/mimuw/loxim/jdbc/LoXiMConnectionImpl.java, JDBCDriver/src/main/java/pl/edu/mimuw/loxim/jdbc/LoXiMDataSourceImpl.java, JDBCDriver/src/main/java/pl/edu/mimuw/loxim/jdbc/LoXiMDriverImpl.java, JDBCDriver/src/main/java/pl/edu/mimuw/loxim/jdbc/LoXiMProperties.java, JDBCDriver/src/test/java/pl/edu/mimuw/loxim/jdbc/LoXiMDriverImplTest.java:
