@@ -1,3 +1,8 @@
+2008-09-07  Damian Klata  <dk209472@students.mimuw.edu.pl>
+
+	* Store/SystemViews.cpp, Store/SystemViews.h:
+	Repair Segmentation Fault error in SystemViews class
+
 2008-09-07  Adam Michalik  <am209482@students.mimuw.edu.pl>
 
 	* JDBCDriver/src/main/java/pl/edu/mimuw/loxim/jdbc/LoXiMDataSourceImpl.java, JDBCDriver/src/test/java/pl/edu/mimuw/loxim/jdbc/DBTestInfo.java, JDBCDriver/src/test/java/pl/edu/mimuw/loxim/jdbc/LoXiMDataSourceImplTest.java, JDBCDriver/src/test/java/pl/edu/mimuw/loxim/jdbc/LoXiMDriverImplTest.java:
