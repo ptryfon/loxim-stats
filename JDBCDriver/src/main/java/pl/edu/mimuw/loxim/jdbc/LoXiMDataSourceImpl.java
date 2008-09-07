@@ -14,6 +14,26 @@ public class LoXiMDataSourceImpl implements LoXiMDataSource {
 	
 	private transient PrintWriter logWriter;
 	
+	public LoXiMDataSourceImpl() {
+		
+	}
+
+	public LoXiMDataSourceImpl(String user, String password) {
+		this(null, user, password);
+	}
+
+	public LoXiMDataSourceImpl(String databaseUrl, String user, String password) {
+		this.databaseUrl = databaseUrl;
+		this.user = user;
+		this.password = password;
+	}
+
+	public LoXiMDataSourceImpl(String databaseUrl) {
+		this(databaseUrl, null, null);
+	}
+
+
+
 	@Override
 	public Connection getConnection() throws SQLException {
 		return getConnection(user, password);
