@@ -35,40 +35,55 @@ int main()
 	*ec << "Starting";
 	DBStoreManager *sm = new DBStoreManager();
 	*ec << "Store created";
-	LogManager *lm = new LogManager();
+	LogManager *log = new LogManager();
 	*ec << "LogManager created";
-	sm->init(lm);
+	sm->init(log);
 	*ec << "Store initiated";
-	lm->init();
+	log->init();
 	*ec << "LogManager initiated";
-	lm->start();
+	log->start();
 	*ec << "LogManager started";
 	
+	*ec << "testing LogRecord...";
 	record = new BeginLogRecord(0, 2);
-	record->write(lm->fd);
+	record->write(log->fd);
 	ec->printf("Log record written. LSN = %d, undoNxtLSN = %d\n", record->getLSN(), record->getUndoNxtLSN());
 	delete record;
 	record = new UpdateLogRecord(0, 2, new DBLogicalID(7), "ptak", new DBDataValue("kanarek"), new DBDataValue("sroka"));
-	record->write(lm->fd);
+	record->write(log->fd);
+	ec->printf("Log record written. LSN = %d, undoNxtLSN = %d\n", record->getLSN(), record->getUndoNxtLSN());
+	delete record;
+	record = new CompensationLogRecord(16, 2, new DBLogicalID(7), 0);
+	record->write(log->fd);
+	ec->printf("Log record written. LSN = %d, undoNxtLSN = %d\n", record->getLSN(), record->getUndoNxtLSN());
+	delete record;
+	record = new EndLogRecord(80, 2);
+	record->write(log->fd);
 	ec->printf("Log record written. LSN = %d, undoNxtLSN = %d\n", record->getLSN(), record->getUndoNxtLSN());
 	delete record;
 	
-	LogRecord::read(lm->fd, 16, record);
+	LogRecord::read(log->fd, 16, record);
 	ec->printf("Log record written. LSN = %d, undoNxtLSN = %d\n", record->getLSN(), record->getUndoNxtLSN());
 	delete record;
 	
-	lm->beginTransaction(2, LSN);
+	*ec << "testing LogManager...";
+	log->beginTransaction(2, LSN);
 	ec->printf("Transaction started. Last LSN = %d\n", LSN);
-	lm->write(2, new DBLogicalID(7), "ptak", new DBDataValue("kanarek"), new DBDataValue("sroka"), LSN);
+	log->write(2, new DBLogicalID(7), "ptak", new DBDataValue("kanarek"), new DBDataValue("sroka"), LSN);
 	ec->printf("Update. Last LSN = %d\n", LSN);
-	lm->write(2, new DBLogicalID(7), "ptak", new DBDataValue("kanarek"), new DBDataValue("sroka"), LSN);
+	log->write(2, new DBLogicalID(7), "ptak", new DBDataValue("kanarek"), NULL, LSN);
 	ec->printf("Update. Last LSN = %d\n", LSN);
-	lm->rollbackTransaction(2, LSN);
+	log->rollbackTransaction(2, LSN);
+	
+	log->beginTransaction(3, LSN);
+	ec->printf("Transaction started. Last LSN = %d\n", LSN);
+	log->commitTransaction(3, LSN);
+	ec->printf("Transaction commited. Last LSN = %d\n", LSN);
 	
 	unsigned a = 101;
-	lm->shutdown(a);
+	log->shutdown(a);
 	*ec << "LogManager shut down";
-	delete lm;
+	delete log;
 	*ec << "Finished";
 	delete ec;
 }

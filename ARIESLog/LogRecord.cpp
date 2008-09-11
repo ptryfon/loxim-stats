@@ -69,6 +69,11 @@ namespace Logs
 				record = new BeginLogRecord(LSN);
 				break;
 			}
+			case END_RECORD: 
+			{
+				record = new EndLogRecord(LSN);
+				break;
+			}
 			/* ...////*/
 			default:
 				record = NULL;
@@ -301,6 +306,45 @@ cout << "undo!\n"; ////
 		return 0;
 	}
 	int BeginLogRecord::redo()
+	{
+		return 0;
+	}
+	
+	/* ------------------------- EndLogRecord ----------------------- */
+	
+	EndLogRecord::EndLogRecord()
+	{
+	}
+	EndLogRecord::EndLogRecord(unsigned int LSN)
+	{
+		this->LSN = LSN;
+	}
+	EndLogRecord::EndLogRecord(unsigned int prevLSN, int tid)
+	{
+		this->prevLSN = prevLSN;
+		this->tid = tid;
+	}
+	EndLogRecord::~EndLogRecord()
+	{
+	}
+	LogRecordType EndLogRecord::getType()
+	{
+		return END_RECORD;
+	}
+	Serialized EndLogRecord::serializeSpecific()
+	{
+		Serialized s;
+		return s;
+	}
+	int EndLogRecord::deserializeSpecific(unsigned char *buffer)
+	{
+		return 0;
+	}
+	int EndLogRecord::undo()
+	{
+		return 0;
+	}
+	int EndLogRecord::redo()
 	{
 		return 0;
 	}

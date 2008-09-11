@@ -86,6 +86,8 @@ namespace Logs
 			* LSN of the next log record
 			*/
 			unsigned int logEndLSN;
+			
+			int endTransaction(transaction_info* ti, unsigned int &id);
 		
 		public:
 int fd; //////////

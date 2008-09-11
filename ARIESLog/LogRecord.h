@@ -24,27 +24,23 @@ namespace Logs
 #include "../QueryExecutor/HashMacro.h"
 
 #define DEBUG_MODE ///
+#define LOGS_TEST ///
+
 
 using namespace Errors;
 using namespace Store;
 using namespace Config;
 
+namespace Store /// tmp
+{
+	typedef struct Serialized Serialized;	
+}
 
 namespace Logs
 {	
 	enum LogRecordType {COMPENSATION_RECORD=1, UPDATE_RECORD=2, 
 		BEGIN_RECORD=3, END_RECORD=4, COMMIT_RECORD=5, ROLLBACK_RECORD=6}; /// to jeszcze nie wszystkie ?
-	/*typedef struct record 
-	{
-		unsigned int LSN; // Log Sequential Number, here the offset in the log file
-		LogRecordType type;
-		int tid; // transaction ID
-		unsigned int prevLSN; // LSN of the transaction's preceding log record
-		/// page/object id ???? // only Compensation and UpdateLog Records
-		unsigned int undoNxtLSN; // only Compensation Log Records; next record to be undone == prevLSN of the record compensated by this record
-		/// data ????
-	};*/
-///int write(int tid, LogicalID *lid, string name, DataValue *oldVal, DataValue *newVal, unsigned &id, bool newLID = false);
+
 	typedef struct undo_data {
 		/**
 		* if oldVal == NULL an object had been created (DBStoreManager::createObject()), and if newVal == NULL an object had been deleted (DBStoreManager::deleteObject())
@@ -176,6 +172,24 @@ namespace Logs
 			BeginLogRecord(unsigned int LSN);
 			BeginLogRecord(unsigned int prevLSN, int tid); /// jesli int tid zmienie na TransactionID tid, to ten pierwszy argument mozna wyrzucic
 			~BeginLogRecord();
+			
+			int undo();
+			int redo();
+	};
+	
+	class EndLogRecord : public LogRecord 
+	{
+		protected:			
+			LogRecordType getType();
+			
+			Serialized serializeSpecific();
+			int deserializeSpecific(unsigned char *buffer);
+			
+		public:
+			EndLogRecord();
+			EndLogRecord(unsigned int LSN);
+			EndLogRecord(unsigned int prevLSN, int tid); /// jesli int tid zmienie na TransactionID tid, to ten pierwszy argument mozna wyrzucic
+			~EndLogRecord();
 			
 			int undo();
 			int redo();

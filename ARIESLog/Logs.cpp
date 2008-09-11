@@ -157,13 +157,16 @@ namespace Logs
 	{
 		if (sync_file_range(fd, 0, toLSN, SYNC_FILE_RANGE_WAIT_BEFORE | SYNC_FILE_RANGE_WRITE | SYNC_FILE_RANGE_WAIT_AFTER) < 0)
 			return ESyncLog;
+#ifdef DEBUG_MODE
+		ec->printf("LogManager::syncLog up to %d done.\n", toLSN);
+#endif
 		return 0;
 	}
 	
 	
 	int LogManager::beginTransaction(int tid, unsigned int &id)
 	{
-		BeginLogRecord* record = new BeginLogRecord(-1, tid);
+		BeginLogRecord* record = new BeginLogRecord(0, tid);
 		int res = record->write(fd);
 		
 		transaction_info* ti = new transaction_info();
@@ -183,10 +186,32 @@ namespace Logs
 	
 	int LogManager::commitTransaction(int tid, unsigned int &id)
 	{
-		id = getLogicalTimerValue();///
+		transaction_info* ti = transTable->find(tid);
+		int res = endTransaction(ti, id);
 #ifdef DEBUG_MODE
 		ec->printf("LogManager::transaction %d commited with LSN = %d\n", tid, id);
 #endif
+		return res;
+	}
+	
+	int LogManager::endTransaction(transaction_info* ti, unsigned int &id)
+	{
+		if (ti != NULL) /// tmp
+		{
+			EndLogRecord* record = new EndLogRecord(ti->lastLSN, ti->tid);
+			int res = record->write(fd);		
+			id = record->getLSN();
+			delete record;
+			
+			/**
+			* Making sure the changes made by the transaction will not be lost.
+			*/
+			syncLog(id);
+			transTable->erase(ti);
+			///czy to juz wszystko????
+		
+			delete ti;
+		};
 		return 0;
 	}
 	
@@ -225,26 +250,40 @@ cout << "undoData oldVal: '" << undoData->name << "'\n";////////////!!!
 					if (undoData->newVal == NULL)
 					{
 cout << "undoing delete object\n";////////////!!!
-						/// !!! Ma byc cos w stylu undelete
+#ifndef LOGS_TEST
+						/// !!! Ma byc cos w stylu undeleteObject
 						ObjectPointer* object;
 						LogicalID* lid = record->getLid();
-						StoreManager::theStore->createObject(NULL /*////*/, undoData->name, undoData->oldVal, object, lid->clone());	
-					}
+						lid = (lid ? lid->clone() : NULL);
+						/// ponizsze to tylko przymiarka - tak nie moze zostac
+						StoreManager::theStore->createObject(NULL /*////*/, undoData->name, undoData->oldVal->clone(), object, lid);	
+#endif
+						}
 					else
 					{
-cout << "undoData oldVal: '" << undoData->newVal->toString() << "'\n";////////////!!!
+cout << "undoData newVal: '" << undoData->newVal->toString() << "'\n";////////////!!!
 cout << "undoing modify object (hypothetical)\n";////////////!!!
 					}
 				}
 				else
-					if (undoData->oldVal != NULL)
+					if (undoData->newVal != NULL)
 					{
 cout << "undoing create object\n";////////////!!!
-					};
+cout << "undoData newVal: '" << undoData->newVal->toString() << "'\n";////////////!!!
+#ifndef LOGS_TEST
+						/// !!! Ma byc cos w stylu uncreateObject
+						LogicalID* lid = record->getLid();
+						lid = (lid ? lid->clone() : NULL);
+						ObjectPointer* object = StoreManager::theStore->createObjectPointer(lid, undoData->name, undoData->newVal->clone());
+						/// ponizsze to tylko przymiarka - tak nie moze zostac
+						StoreManager::theStore->deleteObject(NULL /*////*/, object);
+#endif
+						};
 			}
 			delete record;
 		};
-		id = ti->lastLSN;
+		
+		endTransaction(ti, id);
 #ifdef DEBUG_MODE
 		*ec << "LogManager: rollback finished.\n";
 #endif
@@ -259,21 +298,22 @@ cout << "undoing create object\n";////////////!!!
 	{
 		int res = 0;
 		transaction_info* ti = transTable->find(tid);
-		if (ti != NULL) // tmp
+		if (ti != NULL) /// tmp
 		{
-		UpdateLogRecord* record = new UpdateLogRecord(ti->lastLSN, tid, lid, name, oldVal, newVal);
-		
-		res = record->write(fd);
-		ti->lastLSN = record->getLSN();
-		delete record;
-		ti->undoNxtLSN = ti->lastLSN;
-		///czy to juz wszystko????
-		
-		id = ti->lastLSN;
+			UpdateLogRecord* record = new UpdateLogRecord(ti->lastLSN, tid, lid, name, oldVal, newVal);
+			
+			res = record->write(fd);
+			ti->lastLSN = record->getLSN();
+			delete record;
+			ti->undoNxtLSN = ti->lastLSN;
+			///czy to juz wszystko????
+			
+			id = ti->lastLSN;
 #ifdef DEBUG_MODE
-		ec->printf("LogManager::transaction %d: update written to the log with LSN = %d\n", tid, id);
+			ec->printf("LogManager::transaction %d: update written to the log with LSN = %d\n", tid, id);
 #endif
 		};
+		
 		return res;
 	}
 	
