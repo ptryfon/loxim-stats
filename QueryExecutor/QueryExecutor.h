@@ -25,6 +25,7 @@
 namespace LoximServer{
 	class LoximSession;
 }
+namespace Schemas { class Schema; }
 
 using namespace QParser;
 using namespace TManager;
@@ -129,6 +130,7 @@ namespace QExecutor
 		int classExists(string className, bool& exist);
 		int viewExists(string viewName, bool& exists);
 		int interfaceNameTaken(string name, bool& taken);
+		int getInterfaceLID(string name, LogicalID*& lid);
 		
 		/** Create new object in store and puts reference on stack result */		
 		int createObjectAndPutOnQRes(DBDataValue* dbValue, string objectName, int type, LogicalID*& newLid);
@@ -235,6 +237,8 @@ namespace QExecutor
 		int qeErrorOccur( string msg, int errcode );
 		
 		int otherErrorOccur( string msg, int errcode );
+		
+		friend class Schemas::Schema;
 	};
 	
 	/*

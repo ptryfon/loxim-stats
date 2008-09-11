@@ -34,17 +34,15 @@
   QParser::PriviligeListNode *priv_list;
   QParser::NameListNode *name_list;
   QParser::InterfaceAttribute *attribute;
-  QParser::InterfaceAttributeListNode *attributes;
+  QParser::InterfaceAttributes *attributes;
   QParser::InterfaceMethod* method;
-  QParser::InterfaceMethodListNode *methods;
-  QParser::InterfaceMethodParamListNode* method_params;
+  QParser::InterfaceMethods *methods;
+  QParser::InterfaceMethodParams* method_params;
   ComparatorNode* comparatorNode;
   IndexSelectNode* indexSelect;
   IndexBoundaryNode* IndexBoundary;
-  QParser::InterfaceStruct* iStruct;
+  QParser::InterfaceNode* interfacetree;
   QParser::InterfaceBind* iBind;
-  QParser::InterfaceInnerLinkage* iLinkage;
-  QParser::InterfaceInnerLinkageList* iLinkageList;
   QParser::SignatureNode* sigtree;
   QParser::StructureTypeNode* stucturetree;
   QParser::ObjectDeclareNode* obdecltree;
@@ -115,16 +113,14 @@
 %type <indexSelect> index_constraints
 %type <IndexBoundary> left_constraint
 %type <IndexBoundary> right_constraint
-%type <qtree> interface
-%type <iStruct> interface_struct
+%type <interfacetree> interface
+%type <interfacetree> interface_struct
 %type <attributes> attributes
 %type <attribute> attribute
 %type <methods> methods
 %type <method> method
 %type <method_params> method_params
 %type <iBind> interfaceBind
-%type <iLinkage> interfaceInnerLinkage
-%type <iLinkageList> interfaceInnerLinkageList
 %type <tree> type_decl_stmt
 %type <sigtree> signature
 %type <obdecltree> object_decl
@@ -357,44 +353,33 @@ semicolon_opt:  /* empty */	{}
 
 
 	    
-interfaceBind: INTERFACE NAME SHOWS NAME {$$ = new InterfaceBind ($2, $4);}
-	| INTERFACE NAME SHOWS NAME ASSOCIATE interfaceInnerLinkageList {$$ = new InterfaceBind ($2, $4, $6);}
+interfaceBind: INTERFACE NAME SHOWS NAME {$$ = new InterfaceBind ($2, $4);};
+
+interface: INTERFACE NAME LEFTPROCPAR OBJECT_NAME_IS NAME SEMICOLON interface_struct RIGHTPROCPAR {$7->setInterfaceName($2); $7->setObjectName($5); $$ = $7;}
+	| INTERFACE NAME EXTENDS name_defs LEFTPROCPAR OBJECT_NAME_IS NAME SEMICOLON interface_struct RIGHTPROCPAR {$9->setInterfaceName($2); $9->setSupers($4); $9->setObjectName($7); $$=$9;}
 	;
 
-interfaceInnerLinkageList: interfaceInnerLinkage {$$ = new InterfaceInnerLinkageList ($1);}
-	| interfaceInnerLinkageList COMMA interfaceInnerLinkage {$$ = new InterfaceInnerLinkageList ($3, $1);}
-	;
-	
-interfaceInnerLinkage: LEFTPAR NAME COMMA NAME RIGHTPAR {$$ = new InterfaceInnerLinkage ($2, $4);};
-
-
-
-interface: INTERFACE NAME LEFTPROCPAR OBJECT_NAME_IS NAME SEMICOLON interface_struct RIGHTPROCPAR {$$ = new InterfaceNode($2, $5, $7);};
-
-interface_struct: LEFTPAR attributes RIGHTPAR semicolon_opt  methods { $$ = new InterfaceStruct ($2, $5);}
-	| LEFTPAR attributes RIGHTPAR semicolon_opt { $$ = new InterfaceStruct ($2);}	
+interface_struct: LEFTPAR attributes RIGHTPAR semicolon_opt  methods { InterfaceNode *n = new InterfaceNode(); n->setAttributes($2->getFields()); n->setMethods($5->getMethods()); $$=n;}
+	| LEFTPAR attributes RIGHTPAR semicolon_opt { InterfaceNode *n = new InterfaceNode(); n->setAttributes($2->getFields()); $$=n;}
+	| LEFTPAR RIGHTPAR semicolon_opt  methods { InterfaceNode *n = new InterfaceNode(); n->setMethods($4->getMethods()); $$=n;}
 	;
 
-attributes: attribute { $$ = new InterfaceAttributeListNode($1);}
-	| attribute SEMICOLON attributes { $$ = new InterfaceAttributeListNode($1, $3);}
+attributes: attribute semicolon_opt { $$ = new InterfaceAttributes($1);}
+	| attribute SEMICOLON attributes { $3->prependField($1); $$=$3;}
 	;
 
-attribute: NAME {$$ = new InterfaceAttribute ($1);}
-	| NAME COLON signature {$$ = new InterfaceAttribute ($1, $3);}
-	;
+attribute: NAME {$$ = new InterfaceAttribute ($1);};
 
-methods: method semicolon_opt { $$ = new InterfaceMethodListNode($1);}
-	| method SEMICOLON methods { $$ = new InterfaceMethodListNode($1, $3);}
+methods: method semicolon_opt { $$ = new InterfaceMethods($1);}
+	| method SEMICOLON methods { $3->prependMethod($1); $$ = $3;}
 	;
 
 method: NAME LEFTPAR RIGHTPAR { $$ = new InterfaceMethod($1);}
-	| NAME LEFTPAR RIGHTPAR COLON signature { $$ = new InterfaceMethod($1, NULL, $5);}
-	| NAME LEFTPAR method_params RIGHTPAR { $$ = new InterfaceMethod($1, $3);}
-	| NAME LEFTPAR method_params RIGHTPAR COLON signature { $$ = new InterfaceMethod($1, $3, $6);}
+	| NAME LEFTPAR method_params RIGHTPAR { InterfaceMethod *m = new InterfaceMethod($1); m->addParams($3->getFields()); $$=m;}
 	;
 	
-method_params: attribute { $$ = new InterfaceMethodParamListNode($1);} 
-	| attribute COMMA method_params { $$ = new InterfaceMethodParamListNode($1, $3);}
+method_params: attribute { $$ = new InterfaceMethodParams($1);} 
+	| attribute COMMA method_params { $3->prependField($1); $$ = $3;}
 	;
 
 classquery: CLASS NAME LEFTPROCPAR classbody RIGHTPROCPAR {char *n = $2; $4->setName(n); $$ = $4; delete n;}

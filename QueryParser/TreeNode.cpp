@@ -244,228 +244,127 @@ namespace QParser
 
 
     /* INTERFACE NODES */
-    
-    InterfaceBind::InterfaceBind(string interfaceName, string implementationName, InterfaceInnerLinkageList *arbLinks)
-    : m_interfaceName(interfaceName), m_implementationName(implementationName), m_arbLinks(arbLinks) {};
 
-    InterfaceBind::~InterfaceBind() {
-	if (m_arbLinks)
-	    delete m_arbLinks;
-    };
-
-    TreeNode* InterfaceBind::clone() {
-	InterfaceInnerLinkageList *cpy = new InterfaceInnerLinkageList(*m_arbLinks);
-	return new InterfaceBind(m_interfaceName, m_implementationName, cpy);
-    };
-    
-    string InterfaceBind::getInterfaceName() {
-	return m_interfaceName;
-    };
-    
-    string InterfaceBind::getImplementationName() {
-	return m_implementationName;
-    };
-
-    InterfaceInnerLinkage::InterfaceInnerLinkage(string intName, string impName) {
-	this->nameAtInterface = intName;
-	this->nameAtImplementation = impName;
-    };
-
-    InterfaceInnerLinkage::~InterfaceInnerLinkage() {};
-
-    TreeNode* InterfaceInnerLinkage::clone() {
-	return new InterfaceInnerLinkage(nameAtInterface, nameAtImplementation);
-    };
-
-    InterfaceInnerLinkageList::InterfaceInnerLinkageList(InterfaceInnerLinkage *linkage, InterfaceInnerLinkageList *lst) {
-	this->linkage = linkage;
-	this->linkageList = lst;
-    };
-
-    InterfaceInnerLinkageList::~InterfaceInnerLinkageList() {
-	if (linkage)
-	    delete linkage;
-	if (linkageList)
-	    delete linkageList;
-    };
-
-    TreeNode* InterfaceInnerLinkageList::clone() {
-    if (linkageList)
-	return new InterfaceInnerLinkageList((InterfaceInnerLinkage *)linkage->clone(), (InterfaceInnerLinkageList *)linkageList->clone());
-    else
-	return new InterfaceInnerLinkageList((InterfaceInnerLinkage *)linkage->clone(), NULL);
-    };
-
-
-
-
-
-    RegisterInterfaceNode::RegisterInterfaceNode(QueryNode *q) {
-	this->query = q;
-    };
-
-    RegisterInterfaceNode::~RegisterInterfaceNode() {
-	if (query!=NULL)
-	    delete query;
-    };
-
-    TreeNode* RegisterInterfaceNode::clone() {
-	return new RegisterInterfaceNode((QueryNode*) query->clone());
-    };
-    
-    InterfaceNode::InterfaceNode(string interfaceName, string objectName, InterfaceStruct* iStruct) :
-    m_interfaceName(interfaceName), m_objectName(objectName), m_iStruct(iStruct) {};
-    
-    InterfaceNode::~InterfaceNode() {
-	if (m_iStruct)
-	    delete m_iStruct;
-    };
-    
-    
-    TreeNode *InterfaceNode::clone() {
-	return new InterfaceNode(m_interfaceName, m_objectName, (InterfaceStruct *) m_iStruct->clone());
-    };
-
-
-    InterfaceStruct::InterfaceStruct(InterfaceAttributeListNode *attList, InterfaceMethodListNode *methods) {
-	this->attributeList = attList;
-	this->methodList = methods;
-    };
-
-    InterfaceStruct::~InterfaceStruct() {
-	if (attributeList)
-	    delete attributeList;
-	if (methodList)
-	    delete methodList;
-    };
-
-    TreeNode* InterfaceStruct::clone() {
-	if ((attributeList) && (methodList))
-	    return new InterfaceStruct((InterfaceAttributeListNode *)attributeList->clone(), (InterfaceMethodListNode *) methodList->clone());
-	if (attributeList)
-	    return new InterfaceStruct((InterfaceAttributeListNode *)attributeList->clone(), NULL);
-	if (methodList)
-	    return new InterfaceStruct(NULL, (InterfaceMethodListNode *) methodList->clone());
-	return new InterfaceStruct(NULL, NULL);
-    };
-    
-    vector<InterfaceMethod *> InterfaceStruct::getMethods() const {
-	vector<InterfaceMethod *> vec;
-	InterfaceMethod *met;
-	InterfaceMethodListNode *metList = this->get_methodList();
-	while (metList != NULL) {
-	    met = metList->get_method();
-	    metList = metList->get_methodList();
-	    vec.push_back(met);
+    string InterfacePrintHandler::vectorString(const TAttributes &vec)
+    {
+	string res;
+	TAttributes::const_iterator it;
+	for (it = vec.begin(); it != vec.end(); ++it)
+	{
+	    res += it->getName();
+	    res += ", ";
 	}
-	return vec;
-    };
-    
-    vector<InterfaceAttribute *> InterfaceStruct::getAttribs() const {
-	vector<InterfaceAttribute *> vec;
-	InterfaceAttribute *attrib;
-	InterfaceAttributeListNode *attrList = this->get_attributeList();
-	while (attrList != NULL) {
-	    attrib = attrList->get_attribute();
-	    attrList = attrList->get_attributeList();
-	    vec.push_back(attrib);
+	return res;
+    }
+
+    string InterfacePrintHandler::vectorString(const TSupers &vec)
+    {
+	string res;
+	TSupers::const_iterator it;
+	for (it = vec.begin(); it != vec.end(); ++it)
+	{
+	    res += *it;
+	    res += ", ";
 	}
-	return vec;
-    };
+	return res;
+    }
 
-    vector<InterfaceAttribute *> InterfaceMethod::getMethodParams() {
-	vector<InterfaceAttribute *> vec;
-	InterfaceAttribute *attrib;
-	InterfaceMethodParamListNode *mpList = m_params;
-	while (mpList != NULL) {
-	    attrib = mpList->get_methodParam();
-	    mpList = mpList->get_methodParamList();
-	    vec.push_back(attrib);
+
+    InterfaceAttribute::InterfaceAttribute(string name) : m_name(name) {}
+    TreeNode* InterfaceAttribute::clone()
+    {
+	return new InterfaceAttribute(m_name);    
+    }
+    
+    string InterfaceFields::simpleString() const
+    {
+	return InterfacePrintHandler::vectorString(m_fields);
+    }
+        
+    TreeNode* InterfaceAttributes::clone()
+    {
+	return new InterfaceAttributes(*this);    
+    }
+    
+    TreeNode* InterfaceMethodParams::clone()
+    {
+	return new InterfaceMethodParams(*this);
+    }
+
+    InterfaceMethod::InterfaceMethod(string name) : m_name(name) {}
+    string InterfaceMethod::simpleString() const
+    {
+	string res;
+	res = "Method: " + m_name + "\n";
+	res = "\t params: " + InterfacePrintHandler::vectorString(m_params);
+	return res;
+    }
+    TreeNode *InterfaceMethod::clone() 
+    {
+	return new InterfaceMethod(*this);
+    }    
+    
+    TreeNode *InterfaceMethods::clone()
+    {
+	return new InterfaceMethods(*this);
+    }
+    string InterfaceMethods::simpleString() const
+    {
+	string res;
+	TMethods::const_iterator it;
+	for (it = m_methods.begin(); it != m_methods.end(); ++it)
+	{
+	    res += it->simpleString() + "\n";
 	}
-	return vec;
-    };
+	return res;
+    }
     
-    InterfaceAttribute::InterfaceAttribute(string name, SignatureNode* signature) : m_name(name), m_signature(signature) {};
-    InterfaceAttribute::~InterfaceAttribute() {if (m_signature) delete m_signature;};
-    TreeNode* InterfaceAttribute::clone() {
-	SignatureNode *sigCpy = NULL;
-	if (m_signature)
-	    sigCpy = new SignatureNode(*m_signature);
-	return new InterfaceAttribute(m_name, sigCpy);    
-    };
-
-
-    InterfaceAttributeListNode::InterfaceAttributeListNode(InterfaceAttribute *attribute, InterfaceAttributeListNode *rest) {
-	this->attribute = attribute;
-	this->attributeList = rest;
-    };
-
-    InterfaceAttributeListNode::~InterfaceAttributeListNode() {
-	if (attribute)
-	    delete attribute;
-	if (attributeList)
-	    delete attributeList;
-    };
-
-    TreeNode* InterfaceAttributeListNode::clone() {
-    if (attributeList)
-	return new InterfaceAttributeListNode((InterfaceAttribute *)attribute->clone(), (InterfaceAttributeListNode *)attributeList->clone());
-    else
-	return new InterfaceAttributeListNode((InterfaceAttribute *)attribute->clone(), NULL);
-    };
-
-    InterfaceMethodListNode::InterfaceMethodListNode(InterfaceMethod *method, InterfaceMethodListNode *rest) {
-	this->method = method;
-	this->methodList = rest;
-    };
-
-    InterfaceMethodListNode::~InterfaceMethodListNode() {
-	if (method)
-	    delete method;
-	if (methodList)
-	    delete methodList;
-    };
-
-    TreeNode* InterfaceMethodListNode::clone() {
-    if (methodList)
-	return new InterfaceMethodListNode((InterfaceMethod *)method->clone(), (InterfaceMethodListNode *)methodList->clone());
-    else
-	return new InterfaceMethodListNode((InterfaceMethod *)method->clone(), NULL);
-    };
-
-    InterfaceMethod::InterfaceMethod(string name, InterfaceMethodParamListNode *params, SignatureNode* signature)
-    : m_name(name), m_params(params) {m_signature = signature;};
+    void InterfaceNode::setSupers(NameListNode *supers)
+    {
+	while (supers)
+	{
+	    m_supers.push_back(supers->get_name());
+	    supers = supers->try_get_name_list();    
+	};
+    }
+    TreeNode *InterfaceNode::clone() 
+    {
+	return new InterfaceNode(*this);
+    }
+    string InterfaceNode::simpleString() const
+    {
+	string res;
+	res += "InterfaceNode (interfaceName: " + m_interfaceName + ", objectName: " + m_objectName + ") :\n";
+	res += "\tExtends: " + InterfacePrintHandler::vectorString(m_supers) + "\n";
+	res += "\tAttributes: " + InterfacePrintHandler::vectorString(m_attributes) + "\n";
+	res += "\tMethods: ";
+	TMethods::const_iterator it;
+	for (it = m_methods.begin(); it != m_methods.end(); ++it)
+	{
+	    res += it->simpleString() + ", ";
+	}
+	return res;
+    }
     
-    InterfaceMethod::~InterfaceMethod() {
-	if (m_params)
-	    delete m_params;    
-    };
+    TreeNode* RegisterInterfaceNode::clone() 
+    {
+	return new RegisterInterfaceNode((QueryNode*) m_query->clone());
+    }
+    string RegisterInterfaceNode::simpleString() const
+    {
+	string res;
+	res = "RegisterInterfaceNode: TODO \n";
+	return res;
+    }
 
-    TreeNode *InterfaceMethod::clone() {
-	InterfaceMethodParamListNode *clonedParams = m_params?(InterfaceMethodParamListNode *)m_params->clone():NULL;
-	SignatureNode *clonedSignature = m_signature?(SignatureNode *)m_signature->clone():NULL;
-	return new InterfaceMethod(m_name, clonedParams, clonedSignature);
-    };
-
-    InterfaceMethodParamListNode::InterfaceMethodParamListNode(InterfaceAttribute *methodParam, InterfaceMethodParamListNode *rest) {
-	this->methodParam = methodParam;
-	this->methodParamList = rest;
-    };
-
-    InterfaceMethodParamListNode::~InterfaceMethodParamListNode() {
-	if (methodParam)
-	    delete methodParam;
-	if (methodParamList)
-	    delete methodParamList;
-    };
-
-    TreeNode* InterfaceMethodParamListNode::clone() {
-    if (methodParamList)
-	return new InterfaceMethodParamListNode((InterfaceAttribute *)methodParam->clone(), (InterfaceMethodParamListNode *)methodParamList->clone());
-    else
-	return new InterfaceMethodParamListNode((InterfaceAttribute *)methodParam->clone(), NULL);
-    };
-
+    InterfaceBind::InterfaceBind(string interfaceName, string implementationName) : m_interfaceName(interfaceName), 
+	m_implementationName(implementationName) {}
+    
+    TreeNode *InterfaceBind::clone()
+    {
+	return new InterfaceBind(*this);
+    }
+    
     /**
       *		VALIDATION NODE	BEGIN
       */

@@ -1,5 +1,7 @@
 #include "InterfaceMatcher.h"
 #include "BindNames.h"
+#include "QueryExecutor.h"
+#include <set>
 
 using namespace Schemas;
 using namespace QExecutor;
@@ -16,7 +18,7 @@ namespace
 
     struct AscendingMethodSort
     {
-	bool operator() (Method * const& left, Method * const& right)
+	bool operator() (Schemas::Method * const& left, Schemas::Method * const& right)
 	{
 	    string lName = left->getName();
 	    string rName = right->getName();
@@ -28,18 +30,31 @@ namespace
 		return (left->getParamsCount() < right->getParamsCount());
 	}
     };
+    
+    template <class T>
+    std::set<T> vectorToSet(std::vector<T> vec)
+    {
+	std::set<T> retSet;
+	while (!vec.empty())
+	{
+	    T t(vec.back());
+	    retSet.insert(t);
+	    vec.pop_back();
+	}
+	return retSet;
+    };
 }
 
 /*************
     Method
 *************/
-void Method::sortParams()
+void Schemas::Method::sortParams()
 {
     sort(m_params.begin(), m_params.end(), AscendingLexFieldsSort());
     m_paramsSorted = true;
 }
 
-bool Method::Matches(Method other) const
+bool Schemas::Method::Matches(Schemas::Method other) const
 {	//both are sorted
     if (m_name != other.getName())
 	return false;
@@ -101,49 +116,82 @@ void Schema::debugPrint()
     }
 }
 
-Schema::Schema() {}
+Schema::Schema(bool isInterfaceSchema) : m_isInterfaceSchema(isInterfaceSchema) {}
 
 Schema::~Schema() {}
 
-Schema *Schema::fromQBResult(QueryBagResult resultBag)
+Schema *Schema::fromQBResult(QueryBagResult *resultBag, QueryExecutor *qe)
 {
     cout << "Schema: fromQBResult() \n";
+    bool isInterface = false;
     Schema *s = new Schema();
-    vector<QueryResult *> structVec = resultBag.getVector();
+    QueryResult *tmp;
+    qe->derefQuery(resultBag, tmp);
+    QueryBagResult *derefedBag = (QueryBagResult *)tmp;
+    
+    vector<QueryResult *> structVec = derefedBag->getVector();
     vector<QueryResult *>::iterator it;
     for (it = structVec.begin(); it != structVec.end(); ++it)
     {
 	QueryResult *qr = *it;
 	QueryBinderResult *qbR = (QueryBinderResult *)qr;
 	string name = qbR->getName();
-	if (!name.compare(QE_FIELD_BIND_NAME))
+	if (!name.compare(QE_OBJECT_NAME_BIND_NAME))
+	{
+	    isInterface = true;	
+	}
+	else if (!name.compare(QE_FIELD_BIND_NAME))
 	{
 	    QueryResult *r = qbR->getItem();
-	    if (r->type()!=QueryResult::QSTRING) { cout << "ERR"; return s; }
-	    QueryStringResult *nameString = (QueryStringResult *)r;    
+	    QueryResult *tmpR;
+	    qe->derefQuery(r, tmpR);
+	    if (tmpR->type()!=QueryResult::QSTRING) { cout << "ERR"; return s; }
+	    QueryStringResult *nameString = (QueryStringResult *)tmpR;    
 	    string fieldName = nameString->getValue();
 	    Field *f = new Field(fieldName);
 	    s->addField(f);		
 	    //cout << "Field: " << fieldName << endl; 	
 	}
+	else if (!name.compare(QE_EXTEND_BIND_NAME))
+	{
+	    QueryResult *r = qbR->getItem();
+	    QueryResult *tmpR;
+	    qe->derefQuery(r, tmpR);
+	    if (tmpR->type()!=QueryResult::QSTRING) { cout << "ERR"; return s; }
+	    QueryStringResult *nameString = (QueryStringResult *)tmpR;    
+	    string superName = nameString->getValue();
+	    s->addSuper(superName);		
+	    //cout << "Super: " << superName << endl; 	
+	}
 	else if (!name.compare(QE_METHOD_BIND_NAME))
 	{
-	    QueryStructResult *fieldStruct = (QueryStructResult *)qbR->getItem();
+	    QueryResult *methodResult = qbR->getItem();
+	    
+	    //Get method name
+	    QueryReferenceResult *ref = (QueryReferenceResult *)qbR->getItem();
+	    LogicalID *methodLid = ref->getValue();
+	    ObjectPointer *optr;
+	    if ((qe->tr->getObjectPointer(methodLid, Store::Read, optr, false) != 0) || (!optr)) { cout << "ERR"; return s;}
+	    string name = optr->getName();
+	    Schemas::Method *m = new Schemas::Method();
+	    m->setName(name);
+	    
+	    //Dereference to see parameters
+	    QueryResult *tmpR;
+	    qe->derefQuery(methodResult, tmpR);
+	    if ((!tmpR) || (tmpR->type()!=QueryResult::QSTRUCT)) { cout << "ERR"; return s; }
+	    QueryStructResult *fieldStruct = (QueryStructResult *)tmpR;
+	    
+	    //Process parameters
 	    vector<QueryResult *> methodInnerBinders = fieldStruct->getVector();
 	    vector<QueryResult *>::iterator mIt;
-	    Method *m = new Method();
 	    for (mIt = methodInnerBinders.begin(); mIt != methodInnerBinders.end(); ++mIt)
 	    {
 		QueryResult *mQr = *mIt;
 		QueryBinderResult *mQbr = (QueryBinderResult *)mQr;
 		string mBinderName = mQbr->getName();
 		QueryStringResult *nameString = (QueryStringResult *)mQbr->getItem();    
-		if (!mBinderName.compare(QE_NAME_BIND_NAME))
-		{   //method Name
-		    m->setName(nameString->getValue());
-		    //cout << "Method name: " << nameString->getValue() << "\n";
-		}
-		else if (!mBinderName.compare(QE_METHOD_PARAM_BIND_NAME))
+		if (!mBinderName.compare(QE_METHOD_PARAM_BIND_NAME))
 		{   //parameter Name
 		    Field *f = new Field(nameString->getValue());
 		    m->addParam(f);    
@@ -154,9 +202,120 @@ Schema *Schema::fromQBResult(QueryBagResult resultBag)
 	    //cout << "Method: " << m->getName() << "\n";
 	}
     }
-    s->debugPrint();
+    s->setIsInterface(isInterface);
+    //s->debugPrint();
     //cout << "Schema: fromQBResult(), returning...\n";
     return s;
+}
+
+int Schema::interfaceMatchesImplementation(string interface, string implementation, QueryExecutor *qe, bool &out)
+{
+    Schema *intSchema;
+    Schema *impSchema;
+    int errorcode = fromNameIncludingDerivedMembers(interface, qe, intSchema);
+    if (errorcode) return errorcode;
+    
+    errorcode = fromNameIncludingDerivedMembers(implementation, qe, impSchema);
+    if (errorcode) return errorcode;
+    
+    out = Matcher::MatchInterfaceWithImplementation(*intSchema, *impSchema);
+    delete intSchema;
+    delete impSchema;
+    return 0;
+}
+
+int Schema::fromNameIncludingDerivedMembers(string name, QueryExecutor *qe, Schema *&out)
+{
+    vector<Schema *> *allSchemas;
+    int errorcode = completeSupersForBase(name, qe, allSchemas);
+    if (errorcode) return errorcode;
+    if (allSchemas->size() < 1) return -1; //TODO
+    out = allSchemas->back();
+    allSchemas->pop_back();
+    vector<Schema *>::iterator it;
+    for (it = allSchemas->begin(); it != allSchemas->end(); ++it)
+    {
+	Schema *toJoin = *it;
+	out->join(toJoin);
+    }
+    return 0;
+}
+
+int Schema::completeSupersForBase(string baseString, QueryExecutor *qe, vector<Schema *> *&out)
+{
+    TSupers base;
+    base.push_back(baseString);
+    out = new vector<Schema *>(0);
+    set<string> baseSet = vectorToSet<string>(base);
+    TSupers::iterator it;
+    int errorcode;
+    while (!base.empty())
+    {
+	string name = base.back();
+	base.pop_back();
+	NameNode nameN(name);
+	errorcode = qe->executeRecQuery(&nameN);
+	if (errorcode != 0)
+	{	//TODO
+	    cout << "ERROR";
+	    return errorcode;
+	}
+	QueryResult *res;
+	errorcode = qe->qres->pop(res);
+	if ((errorcode != 0) || (res->type() != QueryResult::QBAG)) 
+	{	//TODO
+	    cout << "ERROR";
+	    return errorcode;
+	}
+	QueryBagResult *superBag = dynamic_cast<QueryBagResult *>(res);
+	Schema *s = fromQBResult(superBag, qe);
+	TSupers baseAddition = s->getSupers();
+	TSupers::iterator addIt;
+	for (addIt = baseAddition.begin(); addIt != baseAddition.end(); ++addIt)
+	{
+	    string superName = *addIt;
+	    if (baseSet.find(superName) == baseSet.end())
+	    {
+		baseSet.insert(superName);
+		base.push_back(superName);
+	    }
+	    //else - wielodziedziczenie, petla..?
+	}
+	out->push_back(s);
+    }
+    return 0;
+}
+
+
+void Schema::join(Schema *s, bool sort)
+{	//Discards supers
+    m_supers.clear();
+    set<Field *> hostFields = vectorToSet<Field*>(m_fields);
+    set<Method *> hostMethods = vectorToSet<Method*>(m_methods);
+    TFields guestFields = s->getFields();
+    TMethods guestMethods = s->getMethods();
+    TFields::iterator itF;
+    for (itF = guestFields.begin(); itF != guestFields.end(); ++itF)
+    {
+	Field *f = new Field(**itF);
+	if (hostFields.find(f) == hostFields.end())
+	{
+	    hostFields.insert(f);
+	    addField(f);
+	}
+    }
+    
+    TMethods::iterator itM;
+    for (itM = guestMethods.begin(); itM != guestMethods.end(); ++itM)
+    {
+	Method *m = new Method(**itM);
+	if (hostMethods.find(m) == hostMethods.end())
+	{
+	    hostMethods.insert(m);
+	    addMethod(m);
+	}
+    }
+    if (sort) sortVectors();
 }
 
 /**************
@@ -175,13 +334,13 @@ bool Matcher::matchesAny(Field *f, TFields impF)
     return false;
 }
 
-bool Matcher::matchesAny(Method *m, TMethods impM)
+bool Matcher::matchesAny(Schemas::Method *m, TMethods impM)
 {
     TMethods::iterator it;
     m->sortParams();
     for (it = impM.begin(); it != impM.end(); ++it)
     {
-	Method *cand = (*it);
+	Schemas::Method *cand = (*it);
 	cand->sortParams();
 	if (m->Matches(*cand))
 	    return true;
@@ -207,7 +366,7 @@ bool Matcher::MatchMethods(TMethods intM, TMethods impM)
     TMethods::iterator intI;
     for (intI = intM.begin(); intI != intM.end(); ++intI)
     {
-	Method *intMethod = (*intI);
+	Schemas::Method *intMethod = (*intI);
 	if (!Matcher::matchesAny(intMethod, impM))
 	    return false;
     }
@@ -218,6 +377,9 @@ bool Matcher::MatchInterfaceWithImplementation(Schema interface, Schema implemen
 {
     interface.sortVectors();
     implementation.sortVectors();
+    
+    interface.debugPrint();
+    implementation.debugPrint();
     
     bool result = MatchFields(interface.getFields(), implementation.getFields());
     if (!result) {cout << "Fields mismatch" << endl; return result;}

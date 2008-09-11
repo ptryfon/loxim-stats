@@ -41,24 +41,35 @@ namespace Schemas
 	    TFields m_params;
     };
     typedef vector<Method *> TMethods;
+    typedef vector<string> TSupers;
     
+    class QExecutor::QueryExecutor;
     class Schema 
     {
 	public:
-	    Schema();
+	    Schema(bool isInterfaceSchema = false);
 	    ~Schema();
 	    TFields getFields() {return m_fields;}
 	    TMethods getMethods() {return m_methods;}   
+	    TSupers getSupers() {return m_supers;}
+	    void setIsInterface(bool isInterfaceSchema) {m_isInterfaceSchema = isInterfaceSchema;}
 	    void addField(Field *f) {m_fields.push_back(f);}
 	    void addMethod(Method *m) {m_methods.push_back(m);}
+	    void addSuper(string s) {m_supers.push_back(s);}
 	    void debugPrint();
 	    void sortVectors();
-	
-	    static Schema* fromQBResult(QExecutor::QueryBagResult resultBag);
+	    void join(Schema *s, bool sort = true);
+
+	    static int interfaceMatchesImplementation(string interfaceName, string implementationName, QExecutor::QueryExecutor *qE, bool &matches);
+	    static int fromNameIncludingDerivedMembers(string base, QExecutor::QueryExecutor *qE, Schema *&out);
+	    static Schema* fromQBResult(QExecutor::QueryBagResult *resultBag, QExecutor::QueryExecutor *qE);
+	    static int completeSupersForBase(string base, QExecutor::QueryExecutor *qE, vector<Schema *> *&out);	
+	    
 	private:
 	    bool m_isInterfaceSchema;
 	    TFields m_fields;
 	    TMethods m_methods;
+	    TSupers m_supers;
     };
     
     class Matcher 
@@ -71,6 +82,7 @@ namespace Schemas
 	    static bool MatchFields(TFields intFields, TFields impFields);
 	    static bool MatchMethods(TMethods intMethods, TMethods impMethods);
 	    static bool MatchInterfaceWithImplementation(Schema Interface, Schema Implementation);
+    
     };
 
 }

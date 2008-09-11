@@ -70,8 +70,8 @@ namespace QParser {
 	    TNAS, TNUNOP, TNALGOP, TNNONALGOP, TNTRANS, TNCREATE, TNCOND, TNLINK, TNPARAM, TNFIX, 
 	    TNPROC, TNCALLPROC, TNRETURN, TNREGPROC, TNVIEW, TNREGVIEW, TNVALIDATION, TNCREATEUSER, 	
 	    TNREMOVEUSER, TNPRIVLIST, TNNAMELIST, TNGRANTPRIV, TNREVOKEPRIV, TNREMOTE, TNINDEXDDL, TNINDEXDML,
-	    TNINTERFACENODE, TNINTERFACESTRUCT, TNINTERFACEATTRIBUTELISTNODE, TNINTERFACEATTRIBUTE, 
-	    TNINTERFACEMETHODLISTNODE, TNINTERFACEMETHOD, TNINTERFACEMETHODPARAMLISTNODE, TNINTERFACEMETHODPARAM,
+	    TNINTERFACENODE, TNINTERFACESTRUCT, TNINTERFACEATTRIBUTES, TNINTERFACEATTRIBUTE, 
+	    TNINTERFACEMETHODS, TNINTERFACEMETHOD, TNINTERFACEMETHODPARAMS, TNINTERFACEMETHODPARAM,
 	    TNREGINTERFACE, TNREGCLASS, TNCLASS, TNDML, TNINCLUDES, TNEXCLUDES, TNCAST, TNINSTANCEOF, TNSYSTEMVIEWNAME,
 	 	TNINTERFACEBIND, TNINTERFACEINNERLINKAGELIST, TNINTERFACEINNERLINKAGE, TNSIGNATURE, TNOBJDECL, TNSTRUCTTYPE,
 		TNTYPEDEF, TNCOERCE, TNCASTTO, TNTHROWEXCEPTION, TNVIRTUALIZEAS};
@@ -226,269 +226,173 @@ namespace QParser {
     
     /* Interface Nodes */
     class SignatureNode;    
-    class InterfaceAttribute: public TreeNode {
-	private:
-	    string m_name;
-	    SignatureNode* m_signature;
+    class NameListNode;
+    class InterfaceAttribute;
+    
+    typedef std::list<InterfaceAttribute> TAttributes;
+    typedef std::list<string> TSupers;
+    
+    
+    class InterfacePrintHandler
+    {	//Abstract class
 	public:
-	    InterfaceAttribute(string name, SignatureNode* signature = NULL);
-	    virtual ~InterfaceAttribute();
-	    string getValueName() const {return m_name;}
-	    bool hasSignature() const {return (m_signature != NULL);}
-	    const SignatureNode* getSignature() const {return m_signature;};
-	    
-	    virtual TreeNode* clone();
-	    virtual int type() {return TNINTERFACEATTRIBUTE;};
-	    virtual int putToString() {cout << "InterfaceAttribute valueName = " + m_name + "\n"; return 0;};
-	    virtual string toString(int level = 0, bool recursive = false, string name = "") {
-		string result = getPrefixForLevel( level, name) + "([InterfaceAttribute] " + this->deParse() +  ") ";
-		return result;
-	    }
-	    
-	    virtual string deParse() { 
-    		string result;
-		result = m_name;
-		result = result + "; ";
-    		return result;
-	    }
+	    static string vectorString(const TAttributes &vec);
+	    static string vectorString(const TSupers &vec);
+	    int defaultPutToString() const {cout << simpleString(); return 0;}
+	    virtual string simpleString() const = 0;
     };
     
-    class InterfaceMethodParamListNode: public TreeNode {
-	private:
-	    InterfaceAttribute *methodParam;
-	    InterfaceMethodParamListNode *methodParamList;
+    class InterfaceTreeNode : public TreeNode, public InterfacePrintHandler
+    {	//Abstract class
 	public:
-	    InterfaceMethodParamListNode(InterfaceAttribute *methodParam, InterfaceMethodParamListNode *methodParamList = NULL);
-	    virtual ~InterfaceMethodParamListNode();
-	    virtual InterfaceAttribute* get_methodParam() {return methodParam;};
-	    virtual InterfaceMethodParamListNode* get_methodParamList() {return methodParamList;};
-	    virtual TreeNode* clone();
-	    virtual int type() {return TNINTERFACEMETHODPARAMLISTNODE;};
-	    virtual int putToString() {cout << "InterfaceMethodParamListNode \n"; return 0;};
-	    virtual string toString(int level = 0, bool recursive = false, string name = "") {
-		string methodParamVal = methodParam ? methodParam->toString() : "<null>";
-		string result = getPrefixForLevel( level, name) + "([InterfaceMethodParamList] methodParam = " + methodParamVal + ") ";
-		if (recursive) {
-		    if (methodParamList) 
-			result += methodParamList->toString(level+1, true, "methodParamList");
-		}
-		return result;
-	    }
-	    
-	    virtual string deParse() { 
-    		string result;
-		result = methodParam->deParse() + " "; 
-		if (methodParamList)
-		    result = result +  methodParamList->deParse();
-    		return result;
-	    };
-	    
+	    virtual int putToString() {return defaultPutToString();}
+	    virtual string toString(int level = 0, bool recursive = false, string name = "") {return getPrefixForLevel(level, name) + simpleString() + "\n";}
     };
-
-    class InterfaceMethod: public TreeNode {
+    
+    class InterfaceQueryNode : public QueryNode, public InterfacePrintHandler
+    {	//Abstract class
+	public:
+	    virtual int putToString() {return defaultPutToString();}
+	    virtual string toString(int level = 0, bool recursive = false, string name = "") {return getPrefixForLevel(level, name) + simpleString() + "\n";}
+	    virtual string deParse() {return simpleString();}
+    };
+    
+    class InterfaceAttribute: public InterfaceTreeNode
+    {
 	private:
 	    string m_name;
-	    SignatureNode *m_signature;
-	    InterfaceMethodParamListNode *m_params;
 	public:
-	    InterfaceMethod(string name, InterfaceMethodParamListNode *params = NULL, SignatureNode *signature = NULL);
-	    virtual ~InterfaceMethod();
-	    string getName() const {return m_name;};
-	    const SignatureNode *getSignature() const {return m_signature;};
-	    const InterfaceMethodParamListNode* getParams() {return m_params;};
-	    vector<InterfaceAttribute *> getMethodParams();
+	    InterfaceAttribute() {}
+	    InterfaceAttribute(string name);
+	    string getName() const {return m_name;}
+	    
+	    TreeNode* clone();
+	    int type() {return TNINTERFACEATTRIBUTE;}
+	    string simpleString() const {string res = "InterfaceAttribute: " + m_name; return res;}
+    };
+    
+    class InterfaceFields: public InterfaceTreeNode
+    {	//Abstract class
+	protected:
+	    InterfaceFields() {}
+	    TAttributes m_fields;
+	public:
+	    TAttributes getFields() const {return m_fields;}
+	    void prependField(InterfaceAttribute *field) {m_fields.push_front(*field);}
+	    
+	    virtual TreeNode* clone() = 0;
+	    virtual int type() = 0;
+	    string simpleString() const;
+    };
+
+    class InterfaceAttributes: public InterfaceFields 
+    {
+	public:
+	    InterfaceAttributes(InterfaceAttribute *attribute) {prependField(attribute);}
+	    virtual int type() {return TNINTERFACEATTRIBUTES;}
+	    TreeNode* clone();
+    };
+
+    class InterfaceMethodParams: public InterfaceFields 
+    {
+	public:
+	    InterfaceMethodParams(InterfaceAttribute *methodParam) {prependField(methodParam);}
+    	    virtual int type() {return TNINTERFACEMETHODPARAMS;}
+	    TreeNode* clone();
+    };
+
+    class InterfaceMethod: public InterfaceTreeNode
+    {
+	private:
+	    string m_name;
+	    TAttributes m_params;
+	public:
+	    InterfaceMethod() {};
+	    InterfaceMethod(string name);
+	    string getName() const {return m_name;}
+	    TAttributes getParams() const {return m_params;}
+	    void addParams(TAttributes params) {m_params = params;}
+	    
 	    TreeNode* clone();
 	    int type() {return TNINTERFACEMETHOD;};
-	    int putToString() {cout << "InterfaceMethod name = " + m_name + "\n"; return 0;};
-	    string toString(int level = 0, bool recursive = false, string name = "") {
-		string methodParamsString = m_params ? m_params->toString() : "<null>";
-		string result = getPrefixForLevel( level, name) + "([InterfaceMethod] " + m_name + " ( " + methodParamsString + " ) ";
-		
-		return result;	    
-	    }
-	    
-	    string deParse() { 
-    		string result;
-		result = m_name; 
-		if (m_params)
-		    result = result + "( " + m_params->deParse() + ")";
-		result = result + ": " + "TODO" + "; ";
-    		return result;
-	    };
+	    string simpleString() const;
     };
+    typedef std::list<InterfaceMethod> TMethods;
     
-
-    class InterfaceMethodListNode: public TreeNode {
+    class InterfaceMethods: public InterfaceTreeNode
+    {
 	private:
-	    InterfaceMethod *method;
-	    InterfaceMethodListNode *methodList;
+	    TMethods m_methods;
 	public:
-	    InterfaceMethodListNode(InterfaceMethod *method, InterfaceMethodListNode *methodList = NULL);
-	    virtual ~InterfaceMethodListNode();
-	    virtual InterfaceMethod* get_method() {return method;};
-	    virtual InterfaceMethodListNode* get_methodList() {return methodList;};
-	    virtual TreeNode* clone();
-	    virtual int type() {return TNINTERFACEMETHODLISTNODE;};
-	    virtual int putToString() {cout << "InterfaceMethodListNode \n"; return 0;};
-	    virtual string toString(int level = 0, bool recursive = false, string name = "") {
-		string methodVal = method ? method->toString() : "<null>";
-		string result = getPrefixForLevel( level, name) + "([InterfaceMethodListNode] method = " + methodVal + ") ";
-		if (recursive) {
-		    if (methodList) 
-			result += methodList->toString(level+1, true, "methodList");
-		}
-		return result;
-	    }
+	    InterfaceMethods(InterfaceMethod *method) {prependMethod(method);}
+	    TMethods getMethods() const {return m_methods;}
+	    void prependMethod(InterfaceMethod *method) {m_methods.push_front(*method);}
 	    
-	    virtual string deParse() { 
-    		string result;
-		result = method->deParse() + " ";
-		if (methodList)
-		    result = result + methodList->deParse(); 
-    	        cout << result;
-    		return result;
-	    };
+	    TreeNode* clone();
+	    int type() {return TNINTERFACEMETHODS;}
+	    string simpleString() const;
     };
-    
-    
-    
-    
-    class InterfaceAttributeListNode: public TreeNode {
-	private:
-	    InterfaceAttribute *attribute;
-	    InterfaceAttributeListNode *attributeList;
-	public:
-	    InterfaceAttributeListNode(InterfaceAttribute *attribute, InterfaceAttributeListNode *attributeList = NULL);
-	    virtual ~InterfaceAttributeListNode();
-	    virtual InterfaceAttribute* get_attribute() {return attribute;};
-	    virtual InterfaceAttributeListNode* get_attributeList() {return attributeList;};
-	    virtual TreeNode* clone();
-	    virtual int type() {return TNINTERFACEATTRIBUTELISTNODE;};
-	    virtual int putToString() { cout << "InterfaceAttributeListNode \n"; return 0;};
-	    virtual string toString(int level = 0, bool recursive = false, string name = "") {
-		string attributeVal = attribute ? attribute->toString() : "<null>";
-		string result = getPrefixForLevel( level, name) + "([InterfaceAttributeListNode] " + attributeVal + ") ";
-		if (recursive) {
-		    if (attributeList) 
-			result += attributeList->toString(level+1, true, "attributeList");
-		}
-		return result;
-	    }
-	    
-	    virtual string deParse() { 
-    		string result;
-		result = attribute->deParse() + " ";
-		if (attributeList)
-		    result = result + attributeList->deParse(); 
-    	        cout << result;
-    		return result;
-	    };
-    };
-    
-    class InterfaceStruct: public TreeNode {
-    private:
-	InterfaceAttributeListNode* attributeList;
-	InterfaceMethodListNode* methodList;
-    public: 
-	InterfaceStruct(InterfaceAttributeListNode* attributeList = NULL, InterfaceMethodListNode* methodList = NULL);
-	virtual ~InterfaceStruct();
-	virtual InterfaceAttributeListNode* get_attributeList() const {return attributeList;};
-	virtual InterfaceMethodListNode* get_methodList() const {return methodList;};
-	vector<InterfaceMethod *> getMethods() const;
-	vector<InterfaceAttribute *> getAttribs() const;
-	virtual TreeNode* clone();
-	virtual int type() {return TNINTERFACESTRUCT;};
-	virtual int putToString() {cout << "InterfaceStruct\n"; return 0;};
-	virtual string toString(int level = 0, bool recursive = false, string name = "") {
-	    string attributeListString = attributeList ? attributeList->toString() : "<null>";
-	    string methodListString = methodList ? methodList->toString() : "<null>";
-	    string result = getPrefixForLevel(level, name) + "([InterfaceStruct] " + attributeListString + " " + methodListString + ") ";
-	    
-	    return result;
-	}
-	virtual string deParse() { 
-    	    string result = ""; 
-	    if (attributeList)
-    		result = result + attributeList->deParse() + " ";
-	    if (methodList)
-		result = result + methodList->deParse(); 
-    	    cout << result;
-    	    return result;
-	};
-	
-	    
-    };
-    
-    class InterfaceNode : public QueryNode {
-    private:
-	string m_interfaceName;
-	string m_objectName;
-	InterfaceStruct* m_iStruct;
-    public:
-	InterfaceNode(string interfaceName, string objectName, InterfaceStruct* iStruct);
-	virtual ~InterfaceNode();
-	const InterfaceStruct* getIStruct() {return m_iStruct;};
-	string getInterfaceName() {return m_interfaceName;};
-	string getObjectName() {return m_objectName;}
-	virtual TreeNode* clone();
-	virtual int type() {return TNINTERFACENODE;};
-	virtual int putToString() {cout << "InterfaceNode name=" + m_interfaceName + "\n"; return 0;};
-
-	virtual string deParse() { 
-    	    string result; 
-    	    result = " interface " + m_interfaceName + " " + ", object name " + m_objectName + " " + m_iStruct->deParse(); 
-    	    cout << result;
-    	    return result;
-	};
-	
-	virtual string toString(int level = 0, bool recursive = false, string name = "") {
-	    string InterfaceStructString = m_iStruct ? m_iStruct->toString() : "<null>";
-	    string result = getPrefixForLevel(level, name) + "([InterfaceNode] " + m_interfaceName + " " + m_objectName + " "  + InterfaceStructString + ") ";	    
-	    return result;
-	}    
-    };
-    
-    
-    class RegisterInterfaceNode : public QueryNode {
-    protected:
-	QueryNode* query;
-    public:
-	RegisterInterfaceNode(QueryNode *q);
-	virtual ~RegisterInterfaceNode(); 
         
-	virtual TreeNode* clone();
-	virtual int type() {return TreeNode::TNREGINTERFACE;}
-	virtual QueryNode *getQuery() {return this->query;}
-	virtual int putToString() {
-	    string queryString = query ? query->toString() : "<null>";
-	    cout << "([RegisterInterfaceNode] " + queryString + ")\n";
-    	    return 0;
-	}
-    
-	virtual string toString( int level = 0, bool recursive = false, string name = "" ) {
-    	    string result = getPrefixForLevel( level, name ) + "[RegisterInterface]\n";
-            if( recursive ) {
-		if( query )
-        	    result += query->toString( level+1, true, "query" );
-    	    }
-    	    return result;
-	}
-      
-        virtual string deParse() { 
-    	    string result; 
-    	    result = " create" + query->deParse(); 
-    	    cout << result;
-    	    return result;
-	}
+    class InterfaceNode : public InterfaceQueryNode
+    {
+	private:
+	    string m_interfaceName;
+	    string m_objectName;
+	    TAttributes m_attributes;
+	    TMethods m_methods;
+	    TSupers m_supers;
+	public:
+	    InterfaceNode() {};
+	    string getInterfaceName() const {return m_interfaceName;}
+	    string getObjectName() const {return m_objectName;}
+	    TAttributes getAttributes() const {return m_attributes;}
+	    TMethods getMethods() const {return m_methods;}
+	    TSupers getSupers() const {return m_supers;}
+	
+	    void setInterfaceName(string interfaceName) {m_interfaceName = interfaceName;}
+	    void setObjectName(string objectName) {m_objectName = objectName;}
+	    void setAttributes(TAttributes attributes) {m_attributes = attributes;}
+	    void setMethods(TMethods methods) {m_methods = methods;}
+	    void setSupers(NameListNode *supers);
+	
+	    TreeNode* clone();
+	    int type() {return TNINTERFACENODE;}
+	    string simpleString() const;	    
     };
     
+    class RegisterInterfaceNode : public InterfaceQueryNode
+    {
+        protected:
+	    QueryNode* m_query;
+	public:
+	    RegisterInterfaceNode(QueryNode *query) {m_query = query;}
+	    ~RegisterInterfaceNode() {if (m_query) delete m_query; m_query=NULL;} 
+	    QueryNode *getQuery() {return m_query;}
+	    
+	    TreeNode *clone();
+	    int type() {return TNREGINTERFACE;}
+	    string simpleString() const;	    
+
+    };
+
+    class InterfaceBind: public InterfaceQueryNode 
+    {
+        private:
+    	    string m_interfaceName;
+	    string m_implementationName;
+	public:
+	    InterfaceBind(string interfaceName, string implementationName);
+	    string getInterfaceName() const {return m_interfaceName;}
+	    string getImplementationName() const {return m_implementationName;}
+
+	    TreeNode *clone();	    
+	    int type() {return TNINTERFACEBIND;}
+	    string simpleString() const {string res = "InterfaceBind: " + m_interfaceName + " -> " + m_implementationName; return res;}
+    }; 
+
+
     
     /* Privilige Nodes */
-    
-    
-    
-    
-    
     class PriviligeListNode: public TreeNode {
 	private:
 	    Privilige *priv;
@@ -2730,74 +2634,6 @@ class DMLNode : public TreeNode
 		}
 		virtual ~DMLNode() {}
     };  
-
-class InterfaceInnerLinkage: public TreeNode {
-    private:
-	string nameAtInterface;
-	string nameAtImplementation;
-    public:
-	InterfaceInnerLinkage(string intName, string impName);
-	virtual ~InterfaceInnerLinkage();
-	virtual string getAtIntName() {return nameAtInterface;};
-	virtual string getAtImpName() {return nameAtImplementation;};
-	
-	virtual TreeNode* clone();
-	virtual int type() {return TNINTERFACEINNERLINKAGE;};
-	virtual int putToString() {cout << "InterfaceInnerLinkage atIntName = " + nameAtInterface + " atImpName =" + 
-		nameAtImplementation + "\n"; return 0;};
-	virtual string toString(int level = 0, bool recursive = false, string name = "") {
-	    string result = getPrefixForLevel( level, name) + "([InterfaceInnerLinkage] " + this->deParse() +  ") ";
-	    return result;
-	};
-	
-	virtual string deParse() { 
-    	    string result = " (" + nameAtInterface + ", " + nameAtImplementation + ") ";
-	    return result;
-	};
-	        
-    };
-    
-    class InterfaceInnerLinkageList: public TreeNode {
-	private:
-	    InterfaceInnerLinkage *linkage;
-	    InterfaceInnerLinkageList *linkageList;
-	public:
-	    InterfaceInnerLinkageList(InterfaceInnerLinkage *linkage, InterfaceInnerLinkageList *linkageList = NULL);
-	    virtual ~InterfaceInnerLinkageList();
-	    vector<InterfaceInnerLinkage *> getLinkages();
-	    virtual TreeNode* clone();
-	    virtual int type() {return TNINTERFACEINNERLINKAGELIST;};
-	    virtual int putToString() { cout << "InterfaceInnerLinkageList \n"; return 0;};
-	    virtual string toString(int level = 0, bool recursive = false, string name = "") {
-		string linkageVal = linkage ? linkage->toString() : "<null>";
-		string result = getPrefixForLevel( level, name) + "([InterfaceInnerLinkageList] " + linkageVal + ") ";
-		if (recursive) {
-		    if (linkageList) 
-			result += linkageList->toString(level+1, true, "linkageList");
-		}
-		return result;
-	    };
-    };
-    
-    class InterfaceBind: public QueryNode {
-    private:
-	string m_interfaceName;
-	string m_implementationName;
-	InterfaceInnerLinkageList* m_arbLinks;
-    public:
-	InterfaceBind(string interfaceName, string implementationName, InterfaceInnerLinkageList *arbitraryBinds=NULL);
-	string getInterfaceName();
-	string getImplementationName();
-	virtual ~InterfaceBind();
-	virtual TreeNode* clone();
-	virtual int type() {return TNINTERFACEBIND;};
-	virtual int putToString() {cout << "InterfaceBind interface = " + m_interfaceName + " implementation = "
-		+ m_implementationName + "\n"; return 0;};
-	virtual string toString(int level = 0, bool recursive = false, string name = "") {
-	    return getPrefixForLevel(level, name) + "([InterfaceBind] " + m_interfaceName + " " +
-	     m_implementationName + ") ";};
-	virtual string deParse() { return "InterfaceBind interface=" + m_interfaceName + ", implementation=" + m_implementationName +";"; }
-    }; 
     
 	/** TypeCheck TreeNode class declarations... */
 	class StructureTypeNode; 
