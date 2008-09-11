@@ -155,6 +155,10 @@ namespace Errors {
 // stopper
 #define EUnknown		0x3400
 
+// Logs
+#define EBadLSN				0x3500
+#define ESyncLog			0x3510
+
 // User Program Errors
 #define EUserUnknown		0x8000
 #define EUserWrongParam		0x8100
