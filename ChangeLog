@@ -1,3 +1,7 @@
+2008-09-11  Krzysztof Stencel  <stencel@students.mimuw.edu.pl>
+
+	* SystemStats/.cvsignore: Added missing .cvsignore.
+
 2008-09-07  Damian Klata  <dk209472@students.mimuw.edu.pl>
 
 	* Store/SystemViews.cpp, Store/SystemViews.h:
