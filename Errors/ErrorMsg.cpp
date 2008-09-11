@@ -105,6 +105,10 @@ struct ErrorMessages {
 	{EUserUnknown, "Exception Thrown in Query Execution - Unknown User Error"},
  	{EUserWrongParam, "Exception Thrown in Query Execution - Wrong Parameter"},
 
+// Logs
+	{EBadLSN, "Log entry couldn't be found."},
+	{ESyncLog, "Error while synchronising the log file."},
+
 // THIS MUST BE THE LAST ENTRY
 	{EUnknown,         "Unknown error"}
 };
