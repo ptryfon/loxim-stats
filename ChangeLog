@@ -1,3 +1,12 @@
+2008-09-11  Maja Perycz  <mp209490@students.mimuw.edu.pl>
+
+	* ARIESLog/LogRecord.cpp, ARIESLog/LogRecord.h, ARIESLog/Logs.cpp, ARIESLog/Logs.h, ARIESLog/TestLogs.cpp:
+	Minor adjustments.
+
+	* Errors/ErrorMsg.cpp: New error messages for logs
+
+	* Errors/Errors.h: New error codes for logs.
+
 2008-09-11  Adam Dabrowski  <ad197852@students.mimuw.edu.pl>
 
 	* QueryExecutor/InterfaceMatcher.cpp, QueryExecutor/InterfaceMatcher.h, QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryExecutor.h, QueryParser/TreeNode.cpp, QueryParser/TreeNode.h, QueryParser/parser.y:
