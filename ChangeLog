@@ -1,3 +1,8 @@
+2008-09-11  Maja Perycz  <mp209490@students.mimuw.edu.pl>
+
+	* ARIESLog/LogRecord.cpp, ARIESLog/LogRecord.h, ARIESLog/Logs.cpp, ARIESLog/Logs.h, ARIESLog/Makefile, ARIESLog/TestLogs.cpp, ARIESLog/example.conf:
+	Wstepna wersja wycofywania transakcji.
+
 2008-09-11  Krzysztof Stencel  <stencel@students.mimuw.edu.pl>
 
 	* SystemStats/.cvsignore: Added missing .cvsignore.
