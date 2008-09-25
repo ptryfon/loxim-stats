@@ -2320,7 +2320,7 @@
 	Import/eksport do XML'a.
 	Eksport dziala, import ma pare brakow.
 
-2006-02-08  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2006-02-08  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* make.defs: - wlaczony debug
 
@@ -2405,7 +2405,7 @@
 	Modyfikacja metod start() w pliku i buforze. Bufor nie startuje
 	w przypadku braku startu pliku. Dodanie kodow bledow.
 
-2006-02-05  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2006-02-05  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* Log/Logs.cpp: - errorconsole
 
@@ -2479,7 +2479,7 @@
 
 	* Lock/Lock.cpp: Zmiany
 
-2006-02-03  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2006-02-03  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* Log/TestLogs.cpp: - test checkpointa
 
@@ -2490,7 +2490,7 @@
 
 	* Lock/Lock.cpp, Lock/SingleLock.cpp: Kosmetyka
 
-2006-02-03  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2006-02-03  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* Testy/wymagane/Attic/kalkulator: - begin, end, close by
 
@@ -2572,7 +2572,7 @@
 	* Log/CrashRecovery.cpp, Log/LogRecord.cpp:
 	blad przy czytaniu przed poczatkiem pliku
 
-2006-02-01  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2006-02-01  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* Errors/ErrorMsg.cpp, Errors/Errors.h:
 	- poprawiona numeracja i komunikaty
@@ -2761,7 +2761,7 @@
 	* Store/DBDataValue.cpp, Store/DBLogicalID.cpp, Store/DBObjectPointer.cpp, Store/DBStoreManager.cpp, Store/TestStore.cpp:
 	insert (c woda) into (c wiadro)
 
-2006-01-27  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2006-01-27  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* Store/Makefile: - poprawiona kompilacja testu
 
@@ -2786,7 +2786,7 @@
 
 	* Driver/Connection.cpp: *** empty log message ***
 
-2006-01-27  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2006-01-27  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* TransactionManager/Makefile: - linikuj Config.a dla programu
 
@@ -2809,7 +2809,7 @@
 	* Log/Logs.cpp, Log/Logs.h, Log/TestLogs.cpp, Log/CrashRecovery.cpp, Log/LogRecord.cpp:
 	podpiety config
 
-2006-01-27  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2006-01-27  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* Server/Attic/Server.conf: - konfiguracja bledow we wlasciwym miejscu
 
@@ -2968,7 +2968,7 @@
 	* Store/DBDataValue.cpp, Store/DBStoreManager.cpp, Store/Map.cpp, Store/PageManager.cpp, Store/PageManager.h, Store/TestStore.cpp:
 	jakze wyczekiwany przez wszystkich: getObject
 
-2006-01-26  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2006-01-26  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* Errors/ErrorConsole.cpp, Errors/ErrorMsg.cpp, Errors/Errors.h, Errors/Makefile, Errors/consoletest.cpp:
 	- dodane wypisywanie naszych komunikatow bledow
@@ -2993,7 +2993,7 @@
 	* Store/DBObjectPointer.cpp, Store/DBStoreManager.cpp, Store/Misc.cpp, Store/Misc.h, Store/PageManager.cpp, Store/PageManager.h, Store/Store.h, Store/TestStore.cpp:
 	create kilof(6);
 
-2006-01-26  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2006-01-26  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* Store/DBStoreManager.cpp, Store/DBStoreManager.h, Server/Attic/Listener.cpp, Server/Attic/Listener.h, Server/Attic/ListenerTcp.cpp, Server/Attic/Server.cpp, Server/Attic/Server.h, Server/Attic/ServerTcp.cpp:
 	- uporzadkowane uzycie errorconsole i config
@@ -3045,7 +3045,7 @@
 	* QueryParser/QueryParser.cpp, QueryParser/TreeNode.cpp:
 	poprawione optymalizowanie drzewka. tu jest wersja testowa, zeby zobaczyc jak dziala, trzeba zadac zapytanie: EMP where SAL = (EMP where NAME="KUBA").SAL; ale ogolnie powinno dzialac dla kazdego zapytania (po wykomentowaniu jakiejs linijki z QueryParser.cpp).
 
-2006-01-26  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2006-01-26  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* Errors/ErrorConsole.cpp, Errors/ErrorConsole.h:
 	- usuniete zmienne statyczne R/W
@@ -3088,7 +3088,7 @@
 
 	* QueryExecutor/QueryExecutor.cpp: QueryExecutor: small changes done.
 
-2006-01-26  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2006-01-26  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* Store/TestStore.cpp: - dodane inicjowanie errorconsole
 
@@ -3207,7 +3207,7 @@
 	* Store/DBDataValue.cpp, Store/PageManager.cpp, Store/PageManager.h:
 	serial bugfix
 
-2006-01-25  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2006-01-25  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* TransactionManager/Transaction.cpp, TransactionManager/RWUJSemaphore.cpp:
 	- wyczyszczone uzycie errorconsole
@@ -3222,7 +3222,7 @@
 
 	* Server/Attic/Server.cpp: *** empty log message ***
 
-2006-01-25  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2006-01-25  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryExecutor.h, QueryExecutor/QueryResult.cpp, QueryExecutor/QueryResult.h:
 	- zmienione wszedzie cout/printf na wywolania errorconsole
@@ -3231,7 +3231,7 @@
 
 	* Server/Attic/Server.cpp, Errors/Errors.h: *** empty log message ***
 
-2006-01-25  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2006-01-25  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* Log/Logs.cpp, Log/Logs.h: - uzycie errorconsole zamiast printf
 
@@ -3262,7 +3262,7 @@
 	* Server/Attic/Listener.h, Server/Attic/ListenerTcp.cpp:
 	dodana mozliwosc ustawienia dlugosci kolejki oczekujacych polaczen
 
-2006-01-25  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2006-01-25  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* Lock/Lock.cpp, Lock/Lock.h: - uzycie errorconsole
 
@@ -3273,7 +3273,7 @@
 
 	* Log/LogRecord.cpp, Log/TestLogs.cpp: *** empty log message ***
 
-2006-01-25  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2006-01-25  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* Errors/Errors.h:
 	- zaslepka dla dziwnosci zwracanych przez gethostbyname
@@ -3360,7 +3360,7 @@
 	* QueryExecutor/QueryResult.cpp:
 	Little changes in QueryResult and QueryExecutor
 
-2006-01-23  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2006-01-23  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* Backup/Backup.cpp:
 	- dodane errno.h (potrzebne do kompilacji pod cygwinem)
@@ -3991,7 +3991,7 @@
 
 	* Store/PageManager.h: *** empty log message ***
 
-2006-01-06  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2006-01-06  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* Errors/Errors.h: - kody dla executora
 
@@ -4026,7 +4026,7 @@
 	* Driver/Connection.cpp, Server/Attic/Server.cpp:
 	naprawione przesy�anie stringa po sieci
 
-2006-01-06  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2006-01-06  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* Attic/test: - makelog.sh dziala
 
@@ -4123,7 +4123,7 @@
 
 	* Store/DBStoreManager.cpp: addRoots succes
 
-2005-12-16  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2005-12-16  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* Errors/ErrorConsole.cpp, Errors/ErrorConsole.h:
 	- ustawienie logowania na stderr zmienna statyczna
@@ -4140,7 +4140,7 @@
 
 	* Store/Map.cpp: Poprawiony seg.
 
-2005-12-16  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2005-12-16  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* QueryParser/TreeNode.h: - poprawiony brak ;
 
@@ -4251,7 +4251,7 @@
 	W start() poprawilem warunek przy sprawdzaniu, czy pliki
 	sie poprawnie otworzyly.
 
-2005-12-09  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2005-12-09  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* Server/Attic/Server.cpp: - wyprostowane uzycie wskaznikow
 
@@ -4260,7 +4260,7 @@
 	* QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryExecutor.h:
 	changed QueryExecutor
 
-2005-12-09  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2005-12-09  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* XMLIO/.cvsignore: - standartowy cvsignore
 
@@ -4376,7 +4376,7 @@
 	--
 	Tomasz Rosiek
 
-2005-12-02  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2005-12-02  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* Errors/ErrorConsole.cpp, Errors/ErrorConsole.h, Errors/Makefile, Errors/consoletest.cpp:
 	- doszlifowane operatory
@@ -4420,7 +4420,7 @@
 
 	* kierownicy.txt: Prezentacje i zespoly.
 
-2005-12-02  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2005-12-02  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* Errors/Errors.h: - blad dla parsera
 
@@ -4439,7 +4439,7 @@
 	* Store/DBDataValue.cpp, Store/DBDataValue.h:
 	dataValue poprawione konstruktory
 
-2005-12-02  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2005-12-02  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* TCPProto/.cvsignore: - dodany standartowy cvsignore
 
@@ -4457,7 +4457,7 @@
 	* QueryExecutor/QueryExecutor.cpp:
 	Przekazanie prac nad kodem reszcie grupy
 
-2005-12-01  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2005-12-01  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* Config/example.conf: - przykladowy plik konfiguracyjny
 
@@ -4479,7 +4479,7 @@
 	* Driver/Connection.cpp, TCPProto/Tcp.cpp:
 	usuniety drobny blad, dodane napisy diagnostyczne
 
-2005-12-01  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2005-12-01  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* Errors/ErrorConsole.cpp, Errors/ErrorConsole.h, Errors/consoletest.cpp:
 	- dodana metoda init
@@ -4498,7 +4498,7 @@
 	* QueryExecutor/QueryExecutor.cpp:
 	Dodano zaslepkowy kod do testowania komunikacji z Serverem (zwracanie QueryResulta tworzonego na miejscu)
 
-2005-12-01  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2005-12-01  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* Errors/ErrorConsole.cpp, Errors/ErrorConsole.h, Errors/Makefile, Errors/consoletest.cpp:
 	- testowy program i poprawki z niego wynikajace
@@ -4604,7 +4604,7 @@
 
 	* QueryParser/QueryParser.cpp: drobne zmiany w funkcji parseIt...
 
-2005-11-25  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2005-11-25  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* SBQLCli/Attic/Makefile, Driver/Makefile: - wlaczona obsluga wyjatkow
 
@@ -4629,7 +4629,7 @@
 	* Server/Attic/Server.cpp, Server/Attic/Server.h:
 	*** empty log message ***
 
-2005-11-25  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2005-11-25  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* Log/Logs.cpp: - dodalem wlaczanie errno.h
 
@@ -4649,7 +4649,7 @@
 	* Store/DBLogicalID.cpp, Store/DBLogicalID.h, Store/DBStoreManager.cpp, Store/Store.h, Store/TestStore.cpp:
 	*** empty log message ***
 
-2005-11-25  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2005-11-25  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* Server/Attic/Makefile:
 	- koszerne rozwiazanie problemu kolejnosci linkowania
@@ -4659,7 +4659,7 @@
 	* Store/DBLogicalID.cpp, Store/DBLogicalID.h, Store/DBStoreManager.cpp:
 	LID
 
-2005-11-25  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2005-11-25  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* Server/Attic/Makefile, Errors/ErrorConsole.cpp:
 	- poprawione linkowanie bledow
@@ -4701,7 +4701,7 @@
 
 	* Server/Attic/Server.cpp: danianie cd
 
-2005-11-25  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2005-11-25  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* Errors/ErrorConsole.cpp, Errors/Errors.h:
 	- implementacja metody <<int
@@ -4723,7 +4723,7 @@
 	* SBQLCli/Attic/SBQLCli.cpp:
 	Automatycznie wybierany jest localhost i port
 
-2005-11-25  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2005-11-25  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* Errors/Errors.h: - nastepny blad dla executora
 
@@ -4848,7 +4848,7 @@
 
 	* Store/DBPhysicalID.h: Zmiany wprowadzoen przez LockManagera
 
-2005-11-23  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2005-11-23  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* Errors/Errors.h: - dodane bledy queryexecutora
 
@@ -4870,7 +4870,7 @@
 	* Driver/Result.cpp, Driver/Result.h:
 	Napisa�em implementacje zdefiniowanego wczesniej interfejsu. Destruktory nie dzialaja jeszcze dobrze.
 
-2005-11-22  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2005-11-22  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* Log/Makefile: - dopisany brakujacy plik
 
@@ -4878,7 +4878,7 @@
 
 	* Driver/Connection.cpp: protokol wykorzystuje juz enum'a z result.h
 
-2005-11-21  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2005-11-21  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* kierownicy.txt: - dodany Julian Krzeminski
 
@@ -4966,7 +4966,7 @@
 
 	Wycofane zmiany z DataValue.
 
-2005-11-18  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2005-11-18  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* Store/Makefile: - dodane nowe pliki
 
@@ -5000,7 +5000,7 @@
 	* QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryResult.h:
 	*** empty log message ***
 
-2005-11-18  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2005-11-18  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* Errors/Errors.h: - wersja sensowniejsza
 
@@ -5018,7 +5018,7 @@
 
 	* Log/.cvsignore: Dorzucenie LogTest do ignora.
 
-2005-11-18  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2005-11-18  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* Errors/ErrorConsole.cpp: - include Errors.h
 
@@ -5034,7 +5034,7 @@
 
 	* QueryExecutor/QueryExecutor.cpp: *** empty log message ***
 
-2005-11-18  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2005-11-18  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* make.defs: - zmieniony yacc na bison
 
@@ -5191,7 +5191,7 @@
 	* TransactionManager/Transaction.cpp, TransactionManager/Transaction.h:
 	rozszerzenie interfejsu dla executora
 
-2005-11-07  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2005-11-07  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* Server/Attic/Makefile: - uzywaj CXXFLAGS przy kazdej kompilacji
 
@@ -5229,7 +5229,7 @@
 
 	* Server/Attic/Listener.h: dziewiczy naglowek, zglaszajcie uwagi
 
-2005-11-04  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2005-11-04  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* QueryParser/Makefile: - regulki dla yacc i flex
 
@@ -5271,12 +5271,12 @@
 	* Backup/Backup.cpp, Backup/Backup.h, Backup/Makefile:
 	*** empty log message ***
 
-2005-11-03  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2005-11-03  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* TransactionManager/Transaction.cpp, TransactionManager/Transaction.h:
 	- tymczasowo cofniete wciecie zeby nie komplikowac commitow
 
-2005-11-02  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2005-11-02  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* Config/Makefile, Driver/Makefile, Errors/Makefile, Log/Makefile, QueryExecutor/Makefile, QueryParser/Makefile, SBQLCli/Attic/Makefile, Server/Attic/Makefile, Store/Makefile, TransactionManager/Makefile, Backup/Makefile:
 	- nie wypisuj niepotrzebnych komunikatow o bledach
@@ -5326,7 +5326,7 @@
 	* SBQLCli/Attic/client.cpp:
 	Miejmy nadzieje ostatnia wersja tego pliku. Poprawione formatowanie wynik�w.
 
-2005-10-31  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2005-10-31  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* SBQLCli/Attic/SBQLCli.cpp, Server/Attic/ConnectionThread.cpp, Server/Attic/ConnectionThread.h, Server/Attic/Server.cpp, Server/Attic/Server.h, QueryExecutor/QueryExecutor.cpp, QueryExecutor/QueryExecutor.h, Driver/Attic/ResultSet.cpp, Driver/Attic/ResultSet.h, Driver/Connection.cpp, Driver/Connection.h, Driver/DriverManager.cpp, Driver/DriverManager.h:
 	- przekonwertowane konce linii do formatu uniksowego
@@ -5559,7 +5559,7 @@
 	* .cvsignore:
 	Dodanie ignorowania katalogu z przedmiotem z tamtego roku.
 
-2005-10-27  Jan Rekorajski  <baggins@students.mimuw.edu.pl>
+2005-10-27  Jan Rękorajski  <baggins@students.mimuw.edu.pl>
 
 	* Makefile: - added QueryParser
 
