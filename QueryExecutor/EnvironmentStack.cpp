@@ -800,10 +800,10 @@ int QueryVirtualResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult
 			}
 		}
 	}
-	// Przymujac semantyke, ktora wyklucza jednoczesne podperspektywy, gdy jest on_navigate
-	// trzeba odkomentowac else { i }
+	// Przymujac semantyke, ktora nie wyklucza jednoczesnych podperspektyw, gdy jest on_navigate
+	// trzeba zakomentowac else { i }
 	
-	//else {
+	else {
 		vector<LogicalID *> subviews;
 		errcode = qe->getSubviews(view_defs.at(0), vo_name, subviews);
 		if (errcode != 0) return errcode;
@@ -846,7 +846,7 @@ int QueryVirtualResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult
 			}
 			
 		}
-	//}
+	}
 	return 0;
 }
 

@@ -3458,12 +3458,12 @@ int QueryExecutor::unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&
 			if (errcode != 0) return errcode;
 			break;
 		}
-        case UnOpNode::nameof: {
-            *ec << "[QE] NAMEOF operation";
-            errcode = this->nameofQuery(arg, final);
-            if (errcode != 0) return errcode;
-            break;
-        }
+		case UnOpNode::nameof: {
+			*ec << "[QE] NAMEOF operation";
+			errcode = this->nameofQuery(arg, final);
+			if (errcode != 0) return errcode;
+			break;
+		}
 		case UnOpNode::unMinus: {
 			*ec << "[QE] UN_MINUS operation";
 			QueryResult *derefArg;
@@ -4655,6 +4655,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 		leftBag->addResult(lArg);
 		QueryResult *rightBag = new QueryBagResult();
 		rightBag->addResult(rArg);
+		
 		if (((leftBag->size()) == 0) || ((rightBag->size()) == 0)) {
 			if (op == (AlgOpNode::bagMinus))
 				((QueryBagResult *) final)->addResult(lArg);
@@ -4665,31 +4666,33 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 
 			QueryResult *left_elem;
 			QueryResult *right_elem;
-
+			
 			while ((leftBag->size()) != 0) {
 				errcode = ((QueryBagResult *) leftBag)->at(0, left_elem);
 				if (errcode != 0) return errcode;
-
+				
 				if ((rightBag->size()) != 0) {
 					errcode = ((QueryBagResult *) rightBag)->at(0, right_elem);
 					if (errcode != 0) return errcode;
-
+					
 					if (left_elem->equal(right_elem)) {
 						if (op == (AlgOpNode::bagIntersect))
 							((QueryBagResult *) final)->addResult(left_elem);
 						errcode = ((QueryBagResult *) leftBag)->getResult(left_elem);
 						if (errcode != 0) return errcode;
+						
 						errcode = ((QueryBagResult *) rightBag)->getResult(right_elem);
 						if (errcode != 0) return errcode;
 					}
-					else if (left_elem->sorting_strict_less(right_elem)) {
+					else if (left_elem->less_than(right_elem)) {
 						if (op == (AlgOpNode::bagMinus))
 							((QueryBagResult *) final)->addResult(left_elem);
-						errcode = ((QueryBagResult *) leftBag)->getResult(left_elem);
+						
+						errcode = ((QueryBagResult *) leftBag)->getResult(left_elem);	
 						if (errcode != 0) return errcode;
 					}
 					else {
-						errcode = ((QueryBagResult *) rightBag)->getResult(right_elem);
+						errcode = ((QueryBagResult *) rightBag)->getResult(right_elem);	
 						if (errcode != 0) return errcode;
 					}
 				}
