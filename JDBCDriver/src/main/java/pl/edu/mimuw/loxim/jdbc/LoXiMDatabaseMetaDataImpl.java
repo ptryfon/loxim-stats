@@ -7,6 +7,12 @@ import java.sql.SQLException;
 
 public class LoXiMDatabaseMetaDataImpl implements LoXiMDatabaseMetaData {
 
+	private LoXiMConnection connection;
+	
+	LoXiMDatabaseMetaDataImpl(LoXiMConnection connection) {
+		this.connection = connection;
+	}
+	
 	@Override
 	public boolean allProceduresAreCallable() throws SQLException {
 		return false;
@@ -102,8 +108,7 @@ public class LoXiMDatabaseMetaDataImpl implements LoXiMDatabaseMetaData {
 
 	@Override
 	public Connection getConnection() throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		return connection;
 	}
 
 	@Override

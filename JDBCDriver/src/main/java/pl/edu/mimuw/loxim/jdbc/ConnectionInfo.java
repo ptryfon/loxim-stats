@@ -45,6 +45,10 @@ class ConnectionInfo {
 		return info.getProperty(key);
 	}
 	
+	public String getProperty(String key, String defaultValue) {
+		return info.getProperty(key, defaultValue);
+	}
+		
 	public void setProperty(String key, String value) {
 		info.setProperty(key, value);
 	}
@@ -53,12 +57,20 @@ class ConnectionInfo {
 		this.info = info;
 	}
 	
+	public void setTimeout(int timeout) {
+		setProperty("timeout", String.valueOf(timeout));
+	}
+	
 	public String getUser() {
 		return getProperty("user");
 	}
 	
 	public String getPassword() {
 		return getProperty("password");
+	}
+	
+	public int getTimeout() {
+		return Integer.parseInt(getProperty("timeout", "0"));
 	}
 	
 	@Override

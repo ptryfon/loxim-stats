@@ -2,6 +2,7 @@ package pl.edu.mimuw.loxim.jdbc;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.sql.Array;
 import java.sql.Blob;
@@ -9,7 +10,7 @@ import java.sql.CallableStatement;
 import java.sql.Clob;
 import java.sql.DatabaseMetaData;
 import java.sql.NClob;
-import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLClientInfoException;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
@@ -17,7 +18,6 @@ import java.sql.SQLInvalidAuthorizationSpecException;
 import java.sql.SQLWarning;
 import java.sql.SQLXML;
 import java.sql.Savepoint;
-import java.sql.Statement;
 import java.sql.Struct;
 import java.util.Calendar;
 import java.util.EnumSet;
@@ -28,6 +28,8 @@ import java.util.Properties;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import pl.edu.mimuw.loxim.parser.Parser;
+import pl.edu.mimuw.loxim.parser.SBQLParser;
 import pl.edu.mimuw.loxim.protocol.enums.Auth_methodsEnum;
 import pl.edu.mimuw.loxim.protocol.enums.Bye_reasonsEnum;
 import pl.edu.mimuw.loxim.protocol.enums.CollationsEnum;
@@ -46,18 +48,23 @@ import pl.edu.mimuw.loxim.protogen.lang.java.template.ptools.Package;
 
 public class LoXiMConnectionImpl implements LoXiMConnection {
 
+	private SQLWarning warning;
+	
 	private static final Log log = LogFactory.getLog(LoXiMConnectionImpl.class);
 
 	private boolean autoCommit = true;
-	private boolean isClosed = true;
+	private boolean closed = true;
 	private PackageIO pacIO;
+	private Parser parser = new SBQLParser();
+	private int holdability = ResultSet.HOLD_CURSORS_OVER_COMMIT;
 
 	public LoXiMConnectionImpl(ConnectionInfo info) throws IOException, ProtocolException,
 			SQLInvalidAuthorizationSpecException, AuthException {
 
 		log.debug("Creating connection with info:" + info);
 
-		Socket socket = new Socket(info.getHost(), info.getPort());
+		Socket socket = new Socket();
+		socket.connect(new InetSocketAddress(info.getHost(), info.getPort()), info.getTimeout());
 		boolean creationSuccess = false;
 
 		try {
@@ -147,13 +154,13 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 
 	@Override
 	public void clearWarnings() throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		warning = null;
 	}
 
 	@Override
 	public void close() throws SQLException {
-		if (isClosed) {
+		if (closed) {
 			return;
 		}
 		
@@ -165,11 +172,12 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 		} catch (IOException e) {
 			throw new SQLException(e);
 		}
-		isClosed = true;
+		closed = true;
 	}
 
 	@Override
 	public void commit() throws SQLException {
+		checkClosed();
 		// TODO Auto-generated method stub
 
 	}
@@ -205,20 +213,19 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 	}
 
 	@Override
-	public Statement createStatement() throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+	public LoXiMStatement createStatement() throws SQLException {
+		return createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 	}
 
 	@Override
-	public Statement createStatement(int resultSetType, int resultSetConcurrency) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+	public LoXiMStatement createStatement(int resultSetType, int resultSetConcurrency) throws SQLException {
+		return createStatement(resultSetType, resultSetConcurrency, holdability);
 	}
 
 	@Override
-	public Statement createStatement(int resultSetType, int resultSetConcurrency, int resultSetHoldability)
+	public LoXiMStatement createStatement(int resultSetType, int resultSetConcurrency, int resultSetHoldability)
 			throws SQLException {
+		checkClosed();
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -231,12 +238,13 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 
 	@Override
 	public boolean getAutoCommit() throws SQLException {
+		checkClosed();
 		return autoCommit;
 	}
 
 	@Override
 	public String getCatalog() throws SQLException {
-		// TODO Auto-generated method stub
+		checkClosed();
 		return null;
 	}
 
@@ -254,37 +262,39 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 
 	@Override
 	public int getHoldability() throws SQLException {
-		// TODO Auto-generated method stub
-		return 0;
+		checkClosed();
+		return holdability;
 	}
 
 	@Override
 	public DatabaseMetaData getMetaData() throws SQLException {
+		checkClosed();
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public int getTransactionIsolation() throws SQLException {
+		checkClosed();
 		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	@Override
 	public Map<String, Class<?>> getTypeMap() throws SQLException {
+		checkClosed();
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public SQLWarning getWarnings() throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		return warning;
 	}
 
 	@Override
 	public boolean isClosed() throws SQLException {
-		return isClosed;
+		return closed;
 	}
 
 	@Override
@@ -295,13 +305,12 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 
 	@Override
 	public boolean isValid(int timeout) throws SQLException {
-		return isClosed();
+		return isClosed(); // XXX
 	}
 
 	@Override
 	public String nativeSQL(String sql) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		return parser.parse(sql);
 	}
 
 	@Override
@@ -321,33 +330,33 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 	}
 
 	@Override
-	public PreparedStatement prepareStatement(String sql) throws SQLException {
+	public LoXiMPreparedStatement prepareStatement(String sql) throws SQLException {
 		throw new SQLFeatureNotSupportedException();
 	}
 
 	@Override
-	public PreparedStatement prepareStatement(String sql, int autoGeneratedKeys) throws SQLException {
+	public LoXiMPreparedStatement prepareStatement(String sql, int autoGeneratedKeys) throws SQLException {
 		throw new SQLFeatureNotSupportedException();
 	}
 
 	@Override
-	public PreparedStatement prepareStatement(String sql, int[] columnIndexes) throws SQLException {
+	public LoXiMPreparedStatement prepareStatement(String sql, int[] columnIndexes) throws SQLException {
 		throw new SQLFeatureNotSupportedException();
 	}
 
 	@Override
-	public PreparedStatement prepareStatement(String sql, String[] columnNames) throws SQLException {
+	public LoXiMPreparedStatement prepareStatement(String sql, String[] columnNames) throws SQLException {
 		throw new SQLFeatureNotSupportedException();
 	}
 
 	@Override
-	public PreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency)
+	public LoXiMPreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency)
 			throws SQLException {
 		throw new SQLFeatureNotSupportedException();
 	}
 
 	@Override
-	public PreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency,
+	public LoXiMPreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency,
 			int resultSetHoldability) throws SQLException {
 		throw new SQLFeatureNotSupportedException();
 	}
@@ -359,6 +368,7 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 
 	@Override
 	public void rollback() throws SQLException {
+		checkClosed();
 		// TODO Auto-generated method stub
 
 	}
@@ -370,13 +380,13 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 
 	@Override
 	public void setAutoCommit(boolean autoCommit) throws SQLException {
+		checkClosed();
 		this.autoCommit = autoCommit;
 	}
 
 	@Override
 	public void setCatalog(String catalog) throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
 	}
 
 	@Override
@@ -393,12 +403,14 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 
 	@Override
 	public void setHoldability(int holdability) throws SQLException {
+		checkClosed();
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
 	public void setReadOnly(boolean readOnly) throws SQLException {
+		checkClosed();
 		// TODO Auto-generated method stub
 
 	}
@@ -415,12 +427,14 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 
 	@Override
 	public void setTransactionIsolation(int level) throws SQLException {
+		checkClosed();
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
 	public void setTypeMap(Map<String, Class<?>> map) throws SQLException {
+		checkClosed();
 		// TODO Auto-generated method stub
 
 	}
@@ -441,5 +455,11 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 	@Override
 	protected void finalize() throws SQLException {
 		close();
+	}
+	
+	private void checkClosed() throws SQLException {
+		if (closed) {
+			throw new SQLException("Connection is closed");
+		}
 	}
 }

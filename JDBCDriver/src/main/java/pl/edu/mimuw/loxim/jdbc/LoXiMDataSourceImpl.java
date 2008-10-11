@@ -10,7 +10,7 @@ public class LoXiMDataSourceImpl implements LoXiMDataSource {
 	private String databaseUrl;
 	private String user;
 	private String password;
-	private final int loginTimeout = 0; 
+	private int loginTimeout; 
 	
 	private transient PrintWriter logWriter;
 	
@@ -44,13 +44,15 @@ public class LoXiMDataSourceImpl implements LoXiMDataSource {
         Properties info = new Properties();
 
         if (username != null) {
-            info.put("user", username);
+            info.setProperty("user", username);
         }
 
         if (password != null) {
-            info.put("password", password);
+            info.setProperty("password", password);
         }
 		
+        info.setProperty("timeout", String.valueOf(loginTimeout));
+        
 		return LoXiMDriverImpl.getConnection(databaseUrl, info);
 	}
 
@@ -61,7 +63,7 @@ public class LoXiMDataSourceImpl implements LoXiMDataSource {
 
 	@Override
 	public int getLoginTimeout() throws SQLException {
-		return loginTimeout;
+		return loginTimeout / 1000;
 	}
 
 	@Override
@@ -71,7 +73,7 @@ public class LoXiMDataSourceImpl implements LoXiMDataSource {
 
 	@Override
 	public void setLoginTimeout(int seconds) throws SQLException {
-		// NO-OP
+		loginTimeout = seconds * 1000;
 	}
 
 	@Override

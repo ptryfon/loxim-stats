@@ -7,6 +7,12 @@ import java.sql.SQLWarning;
 
 public class LoXiMStatementImpl implements LoXiMStatement {
 
+	private LoXiMConnection connection;
+	
+	LoXiMStatementImpl(LoXiMConnection connection) {
+		this.connection = connection;
+	}
+	
 	@Override
 	public void addBatch(String sql) throws SQLException {
 		// TODO Auto-generated method stub
@@ -98,9 +104,8 @@ public class LoXiMStatementImpl implements LoXiMStatement {
 	}
 
 	@Override
-	public Connection getConnection() throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+	public LoXiMConnection getConnection() throws SQLException {
+		return connection;
 	}
 
 	@Override

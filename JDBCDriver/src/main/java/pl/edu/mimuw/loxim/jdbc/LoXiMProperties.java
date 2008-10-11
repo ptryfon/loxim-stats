@@ -20,7 +20,7 @@ class LoXiMProperties {
 	public static final int JDBCVerMajor = 4;
 	public static final int JDBCVerMinor = 0;
 	
-	public static final int defaultPort = 1234;
+	public static final int defaultPort = 2000;
 	
 	static {
 		try {
