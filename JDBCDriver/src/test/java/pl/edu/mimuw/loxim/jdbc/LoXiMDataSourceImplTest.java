@@ -1,16 +1,16 @@
 package pl.edu.mimuw.loxim.jdbc;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
 import java.sql.Connection;
-import java.sql.SQLException;
+
 import org.junit.Test;
 
 public class LoXiMDataSourceImplTest {
 
 	private LoXiMDataSourceImpl ds;
 	
-	@Test(expected=SQLException.class)
+	@Test(expected=NullPointerException.class)
 	public void testGetConnectionWithNoData() throws Exception {
 		ds = new LoXiMDataSourceImpl();
 		ds.getConnection();

@@ -21,6 +21,8 @@ import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.Map;
 
+import pl.edu.mimuw.loxim.data.DateUtil;
+
 public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
@@ -85,8 +87,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public Array getArray(String columnLabel) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		return getArray(findColumn(columnLabel));
 	}
 
 	@Override
@@ -97,8 +98,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public InputStream getAsciiStream(String columnLabel) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		return getAsciiStream(findColumn(columnLabel));
 	}
 
 	@Override
@@ -109,20 +109,21 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public BigDecimal getBigDecimal(String columnLabel) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		return getBigDecimal(findColumn(columnLabel));
 	}
 
 	@Override
 	public BigDecimal getBigDecimal(int columnIndex, int scale) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		BigDecimal res = getBigDecimal(columnIndex);
+		res.setScale(scale);
+		return res;
 	}
 
 	@Override
 	public BigDecimal getBigDecimal(String columnLabel, int scale) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		BigDecimal res = getBigDecimal(columnLabel);
+		res.setScale(scale);
+		return res;
 	}
 
 	@Override
@@ -133,8 +134,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public InputStream getBinaryStream(String columnLabel) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		return getBinaryStream(findColumn(columnLabel));
 	}
 
 	@Override
@@ -145,8 +145,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public Blob getBlob(String columnLabel) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		return getBlob(findColumn(columnLabel));
 	}
 
 	@Override
@@ -157,8 +156,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public boolean getBoolean(String columnLabel) throws SQLException {
-		// TODO Auto-generated method stub
-		return false;
+		return getBoolean(findColumn(columnLabel));
 	}
 
 	@Override
@@ -169,8 +167,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public byte getByte(String columnLabel) throws SQLException {
-		// TODO Auto-generated method stub
-		return 0;
+		return getByte(findColumn(columnLabel));
 	}
 
 	@Override
@@ -181,8 +178,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public byte[] getBytes(String columnLabel) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		return getBytes(findColumn(columnLabel));
 	}
 
 	@Override
@@ -193,8 +189,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public Reader getCharacterStream(String columnLabel) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		return getCharacterStream(findColumn(columnLabel));
 	}
 
 	@Override
@@ -205,8 +200,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public Clob getClob(String columnLabel) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		return getClob(findColumn(columnLabel));
 	}
 
 	@Override
@@ -229,20 +223,25 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public Date getDate(String columnLabel) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		return getDate(findColumn(columnLabel));
 	}
 
 	@Override
 	public Date getDate(int columnIndex, Calendar cal) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		Date date = getDate(columnIndex);
+		
+		if (date == null || cal == null) {
+			return date;
+		}
+		
+		cal.setTime(date);
+		DateUtil.resetToDate(cal);
+		return new Date(cal.getTime().getTime());
 	}
 
 	@Override
 	public Date getDate(String columnLabel, Calendar cal) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		return getDate(findColumn(columnLabel), cal);
 	}
 
 	@Override
@@ -253,8 +252,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public double getDouble(String columnLabel) throws SQLException {
-		// TODO Auto-generated method stub
-		return 0;
+		return getDouble(findColumn(columnLabel));
 	}
 
 	@Override
@@ -277,8 +275,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public float getFloat(String columnLabel) throws SQLException {
-		// TODO Auto-generated method stub
-		return 0;
+		return getFloat(findColumn(columnLabel));
 	}
 
 	@Override
@@ -295,8 +292,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public int getInt(String columnLabel) throws SQLException {
-		// TODO Auto-generated method stub
-		return 0;
+		return getInt(findColumn(columnLabel));
 	}
 
 	@Override
@@ -307,8 +303,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public long getLong(String columnLabel) throws SQLException {
-		// TODO Auto-generated method stub
-		return 0;
+		return getLong(findColumn(columnLabel));
 	}
 
 	@Override
@@ -325,8 +320,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public Reader getNCharacterStream(String columnLabel) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		return getNCharacterStream(findColumn(columnLabel));
 	}
 
 	@Override
@@ -337,8 +331,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public NClob getNClob(String columnLabel) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		return getNClob(findColumn(columnLabel));
 	}
 
 	@Override
@@ -349,8 +342,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public String getNString(String columnLabel) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		return getNString(findColumn(columnLabel));
 	}
 
 	@Override
@@ -361,8 +353,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public Object getObject(String columnLabel) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		return getObject(findColumn(columnLabel));
 	}
 
 	@Override
@@ -373,8 +364,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public Object getObject(String columnLabel, Map<String, Class<?>> map) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		return getObject(findColumn(columnLabel), map);
 	}
 
 	@Override
@@ -385,8 +375,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public Ref getRef(String columnLabel) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		return getRef(findColumn(columnLabel));
 	}
 
 	@Override
@@ -403,8 +392,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public RowId getRowId(String columnLabel) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		return getRowId(findColumn(columnLabel));
 	}
 
 	@Override
@@ -415,8 +403,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public SQLXML getSQLXML(String columnLabel) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		return getSQLXML(findColumn(columnLabel));
 	}
 
 	@Override
@@ -427,8 +414,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public short getShort(String columnLabel) throws SQLException {
-		// TODO Auto-generated method stub
-		return 0;
+		return getShort(findColumn(columnLabel));
 	}
 
 	@Override
@@ -445,8 +431,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public String getString(String columnLabel) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		return getString(findColumn(columnLabel));
 	}
 
 	@Override
@@ -457,20 +442,26 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public Time getTime(String columnLabel) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		return getTime(findColumn(columnLabel));
 	}
 
 	@Override
 	public Time getTime(int columnIndex, Calendar cal) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+        Time t = getTime(columnIndex);
+
+        if (t == null || cal == null) {
+            return t;
+        }
+
+        cal.setTime(t);
+        DateUtil.resetToTime(cal);
+
+        return new Time(cal.getTime().getTime());
 	}
 
 	@Override
 	public Time getTime(String columnLabel, Calendar cal) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		return getTime(findColumn(columnLabel), cal);
 	}
 
 	@Override
@@ -481,20 +472,23 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public Timestamp getTimestamp(String columnLabel) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		return getTimestamp(findColumn(columnLabel));
 	}
 
 	@Override
 	public Timestamp getTimestamp(int columnIndex, Calendar cal) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+        Timestamp ts = getTimestamp(columnIndex);
+
+        if (cal != null && ts != null) {
+            ts.setTime(DateUtil.getTimeInMillis(ts, null, cal));
+        }
+
+        return ts;
 	}
 
 	@Override
 	public Timestamp getTimestamp(String columnLabel, Calendar cal) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		return getTimestamp(findColumn(columnLabel), cal);
 	}
 
 	@Override
@@ -511,8 +505,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public URL getURL(String columnLabel) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		return getURL(findColumn(columnLabel));
 	}
 
 	@Override
@@ -523,8 +516,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public InputStream getUnicodeStream(String columnLabel) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		return getUnicodeStream(findColumn(columnLabel));
 	}
 
 	@Override

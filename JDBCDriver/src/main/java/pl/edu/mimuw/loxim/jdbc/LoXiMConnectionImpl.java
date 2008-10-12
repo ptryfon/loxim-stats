@@ -226,6 +226,9 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 	public LoXiMStatement createStatement(int resultSetType, int resultSetConcurrency, int resultSetHoldability)
 			throws SQLException {
 		checkClosed();
+		overrideResultSetType(resultSetType);
+		overrideResultSetConcurrency(resultSetConcurrency);
+		overrideHoldability(resultSetHoldability);
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -267,10 +270,9 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 	}
 
 	@Override
-	public DatabaseMetaData getMetaData() throws SQLException {
+	public LoXiMDatabaseMetaData getMetaData() throws SQLException {
 		checkClosed();
-		// TODO Auto-generated method stub
-		return null;
+		return new LoXiMDatabaseMetaDataImpl(this);
 	}
 
 	@Override
@@ -283,8 +285,7 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 	@Override
 	public Map<String, Class<?>> getTypeMap() throws SQLException {
 		checkClosed();
-		// TODO Auto-generated method stub
-		return null;
+		throw new SQLFeatureNotSupportedException("Type maps are not supported");
 	}
 
 	@Override
@@ -404,8 +405,7 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 	@Override
 	public void setHoldability(int holdability) throws SQLException {
 		checkClosed();
-		// TODO Auto-generated method stub
-
+		overrideHoldability(holdability);
 	}
 
 	@Override
@@ -435,8 +435,7 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 	@Override
 	public void setTypeMap(Map<String, Class<?>> map) throws SQLException {
 		checkClosed();
-		// TODO Auto-generated method stub
-
+		throw new SQLFeatureNotSupportedException("Type maps are not supported");
 	}
 
 	@Override
@@ -460,6 +459,47 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 	private void checkClosed() throws SQLException {
 		if (closed) {
 			throw new SQLException("Connection is closed");
+		}
+	}
+	
+	private int overrideHoldability(int holdability) {
+		switch (holdability) {
+		case ResultSet.HOLD_CURSORS_OVER_COMMIT:
+			return holdability;
+		default:
+			addWarning("Holdability: " + holdability + " is not supported. Using: " + ResultSet.HOLD_CURSORS_OVER_COMMIT + " (HOLD_CURSORS_OVER_COMMIT)");
+			return ResultSet.HOLD_CURSORS_OVER_COMMIT;
+		}
+	}
+	
+	private int overrideResultSetType(int type) {
+		switch (type) {
+		case ResultSet.TYPE_FORWARD_ONLY:
+			return type;
+		default:
+			addWarning("Result set type: " + type + " is not supported. Using: " + ResultSet.TYPE_FORWARD_ONLY + " (TYPE_FORWARD_ONLY)");
+			return ResultSet.TYPE_FORWARD_ONLY;
+		}
+	}
+	
+	private int overrideResultSetConcurrency(int concurrency) {
+		switch (concurrency) {
+		case ResultSet.CONCUR_READ_ONLY:
+			return concurrency;
+		default:
+			addWarning("Result set concurrency: " + concurrency + " is not supported. Using: " + ResultSet.CONCUR_READ_ONLY + " (CONCUR_READ_ONLY)");
+			return ResultSet.CONCUR_READ_ONLY;
+		}
+		
+		
+	}
+	
+	private void addWarning(String msg) {
+		SQLWarning warning = new SQLWarning(msg);
+		if (this.warning == null) {
+			this.warning = warning;
+		} else {
+			this.warning.setNextWarning(warning);
 		}
 	}
 }

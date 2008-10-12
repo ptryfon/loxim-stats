@@ -70,14 +70,12 @@ public class LoXiMDatabaseMetaDataImpl implements LoXiMDatabaseMetaData {
 
 	@Override
 	public String getCatalogSeparator() throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		return "";
 	}
 
 	@Override
 	public String getCatalogTerm() throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		return "";
 	}
 
 	@Override
@@ -513,7 +511,6 @@ public class LoXiMDatabaseMetaDataImpl implements LoXiMDatabaseMetaData {
 
 	@Override
 	public boolean isCatalogAtStart() throws SQLException {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
@@ -666,31 +663,26 @@ public class LoXiMDatabaseMetaDataImpl implements LoXiMDatabaseMetaData {
 
 	@Override
 	public boolean supportsCatalogsInDataManipulation() throws SQLException {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public boolean supportsCatalogsInIndexDefinitions() throws SQLException {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public boolean supportsCatalogsInPrivilegeDefinitions() throws SQLException {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public boolean supportsCatalogsInProcedureCalls() throws SQLException {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public boolean supportsCatalogsInTableDefinitions() throws SQLException {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
