@@ -10,12 +10,12 @@ import java.sql.Clob;
 import java.sql.Date;
 import java.sql.NClob;
 import java.sql.Ref;
+import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.RowId;
 import java.sql.SQLException;
 import java.sql.SQLWarning;
 import java.sql.SQLXML;
-import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Calendar;
@@ -25,22 +25,26 @@ import pl.edu.mimuw.loxim.data.DateUtil;
 
 public class LoXiMResultSetImpl implements LoXiMResultSet {
 
+	private LoXiMStatement statement;
+	private boolean closed = true;
+	private SQLWarning warning;
+	
 	@Override
 	public boolean absolute(int row) throws SQLException {
-		// TODO Auto-generated method stub
-		return false;
+		checkClosed();
+		throw new SQLException("The result set is TYPE_FORWARD_ONLY");
 	}
 
 	@Override
 	public void afterLast() throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		throw new SQLException("The result set is TYPE_FORWARD_ONLY");
 	}
 
 	@Override
 	public void beforeFirst() throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		throw new SQLException("The result set is TYPE_FORWARD_ONLY");
 	}
 
 	@Override
@@ -51,14 +55,17 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public void clearWarnings() throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		warning = null;
 	}
 
 	@Override
 	public void close() throws SQLException {
-		// TODO Auto-generated method stub
-
+		if (closed) {
+			return;
+		}
+		
+		closed = true;
 	}
 
 	@Override
@@ -75,8 +82,8 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public boolean first() throws SQLException {
-		// TODO Auto-generated method stub
-		return false;
+		checkClosed();
+		throw new SQLException("The result set is TYPE_FORWARD_ONLY");
 	}
 
 	@Override
@@ -257,8 +264,8 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public int getFetchDirection() throws SQLException {
-		// TODO Auto-generated method stub
-		return 0;
+		checkClosed();
+		return ResultSet.FETCH_FORWARD;
 	}
 
 	@Override
@@ -280,8 +287,8 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public int getHoldability() throws SQLException {
-		// TODO Auto-generated method stub
-		return 0;
+		checkClosed();
+		return ResultSet.HOLD_CURSORS_OVER_COMMIT;
 	}
 
 	@Override
@@ -418,9 +425,9 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 	}
 
 	@Override
-	public Statement getStatement() throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+	public LoXiMStatement getStatement() throws SQLException {
+		checkClosed();
+		return statement;
 	}
 
 	@Override
@@ -493,8 +500,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public int getType() throws SQLException {
-		// TODO Auto-generated method stub
-		return 0;
+		return ResultSet.TYPE_FORWARD_ONLY;
 	}
 
 	@Override
@@ -521,8 +527,8 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public SQLWarning getWarnings() throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		checkClosed();
+		return warning;
 	}
 
 	@Override
@@ -545,8 +551,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public boolean isClosed() throws SQLException {
-		// TODO Auto-generated method stub
-		return false;
+		return closed;
 	}
 
 	@Override
@@ -563,8 +568,8 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public boolean last() throws SQLException {
-		// TODO Auto-generated method stub
-		return false;
+		checkClosed();
+		throw new SQLException("The result set is TYPE_FORWARD_ONLY");
 	}
 
 	@Override
@@ -581,14 +586,15 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public boolean next() throws SQLException {
+		checkClosed();
 		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public boolean previous() throws SQLException {
-		// TODO Auto-generated method stub
-		return false;
+		checkClosed();
+		throw new SQLException("The result set is TYPE_FORWARD_ONLY");
 	}
 
 	@Override
@@ -599,8 +605,8 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public boolean relative(int rows) throws SQLException {
-		// TODO Auto-generated method stub
-		return false;
+		checkClosed();
+		throw new SQLException("The result set is TYPE_FORWARD_ONLY");
 	}
 
 	@Override
@@ -623,8 +629,16 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public void setFetchDirection(int direction) throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		switch (direction) {
+		case ResultSet.FETCH_FORWARD:
+			return;
+		case ResultSet.FETCH_REVERSE:
+		case ResultSet.FETCH_UNKNOWN:
+			throw new SQLException("Bad fetch direction: " + direction + " - the result set is TYPE_FORWARD_ONLY");
+		default:
+			throw new SQLException("Unknown fetch direction: " + direction);
+		}
 	}
 
 	@Override
@@ -1150,4 +1164,9 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 		throw new SQLException("Not a wrapper for " + iface);
 	}
 
+	private void checkClosed() throws SQLException {
+		if (closed) {
+			throw new SQLException("Result set is closed");
+		}
+	}
 }

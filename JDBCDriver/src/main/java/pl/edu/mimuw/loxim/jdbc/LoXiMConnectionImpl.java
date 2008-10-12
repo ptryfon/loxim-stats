@@ -8,7 +8,6 @@ import java.sql.Array;
 import java.sql.Blob;
 import java.sql.CallableStatement;
 import java.sql.Clob;
-import java.sql.DatabaseMetaData;
 import java.sql.NClob;
 import java.sql.ResultSet;
 import java.sql.SQLClientInfoException;
@@ -65,7 +64,6 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 
 		Socket socket = new Socket();
 		socket.connect(new InetSocketAddress(info.getHost(), info.getPort()), info.getTimeout());
-		boolean creationSuccess = false;
 
 		try {
 			pacIO = new PackageIO(socket);
@@ -98,9 +96,9 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 				log.debug("Client rejected");
 				throw new SQLInvalidAuthorizationSpecException("No authorization");
 			}
-			creationSuccess = true;
+			closed = false;
 		} finally {
-			if (!creationSuccess) {
+			if (closed) {
 				socket.close();	
 			}
 		}
@@ -164,6 +162,7 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 			return;
 		}
 		
+		rollback();
 		try {
 			pacIO.write(new A_sc_byePackage(Bye_reasonsEnum.br_reason1, null));
 			pacIO.close();
@@ -178,38 +177,39 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 	@Override
 	public void commit() throws SQLException {
 		checkClosed();
-		// TODO Auto-generated method stub
-
+		if (autoCommit) {
+			throw new SQLException("Cannot commit with autocommit mode on");
+		}
+		commit0();
 	}
 
+	void commit0() {
+		// TODO
+	}
+	
 	@Override
 	public Array createArrayOf(String typeName, Object[] elements) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		throw new SQLFeatureNotSupportedException();
 	}
 
 	@Override
 	public Blob createBlob() throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		throw new SQLFeatureNotSupportedException();
 	}
 
 	@Override
 	public Clob createClob() throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		throw new SQLFeatureNotSupportedException();
 	}
 
 	@Override
 	public NClob createNClob() throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		throw new SQLFeatureNotSupportedException();
 	}
 
 	@Override
 	public SQLXML createSQLXML() throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		throw new SQLFeatureNotSupportedException();
 	}
 
 	@Override
@@ -226,17 +226,16 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 	public LoXiMStatement createStatement(int resultSetType, int resultSetConcurrency, int resultSetHoldability)
 			throws SQLException {
 		checkClosed();
-		overrideResultSetType(resultSetType);
-		overrideResultSetConcurrency(resultSetConcurrency);
-		overrideHoldability(resultSetHoldability);
+		checkResultSetType(resultSetType);
+		checkResultSetConcurrency(resultSetConcurrency);
+		checkHoldability(resultSetHoldability);
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public Struct createStruct(String typeName, Object[] attributes) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		throw new SQLFeatureNotSupportedException();
 	}
 
 	@Override
@@ -253,12 +252,14 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 
 	@Override
 	public Properties getClientInfo() throws SQLException {
+		checkClosed();
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public String getClientInfo(String name) throws SQLException {
+		checkClosed();
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -284,12 +285,12 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 
 	@Override
 	public Map<String, Class<?>> getTypeMap() throws SQLException {
-		checkClosed();
-		throw new SQLFeatureNotSupportedException("Type maps are not supported");
+		throw new SQLFeatureNotSupportedException();
 	}
 
 	@Override
 	public SQLWarning getWarnings() throws SQLException {
+		checkClosed();
 		return warning;
 	}
 
@@ -300,17 +301,22 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 
 	@Override
 	public boolean isReadOnly() throws SQLException {
+		checkClosed();
 		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public boolean isValid(int timeout) throws SQLException {
+		if (timeout < 0) {
+			throw new SQLException("Timeout cannot be less than 0");
+		}
 		return isClosed(); // XXX
 	}
 
 	@Override
 	public String nativeSQL(String sql) throws SQLException {
+		checkClosed();
 		return parser.parse(sql);
 	}
 
@@ -370,10 +376,16 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 	@Override
 	public void rollback() throws SQLException {
 		checkClosed();
-		// TODO Auto-generated method stub
-
+		if (autoCommit) {
+			throw new SQLException("Cannot rollback with autocommit mode on");
+		}
+		rollback0();
 	}
 
+	void rollback0() {
+		// TODO
+	}
+	
 	@Override
 	public void rollback(Savepoint savepoint) throws SQLException {
 		throw new SQLFeatureNotSupportedException();
@@ -405,7 +417,7 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 	@Override
 	public void setHoldability(int holdability) throws SQLException {
 		checkClosed();
-		overrideHoldability(holdability);
+		checkHoldability(holdability);
 	}
 
 	@Override
@@ -434,8 +446,7 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 
 	@Override
 	public void setTypeMap(Map<String, Class<?>> map) throws SQLException {
-		checkClosed();
-		throw new SQLFeatureNotSupportedException("Type maps are not supported");
+		throw new SQLFeatureNotSupportedException();
 	}
 
 	@Override
@@ -462,36 +473,38 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 		}
 	}
 	
-	private int overrideHoldability(int holdability) {
+	private void checkHoldability(int holdability) throws SQLFeatureNotSupportedException, SQLException {
 		switch (holdability) {
 		case ResultSet.HOLD_CURSORS_OVER_COMMIT:
-			return holdability;
+			return;
+		case ResultSet.CLOSE_CURSORS_AT_COMMIT:
+			throw new SQLFeatureNotSupportedException("Holdability type: " + holdability + " is not supported");
 		default:
-			addWarning("Holdability: " + holdability + " is not supported. Using: " + ResultSet.HOLD_CURSORS_OVER_COMMIT + " (HOLD_CURSORS_OVER_COMMIT)");
-			return ResultSet.HOLD_CURSORS_OVER_COMMIT;
+			throw new SQLException("Not a holdability type");
 		}
 	}
 	
-	private int overrideResultSetType(int type) {
+	private void checkResultSetType(int type) throws SQLFeatureNotSupportedException, SQLException {
 		switch (type) {
 		case ResultSet.TYPE_FORWARD_ONLY:
-			return type;
+			return;
+		case ResultSet.TYPE_SCROLL_INSENSITIVE:
+		case ResultSet.TYPE_SCROLL_SENSITIVE:
+			throw new SQLFeatureNotSupportedException("Result set type: " + type + " is not supported");
 		default:
-			addWarning("Result set type: " + type + " is not supported. Using: " + ResultSet.TYPE_FORWARD_ONLY + " (TYPE_FORWARD_ONLY)");
-			return ResultSet.TYPE_FORWARD_ONLY;
+			throw new SQLException("Not a result set type");
 		}
 	}
 	
-	private int overrideResultSetConcurrency(int concurrency) {
+	private void checkResultSetConcurrency(int concurrency) throws SQLFeatureNotSupportedException, SQLException {
 		switch (concurrency) {
 		case ResultSet.CONCUR_READ_ONLY:
-			return concurrency;
+			return;
+		case ResultSet.CONCUR_UPDATABLE:
+			throw new SQLFeatureNotSupportedException("Result set concurrency: " + concurrency + " is not supported");
 		default:
-			addWarning("Result set concurrency: " + concurrency + " is not supported. Using: " + ResultSet.CONCUR_READ_ONLY + " (CONCUR_READ_ONLY)");
-			return ResultSet.CONCUR_READ_ONLY;
+			throw new SQLException("Not a result set concurrency type");
 		}
-		
-		
 	}
 	
 	private void addWarning(String msg) {
