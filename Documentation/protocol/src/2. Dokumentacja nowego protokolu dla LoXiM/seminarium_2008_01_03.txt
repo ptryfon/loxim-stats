@@ -1,0 +1,25 @@
+1. Przypomnienie na podstawie opisu protoko³u
+2. Omawiamy implementacje w C/C++
+Omówiæ:
+	streamsy 
+		(Dokumentacja - strona 10)
+		Implementacja: 
+		Zatrzymaæ siê przy writePriorityOutputStream
+	
+	ptoolsy:
+		CharArray
+		Endianness
+		Package
+		PackageBufferReader:  dostaje bufor i pozwala pakietowi czytaæ typy proste. Kontroluje (wykrywa odczytanie zbyt wielu danych. 
+		PackageBufferWritter:
+		
+	pstreams:
+		PackageInput/OutputStream
+		Omówienie Packages/Data 
+		
+	sockets - tworzy Input/OutputStream'a na podstawie parametrów TCPIP
+	
+	
+Pokazaæ protocol-tests
+
+Pokazac Lixim-Client

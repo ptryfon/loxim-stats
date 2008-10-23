@@ -1,0 +1,13 @@
+#TeXlipse project settings
+#Thu Oct 26 10:42:15 GMT 2006
+builderNum=2
+outputDir=
+makeIndSty=
+bibrefDir=
+outputFormat=pdf
+tempDir=tmp
+mainTexFile=TCPProto.tex
+outputFile=TCPProto.pdf
+langSpell=en
+markDer=true
+srcDir=

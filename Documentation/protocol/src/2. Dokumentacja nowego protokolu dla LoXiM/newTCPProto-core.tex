@@ -1,0 +1,1596 @@
+
+\section{Wstêp}
+
+	Dokument ten opisuje protokó³ wymiany danych w systemie semistrukturalnej,
+	obiektowej bazy danych opartej na stosowym jêzyku zapytañ (SBQL). Protokó³ s³u¿y do
+	komunikacji pomiêdzy aplikacj± klienck±, a odpowiednim oprogramowaniem bazy 
+	danych --- s³u¿±cym do wykonywania zapytañ i umo¿liwiaj±cym autoryzacjê
+	u¿ytkowników. 
+	
+	Zatem rozpatrzmy hipotetyczn± sytuacjê w której baza danych -
+	rozumiana jako zbiór danych i mechanizm jej odczytów znajduje siê na komputerze
+	A, na komputerze B  znajduje siê proces przetwarzania zapytañ, a na
+	komputerze C znajduje siê aplikacja chc±ca korzystaæ z danych poprzez zadawanie
+	zapytañ. Opisany w poni¿szym dokumencie protokó³ s³u¿y do dwukierunkowej
+	komunikacji pomiêdzy aplikacjami dzia³aj±cymi na komputerach B i C, i 
+	nie nadaje siê do komunikacji pomiêdzy komputerami A i B.
+	
+	\begin{figure}[hbt]
+	\centering
+	\includegraphics[scale=0.75]{wstep.jpg}
+	\caption{Diagram elementów systemu}
+	\end{figure}
+
+	Obecnie w systemie ,,\loxim{}'' czê¶æ ,,A'' (storage) i ,,B'' (executor) s±
+	zintegrowane w jednej aplikacji.
+	
+	Dokument ten zosta³ opisany na potrzeby projektu ,,\loxim{}'', ale
+	z poszanowaniem warunków umowy licencyjnej (GPL) protokó³ mo¿e zostaæ
+	wykorzystany w dowolnej bazie danych, której potrzeby spe³nia. Rozwi±zania
+	zastosowane w tym protokole wydaj± siê byæ na tyle ogólne, ¿e z du¿± pewno¶ci±
+	mog± zaspokoiæ potrzeby wielu rozwi±zañ --- tak¿e relacyjnych i nie opartych o
+	SBQL'a.
+	
+	Protokó³ ten stara siê po³±czyæ najlepsze cechy poni¿szych protoko³ów,
+	jednocze¶nie 
+	skupiaj±c siê na wprowadzeniu mo¿liwo¶ci pracy z danymi semistrukturalnymi:
+	 
+	\begin{description}
+	   \item[Postgresql 10] --- u¿ywanego przez PostgreSQL 8.2 \cite{PostgreSQL}
+	   \item[TDS 8.0] --- u¿ywanego przez Sybase i Microsoft SQL Server 7.5/2000 \cite{TDS}
+	   \item[MySQL 3] --- u¿ywanego przez serwer MySQL 5 \cite{MySQL}
+	\end{description}
+	
+	\subsection{Cele i za³o¿enia}
+	
+	Celem projektu opisanego przez ten dokument jest: 
+	\begin{itemize}
+      \item Uzyskanie stabilnego. bezpiecznego protoko³u, umo¿liwiaj±cego pe³ne
+      wykorzystanie obecnych mo¿liwo¶ci systemu \loxim{}.
+     
+      \item Uzyskanie protoko³u potrafi±cego pracowaæ pomiêdzy maszynami o
+      ró¿nych architekturach sprzêtowych i programowych
+     
+      \item Uzyskanie efektywnego (pod wzglêdem wykorzystania sieci i CPU) 
+      i ³atwo rozszerzalnego protoko³u.
+      
+      \item Przygotowanie do implementacji sterownika JDBC w oparciu o ten
+      protokó³.
+
+    \end{itemize}
+    
+    Przyjêto nastêpuj±ce za³o¿enia:
+    \begin{itemize}
+      \item Zak³adamy, ¿e komunikacja bêdzie siê odbywa³a po odpornej na
+      zak³ócenia, b³êdy transmisji i zamianê kolejno¶ci przesy³anych danych
+      warstwie transportowej (TCP/IP, Unix sockets, ³±cza nazwane Windows itp.).
+      
+      Zatem nie bêdziemy przeprowadzali w³asnej kontroli spójno¶ci przes³anych
+      danych --- pod wzglêdem sum kontrolnych itp. Jednak ze wzglêdów
+      bezpieczeñstwa kontrola logiczna bêdzie oczywi¶cie przeprowadzana. 
+    \end{itemize}
+    
+    \subsection{Wersjonowanie protoko³u}
+    Protokó³ komunikacji bêdzie wersjonowany przy pomocy dwóch numerów:
+    g³ównego (major) i pomocniczego/pobocznego (minor). Poni¿szy dokument
+    opisuje potoków w wersji \wersjaproto, czyli numer g³ówny \wersjaprotomajor, a pomocniczy \wersjaprotominor. Przyjmuje siê, ¿e aplikacje
+    pos³uguj±ce siê protoko³em o tym samym numerze g³ównym s± ze sob± zgodne -
+    jedynie mo¿liwo¶ci komunikacji s± ograniczone do tych dostêpnych w starszej
+    wersji protoko³u (mniejszy numer pomocniczy). 
+     
+    Zatem w obrêbie tego samego numeru g³ównego mo¿na przewidzieæ nastêpuj±ce
+    typy zmian:
+    \begin{itemize}
+      \item[-] Rozbudowanie formatu paczki poprzez dodanie na jej koñcu nowych
+      (nie obowi±zkowych pól).
+      \item[-] Wprowadzenie nowych typów paczek --- niekluczowych dla
+      dzia³ania systemu i niemodyfikuj±cych dotychczasowej semantyki operacji.
+    \end{itemize}
+    
+    \subsection{Licencjonowanie}
+    
+    Dokument ten --- podobnie jak system \loxim{} --- jest licencjonowany na licencji
+    GPL 2 (General Public License --- wersja 2). W zwi±zku z tym protokó³ ten mo¿e
+    byæ wykorzystany bez dodatkowej zgody autora w dowolnym systemie
+    licencjonowanym na GPL. 
+    
+\newpage
+\section{Paczka --- jednostka logiczna komunikacji}
+
+	\subsection{Paczka, a pakiet}
+	Ca³a komunikacja bêdzie siê opiera³a o przesy³anie paczek --- spójnych ci±gów
+	danych o okre¶lonym formacie. S³owa ,,paczka'' bêdziemy u¿ywali dla rozró¿nienia
+	i unikniêcia nieporozumieñ z pojêciem pakietu --- który ma znaczenie na poziomie
+	warstwy	transportu (np. TCP/IP).
+
+	Zatem paczka to zbiór danych maj±cych logiczne znaczenie w systemie \loxim{}.
+	Zupe³nie nie wnikamy w to w jaki sposób paczki zostan± zorganizowane w pakiety
+	i to zadanie pozostawiamy warstwie transportu. Jedyne co musimy zagwarantowaæ,
+	to fakt, ¿e pojedyncza paczka jest spójnym obszarem danych w komunikacji. 
+	
+	W dokumencie tym bêdziemy tak¿e u¿ywali sformu³owania ,,komunikat'', które
+	uznajemy za synonim s³owa ,,paczka''. 
+	
+	\subsection{Budowa paczki}
+		Ka¿da paczka ma nastêpuj±cy schemat budowy:
+		\begin{bajty}
+                	\bp{0}{0}{uint8}{Sta³a mówi±ca o typie paczki, a tym samym
+                	okre¶laj±ca format zawartych w nich danych}
+                	\bp{1}{4}{uint32}{$n$ --- sta³a okre¶laj±ca
+                	ilo¶æ
+                	danych w³a¶ciwych zawartych w paczce -- wyra¿ona w bajtach}
+                	\bp{5}{$4+n$}{patrz opis zale¿ny od typu paczki}{Dane w³a¶ciwe paczki
+                	zgodne z formatem okre¶lonym poprzez typ paczki}
+ 		    \end{bajty}	
+		Formalnie bêdziemy mówili, ¿e paczka siê sk³ada z dwu-polowego nag³ówka oraz
+		cia³a. Nag³ówek wyznacza typ paczki i rozmiar danych w³a¶ciwych w niej
+		zawartych, a cia³o --- to dane interpretowane zale¿nie od typu paczki. Kluczow± 
+		czê¶æ tego dokumentu stanowi opis formatów poszczególnych paczek w zale¿no¶ci
+		od ich typów. 
+		
+		Przyjmuje siê, ¿e rozmiar pojedynczej paczki nie mo¿e przekraczaæ 1MB (1'048'576
+		bajtów). S³u¿y to unikniêciu sytuacji, w których odbywa siê próba naruszenia
+		bezpieczeñstwa serwera poprzez przes³anie zbyt du¿ej paczki (doprowadzenie
+		do wyst±pienia b³êdu OutOfMemory), a tak¿e unikniêciu sytuacji w której traci 
+		siê mo¿liwo¶æ komunikacji asynchronicznej w skoñczonym czasie (np. wys³anie do
+		serwera informacji o braku dalszego zainteresowania danymi). 
+		Wy¿ej wymieniona sta³a mo¿e byæ (a nawet powinna) konfigurowalna po
+		stronie serwera.
+		
+	\subsection{Czemu przesy³amy d³ugo¶æ paczki?}
+		Przes³anie d³ugo¶ci paczki na jej pocz±tku niesie za sob± nastêpuj±ce
+		u³atwienia: 
+		\begin{itemize}
+			\item[-] Klient mo¿e zaalokowaæ w³a¶ciw± ilo¶æ danych w pamiêci operacyjnej na
+			przyjêcie ca³ego komunikatu z góry --- co ma pozytywny wp³yw na wydajno¶æ i
+			bezpieczeñstwo (nie nadejdzie ,,nieskoñczenie'' d³ugi komunikat).
+			\item[-] Klient mo¿e zrezygnowaæ z pobierana komunikatu (np. z powodu brak
+			wystarczaj±cej ilo¶ci pamiêci, by go przyj±æ) lub braku zainteresowania.
+			Dziêki temu wie, ile bajtów musi zignorowaæ bez ich analizy.
+        \end{itemize}
+	
+	\subsection{Mechanizmy rozszerzania protoko³u}
+		Protokó³ mo¿e byæ rozszerzany z zachowaniem zgodno¶ci wstecz poprzez
+		do³±czanie nowych pól na koñcu danych paczki. Zatem strona odczytuj±ca 
+		komunikat nie mo¿e zak³adaæ, ¿e po odczytaniu wszystkich pól w paczce o
+		których wie, dotar³a na koniec paczki. Mo¿liwe, ¿e strona ta przeczyta 
+		wszystkie pola i nie dotrze wcale do koñca paczki, poniewa¿ w paczce wystêpuj±
+		dane dotycz±ce nowszej wersji protoko³u. Zatem powinna ona zignorowaæ
+		odpowiedni± ilo¶æ bajtów --- wynikaj±c± z d³ugo¶ci danych w paczce, tak aby dotrzeæ na
+		pocz±tek nastêpnego komunikatu. 
+		
+		Tak¿e mo¿liwa jest odwrotna sytuacja. Strona wysy³aj±ca pos³uguje siê starsz±
+		wersj± protoko³u, wiêc wysy³a komunikat nie zawieraj±cy pól wprowadzonych w
+		nowszej wersji protoko³u. Zatem strona odczytuj±ca (która jest nowsza) powinna
+		umieæ w³a¶ciwie zareagowaæ na sytuacjê, gdy odczytano ca³± paczkê, a nie
+		otrzymano nowych pól wprowadzonych w protokole. W tej sytuacji powinna przyj±æ
+		warto¶ci domy¶lne dla tych pól. 
+		
+		Oczywi¶cie odpowiednio du¿e zmiany i przeprojektowanie w protokole mog±
+		wymagaæ stworzenia protoko³u o kolejnym numerze g³ównym, czyli niezgodnego ze starszymi wersjami.
+	
+	\newpage
+\section{Podstawowe typy danych} \label{PodstawoweTypyDanych}
+	
+	\subsection{Postanowienia ogólne}
+		\begin{itemize}
+          \item Je¶li w sposób szczególny nie zaznaczono inaczej (a raczej
+          nigdzie nie zaznaczono) wszystkie warto¶ci zapisywane s± w formacie
+          \bigendian.  W szczególno¶ci obejmuje to typy ca³kowitoliczbowe,
+          rzeczywiste, oraz napisy w kodowaniu UTF-8 tak¿e stosuj± kolejno¶æ
+          \bigendian. 
+        \end{itemize}               
+
+ 	 \subsection{Ca³kowitoliczbowe: uint8,  sint8, uint16, sint16, int32, uint32,
+ uint64, sint64}
+		
+	Pierwsza litera determinuje, czy mamy do czynienia z typem ze znakiem (u -
+	unsigned), czy z typem bez znaku (s --- signed).  Liczba na koñcu wyra¿a d³ugo¶æ
+	typu wyra¿on± w bitach. 
+	
+	Typy s± kodowane oczywi¶cie w kolejno¶ci \bigendian. 
+	
+	\subsubsection{varuint --- Ca³kowitoliczbowy z kompresj± (1,3,5 lub 9 bajtów)}
+		Bêdzie to typ u¿ywany g³ównie do oznaczania d³ugo¶ci stringów i ogólnie
+		paczek. 
+		
+		Rozwi±zanie techniczne zosta³o zaczerpniête z protoko³u serwera MySQL
+		\cite{MySQL}.
+		
+		Idea jest taka, ¿e krótkie stringi ($<250$ znaków ) bêd± siê
+		pojawia³y najczê¶ciej i chcemy mieæ najmniejszy narzut na zapisanie d³ugo¶ci
+		(jedno bajtowy). 
+		
+		Zatem semantyka pierwszego bajtu jest nastêpuj±ca (w zale¿no¶ci od jego
+		warto¶ci)
+		\begin{description}
+			\item[0-249] Warto¶æ ta jest jednocze¶nie warto¶ci± wynikow±
+			\item[250] Warto¶æ jest null'em (zostawiamy dla umo¿liwienia stosowanie
+			tego rozwi±zania z systemami relacyjnymi) 
+			\item[251] Warto¶æ ta poprzedza 2-bajtowe (uint16) pole w warto¶ci± w³a¶ciw±
+			\item[252] Warto¶æ ta poprzedza 4-bajtowe (uint32) pole z warto¶ci± w³a¶ciw±
+			\item[253] Warto¶æ ta poprzedza 8-bajtowe (uint64) pole z warto¶ci±
+			w³a¶ciw±. Nie nale¿y jednak korzystaæ z warto¶ci wiêkszych ni¿ $2^{63}-1$
+			(MAX\_SINT64), ze wzglêdu na to, ¿e w Javie nie s± obs³ugiwane 8 bajtowe
+			typy bez znaku. 
+        \end{description}
+		
+	
+	\subsection{string --- £añcuchy tekstu}
+	
+	S³u¿y do przesy³ania tekstów. Teksty te musz± byæ kodowane za pomoc± UTF-8. 
+	
+	Format warto¶ci typu string jest nastêpuj±cy:
+	Najpierw idzie pole typu varuint --- opisuj±ce d³ugo¶æ w bajtach nastêpuj±cego
+	potem ci±gu w UTF-8 (\bigendian). 
+	
+	\subsection{sstring --- Krótki ³añcuch tekstu}
+	Jest to tak naprawdê wariant typu string, 
+	ale ograniczony do ³añcuchów nie d³u¿szych ni¿ 249 bajtów.
+	Czyli wtedy pole oznaczaj±ce d³ugo¶æ ma jeden bajt. 
+	Jego wewnêtrzna reprezentacja zupe³nie siê nie ró¿ni od typu
+	string --- zosta³ on wyró¿niony formalnie --- ze wzglêdu na uproszczenie notacji 
+	u¿ywanej przy opisach formatów poszczególnych paczek. 
+	
+	\subsection{bytes --- Dane binarne}
+	S³u¿y do przesy³ania danych binarnych (nie koniecznie du¿ych --- nie bêdziemy
+	tego rozró¿niali na poziomie protoko³u). 
+	
+	Format warto¶ci tego typu jest nastêpuj±cy:
+	Najpierw zostaje przes³ane pole typu varuint --- opisuj±ce d³ugo¶æ w bajtach
+	nastêpuj±cego potem ci±gu bajtów.	
+
+	\subsection{Daty i czas}
+	
+	\subsubsection{Kwestia stref czasowych}
+	\label{strefy_czasowe}
+	Mo¿na rozwa¿yæ dwa podej¶cia do przekazywania informacji o strefie czasowej:
+		\begin{itemize}
+          \item Przekazujemy tylko offset strefy czasowej wzglêdem GMT (czyli
+          warto¶æ od $-14$ do $+12$)
+          \item Przekazujemy pe³n± informacjê o strefie czasowej. Wygl±da na
+          to, ¿e nie istnieje standard ISO opisuj±cy kodowanie dla wszystkich
+          stref czasowych na ¶wiecie. Najlepsz± baz± danych z informacjami o
+          strefach czasowych jest baza TZ (znana te¿ jako zoneinfo)
+          (http://www.twinsun.com/tz/tz-link.htm). Koduje one informacja o
+          strefie czasowej w postaci napisu: \{Kontynent\}/\{Du¿e miasto\} lub \{Kontynent\}/\{Pañstwo\}/\{Du¿e Miszto\}, np.
+          ,,Africa/Porto-Novo''. 
+          
+          Zaletê przekazywania daty z t± pe³n± informacj±, jest to, ¿e dopiero
+          na jej podstawie system informatyczny jest wstanie prawid³owo dodaæ
+          pewn± ilo¶æ czasu (np. 36 godzin) do danej daty w sytuacji, gdy w
+          miêdzyczasie wystêpuje zmiana czasu z letniego na zimowy lub
+          odwrotnie. 
+        \end{itemize}
+    
+    Nie budzi w±tpliwo¶ci, ¿e dla unikniêcia problemów w aplikacjach o du¿ym
+    zasiêgu terytorialnym warto by by³o z dat± zapisywaæ pe³n± informacjê.
+    
+    Wed³ug bazy ,,TZ'' w chwili obecnej na ¶wiecie jest u¿ywanych 398 ró¿nych
+    stref czasowych. Dobry standard pozwoli³by zakodowaæ je za pomoc± trzech
+    liter, czyli --- bêd±c rozrzutnym --- 3 bajtów. Oszczêdno¶æ 2 bajtów wydaje siê
+    byæ wiêc ma³o uzasadniona wobec ryzyka utraty poprawno¶ci numerycznej
+    niektórych operacji, skoro stanowi ona wzrost d³ugo¶ci ca³ej zakodowanej
+    daty z 9 do 11 bajtów, czyli o 22\%.
+    
+    Niestety za nieformalny standard w bazach danych (PostgreSQL, MySQL,
+    Oracle, DB2) przyjê³o siê zapisywaæ jedynie informacje o przesuniêciu
+    wzglêdem GMT, co wynika ze z³o¿enia dwóch problemów:
+    \begin{itemize}
+      \item ¦wiatowy standard formatu czasu ISO8601 \cite{ISO8601} przewiduje
+      tylko strefê czasow± zapisan± w postaci przesuniêcia wzglêdem GMT. 
+      \item Brak standardu (klasy ISO) kodowania stref czasowych, co po¶rednio 
+     wynika z punktu powy¿szego.
+    \end{itemize}
+    
+    Z tego powodu obecna wersja protoko³u zapisuje strefy czas w
+    ,,standardowy'' sposób, czyli w postaci offsetów. Zalecamy jednak 
+    u¿ywanie pe³nej informacji o strefie czasowej w nastêpnych wersjach
+    protoko³u. 
+    	
+	\subsubsection{DATE}
+		Sama data. 		
+		
+		Format nastêpuj±cy:
+		\begin{bajty}
+	    	\bp{0}{1}{$Year$ (sint16)}{Rok}
+	    	\bp{2}{2}{$Month$ (uint8)}{Miesi±c (1-styczeñ, 12-grudzieñ)}
+	    	\bp{3}{3}{$Day$ (uint8)}{Dzieñ}
+    	\end{bajty}
+			
+	\subsubsection{TIME}
+		Sam czas. 
+		
+		Format nastêpuj±cy:
+		\begin{bajty}
+	    	\bp{0}{0}{$Hour$ (uint8)}{Godzina (0-23)}
+	    	\bp{1}{1}{$Minuts$ (uint8)}{Minuta (0-59)}
+	    	\bp{2}{2}{$Secs$ (uint8)}{Sekunda (0-59)}
+	    	\bp{3}{4}{$Milis$ (sint16)}{Milisekundy (0-999)}
+    	\end{bajty}
+		
+	\subsubsection{TIMETZ}
+		Czas ze stref± czasow±
+	
+				Format nastêpuj±cy:
+		\begin{bajty}
+	    	\bp{0}{0}{$Hour$ (uint8)}{Rok}
+	    	\bp{1}{1}{$Minuts$ (uint8)}{Miesi±c (1-styczeñ, 12-grudzieñ)}
+	    	\bp{2}{2}{$Secs$ (uint8)}{Dzieñ}
+	    	\bp{3}{4}{$Milis$ (uint16)}{Milisekundy}
+	    	\bp{5}{5}{$TZ$ (sint8)}{Strefa czasowa (-14 do +12)}
+    	\end{bajty}
+
+	
+		
+	\subsubsection{DATETIME}
+		Data i godzina bez strefy czasowej. 
+		Format zapisu to bezpo¶rednio po sobie wystêpuj±ce formaty pól typu DATE i
+		TIME. 
+
+
+		
+	\subsubsection{DATETIMETZ}
+		Data i godzina ze stref± czasow±. 
+		Format zapisu to bezpo¶rednio po sobie wystêpuj±ce formaty pól typu DATE i
+		TIMETZ. 
+			
+
+	\subsection{Logiczne}
+		Pole typu bool niesie pewn± warto¶æ logiczn±. W praktyce bêdzie reprezentowane
+		jako liczba typu sint8 z nastêpuj±cymi warto¶ciami:
+		\begin{description}
+          \item[0]  Fa³sz
+          \item[1]  Prawda
+        \end{description}
+	
+	\subsection{Zmiennoprzecinkowe}
+	   \subsubsection{DOUBLE}
+	   		Podwójna precyzja, 8-bajty w kolejno¶ci \bigendian.
+	
+%	\subsection{Paranumeryczne}
+
+%		Te¿ do ustalenia!!!	
+%	\subsubsection{Numeric}
+%			Jest to zapis liczby rzeczywistej przy pomocy dwóch liczb ca³kowitych. 
+
+\newpage	
+\section{Podwarstwy}
+
+\begin{figure}[hbt]
+\centering
+\includegraphics[scale=0.6]{warstwy.jpg}
+\caption{Diagram warstw}
+\end{figure}
+
+	Protokó³ w warstwie aplikacyjnej mo¿e chodziæ w kilku podwarstwach. Elementy te
+	umo¿liwiaj± szyfrowanie i kompresjê w czasie dzia³ania protoko³u.
+	
+	W poni¿szych rozwa¿aniach rozpatrzmy sytuacjê najbardziej z³o¿on± --- w której
+	zarówno szyfrowania jak i kompresja jest dostêpna. 
+	
+	\subsection{Pisanie danych}
+	
+	Aplikacja chce wys³aæ paczkê do innej aplikacji: 
+	\begin{enumerate}
+		\item	Aplikacja umieszcza (zapisuje) wysy³an± paczkê do
+	strumienia wyj¶ciowego. 
+		\item Strumieñ ten okazuje siê byæ strumieniem kompresuj±cym (ZLIB), który 
+		skompresowane dane zapisuje do swojego strumienia wyj¶ciowego. 
+		\item Strumieñ ten okazuje siê byæ strumieniem szyfruj±cym (SSL), który
+		dokonuje szyfrowania danych, a nastêpnie umieszcza je w swoim strumieniu
+		wyj¶ciowym
+		\item Strumieñ ten okazuje siê byæ strumieniem odpowiedniej warstwy
+		transportu, która to warstwa przekazuje dane przez sieæ.
+	\end{enumerate}
+	\subsection{Czytanie danych}
+	
+	Aplikacja chce odczytaæ paczkê pochodz± od innej aplikacji. 
+	\begin{enumerate}
+		\item Aplikacja prosi o paczkê odpowiedni strumieñ wej¶ciowy.  
+		\item Strumieñ ten okazuje siê byæ strumieniem dekompresuj±cym (ZLIB), który 
+		prosi o dane swój strumieñ wej¶ciowy. 
+		\item Strumieñ ten okazuje siê byæ strumieniem deszyfruj±cym (SSL), który
+		prosi o dane swój strumieñ wej¶ciowy.
+		\item Strumieñ ten okazuje siê byæ strumieniem odpowiedniej warstwy transportu
+		i odbiera on te dane z sieci, a nastêpnie zwraca je.
+		\item Strumieñ deszyfruj±cy przetwarza dane i zwraca je
+		\item Strumieñ dekompresuj±cy przetwarza dane i zwraca je
+		\item Aplikacja odczytuje dane i kompletuje je w ca³± paczkê. 
+	\end{enumerate}
+	
+	\subsection{Inicjalizacja tych podwarstw}
+		Inicjalizacja odpowiednich podwarstw odbywa siê tylko i wy³±cznie w protokole
+		wstêpnym. Raz zainicjalizowanych podwarstw nie mo¿na wy³±czyæ. 
+
+	\newpage
+\section{Przep³yw komunikatów}	
+
+Sekcja ta opisuje przep³yw komunikatów, a tak¿e format ka¿dego z komunikatów.
+W protokole mo¿emy wyró¿niæ kilka podprotoko³ów zale¿ne od stanu w którym
+po³±czenie siê znajduje. W szczególno¶ci bardzo sztywno nale¿y odgrodziæ
+protokó³ wstêpny --- w którym odbywa siê negocjacja parametrów po³±czenia i 
+autoryzacja z protoko³em w³a¶ciwym --- w którym jest realizowana w³a¶ciwa
+funkcjonalno¶ci systemu \loxim{}, a zatem wykorzystywane s± podprotoko³y:
+przeprowadzania zapytañ, przesy³ania komunikatu asynchronicznego i koñczenia
+po³±czenia. 
+
+\subsection{Nazewnictwo paczek}
+
+Na potrzeby tego dokumentu przyjmujemy nastêpuj±cy schemat nazywania paczek:
+
+	 \{znacznik grupy komunikatów\}-\{znacznik strony, która wysy³a tê
+	paczkê\}-\{identyfikator znaczenia\}
+	
+	Gdzie znacznik grupy paczek mo¿e przyj±æ nastêpuj±ce warto¶ci:
+	\begin{description}
+		\item[W] --- Podprotokó³ wstêpny
+		\item[Q] --- Podprotokó³ przeprowadzania zapytañ
+		\item[V] --- Podprotokó³ przesy³ania warto¶ci
+		\item[A] --- Komunikat asynchroniczny
+		\item[S] --- Komunikaty standardowe (np. OK, ERROR)
+    \end{description}
+
+	Znacznikiem strony wysy³aj±cej komunikat mo¿e byæ jedna z nastêpuj±cych
+	mo¿liwo¶ci:
+	\begin{description}
+		\item[C] --- Tylko klient wysy³a tego typu komunikat
+		\item[S] --- Tylko serwer wysy³a tego typu komunikat
+		\item[SC] --- Zarówno klient, jak i serwer mog± wys³aæ ten komunikat
+    \end{description}
+
+\subsection{Metody opisu formatu paczki}
+	Aby u³atwiæ zapoznawanie siê z formatem paczek bêdziemy je prezentowali 
+	w tabeli o nastêpuj±cym formacie:
+	\begin{bajty}
+    	\bp{-5}{-5}{$\IDwcHello$ (uint8)}{Identyfikator paczki}
+	    \bp{-4}{-1}{$0$ (uint32)}{D³ugo¶æ w³a¶ciwej zawarto¶ci paczki}
+	    \bph
+	    \bp{0}{\ldots}{warto¶æ (typ)}{Opis ogólny pole}	    
+    \end{bajty}
+		
+	Nale¿y zwróciæ uwagê, ¿e bêdziemy prezentowali offsety wzglêdem segmentu
+	danych. 
+	
+\newpage
+\subsection{Stany serwera} \label{diagram_stanow}
+
+\begin{figure}[hbt]
+\centering
+\includegraphics[scale=0.6]{stanySerwera.jpg}
+\caption{Diagram przej¶æ i stanów serwera}
+\end{figure}
+
+	
+% \subsection{Zestawienie typów paczek ze wzglêdu na formê odpowiedzi}
+% 
+% Paczki z odpowiedzi± synchroniczn± (Odbiorca tej paczki zmuszony
+% jest wys³aæ odpowied¼ na ni± --- przed wys³aniem jakiejkolwiek innej paczki):
+% \begin{description}
+% 	\item[]
+% 	\item[\ldots lista nie kompletna !!!]
+% \end{description}
+% 
+% Paczki bez odpowiedzi: 
+% \begin{description}
+% 	\item[]
+% 	\item[\ldots lista nie kompletna !!!]
+% \end{description}
+
+\subsection{Protokó³ wstêpny}
+	Protokó³ wstêpny s³u¿y do negocjacji parametrów po³±czenia
+	(kto, do której bazy danych, czy z szyfrowaniem i kompresj±, jakie s±
+	mo¿liwo¶ci serwera i klienta), a tak¿e do przeprowadzenia autoryzacji
+	u¿ytkownika. 	
+	
+	Ogólny schemat konwersacji jest nastêpuj±cy:
+	\begin{enumerate}
+      \item Klient nawi±zuje po³±czenie (w przypadku TCP otwiera odpowiedni port
+      na odpowiednim komputerze)
+      \item Serwer (o ile nie jest skonfigurowana polityka odrzucania po³±czeñ z
+      hosta klienta - raczej na zaporze sieciowej) przyjmuje (akceptuje) po³±czenie i nic nie wysy³a.
+      \item Klient wysy³a paczkê \pac{W-C-HELLO} --- klient ujawnia, ¿e chce
+      rozmawiaæ z \loxim{}'em po tym protokole. 
+      \item Serwer odpowiada paczk± \pac{W-S-HELLO} --- serwer ujawnia swoje cechy
+      i mo¿liwo¶ci. 
+   
+      \item Klient ewentualnie (kilkukrotnie) wysy³a paczkê \pac{W-C-MODE} --- w którym prosi
+      serwer o zmianê trybu (w³±czenie kompresji, szyfrowania). 
+      Odbywa siê stosowna konwersacja zwi±zana z zamówionymi podwarstwami (je¶li
+      serwer je obs³uguje --- np. SSL handshake). Serwer potwierdza przyjêcie zlecenia
+		wykonania tej 
+      operacji \pac{S-SC-OK} lub zg³asza b³±d \pac{S-SC-ERROR}. Nastêpnie mo¿e 
+      zostaæ
+      przes³any zestaw paczek negocjuj±cych nowy tryb.  Nastêpny komunikat
+      jest transportowany ju¿ w nowym trybie. 
+      
+      \item Klient ewentualnie ustala po¿±dane cechy po³±czenia \pac{S-C-SETOPT}
+      \item Serwer potwierdza, b±d¼ odrzuca ich przyjêcie. 
+      
+      \item Klient wybiera protokó³ logowania i informuje o nim serwer
+      \pac{W-C-LOGIN}. Serwer przeprowadza konwersacjê autoryzuj±c± z klientem
+      wed³ug jednej z metod. Podstawowe metody autentykacji opisane s± w
+      dalszej czê¶ci tego dokumentu \patrz{metodyAutoryzacji}.
+      
+      \item Ostatecznie serwer b±d¼ informuje klienta o zatwierdzeniu
+      autoryzacji \pac{W-S-AUTHORIZED} b±d¼ odrzuca j± i
+      zamyka po³±czenie \pac{S-SC-ERROR}.
+      \item Protokó³ wstêpny zostaje zakoñczony. 
+    \end{enumerate}
+    
+    %%%Tu wstawiæ schemat UML tej konwersacji
+ 	\newpage
+	\subsubsection{W-C-HELLO} \label{W-C-HELLO}
+	Paczka s³u¿y nawi±zaniu w³a¶ciwego po³±czenia na poziomie logicznym pomiêdzy
+	klientem, a serwerem. Stanowi formê przedstawienia, dziêki której serwer nabywa
+	przekonanie, ¿e ma do czynienia z uczciwym klientem, a nie skanerem portów, a 
+	tak¿e przedstawia serwerowi dane, które mog± byæ przydatne --- g³ównie do celów
+	administracyjnych (¶ledzenie stanu serwera, diagnostyka).
+	
+	Mo¿na wyró¿niæ nastêpuj±ce grupy pól w tym komunikacie
+	\begin{description}
+      \item[Cechy procesu klienta: PID, nazwa, wersja, hostname] 
+
+		S³u¿± one umo¿liwieniu ¶ledzenia akcji maj±cych miejsce 
+		aktualnie na serwerze oraz sporz±dzanie statystyk i logów dotycz±cych
+		aktywno¶ci pojedynczej aplikacji klienta lub pojedynczej maszyny klienckiej.
+		Podawanie PIDu i hostname'a umo¿liwia np. administratorowi zatrzymanie
+		konkretnego procesu, który obci±¿a zbytnio serwer. 
+		
+		Oczywi¶cie --- jak zawsze, ale tu szczególnie --- w ¿aden sposób nie nale¿y
+		informacjom podawanym tutaj ufaæ. Zatem np. decyzjê o 'dostêpnych' metodach
+		logowania serwer powinien podejmowaæ na podstawie adresu IP pobranego z danych
+		po³±czenia --- a nie na podstawie hostname'a przes³anego w tym pakiecie. 
+		
+      \item[Cechy regionalne: Strefa czasowa]
+		Strefa czasowa bêdzie domy¶ln± stref± w której serwer bêdzie podawa³ i
+		przyjmowa³ godziny i daty (gdy s± one pozbawione informacji o strefie, której dotycz±).
+		
+		W tym przypadku ponownie (z konieczno¶ci --- \patrz{strefy_czasowe}) pos³ugujemy
+		siê stref± czasow± zapisan± w postaci ró¿nicy czasu miêdzy czasem lokalnym, a czasem GMT. 
+		
+      \item[Cechy regionalne: Porównywanie napisów (collation)]
+		Pole ,,collation'' s³u¿y przekazaniu informacji o obowi±zuj±cej metodzie
+		porównywania napisów. W obecnej wersji systemu \loxim{} pole to nie bêdzie wykorzystywane, ale
+		ju¿ zapewniamy na jago potrzeby 64bity (np. pierwsze 32 bity mog± pos³u¿yæ do
+		okre¶lenia jêzyka, który stosujemy, a drugie 32 bity mog± byæ wykorzystywane
+		na flagi (np. czy $A>a$, czy mo¿e $A=a$)). W szczególno¶ci przekazuj±c te
+		dane (jêzyk i zestaw flag) do algorytmu ,,Unicode Technical Standard \#10,
+		Unicode Collation Algorithm'' \cite{UTS10}, mo¿na otrzymaæ zasady
+		porównywania napisów odpowiednie dla wybranego jêzyka.  
+		
+		Z algorytmu UTS wynika, ¿e drugie 32 bity mo¿na wykorzystaæ w nastêpuj±cy
+		sposób do jego parametryzowania (podajemy numery najmniej znacz±cych bitów od
+		0 do 31:
+		\begin{description} 
+			\item[0-3] --- Te 4 bity wykorzystujemy do przechowania w³asno¶ci ,,Level'',
+			czyli liczby cech uwzglêdnianych przy sortowaniu. UTS przewiduje nastêpuj±ce
+			5 poziomów:  
+			 \begin{description}
+			   \item[0] --- zasada domy¶lna dla jêzyka
+               \item[1] --- L1 (Base letters)
+               \item[2] --- L2 (L1+Accents)
+               \item[3] --- L3 (L2+Case)
+               \item[4]	 --- L4 (L3+Punct)
+               \item[5] --- L5 (L4+Codepoint)
+             \end{description}
+			\item[4-5] --- Te dwa bity wykorzystamy do przechowania zachowania wzglêdem
+			porównywania znaków wielkich i ma³ych. Proponujemy by:
+			\begin{description}
+				\item[0] --- Nie wymuszaj (domy¶lnie dla jêzyka)
+				\item[1] --- Uznawaj wielkie i ma³e litery za to¿same
+				\item[2] --- Wielkie litery pierwsze 	
+				\item[3] --- Ma³e litery pierwsze	
+			\end{description}	
+			\item[6] Je¶li bit zapalony, to u¿ywamy opcji ,,French accents''
+			\item[7] Je¶li bit zapalony, to u¿ywamy opcji ,,Add case Level''
+			\item[8] Je¶li bit zapalony, to u¿ywamy opcji ,,Full normalization mode''
+			\item[9] Je¶li bit zapalony, to u¿ywamy opcji ,,Add Hiragana Level''
+			\item[10] Je¶li bit zapalony, to u¿ywamy opcji ,,Numeric Collation''
+			\item[11-31] aktualnie nie u¿ywane 	
+		\end{description}	 
+		
+      \item[Cechy regionalne: Jêzyk klienta]
+		Jêzyk klienta s³u¿y tylko umo¿liwieniu przesy³ania komunikatów (takich jak
+		komunikaty o b³êdach) w jêzyku mo¿liwie bliskim jêzykowi u¿ytkownika. Je¶li
+		jêzyk wybrany t± opcj± nie jest wspierany, to system wybiera inny --- mo¿liwie
+		bliski wybranemu lub domy¶lny (np. angielski).
+		
+		Kodowanie znaków nie jest przesy³ane --- ze wzglêdu na za³o¿enie, ¿e
+		wszelka komunikacja tekstowa bêdzie prowadzona za pomoc± kodowania UTF-8
+		(\bigendian). Zatem zawsze do klienta nale¿y przekodowanie takiego napisu z i
+		na stronê kodow± klienta. 
+    \end{description}
+
+		G³êbszych rozwa¿añ na poziomie implementacji serwera bazy danych wymaga
+	kwestia traktowania danych regionalnych takich jak strefa czasowa, czy metoda
+	porównywania napisów.
+	 
+	Niektóre serwery baz danych dokonuj± w ró¿ny sposób konwersji danych
+	zawartych w bazie danych na czas lokalny ``sesji'' u¿ytkownika. Protokó³
+	zaleca, by takie zachowanie podlega³o konfiguracji za pomoc± opcji obs³ugiwanych 
+	przez pakiet \pac{S-C-SETOPT}.
+	
+	Podobn± kwesti± jest to, na jakim poziomie baza danych powinna pamiêtaæ metodê
+	porównywania napisów. Relacyjne bazy danych takie jak MySQL i MSSQL pamiêtaj± j± na
+	poziomie kolumny w tabeli), co jest do¶æ elastycznym rozwi±zaniem (choæ czasem
+	zaskakuje programistê, gdy odkrywa, ¿e przeszukiwania po jednej kolumnie s±
+	czu³e na wielko¶æ znaków, a po drugiej kolumnie w tej samej tabeli nie s±).
+	Wystêpuj±cym, ale uzasadnionym problemem w tym rozwi±zaniu jest to, ¿e
+	nie mo¿na porównywaæ warto¶ci w dwóch kolumnach o ró¿nych metodach
+	porównywaniu napisów (w tej sytuacji wzorowa baza danych powinna udostêpniæ
+	mechanizm specyfikacji wed³ug której kolacji to porównanie ma dzia³aæ --- z czym
+	w praktyce siê jeszcze nie spotka³em). 
+	
+	Brak schematu w modelu $AS_0$ bazy Loxim uniemo¿liwia takie zapamiêtywanie
+	informacji o ,,collation''. Zapamiêtywanie tej informacji z ka¿dym napisem
+	wydaje siê byæ skrajnie niepraktyczne (du¿y koszt pamiêciowy i niska potencjalna
+	u¿yteczno¶æ). Za podporz±dkowaniem metody porównywania napisów do
+	ustawieñ sesji przemawia sytuacja, gdy u¿ytkownik przyzwyczajony do jêzyka
+	np. szwedzkiego prosi bazê danych o przygotowaniu mu posortowanej listy
+	jego miêdzynarodowych kontrahentów i oczekuje, ¿e dostanie tê bazê posortowan±
+	wed³ug wytycznych jego jêzyka. Z analogicznym roszczeniem do tej bazy mo¿e
+	wyst±piæ Niemiec --- dla którego naturalne zasady sortowania s± nieco inne.
+	Dlatego w zale¿no¶ci od ustawienia aplikacji klienckiej (a zatem sesji)
+	powinna byæ wybrana metoda porównywania napisów.
+	
+	Z drugiej strony --- nie jest rzecz± w³a¶ciw±, gdy zapytanie
+	(Emp where title='Programmer') da nam ró¿ne wyniki w zale¿no¶ci od ustawieñ naszej
+	aplikacji klienckiej (np. w jednym przypadku z uwzglêdnieniem wielko¶ci
+	znaków, a w drugim bez uwzglêdnienia wielko¶ci znaków). Pewnym rozwi±zaniem w
+	tym przypadku jest specyfikowanie metody na poziomie np. korzeni (rootów). 
+	
+	Protokó³ nie specyfikuje, które rozwi±zanie jest s³uszne, ale udostêpnia pole,
+	które mo¿e byæ wykorzystane do przes³ania tych danych. Tak¿e przy zastosowaniu zarówno jednego jak i drugiego rozwi±zania
+	pole to mo¿e byæ ¼ród³em danych dla odpowiedniej konfiguracji nowo tworzonych obiektów. 
+			
+	Format pakietu W-C-Hello jest nastêpuj±cy:
+	\begin{bajty}
+    	\bp{-5}{-5}{$\IDwcHello$ (uint8)}{Identyfikator paczki}
+	    \bp{-4}{-1}{$a$ (uint32)}{D³ugo¶æ w³a¶ciwej zawarto¶ci paczki}
+	    \bph
+	    \bp{0}{7}{sint64}{PID procesu klienta --- mo¿e byæ 0, gdy nie obs³ugiwany}
+	    \bp{8}{k}{sstring}{Nazwa programu klienckiego.}
+	    \bp{$k+1$}{$l$}{sstring}{Wersja programu klienckiego.} 
+  	    \bp{$l+1$}{$m$}{sstring}{Hostname --- nazwa komputera (z domen±).}
+   	    \bp{$m+1$}{$m+3$}{sstring (3 znaki)}{Jêzyk u¿ytkownika --- kod literowy wed³ug
+   	    standardu ISO-639-2 (http://www.loc.gov/standards/iso639-2/php/code\_list.php)} 
+		\bp{$m+4$}{$m+11$}{uint64}{Kolacji }		%!!! --- doprecyzowaæ
+	    \bp{$m+12$}{$m+12$}{sint8}{Strefa czasowa klienta w postaci liczby
+	    ca³kowitej opisuj±cej przesuniêcie wzglêdem GMT. Czyli dopuszczalne 
+	    warto¶ci to od -14 (to nie jest b³±d) do +12. } 
+    \end{bajty}
+	
+	\newpage
+	\subsubsection{W-S-HELLO} \label{W-S-HELLO}
+	Paczka s³u¿y przedstawieniu mo¿liwo¶ci protoko³u i podstawowych informacji o
+	serwerze. 
+	
+	Zatem jego format jest nastêpuj±cy:
+	\begin{bajty}
+    	\bp{-5}{-5}{$\IDwsHello$ (uint8)}{Identyfikator paczki}
+	    \bp{-4}{-1}{$a$ (uint32)}{D³ugo¶æ w³a¶ciwej zawarto¶ci paczki}
+	    \bph
+	    \bp{0}{0}{p\_major=\wersjaprotomajor (uint8)}{Numer g³ówny (major) wersji protoko³u}
+	    \bp{1}{1}{p\_minor=\wersjaprotominor (uint8)}{Numer pomocniczy (minor)
+	    wersji protoko³u}  
+	    \bp{2}{2}{s\_major (uint8)}{Numer g³ówny (major) wersji systemu}
+	    \bp{3}{3}{s\_minor (uint8)}{Numer pomocniczy (minor) wersji systemu}  	    
+	    \bp{4}{7}{max\_package\_size (uint32)}{Rozmiar maksymalnego paczki 
+	    przesy³anego tym protoko³em --- powinno byæ $>1024$ i warto¶æ powy¿ej  $1048586$ powinna byæ istotnie uzasadniona (warto¶æ jest odczytywana z    konfiguracji serwera)}
+	    \bp{8}{15}{features (uint64)}{Mapa bitowa dostêpnych cech serwer'a}
+	    \bp{16}{23}{auth\_methods (uint64)}{Mapa bitowa dostêpnych metod
+	    autoryzacji} 
+	    \bp{24}{43}{salt (char[20])}{160 bitowy ci±g losowy --- u¿ywany przez
+	    niektóre metody autoryzacji}
+    \end{bajty}
+
+	Dostêpne features dziel± siê na: 
+	\begin{description}
+		\item[Tryby transmisji i dzia³ania protoko³u:]\label{TrybyTransmisji}
+		\begin{description}
+			\item[0x0001=F\_SSL]  --- po³±czenie mo¿e byæ szyfrowane metod± SSL
+	 		\item[0x0002=F\_O\_SSL]  --- obligatoryjne po³±czenie szyfrowane metod± SSL
+		(wymusza te¿ obecno¶æ flagi F\_SSL)
+			\item[0x0004=F\_ZLIB] --- po³±czenie mo¿e byæ kompresowane za pomoc± biblioteki
+		ZLIB 
+		\end{description}
+
+		\item[Tryb przetwarzania zapytania:]		
+		\begin{description}
+			 \item[0x0010=F\_AUTOCOMMIT] --- serwer udostêpnia tryb autocommit (ka¿de
+		zapytanie zadane poza transakcj± rozpoczyna swoj± transakcjê, które jest
+		automatycznie zamykana po wykonaniu polecenia)
+			\item[0x0020=F\_OPTIMALIZATION] --- mo¿na w³±czyæ optymalizator zapytañ
+			\item[\ldots np. poziomy izolacji transakcji] 
+	    \end{description}
+    \end{description}
+
+	\label{MetodyAutoryzacji}
+	Aktualnie przewidziane metody autentykacji to auth\_methods to:
+	\patrz{metodyAutoryzacji}
+	\begin{description}
+		\item[0x0001=AM\_TRUST] --- serwer uwierzy w ka¿d± podan± to¿samo¶æ
+		(\patrz{authTrust})
+		\item[0x0002=AM\_MYSQL5\_AUTH] --- autoryzacja metod± stosowan± przez serwer
+		(\patrz{authMySQL}) MySQL5 \cite{MySQL} --- w oparciu o przesy³anie i
+		przechowywanie skrótu has³a algorytmem SHA1. 
+		Generalnie schemat jest nastêpuj±cy:
+		\begin{description}
+			\item[Serwer przechowuje:] $SHA1(password)$
+			\item[Klient przesy³a:] $SHA1(password) XOR (SHA1(salt.SHA1(SHA1(password))))$
+	    \end{description}
+	\end{description}
+	
+	\subsubsection{W-C-MODE} \label{W-C-MODE}
+	Jest to paczka s³u¿±ca do przej¶cia w protokole wstêpnym na inny tryb
+	transmisji. Obecnie obejmuje to koncepcjê szyfrowania, kompresji, a tak¿e
+	ewentualnie transmisji w formacie XML.
+	
+	Jedynym parametrem paczki jest wybrany tryb transmisji. Zatem format paczki
+	jest nastêpuj±cy:
+	\begin{bajty}
+    	\bp{-5}{-5}{$\IDwcMode$ (uint8)}{Identyfikator tej paczki}
+	    \bp{-4}{-1}{$8$ (uint32)}{D³ugo¶æ w³a¶ciwej zawarto¶ci paczki}	    
+	    \bph{}
+	    \bp{0}{7}{nowy\_tryb (uint64)}{JEDNA ze sta³ych trybu transmisji: }		
+    \end{bajty}
+
+	Przewidywane tryby transmisji to:
+	\begin{description}
+    	\item[TT\_SSL=1]  komunikacja szyfrowana z wykorzystaniem protoko³u SSL
+    	\item[TT\_ZLIB=2] komunikacja kompresowana
+    \end{description}
+	
+	W kolejne tryby nale¿y wchodziæ pojedynczo. Nowy tryb umieszczany jest na
+	szczycie stosu (warstwa transportu znajduje siê na spodzie stosu). Zatem, aby
+	sensownie uruchomiæ jednocze¶nie kompresjê i szyfrowaæ, nale¿y najpierw uruchomiæ
+	szyfrowanie, a pó¼niej kompresjê. W ten sposób dane zostan± najpierw
+	skompresowane, a pó¼niej zaszyfrowane. 
+
+	Dostêpne odpowiedzi to:
+	\begin{description}
+		\item[S-SC-OK]	Polecenie zosta³o zaakceptowane. Za chwile nast±pi± negocjacje
+		w kwestii ustalenia nowego trybu. Szczegó³y ustalenia konkretnego trybu zale¿±
+		od wybranego trybu. Strona, która inicjalizuje dalsza konwersacjê tak¿e zale¿y od konkretnego elementu (np.
+	 	w przypadku SSL'u serwer powinien rozpocz±æ ,,HANDSHAKE''). 
+
+		Je¶li proces negocjacji nowego trybu zakoñczy siê pora¿k±, to po³±czenie
+		musi zostaæ natychmiast zerwane. 
+
+		\item[S-SC-ERROR]  Nie jest mo¿liwe przej¶cie to ¿±danego trybu z jakiego¶
+		powodu. Spodziewane komunikaty odpowiedzi to mo¿e byæ:
+		\begin{description}
+			\itemERR{ModeNotAvoilable}
+			\itemERR{ModeAlredySet}
+			\itemERR{Internal}
+		\end{description}			
+
+	\end{description}
+
+	
+			
+	\subsubsection{W-C-LOGIN} \label{W-C-LOGIN}
+	Komunikat s³u¿y przekazaniu przez klienta serwerowi informacji
+	o tym, za pomoc± którego mechanizmu logowania klient bêdzie siê chcia³
+	zalogowaæ do serwera. 
+	W praktyce jedynym parametrem paczki jest identyfikator wybranej metody autoryzacji
+	\ref{metodyAutoryzacji}). Zatem format paczki jest nastêpuj±cy:	
+	\begin{bajty}
+    	\bp{-5}{-5}{$\IDwcLogin$ (uint8)}{Identyfikator paczki login}
+	    \bp{-4}{-1}{$8$ (uint32)}{D³ugo¶æ w³a¶ciwej zawarto¶ci paczki}	    
+	    \bph{}
+	    \bp{0}{7}{nowy\_tryb (uint64)}{JEDNA z warto¶ci metody autoryzacji (patrz: 
+	    \ref{metodyAutoryzacji})}		
+    \end{bajty}
+	
+	W momencie wys³ania tej paczki --- zarz±dzanie protoko³em jest oddane procesowi
+	realizuj±cemu konkretn± metodê autoryzacji. Metoda taka powinna zapewniæ to,
+	¿e serwer po jej realizacji wy¶le pakiet W-S-AUTHORIZED lub zg³osi b³±d i
+	zakoñczy po³±czenia, a klient po zakoñczeniu dzia³anie tej metody, bêdzie
+	wiedzia³, ¿e ona siê zakoñczy³a i bêdzie gotowy na odbiór pakietu
+	W-S-AUTHORIZED lub informacji o b³êdzie.
+	
+	W sytuacji, gdy serwer otrzyma paczkê W-C-LOGIN chc±c± przeprowadziæ
+	autoryzacjê metod± nie wspieran± przez serwer --- serwer powinien natychmiast
+	zerwaæ po³±czenie. 
+	
+	\subsubsection{W-S-AUTHORIZED} \label{W-S-AUTHORIZED}
+	Jest to paczka potwierdzaj±ca skuteczn± autoryzacje i o¶wiadczaj±cy o
+	zakoñczeniu pracy serwera w trybie wstêpnym i o mówi±cy przej¶ciu w tryb
+	pracy w³a¶ciwej. 
+	
+	Format jest nastêpuj±cy:
+	\begin{bajty}
+    	\bp{-5}{-5}{$\IDwsAuthirized$ (uint8)}{Identyfikator tej paczki}
+	    \bp{-4}{-1}{$0$ (uint32)}{D³ugo¶æ w³a¶ciwej zawarto¶ci paczki}	    
+    \end{bajty}
+
+	\subsubsection{W-C-PASSWORD} \label{W-C-PASSWORD}
+	Jest to paczka w którym klient autoryzuj±cy siê przy pomocy has³a powinien
+	przes³aæ swój login i has³o. W szczególno¶ci ta paczka wykorzystuje metody
+	autoryzacji: Trust oraz MySQLpassword \patrz{metodyAutoryzacji}. 
+	
+	Format jego jest nastêpuj±cy:
+	\begin{bajty}
+    	\bp{$-5$}{$-5$}{$\IDwcPassword$ (uint8)}{Identyfikator tej paczki}
+	    \bp{$-4$}{$-1$}{$m$ (uint32)}{D³ugo¶æ w³a¶ciwej zawarto¶ci tego 
+	    paczki}	    
+	    \bph{}
+	    \bp{$0$}{$n$}{login (sstring)}{Login autoryzuj±cego siê u¿ytkownika}
+	    \bp{$n+1$}{$m-1$}{password (bytes)}{Has³o lub jego skrót lub NULL w
+	    przypadku metody Trust}
+    \end{bajty}
+
+\subsection{Protokó³ w³a¶ciwy --- obs³uga zapytania}\label{proto_obsluga_zapytan}
+	
+	\subsubsection{Q-C-STATEMENT} \label{Q-C-STATEMENT}
+		Paczka s³u¿y do przes³ania zapytania na serwer. Je¿eli flaga EXECUTE jest
+		zapalona --- to znaczy, ¿e przesy³amy proste --- bezparametrowe zapytanie --- które
+		chcemy by zosta³o natychmiast wykonane przez serwer. W przeciwnym przypadku
+		przesy³amy tylko zapytanie --- by zosta³o sparsowany --- i by zosta³ my nadany
+		numer StetementId. Pos³uguj±c siê pó¼niej tym numerem bêdziemy mogli
+		wielokrotnie zbindowaæ parametry do zapytania i je wykonaæ (\pac{Q-C-EXECUTE}). 
+		
+		Format paczki jest nastêpuj±cy:
+		\begin{bajty}
+	    	\bp{$-5$}{$-5$}{$\IDqcStatement$ (uint8)}{Identyfikator tej paczki}
+		    \bp{$-4$}{$-1$}{$m$ (uint32)}{D³ugo¶æ w³a¶ciwej zawarto¶ci tej paczki}	    
+		    \bph{}
+		    \bp{$0$}{$7$}{flags (uint64)}{Flagi ustawiaj±ce opcje zapytania (patrz:
+		    dostêpne flagi poni¿ej)}
+		    \bp{$8$}{$m-1$}{statement (string)}{Zapytanie wysy³ane na serwer}
+		 \end{bajty}
+
+		Aktualnie przewidziane flagi to:
+		\begin{description}
+			\item[EXECUTE = 0x0001]  --- je¶li flaga jest zapalona to zapytanie zachowuje
+			siê tak, jakby natychmiast po nim zosta³a wys³ana \pac{Q-C-EXECUTE}. Czyli
+			zamiast odpowiedzi \pac{Q-S-STMTPARSED} pojawi siê albo odpowied¼
+			\pac{Q-S-EXECUTING}, albo zostanie zg³oszony który¶ z b³êdów charakterystycznych dla poleceñ
+			\pac{Q-C-STATEMENT} i \pac{Q-C-EXECUTE}. 
+			
+			\item[READONLY = 0x0002] --- je¶li flaga jest zapalona to zapytanie nie ma
+			prawa wprowadzaæ ¿adnych modyfikacji w bazie danych  
+        \end{description}
+
+		W odpowiedzi na tê paczkê mo¿e przyj¶æ paczka \pac{Q-S-STMTPARSED} (je¶li nie
+		by³a
+		podniesiona flaga EXECUTE) albo (\pac{Q-S-EXECUTING} --- je¶li by³a podniesiona
+		flaga EXECUTE) albo jeden z poni¿szych b³êdów:
+		\begin{description}
+			\itemERR{SyntaxError}
+			\itemERR{OperationNotAllowed}
+			\itemERR{Internal}
+			\item[oraz b³êdy charakterystyczne dla \pac{Q-C-EXECUTE}] --- o ile flaga
+			EXECUTE jest zapalona
+        \end{description}
+		
+	\subsubsection{Q-S-STMTPARSED} \label{Q-S-STMTPARSED}
+		Paczka informuje, ¿e analiza sk³adniowa zapytania siê powiod³a i, ¿e zapytaniu
+		zosta³ nadany StatementId. Paczka jest wysy³ana w sposób synchroniczny w
+		odpowiedzi na komunikat \pac{Q-C-STATEMENT}. 
+		
+		Format jest nastêpuj±cy:
+		\begin{bajty}
+	    	\bp{$-5$}{$-5$}{$\IDqcStmtparsed$ (uint8)}{Identyfikator tej paczki}
+		    \bp{$-4$}{$-1$}{$16$ (uint32)}{D³ugo¶æ w³a¶ciwej zawarto¶ci tej paczki}	    
+		    \bph{}
+		    \bp{$0$}{$7$}{statementId (uint64)}{Id nadane temu zapytaniu/poleceniu}
+		    \bp{$8$}{$15$}{paramsCnt  (uint32)}{Liczba parametrów do ustalenia w
+		    sparsowanym zapytaniu. }
+		 \end{bajty}	
+	
+	\subsubsection{Q-C-EXECUTE}  \label{Q-C-EXECUTE}
+		Paczkê tê wysy³a klient w celu poinformowania serwera o tym, ¿e chce wykonaæ
+		zadane poprzez statementId zapytanie. Czêsto, tak¿e tym zapytaniem bêdzie siê
+		dokonywa³o bindowania bindowania poszczególnych parametrów zapytania z
+		identyfikatorami warto¶ci w schowku (patrz obs³uga schowka) w celu wykonania
+		zapytania. 
+		
+		Format paczki jest nastêpuj±cy:
+		\begin{bajty}
+	    	\bp{$-5$}{$-5$}{$\IDqcExecute$ (uint8)}{Identyfikator tej paczki}
+		    \bp{$-4$}{$-1$}{$m$ (uint32)}{D³ugo¶æ w³a¶ciwej zawarto¶ci tej paczki}	    
+		    \bph{}
+		    \bp{$0$}{$7$}{statementId (uint64)}{Id nadane temu zapytaniu/poleceniu}
+		    \bp{$8$}{$15$}{flags (uint32)}{Flagi --- wskazówki dotycz±ce wyników
+		    zapytania --- patrz ni¿ej}
+		    \bp{$16$}{$19$}{paramsCnt  (uint32)}{Liczba parametrów do ustalenia w
+		    sparsowanym zapytaniu. }		    
+		    \bp{$m_{i-1}$}{$m_{i}-1$}{$valueId_i$  dla $i \in (1..paramsCnt)$
+		    (varuint)}{Id bêd±ce i-tym parametrem. Id powinno siê odnosiæ do Id 
+		    warto¶ci znajduj±cym siê w schowku sesji --- ustalonym uprzednio poprzez
+		    paczkê \pac{V-SC-SENDVALUE}}			       
+		 \end{bajty}	
+
+		Przewidywane flagi to (ci±g dalszy do flag z Q-C-STATEMENT):
+		\begin{description}
+			\item[0x0100 PREFER-DFS] Oznacza, ¿e u¿ytkownik sugeruje by wyniki by³y
+			przesy³ane w kolejno¶ci umo¿liwiaj±cej szybk± konstrukcjê odpowiedzi metod±
+			DFS. Wyklucza siê z PREFER-BFS.
+			
+			\item[0x0100 PREFER-BSF] Oznacza, ¿e u¿ytkownik sugeruje by wyniki by³y
+			przesy³ane w kolejno¶ci umo¿liwiaj±cej szybk± konstrukcjê odpowiedzi metod±
+			BFS. Wyklucza siê z PREFER-DFS.
+        \end{description}
+
+		Paczka w sposób synchroniczny jest zwi±zana z odpowiedzi± \pac{Q-S-EXECUTING}
+		lub jednym z nastêpuj±cych b³êdów:
+		\begin{description}
+			\itemERR{ParamsIncomplete}
+			\itemERR{NoSuchValueId}
+			\itemERR{OperationNotPermited}
+			\itemERR{Internal}
+        \end{description}
+			
+	\subsubsection{Q-S-EXECUTING} \label{Q-S-EXECUTING}
+ 		Paczka ta jest synchronicznym powiadomieniem o przyjêciu do przetworzenia
+ 		danego zapytanie (czyli jest wysy³ana w odpowiedzi na pakiety
+ 		\pac{Q-C-EXECUTE} oraz \pac{Q-C-STATEMENT} (z flag± EXECUTE)).
+ 		
+ 		Format pakietu jest nastêpuj±cy:
+ 		\begin{bajty}
+     		\bp{-5}{-5}{$\IDqsExecuting$ (uint8)}{Identyfikator paczki EXECUTING}
+ 	    	\bp{-4}{-1}{$0$ (uint32)}{D³ugo¶æ w³a¶ciwej zawarto¶ci paczki}
+     	\end{bajty}
+ 
+ 		Otrzymanie tej paczki ¶wiadczy o tym, ¿e klient znalaz³ siê w trybie
+ 		wykonywania zapytania (tzn. ¿e nie mo¿emy wys³aæ nowego zapytania do czasu
+ 		przetworzenia lub anulowania bie¿±cego zapytania, a tak¿e to, ¿e 
+ 		aktualnie otrzymywane pakiety z grupy V-\ldots dotycz±ce wyników zwracanych
+ 		przez to zapytanie).
+			
+		
+% 	\subsubsection{Q-C-CANCEL} \label{Q-C-CANCEL}
+% 		Paczka ta jest ¿±daniem przerwania przetwarzania bie¿±cego zapytania. Po jej
+% 		otrzymaniu serwer ma obowi±zek przestaæ wyliczaæ zapytanie, a nastêpnie
+% 		opró¿niæ kolejkê pakietów wychodz±cych z wszystkich pakietów zwi±zanych z tym
+% 		zapytaniem (a wiêc tak¿e paczki z grypy V-xx-xxx), a nastêpnie wys³aæ w synchroniczny
+% 		
+% 		Format pakietu jest nastêpuj±cy:
+% 		\begin{bajty}
+%    		\bp{-5}{-5}{$\IDqcCancel$ (uint8)}{Identyfikator paczki Cancel}
+%     	\bp{-4}{-1}{$0$ (uint32)}{D³ugo¶æ w³a¶ciwej zawarto¶ci paczki}
+% 	   \end{bajty}
+% 
+% 		B³êdy które mog± pojawiæ siê w odpowiedzi na ten pakiet to:
+% 		\begin{description}
+% 			\itemERR{NoCurrentStatement}
+% 			\itemERR{Internal}
+%       \end{description}
+% 		Po otrzymaniu odpowiedzi \pac{S-SC-OK} znajdujemy siê poza trybem wykonywania zapytania -
+% 		wiêc mo¿emy wykonaæ nastêpne. 
+% 		
+% 		W sytuacji wyst±pienia b³êdu nale¿y przyj±æ, ¿e znajdujemy siê poza trybem
+% 		wykonywania zapytañ, a w przypadku b³êdu internal najbezpieczniej roz³±czyæ
+% 		po³±czenie i nawi±zaæ ³±czno¶æ ponownie. 
+		
+% 	\subsubsection{Q-S-NORESULT} \label{Q-S-NORESULT}
+% 		Paczka informuje, ¿e bie¿±ce zapytanie siê zakoñczy³o i nie zwróci³o ¿adnych
+% 		wyników --- mimo, ¿e by³o zapytaniem (a nie aktualizacj± danych). 	
+% 	
+% 		Format paczki jest nastêpuj±cy:
+% 		\begin{bajty}
+%     		\bp{-5}{-5}{$\IDqsNoResult$ (uint8)}{Identyfikator paczki No-result}
+% 	    	\bp{-4}{-1}{$0$ (uint32)}{D³ugo¶æ w³a¶ciwej zawarto¶ci paczki}
+%     	\end{bajty}
+% 
+% 		Wys³anie (ale nie umieszczenie w kolejce pakietów do wys³ania) tej paczki przez
+% 		serwer powoduje, ¿e przechodzi on w tryb nie przetwarzania zapytania. 
+% 		
+	\subsubsection{Q-S-EXECUTION-FINISHED} \label{Q-S-EXECUTION-FINISHED}
+		Paczka informuje, ¿e bie¿±ce polecenie siê zakoñczy³o i ewentualnie informuje
+		o liczbie zmian dokonanych przez to zadanie.  
+	
+		\hyphenation{mod-Atom-Po-inter-Cnt}
+		Format pakietu jest nastêpuj±cy:
+		\begin{bajty}
+    		\bp{$-5$}{$-5$}{$\IDqsOperationOk$ (uint8)}{Identyfikator paczki operationOk}
+	    	\bp{$-4$}{$-1$}{$a$ (uint32)}{D³ugo¶æ w³a¶ciwej zawarto¶ci paczki}
+	    	\bph
+	    	\bp{$0$}{$d-1$}{modAtomPointerCnt (varuint)}{ liczba zmodyfikowanych obiektów
+	    	atomowych i pointerowych przez to zdanie (je¶li nie jest okre¶lona to serwer ma
+	    	to zwróciæ NULL)}
+	    	\bp{$d$}{$b-1$}{delCnt (varuint)}{liczba usuniêtych obiektów (je¶li nie jest okre¶lona to serwer ma to zwróciæ NULL)}
+	    	\bp{$b-1$}{$c$}{newRootsCnt (varuint)}{liczba utworzonych obiektów korzeniowych (je¶li nie jest okre¶lona to serwer ma to zwróciæ NULL)}
+	    	\bp{$c-1$}{$a-1$}{insertsCnt (varuint)}{liczba obiektów wstawionych do obiektów z³o¿onych (równie¿ tych
+nowo utworzonych) (je¶li nie jest okre¶lona to serwer ma to zwróciæ NULL)}
+    	\end{bajty}
+
+		Wys³anie (ale nie umieszczenie w kolejce paczek do wys³ania) tej paczki przez
+		serwer powoduje, ¿e wychodzi on z trybu przetwarzania zapytania.  
+		
+		Wysy³anie ilo¶ci dokonanych zmian ma u³atwiæ pracê systemów korzystaj±cych z
+		mechanizmu tzw. optymistycznego przetwarzania transakcji przez aplikacjê
+		klienck± (serwery aplikacyjne i mechanizmy w stylu ,,hibernate''). 
+			
+		
+\subsection{Protokó³ w³a¶ciwy --- przesy³anie warto¶ci}
+\label{proto_obsluga_wartosci}
+	
+	\subsubsection{V-SC-SENDVALUES} 			\label{V-SC-SENDVALUES}
+		Paczka informuje drug± stronê, ¿e rozpoczyna siê transfer (zbioru) warto¶ci.
+		Mo¿e zawieraæ informacje o orientacyjnej ilo¶ci przesy³anych wyników --- by umo¿liwiæ wy¶wietlenie u¿ytkownikowi orientacyjnej
+		informacji o postêpie.
+		
+		Format paczki jest nastêpuj±cy:
+		\begin{bajty}
+    		\bp{$-5$}{$-5$}{$\IDvscSendValues$ (uint8)}{Identyfikator paczki operationOk}
+	    	\bp{$-4$}{$-1$}{$a$ (uint32)}{D³ugo¶æ w³a¶ciwej zawarto¶ci paczki}
+	    	\bph
+	    	\bp{$0$}{$l$}{rootValueId (varuint)} {ID korzenia --- paczki, która bêdzie
+	    	zawiera³a w³a¶ciwy obiekt z warto¶ci±. Warto¶æ NULL nie jest dozwolona.}
+	    	\bp{$l+1$}{$m$}{oBundlesCount (varuint)}{Orientacyjne liczba paczek, które
+	    	zostan± przes³ane --- NULL --- je¶li nie znana}
+	    	\bp{$m+1$}{$n$}{oBidCount (varuint)}{Orientacyjna liczba obiektów, które
+	    	zostan± przes³ane --- NULL --- je¶li jeszcze nie okre¶lona}
+	    	\bp{$n+1$}{$a-1$}{pVidCount (varuint)}{Dok³adna liczba obiektów, które
+	    	zostan± przes³ane --- NULL --- je¶li jeszcze nie okre¶lona}	    	
+    	\end{bajty}
+
+			
+	\subsubsection{V-SC-SENDVALUE}  			\label{V-SC-SENDVALUE}
+
+	Paczka ta s³u¿y do przes³ania pewnej warto¶ci. Ka¿da warto¶æ posiada swoje 
+	ID --- generowane przez stronê wysy³aj±c±. ID to bêdzie s³u¿y³o do budowania
+	bardziej z³o¿onych warto¶ci poprzez grupowanie w odpowiednich strukturach
+	ID-ków identyfikuj±cy elementy le¿±ce g³êbiej w hierarchii. Nie ma ¿adnego
+	wymogu, aby ID do których siê odwo³ujemy by³y przes³ane wcze¶niej ni¿ obiekt z
+	nich korzystaj±cy. 
+	
+	Przez warto¶æ rozumiemy ka¿d± konstrukcjê zgodn± z konstrukcji warto¶ci 
+	podan± w \cite{SBQL} w rozdziale ,,SBA: Environment Stack in the $AS_0$ Store
+	Model --- Result returned by Queries''.
+	
+	Format tych danych jest nastêpuj±cy:
+	\begin{bajty}
+    		\bp{$-5$}{$-5$}{$\IDvscSendValue$ (uint8)}{Identyfikator paczki operationOk}
+	    	\bp{$-4$}{$-1$}{$a$ (uint32)}{D³ugo¶æ w³a¶ciwej zawarto¶ci paczki}
+	    	\bph
+	    	\bp{$0$}  {$l$}{ValueId (varuint)}{Identyfikator warto¶ci}
+	    	\bp{$l+1$}{$l+1$}{Flags (uint8)}{Flagi z informacjami o pakiecie}
+	    	\bp{$l+2$}{$m$}{Typ warto¶ci}{Jedna ze sta³ych kodowych --- opisanych
+	    	poni¿ej} 
+	    	\bp{$m+1$}{$a-1$}{data (zale¿ne od typu)}{Dane w³a¶ciwe warto¶ci --- zale¿ne
+	    	od typu wskazanego przez poprzedni± komórkê}
+	\end{bajty}
+    	
+	Przewidywane flagi to:
+	\begin{description}
+		\item[TO-BE-CONTINUED=0x01] Nastêpny pakiet bêdzie zawiera³ ci±g dalszy informacji
+		do tego pakietu (w tym pakiecie nie zmie¶ci³y siê wszystkie dane, które mia³y
+		byæ przes³ane --- np. ze wzglêdu na ograniczenie max\_package\_size). 
+		Nastêpny pakiet bêdzie dotyczy³ tego samego obiektu (ten sam ValueId), ale bêdzie 
+		zawiera³ dalsze warto¶ci. 
+    \end{description}
+
+	Przewidywane typy proste to (nie wszystkie typy musz± byæ dostêpne dla
+	u¿ytkowników):
+	\begin{typy}
+	%Ca³kowitoliczbowe%
+		\typ{UINT8 }{0x0001}{Zapisany jako uint8}{-}
+		\typ{SINT8 }{0x0002}{Zapisany jako sint8}{-}
+		\typ{UINT16}{0x0003}{\ldots}{-}
+		\typ{SINT16}{0x0004}{\ldots}{-}
+		\typ{UINT32}{0x0005}{\ldots}{-}
+		\typ{SINT32}{0x0006}{\ldots}{-}
+		\typ{UINT64}{0x0007}{\ldots}{-}
+		\typ{SINT64}{0x0008}{\ldots}{-}
+		
+		\typ{BOOL  }{0x0009}{Zapisany jako bool}{-}
+	%Datetime
+		\typ{DATE      }{0x000A}{	Data}{-}
+		\typ{TIME      }{0x000B}{	Czas bez strefy czasowej}{-}
+		\typ{DATETIME  }{0x000C}{	Data i czas bez strefy czasowej}{-}
+		\typ{TIMETZ    }{0x000D}{	Czas ze stref± czasow±}{-}
+		\typ{DATETIMETZ}{0x000E}{  Data i czas ze stref± czasow±.}{-}
+	%Tekstowe/binarne
+		\typ{BYTES}		{0x000F}{Obiekt binarny (nie musi byæ d³ugi)}{+}
+		\typ{VARCHAR}  {0x0010}{Tekst (zakodowany w UTF-8 \bigendian). }{+}	
+	%Paranumeryczne
+		%\typ{NUMERIC}   {0x0011}{  Przekazywano jako SINT64(Liczba rzeczywista jako ca³kowite)
+		%oraz SINT8(liczba miejsc rzeczywistych) }{-} 
+		
+		%Tekstowe
+		\typ{DOUBLE}	{0x0011} {	Dane rzeczywiste podwójnej precyzji}{-}		
+    \end{typy}
+
+	Przewidywane typy organizuj±ce strukturê (Zgodnie z \cite{SBQL} ,,SBA:
+	Enviroment Stack in the $AS_0$ Store Model --- Results returned by queries''):
+		\begin{typy}
+	%Ca³kowitoliczbowe%
+		\typ{VOID}{0x0080}{Typ pusty. }{-}		
+		\typ{LINK }   {0x0081}{Taka warto¶æ jak opisana poprzez pakiet o danym
+		valueId}{-}
+		\typ{BINDING} {0x0082}{Zwi±zanie poprzez dan± nazwê danej warto¶ci}{-}
+		\typ{STRUCT}{0x0083}{Struktura elementów (nie stanowi±ca kolekcji)}{+}
+		\typ{BAG}{0x0084}{Kolekcja bêd±ca multizbiorem elementów}{+}
+		\typ{SEQUENCE}{0x0085}{Kolekcja bêd±ca ci±giem elementów}{+}
+		\typ{REF}{0x0086}{Odwo³anie do pewnego miejsca w strukturze danych
+		(najprawdopodobniej poza przes³anym pakietem), raczej do krótkotrwa³ych operacji}{-}		
+		\typ{EXTERNAL\_REF}{0x0087}{Odwo³anie do pewnego miejsca w strukturze danych
+		(najprawdopodobniej poza przes³anym pakietem), w celu w przechowywania w innym
+		zewnêtrznym systemie}{-}	
+			
+    \end{typy}	
+
+	W celu poznania struktury poszczególnych formatów danych, nale¿y zapoznaæ siê z
+	rozdzia³em	\ref{FormatyDanych}.
+	
+	\subsubsection{V-SC-FINISHED}  			\label{V-SC-FINISHED}
+	Paczka informuje stronê odbieraj±c±, ¿e wszystkie warto¶ci, które
+	mia³y zostaæ przes³ane --- zosta³y ju¿ wys³ane. Oczekuje, ¿e strona odbieraj±ca
+	sprawdzi spójno¶æ danych i odpowie synchronicznie, b±d¼ poprzez \pac{S-SC-OK}
+	b±d¼ poprzez zg³oszenie b³êdu. 
+	W obu sytuacjach jednak wys³anie tej paczki powoduje zakoñczenie tryby
+	przesy³ania wyniku. 
+		
+	 Format paczki jest nastêpuj±cy:
+		\begin{bajty}
+    		\bp{-5}{-5}{$\IDvscFinished$ (uint8)}{Identyfikator paczki}
+	    	\bp{-4}{-1}{$0$ (uint32)}{D³ugo¶æ w³a¶ciwej zawarto¶ci paczki}
+    	\end{bajty}
+		
+	\subsubsection{V-SC-ABORT} 					\label{VQ-SC-ABORT}
+	Paczka mo¿e byæ wys³ana b±d¼ przez stronê odbieraj±c±, b±d¼ przez wysy³aj±c±.
+	Oznacza ona, ¿e nale¿y zaprzestaæ wysy³aæ lub oczekiwaæ na dane. 
+	
+	Paczka ta mo¿e byæ tak¿e wys³ana poza trybem przesy³ania warto¶ci przez serwer
+	- i informuje wtedy o przerwaniu wykonywania (obs³ugi) bie¿±cego zapytania. 
+	
+	Wys³anie jej w trybie wykonywania zapytania powoduje opuszczenie tego trybu. 
+	
+	 Format paczki jest nastêpuj±cy:
+		\begin{bajty}
+    		\bp{$-5$}{$-5$}{$\IDvqscAbort$ (uint8)}{Identyfikator paczki}
+	    	\bp{$-4$}{$-1$}{$n$ (uint32)}{D³ugo¶æ w³a¶ciwej zawarto¶ci paczki}
+	    	\bph
+	    	\bp{$0$}{$3$}{reasonCode (uint32)}{Kod b³êdu mówi±cy o przyczynie przerwania
+	    	zapytania, 0 --- brak uzasadnienia} 
+	    	\bp{$4$}{$n-1$}{reasonString (sstring)}{S³owny opis powodu (najlepiej w
+	    	jêzyku okre¶lonym w fazie wstêpnej)}
+    	\end{bajty}
+
+	Przewidywane obecnie reasonCody to:
+	\begin{description}
+		\item[ADMINISTRATION-REASON] Twoje zapytanie zosta³o przerwane na skutek
+		dzia³añ administracyjnych
+		\item[YOU-ARE-TRANSACTION-VICTIM] Twoja transakcja zosta³a wycofana ze wzglêdu
+		na powstanie zastoju (DEADLOCK)
+		\item[OPERATION-NOT-PERMITED] Próba wykonania niedozwolonej operacji 
+		\item[TIME-LIMIT-EXCEEDED] Przekroczony maksymalny czas wykonywania zapytania
+		\item[OUT-OF-MEMORY] Zabrak³o pamiêci na dalsze przetwarzanie wyniku 
+		\item[TYPE-CHECK-ERROR] Problem konwersji (dynamicznej kontroli typów)
+		\item[OTHER-RUN-TIME-ERROR] Inny b³±d wykonania 
+    \end{description}
+%	ReasonCody bêd± nale¿a³y do puli kodów b³êdów. 
+	
+%	\subsubsection{V-SC-MEMORYLIMITEXCEEDED} 	\label{V-SC-MEMORYLIMITEXCEEDED}
+%	Paczka wysy³ana przez stronê odbieraj±co --- która stwierdza, ¿e nie mo¿e przyj±æ
+%	wiêcej warto¶ci ze wzglêdu na brak pamiêcie (np. przekroczony limit). 
+%	Semantyka jest taka sama jak jak pakietu \pac{V-SC-ABORT}
+%	
+%	Format paczki jest nastêpuj±cy:
+%		\begin{bajty}
+%   		\bp{-2}{-2}{$\IDqscMemoryLimitExceeded$ (uint8)}{Identyfikator paczki}
+%	    	\bp{-1}{-1}{$0$ (varuint)}{D³ugo¶æ w³a¶ciwej zawarto¶ci paczki}
+%    	\end{bajty}
+
+\subsection{Protokó³ w³a¶ciwy --- paczki ró¿ne}
+
+\subsubsection{A-SC-PING} \label{A-SC-PING}
+		Paczka jest wysy³any okresowo przez serwer do klienta (lub potencjalnie przez
+		klienta do serwera)
+		w celu stwierdzenia,  czy ³±czno¶æ z klientem jest zachowana, a klient siê nie
+		zawiesi³. Paczka sk³ada siê w praktyce tylko z nag³ówka. 
+		
+	Zatem jego format jest nastêpuj±cy:
+	\begin{bajty}
+    	\bp{-5}{-5}{$\IDascPing$ (uint8)}{Identyfikator paczki ping}
+	    \bp{-4}{-1}{$0$ (uint32)}{D³ugo¶æ w³a¶ciwej zawarto¶ci paczki}
+    \end{bajty}
+
+		Paczka A-SC-PING nie jest obs³ugiwany w fazie wstêpnej. Tam po³±czenie
+		zostanie automatycznie zamkniête przez serwer po up³ywie login-timeout. 
+
+	
+	
+	\subsubsection{A-SC-PONG} \label{A-SC-PONG}
+		Paczka wysy³any w odpowiedzi na paczkê \pac{A-SC-PING}.
+		
+		Paczka sk³ada siê w praktyce tylko z nag³ówka.
+			
+		Zatem jego format jest nastêpuj±cy:
+	\begin{bajty}
+    	\bp{-5}{-5}{$\IDascPong$ (uint8)}{Identyfikator paczki pong}
+	    \bp{-1}{-4}{$0$ (uint32)}{D³ugo¶æ w³a¶ciwej zawarto¶ci paczki}
+    \end{bajty}
+	
+		Paczka \pac{A-SC-PONG} nie jest obs³ugiwany w fazie wstêpnej. Tam po³±czenie
+		zostanie automatycznie zamkniête przez serwer po up³ywie login-timeout. 	
+		
+		
+		
+
+\subsection{Komunikaty ogólne}
+
+	\subsubsection{A-SC-OK} \label{S-SC-OK}
+	Paczka potwierdzaj±cy przyjêcie i zrozumienie komendy wys³anej na serwer przez
+	klienta.  Paczka sk³ada siê w praktyce tylko z nag³ówka. 
+	
+	Zatem jego format jest nastêpuj±cy:
+	\begin{bajty}
+    	\bp{-5}{-5}{$\IDsscOk$ (uint8)}{Identyfikator paczki ok}
+	    \bp{-4}{-1}{$0$ (uint32)}{D³ugo¶æ w³a¶ciwej zawarto¶ci paczki}
+    \end{bajty}
+	
+	
+	\subsubsection{A-SC-ERROR} \label{S-SC-ERROR}
+	Format paczki jest nastêpuj±cy:
+	\begin{bajty}
+    	\bp{-5}  {-5}{$\IDsscError$ (uint8)}{Identyfikator paczki error}
+	    \bp{-4}{-1}{$12+n$ (uint32)}{D³ugo¶æ w³a¶ciwej zawarto¶ci paczki}
+	    \bph
+	    \bp{0}{3} {uint32}{Kod b³êdu}
+	    \bp{4}{a} {varuint}{Numer jednostki wykonywania (np. StatementId lub
+	    Portalu lub NULL) ---  z któr± zwi±zany jest b³±d}
+	    \bp{$a+1$}{$n$}{sstring} {Opis b³êdu --- s³owny}
+	    \bp{$n+1$}{$n+4$} {uint32}{Numer linii w której b³±d wyst±pi³ (0 --- gdy nie dotyczy)}
+   	    \bp{$n+5$}{$n+8$}{uint32}{Numer znaku w linii w której b³±d wyst±pi³ (0 --- gdy
+   	    nie dotyczy)}
+    \end{bajty}
+
+	
+		
+	
+	\subsubsection{A-SC-BYE} \label{A-SC-BYE}		
+		Paczka zostaje wysy³ana, by poinformowaæ drug± stronê o zakoñczeniu
+		po³±czenia. Powinna zostaæ wys³ana, gdy w tym protokole jest napisane, ¿e
+		strona mo¿e zakoñczyæ po³±czenie. 
+		
+		Strona, która otrzymujê tê paczkê powinna zamkn±æ po³±czenie po jej
+		odczytaniu (bez wysy³ania zwrotnego A-SC-Bye). 
+		
+		Je¶li jest napisane, ¿e strona mo¿e/musi zerwaæ po³±czenie to ta paczka
+		nie mo¿e zostaæ wys³ana, tylko po³±czenie musi zostaæ zamkniête na poziomie
+		TCP/IP. 
+	
+		Format paczki jest nastêpuj±cy:
+	\begin{bajty}
+    	\bp{-5}{-5}{$\IDascBye$ (uint8)}{Identyfikator paczki bye}
+	    \bp{-4}{-1}{$0$ (uint32)}{D³ugo¶æ w³a¶ciwej zawarto¶ci paczki}
+	    \bph
+   	    \bp{0}{n}{reason (string)}{Powód zakoñczenia po³±czenia --- do celów
+   	    informacyjnych. Mo¿e byæ NULL.}
+    \end{bajty}
+
+\subsubsection{S-C-SETOPT} \label{S-C-SETOPT}
+		W protokole wstêpnym ta paczka s³u¿y do ustawienia opcji przez klienta, które
+		mog± byæ istotne w procesie stwierdzania, czy klient ma dostêp dla danego zasobu, czy
+		go niema. . 
+		
+		W praktyce polecenie to przesy³a parê dwóch stringów: klucz i warto¶æ. 
+		Zatem konstrukcja paczki jest nastêpuj±ca: 
+		\begin{bajty}
+    		\bp{$-5$}{$-5$}{$\IDscSetopt$ (uint8)}{Identyfikator paczki setopt}
+	    	\bp{$-4$}{$-1$}{$8$ (uint32)}{D³ugo¶æ w³a¶ciwej zawarto¶ci paczki}	    
+	    	\bph{}
+	    	\bp{$0$}{$n$}{key (sstring)}{Klucz}
+	    	\bp{$n+1$}{$m$}{value (string)}{Warto¶æ nadana kluczowi}
+	    \end{bajty}
+		
+		Z punktu widzenia \loxim{}'a sensownym siê wydaje wprowadzenie w protokole
+		wstêpnym nastêpuj±cych parametrów: 
+		\begin{description}
+			\item[local\_root] {Wskazuje, który obiekt stanowi root'a dla tego
+			po³±czenia, a zatem wszystkie ³±czenia (bindings) znajduj±ce siê w ¶rodowisku
+			pocz±tkowej	ewaluacji SBQL'a bêd± pochodzi³y z niego. Co¶ w stylu Unikowego polecenia
+			'chroot'.} 
+        \end{description}
+
+		W protokole w³a¶ciwym natomiast:
+		\begin{description}
+			\item[autocommit] {Dopuszczalne warto¶ci to 'true' i 'false'. Ustawia opcjê
+			autocommit.}
+        \end{description}
+
+		Dygresja: Wydaje siê sensownym zast±pienie w protokole w³a¶ciwym tego
+		polecenia poprzez czystego SBQL'a odwo³uj±cego siê do wirtualnych wpisów w
+		bazie danych. 
+		
+		Mo¿na sobie wyobraziæ nastêpuj±ce zapytanie SBQL: \$\$.session.autocommit:=true,
+		gdzie \$\$ jest wirtualnym korzeniem (co¶ na podobieñstwo Unix'owego katalogu
+		/proc)
+
+%	\subsubsection{A-C-QUIT} \label{A-C-QUIT}
+%		Paczka wysy³a klient, który chce roz³±czyæ siê z serwerem
+%		(np. zakoñczy³ swoj± pracê lub nie satysfakcjonuj± go mo¿liwo¶ci oferowane
+%		przez serwer). 
+%		
+%		Paczka sk³ada siê w praktyce tylko z nag³ówka.
+%			
+%		Zatem jego format jest nastêpuj±cy:
+%	\begin{bajty}
+%   	\bp{-2}{-2}{$\IDacQuit$ (uint8)}{Identyfikator paczki Quit}
+%	    \bp{-1}{-1}{$0$ (varuint)}{D³ugo¶æ w³a¶ciwej zawarto¶ci paczki}
+%    \end{bajty}%
+%	
+%	Serwer po otrzymaniu takiego paczki powinien zerwaæ po³±czenie (nie wysy³aj±c
+%	paczki A-SC-Bye)
+	
+	\newpage
+	
+	\section{Z³o¿one typy danych} \label{FormatyDanych}
+		\subsection{VOID}
+			Dane tego typu paczki nie istniej± (ich d³ugo¶æ wynosi 0). 		
+		\subsection{LINK}
+			Zawiera informacjê, ¿e warto¶æ ta jest opisana w innej paczce o zadanym ID. 
+			\begin{bajty}
+		    	\bp{0}  {a}{$valueId$ (varuint)}{Identyfikator paczki w której jest
+		    	w³a¶ciwa warto¶æ}
+		    \end{bajty}
+			Ten typ bêdzie u¿ywany przewa¿nie w innych (poni¿szych) z³o¿onych strukturach
+			w celu unikniêcia rekurencyjnego budowania ,,du¿ych pakietów''. 
+		\subsection{BINDING}
+			Jest to zwi±zanie pewnej warto¶ci poprzez konkretn± nazwê wewn±trz obiektu. 				
+			\begin{bajty}
+		    	\bp{$1$}  {$a$}{$bindingName$ (sstring)}{Nazwa z któr± wi±¿emy dan± warto¶æ}
+		    	\bp{$a+1$} {$b$}  {$type$ (varuint)}{Typ warto¶ci do którego jest binding}
+		    	\bp{$b+1$} {$c$}  {(format zale¿y od $type$)} {Stosowna warto¶æ (format zale¿ny
+		    	od typu)}
+		    \end{bajty}
+				
+			FEATURE: W nastêpnych wersjach mo¿na rozwa¿yæ kompresje powtarzaj±cych siê
+			bindingów (by nie przechowywaæ ich jako ''string'' ale jako s³ownik bindingów
+			i przesy³aæ tylko id binding'a) 
+			
+			Zatem propozycja alternatywnego formatu przesy³ania bindingów jest taka:
+			\begin{bajty}
+		    	\bp{$0$}  {$0$}{NULL (sstring)}{}
+		    	\bp{$1$}  {$a$}{$valueId$ (varuint)}{Identyfikator wcze¶niej wys³anego (w tej
+		    	grupie warto¶ci) bindingu}
+		    	\bp{$a+1$} {$b$}  {$type$ (varuint)}{Typ warto¶ci do którego jest binding}
+		    	\bp{$b+1$} {$c$}  {(format zale¿y od $type$)}{Stosowna warto¶æ (format zale¿ny od typu)}
+		    \end{bajty}
+			
+			Oba te formaty s± ze sob± zgodne. Je¶li dany string ma warto¶æ NULL, to
+			znaczy, ¿e mamy do czynienia z drugim formatem. 			
+			
+		\subsection{STRUCT, BAG, SEQUENCE}
+			Wszystkie te trzy formaty danych ''póki co'' maj± ten sam format.
+			
+			Przewidujemy dwie mo¿liwo¶ci zapisywania takich struktur --- jednorodn± 
+			i ró¿norodn±.  Celem wprowadzenia formatu jednorodnego jest unikniêcie
+			przesy³ania przy ka¿dym elemencie zbioru informacji o jego typie --- poprzez
+			podanie jednego globalnego typu dla wszystkich elementów. Formê jednorodn±
+			wyró¿nia nie null'owy ,,typ globalny''.
+			
+			Zatem format typu jednorodnego to:
+			\begin{bajty}
+		    	\bp{$0$}  {$a$}{count (varuint)}{liczba warto¶ci zawartych \bf{w tym pakiecie}}
+		    	\bp{$a+1$}  {$b$}{$globalType$ (varuint)}{Typ wszystkich elementów kolekcji}
+					
+		    	\bp{$b+1$} {$c_1$}  {(zale¿ny od ,,globalType'')}{Warto¶æ 1-wsza}
+		    	\bp{$c_1+1$} {$c_2$} {(zale¿ny od ,,globalType'')} {Warto¶æ 2-ga}
+		    	\bp{\ldots}{\ldots}{\ldots}{\ldots}
+		    	\bp{$c_{count}+1$} {$c_{count+1}$}{(zale¿ny od ,,globalType'')}   {Warto¶æ ostatnia}		    	
+		    \end{bajty}
+
+			Analogicznie format pakietu ró¿norodnego uzyskujemy poprzez przesuniêcie pole
+			''globalType'' do ka¿dej pojedynczej warto¶ci:
+			\begin{bajty}
+		    	\bp{$0$}  {$a$}{count (varuint)}{liczba warto¶ci zawartych \bf{w tym
+		    	pakiecie}} 		    	
+		    	\bp{$a+1$}  {$b$}{$NULL$ (varuint)}{Typ wszystkich elementów kolekcji}	   
+		    	\bp{$t_1$} {$c_1-1$} {$type_1$ (varuint)}  {Typ warto¶ci 1-wszej}
+		    	\bp{$c_1$} {$t_2-1$}  {(zale¿ny od ,,$type_1$'')}{Warto¶æ 1-wsza}
+				 \bp{$t_2$} {$c_2-1$} {$type_2$ (varuint)}  {Typ warto¶ci 2-giej}
+		    	\bp{$c_2$} {$t_3-1$}  {(zale¿ny od ,,$type_2$'')}{Warto¶æ 2-ga}				
+		    	\bp{\ldots}{\ldots}{\ldots}{\ldots}
+				\bp{$t_{count}+1$} {$c_{count}-1$} {$type_{count}$}  {Typ ostatniej warto¶ci}
+		    	\bp{$c_{count}$} {$c_{count+1}$} {(zale¿ny od ,,$type_{count}$'')}  {Warto¶æ ostatnia}		    	
+		    \end{bajty}			
+
+			Pole tego typu ten mo¿e byæ roz³o¿ony na wiele pakietów przesy³aj±cych
+			warto¶æ --- poprzez zaznaczenie flagi TO\_BE\_CONTINUED i przes³anie
+			identycznego nag³ówka warto¶ci dla wszystkich pakietów). 
+			
+					
+		\subsection{REFERENCE}
+			Jest to typ zawieraj±cy pewn± referencjê do innego miejsca w strukturze
+			danych przechowywanej w bazie danych. 
+			Jest on po prostu wewnêtrznym identyfikatorem bazy danych i nie powinien byæ
+			interpretowany przez program kliencki. 
+			
+			Wiêc format jest nastêpuj±cy:
+			\begin{bajty}
+		    	\bp{0}  {7}{$valueId$ (uint64)}{Wewnêtrzny identyfikator miejsca}
+		    \end{bajty}
+			
+		
+		\subsection{EXT\_REFERENCE}
+			Jest to typ ju¿ zarezerwowany, ale jeszcze nie wprowadzony. S³u¿y do, oprócz
+			trzymania wewnêtrznego identyfikatora w systemie \loxim{},
+			przechowywanie stempla czasowego --- ¶wiadcz±cego o czasie --- w którym podany
+			identyfikator by³ stworzony. Dziêki temu bêdzie mo¿liwe po stronie systemu
+			bazy danych powtórne wykorzystywanie identyfikatorów. 
+			
+			Zatem wstêpnie jego format ustalamy w nastêpuj±cy sposób:			
+			\begin{bajty}
+		    	\bp{0}  {7}{$valueId$ (uint64)}{Wewnêtrzny identyfikator miejsca}
+		    	\bp{8}{15}{$stamp$ (uint64)}{Stempel czasowy lub co¶ w tym stylu. Ale
+		    	implementacja klienta i tak nie musi tego interpretowaæ --- a nawet nie
+		    	powinna.}
+		    \end{bajty}
+				
+	
+	\newpage
+	
+
+
+\section{Bezpieczeñstwo}
+	Protokó³ sieciowy jest z pewno¶ci± najbardziej kusz±c± 
+	czê¶ci± systemu --- z punktu widzenia osoby chc±cej naruszyæ jego bezpieczeñstwo.
+	
+	\subsection{Ca³kowity brak zaufania}
+	Nale¿y zachowaæ ca³kowity brak zaufania w kwestiach poprawno¶ci przesy³anych
+	danych.
+	
+	Pod ¿adnym pozorem, serwer (ani ¿adna inna aplikacja odczytuj±ca dane) {\bf NIE
+	MO¯E ZAK£ADAÆ, ¯E DOSTARCZANE DANE S¡ POPRAWNE}. 
+	
+	D³ugo¶ci wszystkich buforów i 
+	zakresy warto¶ci wszystkich zmiennych mysz± byæ bardzo dok³adnie kontrolowane.
+	
+	Przy stwierdzeniu naruszenie zasad protoko³u przez któr±¶ stronê komunikacji,
+	po³±czenie powinno zostaæ natychmiast zerwane, a stosowny komunikat powinien
+	zostaæ zapisany do logów (serwer) lub udostêpniony u¿ytkownikowi systemu
+	(klient). 
+	
+	\subsection{Utrudnienia dla skanerów portów}
+	Zgodnie z opisem protoko³u wstêpnego system stara siê ukryæ, to ¿e jest
+	serwerem \loxim{} do czasu, a¿ klient dokona zgodnego z tym protoko³em powitania \patrz{W-C-HELLO}.
+	S³u¿y to utrudnieniu zdobycia informacji o dzia³aj±cych na atakowanym systemie
+	aplikacjach. Dziêki temu skaner portów musi oprócz otworzenia portu, dokonaæ
+	odpowiedniego zapytania, zanim zostanie poinformowany o opcjach i wersjach
+	protoko³u --- a zatem o potencjalnych miejscach, o których atakuj±cy mo¿e poszukiwaæ
+	informacji o lukach w zabezpieczeniach.
+	
+	\subsection{Synchroniczno¶æ/Asynchroniczno¶æ}
+	By zmniejszyæ dodatkowo pule potencjalnych zagro¿eñ, ustalamy, ¿e 
+	protokó³ wstêpny jest w pe³ni synchroniczny. Dopiero w protokole w³a¶ciwym
+	staj± siê dostêpne komunikaty przesy³ane przez serwer do klient w sposób
+	asynchroniczny (nie bêd±ce odpowiedzi± na ¿±danie klienta). 
+	
+	\subsection{Limity czasów}
+	Mo¿na wprowadziæ limit czasów na wykonanie ró¿nych operacji przez u¿ytkownika,
+    których celem utrudniæ ataki poprzez nawi±zywanie zbyt du¿ej ilo¶ci
+    po³±czeñ, które nawet nie zastaj± autoryzowane, lub które nazbyt d³ugo
+    pozostaj± nie u¿ywane. 
+    
+    \begin{description}
+		\item[authorization timeout] --- czas pomiêdzy nawi±zaniem po³±czenia, a
+		przeprowadzeniem skutecznego logowania. (opcja mo¿e zostaæ wy³±czona).
+		\item[authorization delay] --- czas jaki serwer odczeka po nieudanej próbie
+		autoryzacji, zanim poinformuje u¿ytkownika o pora¿ce. 
+		\item[idle time] --- czas, który je¶li up³ynie pomiêdzy ostatni± merytoryczn±
+		wymian± paczek (i kolejka zadañ dla danego po³±czenia po stronie serwera
+		jest pusta) to serwer mo¿e zerwaæ po³±czenie. (opcja mo¿e zostaæ wy³±czona).
+    \end{description}
+
+	\subsection{S(B)QL Injection}
+		Jednym z najczêstszych ataków na systemy zwi±zane z bazami danych jest atak
+		,,SQL injection''.
+		Polega on na takim podaniu parametrów dla zapytania, ¿e w wyniku dzia³ania
+		oprogramowanie to wygeneruje takie zapytanie, które odniesie inny skutek, ni¿
+		programista zamierza³. W wiêkszo¶ci wypadków --- poprzez ¼le wyescapowany tekst
+		- do zapytania dostaj± siê dodatkowe polecenia lub modyfikacje bie¿±cego
+		zapytania. 
+		
+		¯eby takie dzia³anie utrudniæ protokó³ wprowadza nastêpuj±ce rozwi±zania:
+		\begin{enumerate}
+          \item Tylko jedno polecenie ,,per paczkê'' jest dozwolone. Tzn. ¿e
+          je¿eli w pojedynczym pakiecie zostan± wys³ane dwa zapytania
+          (standardowo oddzielone ¶rednikiem) to nie zostanie wykonane z nich
+          ¿adne). 
+          \item Charakter polecenia: W pakiecie --- razem z zapytanemu jest
+          wysy³ana informacja, czy jest ono typu 'readonly', czy 'readwrite'. 
+          Zapytania readonly nie maj± prawa wprowadziæ modyfikacji do ¿adnych
+          obiektów, wiêc ,,wstrzykniête'' zapytanie nie dokona nam modyfikacji
+          bazy danych. 
+        \end{enumerate}
+        
+        Nadal potencjalnie niebezpieczne pozostan± operacjê zapisuj±ce dane w
+        bazie danych i podatne na sqlinjection, a tak¿e bêdzie istnia³a 
+        mo¿liwo¶æ pozyskania dodatkowych danych poprzez wp³yniêcie na spectrum
+        wyników zwróconych w zapytaniu.
+        
+        Nale¿y wspomnieæ w tym miejscu tak¿e to, ¿e protokó³ udostêpnia
+        mechanizmy parametryzacji zapytañ, co nie tylko pozwala unikn±æ
+        problemów zwi±zanych z wstrzykniêciem z³o¶liwego kodu, ale tak¿e
+        pozwala wspó³dzieliæ plany zapytañ przez wiele wywo³añ zapytania --- co 
+        pozytywnie wp³ywa na wydajno¶æ. 
+
+	\subsection{Metody autoryzacji}\label{metodyAutoryzacji}
+
+	\subsubsection{Trust (pe³ne zaufanie)} \label{authTrust}
+		Brak metody autoryzacji. W praktyce jej dostêpno¶æ powinna zupe³nie wy³±czona,
+		a jej istnieje s³u¿y tylko umo¿liwieniu zmiany has³a administratora po tym,
+		jak ten go zapomni (i to tylko dla po³±czeñ z lokalnego interfejsu sieciowego).
+		
+		Protokó³ autoryzacji metod± trust wygl±da nastêpuj±co:
+		\begin{enumerate}
+          \item Klient wysy³a paczkê \pac{W-C-PASSWORD} z nazw± u¿ytkownika tak±
+          jak± chce otrzymaæ po zalogowaniu i has³em ustawionym na NULL. 
+          \item Serwer sprawdza, czy taki u¿ytkownik istnieje i je¶li istnieje, 
+          to autoryzacja zostaje potwierdzona poprzez wys³anie do klienta
+          komunikatu \pac{W-S-AUTHORIZED}. Serwer przechodzi we w³a¶ciwy tryb
+          pracy. 
+          
+          Je¶li natomiast podany u¿ytkownik nie istnieje, to serwer odpowiada 
+          b³êdem \ERR{NoSuchUser}, po czym zrywa po³±czenie. 
+    
+        \end{enumerate}
+	\subsubsection{Autoryzacja has³em --- jak w MySQL}\label{authMySQL}
+	
+		Autoryzacja zaszyfrowanym has³em. Has³o jest tak¿e na serwerze przechowywane w
+		postaci zaszyfrowanej. 
+		
+		Protokó³ autoryzacji metod± MySQLPassword wygl±da nastêpuj±co:
+		\begin{enumerate}
+          \item Klient pobiera 160 bitów z pocz±tku przes³anego przez serwer w
+          komunikacie \pac{W-S-HELLO} zbioru losowych danych 'salt'. 
+          \item Klient pobiera nazwê u¿ytkownika i has³o. Wylicza nastêpuj±c± dan± 
+          $$SHA1(password) XOR (SHA1(salt.SHA1(SHA1(password))))$$. 
+  		
+  			UWAGA! Zak³adamy, ¿e funkcja SHA1 dla danego tekstu (zakodowanego jako
+  			UTF-8 \bigendian bez ¿adnego znaku koñca i znacznika d³ugo¶ci) zwraca 
+  			zbiór 160 bitów (czyli 20 bajtów) --- a nie tekst z warto¶ci± w hex'ach -
+  			które jako wynik zwraca wiele funkcji bibliotecznych. 
+
+		  \item Klient wysy³a paczkê \pac{W-C-LOGIN} z wybran± procedur±
+		  autentykacji. 
+          \item Klient wysy³a paczkê \pac{W-C-PASSWORD} z nazw± u¿ytkownika tak±
+          jak± chce otrzymaæ po zalogowaniu i has³em ustawionym na wy¿ej
+          wyliczony skrót has³a. 
+          \item Serwer sprawdza, czy taki u¿ytkownik istnieje i je¶li istnieje, 
+         to porównuje przes³ane has³o z samodzielnie wyliczonym skrótem. to
+         autoryzacja Je¶li wszystko siê zgadza --- to autoryzacja zostaje potwierdzona
+         poprzez wys³anie do klienta komunikatu \pac{W-S-AUTHORIZED}. Serwer przechodzi we w³a¶ciwy tryb
+          pracy. 
+          
+          Je¶li natomiast podany u¿ytkownik nie istnieje, to serwer odpowiada 
+          b³êdem \ERR{AccessDenied}, po czym zrywa po³±czenie. 
+    
+        \end{enumerate}
+	
+	\subsection{Limity}
+			Wydaje siê celowym wprowadzenie nastêpuj±cych limitów:
+			\begin{description}
+				\item[Maksymalna liczba u¿ytkowników (po³±czeñ)]
+				\item[Maksymalny rozmiar paczki przesy³anego w protokole]
+				\item[Maksymalny rozmiar schowka na parametry]
+            \end{description}
+
+\newpage
+
+%\section{Zestawienie sta³ych}
+
+\newpage
+\section{Etapy realizacji projektu}
+\subsection{Faza 1}
+	\begin{itemize}
+      \item Zaimplementowanie transportu wszystkich opisanych w tym dokumencie paczek. 
+      \item Zaimplementowanie bibliotek umo¿liwiaj±cych nawi±zywanie po³±czeñ. 
+    \end{itemize}
+	
+\subsection{Fazy nastêpne}	
+	\begin{itemize}
+      \item Wprowadzenie warstwy kompresji (ZLIB)
+      \item Wprowadzenie warstwy komunikacji szyfrowanej (SSL)
+      \item Przesy³anie informacji o typach na potrzeby (pó³-)mocnej
+      kontroli typów. 
+      \item Autoryzacja za pomoc± mechanizmu Kerberos.
+      \item Autoryzacja za pomoc± innych mechanizmów uwierzytelniania.
+    \end{itemize}

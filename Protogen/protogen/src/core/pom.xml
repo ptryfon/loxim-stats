@@ -1,0 +1,111 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <parent>
+		<artifactId>protogen</artifactId>
+		<groupId>pl.edu.mimuw.loxim.protogen</groupId>
+		<version>1.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>pl.edu.mimuw.loxim.protogen.core</groupId>
+    <artifactId>protogen-core</artifactId>
+    <packaging>jar</packaging>
+    <version>1.0-SNAPSHOT</version>
+    <name>Protogen - core</name>
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.4</version>
+            <scope>test</scope>
+        </dependency>
+	
+	<dependency>
+	    <groupId>classworlds</groupId>
+	    <artifactId>classworlds</artifactId>
+	    <version>1.1</version>
+	</dependency> 
+	
+        <dependency>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+            <version>2.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.xml.bind</groupId>
+            <artifactId>jaxb-impl</artifactId>
+            <version>2.1.6</version>
+        </dependency>
+		<dependency>
+			<groupId>org.codehaus.plexus</groupId>
+        	<version>1.0-alpha-33</version>
+  			<artifactId>plexus-container-default</artifactId>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.codehaus.plexus</groupId>
+        	<version>1.0-alpha-33</version>
+  			<artifactId>plexus-component-api</artifactId>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<artifactId>protogen-api</artifactId>
+			<groupId>pl.edu.mimuw.loxim.protogen.api</groupId>
+			<version>1.0-SNAPSHOT</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<artifactId>protogen-cpp</artifactId>
+			<groupId>pl.edu.mimuw.loxim.protogen.lang.cpp</groupId>
+			<version>1.0-SNAPSHOT</version>
+			<!-- optional>true</optional-->
+		</dependency>
+		<dependency>
+			<artifactId>protogen-java</artifactId>
+			<groupId>pl.edu.mimuw.loxim.protogen.lang.java</groupId>
+			<version>1.0-SNAPSHOT</version>
+			<!-- optional>true</optional-->
+		</dependency>
+		
+		<dependency>
+		    <groupId>org.codehaus.plexus</groupId>
+  			<artifactId>plexus-archiver</artifactId>
+  			<version>1.0-alpha-9</version>
+		</dependency>
+		
+		<dependency>
+		    <groupId>org.codehaus.plexus</groupId>
+    		    <artifactId>plexus-utils</artifactId>
+		</dependency>
+		
+		
+    </dependencies>
+    <repositories>
+        <repository>
+            <id>java.net</id>
+            <name>java.net Maven Repository</name>
+            <url>https://maven-repository.dev.java.net/nonav/repository</url>
+            <layout>legacy</layout>
+        </repository>
+    </repositories>
+
+    <build>
+        <plugins>
+            <plugin>
+		        <groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+	    	    		<version>1.1</version>
+				<configuration>
+					 <mainClass>pl.edu.mimuw.loxim.protogen.ProtoGen</mainClass>
+					 <arguments>
+					 	<argument>./src/test/resources/loxim2.xml</argument>
+					 	<argument>target/${lang}-result</argument>
+					 	<argument>${lang}</argument>
+					 	<argument>./src/test/resources/over/${lang}</argument>
+					 </arguments>
+				</configuration>
+		    </plugin>
+			
+        </plugins>
+    </build>
+
+</project>

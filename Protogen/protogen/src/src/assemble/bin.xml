@@ -1,0 +1,36 @@
+<assembly>
+  <id>bin</id>
+  <formats>
+    <format>dir</format>
+    <format>tar.gz</format>
+    <format>zip</format>
+  </formats>
+  <includeBaseDirectory>false</includeBaseDirectory>
+  <moduleSets>
+    <moduleSet>
+      <!--includes>
+        <include>org.test:child1</include>
+      </includes-->
+      <binaries>
+        <!--outputDirectory></outputDirectory-->
+        <unpack>false</unpack>
+      </binaries>
+    </moduleSet>
+  </moduleSets>
+  <files>
+    <file>
+      <source>src/resources/protoGen.bat</source>
+      <fileMode>755</fileMode>
+      <lineEnding>crlf</lineEnding>
+    </file>
+    <file>
+      <source>src/resources/protoGen.sh</source>
+      <fileMode>755</fileMode>
+    </file>
+    <file>
+      <source>src/resources/classworlds.conf</source>
+      <fileMode>644</fileMode>
+    </file>
+  </files>
+
+</assembly>

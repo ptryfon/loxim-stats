@@ -1,0 +1,551 @@
+%Tytu³y dodatków
+\newcommand{\dokoldtcpproto}{Analiza zastanego protoko³u sieciowego w bazie danych \loxim}
+\newcommand{\doknewtcpproto}{Protokó³ komunikacyjny dla bazy danych
+\loxim{} - wersja 2.0}
+\newcommand{\dokprotogen}{ProtoGen~1.0 - dokumentacja generatora protoko³ów
+sieciowych}
+\newcommand{\doksbqlvialdap}{Analiza mo¿liwo¶ci wykorzystania protoko³u LDAP dla
+SBQL DB}
+
+\maketitle
+
+%tu idzie streszczenie na strone poczatkowa
+\begin{abstract}
+Poni¿sza praca opisuje projekt polegaj±cy na wymianie protoko³u sieciowego w
+semistrukturalnej bazie danych \loxim. Zawiera dokumentacjê poszczególnych
+kroków tego zagadnienia: analizê i wskazanie wad architektonicznych i
+implementacyjnych w zastanym protokole, projekt nowego rozwi±zania, a tak¿e
+implementacjê generatora kodów ¼ród³owych protoko³ów sieciowych pewnej
+klasy na podstawie danego pliku XML dla najbardziej popularnych jêzyków
+programowania - C++ i Javy.
+
+% W pracy w szczególno¶ci omówiono zagadnienie wydajnej wymiany danych o
+% z³o¿onej strukturze (drzewa ze wska¼nikami) pomiêdzy systemami informatycznymi z
+% uwzglêdnieniem problemów wynik³ych z ró¿nic zarówno technicznych (architektura procesora) jak i
+% logicznych (ró¿ne jêzyki programowania).
+\end{abstract}
+
+\tableofcontents
+%\listoffigures
+%\listoftables
+
+\chapter{Wprowadzenie}
+\addcontentsline{toc}{chapter}{Wprowadzenie}
+
+Praca to opisuje przebieg projektu polegaj±cego na wyspecyfikowaniu i
+zaimplementowaniu protoko³u sieciowego dla bazy danych \loxim, która to baza
+powstaje pod kierownictwem dr hab. Krzysztofa Stencla na Wydziale
+Matematyki, Informatyki i Mechaniki Uniwersytetu Warszawskiego. 
+
+Dokument ten omawia zagadnienie protoko³ów sieciowych w zakresie warstwy
+górnej modelu OSI (Open System Interconnection) \cite{OSI}, czyli:
+	\begin{itemize}
+      \item 5. Warstwy sesji
+      \item 6. Warstwy prezentacji
+      \item 7.	Warstwy aplikacji 
+    \end{itemize}	 
+Zakres ten jest to¿samy z zakresem ,,Warstwy aplikacji'' w modelu DoD
+(Department of Defense) \cite{DoD}.
+
+Praca ta - jako ca³o¶æ -  toczy³a siê do¶æ d³ugo. Pierwsze jej elementy
+powsta³y na jesieni roku 2006, ale mimo wszystko uda³o siê utrzymaæ zgodno¶æ
+finalnego dzie³a z aktualnymi potrzebami, a nawet zaimplementowany protokó³
+przewiduje obs³ugê wielu funkcjonalno¶ci i zastosowañ nieobecnych jeszcze w
+systemie \loxim{} w momencie oddania pracy. W sekcji \ref{cel} znajduj± siê informacje o zakresie zrealizowanego
+projektu.
+
+W trakcie przebiegu tej pracy powsta³o kilka dokumentów, które
+dobrze spe³niaj± swoj± rolê jako dzie³a oddzielne - skierowane do 
+czytelnika zainteresowanego szczególnymi aspektami tej pracy i z tego wzglêdu 
+zamieszczam je jako dodatki do tego dokumentu. Opis tych elementów
+sk³adowych znajduje siê w sekcji \ref{elementy_skladowe}.
+
+Bezpo¶rednio w tym dokumencie chcê siê skupiæ na kwestii przebiegu tej pracy,
+uzasadnieniu podjêtych istotnych decyzji projektowych i rozwa¿eniu trudno¶ci z
+którymi siê spotka³em.  Nastêpne rozdzia³y po¶wiêcam zatem rozwa¿aniom
+dotycz±cym poszczególnych faz projektu: 
+\begin{description}
+	\item[Analizie zastanego protoko³u w bazie \loxim] - rozdzia³: \ref{analiza}
+	\item[Projekt nowego protoko³u dla bazy \loxim] - rozdzia³: \ref{projekt}
+	\item[Implementacji nowego protoko³u dla bazy \loxim] - rozdzia³:
+	\ref{implementacja}
+	\item[Implementacja generatora protoko³ów dla bazy \loxim] - rozdzia³:
+	\ref{generator}
+	\item[Przeprowadzone testy] - rozdzia³: \ref{testy}
+\end{description}
+
+Dokument ten zosta³ wiêc zorganizowany niemal chronologicznie, a zarazem
+zgodnie z przebiegiem prac. W niektórych tylko miejscach pozwoli³em sobie zawrzeæ wnioski,
+które wynik³y z mojego pó¼niejszego do¶wiadczenia, ale które tematycznie
+powinny zostaæ uwzglêdnione na danym etapie realizacji projektu. 
+
+Ca³o¶æ tre¶ci w³a¶ciwej zamyka podsumowanie w rozdziale: \ref{podsumowanie}.
+
+W dodatkach - oprócz omówionych w nastêpnym rozdziale dokumentów - znajduje siê
+spis tre¶ci za³±czonej p³yty CD (dodatek \ref{spis-tresci-cd}).
+
+\section{Elementy sk³adowe pracy magisterskiej} \label{elementy_skladowe}
+
+Oprócz poni¿szego dokumentu w sk³ad pracy zosta³y w³±czone nastêpuj±ce
+dokumenty:
+\subsection{,,\dokoldtcpproto''} 
+	Dodatek \ref{dokoldtcpproto}
+
+	Dokument opisuje protokó³ sieciowy jaki zasta³em w bazie danych
+	\loxim{} w pa¼dzierniku 2006 roku. Dokument by³ pisany w kontek¶cie rozpoznania
+	protoko³u na potrzeby stworzenia sterownika JDBC jego u¿ywaj±cego ---
+	co by³o moim pierwotnym zamierzeniem. Krytyka rozwi±zania zawarta w tym 
+	dokumencie sta³a siê przyczyn± podjêcia decyzji o wymianie protoko³u w bazie
+	\loxim{} na nowy.
+\subsection{,,\doknewtcpproto''}
+	Dodatek \ref{doknewtcpproto}
+
+	Dokument ten realizuje dwa istotne cele: 
+	\begin{itemize}
+      \item Stanowi³ swojego rodzaju ,,zamówienie'', czyli przedstawia³
+      kontrakt jaki protokó³ bêdzie realizowa³, co u³atwia³o rozmowy z
+      autorami innych modu³ów systemu \loxim{} oraz kierownikiem projektu i
+      umo¿liwia³o wykrycie braków funkcjonalnych b±d¼ zagro¿eñ. 
+      \item Aktualnie stanowi on dokumentacjê obecnego protoko³u w bazie danych
+      \loxim. Jest dokumentem, który ka¿da osoba chc±ca napisaæ narzêdzie bezpo¶rednio 
+      komunikuj±ce siê z systemem \loxim{} musi przeczytaæ i dokument ten
+      powinien odpowiedzieæ na wszelkie pytania dotycz±ce tego interfejsu. 
+      \end{itemize}
+\subsection{,,\doksbqlvialdap''}
+	Dodatek \ref{doksbqlvialdap}
+
+	Dokument ten rozwa¿a kwestie mo¿liwo¶ci wykorzystania protoko³u LDAP do
+	komunikacji z baz± danych opart± o jêzyk SBQL. Zainspirowany zosta³ pozornie
+	podobnym modelem danych i wykazuje powa¿ne trudno¶ci (mimo licznych
+	podobieñstw) w integracji obu rozwi±zañ. 
+\subsection{,,\dokprotogen''}
+	Dodatek \ref{dokprotogen}
+	
+	Tekst ten stanowi pe³n± dokumentacjê narzêdzia, które umo¿liwia wygenerowanie
+	na podstawie zadanego deskryptora protoko³u w formacie XML, jego implementacjê 
+	w wybranym jêzyku programowania. Dokument omawia zarówno sposób u¿ycia tego
+	narzêdzia jak i porusza kwestie jego wewnêtrznej architektury oraz mo¿liwo¶ci
+	dalszej rozbudowy. 
+\newpage
+\section{Cel} \label{cel}
+
+Pierwotnym zagadnieniem, którym chcia³em siê zaj±æ w ramach pracy
+magisterskiej, by³o zbudowanie odpowiednika ORM (Object-Relational mapping) dla
+bazy \loxim{} w Javie. Okaza³o siê jednak, ¿e baza danych \loxim{} nie posiada
+sterownika JDBC, który by umo¿liwia³ zastosowanie standardowych dla Javy metod
+³±czno¶ci z bazami danych. Dlatego zainteresowa³em siê stworzeniem sterownika
+JDBC dla \loxim'a. Niestety przeprowadzona analiza zastanego protoko³u
+\patrz{analiza} wykaza³a, ¿e obecny protokó³ jest ca³kowicie nieu¿yteczny. W
+zwi±zku z tym, celem tej pracy sta³a siê wymiana protoko³u w systemie \loxim{}
+na istotnie lepszy. Rozumiemy przez to: 
+ 
+	\begin{itemize}
+      \item Uzyskanie stabilnego, bezpiecznego protoko³u- umo¿liwiaj±cego pe³ne
+      wykorzystanie obecnych i potencjalnie przysz³ych mo¿liwo¶ci systemu \loxim
+      - autentykacji, przesy³ania zapytañ i uzyskiwania z³o¿onych odpowiedzi,
+      przerywania zapytañ w trakcie ich wykonania,a tak¿e konfiguracji sesji z
+      baz± danych. 
+     
+      \item Uzyskanie protoko³u potrafi±cego pracowaæ pomiêdzy maszynami o
+      ró¿nych architekturach sprzêtowych i programowych.
+     
+      \item Uzyskanie efektywnego (pod wzglêdem wykorzystania sieci i CPU) 
+      i ³atwo rozszerzalnego protoko³u.
+      
+      \item Modu³y protoko³u powinny stanowiæ wygodny i spójny interfejs -
+      mo¿liwie zgodny z dobr± praktyk± programowania w jêzyku dla którego
+      zosta³y przygotowane. W szczególno¶ci w jêzykach ze statyczn± kontrol±
+      typów pakiety danych powinny jej podlegaæ.  
+      
+      \item Przygotowanie do implementacji sterownika JDBC w oparciu o ten
+      protokó³.
+    \end{itemize}
+    
+    W trakcie prac nad systemem sta³o siê oczywiste jeszcze jedno wymaganie - 
+    potrzebna jest implementacja tego protoko³u w wielu jêzykach programowania:
+    \begin{description}
+		\item[C++] - ze wzglêdu na to, ¿e \loxim{} jest napisany w jêzyku C++
+		\item[Java]- ze wzglêdu na to, ¿e sterownik JDBC musi zostaæ napisany w Javie
+		\item[.NET (C\#)] - ze wzglêdu na to, ¿e w maju 2007 powsta³a istotna czê¶æ
+		serwera \loxim{} zaimplementowana w jêzyku C\#
+		\item[itd.] 
+    \end{description}
+    Realizacja wsparcia dla wielu jêzyków sta³a siê przyczyn± stworzenia
+    generatora protoko³ów \patrz{generator}.
+    
+
+\chapter{Analiza zastanego protoko³u} \label{analiza}
+W pa¼dzierniku 2006 roku - kiedy przystêpowa³em do pracy z systemem \loxim{} -
+nie istnia³a ¿adna dokumentacja, ani opis u¿ywanego przez ten system protoko³u
+sieciowego. By³y wiêc konieczno¶ci± - na podstawie kodu ¼ród³owego -
+przeprowadzenie audytu tego jedynego (pomijaj±c standardowe wyj¶cie) interfejsu
+komunikacyjnego bazy danych ze ¶wiatem zewnêtrznym. 
+
+Opis ten zosta³ zawarty w dokumencie ,,\dokoldtcpproto'' (dodatek
+\ref{dokoldtcpproto}).
+
+\section{Wnioski z przeprowadzonej analizy}
+Przytoczê w tym dokumencie wnioski, które wyp³ynê³y z przeprowadzonego
+przeze mnie audytu:
+\input{../OldProtoDocs/wady}
+
+W wyniku tej krytyki zosta³a podjêta decyzja o zaprojektowaniu i wykonaniu
+nowego - pozbawionego powy¿szych wad - protoko³u komunikacyjnego dla
+\loxim{}'a.
+
+\chapter{Projekt nowego protoko³u}	\label{projekt}
+
+\section{Wybór klasy protoko³u}
+Kluczow± decyzj± przy projektowaniu nowego protoko³u komunikacyjnego, by³o
+podjêcie decyzji o jego typie. Poni¿ej spróbujemy przejrzeæ dostêpne
+mo¿liwo¶ci i rozwa¿yæ ich wady i zalety:
+
+\subsection{Klasyczne protoko³y tekstowe}\label{proto_txt} 
+Przyk³adami klasycznych protoko³ów tekstowych s± protoko³y: HTTP, FTP,
+NNTP, POP3, SMTP.
+S± to protoko³y w których wszystkie polecenia  i odpowiedzi
+s± zapisywane w postaci tekstowych komend. S± one charakterystyczne dla wczesnego etapu rozwoju komunikacji w sieciach komputerowych, g³ównie ze wzglêdu na poni¿sze zalety:
+\begin{itemize}
+  \item Mo¿liwo¶æ bezpo¶redniej komunikacji cz³owieka z urz±dzeniem przy pomocy
+  	     tekstowego protoko³u (wystarczy narzêdzie typu ,,netcat'')
+  \item Brak problemów z wymian± danych pomiêdzy urz±dzeniami ró¿nego typu i o
+  ró¿nych architekturach (big/little endian, d³ugo¶æ
+  s³owa procesora). Przewa¿nie wymagane jest jedynie aby oba urz±dzenia
+  honorowa³y standard ASCII w zakresie znaków o kodach $0-127$).
+  \item Mo¿liwo¶æ bezpo¶redniego logowania komunikacji na drukarkê. 
+  \item Du¿a ³atwo¶æ szukania b³êdów. 
+\end{itemize}
+
+Niestety posiadaj± one tak¿e wiele wad:
+\begin{itemize}
+  \item Wysoki narzut na transmisjê danych (w kategoriach rozmiaru przes³anych
+  danych). Np. wys³anie liczby 17-to cyfrowej wymaga w protokole binarnym 8
+  bajtów, a w protokole tekstowym 17 bajtów. 
+  \item Konieczno¶æ parsowania i budowania komunikatów tekstowych (ma³o wygodne dla programisty oraz wprowadzaj±ce istotny narzut
+  obliczeniowy).
+  \item Trudno¶æ przesy³ania danych o z³o¿onej strukturze. 
+\end{itemize}
+
+\subsection{Protoko³y oparte na XML} \label{proto_xml}
+Przyk³adem takiego protoko³u jest protokó³ XMPP (Extensible Messaging and
+Presence Protocol) wykorzystywane przez komunikatory internetowe
+(jabber, gtalk).  
+
+Protoko³y tego typu posiadaj± wiêkszo¶æ zalet protoko³ów tekstowych
+\patrz{proto_txt}. Jedynie czytelno¶æ i mo¿liwo¶æ bezpo¶redniej obs³ugi protoko³u przez cz³owieka uleg³a
+	obni¿eniu. Ponadto do zalet nale¿y doliczyæ:
+	\begin{itemize}
+      \item mnogo¶æ narzêdzi umo¿liwiaj±cych np. automatyczn± kontrolê
+      poprawno¶ci komunikatów (XML Schema) lub przekszta³canie komunikatów z
+      jednej postaci na drug± (XSLT). 
+      \item obecno¶æ wielu ,,standardów'' wymiany tre¶ci okre¶lonego typu
+      \item obs³ugê wielu kodowañ znaków.
+      \item mo¿liwo¶æ wymiany danych o z³o¿onej strukturze, 
+    \end{itemize}
+    
+   W wadach istotne pozostaj± dwie charakterystyczne dla protoko³ów tekstowych:
+    \begin{itemize}
+  		\item Wysoki narzut (w kategoriach wykorzystania sieci) na transmisjê
+  	danych.
+  		\item Konieczno¶æ parsowania komunikatów i narzut obliczeniowy z tym
+  		zwi±zany (istotnie mniejszy ni¿ w przypadku klasycznej komunikacji
+  		tekstowej). 
+    \end{itemize} 
+    
+    \subsubsection{Protoko³y XML oparte na RPC (Remote Procedure Call) - np.
+    XML-RPC, SOAP, Web-Services} 
+    
+    Nale¿y w szczególny sposób wyró¿niæ zestandaryzowan± klas± protoko³ów
+    sieciowych zwi±zanych ze zdalnym wywo³ywaniem procedur i stanowi±cych
+    obecnie powszechnie u¿ywany standard w komunikacji sieciowej pomiêdzy
+    ró¿nymi systemami tzw. Web-Services.
+    
+    Wszystkie one wyró¿niaj± w komunikacji stronê zadaj±c± zapytanie (request)
+    i stronê udzielaj±c± odpowiedzi (response). Strona udzielaj±ca odpowiedzi
+    udostêpnia metodê (zawieraj±c± potencjalnie z³o¿one - obiektowe -
+    parametry), która poprzez odpowiednio sformatowane zapytanie jest
+    uruchamiana. Warto¶æ wynikowa wykonanej metody jest kodowana w postaci
+    XML'a i zwracana do strony pytaj±cej.
+    
+    Zalet± tych protoko³ów jest bez w±tpienia:
+    \begin{itemize}
+    	 \item jeszcze wiêksze zestandaryzowanie (WSDL) 
+    	 \item du¿a ilo¶æ narzêdzi wspieraj±cych u¿ytkowanie tych protoko³ów
+    	 \item Istnienie generatorów kodu, które na podstawie opisu takiego
+    	 protoko³u (WSDL) generuj± dla wielu jêzyków programowania kod potrzebny
+    	 do komunikacji. 
+    	 \item U¿ywanie portu 80 i warstwy transportu opartej o HTTP, co umo¿liwia
+    	 unikniêcie problemów zwi±zanych z dzia³aniem zapór sieciowych i 
+    	 szczególnych polityk bezpieczeñstwa.    
+    \end{itemize}
+    
+    Niestety wprowadzaj± one te¿ pewne istotne wady:
+    \begin{itemize}
+      \item S± bezpo³±czeniowe - wymagaj± nawi±zania po³±czenia i
+      przeprowadzenia procesu autoryzacji przy ka¿dym wywo³aniu - co ma bardzo
+      negatywny wp³yw na wydajno¶æ i bezpieczeñstwo, a tak¿e mo¿e spowodowaæ
+      ograniczenie komunikacji przez urz±dzenia sieciowe (zbyt wiele ¿±dañ
+      w zadanym okresie czasu). 
+      \item Wyró¿niaj± stronê zadaj±c± pytanie i na ni± odpowiadaj±c±.
+      Komunikacja dwustronna wymaga tego, aby obie strony umia³y
+      zainicjalizowaæ po³±czenie - co w przypadku sieci opartych np. o
+      maskaradê IP mo¿e byæ trudne lub nawet niemo¿liwe. 
+    \end{itemize}
+    
+\subsection{Protoko³y binarne oparte na RPC}
+	Istnieje wiele rozwi±zañ zdalnego wywo³ywania procedur pomiêdzy komponentami w
+sieciach komputerowych wykorzystuj±cych komunikacjê binarn±. Mechanizmem, który
+powinien umo¿liwiæ stworzenie takiego rozwi±zania jest standard CORBA (Common
+Object Request Broker Architecture). Teoretycznie powinien on umo¿liwiæ wygenerowanie
+na podstawie zadanego IDL'a (Interface Description Language) implementacji
+protoko³u dla wielu ró¿nych jêzyków programowania. Niestety rzeczywisto¶æ
+pokazuje, ¿e nie istnieje dobra - niekomercyjna - implementacja standardu
+CORBA (http://www.puder.org/corba/matrix/).
+
+Pozosta³e protoko³y - takie jak RMI (Remote Method Invocation) oraz AMF (Action
+Message Format) s± zwi±zane z konkretnymi jêzykami programowania (w tym
+przypadku odpowiednio Java i ActionScript). 
+
+\subsection{Protoko³y oparte na ASN.1 (Abstract Syntax Notation One)}\label{ASN1}
+
+ASN.1 jest standardem s³u¿±cym do opisu metod kodowania, dekodowania i
+przesy³ania danych. Jest to obecnie standard ISO/IEC 8824. Pozwala on
+zdefiniowaæ za pomoc± sformalizowanego opisu sk³adnie pól w
+komunikatach, a nastêpnie wygenerowaæ kod seralizuj±cy i deserializuj±cy te
+pakiety. 
+
+Standard ASN.1 nie definiuje bezpo¶rednio binarnego formatu przesy³anych
+komunikatów. Mog± byæ one serializowalne wed³ug jednej z zaproponowanych
+zasad (encoding rules). W szczególno¶ci istniej± trzy najpopularniejsze
+mo¿liwo¶ci w tej kwestii: 
+\begin{description}
+\item[BER] - (Basic encoding rules) - zapamiêtuje ka¿de pole w postaci
+binarnej jako trójkê: znacznik, d³ugo¶æ, warto¶æ.
+\item[PER] - (Packed encoding rules) - podobnie jak BER, ale metoda bardzo
+zwraca uwagê na efektywno¶æ pod wzglêdem rozmiaru pakietów.  
+\item[XER] (XML encoding rules) - komunikaty s± przesy³ane w postaci paczek
+XML. 
+\end{description} 
+
+Mo¿na ten standard porównaæ do zaprezentowanego w ramach tej pracy
+generatora protoko³ów. 
+
+\subsubsection{Protokó³ LDAP (Lightweight Directory Access Protocol)}
+
+Szczególnym przypadkiem protoko³u opartego na standardzie ASN.1 jest protokó³
+LDAP (Lightweight Directory Access Protocol) s³u¿±cy do wymiany danych z us³ugami
+katalogowym (Directory Services). Ze wzglêdu na podobne zastosowanie
+(uzyskiwanie dostêpu do bazy danych o hierarchicznej strukturze) wyda³a mi siê 
+warta g³êbszej analizy kwestia rozwa¿enia mo¿liwo¶ci wykorzystania tego
+protoko³u (z ewentualnymi rozszerzeniami) - jako protoko³u do bazy danych \loxim. 
+
+Problematykê tê szczegó³owo omawia za³±czony do tej pracy dokument mojego
+autorstwa pt.: ,,\doksbqlvialdap'' (patrz dodatek \ref{doksbqlvialdap}).
+
+\subsection{Protoko³y dedykowane}
+S± to protoko³y binarne specjalnie zaprojektowane do konkretnych rozwi±zañ. 
+
+\subsection{Wnioski}
+	Z protoko³ów tekstowych najlepiej nadawa³by siê do omawianego zastosowania 
+	protokó³ oparty na XML, ale nie bêd±cy us³ug± ,,Web-Service'' (zdyskwalifikowany
+	ze wzglêdu na bezpo³±czeniowo¶æ). 
+	
+	Jednak wysoki narzut zwi±zany zarówno z transmisj± jak i parsowaniem
+	danych przewa¿y³ decyzjê na rzecz protoko³ów binarnych (wyzwaniem postawionym
+	 bazie danych \loxim{} jest udowodnienie, ¿e
+	obiektowe/semistrukturalne bazy danych mog± konkurowaæ pod wzglêdem wydajno¶ci
+	z bazami relacyjnymi, wiêc nie chcieli¶my wprowadziæ w±skiego gard³a na
+	poziomie tego komponentu systemu).
+	
+	Dysponuj±c obecn± wiedz±, dla systemu LoXiM zaleci³bym z pewno¶ci± protokó³
+	zbudowany w oparciu o standard ASN.1 \patrz{ASN1}. Pozwoli³oby to pozostaæ 
+	w pe³ni zgodnym ze standardami ISO, a tak¿e unikn±æ istotnej czê¶ci
+	implementacji - pos³uguj±c siê którym¶ z generatorów kodu dla standardu ASN.1.
+	
+	Protokó³ ten zosta³by zapewne oparty na kanwie protoko³u LDAP (analogiczna
+	konstrukcja paczek, zgodna autoryzacja), ale do przesy³ania zapytañ i odczytywania
+	ich wyników zaproponowa³bym w³asne paczki - semantycznie zgodne z tymi
+	zaproponowanymi w sekcjach \ref{proto_obsluga_zapytan} i
+	\ref{proto_obsluga_wartosci}.
+
+	Podejmuj±c tê decyzjê projektow± w grudniu 2006 roku, odrzuci³em
+	protokó³ tekstowy ze wzglêdu na zbyt nisk± wydajno¶æ, a tak¿e u¿ycie CORBY ze
+	wzglêdu na niesatysfakcjonuj±c± jako¶æ bezp³atnych produktów i w ten sposób
+	zdecydowa³em siê zaprojektowaæ protokó³ dedykowany. 
+
+
+\section{Projekt dedykowanego protoko³u}
+
+	Projekt, a tym samym dokumentacja dedykowanego protoko³u sieciowego dla bazy
+	danych \loxim{} znajduje siê w za³±czniku do tej pracy zatytu³owanym: ,,\doknewtcpproto''.
+	Dokument ten szczegó³owo omawia kwestie takie jak:
+	\begin{itemize}
+      \item Format binarny poszczególnych pakietów
+      \item Dozwolone sekwencje wymiany pakietów
+      \item Metody autoryzacji
+      \item Kwestie bezpieczeñstwa w sieci
+      \item Podzia³ protoko³u na warstwy logiczne
+      \item Problemy zwi±zane z danymi regionalnymi, takimi jak strefy czasowe,
+      metody porównywanie napisów.
+    \end{itemize}
+	
+\chapter{Implementacja protoko³u} \label{implementacja}
+	Po przedstawieniu ,,Projektu protoko³u sieciowego dla bazy danych \loxim'' i
+omówieniu go na seminarium - zosta³y wprowadzone do niego niewielkie zmiany i
+w tej postaci zosta³ skierowany do realizacji. 
+
+	Jako, ¿e system \loxim{} jest napisany w jêzyku C++, kluczowa by³a implementacja
+protoko³u w tym w³a¶nie jêzyku programowania. Protokó³ uda³o siê
+zaimplementowaæ dokonuj±c tylko kosmetycznych zmian w stosunku do pierwotnego
+projektu. 
+
+	Istotn± czê¶ci± tej implementacji by³o stworzenie wygodnego - obiektowego -
+API do obs³ugi strumieni i gniazd sieciowych. Implementuj±c je wzorowa³em siê
+w istotnym stopniu na tym udostêpnianym przez klasy w jêzyku Java takie jak:
+InputStream, OutputStream, Socket, ClientSocket i ServerSocket.
+
+Opis tej implementacji protoko³u mo¿na znale¼æ w rozdziale: 3.2 ,,Wygenerowany
+kod dla jêzyka C++'' dokumentu ,,\dokprotogen'' (dodatek \ref{dokprotogen}), ze
+wzglêdu na to, ¿e ten kod zosta³ wykorzystany jako baza dla generowanego kodu do jêzyka C++. 
+
+\chapter{Generator implementacji protoko³ów}\label{generator}
+
+\section{Geneza}
+Implementuj±c protokó³ w C++, stwierdzi³em, ¿e ponad 70\% czasu zajê³o mi 
+do¶æ mechaniczne tworzenie kodu poszczególnych pakietów, a pozosta³e 30\%
+czasu powstawa³ kod, który by³ niemal niezale¿ny od protoko³u z którym mia³em
+do czynienia.
+
+Ponadto - w maju 2007 roku - gdy skoñczy³em implementacje protoko³u w jêzyku
+C++ - pojawi³ siê zacz±tek implementacji serwera \loxim{} w jêzyku C\# na
+platformie Microsoft .NET. Widz±c wiêc potrzebê stworzenia implementacji tego
+protoko³u w dwóch kolejnych jêzykach programowania (C\# i Java na potrzeby
+sterownika JDBC), a tak¿e konieczno¶æ utrzymania tych 3 implementacji spójnymi
+przy wszelkich modyfikacjach, doszed³em do wniosku, ¿e nieodzowne wydaje siê  
+stworzenie generatora implementacji protoko³u wedle zadanego jego opisu. 
+
+\section{Opis}
+W dokumencie ,,\dokprotogen'' (dodatek \ref{dokprotogen}) 
+znajduje siê dokumentacja zarówno u¿ytkowa jak i programistyczna tego
+narzêdzia. Program ten (napisany w Javie) zawiera obecnie modu³y
+generuj±ce kod do jêzyka C++ i do jêzyka Java, ale posiada mo¿liwo¶æ ³atwego
+rozbudowania o producentów kodu do kolejnych jêzyków programowania.
+
+Zaimplementowany generator wraz z plikami ¼ród³owymi znajduje siê na za³±czonej
+do pracy p³ycie CD-ROM w katalogu ``/protogen''. 
+
+Jako ciekawostkê chcia³bym zwróciæ uwagê na ró¿nicê w ilo¶ci kodu ¼ród³owego,
+który by³ potrzebny do napisania modu³ów generatora (o ca³kowicie zgodnej
+funkcjonalno¶ci) :
+
+\begin{description}
+	\item[Modu³ generuj±cy kod do C++] 84 785 bajtów kodu ¼ród³owego
+	\item[Modu³ generuj±cy kod do Javy] 56 091 bajtów kodu ¼ród³owego
+\end{description}
+
+Czyli kod generuj±cy do jêzyka C++ jest o 50\% d³u¿szy od kodu generuj±cego do
+jêzyka Java. Proporcja ta wynika g³ównie z konieczno¶ci generowania plików
+nag³ówkowych dla jêzyka C++. 
+
+\section{Wygenerowany kod dla LoXiM'a}
+
+W katalogu ``/protogen/example'' 
+za³±czonej p³yty zosta³ umieszczony pe³en zbiór plików potrzebnych do
+wygenerowania kompletnego protoko³u dla C++ i Javy. Oprócz pliku xml 
+deskryptora stanowi± go rêcznie przygotowane pliki dwóch paczek: 
+CollectPackage i Q\_c\_executePackage, których logika by³a na tyle skomplikowana,
+¿e generator implementacji protoko³u ,,ProtoGen~1.0'' jej obecnie nie wspiera.
+
+Aby rêcznie przeprowadziæ proces generowania kodu, najlepiej jest:
+\begin{enumerate}
+\item skopiowaæ na
+dysk lokalny ca³y katalog /protogen z za³±czonej p³yty CD (podkatalog
+/protogen/src jest zbêdny). 
+\item upewniæ siê, ¿e posiadamy prawa zapisu do skopiowanego podkatalogu
+./protogen/example. Ewentualnie nadaæ odpowiednie przywileje. 
+\item uruchomiæ program ./protogen/example/run.sh
+\end{enumerate}
+ 
+W katalogu ./protogen/example/result-cpp i ./protogen/example/result-java
+powinny zostaæ wygenerowane implementacje protoko³u.
+
+Porównanie ilo¶ci wygenerowanego kodu (klasy paczek i typy wyliczeniowe) dla
+obu protoko³ów sieciowych pokazuj± podobny wynik: 
+\begin{description}
+	\item[Wygenerowany kod dla C++] 131 278 bajtów kodu ¼ród³owego
+	\item[Wygenerowany kod dla Javy] 120 591 bajtów kodu ¼ród³owego
+\end{description}
+  
+Oprócz tego - dla obu jêzyków - zosta³y wygenerowane oko³o 850KB pliki
+zawieraj±ce testowe instancje pakietów \patrz{testy}. 
+
+Gotowe implementacje protoko³u dla \loxim{}'a s± tak¿e za³±czone na p³ycie w
+katalogu /loxim\_protocol. 
+
+\chapter{Przeprowadzone testy}\label{testy}
+
+\section{Metoda i narzêdzia}
+
+Rêcznie napisana implementacja protoko³u w jêzyku C++ zawiera³a przyk³adowe
+scenariusze testowe zaadresowane zarówno dla strony bêd±cej serwerem jak i dla
+strony bêd±cej klientem protoko³u \loxim'a. 
+
+Idea ta zosta³a tak¿e przeniesiona do generatora protoko³ów ,,ProtoGen~1.0'' w
+którym to scenariusze testowe s± przygotowywane automatycznie i s± to¿same
+pomiêdzy ró¿nymi docelowymi jêzykami programowania. 
+
+Dla deskryptora protoko³u \loxim'a generator stworzy³ opisy 3197
+przyk³adowych paczek. Dla jêzyka C++ zosta³y one zawarte w pliku:\\
+/loxim\_protocol/cpp/protocol/tests/TestPackagesFactory.cpp \\
+a dla jêzyka Java w pliku:\\
+/loxim\_protocol/java/src/test/java/pl/edu/mimuw/loxim/protocol/tests/TestPackagesFactory.java.
+
+Dla ka¿dego z jêzyków programowania jest tworzony program: TestRunnerRec, który
+uruchomiony z parametrem bêd±cym numerem portu - tworzy instancjê serwera
+oczekuj±cego na po³±czenie na wybranym porcie i sprawdzaj±cego zgodno¶ci
+otrzymanych pakietów z zaplanowanym scenariuszem, oraz program TestRunnerSender,
+który uruchomiony z dwoma parametrami: adresem hosta docelowego i numerem portu na
+którym nas³uchuje tam serwer - pod³±cza siê do wybranego serwera i wysy³a do
+niego paczki wed³ug zadanego scenariusza. 
+
+\section{Sprawdzone przypadki}
+
+Testowe maszyny:
+\begin{enumerate}
+	\item L64 - Linux 2.6.20, Intel Dual Core - 64 bity, Little-endian  
+	\item L32 - Linux 2.6.20, Intel Dual Core - 32 bity, Little-endian
+	\item B32 - AIX, Power PC - 32 bity, Big-endian
+\end{enumerate}
+
+Sprawdzono, ¿e system przechodzi testy w nastêpuj±cych scenariuszach
+\begin{enumerate}
+  \item L64 Java $\Longleftrightarrow$ L64 Java 
+  \item L64 C++ $\Longleftrightarrow$ L64 C++
+  \item L64 C++ $\Longleftrightarrow$ L32 C++
+  \item L32 C++ $\Longleftrightarrow$ L32 C++
+  \item L32 C++ $\Longleftrightarrow$ L32 Java   
+  \item L64 C++ $\Longleftrightarrow$ B32 C++ 
+  \item B32 C++ $\Longleftrightarrow$ B32 C++ 
+  \item L64 Java $\Longleftrightarrow$ L64 C++
+\end{enumerate}
+
+\chapter{Podsumowanie} \label{podsumowanie}
+
+Uwa¿am, ¿e uda³o siê zrealizowaæ postawione w pracy cele. Zosta³ stworzony
+wydajny, przeno¶ny, dobrze udokumentowany i dostosowany do obecnych i
+przewidywanych przysz³ych potrzeb \loxim{}'a protokó³ sieciowy. 
+
+Powsta³ tak¿e uniwersalny generator protoko³ów sieciowych - którego pierwotnie
+planowany zakres pracy nie dotyczy³. 
+
+W momencie oddawania tej pracy (maj 2008) tocz± siê dwie prace magisterskie w
+bardzo istotnym stopniu oparte na wynikach opisanych w tym dokumencie. 
+\begin{description}
+  \item Praca Marka Dopiery - polegaj±ca na re-implementacji modu³u ,,Listener''
+  serwera \loxim{} - odpowiedzialnego za nawi±zywanie po³±czeñ z klientami i
+  zarz±dzanie ich zleceniami.
+   \item Praca Adama Michalika - polegaj±ca na implementacji sterownika JDBC
+   dla bazy danych \loxim{} - zainspirowana moimi pierwotnymi planami. 
+\end{description}
+Uwagi autorów tych prac przyczyni³y siê do drobnych poprawek w przedstawionych
+modu³ach i u¶ci¶lenia niejasnych kwestii w dokumentacjach. 

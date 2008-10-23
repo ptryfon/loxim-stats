@@ -1,0 +1,49 @@
+Dodaæ kontest do ka¿dej klasy - podaj±cy wersjê systemu i wersjê protoko³u. 
+
+Field - powinien mieæ pole "nullable" (dotyczy stringów, sstringów i varuint.) 
+
+Dataset.
+
+Wprowad¼my DataSet, który sk³ada siê
+z Fieldów. Mo¿e on mieæ podan± "nadklasê", czyli inny
+wcze¶niej zdefiniowany field, z którego bêdzie dziedziczy³. 
+
+DataSet ¿yje w obrêbie DataSetGroup'y, która ma swoj± nazwê
+i generuje faktoriê DataSetów. 
+ka¿dy DataSet jest b±d¼ abstrakcyjny - b±d¼ ma swoje ID - i po nim dzia³a fabryka. 
+
+<data-set-groups>
+	<data-set-group name="DataParts" base="DataPart" id-type="uint64">
+		
+		<data-set name="BoolData" id="10">
+			<field name="value" type="bool">
+				<description lang="pl">Warto¶æ logiczna</description>
+			</field>
+		</data-set>
+
+<!--		To chyba trzeba zaimplementowaæ rêcznie i tyle-->		
+		<data-set name="CollectionData" abstract="true">
+			<field name="count" type="varuint" nullable="false">
+				<description lang="pl">Liczba elementów w klasie</description>
+			</field>
+			<field name="globalType" type="varuint" nullable="true">
+				<description lang="pl">...</description>
+			</field>
+			
+			<if-equals field="globalType" value="null" type="varuint">
+				<times count="count">
+					<field name="fieldType" type="varuint" nullable="false" storable="false">
+						<description fieldType" 
+					</field>
+					<data-set-field data-set-group="DataParts" id="${fieldType}"/>
+				</times>
+			</if-equals>
+			<if-nequals field="globalType" value="null" type="varuint">
+				<times count="${count}">
+					<data-set-field data-set-group="DataParts" id="${globalType}"/>
+				</times>
+			</if-nequals>
+		</data-set>
+		
+	</data-set-group>
+<data-set-groups>

@@ -1,0 +1,13 @@
+#TeXlipse project settings
+#Tue Mar 25 08:40:24 CET 2008
+builderNum=2
+outputDir=
+makeIndSty=
+bibrefDir=
+outputFormat=pdf
+tempDir=tmp
+mainTexFile=sbql_via_ldap.tex
+outputFile=sbql_via_ldap.pdf
+langSpell=pl
+markDer=true
+srcDir=

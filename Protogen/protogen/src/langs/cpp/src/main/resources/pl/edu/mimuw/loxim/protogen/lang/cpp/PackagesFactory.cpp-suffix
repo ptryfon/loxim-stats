@@ -1,0 +1,36 @@
+
+		default:
+		{
+			printf("Nie znany typ pakietu");
+			//TODO: Zapisz do logu informacjê o nieznanym typie pakietu 
+			return NULL;
+		}
+	}
+}
+
+Package *${PackagesFactory}::createPackage(uint8_t type, char* data)
+{
+	Package* p=createPackageNotInit(type);
+	if(!p)
+		return NULL;
+	if(!p->deserialize(data))
+	{
+		delete p;
+		return NULL;
+	}
+	return p;
+}
+
+Package *${PackagesFactory}::createPackageContent(uint8_t type,PackageBufferReader* reader)
+{
+	Package* p=createPackageNotInit(type);
+	if(!p)
+		return NULL;
+	if(!p->deserializeContent(reader))
+	{
+		delete p;
+		return NULL;
+	}
+	return p;
+};
+

@@ -1,0 +1,54 @@
+%& --translate-file latin2pl
+\providecommand{\znakzero}{$\backslash 000$}
+
+	\begin{itemize}
+      \item Protokó³ ten nie bêdzie dzia³a³ pomiêdzy komputerami ró¿ni±cymi
+      siê architektur± lub trybem kompilacji (big endian - little 
+      endian), (8, 16, 32, 64 bity).
+      
+      \item Brak okre¶lonych z góry rozmiarów pakietów i ich elementów - co
+      utrudnia stronie odbieraj±cej alokowanie buforów o odpowiednich
+      rozmiarach.
+
+      \item Brak mo¿liwo¶ci przerwania zleconego zapytania w trakcie jego 
+	wykonania     
+
+      
+      \item Ka¿dy pakiet ma inn± konstrukcjê i   sposób zapisywania tre¶ci. 
+      
+      \item Brak negocjacji wstêpnych przy nawi±zywaniu po³±czenia (logowanie,
+      porównanie wersji, synchronizacja czasu, strona kodowa znaków w
+      ³añcuchach)
+      
+      \item Generalny brak konsekwencji.
+      
+      Czasami kod korzysta z funkcji zawartych w pliku TCPIP.cpp,a innym razem
+      realizuje ca³kowicie analogiczn± operacje bezpo¶rednio. 
+      
+      Dla przyk³adu - pola tekstowe s± przesy³ane na jeden z 3 sposobów:
+      \begin{itemize}
+      	\item Jako ci±gi bajtów, poprzedzone liczb± ¶wiadcz±c± o ich d³ugo¶ci
+      	(wliczaj±c znak \znakzero{} na koñcu). 
+      	\item Jako ci±gi bajtów, poprzedzone liczb± ¶wiadcz±c± o ich d³ugo¶ci
+      	(nie wliczaj±c znak \znakzero{} na koñcu).
+      	\item Jako ci±gi bajtów - z za³o¿eniem, ¿e znak \znakzero{} koñczy
+      	przesy³any napis.
+      \end{itemize}
+      
+      \item Brak organizacji wewnêtrznej pakietów umo¿liwiaj±cej wygodn±
+      rozbudowê protoko³u (o nowe dane w poszczególnych pakietach)
+      
+      \item Obs³uga maksymalnie maxint+1 obiektów (czyli np. 32768 na
+      architekturach 16-bitowych). 
+      
+      \item Protokó³ nie przewiduje mo¿liwo¶ci przesy³ania liczb ca³kowitych
+      ujemnych.
+  
+      \item Duplikacja kodu - wiele fragmentów kodu jest skopiowanych
+      (copy-paste) z innego miejsca. Mo¿na by tego unikn±æ organizuj±c kod
+      w odpowiedni sposób. 
+ 
+	  \item Istniej± trzy typy zwi±zane z przesy³aniem danych logicznych:
+		Result::BOOLTRUE, Result::BOOLFALSE, Result::BOOL - ka¿dy serializowalny z   
+		innym identyfikatorem. Prawdopodobnie który¶ z nich powsta³ przez pomy³kê.
+    \end{itemize}

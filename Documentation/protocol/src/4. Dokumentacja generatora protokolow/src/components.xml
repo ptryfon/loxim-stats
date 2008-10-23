@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="iso8859-2"?>
+<component-set>
+    <components>
+        <component>
+            <role>pl.edu.mimuw.loxim.protogen.api.PartialLanguageGenerator</role>
+            <role-hint>NowyJęzyk</role-hint>
+            <implementation>pl.edu.mimuw.loxim.protogen.lang.nl.NewLanguageGenerator</implementation>
+        </component>
+        <component>
+            <role>pl.edu.mimuw.loxim.protogen.api.LanguageGenerator</role>
+            <role-hint>NowyJęzyk</role-hint>
+            <implementation>pl.edu.mimuw.loxim.protogen.api.BasicLanguageGenerator</implementation>
+            <requirements>
+                <requirement>
+                    <role>pl.edu.mimuw.loxim.protogen.api.PartialLanguageGenerator</role>
+                    <role-hint>NowyJęzyk</role-hint>
+                </requirement>
+            </requirements>
+        </component>
+    </components>
+</component-set>

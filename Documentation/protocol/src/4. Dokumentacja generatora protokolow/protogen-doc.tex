@@ -1,0 +1,56 @@
+\documentclass[a4paper,10pt]{article}
+
+\usepackage{polski}
+\usepackage[latin2]{inputenc}
+\usepackage{makeidx}
+\usepackage{graphicx}
+\usepackage{moreverb}
+\usepackage{listings}
+
+%============================= Definicje makr=============================
+% finicja naglowka posrodku strony
+\newcommand{\nagl}[1]{\par\begin{center}{\bf{#1}}\end{center}\par}
+% Definicja tego na poczatku
+\newcommand{\pocz}{\par {\bf{\nazwaprojektu}}\par {\bf{\nazwadokumentu}}\par {\bf{Wersja: \wersjadokumentu}}\par} 
+%% Historia
+% environment
+\newenvironment{historia}{\nagl{Historia}\begin{tabular*}{17cm}{c|c|c|l} {\bf{Data}} & {\bf{Wersja}} & {\bf{Autor}} & {\bf{Zmiany}} \\}{\end{tabular*}}
+% item
+\newcommand{\hist}[4]{#1 & #2 & #3 & \parbox[t]{8cm}{#4} \\ }
+
+% Marginesy
+\textwidth17cm \textheight24.5cm \topmargin-40pt
+\oddsidemargin-0.04cm
+%=========================================================================
+
+\makeindex 
+ 
+\newcommand{\nazwaprojektu}{ProtoGen 1.0}
+\newcommand{\nazwadokumentu}{Dokumentacja generatora protoko³ów sieciowych} 
+
+\newcommand{\wersjadokumentu}{0.8}
+
+
+\input{protogen-doc-header-bajty}
+
+\title{\nazwaprojektu \ --- \nazwadokumentu}
+\author{Piotr Tabor (pt214569@students.mimuw.edu.pl)}
+
+
+\begin{document}
+\maketitle
+
+\input{protogen-doc-history}
+
+\tableofcontents
+
+\newpage
+
+	\input{protogen-doc-core}
+
+	\begin{thebibliography}{}
+		\bibitem[1]{MySQL}MySQL Protocol - version 10. Ian Redfern,
+		[03.12.2006], (http://www.redferni.uklinux.net/mysql/MySQL-Protocol.html) 
+	\end{thebibliography}
+
+\end{document}

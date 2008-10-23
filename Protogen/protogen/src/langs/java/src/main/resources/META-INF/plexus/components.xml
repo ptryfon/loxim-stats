@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component-set>
+ <components>
+	<component>
+      <role>pl.edu.mimuw.loxim.protogen.api.PartialLanguageGenerator</role>
+      <role-hint>java</role-hint>
+      <implementation>pl.edu.mimuw.loxim.protogen.lang.java.JavaPartialLanguageGenerator</implementation>
+    </component>
+    
+    <component>
+      <role>pl.edu.mimuw.loxim.protogen.api.LanguageGenerator</role>
+      <role-hint>java</role-hint>
+      <implementation>pl.edu.mimuw.loxim.protogen.api.BasicLanguageGenerator</implementation>
+	  <requirements>
+  	    <requirement>
+    	   <role>pl.edu.mimuw.loxim.protogen.api.PartialLanguageGenerator</role>
+    	   <role-hint>java</role-hint>
+        </requirement>
+      </requirements>
+    </component>
+		
+  </components>
+</component-set>

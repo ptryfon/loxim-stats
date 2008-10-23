@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<assembly>
+	<!--id>assembly-zip-cpp-template</id-->
+	<formats>
+	  <format>zip</format>
+	</formats>
+	<includeBaseDirectory>false</includeBaseDirectory>
+	
+	<fileSets>
+	 <fileSet>
+	  <directory>${basedir}/src/template/</directory>
+	  <outputDirectory>/</outputDirectory>
+	  <includes>
+	   <include>**</include>
+	  </includes>
+	 </fileSet>
+	</fileSets>
+	<!--files>
+		<file><source>${basedir}/src/template/make.defs</source></file>
+	</files-->
+</assembly>

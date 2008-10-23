@@ -1,0 +1,5 @@
+Budowalne przy pomocy polecenia make.
+
+Wymaga:
+	dia (http://www.gnome.org/projects/dia/)
+	pdflatex

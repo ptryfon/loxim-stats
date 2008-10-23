@@ -1,0 +1,96 @@
+\providecommand{\loxim}{LoXiM}
+\providecommand{\bigendian}{Big-endian}
+
+\newcommand{\nazwaprojektu}{\loxim}
+\newcommand{\wersjaprotomajor}{2}
+\newcommand{\wersjaprotominor}{0}
+\newcommand{\wersjaproto}{\wersjaprotomajor{}.\wersjaprotominor}
+
+
+%%Komunikaty ogólne
+\newcommand{\IDsscOk}  	{01}
+\newcommand{\IDsscError} {02}
+\newcommand{\IDascBye}	{03}
+
+%%Komunikaty
+\newcommand{\IDwcHello}	{10}
+\newcommand{\IDwsHello}	{11}
+\newcommand{\IDwcMode}	{12}
+\newcommand{\IDwcLogin}{13}
+\newcommand{\IDwsAuthirized}{14}
+\newcommand{\IDwcPassword}{15}
+
+%%Komunikaty asyncroniczne
+\newcommand{\IDascPing}	{128}
+\newcommand{\IDascPong}	{129}
+\newcommand{\IDscSetopt} {130}
+
+\newcommand{\IDqcStatement}	{64}
+\newcommand{\IDqcStmtparsed}	{65}
+\newcommand{\IDqcExecute}	{66}
+\newcommand{\IDqsExecuting}	{67}
+\newcommand{\IDqcCancel}	{68}
+\newcommand{\IDqsNoResult}	{69}
+%\newcommand{\IDqsOperationPerformed}	{70}
+\newcommand{\IDqsOperationOk}{70}
+
+\newcommand{\IDvscSendValues}	{32}
+\newcommand{\IDvscSendValue}	{33}
+\newcommand{\IDvscFinished}	{34}
+\newcommand{\IDvqscAbort}	{35}
+%\newcommand{\IDvscMemoryLimitExceeded}	{35}
+
+
+
+\newcommand{\kodERRInternal}{0x001}
+\newcommand{\komERRInternal}{Nast±pi³ wewnêtrzny problem serwera}
+\newcommand{\kodERRModeNotAvoilable}{0x100}
+\newcommand{\komERRModeNotAvoilable}{¯±dana us³uga nie jest dostêpna}
+\newcommand{\kodERRModeModeAlredySet}{0x101}
+\newcommand{\komERRModeModeAlredySet}{Ju¿ zaincjalizowano ten tryb}
+\newcommand{\kodERRNoSuchUser}{0x102}
+\newcommand{\komERRNoSuchUser}{Nie znaleziono wskazanego u¿ytkownika}
+\newcommand{\kodERRAccessDenied}{0x103}
+\newcommand{\komERRAccessDenied}{Nie udzielono dostêpu do wskazanego zasobu}
+
+\newcommand{\kodERROperationNotAllowed}{0x104}
+\newcommand{\komERROperationNotAllowed}{Operacja nie dozwolona - przewa¿nie brak
+uprawnieñ}
+
+\newcommand{\kodERRSyntaxError}{0x105}
+\newcommand{\komERRSyntaxError}{B³±d sk³adniowy}
+
+\newcommand{\kodERRParamsIncomplete}{0x106}
+\newcommand{\komERRParamsIncomplete}{Nie przekazano wystarczaj±cej liczby parametrów}
+
+\newcommand{\kodERRNoSuchValueId}{0x107}
+\newcommand{\komERRNoSuchValueId}{Identyfikator warto¶ci z któr± zosta³ zwi±zany
+parametr nie jest dostêpny}
+
+\newcommand{\kodERRNoCurrentStatement}{0x108}
+\newcommand{\komERRNoCurrentStatement}{Nie istnieje ,,bie¿±ce zapytanie''.
+Prawdopodobnie jeste¶ poza trybem wykonywania zapytania.}
+
+
+
+
+
+
+\newcommand{\ERR}[1]{ERR-#1}
+\newcommand{\itemERR}[1]{\item[ERR-#1]{#1}.}%!!! POPRAWIÆ
+%\newcommand{\ERRModeAlredySet}{\item[ERR-ModeAlredySet = 0x101]{}}
+%\newcommand{\ERRInternal}	 {\item[ERR-Internal = 0x666]{}}
+
+\providecommand{\patrz}[1]{(patrz: \ref{#1}\index{#1})}
+\providecommand{\pac}[1]{#1 \patrz{#1}} 
+\newcommand{\bph}[0]{\hline } 
+
+\hyphenation{Roz-dzie-la-lny}
+\newenvironment{typy}{\\ \begin{tabular}{|l|l|l|l|}\hline
+{\bf{Nazwa}} & {\bf{Kod}} & {\bf{Opis}} & {\parbox[t]{1.3cm}{\bf{Rozdzielalny}}}
+\\\hline}{\hline\end{tabular}\\\\} % item
+
+\newcommand{\typ}[4]{%
+\parbox[t]{2.5cm}{#1} &%
+\parbox[t]{1cm}{#2} & %
+\parbox[t]{10cm}{#3} & #4 \\} 

@@ -1,0 +1,9 @@
+%% Tabelka o znaczeniu poszczególnych bajtów w protokole
+\newenvironment{bajty}{\\ \begin{tabular}{|l|l|l|}\hline
+{\bf{Od - do}} & {\bf{Typ/Warto¶æ}} & {\bf{Zawarto¶æ}} \\\hline}{\hline\end{tabular}\\\\} % item
+
+
+\newcommand{\bp}[4]{\parbox[t]{2.5cm}{#1 $\rightarrow$ #2} & \parbox[t]{3cm}{#3\\} & \parbox[t]{10cm}{#4\vspace{1em}}
+\\ } 
+
+\newcommand{\znacznik}[1]{$<$#1$>$}

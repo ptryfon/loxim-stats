@@ -1,0 +1,13 @@
+#TeXlipse project settings
+#Sat May 24 10:26:54 CEST 2008
+builderNum=2
+outputDir=
+makeIndSty=
+bibrefDir=
+outputFormat=pdf
+tempDir=tmp
+mainTexFile=protogen-doc.tex
+outputFile=protogen-doc.pdf
+langSpell=pl
+markDer=true
+srcDir=

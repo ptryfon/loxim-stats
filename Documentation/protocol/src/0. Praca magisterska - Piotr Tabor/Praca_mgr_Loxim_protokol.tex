@@ -1,0 +1,61 @@
+\documentclass{pracamgr}
+
+\usepackage{polski}
+
+\usepackage[latin2]{inputenc}
+\usepackage{pdfpages}
+\usepackage{listings}
+\usepackage{moreverb}
+
+\vbadness=10000
+\hbadness=10000
+
+\input{../praca_magisterska/praca-header}
+\input{../protogen-doc/protogen-doc-header-bajty}
+\input{../OldProtoDocs/OldTCPProto-h-bajtyo}
+
+\begin{document}
+
+\input{../praca_magisterska/praca-core}
+
+\appendix
+
+\chapter{\dokoldtcpproto (stan na
+2006-10-26)}\label{dokoldtcpproto}
+	\input{../OldProtoDocs/OldTCPProto-core.tex}
+
+\chapter{\doknewtcpproto}\label{doknewtcpproto}
+	\input{../newTCPProto/newTCPProto-commands}
+	\input{../newTCPProto/newTCPProto-core}
+	
+\chapter{\doksbqlvialdap}\label{doksbqlvialdap}
+	\input{../SBQLviaLDAP/sbql_via_ldap-core}
+	
+\chapter{\dokprotogen}\label{dokprotogen}
+	\input{../protogen-doc/protogen-doc-core.tex}
+
+\input{../praca_magisterska/praca-cd-content}
+
+%\chapter{Deskryptor protoko³u \loxim'a dla generatora
+%protoko³ów ,,ProtoGen~1.0''}\label{listing-loxim-xml}
+
+%\lstset{language=xml,tabsize=2,breaklines=true,showspaces=false,showstringspaces=false,showtabs=false}
+%\lstinputlisting{loxim2.xml}
+
+
+\begin{thebibliography}{99}
+	\addcontentsline{toc}{chapter}{Bibliografia}
+	
+	\input{../praca_magisterska/praca-biblio}
+	\input{../SBQLviaLDAP/sbql_via_ldap-biblio}
+	
+\end{thebibliography}
+
+\end{document}
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% coding: latin-2
+%%% End:

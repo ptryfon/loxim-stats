@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="iso8859-2" ?>
+<xsd:schema xmlns:pg="http://loxim.mimuw.edu.pl/protoGen" xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://loxim.mimuw.edu.pl/protoGen" elementFormDefault="qualified" attributeFormDefault="unqualified">
+    
+    <!-- ===================== SIMPLE TYPES ============================== -->
+    
+    <xsd:simpleType name="type">
+        <xsd:restriction base="xsd:string">
+                        <xsd:enumeration value="uint8"/>
+                        <xsd:enumeration value="uint16"/>
+                        <xsd:enumeration value="uint32"/>
+                        <xsd:enumeration value="uint64"/>
+                        <xsd:enumeration value="sint8"/>
+                        <xsd:enumeration value="sint16"/>
+                        <xsd:enumeration value="sint32"/>
+                        <xsd:enumeration value="sint64"/>                        
+                        <xsd:enumeration value="varuint"/>
+                        <xsd:enumeration value="bool"/>
+                        <xsd:enumeration value="double"/>
+                        <xsd:enumeration value="bytes"/>
+                        
+                        <xsd:enumeration value="sstring"/>
+                        <xsd:enumeration value="string"/>
+                        <xsd:enumeration value="enum"/>
+                        <xsd:enumeration value="enum-map"/>
+                        
+                        <xsd:enumeration value="package"/>
+                        <xsd:enumeration value="package-map"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    
+    <!-- ================== COMPLEX TYPES =============================== -->
+    <!-- packets-->
+    <xsd:complexType name="descriptionType" mixed="true" >
+        <xsd:sequence minOccurs="0" maxOccurs="1">
+            <xsd:any processContents="lax"/>
+        </xsd:sequence>
+        <xsd:attribute name="lang" type="xsd:language"/>
+    </xsd:complexType>
+    
+    <xsd:complexType name="fieldType">
+        <xsd:choice minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="description" type="pg:descriptionType"/>
+        </xsd:choice>
+        <xsd:attribute name="name" type="xsd:NCName"/>
+        <xsd:attribute name="type" type="pg:type"/>
+        <xsd:attribute name="value" type="xsd:string"/>
+        <xsd:attribute name="object-ref" type="xsd:NCName"/>
+        <xsd:attribute name="object-ref-id" type="xsd:string"/>
+        <xsd:attribute name="size" type="xsd:integer"/>
+        <xsd:attribute name="nullable" type="xsd:boolean" use="optional" default="false"/>
+     </xsd:complexType>    
+    
+    <xsd:complexType name="packetType">
+        <xsd:choice minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="field" type="pg:fieldType"/>
+            <!--xsd:element name="data-set-field" type="pg:dataSetFieldType"/-->
+        </xsd:choice>
+        <xsd:attribute name="name" type="xsd:NCName"/>
+        <xsd:attribute name="extends-group"  type="xsd:NCName" use="optional" />
+        <xsd:attribute name="extends-packet" type="xsd:NCName" use="optional" />
+        <xsd:attribute name="id-value" type="xsd:string"/>
+    </xsd:complexType>
+    
+    <xsd:complexType name="packetsType">
+        <xsd:choice minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="packet" type="pg:packetType"/>
+        </xsd:choice>
+        <!--xsd:attribute name="id-type" type="pg:type"/-->
+    </xsd:complexType>
+    <!-- enums -->
+    
+    <xsd:complexType name="itemType">
+        <xsd:choice minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="description" type="pg:descriptionType"/>
+        </xsd:choice>
+        <xsd:attribute name="name" type="xsd:NCName"/>
+        <xsd:attribute name="value" type="xsd:string"/>
+    </xsd:complexType>
+    
+    <xsd:complexType name="enumType">
+        <xsd:choice minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="item" type="pg:itemType"/>
+        </xsd:choice>        
+        <xsd:attribute name="name" type="xsd:NCName"/>
+        <xsd:attribute name="as-type" type="pg:type"/>
+    </xsd:complexType>
+    
+    <xsd:complexType name="enumsType">
+        <xsd:choice minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="enum" type="pg:enumType"/>
+        </xsd:choice>
+    </xsd:complexType>
+    
+    <!-- metadata -->
+    
+    <xsd:complexType name="languagesType">
+    	<xsd:choice minOccurs="0" maxOccurs="unbounded">
+    		<xsd:element name="lang" type="pg:languageType"/>
+    	</xsd:choice>
+    </xsd:complexType>
+    
+    <xsd:complexType name="languageType">
+    	<xsd:sequence minOccurs="0" maxOccurs="unbounded">
+    		<xsd:any processContents="skip"/>
+    	</xsd:sequence>
+    	<xsd:attribute name="id" type="xsd:string"/>
+    </xsd:complexType>
+    
+    <xsd:complexType name="metadataType">
+        <xsd:all>
+            <xsd:element name="major-version" type="xsd:integer"/>
+            <xsd:element name="minor-version" type="xsd:integer"/>
+            <!--xsd:element name="id-type" type="pg:type"/-->
+            <xsd:element name="languages" type="pg:languagesType" minOccurs="0" maxOccurs="1"/>
+        </xsd:all>
+        <!--xsd:element name="size-header"-->
+    </xsd:complexType>
+    
+    <xsd:complexType name="packetGroupType">
+        <xsd:all minOccurs="1" maxOccurs="1">
+            <xsd:element name="packets" type="pg:packetsType"/>
+        </xsd:all>
+        <xsd:attribute name="name" type="xsd:NCName"/>
+        <xsd:attribute name="id-type" type="pg:type" use="optional" default="uint8"/>
+        <xsd:attribute name="extends" type="xsd:NCName"/> 
+    </xsd:complexType>
+    
+    <xsd:complexType name="packetGroupsType">
+        <xsd:choice minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="packet-group" type="pg:packetGroupType"/>
+        </xsd:choice>
+    </xsd:complexType>
+    
+    <!-- protocol -->
+    
+    <xsd:complexType name="protocolType">
+        <xsd:all>
+        	<xsd:element name="metadata" type="pg:metadataType" />
+        	<xsd:element name="enums" type="pg:enumsType" />
+        	<xsd:element name="packet-groups" type="pg:packetGroupsType" />
+        	<!-- xsd:element name="data-set-groups" type="pg:dataSetGroupsType"/-->
+        </xsd:all>
+    </xsd:complexType>
+    
+    <!-- ================== ROOT ======================== -->
+    
+    <xsd:element name="protocol" type="pg:protocolType"></xsd:element>
+</xsd:schema>

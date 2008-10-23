@@ -1,0 +1,45 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>loxim_protocol</artifactId>
+	<groupId>pl.edu.mimuw.loxim.protocol</groupId>
+	<version>1.0-SNAPSHOT</version>
+	<packaging>jar</packaging>
+	<name>Network protocol</name>
+	<dependencies>
+		<dependency>
+			<groupId>pl.edu.mimuw.loxim.protogen.lang.java.protolib</groupId>
+  			<artifactId>java_protolib</artifactId>
+			<version>1.0-SNAPSHOT</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.4</version>
+            <scope>test</scope>
+        </dependency>
+	</dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.5</source>
+                    <target>1.5</target>
+                </configuration>
+            </plugin>
+        </plugins>
+		<pluginManagement>
+           <plugins>
+             <plugin>
+               <artifactId>exec-maven-plugin</artifactId>
+			   <groupId>org.codehaus.mojo</groupId>
+               <version>1.1</version>
+             </plugin>
+            </plugins>
+		</pluginManagement>
+    </build>
+</project>

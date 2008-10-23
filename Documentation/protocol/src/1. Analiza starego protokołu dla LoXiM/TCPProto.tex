@@ -1,0 +1,59 @@
+%& --translate-file latin2pl
+\documentclass[a4paper,10pt]{article}
+
+\usepackage{polski}
+\usepackage[latin2]{inputenc}
+
+\newcommand{\nazwaprojektu}{LoXiM }
+\newcommand{\nazwadokumentu}{
+	Specyfikacja protoko³u komunikacyjnego\\
+	Klient$\leftrightarrow$Serwer oraz Serwer$\leftrightarrow$Serwer \\
+	\small{stan na 2006-10-26}}
+\newcommand{\wersjadokumentu}{0.2}
+
+
+
+% Marginesy
+\textwidth17cm \textheight25.5cm \topmargin-40pt
+\oddsidemargin-0.04cm
+
+
+\title{\nazwaprojektu \ --- \nazwadokumentu}
+\author{Piotr Tabor (pt214569@students.mimuw.edu.pl)}
+
+
+\begin{document}
+\maketitle
+
+% Definicja naglowka posrodku strony
+\newcommand{\nagl}[1]{\par\begin{center}{\bf{#1}}\end{center}\par}
+% Definicja tego na poczatku
+\newcommand{\pocz}{\par {\bf{\nazwaprojektu}}\par {\bf{\nazwadokumentu}}\par {\bf{Wersja: \wersjadokumentu}}\par}
+
+%% Historia
+% environment
+\newenvironment{historia}{\nagl{Historia}\begin{tabular*}{17cm}{c|c|c|l} {\bf{Data}} & {\bf{Wersja}} & {\bf{Autor}} & {\bf{Zmiany}} \\}{\end{tabular*}}
+% item
+\newcommand{\hist}[4]{#1 & #2 & #3 & \parbox[t]{9cm}{#4} \\ }
+
+\input{OldTCPProto-h-bajtyo.tex}
+
+%% Spis tresci
+\newcommand{\spistresci}{\tableofcontents}
+
+
+\par
+{\bf{Wersja: \wersjadokumentu}}
+\par
+
+\begin{historia}
+	\hist{2006-10-26}{0.1}{Piotr Tabor}{Pierwsza wersja dokumentu}
+	\hist{2008-06-01}{0.2}{Piotr Tabor}{Oczyszczenie dokumentu}
+\end{historia}
+
+\spistresci
+\newpage
+
+\input{OldTCPProto-core}
+
+\end{document}

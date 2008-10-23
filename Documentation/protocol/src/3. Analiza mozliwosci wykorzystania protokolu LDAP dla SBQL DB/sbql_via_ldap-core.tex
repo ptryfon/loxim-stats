@@ -1,0 +1,598 @@
+\providecommand{\LDAP}{Lightweight Directory Access Protocol wersja 3}
+\providecommand{\loxim}{LoXiM}
+\providecommand{\patrz}[1]{(patrz \ref{#1})}
+\newcommand{\triple}[3]{$<$#1,#2,#3$>$}
+
+\section{Wprowadzenie}
+
+\subsection{Cel}
+Celem tego  dokumentu jest przeanalizowanie mo¿liwo¶ci wykorzystania protoko³u
+LDAP (\LDAP) jako podstawowego
+narzêdzia do komunikacji z semistrukturaln± baz± danych z dostêpem za pomoc± 
+jêzyka SBQL. 
+
+W dokumencie zostan± tak¿e przedstawione propozycje rozszerzeñ protoko³u, tak
+by mo¿na by³o za pomoc± protoko³u LDAP wraz z opisanymi rozszerzeniami wykorzystaæ
+pe³n± funkcjonalno¶æ systemu \loxim.
+
+\subsection{Us³ugi katalogowe}
+
+\subsection{Protokó³ LDAP a ,,Us³uga katalogowa LDAP'' (LDAP service)}
+	Nale¿y rozró¿niæ dwa pojêcia:
+	\begin{description}
+		\item[Protokó³ LDAP] ---
+			Jest to protokó³ komunikacyjny --- standard specyfikuj±cy zasady komunikacji
+			pomiêdzy aplikacj± klienck±, a serwerem udostêpniaj±cym dane. Wnosi on tylko
+			podstawowe za³o¿enia o modelu danych.
+		  
+		\item[Us³uga katalogowa LDAP (LDAP (enabled) service)] --- 
+			Jest to us³uga z któr±  mo¿na siê komunikowaæ przy pomocy protoko³u LDAP. 
+			Realizuje ona wiele ró¿nych standardów. W szczególno¶ci w sk³ad us³ugi
+			katalogowej LDAP wchodzi obs³uga:
+			\begin{itemize}
+ 				\item Modelu danych --- RFC4512 (Directory Information Models)
+      			\item  Dostêpnych podstawowych metod autoryzacji --- RFC4513
+      			(Authentication Methods and Security Mechanism)
+      			\item Reprezentacji w postaci napisów nazw znacz±cych (adresów) -
+      			RFC4514 (String Representation of Distinguished Names)
+      			\item Reprezentacji zapytañ (filtrów wyszukiwania) w postaci napisów
+      			- RFC4515 (String Representation of Search Filters)
+      			\item Jednolitych wska¼ników do zasobów --- RFC4516 (Uniform Resource
+      			Locator)
+      			\item Zasad sk³adniowych i zasad dopasowywania danych --- RFC4517
+      			(Syntaxes and Matching Rules)
+      			\item Obs³ugi miêdzynarodowych napisów --- RFC4518 (Internationalized
+      			String Preparation)
+      			\item Schematu dla aplikacji u¿ytkowych --- RFC4519 (Schema for User
+      			Applications)
+			\end{itemize} 
+    \end{description}
+		
+	W poni¿szym  dokumencie (o ile nie zaznaczono inaczej) pod terminem LDAP
+	rozumiem ,,Protokó³ komunikacyjny LDAP''.
+	
+\subsection{Sposoby integracji serwera SBQL z us³ug± LDAP}
+
+\label{wspolne}
+Semistrukturalne bazy danych oraz us³ugi katalogowe ³±czy wiele cech wspólnych.
+W przypadku \loxim'a do najwa¿niejszych z nich nale¿y zaliczyæ:
+\begin{itemize}
+  \item Obie us³ugi zajmuj± siê organizacj± i udostêpnianiem danych wed³ug
+  zadanych przez u¿ytkownika kryteriów. 
+  \item Obie us³ugi przechowuj± dane w strukturze drzewiastej.
+  \item Obie us³ugi przewiduj± pojêcie odno¶nika pomiêdzy wêz³ami tego drzewa.
+  W przypadku LDAP jest to nazywane  ,,aliasem'', a w przypadku struktury SBQL
+  obiektem wska¼nikowym (ang. pointer object). 
+  \item Obie us³ugi przewiduj± mo¿liwo¶æ rozproszenia (przechowywania czê¶ci
+  drzewa) na ró¿nych serwerach --- jednocze¶nie organizuj±c proces przeszukiwania
+  w ten sposób, ¿e mo¿liwe jest otrzymanie pe³nego wyniku dla zapytania
+  dotycz±cego wiêkszej ilo¶ci ¼róde³ danych.
+\end{itemize}
+
+Metody przeszukiwania dla struktury LDAP posiadaj± nastêpuj±ce cechy
+\begin{itemize}
+  \item[-] Wyszukuj± w danym poddrzewie te WPISY, których warto¶ci atrybutów
+  ,,pasuj±'' do wskazanych warto¶ci.
+  \item[-] Posiadaj± bogate mechanizmy definiowania pojêcia ,,pasowania''
+  (odporno¶æ na wielko¶æ znaków, funkcje szyfruj±ce i porównuj±ce napisy
+  zaszyfrowane).
+  \item[-] Wynikiem zapytania jest zawsze wskazany zbiór atrybutów spo¶ród
+  wszystkich odnalezionych wêz³ów spe³niaj±cych wskazany warunek. 
+  \item[-] Ca³kowity brak wsparcia dla przeszukiwañ ³±cz±cych dane pochodz±ce
+  z ró¿nych wêz³ów.  
+  \item[-] Ca³kowity brak mo¿liwo¶ci uzyskania danych zagregowanych. 
+\end{itemize}
+W zwi±zku z tym, ¿e mechanizm zapytañ LDAP jest stosunkowo prosty --- umo¿liwia
+on bardzo efektywn± realizacjê operacji (w pe³ni równoleg³e i z wykorzystaniem niewielkiej
+pamiêci pomocniczej przetwarzanie). Ogromn± wadê stanowi natomiast niewielka ilo¶æ operacji,
+któr± z u¿yciem tego narzêdzia mo¿na przeprowadziæ.
+
+W zastosowaniach rzeczywistych --- ograniczenie powy¿sze prowadzi do
+przechowywania czê¶ci istotnych danych z us³ugi katalogowej w krotkach
+relacyjnych bazy danych --- które to umo¿liwiaj± przeprowadzanie z³±czeñ danych
+nale¿±cych do ró¿nych encji. W szczególno¶ci je¶li mamy strukturê LDAP
+przechowuj±c± dane osobowe pracowników, wykorzystywana do przeprowadzania
+autoryzacji do oprogramowania korporacyjnego, to tak¿e musimy mieæ relacyjn±
+kopiê tych danych na potrzeby dzia³ania oprogramowania finansowego lub
+kadrowego.  Ubogo¶æ tych mechanizmów prowadzi wiêc do redundancji, a tym samym 
+do dodatkowych nak³adów na utrzymanie tych danych i brak generycznych
+mechanizmów zapewniaj±cych ich spójno¶æ. 
+
+Wydaje siê, ¿e sytuacja by³aby o wiele lepsza, gdyby jednocze¶nie do danych 
+obs³ugiwanych przez us³ugê katalogow± istnia³ dostêp za pomoc± jêzyka zapytañ
+o nieporównywalnie wiêkszych mo¿liwo¶ciach. Wtedy odpowiednia baza danych
+umo¿liwiaj±ca dostêp poprzez obydwa interfejsy mog³aby pe³niæ rolê centralnego
+¼ród³a danych. 
+
+Poni¿ej przedstawiamy 3 ogólne schematy systemu realizuj±cego tê
+funkcjonalno¶æ.
+
+\subsubsection{Serwer SBQL jako zaplecze (ang. backend) us³ugi LDAP}
+	\begin{figure}[hbt]
+		\centering
+		\includegraphics[scale=0.5]{img/ServerSBQLjakoBackendLDAP.jpg}
+		\caption{Schemat serwera SBQL jako zaplecza us³ugi LDAP}
+	\end{figure}  
+	
+W schemacie tym mamy zwyk³± bazê danych realizuj±c± dostêp poprzez jêzyk SBQL
+oraz serwer LDAP wykorzystuj±cy tê bazê danych jako narzêdzie do przechowywania
+i wyszukiwania informacji. Do serwera us³ugi LDAP jest zapewniony dostêp za
+pomoc± protoko³u LDAP. Inne systemy chc±ce analizowaæ dane przy pomocy SBQL'a
+powinny dostawaæ siê bezpo¶rednio do bazy danych SBQL. 
+
+Jest to najbardziej naturalne rozwi±zanie od strony implementacyjnej i
+architektonicznej. Istniej± w nim dwa prawie niezale¿ne komponenty skupione na
+¶wiadczeniu konkretnych us³ug. 
+
+Zastosowanie tego modelu rodzi nastêpuj±ce spostrze¿enia:
+\begin{itemize}
+  \item Nie istnieje ¿adna zale¿no¶æ pomiêdzy protoko³em dostêpu do bazy danych
+  SBQL, a protoko³em LDAP. 
+  \item Przechowywanie danych poprzez serwery us³ug katalogowych w
+  semistrukturalnych, obiektowych bazach danych wydaje siê byæ o wiele lepszym
+  rozwi±zaniem ni¿ wykorzystywanie do tego celu relacyjnych baz danych (np.
+  oprogramowanie OpenLDAP przechowuje dane w bazie Berkeley DB). Mo¿na siê
+  spodziewaæ, ¿e z czasem powstan± narzêdzie zorganizowane w ten sposób.
+  \item Opracowanie jednego standardu przechowywania danych us³ug katalogowych
+  w bazach typu \loxim{} --- zanim powstan± ró¿ne realizacje us³ug opartych na tym modelu --- 
+  umo¿liwi ³atwiejsz± wymianê konkretnej implementacji us³ugi LDAP lub budowania
+  wielu programów korzystaj±cych z drzewa typu LDAP poprzez jêzyk SBQL. Dlatego
+  w rozdziale ,,Symulowanie modelu danych protoko³u LDAP za pomoc± modelu
+  danych SBQL'' (rozdzia³ \ref{SymulowanieLDAPbySBQL}) spróbujemy
+  przeanalizowaæ dostêpne mo¿liwo¶ci w tej kwestii.
+  \item Istnieje ryzyko, ¿e modyfikacje danych przeprowadzane za pomoc± jêzyka
+  SBQL bêd± narusza³y warunki stawiane strukturze danych serwera SBQL
+  symuluj±cej katalog SBQL. Dlatego wskazane jest by taki schemat danych by³
+  kontrolowalny pod wzglêdem spójno¶ci za pomoc± mechanizmów serwera SBQL. 
+\end{itemize}
+
+
+\subsubsection{Serwer LDAP ¶wiadcz±cy dostêp za pomoc± jêzyka SBQL}
+	\begin{figure}[hbt]
+		\centering
+		\includegraphics[scale=0.5]{img/ServerLDAPzDostepemSBQL.jpg}
+		\caption{Schemat serwera LDAP z dostêpem przez SBQL}
+	\end{figure}
+
+Alternatywnym scenariuszem jest sytuacja, w której obecne rozwi±zania LDAP
+zaczê³yby byæ rozszerzane do obs³ugi jêzyka typu SBQL. Wtedy naturalnym
+rozwi±zaniem jest wprowadzenie do protoko³u LDAP rozszerzenia (nowych typów
+pakietów), które umo¿liwi± zadawanie zapytañ w jêzyku SBQL, zamiast
+implementowania na serwerze LDAP zupe³nie innego protoko³u. 
+
+W realizacji tego rozwi±zania bêdzie potrzebny standard mówi±cy 
+jakiej strukturze danych serwera SBQL odpowiada dany katalog LDAP, a wiêc
+opisuj±cy w jaki sposób wykonywaæ zapytania SBQL. Problem ten zosta³ 
+rozwiniêty w rozdziale \ref{SymulowanieLDAPbySBQL} ,,Symulowanie modelu danych
+protoko³u LDAP za pomoc± modelu danych SBQL''. 
+
+Drugim brakuj±cym elementem jest specyfikacja rozszerzenia protoko³u LDAP,
+umo¿liwiaj±ca w tym protokole wykonywanie zapytañ SBQL. Problemem tym zajmujemy
+siê w rozdziale \ref{RozszerzenieLDAP}. 
+
+\subsubsection{Serwer SBQL ¶wiadcz±cy dostêp do danych za pomoc± protoko³u LDAP}
+\begin{figure}[hbt]
+	\centering
+	\includegraphics[scale=0.5]{img/ServerSBQLzDostepemLDAP.jpg}
+	\caption{Schemat serwera SBQL ¶wiadcz±cego dostêp do danych za pomoc±
+	protoko³u LDAP}
+\end{figure}  
+
+W tym modelu rozpatrujemy serwer SBQL, który nie tylko obs³uguje dostêp za
+pomoc± jêzyka SBQL, ale tak¿e udostêpnia zasoby za pomoc± mechanizmów protoko³u
+LDAP. Gdyby mo¿liwe by³o sensowne wykonywanie wyszukiwañ LDAP oraz poleceñ
+modyfikuj±cych dane protoko³u LDAP na ka¿dym modelu danych serwera SBQL (modelu
+$AS_0$ lub wy¿szego) to realizacja tego modelu mia³a by sens. Umo¿liwi³aby ona
+wykorzystanie ju¿ istniej±cych rozwi±zañ integruj±cych siê z us³ugami
+katalogowymi i operowanie bezpo¶rednio na bazie typu \loxim.
+
+Kwestiami wykonywania operacji protoko³u LDAP na ogólnym modelu danych
+serwera SBQL ($AS_0$) zajmiemy siê szczegó³owo w rozdziale \ref{OperacjeLDAPw$AS_0$}.
+
+By nie mno¿yæ bytów w tym rozwi±zaniu mia³oby sens zastosowanie
+jednego protoko³u dostêpu --- którym by³by protokó³ LDAP wraz z pewnymi
+rozszerzeniami umo¿liwiaj±cymi wykorzystywanie jêzyka SBQL do przeprowadzania
+zapytañ. S± to te same rozszerzenia, które dotycz± ,,Serwera LDAP ¶wiadcz±cego
+dostêp za pomoc± jêzyka SBQL'' i które szczegó³owo omawiamy w rozdziale
+\ref{RozszerzenieLDAP}. 
+		
+\section{Analiza}
+
+\subsection{Porównanie modeli danych}
+
+\subsubsection{SBQL}
+
+Rozwa¿my najbardziej ogólny model danych dla jêzyka
+SBQL --- ($AS_0$ Store Model). W modelu tym obiekty s± 
+trójkami \triple{identyfikator}{nazwa}{warto¶æ}, w których wyró¿niamy
+w trzy przypadki:
+\begin{description}
+	\item[Obiekty atomowe (proste)] --- (ang. atomic objects)
+	\triple{identyfikator}{nazwa}{warto¶æ prosta}
+	\item[Obiekty wska¼nikowe] --- (ang. pointer objects)
+	\triple{identyfikator}{nazwa}{identyfikator docelowy}
+	\item[Obiekty z³o¿one] --- (ang. complex objects)
+	\triple{identyfikator}{nazwa}{kolekcja obiektów}
+	Gdzie kolekcja obiektów mo¿e byæ zbiorem (ang. set) b±d¼
+	sekwencj± (ang. sequence) elementów (w modelu $AS_{0_{seq}}$)
+\end{description} 
+
+Model ten narzuca dodatkowo pewne wymagania dotycz±ce ``zgodno¶ci'' danych:
+\begin{itemize}
+	\item Unikatowo¶æ identyfikatorów obiektu. W ca³ym systemie nie istniej± 
+	dwa elementy o takim samym identyfikatorze (pierwszym elemencie trójki)
+	\item Je¿eli obiekt jest typu wska¼nikowego, to obiekt na który wskazuje musi
+	istnieæ
+\end{itemize} 
+
+Dodatkowo obowi±zuje za³o¿enie ca³kowicie ukrytego identyfikatora (Total
+internal object identification) w ,,Principles of query programming languages'' \cite{SBQL},
+które oznacza, ¿e u¿ytkownik (aplikacja kliencka) nie mo¿e poznaæ identyfikatora
+obiektu z którym pracuje. Zatem w tym modelu danych nie istnieje ¿aden
+zewnêtrzny identyfikator (adres), który by potrafi³ unikatowo zidentyfikowaæ
+konkretny obiekt w ca³ej bazie danych implementuj±cej ten model.  
+
+\subsubsection{Model danych LDAP}
+	Dane s± reprezentowane w postaci hierarchii obiektów (wpisów) (ang. entries).
+	Szczytowe (ang. top) obiekty takiego drzewa nazywane s± korzeniami (ang.
+	roots/base/suffixs). Ka¿dy obiekt ma maksymalnie jednego ojca i mo¿e mieæ dowoln± liczbê
+	dzieci oraz zbiór atrybutów. 
+	
+	Ka¿dy atrybut ma nazwê i mo¿e mieæ  jedn± lub
+	wiele warto¶ci. Warto¶ci w obrêbie pojedynczego atrybutu nie mog± byæ to¿same
+	 (definicja to¿samo¶ci zale¿y od atrybutu (matching rule). Kolejno¶æ warto¶ci w
+	 obrêbie atrybutu o wielu warto¶ciach nie ma znaczenia. 
+	 Mo¿na my¶leæ o atrybucie z wieloma warto¶ciami jak o wielu atrybutach z tak± 
+	sam± nazw± i ró¿nymi warto¶ciami. 
+	
+	Dla ró¿nych atrybutów mo¿e byæ w ró¿nych sposób zdefiniowana identyczno¶æ
+	(matching rule). W szczególno¶ci specyfikacja, czy porównanie jest zale¿ne
+	od wielko¶ci znaków (case sensitive/insensitive) jest najczê¶ciej u¿ywan±
+	w³asno¶ci± atrybutu. 
+	
+	Obiekty od danego korzenia buduj± drzewo DIT (Directory Information Tree). W
+	obrêbie drzewa ka¿dy obiekt mo¿na zaadresowaæ za pomoc± DN (Distinguish
+	Name). DN buduje siê jako ci±g obiektów par: (atrybut=warto¶æ), specyfikuj±cych 
+	pe³n± ¶cie¿kê od obiektu do korzenia.
+	
+	Np. cn=Piotr Tabor,ou=MIMUW,o=UW,city=Warszawa,country=Polska.
+	
+	Protokó³ LDAP przewiduje istnienie aliasów, które polegaj± na tym, ¿e 
+	element mo¿e pokazywaæ na Distinguish Name innego elementu. Z punktu widzenia
+	przeszukiwania (o ile flaga dereferencji aliasów w zapytaniu jest w³±czona)
+	taki element jest traktowany jakby nale¿a³ do poddrzewa. Linki te mo¿na
+	rozumieæ jako analogiê do dowi±zañ symbolicznych w systemach Uniksowych.
+	
+	
+	\begin{figure}[hbt]
+		\centering
+		\includegraphics[scale=0.5]{img/ldap_mimuw.jpg}
+		\caption{Przek³ad 1 danych w modelu LDAP}
+	\end{figure}  
+
+% \subsection{Porównanie cech obu modeli}
+% 
+% \begin{tabular*}{17cm}{|l|l|l|}
+% 	\hline
+% 	\bf{Cecha} & \bf{LDAP} & bf{$AS_0$ (SBQL)} \\
+% 	\hline
+% 	
+% 	Jednostki danych & Atrybuty, dzieci &  Uto¿samione zosta³y atrybuty i
+% 	podobiekty (dzieci)\\
+% 	
+% 	Identyfikacja	 & 
+% 	
+% 	Aliasy 			 &	
+% \end{tabular*} 
+
+	
+\subsection{Symulowanie modelu danych protoko³u LDAP za pomoc± modelu
+danych SBQL}
+\label{SymulowanieLDAPbySBQL}
+\subsubsection{Podej¶cie 1}
+
+Na podstawie danych w modelu LDAP mo¿na zbudowaæ ich instancjê w modelu $AS_0$
+w nastêpuj±cy rekurencyjny sposób (za³ó¿my, ¿e mamy zbudowaæ strukturê dla
+poddrzewa zaczynaj±cego siê w danym wpisie E):
+
+Tworzymy obiekt okalaj±cy o id ($i_1$), zawieraj±ce nastêpuj±cy wi±zania
+ (bindings):
+ 	\begin{description}
+ 		\item[entry] --- obiekt (wpis) w³a¶ciwy.
+ 			\begin{itemize}
+ 				\item Dla ka¿dego atrybutu nale¿±cego do wpisu E tworzymy wi±zanie o nazwie
+ 				atrybutu prowadz±ce do warto¶ci tego atrybutu.
+ 			
+ 				\item  Dla atrybutu kluczowego (buduj±cego 	,,distinguish name'') tworzymy
+ 				wi±zanie o nazwie atrybutu poprzedzonej '\#' prowadz±ce do warto¶ci
+ 				atrybutu kluczowego.
+ 				
+ 				\item Dla ka¿dego wpisu bezpo¶rednio podleg³ego tworzymy binding o nazwie
+ 				'\#child\#' prowadz±cy do rekurencyjnie wygenerowanego dla
+ 				tego wpisu obiektu okalaj±cego. 
+			\end{itemize}
+ 		\item[deref] -
+ 			Je¿eli bie¿±cy wpis jest aliasem to ,,deref'' wskazuje na cel aliasu
+ 			(bezpo¶rednio, a nie na obiekt okalaj±cy). W przeciwnym przypadku wi±¿e do
+ 			tego samego obiektu co ,,entry''.
+	\end{description}
+
+
+Przyk³ad z rysunku przedstawionym w ``Modelu danych LDAP'', zapisany w $AS_0$ z
+wykorzystaniem tego podej¶cia (po dodaniu nadrzêdnych obiektów root i
+\#child\#): \begin{verbatimtab}[3] 1 root:
+	2 #child#:
+		3 deref: ->5
+		5 entry:
+			6 c=PL
+			7 #c -> 6
+			8 #child#:
+				9 deref: ->10
+				10 entry:
+					11 ou=UW
+					12 #ou -> 11
+					13 name=Uniwersystet Warszawski
+					14 #child#:
+						15 deref: ->16
+						16 entry: 
+							17 ou=MIMUW
+							18 #ou=MIMUW
+							19 name=Wydzia³ Matematyki, Informatyki i Mechaniki
+							20 #child#
+								21 defer: ->22
+								22 entry: 
+									23 ou=ludzie
+									24 #ou ->23
+									25 #child#
+										26 deref ->27
+										27 entry:
+											28: oid=jnowak
+											29: #oid ->28
+											30: name=Jan Nowak
+											31: objectClass: person
+											50: role: dziekan
+									32 #child#
+										33 deref ->34
+										34 entry:
+											35: oid=pt214569
+											36: #oid ->35
+											37: name=Piotr Tabor
+											38: index=214569
+											39: objectClass: person
+											40: objectClass: student
+							41 #child#
+								42 deref: ->43
+								43 entry: 
+									44 ou=W³adze
+									45 #ou ->44 
+									46 #child#:
+										47 deref ->27
+										48 entry:
+											49 aliasedObjectName='c=PL,o=UW,ou=MIMUW,ou=ludzie,oid=jnowak'	
+											51 #aliasedObjectName ->49
+											52 objectClass: alias										
+\end{verbatimtab}
+
+W tym modelu mo¿emy stosunkowo ³atwo przet³umaczyæ ,,distinguish name'' na
+zapytanie odnajduj±ce wskazany adres.
+Nastêpuj±cy adres: c=PL,o=UW,ou=MIMUW,ou=ludzie,oid=jnowak zostanie
+przet³umaczony na:
+\begin{description}
+	\item[W przypadku nie rozwijania aliasów]:\\
+	(root).(entry where \#c=PL).\#child\#.(entry where \#ou=UW).\#child\#\\
+	.(entry	where \#ou=MIMUW).\#child\#.(entry where \#ou=ludzie).\#child\#\\
+	.(entry where \#oid=pt214569).\#child\#
+	\item[W przypadku rozwijania aliasów]:\\
+	(root).(deref where \#c=PL).\#child\#.(deref where \#ou=UW) .\#child\#\\
+	.(deref	where \#ou=MIMUW).\#child\#.(deref where \#ou=ludzie).\#child\#\\
+	.(deref where \#oid=pt214569).\#child\# 
+\end{description}
+
+% \subsubsection{Podej¶cie 2}
+% 
+% Wydaje siê istotnym postêpem, gdyby uda³o siê z podej¶cia pierwszego usun±æ
+% obiekty okalaj±ce. Tak naprawdê jedynym powodem, dla którego je wprowadzili¶my
+% by³a konieczno¶æ rozró¿niania przej¶cia po wi±zaniu zwyk³ym
+% (typu \triple{$i_1$}{name}{[zbiór obiektów]}), a wi±zaniu typu wska¼nik/link 
+% (typu \triple{$i_1$}{name}{$i_2$}). Gdyby jêzyk SBQL wprowadzi³ operator
+% algebraiczny $is_pointer(i)$
+
+
+\subsection{Operacje protoko³u LDAP} \label{OperacjeLDAPw$AS_0$}
+	\subsubsection{Operacje protoko³u StartTLS}
+
+		Wys³anie paczki StartTLS przez klienta protoko³u LDAP powoduje rozpoczêcie negocjacji TLS (Transport Layer Security), czyli
+		bezpiecznego --- szyfrowanego --- po³±czenia. Operacja ta jest istotna i w oczywisty sposób ³atwa do zaimplementowania
+		w przypadku wykorzystania protoko³u do komunikacji z innym rodzajem bazy danych. 
+	
+	\subsubsection{Bind --- autoryzacja}
+
+W protokole LDAP klient przeprowadzaj±c autoryzacjê przekazuje nastêpuj±ce parametry serwerowi:
+\begin{description}
+	\item[wersje protoko³u] --- po której chce siê komunikowaæ (obecnie dozwolona tylko wersja 3)
+	\item[nazwa (DN) loguj±cego siê] --- adres (DN) wpisu identyfikuj±cego obiekt autoryzuj±cy siê (przewa¿nie u¿ytkownika)
+	\item[dane autentykuj±ce] --- paczka danych opisuj±cych wybran± metodê autentykacji oraz zestaw danych potrzebnych do jej przeprowadzenia.
+	Specyfikacja podstawowych metod znajduje siê w dokumencie \cite{RFC4520} i przewiduje: logowanie anonimowe, logowanie z podaniem loginu i has³a
+	(czystego b±d¼ zaszyfrowanego) oraz us³ugi SASL (Simple Authentication and Security Layer). 
+\end{description}   
+
+Wykorzystanie tej metody w modelu bazy semistrukturalnej niesie ze sob± nastêpuj±ce trudno¶ci:
+\begin{itemize}
+  \item Zak³ada, ¿e u¿ytkownicy bazy danych s± dostêpni jako element struktury danych. To za³o¿enie wydaje
+  siê sensowne. W najgorszym przypadku u¿ytkownicy mog± byæ udostêpniani jako fragment wirtualnego modelu danych (analogia do
+  katalogu /proc w UNIX'ach).
+  \item Zak³ada, ¿e dysponujemy mechanizmem t³umaczenia adresów DN na konkretne obiekty modelu $AS_0$ (\patrz{SymulowanieLDAPbySBQL}) (w ogólnym przypadku danych -
+  niemo¿liwe lub bardzo si³owe)
+\end{itemize}
+
+Drugie z wymieniony za³o¿eñ jest problemem trudnym, ale przyjmuj±c nawet, ¿e jest nierozwi±zywalny z niewielk± strat± 
+mo¿emy przyj±æ, ¿e operacja BIND z atrybutem name=``o=loxim,cn=kowalski'' odpowiada próbie autentykacji u¿ytkownika Kowalski do bazy danych. 
+
+Reasumuj±c --- pakiet ten jest istotny i mo¿liwe jest jego wykorzystanie przy dostêpie do bazy danych typu \loxim.  
+
+\subsubsection{Unbind --- zakoñczenie po³±czenia}
+Nazwa tego polecenia jest myl±ca, gdy¿ w protokole LDAP oznacza ona operacje zamkniêcia po³±czenia 
+(a nie --- jak mog³a by sugerowaæ --- wylogowania u¿ytkownika). 
+
+Operacja nie niesie ze sob± ¿adnych trudno¶ci w dostêpie do danych o semistrukturalnym modelu. 
+
+\subsubsection{Search --- wyszukiwanie}
+Operacja ,,search'' jest najwa¿niejsz± operacj± w us³ugach katalogowych. Przyjmuje nastêpuj±ce parametry: 
+\begin{description}
+	\item[baseObject] --- adres (DN) miejsca w drzewie od którego (w g³±b) rozpoczynamy przeszukiwanie
+	\item[scope]      --- zakres drzewa, który chcemy przeszukaæ:
+		\begin{description}
+			\item[baseObject] --- przeszukany zostaje tylko wskazany obiekt (w praktyce oznacza to sprawdzenie, czy wskazany obiekt spe³nia zadane warunki lub pobranie
+			wybranych atrybutów z obiektu)
+			\item[singleLevel] --- przeszukane zostaj± (bezpo¶rednie) dzieci danego obiektu
+			\item[wholeSubtree] --- przeszukane zostaje ca³e poddrzewo wyznaczone przez ,,baseObject'', czyli wszyscy potomkowie tego obiektu z nim w³±cznie  
+		\end{description}
+	\item[derefAliases] --- jak aliasy (odpowiednik obiektów pointerowych) maj± byæ traktowane:
+		\begin{description}
+			\item[neverDerefAliases]   --- nigdy nie interpretuj aliasów 
+			\item[derefInSearching]    --- interpretuj aliasy tylko w trakcie przeszukiwania (ale nie w trakcie znajdowania ,,korzenia przeszukiwania'' (baseObject))
+			\item[derefFindingBaseObj] --- interpretuj aliasy w trakcie znajdowania ,,korzenia przeszukiwania'' (baseObject)
+			\item[derefAlways]         --- zawsze interpretuj aliasy
+		\end{description}
+	\item[sizeLimit] --- maksymalna liczba zwróconych wpisów
+	\item[timeLimit] --- maksymalny czas przeszukiwania (w sekundach). W przypadku przekroczenia --- zwrócone zostan± wpisy znalezione do czasu jego up³yniêcia. 
+	\item[typesOnly] --- true lub false --- decyduje, czy zapytanie zwraca pary: opis atrybutu i jego warto¶æ, czy tylko opisy atrybutów 
+	\item[filters] --- z³o¿ony obiekt reprezentuj±cy warunki jakie musz± spe³niaæ zwrócone wpisy (obejmuje: porównania atrybutów ze sta³ymi (tak¿e przybli¿one),
+	operacje logiczne, sprawdzanie istnienia atrybutu). 
+	\item[attributes] --- lista atrybutów, które maj± zostaæ zwrócone dla ka¿dego znalezionego wpisu. Mo¿na te¿ przekazaæ warto¶æ ¿±daj±c± wszystkich atrybutów
+	zawartych w danym wpisie (bez ukrytych). 
+\end{description} 
+
+W odpowiedzi na tê operacjê bêd± przychodziæ (asynchronicznie): lista znalezionych obiektów z warto¶ciami wskazanych atrybutów --- a tak¿e 
+lista serwerów, które mog± znaæ wiêcej odpowiedzi na to zapytanie (mo¿e byæ warto przeprowadziæ to samo przeszukiwanie
+na nich, ale to decyzja klienta). 
+
+Wykorzystanie tego mechanizmu do przeszukiwania bazy danych opartej na jêzyku SBQL wymaga:
+\begin{itemize}
+  \item przet³umaczenia adresu ,,baseObject'' na konkretny obiekt modelu $AS_0$ (czyli na zapytanie SBQL znajduj±ce ten obiekt) (\patrz{SymulowanieLDAPbySBQL}) z
+  interpretacj± (lub nie) aliasów --- w zale¿no¶ci od warto¶ci parametru ,,derefAliases'' (w ogólnym przypadku danych --- niemo¿liwe lub bardzo si³owe) 
+  \item  Przet³umaczenie warunków wyszukiwania zadanych parametrem ,,filter'' na SBQL'a --- uwzglêdniaj±cego wybrany ,,scope'', a tak¿e rozwijanie aliasów
+  (,,deref aliases''). Zak³adaj±c, ¿e mo¿emy sk³adnie SBQL'a rozszerzyæ o funkcje dokonuj±ce bardziej z³o¿onych porównañ (np. z uwzglêdnieniem skrótów MD5 lub
+  SHA1) co wydaje siê w pe³ni realizowalne --- o ile wiemy jak interpretowaæ pojêcie ,,wpis'' i ,,atrybut'' w kontek¶cie przetwarzanych danych ($AS_0$). 
+\end{itemize}
+
+Problemy te --- je¶li zak³adamy, ¿e baza danych zawiera dane w ogólnym modelu $AS_0$ wydaj± siê uniemo¿liwiaæ przeprowadzenie tej operacji. Jednak na danych, które
+potrafimy zinterpretowaæ jako ,,wpisy'' i ,,atrybuty'' mo¿emy z powodzeniem i wydajnie zaimplementowaæ tê operacjê. 
+
+Operacja ta nie nadaje siê do zadawania zapytañ w jêzyku SBQL w szczególno¶ci ze wzglêdu na stosunkowo ,,p³aski'' format odpowiedzi, a tak¿e  braku 
+parametru umo¿liwiaj±cego wygodne przekazanie zapytania SBQL wraz z warto¶ciami jego parametrów. Z tego wzglêdu --- je¶li chcemy zapewniæ mo¿liwo¶æ zadawania
+zapytañ SBQL bazie danych --- musimy zaimplementowaæ now± operacjê do tego przeznaczon± (rozszerzenie protoko³u LDAP).  
+
+\subsubsection{Modify --- zmiana wpisu}
+Operacja ,,modify'' umo¿liwia klientowi dodanie lub usuniêcie atrybutów z wpisu, a tak¿e zamianê warto¶ci wskazanych atrybutów. 
+Zawiera dwa parametry:
+\begin{description}
+	\item[object] --- adres (DN) wpisu, który chcemy zmodyfikowaæ. 
+	\item[changes] --- listê operacji modyfikacji.
+	Operacjami modyfikacji mo¿e byæ:
+		\begin{description}
+			\item[add]  --- dodanie atrybutu (lub warto¶ci do atrybutu --- je¶li ten ju¿ istnieje)
+			\item[delete] --- usuniêcie ca³ego atrybutu (lub pojedynczej warto¶ci --- je¶li zosta³a ona wskazana) 
+			\item[replace] --- zamienienie wszystkich warto¶ci wskazanego atrybuty na za³±czone do tej operacji. 
+		\end{description}
+\end{description} 
+
+Przeprowadzenie tej operacji w bazie typu SBQL jest mo¿liwe w sytuacji kiedy umiemy mapowaæ pojêcia ,,wpis'' i ,,atrybut'' na model danych.
+W ogólnym przypadku musimy odnale¼æ ,,object'' (czyli przet³umaczyæ DN na zapytanie SBQL), a nastêpnie w zale¿no¶ci od wybranej operacji 
+musieliby¶my usun±æ, zmodyfikowaæ lub dodaæ nowe dziecko typu ,,binder'' do wskazanego obiektu. Tworzony binder bêdzie zwi±zany z warto¶ci± typu
+prostego. 
+
+\subsubsection{Add --- dodanie wpisu}
+
+Operacja przyjmuje dwa parametry: adres (DN) wpisu, który chcemy utworzyæ oraz listê atrybutów wraz z warto¶ciami dla tego obiektu.
+
+Przy za³o¿eniu, ¿e umiemy przet³umaczyæ DN na obiekt modelu $AS_0$, który chcemy utworzyæ --- operacjê tê 
+mo¿emy wykonaæ przez utworzenie prostego obiektu typu ,,binder'' dla ka¿dego atrybutu we wskazanym obiekcie.  
+
+\subsubsection{Delete --- usuniêcie wpisu}
+
+Operacja usuwa wskazany wpis. Jej jedynym parametrem jest DN wpisu, który chcemy usun±æ. 
+
+Przy za³o¿eniu, ¿e umiemy przet³umaczyæ DN na obiekt modelu $AS_0$, który chcemy usun±æ --- ta operacja jest wykonywalna i istotna.  
+
+
+\subsubsection{Abandon --- przerwanie przetwarzanej w³a¶nie operacji}
+
+Operacja ta przyjmuje parametr bêd±cy id wykonywanej aktualnie operacji (przewa¿nie polecenia SEARCH) i wymusza jej zakoñczenie. 
+
+Operacja istotna i mo¿liwa do implementacji w bazie danych opartej na SBQL.  
+
+%\subsubsection{Symulowanie operacji protoko³u LDAP na bazie danych w modelu $AS_0$}
+%\label{OperacjeLDAPw$AS_0$}
+
+% \subsection{Zgodno¶æ}
+% 	Mo¿liwe jest, by system \loxim{} realizowa³ wszystkie powy¿sze operacje, a tym
+% 	samym byæ ``pe³nym'' serwerem us³ugi katalogowej w rozumieniu protoko³u LDAP.
+% 	
+% 	Operacjê search, modify, delete i add bez wiêkszych problemów mo¿na
+% 	przet³umaczyæ na jêzyk SBQL. Jedynym wymaganiem jest, by SBQL
+% 	implementowa³ nastêpuj±ce funkcje:
+% 	\begin{description}
+% 		\item[approxMatch] (RFC4511 (4.5.1.7.5)) --- zwracaj±c±,  czy dwa dane elementy
+% 			,,prawie'' (np. fonetycznie, leksykalnie) do siebie pasuj±. Mo¿na te¿ u¿yæ
+% 			operacji ,,równa siê'' do najprostszej implementacji tej funkcji (t³umacz
+% 			LDAP $\to$ SBQL przet³umaczy j± jako ,,równa siê``)
+%     \end{description}
+% 	
+% 	Szczególnie interesuj±ce wydaje siê po³±czenie mo¿liwo¶ci relacyjnych baz
+% 	danych (transakcje, skomplikowane regu³y wyszukiwania i aktualizacji danych) i
+% 	us³ug katalogowych w jednym narzêdziu.
+	
+
+\subsection{Podsumowanie}
+
+Pomimo wielu cech wspólnych obu narzêdzi \patrz{wspolne} wykorzystanie
+czystego protoko³u LDAP jako jedynego interfejsu komunikacyjnego jest problematyczne.
+
+Wykazali¶my, ¿e operacje ,,bind'', ,,unbind'', ,,startTLS'', ,,abandon'' mo¿na stosunkowo 
+³atwo wykorzystaæ w bazie danych typu SBQL (mo¿na je wykorzystaæ w ka¿dym protokole, który
+przeprowadza autentykacje). Stanowi± one ,,standardowy'' szkielet, na którym mo¿na budowaæ 
+protokó³ w³a¶ciwy. 
+
+Operacje ,,add'', ,delete'' i ,,modify'' jeste¶my w stanie przeprowadziæ w bazie danych typu \loxim{} o ile 
+potrafimy zinterpretowaæ DN jako adres konkretnego obiektu w tej bazie. W praktyce jest to tylko mo¿liwe je¶li
+baza u¿ywa schematu, który jeste¶my wstanie zinterpretowaæ jako zgodny z us³ug± LDAP \patrz{SymulowanieLDAPbySBQL}.
+
+Operacja ,,search'' jest tak¿e tylko mo¿liwa, gdy dane bazy danych potrafimy zobrazowaæ jako zgodne z us³ug± LDAP.
+
+Do przeprowadzania zapytañ i modyfikacji przy pomocy jêzyka SBQL bêdziemy potrzebowali wprowadziæ rozszerzenie protoko³u LDAP 
+(wprowadzanie rozszerzeñ jest przewidziane przez ten standard).
+
+\subsubsection{Wizja realizacji}
+	W tym podpunkcie przedstawiê pomys³ na maksymaln± integracjê bazy danych SBQL i protoko³u LDAP, która ma sens: 
+	
+	\begin{enumerate}
+		\item Dostêp do takiej bazy danych by³by realizowany przez protokó³ LDAP z dodatkowymi pakietami umo¿liwiaj±cymi
+		wykonywanie parametryzowanych zapytañ SBQL.
+		\item W schemacie bazy danych powinny istnieæ wyró¿nione poddrzewa, który maj± okre¶lon± strukturê --- zgodn± ze schematem us³ugi LDAP (najlepiej kontrolowan±
+		poprzez model np. $AS_1$ lub wy¿sze). Dostêp do tych danych (i tylko nich) powinien byæ zapewniony poprzez operacje ,,Search'', ,,Add'' , ,,Delete'' i
+		,,Modify''.
+		\item Do ca³ego schematu bazy danych powinien istnieæ dostêp za pomoc± jêzyka SBQL przy pomocy rozszerzenia protoko³u omówionego w punkcie 1.  	
+	\end{enumerate}    
+
+	Takie rozwi±zanie ma nastêpuj±ce zalety:
+	\begin{itemize}
+      \item U³atwiamy ¿ycie programistom narzêdzi klienckich --- którzy mog± wykorzystaæ ju¿ istniej±cy (dla protoko³u LDAP) kod do autentykacji.
+      \item Korzystamy z bogactwa metod autentykacji przygotowanych ju¿ dla protoko³u LDAP.
+      \item U³atwiamy integracjê wszystkich danych w pojedynczym narzêdziu ze spójnym interfejsem.   
+      \item U³atwiamy migracjê ze standardowego modelu ,,LDAP + baza danych''  do modelu ,,SBQL z interfejsem LDAP''.
+      \item Nie tworzymy ,,nowych (wcale nie lepszych) standardów'' w informatyce.
+      \item Umo¿liwiamy wspó³pracê bazy typu \loxim{} z wieloma ju¿ istniej±cymi aplikacjami i bibliotekami. 
+    \end{itemize}
+
+% 
+% Wady protoko³u LDAP przy omawianym zastosowaniu:
+% \begin{itemize}
+%   \item --- Brak natywnej mo¿liwo¶ci zadawania zapytañ w jêzyku SBQL 
+% \end{itemize}
+% 
+% Protokó³ LDAP przewiduje mo¿liwo¶æ wprowadzania rozszerzeñ.
+
+%\section{Proponowane rozszerzenia protoko³u LDAP}
+\label{RozszerzenieLDAP}
+

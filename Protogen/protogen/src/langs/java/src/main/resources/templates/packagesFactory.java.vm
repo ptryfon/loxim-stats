@@ -1,0 +1,36 @@
+package ${packageName}.${java_group_package_name_sufix};
+
+import java.util.EnumSet;
+import pl.edu.mimuw.loxim.protogen.lang.java.template.ptools.Package;
+import pl.edu.mimuw.loxim.protogen.lang.java.template.exception.ProtocolException;
+
+#if ($group.mainGroup)
+import pl.edu.mimuw.loxim.protogen.lang.java.template.base_packages.ASCPingPackage;
+import pl.edu.mimuw.loxim.protogen.lang.java.template.base_packages.ASCPongPackage;
+#end
+
+public class ${group.factoryClassName} implements pl.edu.mimuw.loxim.protogen.lang.java.template.pstreams.PackagesFactory{
+
+	private static ${group.factoryClassName} instance;
+
+	public synchronized static ${group.factoryClassName} getInstance() {
+		if (instance == null)
+			instance = new ${group.factoryClassName}();
+		return instance;
+	}
+
+	public Package createPackage(long /*${jth.getTypeName(${id_type})}*/ package_id) throws ProtocolException {
+		#if ($group.mainGroup)
+		if (package_id==ASCPingPackage.ID) return new ASCPingPackage();
+		if (package_id==ASCPongPackage.ID) return new ASCPongPackage();
+		#end
+		#foreach($p in $group.packageWrappers)
+			#if (! $p.abstract )
+			if (package_id==${p.className}.ID) return new ${p.className}();
+			#end
+		#end
+		throw new ProtocolException("Cannot create instance of package with id:"+package_id+". Unknown package.");
+	}
+}
+
+

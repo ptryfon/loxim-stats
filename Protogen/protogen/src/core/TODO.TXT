@@ -1,0 +1,4 @@
+1) Obsługa długości w stringach i sstringach (size)
+(np. język użytkownika w W-C-hello). 
+
+2) Obsługa "nullable"

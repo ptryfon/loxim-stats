@@ -1,0 +1,196 @@
+%& --translate-file latin2pl
+\documentclass[a4paper,10pt]{article}
+
+\usepackage{polski}
+\usepackage[latin2]{inputenc}
+\usepackage{makeidx}
+\usepackage{graphicx}
+
+\hbadness=10000
+
+ \makeindex  
+
+\input{newTCPProto-commands}
+
+% Marginesy
+\textwidth17cm \textheight24.5cm \topmargin-40pt
+\oddsidemargin-0.04cm
+
+
+\newcommand{\nazwadokumentu}{
+	Projekt protoko³u komunikacyjnego - wersja \wersjaproto\\
+	Klient$\leftrightarrow$Serwer \\
+	\small{}}
+\newcommand{\wersjadokumentu}{0.8}
+
+
+
+\title{\nazwaprojektu \ --- \nazwadokumentu}
+\author{Piotr Tabor (pt214569@students.mimuw.edu.pl)}
+
+
+\begin{document}
+\maketitle
+
+% finicja naglowka posrodku strony
+\newcommand{\nagl}[1]{\par\begin{center}{\bf{#1}}\end{center}\par}
+% Definicja tego na poczatku
+\newcommand{\pocz}{\par {\bf{\nazwaprojektu}}\par {\bf{\nazwadokumentu}}\par {\bf{Wersja: \wersjadokumentu}}\par}
+
+%% Historia
+% environment
+\newenvironment{historia}{\nagl{Historia}\begin{tabular*}{16.4cm}{c|c|c|l}
+{\bf{Data}} & {\bf{Wersja}} & {\bf{Autor}} & {\bf{Zmiany}} \\}{\end{tabular*}}
+% item
+\newcommand{\hist}[4]{#1 & #2 & #3 & \parbox[t]{8cm}{#4} \\ }
+
+%% Tabelka o znaczeniu poszczególnych bajtów w protokole
+\newenvironment{bajty}{\\ \begin{tabular}{|l|l|l|}\hline
+{\bf{Od - do}} & {\bf{Typ/Warto¶æ}} & {\bf{Zawarto¶æ}} \\\hline}{\hline\end{tabular}\\\\} % item
+
+\newcommand{\bp}[4]{\parbox[t]{2.5cm}{#1 $\rightarrow$ #2} &
+\parbox[t]{3cm}{#3\\} & \parbox[t]{10cm}{#4\vspace{1em}} \\ } 
+
+%\newcommand{\bp}[4]{#1 $\rightarrow$ #2 & #3 & #4\vspace{1em} \\ } 
+
+
+
+%% Spis tresci
+\newcommand{\spistresci}{\tableofcontents}
+
+
+\par
+{\bf{Wersja: \wersjadokumentu}}
+\par
+
+\begin{historia}
+	\hist{2006-12-30}{0.1}{Piotr Tabor}{Pierwsza wersja dokumentu}
+	\hist{2006-12-31}{0.2}{Piotr Tabor}{Poprawki wed³ug uwag dra hab. Krzysztofa
+	Stencla} 
+	\hist{2007-01-05}{0.3}{Piotr Tabor}{Poprawki g³ównie literówek wykrytych
+	podczas seminarium 2007-01-04} 
+	\hist{2007-01-12}{0.4}{Piotr Tabor}{Poprawki z seminarium 2007-01-11.
+	Wprowadzenie typu VOID. Po³±czenie informacji o dokonanych modyfikacjach z
+	ka¿dym przeprowadzonym zapytaniem}
+	\hist{2007-02-10}{0.5}{Piotr Tabor}{Poprawki zwi±zane z implementacj±: 
+	Wymiana w nag³ówku pakietu zmienno-d³ugo¶ciowego pola varuint na sta³e: uint32}
+	\hist{2007-02-19}{0.6}{Piotr Tabor}{Dodanie rysunku przej¶æ pomiêdzy stanami
+	serwera}
+	\hist{2007-02-19}{0.7}{Piotr Tabor}{Usuniêcie pakietu Q-C-CANCEL (na rzecz
+	VQ-SC-CANCEL). Uporz±dkowanie i ujednolicenie kwestii odpowiedzi
+	synchronicznych.} 
+	\hist{2007-05-10}{0.8}{Piotr Tabor}{Po³±czenie VQ-SC-CANCEL z VQ-SC-ABORT. Uspójnienie
+	rozmiarów kilku struktur. Dodanie diagramu warstw protoko³u i diagramu przej¶æ
+	miêdzy stanami \patrz{diagram_stanow}.}
+	\hist{2008-05-28}{0.9}{Piotr Tabor}{Rozwiniêcie kwestii stref
+	czasowych \patrz{strefy_czasowe} i porównywania napisów. Poprawienie b³êdów
+	sk³adniowych. Zmiana nazwy typu z ,,bob'' na ,,bytes''.}
+	
+	
+	
+\end{historia}
+%\newpage
+\spistresci
+\newpage
+
+\input{newTCPProto-core}    
+    % \section{Problemy otwarte}
+ 	%	\subsection{Jak liczyæ ilo¶æ modyfikacji danych dokonana poprzez zapytanie SBQL?}
+
+
+
+    
+\begin{thebibliography}{}   
+
+\bibitem[1]{MySQL}MySQL Protocol - version 10. Ian Redfern,
+[03.12.2006], (http://www.redferni.uklinux.net/mysql/MySQL-Protocol.html) 
+
+\bibitem[2]{PostgreSQL}PostgreSQL Frontend/Backend Protocol - version.
+PostgreSQL Fundation, [03.12.2006],
+(http://developer.postgresql.org/pgdocs/postgres/protocol.html)
+
+\bibitem[3]{SBQL}Stack-Based Approach (SBA) and Stack-Based Query Language
+(SBQL). Kazimierz Subieta, [03.12.2006], (http://www.sbql.pl)
+
+\bibitem[4]{TDS}TDS Protocol Documentation. FreeTDS, [10.12.2006], (http://www.freetds.org/tds.html)
+
+\bibitem[5]{UTS10}Unicode Technical Standard \#10 Unicode Collation Algorithm.
+Mark Davis, Ken Whistler, [29.05.2008], (http://www.unicode.org/reports/tr10/)
+
+\bibitem[6]{ISO8601}ISO 8601 - Numeric representation of Dates and Time, ISO,
+[29.05.2008],
+(http://www.iso.org/iso/support/faqs/faqs\_widely\_used\_standards/widely\_used\_standards\_other/date\_and\_time\_format.htm)
+\end{thebibliography}
+
+
+% \printindex 
+  
+\end{document}
+
+
+
+
+% Problemy ze starym serwerem:
+% 	 - Brak niezale¿no¶ci od architektury
+% 	 - Bugi i brak autora
+% 	 - Problemy ze wspó³bie¿no¶ci±
+% 	 - Du¿e zamieszanie z sygna³ami (blokowanie/odblokowywanie sygna³ów)
+% 	 - Brak konsoli administracyjnej
+% 	 
+% Protokó³ Piotr Tabora:
+% 	- 
+% 	
+% Wielow±tkowo¶æ
+% Oddzielna konsola administracyjna
+% Abstrakcja w kliencie od konkretnego u¿ycia
+% Obs³uga sygna³ów ofraniczona do niezbêdnego minimum
+% :) Jawne wprowadzenie pojêcia sesji
+% Konfiguracja poziomów bezpieczeñstwa 
+% 
+% Problemy:
+%  Komunikacja miêdzy w±tkami, bez sygna³ów
+%  (czemu nie wewnêtrzne pipy'e) 
+%  
+% Mo¿liwo¶æ zrobienia timeoutów.
+% 
+% Potrzeby: 
+% 	- Dodaæ timeout do ACCEPT'a \ldots
+% 	- Nie potrzeba timeout'a do readów i writów (mo¿na zawsze zamkn±æ socket'a z
+% 	zewn±trz)
+% 
+% - Wprowadzanie rozszerzeñ do protoko³u: 
+% 	- polecenie administracyjny. 
+% 	
+% Dodaæ gramatyka:
+% 
+% # 		  - polecenie steruj±ce (analogia do dyrektywy z C++)
+% /**/ i // - komentarz (klient ma prawo od³owiæ komentarz)
+% --
+% 		  - HINT'y (pewnie w komentarzach)
+% 		  
+% Polecenia administracyjne:
+% 	-backup
+% 	-shutdown
+% 	-zamykanie sesji
+% 		  
+% Model w±tków: 
+% 	- Jeden g³ówny w±tek serwera
+% 	- Do obs³ugi keep-alive (wysy³aæ pingi)
+% 	- Do komunikacji i wysy³ania zapytañ
+% 	
+% Kiedy w±tki dotykaj± nie swoich klas:
+% 	- Koñczenie sesji przez wynikaj±ce z protoko³u liub spowodowane przez wykoanie
+% 	zapytania
+% 	- Koñczenie sesji na ¿±danie administratora
+% 	- W±tki konsoli administracyjnej.
+% 	
+% \loxim -- SBQL'e
+% 	
+% LoximSession
+% LoximServer
+% LoximClient
+% LoximConsole (bêdzie LoximClientem)
+% Server
+% LSBQL
+
+%http://darksleep.com/player/JavaAndUnsignedTypes.html

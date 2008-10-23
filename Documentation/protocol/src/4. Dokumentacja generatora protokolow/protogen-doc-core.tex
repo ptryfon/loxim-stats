@@ -1,0 +1,792 @@
+\section{Wprowadzenie}
+
+\subsection{Wstêp}
+
+Generator protoko³ów jest narzêdziem s³u¿±cym do generowania implementacji
+protoko³u sieciowego w ró¿nych jêzykach programowania w oparciu o zadany opis. 
+Danymi wej¶ciowymi generatora jest specyfikacja protoko³u zapisana w pliku XML
+(patrz: \ref{xml}) oraz wybrany jêzyk programowania. Danymi wyj¶ciowymi jest 
+kod ¼ród³owy w wybranym jêzyku programowania umo¿liwiaj±cy wygodne pos³ugiwanie
+siê tym protoko³em.
+
+\subsection{Licencjonowanie}
+
+Projekt ,,ProtoGen 1.0'' jak i wygenerowany przez niego kod jest licencjonowany
+na zasadach licencji ,,Apache Software License 2.0''
+(http://www.apache.org/licenses/LICENSE-2.0).
+
+\subsection{Korzy¶ci p³yn±ce ze stosowania tego rozwi±zania}
+
+Zastosowanie tego narzêdzia daje nastêpuj±ce korzy¶ci:
+\begin{itemize}
+  \item Gwarantuje zgodno¶æ na poziomie danych przysy³anych sieci± dla
+  implementacji w ró¿nych jêzykach programowania
+  \item Pozwala unikn±æ programi¶cie ,,mechanicznego'' tworzenia du¿ych ilo¶ci
+  kodu a zaraz b³êdów z tym zwi±zanych
+  \item Gwarantuje, ¿e ca³y kod protoko³u jest napisany w sposób spójny
+  \item Gwarantuje, ¿e wygenerowany kod jest odporny na podstawowe zagro¿enia w
+  komunikacji pomiêdzy ró¿nymi architekturami: problem kolejno¶ci bajtów w
+  s³owie (big-endian/little-endian) oraz problem rozmiaru podstawowych typów
+  danych (architektury od 8 do 64 bitów).
+  \item Tworzy zestawy testów, które
+  umo¿liwiaj± sprawdzanie komunikacji tak¿e pomiêdzy kodem wygenerowanym dla
+  ró¿nych jêzyków programowania. 
+  \item Umo¿liwia aktualizacjê ca³ego modu³u poprzez aktualizacjê generatora i
+  ponowne wygenerowanie kodu. 
+\end{itemize}
+
+\subsection{Ograniczenia rozwi±zania}
+
+ProtoGen nie jest narzêdziem, które umo¿liwia wygenerowanie modu³u
+obs³uguj±cego ka¿dy protokó³. W obecnej wersji zosta³y przyjête poni¿sze
+ograniczenia.
+
+\subsubsection{Budowa paczki}
+
+		Ka¿da paczka ma nastêpuj±cy schemat budowy:
+		\begin{bajty}
+                	\bp{0}{$a$}{'zale¿y od konfiguracji'}{Sta³a mówi±ca o typie
+                	paczki, a tym samym okre¶laj±ca format zawartych w nich danych}
+                	\bp{$a+1$}{$a+4$}{uint32}{n- Sta³a okre¶laj±ca
+                	ilo¶æ
+                	danych w³a¶ciwych zawartych w paczce - wyra¿ona w bajtach}
+                	\bp{$a+5$}{$a+5+n$}{patrz opis zale¿ny od typu paczki}{Dane
+                	w³a¶ciwe paczki zgodne z formatem okre¶lonym poprzez typ paczki}
+ 		    \end{bajty}	
+		Formalnie bêdziemy mówili, ¿e paczka siê sk³ada z dwu-polowego nag³ówka oraz
+		cia³a. Nag³ówek wyznacza typ paczki i rozmiar danych w³a¶ciwych w niej
+		zawartych, a cia³o - to dane interpretowane zale¿nie od typu paczki. 
+		
+		
+\subsubsection{Big/endian - little/endian}
+Przyjêto, ¿e wszystkie dane s± przesy³ane przez sieæ w formacie big-endian.
+
+\subsubsection{Format napisów}
+Przyjêto, ¿e wszystkie napisy s± przesy³ane przez sieæ w formacie UTF-8. 
+
+\subsection{Z³o¿ona logika}
+	
+	Obecnie ProtoGen nie wspiera z³o¿onej logiki w konstrukcji pakietów. Niemo¿liwe jest warunkowanie istnienia pola w zale¿no¶ci od warto¶ci innego pola,
+	a tak¿e tworzenia tablicy pól. Obecnie ProtoGen przewiduje mo¿liwo¶æ
+	nadpisania wygenerowanego kodu. W ten sposób - nadpisuj±c kod obs³ugi
+	odpowiedniej paczki - mo¿na uzyskaæ obs³ugê dowolnie z³o¿onej logiki.
+
+	O planowanym rozwi±zaniu tego problemu w przysz³ych wersjach mo¿esz przeczytaæ
+	w rozdziale ,,Dalszy rozwój'' (patrz: \ref{roadmap})		 	
+
+\newpage
+\section{Dokumentacja u¿ytkownika}
+	\subsection{Uruchomienie}
+	
+	ProtoGen uruchamiamy bêd±c w katalogu w którym znajduj± siê jego pliku
+	uruchomieniowe. W zale¿no¶ci od systemu operacyjnego uruchamiamy protoGen.sh
+	(UNIXy), b±d¼ protoGen.bat (MS Windows) podaj±c nastêpuj±ce parametry:
+	\begin{description}
+		\item[¶cie¿ka do deskryptora] - ¶cie¿ka do deskryptora xml opisuj±cego
+		protokó³ (mo¿e byæ wzglêdem bie¿±cego katalogu). Wskazany plik powinien byæ w formacie
+		opisanym w rozdziale \ref{xml}. 
+		\item[¶cie¿ka do katalogu docelowego] - ¶cie¿ka do katalogu w którym bêd±
+		umieszczane wygenerowane pliki. 
+		\item[jêzyk docelowy] - jêzyk do którego generujemy kod. Obecnie obs³ugiwane
+		warto¶ci tego parametru to: ,,cpp'' dla C++ oraz ,,java''. 
+		\item[¶cie¿ka do katalogu z plikami nadpisuj±cymi] (parametr opcjonalny)  -
+		parametr s³u¿y do wskazania katalogu w którym powinny siê znajdowaæ pliki, którymi
+		chcemy nadpisaæ dzia³anie generatora protoko³u. Mo¿e siê zdarzyæ sytuacja w
+		której protoGen generowa³by plik ,,ABC.xxx''. Je¿eli we wskazanym katalogu
+		bêdzie siê znajdowa³ plik ,,ABC.xxx'' to on w³a¶nie zostanie u¿yty zamiast
+		wygenerowanego pliku. Pliki umieszczamy w tym katalogu bezpo¶rednio (bez
+		podkatalogów). 
+		
+		Konieczno¶æ nadpisania pliku pojawia siê najczê¶ciej w sytuacji, gdy mamy
+		paczkê zawieraj±c± skomplikowan± logikê. Wtedy piszemy kod obs³ugi takiej
+		paczki rêcznie, a nastêpnie zmuszamy protoGen, by go wykorzysta³ (umie¶ci³ w
+		kodzie wynikowym).
+    \end{description}
+
+	\subsubsection{Przyk³ad}
+	
+	Polecenie:\\
+		
+	./protoGen.sh ./conf/loxim.xml ./cpp\_proto cpp ./conf/overwritten/cpp\\
+	
+	 Spowoduje wygenerowanie kodu w jêzyku C++ w podkatalogu cpp\_proto, w oparciu 
+	 o deskryptor ./conf/loxim.xml -  sprawdzaj±c, czy istniej± nadpisuj±ce pliki w
+	 katalogu ./conf/overwritten/cpp. 
+		
+	
+	\subsection{Format deskryptora protoko³u} \label{xml}
+	
+	Poni¿ej znajduje siê przyk³adowy deskryptor z opisem
+	poszczególnych znaczników. 
+		
+	\subsubsection{Przyk³adowy deskryptor}
+
+\lstset{language=xml,tabsize=2,breaklines=true,showspaces=false,showstringspaces=false,showtabs=false}
+\lstinputlisting{src/example.xml}
+
+\subsubsection{\znacznik{protocol}}
+	\begin{figure}[hbt]
+		\centering
+			\includegraphics[scale=0.7]{xml/protocol_level.jpg}
+		\caption{Konstrukcja znacznika \znacznik{protocol}}
+	\end{figure}
+	Element \znacznik{protocol} grupuje znaczniki:
+	\begin{description}
+		\item[\znacznik{metadata}] - opisuj±ce ogólne cechy wygenerowanego protoko³u, a
+		tak¿e specyficzne cechy zale¿ne od docelowego jêzyka programowania.
+		\item[\znacznik{enums}] - opisuje typy wyliczeniowe, które mog± zostaæ zastosowane
+		w protokole. 
+		\item[\znacznik{packet-groups}] - opisuje grupy paczek (a zatem te¿ paczki),
+		które, b±d¼ buduj± protokó³ bezpo¶rednio, b±d¼ mog± byæ elementami sk³adowymi
+		paczek. 
+    \end{description}
+
+\subsubsection{\znacznik{metadata}}
+	\begin{figure}[hbt]
+		\centering
+			\includegraphics[scale=0.45]{xml/metadata_level.jpg}
+		\caption{Konstrukcja znacznika \znacznik{metadata}}
+	\end{figure}
+	Element \znacznik{metedata} s³u¿y opisaniu pewnych ogólnych w³asno¶ci protoko³u.
+	\begin{description}
+		\item[major-version]G³ówna wersja protoko³u opisanego w tym deskryptorze.
+		Przyjmuje siê, ¿e protoko³y o tym samym g³ównym numerze wersji s± ze sob±
+		kompatybilne (co nie znaczy, ¿e mo¿na za pomoc± nich przekazaæ te same
+		informacje, ale to ¿e obie implementacjê bêd± rozmawia³y tak, jakby
+		implementowa³y tê sam± - starsz± - wersjê protoko³u). 
+		\item[minor-version]Poboczny numer wersji protoko³u.
+		\item[languages]Definicja cech protoko³u zale¿nych od docelowego jêzyka
+		programowania w którym bêdziemy generowali kod. Szczegó³y opisano poni¿ej. 
+    \end{description}
+
+\subsubsection{\znacznik{lang id="java"}} \label{java-packageName}
+	Znacznik ten opisuje dodatkowe atrybuty potrzebne do wygenerowania protoko³u dla jêzyka 
+	Java.
+		
+	\begin{description} 
+		\item[packageName]~\\ Nazwa pakietu (jako grupy klas w jêzyku Java)
+		zawieraj±cego kod protoko³u. Nale¿y oddzieliæ wszystkie elementy ¶cie¿ki przy pomocy symbolu '.'. \\
+		Wpisana tu nazwa bêdzie tak¿e \znacznik{groupId} w utworzonym projekcie Maven2 
+		(http://maven.apache.org).
+		\item[artifactId]~\\ Nazwa utworzonego modu³u - g³ównie na potrzeby Maven2. 
+		\item[version]~\\ Wersja utworzonego modu³u - g³ównie na potrzeby Maven2.  
+	\end{description}
+	
+\subsubsection{\znacznik{lang id="cpp"}}
+	Jêzyk C++ nie posiada w obecnej wersji ProtoGen dodatkowych atrybutów. 
+	
+\subsubsection{\znacznik{enums}} \label{enum}
+	\begin{figure}[hbt]
+		\centering
+			\includegraphics[scale=0.60]{xml/enums.jpg}
+		\caption{Konstrukcja znacznika \znacznik{enums}}
+	\end{figure}
+
+	Znacznik enums opisuje typy wyliczeniowe, które mog± zostaæ wykorzystane w
+	protokole. Typy wyliczeniowe mo¿na wykorzystaæ bezpo¶rednio - jako pole 
+	zawieraj±ce jedn± warto¶æ z wielu, a tak¿e do stworzenia ,,mapy warto¶ci'',
+	czyli do przechowania zbioru warto¶ci (patrz: \ref{enum-map}). 
+	
+	\begin{figure}[hbt]
+		\centering
+			\includegraphics[scale=0.8]{xml/item.jpg}
+		\caption{Konstrukcja znacznika \znacznik{item}}
+	\end{figure}
+	
+	Ka¿dy element (\znacznik{item}) danego typu wyliczeniowego ma przypisan± warto¶æ
+	typu ca³kowitoliczbowego. Je¶li chcemy dany typ wyliczeniowy wykorzystaæ jako
+	,,mapê'' to musimy nadaæ poszczególnym elementom warto¶ci o bitach zapalonych
+	roz³±cznie.
+	
+	Znacznik \znacznik{enum} opisuje pojedynczy typ wyliczeniowy.
+	 
+	Jego atrybuty to:
+	\begin{description}
+		\item[name]    Nazwa typu wyliczeniowego. Przy pomocy tej nazwy bêdzie mo¿na
+		siê odwo³ywaæ do tego typu. Od tej nazwy zale¿y te¿ nazwa wygenerowanej klasy
+		przechowuj±cej ten typ. 
+		\item[as-type] Nazwa typu numerycznego (patrz: {\ref{typy}}), na który bêd±
+		odwzorcowywane poszczególne enumy. 
+    \end{description}
+
+	Ponadto znacznik \znacznik{enum} buduj± elementy \znacznik{item}.  
+	
+\subsubsection{\znacznik{item}}
+	Znacznik item opisuje pojedyncz± warto¶æ, któr± mo¿e przyj±æ typ wyliczeniowy.
+	Pojedyncza warto¶æ posiada nastêpuj±ce atrybuty:
+	\begin{description}
+		\item[name]  Nazwa elementu typu wyliczeniowego.
+		\item[value] Warto¶æ na któr± ten element wyliczeniowy bêdzie odwzorowywany.
+		Powinna mie¶ciæ siê w zakresie typu wskazanego w atrybucie ,,as-type'' w znacznika
+		\znacznik{enum} definiuj±cym ten typ wyliczeniowy. Warto¶æ mo¿e byæ podana
+		w systemie dziesiêtnym lub 16-tkowym poprzez poprzedzenie jej symbolami
+		,,0x'', np. 0x000f4 - co jest szczególnie przydatne przy konstrukcji typów
+		u¿ywanych do budowania mapy warto¶ci (patrz: \ref{enum-map}). 
+	\end{description}
+	
+	Ponadto znacznik \znacznik{item} mo¿e posiadaæ elementy typu \znacznik{description}
+	zawieraj±ce dane do budowania dokumentacji (patrz: \ref{description}).
+
+\subsubsection{\znacznik{packet-groups}}
+	\begin{figure}[hbt]
+		\centering
+			\includegraphics[scale=0.6]{xml/packets_groups_level.jpg}
+		\caption{Konstrukcja znacznika \znacznik{packet-groups}}
+	\end{figure}
+
+	Znacznik \znacznik{packet-groups} grupuje znaczniki \znacznik{packet-group}, które stanowi± grupê
+	paczek. Grupa paczek to taki zbiór definicji paczek, która ma ró¿ne identyfikatory i w podobny
+	sposób jest wykorzystana. W szczególno¶ci dla ka¿dej grupy paczek zostanie
+	wygenerowana fabryka paczek, która pozwala powo³aæ do ¿ycia paczkê na
+	podstawie zadanego jej ,,id''. 
+		
+	Zawsze powinna istnieæ grupa ,,g³ówna'' (bez nazwy). Jej elementy bêd±
+	stanowi³y podstawowe paczki protoko³u. Pozosta³e (nazwane) grupy s±
+	pomocnicze i mogê s³u¿yæ do budowania pól innych paczek. 
+	
+	Grupê charakteryzuj± nastêpuj±ce atrybuty: 
+	\begin{description}
+    	\item[name] - nazwa grupy. Musi istnieæ jedna grupa bez nazwy (grupa
+    	,,g³ówna'')
+    	\item[id-type] - nazwa typu ca³kowitoliczbowego(patrz: \ref{typy}),
+    	którego typu bêd± identyfikatory paczek. 
+    	\item[extend] (atrybut opcjonalny) - nazwa paczki, która stanowi bazê dla
+    	wszystkich paczek tej grupy (o ile nie nadpisano atrybutem extend
+    	paczki). Je¶li nie zdefiniowano to paczki bêd± dziedziczy³y domy¶lnie z
+    	g³ównego typu ,,Packet'' nie zawieraj±cego ¿adnych pól. 
+    \end{description}
+
+	Znacznik \znacznik{packet-group} zawiera podelementy \znacznik{packets}. 
+
+\subsubsection{\znacznik{packets}}
+	\begin{figure}[hbt]
+		\centering
+			\includegraphics[scale=0.6]{xml/packets_level.jpg}
+		\caption{Konstrukcja znacznika \znacznik{packet}}
+	\end{figure}
+
+	Element \znacznik{packets} grupuje znaczniki \znacznik{packet}, które opisuj± pojedyncz± paczkê
+	danych. Paczka danych sk³ada siê z pól (patrz: \ref{field}), a ponadto jest
+	opisana nastêpuj±cymi atrybutami:
+	\begin{description}
+		\item[name] - Nazwa paczki
+		\item[id-value] (atrybut opcjonalny) - Warto¶æ identyfikuj±ca paczkê (typu
+		,,id-type''	z definicji grupy paczek). Je¶li paczka nie posiada id-value - to jest
+		traktowana jako ,,abstrakcyjna'', co oznacza, ¿e mo¿e byæ wykorzystana tylko
+		jako paczka bazowa dla innych paczek.
+		\item[extends-group] (atrybut opcjonalny) - nazwa grupy paczek, w której siê
+		znajduje siê paczka zdefiniowana w polu ,,extends-packet''.  
+		\item[extends-packet] (atrybut opcjonalny) - nazwa paczki z grupy
+		''extends-group'', któr± deklarowana w³a¶nie paczka rozszerza (o dodatkowe pola). 
+	\end{description}
+	
+
+\subsubsection{\znacznik{field}} \label{field}
+	\begin{figure}[hbt]
+		\centering
+			\includegraphics[scale=0.70]{xml/field_level.jpg}
+		\caption{Konstrukcja znacznika \znacznik{fields}}
+	\end{figure}
+
+	Znacznik \znacznik{field} opisuje pojedyncze pole paczki. Podelementem znacznika \znacznik{field}
+	mo¿e byæ znacznik \znacznik{description} (patrz: \ref{description}). Atrybutami znacznika
+	field niezale¿nie od typu tego pola s±:
+	\begin{description}
+		\item[name] - Nazwa pola
+		\item[type] - Typ pola (patrz: \ref{typy})
+	\end{description}
+
+	Pozosta³e atrybuty zale¿± od typu pola:
+	\begin{itemize}
+	\item Dla typów prostych dostêpny jest dodatkowo atrybut ,,value'' mog±cy
+	zawieraæ domy¶ln± zawarto¶æ pola. 
+
+	\item Dla typów: string, sstring, varuint dostêpny jest atrybut ''nullable''
+	(przyjmuj±cy warto¶ci true lub false), ¶wiadcz±cy o tym, czy dopuszczalna jest
+	zawarto¶æ NULL dla tego pola. 
+	
+	\item Dla typów: string i sstring dostêpny jest atrybut size zawieraj±cy
+	maksymaln± dopuszczaln± d³ugo¶æ napisu. 
+	\end{itemize}
+	
+	Ponadto nastêpujê typy z³o¿one wymagaj± szczególnego omówienia:
+	\begin{description}
+		\item[enum] - Pole zawiera jedn± z warto¶ci z listy wyboru. Atrybut
+		,,object-ref'' wskazujê na nazwê odpowiedniego ,,enuma'' (patrz: \ref{enum}).
+		Pole bêdzie serializowane jako typ ca³kowitoliczbowy wskazany w definicji
+		,,enuma'' o warto¶ci odpowiadaj±cej ,,id'' wybranego elementu z tej listy
+		wyboru.
+		\item[enum-map] \label{enum-map} - Pole zawiera bitow± mapê warto¶ci w listy
+		wyboru. Atrybut ,,object-ref'' wskazujê na nazwê odpowiedniego ,,enuma'' (patrz: \ref{enum}).
+		Pole bêdzie serializowane jako typ ca³kowitoliczbowy wskazany w definicji
+		,,enuma'' o warto¶ci odpowiadaj±cej sumie ,,id'' wybranych elementu z tej
+		listy wyboru.
+		\item[package] - Pole zawiera cia³o (bez nag³ówka) ca³ej innej paczki.
+		Atrybut ,,object-ref'' wskazujê na nazwê grupy paczek, a ,,object-ref-id'' na
+ 		nazwê konkretnej paczki nale¿±cej do tej grupy.
+		\item[package-map] - Pole zawiera cia³o ca³ej innej paczki nale¿±cej
+		do wskazanej grupy paczek, ale konkretny rodzaj paczki jest wyznaczony przez
+		warto¶æ innego - uprzednio wymienionego pola. Zatem ,,object-ref'' wskazujê
+		na nazwê grupy paczek, a ,,object-ref-id'' na nazwê wcze¶niej
+		zdefiniowanego pola w bie¿±cej paczce - które bêdzie zawiera³o
+		identyfikator paczki, który ma zostaæ w bie¿±cym polu wczytany/zapisany.
+		O polu ,,package-map'' nale¿y my¶leæ jak o polu ,,package'' z dynamicznie
+		wyznaczanym konkretnym rodzajem paczki. 
+    \end{description}
+	
+		
+	
+\subsubsection{\znacznik{description}}\label{description}
+	Znacznik \znacznik{description} mo¿e wystêpowaæ w wielu miejscach specyfikacji
+	protoko³u. S³u¿y on do wygenerowania dokumentacji dotycz±cej wskazanego
+	elementu protoko³u. Znacznik ten zawiera atrybut ,,lang'', którego warto¶ci±
+	powinien byæ kod jêzyka (kraju) - dwuliterowy, opisuj±cy jêzyk w którym zosta³
+	przeprowadzony opis. Zawarto¶ci± znacznika mo¿e byæ dowolny tekstem tak¿e
+	wzbogacony o znaczniki jêzyka HTML. 
+
+\subsubsection{Schemat (XML Schema) deskryptora protoko³u} \label{xml-schema}
+\lstset{language=xml,tabsize=2,breaklines=true,showspaces=false,showstringspaces=false,showtabs=false}
+\lstinputlisting{protogen.xsd}
+
+\subsection{Proste typy danych}\label{typy}
+
+	\subsubsection{Postanowienia ogólne}
+		\begin{itemize}
+          \item Je¶li w sposób szczególny nie zaznaczono inaczej (a raczej
+          nigdzie nie zaznaczono) wszystkie warto¶ci zapisywane s± w formacie
+          Big-endian.  W szczególno¶ci obejmuje to typy ca³kowitoliczbowe,
+          rzeczywiste, oraz napisy w kodowaniu UTF-8 tak¿e stosuj± kolejno¶æ
+          Big-endian. 
+        \end{itemize}               
+
+ 	 \subsubsection{Ca³kowitoliczbowe: uint8,  sint8, uint16, sint16, int32,
+ 	 uint32, uint64, sint64} \label{integers}
+		
+	Pierwsza litera determinuje, czy mamy do czynienia z typem ze znakiem (u -
+	unsigned), czy z typem bez znaku (s - signed).  Liczba na koñcu wyra¿a d³ugo¶æ
+	typu wyra¿on± w bitach. 
+	
+	Typy s± kodowane oczywi¶cie w kolejno¶ci Big-endian. 
+		
+	\subsubsection{varuint - Ca³kowitoliczbowy z kompresj± (1,3,5 lub 9 bajtów)}
+		Bêdzie to typ u¿ywany g³ównie do oznaczania d³ugo¶ci stringów i paczek. 
+		
+		Rozwi±zanie techniczne zosta³o zaczerpniête z protoko³u serwera MySQL
+		\cite{MySQL}.
+		
+		Idea jest taka, ¿e krótkie stringi ($<250$znaków ) bêd± siê
+		pojawia³y najczê¶ciej i chcemy mieæ najmniejszy narzut na zapisanie d³ugo¶ci
+		(jedno bajtowy). 
+		
+		Zatem semantyka pierwszego bajtu jest nastêpuj±ca (w zale¿no¶ci od jego
+		warto¶ci)
+		\begin{description}
+			\item[0-249] Warto¶æ ta jest jednocze¶nie warto¶ci± wynikow±
+			\item[250] Warto¶æ jest null'em (zostawiamy dla umo¿liwienia stosowanie
+			tego rozwi±zania z systemami relacyjnymi) 
+			\item[251] Warto¶æ ta poprzedza 2-bajtowe (uint16) pole w warto¶ci± w³a¶ciw±
+			\item[252] Warto¶æ ta poprzedza 4-bajtowe (uint32) pole z warto¶ci± w³a¶ciw±
+			\item[253] Warto¶æ ta poprzedza 8-bajtowe (uint64) pole z warto¶ci±
+			w³a¶ciw±. Nie nale¿y jednak korzystaæ z warto¶ci wiêkszych ni¿ $2^{63}-1$
+			(MAX\_SINT64), ze wzglêdu na to, ¿e w Javie nie s± obs³ugiwane 8 bajtowe
+			typy bez znaku. 
+        \end{description}
+	
+	\subsubsection{string - £añcuchy tekstu}
+	
+	S³u¿y do przesy³ania tekstów. Teksty te musz± byæ kodowane za pomoc± UTF-8. 
+	
+	Format warto¶ci typu string jest nastêpuj±cy:
+	Najpierw idzie pole typu varuint - opisuj±ce d³ugo¶æ w bajtach nastêpuj±cego
+	potem ci±gu w UTF-8 (Big-endian). 
+	
+	\subsubsection{sstring - Krótki ³añcuch tekstu}
+	Jest to tak naprawdê wariant typu string, 
+	ale ograniczony do ³añcuchów nie d³u¿szych ni¿ 249 bajtów.
+	Czyli wtedy pole oznaczaj±ce d³ugo¶æ ma jeden bajt. 
+	Jego wewnêtrzna reprezentacja zupe³nie siê nie ró¿ni od typu
+	string - zosta³ on wyró¿niony formalnie - ze wzglêdu na uproszczenie notacji 
+	u¿ywanej przy opisach formatów poszczególnych paczek, a tak¿e ze wzglêdów
+	bezpieczeñstwa - gdy¿ pozwala zmniejszyæ ryzyko typu DOS poprzez zawê¿enie 
+	wielko¶ci danych, które mog± byæ zinterpretowane przez serwer. 
+	
+	\subsubsection{bytes - Dane binarne}\label{bytes}
+	S³u¿y do przesy³ania danych binarnych (tablic bajtów).  
+	
+	Format warto¶ci typu bytes jest nastêpuj±cy:
+	Najpierw jest wysy³ane pole typu varuint - opisuj±ce d³ugo¶æ w bajtach
+	nastêpuj±cego potem ci±gu bajtów.
+	
+\newpage
+\section{Dokumentacja wygenerowanego kodu}
+
+\subsection{Wygenerowany kod dla jêzyka Java}
+Generator protoko³ów generuje kod w jêzyku Java w wersji nie starszej ni¿ Java
+1.5, poniewa¿ korzysta z typów wyliczeniowych (enums) i szablonów (generics). 
+
+Zak³adaj±c, ¿e w metadanych opisu protoko³u dla jêzyka java zadeklarowano
+packageName jako 'taki.sobie.protokol' (patrz: \ref{java-packageName}) to
+zostanie wygenerowany nastêpuj±cy projekt:
+
+\subsubsection{pom.xml}
+Pom.xml (Project Object Model) jest to plik opisuj±cy jak kompilowaæ ten modu³
+za pomoc± narzêdzia ,,Maven2''. Wskazuje on w szczególno¶ci biblioteki od
+których projekt zale¿y. 
+
+\hyphenation{lo-xim}
+\hyphenation{ja-va}
+\hyphenation{pro-to-lib}
+
+Modu³ protoko³u wygenerowany przez ProtoGen zale¿y od
+biblioteki: \\pl.edu.mimuw.loxim.protogen.lang.java.protolib:java\_protolib, która
+zawiera definicjê odpowiednich strumieni i klas bazowych (patrz:
+\ref{java-protolib}).
+
+Aby zbudowaæ modu³ wystarczy (zak³adaj±c, ¿e u¿ytkownik posiada zainstalowanego Maven'a 2
+\footnote{http://maven.apache.org/download.html}) wykonaæ polecenie ,,mvn package'' w
+katalogu zawieraj±cym plik pom.xml. Wyniki procesu budowania zostan±
+umieszczone w katalogu target. 
+
+\subsubsection{Typy wyliczeniowe - enumy}
+	Ka¿dy ,,enum'' (typ wyliczeniowy) zostanie zapisany do katalogu
+	./src/main/java/taki/sobie/protokol/enums jako ,,Enum'' jêzyka Java
+	(wersja 1.5+).
+	
+	Typ ,,enum-map'' jest odwzorcowywany na odpowiedni ,,java.util.EnumSet$<$typ
+	bazowy$>$'' (patrz: \ref{enum-map}).
+
+\subsubsection{Grupy paczek} \label{java-PackagesFactory}
+
+Paczki grupy g³ównej zostan± zapisane w folderze
+./src/main/java/taki/sobie/protokol/packages, a paczki z pozosta³ych grup w 
+folderze ./src/main/java/taki/sobie/protokol/packages\_$[$nazwa\_grupy$]$.
+
+W ka¿dym takim folderze powstanie tak¿e klasa bêd±ca fabryk± paczek, 
+która udostêpnia metodê:\\ 
+
+public Package createPackage(long package\_id) throws
+ProtocolException\\ 
+
+Metoda ta tworzy paczkê w zale¿no¶ci od danego identyfikatora
+paczki.
+
+\subsubsection{Paczki} \label{java-paczki}
+
+Dla ka¿dej paczki zadeklarowanej w opisie protoko³u jest tworzona
+odpowiednia klasa paczki. Wszystkie paczki rozszerzaj± nastêpuj±c± klasê: 
+
+\lstset{language=java,tabsize=2,breaklines=true,showspaces=false}
+\lstinputlisting{src/Package.java}
+
+Ponadto ka¿da paczka zawiera nastêpuj±ce elementy:
+\begin{itemize}
+  \item Publiczn± sta³± ID zawieraj±c± identyfikator paczki
+  \item Bezparametrowy konstruktor paczki
+  \item Konstruktor paczki, który przyjmuje wszystkie pola paczki jako swoje
+  parametry
+  \item Gettery i settery dla wszystkich pól paczki 
+\end{itemize}
+
+\subsubsection{Testy}
+
+Generator wygeneruje tak¿e testy:
+\begin{description}
+  \item[./src/test/java/taki/sobie/protokol/tests/TestRunnerRec.java] - \\ 
+  Klasa jêzyka java daj±ca siê uruchomiæ (zawiera metodê main), która uruchamia
+  proces, który otwiera gniazdo TCPIP na wskazanym porcie i sprawdza, czy
+  otrzymane paczki s± zgodne z oczekiwanymi. Jedynym parametrem jaki mo¿na
+  przekazaæ uruchamiaj±c tê klasê jest numer portu na którym chcemy otworzyæ
+  gniazdo serwera. 
+  
+  Program ten mo¿na wykorzystywaæ do testów komunikacji z implementacjami
+  protoko³u dla innych jêzyków programowania.  
+  
+  \item[./src/test/java/taki/sobie/protokol/tests/TestRunnerSender.java] - \\
+  Klasa jêzyka java daj±ca siê uruchomiæ (zawiera metodê main), która uruchamia
+  proces, który wysy³a na wskazany port na wskazanym serwerze paczki testowe.
+  Uruchamiaj±c musimy przekazaæ dwa parametry: nazwê hosta docelowego (lub
+  adres IP), a tak¿e port do którego chcemy siê pod³±czyæ. 
+  
+  Program ten mo¿na wykorzystywaæ do testów komunikacji z implementacjami
+  protoko³u dla innych jêzyków programowania. 
+   
+  \item[./src/test/java/taki/sobie/protokol/tests/TestPackagesFactory.java] -\\
+  Zawiera konstruktor wygenerowanych paczek testowych. Stanowi bazê dla
+  innych testów. 
+  \item[./src/test/java/taki/sobie/protokol/tests/TestPackages.java] -\\
+  Jest JUnitowym testem, który zapisuje wszystkie paczki testowe do
+  strumienia, a nastêpnie je wszystkie wczytuje i sprawdza, czy paczki s±
+  równe. Ten test jest u¿ywany w fazie testów w procesie budowania modu³u
+  przez Maven 2. 
+\end{description}
+
+\subsubsection{java\_protolib}\label{java-protolib}
+Biblioteka java\_protolib.jar jest plikiem, który zawiera niezale¿n± od
+konkretnego protoko³u definicjê podstawowych klas i interfejsów.  
+
+Poni¿ej listujemy kluczowe klasy znajduj±ce siê w tej bibliotece: 
+
+\begin{description}
+\item[pl.edu.mimuw.loxim.protogen.lang.java.template.layers.ProtocolLayer0]~\\
+Podstawowa klasa u¿ywana w aplikacji do obs³ugi protoko³u. Zawiera metody
+wysy³aj±ce przekazan± paczkê, a tak¿e czekaj±c± i odczytuj±c± paczkê. Klasa
+ponadto automatycznie odpowiada na paczkê ,,Ping'' paczk± ,,Pong''. 
+
+\item[pl.edu.mimuw.loxim.protogen.lang.java.template.exception.ProtocolException]~\\
+Wyj±tek rzucany gdy co¶ w protokole pójdzie nie tak jak powinno. 
+
+\item[pl.edu.mimuw.loxim.protogen.lang.java.template.pstreams.PackageOutputStream]~\\
+Strumieñ zak³adany na OutputStream'ie, który udostêpnia metodê
+writePackage(Package p).
+
+\item[pl.edu.mimuw.loxim.protogen.lang.java.template.pstreams.PackageInputStream]~\\
+Strumieñ zak³adany na InputStreamie, który udostêpnia metodê readPackage().
+
+\item[pl.edu.mimuw.loxim.protogen.lang.java.template.streams.PackageOutputStreamWriter]~\\
+Strumieñ zak³adany na OutputStream'ie, który udostêpnia metody pozwalaj±ce
+zapisaæ proste typy danych (patrz \ref{typy}). 
+
+\item[pl.edu.mimuw.loxim.protogen.lang.java.template.streams.PackageInputStreamReader]~\\
+Strumieñ zak³adany na InputStream'ie, który udostêpnia metody pozwalaj±ce
+odczytaæ proste typy danych (patrz \ref{typy}). 
+
+\item[pl.edu.mimuw.loxim.protogen.lang.java.template.auth.AuthPassMySQL]~\\
+Klasa pomocnicza oferuj±ca wsparcie dla przeprowadzania autoryzacji tak± metod±
+jak robi to serwer bazy danych MySQL (,,Password Algorithm'' \cite{MYSQL})
+
+\item[pl.edu.mimuw.loxim.protogen.lang.java.template.pstreams.PackagesFactory]~\\
+Interfejs, który implementuj± wszystkie fabryki pakietów (patrz:
+\ref{java-PackagesFactory})
+
+\item[pl.edu.mimuw.loxim.protogen.lang.java.template.ptools.Package]~\\
+Klasa bazowa dla wszystkich paczek.
+\end{description}
+
+
+\subsection{Wygenerowany kod dla jêzyka C++}
+Kod dla jêzyka C++ jest samodzielny (jedyn± zale¿no¶ci± jest OpenSSL potrzeby
+do dzia³aj±cej autoryzacji metod± zastosowan± w serwerze MySQL). Buduje siê go
+za pomoc± polecenia make wydanego w katalogu ,,protocol''. 
+
+\subsubsection{./make.defs}
+Zawiera definicjê narzêdzi i bibliotek u¿ywanych przez make. 
+
+\subsubsection{Autentykacja - ./protocol/auth}
+W tym folderze zawarte s± klasy pomocnicze potrzebne do 
+przeprowadzenia autentykacji. Obecnie zaimplementowana jest tylko klasa
+AuthPassMySQL wspieraj±ca autentykacj± metod± zastosowan± w serwerze MySQL i
+wykorzystuj±ca sumy kontrolne SHA1. 
+
+\subsubsection{Strumienie paczek - ./protocol/pstreams}
+
+PackageOutputStream - Strumieñ zak³adany na OutputStream;ie, który udostêpnia
+metodê writePackage(Package* p).
+
+PackageInputStream - Strumieñ zak³adany na InputStream'ie, który udostêpnia
+metodê readPackage() wczytuj±c± dany pakiet ze strumienia. 
+
+\subsubsection{Typy wyliczeniowe - ./protocol/enums}
+Ka¿dy typ wyliczeniowy definiuje odpowiedni ,,enum'' jêzyka C++. 
+Tworzony jest tak¿e typ mapy (zawieraj±cy pole bitowe dla ka¿dej warto¶ci typu
+wyliczeniowego). 
+
+Ponadto tworzona jest tak¿e fabryka umo¿liwiaj±ca stworzenie instancji enuma lub
+mapy enumów na podstawie przekazanej warto¶ci ca³kowitej, a tak¿e zapisanie
+enuma lub mapy enumów jako liczbê. 
+
+\subsubsection{Grupy pakietów}
+
+Paczki grupy g³ównej zostan± zapisane w katalogu: ./protocol/packages, 
+a grup nazwanych w ./protocol/packages\_$[$nazwa\_grupy$]$.
+
+Dla ka¿dej grupy zostanie wygenerowana klasa, bêd±ca fabryk± paczek w
+zale¿no¶ci od przekazanego identyfikatora paczki. 
+
+\subsubsection{Paczki}
+
+Dla ka¿dej paczki zostaje zaimplementowana klasa analogiczna do tej opisanej 
+dla jêzyka Java (patrz: \ref{java-paczki}). 
+
+
+\subsubsection{Testy - ./protocol/tests}
+\begin{description}
+	\item[./protocol/tests/TestRunnerRec]
+	Uruchamia
+  proces, który otwiera gniazdo TCPIP na wskazanym porcie i sprawdza, czy
+  otrzymane pakiety s± zgodne z oczekiwanymi. Jedynym parametrem jaki mo¿na
+  przekazaæ uruchamiaj±c tê klasê jest numer portu na którym chcemy otworzyæ
+  gniazdo serwera. 
+  
+  Program ten mo¿na wykorzystywaæ do testów komunikacji z implementacjami
+  protoko³u w innych jêzykach programowania.  
+
+	\item[./protocol/tests/TestRunnerSender]
+	 Uruchamia
+  proces, który wysy³a na wskazany port na wskazanym serwerze pakiety testowe.
+  Uruchamiaj±c musimy przekazaæ dwa parametry: nazwê hosta docelowego (lub
+  adres IP), a tak¿e port do którego chcemy siê pod³±czyæ. 
+  
+  Program ten mo¿na wykorzystywaæ do testów komunikacji z implementacjami
+  protoko³u w innych jêzykach programowania. 
+
+	\item[./protocol/tests/TestPackagesFactory]
+  Jest to fabryka wygenerowanych pakietów testowych. Stanowi bazê dla
+  innych testów. 
+\end{description}
+
+\subsubsection{Gniazda - ./protocol/sockets}
+Katalog zawiera prost±, obiektow± implementacjê gniazd. Jest ona wzorowana na
+tej dostêpnej w jêzyku Java i umo¿liwia ³atwe u¿ywanie gniazd sieciowych (zarówno
+serwerowych jak i klienckich) i otwieranie strumieni na nich. 
+
+\begin{itemize}
+\item ./protocol/sockets/TCPIPServerSocket
+\item ./protocol/sockets/TCPIPServerSingleSocket
+\item ./protocol/sockets/AbstractSocket
+\item ./protocol/sockets/TCPIPClientSocket
+\end{itemize}
+
+\subsubsection{Strumienie ./protocol/streams}
+Katalog zawiera elementarne, obiektowe implementacje strumieni - wzorowane na
+jêzyku Java. 
+
+\begin{description}
+  \item[./protocol/streams/AbstractOutputStream,AbstractInputStream] -
+  abstrakcyjne klasy bazowe dla strumieni
+  \item[./protocol/streams/DescriptorInputStream,DescriptorOutputStream] -
+  prosta implementacja strumieni oparta o zapis i odczyt ze wskazanego
+  deskryptora systemu operacyjnego (pliku, urz±dzenia, gniazda sieciowego,
+  ³±cza). 
+  \item[./protocol/streams/PriorityOutputStream]
+  Klasa okalaj±ca (wrapper) strumienia wyj¶ciowego, który udostêpnia dodatkow±
+  metodê writePriority(char*), która przy wielu odwo³aniach do tego obiektu (z
+  wielu w±tków) zostanie wykonana przed wykonaniami zapisu w zwyk³ych metodach
+  write(char*) (odpowiednia synchronizacja na semaforach). 
+\end{description}
+
+\subsubsection{Warstwy protoko³u - ./protocol/layers/ProtocolLayer0}
+Podstawowa klasa u¿ywana w aplikacji do obs³ugi protoko³u. Zawiera metody
+wysy³aj±ce przekazan± paczkê, a tak¿e metodê czekaj±c± na i odczytuj±c± paczkê.
+Klasa ponadto automatycznie odpowiada na paczki ,,Ping'' paczkami ,,Pong''. 
+
+\subsubsection{Klasy pomocnicze}
+
+\begin{description}
+\item[./protocol/ptools/Endianness] -\\ 
+Klasa zawiera metody u³atwiaj±ce konwersjê Little/Big Endian dla typów prostych
+\item[./protocol/ptools/StringBufferStack] -\\
+Klasa umo¿liwia szybk± konstrukcje napisów (buforów znaków) poprzez sklejanie
+napisów (tablic znaków). 
+\item[./protocol/ptools/Package] -\\
+Klasa bazowa dla wszystkich paczek
+\item[./protocol/ptools/CharArray] -\\
+Tablica znaków z okre¶lonym rozmiarem 
+\item[./protocol/ptools/PackageBufferWriter] -\\
+Klasa zawieraj±ca metody zapisuj±ce do danego strumienia typy proste. 
+\item[./protocol/ptools/PackageBufferReader] -\\
+Klasa zawieraj±ca metody odczytuj±ce z danego strumienia typy proste.
+\end{description}
+
+\subsubsection{Przyk³adowy kod u¿ywaj±cy protokó³ po stronie serwera}
+
+\lstset{language=C++,tabsize=2,breaklines=true,showspaces=false}
+\lstinputlisting{src/UsageExampleServer.cpp}
+
+
+\subsubsection{Przyk³adowy kod u¿ywaj±cy protokó³ po stronie klienta}
+
+\lstset{language=C++,tabsize=2,breaklines=true,showspaces=false}
+\lstinputlisting{src/UsageExampleClient.cpp}
+
+\newpage
+\section{Dokumentacja programistyczna}
+	\subsection{Architektura rozwi±zania}
+		\subsubsection{Java}
+ProtoGen zosta³ napisany w jêzyku Java co umo¿liwia u¿ywanie go na wiêkszo¶ci
+platform sprzêtowych i z wykorzystaniem wielu systemów operacyjnych.
+ 
+		\subsubsection{Plexus - zorientowana na komponenty}
+ProtoGen zosta³ napisany w architekturze zorientowanej na komponenty. Do
+zarz±dzania komponentami u¿ywamy biblioteki Plexus (http://plexus.codehaus.org).
+Z punktu widzenia u¿ytkownika i programisty, zastosowanie tej architektury
+umo¿liwia stosunkowo ³atwe dodanie obs³ugi nowego jêzyka generowanego kodu.
+Wymaga ono jedynie stworzenia implementacji interfejsu:
+,,pl.edu.mimuw.loxim.protogen.api.PartialLanguageGenerator'', a nastêpnie zadeklarowanie jej w
+ lokalnym deskryptorze components.xml jar'a zawieraj±cego tê implementacjê jako: 
+
+\lstset{language=xml,tabsize=2,breaklines=true,showspaces=false,showstringspaces=false,showtabs=false}
+\lstinputlisting{src/components.xml}
+
+
+W momencie, gdy taki jar znajdzie siê w classpath'ie uruchamianego ProtoGen'a,
+to jêzyk ,,NowyJêzyk'' bêdzie dostêpny jako jeden z docelowych jêzyk
+dla generowanego kodu.
+
+Reasumuj±c, g³ówn± korzy¶ci± zastosowania architektury zorientowanej na
+komponenty, jest umo¿liwienie zewnêtrznym dostawcom dodawanie implementacji
+nowych jêzyków bez ¿adnej ingerencji w dostêpny dotychczas kod. 
+		
+	\subsection{Proces budowania aplikacji}
+	
+	\begin{enumerate}
+      \item Zainstalowaæ Maven2 (http://maven.apache.org/download.html)
+      \item Wej¶æ do katalogu g³ównego ProtoGen'a i wydaæ polecenie ,,mvn
+      clean package assembly:assembly''
+      \item W podkatalogu ,,target/protogen-x.xx.xx-bin.dir'' bêdzie siê
+      znajdowa³a wersja dystrybucyjna projektu. 
+    \end{enumerate}
+	
+\subsection{Dalszy rozwój} \label{roadmap}
+	
+	\subsubsection{Z³o¿ona logika}
+	Obecnie ProtoGen nie wspiera z³o¿onej logiki w konstrukcji pakietów. Niemo¿liwe jest warunkowanie istnienia pola w zale¿no¶ci od warto¶ci innego pola,
+	a tak¿e tworzenia tablicy pól. Obecnie ProtoGen przewiduje mo¿liwo¶æ
+	nadpisania wygenerowanego kodu. W ten sposób mo¿na - nadpisuj±c kod obs³ugi
+	odpowiedniej paczki - uzyskaæ obs³ugê dowolnie z³o¿onej logiki.
+		 	
+	¯eby zminimalizowaæ konieczno¶æ wykorzystania takiego obej¶cia, a tym
+	samym uzyskaæ ,,pe³no¶æ'' rozwi±zania przewidujemy w przysz³ych wersjach
+	mo¿liwo¶æ wprowadzenia nastêpuj±cych atrybutów do pola field (patrz:
+	\ref{field}):
+	\begin{description}
+		\item[if-field] --- Zawiera nazwê pola z bie¿±cej paczki (wcze¶niej
+		zadeklarowanego), którego warto¶æ bêdziemy porównywali do ,,if-value''. 
+		\item[if-value] --- Je¿eli zawarto¶æ pola o nazwie zadanej atrybutem ,,if-field''
+		jest równa warto¶ci ,,if-value'' to opisywane pole wystêpuje w tej paczce. W
+		przeciwnym przypadku nie wystêpuje.
+		\item[repeat] --- Zawiera nazwê pola ca³kowitoliczbowego, które zawiera
+		informacjê ile razy bie¿±ce pole jest powtórzone.  
+    \end{description}
+	
+	\subsubsection{Wiêcej jêzyków programowania}
+
+	System jest przystosowany do rozszerzania o generatory do innych jêzyków
+	programowania bez modyfikacji kodu ¼ród³owego projektu bazowego. Dodanie
+	obs³ugi nowego jêzyka programowania wymaga napisania komponentu systemu Plexus
+	implementuj±cego interfejs
+	,,pl.edu.mimuw.loxim.protogen.api.PartialLanguageGenerator''. 
+	
+	Oczywistym jest, ¿e dodanie generatorów do jêzyków programowania takich jak,
+	C\#, Python, Ruby, PHP, Ocaml istotnie zwiêkszy u¿yteczno¶æ tego projektu. 
+	\subsubsection{Generowanie dokumentacji}
+	Podobnie jak z dodatkowymi jêzykami programowania, wydaje siê istotn± z punktu
+	widzenia u¿ytkownika mo¿liwo¶æ uzyskania aktualnej dokumentacji protoko³u.
+	Cech± po¿±dan± jest by ProtoGen by³ wstanie wygenerowaæ dokumentacjê -
+	najlepiej do wielu najpopularniejszych formatów (HTML, \LaTeX, PDF, ODF).
+	
+	By unikn±æ rêcznej obs³ugi tych wszystkich formatów - wydaje siê uzasadnionym
+	u¿ycie narzêdzia typu Doxia (http://maven.apache.org/doxia), które umo¿liwia
+	konwersje pomiêdzy wieloma formatami ,,bogatego'' tekstu.
+	
+	\subsubsection{Wsparcie dla wielu wersji pobocznych}
+	
+	Zarówno definicjê paczki, jak i pola mo¿na rozszerzyæ o atrybut
+	,,since-minor-version'', który bêdzie specyfikowa³ od której wersji pobocznej
+	protoko³u dane pole wystêpuje.
+	
+	Dodatkowo wymagamy, by kolejno¶æ
+	warto¶ci ,,since-minor-version'' zgadza³a siê z kolejno¶ci± pól w paczce i by
+	ka¿de pole posiadaj±ce ten atrybut posiada³o tak¿e zadeklarowan± warto¶æ
+	domy¶ln± (pole ,,value''). Warunki te s± wystarczaj±ce, by zachowaæ zgodno¶æ
+	protoko³u pomiêdzy ró¿nymi wersjami pobocznymi.  
+

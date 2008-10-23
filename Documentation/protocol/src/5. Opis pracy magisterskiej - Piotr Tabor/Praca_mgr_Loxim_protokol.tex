@@ -1,0 +1,42 @@
+\documentclass{pracamgr}
+
+\usepackage{polski}
+
+\usepackage[latin2]{inputenc}
+\usepackage{pdfpages}
+\usepackage{listings}
+
+\input{praca-header}
+
+\begin{document}
+
+\input{praca-core}
+
+\appendix
+
+\input{praca-cd-content}
+
+%\chapter{Deskryptor protoko³u \loxim'a dla generatora
+%protoko³ów ,,ProtoGen~1.0''}\label{listing-loxim-xml}
+
+%\lstset{language=xml,tabsize=2,breaklines=true,showspaces=false,showstringspaces=false,showtabs=false}
+%\lstinputlisting{loxim2.xml}
+
+%\chapter{Dokumentacja generatora protoko³ów}
+%\includepdf[pages=-]{../protogen-doc/protogen-doc.pdf}
+
+\begin{thebibliography}{99}
+	\addcontentsline{toc}{chapter}{Bibliografia}
+	
+	\input{praca-biblio}
+
+\end{thebibliography}
+
+\end{document}
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% coding: latin-2
+%%% End:

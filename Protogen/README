@@ -1,0 +1,56 @@
+Praca magisterska na wydziale Matematyki Informatyki i Mechaniki Uniwersytetu Warszawskiego
+
+
+Temat: 	       ,,Projekt i implementacja protoko³u sieciowego dla semistrukturalnej bazy danych 
+                 - na przyk³adzie systemu LoXiM''
+
+Autor: 	       Piotr Adam Tabor (piotr.tabor@gmail.com). 
+Stan z dnia:   2008-06-01
+
+
+
+P³yta zawiera nastêpuj±ce pliki i katalogi: 
+
+./dokumenty/0. Praca magisterska - Piotr Tabor.pdf
+./dokumenty/1. Analiza starego protoko³u dla LoXiM.pdf				
+./dokumenty/2. Dokumentacja nowego protoko³u dla LoXiM.pdf
+./dokumenty/3. Analiza mo¿liwo¶ci wykorzystania protoko³u LDAP dla SBQL DB.pdf
+./dokumenty/4. Dokumentacja generator protoko³ów.pdf
+
+./dokumenty/src/                       - Folder zawiera ¼ród³owe pliki tex, a tak¿e obrazki potrzebne do 
+                                         wygenerowanie w/w dokumentów przy pomocy systemu LaTeX
+
+./protogen/                            - Folder zawiera pliki generatora protoko³ów ,,ProtoGen''
+./protogen/src/				 * pliki ¼ród³owe - do kompilacjia za pomoc± narzêdzia ,,Maven2''
+./protogen/src/api/			   - API generatora protoko³ów z którego korzystaj± generatory dla 
+                                             poszczególych jêzyków
+./protogen/src/core/                       - rdzeñ wykonywalne aplikacji ,,ProtoGen''
+./protogen/src/langs/			   - implementacjie generacji kodu dla ró¿nych jêzyków
+./protogen/src/langs/cpp/                     - do C++
+./protogen/src/langs/java/                    - do Javy
+./protogen/src/langs/java_protolib/           - biblioteka, z której korzysta wygenerowany kod dla Javy
+
+./protogen/bin/                        - skompilowana wersja generator protoko³ów ,,ProtoGen''
+./protogen/bin/*.jar                      * biblioteki zawieraj±ce ,,ProtoGen'' i jego zale¿no¶ci
+./protogen/bin/protoGen.sh                * skrypt uruchamiaj±cy ,,ProtoGen'' w systemach Unixowych (bash)
+./protogen/bin/protoGen.bat               * skrypt uruchamiaj±cy ,,ProtoGen'' w systemach firmy Microsoft
+
+./protogen/example/                    - katalog zawiera zestaw danych potrzebnych do wygenerowania protoko³u 
+./protogen/example/over/                  dla LoXiMa przy u¿yciu za³±czonego generatora "ProtoGen"
+./protogen/example/over/cpp/              * zestaw plików do nadpisania przy generowaniu do C++
+./protogen/example/over/java/             * zestaw plików do nadpisania przy generowaniu do Javy
+./protogen/example/loxim2.xml             * opis XML protoko³u dla LoXiMa 
+./protogen/example/run.sh	       - skrypt, który uruchamia generowanie kodu do C++ i Javy
+
+
+
+./loxim_protocol/                      - katalog zawiera wygenerowane biblioteki na potrzeby systemu LoXiM:
+./loxim_protocol/cpp/                     * w jêzyku C++
+./loxim_protocol/java/                    * w jêzyku Java
+
+
+
+./licencje                             - katalog zawiera tre¶ci licencji na których znajduje siê sama praca,
+                                         a tak¿e tych na których zosta³y wydane wykorzystywane w pracy 
+					 komponenty i biblioteki
+

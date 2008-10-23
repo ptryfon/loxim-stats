@@ -1,0 +1,55 @@
+\chapter{Zawarto¶æ p³yty} \label{spis-tresci-cd}
+
+Do pracy zosta³a za³±czona p³yta CD-ROM z zawarto¶ci± zorganizowan± w
+nastêpuj±cy sposób:
+
+\begin{description}
+	\item[./dokumenty/0. Praca magisterska - Piotr Tabor.pdf]
+	\item[./dokumenty/1. Analiza starego protoko³u dla LoXiM.pdf]
+	\item[./dokumenty/2. Dokumentacja nowego protoko³u dla LoXiM.pdf]
+	\item[./dokumenty/3. Analiza mo¿liwo¶ci wykorzystania protoko³u LDAP dla SBQL
+	DB.pdf]
+	\item[./dokumenty/4. Dokumentacja generator protoko³ów.pdf]
+	\item[./dokumenty/src/] - Folder zawiera ¼ród³owe pliki
+	tex, a tak¿e obrazki potrzebne do wygenerowanie w/w dokumentów przy pomocy
+	systemu \LaTeX
+	\item[./protogen/] - Folder zawiera pliki generatora protoko³ów ,,ProtoGen'' 
+	\item[./protogen/src/] - pliki ¼ród³owe - do kompilacji za pomoc± narzêdzia
+	,,Maven2''
+	\item[./protogen/src/api/] - API generatora protoko³ów z którego korzystaj±
+	generatory dla poszczególnych jêzyków
+	\item[./protogen/src/core/] - rdzeñ wykonywalne aplikacji ,,ProtoGen''
+	\item[./protogen/src/langs/] - implementacje generacji kodu do ró¿nych
+	jêzyków
+	\item[./protogen/src/langs/cpp/] - do C++
+	\item[/protogen/src/langs/java/] - do Javy
+	\item[./protogen/src/langs/java\_protolib/] - biblioteka, z której
+	korzysta wygenerowany kod dla Javy
+	\item[./protogen/bin/] - skompilowana wersja generatora protoko³ów
+	,,ProtoGen''
+	\item[./protogen/bin/*.jar] - biblioteki zawieraj±ce ,,ProtoGen'' i jego
+	zale¿no¶ci
+	\item[./protogen/bin/protoGen.sh] - skrypt uruchamiaj±cy ,,ProtoGen'' w
+	systemach Unixowych (bash)
+	\item[./protogen/bin/protoGen.bat] - skrypt uruchamiaj±cy ,,ProtoGen'' w
+	systemach firmy Microsoft
+	\item[./protogen/example/] - katalog zawiera zestaw danych
+potrzebnych do wygenerowania protoko³u
+	 \item[./protogen/example/over/]  - dla LoXiMa przy u¿yciu za³±czonego
+	 generatora "ProtoGen"
+	\item[./protogen/example/over/cpp/] - zestaw plików do nadpisania
+przy generowaniu do C++ 
+	\item[./protogen/example/over/java/] - zestaw plików do nadpisania przy
+	generowaniu do Javy
+	\item[./protogen/example/loxim2.xml] - opis XML protoko³u dla
+LoXiMa
+	\item[./protogen/example/run.sh] - skrypt, który uruchamia
+generowanie kodu do C++ i Javy
+	\item[./loxim\_protocol/] - katalog zawiera wygenerowane
+	biblioteki na potrzeby systemu LoXiM:
+	\item[./loxim\_protocol/cpp/] - w jêzyku C++ 
+	\item[./loxim\_protocol/java/] - w jêzyku Java
+	\item[./licencje] - katalog zawiera tre¶ci licencji na których znajduje siê
+	sama praca,a tak¿e tych na których zosta³y wydane wykorzystywane w pracy
+	komponenty i biblioteki.
+\end{description}

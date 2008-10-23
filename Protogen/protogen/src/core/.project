@@ -1,0 +1,17 @@
+<projectDescription>
+  <name>protogen-core</name>
+  <comment/>
+  <projects>
+    <project>protogen-api</project>
+    <project>protogen-cpp</project>
+    <project>protogen-java</project>
+  </projects>
+  <buildSpec>
+    <buildCommand>
+      <name>org.eclipse.jdt.core.javabuilder</name>
+    </buildCommand>
+  </buildSpec>
+  <natures>
+    <nature>org.eclipse.jdt.core.javanature</nature>
+  </natures>
+</projectDescription>

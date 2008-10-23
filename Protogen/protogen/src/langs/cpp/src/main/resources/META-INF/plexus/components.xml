@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component-set>
+	<components>
+		<component>
+			<role>pl.edu.mimuw.loxim.protogen.api.PartialLanguageGenerator</role>
+			<role-hint>cpp</role-hint>
+			<implementation>pl.edu.mimuw.loxim.protogen.lang.cpp.CPPPartialLanguageGenerator</implementation>
+		</component>
+
+		<component>
+			<role>pl.edu.mimuw.loxim.protogen.api.LanguageGenerator</role>
+			<role-hint>cpp</role-hint>
+			<implementation>pl.edu.mimuw.loxim.protogen.api.BasicLanguageGenerator</implementation>
+			<requirements>
+				<requirement>
+					<role>pl.edu.mimuw.loxim.protogen.api.PartialLanguageGenerator</role>
+					<role-hint>cpp</role-hint>
+				</requirement>
+			</requirements>
+		</component>
+
+		<component>
+			<role>pl.edu.mimuw.loxim.protogen.lang.cpp.type_helper.CppTypeHelper</role>
+			<role-hint>uint8</role-hint>
+			<implementation>pl.edu.mimuw.loxim.protogen.lang.cpp.type_helper.NumericCppTypeHelper</implementation>
+			<configuration>
+				<typeName>uint8</typeName>
+			</configuration>
+		</component>
+		<component>
+			<role>pl.edu.mimuw.loxim.protogen.lang.cpp.type_helper.CppTypeHelper</role>
+			<role-hint>uint16</role-hint>
+			<implementation>pl.edu.mimuw.loxim.protogen.lang.cpp.type_helper.NumericCppTypeHelper</implementation>
+			<configuration>
+				<typeName>uint16</typeName>
+			</configuration>
+		</component>
+		<component>
+			<role>pl.edu.mimuw.loxim.protogen.lang.cpp.type_helper.CppTypeHelper</role>
+			<role-hint>uint32</role-hint>
+			<implementation>pl.edu.mimuw.loxim.protogen.lang.cpp.type_helper.NumericCppTypeHelper</implementation>
+			<configuration>
+				<typeName>uint32</typeName>
+			</configuration>
+		</component>
+		<component>
+			<role>pl.edu.mimuw.loxim.protogen.lang.cpp.type_helper.CppTypeHelper</role>
+			<role-hint>uint64</role-hint>
+			<implementation>pl.edu.mimuw.loxim.protogen.lang.cpp.type_helper.NumericCppTypeHelper</implementation>
+			<configuration>
+				<typeName>uint64</typeName>
+			</configuration>
+		</component>
+		<component>
+			<role>pl.edu.mimuw.loxim.protogen.lang.cpp.type_helper.CppTypeHelper</role>
+			<role-hint>sint8</role-hint>
+			<implementation>pl.edu.mimuw.loxim.protogen.lang.cpp.type_helper.NumericCppTypeHelper</implementation>
+			<configuration>
+				<typeName>int8</typeName>
+			</configuration>
+		</component>
+		<component>
+			<role>pl.edu.mimuw.loxim.protogen.lang.cpp.type_helper.CppTypeHelper</role>
+			<role-hint>sint16</role-hint>
+			<implementation>pl.edu.mimuw.loxim.protogen.lang.cpp.type_helper.NumericCppTypeHelper</implementation>
+			<configuration>
+				<typeName>int16</typeName>
+			</configuration>
+		</component>
+		<component>
+			<role>pl.edu.mimuw.loxim.protogen.lang.cpp.type_helper.CppTypeHelper</role>
+			<role-hint>sint32</role-hint>
+			<implementation>pl.edu.mimuw.loxim.protogen.lang.cpp.type_helper.NumericCppTypeHelper</implementation>
+			<configuration>
+				<typeName>int32</typeName>
+			</configuration>
+		</component>
+
+		<component>
+			<role>pl.edu.mimuw.loxim.protogen.lang.cpp.type_helper.CppTypeHelper</role>
+			<role-hint>sint64</role-hint>
+			<implementation>pl.edu.mimuw.loxim.protogen.lang.cpp.type_helper.NumericCppTypeHelper</implementation>
+			<configuration>
+				<typeName>int64</typeName>
+			</configuration>
+		</component>
+
+		<component>
+			<role>pl.edu.mimuw.loxim.protogen.lang.cpp.type_helper.CppTypeHelper</role>
+			<role-hint>varuint</role-hint>
+			<implementation>pl.edu.mimuw.loxim.protogen.lang.cpp.type_helper.VaruintCppTypeHelper</implementation>
+		</component>
+
+		<component>
+			<role>pl.edu.mimuw.loxim.protogen.lang.cpp.type_helper.CppTypeHelper</role>
+			<role-hint>enum-map</role-hint>
+			<implementation>pl.edu.mimuw.loxim.protogen.lang.cpp.type_helper.EnumMapCppTypeHelper</implementation>
+		</component>
+
+		<component>
+			<role>pl.edu.mimuw.loxim.protogen.lang.cpp.type_helper.CppTypeHelper</role>
+			<role-hint>enum</role-hint>
+			<implementation>pl.edu.mimuw.loxim.protogen.lang.cpp.type_helper.EnumCppTypeHelper</implementation>
+		</component>
+
+
+		<component>
+			<role>pl.edu.mimuw.loxim.protogen.lang.cpp.type_helper.CppTypeHelper</role>
+			<role-hint>sstring</role-hint>
+			<implementation>pl.edu.mimuw.loxim.protogen.lang.cpp.type_helper.SStringCppTypeHelper</implementation>
+		</component>
+
+		<component>
+			<role>pl.edu.mimuw.loxim.protogen.lang.cpp.type_helper.CppTypeHelper</role>
+			<role-hint>string</role-hint>
+			<implementation>pl.edu.mimuw.loxim.protogen.lang.cpp.type_helper.StringCppTypeHelper</implementation>
+		</component>
+
+		<component>
+			<role>pl.edu.mimuw.loxim.protogen.lang.cpp.type_helper.CppTypeHelper</role>
+			<role-hint>bool</role-hint>
+			<implementation>pl.edu.mimuw.loxim.protogen.lang.cpp.type_helper.BoolCppTypeHelper</implementation>
+		</component>
+
+		<component>
+			<role>pl.edu.mimuw.loxim.protogen.lang.cpp.type_helper.CppTypeHelper</role>
+			<role-hint>double</role-hint>
+			<implementation>pl.edu.mimuw.loxim.protogen.lang.cpp.type_helper.DoubleCppTypeHelper</implementation>
+		</component>
+
+		<component>
+			<role>pl.edu.mimuw.loxim.protogen.lang.cpp.type_helper.CppTypeHelper</role>
+			<role-hint>string</role-hint>
+			<implementation>pl.edu.mimuw.loxim.protogen.lang.cpp.type_helper.StringCppTypeHelper</implementation>
+		</component>
+		
+		<component>
+			<role>pl.edu.mimuw.loxim.protogen.lang.cpp.type_helper.CppTypeHelper</role>
+			<role-hint>bytes</role-hint>
+			<implementation>pl.edu.mimuw.loxim.protogen.lang.cpp.type_helper.BytesCppTypeHelper</implementation>
+		</component>
+
+		<component>
+			<role>pl.edu.mimuw.loxim.protogen.lang.cpp.type_helper.CppTypeHelper</role>
+			<role-hint>package</role-hint>
+			<implementation>pl.edu.mimuw.loxim.protogen.lang.cpp.type_helper.PackageCppTypeHelper</implementation>
+		</component>
+
+		<component>
+			<role>pl.edu.mimuw.loxim.protogen.lang.cpp.type_helper.CppTypeHelper</role>
+			<role-hint>package-map</role-hint>
+			<implementation>pl.edu.mimuw.loxim.protogen.lang.cpp.type_helper.PackageMapCppTypeHelper</implementation>
+		</component>
+
+	</components>
+</component-set>

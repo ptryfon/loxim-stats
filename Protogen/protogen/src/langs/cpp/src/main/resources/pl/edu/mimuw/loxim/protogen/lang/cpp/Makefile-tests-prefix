@@ -1,0 +1,19 @@
+include ../../make.defs
+
+SOURCES	= TestSuiteFactory.cpp \
+ TestPackagesFactory.cpp \
+	
+HEADERS	= TestSuiteFactory.h \
+ TestPackagesFactory.h \
+
+STATIC_LIB = tests.a
+
+OBJECTS	=	$(SOURCES:.cpp=.o)
+DEPFILES =	$(OBJECTS:.o=.d)
+
+DEPLIBS = ../auth/auth.a \
+ ../base_packages/base_packages.a \
+ ../enums/enums.a \
+ ../ptools/ptools.a \
+ ../sockets/sockets.a \
+ ../streams/streams.a \

@@ -1,0 +1,118 @@
+#macro(comment $ca)
+/**
+#foreach ($desca in $ca)
+#foreach ($c in $desca.content)
+$stringUtil.removeWhiteSpaces($c)
+#end
+#end
+**/
+#end 
+package ${packageName}.${java_group_package_name_sufix};
+
+import java.util.EnumSet;
+import pl.edu.mimuw.loxim.protogen.lang.java.template.ptools.Package;
+import pl.edu.mimuw.loxim.protogen.lang.java.template.exception.ProtocolException;
+import pl.edu.mimuw.loxim.protogen.lang.java.template.streams.PackageInputStreamReader;
+import pl.edu.mimuw.loxim.protogen.lang.java.template.streams.PackageOutputStreamWriter;
+
+
+import ${packageName}.enums.*;
+
+#set ($has_fields= (${package.package.field} && ${package.package.field.size()} > 0) )
+
+public #if ($package.abstract) abstract #end class ${package.className} extends ${package.extendClassName} {
+	#if (!$package.abstract)
+	public final static ${jth.getTypeName(${id_type})} ID=${jth.getTypeValue(${id_type},${package.package.idValue})};
+	#end
+
+    #foreach ($field in ${package.package.field})
+	#comment(${item.description})
+    	private ${jth.getTypeName($field.type,${field.objectRef},${field.objectRefId})} ${field.name}=${jth.getDefaultValue($field.type,${field.objectRef},${field.objectRefId})};
+    #end
+	
+	public ${package.className}()
+	{
+	}
+
+	#if ($has_fields)
+	public ${package.className}(
+	#set ($items = $loop.wrap(${package.package.field}))
+	#foreach ($field in ${items})
+		#set ($dev_null = $items.more())
+    	${jth.getTypeName($field.type,${field.objectRef},${field.objectRefId})} a_${field.name}#if($items.hasMore()),
+	#end
+    #end
+	)
+	{
+    #foreach ($field in ${package.package.field})
+    	${field.name}=a_${field.name};
+    #end
+
+	}
+	#end
+	
+	#if (!$package.abstract)
+	@Override
+	public long getPackageType() {
+		return (long)ID;
+	}
+	#end
+	
+	@Override
+	protected void deserializeW(PackageInputStreamReader reader)
+			throws ProtocolException {
+		super.deserializeW(reader);
+		
+		#if ($has_fields)
+		try{
+	    #foreach ($field in ${package.package.field})
+			${jth.getReadCode($field.type,${field.objectRef},${field.objectRefId},${field.name},"reader")}
+		#end
+		}catch(Exception e)
+		{
+			throw new ProtocolException(e);
+		}
+		#end
+	}
+	
+	@Override
+	protected void serializeW(PackageOutputStreamWriter writer)
+			throws ProtocolException {
+		super.serializeW(writer);
+		#if ($has_fields)
+		try{
+	    #foreach ($field in ${package.package.field})
+			${jth.getWriteCode($field.type,${field.objectRef},${field.objectRefId},${field.name},"writer")}		
+		#end
+		}catch(Exception e)
+		{
+			throw new ProtocolException(e);
+		}	
+		#end
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if(!super.equals(obj))
+			return false;
+		${package.className} p=(${package.className})obj;
+	    #foreach ($field in ${package.package.field})
+if (!(${jth.getEqualsCode($field.type,${field.objectRef},${field.objectRefId},${field.name},"p.get${codeHelper.upperFirstChar($field.name)}()")})) 
+return false;
+		#end		
+		return true;
+	}
+	
+//================= GETTERS AND SETTERS ===================
+
+    #foreach ($field in ${package.package.field})
+    	${jth.getTypeGetter($field.type,${field.objectRef},${field.objectRefId},${field.name})}
+		
+    	${jth.getTypeSetter($field.type,${field.objectRef},${field.objectRefId},${field.name})}
+		
+    #end
+
+	 
+}
+
+

@@ -1,0 +1,13 @@
+#TeXlipse project settings
+#Thu May 22 21:33:43 CEST 2008
+builderNum=2
+outputDir=
+makeIndSty=
+bibrefDir=
+outputFormat=pdf
+tempDir=tmp
+mainTexFile=Praca_mgr_Loxim_protokol.tex
+outputFile=Praca_mgr_Loxim_protokol.pdf
+langSpell=pl
+markDer=true
+srcDir=

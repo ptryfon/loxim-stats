@@ -1,0 +1,49 @@
+package ${packageName}.tests;
+
+import java.util.EnumSet;
+import pl.edu.mimuw.loxim.protogen.lang.java.template.ptools.Package;
+import pl.edu.mimuw.loxim.protocol.enums.*;
+
+#foreach( $include in $includes_suffixes)
+import ${packageName}.$include;
+#end
+
+import org.junit.Ignore;
+
+@Ignore
+class TestPackagesFactory {
+
+public Package createPackage(int nr)
+{
+switch(nr/100)
+{
+#foreach($c in $constructors.entrySet())
+	case ${c.key}: return createPackage${c.key}(nr);  
+#end	
+	default: return null;
+}	
+};
+
+#set($i=0)
+#foreach($c in $constructors.entrySet())
+	private Package createPackage${c.key}(int nr)
+	{
+		try{
+    		switch(nr)
+    		{
+    
+    	#foreach($entry in $c.value)
+    	case $i: return $entry;
+    	#set($i=$i+1)
+    #end
+    
+    			default: return null;
+    		}
+		}catch(Exception e){
+			e.printStackTrace(System.err);
+			return null;
+		}
+   };
+#end
+
+}

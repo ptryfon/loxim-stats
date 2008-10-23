@@ -1,0 +1,101 @@
+#macro(comment $ca)
+/**
+#foreach ($desca in $ca)
+#foreach ($c in $desca.content)
+$stringUtil.removeWhiteSpaces($c)
+#end
+#end
+**/
+#end 
+
+package ${packageName}.enums;
+
+import java.util.EnumSet;
+
+public enum ${enum.className} {
+
+#set ($items = $loop.wrap(${enum.enum_type.item}))
+#foreach ($item in $items)
+	#set ($dev_null = $items.more())
+#comment(${item.description})
+	${item.name}(${jth.getTypeValue($enum.enum_type.asType,$item.value)})#if($items.hasMore()),
+	#else;
+	#end
+#end
+	
+	private final ${id_type} value;
+	private ${enum.className}(${id_type} val)
+	{
+		value=val;
+	}
+	
+	public ${id_type} getValue() 
+	{
+		return value;
+	}
+	
+	public static ${enum.className} createEnumByValue(${id_type} val)
+	{
+		for(${enum.className} v:values())
+		{
+			if (equals(v.getValue(),val))
+				return v;
+		}
+		return null;
+	}
+	
+	private static boolean equals(long v1,long v2){return v1==v2;};
+	private static boolean equals(Object v1,Object v2){return (v1==v2)||(v1!=null && v1.equals(v2)); };
+	
+	public static ${id_type} toEnumMapValue(EnumSet<${enum.className}> flags) {
+#if (${id_type}=="java.math.BigInteger")		
+		java.math.BigInteger res=java.math.BigInteger.ZERO;
+		for(${enum.className} flag:flags)
+		{
+			res=res.or(flag.getValue());
+		}
+#else
+		${id_type} res=0;
+		for(${enum.className} flag:flags)
+		{
+			res=(${id_type})(res|flag.getValue());
+		}
+#end
+		return res;
+}
+
+	public static EnumSet<${enum.className}> createEnumMapByValue(
+			${id_type} tmp_flags) {
+		EnumSet<${enum.className}> res=EnumSet.noneOf(${enum.className}.class);
+#if (${id_type}=="java.math.BigInteger")			
+		for(${enum.className} flag:values())
+		{
+			if (flag.getValue().and(tmp_flags).equals(flag.getValue()))
+				res.add(flag);
+		}
+#else
+		for(${enum.className} flag:values())
+		{
+			if ((flag.getValue() & tmp_flags) == flag.getValue())
+				res.add(flag);
+		}
+#end		
+		return res;		
+	}
+	
+		/* for test purposes */
+	static EnumSet<${enum.className}> ODD = null;
+
+	public static EnumSet<${enum.className}> getODD() {
+		if (ODD == null) {
+			boolean odd = true;
+			ODD=EnumSet.noneOf(${enum.className}.class);
+			for (${enum.className} v : values()) {
+				if(odd) ODD.add(v);
+				odd = !odd;
+			}
+		}
+		return ODD;
+	}
+}
+

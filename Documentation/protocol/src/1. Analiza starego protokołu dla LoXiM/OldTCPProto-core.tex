@@ -1,0 +1,318 @@
+\providecommand{\htonl}{(zast. fun. ,,htonl'')}
+
+\section{Wstêp}
+	Celem tego dokumentu jest udokumentowanie protoko³u sieciowego, jaki jest
+	wykorzystywany przez semistrukturaln± bazê danych ,,LoXiM''. Konieczno¶æ
+	stworzenia tego dokumentu wynika z faktu, ¿e bie¿±cy protokó³ komunikacyjny nie
+	jest w ¿aden sposób udokumentowany, co uniemo¿liwia stworzenie aplikacji integruj±cych siê z t± semistrukturaln± baz± danych. 
+	
+	W dokumencie pojawiaj± siê adnotacje dotycz±ce u¿ycia lub jego braku - funkcji
+	,,htonl''. Jest to standardowa funkcja jêzyka C, która s³u¿y do konwersji
+	danej liczby z architektury lokalnej komputera na liczbê kodowan± w systemie
+	Big-endian.
+	
+	W poni¿szym dokumencie pojawiaj± siê te¿ rozmiary i offsety wzglêdem
+	pocz±tku paczki zapisane w nawiasach zwyk³ych. U¿ywa³em ich do oznaczenia
+	sytuacji prawdziwej w przypadku architektury 64 bitowej (w przeciwieñstwie 
+	do domy¶lnie przyjêtej w tym dokumencie architektury 32bitowej). Oczywi¶cie 
+	wystêpuj± analogiczne ró¿nice dla pozosta³ych architektur - o innym rozmiarze
+	s³owa procesora.    
+
+\section{Rodzaje pakietów}
+\begin{description}
+	\item[SimpleQueryPackage] Przes³anie prostego (bezparametrowego zapytania)
+	\item[ErrorPackage] Odpowied¼ serwera stwierdzaj±ca wyst±pienie b³êdu.
+
+	\item[ParamQueryPackage]  Wys³anie zapytania, które mo¿e zawieraæ parametry. 
+	\item[StatementPackage] Otrzymanie od serwera ID wys³anego zapytania. 
+	\item[ParamStatementPackage] Wys³anie parametrów do ju¿ wys³anego zapytania na
+	serwer. 
+	
+	\item[SimpleResultPackage] Odpowied¼ od serwera z wynikami przetwarzania
+	zapytania. 
+	
+	\item[RemoteQueryPackage] Przetwarzanie rozproszone. Serwer prosi inny
+		 serwer o wykonanie podzapytania.
+	\item[RemoteResultPackage] Przetwarzanie rozproszone. Serwer odpowiada wynikami
+	zapytania na zapytanie.
+\end{description}
+
+\newpage
+\section{Standardowy format pakietu}
+
+	O pakiecie jest wiadomo tylko jedno: zaczyna siê od jednobajtowej sta³ej
+	¶wiadcz±cej o typie pakietu.
+	\begin{bajtyo}
+		\bpo{0}{0}{}{Sta³a okre¶laj±ca typ pakietu}	
+   		\bpo{1}{n}{}{Dane pakietu}		
+	\end{bajtyo}
+
+\section{Standardowy format struktury danych}
+
+			
+		\subsection{Obiekt tekstowy = Result::STRING}
+			Przesy³a ³añcuch tekstu.
+			\begin{bajtyo}
+               	\bpo{0}{3(7)}{Result::STRING}{Sta³a mówi±ca o typie
+               	rozwa¿anego obiektu}
+            	\bpo{4 (8)}			{7 (15)}		{n (unsigned long)}	{D³ugo¶æ stringa
+            	\htonl z wliczonym znakiem $\backslash{}000$} 
+   				\bpo{8 (16)}		{n+7 (n+15)} {unsigned long}			{Przesy³any ³añcuch}
+ 				\bpo{n+7 (n+15)}	{n+7 (n+15)}	{$\backslash{}000$} 	{Znak koñca ³añcucha}
+		    \end{bajtyo}	
+		
+		\subsection{Obiekt pusty = Result::VOID}
+			Dane puste - NULL.
+			\begin{bajtyo}
+               	\bpo{0}{3(7)}{Result::VOID}{Sta³a mówi±ca o typie
+               	rozwa¿anego obiektu}            
+		    \end{bajtyo}	
+
+		\subsection{Informacja o b³êdzie = Result::ERROR}
+			Przysy³a unsigned long int (co z liczbami ujemnymi !!!).
+			\begin{bajtyo}
+               	\bpo{0}{3(7)}{Result::ERROR }{Sta³a mówi±ca o typie
+               	rozwa¿anego obiektu}      
+               	\bpo{4(8)}{7(15)}{unsigned long}{Numer b³êdu \htonl}      
+		    \end{bajtyo}	
+
+		
+		\subsection{Liczba ca³kowite (dodatnia) = Result::INT}
+			Przysy³a unsigned long int (co z liczbami ujemnymi !!!).
+			\begin{bajtyo}
+               	\bpo{0}{3(7)}{Result::INT }{Sta³a mówi±ca o typie
+               	rozwa¿anego obiektu}      
+               	\bpo{4(8)}{7(15)}{unsigned long}{Dana liczba \htonl}      
+		    \end{bajtyo}	
+						
+		
+		\subsection{Warto¶æ rzeczywista = Result::DOUBLE}
+			Przesy³a liczbê rzeczywist±.  Liczba jest nie poprawnie konwertowana za
+			pomoc± funkcji \htonl  			
+			\begin{bajtyo}
+               	\bpo{0}{3(7)}{Result::INT }{Sta³a mówi±ca o typie
+               	rozwa¿anego obiektu}      
+               	\bpo{4(8)}{11(15)}{double}{Dana liczba - Nie poprawne
+               	u¿ycie funkcji 
+               	,,htonl'' - ka¿de 4 bajty oddzielnie ?!}              	 
+		    \end{bajtyo}	
+			
+		
+		\subsection{Prawda = Result::BOOLTRUE}
+			Typ prawdy.
+			\begin{bajtyo}
+               	\bpo{0}{3(7)}{Result::BOOLTRUE}{Sta³a mówi±ca o typie
+               	rozwa¿anego obiektu}    
+               	\bpo{4(8)}{7(15)}{1}{Sta³a mówi±ca, ¿e to prawda 
+               	(sam typ jak widaæ nie wystarczy³ autorowi tego rozwi±zania)
+               	}          
+		    \end{bajtyo}	
+		
+		\subsection{Fa³sz = Result::BOOLFALSE}
+			Typ fa³szu
+			\begin{bajtyo}
+               	\bpo{0}{3(7)}{Result::BOOLFALSE}{Sta³a mówi±ca o typie
+               	rozwa¿anego obiektu}            
+             	\bpo{4(8)}{7(15)}{0}{Sta³a mówi±ca, ¿e to fa³sz (sam typ jak widaæ nie wystarczy³ autorowi tego rozwi±zania)}             	
+		    \end{bajtyo}	
+		
+		\subsection{Typ logiczny = Result::BOOL}
+			Typ warto¶ci logicznej (logika dwuwarto¶ciowa)
+			\begin{bajtyo}
+               	\bpo{0}{3(7)}{Result::BOOL}{Sta³a mówi±ca o typie
+               	rozwa¿anego obiektu}     
+               	\bpo{4(8)}{7(15)}{0 lub 1}{Sta³a mówi±ca,czy to fa³sz(0), czy prawda(1)}          
+		    \end{bajtyo}	
+		
+		\subsection{£±cznik = Result::BINDER}
+		Binder - dowi±zanie pomiêdzy nazw± obiektu a warto¶ci± zwi±zan± z t± nazw±. 
+		\begin{bajtyo}
+               	\bpo{0}{3(7)}{Result::STRING}{Sta³a mówi±ca o typie
+               	rozwa¿anego obiektu}
+            	\bpo{4 (8)}			{7 (15)}		{n (unsigned long)}	{D³ugo¶æ stringa
+            	\htonl z wliczonym znakiem $\backslash{}000$} 
+   				\bpo{8 (16)}		{n+7 (n+15)} {unsigned long}			{Przesy³any ³añcuch}
+ 				\bpo{n+7 (n+15)}	{n+7 (n+15)}	{$\backslash{}000$} 	{Znak koñca ³añcucha}
+ 				\bpo{n+8 (n+16)}	{\ldots}	{} 	{Dane zwi±zane z t± nazw±. Patrz: Standardowy
+ 				format struktury danych - rekurencja}
+		    \end{bajtyo}	
+		
+		\subsection{Multizbiór = Result::BAG}
+			Implementowane przez funkcjê get/setResultCollection.
+			Reprezentuje multizbiór obiektów.
+			\begin{bajtyo}
+               	\bpo{0}{3(7)}{Result::BAG}{Sta³a mówi±ca o typie
+               	rozwa¿anego obiektu}              	 
+               	 \bpo{4(8)}{7(15)}{unsigned int}{Liczba mówi±ca o liczbie obiektów w
+		    	rozwa¿anej kolekcji}
+    	 	 	\bpo{8(16)}{\ldots}{}{Kolejne definicje poszczególnych obiektów (patrz:
+    	 	 	Standardowy format struktury danych - czyli rekurencja )}
+		    \end{bajtyo}	
+		
+		\subsection{Sekwencja  = Result::SEQUENCE}	
+			Tak samo jak BAG. (Ró¿ni siê tylko identyfikatorem typu struktury danych w
+			pierwszych 4 (8) bajtach: Result::SEQUENCE)	
+		\subsection{Struktura  = Result::STRUCT}
+			Tak samo jak BAG. (Ró¿ni siê tylko identyfikatorem typu struktury danych w
+			pierwszych 4 (8) bajtach: Result::STRUCT)	
+		
+		\subsection{Referencja = Result::REFERENCE}
+			Referencja.
+			\begin{bajtyo}
+               	\bpo{0}{3(7)}{Result::REFERENCE}{Sta³a mówi±ca o typie
+               	rozwa¿anego obiektu}
+               	\bpo{4(8)}{7(15)}{int}{Liczba bêd±ca logicznym ID obiektu. UWAGA:
+               	liczba ta obecnie nie jest poddawana konwersji
+               	funkcj± ,,htonl''\ldots !!!}
+		    \end{bajtyo}	
+		
+		\subsection{Wynik = Result::RESULT}
+			Typ nie obs³ugiwany przy serializacji i deserializacji - zwraca kod b³êdu -2.
+
+\newpage
+\section{Przegl±d typów pakietów}
+\subsection{SimpleQueryPackage}
+	Pakiet tego typu s³u¿y do przes³ania prostego (bezparametrowego zapytania). 	
+	\begin{bajtyo}
+		\bpo{0}{0}{0}{Sta³a okre¶laj±ca typ pakietu}
+		\bpo{1}{n}{}{£añcuch okre¶laj±cy zapytanie - nie mo¿e zawieraæ znaku $\backslash{}000$}		
+		\bpo{n+1}{n+1}{$\backslash{}000$}{Znak koñca string'a $(\backslash{}000)$ - a tym samym koñca pakietu}
+	\end{bajtyo}
+	
+\subsection{ErrorPackage}
+	Pakiet zawiera numer b³êdu, który wyst±pi³ po stronie serwera.
+	\begin{bajtyo}
+    	\bpo{0}{0}{5}{Sta³a okre¶laj±ca typ pakietu}
+    	\bpo{1(1)}{4(8)}{}{Numer b³êdu - wielko¶ci sizeof(int) - a wiêc zale¿ny od architektury!!!}
+    \end{bajtyo}
+
+	
+\subsection{ParamQueryPackage}	
+	 Wys³anie zapytania, które mo¿e zawieraæ parametry. 
+	 W strukturze komunikat nie ró¿ni siê niczym od SimpleQueryPackage (tzn.
+	 jedyn± ró¿nic± jest identyfikator typu pakietu).    		
+	\begin{bajtyo}
+		\bpo{0}{0}{1}{Sta³a okre¶laj±ca typ pakietu}
+		\bpo{1}{n}{}{£añcych okre¶laj±cy zapytanie - nie mo¿e zawieraæ znaku $\backslash{}000$}		
+		\bpo{n+1}{n+1}{$\backslash{}000$}{Znak koñca string'a $(\backslash{}000)$ - a tym samym koñca pakietu}
+	\end{bajtyo}
+
+\subsection{StatementPackage}
+	 Otrzymanie od serwera ID wys³anego zapytania. 
+	 \begin{bajtyo}
+		\bpo{0}{0}{2}{Sta³a okre¶laj±ca typ pakietu}	
+   		\bpo{1}{4 (8)}{unsigned long}{Numer nadany utworzonemu zapytaniu}
+	\end{bajtyo}
+
+\subsection{ParamStatementPackage}
+	Wys³anie parametrów do ju¿ wys³anego zapytania na serwer. 
+	\begin{bajtyo}
+		\bpo{0}		{0}		{3}					{Sta³a okre¶laj±ca typ pakietu}	
+   		\bpo{1}		{4 (8)}	{N - unsigned long}	{Ca³kowita d³ugo¶æ tego pakietu}		
+ 		\bpo{5 (9)}	{8 (16)}{unsigned long}		{Numer ID zapytania do którego przesy³amy
+ 		parametry}
+ 		\bpo{9 (17)}{12 (24)}{C - unsigned long} {Liczba parametrów przekazywanych do
+ 		zapytania}
+ 		\bpo{13 (25)}{N}{}{C wyst±pieñ bloku opisuj±cego pojedynczy parametr}		
+	\end{bajtyo}
+
+	\subsubsection{Blok opisuj±cy pojedynczy parametr}
+	Pojedynczy parametr jest opisany nastêpuj±c± konstrukcj±: 
+	\begin{bajtyo}
+   		\bpo{0}			{3 (7)}		{n (unsigned long)}	{D³ugo¶æ nazwy parametru (ze znakiem
+   		pustym)} 
+   		\bpo{4 (8)}		{n+2 (n+6)} {unsigned long}			{Nazwa parametru}
+ 		\bpo{n+3 (n+7)}	{n+3 (n+7)}	{$\backslash{}000$} 	{Znak koñca ³añcucha}
+ 		\bpo{n+4 (n+8)}	{\ldots}	{} 	{Definicja warto¶ci (patrz: Standardowy format
+ 		struktury danych)} 		
+	\end{bajtyo}		
+
+\subsection{SimpleResultPackage}	
+	Odpowied¼ od serwera z wynikami przetwarzania
+	zapytania. 
+	\begin{bajtyo}
+		\bpo{0}{0}{4}{Sta³a okre¶laj±ca typ pakietu}	
+   		\bpo{1}{\ldots}{}{Definicja warto¶ci (patrz: Standardowy format
+ 		struktury danych)}		
+	\end{bajtyo}
+
+\subsection{RemoteQueryPackage}
+	Przetwarzanie rozproszone. Serwer prosi inny
+ serwer o wykonanie podzapytania.
+ \begin{bajtyo}
+		\bpo{0}{0}{6}{Sta³a okre¶laj±ca typ pakietu}	
+   		\bpo{1}{1}{}{Informacja o dereferencji (0-nie,1-tak)}
+   		\bpo{2}{N}{}{Remote LogicalID}		
+	\end{bajtyo}
+
+\subsection{RemoteResultPackage}
+	Przetwarzanie rozproszone. Serwer odpowiada wynikami
+zapytania na zapytanie.
+\begin{bajtyo}
+		\bpo{0}{0}{7}{Sta³a okre¶laj±ca typ pakietu}	
+	 	\bpo{1}{\ldots}{}{Definicja warto¶ci (patrz: Standardowy format
+ 		struktury danych)}		
+	\end{bajtyo}
+
+\newpage
+\section{Struktura plików}
+
+	Wszystkie pliki bezpo¶rednio zwi±zane z przesy³aniem danych przez sieæ
+	zawarte s± w katalogu /TCPProto	
+
+\subsection{Tcp.h i Tcp.cpp}
+	S± to pliki zawieraj±ce ,,teoretycznie'' niezale¿ne funkcje
+	do obs³ugi nawi±zywania po³±czeñ sieciowych i wysy³ania nimi danych, a tak¿e
+	serializowania prostych typów danych. Niestety istotna czê¶æ tych funkcji jest
+	nieoprawna (nie uwa¿ne stosowanie funkcji htonl - zamieniaj±cej kolejno¶æ
+	bajtów pomiêdzy systemami opartymi o Big-endian i Little-endian).
+	
+	Tak¿e u¿yte s± nadal typu int, long - których rozmiar jest zale¿ny od
+	architektury na której kompilujemy system. Ponadto klasy te s± u¿yte tylko w
+	czê¶ci przypadków - w pozosta³ych odczyty, konwersje i zapisy robione s±
+	rêcznie. 	
+	
+	 
+\subsection{Package.h}
+	Plik Package.h zawiera deklaracjê typu abstrakcyjnego z którego dziedzicz±
+	wszystkie klasy do przesy³ania danych przez sieæ:
+	
+	\begin{verbatim}
+	class Package { 
+    public:
+    enum packageType {
+        RESERVED        = -1,   //to force nondefault deserialization method
+        SIMPLEQUERY = 0,   //String
+        PARAMQUERY = 1,    //String with $var
+        STATEMENT = 2,     //Parser tree
+        PARAMSTATEMENT = 3,//stmtNr + map
+        SIMPLERESULT = 4,  //Result
+        ERRORRESULT = 5,   //Parse/execute error package
+        REMOTEQUERY = 6,   //remote reference
+        REMOTERESULT = 7   //environment section
+    };
+    virtual packageType getType()=0;
+
+    //returns error code, message buffer and size of the buffer
+    //it doesn't destroy the buffer
+    //first byte of the buffer is the resultType
+    virtual int serialize(char** buffer, int* size)=0;
+
+    //returns error code, gets buffer and it's size
+    //it destroys the buffer
+    virtual int deserialize(char* buffer, int size)=0;
+    virtual ~Package(){}
+	};
+\end{verbatim}
+
+	Plik ten definiuje zatem identyfikatory pakietów zapisywane w pierwszym
+	bajcie. Ponadto wymaga by klasa uto¿samiana z pakietem posiada³a metodê
+	umo¿liwiaj±c± wczytanie pakietu z danej tablicy bajtów (deserialize) i
+	zapisanie pakietu do danej tablicy bajtów (serialize). 
+	
+	Ponadto w tym pliku nag³ówkowym znajduj± siê deklaracjê wszystkich pakietów. 
+
+\newpage
+\section{Stwierdzone wady protoko³u}
+
+\input{wady}

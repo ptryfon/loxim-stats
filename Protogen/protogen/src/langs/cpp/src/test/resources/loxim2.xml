@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="utf-8"?>
+<protocol xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+	xmlns='http://loxim.mimuw.edu.pl/protoGen'
+	xsi:schemaLocation='http://loxim.mimuw.edu.pl/protoGen file:/home/ptab/workspace/protoGen/src/protoGen.xsd'>
+
+	<metadata>
+		<major-version>2</major-version>
+		<minor-version>0</minor-version>
+		<id-type>uint8</id-type>
+		<!--size-header>true</size-header-->
+	</metadata>
+	<enums>
+		<enum name="features" as-type="uint64">
+			<!--============== Tryby transmisji i działania protokołu ===============-->
+			<item name="f_ssl" value="0x0001">
+				<description lang="pl">
+					Połaczenie moze byc szyfrowane metoda SSL
+				</description>
+			</item>
+			<item name="f_o_ssl" value="0x0002">
+				<description lang="pl">
+					Obligatoryjne połaczenie szyfrowane metoda SSL
+					(wymusza tez obecnosc flagi F SSL)
+				</description>
+			</item>
+			<item name="f_zlib" value="0x0004">
+				<description lang="pl">
+					połaczenie moze byc kompresowane za pomoca
+					biblioteki ZLIB
+				</description>
+			</item>
+
+			<!--============== Tryby przetwarzania zapytań ======================-->
+			<item name="f_autocommit" value="0x0010">
+				<description lang="pl">
+					serwer udostepnia tryb autocommit (kazde zapytanie
+					zadane poza transakcja rozpoczyna swoja transakcje,
+					które jest automatycznie zamykana po wykonaniu
+					polecenia)
+				</description>
+			</item>
+			<item name="f_optimization" value="0x0020">
+				<description lang="pl">
+					mozna właczyc optymalizator zapytań...
+				</description>
+			</item>
+			<!--============== Izolation levels =============================-->
+		</enum>
+
+		<enum name="auth_methods" as-type="uint64">
+			<item name="am_trust" value="0x0001">
+				<description lang="pl">
+					autoryzacja metoda stosowana przez serwer (??)
+					MySQL5 [1] - w oparciu o przesyłanie i
+					przechowywanie skrótu hasła algorytmem SHA1.
+					Generalnie schemat jest nastepujacy:
+					<ul>
+						<li>
+							<b>Serwer przechowuje:</b>
+							SHA1(password)
+						</li>
+						<li>
+							<b>Klient przesyła:</b>
+							SHA1(password)XOR(SHA1(salt.SHA1(SHA1(password))))
+						</li>
+					</ul>
+				</description>
+			</item>
+		</enum>
+
+		<enum name="collations" as-type="uint64">
+			<item name="default" value="0" />
+			<item name="unicode_collation_alghorithm_uts10" value="1">
+				<description lang="pl">
+					Unicode Collation Algorithm
+					(http://unicode.org/unicode/reports/tr10)
+				</description>
+			</item>
+		</enum>
+
+		<enum name="modes" as-type="uint64">
+			<item name="ssl" value="1" />
+			<item name="zlib" value="2" />
+		</enum>
+
+		<enum name="statement_flags" as-type="uint64">
+			<item name="execute" value="0x0001" />
+			<item name="readonly" value="0x0002" />
+
+			<item name="prefer_dfs" value="0x0010" />
+			<item name="prefer_bsf" value="0x0020" />
+		</enum>
+
+		<enum name="errors" as-type="uint32">
+			<item name="internal_error" value="0x0000" />
+			<item name="params_incomplete" value="0x0001" />
+			<item name="no_such_value_ud" value="0x0002" />
+			<item name="operation_not_permited" value="0x0003" />
+		</enum>
+		<enum name="bye_reasons" as-type="uint32">
+			<item name="reason1" value="0x0001" />
+		</enum>
+		<enum name="send_value_flags" as-type="uint8">
+			<item name="to_be_continued" value="0x01" />
+		</enum>
+		<enum name="abort_reason_codes" as-type="uint32">
+			<item name="administration_reason" value="1" />
+			<item name="transaction_victim" value="2" />
+			<item name="operation_not_permited" value="3" />
+			<item name="time_limit_exceeded" value="4" />
+			<item name="out_of_memory" value="5" />
+			<item name="type_check_error" value="6" />
+			<item name="other_run_time_error" value="7" />
+		</enum>
+	</enums>
+	<packet-groups>
+		<packet-group>
+			<packets>
+				<!--============ w_c_hello ==================-->
+				<packet name="w_c_hello" id-value="10">
+					<field name="pid" type="sint64">
+						<description lang="pl">
+							PID procesu klienta - moze byc 0, gdy nie
+							obsługiwany
+						</description>
+					</field>
+					<field name="client_name" type="sstring">
+						<description lang="pl">
+							Nazwa programu klienckiego
+						</description>
+					</field>
+					<field name="client_version" type="sstring">
+						<description lang="pl">
+							Wersja programu klienckiego.
+						</description>
+					</field>
+					<field name="hostname" type="sstring">
+						<description lang="pl">
+							Hostname - nazwa komputera (z domena).
+						</description>
+					</field>
+					<field name="language" type="sstring" size="3">
+						<description lang="pl">
+							Jezyk uzytkownika - kod literowy według
+							standardu ISO-639-2
+							(http://www.loc.gov/standards/iso639-2/php/code_list.php)
+						</description>
+					</field>
+					<field name="collation" type="enum"
+						object-ref="collations">
+						<description lang="pl">
+							Kolacja. TODO: Sposób kodowania
+						</description>
+					</field>
+					<field name="timezone" type="sint8">
+						<description>
+							Strefa czasowa klienta w postaci liczby
+							całkowitej opisujacej przesuniecie wzgledem
+							GMT. Czyli dopuszczalne wartosci to od -14
+							(to nie jest bład) do +12.
+						</description>
+					</field>
+				</packet>
+				<!--================ w_s_hello ==========================-->
+				<packet name="w_s_hello" id-value="11">
+					<field name="protocol_major" type="uint8"
+						value="2"><!-- może value=${getContex().protocolVersionMajor();}-->
+						<description lang="pl">
+							Numer główny (major) wersji protokołu
+						</description>
+					</field>
+					<field name="protocol_minor" type="uint8"
+						value="0"><!-- może value=${getContex().protocolVersionMinor();}-->
+						<description lang="pl">
+							Numer pomocniczy (minor) wersji protokołu
+						</description>
+					</field>
+					<field name="system_major" type="uint8" value="2"><!-- może value=${getContex().protocolVersionMajor();}-->
+						<description lang="pl">
+							Numer główny (major) wersji systemu
+						</description>
+					</field>
+					<field name="system_minor" type="uint8" value="0"><!-- może value=${getContex().protocolVersionMinor();}-->
+						<description lang="pl">
+							Numer pomocniczy (minor) wersji systemu
+						</description>
+					</field>
+					<field name="max_package_size" type="uint32">
+						<description lang="pl">
+							Rozmiar maksymalnego paczki przesyłanego tym
+							protokołem - powinno byc > 1024 i wartosc
+							powyzej 1048586 powinna byc istotnie
+							uzasadniona (wartość jest odczytywana z
+							konfiguracji serwera)
+						</description>
+					</field>
+					<field name="features" type="enum-map"
+						object-ref="features">
+						<description lang="pl">
+							Mapa bitowa dostępnych cech serwera
+						</description>
+					</field>
+					<field name="auth_methods" type="enum-map"
+						object-ref="auth_methods">
+						<description lang="pl">
+							Mapa bitowa dostępnych metod autoryzacji
+						</description>
+					</field>
+					<field name="salt" type="sstring" size="20">
+						<description lang="pl">
+							160 bitowy ciag losowy - uzywany przez
+							niektóre metody autoryzacji
+						</description>
+					</field>
+				</packet>
+
+
+
+				<packet name="w_c_mode" id-value="12">
+					<field name="new_mode" type="enum"
+						object-ref="modes" />
+				</packet>
+
+				<packet name="w_c_login" id-value="13">
+					<field name="auth_method" type="enum"
+						object-ref="auth_methods" />
+				</packet>
+
+				<packet name="w_c_authorized" id-value="14" />
+
+				<packet name="w_c_password" id-value="15">
+					<field name="login" type="sstring" />
+					<field name="password" type="sstring" />
+				</packet>
+
+				<!--============================== Protokół właściwy ================================== -->
+
+				<packet name="q_c_statement" id-value="64">
+					<field name="flags" type="enum-map"
+						object-ref="statement_flags" />
+					<field name="statement" type="string" />
+				</packet>
+
+				<packet name="q_s_stmtparsed" id-value="65">
+					<field name="statement_id" type="uint64" />
+					<field name="paramsCnt" type="uint32" />
+				</packet>
+
+				<packet name="q_c_execute" id-value="66">
+					<field name="statement_id" type="uint64" />
+					<field name="flags" type="enum-map"
+						object-ref="statement_flags" />
+				</packet>
+
+				<packet name="q_s_executing" id-value="67" />
+
+				<packet name="q_s_execution_finished" id-value="68">
+					<field name="modAtomPointerCnt" type="varuint" />
+					<field name="delCnt" type="varuint" />
+					<field name="newRootsCnt" type="varuint" />
+					<field name="insertsCnt" type="varuint" />
+				</packet>
+
+				<!--======================== Protokół właściwy - przesyłanie wartości ================================== -->
+
+				<!--======================== Protokół właściwy - paczki różne -->
+				<packet name="a_sc_ping" id-value="128" />
+				<packet name="a_sc_pong" id-value="129" />
+				<!--======================== Komunikaty ogólne ================= -->
+				<packet name="a_sc_ok" id-value="1" />
+
+				<packet name="a_sc_error" id-value="2">
+					<field name="error_code" type="enum"
+						object-ref="errors" />
+					<field name="error_object_id" type="varuint"
+						nullable="true" />
+					<field name="description" type="sstring" />
+					<field name="line" type="uint32" />
+					<field name="char" type="uint32" />
+				</packet>
+
+				<packet name="a_sc_bye" id-value="3">
+					<field name="reason_code" type="enum"
+						object-ref="bye_reasons" />
+					<field name="reason_description" type="string" />
+				</packet>
+
+				<packet name="a_sc_setopt" id-value="4">
+					<field name="key" type="sstring" />
+					<field name="value" type="string" />
+				</packet>
+				<!--======================== Przesyłanie wyników ================= -->
+				<packet name="v_sc_sendvalues" id-value="32">
+					<field name="rootValueId" type="varuint" />
+					<field name="oBundlesCount" type="varuint" />
+					<field name="oBidCount" type="varuint" />
+					<field name="pVidCount" type="varuint" />
+				</packet>
+
+				<packet name="v_sc_sendvalues" id-value="33">
+					<field name="value_id" type="varuint" />
+					<field name="flags" type="enum-map"
+						object-ref="send_value_flags" />
+					<field name="value_type" type="varuint" /><!--!!! tu decyzja - int, czy enum-->
+					<!--field name="value" type="packet" object-ref="data_type" object-ref-id="value_type"/-->
+					<!-- Tu też trudności-->
+				</packet>
+
+				<packet name="v_sc_finished" id-value="34"></packet>
+
+				<packet name="v_sc_abort" id-value="35">
+					<field name="reasonCode" type="enum"
+						object-ref="abort_reason_codes" />
+					<field name="reasonString" type="string" />
+				</packet>
+			</packets>
+		</packet-group>
+	</packet-groups>
+</protocol>

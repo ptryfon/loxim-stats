@@ -1,0 +1,63 @@
+\documentclass[a4paper,10pt]{article}
+
+\usepackage{polski}
+\usepackage{moreverb}
+\usepackage[latin2]{inputenc}
+\usepackage{makeidx}
+\usepackage{graphicx}
+
+%============================= Definicje makr=============================
+% finicja naglowka posrodku strony
+\newcommand{\nagl}[1]{\par\begin{center}{\bf{#1}}\end{center}\par}
+% Definicja tego na poczatku
+\newcommand{\pocz}{\par {\bf{\nazwaprojektu}}\par {\bf{\nazwadokumentu}}\par {\bf{Wersja: \wersjadokumentu}}\par} 
+%% Historia
+% environment
+\newenvironment{historia}{\nagl{Historia}\begin{tabular*}{17cm}{c|c|c|l} {\bf{Data}} & {\bf{Wersja}} & {\bf{Autor}} & {\bf{Zmiany}} \\}{\end{tabular*}}
+% item
+\newcommand{\hist}[4]{#1 & #2 & #3 & \parbox[t]{8cm}{#4} \\ }
+
+% Marginesy
+\textwidth17cm \textheight24.5cm \topmargin-40pt
+\oddsidemargin-0.04cm
+%=========================================================================
+
+\makeindex 
+
+	
+\providecommand{\loxim}{LoXiM}
+%\newcommand{\nazwaprojektu}{\loxim}
+
+\newcommand{\nazwadokumentu}{Analiza mo¿liwo¶ci wykorzystania protoko³u LDAP
+do obs³ugi dostêpu do semistrukturalnej BD} 
+
+\newcommand{\wersjadokumentu}{0.1}
+
+\title{\nazwadokumentu}
+\author{Piotr Tabor (pt214569@students.mimuw.edu.pl)}
+
+
+\begin{document}
+\maketitle
+
+\begin{historia}
+	\hist{2008-03-09 -- 2008-03-26}{0.1}{Piotr Tabor}{Pierwsza wersja dokumentu}
+	\hist{2008-03-09 -- 2008-06-03}{0.2}{Piotr Tabor}{Analiza i podsumowanie}
+\end{historia}
+
+\tableofcontents
+
+\newpage
+
+
+\input{sbql_via_ldap-core}
+
+%============================= BIBLIOGRAFIA ==============================
+
+\begin{thebibliography}{}   
+
+\input{sbql_via_ldap-biblio}
+
+\end{thebibliography}
+
+\end{document}
