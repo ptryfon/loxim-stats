@@ -162,7 +162,7 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 			return;
 		}
 		
-		rollback();
+		rollback0();
 		try {
 			pacIO.write(new A_sc_byePackage(Bye_reasonsEnum.br_reason1, null));
 			pacIO.close();
@@ -183,7 +183,7 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 		commit0();
 	}
 
-	void commit0() {
+	private void commit0() {
 		// TODO
 	}
 	
@@ -382,7 +382,7 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 		rollback0();
 	}
 
-	void rollback0() {
+	private void rollback0() {
 		// TODO
 	}
 	

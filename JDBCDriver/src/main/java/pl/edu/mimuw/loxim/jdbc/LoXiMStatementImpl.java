@@ -1,6 +1,5 @@
 package pl.edu.mimuw.loxim.jdbc;
 
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLWarning;
@@ -8,6 +7,9 @@ import java.sql.SQLWarning;
 public class LoXiMStatementImpl implements LoXiMStatement {
 
 	private LoXiMConnection connection;
+	private int fetchSize;
+	private boolean closed;
+	private SQLWarning warning;
 	
 	LoXiMStatementImpl(LoXiMConnection connection) {
 		this.connection = connection;
@@ -33,14 +35,17 @@ public class LoXiMStatementImpl implements LoXiMStatement {
 
 	@Override
 	public void clearWarnings() throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		warning = null;
 	}
 
 	@Override
 	public void close() throws SQLException {
-		// TODO Auto-generated method stub
-
+		if (closed) {
+			return;
+		}
+		
+		closed = true;
 	}
 
 	@Override
@@ -74,7 +79,7 @@ public class LoXiMStatementImpl implements LoXiMStatement {
 	}
 
 	@Override
-	public ResultSet executeQuery(String sql) throws SQLException {
+	public LoXiMResultSet executeQuery(String sql) throws SQLException {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -110,18 +115,17 @@ public class LoXiMStatementImpl implements LoXiMStatement {
 
 	@Override
 	public int getFetchDirection() throws SQLException {
-		// TODO Auto-generated method stub
-		return 0;
+		checkClosed();
+		return ResultSet.FETCH_FORWARD;
 	}
 
 	@Override
 	public int getFetchSize() throws SQLException {
-		// TODO Auto-generated method stub
-		return 0;
+		return fetchSize;
 	}
 
 	@Override
-	public ResultSet getGeneratedKeys() throws SQLException {
+	public LoXiMResultSet getGeneratedKeys() throws SQLException {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -157,27 +161,24 @@ public class LoXiMStatementImpl implements LoXiMStatement {
 	}
 
 	@Override
-	public ResultSet getResultSet() throws SQLException {
+	public LoXiMResultSet getResultSet() throws SQLException {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public int getResultSetConcurrency() throws SQLException {
-		// TODO Auto-generated method stub
-		return 0;
+		return ResultSet.CONCUR_READ_ONLY;
 	}
 
 	@Override
 	public int getResultSetHoldability() throws SQLException {
-		// TODO Auto-generated method stub
-		return 0;
+		return ResultSet.HOLD_CURSORS_OVER_COMMIT;
 	}
 
 	@Override
 	public int getResultSetType() throws SQLException {
-		// TODO Auto-generated method stub
-		return 0;
+		return ResultSet.TYPE_FORWARD_ONLY;
 	}
 
 	@Override
@@ -188,14 +189,13 @@ public class LoXiMStatementImpl implements LoXiMStatement {
 
 	@Override
 	public SQLWarning getWarnings() throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		checkClosed();
+		return warning;
 	}
 
 	@Override
 	public boolean isClosed() throws SQLException {
-		// TODO Auto-generated method stub
-		return false;
+		return closed;
 	}
 
 	@Override
@@ -218,14 +218,27 @@ public class LoXiMStatementImpl implements LoXiMStatement {
 
 	@Override
 	public void setFetchDirection(int direction) throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		switch (direction) {
+		case ResultSet.FETCH_FORWARD:
+			return;
+		case ResultSet.FETCH_REVERSE:
+		case ResultSet.FETCH_UNKNOWN:
+			throw new SQLException("Bad fetch direction: " + direction + " - only FETCH_FORWARD is available");
+		default:
+			throw new SQLException("Unknown fetch direction: " + direction);
+		}
 	}
 
 	@Override
 	public void setFetchSize(int rows) throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		if (rows < 0) {
+			throw new SQLException("Fetch size must be >= 0");
+		}
+		if (rows > 0) {
+			fetchSize = rows;
+		}
 	}
 
 	@Override
@@ -265,4 +278,9 @@ public class LoXiMStatementImpl implements LoXiMStatement {
 		throw new SQLException("Not a wrapper for " + iface);
 	}
 
+	private void checkClosed() throws SQLException {
+		if (closed) {
+			throw new SQLException("Result set is closed");
+		}
+	}
 }

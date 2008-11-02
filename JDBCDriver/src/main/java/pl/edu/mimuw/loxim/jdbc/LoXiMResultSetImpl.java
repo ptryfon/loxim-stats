@@ -11,7 +11,6 @@ import java.sql.Date;
 import java.sql.NClob;
 import java.sql.Ref;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.RowId;
 import java.sql.SQLException;
 import java.sql.SQLWarning;
@@ -26,8 +25,14 @@ import pl.edu.mimuw.loxim.data.DateUtil;
 public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	private LoXiMStatement statement;
-	private boolean closed = true;
+	private boolean closed;
 	private SQLWarning warning;
+	private int fetchSize;
+	
+	LoXiMResultSetImpl(LoXiMStatement statement) throws SQLException {
+		this.statement = statement;
+		this.fetchSize = statement.getFetchSize();
+	}
 	
 	@Override
 	public boolean absolute(int row) throws SQLException {
@@ -49,8 +54,8 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public void cancelRowUpdates() throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		throw new SQLException("The result set is CONCUR_READ_ONLY");
 	}
 
 	@Override
@@ -70,8 +75,8 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public void deleteRow() throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		throw new SQLException("The result set is CONCUR_READ_ONLY");
 	}
 
 	@Override
@@ -212,8 +217,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public int getConcurrency() throws SQLException {
-		// TODO Auto-generated method stub
-		return 0;
+		return ResultSet.CONCUR_READ_ONLY;
 	}
 
 	@Override
@@ -270,8 +274,8 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public int getFetchSize() throws SQLException {
-		// TODO Auto-generated method stub
-		return 0;
+		checkClosed();
+		return fetchSize;
 	}
 
 	@Override
@@ -314,7 +318,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 	}
 
 	@Override
-	public ResultSetMetaData getMetaData() throws SQLException {
+	public LoXiMResultSetMetaData getMetaData() throws SQLException {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -533,8 +537,8 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public void insertRow() throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		throw new SQLException("The result set is CONCUR_READ_ONLY");
 	}
 
 	@Override
@@ -574,14 +578,14 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public void moveToCurrentRow() throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		throw new SQLException("The result set is CONCUR_READ_ONLY");
 	}
 
 	@Override
 	public void moveToInsertRow() throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		throw new SQLException("The result set is CONCUR_READ_ONLY");
 	}
 
 	@Override
@@ -599,8 +603,8 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public void refreshRow() throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		throw new SQLException("The result set is TYPE_FORWARD_ONLY");
 	}
 
 	@Override
@@ -643,510 +647,472 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public void setFetchSize(int rows) throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		if (rows < 0) {
+			throw new SQLException("Fetch size must be >= 0");
+		}
+		if (rows > 0) {
+			fetchSize = rows;
+		}
 	}
 
 	@Override
 	public void updateArray(int columnIndex, Array x) throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		throw new SQLException("The result set is CONCUR_READ_ONLY");
 	}
 
 	@Override
 	public void updateArray(String columnLabel, Array x) throws SQLException {
-		// TODO Auto-generated method stub
-
+		updateArray(findColumn(columnLabel), x);
 	}
 
 	@Override
 	public void updateAsciiStream(int columnIndex, InputStream x) throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		throw new SQLException("The result set is CONCUR_READ_ONLY");
 	}
 
 	@Override
 	public void updateAsciiStream(String columnLabel, InputStream x) throws SQLException {
-		// TODO Auto-generated method stub
-
+		updateAsciiStream(findColumn(columnLabel), x);
 	}
 
 	@Override
 	public void updateAsciiStream(int columnIndex, InputStream x, int length) throws SQLException {
-		// TODO Auto-generated method stub
-
+		updateAsciiStream(columnIndex, x, (long) length);
 	}
 
 	@Override
 	public void updateAsciiStream(String columnLabel, InputStream x, int length) throws SQLException {
-		// TODO Auto-generated method stub
-
+		updateAsciiStream(findColumn(columnLabel), x, length);
 	}
 
 	@Override
 	public void updateAsciiStream(int columnIndex, InputStream x, long length) throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		throw new SQLException("The result set is CONCUR_READ_ONLY");
 	}
 
 	@Override
 	public void updateAsciiStream(String columnLabel, InputStream x, long length) throws SQLException {
-		// TODO Auto-generated method stub
-
+		updateAsciiStream(findColumn(columnLabel), x, length);
 	}
 
 	@Override
 	public void updateBigDecimal(int columnIndex, BigDecimal x) throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		throw new SQLException("The result set is CONCUR_READ_ONLY");
 	}
 
 	@Override
 	public void updateBigDecimal(String columnLabel, BigDecimal x) throws SQLException {
-		// TODO Auto-generated method stub
-
+		updateBigDecimal(findColumn(columnLabel), x);
 	}
 
 	@Override
 	public void updateBinaryStream(int columnIndex, InputStream x) throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		throw new SQLException("The result set is CONCUR_READ_ONLY");
 	}
 
 	@Override
 	public void updateBinaryStream(String columnLabel, InputStream x) throws SQLException {
-		// TODO Auto-generated method stub
-
+		updateBinaryStream(findColumn(columnLabel), x);
 	}
 
 	@Override
 	public void updateBinaryStream(int columnIndex, InputStream x, int length) throws SQLException {
-		// TODO Auto-generated method stub
-
+		updateBinaryStream(columnIndex, x, (long) length);
 	}
 
 	@Override
 	public void updateBinaryStream(String columnLabel, InputStream x, int length) throws SQLException {
-		// TODO Auto-generated method stub
-
+		updateBinaryStream(findColumn(columnLabel), x, length);
 	}
 
 	@Override
 	public void updateBinaryStream(int columnIndex, InputStream x, long length) throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		throw new SQLException("The result set is CONCUR_READ_ONLY");
 	}
 
 	@Override
 	public void updateBinaryStream(String columnLabel, InputStream x, long length) throws SQLException {
-		// TODO Auto-generated method stub
-
+		updateBinaryStream(findColumn(columnLabel), x, length);
 	}
 
 	@Override
 	public void updateBlob(int columnIndex, Blob x) throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		throw new SQLException("The result set is CONCUR_READ_ONLY");
 	}
 
 	@Override
 	public void updateBlob(String columnLabel, Blob x) throws SQLException {
-		// TODO Auto-generated method stub
-
+		updateBlob(findColumn(columnLabel), x);
 	}
 
 	@Override
 	public void updateBlob(int columnIndex, InputStream inputStream) throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		throw new SQLException("The result set is CONCUR_READ_ONLY");
 	}
 
 	@Override
 	public void updateBlob(String columnLabel, InputStream inputStream) throws SQLException {
-		// TODO Auto-generated method stub
-
+		updateBlob(findColumn(columnLabel), inputStream);
 	}
 
 	@Override
 	public void updateBlob(int columnIndex, InputStream inputStream, long length) throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		throw new SQLException("The result set is CONCUR_READ_ONLY");
 	}
 
 	@Override
 	public void updateBlob(String columnLabel, InputStream inputStream, long length) throws SQLException {
-		// TODO Auto-generated method stub
-
+		updateBlob(findColumn(columnLabel), inputStream, length);
 	}
 
 	@Override
 	public void updateBoolean(int columnIndex, boolean x) throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		throw new SQLException("The result set is CONCUR_READ_ONLY");
 	}
 
 	@Override
 	public void updateBoolean(String columnLabel, boolean x) throws SQLException {
-		// TODO Auto-generated method stub
-
+		updateBoolean(findColumn(columnLabel), x);
 	}
 
 	@Override
 	public void updateByte(int columnIndex, byte x) throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		throw new SQLException("The result set is CONCUR_READ_ONLY");
 	}
 
 	@Override
 	public void updateByte(String columnLabel, byte x) throws SQLException {
-		// TODO Auto-generated method stub
-
+		updateByte(findColumn(columnLabel), x);
 	}
 
 	@Override
 	public void updateBytes(int columnIndex, byte[] x) throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		throw new SQLException("The result set is CONCUR_READ_ONLY");
 	}
 
 	@Override
 	public void updateBytes(String columnLabel, byte[] x) throws SQLException {
-		// TODO Auto-generated method stub
-
+		updateBytes(findColumn(columnLabel), x);
 	}
 
 	@Override
 	public void updateCharacterStream(int columnIndex, Reader x) throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		throw new SQLException("The result set is CONCUR_READ_ONLY");
 	}
 
 	@Override
 	public void updateCharacterStream(String columnLabel, Reader reader) throws SQLException {
-		// TODO Auto-generated method stub
-
+		updateCharacterStream(findColumn(columnLabel), reader);
 	}
 
 	@Override
 	public void updateCharacterStream(int columnIndex, Reader x, int length) throws SQLException {
-		// TODO Auto-generated method stub
-
+		updateCharacterStream(columnIndex, x, (long) length);
 	}
 
 	@Override
 	public void updateCharacterStream(String columnLabel, Reader reader, int length) throws SQLException {
-		// TODO Auto-generated method stub
-
+		updateCharacterStream(findColumn(columnLabel), reader, length);
 	}
 
 	@Override
 	public void updateCharacterStream(int columnIndex, Reader x, long length) throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		throw new SQLException("The result set is CONCUR_READ_ONLY");
 	}
 
 	@Override
 	public void updateCharacterStream(String columnLabel, Reader reader, long length) throws SQLException {
-		// TODO Auto-generated method stub
-
+		updateCharacterStream(findColumn(columnLabel), reader, length);
 	}
 
 	@Override
 	public void updateClob(int columnIndex, Clob x) throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		throw new SQLException("The result set is CONCUR_READ_ONLY");
 	}
 
 	@Override
 	public void updateClob(String columnLabel, Clob x) throws SQLException {
-		// TODO Auto-generated method stub
-
+		updateClob(findColumn(columnLabel), x);
 	}
 
 	@Override
 	public void updateClob(int columnIndex, Reader reader) throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		throw new SQLException("The result set is CONCUR_READ_ONLY");
 	}
 
 	@Override
 	public void updateClob(String columnLabel, Reader reader) throws SQLException {
-		// TODO Auto-generated method stub
-
+		updateClob(findColumn(columnLabel), reader);
 	}
 
 	@Override
 	public void updateClob(int columnIndex, Reader reader, long length) throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		throw new SQLException("The result set is CONCUR_READ_ONLY");
 	}
 
 	@Override
 	public void updateClob(String columnLabel, Reader reader, long length) throws SQLException {
-		// TODO Auto-generated method stub
-
+		updateClob(findColumn(columnLabel), reader, length);
 	}
 
 	@Override
 	public void updateDate(int columnIndex, Date x) throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		throw new SQLException("The result set is CONCUR_READ_ONLY");
 	}
 
 	@Override
 	public void updateDate(String columnLabel, Date x) throws SQLException {
-		// TODO Auto-generated method stub
-
+		updateDate(findColumn(columnLabel), x);
 	}
 
 	@Override
 	public void updateDouble(int columnIndex, double x) throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		throw new SQLException("The result set is CONCUR_READ_ONLY");
 	}
 
 	@Override
 	public void updateDouble(String columnLabel, double x) throws SQLException {
-		// TODO Auto-generated method stub
-
+		updateDouble(findColumn(columnLabel), x);
 	}
 
 	@Override
 	public void updateFloat(int columnIndex, float x) throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		throw new SQLException("The result set is CONCUR_READ_ONLY");
 	}
 
 	@Override
 	public void updateFloat(String columnLabel, float x) throws SQLException {
-		// TODO Auto-generated method stub
-
+		updateFloat(findColumn(columnLabel), x);
 	}
 
 	@Override
 	public void updateInt(int columnIndex, int x) throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		throw new SQLException("The result set is CONCUR_READ_ONLY");
 	}
 
 	@Override
 	public void updateInt(String columnLabel, int x) throws SQLException {
-		// TODO Auto-generated method stub
-
+		updateInt(findColumn(columnLabel), x);
 	}
 
 	@Override
 	public void updateLong(int columnIndex, long x) throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		throw new SQLException("The result set is CONCUR_READ_ONLY");
 	}
 
 	@Override
 	public void updateLong(String columnLabel, long x) throws SQLException {
-		// TODO Auto-generated method stub
-
+		updateLong(findColumn(columnLabel), x);
 	}
 
 	@Override
-	public void updateNCharacterStream(int columnIndex, Reader x) throws SQLException {
-		// TODO Auto-generated method stub
-
+	public void updateNCharacterStream(int columnIndex, Reader reader) throws SQLException {
+		checkClosed();
+		throw new SQLException("The result set is CONCUR_READ_ONLY");
 	}
 
 	@Override
 	public void updateNCharacterStream(String columnLabel, Reader reader) throws SQLException {
-		// TODO Auto-generated method stub
-
+		updateNCharacterStream(findColumn(columnLabel), reader);
 	}
 
 	@Override
-	public void updateNCharacterStream(int columnIndex, Reader x, long length) throws SQLException {
-		// TODO Auto-generated method stub
-
+	public void updateNCharacterStream(int columnIndex, Reader reader, long length) throws SQLException {
+		checkClosed();
+		throw new SQLException("The result set is CONCUR_READ_ONLY");
 	}
 
 	@Override
 	public void updateNCharacterStream(String columnLabel, Reader reader, long length) throws SQLException {
-		// TODO Auto-generated method stub
-
+		updateNCharacterStream(findColumn(columnLabel), reader, length);
 	}
 
 	@Override
 	public void updateNClob(int columnIndex, NClob clob) throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		throw new SQLException("The result set is CONCUR_READ_ONLY");
 	}
 
 	@Override
 	public void updateNClob(String columnLabel, NClob clob) throws SQLException {
-		// TODO Auto-generated method stub
-
+		updateNClob(findColumn(columnLabel), clob);
 	}
 
 	@Override
 	public void updateNClob(int columnIndex, Reader reader) throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		throw new SQLException("The result set is CONCUR_READ_ONLY");
 	}
 
 	@Override
 	public void updateNClob(String columnLabel, Reader reader) throws SQLException {
-		// TODO Auto-generated method stub
-
+		updateNClob(findColumn(columnLabel), reader);
 	}
 
 	@Override
 	public void updateNClob(int columnIndex, Reader reader, long length) throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		throw new SQLException("The result set is CONCUR_READ_ONLY");
 	}
 
 	@Override
 	public void updateNClob(String columnLabel, Reader reader, long length) throws SQLException {
-		// TODO Auto-generated method stub
-
+		updateNClob(findColumn(columnLabel), reader, length);
 	}
 
 	@Override
 	public void updateNString(int columnIndex, String string) throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		throw new SQLException("The result set is CONCUR_READ_ONLY");
 	}
 
 	@Override
 	public void updateNString(String columnLabel, String string) throws SQLException {
-		// TODO Auto-generated method stub
-
+		updateNString(findColumn(columnLabel), string);
 	}
 
 	@Override
 	public void updateNull(int columnIndex) throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		throw new SQLException("The result set is CONCUR_READ_ONLY");
 	}
 
 	@Override
 	public void updateNull(String columnLabel) throws SQLException {
-		// TODO Auto-generated method stub
-
+		updateNull(findColumn(columnLabel));
 	}
 
 	@Override
 	public void updateObject(int columnIndex, Object x) throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		throw new SQLException("The result set is CONCUR_READ_ONLY");
 	}
 
 	@Override
 	public void updateObject(String columnLabel, Object x) throws SQLException {
-		// TODO Auto-generated method stub
-
+		updateObject(findColumn(columnLabel), x);
 	}
 
 	@Override
 	public void updateObject(int columnIndex, Object x, int scaleOrLength) throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		throw new SQLException("The result set is CONCUR_READ_ONLY");
 	}
 
 	@Override
 	public void updateObject(String columnLabel, Object x, int scaleOrLength) throws SQLException {
-		// TODO Auto-generated method stub
-
+		updateObject(findColumn(columnLabel), x, scaleOrLength);
 	}
 
 	@Override
 	public void updateRef(int columnIndex, Ref x) throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		throw new SQLException("The result set is CONCUR_READ_ONLY");
 	}
 
 	@Override
 	public void updateRef(String columnLabel, Ref x) throws SQLException {
-		// TODO Auto-generated method stub
-
+		updateRef(findColumn(columnLabel), x);
 	}
 
 	@Override
 	public void updateRow() throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		throw new SQLException("The result set is CONCUR_READ_ONLY");
 	}
 
 	@Override
 	public void updateRowId(int columnIndex, RowId x) throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		throw new SQLException("The result set is CONCUR_READ_ONLY");
 	}
 
 	@Override
 	public void updateRowId(String columnLabel, RowId x) throws SQLException {
-		// TODO Auto-generated method stub
-
+		updateRowId(findColumn(columnLabel), x);
 	}
 
 	@Override
 	public void updateSQLXML(int columnIndex, SQLXML xmlObject) throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		throw new SQLException("The result set is CONCUR_READ_ONLY");
 	}
 
 	@Override
 	public void updateSQLXML(String columnLabel, SQLXML xmlObject) throws SQLException {
-		// TODO Auto-generated method stub
-
+		updateSQLXML(findColumn(columnLabel), xmlObject);
 	}
 
 	@Override
 	public void updateShort(int columnIndex, short x) throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		throw new SQLException("The result set is CONCUR_READ_ONLY");
 	}
 
 	@Override
 	public void updateShort(String columnLabel, short x) throws SQLException {
-		// TODO Auto-generated method stub
-
+		updateShort(findColumn(columnLabel), x);
 	}
 
 	@Override
 	public void updateString(int columnIndex, String x) throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		throw new SQLException("The result set is CONCUR_READ_ONLY");
 	}
 
 	@Override
 	public void updateString(String columnLabel, String x) throws SQLException {
-		// TODO Auto-generated method stub
-
+		updateString(findColumn(columnLabel), x);
 	}
 
 	@Override
 	public void updateTime(int columnIndex, Time x) throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		throw new SQLException("The result set is CONCUR_READ_ONLY");
 	}
 
 	@Override
 	public void updateTime(String columnLabel, Time x) throws SQLException {
-		// TODO Auto-generated method stub
-
+		updateTime(findColumn(columnLabel), x);
 	}
 
 	@Override
 	public void updateTimestamp(int columnIndex, Timestamp x) throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		throw new SQLException("The result set is CONCUR_READ_ONLY");
 	}
 
 	@Override
 	public void updateTimestamp(String columnLabel, Timestamp x) throws SQLException {
-		// TODO Auto-generated method stub
-
+		updateTimestamp(findColumn(columnLabel), x);
 	}
 
 	@Override
 	public boolean wasNull() throws SQLException {
+		checkClosed();
 		// TODO Auto-generated method stub
 		return false;
 	}
