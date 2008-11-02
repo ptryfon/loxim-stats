@@ -52,7 +52,7 @@ public class LoXiMDriverImpl implements LoXiMDriver {
 	static LoXiMConnection getConnection(String jdbcURL, Properties info) throws SQLException {
 		try {
 			if (jdbcURL == null) {
-				throw new NullPointerException("JDBC URL is null");
+				throw new IllegalArgumentException("JDBC URL is null");
 			}
 			ConnectionInfo conInfo = DatabaseURL.parseURL(jdbcURL);
 			conInfo.setInfo(info);

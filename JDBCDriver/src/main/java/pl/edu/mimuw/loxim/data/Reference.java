@@ -1,5 +1,5 @@
 package pl.edu.mimuw.loxim.data;
 
-public interface Reference {
+public interface Reference extends LoXiMObject {
 
 }

@@ -1,5 +1,5 @@
 package pl.edu.mimuw.loxim.data;
 
-public interface Binding {
+public interface Binding extends LoXiMObject {
 
 }

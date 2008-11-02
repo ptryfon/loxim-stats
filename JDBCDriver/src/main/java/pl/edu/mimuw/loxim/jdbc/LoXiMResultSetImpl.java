@@ -18,9 +18,10 @@ import java.sql.SQLXML;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Map;
 
-import pl.edu.mimuw.loxim.data.DateUtil;
+import pl.edu.mimuw.loxim.jdbc.util.DateUtil;
 
 public class LoXiMResultSetImpl implements LoXiMResultSet {
 
@@ -81,8 +82,17 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public int findColumn(String columnLabel) throws SQLException {
+		if (findColumns(columnLabel).length == 0) {
+			return 0;
+		} else {
+			return findColumns(columnLabel)[0];
+		}
+	}
+	
+	@Override
+	public int[] findColumns(String columnLabel) throws SQLException {
 		// TODO Auto-generated method stub
-		return 0;
+		return null;
 	}
 
 	@Override
@@ -357,13 +367,13 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 	}
 
 	@Override
-	public Object getObject(int columnIndex) throws SQLException {
+	public List<Object> getObject(int columnIndex) throws SQLException {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Object getObject(String columnLabel) throws SQLException {
+	public List<Object> getObject(String columnLabel) throws SQLException {
 		return getObject(findColumn(columnLabel));
 	}
 

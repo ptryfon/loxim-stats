@@ -1,4 +1,4 @@
-package pl.edu.mimuw.loxim.data;
+package pl.edu.mimuw.loxim.jdbc.util;
 
 import java.util.Calendar;
 import java.util.GregorianCalendar;

@@ -1,5 +1,5 @@
 package pl.edu.mimuw.loxim.data;
 
-public interface Sequence {
+public interface Sequence extends LoXiMObject {
 
 }

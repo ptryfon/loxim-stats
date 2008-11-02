@@ -32,8 +32,13 @@ import pl.edu.mimuw.loxim.parser.SBQLParser;
 import pl.edu.mimuw.loxim.protocol.enums.Auth_methodsEnum;
 import pl.edu.mimuw.loxim.protocol.enums.Bye_reasonsEnum;
 import pl.edu.mimuw.loxim.protocol.enums.CollationsEnum;
+import pl.edu.mimuw.loxim.protocol.enums.Statement_flagsEnum;
 import pl.edu.mimuw.loxim.protocol.packages.A_sc_byePackage;
+import pl.edu.mimuw.loxim.protocol.packages.A_sc_errorPackage;
 import pl.edu.mimuw.loxim.protocol.packages.A_sc_okPackage;
+import pl.edu.mimuw.loxim.protocol.packages.PackageUtil;
+import pl.edu.mimuw.loxim.protocol.packages.Q_c_statementPackage;
+import pl.edu.mimuw.loxim.protocol.packages.Q_s_executingPackage;
 import pl.edu.mimuw.loxim.protocol.packages.W_c_authorizedPackage;
 import pl.edu.mimuw.loxim.protocol.packages.W_c_helloPackage;
 import pl.edu.mimuw.loxim.protocol.packages.W_c_loginPackage;
@@ -56,6 +61,7 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 	private PackageIO pacIO;
 	private Parser parser = new SBQLParser();
 	private int holdability = ResultSet.HOLD_CURSORS_OVER_COMMIT;
+	private Object statementMutex = new Object();
 
 	public LoXiMConnectionImpl(ConnectionInfo info) throws IOException, ProtocolException,
 			SQLInvalidAuthorizationSpecException, AuthException {
@@ -229,8 +235,8 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 		checkResultSetType(resultSetType);
 		checkResultSetConcurrency(resultSetConcurrency);
 		checkHoldability(resultSetHoldability);
-		// TODO Auto-generated method stub
-		return null;
+		LoXiMStatement stmt = new LoXiMStatementImpl(this);
+		return stmt;
 	}
 
 	@Override
@@ -507,12 +513,31 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 		}
 	}
 	
-	private void addWarning(String msg) {
-		SQLWarning warning = new SQLWarning(msg);
-		if (this.warning == null) {
-			this.warning = warning;
-		} else {
-			this.warning.setNextWarning(warning);
+	public LoXiMResultSet executeStatement(String statement) throws SQLException {
+		synchronized (statementMutex) {
+			try {
+				Q_c_statementPackage statementPac = new Q_c_statementPackage();
+				EnumSet<Statement_flagsEnum> flags = EnumSet.of(Statement_flagsEnum.sf_execute);
+				statementPac.setFlags(flags);
+				statementPac.setStatement(statement);
+				pacIO.write(statementPac);
+				Package pac = pacIO.read();
+				switch ((byte) pac.getPackageType()) {
+				case A_sc_errorPackage.ID:
+					throw new SQLException("Statement execution error: " + PackageUtil.toString((A_sc_errorPackage) pac));
+				case Q_s_executingPackage.ID:
+					
+					
+					// TODO get values
+					
+					
+					return null;
+				default:
+					throw new ProtocolException("Unexpected package. Expecting Q_s_executingPackage or A_sc_errorPackage");
+				}
+			} catch (ProtocolException e) {
+				throw new SQLException("Communication error", e);
+			}
 		}
 	}
 }
