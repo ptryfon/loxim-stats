@@ -4,6 +4,11 @@
 #include <vector>
 #include "QueryResult.h"
 
+namespace Errors
+{
+    class ErrorConsole;
+}
+
 namespace Schemas
 {    
     class Member 
@@ -52,7 +57,9 @@ namespace Schemas
 	    TFields getFields() {return m_fields;}
 	    TMethods getMethods() {return m_methods;}   
 	    TSupers getSupers() {return m_supers;}
+	    string getAssociatedObjectName() const {return m_associatedObjectName;}
 	    void setIsInterface(bool isInterfaceSchema) {m_isInterfaceSchema = isInterfaceSchema;}
+	    void setAssociatedObjectName(string name) {m_associatedObjectName = name; cout << "\n\nNAME: " << name << "\n\n"; }
 	    void addField(Field *f) {m_fields.push_back(f);}
 	    void addMethod(Method *m) {m_methods.push_back(m);}
 	    void addSuper(string s) {m_supers.push_back(s);}
@@ -67,9 +74,12 @@ namespace Schemas
 	    
 	private:
 	    bool m_isInterfaceSchema;
+	    string m_associatedObjectName;
 	    TFields m_fields;
 	    TMethods m_methods;
 	    TSupers m_supers;
+	    
+	    static int getString(QExecutor::QueryExecutor *qe, QExecutor::QueryResult *qr, string &out);
     };
     
     class Matcher 
@@ -81,9 +91,11 @@ namespace Schemas
 	public:
 	    static bool MatchFields(TFields intFields, TFields impFields);
 	    static bool MatchMethods(TMethods intMethods, TMethods impMethods);
-	    static bool MatchInterfaceWithImplementation(Schema Interface, Schema Implementation);
+	    static bool MatchInterfaceWithImplementation(Schema Interface, Schema Implementation);    
     
+	    static int QueryForInterfaceObjectName(const string& name, QExecutor::QueryExecutor *qE, Errors::ErrorConsole *ec, TManager::Transaction *tr, QParser::QueryNode *&node);
     };
+    
 
 }
 

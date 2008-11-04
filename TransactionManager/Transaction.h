@@ -119,7 +119,9 @@ namespace TManager
 			int getSystemViewsLID(vector<LogicalID*>* &p);
 		    	int getSystemViewsLID(string name, vector<LogicalID*>* &p);
 
-		    	int addInterface(const char* name, const char* objectName, ObjectPointer* &p);
+		    	int addInterface(const string& name, const string& objectName, ObjectPointer* &p);
+		    	int bindInterface(const string& name, const string& bindName);
+		    	int getInterfaceBindForObjectName(const string& objectName, string& interfaceName, string& bindName); 
 		    	int removeInterface(ObjectPointer* &p);
 
 		    	TransactionID* getId();

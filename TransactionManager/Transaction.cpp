@@ -576,7 +576,7 @@ namespace TManager
 		return errorNumber;
 	}
 
-	int Transaction::addInterface(const char* name, const char* objectName, ObjectPointer* &p)
+	int Transaction::addInterface(const string& name, const string& objectName, ObjectPointer* &p)
 	{
 		int errorNumber;
 		err.printf("Transaction: %d addInterface\n", tid->getId());
@@ -590,6 +590,33 @@ namespace TManager
 		if (errorNumber) abort();
 		return errorNumber;
 	}
+	
+	int Transaction::bindInterface(const string& name, const string& bindName)
+	{
+		int errorNumber;
+		err.printf("Transaction: %d bindInterface\n", tid->getId());
+
+		sem->lock_write();
+			errorNumber = sm->bindInterface(tid, name, bindName);
+		sem->unlock();
+
+		if (errorNumber) abort();
+		return 0;
+	}
+	
+	int Transaction::getInterfaceBindForObjectName(const string& objectName, string& interfaceName, string& bindName)
+	{
+		int errorNumber;
+		err.printf("Transaction: %d getInterfaceBindForObjectName\n", tid->getId());
+
+		sem->lock_read();
+			errorNumber = sm->getInterfaceBindForObjectName(tid, objectName, interfaceName, bindName);
+		sem->unlock();
+
+		if (errorNumber && (errorNumber != (ENoInterfaceFound | ErrStore))) abort();
+		return errorNumber;
+	}
+	
 
 	int Transaction::removeInterface(ObjectPointer* &p)
 	{

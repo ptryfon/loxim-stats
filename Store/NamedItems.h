@@ -54,6 +54,23 @@ namespace Store
 			return name + strlen(name) + 1;
 		}
 	};
+	
+	struct ixi_entry : public ix_entry {
+		string getName() const {
+		    string nameS(name); 
+		    return nameS;
+		}
+	
+		string getObjectName() const {
+			string oName(name + strlen(name) + 1);
+			return oName;
+		}
+		string getBindName() const {
+			string bName(name + strlen(name) + 1 + strlen(name + strlen(name) + 1) + 1);
+			return bName;
+		}
+	
+	};
 
 	struct FindByName {
 		bool operator()(const char* name, ix_entry* entry) {
@@ -67,6 +84,12 @@ namespace Store
 			//cout << (static_cast<ixc_entry*>(entry))->getInvariant() << endl;
 			return (strcmp(invariant, (static_cast<ixc_entry*>(entry))->getInvariant()) == 0);
 		}
+	};
+	
+	struct FindByObjectName {	//to avoid confusion
+		bool operator() (const char* oName, ix_entry* entry) {
+		    return (strcmp(oName, (static_cast<ixi_entry*>(entry))->getObjectName().c_str()) == 0);
+		}	
 	};
 
 	struct FindNamesWithBegin {
@@ -89,7 +112,8 @@ namespace Store
 
 		virtual int createEntry(TransactionID* tid, int logicalID, const char* name, int& size_needed, char*& entry_buf);
 		virtual int addItem(TransactionID* tid, int size_needed, char* entry_buf);
-
+		vector<int>* getByNameWithEntries(TransactionID* tid, const char* name, vector<const ix_entry *> *entries = NULL);
+	    
 		static FindByName findByName;
 
 	private:
@@ -132,18 +156,24 @@ namespace Store
 		vector<int>* getItems(TransactionID* tid, const char* name, vector<Indexes::RootEntry*> *indexContent = NULL);
 
 		template<typename Operation, typename DataType>
-		vector<int>* getItemsByAnything(TransactionID* tid, Operation findTest, DataType thingToFind, vector<Indexes::RootEntry*> *indexContent = NULL);
+		vector<int>* getItemsByAnything(TransactionID* tid, Operation findTest, DataType thingToFind, vector<Indexes::RootEntry*> *indexContent = NULL, vector<const ix_entry *> *entryNames = NULL);
 
 	};
 
 	class Interfaces : public NamedItems {
 	private:
 	    ErrorConsole *ec;
-	    int createEntry(TransactionID* tid, int logicalID, const char* name, const char* objectName, int& size_needed, char*& entry_buf);
+	    static FindByObjectName findByObjectName;
+	    int createEntry(TransactionID* tid, int logicalID, const char* name, const char* objectName, int& size_needed, char*& entry_buf, const char* bindName = NULL);
 	public:
 	    ~Interfaces();
 	    Interfaces();
-	    int addInterface(TransactionID* tid, int logicalID, const char* name, const char* objectName);
+	    int addInterface(TransactionID* tid, int logicalID, const string& name, const string& objectName, const string& bindName = "");
+	    int bindInterface(TransactionID* tid, const string& name, const string& bindName);
+	    vector<int>* getInterfaceByObjectName(TransactionID* tid, const char* oName, vector<const ix_entry *> *entries = NULL);
+	    vector<int>* getInterfaceByName(TransactionID* tid, const char* name, vector<const ix_entry *> *entries = NULL);
+	    int getInterfaceBindForObjectName(TransactionID* tid, const string& oName, string& interfaceName, string& bindName);
+	    int getInterfaceBindForName(TransactionID* tid, const string& name, string& interfaceName, string& bindName);
 	};
 
 	class Classes : public NamedItems {

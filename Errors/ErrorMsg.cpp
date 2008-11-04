@@ -54,6 +54,8 @@ struct ErrorMessages {
 	{EObjectInsteadOfType, "Object declared based on other object, instead of defined type"}, 
 	{EMdnCreateError, "Error while performing DB inserts on Metadata nodes"},
 	{ERecurrentTypes,  "Cannot define recurrent or mutually recurrent types"}, 
+	{ENoInterfaceFound, "Interface not found"},
+	{ENoImplementationFound, "Implementation not found"},
 // Config
 	{ENotInit,         "ENotInit"},
 	{ENoValue,         "ENoValue"},

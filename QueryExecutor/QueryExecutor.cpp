@@ -554,6 +554,22 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			QueryResult *result = new QueryBagResult();
 			errcode = envs->bindName(name, sectionNumber, tr, this, result);
 			if (errcode != 0) return errcode;
+			
+			/* not working well yet
+			if (((QueryBagResult *)result)->isEmpty())
+			{	//check if name refers to an interface object  
+			    QueryNode *replaced = NULL;
+			    errcode = Schemas::Matcher::QueryForInterfaceObjectName(name, this, ec, tr, replaced);
+			    //TODO - errcode
+			    if (replaced)
+			    {
+				ec->printf("[QE] name %s recognized as interface object name\n", name.c_str());
+				return executeRecQuery(replaced);
+			    //TODO - push methods to ES 
+			    }
+			}
+			*/
+			
 			errcode = qres->push(result);
 			if (errcode != 0) return errcode;
 			*ec << "[QE] Done!";
@@ -1367,7 +1383,16 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		    }
 		    string resS = matches ? "fits": "does not fit";
 		    ec->printf("[QE] TNINTERFACEBIND - interface %s %s implementation %s\n",interfaceName.c_str(),resS.c_str(),implementationName.c_str());
-		    		    
+		    
+		    /****************
+		    Bind interface
+		    ****************/
+		    
+		    if (matches)
+		    {
+			errcode = tr->bindInterface(interfaceName, implementationName);
+			//TODO - error handling
+		    }		    
 		    /******************
 		    Cleanup and return
 		    *******************/
@@ -1390,7 +1415,6 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			errcode = executeRecQuery(query);
 			if(errcode != 0) return errcode;
 		    }
-
 		    else qres->push(new QueryNothingResult());
 
 		    ec->printf("[QE] TNREGINTERFACE inner result pushed\n");

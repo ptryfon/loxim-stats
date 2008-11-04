@@ -40,6 +40,7 @@ HEADERS	=	../QueryExecutor/HashMacro.h \
 		Struct.h \
 		SystemViews.h
 
+
 STATIC_LIB =	Store.a
 PROGRAM =	TestStore
 

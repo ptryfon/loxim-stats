@@ -1,6 +1,7 @@
 #include "InterfaceMatcher.h"
 #include "BindNames.h"
 #include "QueryExecutor.h"
+#include "InterfaceQuery.h"
 #include <set>
 
 using namespace Schemas;
@@ -120,12 +121,23 @@ Schema::Schema(bool isInterfaceSchema) : m_isInterfaceSchema(isInterfaceSchema) 
 
 Schema::~Schema() {}
 
+int Schema::getString(QueryExecutor *qe, QueryResult *r, string &out)
+{
+    QueryResult *tmpR;
+    qe->derefQuery(r, tmpR);
+    if (tmpR->type()!=QueryResult::QSTRING) { cout << "ERR"; return -1; }
+    QueryStringResult *nameString = (QueryStringResult *)tmpR;    
+    out = nameString->getValue();
+    return 0;
+}
+
 Schema *Schema::fromQBResult(QueryBagResult *resultBag, QueryExecutor *qe)
 {
     cout << "Schema: fromQBResult() \n";
     bool isInterface = false;
     Schema *s = new Schema();
     QueryResult *tmp;
+    string generalNameString;
     qe->derefQuery(resultBag, tmp);
     QueryBagResult *derefedBag = (QueryBagResult *)tmp;
     
@@ -138,30 +150,27 @@ Schema *Schema::fromQBResult(QueryBagResult *resultBag, QueryExecutor *qe)
 	string name = qbR->getName();
 	if (!name.compare(QE_OBJECT_NAME_BIND_NAME))
 	{
-	    isInterface = true;	
+	    isInterface = true;
+	    if (Schema::getString(qe, qbR->getItem(), generalNameString) != 0) return s;
+	    s->setAssociatedObjectName(generalNameString);
+	}
+	else if (!name.compare(QE_INVARIANT_BIND_NAME))
+	{
+	    if (Schema::getString(qe, qbR->getItem(), generalNameString) != 0) return s;
+	    s->setAssociatedObjectName(generalNameString);
 	}
 	else if (!name.compare(QE_FIELD_BIND_NAME))
 	{
-	    QueryResult *r = qbR->getItem();
-	    QueryResult *tmpR;
-	    qe->derefQuery(r, tmpR);
-	    if (tmpR->type()!=QueryResult::QSTRING) { cout << "ERR"; return s; }
-	    QueryStringResult *nameString = (QueryStringResult *)tmpR;    
-	    string fieldName = nameString->getValue();
-	    Field *f = new Field(fieldName);
+	    if (Schema::getString(qe, qbR->getItem(), generalNameString) != 0) return s;
+	    Field *f = new Field(generalNameString);
 	    s->addField(f);		
-	    //cout << "Field: " << fieldName << endl; 	
+	    //cout << "Field: " << generalNameString << endl; 	
 	}
 	else if (!name.compare(QE_EXTEND_BIND_NAME))
 	{
-	    QueryResult *r = qbR->getItem();
-	    QueryResult *tmpR;
-	    qe->derefQuery(r, tmpR);
-	    if (tmpR->type()!=QueryResult::QSTRING) { cout << "ERR"; return s; }
-	    QueryStringResult *nameString = (QueryStringResult *)tmpR;    
-	    string superName = nameString->getValue();
-	    s->addSuper(superName);		
-	    //cout << "Super: " << superName << endl; 	
+	    if (Schema::getString(qe, qbR->getItem(), generalNameString) != 0) return s;
+	    s->addSuper(generalNameString);		
+	    //cout << "Super: " << generalNameString << endl; 	
 	}
 	else if (!name.compare(QE_METHOD_BIND_NAME))
 	{
@@ -203,8 +212,7 @@ Schema *Schema::fromQBResult(QueryBagResult *resultBag, QueryExecutor *qe)
 	}
     }
     s->setIsInterface(isInterface);
-    //s->debugPrint();
-    //cout << "Schema: fromQBResult(), returning...\n";
+    s->debugPrint();
     return s;
 }
 
@@ -231,6 +239,7 @@ int Schema::fromNameIncludingDerivedMembers(string name, QueryExecutor *qe, Sche
     if (errorcode) return errorcode;
     if (allSchemas->size() < 1) return -1; //TODO
     out = allSchemas->back();
+    string objectName = allSchemas->front()->getAssociatedObjectName();
     allSchemas->pop_back();
     vector<Schema *>::iterator it;
     for (it = allSchemas->begin(); it != allSchemas->end(); ++it)
@@ -238,6 +247,8 @@ int Schema::fromNameIncludingDerivedMembers(string name, QueryExecutor *qe, Sche
 	Schema *toJoin = *it;
 	out->join(toJoin);
     }
+    out->setAssociatedObjectName(objectName);
+    cout << "fromNameIncludingDerivedMembers returning" << endl;
     return 0;
 }
 
@@ -388,7 +399,54 @@ bool Matcher::MatchInterfaceWithImplementation(Schema interface, Schema implemen
     return result;
 }
 
-
+int Matcher::QueryForInterfaceObjectName(const string& name, QueryExecutor *qe, Errors::ErrorConsole *ec, TManager::Transaction *tr, QueryNode *&query)
+{
+    string iName, bName;
+    int errcode = tr->getInterfaceBindForObjectName(name, iName, bName);
+    if (errcode)
+    {
+	return errcode;
+    }
+    else
+    {
+	if (bName.empty())
+	{	//TODO - jest to nazwa obiektow spelniajacych interfejs, ale interfejs jest nie zwiazany z implementacja
+	    ec->printf("[QE] interface not bound\n");
+	    return 0;
+	}
+	else
+	{
+	    ec->printf("[QE] found implementation (%s -> %s) \n", iName.c_str(), bName.c_str());
+	    Schema *intSchema;
+	    errcode = Schema::fromNameIncludingDerivedMembers(iName, qe, intSchema);
+	    if (errcode)
+	    {	//TODO
+		ec->printf("[QE] error while creating schema for interface name: %s\n", iName.c_str());
+		return errcode;
+	    }
+	    Schema *impSchema;
+	    errcode = Schema::fromNameIncludingDerivedMembers(bName, qe, impSchema);
+	    if (errcode)
+	    {	//TODO
+		ec->printf("[QE] error while creating schema for implementation name: %s\n", bName.c_str());
+		return errcode;
+	    }
+	    
+	    intSchema->setIsInterface(true);
+	    impSchema->setIsInterface(false);
+	    string classInvariantName = impSchema->getAssociatedObjectName();
+	    if (classInvariantName.empty())
+	    {	//TODO - no inva!
+		ec->printf("[QE] no invariant name specified!\n");
+		return 0;
+	    }
+	    ec->printf("[QE] associated object name - %s\n", classInvariantName.c_str());
+	    
+	    InterfaceQuery::produceQuery(intSchema, ec, classInvariantName, query);
+	}
+    }
+    return 0;
+}
 
 
 

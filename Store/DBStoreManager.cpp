@@ -775,14 +775,14 @@ int DBStoreManager::getClassesLID(TransactionID* tid, vector<LogicalID*>*& p_cla
 		return rval;
 	}
 
-	int DBStoreManager::getInterfacesLID(TransactionID* tid, string p_name, vector<LogicalID*>*& p_interfaces)
+	int DBStoreManager::getInterfacesLID(TransactionID* tid, string name, vector<LogicalID*>*& interfacesVec)
 	{
 #ifdef DEBUG_MODE
 		*ec << "Store::Manager::getInterfacesLID(BY NAME) begin..";
 #endif
-		p_interfaces = new vector<LogicalID*>(0);
+		interfacesVec = new vector<LogicalID*>(0);
 		vector<int>* rvec;
-		rvec = interfaces->getItems(tid, p_name.c_str());
+		rvec = interfaces->getItems(tid, name.c_str());
 
 		*ec << "Store::Manager::getInterfacesLID(BY NAME) past getItems";
 
@@ -790,17 +790,17 @@ int DBStoreManager::getClassesLID(TransactionID* tid, vector<LogicalID*>*& p_cla
 		for(obj_iter=rvec->begin(); obj_iter!=rvec->end(); obj_iter++)
 		{
 			LogicalID* lid = new DBLogicalID((*obj_iter));
-			p_interfaces->push_back(lid);
+			interfacesVec->push_back(lid);
 		}
 
 		delete rvec;
 #ifdef DEBUG_MODE
-		ec->printf("Store::Manager::getInterfacesLID(BY NAME) done: size=%d\n", p_interfaces->size());
+		ec->printf("Store::Manager::getInterfacesLID(BY NAME) done: size=%d\n", interfacesVec->size());
 #endif
 		return 0;
 	}
 
-	int DBStoreManager::addInterface(TransactionID* tid, const char* name, const char* objectName, ObjectPointer*& object)
+	int DBStoreManager::addInterface(TransactionID* tid, const string& name, const string& objectName, ObjectPointer*& object)
 	{
 #ifdef DEBUG_MODE
 		*ec << "Store::Manager::addInterface begin..";
@@ -823,6 +823,30 @@ int DBStoreManager::getClassesLID(TransactionID* tid, vector<LogicalID*>*& p_cla
 #endif
 		return 0;
 	}
+
+	int DBStoreManager::bindInterface(TransactionID* tid, const string& name, const string& bindName)
+	{
+#ifdef DEBUG_MODE
+		*ec << "Store::Manager::bindInterface begin..";
+#endif
+		int err = interfaces->bindInterface(tid, name, bindName);
+
+		if (err != 0) {
+		    *ec << "Store::Manager::bindInterface: error in Interfaces::bindInterface";
+		    return err;
+		}
+
+#ifdef DEBUG_MODE
+		ec->printf("Store::Manager::bindInterface done: %s\n", name);
+#endif
+		return 0;
+	}
+	
+	int DBStoreManager::getInterfaceBindForObjectName(TransactionID* tid, const string& oName, string& iName, string& bName)
+	{
+	    return interfaces->getInterfaceBindForObjectName(tid, oName, iName, bName);
+	}
+
 
 	int DBStoreManager::removeInterface(TransactionID* tid, ObjectPointer*& object)
 	{

@@ -424,7 +424,7 @@ namespace Store
 	}
 
 	template<typename Operation, typename DataType>
-	vector<int>* NamedItems::getItemsByAnything(TransactionID* tid, Operation findTest, DataType thingToFind, vector<Indexes::RootEntry*> *indexContent) {
+	vector<int>* NamedItems::getItemsByAnything(TransactionID* tid, Operation findTest, DataType thingToFind, vector<Indexes::RootEntry*> *indexContent, vector<const ix_entry *> *entries) {
 		vector<int>* roots = new vector<int>();
 		int i = 0;
 		int offset = 0;
@@ -470,12 +470,19 @@ namespace Store
 					(
 						//(strlen(name) == 0 || strcmp(name, entry->name) == 0)
 						findTest(thingToFind, entry)
-						&& entry->add_t <= tid->getTimeStamp()
+						&& entry->add_t <= (int)tid->getTimeStamp()
 						&& entry->del_t == STORE_IX_NULLVALUE
 						&& (entry->cur_tran == STORE_IX_NULLVALUE || entry->cur_tran == tid->getId())
 					)
+					{
+						if (entries != NULL)
+						{    
+						    const ix_entry *en = *&entry; 
+						    ec->printf("CopyingEntry: %s to %s\n", entry->name, en->name);
+						    entries->push_back(en);						
+						}
 						roots->push_back(entry->l_id);
-
+					}
 					offset += entry->size;
 				}
 
@@ -487,6 +494,7 @@ namespace Store
 		}
 		return roots;
 	}
+	
 
 	vector<int>* Classes::getClassByInvariant(TransactionID* tid, const char* invariantName) {
 #ifdef IX_DEBUG
@@ -495,6 +503,24 @@ namespace Store
 		//return getItemsByAnything(findByName, invariantName, transactionID, transactionTimeStamp);
 		return getItemsByAnything(tid, findByInvariantName, invariantName);
 	}
+	
+	vector<int>* Interfaces::getInterfaceByObjectName(TransactionID* tid, const char* objectName, vector<const ix_entry*>* entries)
+	{
+#ifdef IX_DEBUG
+		ec->printf("getInterfaceByObjectName(objectName=\"%s\", transactionID=%i, transactionTimeStamp=%i)\n", objectName, tid->getId(), tid->getTimeStamp());
+#endif
+		return getItemsByAnything(tid, findByObjectName, objectName, NULL, entries);	
+	}
+
+	vector<int>* NamedItems::getByNameWithEntries(TransactionID* tid, const char* name, vector<const ix_entry*>* entries)
+	{
+#ifdef IX_DEBUG
+		ec->printf("getInterfaceName(name=\"%s\", transactionID=%i, transactionTimeStamp=%i)\n", name, tid->getId(), tid->getTimeStamp());
+#endif
+		return getItemsByAnything(tid, findByName, name, NULL, entries);	
+	}
+
+
 
 	vector<int>* NamedRoots::getRootsWithBegin(TransactionID* tid, const char* nameBegin) {
 #ifdef IX_DEBUG
