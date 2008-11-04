@@ -1,8 +1,0 @@
-*~
-*.o
-*.a
-*.d
-Listener
-szbd_logs
-sbqlerror.log
-lock.lck
