@@ -49,7 +49,8 @@ int main(int argc, char **argv) {
 	    exit(1);
 	}
 	ErrorConsole con("Server");
-	error = con.init(1);
+//XXX GT HARDCODING!! changed to be read from conf file
+        error = con.init();
 	if (error) {
 	    fprintf(stderr, "ErrorConsole init failed with %d\n", error);
 	    exit(2);

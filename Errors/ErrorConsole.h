@@ -12,14 +12,16 @@ namespace Errors {
 			static ofstream* consoleFile;
 			static int serr;
 			string owner;
+                        static bool useLogFile;
 		public:
 			ErrorConsole();
 			ErrorConsole(string module);
 
-			int init(int tostderr);
+			//int init(int tostderr);
+                        int init();
 			void free(void);
 			virtual ErrorConsole& operator<<(int error);
-			virtual ErrorConsole& operator<<(string errorMsg);
+			virtual ErrorConsole& operator<<(const string &errorMsg);
 			virtual ErrorConsole& printf(const char *format, ...);
 			virtual ~ErrorConsole();
 	};
