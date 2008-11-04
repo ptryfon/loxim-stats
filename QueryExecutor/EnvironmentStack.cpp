@@ -3,7 +3,6 @@
 #include <vector>
 
 #include "QueryResult.h"
-#include "RemoteExecutor.h"
 #include "../QueryParser/ClassNames.h"
 #include "TransactionManager/Transaction.h"
 #include "Store/Store.h"
@@ -550,19 +549,8 @@ int QueryReferenceResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResu
 	int errcode;
 	ec->printf("[QE] nested(): QueryReferenceResult\n");
 	/* remote ID */
-	if ((value != NULL) && (value->getServer() != "")) {
-		*ec << "starting logicalID\n";
-		QueryResult* qr;
-		RemoteExecutor *rex = new RemoteExecutor(value->getServer(), value->getPort(), qe);
-		rex->setLogicalID(value);
-		errcode = rex->execute(&qr);
-		if (errcode != 0) {
-			return errcode;
-		}
-		r->addResult(qr);
-		*ec << "remote logicalID\n";
-		return 0;
-	}
+	if ((value != NULL) && (value->getServer() != "")) 
+		return EUnknownNode;
 	/* end of remoteID processing */
 	
 	ObjectPointer *optr;
@@ -579,48 +567,7 @@ int QueryReferenceResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResu
 		
 		/* Link */
 		if (dataVal->getSubtype() == Store::Link) {
-			 *ec << "nested on Link object\n";
-			 vector<LogicalID*>*  tmp_vec =dataVal->getVector();
-			 int vec_size = tmp_vec->size();
-			 int errcode;
-			 int port;
-			 string ip;
-			 ObjectPointer *optr;
-			 DataValue* value;
-			 for (int i = 0; i < vec_size; i++ ) {
-				 LogicalID *tmp_logID = tmp_vec->at(i);
-				 if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, optr, false)) != 0) {
-					*ec << "[QE] Error in getObjectPointer";
-					qe->antyStarveFunction(errcode);
-					qe->inTransaction = false;
-					return errcode;
-				}
-				string tmp_name = optr->getName();
-				value = optr->getValue();
-				switch (value->getType()) {
-					case Store::Integer:
-						 port = value->getInt();
-						 break;
-					case Store::String:
-						 ip = value->getString();
-						 break;
-					default:
-						*ec << "[QE] incorrect Link object structure";
-						qe->antyStarveFunction(errcode);
-						qe->inTransaction = false;
-						return errcode;
-				 }
-
-			 }
-			 *ec << "and now bring!!!!!!!!!!! ip: " <<  ip << " port: " << port <<"\n";
-			 QueryResult* qr;// = new QueryIntResult(5);
-			 RemoteExecutor *rex = new RemoteExecutor(ip, port, qe);
-			 errcode = rex->execute(&qr);
-			 if (errcode != 0) {
-			 	return errcode;
-			 }
-			 r->addResult(qr);
-			 return 0;
+			return EUnknownNode;
 		}
 		/* end of link processing */
 		

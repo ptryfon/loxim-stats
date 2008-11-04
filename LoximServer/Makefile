@@ -19,8 +19,7 @@ HEADERS	= 	../Driver \
 OBJECTS	=	$(SOURCES:.cpp=.o)
 DEPFILES =	$(SOURCES:.cpp=.d) $(PROGRAM).d
 
-LIBS	=	../Driver/Driver.a \
-		../Errors/Errors.a \
+LIBS	=	../Errors/Errors.a \
 		../Log/Logs.a \
 		../QueryParser/QueryParser.a \
 		../Store/Store.a \
@@ -30,7 +29,6 @@ LIBS	=	../Driver/Driver.a \
 		../QueryExecutor/QueryExecutor.a \
 		../Lock/Lock.a \
 		../Indexes/IndexManager.a \
-		../TCPProto/TCPProto.a \
 		../TypeCheck/TypeChecker.a \
 		../protocol/auth/auth.a \
 		../protocol/pstreams/pstreams.a \

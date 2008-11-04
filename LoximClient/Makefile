@@ -26,8 +26,7 @@ HEADERS	= 	LoximClient.h \
 OBJECTS	=	$(SOURCES:.cpp=.o)
 DEPFILES =	$(SOURCES:.cpp=.d) $(PROGRAM).d
 
-LIBS	=	../Driver/Driver.a \
-		../Config/Config.a \
+LIBS	=	../Config/Config.a \
 		../Errors/Errors.a \
 		../Log/Logs.a \
 		../QueryParser/QueryParser.a \
@@ -36,7 +35,6 @@ LIBS	=	../Driver/Driver.a \
 		../QueryExecutor/QueryExecutor.a \
 		../Lock/Lock.a \
 		../Indexes/IndexManager.a \
-		../TCPProto/TCPProto.a \
 		../TypeCheck/TypeChecker.a \
 		../protocol/auth/auth.a \
 		../protocol/pstreams/pstreams.a \

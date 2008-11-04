@@ -9,8 +9,6 @@ SUBDIRS	=	AdminParser \
 		TransactionManager \
 		Errors \
 		Config \
-		TCPProto \
-		Driver \
 		Lock \
 		Log \
 		Indexes \

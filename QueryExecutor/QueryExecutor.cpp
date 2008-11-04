@@ -22,7 +22,6 @@
 #include "QueryExecutor.h"
 #include "Errors/Errors.h"
 #include "Errors/ErrorConsole.h"
-#include "RemoteExecutor.h"
 #include "InterfaceMatcher.h"
 #include "TypeCheck/DecisionTable.h"
 #include "LoximServer/LoximSession.h"
@@ -3036,20 +3035,8 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 		}
 		case QueryResult::QREFERENCE: {
 			LogicalID * lid = ((QueryReferenceResult *) arg)->getValue();
-			if (lid != NULL && lid->getServer() != "") {
-				*ec << "dereferencing remote object";
-				RemoteExecutor *rex = new RemoteExecutor(lid->getServer(), lid->getPort(), this);
-				rex->setLogicalID(lid);
-				rex->setDeref();
-				QueryResult* qr;
-				errcode = rex->execute(&qr);
-				if (errcode != 0) {
-					return errcode;
-				}
-				*ec << "derefQuery on remote object done";
-				res = qr;
-				break;
-			}
+			if (lid != NULL && lid->getServer() != "")
+				return EUnknownNode;
 
 			if (((QueryReferenceResult *) arg)->wasRefed()) {
 				res = arg;
@@ -3380,18 +3367,7 @@ int QueryExecutor::nameofQuery(QueryResult *arg, QueryResult *&res) {
             LogicalID * lid = ((QueryReferenceResult *) arg)->getValue();
 
             if (lid != NULL && lid->getServer() != "") {
-                *ec << "nameof() dereferencing remote object";
-                RemoteExecutor *rex = new RemoteExecutor(lid->getServer(), lid->getPort(), this);
-                rex->setLogicalID(lid);
-                rex->setDeref();
-                QueryResult* qr;
-                errcode = rex->execute(&qr);
-                if (errcode != 0) {
-                    return errcode;
-                }
-                *ec << "nameof() on remote object done";
-                res = qr;
-                break;
+		    return EUnknownNode;
             }
 
             if (((QueryReferenceResult *) arg)->wasRefed()) {
