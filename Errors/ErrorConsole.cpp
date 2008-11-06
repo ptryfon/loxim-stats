@@ -38,8 +38,13 @@ namespace Errors {
         serr = 0;
         if (c.getInt("stderr", serr) != 0)
             serr = 0;
+        if (serr > 2)
+            serr = 0;
         if (c.getString("logfile", f) != 0)
             useLogFile = false;
+        if((!f.compare("OFF")) || (!f.compare("off"))) {
+            useLogFile = false;
+        }
         if (useLogFile) {
             if (consoleFile == NULL)
                 consoleFile = new ofstream(f.c_str(), ios::app);
@@ -158,9 +163,10 @@ namespace Errors {
             dest_mod = "Unknown: ";
         else
             dest_mod = owner + ": ";
-
+        if (useLogFile) {
         *consoleFile << dest_mod << str;
         consoleFile->flush();
+        }
         if (serr) {
             cerr << dest_mod << str;
             cerr.flush();
