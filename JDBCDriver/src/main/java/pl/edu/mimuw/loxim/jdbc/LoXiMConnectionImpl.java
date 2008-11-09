@@ -18,8 +18,10 @@ import java.sql.SQLWarning;
 import java.sql.SQLXML;
 import java.sql.Savepoint;
 import java.sql.Struct;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
@@ -39,6 +41,8 @@ import pl.edu.mimuw.loxim.protocol.packages.A_sc_okPackage;
 import pl.edu.mimuw.loxim.protocol.packages.PackageUtil;
 import pl.edu.mimuw.loxim.protocol.packages.Q_c_statementPackage;
 import pl.edu.mimuw.loxim.protocol.packages.Q_s_executingPackage;
+import pl.edu.mimuw.loxim.protocol.packages.V_sc_sendvaluePackage;
+import pl.edu.mimuw.loxim.protocol.packages.V_sc_sendvaluesPackage;
 import pl.edu.mimuw.loxim.protocol.packages.W_c_authorizedPackage;
 import pl.edu.mimuw.loxim.protocol.packages.W_c_helloPackage;
 import pl.edu.mimuw.loxim.protocol.packages.W_c_loginPackage;
@@ -46,6 +50,7 @@ import pl.edu.mimuw.loxim.protocol.packages.W_c_passwordPackage;
 import pl.edu.mimuw.loxim.protocol.packages.W_s_helloPackage;
 import pl.edu.mimuw.loxim.protogen.lang.java.template.auth.AuthException;
 import pl.edu.mimuw.loxim.protogen.lang.java.template.auth.AuthPassMySQL;
+import pl.edu.mimuw.loxim.protogen.lang.java.template.exception.BadPackageException;
 import pl.edu.mimuw.loxim.protogen.lang.java.template.exception.ProtocolException;
 import pl.edu.mimuw.loxim.protogen.lang.java.template.pstreams.PackageIO;
 import pl.edu.mimuw.loxim.protogen.lang.java.template.ptools.Package;
@@ -90,7 +95,7 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 			log.debug("Receiving WSHello");
 			pac = pacIO.read();
 			if (pac.getPackageType() != W_s_helloPackage.ID) {
-				throw new ProtocolException("Unexpected package. Expecting W_s_helloPackage");
+				throw new BadPackageException(pac.getClass());
 			}
 			W_s_helloPackage sHelloPackage = (W_s_helloPackage) pac;
 			log.debug("Received WSHello");
@@ -118,9 +123,9 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 		log.debug("Sending login package");
 		W_c_loginPackage cLoginPackage = new W_c_loginPackage(authMethod);
 		pacIO.write(cLoginPackage);
-		long pacType = pacIO.read().getPackageType();
-		if (pacType != A_sc_okPackage.ID) {
-			throw new ProtocolException("Server did not respond OK to login. Server responded with package #" + pacType);
+		Package pac = pacIO.read();
+		if (pac.getPackageType() != A_sc_okPackage.ID) {
+			throw new BadPackageException(pac.getClass());
 		}
 
 		log.debug("Sending authorization request");
@@ -513,7 +518,22 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 		}
 	}
 	
-	public LoXiMResultSet executeStatement(String statement) throws SQLException {
+	public List<Object> executeStatement(String statement) throws SQLException {
+		
+		class ResultReader {
+		
+			public List<Object> readValues() {
+				
+				return null;
+			}
+			
+			private Object readValue(V_sc_sendvaluePackage valuePac) throws ProtocolException {
+							
+				return null;
+			}
+			
+		}
+		
 		synchronized (statementMutex) {
 			try {
 				Q_c_statementPackage statementPac = new Q_c_statementPackage();
@@ -526,14 +546,14 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 				case A_sc_errorPackage.ID:
 					throw new SQLException("Statement execution error: " + PackageUtil.toString((A_sc_errorPackage) pac));
 				case Q_s_executingPackage.ID:
-					
-					
-					// TODO get values
-					
-					
-					return null;
+					pac = pacIO.read();
+					if (pac.getPackageType() != V_sc_sendvaluesPackage.ID) {
+						throw new BadPackageException(pac.getClass());
+					}
+					ResultReader reader = new ResultReader();
+					return reader.readValues();
 				default:
-					throw new ProtocolException("Unexpected package. Expecting Q_s_executingPackage or A_sc_errorPackage");
+					throw new BadPackageException(pac.getClass());
 				}
 			} catch (ProtocolException e) {
 				throw new SQLException("Communication error", e);
