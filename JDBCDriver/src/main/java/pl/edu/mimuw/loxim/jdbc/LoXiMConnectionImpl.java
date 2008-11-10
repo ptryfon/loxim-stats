@@ -20,11 +20,14 @@ import java.sql.Savepoint;
 import java.sql.Struct;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
+import java.util.SimpleTimeZone;
+import java.util.TimeZone;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -48,6 +51,23 @@ import pl.edu.mimuw.loxim.protocol.packages.W_c_helloPackage;
 import pl.edu.mimuw.loxim.protocol.packages.W_c_loginPackage;
 import pl.edu.mimuw.loxim.protocol.packages.W_c_passwordPackage;
 import pl.edu.mimuw.loxim.protocol.packages.W_s_helloPackage;
+import pl.edu.mimuw.loxim.protocol.packages_data.BobPackage;
+import pl.edu.mimuw.loxim.protocol.packages_data.BoolPackage;
+import pl.edu.mimuw.loxim.protocol.packages_data.DatePackage;
+import pl.edu.mimuw.loxim.protocol.packages_data.DatetimePackage;
+import pl.edu.mimuw.loxim.protocol.packages_data.DatetimetzPackage;
+import pl.edu.mimuw.loxim.protocol.packages_data.DoublePackage;
+import pl.edu.mimuw.loxim.protocol.packages_data.Sint16Package;
+import pl.edu.mimuw.loxim.protocol.packages_data.Sint32Package;
+import pl.edu.mimuw.loxim.protocol.packages_data.Sint64Package;
+import pl.edu.mimuw.loxim.protocol.packages_data.Sint8Package;
+import pl.edu.mimuw.loxim.protocol.packages_data.TimePackage;
+import pl.edu.mimuw.loxim.protocol.packages_data.TimetzPackage;
+import pl.edu.mimuw.loxim.protocol.packages_data.Uint16Package;
+import pl.edu.mimuw.loxim.protocol.packages_data.Uint32Package;
+import pl.edu.mimuw.loxim.protocol.packages_data.Uint64Package;
+import pl.edu.mimuw.loxim.protocol.packages_data.Uint8Package;
+import pl.edu.mimuw.loxim.protocol.packages_data.VarcharPackage;
 import pl.edu.mimuw.loxim.protogen.lang.java.template.auth.AuthException;
 import pl.edu.mimuw.loxim.protogen.lang.java.template.auth.AuthPassMySQL;
 import pl.edu.mimuw.loxim.protogen.lang.java.template.exception.BadPackageException;
@@ -93,11 +113,7 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 			log.debug("Sending WCHello");
 			pacIO.write(pac);
 			log.debug("Receiving WSHello");
-			pac = pacIO.read();
-			if (pac.getPackageType() != W_s_helloPackage.ID) {
-				throw new BadPackageException(pac.getClass());
-			}
-			W_s_helloPackage sHelloPackage = (W_s_helloPackage) pac;
+			W_s_helloPackage sHelloPackage = PackageUtil.readPackage(pacIO, W_s_helloPackage.class);
 			log.debug("Received WSHello");
 			
 			// LOGIN
@@ -123,10 +139,7 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 		log.debug("Sending login package");
 		W_c_loginPackage cLoginPackage = new W_c_loginPackage(authMethod);
 		pacIO.write(cLoginPackage);
-		Package pac = pacIO.read();
-		if (pac.getPackageType() != A_sc_okPackage.ID) {
-			throw new BadPackageException(pac.getClass());
-		}
+		PackageUtil.readPackage(pacIO, A_sc_okPackage.class);
 
 		log.debug("Sending authorization request");
 		
@@ -518,18 +531,94 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 		}
 	}
 	
-	public List<Object> executeStatement(String statement) throws SQLException {
+	public List<Object> executeQuery(String query) throws SQLException {
 		
 		class ResultReader {
 		
-			public List<Object> readValues() {
+			public List<Object> readValues() throws ProtocolException {
+				List<Object> results = new ArrayList<Object>();
+
+				for (Package pac = PackageUtil.readPackage(pacIO, Package.class); pac.getPackageType() == V_sc_sendvaluePackage.ID; pac = PackageUtil.readPackage(pacIO, Package.class)) {
+					results.add(readValue(((V_sc_sendvaluePackage) pac).getData()));
+				}
 				
-				return null;
+				return results;
 			}
 			
-			private Object readValue(V_sc_sendvaluePackage valuePac) throws ProtocolException {
-							
-				return null;
+			private Object readValue(Package dataPac) throws ProtocolException {
+				switch ((int) dataPac.getPackageType()) {
+				
+				// simple types
+					// single
+				case (int) Uint8Package.ID:
+					return ((Uint8Package) dataPac).getValue();
+				case (int) Uint16Package.ID:
+					return ((Uint16Package) dataPac).getValue();
+				case (int) Uint32Package.ID:
+					return ((Uint32Package) dataPac).getValue();
+				case (int) Uint64Package.ID:
+					return ((Uint64Package) dataPac).getValue();
+				case (int) Sint8Package.ID:
+					return ((Uint8Package) dataPac).getValue();
+				case (int) Sint16Package.ID:
+					return ((Uint8Package) dataPac).getValue();
+				case (int) Sint32Package.ID:
+					return ((Uint8Package) dataPac).getValue();
+				case (int) Sint64Package.ID:
+					return ((Uint8Package) dataPac).getValue();
+				case (int) BoolPackage.ID:
+					return ((BoolPackage) dataPac).getValue();
+				case (int) DatePackage.ID:
+					DatePackage datePac = (DatePackage) dataPac;
+					Calendar calD = Calendar.getInstance();
+					calD.clear();
+					calD.set(datePac.getYear(), datePac.getMonth(), datePac.getDay());
+					return calD;
+				case (int) TimePackage.ID:
+					TimePackage timePac = (TimePackage) dataPac;
+					Calendar calT = Calendar.getInstance();
+					calT.clear();
+					calT.set(Calendar.HOUR_OF_DAY, timePac.getHour());
+					calT.set(Calendar.MINUTE, timePac.getMinuts());
+					calT.set(Calendar.SECOND, timePac.getSec());
+					calT.set(Calendar.MILLISECOND, timePac.getMilis());
+					return calT;
+				case (int) DatetimePackage.ID:
+					DatetimePackage datetimePac = (DatetimePackage) dataPac;
+					Calendar dtDate = (Calendar) readValue(datetimePac.getDate());
+					Calendar dtTime = (Calendar) readValue(datetimePac.getTime());
+					dtTime.set(dtDate.get(Calendar.YEAR), dtDate.get(Calendar.MONTH), dtDate.get(Calendar.DATE));
+					return dtTime;
+				case (int) TimetzPackage.ID:
+					TimetzPackage timetzPac = (TimetzPackage) dataPac;
+					Calendar timeCal = (Calendar) readValue(timetzPac.getTime());
+					timeCal.setTimeZone(new SimpleTimeZone(timetzPac.getTz(), "DB-Timezone"));
+					return timeCal;
+				case (int) DatetimetzPackage.ID:
+					DatetimetzPackage datetimetzPac = (DatetimetzPackage) dataPac;
+					Calendar dCal = (Calendar) readValue(datetimetzPac.getDate());
+					Calendar tCal = (Calendar) readValue(datetimetzPac.getTime());
+					tCal.set(dCal.get(Calendar.YEAR), dCal.get(Calendar.MONTH), dCal.get(Calendar.DATE));
+					tCal.setTimeZone(new SimpleTimeZone(datetimetzPac.getTz(), "DB-Timezone"));
+					return tCal;
+				case (int) DoublePackage.ID:
+					return ((DoublePackage) dataPac).getValue();
+
+					// multi
+				case (int) BobPackage.ID:
+				case (int) VarcharPackage.ID:
+
+
+					return null;
+
+				
+				// complex types
+					// single
+				
+					// multi
+				default:
+					throw new ProtocolException("Unhandled value type: " + dataPac.getPackageType());
+				}
 			}
 			
 		}
@@ -539,17 +628,14 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 				Q_c_statementPackage statementPac = new Q_c_statementPackage();
 				EnumSet<Statement_flagsEnum> flags = EnumSet.of(Statement_flagsEnum.sf_execute);
 				statementPac.setFlags(flags);
-				statementPac.setStatement(statement);
+				statementPac.setStatement(query);
 				pacIO.write(statementPac);
 				Package pac = pacIO.read();
 				switch ((byte) pac.getPackageType()) {
 				case A_sc_errorPackage.ID:
 					throw new SQLException("Statement execution error: " + PackageUtil.toString((A_sc_errorPackage) pac));
 				case Q_s_executingPackage.ID:
-					pac = pacIO.read();
-					if (pac.getPackageType() != V_sc_sendvaluesPackage.ID) {
-						throw new BadPackageException(pac.getClass());
-					}
+					PackageUtil.readPackage(pacIO, V_sc_sendvaluesPackage.class);
 					ResultReader reader = new ResultReader();
 					return reader.readValues();
 				default:
