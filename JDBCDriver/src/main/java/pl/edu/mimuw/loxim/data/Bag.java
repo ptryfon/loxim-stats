@@ -1,5 +1,5 @@
 package pl.edu.mimuw.loxim.data;
 
-public interface Bag extends LoXiMObject {
+public interface Bag extends LoXiMCollection {
 
 }
