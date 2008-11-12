@@ -1,0 +1,8 @@
+begin;
+/
+create 1 as t1;
+/
+end;
+/
+#shutdown
+/
