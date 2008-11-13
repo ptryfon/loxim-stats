@@ -1,10 +1,11 @@
 AR=ar
 RANLIB=ranlib
-CC=gcc-4.2
-CXX=g++-4.2
+CC=gcc
+CXX=g++
 # CXXFLAGS=-I./ -I./../ -Wall -fno-exceptions
 # wersja z wlaczonym debug info dla gdb
 CXXFLAGS=-I./ -I./../ -Wall -fno-exceptions -g
 LDFLAGS=-lpthread
 LEX=flex
 YACC=bison
+
