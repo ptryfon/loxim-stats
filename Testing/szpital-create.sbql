@@ -1,0 +1,527 @@
+begin;
+/
+
+create (
+	1 as id,
+	"Jan" as imie,
+	"Kowalski" as nazwisko,
+	40 as wiek
+) as Pacjent;
+/
+
+create (
+	2 as id,
+	"Anna" as imie,
+	"Nowak" as nazwisko,
+	65 as wiek
+) as Pacjent;
+/
+
+create (
+	3 as id,
+	"Tomasz" as imie,
+	"Rom" as nazwisko,
+	23 as wiek
+) as Pacjent;
+/
+
+create (
+	4 as id,
+	"Krzysztof" as imie,
+	"Kowalski" as nazwisko,
+	30 as wiek
+) as Pacjent;
+/
+
+create (
+	5 as id,
+	"Mariola" as imie,
+	"Glowacka" as nazwisko,
+	8 as wiek
+) as Pacjent;
+/
+
+create (
+	6 as id,
+	"Tomasz" as imie,
+	"Tomek" as nazwisko,
+	49 as wiek
+) as Pacjent;
+/
+
+create (
+	"angina" as nazwa,
+	"gardlo" as lokalizacja,
+	"cholinex" as lek
+) as Choroba;
+/
+
+create (
+	"katar" as nazwa,
+	"nos" as lokalizacja,
+	"aerozol" as lek
+) as Choroba;
+/
+
+create (
+	"zlamanie" as nazwa,
+	"reka" as lokalizacja,
+	"gips" as lek
+) as Choroba;
+/
+
+create (
+	"zawal" as nazwa,
+	"serce" as lokalizacja,
+	"sorbonit" as lek
+) as Choroba;
+/
+
+create (
+	"zapalenie" as nazwa,
+	"gardlo" as lokalizacja,
+	"antybiotyk X" as lek
+) as Choroba;
+/
+
+
+create (
+	"Jxxx" as nazwisko,
+	"pediatra" as specjalizacja,
+	1500 as pensja,
+	20 as staz_pracy
+) as Lekarz;
+/
+
+create (
+	"Zabojca" as nazwisko,
+	"anestezjolog" as specjalizacja,
+	700 as pensja,
+	3 as staz_pracy
+) as Lekarz;
+/
+
+create (
+	"Lamacz" as nazwisko,
+	"chirurg" as specjalizacja,
+	1000 as pensja,
+	10 as staz_pracy
+) as Lekarz;
+/
+
+create (
+	"Migdalek" as nazwisko,
+	"laryngolog" as specjalizacja,
+	2100 as pensja,
+	20 as staz_pracy
+) as Lekarz;
+/
+
+create (
+	"Dziecinny" as nazwisko,
+	"pediatra" as specjalizacja,
+	1700 as pensja,
+	16 as staz_pracy
+) as Lekarz;
+/
+
+create (
+	"Heart" as nazwisko,
+	"kardiolog" as specjalizacja,
+	2500 as pensja,
+	8 as staz_pracy
+) as Lekarz;
+/
+
+create (
+	"Nowak" as przyjmujacy,
+	"05,05,2006" as data,
+	"ubezpieczenie" as rodzaj,
+	(ref (Pacjent where id=1) as pac,
+	 ref (Choroba where nazwa="angina") as chor,
+	 ref (Lekarz where nazwisko="Migdalek") as lek) as dane
+) as Leczenie;
+/
+
+create (
+	"Nowak" as przyjmujacy,
+	"07,05,2006" as data,
+	"platne" as rodzaj,
+	(ref (Pacjent where id=2) as pac,
+	 ref (Choroba where nazwa="zlamanie") as chor,
+	 ref (Lekarz where nazwisko="Lamacz") as lek) as dane
+) as Leczenie;
+/
+
+create (
+	"Nowak" as przyjmujacy,
+	"04,04,2006" as data,
+	"polplatne" as rodzaj,
+	(ref (Pacjent where id=6) as pac,
+	 ref (Choroba where nazwa="zawal") as chor,
+	 ref (Lekarz where nazwisko="Heart") as lek) as dane
+) as Leczenie;
+/
+
+create (
+	"Kwiatkowska" as przyjmujacy,
+	"12,12,2005" as data,
+	"polplatne" as rodzaj,
+	(ref (Pacjent where id=3) as pac,
+	 ref (Choroba where nazwa="zapalenie") as chor,
+	 ref (Lekarz where nazwisko="Migdalek") as lek) as dane
+) as Leczenie;
+/
+
+create (
+	"Kwiatkowska" as przyjmujacy,
+	"21,03,2006" as data,
+	"ubezpieczenie" as rodzaj,
+	(ref (Pacjent where id=2) as pac,
+	 ref (Choroba where nazwa="zlamanie") as chor,
+	 ref (Lekarz where nazwisko="Zabojca") as lek) as dane
+) as Leczenie;
+/
+
+create (
+	"Kwiatkowska" as przyjmujacy,
+	"03,01,2006" as data,
+	"platne" as rodzaj,
+	(ref (Pacjent where id=4) as pac,
+	 ref (Choroba where nazwa="katar") as chor,
+	 ref (Lekarz where nazwisko="Dziecinny") as lek) as dane
+) as Leczenie;
+/
+
+create (
+	"Mazur" as przyjmujacy,
+	"05,04,2006" as data,
+	"platne" as rodzaj,
+	(ref (Pacjent where id=5) as pac,
+	 ref (Choroba where nazwa="angina") as chor,
+	 ref (Lekarz where nazwisko="Migdalek") as lek) as dane
+) as Leczenie;
+/
+
+create (
+	"Mazur" as przyjmujacy,
+	"23,01,2006" as data,
+	"polplatne" as rodzaj,
+	(ref (Pacjent where id=3) as pac,
+	 ref (Choroba where nazwa="zlamanie") as chor,
+	 ref (Lekarz where nazwisko="Zabojca") as lek) as dane
+) as Leczenie;
+/
+
+create (
+	"Mazur" as przyjmujacy,
+	"05,05,2006" as data,
+	"ubezpieczenie" as rodzaj,
+	(ref (Pacjent where id=2) as pac,
+	 ref (Choroba where nazwa="angina") as chor,
+	 ref (Lekarz where nazwisko="Jxxx") as lek) as dane
+) as Leczenie;
+/
+
+create (
+	"Piotrowska" as przyjmujacy,
+	"04,07,2005" as data,
+	"ubezpieczenie" as rodzaj,
+	(ref (Pacjent where id=2) as pac,
+	 ref (Choroba where nazwa="angina") as chor,
+	 ref (Lekarz where nazwisko="Migdalek") as lek) as dane
+) as Leczenie;
+/
+
+create (
+	"Piotrowska" as przyjmujacy,
+	"05,05,2006" as data,
+	"platne" as rodzaj,
+	(ref (Pacjent where id=1) as pac,
+	 ref (Choroba where nazwa="zawal") as chor,
+	 ref (Lekarz where nazwisko="Heart") as lek) as dane
+) as Leczenie;
+/
+
+create (
+	"Piotrowska" as przyjmujacy,
+	"10,10,2005" as data,
+	"polplatne" as rodzaj,
+	(ref (Pacjent where id=6) as pac,
+	 ref (Choroba where nazwa="zapalenie") as chor,
+	 ref (Lekarz where nazwisko="Migdalek") as lek) as dane
+) as Leczenie;
+/
+
+create (
+	"Nowak" as przyjmujacy,
+	"04,09,2005" as data,
+	"ubezpieczenie" as rodzaj,
+	(ref (Pacjent where id=3) as pac,
+	 ref (Choroba where nazwa="katar") as chor,
+	 ref (Lekarz where nazwisko="Jxxx") as lek) as dane
+) as Leczenie;
+/
+
+create (
+	"Nowak" as przyjmujacy,
+	"01,02,2006" as data,
+	"platne" as rodzaj,
+	(ref (Pacjent where id=3) as pac,
+	 ref (Choroba where nazwa="angina") as chor,
+	 ref (Lekarz where nazwisko="Migdalek") as lek) as dane
+) as Leczenie;
+/
+
+create (
+	"Nowak" as przyjmujacy,
+	"06,06,2005" as data,
+	"ubezpieczenie" as rodzaj,
+	(ref (Pacjent where id=4) as pac,
+	 ref (Choroba where nazwa="zlamanie") as chor,
+	 ref (Lekarz where nazwisko="Lamacz") as lek) as dane
+) as Leczenie;
+/
+
+create (
+	"Nowak" as przyjmujacy,
+	"11,11,2005" as data,
+	"platne" as rodzaj,
+	(ref (Pacjent where id=4) as pac,
+	 ref (Choroba where nazwa="zlamanie") as chor,
+	 ref (Lekarz where nazwisko="Lamacz") as lek) as dane
+) as Leczenie;
+/
+
+create (
+	"Nowak" as przyjmujacy,
+	"12,02,2006" as data,
+	"ubezpieczenie" as rodzaj,
+	(ref (Pacjent where id=5) as pac,
+	 ref (Choroba where nazwa="zawal") as chor,
+	 ref (Lekarz where nazwisko="Heart") as lek) as dane
+) as Leczenie;
+/
+
+create (
+	"Piotrowska" as przyjmujacy,
+	"23,12,2005" as data,
+	"polplatne" as rodzaj,
+	(ref (Pacjent where id=5) as pac,
+	 ref (Choroba where nazwa="katar") as chor,
+	 ref (Lekarz where nazwisko="Jxxx") as lek) as dane
+) as Leczenie;
+/
+
+create (
+	"Nowak" as przyjmujacy,
+	"04,04,2006" as data,
+	"ubezpieczenie" as rodzaj,
+	(ref (Pacjent where id=5) as pac,
+	 ref (Choroba where nazwa="zapalenie") as chor,
+	 ref (Lekarz where nazwisko="Migdalek") as lek) as dane
+) as Leczenie;
+/
+
+create (
+	"Mazur" as przyjmujacy,
+	"07,05,2006" as data,
+	"platne" as rodzaj,
+	(ref (Pacjent where id=5) as pac,
+	 ref (Choroba where nazwa="katar") as chor,
+	 ref (Lekarz where nazwisko="Jxxx") as lek) as dane
+) as Leczenie;
+/
+
+create (
+	"Nowak" as przyjmujacy,
+	"01,01,2006" as data,
+	"ubezpieczenie" as rodzaj,
+	(ref (Pacjent where id=6) as pac,
+	 ref (Choroba where nazwa="angina") as chor,
+	 ref (Lekarz where nazwisko="Migdalek") as lek) as dane
+) as Leczenie;
+/
+
+create (
+	"Kwiatkowska" as przyjmujacy,
+	"11,10,2005" as data,
+	"platne" as rodzaj,
+	(ref (Pacjent where id=6) as pac,
+	 ref (Choroba where nazwa="zlamanie") as chor,
+	 ref (Lekarz where nazwisko="Zabojca") as lek) as dane
+) as Leczenie;
+/
+
+create (
+	"Nowak" as przyjmujacy,
+	"08,08,2005" as data,
+	"ubezpieczenie" as rodzaj,
+	(ref (Pacjent where id=6) as pac,
+	 ref (Choroba where nazwa="zapalenie") as chor,
+	 ref (Lekarz where nazwisko="Jxxx") as lek) as dane
+) as Leczenie;
+/
+
+create (
+	"Kwiatkowska" as przyjmujacy,
+	"23,07,2005" as data,
+	"ubezpieczenie" as rodzaj,
+	(ref (Pacjent where id=1) as pac,
+	 ref (Choroba where nazwa="zawal") as chor,
+	 ref (Lekarz where nazwisko="Heart") as lek) as dane
+) as Leczenie;
+/
+
+create (
+	"Piotrowska" as przyjmujacy,
+	"25,08,2005" as data,
+	"ubezpieczenie" as rodzaj,
+	(ref (Pacjent where id=1) as pac,
+	 ref (Choroba where nazwa="zlamanie") as chor,
+	 ref (Lekarz where nazwisko="Lamacz") as lek) as dane
+) as Leczenie;
+/
+
+create (
+	"Piotrowska" as przyjmujacy,
+	"05,05,2006" as data,
+	"ubezpieczenie" as rodzaj,
+	(ref (Pacjent where id=1) as pac,
+	 ref (Choroba where nazwa="angina") as chor,
+	 ref (Lekarz where nazwisko="Jxxx") as lek) as dane
+) as Leczenie;
+/
+
+create (
+	"Mazur" as przyjmujacy,
+	"11,04,2006" as data,
+	"platne" as rodzaj,
+	(ref (Pacjent where id=1) as pac,
+	 ref (Choroba where nazwa="katar") as chor,
+	 ref (Lekarz where nazwisko="Migdalek") as lek) as dane
+) as Leczenie;
+/
+
+create (
+	"Nowak" as przyjmujacy,
+	"09,03,2006" as data,
+	"ubezpieczenie" as rodzaj,
+	(ref (Pacjent where id=1) as pac,
+	 ref (Choroba where nazwa="katar") as chor,
+	 ref (Lekarz where nazwisko="Jxxx") as lek) as dane
+) as Leczenie;
+/
+
+create (
+	"Kwiatkowska" as przyjmujacy,
+	"15,02,2006" as data,
+	"ubezpieczenie" as rodzaj,
+	(ref (Pacjent where id=2) as pac,
+	 ref (Choroba where nazwa="zawal") as chor,
+	 ref (Lekarz where nazwisko="Heart") as lek) as dane
+) as Leczenie;
+/
+
+create (
+	"Kwiatkowska" as przyjmujacy,
+	"10,09,2005" as data,
+	"ubezpieczenie" as rodzaj,
+	(ref (Pacjent where id=2) as pac,
+	 ref (Choroba where nazwa="zapalenie") as chor,
+	 ref (Lekarz where nazwisko="Migdalek") as lek) as dane
+) as Leczenie;
+/
+
+create (
+	"Kwiatkowska" as przyjmujacy,
+	"04,03,2006" as data,
+	"ubezpieczenie" as rodzaj,
+	(ref (Pacjent where id=2) as pac,
+	 ref (Choroba where nazwa="zlamanie") as chor,
+	 ref (Lekarz where nazwisko="Zabojca") as lek) as dane
+) as Leczenie;
+/
+
+create (
+	"Nowak" as przyjmujacy,
+	"06,06,2006" as data,
+	"platne" as rodzaj,
+	(ref (Pacjent where id=2) as pac,
+	 ref (Choroba where nazwa="zlamanie") as chor,
+	 ref (Lekarz where nazwisko="Lamacz") as lek) as dane
+) as Leczenie;
+/
+
+create (
+	"Mazur" as przyjmujacy,
+	"05,05,2006" as data,
+	"ubezpieczenie" as rodzaj,
+	(ref (Pacjent where id=3) as pac,
+	 ref (Choroba where nazwa="angina") as chor,
+	 ref (Lekarz where nazwisko="Migdalek") as lek) as dane
+) as Leczenie;
+/
+
+create (
+	"Mazur" as przyjmujacy,
+	"05,05,2006" as data,
+	"platne" as rodzaj,
+	(ref (Pacjent where id=4) as pac,
+	 ref (Choroba where nazwa="angina") as chor,
+	 ref (Lekarz where nazwisko="Migdalek") as lek) as dane
+) as Leczenie;
+/
+
+create (
+	"Mazur" as przyjmujacy,
+	"05,05,2006" as data,
+	"ubezpieczenie" as rodzaj,
+	(ref (Pacjent where id=5) as pac,
+	 ref (Choroba where nazwa="angina") as chor,
+	 ref (Lekarz where nazwisko="Migdalek") as lek) as dane
+) as Leczenie;
+/
+
+create (
+	"Piotrowska" as przyjmujacy,
+	"polplatne" as data,
+	"ubezpieczenie" as rodzaj,
+	(ref (Pacjent where id=3) as pac,
+	 ref (Choroba where nazwa="angina") as chor,
+	 ref (Lekarz where nazwisko="Migdalek") as lek) as dane
+) as Leczenie;
+/
+
+create (
+	"Nowak" as przyjmujacy,
+	"11,04,2006" as data,
+	"ubezpieczenie" as rodzaj,
+	(ref (Pacjent where id=3) as pac,
+	 ref (Choroba where nazwa="zawal") as chor,
+	 ref (Lekarz where nazwisko="Heart") as lek) as dane
+) as Leczenie;
+/
+
+create (
+	"Nowak" as przyjmujacy,
+	"11,04,2006" as data,
+	"ubezpieczenie" as rodzaj,
+	(ref (Pacjent where id=5) as pac,
+	 ref (Choroba where nazwa="zawal") as chor,
+	 ref (Lekarz where nazwisko="Heart") as lek) as dane
+) as Leczenie;
+/
+
+create (
+	"Nowak" as przyjmujacy,
+	"11,04,2006" as data,
+	"ubezpieczenie" as rodzaj,
+	(ref (Pacjent where id=6) as pac,
+	 ref (Choroba where nazwa="zawal") as chor,
+	 ref (Lekarz where nazwisko="Heart") as lek) as dane
+) as Leczenie;
+/
+
+end;
+/

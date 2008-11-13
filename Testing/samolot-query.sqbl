@@ -1,0 +1,105 @@
+begin
+/
+
+-- czesci w skladzie samolotu
+
+(Part where name = "Samolot") close by (Component.leadsTo.Part)
+/
+
+-- czesci w skladzie samolotu (wydruk nazw)
+
+((Part where name = "Samolot") close by (Component.leadsTo.Part))
+.
+deref(name)
+/
+
+
+-- ile poszczegolnych czesci w samolocie?
+
+((Part where name="Samolot"), (1 as howMany))
+close by (Component.((leadsTo.Part), (howMany*amount) as howMany))
+/
+
+-- ile poszczegolnych czesci w samolocie? Z wydrukiem nazw
+
+(
+  ((Part where name="Samolot") as x, (1 as howMany))
+  close by (x.Component.((leadsTo.Part) as x, (howMany*amount) as howMany))
+)
+.
+(deref(x.name), howMany)
+/
+
+
+-- ile kazdej czesci w samolocie? 
+
+(
+   (  
+      ((Part where name="Samolot") as x, (1 as howMany))
+      close by (x.Component.((leadsTo.Part) as x, (howMany*amount) as howMany))
+   ) group as allEngineParts
+)
+.
+(
+   (distinct(allEngineParts.x) as y)
+   .
+   (y, sum((allEngineParts where x==y).howMany))
+)
+/
+
+-- ile kazdej czesci w samolocie? Z wydrukiem nazw
+
+
+(
+   (  
+      ((Part where name="Samolot") as x, (1 as howMany))
+      close by (x.Component.((leadsTo.Part) as x, (howMany*amount) as howMany))
+   ) group as allEngineParts
+)
+.
+(
+   (distinct(allEngineParts.x) as y)
+   .
+   (deref(y.name), sum((allEngineParts where x==y).howMany))
+)
+/
+
+
+-- ile kazdej czesci detalowej w samolocie? Z leaves by
+
+(
+   (  
+      ((Part where name="Samolot") as x, (1 as howMany))
+      leaves by (x.Component.((leadsTo.Part) as x, (howMany*amount) as howMany))
+   ) group as allEngineParts
+)
+.
+(
+   (distinct(allEngineParts.x) as y)
+   .
+   (y, sum((allEngineParts where x==y).howMany))
+)
+/
+
+-- koszt i masa samolotu
+
+(   
+   (       
+      ((Part where name="Samolot") as x, (1 as howMany))
+      close by x.Component.((leadsTo.Part) as x, (amount*howMany) as howMany)
+   ) group as allEngineParts
+).
+(       
+   (   
+      (allEngineParts where x.kind="detail").
+             ((howMany * x.detailCost) as c, (howMany * x.detailMass) as m)
+      union
+      (allEngineParts where x.kind="aggregate").
+             ((howMany * x.assemblyCost) as c, (howMany* x.assemblyMass) as m)
+   ) group as CostMassIncrease
+).
+(sum(CostMassIncrease.c) as engineCost, sum(CostMassIncrease.m) as engineMass)
+/
+
+end
+/

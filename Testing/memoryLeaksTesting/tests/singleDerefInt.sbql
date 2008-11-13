@@ -1,0 +1,10 @@
+begin;
+/
+create 1 as t1;
+/
+deref(t1);
+/
+end;
+/
+#shutdown
+/

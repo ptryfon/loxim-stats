@@ -1,0 +1,12 @@
+begin;
+/
+create (
+ 1 as liczba;
+ "jeden" as napis) as t1;
+/
+deref(t1.liczba);
+/
+end;
+/
+#shutdown
+/

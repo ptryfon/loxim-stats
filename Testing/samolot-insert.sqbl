@@ -1,0 +1,148 @@
+begin
+/
+
+create  (
+	"Wirnik" as name,
+	"detail" as kind,
+	7000 as detailCost,
+	15000 as detailMass
+	) as Part
+/
+
+create  (
+	"Sruba" as name,
+	"detail" as kind,
+	1 as detailCost,
+	10 as detailMass
+	) as Part
+/
+
+create  (
+	"Lopatka" as name,
+	"detail" as kind,
+	100 as detailCost,
+	250 as detailMass
+	) as Part
+/
+
+create  (
+	"Obudowa" as name,
+	"detail" as kind,
+	25000 as detailCost,
+	100000 as detailMass
+	) as Part
+/
+
+create  (
+	"Lotka" as name,
+	"detail" as kind,
+	2500 as detailCost,
+	9000 as detailMass
+	) as Part
+/
+
+create  (
+	"Dziob" as name,
+	"detail" as kind,
+	8765432 as detailCost,
+	9999999 as detailMass
+	) as Part
+/
+
+
+
+create  (
+	"Stabilizator" as name,
+	"detail" as kind,
+	65432 as detailCost,
+	99999 as detailMass
+	) as Part
+/
+
+
+
+create  (
+	"skrzydlo_wlasciwe" as name,
+	"detail" as kind,
+	444444 as detailCost,
+	3333 as detailMass
+	) as Part
+/
+
+
+
+create  (
+	"ogon_wlasciwy" as name,
+	"detail" as kind,
+	555555 as detailCost,
+	4444 as detailMass
+	) as Part
+/
+
+
+
+create  (
+	"korpus_wlasciwy" as name,
+	"detail" as kind,
+	1919191919 as detailCost,
+	88888888 as detailMass
+) as Part
+/
+
+create  (
+	"Silnik" as name,
+	"aggregate" as kind,
+	1234 as assemblyCost,
+	4000 as assemblyMass,
+	(ref (Part where name="Sruba" as leadsTo), 451 as amount) as Component,
+	(ref (Part where name="Lopatka" as leadsTo), 73 as amount) as Component,
+	(ref (Part where name="Wirnik" as leadsTo), 3 as amount) as Component,
+	(ref (Part where name="Obudowa" as leadsTo), 1 as amount) as Component
+) as Part 
+/
+
+create  (
+	"Skrzydlo" as name,
+	"aggregate" as kind,
+	12345 as assemblyCost,
+	50000 as assemblyMass,
+	(ref (Part where name="skrzydlo_wlasciwe" as leadsTo), 1 as amount) as Component,
+	(ref (Part where name="Silnik" as leadsTo), 2 as amount) as Component,
+	(ref (Part where name="Lotka" as leadsTo), 4 as amount) as Component
+) as Part 
+/
+
+create  (
+	"Ogon" as name,
+	"aggregate" as kind,
+	12345 as assemblyCost,
+	50000 as assemblyMass,
+	(ref (Part where name="ogon_wlasciwy" as leadsTo), 1 as amount) as Component,
+	(ref (Part where name="Stabilizator" as leadsTo), 1 as amount) as Component,
+	(ref (Part where name="Lotka" as leadsTo), 3 as amount) as Component
+) as Part 
+/
+
+create  (
+	"Poklad" as name,
+	"aggregate" as kind,
+	12345 as assemblyCost,
+	50000 as assemblyMass,
+	(ref (Part where name="korpus_wlasciwy" as leadsTo), 1 as amount) as Component
+) as Part 
+/
+
+create  (
+	"Samolot" as name,
+	"aggregate" as kind,
+	123400 as assemblyCost,
+	45637 as assemblyMass,
+	(ref (Part where name="Skrzydlo" as leadsTo), 2 as amount) as Component,
+	(ref (Part where name="Ogon" as leadsTo), 1 as amount) as Component,
+	(ref (Part where name="Dziob" as leadsTo), 1 as amount) as Component,
+	(ref (Part where name="Poklad" as leadsTo), 1 as amount) as Component
+) as Part 
+/
+
+end
+/
