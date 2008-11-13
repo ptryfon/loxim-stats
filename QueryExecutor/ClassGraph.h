@@ -154,8 +154,6 @@ namespace QExecutor
 			return 0;
 		}
 
-		virtual int getClassVertexByName(const string& className, ClassGraphVertex*& cgv, bool& fieldExist);
-
 		virtual void removeFromNameIndex(string& className);
 
 		virtual int classBelongsToExtSubGraph(const MapOfClassVertices::iterator& classI, const MapOfClassVertices::iterator& subGraphI, bool& belongs);
@@ -207,6 +205,8 @@ namespace QExecutor
 			cgv = classGraph[lid];
 			return 0;
 		}
+
+		virtual int getClassVertexByName(const string& className, ClassGraphVertex*& cgv, bool& fieldExist);
 
 		virtual int belongsToInvariant(SetOfLids* extClasses, string& invariantUpName, bool& inInvariant, bool isObject = true);
 

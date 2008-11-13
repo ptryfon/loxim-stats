@@ -1,0 +1,15 @@
+begin;
+
+create interface Itest {object name is OItest; (field1; field2; field4) method1(p1, p2); method3() };
+
+create class Ctest {instance Otest : {field1; field2; field3; field4} procedure method1(p1, p2) {return "method1"} procedure method2() {return "method2"} procedure method3() {return "method3"} };
+
+interface Itest shows Ctest;
+
+Ctest includes create (1 as field1, 2 as field2, 3 as field3, "tekst" as field4) as Otest;
+
+OItest;
+
+deref(OItest);
+
+end;

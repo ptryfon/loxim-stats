@@ -40,7 +40,8 @@ QueryDoubleResult::QueryDoubleResult(double v) 			{ value=v; ec = new ErrorConso
 QueryBoolResult::QueryBoolResult()				{ ec = new ErrorConsole("QueryExecutor"); }
 QueryBoolResult::QueryBoolResult(bool v) 			{ value=v; ec = new ErrorConsole("QueryExecutor"); }
 QueryReferenceResult::QueryReferenceResult()			{ ec = new ErrorConsole("QueryExecutor"); refed = false; }
-QueryReferenceResult::QueryReferenceResult(LogicalID* v) 	{ value=v; ec = new ErrorConsole("QueryExecutor"); refed = false; }
+QueryReferenceResult::QueryReferenceResult(LogicalID* v) 	{ value=v; m_key.setEmpty(); ec = new ErrorConsole("QueryExecutor"); refed = false; }
+QueryReferenceResult::QueryReferenceResult(LogicalID* v, InterfaceKey k) 	{ value=v; m_key=k; ec = new ErrorConsole("QueryExecutor"); refed = false; }
 QueryNothingResult::QueryNothingResult() 			{ ec = new ErrorConsole("QueryExecutor"); }
 QueryVirtualResult::QueryVirtualResult() 			{ ec = new ErrorConsole("QueryExecutor"); refed = false;}
 QueryVirtualResult::QueryVirtualResult(string _vo_name, vector<LogicalID *> _view_defs, vector<QueryResult *> _seeds, LogicalID *_view_parent) {
@@ -55,7 +56,7 @@ QueryResult* QueryStringResult::clone()		{ return new QueryStringResult(value); 
 QueryResult* QueryIntResult::clone()		{ return new QueryIntResult(value); }
 QueryResult* QueryDoubleResult::clone()		{ return new QueryDoubleResult(value); }
 QueryResult* QueryBoolResult::clone()		{ return new QueryBoolResult(value); }
-QueryResult* QueryReferenceResult::clone()	{ return new QueryReferenceResult(value); }
+QueryResult* QueryReferenceResult::clone()	{ return new QueryReferenceResult(value, m_key); }
 QueryResult* QueryNothingResult::clone()	{ return new QueryNothingResult(); }
 QueryResult* QueryVirtualResult::clone()	{ return new QueryVirtualResult(vo_name, view_defs, seeds, view_parent); }
 
@@ -296,6 +297,7 @@ LogicalID* QueryReferenceResult::getValue()		{ return value; }
 void QueryReferenceResult::setValue(LogicalID* v)	{ value = v; }
 bool QueryReferenceResult::wasRefed()			{ return refed; }
 void QueryReferenceResult::setRef()			{ refed = true; }
+InterfaceKey QueryReferenceResult::getInterfaceKey() const {return m_key;}
 
 //algebraic operations plus, minus, times, divide_by, and, or.
 

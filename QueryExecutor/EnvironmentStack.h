@@ -46,7 +46,7 @@ namespace QExecutor
 		int top(QueryBagResult *&r);
 		bool empty();
 		int size();
-		int bindName(string name, int sectionNo, Transaction *&tr, QueryExecutor *qe, QueryResult *&r);
+		int bindName(string name, int sectionNo, Transaction *&tr, QueryExecutor *qe, QueryResult *&r, string iName ="");
 		int bindProcedureName(string name, unsigned int queries_size, Transaction *&tr, QueryExecutor *qe, string &code, vector<string> &params, int &bindSectionNo, LogicalID*& bindClassLid);
 		unsigned int getSectionDBnumber();
 		void deleteAll();

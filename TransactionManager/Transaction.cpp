@@ -616,7 +616,6 @@ namespace TManager
 		if (errorNumber && (errorNumber != (ENoInterfaceFound | ErrStore))) abort();
 		return errorNumber;
 	}
-	
 
 	int Transaction::removeInterface(ObjectPointer* &p)
 	{

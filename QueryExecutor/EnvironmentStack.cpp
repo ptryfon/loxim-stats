@@ -3,6 +3,7 @@
 #include <vector>
 
 #include "QueryResult.h"
+#include "InterfaceMaps.h"
 #include "../QueryParser/ClassNames.h"
 #include "TransactionManager/Transaction.h"
 #include "Store/Store.h"
@@ -139,7 +140,7 @@ int EnvironmentStack::size() { return es.size(); }
 
 
 
-int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, QueryExecutor *qe, QueryResult *&r) {
+int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, QueryExecutor *qe, QueryResult *&r, string iName) {
 	int errcode;
 	*ec << "[QE] Name binding on ES";
 	*ec << toString() ;
@@ -188,13 +189,19 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 				int vecSize_sysvirt = vec_sysvirt->size();
 				ec->printf("[QE] %d SystemViews LID by name taken\n", vecSize_sysvirt);
 				
-				if (vecSize_virt == 0 && vecSize_sysvirt == 0) { 
-					for (int i = 0; i < vecSize; i++ ) {
+				if (vecSize_virt == 0 && vecSize_sysvirt == 0) 
+				{ 
+					for (int i = 0; i < vecSize; i++ ) 
+					{
 						found_one = true;
 						LogicalID *lid = vec->at(i);
-						QueryReferenceResult *lidres = new QueryReferenceResult(lid);
+						InterfaceKey ik;
+						if (!iName.empty())
+							ik.setKey(iName);
+						QueryReferenceResult *lidres = new QueryReferenceResult(lid, ik);
 						r->addResult(lidres);
 					}
+
 					ClassGraph* cg = qe->getCg();
 					stringHashSet shs;
 					cg->fetchSubInvariantNames(name, tr, qe, shs);
@@ -206,6 +213,7 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 						}
 						vecvec.push_back(vecSubInvariant);
 					}
+					ec->printf("+");
 					for(unsigned int i = 0; i < vecvec.size(); ++i) {
 						vector<LogicalID*>* vecSubInvariant = vecvec.at(i);
 						for (unsigned int j = 0; j < vecSubInvariant->size(); j++ ) {
@@ -220,6 +228,7 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 						}
 						delete vecSubInvariant;
 					}
+					ec->printf("+");
 				}
 				else if (vecSize != 0) {
 					if (vecSize_virt != 0) {
@@ -289,6 +298,7 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 				delete vec_virt;
 			}
 			else {
+				ec->printf("+!");
 				section = (es.at(i - 1));
 				sectionSize = (section->size());
 				ec->printf("[QE] bindName: ES section %u got %u elements\n", i, sectionSize);
@@ -608,6 +618,13 @@ int QueryReferenceResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResu
 				vector<LogicalID*>* tmp_vec = (dataVal->getVector());
 				*ec << "[QE] nested(): QueryReferenceResult pointing vector value";
 				int vec_size = tmp_vec->size();
+			
+				bool filterOut;
+				string k = getInterfaceKey().getKey();
+				TStringSet namesVisible = Schemas::InterfaceMaps::Instance().getAllFieldNamesAndCheckBind(k, filterOut);
+				if (filterOut)
+					ec->printf("[QE] nested(): field names will be filtered out, %d names visible\n", namesVisible.size());
+				
 				for (int i = 0; i < vec_size; i++ ) {
 					LogicalID *tmp_logID = tmp_vec->at(i);
 					if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, optr, false)) != 0) {
@@ -617,6 +634,13 @@ int QueryReferenceResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResu
 						return errcode;
 					}
 					string tmp_name = optr->getName();
+					if (filterOut)
+					{
+						if (namesVisible.find(tmp_name) == namesVisible.end())
+						{   //Field filtered out
+							continue;
+						}
+					}
 					//MH TODO: add a 'this->value' reference to each tmp_logID ?
 					tmp_logID->setDirectParent(this->value);
 					QueryReferenceResult *final_ref = new QueryReferenceResult(tmp_logID);

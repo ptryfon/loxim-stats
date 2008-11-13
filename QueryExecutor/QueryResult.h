@@ -6,6 +6,7 @@
 #include <vector>
 #include <sstream>
 
+#include "InterfaceKey.h"
 #include "../QueryParser/ClassNames.h"
 #include "TransactionManager/Transaction.h"
 #include "Store/Store.h"
@@ -490,13 +491,16 @@ class QueryReferenceResult : public QueryResult
 protected:
 	LogicalID *value;
 	bool refed;
+	InterfaceKey m_key;
 public:
 	QueryReferenceResult();
 	QueryReferenceResult(LogicalID* v);
+	QueryReferenceResult(LogicalID* v, InterfaceKey k);
 	QueryResult* clone();
 	virtual ~QueryReferenceResult() { if (value != NULL) delete value; if (ec != NULL) delete ec; };
 	LogicalID* getValue();
 	void setValue(LogicalID* v);
+	InterfaceKey getInterfaceKey() const;
 	bool wasRefed();
 	void setRef();
 	int type();

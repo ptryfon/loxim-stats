@@ -23,6 +23,7 @@
 #include "Errors/Errors.h"
 #include "Errors/ErrorConsole.h"
 #include "InterfaceMatcher.h"
+#include "InterfaceMaps.h"
 #include "TypeCheck/DecisionTable.h"
 #include "LoximServer/LoximSession.h"
 #include "BindNames.h"
@@ -34,6 +35,7 @@ using namespace Store;
 using namespace Indexes;
 using namespace std;
 using namespace LoximServer;
+using namespace Schemas;
 
 namespace QExecutor {
 
@@ -554,21 +556,19 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			errcode = envs->bindName(name, sectionNumber, tr, this, result);
 			if (errcode != 0) return errcode;
 			
-			/* not working well yet
-			if (((QueryBagResult *)result)->isEmpty())
-			{	//check if name refers to an interface object  
-			    QueryNode *replaced = NULL;
-			    errcode = Schemas::Matcher::QueryForInterfaceObjectName(name, this, ec, tr, replaced);
-			    //TODO - errcode
-			    if (replaced)
-			    {
-				ec->printf("[QE] name %s recognized as interface object name\n", name.c_str());
-				return executeRecQuery(replaced);
-			    //TODO - push methods to ES 
-			    }
+			ec->printf("[QE] TNNAME: checking object name\n");
+			if (Schemas::InterfaceMaps::Instance().isObjectNameBound(name))
+			{
+				ec->printf("[QE] object name bound in interface maps\n");
+				string iN, cN, invN;
+				Schemas::InterfaceMaps::Instance().getInterfaceBindForObjName(name, iN, cN, invN);
+				ec->printf("[QE] name %s recognized as interface object name, bound through %s->%s to %s objects\n",
+							   name.c_str(), iN.c_str(), cN.c_str(), invN.c_str());
+				errcode = envs->bindName(invN, sectionNumber, tr, this, result, iN);
+				if (errcode) return errcode;
 			}
-			*/
-			
+			ec->printf("[QE] TNNAME: pushing result..\n");
+
 			errcode = qres->push(result);
 			if (errcode != 0) return errcode;
 			*ec << "[QE] Done!";
@@ -1339,7 +1339,6 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			return 0;
 		}//case TNVIRTUALIZEAS
 
-		//ADTODO
 		case TreeNode::TNINTERFACEBIND: {
 		    *ec << "[QE] Type: TNINTERFACEBIND";
 		    string interfaceName = ((InterfaceBind *)tree)->getInterfaceName();
@@ -1351,11 +1350,12 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 
 		    ec->printf("[QE] TNINTERFACEBIND: Checking interface presence by name: %s\n", interfaceName.c_str());
 		    bool taken;
-		    if ((errcode = interfaceNameTaken(interfaceName, taken)) != 0) {
+		    if ((errcode = interfaceNameTaken(interfaceName, taken)) != 0) 
+			{
 		        *ec << "[QE] TNINTERFACEBIND: returning error from interfaceNameTaken";
 		        return errcode;
 		    }
-    		    if (!taken)
+    		if (!taken)
 		        return qeErrorOccur("[QE] TNINTERFACEBIND: interface \"" + interfaceName + "\" does not exist", ENoInterfaceFound);
 
 		    *ec << "[QE] TNINTERFACEBIND: interface found, checking implementation presence";
@@ -1363,22 +1363,26 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		    /* ADTODO - check views also! */
 		    bool impNameTaken;
 		    errcode = implementationNameTaken(implementationName, impNameTaken);
-		    if(errcode != 0) {
+		    if(errcode != 0) 
+			{
 		    	*ec << "[QE] TNINTERFACEBIND: returning error from implementationNameTaken";
 		    	return errcode;
 		    }
 		    if(!impNameTaken)
 		    	return qeErrorOccur("[QE] Implementation: \"" + implementationName + "\" does not exist.", ENoImplementationFound);
 
+			*ec << "[QE] TNINTERFACEBIND: implementation found, checking if one fits another";
+
+			
 		    /**********************************************
 		    Check if implementation fits interface
 		    **********************************************/
 		    
 		    bool matches;
-		    errcode = Schemas::Schema::interfaceMatchesImplementation(interfaceName, implementationName, this, matches);
+		    errcode = Schemas::Schema::interfaceMatchesImplementation(interfaceName, implementationName, matches);
 		    if (errcode) 
 		    {
-			ec->printf("[QE] INTERFACESBIND - error in interfaceMatchesImplementation\n"); 
+				ec->printf("[QE] INTERFACESBIND - error in interfaceMatchesImplementation\n"); 
 		    }
 		    string resS = matches ? "fits": "does not fit";
 		    ec->printf("[QE] TNINTERFACEBIND - interface %s %s implementation %s\n",interfaceName.c_str(),resS.c_str(),implementationName.c_str());
@@ -1389,9 +1393,20 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		    
 		    if (matches)
 		    {
-			errcode = tr->bindInterface(interfaceName, implementationName);
-			//TODO - error handling
-		    }		    
+				ClassGraphVertex *cgv;
+				bool fExists;
+				cg->getClassVertexByName(implementationName, cgv, fExists);
+				string invariantName = cgv->invariant;
+				string objectName = InterfaceMaps::Instance().getObjectNameForInterface(interfaceName);
+				InterfaceMaps::Instance().addBind(interfaceName, objectName, implementationName, invariantName);			
+				errcode = tr->bindInterface(interfaceName, implementationName);
+				if (errcode) 
+				{
+					ec->printf("[QE] INTERFACESBIND - error in bindInterface\n");
+					InterfaceMaps::Instance().removeBind(objectName);
+					return -1; //TODO - errcode
+				}			
+			}		    
 		    /******************
 		    Cleanup and return
 		    *******************/
@@ -1410,9 +1425,10 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		    QueryNode *query = ((RegisterInterfaceNode *) tree)->getQuery();
 		    ObjectPointer *optr;
 
-		    if(query != NULL) {
-			errcode = executeRecQuery(query);
-			if(errcode != 0) return errcode;
+		    if(query != NULL) 
+			{
+				errcode = executeRecQuery(query);
+				if(errcode != 0) return errcode;
 		    }
 		    else qres->push(new QueryNothingResult());
 
@@ -1421,51 +1437,69 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		    QueryResult *execution_result;
 		    errcode = qres->pop(execution_result);
 		    if (errcode != 0) return errcode;
-		    if (execution_result->type() != QueryResult::QREFERENCE) {
-			return qeErrorOccur( "[QE] TNREGINTERFACE error - execution result is not QueryReference", ERefExpected );
+		    if (execution_result->type() != QueryResult::QREFERENCE) 
+			{
+				return qeErrorOccur( "[QE] TNREGINTERFACE error - execution result is not QueryReference", ERefExpected );
 		    }
 
 		    ec->printf("[QE] TNREGINTERFACE got reference\n");
 
-		    errcode = tr->getObjectPointer (((QueryReferenceResult*)execution_result)->getValue(), Store::Read, optr, false);
-		    if (errcode != 0) {
+			LogicalID* interfaceLid = ((QueryReferenceResult*)execution_result)->getValue();
+		    errcode = tr->getObjectPointer (interfaceLid, Store::Read, optr, false);
+		    if (errcode != 0) 
+			{
 		    	return trErrorOccur("[QE] register interface operation - Error in getObjectPointer.", errcode);
 		    }
 
 		    ec->printf("[QE] TNREGINTERFACE got object pointer\n");
 
 		    errcode = tr->addRoot(optr);
-		    if (errcode != 0) {
+		    if (errcode != 0) 
+			{
 		    	return trErrorOccur("[QE] Error in addRoot", errcode);
 		    }
 
 		    ec->printf("[QE] TNREGINTERFACE addRoot processed\n");
 
 		    *ec << optr->getName().c_str();
-		    ec->printf("[QE] TNREGINTERFACE got name");
+		    ec->printf("[QE] TNREGINTERFACE got name\n");
 
 		    string object_name = "";
 		    vector<LogicalID*>* inner_vec = (optr->getValue())->getVector();
 		    for (unsigned int i=0; i < inner_vec->size(); i++)
 		    {
-			ObjectPointer *inner_optr;
-			errcode = tr->getObjectPointer (inner_vec->at(i), Store::Read, inner_optr, false);
-			if (errcode != 0)
-			    return trErrorOccur("[QE] register interface operation - Error in getObjectPointer.", errcode);
-			if (inner_optr->getName() == QE_OBJECT_NAME_BIND_NAME)
-			{
-			    object_name = (inner_optr->getValue())->getString();
-			    break;
-			}
+				ObjectPointer *inner_optr;
+				errcode = tr->getObjectPointer (inner_vec->at(i), Store::Read, inner_optr, false);
+				if (errcode != 0)
+					return trErrorOccur("[QE] register interface operation - Error in getObjectPointer.", errcode);
+				if (inner_optr->getName() == QE_OBJECT_NAME_BIND_NAME)
+				{
+					object_name = (inner_optr->getValue())->getString();
+					break;
+				}
 		    }
-		    ec->printf("[QE] TNREGINTERFACE got object name");
+		    ec->printf("[QE] TNREGINTERFACE got object name\n");
 		    *ec << object_name;
 
 		    errcode = tr->addInterface(optr->getName().c_str(), object_name.c_str(), optr);
-		    if (errcode != 0) {
+		    if (errcode != 0) 
+			{
 		    	return trErrorOccur("[QE] Error in addInterface", errcode);
 		    }
-
+			Schema *s = new Schema();
+			errcode = Schema::interfaceFromLogicalID(interfaceLid, tr, s);
+			ec->printf("[QE] schema %s\n", s->getName().c_str());
+			if (errcode)
+			{
+				return trErrorOccur("[QE] Error in interfaceFromLogicalID", errcode);
+			}
+			ec->printf("[QE] TNREGINTERFACE inserting into map..\n");
+			bool inserted = InterfaceMaps::Instance().insertNewInterfaceAndPropagateHierarchy(*s);
+			if (!inserted)
+			{
+				return -1;  //TODO - errcode;
+			}
+			
 		    errcode = qres->push(execution_result);
 		    if (errcode != 0) return errcode;
 
@@ -1536,32 +1570,39 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 
 		case TreeNode::TNINTERFACENODE: {
 			*ec << "[QE] Type: TNINTERFACENODE";
-			string interfaceName = ((InterfaceNode *) tree)->getInterfaceName();
-			string objectName = ((InterfaceNode *) tree)->getObjectName();
+			
+			InterfaceNode *node = (InterfaceNode *)tree;			
+			string interfaceName = node->getInterfaceName();
+			string objectName = node->getObjectName();
 			*ec << "[QE] Interface name: " << interfaceName;
 
 			// check if interface name is already used in database - move it to reg
 			*ec << "[QE] Checking if name is already used in database..";
 
 			bool taken;
-			if ((errcode = interfaceNameTaken(interfaceName, taken)) != 0) {
+			if ((errcode = interfaceNameTaken(interfaceName, taken)) != 0) 
+			{
 			    *ec << "[QE] TNINTERFACENODE: returning error from interfaceNameTaken";
 			    return errcode;
 			}
-    			if (taken)
+    		if (taken)
 			    return qeErrorOccur("[QE] TNINTERFACENODE: interface name \"" + interfaceName + "\" already in use", ENotUniqueInterfaceName);
 
 			*ec << "[QE] TNINTERFACENODE: Interface name does not exist in database";
-			InterfaceNode *node = (InterfaceNode *) tree;
+			
+			Schema *intSchema = new Schema();
+			Schema::interfaceFromInterfaceNode(node, intSchema);
+			if (InterfaceMaps::Instance().checkIfCanBeInserted(intSchema) == false)
+				return -1;  //TODO - errcode -> can't insert interface, inconsistent with current maps	
 			
 			// vector that holds all the logical ids
 			vector<LogicalID *> interfaceLids;
 			pushStringToLIDs(objectName, QE_OBJECT_NAME_BIND_NAME, interfaceLids);
 
 			// get and process supers
-			TSupers supers = node->getSupers();
+			QParser::TSupers supers = node->getSupers();
 			ec->printf("[QE] TNINTERFACENODE: supers count: %d\n", supers.size());
-			TSupers::iterator it;
+			QParser::TSupers::iterator it;
 			for (it = supers.begin(); it != supers.end(); ++it)
 			{
 			    string super = *it;
@@ -1595,9 +1636,9 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			}
 
 			// get and process methods (ADTODO-check name uniqueness)
-			TMethods methods = node->getMethods();
+			QParser::TMethods methods = node->getMethods();
 			
-			for(TMethods::iterator it = methods.begin(); it != methods.end(); it++) 
+			for(QParser::TMethods::iterator it = methods.begin(); it != methods.end(); it++) 
 			{
 			    InterfaceMethod *m = new InterfaceMethod(*it);
 			    if ((errcode = executeRecQuery(m)) != 0)
@@ -2969,6 +3010,7 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 	*ec << "[QE] derefQuery()";
 	int errcode;
 	int argType = arg->type();
+	
 	switch (argType) {
 		case QueryResult::QSEQUENCE: {
 			res = new QuerySequenceResult();
@@ -3034,7 +3076,8 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 			break;
 		}
 		case QueryResult::QREFERENCE: {
-			LogicalID * lid = ((QueryReferenceResult *) arg)->getValue();
+			QueryReferenceResult *qRef = (QueryReferenceResult *) arg;
+			LogicalID * lid = qRef->getValue();
 			if (lid != NULL && lid->getServer() != "")
 				return EUnknownNode;
 
@@ -3042,10 +3085,11 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 				res = arg;
 				break;
 			}
-			LogicalID *ref_value = ((QueryReferenceResult *) arg)->getValue();
+			InterfaceKey interfaceKey = qRef->getInterfaceKey();
+				
 			*ec << "[QE] derefQuery() - dereferencing Object";
 			ObjectPointer *optr;
-			errcode = tr->getObjectPointer(ref_value, Store::Read, optr, true);
+			errcode = tr->getObjectPointer(lid, Store::Read, optr, true);
 			if (errcode != 0) {
 				*ec << "[QE] Error in getObjectPointer";
 				antyStarveFunction(errcode);
@@ -3101,6 +3145,13 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 				}
 				case Store::Vector: {
 					*ec << "[QE] derefQuery() - ObjectValue = Vector";
+					
+					bool filterOut;
+					string k = interfaceKey.getKey();
+					TStringSet namesVisible = InterfaceMaps::Instance().getAllFieldNamesAndCheckBind(k, filterOut);
+					if (filterOut)
+						ec->printf("[QE] derefQuery - field names will be filtered out, %d names visible\n", namesVisible.size());
+					
 					vector<LogicalID*>* tmp_vec = value->getVector();
 					res = new QueryStructResult();
 					int tmp_vec_size = tmp_vec->size();
@@ -3126,8 +3177,15 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 						    continue;
 						}*/
 						string currName = currOptr->getName();
+						if (filterOut)
+						{
+							if (namesVisible.find(currName) == namesVisible.end())
+							{   //Field filtered out
+								continue;
+							}
+						}
 						//MH set direct parent id...
-						currID->setDirectParent(ref_value);
+						currID->setDirectParent(lid);
 						QueryResult *currIDRes = new QueryReferenceResult(currID);
 						QueryResult *currInside;
 						this->derefQuery(currIDRes, currInside);

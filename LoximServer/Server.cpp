@@ -3,6 +3,7 @@
 #include <iostream>
 #include <getopt.h>
 #include <Indexes/IndexManager.h>
+#include "QueryExecutor/InterfaceMaps.h"
 
 using namespace std;
 
@@ -72,6 +73,7 @@ int main(int argc, char **argv) {
 	con.printf("[Listener.Start]--> Starting Index manager.. \n");
 	Indexes::IndexManager::init(LogManager::isCleanClosed());
 	ClassGraph::ClassGraph::init(-1);
+	Schemas::InterfaceMaps::Instance().init(); //must be called after ClassGraph::init()
 
 	::LoximServer::LoximServer serv(hostname, port, &config);
 	if (!serv.prepare()){
@@ -82,7 +84,8 @@ int main(int argc, char **argv) {
 		unsigned idx;
 		lm->shutdown(idx);//nie wiem czy tu to ma znaczenie,
 		//ale z reguly najlepiej niszczyc w odwrotnej kolejnosci niz sie otwieralo.
-		ClassGraph::ClassGraph::shutdown();
+		Schemas::InterfaceMaps::Instance().deinit();
+		ClassGraph::ClassGraph::shutdown();	
 		delete TransactionManager::getHandle();
 	}
 	else

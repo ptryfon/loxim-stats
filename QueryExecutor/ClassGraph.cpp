@@ -607,7 +607,8 @@ int ClassGraph::fetchExtInvariantNamesForLid(LogicalID* lid, Transaction *&tr, Q
 	return 0;
 }
 
-int ClassGraph::fetchInvariantNames(string& invariantName, Transaction *&tr, QueryExecutor *qe, stringHashSet& invariantsNames, bool noInvariantName, bool sub) {
+int ClassGraph::fetchInvariantNames(string& invariantName, Transaction *&tr, QueryExecutor *qe, stringHashSet& invariantsNames, bool noInvariantName, bool sub) 
+{
 	string dirCaption = (sub)?("sub"):("ext");
 	ec->printf("[QE] fetching %sInvariants of invariant: %s", dirCaption.c_str(), invariantName.c_str());
 	int errcode = 0;
