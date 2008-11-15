@@ -8,12 +8,12 @@ import java.sql.Statement;
 
 public class LoXiMStatementImpl implements LoXiMStatement {
 
-	private LoXiMConnection connection;
+	private LoXiMConnectionInternal connection;
 	private int fetchSize;
 	private boolean closed;
 	private SQLWarning warning;
 	
-	LoXiMStatementImpl(LoXiMConnection connection) {
+	LoXiMStatementImpl(LoXiMConnectionInternal connection) {
 		this.connection = connection;
 	}
 	
@@ -50,7 +50,9 @@ public class LoXiMStatementImpl implements LoXiMStatement {
 
 	@Override
 	public boolean execute(String sql) throws SQLException {
-		// TODO Auto-generated method stub
+		checkClosed();
+		execute0(sql);
+		// TODO
 		return false;
 	}
 
@@ -83,6 +85,8 @@ public class LoXiMStatementImpl implements LoXiMStatement {
 
 	@Override
 	public LoXiMResultSet executeQuery(String sql) throws SQLException {
+		checkClosed();
+		execute0(sql);
 		LoXiMResultSet result = new LoXiMResultSetImpl(this);
 		
 		// TODO Auto-generated method stub
@@ -92,6 +96,8 @@ public class LoXiMStatementImpl implements LoXiMStatement {
 
 	@Override
 	public int executeUpdate(String sql) throws SQLException {
+		checkClosed();
+		execute0(sql);
 		// TODO Auto-generated method stub
 		return 0;
 	}
@@ -218,8 +224,8 @@ public class LoXiMStatementImpl implements LoXiMStatement {
 
 	@Override
 	public void setEscapeProcessing(boolean enable) throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		// do nothing
 	}
 
 	@Override
@@ -249,14 +255,14 @@ public class LoXiMStatementImpl implements LoXiMStatement {
 
 	@Override
 	public void setMaxFieldSize(int max) throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		// do nothing
 	}
 
 	@Override
 	public void setMaxRows(int max) throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		// do nothing
 	}
 
 	@Override
@@ -288,5 +294,9 @@ public class LoXiMStatementImpl implements LoXiMStatement {
 		if (closed) {
 			throw new SQLException("Result set is closed");
 		}
+	}
+	
+	private ExecutionResult execute0(String stmt) throws SQLException {
+		return connection.execute(stmt);
 	}
 }

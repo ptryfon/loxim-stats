@@ -18,14 +18,11 @@ import java.sql.SQLWarning;
 import java.sql.SQLXML;
 import java.sql.Savepoint;
 import java.sql.Struct;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.EnumSet;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
-import java.util.SimpleTimeZone;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -35,7 +32,6 @@ import pl.edu.mimuw.loxim.parser.SBQLParser;
 import pl.edu.mimuw.loxim.protocol.enums.Auth_methodsEnum;
 import pl.edu.mimuw.loxim.protocol.enums.Bye_reasonsEnum;
 import pl.edu.mimuw.loxim.protocol.enums.CollationsEnum;
-import pl.edu.mimuw.loxim.protocol.enums.Send_value_flagsEnum;
 import pl.edu.mimuw.loxim.protocol.enums.Statement_flagsEnum;
 import pl.edu.mimuw.loxim.protocol.packages.A_sc_byePackage;
 import pl.edu.mimuw.loxim.protocol.packages.A_sc_errorPackage;
@@ -43,30 +39,13 @@ import pl.edu.mimuw.loxim.protocol.packages.A_sc_okPackage;
 import pl.edu.mimuw.loxim.protocol.packages.PackageUtil;
 import pl.edu.mimuw.loxim.protocol.packages.Q_c_statementPackage;
 import pl.edu.mimuw.loxim.protocol.packages.Q_s_executingPackage;
-import pl.edu.mimuw.loxim.protocol.packages.V_sc_sendvaluePackage;
+import pl.edu.mimuw.loxim.protocol.packages.Q_s_execution_finishedPackage;
 import pl.edu.mimuw.loxim.protocol.packages.V_sc_sendvaluesPackage;
 import pl.edu.mimuw.loxim.protocol.packages.W_c_authorizedPackage;
 import pl.edu.mimuw.loxim.protocol.packages.W_c_helloPackage;
 import pl.edu.mimuw.loxim.protocol.packages.W_c_loginPackage;
 import pl.edu.mimuw.loxim.protocol.packages.W_c_passwordPackage;
 import pl.edu.mimuw.loxim.protocol.packages.W_s_helloPackage;
-import pl.edu.mimuw.loxim.protocol.packages_data.BobPackage;
-import pl.edu.mimuw.loxim.protocol.packages_data.BoolPackage;
-import pl.edu.mimuw.loxim.protocol.packages_data.DatePackage;
-import pl.edu.mimuw.loxim.protocol.packages_data.DatetimePackage;
-import pl.edu.mimuw.loxim.protocol.packages_data.DatetimetzPackage;
-import pl.edu.mimuw.loxim.protocol.packages_data.DoublePackage;
-import pl.edu.mimuw.loxim.protocol.packages_data.Sint16Package;
-import pl.edu.mimuw.loxim.protocol.packages_data.Sint32Package;
-import pl.edu.mimuw.loxim.protocol.packages_data.Sint64Package;
-import pl.edu.mimuw.loxim.protocol.packages_data.Sint8Package;
-import pl.edu.mimuw.loxim.protocol.packages_data.TimePackage;
-import pl.edu.mimuw.loxim.protocol.packages_data.TimetzPackage;
-import pl.edu.mimuw.loxim.protocol.packages_data.Uint16Package;
-import pl.edu.mimuw.loxim.protocol.packages_data.Uint32Package;
-import pl.edu.mimuw.loxim.protocol.packages_data.Uint64Package;
-import pl.edu.mimuw.loxim.protocol.packages_data.Uint8Package;
-import pl.edu.mimuw.loxim.protocol.packages_data.VarcharPackage;
 import pl.edu.mimuw.loxim.protogen.lang.java.template.auth.AuthException;
 import pl.edu.mimuw.loxim.protogen.lang.java.template.auth.AuthPassMySQL;
 import pl.edu.mimuw.loxim.protogen.lang.java.template.exception.BadPackageException;
@@ -74,7 +53,7 @@ import pl.edu.mimuw.loxim.protogen.lang.java.template.exception.ProtocolExceptio
 import pl.edu.mimuw.loxim.protogen.lang.java.template.pstreams.PackageIO;
 import pl.edu.mimuw.loxim.protogen.lang.java.template.ptools.Package;
 
-public class LoXiMConnectionImpl implements LoXiMConnection {
+public class LoXiMConnectionImpl implements LoXiMConnectionInternal {
 
 	private SQLWarning warning;
 	
@@ -530,14 +509,15 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 		}
 	}
 	
-	public List<Object> executeQuery(String query) throws SQLException {
+	@Override
+	public ExecutionResult execute(String stmt) throws SQLException {
 		
 		synchronized (statementMutex) {
 			try {
 				Q_c_statementPackage statementPac = new Q_c_statementPackage();
 				EnumSet<Statement_flagsEnum> flags = EnumSet.of(Statement_flagsEnum.sf_execute);
 				statementPac.setFlags(flags);
-				statementPac.setStatement(query);
+				statementPac.setStatement(stmt);
 				pacIO.write(statementPac);
 				Package pac = pacIO.read();
 				switch ((byte) pac.getPackageType()) {
@@ -546,7 +526,11 @@ public class LoXiMConnectionImpl implements LoXiMConnection {
 				case Q_s_executingPackage.ID:
 					PackageUtil.readPackage(pacIO, V_sc_sendvaluesPackage.class);
 					ResultReader reader = new ResultReader(pacIO);
-					return reader.readValues();
+					ExecutionResult result = new ExecutionResult();
+					result.setResult(reader.readValues());
+					Q_s_execution_finishedPackage exFin = PackageUtil.readPackage(pacIO, Q_s_execution_finishedPackage.class);
+					result.setUpdates((int) (exFin.getDelCnt() + exFin.getInsertsCnt() + exFin.getModAtomPointerCnt() + exFin.getNewRootsCnt()));
+					return result;
 				default:
 					throw new BadPackageException(pac.getClass());
 				}
