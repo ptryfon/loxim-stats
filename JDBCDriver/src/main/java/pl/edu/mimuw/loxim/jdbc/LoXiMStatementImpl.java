@@ -80,8 +80,11 @@ public class LoXiMStatementImpl implements LoXiMStatement {
 
 	@Override
 	public LoXiMResultSet executeQuery(String sql) throws SQLException {
+		LoXiMResultSet result = new LoXiMResultSetImpl(this);
+		
 		// TODO Auto-generated method stub
-		return null;
+		
+		return result;
 	}
 
 	@Override
