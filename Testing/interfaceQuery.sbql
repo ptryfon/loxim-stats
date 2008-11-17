@@ -12,4 +12,14 @@ OItest;
 
 deref(OItest);
 
+Otest.field1;
+OItest.field1;
+Otest.field3;
+OItest.field3;
+
+Otest.method1(1, 2);
+OItest.method1(1, 2);
+Otest.method2();
+OItest.method2();
+
 end;

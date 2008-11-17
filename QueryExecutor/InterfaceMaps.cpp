@@ -1,4 +1,5 @@
 #include "InterfaceMaps.h"
+#include "ClassGraph.h"
 #include "Errors/ErrorConsole.h"
 #include "TransactionManager/Transaction.h"
 
@@ -70,32 +71,35 @@ void InterfaceMaps::printAll() const
 		ec->printf("\n");
 	}
 	
-	ec->printf("\n BindMap: TODO\n");
+	ec->printf("\n BindMap:\n");
+	m_bindMap.print(ec);
 	
 	ec->printf("\n");
 }
 
 int InterfaceMaps::init()
 {
-	return 0; //na razie nie dziala dobrze
+	//na razie nie dziala dobrze
 	Transaction *tr;
 	int errcode = (TransactionManager::getHandle())->createTransaction(-1, tr);
 	if (errcode != 0) 
 	{
 		return errcode;
 	}
+	ec->printf("InterfaceMaps::init() getting lids..\n");
 	vector<LogicalID*>* interfacesLids;
 	errcode = tr->getInterfacesLID(interfacesLids);
 	if (errcode != 0) 
 	{
-		ec->printf("InterfaceMaps::init() error");
+		ec->printf("InterfaceMaps::init() error\n");
 		return errcode;
 	}
 	
+	ec->printf("InterfaceMaps::init() loadingSchemas..\n");
 	errcode = loadSchemas(tr, interfacesLids);
 	if (errcode != 0) 
 	{
-		ec->printf("InterfaceMaps::loadSchemas() error");
+		ec->printf("InterfaceMaps::loadSchemas() error, %d\n", errcode);
 		return errcode;
 	}
 	errcode = tr->commit();
@@ -103,7 +107,8 @@ int InterfaceMaps::init()
 	{
 		return errcode;
 	}
-	printAll();
+	//printAll();
+	ec->printf("InterfaceMaps::init(): loaded %d interfaces, returning\n", m_nameToSchema.size());
 	return 0;
 }
 
@@ -130,18 +135,19 @@ int InterfaceMaps::loadSchemas(TManager::Transaction *tr, TLidsVector *lvec)
 	for (it = lvec->begin(); it != lvec->end(); ++it)
 	{
 		LogicalID *interfaceLid = *it;
-		Schema *interfaceSchema;
+		Schema *interfaceSchema = new Schema();
 		errcode = Schema::interfaceFromLogicalID(interfaceLid, tr, interfaceSchema);
 		if (errcode) return errcode;
 		insertNewInterfaceAndPropagateHierarchy(*interfaceSchema, false, false);
 		string oN = interfaceSchema->getAssociatedObjectName();
+		ec->printf("InterfaceMaps::loadSchemas: adding bind for int=%s, obj=%s\n", interfaceSchema->getName().c_str(), oN.c_str());
 		errcode = addBind(oN, tr);
 		if (errcode)
 		{
 			clearMaps();
 			ec->printf("InterfaceMaps::loadSchemas: error in FindClassBoundToInterface\n");
 			return errcode;
-		}		
+		}
 	}
 
 	if (!checkHierarchyValidity())
@@ -170,13 +176,22 @@ void InterfaceMaps::addBind(string i, string o, string c, string inv)
 
 void InterfaceMaps::getInterfaceBindForObjName(string oName, string& iName, string& cName, string &invName) const
 {
-	ec->printf("InterfaceMaps::getInterfaceBindForObjName starts\n");
 	iName = m_bindMap.getIntForObj(oName);
 	cName = m_bindMap.getClassForInt(iName);
 	invName = m_bindMap.getInvForInt(iName);
-	ec->printf("InterfaceMaps::getInterfaceBindForObjName ends\n");
 }
-			
+
+void InterfaceMaps::getClassBindForInterface(string interfaceName, LogicalID*& classGraphLid) const
+{
+	ec->printf("InterfaceMaps::getClassBindForInterface called for %s\n", interfaceName.c_str());
+	string cName = m_bindMap.getClassForInt(interfaceName);
+	if (cName.empty()) return;
+	QExecutor::ClassGraph *cg;
+	int errcode = QExecutor::ClassGraph::getHandle(cg);
+	if (errcode) {ec->printf("InterfaceMaps::getClassBindForInterface: error - no handle\n"); return;}
+	cg->getClassLidByName(cName, classGraphLid);
+	if ((classGraphLid) && (!(cg->vertexExist(classGraphLid)))) classGraphLid = NULL;
+}
 
 bool InterfaceMaps::checkHierarchyValidity() const
 {
@@ -377,14 +392,14 @@ TFields InterfaceMaps::getFieldsIncludingDerived(string interfaceName, bool cach
 	return allFields;
 }
 
-TMethods InterfaceMaps::getMethodsIncludingDerived(string interfaceName, bool cache) const
+Schemas::TMethods InterfaceMaps::getMethodsIncludingDerived(string interfaceName, bool cache) const
 {
 	if (cache && m_cache.hasMethodsFor(interfaceName))
 	{
 		return m_cache.getMethodsFor(interfaceName);
 	}
 	
-	TMethods allMethods;
+	Schemas::TMethods allMethods;
 	TInterfaceToSchemas::const_iterator cit = m_nameToSchema.find(interfaceName);
 	if (cit == m_nameToSchema.end()) return allMethods; //should not happen
 	allMethods = (*cit).second.getMethods();
@@ -396,7 +411,7 @@ TMethods InterfaceMaps::getMethodsIncludingDerived(string interfaceName, bool ca
 		string name = *it;
 		cit = m_nameToSchema.find(name);
 		if (cit == m_nameToSchema.end()) return allMethods; //should not happen
-		TMethods curMethods = (*cit).second.getMethods();
+		Schemas::TMethods curMethods = (*cit).second.getMethods();
 		allMethods.insert(allMethods.end(), curMethods.begin(), curMethods.end());
 	}
 	//TODO - check for repetitions?
@@ -429,6 +444,19 @@ TStringSet InterfaceMaps::getAllFieldNamesAndCheckBind(string interface, bool &f
 			}
 		}
 		return namesVisible;
+}
+
+bool InterfaceMaps::interfaceHasMethod(string interfaceName, string methodName, int args) const
+{
+	Schemas::TMethods allMethods = getMethodsIncludingDerived(interfaceName);
+	Schemas::TMethods::iterator it;
+	for (it = allMethods.begin(); it != allMethods.end(); ++it)
+	{
+		Schemas::Method *m = *it;
+		if ((m->getName() == methodName) && (m->getParamsCount() == args))
+			return true;
+	}
+	return false;
 }
 
 Schema InterfaceMaps::getSchemaForInterface(string interfaceName) const 
@@ -502,4 +530,22 @@ string BindMap::getClassForInt(const string& iName) const
 	return out;
 }
 
+void BindMap::print(ErrorConsole *ec) const
+{
+	for (TDict::const_iterator bit = m_objNameToInt.begin(); bit != m_objNameToInt.end(); ++bit)
+	{
+		string objectName = (*bit).first;
+		string interface = (*bit).second;
+		TIntToImpInfo::const_iterator iit = m_intToImp.find(interface);
+		if (iit == m_intToImp.end())
+		{
+			ec->printf("BindMap::print() --> BindMap corrupted on %s entry\n", interface.c_str());
+			return;
+		}
+		ImplementationInfo it = (*iit).second;
+		string className = it.getName();
+		string invName = it.getInvName();
+		ec->printf("%s->%s, %s->(%s, %s)\n", objectName.c_str(), interface.c_str(), interface.c_str(), className.c_str(), invName.c_str());
+	}
+}
 

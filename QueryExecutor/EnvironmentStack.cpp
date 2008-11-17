@@ -76,6 +76,11 @@ int EnvironmentStack::pop(){
 		delete (*actClasses).second;
 		classesPerSection.erase(actClasses);
 	}
+	
+	SectionToInterfaceMap::iterator sectionIntIt = interfacePerSection.find(popedSectionNo);
+	if (sectionIntIt != interfacePerSection.end())
+		interfacePerSection.erase(sectionIntIt);
+	
 	es.pop_back();
 	es_priors.pop_back();
 	*ec << "[QE] Environment Stack popped";
@@ -213,7 +218,6 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 						}
 						vecvec.push_back(vecSubInvariant);
 					}
-					ec->printf("+");
 					for(unsigned int i = 0; i < vecvec.size(); ++i) {
 						vector<LogicalID*>* vecSubInvariant = vecvec.at(i);
 						for (unsigned int j = 0; j < vecSubInvariant->size(); j++ ) {
@@ -228,7 +232,6 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 						}
 						delete vecSubInvariant;
 					}
-					ec->printf("+");
 				}
 				else if (vecSize != 0) {
 					if (vecSize_virt != 0) {
@@ -298,7 +301,6 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 				delete vec_virt;
 			}
 			else {
-				ec->printf("+!");
 				section = (es.at(i - 1));
 				sectionSize = (section->size());
 				ec->printf("[QE] bindName: ES section %u got %u elements\n", i, sectionSize);
@@ -389,9 +391,39 @@ int EnvironmentStack::bindProcedureName(string name, unsigned int queries_size, 
 					}
 				}
 				if(founded <= 0) {
-					SectionToClassMap::iterator cpsI = classesPerSection.find(i);
-					if(cpsI != classesPerSection.end()) {
-						errcode = qe->getCg()->findMethod(name, queries_size, (*cpsI).second, code, params, founded, actualBindClassLid, bindClassLid);
+					
+					bool done = false;
+					SectionToInterfaceMap::iterator ipsI = interfacePerSection.find(i);
+					if (ipsI != interfacePerSection.end())
+					{   //this section contains classes visible through interface
+						pair<string, LogicalID*> entry = (*ipsI).second;
+						string interfaceName = entry.first;
+						LogicalID* classGraphLid = entry.second;
+						SetOfLids* cgLids = new SetOfLids();
+						cgLids->insert(classGraphLid);
+						
+						string methodCode;
+						vector<string> methodParams;
+						LogicalID* methodBindClassLid;
+						
+						errcode = qe->getCg()->findMethod(name, queries_size, cgLids, methodCode, methodParams, founded, actualBindClassLid, methodBindClassLid);
+						if (errcode) return errcode;
+						if (Schemas::InterfaceMaps::Instance().interfaceHasMethod(interfaceName, name, queries_size))
+						{// method visible via interface
+							done = true;
+							code = methodCode;
+							params = methodParams;
+							bindClassLid = methodBindClassLid;
+						}
+						//else - method filtered out (belongs to interfaced class, but not present in interface)
+					}
+					
+					if ((founded <= 0) && (!done))
+					{
+						SectionToClassMap::iterator cpsI = classesPerSection.find(i);
+						if(cpsI != classesPerSection.end()) {
+							errcode = qe->getCg()->findMethod(name, queries_size, (*cpsI).second, code, params, founded, actualBindClassLid, bindClassLid);
+						}
 					}
 				}
 			}
@@ -422,6 +454,13 @@ int EnvironmentStack::pushClasses(DataValue* dv, QueryExecutor *qe, bool& classF
 		return 1;
 	}
 	
+	LogicalID* boundCgLid = NULL;
+	SectionToInterfaceMap::iterator it = interfacePerSection.find(actualSectionNo);
+	if (it != interfacePerSection.end())
+	{
+		boundCgLid = (*it).second.second; 
+	}
+	
 	SetOfLids* cgClasses = NULL;
 	for(SetOfLids::iterator i = classMarks->begin(); i != classMarks->end(); ++i) {
 		LogicalID* lid;
@@ -436,8 +475,11 @@ int EnvironmentStack::pushClasses(DataValue* dv, QueryExecutor *qe, bool& classF
 			if(cgClasses == NULL) {
 				cgClasses = new SetOfLids();
 			}
-			classFound = true;
-			cgClasses->insert(lid);
+			if ((!boundCgLid) || (boundCgLid && (lid != boundCgLid)))
+			{
+				classFound = true;
+				cgClasses->insert(lid);
+			}
 		}
 	}
 	if(cgClasses != NULL) {
@@ -446,10 +488,25 @@ int EnvironmentStack::pushClasses(DataValue* dv, QueryExecutor *qe, bool& classF
 	return 0;
 }
 
+int EnvironmentStack::pushInterface(string interfaceName, LogicalID* boundClassLid)
+{
+	pair<string, LogicalID*> entry(interfaceName, boundClassLid);
+	unsigned int actualSectionNo = size();
+	if(actualSectionNo == 0) 
+	{
+		//TODO: error env stack corrupt
+		return 1;
+	}
+	interfacePerSection[actualSectionNo] = entry;
+	return 0;
+}
+
 void EnvironmentStack::deleteAll() {
 	for(SectionToClassMap::iterator i = classesPerSection.begin(); i != classesPerSection.end(); ++i) {
 		delete (*i).second;
-	}  
+	}  	
+	interfacePerSection.clear();
+	
 	for (unsigned int i = 0; i < (es.size()); i++) {
 		delete es.at(i);
 	};
@@ -471,12 +528,30 @@ int QueryResult::nested_and_push_on_envs(QueryExecutor * qe, Transaction *&tr) {
 	if (errcode != 0) return errcode;
 	errcode = qe->getEnvs()->push(((QueryBagResult *) r), tr, qe);
 	if(errcode != 0) return errcode;
+	
+	if (type() == QREFERENCE)
+	{
+		QueryReferenceResult *qrr = dynamic_cast<QueryReferenceResult *>(this);
+		InterfaceKey k = qrr->getInterfaceKey();
+		if (!k.isEmpty())
+		{
+			string interfaceName = k.getKey();
+			LogicalID* classGraphLid = NULL;
+			Schemas::InterfaceMaps::Instance().getClassBindForInterface(interfaceName, classGraphLid);
+			if (classGraphLid)
+			{
+				qe->getEnvs()->pushInterface(interfaceName, classGraphLid);
+			}				
+		}	
+	}
+	
 	bool classFound;
 	for (unsigned int i = 0; i < dataVal_vec.size(); i++) {
 		classFound = false;
 		errcode = qe->getEnvs()->pushClasses(dataVal_vec.at(i), qe, classFound);
 		if(errcode != 0) return errcode;
 	}
+	
 	return 0;
 }
 
@@ -619,7 +694,7 @@ int QueryReferenceResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResu
 				*ec << "[QE] nested(): QueryReferenceResult pointing vector value";
 				int vec_size = tmp_vec->size();
 			
-				bool filterOut;
+				bool filterOut;				
 				string k = getInterfaceKey().getKey();
 				TStringSet namesVisible = Schemas::InterfaceMaps::Instance().getAllFieldNamesAndCheckBind(k, filterOut);
 				if (filterOut)

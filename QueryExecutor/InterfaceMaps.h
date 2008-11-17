@@ -57,7 +57,7 @@ namespace Schemas
 	typedef map<string, TMethods> TNameToMethods;
 
 	class InterfaceMembersCache
-	{   //TODO - const pointers? 
+	{   //TODO - const pointers?, cache methods by name and args
 		public:
 			InterfaceMembersCache() {}
 			void addResult(string interfaceName, TFields fields) {m_interfaceFields[interfaceName] = fields;}
@@ -115,6 +115,8 @@ namespace Schemas
 			string getIntForObj(const string& oName) const;
 			string getInvForInt(const string& intName) const;
 			string getClassForInt(const string& intName) const;
+
+			void print(ErrorConsole *ec) const;
 	};
 
 	class InterfaceMaps
@@ -137,6 +139,7 @@ namespace Schemas
 			bool isInterfaceBound(string n) const {return m_bindMap.hasBind(n);}
 			bool isObjectNameBound(string o) const {return m_bindMap.hasObjectBind(o);}
 			void getInterfaceBindForObjName(string oName, string& iName, string& cName, string &invName) const;
+			void getClassBindForInterface(string interfaceName, LogicalID*& classGraphLid) const;
 			BindMap getBindMap() const {return m_bindMap;}  
 			
 			string getObjectNameForInterface(string i) {return m_nameToSchema[i].getAssociatedObjectName();}
@@ -146,6 +149,7 @@ namespace Schemas
 			TFields getFieldsIncludingDerived(string interfaceName, bool cache = true) const;
 			TMethods getMethodsIncludingDerived(string interfaceName, bool cache = true) const;
 			Schema getSchemaForInterface(string interfaceName) const;
+			bool interfaceHasMethod(string interfaceName, string methodName, int args) const;
 
 			void printAll() const;
 

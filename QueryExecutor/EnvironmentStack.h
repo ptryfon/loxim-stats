@@ -25,6 +25,7 @@ using namespace std;
 namespace QExecutor
 {
 	typedef hash_map<unsigned int, SetOfLids*> SectionToClassMap;
+	typedef map<unsigned int, std::pair<string, LogicalID*> > SectionToInterfaceMap;
 	
 	class EnvironmentStack
 	{
@@ -32,6 +33,8 @@ namespace QExecutor
 		//lidy zawarte w tej kolekcji naleza do grafu klas
 		//i nie nalezy ich niszczyc w tej klasie
 		SectionToClassMap classesPerSection;
+
+		SectionToInterfaceMap interfacePerSection;
 		ErrorConsole *ec;
 		vector<QueryBagResult*> es;
 		unsigned int sectionDBnumber;
@@ -40,6 +43,7 @@ namespace QExecutor
 		virtual ~EnvironmentStack();
 		int push(QueryBagResult *r, Transaction *&tr, QueryExecutor *qe);
 		int pushClasses(DataValue* dv, QueryExecutor *qe, bool& classFound);
+		int pushInterface(string interfaceName, LogicalID* boundClassLid);
 		int pop();
 		int pushDBsection();
 		int popDBsection();

@@ -149,11 +149,6 @@ namespace QExecutor
 
 		virtual bool classExist(const string& className) {return nameIndex.find(className) != nameIndex.end();};
 
-		virtual int getClassLidByName(const string& className, LogicalID*& classLid) {
-			classLid = nameIndex[className];
-			return 0;
-		}
-
 		virtual void removeFromNameIndex(string& className);
 
 		virtual int classBelongsToExtSubGraph(const MapOfClassVertices::iterator& classI, const MapOfClassVertices::iterator& subGraphI, bool& belongs);
@@ -203,6 +198,11 @@ namespace QExecutor
 
 		virtual int getVertex(LogicalID* lid, ClassGraphVertex*& cgv) {
 			cgv = classGraph[lid];
+			return 0;
+		}
+
+		virtual int getClassLidByName(const string& className, LogicalID*& classLid) {
+			classLid = nameIndex[className];
 			return 0;
 		}
 

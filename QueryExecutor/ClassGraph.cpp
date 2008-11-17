@@ -53,6 +53,7 @@ int ClassGraph::init(int sessionId) {
 		return errcode;
 	}
 	ClassGraph::handle = tmp;
+	//*ec << handle->toString();
 	return 0;
 }
 
@@ -546,6 +547,7 @@ int ClassGraph::completeSubgraph(LogicalID* lid, Transaction *&tr, QueryExecutor
 	ClassGraphVertex* cgv = new ClassGraphVertex();
 	cgv->initNotGraphProperties(optr, tr, qe);
 	classGraph[newLid] = cgv;
+	nameIndex[cgv->name] = newLid;
 	putToInvariants(cgv->invariant, newLid);
 	SetOfLids* tmp = dv->getClassMarks();
 	for(SetOfLids::iterator i = tmp->begin(); i != tmp->end(); ++i) {

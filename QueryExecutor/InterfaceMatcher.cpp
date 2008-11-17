@@ -257,6 +257,7 @@ void Schema::interfaceFromInterfaceNode(const QParser::InterfaceNode *node, Sche
 
 int Schema::interfaceFromLogicalID(LogicalID *lid, TManager::Transaction *tr, Schema *&s)
 {
+	if (!s) s = new Schema();
 	ObjectPointer *optr;
 	int errcode = tr->getObjectPointer(lid, Store::Read, optr, false);
 	if (errcode != 0)
@@ -615,27 +616,39 @@ int Matcher::FindClassBoundToInterface(const string& interfaceObjectName, TManag
     int errcode = tr->getInterfaceBindForObjectName(interfaceObjectName, interfaceName, className);
     if (interfaceName.empty())
     {   //TODO - nie ma takiego interfejsu (interfaceObjectName nie jest nazwa obiektu zadnego interfejsu)
+		cout << "InterfaceNameEmpty!";
 		return -1;
 	}
 	else if (errcode)
 	{
+		cout << "Errcode!";
 		return errcode;
     }
     else
     {
 		if (className.empty())
 		{	//TODO - jest to nazwa obiektow spelniajacych interfejs, ale interfejs jest nie zwiazany z implementacja
+			cout << "ClassName empty";
 			return -1;
 		}
 		else 
 		{
 			QExecutor::ClassGraph *cg;
-			QExecutor::ClassGraph::getHandle(cg);
+			errcode = QExecutor::ClassGraph::getHandle(cg);
+			if (errcode)
+			{
+				cout << "ClassGraph getHandle error";
+				return errcode;
+			}
 			QExecutor::ClassGraphVertex *cgv;
 			bool fExists;
+			cout << cg->toString();
 			cg->getClassVertexByName(className, cgv, fExists);
 			if (!fExists)
+			{
+				cout << "ClassVertex for " << className << "doesn't exist";
 				return -1;  //TODO - interfejs zwiazany z nieistniejaca klasa
+			}
 			invariantName = cgv->invariant;
 		}
 	}
