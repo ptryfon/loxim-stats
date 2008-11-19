@@ -119,104 +119,6 @@ Schema::Schema(bool isInterfaceSchema) : m_isInterfaceSchema(isInterfaceSchema) 
 
 Schema::~Schema() {}
 
-/*
-int Schema::getString(QExecutor::QueryExecutor *qe, QueryResult *r, string &out)
-{
-    QueryResult *tmpR;
-    qe->derefQuery(r, tmpR);
-    if (tmpR->type()!=QueryResult::QSTRING) { return -1; }
-    QueryStringResult *nameString = (QueryStringResult *)tmpR;    
-    out = nameString->getValue();
-    return 0;
-}
-
-//Get rid of this
-Schema *Schema::fromQBResult(QueryBagResult *resultBag, QueryExecutor *qe)
-{
-    //cout << "Schema: fromQBResult() \n";
-    bool isInterface = false;
-    Schema *s = new Schema();
-    QueryResult *tmp;
-    string generalNameString;
-    qe->derefQuery(resultBag, tmp);
-    QueryBagResult *derefedBag = (QueryBagResult *)tmp;
-    
-	//TODO - name
-    vector<QueryResult *> structVec = derefedBag->getVector();
-    vector<QueryResult *>::iterator it;
-    for (it = structVec.begin(); it != structVec.end(); ++it)
-    {
-		QueryResult *qr = *it;
-		QueryBinderResult *qbR = (QueryBinderResult *)qr;
-		string name = qbR->getName();
-		if (!name.compare(QE_OBJECT_NAME_BIND_NAME))
-		{
-			isInterface = true;
-			if (Schema::getString(qe, qbR->getItem(), generalNameString) != 0) return s;
-			s->setAssociatedObjectName(generalNameString);
-		}
-		else if (!name.compare(QE_INVARIANT_BIND_NAME))
-		{
-			if (Schema::getString(qe, qbR->getItem(), generalNameString) != 0) return s;
-			s->setAssociatedObjectName(generalNameString);
-		}
-		else if (!name.compare(QE_FIELD_BIND_NAME))
-		{
-			if (Schema::getString(qe, qbR->getItem(), generalNameString) != 0) return s;
-			Field *f = new Field(generalNameString);
-			s->addField(f);		
-			//cout << "Field: " << generalNameString << endl; 	
-		}
-		else if (!name.compare(QE_EXTEND_BIND_NAME))
-		{
-			if (Schema::getString(qe, qbR->getItem(), generalNameString) != 0) return s;
-			s->addSuper(generalNameString);		
-			//cout << "Super: " << generalNameString << endl; 	
-		}
-		else if (!name.compare(QE_METHOD_BIND_NAME))
-		{
-			QueryResult *methodResult = qbR->getItem();
-			
-			//Get method name
-			QueryReferenceResult *ref = (QueryReferenceResult *)qbR->getItem();
-			LogicalID *methodLid = ref->getValue();
-			ObjectPointer *optr;
-			if ((qe->tr->getObjectPointer(methodLid, Store::Read, optr, false) != 0) || (!optr)) { return s;}
-			string name = optr->getName();
-			Schemas::Method *m = new Schemas::Method();
-			m->setName(name);
-			
-			//Dereference to see parameters
-			QueryResult *tmpR;
-			qe->derefQuery(methodResult, tmpR);
-			if ((!tmpR) || (tmpR->type()!=QueryResult::QSTRUCT)) { return s;}
-			QueryStructResult *fieldStruct = (QueryStructResult *)tmpR;
-			
-			//Process parameters
-			vector<QueryResult *> methodInnerBinders = fieldStruct->getVector();
-			vector<QueryResult *>::iterator mIt;
-			for (mIt = methodInnerBinders.begin(); mIt != methodInnerBinders.end(); ++mIt)
-			{
-				QueryResult *mQr = *mIt;
-				QueryBinderResult *mQbr = (QueryBinderResult *)mQr;
-				string mBinderName = mQbr->getName();
-				QueryStringResult *nameString = (QueryStringResult *)mQbr->getItem();    
-				if (!mBinderName.compare(QE_METHOD_PARAM_BIND_NAME))
-				{   //parameter Name
-					Field *f = new Field(nameString->getValue());
-					m->addParam(f);    
-					//cout << "Method param name: " << nameString->getValue() << "\n";
-				}
-			}
-			s->addMethod(m);
-			//cout << "Method: " << m->getName() << "\n";
-		}
-    }
-    s->setIsInterface(isInterface);
-    return s;
-}
-*/
-
 void Schema::interfaceFromInterfaceNode(const QParser::InterfaceNode *node, Schema *&s)
 {
 	s->setName(node->getInterfaceName());
@@ -388,28 +290,6 @@ int Schema::fromNameIncludingDerivedMembers(string name, Schema *&out, bool inte
     //cout << "fromNameIncludingDerivedMembers returning" << endl;
     return 0;
 }
-
-/*
-int Schema::fromName(const string& name, QueryExecutor *qe, Schema *&out)
-{
-	NameNode nameN(name);
-	int errorcode = qe->executeRecQuery(&nameN);
-	if (errorcode != 0)
-	{	//TODO
-	    return errorcode;
-	}
-	QueryResult *res;
-	errorcode = qe->qres->pop(res);
-	if ((errorcode != 0) || (res->type() != QueryResult::QBAG)) 
-	{   //TODO
-	    return errorcode;
-	}
-	
-	QueryBagResult *qBag = dynamic_cast<QueryBagResult *>(res);
-	out = fromQBResult(qBag, qe);
-	return 0;
-}
-*/
 
 int Schema::fromClassVertex(QExecutor::ClassGraphVertex *cgv, Schema *&out)
 {

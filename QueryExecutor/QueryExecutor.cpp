@@ -1398,20 +1398,19 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				cg->getClassVertexByName(implementationName, cgv, fExists);
 				string invariantName = cgv->invariant;
 				string objectName = InterfaceMaps::Instance().getObjectNameForInterface(interfaceName);
-				InterfaceMaps::Instance().addBind(interfaceName, objectName, implementationName, invariantName);			
 				errcode = tr->bindInterface(interfaceName, implementationName);
 				if (errcode) 
 				{
 					ec->printf("[QE] INTERFACESBIND - error in bindInterface\n");
-					InterfaceMaps::Instance().removeBind(objectName);
 					return -1; //TODO - errcode
-				}			
+				}
+				InterfaceMaps::Instance().addBind(interfaceName, objectName, implementationName, invariantName);			
 			}		    
 		    /******************
 		    Cleanup and return
 		    *******************/
 
-		    QueryResult *result = new QueryIntResult(0);
+		    QueryResult *result = new QueryNothingResult();
 		    errcode = qres->push(result);
 		    if (errcode != 0) return errcode;
 		    *ec << "[QE] TNINTERFACEBIND done";
@@ -2260,15 +2259,53 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 					}
 				}
 				else {
-					ObjectPointer *optr;
-					errcode = this->objectFromBinder(binder, optr);
-					if (errcode != 0) return errcode;
-
-					string object_name = optr->getName();
+					
 					if (!system_privilige_checking &&
-						assert_privilige(Privilige::CREATE_PRIV, object_name) == false) {
+						assert_privilige(Privilige::CREATE_PRIV, newobject_name) == false) {
 						continue;
 					}
+					
+					QueryBinderResult* binderR = (QueryBinderResult*)binder;
+
+
+					ec->printf("[QE] TNCREATE - checking bind for %s\n", newobject_name.c_str());
+					bool interfaced = false;
+					string iName;
+					SetOfLids classMarks;
+					InterfaceKey k;
+					if (InterfaceMaps::Instance().isObjectNameBound(newobject_name))
+					{   //Creating an interface object
+						string cName, invName;
+						InterfaceMaps::Instance().getInterfaceBindForObjName(newobject_name, iName, cName, invName);
+						if (cName.empty() || invName.empty()) return -1; //TODO should not happen		
+						LogicalID* classGraphLid = NULL;
+						cg->getClassLidByName(cName, classGraphLid);
+						if (classGraphLid)
+						{
+							binderR->setName(invName);
+							SetOfLids classMarks;
+							classMarks.insert(classGraphLid);
+							interfaced = true;
+						}
+					}
+										
+					ObjectPointer *optr;
+					errcode = this->objectFromBinder(binderR, optr);
+					if (errcode != 0) return errcode;
+					
+					if (interfaced)
+					{
+						//TODO - what about "missing" fields? (in class but not visible via interface?)
+						DataValue* newDV = optr->getValue()->clone();
+						newDV->addClassMarks(&classMarks);
+						errcode = tr->modifyObject(optr, newDV);
+						if(errcode != 0) return trErrorOccur("[QE] Can't modify object and set classMarks", errcode);
+						
+						//key to indicate "Special" reference, telling us that perhaps not all fields and methods are visible
+						k.setKey(iName);
+					}
+					
+					ec->printf("[QE] TNCREATE - adding root for %s\n", optr->getName().c_str());
 
 					errcode = tr->addRoot(optr);
 					if (errcode != 0) {
@@ -2278,7 +2315,8 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 						return errcode;
 					}
 
-					QueryReferenceResult *lidres = new QueryReferenceResult(optr->getLogicalID());
+					QueryReferenceResult *lidres = new QueryReferenceResult(optr->getLogicalID(), k);
+					
 					((QueryBagResult *) result)->addResult (lidres);
 				}
 				//delete binder;

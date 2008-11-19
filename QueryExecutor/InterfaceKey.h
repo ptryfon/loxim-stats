@@ -11,6 +11,7 @@ class InterfaceKey
 		TInterfaceKey m_key;
 	public:
 		InterfaceKey() {setEmpty();}
+		InterfaceKey(TInterfaceKey k) {setKey(k);};
 		bool isEmpty() const {return m_key.empty();}
 		void setEmpty() {m_key.clear();}
 		TInterfaceKey getKey() const {return m_key;}

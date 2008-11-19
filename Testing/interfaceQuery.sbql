@@ -22,4 +22,9 @@ OItest.method1(1, 2);
 Otest.method2();
 OItest.method2();
 
+create ("one" as field1, "two" as field2, "four" as field4) as OItest;
+
+deref(OItest);
+deref(Otest);
+
 end;
