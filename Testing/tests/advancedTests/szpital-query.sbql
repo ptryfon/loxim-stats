@@ -1,0 +1,41 @@
+begin
+/
+
+--¶redni wiek pacjenta
+avg(deref(Pacjent.wiek));
+/
+
+-- max pensja lekarza
+max(deref(Lekarz.pensja));
+/
+
+-- nazwiska lekarzy ktorzyz arabiaja ponad 1000
+deref(Lekarz where pensja > 1000 ) as l. deref(l.nazwisko);
+/
+
+-- srednia pensja lekarzy o stazu ponad 5 lat
+avg((deref(Lekarz where staz_pracy > 5)).pensja);
+/
+
+-- imiona i nazwiska pacjentow
+deref(Pacjent.(imie, nazwisko));
+/
+
+--nazwa choroby i czym sie leczy
+deref(Choroba.(nazwa, lek));
+/
+
+-- ilu roznych pacjentow leczylo sie w szpitalu
+count(distinct(deref(Leczenie.dane).pac));
+/
+
+-- ile razy pacjent od ID = 1 leczy sie
+count( Leczenie where (deref(deref(dane).pac).id) = 1);
+/
+
+-- ile w sumie pacjent o ID = 1 zaplacil za leczenie
+count((Leczenie where (deref(deref(dane).pac).id) =1) where rodzaj="platne")*30+count((Leczenie where (deref(deref(dane).pac).id) =1) where rodzaj="polplatbne)*10;
+/
+
+end;
+/
