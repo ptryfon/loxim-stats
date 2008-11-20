@@ -1,8 +1,8 @@
 #include <string.h>
 #include <stdint.h>
-#include "ASCErrorPackage.h"
-#include "../ptools/PackageBufferWriter.h"
-#include "../ptools/PackageBufferReader.h"
+#include <protocol/packages/ASCErrorPackage.h>
+#include <protocol/ptools/PackageBufferWriter.h>
+#include <protocol/ptools/PackageBufferReader.h>
 
 #include <stdlib.h>
 

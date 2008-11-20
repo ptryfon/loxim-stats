@@ -1,5 +1,5 @@
 #include <unistd.h>
-#include "DescriptorOutputStream.h"
+#include <protocol/streams/DescriptorOutputStream.h>
 
 using namespace protocol;
 

@@ -1,5 +1,5 @@
-#include "QueryOptimizer.h"
-#include "QueryParser/TreeNode.h"
+#include <Indexes/QueryOptimizer.h>
+#include <QueryParser/TreeNode.h>
 #include <assert.h>
 
 namespace Indexes {

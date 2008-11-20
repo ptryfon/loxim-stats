@@ -1,8 +1,8 @@
 #include <string.h>
-#include "WSHelloPackage.h"
-#include "../ptools/PackageBufferWriter.h"
-#include "../ptools/PackageBufferReader.h"
-#include "../constants.h"
+#include <protocol/packages/WSHelloPackage.h>
+#include <protocol/ptools/PackageBufferWriter.h>
+#include <protocol/ptools/PackageBufferReader.h>
+#include <protocol/constants.h>
 
 #include <stdlib.h>
 

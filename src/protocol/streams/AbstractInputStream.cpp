@@ -1,4 +1,4 @@
-#include "AbstractInputStream.h"
+#include <protocol/streams/AbstractInputStream.h>
 #include <sys/time.h>
 
 using namespace protocol;

@@ -2,9 +2,9 @@
  * $Id: Buffer.cpp,v 1.39 2008-07-24 21:55:27 dk209472 Exp $
  *
  */
-#include "Buffer.h"
-#include "Log/Logs.h"
-#include "SystemStats/AllStats.h"
+#include <Store/Buffer.h>
+#include <Log/Logs.h>
+#include <SystemStats/AllStats.h>
 
 using namespace std;
 using namespace SystemStatsLib;

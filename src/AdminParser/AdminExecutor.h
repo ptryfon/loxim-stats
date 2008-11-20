@@ -2,10 +2,10 @@
 #define ADMIN_PARSER_H
 
 #include <string>
-#include "AdminLexer.h"
-#include "admin.tab.hpp"
-#include "../LoximServer/LoximSession.h"
-#include "AdminExecutableTreeNode.h"
+#include <AdminParser/AdminLexer.h>
+#include <AdminParser/parser.h>
+#include <LoximServer/LoximSession.h>
+#include <AdminParser/AdminExecutableTreeNode.h>
 #include <pthread.h>
 
 namespace AdminParser{

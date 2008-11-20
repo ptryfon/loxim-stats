@@ -1,9 +1,9 @@
 #include <string.h>
-#include "VSCSendValuePackage.h"
-#include "../ptools/PackageBufferWriter.h"
-#include "../ptools/PackageBufferReader.h"
+#include <protocol/packages/VSCSendValuePackage.h>
+#include <protocol/ptools/PackageBufferWriter.h>
+#include <protocol/ptools/PackageBufferReader.h>
 
-#include "data/DataFactory.h"
+#include <protocol/packages/data/DataFactory.h>
 
 #include <stdlib.h>
 

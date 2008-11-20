@@ -1,7 +1,7 @@
 #ifndef OPTIMIZEDFIELD_H_
 #define OPTIMIZEDFIELD_H_
 
-#include "QueryParser/TreeNode.h"
+#include <QueryParser/TreeNode.h>
 
 namespace Indexes {
 

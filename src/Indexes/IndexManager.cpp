@@ -1,7 +1,7 @@
-#include "IndexManager.h"
-#include "QueryOptimizer.h"
-#include "VisibilityResolver.h"
-#include "NonloggedDataSerializer.h"
+#include <Indexes/IndexManager.h>
+#include <Indexes/QueryOptimizer.h>
+#include <Indexes/VisibilityResolver.h>
+#include <Indexes/NonloggedDataSerializer.h>
 //#include <stdio.h>
 
 #define indexMetadataParamName	"index_metadata"

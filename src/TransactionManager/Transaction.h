@@ -16,16 +16,15 @@ namespace TManager
 #include <vector>
 #include <map>
 
-#include "../QueryExecutor/InterfaceKey.h"
-#include "../Store/Store.h"
-#include "../Lock/Lock.h"
-#include "../Log/Logs.h"
-#include "../Errors/ErrorConsole.h"
-#include "../Config/SBQLConfig.h"
-#include "SemHeaders.h"
-#include "../QueryParser/ClassNames.h"
-#include "../TypeCheck/ClassNames.h"
-#include "../TypeCheck/DMLControl.h"
+#include <Store/Store.h>
+#include <Lock/Lock.h>
+#include <Log/Logs.h>
+#include <Errors/ErrorConsole.h>
+#include <Config/SBQLConfig.h>
+#include <TransactionManager/SemHeaders.h>
+#include <QueryParser/ClassNames.h>
+#include <TypeCheck/ClassNames.h>
+#include <TypeCheck/DMLControl.h>
 
 
 using namespace Store;
@@ -91,7 +90,7 @@ namespace TManager
 				void reloadDmlStct();
 	     	 	/* Executor calls: */
 		    	int getObjectPointer(LogicalID* lid, AccessMode mode, ObjectPointer* &p, bool allowNullObject);
-				int modifyObject(ObjectPointer* &op, DataValue* dv);
+			int modifyObject(ObjectPointer* &op, DataValue* dv);
 		    	int createObject(string name, DataValue* value, ObjectPointer* &p);
 		    	int deleteObject(ObjectPointer* object);
 
@@ -114,16 +113,16 @@ namespace TManager
 		    	int addClass(const char* name, const char* invariantName, ObjectPointer* &p);
 		    	int removeClass(ObjectPointer* &p);
 
-				int getInterfacesLID(vector<LogicalID*>* &p);
+			int getInterfacesLID(vector<LogicalID*>* &p);
 		    	int getInterfacesLID(string name, vector<LogicalID*>* &p);
+
+			int getSystemViewsLID(vector<LogicalID*>* &p);
+		    	int getSystemViewsLID(string name, vector<LogicalID*>* &p);
+
 		    	int addInterface(const string& name, const string& objectName, ObjectPointer* &p);
 		    	int bindInterface(const string& name, const string& bindName);
 		    	int getInterfaceBindForObjectName(const string& objectName, string& interfaceName, string& bindName); 
 		    	int removeInterface(ObjectPointer* &p);
-		    	
-				int getSystemViewsLID(vector<LogicalID*>* &p);
-		    	int getSystemViewsLID(string name, vector<LogicalID*>* &p);
-
 
 		    	TransactionID* getId();
 

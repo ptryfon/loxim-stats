@@ -1,7 +1,7 @@
 #ifndef BOBDATA_H_
 #define BOBDATA_H_
 
-#include "DataPart.h"
+#include <protocol/packages/data/DataPart.h>
 
 #define DATAPART_TYPE_BOB	0x000F
 

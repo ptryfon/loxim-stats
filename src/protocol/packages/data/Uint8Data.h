@@ -1,7 +1,7 @@
 #ifndef UINT8DATA_H_
 #define UINT8DATA_H_
 
-#include "DataPart.h"
+#include <protocol/packages/data/DataPart.h>
 
 #define DATAPART_TYPE_UINT8	0x0001
 namespace protocol{

@@ -1,8 +1,8 @@
 #ifndef __ROOTENTRY_H__
 #define __ROOTENTRY_H__
 
-#include "Store/Store.h"
-#include "const.h"
+#include <Store/Store.h>
+#include <Indexes/const.h>
 
 namespace Indexes {
 

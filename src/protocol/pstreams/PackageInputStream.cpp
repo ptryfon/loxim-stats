@@ -1,6 +1,6 @@
-#include "PackageInputStream.h"
-#include "../ptools/PackageHeader.h"
-#include "../packages/PackagesFactory.h"
+#include <protocol/pstreams/PackageInputStream.h>
+#include <protocol/ptools/PackageHeader.h>
+#include <protocol/packages/PackagesFactory.h>
 
 #include <stdlib.h>
 #include <stdio.h>

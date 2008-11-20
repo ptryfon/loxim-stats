@@ -6,11 +6,11 @@ namespace Store
 	class Buffer;
 };
 
-#include "DBStoreManager.h"
-#include "File.h"
-#include "PagePointer.h"
-#include "Struct.h"
-#include "Errors/ErrorConsole.h"
+#include <Store/DBStoreManager.h>
+#include <Store/File.h>
+#include <Store/PagePointer.h>
+#include <Store/Struct.h>
+#include <Errors/ErrorConsole.h>
 
 #include <pthread.h>
 

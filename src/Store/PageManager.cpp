@@ -1,4 +1,4 @@
-#include "PageManager.h"
+#include <Store/PageManager.h>
 /*
   Obiekty na stronie sa posortowane przeciwnie wg offsetu.
   PAGE = <HEADER><EX><OFFSETTABLE><FREESPACE><OBJECTS>
@@ -7,10 +7,10 @@
   do najstarszego tzn offsety 0 1 2 odpowiadaja obiektom <2.1.0.KONIECSTRONY>
 */
 #include <iostream>
-#include "DBLogicalID.h"
-#include "DBObjectPointer.h"
-#include "DBDataValue.h"
-#include "Errors/ErrorConsole.h"
+#include <Store/DBLogicalID.h>
+#include <Store/DBObjectPointer.h>
+#include <Store/DBDataValue.h>
+#include <Errors/ErrorConsole.h>
 
 #define MAX_FREE_SPACE   (STORE_PAGESIZE-sizeof(page_data))
 #define MAX_OBJECT_SIZE  (STORE_PAGESIZE-sizeof(page_data)-sizeof(int))

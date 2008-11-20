@@ -2,7 +2,7 @@
 #define _QUERY_PARSER_H_
 
 #include <string>
-#include "ClassNames.h"
+#include <QueryParser/ClassNames.h>
 
 using namespace std;
 

@@ -1,6 +1,6 @@
-#include "InterfaceQuery.h"
-#include "QueryParser/TreeNode.h"
-#include "Errors/ErrorConsole.h"
+#include <QueryExecutor/InterfaceQuery.h>
+#include <QueryParser/TreeNode.h>
+#include <Errors/ErrorConsole.h>
 
 using namespace Schemas;
 using namespace QParser;

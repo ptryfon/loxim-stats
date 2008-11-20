@@ -6,9 +6,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include "LogRecord.h"
+#include <Log/LogRecord.h>
 
-#include "../Config/SBQLConfig.h"
+#include <Config/SBQLConfig.h>
 
 using namespace std;
 using namespace Config;

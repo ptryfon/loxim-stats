@@ -1,7 +1,7 @@
 #ifndef __STORE_MISC_H_
 #define __STORE_MISC_H_
 
-#include "Store.h"
+#include <Store/Store.h>
 #include <iostream>
 using namespace std;
 

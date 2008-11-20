@@ -2,8 +2,8 @@
 #define PACKAGEBUFFER_H_
 
 #include <stdint.h>
-#include "StringBufferStack.h"
-#include "CharArray.h"
+#include <protocol/ptools/StringBufferStack.h>
+#include <protocol/ptools/CharArray.h>
 
 namespace protocol{
 

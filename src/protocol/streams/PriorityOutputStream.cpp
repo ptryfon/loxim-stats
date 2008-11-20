@@ -1,4 +1,4 @@
-#include "PriorityOutputStream.h"
+#include <protocol/streams/PriorityOutputStream.h>
 
 #include <sys/types.h>
 #include <sys/ipc.h>

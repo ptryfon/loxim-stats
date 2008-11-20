@@ -1,8 +1,8 @@
 #ifndef LEAFTRAVELLER_H_
 #define LEAFTRAVELLER_H_
 
-#include "Comparator.h"
-#include "EntrySieve.h"
+#include <Indexes/Comparator.h>
+#include <Indexes/EntrySieve.h>
 
 namespace Indexes {
 

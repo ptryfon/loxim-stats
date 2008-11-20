@@ -1,13 +1,13 @@
-#include "Rule.h"
+#include <TypeCheck/Rule.h>
 
-#include "Errors/ErrorConsole.h"
-#include "Errors/Errors.h"
-#include "QueryExecutor/QueryResult.h"
-#include "QueryParser/Stack.h"
-#include "QueryParser/Deb.h"
-#include "TransactionManager/Transaction.h"
-#include "TransactionManager/Mutex.h"
-#include "TypeChecker.h"
+#include <Errors/ErrorConsole.h>
+#include <Errors/Errors.h>
+#include <QueryExecutor/QueryResult.h>
+#include <QueryParser/Stack.h>
+#include <QueryParser/Deb.h>
+#include <TransactionManager/Transaction.h>
+#include <TransactionManager/Mutex.h>
+#include <TypeCheck/TypeChecker.h>
 #include <string>
 #include <fstream>
 #include <iostream>

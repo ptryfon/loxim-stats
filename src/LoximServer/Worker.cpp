@@ -6,7 +6,7 @@
 #include <protocol/packages/QCExecutePackage.h>
 #include <protocol/packages/ASCPongPackage.h>
 
-#include <Worker.h>
+#include <LoximServer/Worker.h>
 
 namespace LoximServer{
 

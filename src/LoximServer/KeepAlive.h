@@ -2,7 +2,7 @@
 #define KEEPALIVE_H
 
 #include <pthread.h>
-#include "LoximSession.h"
+#include <LoximServer/LoximSession.h>
 #include <Errors/ErrorConsole.h>
 
 

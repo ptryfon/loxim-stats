@@ -1,8 +1,8 @@
 #ifndef ENTRYSIEVE_H_
 #define ENTRYSIEVE_H_
 
-#include "TransactionManager/Transaction.h"
-#include "QueryExecutor/QueryResult.h"
+#include <TransactionManager/Transaction.h>
+#include <QueryExecutor/QueryResult.h>
 #include <vector>
 
 using namespace std;

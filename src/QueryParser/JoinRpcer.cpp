@@ -1,4 +1,4 @@
-#include "JoinRpcer.h"
+#include <QueryParser/JoinRpcer.h>
 
 namespace QParser{
 

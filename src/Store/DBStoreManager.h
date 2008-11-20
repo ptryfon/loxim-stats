@@ -6,17 +6,17 @@ namespace Store
 	class DBStoreManager;
 }
 
-#include "Store.h"
-#include "Buffer.h"
-#include "Map.h"
-#include "NamedRoots.h"
-#include "Views.h"
-#include "DBObjectPointer.h"
-#include "PageManager.h"
-#include "Misc.h"
-#include "Errors/ErrorConsole.h"
-#include "NamedItems.h"
-#include "SystemViews.h"
+#include <Store/Store.h>
+#include <Store/Buffer.h>
+#include <Store/Map.h>
+#include <Store/NamedRoots.h>
+#include <Store/Views.h>
+#include <Store/DBObjectPointer.h>
+#include <Store/PageManager.h>
+#include <Store/Misc.h>
+#include <Errors/ErrorConsole.h>
+#include <Store/NamedItems.h>
+#include <Store/SystemViews.h>
 
 using namespace std;
 using namespace Config;

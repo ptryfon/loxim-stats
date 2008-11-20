@@ -1,8 +1,8 @@
 #ifndef SHUTDOWN_TREE_NODE_H
 #define SHUTDOWN_TREE_NODE_H
 
-#include "AdminExecutableTreeNode.h"
-#include "../LoximServer/LoximSession.h"
+#include <AdminParser/AdminExecutableTreeNode.h>
+#include <LoximServer/LoximSession.h>
 
 namespace AdminParser{
     class ShutdownTreeNode : public AdminExecutableTreeNode {

@@ -1,7 +1,7 @@
 #include <iostream>
-#include "DBObjectPointer.h"
-#include "DBLogicalID.h"
-#include "DBDataValue.h"
+#include <Store/DBObjectPointer.h>
+#include <Store/DBLogicalID.h>
+#include <Store/DBDataValue.h>
 #include <map>
 
 //#define DBOP_DEBUG

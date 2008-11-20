@@ -1,7 +1,7 @@
 #ifndef SINT16DATA_H_
 #define SINT16DATA_H_
 
-#include "DataPart.h"
+#include <protocol/packages/data/DataPart.h>
 
 #define DATAPART_TYPE_SINT16	0x0004
 namespace protocol{

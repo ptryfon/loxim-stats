@@ -1,4 +1,4 @@
-#include "ConfigStats.h"
+#include <SystemStats/ConfigStats.h>
 
 using namespace SystemStatsLib;
 /* =-=-=-=-=-=-=-=-=-=- */

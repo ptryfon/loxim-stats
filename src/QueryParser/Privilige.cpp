@@ -1,5 +1,5 @@
 #include <string>
-#include "Privilige.h"
+#include <QueryParser/Privilige.h>
 
 using namespace std;
 

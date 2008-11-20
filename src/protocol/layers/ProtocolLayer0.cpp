@@ -1,7 +1,7 @@
-#include "ProtocolLayer0.h"
+#include <protocol/layers/ProtocolLayer0.h>
 
-#include "../packages/ASCPingPackage.h"
-#include "../packages/ASCPongPackage.h"
+#include <protocol/packages/ASCPingPackage.h>
+#include <protocol/packages/ASCPongPackage.h>
 
 #include <stdio.h>
 

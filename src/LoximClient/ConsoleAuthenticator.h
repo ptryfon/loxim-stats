@@ -2,7 +2,7 @@
 #define CONSOLE_AUTHENTICATOR_H
 
 #include <string>
-#include "Authenticator.h"
+#include <LoximClient/Authenticator.h>
 
 using namespace std;
 

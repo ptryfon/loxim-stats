@@ -1,15 +1,15 @@
-#include "DecisionTable.h"
+#include <TypeCheck/DecisionTable.h>
 
-#include "Errors/ErrorConsole.h"
-#include "QueryExecutor/QueryResult.h"
-#include "QueryParser/Stack.h"
-#include "QueryParser/TreeNode.h"
-#include "TransactionManager/Transaction.h"
-#include "TransactionManager/Mutex.h"
+#include <Errors/ErrorConsole.h>
+#include <QueryExecutor/QueryResult.h>
+#include <QueryParser/Stack.h>
+#include <QueryParser/TreeNode.h>
+#include <TransactionManager/Transaction.h>
+#include <TransactionManager/Mutex.h>
 
-#include "Rule.h"
-#include "TypeChecker.h"
-#include "TypeCheckResult.h"
+#include <TypeCheck/Rule.h>
+#include <TypeCheck/TypeChecker.h>
+#include <TypeCheck/TypeCheckResult.h>
 
 #include <string>
 #include <fstream>

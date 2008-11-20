@@ -11,9 +11,9 @@ namespace LockMgr {
 	class SingleLockCmp;
 }; 
 
-#include "../Store/DBPhysicalID.h"
-#include "../TransactionManager/Transaction.h"
-#include "SingleLock.h"
+#include <Store/DBPhysicalID.h>
+#include <TransactionManager/Transaction.h>
+#include <Lock/SingleLock.h>
 
 using namespace Store;
 using namespace TManager;

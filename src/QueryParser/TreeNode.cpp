@@ -1,13 +1,13 @@
-#include "TreeNode.h"
-#include "Stack.h"
-#include "DataRead.h"
-#include "Optimizer.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "Deb.h"
-#include "Errors/Errors.h"
-#include "Errors/ErrorConsole.h"
-#include "Indexes/Constraints.h"
+#include <QueryParser/TreeNode.h>
+#include <QueryParser/Stack.h>
+#include <QueryParser/DataRead.h>
+#include <QueryParser/Optimizer.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <QueryParser/Deb.h>
+#include <Errors/Errors.h>
+#include <Errors/ErrorConsole.h>
+#include <Indexes/Constraints.h>
 
 namespace QParser
 {

@@ -1,6 +1,6 @@
-#include "PagePointer.h"
+#include <Store/PagePointer.h>
 
-#include "Buffer.h"
+#include <Store/Buffer.h>
 
 namespace Store
 {

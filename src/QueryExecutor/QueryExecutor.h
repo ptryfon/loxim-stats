@@ -6,21 +6,21 @@
 #include <vector>
 #include <map>
 
-#include "ClassGraph.h"
-#include "QueryResult.h"
-#include "EnvironmentStack.h"
-#include "TransactionManager/Transaction.h"
-#include "Store/Store.h"
-#include "Store/DBDataValue.h"
-#include "Store/DBLogicalID.h"
-#include "QueryParser/QueryParser.h"
-#include "QueryParser/Privilige.h"
-#include "QueryParser/TreeNode.h"
-#include "QueryParser/DataRead.h"
-#include "Errors/Errors.h"
-#include "Errors/ErrorConsole.h"
-#include "TypeCheck/TCConstants.h"
-#include "TypeCheck/TypeChecker.h"
+#include <QueryExecutor/ClassGraph.h>
+#include <QueryExecutor/QueryResult.h>
+#include <QueryExecutor/EnvironmentStack.h>
+#include <TransactionManager/Transaction.h>
+#include <Store/Store.h>
+#include <Store/DBDataValue.h>
+#include <Store/DBLogicalID.h>
+#include <QueryParser/QueryParser.h>
+#include <QueryParser/Privilige.h>
+#include <QueryParser/TreeNode.h>
+#include <QueryParser/DataRead.h>
+#include <Errors/Errors.h>
+#include <Errors/ErrorConsole.h>
+#include <TypeCheck/TCConstants.h>
+#include <TypeCheck/TypeChecker.h>
 
 namespace LoximServer{
 	class LoximSession;

@@ -1,13 +1,13 @@
 #include <algorithm>
 #include <assert.h>
-#include "BTree.h"
-#include "IndexHandler.h"
-#include "Node.h"
-#include "Comparator.h"
-#include "Cleaner.h"
-#include "VisibilityResolver.h"
-#include "IndexManager.h"
-//#include "TemplateComparator.h"
+#include <Indexes/BTree.h>
+#include <Indexes/IndexHandler.h>
+#include <Indexes/Node.h>
+#include <Indexes/Comparator.h>
+#include <Indexes/Cleaner.h>
+#include <Indexes/VisibilityResolver.h>
+#include <Indexes/IndexManager.h>
+//#include <TemplateComparator.h>
 
 namespace Indexes
 {

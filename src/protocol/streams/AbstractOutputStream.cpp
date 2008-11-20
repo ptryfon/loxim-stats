@@ -1,4 +1,4 @@
-#include "AbstractOutputStream.h"
+#include <protocol/streams/AbstractOutputStream.h>
 
 using namespace protocol;
 

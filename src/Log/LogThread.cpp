@@ -1,4 +1,4 @@
-#include "LogThread.h"
+#include <Log/LogThread.h>
 #include <string.h>
 #include <signal.h>
 #include <unistd.h>

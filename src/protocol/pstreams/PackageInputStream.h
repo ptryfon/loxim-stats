@@ -2,8 +2,8 @@
 #define PACKAGEINPUTSTREAM_H
 
 #include <signal.h>
-#include "../ptools/Package.h"
-#include "../streams/AbstractInputStream.h"
+#include <protocol/ptools/Package.h>
+#include <protocol/streams/AbstractInputStream.h>
 
 namespace protocol{
 

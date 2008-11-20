@@ -5,7 +5,7 @@
 #include <sys/socket.h>
 #include <signal.h>
 
-#include "TCPIPClientSocket.h"
+#include <protocol/sockets/TCPIPClientSocket.h>
 //#define SOCKET_CONNECTION_STATUS_OK     1
 //#define SOCKET_CONNECTION_STATUS_CLOSED -1
 //#define SOCKET_CONNECTION_STATUS_UNKNOWN_HOST -2

@@ -8,12 +8,12 @@
 #ifndef ALLSTATS_H_
 #define ALLSTATS_H_
 
-#include "SystemStats.h"
-#include "SessionStats.h"
-#include "ConfigStats.h"
-#include "StoreStats.h"
-#include "QueriesStats.h"
-#include "TransactionsStats.h"
+#include <SystemStats/SystemStats.h>
+#include <SystemStats/SessionStats.h>
+#include <SystemStats/ConfigStats.h>
+#include <SystemStats/StoreStats.h>
+#include <SystemStats/QueriesStats.h>
+#include <SystemStats/TransactionsStats.h>
 
 using namespace std;
 

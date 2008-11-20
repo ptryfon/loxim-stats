@@ -1,5 +1,5 @@
 
-#include "Comparator.h"
+#include <Lock/Comparator.h>
 
 /*
  *	@author Dominik Klimczak (dominik.klimczak@students.mimuw.edu.pl)

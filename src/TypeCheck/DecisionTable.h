@@ -1,16 +1,16 @@
 #ifndef __DECISION_TABLE_H__
 #define __DECISION_TABLE_H__
 
-#include "ClassNames.h"
-#include "Errors/ErrorConsole.h"
-#include "QueryExecutor/QueryResult.h"
-#include "Store/Store.h"
-#include "TransactionManager/Transaction.h"
-#include "TransactionManager/Mutex.h"
-#include "TypeCheckResult.h"
-#include "Rule.h"
-#include "../QueryParser/TreeNode.h"
-//#include "../QueryParser/IndexNode.h"
+#include <TypeCheck/ClassNames.h>
+#include <Errors/ErrorConsole.h>
+#include <QueryExecutor/QueryResult.h>
+#include <Store/Store.h>
+#include <TransactionManager/Transaction.h>
+#include <TransactionManager/Mutex.h>
+#include <TypeCheck/TypeCheckResult.h>
+#include <TypeCheck/Rule.h>
+#include <QueryParser/TreeNode.h>
+//#include <QueryParser/IndexNode.h>
 
 #include <string>
 #include <fstream>

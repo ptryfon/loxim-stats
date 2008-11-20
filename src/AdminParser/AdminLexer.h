@@ -15,7 +15,7 @@
 #undef yyFlexLexer
 #endif
 
-#include "admin.tab.hpp"
+#include <AdminParser/parser.h>
 
 namespace AdminParser {
 

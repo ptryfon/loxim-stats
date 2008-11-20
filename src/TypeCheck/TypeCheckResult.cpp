@@ -1,6 +1,6 @@
-#include "TypeCheckResult.h"
-#include "QueryParser/Stack.h"
-#include "DecisionTable.h"
+#include <TypeCheck/TypeCheckResult.h>
+#include <QueryParser/Stack.h>
+#include <TypeCheck/DecisionTable.h>
 
 #include <vector>
 #include <sstream>

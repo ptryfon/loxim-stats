@@ -1,4 +1,4 @@
-#include "BoolData.h"
+#include <protocol/packages/data/BoolData.h>
 
 using namespace protocol;
 

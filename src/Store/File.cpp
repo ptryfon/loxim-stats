@@ -1,5 +1,5 @@
-#include "File.h"
-#include "Errors/Errors.h"
+#include <Store/File.h>
+#include <Errors/Errors.h>
 
 #include <iostream>
 #include <string>
@@ -9,7 +9,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
-#include "SystemStats/AllStats.h";
+#include <SystemStats/AllStats.h>;
 #include <time.h>
 #include <sys/time.h>
 

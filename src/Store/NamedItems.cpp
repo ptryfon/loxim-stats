@@ -2,7 +2,7 @@
  * Ten plik nie jest używany.
  */
 
-#include "NamedItems.h"
+#include <Store/NamedItems.h>
 
 namespace Store
 {

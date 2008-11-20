@@ -1,21 +1,21 @@
 #include <iostream>
 #include <string>
 #include <sstream>
-#include "QueryLexer.h"
-#include "TreeNode.h"
-#include "Stack.h"
-#include "DataRead.h"
-#include "QueryParser.h"
-#include "DeathRmver.h"
-#include "AuxRmver.h"
-#include "JoinRpcer.h"
-#include "../Errors/ErrorConsole.h"
-#include "../Errors/Errors.h"
-#include "../Config/SBQLConfig.h"
-#include "Indexes/QueryOptimizer.h"
-#include "Deb.h"
-//#include "TypeCheck/TCConstants.h"
-#include "TypeCheck/TypeChecker.h"
+#include <QueryParser/QueryLexer.h>
+#include <QueryParser/TreeNode.h>
+#include <QueryParser/Stack.h>
+#include <QueryParser/DataRead.h>
+#include <QueryParser/QueryParser.h>
+#include <QueryParser/DeathRmver.h>
+#include <QueryParser/AuxRmver.h>
+#include <QueryParser/JoinRpcer.h>
+#include <Errors/ErrorConsole.h>
+#include <Errors/Errors.h>
+#include <Config/SBQLConfig.h>
+#include <Indexes/QueryOptimizer.h>
+#include <QueryParser/Deb.h>
+//#include <TypeCheck/TCConstants.h>
+#include <TypeCheck/TypeChecker.h>
 
 
 // using namespace std;

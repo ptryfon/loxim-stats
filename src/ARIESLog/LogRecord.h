@@ -17,11 +17,11 @@ namespace Logs
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <errno.h>
-#include "../Errors/ErrorConsole.h"
-///#include "tmp.h" ///
-#include "../Store/Store.h"
-#include "../Config/SBQLConfig.h"
-#include "../QueryExecutor/HashMacro.h"
+#include <Errors/ErrorConsole.h>
+///#include <tmp.h> ///
+#include <Store/Store.h>
+#include <Config/SBQLConfig.h>
+#include <QueryExecutor/HashMacro.h>
 
 #define DEBUG_MODE ///
 #define LOGS_TEST ///

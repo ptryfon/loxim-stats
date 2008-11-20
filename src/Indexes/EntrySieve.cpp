@@ -1,7 +1,7 @@
-#include "EntrySieve.h"
+#include <Indexes/EntrySieve.h>
 
-#include "Store/DBLogicalID.h"
-#include "IndexManager.h"
+#include <Store/DBLogicalID.h>
+#include <Indexes/IndexManager.h>
 
 using namespace Store;
 namespace Indexes

@@ -1,4 +1,4 @@
-#include "LogIO.h"
+#include <Log/LogIO.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <errno.h>
@@ -79,7 +79,7 @@ int LogIO::readDataValue( DataValue *&dv, int fileDes, StoreManager* sm )
   else
   {
     if( sm )
-      sm->dataValueFromByteArray(new TransactionID(-1, -1, NULL), (unsigned char*) (s.data()), dv);
+      sm->dataValueFromByteArray(new TransactionID(-1, -1, (int*)NULL), (unsigned char*) (s.data()), dv);
   }
   return 0;
 }

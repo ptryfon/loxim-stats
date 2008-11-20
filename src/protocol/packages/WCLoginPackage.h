@@ -2,7 +2,7 @@
 #define WCLOGINPACKAGE_H_
 
 #include <stdint.h> 
-#include "../ptools/Package.h"
+#include <protocol/ptools/Package.h>
 
 #define ID_WCLoginPackage 13
 

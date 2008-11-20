@@ -15,14 +15,14 @@ namespace LockMgr { class LockManager; }
 #include <iomanip>
 #include <algorithm>
 
-#include "Comparator.h"
-#include "SingleLock.h"
-#include "../Store/Store.h"
-#include "../Store/DBPhysicalID.h"
-#include "../TransactionManager/Transaction.h"
-#include "../TransactionManager/SemHeaders.h"
-#include "../Errors/ErrorConsole.h"
-#include "../Errors/Errors.h"
+#include <Lock/Comparator.h>
+#include <Lock/SingleLock.h>
+#include <Store/Store.h>
+#include <Store/DBPhysicalID.h>
+#include <TransactionManager/Transaction.h>
+#include <TransactionManager/SemHeaders.h>
+#include <Errors/ErrorConsole.h>
+#include <Errors/Errors.h>
 
 
 

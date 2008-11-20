@@ -1,10 +1,10 @@
 #include <iostream>
 #include <cstdlib>
-#include "DBStoreManager.h"
-#include "DBDataValue.h"
-#include "SystemViews.h"
-#include "Indexes/IndexManager.h"
-#include "SystemStats/AllStats.h"
+#include <Store/DBStoreManager.h>
+#include <Store/DBDataValue.h>
+#include <Store/SystemViews.h>
+#include <Indexes/IndexManager.h>
+#include <SystemStats/AllStats.h>
 
 using namespace SystemStatsLib;
 

@@ -3,10 +3,10 @@
 
 namespace Store{ class PageManager; }
 
-#include "Store.h"
-#include "Struct.h"
-#include "PagePointer.h"
-#include "File.h"
+#include <Store/Store.h>
+#include <Store/Struct.h>
+#include <Store/PagePointer.h>
+#include <Store/File.h>
 
 namespace Store
 {

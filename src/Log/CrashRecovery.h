@@ -12,10 +12,10 @@ class CRState;
 #include <fcntl.h>
 #include <errno.h>
 
-#include "Logs.h"
-#include "../Store/Store.h"
-#include "LogRecord.h"
-#include "LogIO.h"
+#include <Log/Logs.h>
+#include <Store/Store.h>
+#include <Log/LogRecord.h>
+#include <Log/LogIO.h>
 
 using namespace std;
 using namespace Store;

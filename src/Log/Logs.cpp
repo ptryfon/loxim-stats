@@ -1,7 +1,7 @@
-#include "Logs.h"
-#include "LogThread.h"
-#include "LogRecord.h"
-#include "Backup.h"
+#include <Log/Logs.h>
+#include <Log/LogThread.h>
+#include <Log/LogRecord.h>
+#include <Log/Backup.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>

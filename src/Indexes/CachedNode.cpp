@@ -1,6 +1,6 @@
 #include <assert.h>
-#include "CachedNode.h"
-#include "IndexHandler.h"
+#include <Indexes/CachedNode.h>
+#include <Indexes/IndexHandler.h>
 
 namespace Indexes {
 

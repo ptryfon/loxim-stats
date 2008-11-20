@@ -3,11 +3,11 @@
 
 #include <getopt.h>
 #include <string.h>
-#include "LoximClient.h"
-#include "ClientConsole.h"
+#include <LoximClient/LoximClient.h>
+#include <LoximClient/ClientConsole.h>
 
-#include "ReadlineReader.h"
-#include "ConsoleAuthenticator.h"
+#include <LoximClient/ReadlineReader.h>
+#include <LoximClient/ConsoleAuthenticator.h>
 #include <signal.h>
 #include <stdlib.h>
 #include <errno.h>

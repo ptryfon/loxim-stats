@@ -1,7 +1,7 @@
 #ifndef UINT32DATA_H_
 #define UINT32DATA_H_
 
-#include "DataPart.h"
+#include <protocol/packages/data/DataPart.h>
 
 #define DATAPART_TYPE_UINT32	0x0005
 namespace protocol{

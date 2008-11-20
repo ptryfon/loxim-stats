@@ -7,7 +7,7 @@
 
 #include <pthread.h>
 #include <stdlib.h>
-#include "Semaphore.h"
+#include <TransactionManager/Semaphore.h>
 
 /*
  *	Julian Krzemi�ski (julian.krzeminski@students.mimuw.edu.pl)

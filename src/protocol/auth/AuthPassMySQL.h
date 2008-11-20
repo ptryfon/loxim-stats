@@ -1,7 +1,7 @@
 #ifndef _AUTHPASSMYSQL_H_
 #define _AUTHPASSMYSQL_H_
 
-#include "../ptools/CharArray.h"
+#include <protocol/ptools/CharArray.h>
 
 namespace protocol{
 

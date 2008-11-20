@@ -1,5 +1,5 @@
-#include "TCPIPServerSocket.h"
-#include "TCPIPServerSingleSocket.h"
+#include <protocol/sockets/TCPIPServerSocket.h>
+#include <protocol/sockets/TCPIPServerSingleSocket.h>
 
 #include <sys/types.h>
 #include <sys/socket.h>

@@ -1,14 +1,14 @@
 #include <assert.h>
 //#include <errno>
-#include "Errors/Errors.h"
+#include <Errors/Errors.h>
 #include <assert.h>
 #include <unistd.h>
 #include <sys/stat.h>
 
-#include "NonloggedDataSerializer.h"
-#include "IndexHandler.h"
-#include "IndexManager.h"
-#include "VisibilityResolver.h"
+#include <Indexes/NonloggedDataSerializer.h>
+#include <Indexes/IndexHandler.h>
+#include <Indexes/IndexManager.h>
+#include <Indexes/VisibilityResolver.h>
 
 
 namespace Indexes {

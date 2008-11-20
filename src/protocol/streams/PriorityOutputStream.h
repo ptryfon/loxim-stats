@@ -1,7 +1,7 @@
 #ifndef PRIORITYOUTPUTSTREAM_H_
 #define PRIORITYOUTPUTSTREAM_H_
 
-#include "AbstractOutputStream.h"
+#include <protocol/streams/AbstractOutputStream.h>
 
 #include <sys/types.h>
 #include <sys/ipc.h>

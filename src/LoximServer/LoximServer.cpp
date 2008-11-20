@@ -1,11 +1,11 @@
 #include <errno.h>
-#include "LoximServer.h"
-#include "LoximSession.h"
+#include <LoximServer/LoximServer.h>
+#include <LoximServer/LoximSession.h>
 #include <protocol/sockets/TCPIPServerSocket.h>
 #include <string>
 #include <list>
 #include <iostream>
-#include <SignalRouter.h>
+#include <LoximServer/SignalRouter.h>
 
 using namespace std;
 

@@ -1,10 +1,10 @@
-#include "IndexHandler.h"
+#include <Indexes/IndexHandler.h>
 #include <assert.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/types.h>
-#include "Cleaner.h"
-#include "IndexManager.h"
+#include <Indexes/Cleaner.h>
+#include <Indexes/IndexManager.h>
 
 using namespace std;
 namespace Indexes {

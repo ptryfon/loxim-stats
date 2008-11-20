@@ -6,12 +6,12 @@
 #include <list>
 #include <map>
 #include <string>
-//#include "Stack.h"
-#include "ClassNames.h"
-//#include "Store/DBStoreManager.h"
-//#include "Store/DBObjectPointer.h"
-#include "../TransactionManager/Transaction.h"
-#include "../QueryParser/Deb.h"
+//#include <QueryParser/Stack.h>
+#include <TypeCheck/ClassNames.h>
+//#include <Store/DBStoreManager.h>
+//#include <Store/DBObjectPointer.h>
+#include <TransactionManager/Transaction.h>
+#include <QueryParser/Deb.h>
 
 using namespace TManager;
 

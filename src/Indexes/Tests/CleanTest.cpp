@@ -1,5 +1,5 @@
-#include "Suits.h"
-#include "Indexes/Cleaner.h"
+#include <Suits.h>
+#include <Indexes/Cleaner.h>
 #include <unistd.h>
 
 using namespace Errors;

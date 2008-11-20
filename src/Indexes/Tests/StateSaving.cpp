@@ -1,10 +1,10 @@
-#include "QueryExecutor/QueryResult.h"
-#include "QueryExecutor/QueryExecutor.h"
-#include "Indexes/IndexManager.h"
-#include "Log/LogRecord.h"
-//#include "Indexes/IndexManager.h"
+#include <QueryExecutor/QueryResult.h>
+#include <QueryExecutor/QueryExecutor.h>
+#include <Indexes/IndexManager.h>
+#include <Log/LogRecord.h>
+//#include <Indexes/IndexManager.h>
 
-#include "Suits.h"
+#include <Suits.h>
 
 using namespace Errors;
 using namespace Indexes;

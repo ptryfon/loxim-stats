@@ -1,4 +1,4 @@
-#include "SequenceData.h"
+#include <protocol/packages/data/SequenceData.h>
 
 using namespace protocol;
 

@@ -9,24 +9,24 @@
 #include <map>
 //#include <pair>
 
-#include "QueryResult.h"
-#include "../QueryParser/ClassNames.h"
-#include "TransactionManager/Transaction.h"
-#include "Store/Store.h"
-#include "Store/DBDataValue.h"
-#include "Store/DBLogicalID.h"
-#include "QueryParser/QueryParser.h"
-#include "QueryParser/TreeNode.h"
-#include "QueryParser/IndexNode.h"
-#include "QueryParser/Privilige.h"
-#include "QueryExecutor.h"
-#include "Errors/Errors.h"
-#include "Errors/ErrorConsole.h"
-#include "InterfaceMatcher.h"
-#include "InterfaceMaps.h"
-#include "TypeCheck/DecisionTable.h"
-#include "LoximServer/LoximSession.h"
-#include "BindNames.h"
+#include <QueryExecutor/QueryResult.h>
+#include <QueryParser/ClassNames.h>
+#include <TransactionManager/Transaction.h>
+#include <Store/Store.h>
+#include <Store/DBDataValue.h>
+#include <Store/DBLogicalID.h>
+#include <QueryParser/QueryParser.h>
+#include <QueryParser/TreeNode.h>
+#include <QueryParser/IndexNode.h>
+#include <QueryParser/Privilige.h>
+#include <QueryExecutor.h>
+#include <Errors/Errors.h>
+#include <Errors/ErrorConsole.h>
+#include <InterfaceMatcher.h>
+#include <InterfaceMaps.h>
+#include <TypeCheck/DecisionTable.h>
+#include <LoximServer/LoximSession.h>
+#include <BindNames.h>
 
 using namespace QParser;
 using namespace TManager;

@@ -1,13 +1,13 @@
 #ifndef __TC_RESTORE_ALG_H__
 #define __TC_RESTORE_ALG_H__
 
-#include "ClassNames.h"
-#include "TypeChecker.h"
-#include "DecisionTable.h"
-#include "TCConstants.h"
-#include "Errors/Errors.h"
-#include "QueryParser/TreeNode.h"
-#include "QueryParser/Stack.h"
+#include <TypeCheck/ClassNames.h>
+#include <TypeCheck/TypeChecker.h>
+#include <TypeCheck/DecisionTable.h>
+#include <TypeCheck/TCConstants.h>
+#include <Errors/Errors.h>
+#include <QueryParser/TreeNode.h>
+#include <QueryParser/Stack.h>
 
 #include <sstream>
 #include <string>

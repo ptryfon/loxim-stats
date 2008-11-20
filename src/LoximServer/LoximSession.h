@@ -10,9 +10,9 @@
 #include <protocol/sockets/AbstractSocket.h>
 #include <protocol/layers/ProtocolLayer0.h>
 #include <protocol/packages/data/DataPart.h>
-#include "LoximServer.h"
-#include "Clipboard.h"
-#include "KeepAlive.h"
+#include <LoximServer/LoximServer.h>
+#include <LoximServer/Clipboard.h>
+#include <LoximServer/KeepAlive.h>
 
 using namespace protocol;
 using namespace SystemStatsLib;

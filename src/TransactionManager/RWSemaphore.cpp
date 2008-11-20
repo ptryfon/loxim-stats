@@ -1,6 +1,6 @@
 #include <pthread.h>
-#include "RWSemaphore.h"
-#include "../Errors/Errors.h"
+#include <TransactionManager/RWSemaphore.h>
+#include <Errors/Errors.h>
 
 /*
  *	Julian Krzemiñski (julian.krzeminski@students.mimuw.edu.pl)

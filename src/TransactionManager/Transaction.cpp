@@ -1,8 +1,8 @@
 
-#include "Transaction.h"
-#include "../Indexes/IndexManager.h"
-#include "TypeCheck/TypeChecker.h"
-#include "SystemStats/AllStats.h"
+#include <TransactionManager/Transaction.h>
+#include <Indexes/IndexManager.h>
+#include <TypeCheck/TypeChecker.h>
+#include <SystemStats/AllStats.h>
 
 using namespace SystemStatsLib;
 /**
@@ -616,6 +616,7 @@ namespace TManager
 		if (errorNumber && (errorNumber != (ENoInterfaceFound | ErrStore))) abort();
 		return errorNumber;
 	}
+	
 
 	int Transaction::removeInterface(ObjectPointer* &p)
 	{

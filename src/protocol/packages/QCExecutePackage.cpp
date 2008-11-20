@@ -1,7 +1,7 @@
 #include <string.h>
-#include "QCExecutePackage.h"
-#include "../ptools/PackageBufferWriter.h"
-#include "../ptools/PackageBufferReader.h"
+#include <protocol/packages/QCExecutePackage.h>
+#include <protocol/ptools/PackageBufferWriter.h>
+#include <protocol/ptools/PackageBufferReader.h>
 
 #include <stdlib.h>
 

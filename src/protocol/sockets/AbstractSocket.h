@@ -1,8 +1,8 @@
 #ifndef ABSTRACTSOCKET_H_
 #define ABSTRACTSOCKET_H_
 
-#include "../streams/AbstractInputStream.h"
-#include "../streams/AbstractOutputStream.h"
+#include <protocol/streams/AbstractInputStream.h>
+#include <protocol/streams/AbstractOutputStream.h>
 
 namespace protocol{
 

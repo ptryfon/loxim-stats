@@ -6,12 +6,12 @@ namespace Store
 	class Map;
 };
 
-#include "Store.h"
-#include "Struct.h"
-#include "File.h"
-#include "Buffer.h"
-#include "PagePointer.h"
-#include "Log/Logs.h"
+#include <Store/Store.h>
+#include <Store/Struct.h>
+#include <Store/File.h>
+#include <Store/Buffer.h>
+#include <Store/PagePointer.h>
+#include <Log/Logs.h>
 
 #define STORE_MAP_PERPAGE			((STORE_PAGESIZE - sizeof(map_page)) / sizeof(physical_id))
 #define STORE_MAP_MAPPAGE(i)		(1 + ((i) / STORE_MAP_PERPAGE))

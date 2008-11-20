@@ -3,10 +3,10 @@
 #include <string.h>
 #include <iostream>
 
-#include "Errors/Errors.h"
-#include "SBQLConfig.h"
-#include "SystemStats/ConfigStats.h"
-#include "SystemStats/AllStats.h"
+#include <Errors/Errors.h>
+#include <Config/SBQLConfig.h>
+#include <SystemStats/ConfigStats.h>
+#include <SystemStats/AllStats.h>
 
 using namespace std;
 using namespace Errors;

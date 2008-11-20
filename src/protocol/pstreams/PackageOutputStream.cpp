@@ -1,4 +1,4 @@
-#include "PackageOutputStream.h"
+#include <protocol/pstreams/PackageOutputStream.h>
 
 #include <stdlib.h>
 

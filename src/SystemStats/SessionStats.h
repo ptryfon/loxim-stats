@@ -1,7 +1,7 @@
 #ifndef SESSIONSTATS_H
 #define SESSIONSTATS_H
 
-#include "SystemStats.h"
+#include <SystemStats/SystemStats.h>
 #include <time.h>
 #include <sys/time.h>
 

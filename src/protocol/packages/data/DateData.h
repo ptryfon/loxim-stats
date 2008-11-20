@@ -1,7 +1,7 @@
 #ifndef DATEDATA_H_
 #define DATEDATA_H_
 
-#include "DataPart.h"
+#include <protocol/packages/data/DataPart.h>
 
 #define DATAPART_TYPE_DATE	0x000A
 namespace protocol{

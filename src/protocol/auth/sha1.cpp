@@ -1,9 +1,9 @@
 #include <stdlib.h>
 #include <string.h> 
-#include "sha1.h"
+#include <protocol/auth/sha1.h>
 #include <openssl/sha.h>
 
-#include "../ptools/CharArray.h"
+#include <protocol/ptools/CharArray.h>
 
 using namespace protocol;
 

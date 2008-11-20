@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <pthread.h>
-#include "RWUJSemaphore.h"
-#include "../Errors/ErrorConsole.h"
-#include "../Errors/Errors.h"
+#include <TransactionManager/RWUJSemaphore.h>
+#include <Errors/ErrorConsole.h>
+#include <Errors/Errors.h>
 
 /*
  *	Julian Krzemi�ski (julian.krzeminski@students.mimuw.edu.pl)

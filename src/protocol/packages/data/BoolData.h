@@ -1,7 +1,7 @@
 #ifndef BOOLDATA_H_
 #define BOOLDATA_H_
 
-#include "DataPart.h"
+#include <protocol/packages/data/DataPart.h>
 
 #define DATAPART_TYPE_BOOL	0x0009
 namespace protocol{

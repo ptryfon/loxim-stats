@@ -1,4 +1,4 @@
-#include "LoximClient.h"
+#include <LoximClient/LoximClient.h>
 
 #include <string>
 #include <stdlib.h>
@@ -33,7 +33,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <stdio.h>
-#include "Authenticator.h"
+#include <LoximClient/Authenticator.h>
 #include <readline/readline.h>
 #include <signal.h>
 

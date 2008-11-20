@@ -1,7 +1,7 @@
 #include <string.h>
-#include "VSCFinishedPackage.h"
-#include "../ptools/PackageBufferWriter.h"
-#include "../ptools/PackageBufferReader.h"
+#include <protocol/packages/VSCFinishedPackage.h>
+#include <protocol/ptools/PackageBufferWriter.h>
+#include <protocol/ptools/PackageBufferReader.h>
 
 #include <stdlib.h>
 

@@ -1,5 +1,5 @@
-#include "AuthPassMySQL.h"
-#include "sha1.h"
+#include <protocol/auth/AuthPassMySQL.h>
+#include <protocol/auth/sha1.h>
 
 #include <stdlib.h>
 #include <string.h>

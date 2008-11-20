@@ -1,4 +1,4 @@
-#include "VOIDData.h"
+#include <protocol/packages/data/VOIDData.h>
 
 using namespace protocol;
 

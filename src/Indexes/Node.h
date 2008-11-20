@@ -2,8 +2,8 @@
 #define __NODE_H__
 
 #include <string.h>
-#include "limits.h"
-#include "const.h"
+#include <limits.h>
+#include <Indexes/const.h>
 
 using namespace std;
 namespace Indexes {

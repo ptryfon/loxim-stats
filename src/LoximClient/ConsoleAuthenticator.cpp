@@ -1,4 +1,4 @@
-#include "ConsoleAuthenticator.h"
+#include <LoximClient/ConsoleAuthenticator.h>
 #include <stdio.h>
 #include <readline/readline.h>
 #include <readline/history.h>

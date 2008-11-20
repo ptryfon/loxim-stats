@@ -1,4 +1,4 @@
-#include "QueriesStats.h"
+#include <SystemStats/QueriesStats.h>
 #include <sstream>
 
 using namespace SystemStatsLib;

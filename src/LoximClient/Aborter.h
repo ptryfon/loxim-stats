@@ -1,7 +1,7 @@
 #ifndef ABORTER_H
 #define ABORTER_H
 
-#include "LoximClient.h"
+#include <LoximClient/LoximClient.h>
 
 namespace LoximClient{
 

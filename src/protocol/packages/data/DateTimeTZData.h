@@ -1,9 +1,9 @@
 #ifndef DATETIMETZDATA_H_
 #define DATETIMETZDATA_H_
 
-#include "DataPart.h"
-#include "TimeTZData.h"
-#include "DateData.h"
+#include <protocol/packages/data/DataPart.h>
+#include <protocol/packages/data/TimeTZData.h>
+#include <protocol/packages/data/DateData.h>
 
 #define DATAPART_TYPE_DATETIMETZ	0x000E
 namespace protocol{

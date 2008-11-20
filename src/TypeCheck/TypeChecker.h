@@ -1,21 +1,21 @@
 #ifndef __TC_TYPE_CHECKER_H__
 #define __TC_TYPE_CHECKER_H__
 
-#include "Errors/ErrorConsole.h"
-#include "QueryExecutor/QueryResult.h"
-#include "Store/Store.h"
-#include "TransactionManager/Transaction.h"
-#include "TransactionManager/Mutex.h"
-#include "QueryParser/Deb.h"
-#include "QueryParser/Stack.h"
-#include "QueryParser/TreeNode.h"
-#include "QueryParser/DataRead.h"
-#include "TCConstants.h"
-#include "ClassNames.h"
-#include "DecisionTable.h"
-#include "Rule.h"
-#include "TypeCheckResult.h"
-#include "RestoreAlgorithm.h"
+#include <Errors/ErrorConsole.h>
+#include <QueryExecutor/QueryResult.h>
+#include <Store/Store.h>
+#include <TransactionManager/Transaction.h>
+#include <TransactionManager/Mutex.h>
+#include <QueryParser/Deb.h>
+#include <QueryParser/Stack.h>
+#include <QueryParser/TreeNode.h>
+#include <QueryParser/DataRead.h>
+#include <TypeCheck/TCConstants.h>
+#include <TypeCheck/ClassNames.h>
+#include <TypeCheck/DecisionTable.h>
+#include <TypeCheck/Rule.h>
+#include <TypeCheck/TypeCheckResult.h>
+#include <TypeCheck/RestoreAlgorithm.h>
 
 #include <string>
 #include <fstream>

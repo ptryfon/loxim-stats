@@ -1,8 +1,8 @@
 #ifndef PACKAGEOUTPUTSTREAM_H
 #define PACKAGEOUTPUTSTREAM_H
 
-#include "../ptools/Package.h"
-#include "../streams/PriorityOutputStream.h"
+#include <protocol/ptools/Package.h>
+#include <protocol/streams/PriorityOutputStream.h>
 
 namespace protocol{
 /**

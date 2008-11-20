@@ -1,7 +1,7 @@
 #ifndef SEQUENCEDATA_H_
 #define SEQUENCEDATA_H_
 
-#include "CollectionData.h"
+#include <protocol/packages/data/CollectionData.h>
 
 #define DATAPART_TYPE_SEQUENCE	0x0085
 namespace protocol{

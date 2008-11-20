@@ -5,7 +5,7 @@
 #include <vector>
 #include <list>
 #include <string>
-#include "ClassNames.h"
+#include <QueryParser/ClassNames.h>
 
 
 using namespace std;

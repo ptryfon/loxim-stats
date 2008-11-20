@@ -4,9 +4,9 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include "ClassNames.h"
-#include "TreeNode.h"
-#include "QueryParser.h"
+#include <QueryParser/ClassNames.h>
+#include <QueryParser/TreeNode.h>
+#include <QueryParser/QueryParser.h>
 
 
 using namespace std;

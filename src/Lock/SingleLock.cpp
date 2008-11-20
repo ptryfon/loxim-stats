@@ -1,5 +1,5 @@
 
-#include "SingleLock.h"
+#include <Lock/SingleLock.h>
 
 /**
  *	@author Julian Krzemiñski (julian.krzeminski@students.mimuw.edu.pl)

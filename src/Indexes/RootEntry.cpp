@@ -1,6 +1,6 @@
-#include "RootEntry.h"
-#include "Store/DBLogicalID.h"
-#include "ToStringBuilder.h"
+#include <Indexes/RootEntry.h>
+#include <Store/DBLogicalID.h>
+#include <Indexes/ToStringBuilder.h>
 #include <sstream>
 
 namespace Indexes {

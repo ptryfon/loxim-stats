@@ -1,6 +1,6 @@
-#include "Indexes/IndexHandler.h"
-#include "Errors/Errors.h"
-#include "Suits.h"
+#include <Indexes/IndexHandler.h>
+#include <Errors/Errors.h>
+#include <Suits.h>
 #include <vector>
 #include <check.h>
 #include <signal.h>

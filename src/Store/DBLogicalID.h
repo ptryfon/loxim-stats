@@ -1,9 +1,9 @@
 #ifndef __STORE_DBLOGICALID_H__
 #define __STORE_DBLOGICALID_H__
 
-#include "Store.h"
+#include <Store/Store.h>
 #include <sstream>
-#include "DBStoreManager.h"
+#include <Store/DBStoreManager.h>
 
 using namespace std;
 using namespace TManager;

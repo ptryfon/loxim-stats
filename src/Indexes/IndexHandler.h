@@ -1,16 +1,16 @@
 #ifndef __INDEX_HANDLER_H__
 #define __INDEX_HANDLER_H__
 
-//#include "Store/NamedRoots.h"
-#include "Store/Store.h"
-#include "BTree.h"
-#include "const.h"
-#include "RootEntry.h"
-#include "Monitor.h"
-#include "CachedNode.h"
-#include "QueryParser/TreeNode.h"
-#include "EntrySieve.h"
-#include "Constraints.h"
+//#include <Store/NamedRoots.h>
+#include <Store/Store.h>
+#include <Indexes/BTree.h>
+#include <Indexes/const.h>
+#include <Indexes/RootEntry.h>
+#include <Indexes/Monitor.h>
+#include <Indexes/CachedNode.h>
+#include <QueryParser/TreeNode.h>
+#include <Indexes/EntrySieve.h>
+#include <Indexes/Constraints.h>
 
 using namespace std;
 using namespace Store;

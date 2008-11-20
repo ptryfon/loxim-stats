@@ -1,10 +1,10 @@
 #ifndef INDEXNODE_H_
 #define INDEXNODE_H_
 
-#include "TreeNode.h"
-#include "../Indexes/IndexManager.h"
-#include "../QueryExecutor/QueryResult.h"
-#include "Indexes/BTree.h"
+#include <QueryParser/TreeNode.h>
+#include <Indexes/IndexManager.h>
+#include <QueryExecutor/QueryResult.h>
+#include <Indexes/BTree.h>
 
 using namespace Indexes;
 using namespace QExecutor;

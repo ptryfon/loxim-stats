@@ -8,7 +8,7 @@
 #ifndef STORESTATS_H_
 #define STORESTATS_H_
 
-#include "SystemStats.h"
+#include <SystemStats/SystemStats.h>
 
 using namespace std;
 

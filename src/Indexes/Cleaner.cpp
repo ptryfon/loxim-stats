@@ -1,8 +1,8 @@
 #include <assert.h>
-#include "Cleaner.h"
-#include "Node.h"
-#include "VisibilityResolver.h"
-#include "IndexManager.h"
+#include <Indexes/Cleaner.h>
+#include <Indexes/Node.h>
+#include <Indexes/VisibilityResolver.h>
+#include <Indexes/IndexManager.h>
 
 namespace Indexes {
 

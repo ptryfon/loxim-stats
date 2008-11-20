@@ -1,9 +1,9 @@
-#include "LoximServer.h"
+#include <LoximServer/LoximServer.h>
 #include <string>
 #include <iostream>
 #include <getopt.h>
 #include <Indexes/IndexManager.h>
-#include "QueryExecutor/InterfaceMaps.h"
+#include <QueryExecutor/InterfaceMaps.h>
 
 using namespace std;
 

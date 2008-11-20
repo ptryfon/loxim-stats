@@ -2,9 +2,9 @@
 #include <fstream>
 #include <iostream>
 #include <ios>
-#include "ErrorConsole.h"
-#include "Errors.h"
-#include "Config/SBQLConfig.h"
+#include <Errors/ErrorConsole.h>
+#include <Errors/Errors.h>
+#include <Config/SBQLConfig.h>
 
 using namespace std;
 using namespace Config;

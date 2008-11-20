@@ -2,9 +2,9 @@
 #define VISIBILITYRESOLVER_H_
 
 #include <map>
-#include "const.h"
-#include "TransactionImpact.h"
-#include "TransactionManager/Mutex.h"
+#include <Indexes/const.h>
+#include <Indexes/TransactionImpact.h>
+#include <TransactionManager/Mutex.h>
 
 using namespace std;
 namespace Indexes {

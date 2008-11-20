@@ -3,7 +3,7 @@
 
 #include <string>
 #include <regex.h>
-#include "StatementProvider.h"
+#include <LoximClient/StatementProvider.h>
 #include <stdio.h>
 
 using namespace std;

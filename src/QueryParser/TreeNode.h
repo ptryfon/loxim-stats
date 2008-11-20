@@ -7,14 +7,14 @@
 #include <set>
 #include <string>
 #include <sstream>
-#include "Stack.h"
-#include "ClassNames.h"
-#include "../Store/Store.h"
-#include "Privilige.h"
-#include "../QueryExecutor/QueryResult.h"
-#include "QueryParser.h"
-#include "Indexes/BTree.h"
-//#include "../TypeCheck/DecisionTable.h"
+#include <QueryParser/Stack.h>
+#include <QueryParser/ClassNames.h>
+#include <Store/Store.h>
+#include <QueryParser/Privilige.h>
+#include <QueryExecutor/QueryResult.h>
+#include <QueryParser/QueryParser.h>
+#include <Indexes/BTree.h>
+//#include <TypeCheck/DecisionTable.h>
 
 //using namespace std;
 
@@ -379,15 +379,15 @@ namespace QParser {
     {
         private:
     	    string m_interfaceName;
-			string m_implementationName;
-		public:
-			InterfaceBind(string interfaceName, string implementationName);
-			string getInterfaceName() const {return m_interfaceName;}
-			string getImplementationName() const {return m_implementationName;}
+	    string m_implementationName;
+	public:
+	    InterfaceBind(string interfaceName, string implementationName);
+	    string getInterfaceName() const {return m_interfaceName;}
+	    string getImplementationName() const {return m_implementationName;}
 
-			TreeNode *clone();	    
-			int type() {return TNINTERFACEBIND;}
-			string simpleString() const {string res = "InterfaceBind: " + m_interfaceName + " -> " + m_implementationName; return res;}
+	    TreeNode *clone();	    
+	    int type() {return TNINTERFACEBIND;}
+	    string simpleString() const {string res = "InterfaceBind: " + m_interfaceName + " -> " + m_implementationName; return res;}
     }; 
 
 

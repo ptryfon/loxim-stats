@@ -2,8 +2,8 @@
 #define __STORE_DBPHYSICALID_H__
 namespace Store { class DBPhysicalID; }
 
-#include "Store.h"
-#include "Struct.h"
+#include <Store/Store.h>
+#include <Store/Struct.h>
 
 using namespace std;
 

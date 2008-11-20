@@ -1,9 +1,9 @@
 #ifndef QUERYOPTIMIZER_H_
 #define QUERYOPTIMIZER_H_
 
-#include "QueryParser/TreeNode.h"
-#include "IndexManager.h"
-#include "OptimizedField.h"
+#include <QueryParser/TreeNode.h>
+#include <Indexes/IndexManager.h>
+#include <Indexes/OptimizedField.h>
 
 namespace Indexes {
 

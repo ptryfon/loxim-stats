@@ -8,7 +8,7 @@
 #ifndef TRANSACTIONSTATS_H_
 #define TRANSACTIONSTATS_H_
 
-#include "SystemStats.h"
+#include <SystemStats/SystemStats.h>
 #include <map>
 #include <time.h>
 #include <sys/time.h>

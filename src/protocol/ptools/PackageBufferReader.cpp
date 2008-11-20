@@ -2,8 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <netinet/in.h>
-#include "PackageBufferReader.h"
-#include "Endianness.h"
+#include <protocol/ptools/PackageBufferReader.h>
+#include <protocol/ptools/Endianness.h>
 
 using namespace protocol;
 

@@ -1,7 +1,7 @@
 #ifndef STRUCTDATA_H_
 #define STRUCTDATA_H_
 
-#include "CollectionData.h"
+#include <protocol/packages/data/CollectionData.h>
 
 #define DATAPART_TYPE_STRUCT	0x0083
 namespace protocol{

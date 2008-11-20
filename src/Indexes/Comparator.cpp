@@ -1,9 +1,9 @@
-#include "Comparator.h"
+#include <Indexes/Comparator.h>
 
-#include "ToStringBuilder.h"
+#include <Indexes/ToStringBuilder.h>
 #include <assert.h>
 #include <sstream>
-#include "QueryExecutor/QueryResult.h"
+#include <QueryExecutor/QueryResult.h>
 
 using namespace QExecutor;
 namespace Indexes {

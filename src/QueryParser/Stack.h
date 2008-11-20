@@ -7,10 +7,10 @@
 #include <vector>
 #include <string>
 #include <list>
-#include "Deb.h"
-#include "ClassNames.h"
-#include "Errors/ErrorConsole.h"
-#include "../Errors/Errors.h"
+#include <QueryParser/Deb.h>
+#include <QueryParser/ClassNames.h>
+#include <Errors/ErrorConsole.h>
+#include <Errors/Errors.h>
 
 using namespace std;
 

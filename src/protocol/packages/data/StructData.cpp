@@ -1,4 +1,4 @@
-#include "StructData.h"
+#include <protocol/packages/data/StructData.h>
 
 using namespace protocol;
 

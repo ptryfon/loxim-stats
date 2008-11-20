@@ -2,8 +2,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <netinet/in.h>
-#include "PackageBufferWriter.h"
-#include "Endianness.h"
+#include <protocol/ptools/PackageBufferWriter.h>
+#include <protocol/ptools/Endianness.h>
 
 #define DEFAULT_BUFFER_SIZE 4096
 

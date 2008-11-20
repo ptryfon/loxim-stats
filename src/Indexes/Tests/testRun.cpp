@@ -1,7 +1,7 @@
 #include <time.h>
 #include <stdlib.h>
 
-#include "Suits.h"
+#include <Suits.h>
 
 #include <stdlib.h>
 

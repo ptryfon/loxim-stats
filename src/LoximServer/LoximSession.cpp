@@ -38,9 +38,9 @@
 #include <protocol/packages/data/BindingData.h>
 #include <protocol/packages/data/DataPart.h>
 #include <protocol/packages/data/StructData.h>
-#include <Worker.h>
-#include <SignalRouter.h>
-#include <LoximSession.h>
+#include <LoximServer/Worker.h>
+#include <LoximServer/SignalRouter.h>
+#include <LoximServer/LoximSession.h>
 
 using namespace std;
 using namespace SystemStatsLib;

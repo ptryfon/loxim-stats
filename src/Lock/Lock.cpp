@@ -1,5 +1,5 @@
 
-#include "Lock.h"
+#include <Lock/Lock.h>
 
 /**
  *	@author Dominik Klimczak (dominik.klimczak@students.mimuw.edu.pl)

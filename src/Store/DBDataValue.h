@@ -1,8 +1,8 @@
 #ifndef __STORE_DBDATAVALUE_H__
 #define __STORE_DBDATAVALUE_H__
 
-#include "Store.h"
-#include "DBLogicalID.h"
+#include <Store/Store.h>
+#include <Store/DBLogicalID.h>
 
 using namespace std;
 using namespace TManager;

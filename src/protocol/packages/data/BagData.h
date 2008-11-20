@@ -1,7 +1,7 @@
 #ifndef BAGDATA_H_
 #define BAGDATA_H_
 
-#include "CollectionData.h"
+#include <protocol/packages/data/CollectionData.h>
 
 #define DATAPART_TYPE_BAG	0x0084
 

@@ -10,18 +10,18 @@ namespace QExecutor {
 	class ClassGraph;
 }
 
-#include "QueryExecutor.h"
-#include "QueryResult.h"
-#include "EnvironmentStack.h"
-#include "TransactionManager/Transaction.h"
-#include "Store/Store.h"
-#include "Store/DBDataValue.h"
-#include "Store/DBLogicalID.h"
-#include "QueryParser/QueryParser.h"
-#include "QueryParser/Privilige.h"
-#include "QueryParser/TreeNode.h"
-#include "Errors/Errors.h"
-#include "Errors/ErrorConsole.h"
+#include <QueryExecutor/QueryExecutor.h>
+#include <QueryExecutor/QueryResult.h>
+#include <QueryExecutor/EnvironmentStack.h>
+#include <TransactionManager/Transaction.h>
+#include <Store/Store.h>
+#include <Store/DBDataValue.h>
+#include <Store/DBLogicalID.h>
+#include <QueryParser/QueryParser.h>
+#include <QueryParser/Privilige.h>
+#include <QueryParser/TreeNode.h>
+#include <Errors/Errors.h>
+#include <Errors/ErrorConsole.h>
 
 using namespace QParser;
 using namespace TManager;

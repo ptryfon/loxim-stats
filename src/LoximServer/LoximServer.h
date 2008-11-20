@@ -3,7 +3,7 @@
 
 #include <set>
 #include <string>
-#include "LoximSession.h"
+#include <LoximServer/LoximSession.h>
 #include <protocol/sockets/TCPIPServerSocket.h>
 #include <Config/SBQLConfig.h>
 #include <pthread.h>

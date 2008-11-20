@@ -1,6 +1,6 @@
-#include "Optimizer.h"
-#include "TreeNode.h"
-#include "Deb.h"
+#include <QueryParser/Optimizer.h>
+#include <QueryParser/TreeNode.h>
+#include <QueryParser/Deb.h>
 
 namespace QParser{
 

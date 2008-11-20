@@ -9,8 +9,8 @@ namespace Logs
 
 #include <string>
 #include <stdio.h>
-#include "../Store/Store.h"
-#include "LogRecord.h"
+#include <Store/Store.h>
+#include <Log/LogRecord.h>
 #include <queue>
 #include <pthread.h>
 #include <unistd.h>

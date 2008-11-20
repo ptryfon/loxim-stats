@@ -1,8 +1,8 @@
 #ifndef ADMIN_EXECUTABLE_TREE_NODE_H
 #define ADMIN_EXECUTABLE_TREE_NODE_H
 
-#include "../LoximServer/LoximSession.h"
-#include "AdminTreeNode.h"
+#include <LoximServer/LoximSession.h>
+#include <AdminParser/AdminTreeNode.h>
 
 namespace AdminParser{
     class AdminExecutableTreeNode : public AdminTreeNode {

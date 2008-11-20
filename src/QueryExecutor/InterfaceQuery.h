@@ -1,6 +1,6 @@
 #ifndef _INTERFACE_QUERY_H_
 #define _INTERFACE_QUERY_H_
-#include "InterfaceMatcher.h"
+#include <QueryExecutor/InterfaceMatcher.h>
 
 namespace QParser
 {

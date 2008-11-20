@@ -3,8 +3,8 @@
 
 #include <string>
 
-#include "QueryParser/QueryParser.h"
-#include "QueryExecutor/QueryExecutor.h"
+#include <QueryParser/QueryParser.h>
+#include <QueryExecutor/QueryExecutor.h>
 
 using namespace QParser;
 using namespace QExecutor;

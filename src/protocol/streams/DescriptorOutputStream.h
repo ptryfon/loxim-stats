@@ -1,7 +1,7 @@
 #ifndef DESCRIPTOROUTPUTSTREAM_H
 #define DESCRIPTOROUTPUTSTREAM_H
 
-#include "AbstractOutputStream.h"
+#include <protocol/streams/AbstractOutputStream.h>
 
 namespace protocol{
 

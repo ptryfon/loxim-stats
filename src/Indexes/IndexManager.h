@@ -1,16 +1,16 @@
 #ifndef __INDEX_MANAGER_H__
 #define __INDEX_MANAGER_H__
 
-#include "const.h"
-#include "Errors/ErrorConsole.h"
-#include "QueryExecutor/QueryResult.h"
-#include "Store/Store.h"
-#include "IndexHandler.h"
-#include "TransactionManager/Transaction.h"
-#include "TransactionManager/Mutex.h"
-#include "QueryParser/TreeNode.h"
-#include "EntrySieve.h"
-#include "VisibilityResolver.h"
+#include <Indexes/const.h>
+#include <Errors/ErrorConsole.h>
+#include <QueryExecutor/QueryResult.h>
+#include <Store/Store.h>
+#include <Indexes/IndexHandler.h>
+#include <TransactionManager/Transaction.h>
+#include <TransactionManager/Mutex.h>
+#include <QueryParser/TreeNode.h>
+#include <Indexes/EntrySieve.h>
+#include <Indexes/VisibilityResolver.h>
 
 #include <string>
 #include <fstream>

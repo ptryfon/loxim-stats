@@ -1,7 +1,7 @@
 #ifndef EXTREFERENCEDATA_H_
 #define EXTREFERENCEDATA_H_
 
-#include "DataPart.h"
+#include <protocol/packages/data/DataPart.h>
 
 #define DATAPART_TYPE_EXTREFERENCE	0x0087
 namespace protocol{

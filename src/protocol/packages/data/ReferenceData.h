@@ -1,7 +1,7 @@
 #ifndef REFERENCEDATA_H_
 #define REFERENCEDATA_H_
 
-#include "DataPart.h"
+#include <protocol/packages/data/DataPart.h>
 
 #define DATAPART_TYPE_REFERENCE	0x0086
 namespace protocol{

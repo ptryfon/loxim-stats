@@ -3,7 +3,7 @@
 #ifndef SHA1_
 #define SHA1_
 
-#include "../ptools/CharArray.h"
+#include <protocol/ptools/CharArray.h>
 
 namespace protocol{
 

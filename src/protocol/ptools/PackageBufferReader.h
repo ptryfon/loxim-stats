@@ -2,7 +2,7 @@
 #define PACKAGEBUFFERREADER_H_
 
 #include <stdint.h>
-#include "CharArray.h"
+#include <protocol/ptools/CharArray.h>
 
 namespace protocol{
 

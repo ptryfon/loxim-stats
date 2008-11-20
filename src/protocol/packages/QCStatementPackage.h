@@ -2,7 +2,7 @@
 #define QCSTATEMENTPACKAGE_H_
 
 #include <stdint.h> 
-#include "../ptools/Package.h"
+#include <protocol/ptools/Package.h>
 
 #define ID_QCStatementPackage 64
 

@@ -7,7 +7,7 @@ namespace Logs
 }
 
 #include <stdio.h>
-#include "../Store/Store.h"
+#include <Store/Store.h>
 
 using namespace Store;
 

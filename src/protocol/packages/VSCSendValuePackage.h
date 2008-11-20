@@ -2,8 +2,8 @@
 #define VSCSENDVALUEPACKAGE_H_
 
 #include <stdint.h> 
-#include "../ptools/Package.h"
-#include "data/DataPart.h"
+#include <protocol/ptools/Package.h>
+#include <protocol/packages/data/DataPart.h>
 
 #define ID_VSCSendValuePackage 33
 

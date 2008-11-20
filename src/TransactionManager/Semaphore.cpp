@@ -1,4 +1,4 @@
-#include "Semaphore.h"
+#include <TransactionManager/Semaphore.h>
 
 /*
  *	Julian Krzemiñski (julian.krzeminski@students.mimuw.edu.pl)

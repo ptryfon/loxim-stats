@@ -1,5 +1,5 @@
-#include "Errors/Errors.h"
-#include "LogRecord.h"
+#include <Errors/Errors.h>
+#include <ARIESLog/LogRecord.h>
 #include <iostream>
 #include <sstream>
 

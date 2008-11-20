@@ -7,7 +7,7 @@
 
 #ifndef CONFIGSTATS_H_
 #define CONFIGSTATS_H_
-#include "SystemStats.h"
+#include <SystemStats/SystemStats.h>
 
 using namespace std;
 

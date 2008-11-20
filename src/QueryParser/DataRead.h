@@ -7,11 +7,11 @@
 #include <list>
 #include <map>
 #include <string>
-//#include "Stack.h"
-#include "ClassNames.h"
-#include "TransactionManager/Transaction.h"
-#include "Store/DBStoreManager.h"
-#include "Store/DBObjectPointer.h"
+//#include <QueryParser/Stack.h>
+#include <QueryParser/ClassNames.h>
+#include <TransactionManager/Transaction.h>
+#include <Store/DBStoreManager.h>
+#include <Store/DBObjectPointer.h>
 
 
 using namespace std;

@@ -1,13 +1,13 @@
 #ifndef __TYPE_CHECK_RESULT_H__
 #define __TYPE_CHECK_RESULT_H__
 
-#include "ClassNames.h"
-#include "Errors/ErrorConsole.h"
-#include "QueryExecutor/QueryResult.h"
-#include "QueryParser/Stack.h"
-#include "Store/Store.h"
-#include "TransactionManager/Transaction.h"
-#include "TransactionManager/Mutex.h"
+#include <TypeCheck/ClassNames.h>
+#include <Errors/ErrorConsole.h>
+#include <QueryExecutor/QueryResult.h>
+#include <QueryParser/Stack.h>
+#include <Store/Store.h>
+#include <TransactionManager/Transaction.h>
+#include <TransactionManager/Mutex.h>
 
 #include <string>
 #include <fstream>

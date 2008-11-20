@@ -1,7 +1,7 @@
 #ifndef DOUBLEDATA_H_
 #define DOUBLEDATA_H_
 
-#include "DataPart.h"
+#include <protocol/packages/data/DataPart.h>
 
 #define DATAPART_TYPE_DOUBLE	0x0011
 namespace protocol{

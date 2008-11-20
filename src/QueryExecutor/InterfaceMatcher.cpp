@@ -1,10 +1,10 @@
-#include "InterfaceMatcher.h"
-#include "InterfaceMaps.h"
-#include "BindNames.h"
-#include "QueryExecutor.h"
-#include "InterfaceQuery.h"
-#include "ClassGraph.h"
-#include "QueryResult.h"
+#include <QueryExecutor/InterfaceMatcher.h>
+#include <QueryExecutor/InterfaceMaps.h>
+#include <QueryExecutor/BindNames.h>
+#include <QueryExecutor/QueryExecutor.h>
+#include <QueryExecutor/InterfaceQuery.h>
+#include <QueryExecutor/ClassGraph.h>
+#include <QueryExecutor/QueryResult.h>
 #include <set>
 
 using namespace Schemas;

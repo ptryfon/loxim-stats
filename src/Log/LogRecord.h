@@ -19,8 +19,8 @@ namespace Logs
 #include <map>
 #include <set>
 #include <stdio.h>
-#include "../Store/Store.h"
-#include "CrashRecovery.h"
+#include <Store/Store.h>
+#include <Log/CrashRecovery.h>
 
 using namespace Store;
 using namespace std;

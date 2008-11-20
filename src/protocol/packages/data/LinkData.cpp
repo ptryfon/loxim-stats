@@ -1,4 +1,4 @@
-#include "LinkData.h"
+#include <protocol/packages/data/LinkData.h>
 
 using namespace protocol;
 

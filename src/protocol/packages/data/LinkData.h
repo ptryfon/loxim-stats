@@ -1,7 +1,7 @@
 #ifndef LINKDATA_H_
 #define LINKDATA_H_
 
-#include "DataPart.h"
+#include <protocol/packages/data/DataPart.h>
 
 #define DATAPART_TYPE_LINK	0x0081
 namespace protocol{

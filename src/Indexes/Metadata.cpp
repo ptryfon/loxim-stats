@@ -1,5 +1,5 @@
-#include "IndexManager.h"
-#include "Store/DBObjectPointer.h"
+#include <Indexes/IndexManager.h>
+#include <Store/DBObjectPointer.h>
 
 #include <memory>
 

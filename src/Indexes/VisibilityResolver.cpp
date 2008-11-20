@@ -1,6 +1,6 @@
-#include "assert.h"
+#include <assert.h>
 
-#include "VisibilityResolver.h"
+#include <Indexes/VisibilityResolver.h>
 
 namespace Indexes {
 

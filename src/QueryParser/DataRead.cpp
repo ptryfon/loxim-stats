@@ -1,20 +1,20 @@
 #include <list>
 #include <vector>
-#include "TreeNode.h"
-#include "DataRead.h"
-#include "Stack.h"
-#include "ClassNames.h"
-#include "QueryExecutor/QueryResult.h"
-#include "QueryExecutor/QueryExecutor.h"
-#include "Store/Store.h"
-#include "Store/DBStoreManager.h"
-#include "Store/DBObjectPointer.h"
-#include "Errors/ErrorConsole.h"
-#include "Errors/Errors.h"
-#include "TransactionManager/Transaction.h"
-#include "TypeCheck/TypeChecker.h"
-#include "QueryParser/Stack.h"
-#include "Deb.h"
+#include <QueryParser/TreeNode.h>
+#include <QueryParser/DataRead.h>
+#include <QueryParser/Stack.h>
+#include <QueryParser/ClassNames.h>
+#include <QueryExecutor/QueryResult.h>
+#include <QueryExecutor/QueryExecutor.h>
+#include <Store/Store.h>
+#include <Store/DBStoreManager.h>
+#include <Store/DBObjectPointer.h>
+#include <Errors/ErrorConsole.h>
+#include <Errors/Errors.h>
+#include <TransactionManager/Transaction.h>
+#include <TypeCheck/TypeChecker.h>
+#include <QueryParser/Stack.h>
+#include <QueryParser/Deb.h>
 using namespace std;
 //using namespace QExecutor;
 //using namespace Store;

@@ -1,7 +1,7 @@
 #ifndef BINDINGDATA_H_
 #define BINDINGDATA_H_
 
-#include "DataPart.h"
+#include <protocol/packages/data/DataPart.h>
 
 #define DATAPART_TYPE_BINDING	0x0082
 namespace protocol{

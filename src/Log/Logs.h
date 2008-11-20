@@ -8,11 +8,11 @@ namespace Logs
 
 #include <string>
 #include <stdio.h>
-#include "../Errors/ErrorConsole.h"
-#include "../Store/Store.h"
-#include "LogThread.h"
-#include "LogRecord.h"
-#include "../Config/SBQLConfig.h"
+#include <Errors/ErrorConsole.h>
+#include <Store/Store.h>
+#include <Log/LogThread.h>
+#include <Log/LogRecord.h>
+#include <Config/SBQLConfig.h>
 
 using namespace Errors;
 using namespace Store;

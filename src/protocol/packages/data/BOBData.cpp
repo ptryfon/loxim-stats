@@ -1,4 +1,4 @@
-#include "BOBData.h"
+#include <protocol/packages/data/BOBData.h>
 
 using namespace protocol;
 

@@ -4,7 +4,7 @@
 //#define DEBUG_MODE
 
 #include <set>
-#include "QueryExecutor/HashMacro.h"
+#include <QueryExecutor/HashMacro.h>
 
 
 
@@ -55,10 +55,10 @@ namespace Store
 #include <string>
 #include <vector>
 
-#include "Config/SBQLConfig.h"
-#include "Log/Logs.h"
-#include "TransactionManager/Transaction.h"
-#include "DBPhysicalID.h"
+#include <Config/SBQLConfig.h>
+#include <Log/Logs.h>
+#include <TransactionManager/Transaction.h>
+#include <Store/DBPhysicalID.h>
 
 /////////////////////////// WORDAROUND ///////////////////////////
 //namespace Logs

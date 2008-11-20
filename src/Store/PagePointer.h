@@ -1,7 +1,7 @@
 #ifndef __STORE_PAGEPOINTER_H__
 #define __STORE_PAGEPOINTER_H__
 
-#include "TransactionManager/Transaction.h"
+#include <TransactionManager/Transaction.h>
 
 using namespace TManager;
 

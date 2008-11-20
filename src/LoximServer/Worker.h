@@ -2,7 +2,7 @@
 #define WORKER_H
 
 #include <pthread.h>
-#include <LoximSession.h>
+#include <LoximServer/LoximSession.h>
 
 namespace LoximServer{
 	void *W_starter(void *arg);

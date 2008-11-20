@@ -1,7 +1,7 @@
 #ifndef VOIDDATA_H_
 #define VOIDDATA_H_
 
-#include "DataPart.h"
+#include <protocol/packages/data/DataPart.h>
 
 #define DATAPART_TYPE_VOID	0x0080
 namespace protocol{

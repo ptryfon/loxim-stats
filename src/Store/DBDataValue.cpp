@@ -1,5 +1,5 @@
-#include "DBDataValue.h"
-#include "DBStoreManager.h"
+#include <Store/DBDataValue.h>
+#include <Store/DBStoreManager.h>
 //#include <stdio.h>
 
 //#define DBDV_DEBUG

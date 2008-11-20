@@ -10,15 +10,15 @@ namespace Store
 	class CounterView;
 };
 
-#include "Struct.h"
-#include "File.h"
-#include "Buffer.h"
-#include "PagePointer.h"
-#include "Log/Logs.h"
-#include "DBLogicalID.h"
-#include "DBDataValue.h"
-#include "DBObjectPointer.h"
-#include "Store.h"
+#include <Store/Struct.h>
+#include <Store/File.h>
+#include <Store/Buffer.h>
+#include <Store/PagePointer.h>
+#include <Log/Logs.h>
+#include <Store/DBLogicalID.h>
+#include <Store/DBDataValue.h>
+#include <Store/DBObjectPointer.h>
+#include <Store/Store.h>
 #include <stdlib.h>
 #include <string.h>
 #include <vector>
@@ -28,7 +28,7 @@ namespace Store
 
 
 #ifdef DEBUG_MODE
-#include "Errors/ErrorConsole.h"
+#include <Errors/ErrorConsole.h>
 #endif
 
 using namespace std;

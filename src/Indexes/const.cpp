@@ -3,8 +3,8 @@
 
 #include <algorithm>
 
-#include "Node.h"
-#include "RootEntry.h"
+#include <Indexes/Node.h>
+#include <Indexes/RootEntry.h>
 
 namespace Indexes {
 

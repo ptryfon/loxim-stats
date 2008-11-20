@@ -1,4 +1,4 @@
-#include "ConnectionThread.h"
+#include <ConnectionThread.h>
 #include <assert.h>
 
 using namespace QParser;

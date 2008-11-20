@@ -1,6 +1,6 @@
 #include <assert.h>
-#include "Node.h"
-#include "ToStringBuilder.h"
+#include <Indexes/Node.h>
+#include <Indexes/ToStringBuilder.h>
 
 namespace Indexes {
 	

@@ -1,7 +1,7 @@
 #ifndef DATAFACTORY_H_
 #define DATAFACTORY_H_
 
-#include "DataPart.h"
+#include <protocol/packages/data/DataPart.h>
 namespace protocol{
 
 

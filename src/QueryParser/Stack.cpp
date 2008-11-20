@@ -2,11 +2,11 @@
 #include <string>
 #include <sstream>
 
-#include "Stack.h"
-#include "QueryParser.h"
-#include "TreeNode.h"
-#include "DataRead.h"
-#include "Deb.h"
+#include <QueryParser/Stack.h>
+#include <QueryParser/QueryParser.h>
+#include <QueryParser/TreeNode.h>
+#include <QueryParser/DataRead.h>
+#include <QueryParser/Deb.h>
 
 using namespace std;
 //using namespace TypeCheck;

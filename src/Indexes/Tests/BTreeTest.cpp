@@ -1,7 +1,7 @@
-#include "Indexes/IndexHandler.h"
-#include "Indexes/BTree.h"
+#include <Indexes/IndexHandler.h>
+#include <Indexes/BTree.h>
 
-#include "Suits.h"
+#include <Suits.h>
 #include <unistd.h>
 
 using namespace Errors;

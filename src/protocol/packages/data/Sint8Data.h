@@ -1,7 +1,7 @@
 #ifndef SINT8DATA_H_
 #define SINT8DATA_H_
 
-#include "DataPart.h"
+#include <protocol/packages/data/DataPart.h>
 
 #define DATAPART_TYPE_SINT8	0x0002
 

@@ -1,30 +1,30 @@
-#include "PackagesFactory.h"
+#include <protocol/packages/PackagesFactory.h>
 
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "ASCByePackage.h"
-#include "ASCErrorPackage.h"
-#include "ASCOkPackage.h"
-#include "ASCPingPackage.h"
-#include "ASCPongPackage.h"
-#include "ASCSetOptPackage.h"
-#include "WCHelloPackage.h"
-#include "WCLoginPackage.h"
-#include "WCModePackage.h"
-#include "WCPasswordPackage.h"
-#include "WSAuthorizedPackage.h"
-#include "WSHelloPackage.h"
+#include <protocol/packages/ASCByePackage.h>
+#include <protocol/packages/ASCErrorPackage.h>
+#include <protocol/packages/ASCOkPackage.h>
+#include <protocol/packages/ASCPingPackage.h>
+#include <protocol/packages/ASCPongPackage.h>
+#include <protocol/packages/ASCSetOptPackage.h>
+#include <protocol/packages/WCHelloPackage.h>
+#include <protocol/packages/WCLoginPackage.h>
+#include <protocol/packages/WCModePackage.h>
+#include <protocol/packages/WCPasswordPackage.h>
+#include <protocol/packages/WSAuthorizedPackage.h>
+#include <protocol/packages/WSHelloPackage.h>
 
-#include "QCStatementPackage.h"
-#include "QSStmtParsedPackage.h"
-#include "QCExecutePackage.h"
-#include "QSExecutionFinishedPackage.h"
+#include <protocol/packages/QCStatementPackage.h>
+#include <protocol/packages/QSStmtParsedPackage.h>
+#include <protocol/packages/QCExecutePackage.h>
+#include <protocol/packages/QSExecutionFinishedPackage.h>
 
-#include "VSCSendValuesPackage.h"
-#include "VSCSendValuePackage.h"
-#include "VSCFinishedPackage.h"
-#include "VSCAbortPackage.h"
+#include <protocol/packages/VSCSendValuesPackage.h>
+#include <protocol/packages/VSCSendValuePackage.h>
+#include <protocol/packages/VSCFinishedPackage.h>
+#include <protocol/packages/VSCAbortPackage.h>
 
 
 #define PACKAGE_INIT_CASE( PACKAGENAME ) case ID_##PACKAGENAME: \

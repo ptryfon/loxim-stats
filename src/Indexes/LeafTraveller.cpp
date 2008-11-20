@@ -1,6 +1,6 @@
-#include "LeafTraveller.h"
+#include <Indexes/LeafTraveller.h>
 
-#include "IndexHandler.h"
+#include <Indexes/IndexHandler.h>
 #include <assert.h>
 
 namespace Indexes {

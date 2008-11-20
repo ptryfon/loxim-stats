@@ -7,7 +7,7 @@
 
 #ifndef QUERYSTATS_H_
 #define QUERYSTATS_H_
-#include "SystemStats.h"
+#include <SystemStats/SystemStats.h>
 #include <map>
 #include <time.h>
 #include <sys/time.h>

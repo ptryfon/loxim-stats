@@ -1,4 +1,4 @@
-#include "TCPIPServerSingleSocket.h"
+#include <protocol/sockets/TCPIPServerSingleSocket.h>
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -9,8 +9,8 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "../streams/DescriptorInputStream.h"
-#include "../streams/DescriptorOutputStream.h"
+#include <protocol/streams/DescriptorInputStream.h>
+#include <protocol/streams/DescriptorOutputStream.h>
 
 using namespace protocol;
 

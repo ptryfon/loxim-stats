@@ -1,9 +1,9 @@
 #ifndef CONSTRAINTS_H_
 #define CONSTRAINTS_H_
 
-#include "QueryParser/TreeNode.h"
-#include "EntrySieve.h"
-#include "LeafTraveller.h"
+#include <QueryParser/TreeNode.h>
+#include <Indexes/EntrySieve.h>
+#include <Indexes/LeafTraveller.h>
 
 using namespace QParser;
 namespace Indexes {

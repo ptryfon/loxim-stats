@@ -13,10 +13,10 @@ namespace Logs
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <errno.h>*/
-#include "../Errors/ErrorConsole.h"
-#include "../Store/Store.h"///
-#include "LogRecord.h"
-#include "../Config/SBQLConfig.h"
+#include <Errors/ErrorConsole.h>
+#include <Store/Store.h>///
+#include <ARIESLog/LogRecord.h>
+#include <Config/SBQLConfig.h>
 
 using namespace std;
 using namespace Errors;

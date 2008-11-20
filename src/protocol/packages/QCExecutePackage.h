@@ -2,7 +2,7 @@
 #define QCEXECUTEPACKAGE_H_
 
 #include <stdint.h> 
-#include "../ptools/Package.h"
+#include <protocol/ptools/Package.h>
 
 #define ID_QCExecutePackage 66
 

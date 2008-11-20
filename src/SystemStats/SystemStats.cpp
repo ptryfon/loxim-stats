@@ -4,7 +4,7 @@
  *  Created on: 27-cze-08
  *      Author: damianklata
  */
-#include "SystemStats.h"
+#include <SystemStats/SystemStats.h>
 
 using namespace SystemStatsLib;
 

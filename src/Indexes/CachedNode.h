@@ -1,10 +1,10 @@
 #ifndef __CACHEDNODE_H__
 #define __CACHEDNODE_H__
 
-#include "BTree.h"
-#include "TransactionManager/Mutex.h"
-#include "Errors/Errors.h"
-#include "Node.h"
+#include <Indexes/BTree.h>
+#include <TransactionManager/Mutex.h>
+#include <Errors/Errors.h>
+#include <Indexes/Node.h>
 
 namespace Indexes {
 using namespace SemaphoreLib;

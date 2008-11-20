@@ -1,7 +1,7 @@
 #ifndef TIMETZDATA_H_
 #define TIMETZDATA_H_
 
-#include "DataPart.h"
+#include <protocol/packages/data/DataPart.h>
 
 #define DATAPART_TYPE_TIMETZ	0x000D
 namespace protocol{

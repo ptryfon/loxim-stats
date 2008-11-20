@@ -1,7 +1,7 @@
 #ifndef __STORE_DBOBJECTPOINTER_H__
 #define __STORE_DBOBJECTPOINTER_H__
 
-#include "Store.h"
+#include <Store/Store.h>
 
 using namespace std;
 

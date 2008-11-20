@@ -1,11 +1,11 @@
 #ifndef PROTOCOLLAYER0_H
 #define PROTOCOLLAYER0_H
 
-#include "../ptools/Package.h"
-#include "../pstreams/PackageInputStream.h"
-#include "../pstreams/PackageOutputStream.h"
-#include "../sockets/AbstractSocket.h"
-#include "../streams/PriorityOutputStream.h"
+#include <protocol/ptools/Package.h>
+#include <protocol/pstreams/PackageInputStream.h>
+#include <protocol/pstreams/PackageOutputStream.h>
+#include <protocol/sockets/AbstractSocket.h>
+#include <protocol/streams/PriorityOutputStream.h>
 
 namespace protocol{
 

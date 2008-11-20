@@ -1,4 +1,4 @@
-#include "DescriptorInputStream.h"
+#include <protocol/streams/DescriptorInputStream.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <errno.h>

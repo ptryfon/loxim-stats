@@ -1,7 +1,7 @@
-#include "../BTree.h"
-#include "../Node.h"
-#include "../IndexHandler.h"
-#include "../QueryOptimizer.h"
+#include <Indexes/BTree.h>
+#include <Indexes/Node.h>
+#include <Indexes/IndexHandler.h>
+#include <Indexes/QueryOptimizer.h>
 
 namespace Indexes {
 

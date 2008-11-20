@@ -1,10 +1,10 @@
 #ifndef LOXIMDATABRIDGE_H_
 #define LOXIMDATABRIDGE_H_
 
-#include "Store/Store.h"
-#include "CachedNode.h"
-#include "TransactionManager/Transaction.h"
-#include "Errors/Errors.h"
+#include <Store/Store.h>
+#include <Indexes/CachedNode.h>
+#include <TransactionManager/Transaction.h>
+#include <Errors/Errors.h>
 
 namespace Indexes {
 

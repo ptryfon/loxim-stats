@@ -1,15 +1,15 @@
 #ifndef __SUITS_H__
 #define __SUITS_H__
 
-#include "../const.h"
-#include "Tester.h"
-#include "Errors/Errors.h"
-#include "ConnectionThread.h"
+#include <Indexes/const.h>
+#include <Tester.h>
+#include <Errors/Errors.h>
+#include <ConnectionThread.h>
 #include <check.h>
 //#include <stdlib.h>
 #include <signal.h>
 
-//#include "../IndexHandler.h"
+//#include <Indexes/IndexHandler.h>
 
 
 #define test(err,txt)  if (err) {fail_if(err, "%s, error code: %s", txt, Errors::SBQLstrerror(err)->c_str());} else {mark_point();}

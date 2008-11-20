@@ -1,5 +1,5 @@
-#include "Deb.h"
-#include "../Config/SBQLConfig.h"
+#include <QueryParser/Deb.h>
+#include <Config/SBQLConfig.h>
 #include <stdarg.h>
 using namespace Config;
 

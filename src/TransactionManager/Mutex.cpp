@@ -1,8 +1,8 @@
 #include <pthread.h>
 
-#include "Mutex.h"
-#include "../Errors/ErrorConsole.h"
-#include "../Errors/Errors.h"
+#include <TransactionManager/Mutex.h>
+#include <Errors/ErrorConsole.h>
+#include <Errors/Errors.h>
 
 /*
  *	Julian Krzemi�ski (julian.krzeminski@students.mimuw.edu.pl)

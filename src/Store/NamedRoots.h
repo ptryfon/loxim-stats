@@ -21,13 +21,13 @@ namespace Store
 #include <string.h>
 #include <vector>
 
-#include "Struct.h"
-#include "File.h"
-#include "Buffer.h"
-#include "PagePointer.h"
-#include "Log/Logs.h"
+#include <Store/Struct.h>
+#include <Store/File.h>
+#include <Store/Buffer.h>
+#include <Store/PagePointer.h>
+#include <Log/Logs.h>
 #ifdef IXR_DEBUG
-#include "Errors/ErrorConsole.h"
+#include <Errors/ErrorConsole.h>
 #endif
 
 using namespace std;

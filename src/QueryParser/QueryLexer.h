@@ -18,7 +18,7 @@
 
 
 
-#include "parser.tab.hpp"
+#include <parser.h>
 
 namespace QParser{
     class QueryLexer : public QueryFlexLexer {

@@ -1,7 +1,7 @@
 #ifndef COLLECTIONDATA_H_
 #define COLLECTIONDATA_H_
 
-#include "DataPart.h"
+#include <protocol/packages/data/DataPart.h>
 
 namespace protocol{
 

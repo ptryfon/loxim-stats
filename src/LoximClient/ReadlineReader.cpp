@@ -1,5 +1,5 @@
-#include "ReadlineReader.h"
-#include "StatementSimpleParser.h"
+#include <LoximClient/ReadlineReader.h>
+#include <LoximClient/StatementSimpleParser.h>
 
 #include <stdio.h>
 #include <readline/readline.h>

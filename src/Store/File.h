@@ -6,10 +6,10 @@ namespace Store
 	class File;
 };
 
-#include "Store.h"
-#include "Struct.h"
-#include "DBStoreManager.h"
-#include "Errors/ErrorConsole.h"
+#include <Store/Store.h>
+#include <Store/Struct.h>
+#include <Store/DBStoreManager.h>
+#include <Errors/ErrorConsole.h>
 
 using namespace std;
 

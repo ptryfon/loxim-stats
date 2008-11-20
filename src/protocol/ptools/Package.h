@@ -3,8 +3,8 @@
 
 #include <stdint.h>
 #include <stdlib.h>
-#include "PackageBufferWriter.h"
-#include "PackageBufferReader.h"
+#include <protocol/ptools/PackageBufferWriter.h>
+#include <protocol/ptools/PackageBufferReader.h>
 
 namespace protocol{
 

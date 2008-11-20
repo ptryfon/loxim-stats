@@ -1,7 +1,7 @@
 #ifndef UINT64DATA_H_
 #define UINT64DATA_H_
 
-#include "DataPart.h"
+#include <protocol/packages/data/DataPart.h>
 
 #define DATAPART_TYPE_UINT64	0x0007
 namespace protocol{

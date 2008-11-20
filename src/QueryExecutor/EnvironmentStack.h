@@ -5,16 +5,16 @@
 #include <string>
 #include <vector>
   
-#include "ClassGraph.h"
-#include "QueryResult.h"
-#include "TransactionManager/Transaction.h"
-#include "Store/Store.h"
-#include "Store/DBDataValue.h"
-#include "Store/DBLogicalID.h"
-#include "QueryParser/QueryParser.h"
-#include "QueryParser/TreeNode.h"
-#include "Errors/Errors.h"
-#include "Errors/ErrorConsole.h"
+#include <QueryExecutor/ClassGraph.h>
+#include <QueryExecutor/QueryResult.h>
+#include <TransactionManager/Transaction.h>
+#include <Store/Store.h>
+#include <Store/DBDataValue.h>
+#include <Store/DBLogicalID.h>
+#include <QueryParser/QueryParser.h>
+#include <QueryParser/TreeNode.h>
+#include <Errors/Errors.h>
+#include <Errors/ErrorConsole.h>
 
 using namespace QParser;
 using namespace TManager;

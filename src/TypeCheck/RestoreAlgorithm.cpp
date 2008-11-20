@@ -1,6 +1,6 @@
 
-#include "RestoreAlgorithm.h"
-#include "QueryParser/Deb.h"
+#include <TypeCheck/RestoreAlgorithm.h>
+#include <QueryParser/Deb.h>
 
 #include <string>
 //#include <fstream>

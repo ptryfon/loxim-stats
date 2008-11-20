@@ -1,16 +1,16 @@
 #ifndef __BTREE_H__
 #define __BTREE_H__
 
-//#include "IndexHandler.h"
+//#include <Indexes/IndexHandler.h>
 #include <iostream>
 #include <string.h>
-#include "const.h"
-#include "Node.h"
-#include "RootEntry.h"
-#include "Store/Store.h"
-#include "TransactionManager/Semaphore.h"
-#include "CachedNode.h"
-//#include "QueryParser/TreeNode.h"
+#include <Indexes/const.h>
+#include <Indexes/Node.h>
+#include <Indexes/RootEntry.h>
+#include <Store/Store.h>
+#include <TransactionManager/Semaphore.h>
+#include <Indexes/CachedNode.h>
+//#include <QueryParser/TreeNode.h>
 
 //using namespace QParser;
 

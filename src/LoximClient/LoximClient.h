@@ -8,9 +8,9 @@
 #include <protocol/packages/data/DataPart.h>
 #include <protocol/packages/ASCErrorPackage.h>
 #include <protocol/packages/VSCSendValuePackage.h>
-#include "StatementProvider.h"
-#include "Authenticator.h"
-#include "Aborter.h"
+#include <LoximClient/StatementProvider.h>
+#include <LoximClient/Authenticator.h>
+#include <LoximClient/Aborter.h>
 
 #include <string.h>
 

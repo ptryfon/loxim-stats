@@ -1,6 +1,6 @@
-#include "AdminExecutor.h"
+#include <AdminParser/AdminExecutor.h>
 #include <string>
-#include "../Errors/Errors.h"
+#include <Errors/Errors.h>
 #include <pthread.h>
 
 AdminParser::AdminExecutor *AdminParser::AdminExecutor::get_instance()

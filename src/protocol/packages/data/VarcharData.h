@@ -1,7 +1,7 @@
 #ifndef VARCHARDATA_H_
 #define VARCHARDATA_H_
 
-#include "DataPart.h"
+#include <protocol/packages/data/DataPart.h>
 
 #define DATAPART_TYPE_VARCHAR	0x0010
 namespace protocol{

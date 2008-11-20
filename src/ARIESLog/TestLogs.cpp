@@ -6,14 +6,14 @@
 #include <unistd.h>
 #include <errno.h>
 #include <string>
-#include "SystemStats/ConfigStats.h"
-#include "SystemStats/AllStats.h"
-#include "../Config/SBQLConfig.h"
-#include "Errors/Errors.h"
-#include "Errors/ErrorConsole.h"
-#include "../Store/Store.h"
-#include "../Store/DBStoreManager.h"
-#include "Logs.h"
+#include <SystemStats/ConfigStats.h>
+#include <SystemStats/AllStats.h>
+#include <Config/SBQLConfig.h>
+#include <Errors/Errors.h>
+#include <Errors/ErrorConsole.h>
+#include <Store/Store.h>
+#include <Store/DBStoreManager.h>
+#include <ARIESLog/Logs.h>
 
 
 using namespace std;

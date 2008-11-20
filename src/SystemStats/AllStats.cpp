@@ -5,7 +5,7 @@
  *      Author: damianklata
  */
 
-#include "AllStats.h"
+#include <SystemStats/AllStats.h>
 
 using namespace SystemStatsLib;
 

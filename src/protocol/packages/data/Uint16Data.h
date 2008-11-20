@@ -1,7 +1,7 @@
 #ifndef UINT16DATA_H_
 #define UINT16DATA_H_
 
-#include "DataPart.h"
+#include <protocol/packages/data/DataPart.h>
 
 #define DATAPART_TYPE_UINT16	0x0003
 namespace protocol{

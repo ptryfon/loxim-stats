@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
-#include "StringBufferStack.h"
+#include <protocol/ptools/StringBufferStack.h>
 
 using namespace protocol;
 

@@ -2,10 +2,10 @@
 #define COMPARATOR_H_
 
 #include <string.h>
-#include "const.h"
-#include "Node.h"
-#include "Store/Store.h"
-#include "QueryParser/TreeNode.h"
+#include <Indexes/const.h>
+#include <Indexes/Node.h>
+#include <Store/Store.h>
+#include <QueryParser/TreeNode.h>
 
 namespace QParser {
 //		class QueryNode;

@@ -1,7 +1,7 @@
 #ifndef TIMEDATA_H_
 #define TIMEDATA_H_
 
-#include "DataPart.h"
+#include <protocol/packages/data/DataPart.h>
 
 #define DATAPART_TYPE_TIME	0x000B
 

@@ -1,15 +1,15 @@
-#include "TypeChecker.h"
-#include "DecisionTable.h"
-#include "Rule.h"
-#include "TypeCheckResult.h"
+#include <TypeCheck/TypeChecker.h>
+#include <TypeCheck/DecisionTable.h>
+#include <TypeCheck/Rule.h>
+#include <TypeCheck/TypeCheckResult.h>
 
-#include "Errors/ErrorConsole.h"
-#include "../Errors/Errors.h"
-#include "QueryExecutor/QueryResult.h"
-#include "QueryParser/Stack.h"
-#include "QueryParser/TreeNode.h"
-#include "QueryParser/DataRead.h"
-#include "QueryParser/Deb.h"
+#include <Errors/ErrorConsole.h>
+#include <Errors/Errors.h>
+#include <QueryExecutor/QueryResult.h>
+#include <QueryParser/Stack.h>
+#include <QueryParser/TreeNode.h>
+#include <QueryParser/DataRead.h>
+#include <QueryParser/Deb.h>
 
 #include <string>
 #include <fstream>

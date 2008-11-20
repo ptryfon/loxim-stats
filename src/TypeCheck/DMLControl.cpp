@@ -1,7 +1,7 @@
 
-#include "DMLControl.h"
-#include "../QueryParser/Deb.h"
-#include "TypeChecker.h"
+#include <TypeCheck/DMLControl.h>
+#include <QueryParser/Deb.h>
+#include <TypeCheck/TypeChecker.h>
 
 
 namespace TypeCheck {

@@ -1,8 +1,8 @@
 #ifndef CLEANER_H_
 #define CLEANER_H_
 
-#include "RootEntry.h"
-#include "Comparator.h"
+#include <Indexes/RootEntry.h>
+#include <Indexes/Comparator.h>
 
 using namespace std;
 namespace Indexes {

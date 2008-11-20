@@ -1,7 +1,7 @@
 #ifndef  DESCRIPTOR_INPUT_STREAM_H
 #define  DESCRIPTOR_INPUT_STREAM_H
 
-#include "AbstractInputStream.h"
+#include <protocol/streams/AbstractInputStream.h>
 
 namespace protocol{
 

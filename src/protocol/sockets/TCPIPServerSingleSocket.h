@@ -1,7 +1,7 @@
 #ifndef TCPIPSERVERSINGLESOCKET_H_
 #define TCPIPSERVERSINGLESOCKET_H_
 
-#include "AbstractSocket.h"
+#include <protocol/sockets/AbstractSocket.h>
 
 #define SOCKET_CONNECTION_STATUS_OK     1
 #define SOCKET_CONNECTION_STATUS_CLOSED -1
