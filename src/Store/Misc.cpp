@@ -124,7 +124,7 @@ namespace Store
 		if(s == NULL || s->size() == 0) {
 			return ( (*this) += (static_cast<unsigned int>(0)) );
 		}
-		(*this) += s->size();
+		(*this) += (static_cast<unsigned int>(s->size()));
 		for(SetOfLids::iterator i = s->begin(); i != s->end(); i++) {
 			(*this) += (*(*i));
 		}
@@ -132,7 +132,7 @@ namespace Store
 	}
 
 // dlaczego ten template nie dziala O_O?
-	template <typename T> Serialized& Serialized::operator+=(const T& s)
+	template <class T> Serialized& Serialized::operator+=(const T& s)
 	{
 		return ((*this) += s.serialize());
 	}

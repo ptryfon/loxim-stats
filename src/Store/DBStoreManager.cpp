@@ -385,9 +385,9 @@ namespace Store
 
 		memset( &(p->object_offset[p->object_count]), 0,
 			( (p->object_count <= 0) ?
-			(unsigned)&(p->bytes[STORE_PAGESIZE]) :
-			(unsigned)&(p->bytes[p->object_offset[p->object_count-1]]) ) -
-			(unsigned)&(p->object_offset[p->object_count]) );
+			(char*)&(p->bytes[STORE_PAGESIZE]) :
+			(char*)&(p->bytes[p->object_offset[p->object_count-1]]) ) -
+			(char*)&(p->object_offset[p->object_count]) );
 
 		pagemgr->updateFreeMap(tid, pPtr);
 
@@ -423,7 +423,7 @@ namespace Store
 
 	int DBStoreManager::replaceDV(ObjectPointer* object, DataValue* dv)
 	{
-		TransactionID t(-1, 99999, NULL);
+		TransactionID t(-1, 99999, (int*)NULL);
 		deleteObject(&t, object);
 		ObjectPointer* newobj;
 		createObject(&t, object->getName(), dv, newobj, object->getLogicalID());

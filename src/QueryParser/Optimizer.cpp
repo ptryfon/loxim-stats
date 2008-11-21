@@ -20,7 +20,6 @@ namespace QParser{
 	
 	TreeNode * tree = doGetIndep(((TwoArgsNode *) niealg)->getRArg(), min, max, depth);
 	
-	printf(" drzewko: %d, na glebokosci %d\n", (int) tree, depth);
 	cout << "getIndependant returns: " << endl;
 	if (tree != NULL)
 		tree->putToString();

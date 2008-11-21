@@ -315,7 +315,7 @@ namespace Store
 		Serialized& operator+=(const LogicalID&);
 		Serialized& operator+=(const DataValue&);
 		Serialized& operator+=(SetOfLids* const &s);
-		template <typename T> Serialized& operator+=(const T&);
+		template <class T> Serialized& operator+=(const T&);
 		void info() const;
 
 		unsigned char* bytes;

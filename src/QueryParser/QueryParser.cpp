@@ -277,7 +277,6 @@ namespace QParser {
 			cout << "parse result: " << res << endl;
 	    TreeNode *tree = d;
 
-	    printf( "po parsowaniu treeNode: %d. \n", (int) tree);
 	    cout << "Odczyt z drzewka, ktore przekazuje:" << endl;
 	    cout << "--------------------------------------" << endl;
 	    tree->putToString();

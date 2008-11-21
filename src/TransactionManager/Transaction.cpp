@@ -789,7 +789,7 @@ namespace TManager
 			if (id > -1)
 			    tid = new TransactionID(sessionId, currentId, id);
 			else
-			    tid = new TransactionID(sessionId, currentId, NULL);
+			    tid = new TransactionID(sessionId, currentId, (int*)NULL);
 			addTransaction(tid);
 			IndexManager::getHandle()->begin(currentId);
 			err.printf("Transaction created -> number %d prio: %d\n", tid->getId(), tid->getPriority());
