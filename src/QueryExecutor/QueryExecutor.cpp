@@ -3048,7 +3048,8 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 	*ec << "[QE] derefQuery()";
 	int errcode;
 	int argType = arg->type();
-	
+        ObjectPointer *optr = NULL;
+        
 	switch (argType) {
 		case QueryResult::QSEQUENCE: {
 			res = new QuerySequenceResult();
@@ -3126,7 +3127,7 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 			InterfaceKey interfaceKey = qRef->getInterfaceKey();
 				
 			*ec << "[QE] derefQuery() - dereferencing Object";
-			ObjectPointer *optr;
+
 			errcode = tr->getObjectPointer(lid, Store::Read, optr, true);
 			if (errcode != 0) {
 				*ec << "[QE] Error in getObjectPointer";
@@ -3294,7 +3295,11 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 			if (errcode != 0) return errcode;
 		}
 	}
-	return 0;
+        //gtimoszuk
+        if (optr != NULL) {
+            delete optr;
+        }
+        return 0;
 }
 
 int QueryExecutor::refQuery(QueryResult *arg, QueryResult *&res) {

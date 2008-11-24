@@ -142,10 +142,20 @@ namespace Store
 		if(usedbytes > 0 ) curpos = curpos + usedbytes; else return -1;
 
 		if(curpos-startpos > osize) return -1;
+                //gtimoszuk
+                //what is currently newobject
 
 		newobj = new DBObjectPointer(name, value, lid);
 		newobj->setIsRoot(isRoot == 1);
 
+                //gtimoszuk
+                if (value != NULL) {
+                    delete value;
+                }
+                if (lid != NULL) {
+                    delete lid;
+                }
+                
 		ec << "Store::PageManager::deserializeObj done";
 		return 0;
 	}

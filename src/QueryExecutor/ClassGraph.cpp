@@ -582,7 +582,7 @@ int ClassGraph::fetchExtInvariantNames(string& invariantName, Transaction *&tr, 
 }
 
 int ClassGraph::fetchExtInvariantNamesForLid(LogicalID* lid, Transaction *&tr, QueryExecutor *qe, stringHashSet& invariantsNames,  bool noObjectName) {
-	ObjectPointer *optr;
+	ObjectPointer *optr = NULL;
 	int errcode = tr->getObjectPointer(lid, Store::Read, optr, false);
 	if (errcode != 0) {
 			return trErrorOccur(qe, "[QE] Error in geting object.", errcode );
@@ -606,6 +606,11 @@ int ClassGraph::fetchExtInvariantNamesForLid(LogicalID* lid, Transaction *&tr, Q
 	if(noObjectName) {
 		invariantsNames.erase(objectName);
 	}
+        //gtimoszuk
+        if (optr != NULL) {
+            delete optr;
+        }
+
 	return 0;
 }
 

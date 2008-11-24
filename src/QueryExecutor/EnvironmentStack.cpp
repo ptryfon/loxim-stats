@@ -638,7 +638,7 @@ int QueryReferenceResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResu
 		return EUnknownNode;
 	/* end of remoteID processing */
 	
-	ObjectPointer *optr;
+	ObjectPointer *optr = NULL;
 	if (value != NULL) {
 		if ((errcode = tr->getObjectPointer(value, Store::Read, optr, false)) != 0) {
 			*ec << "[QE] Error in getObjectPointer";
@@ -652,6 +652,9 @@ int QueryReferenceResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResu
 		
 		/* Link */
 		if (dataVal->getSubtype() == Store::Link) {
+                    if (optr != NULL) {
+                        delete optr;
+                    }
 			return EUnknownNode;
 		}
 		/* end of link processing */
@@ -678,6 +681,9 @@ int QueryReferenceResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResu
 					*ec << "[QE] Error in getObjectPointer";
 					qe->antyStarveFunction(errcode);
 					qe->inTransaction = false;
+                                        if (optr != NULL) {
+                                            delete optr;
+                                        }
 					return errcode;
 				}
 				string tmp_name = optr->getName();
@@ -706,7 +712,10 @@ int QueryReferenceResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResu
 						*ec << "[QE] Error in getObjectPointer";
 						qe->antyStarveFunction(errcode);
 						qe->inTransaction = false;
-						return errcode;
+						if (optr != NULL) {
+                                                    delete optr;
+                                                }
+                                                return errcode;
 					}
 					string tmp_name = optr->getName();
 					if (filterOut)
@@ -735,6 +744,9 @@ int QueryReferenceResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResu
 			default : {
 				*ec << "[QE] nested(): ERROR! QueryReferenceResult pointing unknown format value";
 				*ec << (ErrQExecutor | EUnknownValue);
+                                if (optr != NULL) {
+                                    delete optr;
+                                }
 				return (ErrQExecutor | EUnknownValue);
 				break;
 			}
@@ -751,7 +763,12 @@ int QueryReferenceResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResu
 			string view_name = "";
 			string view_code = "";
 			errcode = qe->checkViewAndGetVirtuals(tmp_logID, view_name, view_code);
-			if (errcode != 0) return errcode;
+			if (errcode != 0) {
+                            if (optr != NULL) {
+                                delete optr;
+                            }
+                            return errcode;
+                        }
 			
 			vector<QueryBagResult*> envs_sections;
 			envs_sections.push_back((QueryBagResult *) r);
@@ -781,6 +798,9 @@ int QueryReferenceResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResu
 			}
 		}
 	}
+        if (optr != NULL) {
+            delete optr;
+        }
 	return 0;
 }
 

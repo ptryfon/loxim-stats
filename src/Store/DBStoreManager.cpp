@@ -205,7 +205,11 @@ namespace Store
 		int rval = PageManager::deserialize(tid, pPtr, p_id->offset, object);
 
 		pPtr->release(tid, 0);
-
+                //gtimoszuk
+                if (pPtr != NULL) {
+                    delete pPtr;
+                }
+                
 		if(rval) {
 			*ec << "Store::Manager::getObject failed";
 			return -1;

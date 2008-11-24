@@ -163,9 +163,14 @@ namespace LoximServer{
 								return 0;
 							}
 						} else if (*error == 0){
+                                                        //DataPart *sres = session->serialize_res(qres);
 							if ((*error = session->respond(session->serialize_res(qres)))){
+                                                                //delete sres;
+                                                                //delete qres;
 								return 0;
 							}
+                                                        //delete sres;
+                                                        //delete qres;
 						} else
 							/* execution was aborted */
 							return 1;
