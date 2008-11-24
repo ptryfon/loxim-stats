@@ -7,7 +7,7 @@
   do najstarszego tzn offsety 0 1 2 odpowiadaja obiektom <2.1.0.KONIECSTRONY>
 */
 #include <iostream>
-#include <Store/DBLogicalID.h>
+    #include <Store/DBLogicalID.h>
 #include <Store/DBObjectPointer.h>
 #include <Store/DBDataValue.h>
 #include <Errors/ErrorConsole.h>
@@ -152,6 +152,7 @@ namespace Store
                 if (value != NULL) {
                     delete value;
                 }
+                
                 if (lid != NULL) {
                     delete lid;
                 }

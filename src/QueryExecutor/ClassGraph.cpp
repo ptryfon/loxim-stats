@@ -607,10 +607,11 @@ int ClassGraph::fetchExtInvariantNamesForLid(LogicalID* lid, Transaction *&tr, Q
 		invariantsNames.erase(objectName);
 	}
         //gtimoszuk
+        
         if (optr != NULL) {
             delete optr;
         }
-
+        
 	return 0;
 }
 

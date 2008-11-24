@@ -3296,9 +3296,11 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 		}
 	}
         //gtimoszuk
+        /*
         if (optr != NULL) {
             delete optr;
         }
+         */
         return 0;
 }
 

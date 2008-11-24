@@ -206,6 +206,7 @@ namespace Store
 
 		pPtr->release(tid, 0);
                 //gtimoszuk
+                
                 if (pPtr != NULL) {
                     delete pPtr;
                 }
