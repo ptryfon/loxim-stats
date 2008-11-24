@@ -4,6 +4,7 @@
 #include <string.h>
 #include <limits.h>
 #include <Indexes/const.h>
+#include <string>
 
 using namespace std;
 namespace Indexes {

@@ -24,7 +24,7 @@ namespace Logs
   class LogThread
   {
     protected:
-    queue< LogRecord * > queue;
+    std::queue< LogRecord * > queue;
     pthread_t thread;
     bool threadFlag;
     pthread_cond_t threadFlagCV;

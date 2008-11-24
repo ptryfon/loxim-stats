@@ -4,6 +4,7 @@
 #include <readline/history.h>
 #include <string>
 #include <termio.h>
+#include <cstdlib>
 
 using namespace std;
 

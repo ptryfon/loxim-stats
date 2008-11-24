@@ -1,7 +1,7 @@
 #include <ARIESLog/Logs.h>
 #include <Errors/Errors.h>
 #include <SystemStats/AllStats.h>
-
+#include <string.h>
 
 namespace Logs 
 {

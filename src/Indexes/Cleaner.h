@@ -3,6 +3,7 @@
 
 #include <Indexes/RootEntry.h>
 #include <Indexes/Comparator.h>
+#include <memory>
 
 using namespace std;
 namespace Indexes {

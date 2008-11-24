@@ -1,5 +1,6 @@
 #include <string>
 #include <Errors/Errors.h>
+#include <string.h>
 
 using namespace std;
 
@@ -176,7 +177,7 @@ struct ErrorMessages {
 				break;
 		}
 		if ((error & ~ErrAllModules) < 0x100) {
-			str = strerror(error & ~ErrAllModules);
+			str = ::strerror(error & ~ErrAllModules);
 		} else {
 			int erridx = (error & ~ErrAllModules);
 			int i = 0;

@@ -33,7 +33,7 @@ namespace QParser
 		QueryParser();
 		QueryParser(int sessionId);
 		QueryParser(int sessionId, bool readConfig);
-		virtual int parseIt (int sessionId, string s, TreeNode *&aTree, string &s, bool toBeTypeChecked, bool toBeOptimized);
+		virtual int parseIt (int sessionId, string s, TreeNode *&aTree, string &s2, bool toBeTypeChecked, bool toBeOptimized);
 		virtual int parseIt (int sessionId, string s, TreeNode *&aTree);
 		virtual bool usesMdn() {return (shouldOptimize || shouldTypeCheck);}
 		virtual int testTypeCheck(TreeNode *qTree);

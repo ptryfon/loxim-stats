@@ -344,11 +344,11 @@ namespace Config {
 			while (opt != NULL) {
 				popt = opt;
 				opt = opt->nextOpt;
-				std::free(popt);
+				::free(popt);
 			}
 			pmod = mod;
 			mod = mod->nextMod;
-			std::free(pmod);
+			::free(pmod);
 		}
 		config = NULL;
 	};

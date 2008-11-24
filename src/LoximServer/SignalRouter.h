@@ -37,7 +37,7 @@ namespace LoximServer{
 
 	class SignalRouter{
 		private:
-			static map<pthread_t, Receiver*> map;
+			static std::map<pthread_t, Receiver*> map;
 		public:
 			static void register_thread(pthread_t, Receiver*);
 			static void register_thread(pthread_t, recv_fun_t handler, void *arg);

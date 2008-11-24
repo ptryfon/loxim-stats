@@ -4,6 +4,7 @@
 #include <readline/history.h>
 #include <errno.h>
 #include <string.h>
+#include <cstdlib>
 
 using namespace std;
 

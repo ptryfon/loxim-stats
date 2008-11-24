@@ -4,6 +4,7 @@
 #include <TransactionManager/Transaction.h>
 #include <QueryExecutor/QueryResult.h>
 #include <vector>
+#include <memory>
 
 using namespace std;
 using namespace QExecutor;

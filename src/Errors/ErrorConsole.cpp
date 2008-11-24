@@ -5,6 +5,7 @@
 #include <Errors/ErrorConsole.h>
 #include <Errors/Errors.h>
 #include <Config/SBQLConfig.h>
+#include <string.h>
 
 using namespace std;
 using namespace Config;
