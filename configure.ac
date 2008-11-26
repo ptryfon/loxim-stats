@@ -22,6 +22,6 @@ AC_CONFIG_FILES([Makefile src/Makefile src/Log/Makefile src/Lock/Makefile
 		src/protocol/sockets/Makefile src/protocol/streams/Makefile
 		src/protocol/layers/Makefile src/protocol/ptools/Makefile
 		src/LoximServer/Makefile src/TypeCheck/Makefile
-		src/Config/Makefile])
+		src/Config/Makefile Documentation/Makefile])
 AC_OUTPUT
 

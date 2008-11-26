@@ -1,0 +1,55 @@
+[Errors]
+logfile=/tmp/loxim_error_log
+stderr=2
+
+[Store]
+store_file_default=/tmp/loxim_default
+store_file_map=/tmp/loxim_map
+store_file_roots=/tmp/loxim_roots
+store_file_views=/tmp/loxim_views
+store_file_fclasses=/tmp/loxim_classes
+store_file_interfaces=/tmp/loxim_interfaces
+
+store_buffer_maxpages=512
+store_buffer_maxdirty=32
+
+[Backup]
+backup_file_default=/tmp/loxim_default.bak
+backup_file_map=/tmp/loxim_map.bak
+backup_file_roots=/tmp/loxim_roots.bak
+
+[Server]
+lockpath=/tmp/loxim_lock.lck
+accept_interval=5
+read_interval=30
+keep_alive_interval=20
+max_sessions=5
+package_size=131072
+auth_trust_allowed=on
+
+
+[QueryParser]
+optimisation=off
+debugMode=off
+type_checking=off
+
+# what should be done when metadata is incomplete. (No effect when type_checking is off).
+# values: perform_query / return_error / ...
+metadata_incomplete_action=perform_query
+
+[Log]
+logspath=/tmp/loxim_logs
+
+[Index]
+# in which root object should indices metadata be stored
+index_metadata=__INDEX__
+
+# should indices be used implicitly
+implicit_index_call=on
+
+# path to the file where indices' nodes are stored
+index_file=/tmp/loxim_indexdata
+
+# path to the file where indices' metadata is stored
+index_file_metadata=/tmp/loxim_indexmeta
+

@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
 	parse_args(argc, argv, &hostname, &port);
 
         SBQLConfig config("Server");
-	int error = config.init("Server.conf");
+	int error = config.init();
 	if (error) {
 	    fprintf(stderr, "Config init failed with %d\n", error);
 	    exit(1);

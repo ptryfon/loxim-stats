@@ -7,6 +7,8 @@
 #include <Config/SBQLConfig.h>
 #include <SystemStats/ConfigStats.h>
 #include <SystemStats/AllStats.h>
+#include <unistd.h>
+#include <pwd.h>
 
 using namespace std;
 using namespace Errors;
@@ -25,22 +27,21 @@ namespace Config {
 		callerModuleOpts = findConfigModule(callerModule);
 	};
 
-	int SBQLConfig::init(void) {
-		return init("");
-	};
-
-	int SBQLConfig::init(string file)
+	int SBQLConfig::init()
 	{
 		ifstream configFile;
 		char *c1, *c2, *n, *v;
 		char line[256];
 		struct ModuleOptions *mod, *lastmod;
 		struct ConfOpt *opt, *lastopt;
-
-		if (file.empty())
-			configFile.open("sbql.conf");
-		else
-			configFile.open(file.c_str());
+		struct passwd *passwd = getpwuid(geteuid());
+		if (passwd){
+			string file_name = string(passwd->pw_dir) + "/.loxim.conf";
+			if (!access(file_name.c_str(), R_OK))
+				configFile.open(file_name.c_str());
+		}
+		if (!configFile.is_open())
+			configFile.open("/etc/loxim.conf");
 
 		if (!configFile.is_open())
 			return ErrConfig | ENoFile;
