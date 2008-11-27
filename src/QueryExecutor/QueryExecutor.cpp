@@ -3178,8 +3178,9 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 				}
 				case Store::Pointer: {
 					*ec << "[QE] derefQuery() - ObjectValue = Pointer";
-					LogicalID *tmp_value = value->getPointer();
-					res = new QueryReferenceResult(tmp_value);
+					LogicalID *tmp_value = new DBLogicalID(*value->getPointer());
+					//LogicalID *tmp_value = value->getPointer();
+                                        res = new QueryReferenceResult(tmp_value);
 					break;
 				}
 				case Store::Vector: {
@@ -3195,7 +3196,7 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 					res = new QueryStructResult();
 					int tmp_vec_size = tmp_vec->size();
 					for (int i = 0; i < tmp_vec_size; i++) {
-						LogicalID *currID = tmp_vec->at(i);
+						LogicalID *currID = new DBLogicalID(*tmp_vec->at(i));
 						ObjectPointer *currOptr;
 						errcode = tr->getObjectPointer(currID, Store::Read, currOptr, false);
 						if (errcode != 0) {
@@ -3230,6 +3231,10 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 						this->derefQuery(currIDRes, currInside);
 						QueryResult *currBinder = new QueryBinderResult(currName, currInside);
 						res->addResult(currBinder);
+                                                //gtimoszuk
+                                                if (currOptr != NULL) {
+                                                    delete currOptr;
+                                                }
 					}
 					break;
 				}
@@ -3296,11 +3301,11 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 		}
 	}
         //gtimoszuk
-        /*
+        
         if (optr != NULL) {
             delete optr;
         }
-         */
+         
         return 0;
 }
 
@@ -7014,6 +7019,7 @@ int QueryExecutor::createObjectAndPutOnQRes(DBDataValue* dbValue, string objectN
 QueryExecutor::~QueryExecutor() {
 	if (inTransaction) tr->abort();
 	inTransaction = false;
+        envs->deleteAll();
 	delete envs;
 	delete qres;
 	sent_virtuals.clear();

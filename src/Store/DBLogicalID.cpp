@@ -84,6 +84,7 @@ namespace Store
 		this->remoteID = remoteID;
 	}
 
+        //gtimoszuk why getDirectParent not getDirectParenty
 	LogicalID* DBLogicalID::getDirectParent() const
 	{
 		return directParentID;

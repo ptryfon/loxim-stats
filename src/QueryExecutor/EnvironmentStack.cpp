@@ -544,15 +544,17 @@ int QueryResult::nested_and_push_on_envs(QueryExecutor * qe, Transaction *&tr) {
 			}				
 		}	
 	}
-	
+	//FIXME gtimoszuk fix it!!!
 	bool classFound;
 	for (unsigned int i = 0; i < dataVal_vec.size(); i++) {
 		classFound = false;
 		errcode = qe->getEnvs()->pushClasses(dataVal_vec.at(i), qe, classFound);
 		if(errcode != 0) return errcode;
 	}
-	
-	return 0;
+
+        //dataVal_vec.clear();
+        //delete &dataVal_vec;
+        return 0;
 }
 
 
@@ -639,16 +641,26 @@ int QueryReferenceResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResu
 	/* end of remoteID processing */
 	
 	ObjectPointer *optr = NULL;
+        ObjectPointer *GTpom  = NULL;
 	if (value != NULL) {
 		if ((errcode = tr->getObjectPointer(value, Store::Read, optr, false)) != 0) {
 			*ec << "[QE] Error in getObjectPointer";
 			qe->antyStarveFunction(errcode);
 			qe->inTransaction = false;
+                        //gtimoszuk
+                        if (optr  != NULL) {
+                            delete  optr;
+                        }
+
 			return errcode;
 		}
+                GTpom = optr;
+                //gtimoszuk simple hack to be able to free optr later (which is GTpom)...
+                //yes making memory leak to deal w with another memory leak...
+		DataValue* dataVal = new DBDataValue(*optr->getValue());
 
-		DataValue* dataVal = optr->getValue();
-		dataVal_vec.push_back(dataVal);
+                //DataValue* dataVal = optr->getValue();
+                dataVal_vec.push_back(dataVal);
 		
 		/* Link */
 		if (dataVal->getSubtype() == Store::Link) {
@@ -676,7 +688,7 @@ int QueryReferenceResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResu
 				break;
 			}
 			case Store::Pointer: {
-				LogicalID *tmp_logID = (dataVal->getPointer());
+				LogicalID *tmp_logID = dataVal->getPointer();
 				if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, optr, false)) != 0) {
 					*ec << "[QE] Error in getObjectPointer";
 					qe->antyStarveFunction(errcode);
@@ -689,7 +701,7 @@ int QueryReferenceResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResu
 				string tmp_name = optr->getName();
 				QueryReferenceResult *final_ref = new QueryReferenceResult(tmp_logID);
 				QueryBinderResult *final_binder = new QueryBinderResult(tmp_name, final_ref);
-				*ec << "[QE] nested(): QueryReferenceResult pointing reference value";
+				*ec << "[QE] nested(): valuevalueQueryReferenceResult pointing reference value";
 				r->addResult(final_binder);
 				ec->printf("[QE] nested(): new QueryBinderResult returned name: %s\n", tmp_name.c_str());
 				
@@ -708,16 +720,17 @@ int QueryReferenceResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResu
 				
 				for (int i = 0; i < vec_size; i++ ) {
 					LogicalID *tmp_logID = tmp_vec->at(i);
-					if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, optr, false)) != 0) {
+                                        ObjectPointer *optr2;
+					if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, optr2, false)) != 0) {
 						*ec << "[QE] Error in getObjectPointer";
 						qe->antyStarveFunction(errcode);
 						qe->inTransaction = false;
-						if (optr != NULL) {
-                                                    delete optr;
+						if ((optr2 != NULL) && !(*optr == *optr2)) {
+                                                    delete optr2;
                                                 }
                                                 return errcode;
 					}
-					string tmp_name = optr->getName();
+					string tmp_name = optr2->getName();
 					if (filterOut)
 					{
 						if (namesVisible.find(tmp_name) == namesVisible.end())
@@ -734,10 +747,13 @@ int QueryReferenceResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResu
 					ec->printf("[QE] nested(): new QueryBinderResult returned name: %s\n", tmp_name.c_str());
 					
 					DataValue* tdv;
-					tdv = optr->getValue();
+					tdv = optr2->getValue();
 					if ((dataVal->getSubtype() != Store::View) && (tdv->getType() == Store::Vector) && (tdv->getSubtype() == Store::View)) {
 						subviews_vector.push_back(tmp_logID);
 					}
+                                        if ((optr2 != NULL) && !(*optr == *optr2)) {
+                                            delete optr2;
+                                        }
 				}
 				break;
 			}
@@ -797,10 +813,19 @@ int QueryReferenceResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResu
 				ec->printf("[QE] nested(): new QueryVirtualResult returned name: %s\n", view_name.c_str());
 			}
 		}
+            if (GTpom != NULL) {
+                ///ObjectPointer objp = *GTpom;
+                //printf("%d \n", objp.getName());
+            delete GTpom;
+            }
 	}
-        if (optr != NULL) {
+        /*if (optr != NULL) {
+            //ObjectPointer objp2 = *optr;
+            //printf("%d \n", objp2.getName());
             delete optr;
         }
+        */
+         
 	return 0;
 }
 

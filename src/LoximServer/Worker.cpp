@@ -165,12 +165,20 @@ namespace LoximServer{
 						} else if (*error == 0){
                                                         //DataPart *sres = session->serialize_res(qres);
 							if ((*error = session->respond(session->serialize_res(qres)))){
-                                                                //delete sres;
-                                                                //delete qres;
+                                                            //delete sres;
+                                                            //delete qres;
+                                                            //gtimoszuk
+                                                            if (qres != NULL) {
+                                                                delete qres;
+                                                            }
 								return 0;
 							}
                                                         //delete sres;
                                                         //delete qres;
+                                                                                                                    //gtimoszuk
+                                                            if (qres != NULL) {
+                                                                delete qres;
+                                                            }
 						} else
 							/* execution was aborted */
 							return 1;
