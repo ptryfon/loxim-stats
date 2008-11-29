@@ -8,8 +8,8 @@
 #include <Errors/Exceptions.h>
 #include <SystemStats/AllStats.h>
 #include <SystemStats/SessionStats.h>
-#include <LoximServer/SignalRouter.h>
-#include <LoximServer/LoximSession.h>
+#include <Server/SignalRouter.h>
+#include <Server/Session.h>
 #include <Util/Locker.h>
 #include <protocol/constants.h>
 #include <protocol/auth/auth.h>
@@ -48,7 +48,7 @@ using namespace std;
 using namespace SystemStatsLib;
 using namespace Util;
 
-namespace LoximServer{
+namespace Server{
 
 
 	ProtocolLayerWrap::ProtocolLayerWrap(ProtocolLayer0 &layer0) : layer0(layer0)
@@ -82,17 +82,17 @@ namespace LoximServer{
 
 	static void *thread_start_continue(void *arg)
 	{
-		((LoximSession*)arg)->main_loop();
+		((Session*)arg)->main_loop();
 		return 0;
 	}
 
 	void LS_signal_handler(pthread_t thread, int sig, void* arg)
 	{
-		((LoximSession*)arg)->handle_signal(sig);
+		((Session*)arg)->handle_signal(sig);
 	}
 
 
-	LoximSession::LoximSession(LoximServer &server, auto_ptr<AbstractSocket>
+	Session::Session(Server &server, auto_ptr<AbstractSocket>
 			&socket, ErrorConsole &err_cons) :
 		server(server), socket(socket), err_cons(err_cons),
 		id(get_new_id()), shutting_down(false), error(0), qEx(this),
@@ -113,46 +113,46 @@ namespace LoximServer{
 				&stats);
 	}
 
-	LoximSession::~LoximSession()
+	Session::~Session()
 	{
 		AllStats::getHandle()->getSessionsStats()->removeSessionStats(sessionid);
 		AllStats::getHandle()->getQueriesStats()->endSession(this->id);
 	}
 
-	uint64_t LoximSession::get_id() const
+	uint64_t Session::get_id() const
 	{
 		return id;
 	}
 
-	LoximServer &LoximSession::get_server() const
+	Server &Session::get_server() const
 	{
 		return server;
 	}
 
-	pthread_t LoximSession::get_thread() const
+	pthread_t Session::get_thread() const
 	{
 		return thread;
 	}
 
-	const UserData *LoximSession::get_user_data() const
+	const UserData *Session::get_user_data() const
 	{
 		return user_data.get();
 	}
 
-	void LoximSession::set_user_data(auto_ptr<UserData> &user_data)
+	void Session::set_user_data(auto_ptr<UserData> &user_data)
 	{
 		this->user_data = auto_ptr<UserData>(user_data);
 	}
 
 
-	void LoximSession::start()
+	void Session::start()
 	{
 		//pthread_create(&thread, NULL, thread_start_continue, this);
 		SignalRouter::spawn_and_register(&thread, thread_start_continue,
 				LS_signal_handler, this, SIGUSR1);
 	}
 
-	void LoximSession::main_loop()
+	void Session::main_loop()
 	{
 		qEx.set_priviliged_mode(true);
 		qEx.initCg();
@@ -172,21 +172,21 @@ namespace LoximServer{
 		pthread_exit(0);
 	}
 
-	void LoximSession::shutdown()
+	void Session::shutdown()
 	{
 		pthread_kill(thread, SIGUSR1);
 	}
 
 
-	uint64_t LoximSession::next_id = 0;
+	uint64_t Session::next_id = 0;
 
-	uint64_t LoximSession::get_new_id()
+	uint64_t Session::get_new_id()
 	{
 		return next_id++;
 	}
 
 
-	DataPart *LoximSession::serialize_res(const QueryResult &qr) const
+	DataPart *Session::serialize_res(const QueryResult &qr) const
 	{
 		DataPart **dparts, *dp;
 		QueryBinderResult *qbr;
@@ -247,7 +247,7 @@ namespace LoximServer{
 	}
 
 
-	void LoximSession::respond(auto_ptr<DataPart> &qres)
+	void Session::respond(auto_ptr<DataPart> &qres)
 	{
 		Locker l(send_mutex);
 		layer0.write_package(VSCSendValuesPackage());
@@ -258,13 +258,13 @@ namespace LoximServer{
 		err_cons.printf("Sending values finished\n");
 	}
 
-	void LoximSession::send_bye()
+	void Session::send_bye()
 	{
 		Locker l(send_mutex);
 		layer0.write_package(ASCByePackage("bye from server"));
 	}
 
-	void LoximSession::send_error(int error, const string &descr)
+	void Session::send_error(int error, const string &descr)
 	{
 		Locker l(send_mutex);
 		
@@ -273,12 +273,12 @@ namespace LoximServer{
 					0));
 	}
 
-	void LoximSession::send_error(int error)
+	void Session::send_error(int error)
 	{
 		return send_error(error, Errors::SBQLstrerror(error));
 	}
 
-	bool LoximSession::init_phase()
+	bool Session::init_phase()
 	{
 		layer0.read_package(ID_WCHelloPackage);
 		err_cons.printf("Got WCHELLO\n");
@@ -307,7 +307,7 @@ namespace LoximServer{
 
 	}
 
-	bool LoximSession::authorize(const string &login, const string &passwd)
+	bool Session::authorize(const string &login, const string &passwd)
 	{
 		auto_ptr<QueryResult> qres;
 		int res;
@@ -331,7 +331,7 @@ namespace LoximServer{
 		}
 	}
 
-	int LoximSession::free_state()
+	int Session::free_state()
 	{
 
 		auto_ptr<Package> package;
@@ -380,7 +380,7 @@ namespace LoximServer{
 	}
 
 
-	auto_ptr<QueryResult> LoximSession::execute_statement(const string &stmt)
+	auto_ptr<QueryResult> Session::execute_statement(const string &stmt)
 	{
 		AllStats::getHandle()->getQueriesStats()->beginExecuteQuery(get_id(), stmt.c_str());
 
@@ -423,7 +423,7 @@ namespace LoximServer{
 	}
 
 
-	void LoximSession::handle_signal(int i)
+	void Session::handle_signal(int i)
 	{
 		printf("Signal handler :)\n");
 		shutting_down = 1;
@@ -463,7 +463,7 @@ namespace LoximServer{
 		return NULL;
 	}
 
-	Worker::Worker(LoximSession &session, ErrorConsole &err_cons) :
+	Worker::Worker(Session &session, ErrorConsole &err_cons) :
 		session(session), err_cons(err_cons)
 	{
 		pthread_mutex_init(&mutex, 0);
@@ -645,7 +645,7 @@ namespace LoximServer{
 		return NULL;
 	}
 
-	KeepAliveThread::KeepAliveThread(LoximSession &session, ErrorConsole &err_cons) :
+	KeepAliveThread::KeepAliveThread(Session &session, ErrorConsole &err_cons) :
 		session(session), err_cons(err_cons)
 	{
 		pthread_mutex_init(&(this->cond_mutex), 0);

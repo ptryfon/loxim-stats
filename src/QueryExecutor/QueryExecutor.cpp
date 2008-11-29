@@ -25,7 +25,7 @@
 #include <InterfaceMatcher.h>
 #include <InterfaceMaps.h>
 #include <TypeCheck/DecisionTable.h>
-#include <LoximServer/LoximSession.h>
+#include <Server/Session.h>
 #include <BindNames.h>
 
 using namespace QParser;
@@ -34,7 +34,7 @@ using namespace Errors;
 using namespace Store;
 using namespace Indexes;
 using namespace std;
-using namespace LoximServer;
+using namespace Server;
 using namespace Schemas;
 
 namespace QExecutor {

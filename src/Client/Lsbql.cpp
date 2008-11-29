@@ -3,11 +3,11 @@
 
 #include <getopt.h>
 #include <string.h>
-#include <LoximClient/LoximClient.h>
-#include <LoximClient/ClientConsole.h>
+#include <Client/Client.h>
+#include <Client/ClientConsole.h>
 
-#include <LoximClient/ReadlineReader.h>
-#include <LoximClient/ConsoleAuthenticator.h>
+#include <Client/ReadlineReader.h>
+#include <Client/ConsoleAuthenticator.h>
 #include <signal.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -18,7 +18,7 @@
 
 using namespace protocol;
 
-LoximClient::LoximClient *loximClient;
+Client::Client *loximClient;
 
 void sig_handler(int a)
 {
@@ -52,7 +52,7 @@ bool is_number(char *n)
 
 
 /**
- * Metoda parsuje opcje i przekazuje je do klasy LoximClient 
+ * Metoda parsuje opcje i przekazuje je do klasy Client 
  */
 int main(int argc, char* argv[])
 {
@@ -139,7 +139,7 @@ int main(int argc, char* argv[])
 		}
 	}while (next_option != -1);
 	
-	loximClient=new LoximClient::LoximClient(hostname?hostname:DEFAULT_HOST, port);
+	loximClient=new Client::Client(hostname?hostname:DEFAULT_HOST, port);
 	int res=loximClient->connect();
 	if (res<0)
 	{
@@ -154,14 +154,14 @@ int main(int argc, char* argv[])
 		printf("Connected :)\n");
 		if (isatty(0))
 			printf("Type $help to see the available commands\n");
-		LoximClient::ConsoleAuthenticator *auth;
+		Client::ConsoleAuthenticator *auth;
 		if (login && password)
-			auth = new LoximClient::ConsoleAuthenticator(login, password);
+			auth = new Client::ConsoleAuthenticator(login, password);
 		else
 			if (login)
-				auth = new LoximClient::ConsoleAuthenticator(login);
+				auth = new Client::ConsoleAuthenticator(login);
 			else
-				auth = new LoximClient::ConsoleAuthenticator();
+				auth = new Client::ConsoleAuthenticator();
 		auth->read();
 		res=loximClient->authorize(auth);
 		delete auth;
@@ -169,11 +169,11 @@ int main(int argc, char* argv[])
 		{
 			printf("\nAuthorized :)\n");
 
-			LoximClient::ClientConsole *cc;
+			Client::ClientConsole *cc;
 			if (file)
-				cc = new LoximClient::ClientConsole(mode, file);
+				cc = new Client::ClientConsole(mode, file);
 			else
-				cc = new LoximClient::ClientConsole(mode);
+				cc = new Client::ClientConsole(mode);
 			res=loximClient->run(cc);
 			delete cc;
 		}else

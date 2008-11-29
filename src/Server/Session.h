@@ -3,7 +3,7 @@
 
 
 #include <string>
-#include <LoximServer/LoximSession.h>
+#include <Server/Session.h>
 #include <QueryParser/QueryParser.h>
 #include <QueryExecutor/QueryExecutor.h>
 #include <SystemStats/SessionStats.h>
@@ -11,17 +11,17 @@
 #include <protocol/sockets/AbstractSocket.h>
 #include <protocol/layers/ProtocolLayer0.h>
 #include <protocol/packages/data/DataPart.h>
-#include <LoximServer/LoximServer.h>
-#include <LoximServer/Clipboard.h>
+#include <Server/Server.h>
+#include <Server/Clipboard.h>
 
 using namespace protocol;
 using namespace SystemStatsLib;
 
-namespace LoximServer{
-	class LoximServer;
+namespace Server{
+	class Server;
 	class Worker;
 	class KeepAliveThread;
-	class LoximSession;
+	class Session;
 
 	class UserData {
 		protected:
@@ -55,7 +55,7 @@ namespace LoximServer{
 			pthread_t thread;
 			pthread_mutex_t mutex;
 			int shutting_down;
-			LoximSession &session;
+			Session &session;
 			pthread_cond_t idle_cond, completion_cond;
 			auto_ptr<Package> cur_package;
 			ErrorConsole &err_cons;
@@ -69,7 +69,7 @@ namespace LoximServer{
 				SUBM_ERROR        /* the package shouldn't have arrived now */
 			};
 
-			Worker(LoximSession &session, ErrorConsole &err_cons);
+			Worker(Session &session, ErrorConsole &err_cons);
 			void start();
 			void cancel_job(bool synchrounous, bool mutex_locked);
 
@@ -94,33 +94,33 @@ namespace LoximServer{
 			pthread_cond_t cond;
 			pthread_mutex_t cond_mutex;
 			void main_loop();
-			LoximSession &session;
+			Session &session;
 			pthread_t thread;
 			ErrorConsole &err_cons;
 			int error;
 			bool answer_received;
 		public:
-			KeepAliveThread(LoximSession &session, ErrorConsole &err_cons);
+			KeepAliveThread(Session &session, ErrorConsole &err_cons);
 			int start();
 			int shutdown();
 			void set_answered();
 	};
 
 
-	class LoximSession{
+	class Session{
 		friend class KeepAliveThread;
 		friend class Worker;
 		friend void LS_signal_handler(pthread_t, int, void*);
 		public:
 			/** 
 			 * the creator should take care to create objects synchronously,
-			 * however only LoximServer should do this, so there is no problem
+			 * however only Server should do this, so there is no problem
 			 */
-			LoximSession(LoximServer &server, auto_ptr<AbstractSocket> &socket, ErrorConsole &err_cons);
-			~LoximSession();
+			Session(Server &server, auto_ptr<AbstractSocket> &socket, ErrorConsole &err_cons);
+			~Session();
 			
 			uint64_t get_id() const;
-			LoximServer &get_server() const;
+			Server &get_server() const;
 			pthread_t get_thread() const;
 
 			//deprecated and dangerous (overrides  smart pointer)
@@ -143,7 +143,7 @@ namespace LoximServer{
 			auto_ptr<UserData> user_data;
 			ErrorConsole &err_cons;
 			auto_ptr<AbstractSocket> socket;
-			LoximServer &server;
+			Server &server;
 			ProtocolLayer0 bare_layer0;
 			ProtocolLayerWrap layer0;
 			QueryParser qPa;

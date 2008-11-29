@@ -2,7 +2,7 @@
 #include <iostream>
 
 namespace AdminParser{
-    int ShutdownTreeNode::execute(LoximServer::LoximSession *session)
+    int ShutdownTreeNode::execute(Server::Session *session)
     {
 	session->get_server().shutdown();
 	return 0;

@@ -32,7 +32,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-subdir = src/LoximServer
+subdir = src/Server
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
@@ -41,10 +41,10 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 mkinstalldirs = $(install_sh) -d
 CONFIG_CLEAN_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
-libLoximServer_la_LIBADD =
-am_libLoximServer_la_OBJECTS = Clipboard.lo LoximServer.lo \
-	LoximSession.lo SignalRouter.lo Server.lo
-libLoximServer_la_OBJECTS = $(am_libLoximServer_la_OBJECTS)
+libServer_la_LIBADD =
+am_libServer_la_OBJECTS = Clipboard.lo Server.lo Session.lo \
+	SignalRouter.lo loxim_server.lo
+libServer_la_OBJECTS = $(am_libServer_la_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -66,8 +66,8 @@ CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-SOURCES = $(libLoximServer_la_SOURCES)
-DIST_SOURCES = $(libLoximServer_la_SOURCES)
+SOURCES = $(libServer_la_SOURCES)
+DIST_SOURCES = $(libServer_la_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -184,8 +184,8 @@ sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-noinst_LTLIBRARIES = libLoximServer.la
-libLoximServer_la_SOURCES = Clipboard.cpp Clipboard.h LoximServer.cpp LoximServer.h LoximSession.cpp LoximSession.h SignalRouter.cpp SignalRouter.h Server.cpp
+noinst_LTLIBRARIES = libServer.la
+libServer_la_SOURCES = Clipboard.cpp Clipboard.h Server.cpp Server.h Session.cpp Session.h SignalRouter.cpp SignalRouter.h loxim_server.cpp
 INCLUDES = -I$(top_srcdir)/src
 all: all-am
 
@@ -200,9 +200,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  src/LoximServer/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  src/Server/Makefile'; \
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign  src/LoximServer/Makefile
+	  $(AUTOMAKE) --foreign  src/Server/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -229,8 +229,8 @@ clean-noinstLTLIBRARIES:
 	  echo "rm -f \"$${dir}/so_locations\""; \
 	  rm -f "$${dir}/so_locations"; \
 	done
-libLoximServer.la: $(libLoximServer_la_OBJECTS) $(libLoximServer_la_DEPENDENCIES) 
-	$(CXXLINK)  $(libLoximServer_la_OBJECTS) $(libLoximServer_la_LIBADD) $(LIBS)
+libServer.la: $(libServer_la_OBJECTS) $(libServer_la_DEPENDENCIES) 
+	$(CXXLINK)  $(libServer_la_OBJECTS) $(libServer_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -239,10 +239,10 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Clipboard.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/LoximServer.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/LoximSession.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Server.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Session.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SignalRouter.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/loxim_server.Plo@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<

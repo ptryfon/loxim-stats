@@ -4,7 +4,7 @@
 #include <string>
 #include <AdminParser/AdminLexer.h>
 #include <AdminParser/parser.h>
-#include <LoximServer/LoximSession.h>
+#include <Server/Session.h>
 #include <AdminParser/AdminExecutableTreeNode.h>
 #include <pthread.h>
 
@@ -12,7 +12,7 @@ namespace AdminParser{
     class AdminExecutor{
 	public:
 	    static AdminExecutor *get_instance();
-	    int execute(std::string, LoximServer::LoximSession *session);
+	    int execute(std::string, Server::Session *session);
 	private:
 	    AdminExecutor();
 	    ~AdminExecutor();

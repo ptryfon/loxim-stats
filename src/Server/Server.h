@@ -3,7 +3,7 @@
 
 #include <set>
 #include <string>
-#include <LoximServer/LoximSession.h>
+#include <Server/Session.h>
 #include <protocol/sockets/TCPIPServerSocket.h>
 #include <Config/SBQLConfig.h>
 #include <pthread.h>
@@ -26,12 +26,12 @@ using namespace _smptr;
 #define CONFIG_KEEP_ALIVE_INTERVAL_NAME "keep_alive_interval"
 #define CONFIG_KEEP_ALIVE_INTERVAL_DEFAULT 60
 
-namespace LoximServer{
+namespace Server{
 
 	void LSrv_signal_handler(pthread_t, int, void*);
 
-	class LoximSession;
-	class LoximServer{
+	class Session;
+	class Server{
 		friend void LSrv_signal_handler(pthread_t, int, void*);
 		private:
 			int config_accept_interval;
@@ -44,8 +44,8 @@ namespace LoximServer{
 			void handle_signal(int sig);
 		public:
 
-			LoximServer(const string &hostname, int port, const SBQLConfig &config);
-			~LoximServer();
+			Server(const string &hostname, int port, const SBQLConfig &config);
+			~Server();
 
 			// server settings specified in the configuration file
 			int get_config_accept_interval() const;
@@ -71,7 +71,7 @@ namespace LoximServer{
 		protected:
 			ErrorConsole err_cons;
 			int prepared, shutting_down;
-			map<uint64_t, shared_ptr<LoximSession> > open_sessions;
+			map<uint64_t, shared_ptr<Session> > open_sessions;
 			pthread_mutex_t open_sessions_mutex;
 			auto_ptr<TCPIPServerSocket> socket;
 			string hostname;

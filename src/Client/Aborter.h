@@ -1,18 +1,18 @@
 #ifndef ABORTER_H
 #define ABORTER_H
 
-#include <LoximClient/LoximClient.h>
+#include <Client/Client.h>
 
-namespace LoximClient{
+namespace Client{
 
 	void *AB_starter(void *arg);
 
-	class LoximClient;
+	class Client;
 
 	class Aborter{
 		friend void *AB_starter(void *arg);
 		public:
-			Aborter(LoximClient *client);
+			Aborter(Client *client);
 			void start();
 			void stop();
 			void trigger();
@@ -21,7 +21,7 @@ namespace LoximClient{
 			pthread_cond_t cond;
 			pthread_t thread;
 			int shutting_down;
-			LoximClient *client;
+			Client *client;
 
 			void loop();
 

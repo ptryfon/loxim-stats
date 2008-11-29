@@ -28,7 +28,6 @@ namespace Errors {
 #define ErrIndexes		0x4200000
 #define ErrTypeChecker		0x4400000
 #define ErrUserProgram		0x4800000
-#define ErrLoximServer		0x8000000
 #define ErrLoximClient		0x8200000
 #define ErrAllModules		0xFF00000
 

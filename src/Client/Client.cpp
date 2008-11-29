@@ -1,4 +1,4 @@
-#include <LoximClient/LoximClient.h>
+#include <Client/Client.h>
 
 #include <string>
 #include <stdlib.h>
@@ -33,27 +33,27 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <stdio.h>
-#include <LoximClient/Authenticator.h>
+#include <Client/Authenticator.h>
 #include <readline/readline.h>
 #include <signal.h>
 
 #include <protocol/auth/auth.h>
 
 
-#define CLIENT_NAME 	"LoximClient"
+#define CLIENT_NAME 	"Client"
 #define CLIENT_VERSION "1.0"
 
 using namespace protocol;
 using namespace std;
 
-LoximClient::LoximClient *LoximClient::LoximClient::instance;
+Client::Client *Client::Client::instance;
 
-void LoximClient::signal_handler(int sig)
+void Client::signal_handler(int sig)
 {
-	LoximClient::instance->abort();
+	Client::instance->abort();
 }
 
-LoximClient::LoximClient::LoximClient(const char* a_hostname, int a_port)
+Client::Client::Client(const char* a_hostname, int a_port)
 {
 	hostname=strdup(a_hostname);
 	port=a_port;
@@ -64,7 +64,7 @@ LoximClient::LoximClient::LoximClient(const char* a_hostname, int a_port)
 	instance = this;
 }
 
-LoximClient::LoximClient::~LoximClient()
+Client::Client::~Client()
 {
 	delete aborter;
 	if (hostname)
@@ -78,7 +78,7 @@ LoximClient::LoximClient::~LoximClient()
 	instance = NULL;
 }
 
-int LoximClient::LoximClient::connect()
+int Client::Client::connect()
 {
 	if (socket)
 		return -1;
@@ -96,7 +96,7 @@ int LoximClient::LoximClient::connect()
 
 		
 
-int LoximClient::LoximClient::run(StatementProvider *provider)
+int Client::Client::run(StatementProvider *provider)
 {
 	string stmt;
 	waiting_for_result = false;
@@ -104,7 +104,7 @@ int LoximClient::LoximClient::run(StatementProvider *provider)
 	pthread_cond_init(&read_cond, 0);
 	pthread_t result_handler;
 	error = 0;
-	pthread_create(&result_handler, 0, ::LoximClient::result_handler_starter, this);
+	pthread_create(&result_handler, 0, ::Client::result_handler_starter, this);
 	pthread_mutex_t cond_mutex;
 	pthread_mutex_init(&cond_mutex, 0);
 
@@ -139,7 +139,7 @@ int LoximClient::LoximClient::run(StatementProvider *provider)
 	}
 }
 
-void LoximClient::LoximClient::abort()
+void Client::Client::abort()
 {
 	pthread_mutex_lock(&logic_mutex);
 	if (!waiting_for_result)
@@ -156,19 +156,19 @@ void LoximClient::LoximClient::abort()
 		pthread_mutex_unlock(&logic_mutex);
 }
 
-void *::LoximClient::result_handler_starter(void *a)
+void *::Client::result_handler_starter(void *a)
 {
-	((LoximClient::LoximClient*)a)->result_handler();
+	((Client::Client*)a)->result_handler();
 	return NULL;
 }
 
-void LoximClient::LoximClient::print_error(ASCErrorPackage *package)
+void Client::Client::print_error(ASCErrorPackage *package)
 {
 	printf("Got error %d: %s\n", package->getError_code(), package->getReason()->getBuffor());
 }
 
 
-void LoximClient::LoximClient::result_handler()
+void Client::Client::result_handler()
 {
 	VSCSendValuePackage *pack;
 	ASCErrorPackage *err_pack;
@@ -213,7 +213,7 @@ void LoximClient::LoximClient::result_handler()
 //-1 - received bye
 //-2 - received error report
 //>0 - error
-int LoximClient::LoximClient::receive_result(VSCSendValuePackage **res, ASCErrorPackage **err_res)
+int Client::Client::receive_result(VSCSendValuePackage **res, ASCErrorPackage **err_res)
 {
 	Package *p, *p2;
 	p = proto->readPackage();
@@ -267,7 +267,7 @@ int LoximClient::LoximClient::receive_result(VSCSendValuePackage **res, ASCError
 }
 
 
-string LoximClient::LoximClient::ind_gen(int width)
+string Client::Client::ind_gen(int width)
 {
     string res = "";
     for (int i = 0; i < width; i++)
@@ -275,7 +275,7 @@ string LoximClient::LoximClient::ind_gen(int width)
     return res;
 }
 
-void LoximClient::LoximClient::print_result(DataPart *part, int indent)
+void Client::Client::print_result(DataPart *part, int indent)
 {
 	int cnt;
 	switch (part->getDataType()){
@@ -324,7 +324,7 @@ void LoximClient::LoximClient::print_result(DataPart *part, int indent)
 	}
 }
 
-int LoximClient::LoximClient::authorize(Authenticator *auth)
+int Client::Client::authorize(Authenticator *auth)
 {
 	Package *p=new WCHelloPackage(getpid(),CLIENT_NAME,CLIENT_VERSION,"localhost","PLN",0,0);
 	if (!proto->writePackage(p))
@@ -376,7 +376,7 @@ int LoximClient::LoximClient::authorize(Authenticator *auth)
 
 
 
-int LoximClient::LoximClient::authTrust(CharArray* user)
+int Client::Client::authTrust(CharArray* user)
 {
 	Package *p=new WCLoginPackage(AUTH_TRUST);
 	if (!proto->writePackage(p))
@@ -424,7 +424,7 @@ int LoximClient::LoximClient::authTrust(CharArray* user)
 };
 
 
-int LoximClient::LoximClient::authPassMySQL(CharArray* user, CharArray* pass)
+int Client::Client::authPassMySQL(CharArray* user, CharArray* pass)
 {
 	Package *p=new WCLoginPackage(AUTH_TRUST);
 	if (!proto->writePackage(p))
@@ -471,7 +471,7 @@ int LoximClient::LoximClient::authPassMySQL(CharArray* user, CharArray* pass)
 	return 1;
 };
 
-void LoximClient::LoximClient::register_handler()
+void Client::Client::register_handler()
 {
 	struct sigaction s_action;
 	s_action.sa_handler = signal_handler;
@@ -481,7 +481,7 @@ void LoximClient::LoximClient::register_handler()
 	sigaction(SIGINT, &s_action, &old_action);
 }
 
-void LoximClient::LoximClient::unregister_handler()
+void Client::Client::unregister_handler()
 {
 	sigaction(SIGINT, &old_action, NULL);
 }

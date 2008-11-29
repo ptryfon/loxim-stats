@@ -1,8 +1,8 @@
-#include <LoximClient/StatementSimpleParser.h>
+#include <Client/StatementSimpleParser.h>
 #include <string.h>
 #include <stdlib.h>
 
-using namespace LoximClient;
+using namespace Client;
 
 StatementSimpleParser::StatementSimpleParser()
 {

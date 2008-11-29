@@ -6,7 +6,7 @@
 
 using namespace std;
 
-namespace LoximServer{
+namespace Server{
 
 	typedef void (*recv_fun_t)(pthread_t, int, void *);
 	void *SR_starter(void *arg);

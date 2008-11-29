@@ -7,7 +7,7 @@
 using namespace std;
 
 
-namespace LoximServer{
+namespace Server{
 	class Clipboard{
     	
 		public:

@@ -12,7 +12,7 @@ AdminParser::AdminExecutor *AdminParser::AdminExecutor::get_instance()
     return instance;
 }
 
-int AdminParser::AdminExecutor::execute(std::string stmt, LoximServer::LoximSession *session)
+int AdminParser::AdminExecutor::execute(std::string stmt, Server::Session *session)
 {
     pthread_mutex_lock(&exec_mutex);
     stringstream stream(stringstream::in | stringstream::out);

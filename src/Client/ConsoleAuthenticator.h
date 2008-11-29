@@ -2,14 +2,14 @@
 #define CONSOLE_AUTHENTICATOR_H
 
 #include <string>
-#include <LoximClient/Authenticator.h>
+#include <Client/Authenticator.h>
 
 using namespace std;
 
 #define ASK_FOR_PASSWORD 1
 #define ASK_FOR_BOTH 2
 
-namespace LoximClient{
+namespace Client{
 	class ConsoleAuthenticator : public Authenticator {
 	    protected:
 		string login;

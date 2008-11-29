@@ -3,17 +3,17 @@
 #include <list>
 #include <iostream>
 #include <protocol/sockets/TCPIPServerSocket.h>
-#include <LoximServer/LoximServer.h>
-#include <LoximServer/LoximSession.h>
-#include <LoximServer/SignalRouter.h>
+#include <Server/Server.h>
+#include <Server/Session.h>
+#include <Server/SignalRouter.h>
 
 using namespace std;
 
-namespace LoximServer{
+namespace Server{
 
-	LoximServer::LoximServer(const string &hostname, int port, const SBQLConfig &config) : 
+	Server::Server(const string &hostname, int port, const SBQLConfig &config) : 
 		prepared(0), shutting_down(0), hostname(hostname), port(port), 
-		err_cons("LoximServer")
+		err_cons("Server")
 	{
 		if (config.getInt(CONFIG_ACCEPT_INTERVAL_NAME, config_accept_interval))
 			config_accept_interval = CONFIG_ACCEPT_INTERVAL_DEFAULT;
@@ -30,12 +30,12 @@ namespace LoximServer{
 		pthread_mutex_init(&this->open_sessions_mutex, NULL);
 	}
 
-	LoximServer::~LoximServer()
+	Server::~Server()
 	{
 		pthread_mutex_destroy(&this->open_sessions_mutex);
 	}
 
-	int LoximServer::prepare()
+	int Server::prepare()
 	{
 		thread = pthread_self();
 		SignalRouter::register_thread(thread, LSrv_signal_handler, this);
@@ -49,7 +49,7 @@ namespace LoximServer{
 			return res; 
 	}
 
-	int LoximServer::main_loop()
+	int Server::main_loop()
 	{
 		auto_ptr<AbstractSocket> session_socket;
 		if (!prepared)
@@ -63,7 +63,7 @@ namespace LoximServer{
 				continue;
 			pthread_mutex_lock(&open_sessions_mutex);
 			if (!shutting_down && get_sessions_count() < get_config_max_sessions()){
-				shared_ptr<LoximSession> new_session(new LoximSession(*this, session_socket, err_cons));
+				shared_ptr<Session> new_session(new Session(*this, session_socket, err_cons));
 				open_sessions[new_session->get_id()] = new_session;
 				new_session->start();
 			} else{
@@ -75,12 +75,12 @@ namespace LoximServer{
 		}
 		pthread_mutex_lock(&open_sessions_mutex);
 		err_cons.printf("Telling sessions to shutdown\n");
-		for (set<pair<const uint64_t, shared_ptr<LoximSession> > >::iterator i = open_sessions.begin(); i != open_sessions.end(); i++){
+		for (set<pair<const uint64_t, shared_ptr<Session> > >::iterator i = open_sessions.begin(); i != open_sessions.end(); i++){
 			i->second->shutdown();
 		}
 		pthread_mutex_unlock(&open_sessions_mutex);
 		err_cons.printf("Joining threads\n");
-		for (set<pair<const uint64_t, shared_ptr<LoximSession> > >::iterator i = open_sessions.begin(); i != open_sessions.end(); i++){
+		for (set<pair<const uint64_t, shared_ptr<Session> > >::iterator i = open_sessions.begin(); i != open_sessions.end(); i++){
 			pthread_join(i->second->get_thread(), NULL);
 		}
 		open_sessions.clear();
@@ -88,13 +88,13 @@ namespace LoximServer{
 		return 0;
 	}
 
-	void LoximServer::shutdown()
+	void Server::shutdown()
 	{
 		err_cons.printf("Server shutdown called\n");
 		pthread_kill(thread, SIGUSR1);
 	}
 
-	void LoximServer::handle_signal(int sig)
+	void Server::handle_signal(int sig)
 	{
 		shutting_down = 1;
 	}
@@ -103,9 +103,9 @@ namespace LoximServer{
 	 * It should take care of destroying the thread, the session or
 	 * leave it to the shutdown thread.
 	 */
-	void LoximServer::end_session(uint64_t session_id, int code)
+	void Server::end_session(uint64_t session_id, int code)
 	{
-		shared_ptr<LoximSession> session = open_sessions[session_id];
+		shared_ptr<Session> session = open_sessions[session_id];
 		pthread_mutex_lock(&open_sessions_mutex);
 		if (!shutting_down){
 			pthread_detach(session->get_thread());
@@ -117,42 +117,42 @@ namespace LoximServer{
 
 	void LSrv_signal_handler(pthread_t thread, int sig, void *arg)
 	{
-		LoximServer *serv = (LoximServer*)arg;
+		Server *serv = (Server*)arg;
 		serv->handle_signal(sig);
 	}
 
-	int LoximServer::get_sessions_count() const
+	int Server::get_sessions_count() const
 	{
 		return open_sessions.size();
 	}
 
 	
-	int LoximServer::get_config_accept_interval() const
+	int Server::get_config_accept_interval() const
 	{
 		return config_accept_interval;
 	}
 
-	int LoximServer::get_config_read_interval() const
+	int Server::get_config_read_interval() const
 	{
 		return config_read_interval;
 	}
 
-	int LoximServer::get_config_max_sessions() const
+	int Server::get_config_max_sessions() const
 	{
 		return config_max_sessions;
 	}
 
-	int LoximServer::get_config_max_package_size() const
+	int Server::get_config_max_package_size() const
 	{
 		return config_max_package_size;
 	}
 
-	int LoximServer::get_config_keep_alive_interval() const
+	int Server::get_config_keep_alive_interval() const
 	{
 		return config_keep_alive_interval;
 	}
 
-	bool LoximServer::is_config_auth_trust_allowed() const
+	bool Server::is_config_auth_trust_allowed() const
 	{
 		return config_auth_trust_allowed;
 	}

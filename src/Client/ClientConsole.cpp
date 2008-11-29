@@ -1,4 +1,4 @@
-#include <LoximClient/ClientConsole.h>
+#include <Client/ClientConsole.h>
 #include <stdio.h>
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -14,7 +14,7 @@ using namespace std;
 #define FILE_REGEX "^\\$file[[:space:]]+[^[:space:]]+.*"
 
 
-void LoximClient::ClientConsole::regex_init()
+void Client::ClientConsole::regex_init()
 {
 	regcomp(&dot_mode_regex, DOT_MODE_REGEX, REG_EXTENDED);
 	regcomp(&slash_mode_regex, SLASH_MODE_REGEX, REG_EXTENDED);
@@ -22,28 +22,28 @@ void LoximClient::ClientConsole::regex_init()
 	regcomp(&help_regex, HELP_REGEX, REG_EXTENDED);
 }
 
-LoximClient::ClientConsole::ClientConsole(int mode, FILE *file)
+Client::ClientConsole::ClientConsole(int mode, FILE *file)
 {
 	this->mode = mode;
 	regex_init();
 	this->file = file;
 }
 
-LoximClient::ClientConsole::ClientConsole(int mode)
+Client::ClientConsole::ClientConsole(int mode)
 {
 	this->mode = mode;
 	regex_init();
 	file = 0;
 }
 
-LoximClient::ClientConsole::ClientConsole()
+Client::ClientConsole::ClientConsole()
 {
 	this->mode = CC_SLASH;
 	regex_init();
 	file = 0;
 }
 
-char *LoximClient::ClientConsole::line_provider(const char *prompt)
+char *Client::ClientConsole::line_provider(const char *prompt)
 {
 	char *line = 0;
 	size_t len;
@@ -71,7 +71,7 @@ char *LoximClient::ClientConsole::line_provider(const char *prompt)
 	}
 }
 
-string LoximClient::ClientConsole::read_slash()
+string Client::ClientConsole::read_slash()
 {
 	string stmt;
 	char *line;
@@ -100,7 +100,7 @@ string LoximClient::ClientConsole::read_slash()
 }
 
 
-void LoximClient::ClientConsole::open_file(const char *filename)
+void Client::ClientConsole::open_file(const char *filename)
 {
 	int len = strlen(filename);
 	int i, j, k;
@@ -152,7 +152,7 @@ void LoximClient::ClientConsole::open_file(const char *filename)
 }
 
 
-void LoximClient::ClientConsole::execute_meta_stmt(string stmt)
+void Client::ClientConsole::execute_meta_stmt(string stmt)
 {
 	if (!regexec(&dot_mode_regex, stmt.c_str(), 0, 0, 0)){
 		printf("Switching to dot mode\n");
@@ -187,17 +187,17 @@ void LoximClient::ClientConsole::execute_meta_stmt(string stmt)
 	printf("Invalid meta command\n");
 }
 
-bool LoximClient::ClientConsole::is_meta_stmt(string stmt)
+bool Client::ClientConsole::is_meta_stmt(string stmt)
 {
 	return stmt.c_str()[0] == '$';
 }
 
-bool LoximClient::ClientConsole::is_admin_stmt(string stmt)
+bool Client::ClientConsole::is_admin_stmt(string stmt)
 {
 	return stmt.c_str()[0] == '#';
 }
 
-bool LoximClient::ClientConsole::line_empty(char *buf)
+bool Client::ClientConsole::line_empty(char *buf)
 {
 	while (*buf)
 		if (!isspace(*buf))
@@ -208,7 +208,7 @@ bool LoximClient::ClientConsole::line_empty(char *buf)
 }
 
 
-string LoximClient::ClientConsole::read_dot()
+string Client::ClientConsole::read_dot()
 {	
 	string stmt;
 	char *line;
@@ -239,7 +239,7 @@ string LoximClient::ClientConsole::read_dot()
 	return stmt;
 }
 
-string LoximClient::ClientConsole::read_stmt()
+string Client::ClientConsole::read_stmt()
 {
 	string cmd;
 	do {
@@ -253,7 +253,7 @@ string LoximClient::ClientConsole::read_stmt()
 	return cmd;
 }
 
-LoximClient::ClientConsole::~ClientConsole()
+Client::ClientConsole::~ClientConsole()
 {
 }
 

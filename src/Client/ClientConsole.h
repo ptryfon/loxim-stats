@@ -3,7 +3,7 @@
 
 #include <string>
 #include <regex.h>
-#include <LoximClient/StatementProvider.h>
+#include <Client/StatementProvider.h>
 #include <stdio.h>
 
 using namespace std;
@@ -11,7 +11,7 @@ using namespace std;
 #define CC_SLASH 1
 #define CC_DOT 2
 
-namespace LoximClient{
+namespace Client{
 	class ClientConsole : public StatementProvider{
 		private:
 			int mode;

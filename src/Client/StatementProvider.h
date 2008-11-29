@@ -5,7 +5,7 @@
 
 using namespace std;
 
-namespace LoximClient{
+namespace Client{
 	class StatementProvider{
 	    public:
 		StatementProvider();

@@ -3,7 +3,7 @@
 
 #define 	STACK_SIZE  	1024
 
-namespace LoximClient{
+namespace Client{
 
     /**
      * Klasa do¶æ wolna - ale do przetwarzania poleceñ wk³adanych

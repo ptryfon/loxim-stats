@@ -22,8 +22,8 @@
 #include <TypeCheck/TCConstants.h>
 #include <TypeCheck/TypeChecker.h>
 
-namespace LoximServer{
-	class LoximSession;
+namespace Server{
+	class Session;
 }
 namespace Schemas { class Schema; }
 
@@ -197,8 +197,8 @@ namespace QExecutor
 	public:
 		bool inTransaction;
 		//SessionData *session_data;
-		LoximServer::LoximSession *session;
-		QueryExecutor(LoximServer::LoximSession *session) { 
+		Server::Session *session;
+		QueryExecutor(Server::Session *session) { 
 			envs = new EnvironmentStack(); 
 			qres = new ResultStack(); 
 			prms = NULL; 

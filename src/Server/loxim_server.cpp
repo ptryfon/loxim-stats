@@ -1,4 +1,4 @@
-#include <LoximServer/LoximServer.h>
+#include <Server/Server.h>
 #include <string>
 #include <iostream>
 #include <getopt.h>
@@ -75,7 +75,7 @@ int main(int argc, char **argv) {
 	ClassGraph::ClassGraph::init(-1);
 	Schemas::InterfaceMaps::Instance().init(); //must be called after ClassGraph::init()
 
-	::LoximServer::LoximServer serv(hostname, port, config);
+	::Server::Server serv(hostname, port, config);
 	if (!serv.prepare()){
 		serv.main_loop();
 		Indexes::IndexManager::shutdown(); //tutaj nie powinno juz byc zadnych aktywnych transakcji

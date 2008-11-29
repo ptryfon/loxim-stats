@@ -1,6 +1,6 @@
-#include <LoximClient/Aborter.h>
+#include <Client/Aborter.h>
 
-namespace LoximClient{
+namespace Client{
 
 	void *AB_starter(void *arg)
 	{
@@ -8,7 +8,7 @@ namespace LoximClient{
 		return NULL;
 	}
 
-	Aborter::Aborter(LoximClient *client)
+	Aborter::Aborter(Client *client)
 	{
 		this->client = client;
 		this->shutting_down = 0;

@@ -8,26 +8,26 @@
 #include <protocol/packages/data/DataPart.h>
 #include <protocol/packages/ASCErrorPackage.h>
 #include <protocol/packages/VSCSendValuePackage.h>
-#include <LoximClient/StatementProvider.h>
-#include <LoximClient/Authenticator.h>
-#include <LoximClient/Aborter.h>
+#include <Client/StatementProvider.h>
+#include <Client/Authenticator.h>
+#include <Client/Aborter.h>
 
 #include <string.h>
 
 using namespace protocol;
 
-namespace LoximClient{
+namespace Client{
 
 	void *result_handler_starter(void *a);
 	void signal_handler(int sig);
 	class Aborter;
 
-	class LoximClient
+	class Client
 	{
 		friend void *result_handler_starter(void *a);
 		friend void signal_handler(int sig);
 		private:
-		static LoximClient *instance;
+		static Client *instance;
 		/*Ustawiane w konstruktorze*/
 		char* hostname;
 		int port;
@@ -48,8 +48,8 @@ namespace LoximClient{
 
 
 		public:
-		LoximClient(const char* a_hostname, int a_port);
-		~LoximClient();
+		Client(const char* a_hostname, int a_port);
+		~Client();
 
 		int run(StatementProvider *provider);
 		/**

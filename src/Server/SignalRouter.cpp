@@ -1,9 +1,9 @@
-#include <LoximServer/SignalRouter.h>
+#include <Server/SignalRouter.h>
 #include <signal.h>
 
 using namespace std;
 
-namespace LoximServer{
+namespace Server{
 
 	static void SR_signal_route(int i)
 	{

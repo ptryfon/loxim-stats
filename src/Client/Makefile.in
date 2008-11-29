@@ -32,7 +32,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-subdir = src/LoximClient
+subdir = src/Client
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
@@ -41,12 +41,11 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 mkinstalldirs = $(install_sh) -d
 CONFIG_CLEAN_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
-libLoximClient_la_LIBADD =
-am_libLoximClient_la_OBJECTS = Aborter.lo Authenticator.lo \
-	ClientConsole.lo ConsoleAuthenticator.lo LoximClient.lo \
-	Lsbql.lo ReadlineReader.lo StatementProvider.lo \
-	StatementSimpleParser.lo
-libLoximClient_la_OBJECTS = $(am_libLoximClient_la_OBJECTS)
+libClient_la_LIBADD =
+am_libClient_la_OBJECTS = Aborter.lo Authenticator.lo ClientConsole.lo \
+	ConsoleAuthenticator.lo Client.lo Lsbql.lo ReadlineReader.lo \
+	StatementProvider.lo StatementSimpleParser.lo
+libClient_la_OBJECTS = $(am_libClient_la_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -68,8 +67,8 @@ CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-SOURCES = $(libLoximClient_la_SOURCES)
-DIST_SOURCES = $(libLoximClient_la_SOURCES)
+SOURCES = $(libClient_la_SOURCES)
+DIST_SOURCES = $(libClient_la_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -186,8 +185,8 @@ sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-noinst_LTLIBRARIES = libLoximClient.la
-libLoximClient_la_SOURCES = Aborter.cpp Aborter.h Authenticator.cpp Authenticator.h ClientConsole.cpp ClientConsole.h ConsoleAuthenticator.cpp ConsoleAuthenticator.h LoximClient.cpp LoximClient.h Lsbql.cpp ReadlineReader.cpp ReadlineReader.h StatementProvider.cpp StatementProvider.h StatementSimpleParser.cpp StatementSimpleParser.h 
+noinst_LTLIBRARIES = libClient.la
+libClient_la_SOURCES = Aborter.cpp Aborter.h Authenticator.cpp Authenticator.h ClientConsole.cpp ClientConsole.h ConsoleAuthenticator.cpp ConsoleAuthenticator.h Client.cpp Client.h Lsbql.cpp ReadlineReader.cpp ReadlineReader.h StatementProvider.cpp StatementProvider.h StatementSimpleParser.cpp StatementSimpleParser.h 
 INCLUDES = -I$(top_srcdir)/src
 all: all-am
 
@@ -202,9 +201,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  src/LoximClient/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  src/Client/Makefile'; \
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign  src/LoximClient/Makefile
+	  $(AUTOMAKE) --foreign  src/Client/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -231,8 +230,8 @@ clean-noinstLTLIBRARIES:
 	  echo "rm -f \"$${dir}/so_locations\""; \
 	  rm -f "$${dir}/so_locations"; \
 	done
-libLoximClient.la: $(libLoximClient_la_OBJECTS) $(libLoximClient_la_DEPENDENCIES) 
-	$(CXXLINK)  $(libLoximClient_la_OBJECTS) $(libLoximClient_la_LIBADD) $(LIBS)
+libClient.la: $(libClient_la_OBJECTS) $(libClient_la_DEPENDENCIES) 
+	$(CXXLINK)  $(libClient_la_OBJECTS) $(libClient_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -242,9 +241,9 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Aborter.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Authenticator.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Client.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ClientConsole.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ConsoleAuthenticator.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/LoximClient.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Lsbql.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ReadlineReader.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/StatementProvider.Plo@am__quote@

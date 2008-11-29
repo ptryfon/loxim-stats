@@ -1,4 +1,4 @@
-#include <LoximClient/ConsoleAuthenticator.h>
+#include <Client/ConsoleAuthenticator.h>
 #include <stdio.h>
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -8,7 +8,7 @@
 
 using namespace std;
 
-namespace LoximClient{
+namespace Client{
 	void ConsoleAuthenticator::read()
 	{
 		struct  termio  lock;

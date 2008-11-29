@@ -1,5 +1,5 @@
-#include <LoximClient/ReadlineReader.h>
-#include <LoximClient/StatementSimpleParser.h>
+#include <Client/ReadlineReader.h>
+#include <Client/StatementSimpleParser.h>
 
 #include <stdio.h>
 #include <readline/readline.h>
@@ -7,7 +7,7 @@
 #include <stdlib.h>
 
 using namespace protocol;
-using namespace LoximClient;
+using namespace Client;
 
 ReadlineReader::ReadlineReader()
 {

@@ -5,7 +5,7 @@
 
 using namespace std;
 
-namespace LoximClient{
+namespace Client{
 	class Authenticator{
 	    public:
 		Authenticator();

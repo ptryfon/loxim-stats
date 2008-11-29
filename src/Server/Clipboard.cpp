@@ -1,6 +1,6 @@
-#include <LoximServer/Clipboard.h>
+#include <Server/Clipboard.h>
 
-using namespace LoximServer;
+using namespace Server;
 
 
 string Clipboard::load(int id)
