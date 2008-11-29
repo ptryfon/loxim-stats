@@ -170,7 +170,6 @@ namespace QExecutor
         	void set_user_data(ValidationNode *node);
         	int execute_locally(string query, QueryResult **result);
 			int execute_locally(string query, QueryResult **result, QueryParser &parser); //for multi-queries
-        	bool is_dba();
         	bool assert_grant_priv(string priv_name, string name);
         	bool assert_revoke_priv(string priv_name, string name);
         	bool assert_create_user_priv();        	
@@ -195,6 +194,7 @@ namespace QExecutor
 		int checkSingleSubCard(SigColl *sigc, QueryResult *single, map<string, int> &subMap);
 			
 	public:
+        	bool is_dba();
 		bool inTransaction;
 		//SessionData *session_data;
 		Server::Session *session;

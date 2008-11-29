@@ -76,7 +76,7 @@ namespace Server{
 		pthread_mutex_lock(&open_sessions_mutex);
 		err_cons.printf("Telling sessions to shutdown\n");
 		for (set<pair<const uint64_t, shared_ptr<Session> > >::iterator i = open_sessions.begin(); i != open_sessions.end(); i++){
-			i->second->shutdown();
+			i->second->shutdown(0);
 		}
 		pthread_mutex_unlock(&open_sessions_mutex);
 		err_cons.printf("Joining threads\n");

@@ -80,7 +80,7 @@ namespace Server{
 	}
 
 
-	static void *thread_start_continue(void *arg)
+	void *thread_start_continue(void *arg)
 	{
 		((Session*)arg)->main_loop();
 		return 0;
@@ -147,33 +147,42 @@ namespace Server{
 
 	void Session::start()
 	{
-		//pthread_create(&thread, NULL, thread_start_continue, this);
 		SignalRouter::spawn_and_register(&thread, thread_start_continue,
 				LS_signal_handler, this, SIGUSR1);
 	}
 
 	void Session::main_loop()
 	{
-		qEx.set_priviliged_mode(true);
-		qEx.initCg();
-		err_cons.printf("session %d bootstrapped. active sessions: %d\n", 
-				get_id(), server.get_sessions_count());
-		if (init_phase()){
-			KAthread.start();
-			worker.start();
-			free_state();
+		try{
+			qEx.set_priviliged_mode(true);
+			qEx.initCg();
+			err_cons.printf("session %d bootstrapped. active sessions: %d\n", 
+					get_id(), server.get_sessions_count());
+			if (init_phase()){
+				KAthread.start();
+				worker.start();
+				free_state();
+				worker.stop();
+				KAthread.stop();
+			}
+			err_cons.printf("session %d quitting\n", id);
+			server.end_session(get_id(), 0);
+		} catch (LoximException &ex){
 			worker.stop();
-			KAthread.shutdown();
+			KAthread.stop();
+			server.end_session(get_id(), ex.get_error());
+		} catch (...){
+			//the following calls are assumed not to throw anything
+			worker.stop();
+			KAthread.stop();
+			server.end_session(get_id(), EUnknown);
 		}
-		err_cons.printf("session %d quitting\n", id);
-		socket->close();
-		server.end_session(get_id(), 0);
 		//don't touch any properties from now on - the object may not exist anymore!
-		pthread_exit(0);
 	}
 
-	void Session::shutdown()
+	void Session::shutdown(int reason)
 	{
+		error = reason;
 		pthread_kill(thread, SIGUSR1);
 	}
 
@@ -186,6 +195,10 @@ namespace Server{
 	}
 
 
+	/**
+	 * Pretty ugly, isn't it? ;) Will be rewritten when new protocol is
+	 * plugged.
+	 */
 	DataPart *Session::serialize_res(const QueryResult &qr) const
 	{
 		DataPart **dparts, *dp;
@@ -264,6 +277,12 @@ namespace Server{
 		layer0.write_package(ASCByePackage("bye from server"));
 	}
 
+	void Session::send_ping()
+	{
+		Locker l(send_mutex);
+		layer0.write_package(ASCPingPackage());
+	}
+
 	void Session::send_error(int error, const string &descr)
 	{
 		Locker l(send_mutex);
@@ -331,42 +350,26 @@ namespace Server{
 		}
 	}
 
-	int Session::free_state()
+	void Session::free_state()
 	{
 
-		auto_ptr<Package> package;
 		err_cons.printf("In free state :)\n");
-		sigset_t sigmask, sigmask_tmpl;
-		pthread_sigmask(0, NULL, &sigmask_tmpl);
-		sigaddset(&sigmask_tmpl, SIGUSR1);
-		sigmask = sigmask_tmpl;
-		while ((package = auto_ptr<Package>(bare_layer0.readPackage(&sigmask,
-						&shutting_down))).get() && !shutting_down){
-			sigmask = sigmask_tmpl;
+		sigset_t sigmask;
+		pthread_sigmask(0, NULL, &sigmask);
+		sigaddset(&sigmask, SIGUSR1);
+		while (!shutting_down){
+			auto_ptr<Package> package = layer0.read_package(sigmask, &shutting_down);
 			KAthread.set_answered();
-			switch (worker.submit(package)){
-				case Worker::SUBM_EXIT:
-					shutting_down = 1;
-					return 0;
-				case Worker::SUBM_ERROR:
-					shutting_down = 1;
-					return EProtocol;
-				case Worker::SUBM_SUCCESS:
-					/* don't do anything */
-					break;
-			}
+			worker.submit(package);
 		}
 		if (shutting_down){
-			worker.cancel_job(true, false);
 			if (!error){
 				send_bye();
-				return 0;
+				return;
 			}
 			else
-				return error;
+				throw LoximException(error);
 		}
-		return EReceive;
-
 	}
 
 	bool is_admin_stmt(const string &stmt)
@@ -385,9 +388,10 @@ namespace Server{
 		AllStats::getHandle()->getQueriesStats()->beginExecuteQuery(get_id(), stmt.c_str());
 
 		if (is_admin_stmt(stmt)){
-			//		if (!qEx.is_dba()){
-			//			send_error(EPerm);
-			//		}
+			if (!qEx.is_dba()){
+				AllStats::getHandle()->getQueriesStats()->endExecuteQuery(get_id());
+				throw LoximException(EParse);
+			}
 			err_cons.printf("Executing administrative statement: %s\n", stmt.c_str());
 			int error = AdminParser::AdminExecutor::get_instance()->execute(stmt, this);
 			if (error) {
@@ -492,8 +496,7 @@ namespace Server{
 			try{
 				process_package(cur_package);
 			} catch (LoximException &ex) {
-				session.error = ex.get_error();
-				session.shutdown();
+				session.shutdown(ex.get_error());
 				return;
 			}
 			pthread_mutex_lock(&mutex);
@@ -534,15 +537,17 @@ namespace Server{
 	 * This can actually be tweaked as not everything needs to between lock
 	 * and unlock
 	 */
-	int Worker::submit(auto_ptr<Package> package)
+	void Worker::submit(auto_ptr<Package> &package)
 	{
 		Locker l(mutex);
+		aborting = false;
 		if (package->getPackageType() == ID_ASCPongPackage){
-			return SUBM_SUCCESS;
+			return;
 		}
 
 		if (package->getPackageType() == ID_VSCAbortPackage){
 			if (cur_package.get()){
+				aborting = true;
 				cancel_job(true, true);
 				session.qEx.contExecuting();
 			}
@@ -551,60 +556,56 @@ namespace Server{
 			 * ignore aborts when they are inappropriate, because
 			 * thay may be simply late
 			 */
-			return SUBM_SUCCESS;
+			return;
 		}
 		//there is a package being worked on and an inappropriate package
 		//is received
 		if (cur_package.get()){
 			/* no need to wait for it */
 			cancel_job(false, true);
-			return SUBM_ERROR;
+			throw LoximException(EProtocol);
 		}
 		//no package is being worked on
 		if (package->getPackageType() == ID_ASCByePackage){
 			err_cons.printf("Client closed connection\n");
-			return SUBM_EXIT;
+			session.shutdown(0);
+			return;
 		} else { 
 			//a regular package
-			cur_package = package;
+			cur_package = shared_ptr<Package>(package);
 			pthread_cond_signal(&idle_cond);
-			return SUBM_SUCCESS;
+			return;
 		}
 	}
 
 
-	/**
-	 * on return, mutex is locked. It shouldn't be locked on entry
-	 * returns 0 when the connection should be closed and !0 otherwise
-	 */
-	void Worker::process_package(auto_ptr<Package> package)
+	void Worker::process_package(shared_ptr<Package> &package)
 	{
 		switch (package->getPackageType()){
 			case ID_VSCSendValuesPackage :
 				err_cons.printf("Got VSCSendValues - ignoring\n");
 				break;
 			case ID_QCStatementPackage:{
-				auto_ptr<QCStatementPackage>
-					stmt_pkg(dynamic_cast<QCStatementPackage*>(package.release()));
+				shared_ptr<QCStatementPackage>
+					stmt_pkg = dynamic_pointer_cast<QCStatementPackage>(package);
 				if (stmt_pkg->getFlags() & STATEMENT_FLAG_EXECUTE){
 					err_cons.printf("Got SCStatement - executing\n");
-					/*QSExecutingPackage confirmation;
-					  if (!layer0->writePackage(&confirmation)){
-					  return EProtocol;
-					  */
 					auto_ptr<QueryResult> qres;
+					/* We've got a very poor error design, so
+					 * what we want here is to send every
+					 * error to the client, even if it is a
+					 * serious one. The only situation when
+					 * we want to report an exception to the
+					 * caller is when sending the result or
+					 * fails.
+					 */
 					try{
 						qres = auto_ptr<QueryResult>
 							(session.execute_statement(stmt_pkg->getStatement()->getBuffor()));
 					} catch (LoximException &ex) {
-						/* if execution was not aborted */
-						if (ex.get_error() !=
-								(ErrQExecutor |
-								 EEvalStopped)){
+						if (!aborting)
 							session.send_error(ex.get_error());
-							return;
-						} else
-							throw;
+						return;
 					} 
 					auto_ptr<DataPart> sres(session.serialize_res(*qres));
 					session.respond(sres);
@@ -617,8 +618,8 @@ namespace Server{
 					err_cons.printf("Got SCStatement - ignoring\n");
 					return;
 				}
-				}
 				break;
+			}
 			case ID_ASCSetOptPackage:
 				err_cons.printf("SCSetOpt - ignoring\n");
 				break;
@@ -631,11 +632,11 @@ namespace Server{
 				 * reply to these), these package types are handled in
 				 * the protocol thread
 				 */
-			default: {
+			default: 
 				err_cons.printf("Unexpected package of type %d\n",
 						package->getPackageType());
 				throw LoximException(EProtocol);
-			}
+			
 		}
 	}
 
@@ -651,7 +652,6 @@ namespace Server{
 		pthread_mutex_init(&(this->cond_mutex), 0);
 		pthread_cond_init(&(this->cond), 0);
 		this->shutting_down = false;
-		this->error = 0;
 	}
 
 	int KeepAliveThread::start()
@@ -659,12 +659,11 @@ namespace Server{
 		return pthread_create(&thread, NULL, thread_starter, this);
 	}
 
-	int KeepAliveThread::shutdown()
+	void KeepAliveThread::stop()
 	{
 		shutting_down = 1;
 		pthread_cond_signal(&cond);
 		pthread_join(thread, NULL);
-		return error;
 	}
 
 	void KeepAliveThread::main_loop()
@@ -685,15 +684,16 @@ namespace Server{
 				err_cons.printf("Keepalive check\n");
 				if (!answer_received){
 					err_cons.printf("Keepalive thread has just discovered client death.\n");
-					session.shutdown();
-					pthread_exit(0);
+					session.shutdown(EClientLost);
+					return;
 				} else {
 					answer_received = false;
-					pthread_mutex_lock(&(session.send_mutex));
-					ASCPingPackage package;
-					if (!session.bare_layer0.writePackage(&package))
-						res = ESend;
-					pthread_mutex_unlock(&(session.send_mutex));
+					try{
+						session.send_ping();
+					} catch (exception e) {
+						err_cons.printf("Warning: keepalive thread died (couldn't send ping");
+						return;
+					}
 				}
 
 			}
@@ -702,7 +702,6 @@ namespace Server{
 			err_cons.printf("Warning: keepalive thread died\n");
 		else
 			res = 0;
-		error = res;
 		pthread_mutex_unlock(&cond_mutex);
 		pthread_exit(NULL);
 	}
@@ -712,5 +711,5 @@ namespace Server{
 		answer_received = true;
 	}
 
-	}
+}
 
