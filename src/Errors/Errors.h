@@ -163,7 +163,7 @@ namespace Errors {
 #define EUserUnknown		0x8000
 #define EUserWrongParam		0x8100
 
-string *SBQLstrerror(int error);
+string SBQLstrerror(int error);
 }
 
 #endif

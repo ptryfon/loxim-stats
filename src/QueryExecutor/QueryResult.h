@@ -99,10 +99,10 @@ public:
 		return result;
 	}
 
-	virtual int type();
+	virtual int type() const;
 	virtual bool collection()=0;
 	virtual bool isEmpty()=0;
-	virtual unsigned int size()=0;
+	virtual unsigned int size() const = 0;
 	virtual void addResult(QueryResult *r) {};
 	virtual int getResult(QueryResult *&r) { return 0; };
 	virtual bool equal(QueryResult *r)=0;
@@ -144,10 +144,10 @@ public:
 		};
 		if (ec != NULL) delete ec;
 	};
-	int type();
+	int type() const;
 	bool collection();
 	bool isEmpty();
-	unsigned int size();
+	unsigned int size() const;
 	void addResult(QueryResult *r);
 	int getResult(QueryResult *&r);
 	int at(unsigned int i, QueryResult *&r);
@@ -196,10 +196,10 @@ public:
 		};
 		if (ec != NULL) delete ec;
 	};
-	int type();
+	int type() const;
 	bool collection();
 	bool isEmpty();
-	unsigned int size();
+	unsigned int size() const;
 	void addResult(QueryResult *r);
 	int getResult(QueryResult *&r);
 	int at(unsigned int i, QueryResult *&r);
@@ -253,10 +253,10 @@ public:
 		};
 		if (ec != NULL) delete ec;
 	};
-	int type();
+	int type() const;
 	bool collection();
 	bool isEmpty();
-	unsigned int size();
+	unsigned int size() const;
 	void addResult(QueryResult *r);
 	int getResult(QueryResult *&r);
 	int at(unsigned int i, QueryResult *&r);
@@ -305,10 +305,10 @@ public:
 	void setName(string n);
 	QueryResult* getItem();
 	void setItem(QueryResult* r);
-	int type();
+	int type() const;
 	bool collection();
 	bool isEmpty();
-	unsigned int size();
+	unsigned int size() const;
 	bool equal(QueryResult *r);
 	bool not_equal(QueryResult *r);
 	bool greater_than(QueryResult *r);
@@ -345,10 +345,10 @@ public:
 	virtual ~QueryStringResult() { if (ec != NULL) delete ec; };
 	string getValue();
 	void setValue(string v);
-	int type();
+	int type() const;
 	bool collection();
 	bool isEmpty();
-	unsigned int size();
+	unsigned int size() const;
 	bool equal(QueryResult *r);
 	bool not_equal(QueryResult *r);
 	bool greater_than(QueryResult *r);
@@ -378,10 +378,10 @@ public:
 	virtual ~QueryIntResult() { if (ec != NULL) delete ec; };
 	int getValue();
 	void setValue(int v);
-	int type();
+	int type() const;
 	bool collection();
 	bool isEmpty();
-	unsigned int size();
+	unsigned int size() const;
 	int plus(QueryResult *r, QueryResult *&res);
 	int minus(QueryResult *r, QueryResult *&res);
 	int times(QueryResult *r, QueryResult *&res);
@@ -420,10 +420,10 @@ public:
 	virtual ~QueryDoubleResult() { if (ec != NULL) delete ec; };
 	double getValue();
 	void setValue(double v);
-	int type();
+	int type() const;
 	bool collection();
 	bool isEmpty();
-	unsigned int size();
+	unsigned int size() const;
 	int plus(QueryResult *r, QueryResult *&res);
 	int minus(QueryResult *r, QueryResult *&res);
 	int times(QueryResult *r, QueryResult *&res);
@@ -461,10 +461,10 @@ public:
 	virtual ~QueryBoolResult() { if (ec != NULL) delete ec; };
 	bool getValue();
 	void setValue(bool v);
-	int type();
+	int type() const;
 	bool collection();
 	bool isEmpty();
-	unsigned int size();
+	unsigned int size() const;
 	int bool_and(QueryResult *r, QueryResult *&res);
 	int bool_or(QueryResult *r, QueryResult *&res);
 	int bool_not(QueryResult *&res);
@@ -503,10 +503,10 @@ public:
 	InterfaceKey getInterfaceKey() const;
 	bool wasRefed();
 	void setRef();
-	int type();
+	int type() const;
 	bool collection();
 	bool isEmpty();
-	unsigned int size();
+	unsigned int size() const;
 	bool equal(QueryResult *r);
 	bool not_equal(QueryResult *r);
 	bool greater_than(QueryResult *r);
@@ -534,10 +534,10 @@ public:
 	QueryNothingResult();
 	QueryResult* clone();
 	virtual ~QueryNothingResult() { if (ec != NULL) delete ec; };
-	int type();
+	int type() const;
 	bool collection();
 	bool isEmpty();
-	unsigned int size();
+	unsigned int size() const;
 	bool equal(QueryResult *r);
 	bool not_equal(QueryResult *r);
 	bool greater_than(QueryResult *r);
@@ -577,10 +577,10 @@ public:
 		if (view_parent != NULL) delete view_parent; 
 	};
 	
-	int type();
+	int type() const;
 	bool collection();
 	bool isEmpty();
-	unsigned int size();
+	unsigned int size() const;
 	bool equal(QueryResult *r);
 	bool not_equal(QueryResult *r);
 	bool greater_than(QueryResult *r);

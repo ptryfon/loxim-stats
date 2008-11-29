@@ -116,7 +116,7 @@ struct ErrorMessages {
 	{EUnknown,         "Unknown error"}
 };
 
-	string *SBQLstrerror(int error)
+	string SBQLstrerror(int error)
 	{
 		string src_mod, dest_mod, str;
 
@@ -146,7 +146,7 @@ struct ErrorMessages {
 				src_mod = "Query Parser";
 				break;
 			case ErrSBQLCli:
-				src_mod = "SBQLCli";
+				src_mod = "Client";
 				break;
 			case ErrServer:
 				src_mod = "Server";
@@ -166,12 +166,6 @@ struct ErrorMessages {
 			case ErrUserProgram:
 				src_mod = "User Program";
 				break;
-			case ErrLoximServer:
-				src_mod = "Loxim Server";
-				break;
-			case ErrLoximClient:
-				src_mod = "Loxim Client";
-				break;
 			default:
 				src_mod = "Unknown";
 				break;
@@ -189,6 +183,6 @@ struct ErrorMessages {
 			str = ErrorMsg[i].s;
 		}
 
-		return new string(src_mod + ": " + str);
+		return string(src_mod + ": " + str);
 	};
 }

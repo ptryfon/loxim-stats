@@ -802,7 +802,7 @@ namespace TypeCheck
 		}
 		cout <<"[TC] - create check failed, so will return null, which will trigger TCError\n";
 		retResult.setEffect(TC_RS_ERROR);
-		retResult.addErrorPart(*SBQLstrerror(comparison));
+		retResult.addErrorPart(SBQLstrerror(comparison));
 		return NULL;
 	}
 
@@ -848,7 +848,7 @@ namespace TypeCheck
 		}
 		cout <<"[TC] - assign check failed, so will return null, and trigger TCError\n";
 		retResult.setEffect(TC_RS_ERROR);
-		retResult.addErrorPart(*SBQLstrerror(comparison) + "\n	bases");
+		retResult.addErrorPart(SBQLstrerror(comparison) + "\n	bases");
 		return NULL;	//on error
 	}
 
@@ -913,7 +913,7 @@ namespace TypeCheck
 		}
 		cout <<"[TC] - insert check on chosen sub failed, so will return null, and trigger TCError\n";
 		retResult.setEffect(TC_RS_ERROR);
-		retResult.addErrorPart(*SBQLstrerror(comparison) + "\n	bases");
+		retResult.addErrorPart(SBQLstrerror(comparison) + "\n	bases");
 		return NULL;
 	}
 

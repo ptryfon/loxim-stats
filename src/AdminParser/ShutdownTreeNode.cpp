@@ -4,7 +4,7 @@
 namespace AdminParser{
     int ShutdownTreeNode::execute(LoximServer::LoximSession *session)
     {
-	session->get_server()->shutdown();
+	session->get_server().shutdown();
 	return 0;
     }
 }

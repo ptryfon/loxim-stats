@@ -501,7 +501,7 @@ namespace Indexes {
 		
 		int err = flush(flushCNode);
 		if (err) {
-			printf("Indexes::CachedNode::flush() FATAL! Index inconsistence. errCode: %s\n", Errors::SBQLstrerror(err)->c_str());
+			printf("Indexes::CachedNode::flush() FATAL! Index inconsistence. errCode: %s\n", Errors::SBQLstrerror(err).c_str());
 			exit(1);
 		}
 		delete flushCNode;

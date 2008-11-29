@@ -166,7 +166,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			return 0;
 		}
 		else if (nodeType == (TreeNode::TNVALIDATION)) {
-		    UserData *user_data = session->get_user_data();
+		    const UserData *user_data = session->get_user_data();
 		    /* if user_data != NULL -> user id logged in, cannot log twice in one sesion */
 		    if (user_data != NULL) {
 			*result = new QueryBoolResult(false);
@@ -403,7 +403,7 @@ void QueryExecutor::set_user_data(ValidationNode *val_node) {
     string login  = val_node->get_login();
     string passwd = val_node->get_passwd();
 
-    UserData *user_data = new UserData(login, passwd);
+    auto_ptr<UserData> user_data(new UserData(login, passwd));
     session->set_user_data(user_data);
 };
 int QueryExecutor::execute_locally(string query, QueryResult **res) {

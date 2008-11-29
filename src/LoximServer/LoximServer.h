@@ -7,9 +7,11 @@
 #include <protocol/sockets/TCPIPServerSocket.h>
 #include <Config/SBQLConfig.h>
 #include <pthread.h>
+#include <Util/smartptr.h>
 
 using namespace std;
 using namespace protocol;
+using namespace _smptr;
 
 #define CONFIG_ACCEPT_INTERVAL_NAME "accept_interval"
 #define CONFIG_ACCEPT_INTERVAL_DEFAULT 15
@@ -42,34 +44,36 @@ namespace LoximServer{
 			void handle_signal(int sig);
 		public:
 
-			// server settings specified in the configuration file
-			int get_config_accept_interval();
-			int get_config_read_interval();
-			int get_config_max_sessions();
-			int get_config_max_package_size();
-			int get_config_keep_alive_interval();
-			bool is_config_auth_trust_allowed();
-
-
-			LoximServer(string hostname, int port, SBQLConfig *config);
+			LoximServer(const string &hostname, int port, const SBQLConfig &config);
 			~LoximServer();
+
+			// server settings specified in the configuration file
+			int get_config_accept_interval() const;
+			int get_config_read_interval() const;
+			int get_config_max_sessions() const;
+			int get_config_max_package_size() const;
+			int get_config_keep_alive_interval() const;
+			bool is_config_auth_trust_allowed() const;
+			
+			int get_sessions_count() const;
+
+
 
 			int prepare();
 			int main_loop();
 			void shutdown();
 
-			int get_sessions_count();
 
 			/**
 			 * no one should touch it except for the session thread
 			 */
-			void end_session(LoximSession *session, int code);
+			void end_session(uint64_t, int code);
 		protected:
-			ErrorConsole *err_cons;
+			ErrorConsole err_cons;
 			int prepared, shutting_down;
-			set<LoximSession *> open_sessions;
+			map<uint64_t, shared_ptr<LoximSession> > open_sessions;
 			pthread_mutex_t open_sessions_mutex;
-			TCPIPServerSocket *socket;
+			auto_ptr<TCPIPServerSocket> socket;
 			string hostname;
 			int port;
 	};

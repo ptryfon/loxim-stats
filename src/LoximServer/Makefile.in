@@ -42,9 +42,8 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_CLEAN_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
 libLoximServer_la_LIBADD =
-am_libLoximServer_la_OBJECTS = Clipboard.lo KeepAlive.lo \
-	LoximServer.lo LoximSession.lo SignalRouter.lo Worker.lo \
-	Server.lo
+am_libLoximServer_la_OBJECTS = Clipboard.lo LoximServer.lo \
+	LoximSession.lo SignalRouter.lo Server.lo
 libLoximServer_la_OBJECTS = $(am_libLoximServer_la_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -186,7 +185,7 @@ target_alias = @target_alias@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 noinst_LTLIBRARIES = libLoximServer.la
-libLoximServer_la_SOURCES = Clipboard.cpp Clipboard.h KeepAlive.cpp KeepAlive.h LoximServer.cpp LoximServer.h LoximSession.cpp LoximSession.h SignalRouter.cpp SignalRouter.h Worker.cpp Worker.h Server.cpp
+libLoximServer_la_SOURCES = Clipboard.cpp Clipboard.h LoximServer.cpp LoximServer.h LoximSession.cpp LoximSession.h SignalRouter.cpp SignalRouter.h Server.cpp
 INCLUDES = -I$(top_srcdir)/src
 all: all-am
 
@@ -240,12 +239,10 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Clipboard.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/KeepAlive.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/LoximServer.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/LoximSession.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Server.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SignalRouter.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Worker.Plo@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<

@@ -181,7 +181,7 @@ namespace Config {
 		return 0;
 	};
 
-	struct ModuleOptions *SBQLConfig::findConfigModule(string module)
+	struct ModuleOptions *SBQLConfig::findConfigModule(string module) const
 	{
 		struct ModuleOptions *mod;
 
@@ -197,7 +197,7 @@ namespace Config {
 		return NULL;
 	};
 
-	struct ConfOpt *SBQLConfig::findConfigOption(string option)
+	struct ConfOpt *SBQLConfig::findConfigOption(string option) const
 	{
 		struct ConfOpt *opt;
 
@@ -235,7 +235,7 @@ namespace Config {
 		}
 	};
 
-	int SBQLConfig::getBool(string param, bool& value)
+	int SBQLConfig::getBool(string param, bool& value) const
 	{
 		struct ConfOpt *opt;
 
@@ -265,7 +265,7 @@ namespace Config {
 		return 0;
 	};
 
-	int SBQLConfig::getInt(string param, int& value)
+	int SBQLConfig::getInt(string param, int& value) const
 	{
 		struct ConfOpt *opt;
 
@@ -283,7 +283,7 @@ namespace Config {
 		return 0;
 	};
 
-	int SBQLConfig::getLong(string param, long long& value)
+	int SBQLConfig::getLong(string param, long long& value) const
 	{
 		struct ConfOpt *opt;
 
@@ -301,7 +301,7 @@ namespace Config {
 		return 0;
 	};
 
-	int SBQLConfig::getDouble(string param, double& value)
+	int SBQLConfig::getDouble(string param, double& value) const
 	{
 		struct ConfOpt *opt;
 
@@ -319,7 +319,7 @@ namespace Config {
 		return 0;
 	};
 
-	int SBQLConfig::getString(string param, string& value)
+	int SBQLConfig::getString(string param, string& value) const
 	{
 		struct ConfOpt *opt;
 

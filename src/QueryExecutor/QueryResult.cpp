@@ -61,18 +61,18 @@ QueryResult* QueryNothingResult::clone()	{ return new QueryNothingResult(); }
 QueryResult* QueryVirtualResult::clone()	{ return new QueryVirtualResult(vo_name, view_defs, seeds, view_parent); }
 
 //function type() - returns type of a result
-int QueryResult::type()			{ return QueryResult::QRESULT; }
-int QuerySequenceResult::type()		{ return QueryResult::QSEQUENCE; }
-int QueryBagResult::type()		{ return QueryResult::QBAG; }
-int QueryStructResult::type()		{ return QueryResult::QSTRUCT; }
-int QueryBinderResult::type()		{ return QueryResult::QBINDER; }
-int QueryStringResult::type()		{ return QueryResult::QSTRING; }
-int QueryIntResult::type()		{ return QueryResult::QINT; }
-int QueryDoubleResult::type()		{ return QueryResult::QDOUBLE; }
-int QueryBoolResult::type()		{ return QueryResult::QBOOL; }
-int QueryReferenceResult::type()	{ return QueryResult::QREFERENCE; }
-int QueryNothingResult::type()		{ return QueryResult::QNOTHING; }
-int QueryVirtualResult::type()		{ return QueryResult::QVIRTUAL; }
+int QueryResult::type() const			{ return QueryResult::QRESULT; }
+int QuerySequenceResult::type() const		{ return QueryResult::QSEQUENCE; }
+int QueryBagResult::type() const		{ return QueryResult::QBAG; }
+int QueryStructResult::type() const		{ return QueryResult::QSTRUCT; }
+int QueryBinderResult::type() const		{ return QueryResult::QBINDER; }
+int QueryStringResult::type() const		{ return QueryResult::QSTRING; }
+int QueryIntResult::type() const		{ return QueryResult::QINT; }
+int QueryDoubleResult::type() const		{ return QueryResult::QDOUBLE; }
+int QueryBoolResult::type() const		{ return QueryResult::QBOOL; }
+int QueryReferenceResult::type() const		{ return QueryResult::QREFERENCE; }
+int QueryNothingResult::type() const		{ return QueryResult::QNOTHING; }
+int QueryVirtualResult::type() const		{ return QueryResult::QVIRTUAL; }
 
 //function collection() - returns true if result is a collection, false if not
 bool QuerySequenceResult::collection()	{ return true; }
@@ -101,17 +101,17 @@ bool QueryNothingResult::isEmpty()	{ return true; }
 bool QueryVirtualResult::isEmpty()	{ return true; }
 
 //function size() - returns how many other results does a result contain
-unsigned int QuerySequenceResult::size()	{ return seq.size(); }
-unsigned int QueryBagResult::size()		{ return bag.size(); }
-unsigned int QueryStructResult::size()		{ return str.size(); }
-unsigned int QueryBinderResult::size()		{ if (item != NULL) {return 1;} else {return 0;}; }
-unsigned int QueryStringResult::size()		{ return 0; }
-unsigned int QueryIntResult::size()		{ return 0; }
-unsigned int QueryDoubleResult::size()		{ return 0; }
-unsigned int QueryBoolResult::size()		{ return 0; }
-unsigned int QueryReferenceResult::size()	{ return 0; }
-unsigned int QueryNothingResult::size()		{ return 0; }
-unsigned int QueryVirtualResult::size()		{ return 0; }
+unsigned int QuerySequenceResult::size() const	{ return seq.size(); }
+unsigned int QueryBagResult::size() const	{ return bag.size(); }
+unsigned int QueryStructResult::size() const	{ return str.size(); }
+unsigned int QueryBinderResult::size() const	{ if (item != NULL) {return 1;} else {return 0;}; }
+unsigned int QueryStringResult::size() const	{ return 0; }
+unsigned int QueryIntResult::size() const	{ return 0; }
+unsigned int QueryDoubleResult::size() const	{ return 0; }
+unsigned int QueryBoolResult::size() const	{ return 0; }
+unsigned int QueryReferenceResult::size() const	{ return 0; }
+unsigned int QueryNothingResult::size() const	{ return 0; }
+unsigned int QueryVirtualResult::size()	const	{ return 0; }
 
 //accesors for collection result classes - sequence, bag, struct
 void QuerySequenceResult::addResult(QueryResult *r){ 

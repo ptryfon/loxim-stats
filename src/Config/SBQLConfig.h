@@ -23,22 +23,21 @@ namespace Config {
 		private:
 			static struct ModuleOptions *config;
 			string callerModule;
-			struct ModuleOptions *callerModuleOpts;
+			mutable struct ModuleOptions *callerModuleOpts;
 
-			struct ModuleOptions *findConfigModule(string module);
-			struct ConfOpt *findConfigOption(string option);
+			struct ModuleOptions *findConfigModule(string module) const;
+			struct ConfOpt *findConfigOption(string option) const;
 		public:
 			SBQLConfig(string module);
 
 			static void startup();
 			int init(void);
-			int init(string file);
 			void free(void);
-			int getBool(string param, bool& value);
-			int getInt(string param, int& value);
-			int getLong(string param, long long& value);
-			int getDouble(string param, double& value);
-			int getString(string param, string& value);
+			int getBool(string param, bool& value) const;
+			int getInt(string param, int& value) const;
+			int getLong(string param, long long& value) const;
+			int getDouble(string param, double& value) const;
+			int getString(string param, string& value) const;
 			void dumpConfig(void);
 			~SBQLConfig();
 	};

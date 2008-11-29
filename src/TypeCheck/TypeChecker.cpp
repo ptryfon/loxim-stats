@@ -122,7 +122,7 @@ namespace TypeCheck
 			cout << "setting tcResult to NON ''" << endl;
 			//Thats where globalResult should be sensibly serialized, with end-line chars, to let the user
 			// see all errors caught while type checking.
-			if (not globalResult.isError()) tcResultString = (*SBQLstrerror(result));
+			if (not globalResult.isError()) tcResultString = SBQLstrerror(result);
 			else tcResultString = globalResult.getOutput();
 			cout << tcResultString << endl;
 			return (ErrTypeChecker | EGeneralTCError);

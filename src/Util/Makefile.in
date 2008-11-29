@@ -32,7 +32,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-subdir = src/Errors
+subdir = src/Util
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
@@ -41,9 +41,9 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 mkinstalldirs = $(install_sh) -d
 CONFIG_CLEAN_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
-libErrors_la_LIBADD =
-am_libErrors_la_OBJECTS = ErrorConsole.lo ErrorMsg.lo Exceptions.lo
-libErrors_la_OBJECTS = $(am_libErrors_la_OBJECTS)
+libUtil_la_LIBADD =
+am_libUtil_la_OBJECTS = Locker.lo
+libUtil_la_OBJECTS = $(am_libUtil_la_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -65,8 +65,8 @@ CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-SOURCES = $(libErrors_la_SOURCES)
-DIST_SOURCES = $(libErrors_la_SOURCES)
+SOURCES = $(libUtil_la_SOURCES)
+DIST_SOURCES = $(libUtil_la_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -183,8 +183,8 @@ sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-noinst_LTLIBRARIES = libErrors.la
-libErrors_la_SOURCES = ErrorConsole.cpp ErrorConsole.h ErrorMsg.cpp Errors.h Exceptions.h Exceptions.cpp
+noinst_LTLIBRARIES = libUtil.la
+libUtil_la_SOURCES = Locker.h Locker.cpp smartptr.h
 INCLUDES = -I$(top_srcdir)/src
 all: all-am
 
@@ -199,9 +199,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  src/Errors/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  src/Util/Makefile'; \
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign  src/Errors/Makefile
+	  $(AUTOMAKE) --foreign  src/Util/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -228,8 +228,8 @@ clean-noinstLTLIBRARIES:
 	  echo "rm -f \"$${dir}/so_locations\""; \
 	  rm -f "$${dir}/so_locations"; \
 	done
-libErrors.la: $(libErrors_la_OBJECTS) $(libErrors_la_DEPENDENCIES) 
-	$(CXXLINK)  $(libErrors_la_OBJECTS) $(libErrors_la_LIBADD) $(LIBS)
+libUtil.la: $(libUtil_la_OBJECTS) $(libUtil_la_DEPENDENCIES) 
+	$(CXXLINK)  $(libUtil_la_OBJECTS) $(libUtil_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -237,9 +237,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ErrorConsole.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ErrorMsg.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Exceptions.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Locker.Plo@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
