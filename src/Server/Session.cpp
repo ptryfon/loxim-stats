@@ -333,8 +333,7 @@ namespace Server{
 		bool correct;
 		try{
 			execute_statement("begin");
-			qres = execute_statement((string("validate ") + string(login) + string(" ") +
-						string(passwd)).c_str());
+			qres = execute_statement("validate " + login + " " + passwd);
 			//do the check
 			if (qres->type() != QueryResult::QBOOL)
 				return false;
@@ -362,14 +361,13 @@ namespace Server{
 			KAthread.set_answered();
 			worker.submit(package);
 		}
-		if (shutting_down){
-			if (!error){
-				send_bye();
-				return;
-			}
-			else
-				throw LoximException(error);
+		if (!error){
+			send_bye();
+			return;
 		}
+		else
+			throw LoximException(error);
+		
 	}
 
 	bool is_admin_stmt(const string &stmt)
@@ -481,11 +479,16 @@ namespace Server{
 		pthread_create(&thread, NULL, W_starter, this);
 	}
 
+
 	void Worker::start_continue()
 	{
 		//main loop
 		pthread_mutex_lock(&mutex);
 		while (true){
+			if (shutting_down){
+				pthread_mutex_unlock(&mutex);
+				return;
+			}
 			pthread_cond_wait(&idle_cond, &mutex);
 			if (shutting_down){
 				pthread_cond_signal(&completion_cond);
@@ -494,7 +497,16 @@ namespace Server{
 			}
 			pthread_mutex_unlock(&mutex);
 			try{
-				process_package(cur_package);
+				try{
+					process_package(cur_package);
+				} catch (LoximException &ex) {
+					session.shutdown(ex.get_error());
+					//we don't own the mutex
+					return;
+				} catch (...) {
+					session.shutdown(EUnknown);
+					return;
+				}
 			} catch (LoximException &ex) {
 				session.shutdown(ex.get_error());
 				return;
@@ -509,7 +521,7 @@ namespace Server{
 		}
 	}
 
-	//TODO Race condition!!!
+	//TODO It might be a race condition!!!
 	void Worker::cancel_job(bool synchronous, bool mutex_locked)
 	{
 		session.qEx.stopExecuting();
