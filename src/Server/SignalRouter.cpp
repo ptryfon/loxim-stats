@@ -1,7 +1,11 @@
 #include <Server/SignalRouter.h>
 #include <signal.h>
+#include <Util/Locker.h>
+#include <Util/smartptr.h>
 
 using namespace std;
+using namespace Util;
+using namespace _smptr;
 
 namespace Server{
 
@@ -12,11 +16,9 @@ namespace Server{
 
 	void SR_cleaner(void *arg)
 	{
-		//this should happen atomically,
-		//maybe masking signals is a good idea
-		Receiver *r = SignalRouter::map[pthread_self()];
+		Locker l(SignalRouter::map_protector);
+		auto_ptr<Receiver> r(SignalRouter::map[pthread_self()]);
 		SignalRouter::map.erase(pthread_self());
-		delete r;
 	}
 	
 	void *SR_starter(void *arg)
@@ -46,6 +48,7 @@ namespace Server{
 	}
 
 	map<pthread_t, Receiver*> SignalRouter::map;
+	pthread_mutex_t SignalRouter::map_protector = PTHREAD_MUTEX_INITIALIZER;
 	
 	void SignalRouter::register_thread(pthread_t thread, Receiver *recv)
 	{
@@ -55,6 +58,7 @@ namespace Server{
 	void SignalRouter::register_thread(pthread_t thread, recv_fun_t recv, void *arg)
 	{
 		Receiver *r = new Receiver(recv, arg);
+		Locker l(map_protector);
 		map[thread] = r;
 	}
 	

@@ -42,7 +42,7 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_CLEAN_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
 libUtil_la_LIBADD =
-am_libUtil_la_OBJECTS = Locker.lo
+am_libUtil_la_OBJECTS = Locker.lo Backtrace.lo
 libUtil_la_OBJECTS = $(am_libUtil_la_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -184,7 +184,7 @@ target_alias = @target_alias@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 noinst_LTLIBRARIES = libUtil.la
-libUtil_la_SOURCES = Locker.h Locker.cpp smartptr.h
+libUtil_la_SOURCES = Locker.h Locker.cpp smartptr.h Backtrace.h Backtrace.cpp
 INCLUDES = -I$(top_srcdir)/src
 all: all-am
 
@@ -237,6 +237,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Backtrace.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Locker.Plo@am__quote@
 
 .cpp.o:

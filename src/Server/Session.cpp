@@ -168,6 +168,8 @@ namespace Server{
 			err_cons.printf("session %d quitting\n", id);
 			server.end_session(get_id(), 0);
 		} catch (LoximException &ex){
+			err_cons << "Caught LoximException in Session::main_loop\n";
+			err_cons << ex.to_string();
 			worker.stop();
 			KAthread.stop();
 			server.end_session(get_id(), ex.get_error());
@@ -466,12 +468,12 @@ namespace Server{
 	}
 
 	Worker::Worker(Session &session, ErrorConsole &err_cons) :
-		session(session), err_cons(err_cons)
+		session(session), err_cons(err_cons), shutting_down(0),
+		thread(0)
 	{
 		pthread_mutex_init(&mutex, 0);
 		pthread_cond_init(&idle_cond, 0);
 		pthread_cond_init(&completion_cond, 0);
-		shutting_down = 0;
 	}
 
 	void Worker::start()
@@ -537,12 +539,15 @@ namespace Server{
 
 	void Worker::stop()
 	{
+		if (!thread)
+			return;
 		shutting_down = 1;
 		cancel_job(false, false);
 		pthread_mutex_lock(&mutex);
 		pthread_cond_signal(&idle_cond);
 		pthread_mutex_unlock(&mutex);
 		pthread_join(thread, NULL);
+		thread = 0;
 	}
 
 	/*
@@ -659,7 +664,7 @@ namespace Server{
 	}
 
 	KeepAliveThread::KeepAliveThread(Session &session, ErrorConsole &err_cons) :
-		session(session), err_cons(err_cons)
+		session(session), err_cons(err_cons), thread(0)
 	{
 		pthread_mutex_init(&(this->cond_mutex), 0);
 		pthread_cond_init(&(this->cond), 0);
@@ -673,9 +678,12 @@ namespace Server{
 
 	void KeepAliveThread::stop()
 	{
+		if (!thread)
+			return;
 		shutting_down = 1;
 		pthread_cond_signal(&cond);
 		pthread_join(thread, NULL);
+		thread = 0;
 	}
 
 	void KeepAliveThread::main_loop()
