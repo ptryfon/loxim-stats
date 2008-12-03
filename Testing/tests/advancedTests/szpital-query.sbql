@@ -39,3 +39,5 @@ count((Leczenie where (deref(deref(dane).pac).id) =1) where rodzaj="platne")*30+
 
 end;
 /
+quit
+/
