@@ -25,4 +25,10 @@ public class BindingImpl implements Binding {
 		this.value = value;
 	}
 
+	@Override
+	public <T> T mapTo(Class<T> clazz) throws IllegalArgumentException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

@@ -23,4 +23,10 @@ public class GenericCollection implements Struct, Sequence, Bag {
 		this.globalType = globalType;
 	}
 
+	@Override
+	public <T> T mapTo(Class<T> clazz) throws IllegalArgumentException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

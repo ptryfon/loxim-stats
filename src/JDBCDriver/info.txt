@@ -1,5 +1,4 @@
  This is a JDBC Driver for LoXiM.
- To build, use Maven 2. Makefile is mapped to a Maven call.
- The Makefile is not included in the main LoXiM Makefile. You must build the driver separately.
- 
+ To build, use Maven 2.
+  
  Adam Michalik <adam.michalik@students.mimuw.edu.pl> 2008-2009

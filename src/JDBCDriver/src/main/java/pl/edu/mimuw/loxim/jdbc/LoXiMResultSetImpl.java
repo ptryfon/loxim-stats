@@ -2,7 +2,9 @@ package pl.edu.mimuw.loxim.jdbc;
 
 import java.io.InputStream;
 import java.io.Reader;
+import java.io.StringReader;
 import java.math.BigDecimal;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.Array;
 import java.sql.Blob;
@@ -13,6 +15,7 @@ import java.sql.Ref;
 import java.sql.ResultSet;
 import java.sql.RowId;
 import java.sql.SQLException;
+import java.sql.SQLFeatureNotSupportedException;
 import java.sql.SQLWarning;
 import java.sql.SQLXML;
 import java.sql.Time;
@@ -21,6 +24,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 
+import pl.edu.mimuw.loxim.data.LoXiMObject;
 import pl.edu.mimuw.loxim.jdbc.util.DateUtil;
 
 public class LoXiMResultSetImpl implements LoXiMResultSet {
@@ -29,6 +33,9 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 	private boolean closed;
 	private SQLWarning warning;
 	private int fetchSize;
+	
+	private int index = -1;
+	private List<Object> results;
 	
 	LoXiMResultSetImpl(LoXiMStatement statement) throws SQLException {
 		this.statement = statement;
@@ -82,11 +89,18 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public int findColumn(String columnLabel) throws SQLException {
-		if (findColumns(columnLabel).length == 0) {
-			return 0;
-		} else {
-			return findColumns(columnLabel)[0];
+		checkClosed();
+		int[] columns = findColumns(columnLabel);
+		
+		if (columns.length == 0) {
+			throw new SQLException("Column " + columnLabel + " not found");
 		}
+		
+		if (columns.length > 1) {
+			throw new SQLException(columns.length + " columns found for name " + columnLabel);
+		}
+		
+		return columns[0];
 	}
 	
 	@Override
@@ -103,8 +117,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public Array getArray(int columnIndex) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		throw new SQLFeatureNotSupportedException();
 	}
 
 	@Override
@@ -137,15 +150,13 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 	@Override
 	public BigDecimal getBigDecimal(int columnIndex, int scale) throws SQLException {
 		BigDecimal res = getBigDecimal(columnIndex);
-		res.setScale(scale);
-		return res;
+		return res == null ? null : res.setScale(scale);
 	}
 
 	@Override
 	public BigDecimal getBigDecimal(String columnLabel, int scale) throws SQLException {
 		BigDecimal res = getBigDecimal(columnLabel);
-		res.setScale(scale);
-		return res;
+		return res == null ? null : res.setScale(scale);
 	}
 
 	@Override
@@ -161,8 +172,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public Blob getBlob(int columnIndex) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		throw new SQLFeatureNotSupportedException();
 	}
 
 	@Override
@@ -183,8 +193,8 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public byte getByte(int columnIndex) throws SQLException {
-		// TODO Auto-generated method stub
-		return 0;
+		checkClosed();
+		return convertResult(columnIndex, Number.class).byteValue();
 	}
 
 	@Override
@@ -205,8 +215,9 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public Reader getCharacterStream(int columnIndex) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		checkClosed();
+		String s = convertResult(columnIndex, String.class);
+		return s == null ? null : new StringReader(s);
 	}
 
 	@Override
@@ -216,8 +227,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public Clob getClob(int columnIndex) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		throw new SQLFeatureNotSupportedException();
 	}
 
 	@Override
@@ -232,14 +242,13 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public String getCursorName() throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		throw new SQLFeatureNotSupportedException();
 	}
 
 	@Override
 	public Date getDate(int columnIndex) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		Calendar cal = convertResult(columnIndex, Calendar.class);
+		return cal == null ? null : new Date(cal.getTimeInMillis());
 	}
 
 	@Override
@@ -267,8 +276,8 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public double getDouble(int columnIndex) throws SQLException {
-		// TODO Auto-generated method stub
-		return 0;
+		checkClosed();
+		return convertResult(columnIndex, Number.class).doubleValue();
 	}
 
 	@Override
@@ -290,8 +299,8 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public float getFloat(int columnIndex) throws SQLException {
-		// TODO Auto-generated method stub
-		return 0;
+		checkClosed();
+		return convertResult(columnIndex, Number.class).floatValue();
 	}
 
 	@Override
@@ -307,8 +316,8 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public int getInt(int columnIndex) throws SQLException {
-		// TODO Auto-generated method stub
-		return 0;
+		checkClosed();
+		return convertResult(columnIndex, Number.class).intValue();
 	}
 
 	@Override
@@ -318,8 +327,8 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public long getLong(int columnIndex) throws SQLException {
-		// TODO Auto-generated method stub
-		return 0;
+		checkClosed();
+		return convertResult(columnIndex, Number.class).longValue();
 	}
 
 	@Override
@@ -335,8 +344,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public Reader getNCharacterStream(int columnIndex) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		return getCharacterStream(columnIndex);
 	}
 
 	@Override
@@ -346,8 +354,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public NClob getNClob(int columnIndex) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		throw new SQLFeatureNotSupportedException();
 	}
 
 	@Override
@@ -357,8 +364,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public String getNString(int columnIndex) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		return getString(columnIndex);
 	}
 
 	@Override
@@ -367,20 +373,19 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 	}
 
 	@Override
-	public List<Object> getObject(int columnIndex) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+	public Object getObject(int columnIndex) throws SQLException {
+		checkClosed();
+		return results.get(columnIndex);
 	}
 
 	@Override
-	public List<Object> getObject(String columnLabel) throws SQLException {
+	public Object getObject(String columnLabel) throws SQLException {
 		return getObject(findColumn(columnLabel));
 	}
 
 	@Override
 	public Object getObject(int columnIndex, Map<String, Class<?>> map) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		throw new SQLFeatureNotSupportedException();
 	}
 
 	@Override
@@ -390,8 +395,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public Ref getRef(int columnIndex) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		throw new SQLFeatureNotSupportedException();
 	}
 
 	@Override
@@ -401,14 +405,12 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public int getRow() throws SQLException {
-		// TODO Auto-generated method stub
-		return 0;
+		return index + 1;
 	}
 
 	@Override
 	public RowId getRowId(int columnIndex) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		throw new SQLFeatureNotSupportedException();
 	}
 
 	@Override
@@ -418,8 +420,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public SQLXML getSQLXML(int columnIndex) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		throw new SQLFeatureNotSupportedException();
 	}
 
 	@Override
@@ -429,8 +430,8 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public short getShort(int columnIndex) throws SQLException {
-		// TODO Auto-generated method stub
-		return 0;
+		checkClosed();
+		return convertResult(columnIndex, Number.class).shortValue();
 	}
 
 	@Override
@@ -446,8 +447,8 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public String getString(int columnIndex) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		checkClosed();
+		return convertResult(columnIndex, String.class);
 	}
 
 	@Override
@@ -457,8 +458,8 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public Time getTime(int columnIndex) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		Calendar cal = convertResult(columnIndex, Calendar.class);
+		return cal == null ? null : new Time(cal.getTimeInMillis());
 	}
 
 	@Override
@@ -487,8 +488,8 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public Timestamp getTimestamp(int columnIndex) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		Calendar cal = convertResult(columnIndex, Calendar.class);
+		return cal == null ? null : new Timestamp(cal.getTimeInMillis());
 	}
 
 	@Override
@@ -519,8 +520,13 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public URL getURL(int columnIndex) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		try {
+			String s = convertResult(columnIndex, String.class);
+			return s == null ? null : new URL(s);
+		} catch (MalformedURLException e) {
+			throw new SQLException(e);
+		}
+		
 	}
 
 	@Override
@@ -553,14 +559,12 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public boolean isAfterLast() throws SQLException {
-		// TODO Auto-generated method stub
-		return false;
+		return results.isEmpty() ? false : index == results.size();
 	}
 
 	@Override
 	public boolean isBeforeFirst() throws SQLException {
-		// TODO Auto-generated method stub
-		return false;
+		return results.isEmpty() ? false : index == -1;
 	}
 
 	@Override
@@ -570,14 +574,12 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public boolean isFirst() throws SQLException {
-		// TODO Auto-generated method stub
-		return false;
+		return index == 0;
 	}
 
 	@Override
 	public boolean isLast() throws SQLException {
-		// TODO Auto-generated method stub
-		return false;
+		return index == results.size() - 1;
 	}
 
 	@Override
@@ -601,8 +603,12 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 	@Override
 	public boolean next() throws SQLException {
 		checkClosed();
-		// TODO Auto-generated method stub
-		return false;
+
+		if (index < results.size()) {
+			index++;
+		}
+		
+		return index < results.size();
 	}
 
 	@Override
@@ -625,19 +631,16 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public boolean rowDeleted() throws SQLException {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public boolean rowInserted() throws SQLException {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public boolean rowUpdated() throws SQLException {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
@@ -1144,5 +1147,26 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 		if (closed) {
 			throw new SQLException("Result set is closed");
 		}
+	}
+	
+	private <T> T convertResult(int idx, Class<T> clazz) throws IllegalArgumentException {
+		Object res = results.get(idx - 1);
+		
+		if (res == null) {
+			if (Number.class.isAssignableFrom(clazz)) {
+				return clazz.cast(0);
+			}
+			return null;
+		}
+		
+		if (clazz.isInstance(res)) {
+			return (T) res;
+		}
+		
+		if (res instanceof LoXiMObject) {
+			return ((LoXiMObject) res).mapTo(clazz);
+		}
+		
+		throw new IllegalArgumentException("Object at index " + idx + " cannot be mapped from " + res.getClass() + " to " + clazz);
 	}
 }

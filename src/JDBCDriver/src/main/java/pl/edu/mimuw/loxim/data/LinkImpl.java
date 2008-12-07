@@ -14,4 +14,10 @@ public class LinkImpl implements Link {
 		this.valueId = valueId;
 	}
 
+	@Override
+	public <T> T mapTo(Class<T> clazz) throws IllegalArgumentException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }
