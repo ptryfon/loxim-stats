@@ -1,9 +1,31 @@
 begin;
 
-create interface Ibabcia {object name is OIbabcia; (imie) upieczCiasto(maka, jaja, innySyf); };
+"creating class and some objects"
+create class Cbabcia {instance Obabcia : {imie; wiek} procedure upieczCiasto(maka, jaja, innySyf) {return 0} };
+Cbabcia includes create ("Genowefa" as imie, 55 as wiek) as Obabcia;
+Cbabcia includes create ("Wieslawa" as imie, 67 as wiek) as Obabcia;
 
-create class Cbabcia {instance Obabcia : {imie} procedure upieczCiasto(maka, jaja, innySyf) {return 0} };
-
+"binding interface to class";
+create interface Ibabcia {object name is OIbabcia; (imie; wiek) upieczCiasto(maka, jaja, innySyf); };
 interface Ibabcia shows Cbabcia;
+
+"binding interface to another interface";
+create interface Ibabcia2 {object name is OIbabcia2; (imie)};
+interface Ibabcia2 shows Ibabcia;
+
+"querying through that interface"
+OIbabcia2;
+
+"creating view"
+create view OldBabciasDef {	virtual objects OldBabcias() { return (Obabcia where wiek > 60) as bab}	procedure on_retrieve() {return deref(bab.imie)}}
+
+"binding interface to view"
+"not yet implemented"
+
+"creating Schema"
+create schema BabciasForBeginners {	Ibabcia2 OldBabcias }
+
+create schema Hum { Ibabcia2 }
+
 
 end;
