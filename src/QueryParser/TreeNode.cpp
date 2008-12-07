@@ -245,116 +245,147 @@ namespace QParser
 
     /* INTERFACE NODES */
 
-    string InterfacePrintHandler::vectorString(const TAttributes &vec)
+    string PrintHandler::vectorString(const TAttributes &vec)
     {
-	string res;
-	TAttributes::const_iterator it;
-	for (it = vec.begin(); it != vec.end(); ++it)
-	{
-	    res += it->getName();
-	    res += ", ";
-	}
-	return res;
+		string res;
+		TAttributes::const_iterator it;
+		for (it = vec.begin(); it != vec.end(); ++it)
+		{
+			res += it->getName();
+			res += ", ";
+		}
+		return res;
     }
 
-    string InterfacePrintHandler::vectorString(const TSupers &vec)
+    string PrintHandler::vectorString(const TSupers &vec)
     {
-	string res;
-	TSupers::const_iterator it;
-	for (it = vec.begin(); it != vec.end(); ++it)
-	{
-	    res += *it;
-	    res += ", ";
-	}
-	return res;
+		string res;
+		TSupers::const_iterator it;
+		for (it = vec.begin(); it != vec.end(); ++it)
+		{
+			res += *it;
+			res += ", ";
+		}
+		return res;
     }
+	
+	string PrintHandler::mapString(const Schemas::TNameToAccess &aps)
+	{
+		string res;
+		Schemas::TNameToAccess::const_iterator it;
+		for (it = aps.begin(); it != aps.end(); ++it)
+		{
+			string name = (*it).first;
+			int access = (*it).second;
+			res += name;
+			res += ": ";
+			res += Schemas::getCrudString(access);
+			res += ", ";
+		}
+		return res;
+	}
 
-
+	string PrintHandler::mapString(const Schemas::TDict &binds)
+	{
+		string res;
+		Schemas::TDict::const_iterator it;
+		for (it = binds.begin(); it != binds.end(); ++it)
+		{
+			string name = (*it).first;
+			string boundName = (*it).second;
+			res += name;
+			res += "-->";
+			res += boundName;
+			res += ", ";
+		}
+		return res;
+	}
+	
     InterfaceAttribute::InterfaceAttribute(string name) : m_name(name) {}
     TreeNode* InterfaceAttribute::clone()
     {
-	return new InterfaceAttribute(m_name);    
+		return new InterfaceAttribute(m_name);    
     }
     
     string InterfaceFields::simpleString() const
     {
-	return InterfacePrintHandler::vectorString(m_fields);
+		return PrintHandler::vectorString(m_fields);
     }
         
     TreeNode* InterfaceAttributes::clone()
     {
-	return new InterfaceAttributes(*this);    
+		return new InterfaceAttributes(*this);    
     }
     
     TreeNode* InterfaceMethodParams::clone()
     {
-	return new InterfaceMethodParams(*this);
+		return new InterfaceMethodParams(*this);
     }
 
     InterfaceMethod::InterfaceMethod(string name) : m_name(name) {}
     string InterfaceMethod::simpleString() const
     {
-	string res;
-	res = "Method: " + m_name + "\n";
-	res = "\t params: " + InterfacePrintHandler::vectorString(m_params);
-	return res;
+		string res;
+		res = "Method: " + m_name + "\n";
+		res = "\t params: " + PrintHandler::vectorString(m_params);
+		return res;
     }
     TreeNode *InterfaceMethod::clone() 
     {
-	return new InterfaceMethod(*this);
+		return new InterfaceMethod(*this);
     }    
     
     TreeNode *InterfaceMethods::clone()
     {
-	return new InterfaceMethods(*this);
+		return new InterfaceMethods(*this);
     }
     string InterfaceMethods::simpleString() const
     {
-	string res;
-	TMethods::const_iterator it;
-	for (it = m_methods.begin(); it != m_methods.end(); ++it)
-	{
-	    res += it->simpleString() + "\n";
-	}
-	return res;
+		string res;
+		TMethods::const_iterator it;
+		for (it = m_methods.begin(); it != m_methods.end(); ++it)
+		{
+			res += it->simpleString() + "\n";
+		}
+		return res;
     }
     
     void InterfaceNode::setSupers(NameListNode *supers)
     {
-	while (supers)
-	{
-	    m_supers.push_back(supers->get_name());
-	    supers = supers->try_get_name_list();    
-	};
+		while (supers)
+		{
+			m_supers.push_back(supers->get_name());
+			supers = supers->try_get_name_list();    
+		};
     }
     TreeNode *InterfaceNode::clone() 
     {
-	return new InterfaceNode(*this);
+		return new InterfaceNode(*this);
     }
     string InterfaceNode::simpleString() const
     {
-	string res;
-	res += "InterfaceNode (interfaceName: " + m_interfaceName + ", objectName: " + m_objectName + ") :\n";
-	res += "\tExtends: " + InterfacePrintHandler::vectorString(m_supers) + "\n";
-	res += "\tAttributes: " + InterfacePrintHandler::vectorString(m_attributes) + "\n";
-	res += "\tMethods: ";
-	TMethods::const_iterator it;
-	for (it = m_methods.begin(); it != m_methods.end(); ++it)
-	{
-	    res += it->simpleString() + ", ";
-	}
-	return res;
+		string res;
+		res += "InterfaceNode (interfaceName: " + m_interfaceName + ", objectName: " + m_objectName + ") :\n";
+		res += "\tExtends: " + PrintHandler::vectorString(m_supers) + "\n";
+		res += "\tAttributes: " + PrintHandler::vectorString(m_attributes) + "\n";
+		res += "\tMethods: ";
+		TMethods::const_iterator it;
+		for (it = m_methods.begin(); it != m_methods.end(); ++it)
+		{
+			res += it->simpleString() + ", ";
+		}
+		return res;
     }
     
     TreeNode* RegisterInterfaceNode::clone() 
     {
-	return new RegisterInterfaceNode((QueryNode*) m_query->clone());
+		return new RegisterInterfaceNode((QueryNode*) m_query->clone());
     }
     string RegisterInterfaceNode::simpleString() const
     {
-	string res;
-	res = "RegisterInterfaceNode: TODO \n";
-	return res;
+		string res;
+		res = "RegisterInterfaceNode: TODO \n";
+		return res;
     }
 
     InterfaceBind::InterfaceBind(string interfaceName, string implementationName) : m_interfaceName(interfaceName), 
@@ -362,9 +393,98 @@ namespace QParser
     
     TreeNode *InterfaceBind::clone()
     {
-	return new InterfaceBind(*this);
+		return new InterfaceBind(*this);
     }
-    
+	
+	/* Schema Nodes */	
+	void Crud::addAccessType(int priv)
+	{
+		if (m_default)
+		{
+			m_default = false;
+			m_crud = 0;
+		}
+		switch (priv)
+		{
+			case Privilige::Create:
+				m_crud |= Schemas::CREATE;
+				break;
+				
+			case Privilige::Read:
+				m_crud |= Schemas::READ;
+				break;
+				
+			case Privilige::Modify:
+				m_crud |= Schemas::UPDATE;
+				break;
+				
+			case Privilige::Delete:
+				m_crud |= Schemas::DELETE;
+				break;
+			
+			default:
+				m_crud = -1;
+				break;
+		}
+	}	
+	TreeNode* Crud::clone()
+	{
+		return new Crud(*this);
+	}	
+	string Crud::simpleString() const
+	{
+		string res = "Crud: " + Schemas::getCrudString(m_crud);
+		return res;
+	}
+
+	TreeNode* SchemaAPs::clone()
+	{
+		return new SchemaAPs(*this);
+	}
+	string SchemaAPs::simpleString() const
+	{
+		string res = "SchemaAPs :";
+		res += mapString(m_accessPoints);
+		return res;
+	}
+	
+	TreeNode* SchemaBinds::clone()
+	{
+		return new SchemaBinds(*this);
+	}
+	string SchemaBinds::simpleString() const
+	{
+		string res = "SchemaBinds :";
+		res += mapString(m_binds);
+		return res;
+	}
+	
+	SchemaNode::SchemaNode(string name, Schemas::TNameToAccess aps) :
+		m_name(name), m_accessPoints(aps) {}
+	TreeNode* SchemaNode::clone()
+	{
+		return new SchemaNode(*this);
+	}
+	string SchemaNode::simpleString() const
+	{
+		string res = "SchemaNode: ";
+		res += "accessPoints: ";
+		res += mapString(m_accessPoints);
+		return res;
+	}
+		
+	TreeNode* RegisterSchemaNode::clone()
+	{
+		return new RegisterSchemaNode(*this);
+	}
+	string RegisterSchemaNode::simpleString() const
+	{
+		string res = "RegisterSchemaNode: ";
+		res += m_schemaQuery.simpleString();
+		return res;
+	}
+		
+	
     /**
       *		VALIDATION NODE	BEGIN
       */

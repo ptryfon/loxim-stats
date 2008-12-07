@@ -14,6 +14,7 @@
 #include <QueryExecutor/QueryResult.h>
 #include <QueryParser/QueryParser.h>
 #include <Indexes/BTree.h>
+#include <QueryExecutor/OuterSchema.h>
 //#include <TypeCheck/DecisionTable.h>
 
 //using namespace std;
@@ -74,7 +75,8 @@ namespace QParser {
 	    TNINTERFACEMETHODS, TNINTERFACEMETHOD, TNINTERFACEMETHODPARAMS, TNINTERFACEMETHODPARAM,
 	    TNREGINTERFACE, TNREGCLASS, TNCLASS, TNDML, TNINCLUDES, TNEXCLUDES, TNCAST, TNINSTANCEOF, TNSYSTEMVIEWNAME,
 	 	TNINTERFACEBIND, TNINTERFACEINNERLINKAGELIST, TNINTERFACEINNERLINKAGE, TNSIGNATURE, TNOBJDECL, TNSTRUCTTYPE,
-		TNTYPEDEF, TNCOERCE, TNCASTTO, TNTHROWEXCEPTION, TNVIRTUALIZEAS};
+		TNTYPEDEF, TNCOERCE, TNCASTTO, TNTHROWEXCEPTION, TNVIRTUALIZEAS, TNCRUD, TNREGSCHEMA, TNSCHEMANODE,
+		TNSCHEMABINDS, TNSCHEMAAPS};
 	 
 	TreeNode() : parent(NULL) { 
 		this->needed = false;
@@ -223,8 +225,10 @@ namespace QParser {
     
     
     
+
+
     
-    /* Interface Nodes */
+   
     class SignatureNode;    
     class NameListNode;
     class InterfaceAttribute;
@@ -233,31 +237,115 @@ namespace QParser {
     typedef std::list<string> TSupers;
     
     
-    class InterfacePrintHandler
+    class PrintHandler
     {	//Abstract class
 	public:
 	    static string vectorString(const TAttributes &vec);
 	    static string vectorString(const TSupers &vec);
+		static string mapString(const Schemas::TNameToAccess &aps);
+		static string mapString(const Schemas::TDict &binds);
 	    int defaultPutToString() const {cout << simpleString(); return 0;}
 	    virtual string simpleString() const = 0;
     };
     
-    class InterfaceTreeNode : public TreeNode, public InterfacePrintHandler
+    class PrintableTreeNode : public TreeNode, public PrintHandler
     {	//Abstract class
 	public:
 	    virtual int putToString() {return defaultPutToString();}
 	    virtual string toString(int level = 0, bool recursive = false, string name = "") {return getPrefixForLevel(level, name) + simpleString() + "\n";}
     };
     
-    class InterfaceQueryNode : public QueryNode, public InterfacePrintHandler
+    class PrintableQueryNode : public QueryNode, public PrintHandler
     {	//Abstract class
 	public:
 	    virtual int putToString() {return defaultPutToString();}
 	    virtual string toString(int level = 0, bool recursive = false, string name = "") {return getPrefixForLevel(level, name) + simpleString() + "\n";}
 	    virtual string deParse() {return simpleString();}
     };
+
+	/* Schema Nodes */
+	class Crud : public PrintableTreeNode
+	{
+		private:
+			int m_crud;
+			bool m_default;
+
+		public:
+			Crud (int crud = Schemas::OuterSchema::defaultCrud) {m_crud = crud; m_default = (crud == Schemas::OuterSchema::defaultCrud);}		
+			void addAccessType(int priv);
+			int getCrud() const {return m_crud;}
+
+			int type() {return TNCRUD;}
+			TreeNode *clone();
+			string simpleString() const;
+	};
+
+	class SchemaAPs : public PrintableTreeNode
+	{
+		private:
+			Schemas::TNameToAccess m_accessPoints;
+
+		public:
+			SchemaAPs() {}	
+			Schemas::TNameToAccess getAccessPoints() const {return m_accessPoints;}
+			void addAccessPoint(string name, int crud) {m_accessPoints[name] = crud;}	
+
+			int type() {return TNSCHEMAAPS;}
+			TreeNode *clone();
+			string simpleString() const;
+	};
+
+	class SchemaBinds : public PrintableTreeNode
+	{
+		private:
+			Schemas::TDict m_binds;
+
+		public:
+			SchemaBinds() {}
+			void addBind(string name, string boundName) {m_binds[name] = (boundName);}
+			Schemas::TDict getBinds() const {return m_binds;}
+
+			TreeNode *clone();	    
+			int type() {return TNSCHEMABINDS;}
+			string simpleString() const;
+	};
+
+	class SchemaNode :public PrintableQueryNode
+	{
+		private:
+			string m_name;
+			Schemas::TNameToAccess m_accessPoints;
+
+		public:
+			SchemaNode() {}
+			SchemaNode(string name, Schemas::TNameToAccess aps);
+			string getName() const {return m_name;}
+			Schemas::TNameToAccess getAccessPoints() const {return m_accessPoints;}
+			
+			void setName(string name) {m_name = name;}
+			void setAccessPoints(Schemas::TNameToAccess aps) {m_accessPoints = aps;}
+
+			TreeNode *clone();	    
+			int type() {return TNSCHEMANODE;}
+			string simpleString() const;
+	};
+
+	class RegisterSchemaNode : public PrintableQueryNode
+	{
+		protected: 
+			SchemaNode m_schemaQuery;
+		
+		public:
+			RegisterSchemaNode(SchemaNode *query) {m_schemaQuery = *query;}		
+			SchemaNode getSchemaQuery() const {return m_schemaQuery;}
+			
+			TreeNode *clone();	    
+			int type() {return TNREGSCHEMA;}
+			string simpleString() const;
+	};
     
-    class InterfaceAttribute: public InterfaceTreeNode
+	/* Interface Nodes */
+    class InterfaceAttribute: public PrintableTreeNode
     {
 	private:
 	    string m_name;
@@ -271,7 +359,7 @@ namespace QParser {
 	    string simpleString() const {string res = "InterfaceAttribute: " + m_name; return res;}
     };
     
-    class InterfaceFields: public InterfaceTreeNode
+    class InterfaceFields: public PrintableTreeNode
     {	//Abstract class
 	protected:
 	    InterfaceFields() {}
@@ -301,7 +389,7 @@ namespace QParser {
 	    TreeNode* clone();
     };
 
-    class InterfaceMethod: public InterfaceTreeNode
+    class InterfaceMethod: public PrintableTreeNode
     {
 	private:
 	    string m_name;
@@ -319,7 +407,7 @@ namespace QParser {
     };
     typedef std::list<InterfaceMethod> TMethods;
     
-    class InterfaceMethods: public InterfaceTreeNode
+    class InterfaceMethods: public PrintableTreeNode
     {
 	private:
 	    TMethods m_methods;
@@ -333,7 +421,7 @@ namespace QParser {
 	    string simpleString() const;
     };
         
-    class InterfaceNode : public InterfaceQueryNode
+    class InterfaceNode : public PrintableQueryNode
     {
 	private:
 	    string m_interfaceName;
@@ -360,22 +448,22 @@ namespace QParser {
 	    string simpleString() const;	    
     };
     
-    class RegisterInterfaceNode : public InterfaceQueryNode
+    class RegisterInterfaceNode : public PrintableQueryNode
     {
-        protected:
-	    QueryNode* m_query;
-	public:
-	    RegisterInterfaceNode(QueryNode *query) {m_query = query;}
-	    ~RegisterInterfaceNode() {if (m_query) delete m_query; m_query=NULL;} 
-	    QueryNode *getQuery() {return m_query;}
-	    
-	    TreeNode *clone();
-	    int type() {return TNREGINTERFACE;}
-	    string simpleString() const;	    
+		protected:
+			QueryNode* m_query;
+		public:
+			RegisterInterfaceNode(QueryNode *query) {m_query = query;}
+			~RegisterInterfaceNode() {if (m_query) delete m_query; m_query=NULL;} 
+			QueryNode *getQuery() {return m_query;}
+			
+			TreeNode *clone();
+			int type() {return TNREGINTERFACE;}
+			string simpleString() const;	    
 
     };
 
-    class InterfaceBind: public InterfaceQueryNode 
+    class InterfaceBind: public PrintableQueryNode 
     {
         private:
     	    string m_interfaceName;

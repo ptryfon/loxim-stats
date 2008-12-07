@@ -141,6 +141,9 @@ namespace QParser
   IndexBoundaryNode* IndexBoundary;
   QParser::InterfaceNode* interfacetree;
   QParser::InterfaceBind* iBind;
+  QParser::Crud* crud;
+  QParser::SchemaAPs* schema_aps;
+  QParser::SchemaNode* schema;
   QParser::SignatureNode* sigtree;
   QParser::StructureTypeNode* stucturetree;
   QParser::ObjectDeclareNode* obdecltree;

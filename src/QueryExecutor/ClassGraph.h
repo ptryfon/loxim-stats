@@ -147,7 +147,7 @@ namespace QExecutor
 
 		virtual void putToNameIndex(string& className, LogicalID* classLid);
 
-		virtual bool classExist(const string& className) {return nameIndex.find(className) != nameIndex.end();};
+		virtual bool classExist(const string& className) const {return nameIndex.find(className) != nameIndex.end();};
 
 		virtual void removeFromNameIndex(string& className);
 
@@ -207,6 +207,8 @@ namespace QExecutor
 		}
 
 		virtual int getClassVertexByName(const string& className, ClassGraphVertex*& cgv, bool& fieldExist);
+
+		virtual string getClassInvariantByName(const string& className, bool& exists) const;
 
 		virtual int belongsToInvariant(SetOfLids* extClasses, string& invariantUpName, bool& inInvariant, bool isObject = true);
 

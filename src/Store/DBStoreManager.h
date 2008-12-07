@@ -38,6 +38,7 @@ namespace Store
 		Views* views;
 		Classes* classes;
 		Interfaces *interfaces;
+		StoreSchemas *schemas;
 		SystemViews* systemviews;
 		PageManager* pagemgr;
 		unsigned timer;
@@ -62,6 +63,7 @@ namespace Store
 		Views* getViews();
 		Classes* getClasses();
 		Interfaces* getInterfaces();
+		StoreSchemas* getSchemas();
 		SystemViews* getSystemViews();
 		PageManager* getPageManager();
 
@@ -98,6 +100,11 @@ namespace Store
 		virtual int bindInterface(TransactionID* tid, const string& name, const string& bindName);
 		virtual int getInterfaceBindForObjectName(TransactionID* tid, const string& oName, string& iName, string& bName); 
 		virtual int removeInterface(TransactionID* tid, ObjectPointer*& object);
+
+		virtual int getSchemasLID(TransactionID* tid, vector<LogicalID*>*& s);
+		virtual int getSchemasLID(TransactionID* tid, string name, vector<LogicalID*> *&s);
+		virtual int addSchema(TransactionID* tid, string name, ObjectPointer *&object);
+		virtual int removeSchema(TransactionID* tid, ObjectPointer *&object);
 
 		virtual int getSystemViewsLID(TransactionID* tid, vector<LogicalID*>*& p_systemviews);
 		virtual int getSystemViewsLID(TransactionID* tid, string name, vector<LogicalID*>*& p_systemviews);

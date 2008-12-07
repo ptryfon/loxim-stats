@@ -38,11 +38,15 @@
   QParser::InterfaceMethod* method;
   QParser::InterfaceMethods *methods;
   QParser::InterfaceMethodParams* method_params;
+  QParser::InterfaceNode* interfacetree;
+  QParser::InterfaceBind* iBind;
+  QParser::Crud* crud;
+  QParser::SchemaAPs* schema_aps;
+  QParser::SchemaNode* schema;
   ComparatorNode* comparatorNode;
   IndexSelectNode* indexSelect;
   IndexBoundaryNode* IndexBoundary;
-  QParser::InterfaceNode* interfacetree;
-  QParser::InterfaceBind* iBind;
+
   QParser::SignatureNode* sigtree;
   QParser::StructureTypeNode* stucturetree;
   QParser::ObjectDeclareNode* obdecltree;
@@ -56,7 +60,7 @@
 %nonassoc CREATE_OR_UPDATE
 %token	<num> INTEGER
 %token	<dbl> DOUBLE
-%token	<str> STATIC SYSTEMVIEWNAME EXTNAME PARAMNAME NAME STRING SEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT DEREF REF NAMEOF RELOADSCHEME TCON TCOFF BEGINTR END ABORT CREATE IF FI DO OD ELSE WHILE LINK FOREACH THEN FIX_OP FIXPOINT RETURN BREAK VALIDATE READ MODIFY DELETE PASSWD WITH REVOKE REMOVE TO USER FROM ON GRANT OPTION PROCEDURE CLASS EXTENDS INSTANCE LEFTPROCPAR RIGHTPROCPAR VIEW ONRETRIEVE ONUPDATE ONCREATE ONDELETE ONINSERT ONNAVIGATE ONVITRUALIZE ONSTORE INDEX VIRTUAL COLON INTERFACE SHOWS ASSOCIATE CARDCONST TYPEDEF CARD00 CARD01 CARD 11 CARD0INF CARD1INF LEFTSQUAREPAR RIGHTSQUAREPAR STRING_SIG DOUBLE_SIG INTEGER_SIG BOOLEAN_SIG INT_SIG LEFT_EXCLUSIVE LEFT_INCLUSIVE RIGHT_EXCLUSIVE RIGHT_INCLUSIVE INDEXPAR THROW VIRTUALIZE_AS OBJECT_NAME_IS
+%token	<str> STATIC SYSTEMVIEWNAME EXTNAME PARAMNAME NAME STRING SEMICOLON LEFTPAR RIGHTPAR SUM COUNT AVG MIN MAX DISTINCT DEREF REF NAMEOF RELOADSCHEME TCON TCOFF BEGINTR END ABORT CREATE IF FI DO OD ELSE WHILE LINK FOREACH THEN FIX_OP FIXPOINT RETURN BREAK VALIDATE READ MODIFY DELETE PASSWD WITH REVOKE REMOVE TO USER FROM ON GRANT OPTION PROCEDURE CLASS EXTENDS INSTANCE LEFTPROCPAR RIGHTPROCPAR VIEW ONRETRIEVE ONUPDATE ONCREATE ONDELETE ONINSERT ONNAVIGATE ONVITRUALIZE ONSTORE INDEX VIRTUAL COLON INTERFACE SCHEMA SHOWS ASSOCIATE CARDCONST TYPEDEF CARD00 CARD01 CARD 11 CARD0INF CARD1INF LEFTSQUAREPAR RIGHTSQUAREPAR STRING_SIG DOUBLE_SIG INTEGER_SIG BOOLEAN_SIG INT_SIG LEFT_EXCLUSIVE LEFT_INCLUSIVE RIGHT_EXCLUSIVE RIGHT_INCLUSIVE INDEXPAR THROW VIRTUALIZE_AS OBJECT_NAME_IS
 		
 %start statement
 %expect 0
@@ -119,6 +123,10 @@
 %type <attribute> attribute
 %type <methods> methods
 %type <method> method
+%type <crud> crud
+%type <schema> schema
+%type <schema_aps> schema_aps
+//%type <schema_binds> schema_binds
 %type <method_params> method_params
 %type <iBind> interfaceBind
 %type <tree> type_decl_stmt
@@ -208,6 +216,7 @@ query	    : SYSTEMVIEWNAME { char *s = $1; $$ = new NameNode(s); delete s; }
 	    | UPDATE classquery {$$ = new RegisterClassNode ($2, CT_UPDATE);}
 	    | CREATE classquery {$$ = new RegisterClassNode ($2, CT_CREATE);}
 	    | CREATE interface {$$ = new RegisterInterfaceNode ($2);}
+		| CREATE schema {$$ = new RegisterSchemaNode ($2);}
 	    | query INSERTINTO query { $$ = new AlgOpNode($1,$3,AlgOpNode::insert); }
 	    | query INSERTINTO viewproc { $$ = new AlgOpNode($1,$3,AlgOpNode::insert_viewproc); }
 	    | query INSERTINTO viewquery { $$ = new AlgOpNode($1,$3,AlgOpNode::insert_viewproc); }
@@ -352,6 +361,21 @@ semicolon_opt:  /* empty */	{}
 	    ;
 
 
+schema: SCHEMA NAME LEFTPROCPAR schema_aps RIGHTPROCPAR {$$ = new SchemaNode($2, $4->getAccessPoints());}
+
+schema_aps: /*empty*/ {$$ = new SchemaAPs();}
+	|   NAME crud schema_aps {$3->addAccessPoint($1, $2->getCrud()); $$=$3;}
+	;
+	
+crud: /*empty*/ {$$ = new Crud();}
+	|   privilige crud {$2->addAccessType($1->get_priv()); $$=$2;}
+	;
+	
+	
+	// schema_binds: /*empty*/ {$$ = new SchemaBinds();}
+	//	|   NAME SHOWS NAME schema_binds {$4->addBind($1, $3); $$=$4;}
+	//	;
+	//
 	    
 interfaceBind: INTERFACE NAME SHOWS NAME {$$ = new InterfaceBind ($2, $4);};
 

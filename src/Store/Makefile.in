@@ -46,7 +46,7 @@ am_libStore_la_OBJECTS = Buffer.lo Classes.lo DBDataValue.lo \
 	DBLogicalID.lo DBObjectPointer.lo DBPhysicalID.lo \
 	DBStoreManager.lo File.lo Interfaces.lo Map.lo Misc.lo \
 	NamedItems.lo NamedRoots.lo PageManager.lo PagePointer.lo \
-	SystemViews.lo Views.lo
+	SystemViews.lo Views.lo StoreSchemas.lo
 libStore_la_OBJECTS = $(am_libStore_la_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -185,10 +185,11 @@ sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
+top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 noinst_LTLIBRARIES = libStore.la
-libStore_la_SOURCES = Buffer.cpp Buffer.h Classes.cpp DBDataValue.cpp DBDataValue.h DBLogicalID.cpp DBLogicalID.h DBObjectPointer.cpp DBObjectPointer.h DBPhysicalID.cpp DBPhysicalID.h DBStoreManager.cpp DBStoreManager.h File.cpp File.h Interfaces.cpp Map.cpp Map.h Misc.cpp Misc.h NamedItems.cpp NamedItems.h NamedRoots.cpp NamedRoots.h PageManager.cpp PageManager.h PagePointer.cpp PagePointer.h Store.h Struct.h SystemViews.cpp SystemViews.h Views.cpp Views.h 
+libStore_la_SOURCES = Buffer.cpp Buffer.h Classes.cpp DBDataValue.cpp DBDataValue.h DBLogicalID.cpp DBLogicalID.h DBObjectPointer.cpp DBObjectPointer.h DBPhysicalID.cpp DBPhysicalID.h DBStoreManager.cpp DBStoreManager.h File.cpp File.h Interfaces.cpp Map.cpp Map.h Misc.cpp Misc.h NamedItems.cpp NamedItems.h NamedRoots.cpp NamedRoots.h PageManager.cpp PageManager.h PagePointer.cpp PagePointer.h Store.h Struct.h SystemViews.cpp SystemViews.h Views.cpp Views.h StoreSchemas.cpp 
 INCLUDES = -I$(top_srcdir)/src
 all: all-am
 
@@ -256,6 +257,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/NamedRoots.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PageManager.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PagePointer.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/StoreSchemas.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SystemViews.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Views.Plo@am__quote@
 

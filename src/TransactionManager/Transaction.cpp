@@ -636,7 +636,68 @@ namespace TManager
 	}
 
 	//interfaces end
+	
+	int Transaction::addSchema(const string& name, ObjectPointer* &p)
+	{
+		int errorNumber;
+		err.printf("Transaction: %d addSchema\n", tid->getId());
 
+		sem->lock_write();
+			errorNumber = sm->addSchema(tid, name, p);
+			if (errorNumber == 0)
+			    errorNumber = lm->lock( p->getLogicalID(), tid, Write);
+		sem->unlock();
+
+		if (errorNumber) abort();
+		return errorNumber;
+	}
+	
+	int Transaction::removeSchema(ObjectPointer* &p)
+	{
+		int errorNumber;
+		err.printf("Transaction: %d removeSchema\n", tid->getId());
+		errorNumber = lm->lock( p->getLogicalID(), tid, Write);
+
+		if (errorNumber == 0)
+		{
+		    sem->lock_write();
+			errorNumber = sm->removeSchema(tid, p);
+		    sem->unlock();
+		}
+
+		if (errorNumber) abort();
+		return errorNumber;
+	}
+	
+	int Transaction::getSchemasLID(vector<LogicalID*>* &p)
+	{
+		int errorNumber;
+
+		err.printf("Transaction: %d getSchemasLID\n", tid->getId());
+
+		sem->lock_read();
+		errorNumber = sm->getSchemasLID(tid, p);
+		sem->unlock();
+
+		if (errorNumber) abort();
+
+		return errorNumber;
+	}
+
+	int Transaction::getSchemasLID(string name, vector<LogicalID*>* &p)
+	{
+		int errorNumber;
+
+		err.printf("Transaction: %d getSchemasID by name \n", tid->getId());
+
+		sem->lock_read();
+		errorNumber = sm->getSchemasLID(tid, name, p);
+		sem->unlock();
+
+		if (errorNumber) abort();
+
+		return errorNumber;
+	}
 
 	/* Data creation */
 	int Transaction::createIntValue(int value, DataValue* &dataVal)

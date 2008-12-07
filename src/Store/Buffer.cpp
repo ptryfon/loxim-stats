@@ -162,6 +162,9 @@ namespace Store
 						case STORE_FILE_INTERFACES:
 							store->getInterfaces()->initializePage(i, n_page->page);
 							break;
+						case STORE_FILE_SCHEMAS:
+							store->getSchemas()->initializePage(i, n_page->page);
+							break;
 						default:
 							break;
 					}

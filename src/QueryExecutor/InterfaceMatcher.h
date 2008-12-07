@@ -1,6 +1,8 @@
 #ifndef _INTERFACE_MATCHER_H_
 #define _INTERFACE_MATCHER_H_
 
+// Some methods from this classes assume that ClassGraph was initialized earlier
+
 #include <vector>
 #include <string>
 
@@ -76,7 +78,7 @@ namespace Schemas
     class Schema 
     {
 	public:
-	    Schema(bool isInterfaceSchema = false);
+	    Schema(int schemaType = 0);
 	    ~Schema();
 	    TFields getFields() const {return m_fields;}
 	    TMethods getMethods() const {return m_methods;}   
@@ -84,7 +86,7 @@ namespace Schemas
 	    string getName() const {return m_name;}
 	    string getAssociatedObjectName() const {return m_associatedObjectName;}
 
-	    void setIsInterface(bool isInterfaceSchema) {m_isInterfaceSchema = isInterfaceSchema;}
+	    void setSchemaType(int t) {m_schemaType = t;}
 	    void setAssociatedObjectName(string name) {m_associatedObjectName = name;}
 	    void setName(string n) {m_name = n;}    
 		void setMethods(TMethods m) {m_methods = m;}
@@ -95,30 +97,38 @@ namespace Schemas
 	    void addMethod(Method *m) {m_methods.push_back(m);}
 	    void addSuper(string s) {m_supers.push_back(s);}
 
-	    void debugPrint();
 		void printAll(Errors::ErrorConsole *ec) const; 
+		string toSchemaString() const;
 	    void sortVectors();
 	    void join(Schema *s, bool sort = true);
 
+		static int interfaceMatchesImplementation(string interfaceName, string implementationName, TManager::Transaction *tr, int type, bool &matches);
+
 		static int interfaceFromLogicalID(Store::LogicalID *lid, TManager::Transaction *tr, Schema *&s);
+		static int interfaceFromName(string name, TManager::Transaction *tr, bool &exists, Schema *&s);
 	    static void interfaceFromInterfaceNode(const QParser::InterfaceNode *node, Schema *&s);
-		static int interfaceMatchesImplementation(string interfaceName, string implementationName, bool &matches);
-	    static int fromNameIncludingDerivedMembers(string base, Schema *&out, bool interface);
-	    //static Schema* fromQBResult(QExecutor::QueryBagResult *resultBag, QExecutor::QueryExecutor *qE);
-	    static int completeSupersForBase(string base, vector<Schema *> *&out, bool interface);	
-	    //static int fromName(const string& name, QExecutor::QueryExecutor *qe, Schema *&out);
+		static int fromNameIncludingDerivedMembers(string base, Schema *&out, TManager::Transaction *tr, int type);
+	    static int completeSupersForBase(string base, vector<Schema *> *&out, TManager::Transaction *tr, int type);	
 		static int fromClassVertex(QExecutor::ClassGraphVertex *cgv, Schema *&out);
+	    static int viewFromName(string name, TManager::Transaction *tr, bool &exists, Schema *&out);
+	    static int viewFromLogicalID(Store::LogicalID *lid, TManager::Transaction *tr, Schema *&out);
+	
+		static int getCIVObject(string name, TManager::Transaction *tr, bool &exists, int &type, Schema *&out);
+		static void getInterfaceForInterfaceOrObjectName(string name, bool &exists, Schema *&out);	
+		static int getClassForClassOrObjectName(string name, TManager::Transaction *tr, bool &exists, Schema *&out);
+		static int getImplementationForName(string name, TManager::Transaction *tr, bool &exists, int &type, Schema *&out);
 	    
 	private:
-	    bool m_isInterfaceSchema;
+		static int getClassByName(string name, bool &exists, Schema *&out);
+		static int getClassByStoreLid(Store::LogicalID *lid, bool &exists, Schema *&out); 
+		
+	    int m_schemaType;
 	    
 	    string m_name;
 	    string m_associatedObjectName;
 	    TFields m_fields;
 	    TMethods m_methods;
 	    TSupers m_supers;
-	    
-	    //static int getString(QExecutor::QueryExecutor *qe, QExecutor::QueryResult *qr, string &out);
     };
     
     class Matcher 
@@ -132,7 +142,7 @@ namespace Schemas
 	    static bool MatchMethods(TMethods intMethods, TMethods impMethods);
 	    static bool MatchInterfaceWithImplementation(Schema Interface, Schema Implementation);    
     
-	    static int FindClassBoundToInterface(const string& interfaceObjectName, TManager::Transaction *tr, string& interfaceName, string &className, string &invariantName);
+		static int FindImpBoundToInterface(const string& interfaceObjectName, TManager::Transaction *tr, string& interfaceName, string &impName, string &impObjName, bool &found, int &t);
 	};
     
 

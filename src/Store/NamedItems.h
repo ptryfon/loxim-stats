@@ -5,6 +5,7 @@ namespace Store
 {
 	class Classes;
 	class Interfaces;
+	class StoreSchemas;
 	class NamedRoots;
 };
 
@@ -207,6 +208,16 @@ namespace Store
 		int addClass(TransactionID* tid, int logicalID, const char* name, const char* invariantName);
 
 		vector<int>* getClassByInvariant(TransactionID* tid, const char* invariantName);
+	};
+
+	class StoreSchemas : public NamedItems 
+	{
+		private:
+			ErrorConsole* ec;
+			
+		public:
+			StoreSchemas();
+			~StoreSchemas() {if (ec) delete ec;}
 	};
 
 	class NamedRoots : public NamedItems {

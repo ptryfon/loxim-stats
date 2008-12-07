@@ -4,6 +4,7 @@
 #include <getopt.h>
 #include <Indexes/IndexManager.h>
 #include <QueryExecutor/InterfaceMaps.h>
+#include <QueryExecutor/OuterSchema.h>
 
 using namespace std;
 
@@ -74,6 +75,7 @@ int main(int argc, char **argv) {
 	Indexes::IndexManager::init(LogManager::isCleanClosed());
 	ClassGraph::ClassGraph::init(-1);
 	Schemas::InterfaceMaps::Instance().init(); //must be called after ClassGraph::init()
+	Schemas::OuterSchemas::Instance().init();
 
 	::Server::Server serv(hostname, port, config);
 	if (!serv.prepare()){
@@ -84,6 +86,7 @@ int main(int argc, char **argv) {
 		unsigned idx;
 		lm->shutdown(idx);//nie wiem czy tu to ma znaczenie,
 		//ale z reguly najlepiej niszczyc w odwrotnej kolejnosci niz sie otwieralo.
+		Schemas::OuterSchemas::Instance().deinit();
 		Schemas::InterfaceMaps::Instance().deinit();
 		ClassGraph::ClassGraph::shutdown();	
 		delete TransactionManager::getHandle();

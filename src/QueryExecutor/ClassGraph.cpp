@@ -313,6 +313,28 @@ int ClassGraph::getClassVertexByName(const string& className, ClassGraphVertex*&
 	return getVertex(classLid, cgv);
 }
 
+string ClassGraph::getClassInvariantByName(const string& className, bool& exists) const
+{
+	string inva;
+	if(!classExist(className)) {
+		exists = false;
+		return inva;
+	}
+	LogicalID* classLid;
+	NameToLidMap::const_iterator itN = nameIndex.find(className);
+	if (itN == nameIndex.end())
+	{   exists = false;
+		return inva; //no such class AND class graph broken.
+	}
+	
+	classLid = (*itN).second;	
+	MapOfClassVertices::const_iterator it = classGraph.find(classLid);
+	if (it == classGraph.end()) return inva;
+	exists = true;
+	inva = (*it).second->invariant;
+	return inva;
+}
+
 bool ClassGraph::isExtName(const string& extName) {
 	return extName.find_first_of(QE_NAMES_SEPARATOR) != string::npos;
 }

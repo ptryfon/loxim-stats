@@ -1,11 +1,14 @@
 #ifndef INTERFACE_MAPS_H
 #define INTERFACE_MAPS_H
 
+// Some methods from this classes assume that ClassGraph was initialized earlier
+
 #include <map>
 #include <set>
 #include <vector>
 #include <string>
 #include "InterfaceMatcher.h"
+#include "BindMap.h"
 
 namespace Errors
 {
@@ -32,8 +35,6 @@ typedef set<string> TStringSet;
 namespace Schemas
 {
 	class Schema;
-	
-	typedef vector<LogicalID*> TLidsVector;
 
 	class HierarchyInfo
 	{
@@ -76,48 +77,9 @@ namespace Schemas
 			TNameToMethods m_interfaceMethods;
 	};
 
-	typedef map<string, string> TDict;
 	typedef map<string, Schema> TInterfaceToSchemas;
 	typedef map<string, HierarchyInfo> TInterfaceToHierarchy;
 	typedef map<string, TStringSet> TNameInHierarchy;
-
-	//For future extensions
-	class ImplementationInfo
-	{
-		private:
-			string m_name;
-			string m_invName;
-		
-		public:
-			ImplementationInfo() {}
-			void setName(string n) {m_name = n;}
-			void setInvName(string n) {m_invName = n;}
-			string getName() const {return m_name;}
-			string getInvName() const {return m_invName;}
-	};
-	
-	typedef map<string, ImplementationInfo> TIntToImpInfo;
-
-	class BindMap
-	{
-		private:
-			TDict m_objNameToInt;
-			TIntToImpInfo m_intToImp;
-
-		public:
-			BindMap() {clear();}
-			void addBind(string interface, string obj, string impl, string inv);
-			void removeBind(const string& obj);
-			bool hasBind(const string& interface) const {return (m_intToImp.find(interface) != m_intToImp.end());}
-			bool hasObjectBind(const string& objectName) const {return (m_objNameToInt.find(objectName) != m_objNameToInt.end());}			
-			void clear();
-
-			string getIntForObj(const string& oName) const;
-			string getInvForInt(const string& intName) const;
-			string getClassForInt(const string& intName) const;
-
-			void print(ErrorConsole *ec) const;
-	};
 
 	class InterfaceMaps
 	{
@@ -134,16 +96,19 @@ namespace Schemas
 			
 			//TODO - per outer scheme!
 			int addBind(string objectName, TManager::Transaction *tr);
-			void addBind(string interfaceName, string objectName, string className, string invName);
-			void removeBind(string objectName) {m_bindMap.removeBind(objectName);}
+			void addBind(string interfaceName, string impName, string impObjName, int type);
+			void removeBind(string objectName) {m_bindMap.removeBind(m_objNameToName[objectName]);}
 			bool isInterfaceBound(string n) const {return m_bindMap.hasBind(n);}
-			bool isObjectNameBound(string o) const {return m_bindMap.hasObjectBind(o);}
-			void getInterfaceBindForObjName(string oName, string& iName, string& cName, string &invName) const;
+			bool isObjectNameBound(string o) const;
+			void getInterfaceBindForObjName(string oName, string& iName, string& cName, string &invName, bool &found, bool final = false) const;
+			ImplementationInfo getImplementationForInterface(string name, bool &found, bool final = false) const;
 			void getClassBindForInterface(string interfaceName, LogicalID*& classGraphLid) const;
 			BindMap getBindMap() const {return m_bindMap;}  
 			
-			string getObjectNameForInterface(string i) {return m_nameToSchema[i].getAssociatedObjectName();}
+			string getObjectNameForInterface(string i, bool &found) const;
+			string getInterfaceNameForObject(string i, bool &found) const;
 			bool hasInterface(string n) const {return (m_nameToSchema.find(n) != m_nameToSchema.end());}
+			bool hasObjectName(string n) const {return (m_objNameToName.find(n) != m_objNameToName.end());}
 			
 			TStringSet getAllFieldNamesAndCheckBind(string interfaceKey, bool &filterOut) const;
 			TFields getFieldsIncludingDerived(string interfaceName, bool cache = true) const;
@@ -163,6 +128,7 @@ namespace Schemas
 			bool checkHierarchyValidity() const;
 			TStringSet getAllExt(string intName) const;
 
+			TDict m_objNameToName;
 			TInterfaceToSchemas m_nameToSchema;
 			TInterfaceToHierarchy m_nameToHierarchy;
 			TNameInHierarchy m_nameToInterfacesExtending;

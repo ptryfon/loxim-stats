@@ -43,6 +43,7 @@ namespace Store
 		Procedure = 3,	// Vector
 		View = 4,		// Vector
 		Interface = 5,
+		StoreSchema = 6
 	};
 
 	enum AccessMode
@@ -267,6 +268,12 @@ namespace Store
 		virtual int getInterfaceBindForObjectName(TransactionID *tid, const string& oName, string& iName, string& bName) = 0;
 		virtual int removeInterface(TransactionID* tid, ObjectPointer*& object) = 0;
 
+		// Schemas
+		virtual int getSchemasLID(TransactionID* tid, vector<LogicalID*>*& s) = 0;
+		virtual int getSchemasLID(TransactionID* tid, string name, vector<LogicalID*> *&s) = 0;
+		virtual int addSchema(TransactionID* tid, string name, ObjectPointer *&object) = 0;
+		virtual int removeSchema(TransactionID* tid, ObjectPointer *&object) = 0;
+ 		
 		// System views
 		virtual int getSystemViewsLID(TransactionID* tid, vector<LogicalID*>*& p_systemviews) = 0;
 		virtual int getSystemViewsLID(TransactionID* tid, string name, vector<LogicalID*>*& p_systemviews) = 0;

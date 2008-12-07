@@ -72,6 +72,7 @@ namespace Store
 		this->views = new Views();
 		this->classes = new Classes();
 		this->interfaces = new Interfaces();
+		this->schemas = new StoreSchemas();
 		this->systemviews = new SystemViews();
 		this->pagemgr = new PageManager(this);
 
@@ -79,6 +80,7 @@ namespace Store
 		this->views->init(this->buffer, this->log);
 		this->classes->init(this->buffer, this->log);
 		this->interfaces->init(this->buffer, this->log);
+		this->schemas->init(this->buffer, this->log);
 		this->map->init(this->buffer, this->log);
 
 #ifdef DEBUG_MODE
@@ -166,6 +168,11 @@ namespace Store
 	Interfaces* DBStoreManager::getInterfaces()
 	{
 	    return interfaces;
+	}
+	
+	StoreSchemas* DBStoreManager::getSchemas()
+	{
+	    return schemas;
 	}
 
 	SystemViews* DBStoreManager::getSystemViews()
@@ -867,7 +874,84 @@ int DBStoreManager::getClassesLID(TransactionID* tid, vector<LogicalID*>*& p_cla
 #endif
 		return 0;
 	}
+	
+	
+//Schemas
+    int DBStoreManager::getSchemasLID(TransactionID* tid, vector<LogicalID*>*& p_schemas)
+	{
+#ifdef DEBUG_MODE
+		*ec << "Store::Manager::getSchemasLID(ALL) begin..";
+#endif
+		int rval = getSchemasLID(tid, "", p_schemas);
 
+#ifdef DEBUG_MODE
+		*ec << "Store::Manager::getSchemasLID(ALL) done";
+#endif
+		return rval;
+	}
+
+	int DBStoreManager::getSchemasLID(TransactionID* tid, string name, vector<LogicalID*>*& schemasVec)
+	{
+#ifdef DEBUG_MODE
+		*ec << "Store::Manager::getSchemasLID(BY NAME) begin..";
+#endif
+		schemasVec = new vector<LogicalID*>(0);
+		vector<int>* rvec;
+		rvec = schemas->getItems(tid, name.c_str());
+
+		vector<int>::iterator obj_iter;
+		for(obj_iter=rvec->begin(); obj_iter!=rvec->end(); obj_iter++)
+		{
+			LogicalID* lid = new DBLogicalID((*obj_iter));
+			schemasVec->push_back(lid);
+		}
+
+		delete rvec;
+#ifdef DEBUG_MODE
+		ec->printf("Store::Manager::getSchemasLID(BY NAME) done: size=%d\n", schemasVec->size());
+#endif
+		return 0;
+	}
+
+	int DBStoreManager::addSchema(TransactionID* tid, string name, ObjectPointer*& object)
+	{
+#ifdef DEBUG_MODE
+		*ec << "Store::Manager::addSchema begin..";
+#endif
+		int lid = object->getLogicalID()->toInteger();
+
+		ec->printf("Store::Manager::addSchema lid = %d\n", lid);
+
+		int err = schemas->addItem(tid, lid, name.c_str());
+
+		if (err != 0) {
+		    *ec << "Store::Manager::addSchema: error in Schemas::addSchema";
+		    return err;
+		}
+
+#ifdef DEBUG_MODE
+		ec->printf("Store::Manager::addSchema done: %s\n", name);
+#endif
+		return 0;
+	}
+	
+	int DBStoreManager::removeSchema(TransactionID* tid, ObjectPointer*& object)
+	{
+#ifdef DEBUG_MODE
+		*ec << "Store::Manager::removeSchema begin..";
+#endif
+		int lid = object->getLogicalID()->toInteger();
+
+		schemas->removeItem(tid, lid);
+
+#ifdef DEBUG_MODE
+		ec->printf("Store::Manager::removeSchema done: %s\n", object->toString().c_str());
+#endif
+		return 0;
+	}
+
+	
+	
 //System Views
 	int DBStoreManager::getSystemViewsLID(TransactionID* tid, vector<LogicalID*>*& p_systemviews)
 	{
@@ -922,6 +1006,9 @@ int DBStoreManager::getClassesLID(TransactionID* tid, vector<LogicalID*>*& p_cla
 		err = interfaces->abortTransaction(tid);
 		if (err != 0)
 			return err;
+		err = schemas->abortTransaction(tid);
+		if (err != 0)
+			return err;
 
 		return err;
 	}
@@ -942,6 +1029,9 @@ int DBStoreManager::getClassesLID(TransactionID* tid, vector<LogicalID*>*& p_cla
 		if (err != 0)
 			return err;
 		err = interfaces->commitTransaction(tid);
+		if (err != 0)
+			return err;
+		err = schemas->commitTransaction(tid);
 		if (err != 0)
 			return err;
 

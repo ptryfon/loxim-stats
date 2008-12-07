@@ -26,6 +26,7 @@ namespace Store
 		this->fviews = 0;
 		this->fclasses = 0;
 		this->finterfaces = 0;
+		this->fschemas = 0;
 
 		this->ec = new ErrorConsole("Store: File");
 	};
@@ -49,6 +50,8 @@ namespace Store
 			*file = fclasses;
 		else if (fileID == STORE_FILE_INTERFACES)
 			*file = finterfaces;
+		else if (fileID == STORE_FILE_SCHEMAS)
+			*file = fschemas;
 		else
 		{
 			*file = 0;
@@ -63,7 +66,7 @@ namespace Store
 		if (started)
 			return 0;
 
-		string smap, sroots, sdefault, sviews, sclasses, sinterfaces;
+		string smap, sroots, sdefault, sviews, sclasses, sinterfaces, sschemas;
 
 		if (store->getConfig()->getString("store_file_default", sdefault) != 0)
 			sdefault = "/tmp/sbdefault";
@@ -77,6 +80,8 @@ namespace Store
 			sclasses = "/tmp/sbclasses";
 		if (store->getConfig()->getString("store_file_interfaces", sinterfaces) != 0)
 			sinterfaces = "/tmp/sbinterfaces";
+		if (store->getConfig()->getString("store_file_schemas", sschemas) != 0)
+			sschemas = "/tmp/sbschemas";
 
 		fmap = ::open(smap.c_str(), O_RDWR);
 		ec->printf("fmap = %d, errno = %d, errmsg = %s",
@@ -96,6 +101,9 @@ namespace Store
 		finterfaces = ::open(sinterfaces.c_str(), O_RDWR);
 		ec->printf("finterfaces = %d, errno = %d, errmsg = %s",
 			finterfaces, errno, strerror(errno));
+		fschemas = ::open(sschemas.c_str(), O_RDWR);
+		ec->printf("fschemas = %d, errno = %d, errmsg = %s",
+			fschemas, errno, strerror(errno));
 
 
 		if (fmap == -1)
@@ -145,6 +153,14 @@ namespace Store
 
 			store->getInterfaces()->initializeFile(this);
 		}
+		
+		if (fschemas == -1)
+		{
+			if ((fschemas = ::open(sschemas.c_str(), O_CREAT | O_RDWR, S_IRUSR | S_IWUSR)) == -1)
+				return EBadFile;
+
+			store->getSchemas()->initializeFile(this);
+		}
 
 
 
@@ -163,6 +179,7 @@ namespace Store
 		if (fviews > 0) ::close(fviews);
 		if (fclasses > 0) ::close(fclasses);
 		if (finterfaces > 0) ::close(finterfaces);
+		if (fschemas > 0) ::close(fschemas);
 
 
 		started = 0;

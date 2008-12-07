@@ -126,6 +126,7 @@ namespace QExecutor
 		int sortBag(QueryBagResult *inBag, QueryBagResult *&outBag);
 		int objectFromBinder(QueryResult *res, ObjectPointer *&newObject);
 		
+		int nameTaken(string name, bool &taken);
 		int implementationNameTaken(string impName, bool &taken);
 		int classExists(string className, bool& exist);
 		int viewExists(string viewName, bool& exists);
@@ -133,7 +134,7 @@ namespace QExecutor
 		int getInterfaceLID(string name, LogicalID*& lid);
 		
 		/** Create new object in store and puts reference on stack result */		
-		int createObjectAndPutOnQRes(DBDataValue* dbValue, string objectName, int type, LogicalID*& newLid);
+		int createObjectAndPutOnQRes(DBDataValue* dbValue, string objectName, Store::ExtendedType type, LogicalID*& newLid);
 		
 		int lidFromVector( string bindName, vector<QueryResult*> value, LogicalID*& lid);
 		

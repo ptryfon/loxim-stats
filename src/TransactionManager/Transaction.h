@@ -126,6 +126,11 @@ namespace TManager
 
 		    	TransactionID* getId();
 
+				int getSchemasLID(vector<LogicalID*> *&p);
+				int getSchemasLID(string name, vector<LogicalID*> *&p);
+				int addSchema(const string& name, ObjectPointer *&p);
+		    	int removeSchema(ObjectPointer *&p);
+
 			/* Data creation: */
 		    	int createIntValue(int value, DataValue* &dataVal);
 		    	int createDoubleValue(double value, DataValue* &dataVal);

@@ -79,7 +79,6 @@ void InterfaceMaps::printAll() const
 
 int InterfaceMaps::init()
 {
-	//na razie nie dziala dobrze
 	Transaction *tr;
 	int errcode = (TransactionManager::getHandle())->createTransaction(-1, tr);
 	if (errcode != 0) 
@@ -159,33 +158,78 @@ int InterfaceMaps::loadSchemas(TManager::Transaction *tr, TLidsVector *lvec)
 	return 0;
 }
 
+string InterfaceMaps::getObjectNameForInterface(string i, bool &found) const
+{
+	string out;
+	found = false;
+	TInterfaceToSchemas::const_iterator it = m_nameToSchema.find(i);
+	if (it != m_nameToSchema.end())
+	{
+		found = true;
+		out = (*it).second.getAssociatedObjectName();
+	}
+	return out;
+}
+
+string InterfaceMaps::getInterfaceNameForObject(string o, bool &found) const
+{
+	string out;
+	found = false;
+	TDict::const_iterator it = m_objNameToName.find(o);
+	if (it != m_objNameToName.end())
+	{
+		found = true;
+		out = (*it).second;
+	}
+	return out;
+}
+
+bool InterfaceMaps::isObjectNameBound(string o) const
+{
+	bool f;
+	string i = getInterfaceNameForObject(o, f);
+	if (!f) return false;
+	return m_bindMap.hasBind(i);		
+}
+
 int InterfaceMaps::addBind(string objectName, TManager::Transaction *tr)
 {
-	string iName, cName, invName;	
-	int errcode = Matcher::FindClassBoundToInterface(objectName, tr, iName, cName, invName);
+	string iName, impName, impObjName;	
+	int t;
+	bool found;
+	int errcode = Matcher::FindImpBoundToInterface(objectName, tr, iName, impName, impObjName, found, t);
 	if (errcode) return errcode;
-	addBind(iName, objectName, cName, invName);
+	if (found)
+		addBind(iName, impName, impObjName, t);
 	return 0;
 }
 
-void InterfaceMaps::addBind(string i, string o, string c, string inv)
+void InterfaceMaps::addBind(string i, string imp, string impObj, int type)
 {
-	ec->printf("addBind: obj = %s, int = %s\n", o.c_str(), i.c_str());
-	m_bindMap.addBind(i, o, c, inv);
+	m_bindMap.addBind(i, imp, impObj, static_cast<BindType>(type));
 }
 
-void InterfaceMaps::getInterfaceBindForObjName(string oName, string& iName, string& cName, string &invName) const
+ImplementationInfo InterfaceMaps::getImplementationForInterface(string name, bool &found, bool final) const
+{	
+	return m_bindMap.getImpForInterface(name, found, final);
+}
+
+void InterfaceMaps::getInterfaceBindForObjName(string oName, string& iName, string& impName, string &impObjName, bool &found, bool final) const
 {
-	iName = m_bindMap.getIntForObj(oName);
-	cName = m_bindMap.getClassForInt(iName);
-	invName = m_bindMap.getInvForInt(iName);
+	iName = getInterfaceNameForObject(oName, found);
+	if (!found) return;
+	ImplementationInfo i = getImplementationForInterface(iName, found, final);
+	impName = i.getName();
+	impObjName = i.getObjectName();
 }
 
 void InterfaceMaps::getClassBindForInterface(string interfaceName, LogicalID*& classGraphLid) const
 {
 	ec->printf("InterfaceMaps::getClassBindForInterface called for %s\n", interfaceName.c_str());
-	string cName = m_bindMap.getClassForInt(interfaceName);
-	if (cName.empty()) return;
+	bool found;
+	ImplementationInfo i = m_bindMap.getImpForInterface(interfaceName, found, true);
+	if (!found || i.getType() != BIND_CLASS) return;
+	string cName = i.getName();
 	QExecutor::ClassGraph *cg;
 	int errcode = QExecutor::ClassGraph::getHandle(cg);
 	if (errcode) {ec->printf("InterfaceMaps::getClassBindForInterface: error - no handle\n"); return;}
@@ -276,8 +320,9 @@ bool InterfaceMaps::insertNewInterfaceAndPropagateHierarchy(Schema interfaceSche
 			return true;
 	}
 		
-	printAll();
 	m_cache.clear();
+	string objName = interfaceSchema.getAssociatedObjectName();
+	m_objNameToName[objName] = interfaceName;
 	return true;
 }
 
@@ -323,7 +368,7 @@ int InterfaceMaps::removeInterface(string interfaceName, bool checkValidity)
 	m_bindMap.removeBind(oN);
 	m_cache.clear();
 	
-	printAll();
+	m_objNameToName.erase(oN);
 	return 0;
 }
 			
@@ -466,86 +511,5 @@ Schema InterfaceMaps::getSchemaForInterface(string interfaceName) const
 	if (it != m_nameToSchema.end())
 		s = (*it).second;
 	return s;
-}
-
-
-/****************************************
- *				BindMap					*
- ***************************************/
-
-void BindMap::addBind(string interface, string objectName, string impl, string inv)
-{
-	m_objNameToInt[objectName] = interface;
-	ImplementationInfo iI;
-	iI.setName(impl);
-	iI.setInvName(inv);
-	m_intToImp[interface] = iI;
-}
-
-void BindMap::removeBind(const string& obj)
-{
-	if (m_objNameToInt.find(obj) == m_objNameToInt.end())
-		return;
-	string interface = m_objNameToInt[obj];
-	m_objNameToInt.erase(obj);
-	m_intToImp.erase(interface);
-}
-
-void BindMap::clear()
-{
-	m_objNameToInt.clear();
-	m_intToImp.clear();
-}
-
-string BindMap::getIntForObj(const string& oName) const
-{
-	string out = "";
-	TDict::const_iterator it = m_objNameToInt.find(oName);
-	if (it != m_objNameToInt.end())
-	{
-		out = (*it).second;
-	}
-	return out;
-}
-
-string BindMap::getInvForInt(const string& iName) const
-{
-	string out = "";
-	TIntToImpInfo::const_iterator it = m_intToImp.find(iName);
-	if (it != m_intToImp.end())
-	{
-		out = (*it).second.getInvName();
-	}
-	return out;
-}
-
-string BindMap::getClassForInt(const string& iName) const
-{
-	string out = "";
-	TIntToImpInfo::const_iterator it = m_intToImp.find(iName);
-	if (it != m_intToImp.end())
-	{
-		out = (*it).second.getName();
-	}
-	return out;
-}
-
-void BindMap::print(ErrorConsole *ec) const
-{
-	for (TDict::const_iterator bit = m_objNameToInt.begin(); bit != m_objNameToInt.end(); ++bit)
-	{
-		string objectName = (*bit).first;
-		string interface = (*bit).second;
-		TIntToImpInfo::const_iterator iit = m_intToImp.find(interface);
-		if (iit == m_intToImp.end())
-		{
-			ec->printf("BindMap::print() --> BindMap corrupted on %s entry\n", interface.c_str());
-			return;
-		}
-		ImplementationInfo it = (*iit).second;
-		string className = it.getName();
-		string invName = it.getInvName();
-		ec->printf("%s->%s, %s->(%s, %s)\n", objectName.c_str(), interface.c_str(), interface.c_str(), className.c_str(), invName.c_str());
-	}
 }
 

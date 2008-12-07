@@ -42,9 +42,10 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_CLEAN_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
 libQueryExecutor_la_LIBADD =
-am_libQueryExecutor_la_OBJECTS = ClassGraph.lo EnvironmentStack.lo \
-	InterfaceMaps.lo InterfaceMatcher.lo InterfaceQuery.lo \
-	QueryExecutor.lo QueryResult.lo
+am_libQueryExecutor_la_OBJECTS = BindMap.lo ClassGraph.lo \
+	EnvironmentStack.lo InterfaceMaps.lo InterfaceMatcher.lo \
+	InterfaceQuery.lo OuterSchema.lo QueryExecutor.lo \
+	QueryResult.lo
 libQueryExecutor_la_OBJECTS = $(am_libQueryExecutor_la_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -183,10 +184,11 @@ sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
+top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 noinst_LTLIBRARIES = libQueryExecutor.la
-libQueryExecutor_la_SOURCES = BindNames.h ClassGraph.cpp ClassGraph.h EnvironmentStack.cpp EnvironmentStack.h HashMacro.h InterfaceKey.h InterfaceMaps.cpp InterfaceMaps.h InterfaceMatcher.cpp InterfaceMatcher.h InterfaceQuery.cpp InterfaceQuery.h QueryExecutor.cpp QueryExecutor.h QueryResult.cpp QueryResult.h
+libQueryExecutor_la_SOURCES = BindMap.h  BindMap.cpp BindNames.h ClassGraph.cpp ClassGraph.h EnvironmentStack.cpp EnvironmentStack.h HashMacro.h InterfaceKey.h InterfaceMaps.cpp InterfaceMaps.h InterfaceMatcher.cpp InterfaceMatcher.h InterfaceQuery.cpp InterfaceQuery.h OuterSchema.h OuterSchema.cpp QueryExecutor.cpp QueryExecutor.h QueryResult.cpp QueryResult.h
 INCLUDES = -I$(top_srcdir)/src
 all: all-am
 
@@ -239,11 +241,13 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BindMap.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ClassGraph.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/EnvironmentStack.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/InterfaceMaps.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/InterfaceMatcher.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/InterfaceQuery.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/OuterSchema.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/QueryExecutor.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/QueryResult.Plo@am__quote@
 
