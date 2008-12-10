@@ -352,41 +352,6 @@ int Schema::viewFromLogicalID(LogicalID *lid, TManager::Transaction *tr, Schema 
 			//cout << "object NAME: " << objectName << endl;
 			s->setAssociatedObjectName(objectName);
 		}
-		/*
-		else
-		{   //subviews
-			
-			LogicalID *svLid = dvInside->getPointer();
-			ObjectPointer *optrSv;
-			errcode = tr->getObjectPointer (svLid, Store::Read, optrSv, false);
-			if (errcode != 0)
-				return errcode;
-		
-			DataValue *dvSv = optrSv->getValue();
-			if(dvSv->getSubtype() != Store::View) continue;
-	
-			vector<LogicalID*>* svLidVec = dvSv->getVector();
-			vector<LogicalID*>::iterator svit;
-			for (svit = svLidVec->begin(); svit!=svLidVec->end(); ++svit)
-			{
-				LogicalID* l = *svit;
-				ObjectPointer *optrInsideSv;
-				errcode = tr->getObjectPointer (l, Store::Read, optrInsideSv, false);
-				if (errcode != 0)
-					return errcode;
-		
-				DataValue *d = optrInsideSv->getValue();
-
-				if (optrInsideSv->getName() == QE_VIEWDEF_VIRTUALOBJECTS_NAME) 
-				{
-					string objectName = dvInside->getString();
-					//cout << "object NAME: " << objectName << endl;
-					Field *f = new Field(objectName);
-					s->addField(f);		
-				}
-			}
-		}
-		*/
 	}
 	s->setSchemaType(BIND_VIEW);
 	return 0;

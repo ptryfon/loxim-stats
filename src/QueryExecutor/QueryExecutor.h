@@ -135,6 +135,8 @@ namespace QExecutor
 		
 		/** Create new object in store and puts reference on stack result */		
 		int createObjectAndPutOnQRes(DBDataValue* dbValue, string objectName, Store::ExtendedType type, LogicalID*& newLid);
+
+		int createOnView(string objectName, bool &found, QueryResult *binder, QueryResult *&result);
 		
 		int lidFromVector( string bindName, vector<QueryResult*> value, LogicalID*& lid);
 		

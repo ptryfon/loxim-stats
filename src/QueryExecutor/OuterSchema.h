@@ -124,6 +124,7 @@ namespace Schemas
 			void addSchema(OuterSchema s);
 			void removeSchema(string name);
 			bool hasSchemaName(const string &s) {return (m_outerSchemas.find(s) != m_outerSchemas.end());}
+			OuterSchema getSchema(string name) const;
 			TOuterSchemas getAllSchemasUsingName(string s) const;
 			
 			string toString(TManager::Transaction *tr) const;

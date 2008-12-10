@@ -211,38 +211,73 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			priv_list_or_null = priv_list_or_null->try_get_priv_list();
 
 			NameListNode *name_list_or_null = grant_node->get_name_list();
-			while (name_list_or_null != NULL) {
-			    string name = name_list_or_null->get_name();
-			    name_list_or_null = name_list_or_null->try_get_name_list();
+				while (name_list_or_null != NULL) {
+					string name = name_list_or_null->get_name();
+					name_list_or_null = name_list_or_null->try_get_name_list();
 
-			    grant_priv = grant_priv && assert_grant_priv(priv_name, name);
-			    if (grant_priv == false) break;
-			};
+					grant_priv = grant_priv && assert_grant_priv(priv_name, name);
+					if (grant_priv == false) break;
+				};
 		    };
 		    if (grant_priv) {
-			string user = grant_node->get_user();
-			int grant_option = grant_node->get_with_grant_option();
-			priv_list_or_null = grant_node->get_priv_list();
+				string user = grant_node->get_user();
+				int grant_option = grant_node->get_with_grant_option();
+				priv_list_or_null = grant_node->get_priv_list();
 
-			while (priv_list_or_null != NULL) {
-			    Privilige *privilige = priv_list_or_null->get_priv();
-			    string priv_name = privilige->get_priv_name();
-			    priv_list_or_null = priv_list_or_null->try_get_priv_list();
+				while (priv_list_or_null != NULL) {
+					Privilige *privilige = priv_list_or_null->get_priv();
+					string priv_name = privilige->get_priv_name();
+					priv_list_or_null = priv_list_or_null->try_get_priv_list();
 
-			    NameListNode *name_list_or_null = grant_node->get_name_list();
-			    while (name_list_or_null != NULL) {
-				string name = name_list_or_null->get_name();
-				name_list_or_null = name_list_or_null->try_get_name_list();
+					NameListNode *name_list_or_null = grant_node->get_name_list();
+					while (name_list_or_null != NULL) {
+						string name = name_list_or_null->get_name();
+						name_list_or_null = name_list_or_null->try_get_name_list();
 
-				string query = QueryBuilder::getHandle()->grant_priv_query(priv_name, name, user, grant_option);
-				QueryResult *local_res = NULL;
-				execute_locally(query, &local_res);
-			    };
-			};
-			*result = new QueryBoolResult(true);
+						string query = QueryBuilder::getHandle()->grant_priv_query(priv_name, name, user, grant_option);
+						QueryResult *local_res = NULL;
+						execute_locally(query, &local_res);
+						if (OuterSchemas::Instance().hasSchemaName(name) && priv_name == Privilige::READ_PRIV)
+						{   //read access to schema == access to all included names as spec. by associated CRUDs
+							OuterSchema s = OuterSchemas::Instance().getSchema(name);
+							TNameToAccess aps = s.getAccessPoints();
+							TNameToAccess::const_iterator it;
+							for (it = aps.begin(); it != aps.end(); ++it)
+							{
+								string apsName = (*it).first;
+								int apsCrud = (*it).second;
+								set<string> inside_priv_names;
+								if (apsCrud & CREATE)
+								{
+									inside_priv_names.insert(Privilige::CREATE_PRIV);
+								}
+								if (apsCrud & READ)
+								{
+									inside_priv_names.insert(Privilige::READ_PRIV);
+								}
+								if (apsCrud & UPDATE)
+								{
+									inside_priv_names.insert(Privilige::MODIFY_PRIV);
+								}
+								if (apsCrud & DELETE)
+								{
+									inside_priv_names.insert(Privilige::DELETE_PRIV);
+								}
+								for (set<string>::iterator i = inside_priv_names.begin(); i != inside_priv_names.end(); ++i)
+								{
+									string aps_priv_name = (*i);
+									string apsQuery = QueryBuilder::getHandle()->grant_priv_query(aps_priv_name, apsName, user, false);
+									QueryResult *aps_local_res = NULL;
+									execute_locally(apsQuery, &local_res);
+								}
+							}			
+						}
+					};
+				};
+				*result = new QueryBoolResult(true);
 		    }
 		    else {
-			*result = new QueryBoolResult(false);
+				*result = new QueryBoolResult(false);
 		    }
 		}
 		else if (nodeType == (TreeNode::TNREVOKEPRIV)) {
@@ -562,7 +597,8 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				ec->printf("[QE] object name bound in interface maps\n");
 				string iN, cN, invN;
 				bool found;
-				Schemas::InterfaceMaps::Instance().getInterfaceBindForObjName(name, iN, cN, invN, found, true);
+				int type;
+				Schemas::InterfaceMaps::Instance().getInterfaceBindForObjName(name, iN, cN, invN, type, found, true);
 				if (found)
 				{
 					ec->printf("[QE] name %s recognized as interface object name, bound through %s->%s to %s objects\n",
@@ -1373,15 +1409,22 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		    bool matches;
 			string interfaceName = interfaceSchema->getName();
 			string implementationName = implementationSchema->getName();   //TODO - we already have schemas here
- 		    errcode = Schema::interfaceMatchesImplementation(interfaceName, implementationName, tr, implementationType, matches);
-		    if (errcode) 
+ 		    if (implementationType == BIND_VIEW)
 			{
-				ec->printf("[QE] INTERFACESBIND - error in interfaceMatchesImplementation: %s, %s\n", interfaceName.c_str(), implementationName.c_str()); 
-				return errcode;
+				ec->printf("Bind to a view - matching can't be easily checked, so it won't\n");
+				matches = true;
 			}
-		    string resS = matches ? "fits": "does not fit";
-		    ec->printf("[QE] TNINTERFACEBIND - interface %s %s implementation %s\n",interfaceName.c_str(),resS.c_str(),implementationName.c_str());
-		    
+			else
+			{			
+				errcode = Schema::interfaceMatchesImplementation(interfaceName, implementationName, tr, implementationType, matches);
+				if (errcode) 
+				{
+					ec->printf("[QE] INTERFACESBIND - error in interfaceMatchesImplementation: %s, %s\n", interfaceName.c_str(), implementationName.c_str()); 
+					return errcode;
+				}
+				string resS = matches ? "fits": "does not fit";
+				ec->printf("[QE] TNINTERFACEBIND - interface %s %s implementation %s\n",interfaceName.c_str(),resS.c_str(),implementationName.c_str());
+			}
 		    //Bind interface
 		    
 		    if (matches)
@@ -2307,63 +2350,11 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 					}
 				}
 
-				vector<LogicalID*>* vec_virt;
-				if ((errcode = tr->getViewsLID(newobject_name, vec_virt)) != 0) {
-					*ec << "[QE] bindName - error in getViewsLID";
-					antyStarveFunction(errcode);
-					inTransaction = false;
-					return errcode;
-				}
-				int vecSize_virt = vec_virt->size();
-				ec->printf("[QE] %d Views LID by name taken\n", vecSize_virt);
-				if (vecSize_virt > 1) {
-					*ec << "[QE] Multiple views defining virtual objects with the same name";
-					*ec << (ErrQExecutor | EBadBindName);
-					return (ErrQExecutor | EBadBindName);
-				}
-				else if (vecSize_virt == 1) {
-					LogicalID *view_def = vec_virt->at(0);
-					string proc_code = "";
-					string proc_param = "";
-					errcode = getOn_procedure(view_def, "on_create", proc_code, proc_param);
-					if (errcode != 0) return errcode;
-					if (proc_code == "") {
-						*ec << "[QE] operator <create> - this VirtualObject doesn't have this operation defined";
-						*ec << (ErrQExecutor | EOperNotDefined);
-						return (ErrQExecutor | EOperNotDefined);
-					}
-					vector<QueryBagResult*> envs_sections;
-
-					QueryResult *create_arg = ((QueryBinderResult*)binder)->getItem();
-					QueryResult *param_binder = new QueryBinderResult(proc_param, create_arg);
-
-					errcode = createNewSections(NULL, (QueryBinderResult*) param_binder, view_def, envs_sections);
-					if (errcode != 0) return errcode;
-
-					errcode = callProcedure(proc_code, envs_sections);
-					if(errcode != 0) return errcode;
-
-					QueryResult *res;
-					errcode = qres->pop(res);
-					if (errcode != 0) return errcode;
-					QueryResult *bagged_res = new QueryBagResult();
-					((QueryBagResult *) bagged_res)->addResult(res);
-					for (unsigned int i = 0; i < bagged_res->size(); i++) {
-						QueryResult *seed;
-						errcode = ((QueryBagResult *) bagged_res)->at(i, seed);
-						if (errcode != 0) return errcode;
-
-						vector<QueryResult *> seeds;
-						seeds.push_back(seed);
-						vector<LogicalID *> view_defs;
-						view_defs.push_back(view_def);
-
-						QueryResult *virt_res = new QueryVirtualResult(newobject_name, view_defs, seeds, NULL);
-						((QueryBagResult *) result)->addResult(virt_res);
-					}
-				}
-				else {
-					
+				bool foundView;
+				errcode = createOnView(newobject_name, foundView, binder, result);
+				if (errcode) return errcode;
+				if (!foundView)
+				{	
 					if (!system_privilige_checking &&
 						assert_privilige(Privilige::CREATE_PRIV, newobject_name) == false) {
 						continue;
@@ -2371,9 +2362,9 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 					
 					QueryBinderResult* binderR = (QueryBinderResult*)binder;
 
-
 					ec->printf("[QE] TNCREATE - checking bind for %s\n", newobject_name.c_str());
 					bool interfaced = false;
+					int implType;
 					string iName;
 					SetOfLids classMarks;
 					InterfaceKey k;
@@ -2381,17 +2372,30 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 					{   //Creating an interface object
 						string cName, invName;
 						bool found;
-						InterfaceMaps::Instance().getInterfaceBindForObjName(newobject_name, iName, cName, invName, found, true);
+						InterfaceMaps::Instance().getInterfaceBindForObjName(newobject_name, iName, cName, invName, implType, found, true);
 						if (!found || cName.empty() || invName.empty()) return -1; //TODO should not happen		
-						LogicalID* classGraphLid = NULL;
-						cg->getClassLidByName(cName, classGraphLid);
-						if (classGraphLid)
+						if (implType == BIND_CLASS)
 						{
+							LogicalID* classGraphLid = NULL;
+							cg->getClassLidByName(cName, classGraphLid);
+							if (classGraphLid)
+							{
+								binderR->setName(invName);
+								SetOfLids classMarks;
+								classMarks.insert(classGraphLid);
+								interfaced = true;
+							}
+						}
+						else if (implType == BIND_VIEW)
+						{
+							bool foundBoundView;
 							binderR->setName(invName);
-							SetOfLids classMarks;
-							classMarks.insert(classGraphLid);
+							errcode = createOnView(invName, foundBoundView, binderR, result);
+							if (errcode) return errcode;
 							interfaced = true;
 						}
+						else 
+							return -1; //Should not happen - we requested FINAL bind in getInterfaceBindForObjName call
 					}
 										
 					ObjectPointer *optr;
@@ -2400,12 +2404,14 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 					
 					if (interfaced)
 					{
-						//TODO - what about "missing" fields? (in class but not visible via interface?)
-						DataValue* newDV = optr->getValue()->clone();
-						newDV->addClassMarks(&classMarks);
-						errcode = tr->modifyObject(optr, newDV);
-						if(errcode != 0) return trErrorOccur("[QE] Can't modify object and set classMarks", errcode);
-						
+						if (implType == BIND_CLASS)
+						{
+							//TODO - what about "missing" fields? (in implementation but not visible via interface?)
+							DataValue* newDV = optr->getValue()->clone();
+							newDV->addClassMarks(&classMarks);
+							errcode = tr->modifyObject(optr, newDV);
+							if(errcode != 0) return trErrorOccur("[QE] Can't modify object and set classMarks", errcode);
+						}
 						//key to indicate "Special" reference, telling us that perhaps not all fields and methods are visible
 						k.setKey(iName);
 					}
@@ -4039,7 +4045,8 @@ int QueryExecutor::persistDelete(LogicalID *lid) {
 
 	string object_name = optr->getName();
 	//Class does not have to be root.
-	if (((optr->getValue())->getSubtype()) == Store::Class) {
+	Store::ExtendedType et = (optr->getValue())->getSubtype(); 
+	if (et == Store::Class) {
 		//Class removing means removing of all its static members too.
 		errcode = persistStaticMembersDelete(object_name);
 		if (errcode != 0) return errcode;
@@ -4055,6 +4062,29 @@ int QueryExecutor::persistDelete(LogicalID *lid) {
 			return trErrorOccur("[QE] Error in class removing.", errcode);
 		}
 	}
+	else if (et == Store::Interface) 
+	{
+		string interfaceName = object_name;
+		ec->printf("[QE] removing interface %s\n", interfaceName.c_str());
+		//remove from maps - TODO: could result in corrupted map with checkValidity = false
+		InterfaceMaps::Instance().removeInterface(interfaceName, false);
+		//TODO - re-validate all Schemas using this name		
+		errcode = tr->removeInterface(optr);
+		if (errcode != 0) 
+			return trErrorOccur("[QE] Error while removing interface", errcode);
+	}
+	else if (et == Store::StoreSchema)
+	{
+		string schemaName = object_name;
+		ec->printf("[QE] removing schema %s\n", schemaName.c_str());
+		//remove from maps
+		OuterSchemas::Instance().removeSchema(schemaName);
+		errcode = tr->removeSchema(optr);
+		if (errcode != 0) 
+			return trErrorOccur("[QE] Error while removing outer schema", errcode);		
+	}
+	
+	
 
 	if (optr->getIsRoot()) {
 		if (!system_privilige_checking &&
@@ -7104,6 +7134,69 @@ int QueryExecutor::lidFromBinder( string bindName, QueryResult* result, LogicalI
 	int errcode = objectFromBinder(tmp_bndr, tmp_optr);
 	if (errcode != 0) return errcode;
 	lid= tmp_optr->getLogicalID();
+	return 0;
+}
+
+int QueryExecutor::createOnView(string objectName, bool &found, QueryResult *binder, QueryResult *&result)
+{
+	found = false;
+	vector<LogicalID*>* vec_virt;
+	int errcode = 0;
+	if ((errcode = tr->getViewsLID(objectName, vec_virt)) != 0) {
+		*ec << "[QE] createOnView - error in getViewsLID";
+		antyStarveFunction(errcode);
+		inTransaction = false;
+		return errcode;
+	}
+	int vecSize_virt = vec_virt->size();
+	ec->printf("[QE] %d Views LID by name taken\n", vecSize_virt);
+	if (vecSize_virt > 1) {
+		*ec << "[QE] Multiple views defining virtual objects with the same name";
+		*ec << (ErrQExecutor | EBadBindName);
+		return (ErrQExecutor | EBadBindName);
+	}
+	else if (vecSize_virt == 1) {
+		LogicalID *view_def = vec_virt->at(0);
+		string proc_code = "";
+		string proc_param = "";
+		errcode = getOn_procedure(view_def, "on_create", proc_code, proc_param);
+		if (errcode != 0) return errcode;
+		if (proc_code == "") {
+			*ec << "[QE] operator <create> - this VirtualObject doesn't have this operation defined";
+			*ec << (ErrQExecutor | EOperNotDefined);
+			return (ErrQExecutor | EOperNotDefined);
+		}
+		vector<QueryBagResult*> envs_sections;
+
+		QueryResult *create_arg = ((QueryBinderResult*)binder)->getItem();
+		QueryResult *param_binder = new QueryBinderResult(proc_param, create_arg);
+
+		errcode = createNewSections(NULL, (QueryBinderResult*) param_binder, view_def, envs_sections);
+		if (errcode != 0) return errcode;
+
+		errcode = callProcedure(proc_code, envs_sections);
+		if(errcode != 0) return errcode;
+
+		QueryResult *res;
+		errcode = qres->pop(res);
+		if (errcode != 0) return errcode;
+		QueryResult *bagged_res = new QueryBagResult();
+		((QueryBagResult *) bagged_res)->addResult(res);
+		for (unsigned int i = 0; i < bagged_res->size(); i++) {
+			QueryResult *seed;
+			errcode = ((QueryBagResult *) bagged_res)->at(i, seed);
+			if (errcode != 0) return errcode;
+
+			vector<QueryResult *> seeds;
+			seeds.push_back(seed);
+			vector<LogicalID *> view_defs;
+			view_defs.push_back(view_def);
+
+			QueryResult *virt_res = new QueryVirtualResult(objectName, view_defs, seeds, NULL);
+			((QueryBagResult *) result)->addResult(virt_res);
+			found = true;
+		}
+	}	
 	return 0;
 }
 

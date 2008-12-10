@@ -100,7 +100,7 @@ namespace Schemas
 			void removeBind(string objectName) {m_bindMap.removeBind(m_objNameToName[objectName]);}
 			bool isInterfaceBound(string n) const {return m_bindMap.hasBind(n);}
 			bool isObjectNameBound(string o) const;
-			void getInterfaceBindForObjName(string oName, string& iName, string& cName, string &invName, bool &found, bool final = false) const;
+			void getInterfaceBindForObjName(string oName, string& iName, string& cName, string &invName, int &type, bool &found, bool final = false) const;
 			ImplementationInfo getImplementationForInterface(string name, bool &found, bool final = false) const;
 			void getClassBindForInterface(string interfaceName, LogicalID*& classGraphLid) const;
 			BindMap getBindMap() const {return m_bindMap;}  

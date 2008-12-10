@@ -214,13 +214,14 @@ ImplementationInfo InterfaceMaps::getImplementationForInterface(string name, boo
 	return m_bindMap.getImpForInterface(name, found, final);
 }
 
-void InterfaceMaps::getInterfaceBindForObjName(string oName, string& iName, string& impName, string &impObjName, bool &found, bool final) const
+void InterfaceMaps::getInterfaceBindForObjName(string oName, string& iName, string& impName, string &impObjName, int &type, bool &found, bool final) const
 {
 	iName = getInterfaceNameForObject(oName, found);
 	if (!found) return;
 	ImplementationInfo i = getImplementationForInterface(iName, found, final);
 	impName = i.getName();
 	impObjName = i.getObjectName();
+	type = i.getType();
 }
 
 void InterfaceMaps::getClassBindForInterface(string interfaceName, LogicalID*& classGraphLid) const
@@ -365,10 +366,11 @@ int InterfaceMaps::removeInterface(string interfaceName, bool checkValidity)
 	}
 	
 	string oN = s.getAssociatedObjectName();
-	m_bindMap.removeBind(oN);
+	m_bindMap.removeBind(interfaceName);
+	m_objNameToName.erase(oN);
 	m_cache.clear();
 	
-	m_objNameToName.erase(oN);
+
 	return 0;
 }
 			

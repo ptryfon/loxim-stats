@@ -249,6 +249,15 @@ void OuterSchemas::removeSchema(string name)
 	m_outerSchemas.erase(name);
 }
 
+OuterSchema OuterSchemas::getSchema(string name) const
+{
+	OuterSchema s;
+	TOuterSchemas::const_iterator it = m_outerSchemas.find(name);
+	if (it != m_outerSchemas.end())
+		s = (*it).second;
+	return s;
+}
+
 TOuterSchemas OuterSchemas::getAllSchemasUsingName(string s) const
 {
 	TOuterSchemas out;
