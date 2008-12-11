@@ -9,6 +9,7 @@
 #*the loxim server is going to been shutdown cleanly 
 
 #you have to remember:
+
 #*testing script have to finish to get result 
 
 #you are going to receive information about:
@@ -17,15 +18,27 @@
 #*how many objects are allocated
 #*how many objects are used
 
-loxim_server="../../src/loxim_server"
-lsbql="../../src/lsbql"
+source lib.sh
+prepareDirs gtT
+
+echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+echo "+++++++++++++++++ google perf tools test begin ++++++++++++"
+echo "---------- testing script $1 output sufix $2 --------"
+
 prefix="../results/heap/"
+prefix=$prefix"perfTools"$2$fullData
+
+if [ ! -e $prefix ]
+then
+	mkdir $prefix
+fi
+prefix=$prefix"/"
 
 if [ $# -eq 2 ] 
 then
-	if [ -e $2.0001.heap ] 
+	if [ -e $2.????.heap ] 
 	then
-		rm $2.0001.heap
+		rm $2.????.heap
 	fi
 	#echo $@
 	echo "====================== starting loxim ======================"
@@ -38,25 +51,31 @@ then
 	echo "================== shuting down loxim ======================"	
 	$lsbql -l root -P aa -m slash -f ../tests/simpleTests/shutdown.sbql &
 	wait
-
+	
 	pprof --alloc_space --ps $loxim_server $2.0001.heap > $prefix$2AllocSpace.ps
+	pprof --alloc_space --pdf $loxim_server $2.0001.heap > $prefix$2AllocSpace.pdf
 	pprof --alloc_space --text $loxim_server $2.0001.heap > $prefix$2AllocSpace.text
 	pprof --alloc_space --gif $loxim_server $2.0001.heap > $prefix$2AllocSpace.gif
 	
 	pprof --alloc_objects --ps $loxim_server $2.0001.heap > $prefix$2AllocObjects.ps
+	pprof --alloc_objects --pdf $loxim_server $2.0001.heap > $prefix$2AllocObjects.pdf
 	pprof --alloc_objects --text $loxim_server $2.0001.heap > $prefix$2AllocObjects.text
 	pprof --alloc_objects --gif $loxim_server $2.0001.heap > $prefix$2AllocObjects.gif
 
 	pprof --inuse_space --ps $loxim_server $2.0001.heap > $prefix$2InUseSpace.ps
+	pprof --inuse_space --pdf $loxim_server $2.0001.heap > $prefix$2InUseSpace.pdf
 	pprof --inuse_space --text $loxim_server $2.0001.heap > $prefix$2InUseSpace.text
 	pprof --inuse_space --gif $loxim_server $2.0001.heap > $prefix$2InUseSpace.gif
 	
 	pprof --inuse_objects --ps $loxim_server $2.0001.heap > $prefix$2InUseObjects.ps
+	pprof --inuse_objects --pdf $loxim_server $2.0001.heap > $prefix$2InUseObjects.pdf
 	pprof --inuse_objects --text $loxim_server $2.0001.heap > $prefix$2InUseObjects.text
 	pprof --inuse_objects --gif $loxim_server $2.0001.heap > $prefix$2InUseObjects.gif
 	
-	mv $2.0001.heap $prefix$2.0001.heap
 		
 else 
 	echo "usage: perftools [sciptToRun] [outputBeginnig]"
 fi
+
+rm *.heap
+echo "+++++++++++++++++ google perf tools test end ++++++++++++++"
