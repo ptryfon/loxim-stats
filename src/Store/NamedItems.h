@@ -194,7 +194,7 @@ namespace Store
 		~Classes();
 		Classes() {
 #ifdef IX_DEBUG
-			this->ec = new ErrorConsole("Store: Classes");
+			this->ec = &ErrorConsole::get_instance("Store: Classes");
 #endif
 			STORE_IX_INITIALPAGECOUNT = STORE_IXC_INITIALPAGECOUNT;
 			STORE_IX_NAMEMAXLEN = STORE_IXC_NAMEMAXLEN;
@@ -213,11 +213,11 @@ namespace Store
 	class StoreSchemas : public NamedItems 
 	{
 		private:
-			ErrorConsole* ec;
+			ErrorConsole &ec;
 			
 		public:
 			StoreSchemas();
-			~StoreSchemas() {if (ec) delete ec;}
+			~StoreSchemas() {}
 	};
 
 	class NamedRoots : public NamedItems {
@@ -234,7 +234,7 @@ namespace Store
 		~NamedRoots();
 		NamedRoots() {
 #ifdef IX_DEBUG
-			this->ec = new ErrorConsole("Store: NamedRoots");
+			this->ec = &ErrorConsole::get_instance("Store: NamedRoots");
 #endif
 			STORE_IX_INITIALPAGECOUNT = STORE_IXR_INITIALPAGECOUNT;
 			STORE_IX_NAMEMAXLEN = STORE_IXR_NAMEMAXLEN;

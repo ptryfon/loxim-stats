@@ -45,6 +45,7 @@
 
 using namespace protocol;
 using namespace std;
+using namespace Errors;
 
 Client::Client *Client::Client::instance;
 

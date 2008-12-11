@@ -4,7 +4,7 @@ namespace Store
 {
 	Interfaces::Interfaces()
 	{
-	    ec = new ErrorConsole("Store: Interfaces");
+	    ec = &ErrorConsole::get_instance("Store: Interfaces");
 	    *ec << "Interfaces constructed";
 	    STORE_IX_INITIALPAGECOUNT = STORE_IXC_INITIALPAGECOUNT;
 	    STORE_IX_NAMEMAXLEN = STORE_IXC_NAMEMAXLEN;
@@ -17,7 +17,6 @@ namespace Store
 	Interfaces::~Interfaces()
 	{
 	    ec->printf("Interfaces destructor called, my last message\n");
-	    delete(this->ec);
 	}
 
 	int Interfaces::getInterfaceBindForObjectName(TransactionID* tid, const string &oName, string &interfaceName, string &bindName)

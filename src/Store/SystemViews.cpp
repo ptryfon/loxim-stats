@@ -48,7 +48,6 @@ namespace Store
 	{
 #ifdef DEBUG_MODE
 		*this->ec << "Store::SystemViews::finalize done";
-		delete(this->ec);
 #endif
 		if (emptyObject) {
 			delete emptyObject;

@@ -7,7 +7,7 @@ using namespace Schemas;
 using namespace TManager;
 
 
-InterfaceMaps::InterfaceMaps() {ec = new ErrorConsole("InterfaceMaps");}
+InterfaceMaps::InterfaceMaps() {ec = &ErrorConsole::get_instance("InterfaceMaps");}
 
 void InterfaceMaps::printAll() const
 {

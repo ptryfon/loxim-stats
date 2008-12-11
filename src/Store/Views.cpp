@@ -5,14 +5,13 @@ namespace Store
 	Views::Views()
 	{
 #ifdef IXV_DEBUG
-		this->ec = new ErrorConsole("Store: Views");
+		this->ec = &ErrorConsole::get_instance("Store: Views");
 #endif
 	};
 
 	Views::~Views()
 	{
 #ifdef IXV_DEBUG
-		delete(this->ec);
 #endif
 	};
 

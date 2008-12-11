@@ -12,157 +12,159 @@ using namespace std;
 // return ENOSPC | ErrLogs
 
 namespace Errors {
-#define ErrBackup		 0x100000
-#define	ErrConfig		 0x200000
-#define	ErrDriver		 0x400000
-#define	ErrErrors		 0x800000
-#define	ErrLockMgr		0x1000000
-#define	ErrLogs			0x1200000
-#define	ErrQExecutor		0x1400000
-#define	ErrQParser		0x1800000
-#define	ErrSBQLCli		0x2000000
-#define	ErrServer		0x2200000
-#define	ErrStore		0x2400000
-#define	ErrTManager		0x2800000
-#define ErrTCPProto		0x4000000
-#define ErrIndexes		0x4200000
-#define ErrTypeChecker		0x4400000
-#define ErrUserProgram		0x4800000
-#define ErrLoximClient		0x8200000
-#define ErrAllModules		0xFF00000
+	enum{
+		ErrBackup =			0x100000,
+		ErrConfig =			0x200000,
+		ErrDriver =			0x400000,
+		ErrErrors =			0x800000,
+		ErrLockMgr =			0x1000000,
+		ErrLogs =			0x1200000,
+		ErrQExecutor =			0x1400000,
+		ErrQParser =			0x1800000,
+		ErrClient =			0x2000000,
+		ErrServer =			0x2200000,
+		ErrStore =			0x2400000,
+		ErrTManager =			0x2800000,
+		ErrTCPProto =			0x4000000,
+		ErrIndexes =			0x4200000,
+		ErrTypeChecker =		0x4400000,
+		ErrUserProgram =		0x4800000,
+		ErrProtocol =			0x8200000,
+		ErrAllModules =			0xFF00000,
 
-// error codes 1-255 (0x01 - 0xFF) reserved for system errno.h
-#define ENoError		0x0
+// error codes 1-255 (0x01 - 0xFF) reser	ved for system errno.h
+		ENoError =			0x0,
 
-#define ENoFile			0x100
-//- Nieobslugiwany/niewlasciwy typ wartosci w CREATE
-#define	EBadType		0x200
+		ENoFile =			0x100,
+//- Nieobslugiwany/niewlasciwy typ warto	sci w CREATE
+		EBadType =			0x200,
 //- Blad podczas tworzenia obiektu
-#define	EObjCreate		0x300
+		EObjCreate =			0x300,
 //- Blad podczas dodawania korzenia
-#define	ERootAdd		0x400
+		ERootAdd =			0x400,
 //- Nieznany typ wezla drzewa zapytan
-#define	ENoType			0x500
-//- Proba pobrania (getResult) QueryResultu z pustego zbioru
-#define EEmptySet		0x600
+		ENoType =			0x500,
+//- Proba pobrania (getResult) QueryResu	ltu z pustego zbioru
+		EEmptySet =			0x600,
 // blad pobierania korzenia
-#define EGetRoot		0x700
+		EGetRoot =			0x700,
 
 // Store
-#define EBadFile		0x800
-#define EPageNotValid		0x900
-#define EPageNotAquired		0xA00
+		EBadFile =			0x800,
+		EPageNotValid =			0x900,
+		EPageNotAquired =		0xA00,
 
 // Parse error
-#define ENotParsed		0xB00
-#define ENotUniqueNameList 0xB01
+		ENotParsed =			0xB00,
+		ENotUniqueNameList =		0xB01,
 
 // Executor
-#define ENumberExpected		0xC00
-#define ECrcToString		0xC10
-#define ECrcToDouble		0xC20
-#define ECrcToInt			0xC30
-#define ECrcToBool			0xC40
-#define ECrcEltEmptySet		0xC50
-#define ECrcEltMultiple		0xC60
-#define ECrcDelNonOptional	0xC70
-#define ECrcInsExtTooMany	0xC72
-#define EBadInternalCd		0xC74
+		ENumberExpected =		0xC00,
+		ECrcToString =			0xC10,
+		ECrcToDouble =			0xC20,
+		ECrcToInt =			0xC30,
+		ECrcToBool =			0xC40,
+		ECrcEltEmptySet =		0xC50,
+		ECrcEltMultiple =		0xC60,
+		ECrcDelNonOptional =		0xC70,
+		ECrcInsExtTooMany =		0xC72,
+		EBadInternalCd =		0xC74,
 	
-#define EBoolExpected		0xD00
-#define ERefExpected		0xE00
-#define EBagOfRefExpected	0xE10
-#define EOtherResExp		0xF00
-#define EUnknownValue		0x1000
-#define EUnknownNode		0x1100
-#define EQEmptySet		0x1200
-#define EDivBy0			0x1300
-#define EQEUnexpectedErr	0x1400
-#define ETransactionOpened	0x1410
-#define EEnvStackCorrupt	0x1410
-#define EEvalStopped		0x1500
-#define EProcNotSingle		0x1600
-#define EBadViewDef		0x1700
-#define EBadBindName		0x1800
-#define EOperNotDefined		0x1900
-#define ENotUniqueClassName 0x1910
-#define ENoClassDefFound	0x1920
-#define EOneResultExpected	0x1930
-#define ENotUniqueInterfaceName 0x1940
-#define ENoInterfaceFound	0x1950
-#define ENoImplementationFound 	0x1960
-#define EObjectInsteadOfType 0x1970
-#define EMdnCreateError		0x1980
-#define ERecurrentTypes		0x1990
-#define ESuchMdnExists		0x1991
-#define ECrcCrtExtTooMany	0x1992
+		EBoolExpected =			0xD00,
+		ERefExpected =			0xE00,
+		EBagOfRefExpected =		0xE10,
+		EOtherResExp =			0xF00,
+		EUnknownValue =			0x1000,
+		EUnknownNode =			0x1100,
+		EQEmptySet =			0x1200,
+		EDivBy0 =			0x1300,
+		EQEUnexpectedErr =		0x1400,
+		ETransactionOpened =		0x1410,
+		EEnvStackCorrupt =		0x1410,
+		EEvalStopped =			0x1500,
+		EProcNotSingle =		0x1600,
+		EBadViewDef =			0x1700,
+		EBadBindName =			0x1800,
+		EOperNotDefined =		0x1900,
+		ENotUniqueClassName =		0x1910,
+		ENoClassDefFound =		0x1920,
+		EOneResultExpected =		0x1930,
+		ENotUniqueInterfaceName =	0x1940,
+		ENoInterfaceFound =		0x1950,
+		ENoImplementationFound =	0x1960,
+		EObjectInsteadOfType =		0x1970,
+		EMdnCreateError =		0x1980,
+		ERecurrentTypes =		0x1990,
+		ESuchMdnExists =		0x1991,
+		ECrcCrtExtTooMany =		0x1992,
 	
 // Config
-#define ENotInit		0x1A00
-#define ENoValue		0x1B00
-#define EBadValue		0x1C00
+		ENotInit =			0x1A00,
+		ENoValue =			0x1B00,
+		EBadValue =			0x1C00,
 
 // Server
-#define EReceive		0x1D00
-#define EParse			0x1E00
-#define EExecute		0x1F00
-#define ESerialize		0x2000
-#define ESend			0x2100
-#define EBadResult		0x2200
-#define EClientLost		0x2300
-#define EProtocol		0x2320
+		EReceive =			0x1D00,
+		EParse =			0x1E00,
+		EExecute =			0x1F00,
+		ESerialize =			0x2000,
+		ESend =				0x2100,
+		EBadResult =			0x2200,
+		EClientLost =			0x2300,
+		EProtocol =			0x2320,
 
 // Transaction
-#define EDeadlock		0x2400
-#define ESemaphoreInit		0x2500
-#define EUpgradeLock		0x2600
-#define EMutexInit		0x2700
+		EDeadlock =			0x2400,
+		ESemaphoreInit =		0x2500,
+		EUpgradeLock =			0x2600,
+		EMutexInit =			0x2700,
 
-// plug for h_errno from gethostbyname(3)
-#define ENoHost			0x2800
-#define EUnknownPackage		0x2900
+// plug for h_errno from gethost	byname(3)
+		ENoHost =			0x2800,
+		EUnknownPackage	=		0x2900,
 
 // Indexes
-#define EIndexExists			0x2A00
-#define EFieldIndexed			0x2B00
-#define ENoIndex				0x2C00
-#define ENoIndexedField			0x2D00
-#define EIndexedFieldDuplicated	0x2E00
-#define ERemoveIndexed			0x2F00
-#define EMetaIncorrect			0x3000
-#define EIncorrectState			0x3100
-#define ENoObject				0x3200
+		EIndexExists =			0x2A00,
+		EFieldIndexed =			0x2B00,
+		ENoIndex =			0x2C00,
+		ENoIndexedField	=		0x2D00,
+		EIndexedFieldDuplicated =	0x2E00,
+		ERemoveIndexed =		0x2F00,
+		EMetaIncorrect =		0x3000,
+		EIncorrectState =		0x3100,
+		ENoObject =			0x3200,
 
 // Type Checker
-#define ECannotRestore			0x3300
-#define ECannotRestoreBadName	0x3310
-#define ENameNotBound			0x3320
-#define EGeneralTCError			0x3330
-#define ETCNotApplicable		0x3340
-#define EIncompleteMetadata		0x3350
-#define EMetadataOutdated		0x3360
-#define ETCInnerFailure			0x3370
-#define ETCInnerRuleUnknown		0x3371
-#define ETCInnerNULLFailure		0x3372
-#define ESigTypesDiffer			0x3373
-#define ESigCdOverflow			0x3374
-#define ESigMissedSubs			0x3375
-#define ESigCdDynamic			0x3376
-#define ESigTNamesDiffer		0x3377
+		ECannotRestore =		0x3300,
+		ECannotRestoreBadName =		0x3310,
+		ENameNotBound =			0x3320,
+		EGeneralTCError =		0x3330,
+		ETCNotApplicable =		0x3340,
+		EIncompleteMetadata =		0x3350,
+		EMetadataOutdated =		0x3360,
+		ETCInnerFailure =		0x3370,
+		ETCInnerRuleUnknown =		0x3371,
+		ETCInnerNULLFailure =		0x3372,
+		ESigTypesDiffer =		0x3373,
+		ESigCdOverflow =		0x3374,
+		ESigMissedSubs =		0x3375,
+		ESigCdDynamic =			0x3376,
+		ESigTNamesDiffer =		0x3377,
 
 
 // stopper
-#define EUnknown		0x3400
+		EUnknown =			0x3400,
 
 // Logs
-#define EBadLSN				0x3500
-#define ESyncLog			0x3510
+		EBadLSN =			0x3500,
+		ESyncLog =			0x3510,
 
 // User Program Errors
-#define EUserUnknown		0x8000
-#define EUserWrongParam		0x8100
-
-string SBQLstrerror(int error);
+		EUserUnknown =			0x8000,
+		EUserWrongParam =		0x8100
+	};
+	string SBQLstrerror(int error);
+	string err_module_desc(int error);
 }
 
 #endif

@@ -2,186 +2,205 @@
 #include <fstream>
 #include <iostream>
 #include <ios>
+#include <string.h>
+#include <strings.h>
+#include <string>
+#include <sstream>
 #include <Errors/ErrorConsole.h>
 #include <Errors/Errors.h>
+#include <Errors/Exceptions.h>
 #include <Config/SBQLConfig.h>
-#include <string.h>
+#include <Util/Locker.h>
 
 using namespace std;
 using namespace Config;
+using namespace Util;
 
 namespace Errors {
 
-    extern struct ErrorMessages {
-        int e;
-        char *s;
-    } ErrorMsg[];
+	bool ErrorConsole::use_log_file;
+	bool ErrorConsole::serr;
+	auto_ptr<ofstream> ErrorConsole::console_file;
+	auto_ptr<SBQLConfig> ErrorConsole::conf_file;
+	VerbosityLevel log_file_level, serr_level;
+	pthread_mutex_t ErrorConsole::write_lock = PTHREAD_MUTEX_INITIALIZER;
+	map<string, ErrorConsole* > ErrorConsole::modules;
+	
+
+	void ErrorConsole::init_static()
+	{
+		if (conf_file.get())
+			return;
+		conf_file = auto_ptr<SBQLConfig>(new SBQLConfig("Errors"));
+		if (conf_file->getBool("stderr", serr))
+			serr = true;
+		log_file_level = parse_verbosity("logfile_verbosity");
+		serr_level = parse_verbosity("serr_verbosity");
+		string f;
+		use_log_file = !conf_file->getString("logfile", f) &&
+			f.compare("OFF") && f.compare("off");
+		if (use_log_file) {
+			console_file = auto_ptr<ofstream>(new ofstream(f.c_str(), ios::app));
+			if (!console_file->is_open())
+				throw LoximException(ENoFile | ErrErrors);
+		}
+	}
+
+	VerbosityLevel ErrorConsole::parse_verbosity(const string &property)
+	{
+		string s_l;
+		if (conf_file->getString(property, s_l))
+			return V_DEFAULT;
+		if (!strcasecmp(s_l.c_str(), "severe"))
+			return V_SEVERE_ERROR;
+		if (!strcasecmp(s_l.c_str(), "error"))
+			return V_ERROR;
+		if (!strcasecmp(s_l.c_str(), "warning"))
+			return V_WARNING;
+		if (!strcasecmp(s_l.c_str(), "info"))
+			return V_INFO;
+		if (!strcasecmp(s_l.c_str(), "debug"))
+			return V_DEBUG;
+		cerr << "Unknown verbosity level for " + property + 
+			", falling back to default" << endl;
+		return V_DEFAULT;
+	}
+
+	const SBQLConfig &ErrorConsole::get_config()
+	{
+		init_static();
+		return *conf_file;
+	}
+
+	ErrorConsole::ErrorConsole(const string &module) : owner(module)
+	{
+		init_static();
+	}
 
 
-    bool ErrorConsole::useLogFile = true;
+	void ErrorConsole::put_string(const string &error_msg, VerbosityLevel l)
+	{
+		string dest_mod;
+		if (owner.length() == 0)
+			dest_mod = "Unknown: ";
+		else
+			dest_mod = owner + ": ";
+		Locker lock(write_lock);
+		if (use_log_file && log_file_level >= l) {
+			*console_file << dest_mod << error_msg << endl;
+			console_file->flush();
+		}
+		if (serr && serr_level >= l) {
+			cerr << dest_mod << error_msg << endl;
+			cerr.flush();
+		}
+	}
 
-    ofstream* ErrorConsole::consoleFile = NULL;
-    int ErrorConsole::serr = 0;
+	void ErrorConsole::put_errno(int error, VerbosityLevel l)
+	{
+		string src_mod = err_module_desc(error);
+		string str = SBQLstrerror(error);
+		stringstream ss;
+		ss << src_mod << " said: " << str << " (errno: " 
+				<< (error & ~ErrAllModules) << ")";
+		put_string(ss.str(), l);
+	}
 
-    ErrorConsole::ErrorConsole() {
-    };
 
-    ErrorConsole::ErrorConsole(string module) {
-        owner = module;
-    };
-    //XXX  CHANGED TO BE READ FROM CONF FILE
+	ErrorConsole& ErrorConsole::operator<<(int error)
+	{
+		put_errno(error);
+		return *this;
+	}
 
-    int ErrorConsole::init(void)
-    //	int ErrorConsole::init(int tostderr)
-    {
-        SBQLConfig c("Errors");
-        string f;
-        serr = 0;
-        if (c.getInt("stderr", serr) != 0)
-            serr = 0;
-        if (serr > 2)
-            serr = 0;
-        if (c.getString("logfile", f) != 0)
-            useLogFile = false;
-        if((!f.compare("OFF")) || (!f.compare("off"))) {
-            useLogFile = false;
-        }
-        if (useLogFile) {
-            if (consoleFile == NULL)
-                consoleFile = new ofstream(f.c_str(), ios::app);
-            if (!consoleFile->is_open())
-                return ENoFile | ErrErrors;
-        }
-        return 0;
-    };
+	ErrorConsole& ErrorConsole::operator<<(const string &error_msg)
+	{
+		put_string(error_msg);
+		return *this;
+	}
 
-    ErrorConsole& ErrorConsole::operator<<(int error) {
-        string src_mod, dest_mod, str;
+	ErrorConsole& ErrorConsole::printf(const char *format, ...)
+	{
+		//CAUTION!!! This code is duplicated below. It's ugly, but most
+		//portable. Compilers have different implementations of va_list,
+		//so it is not easy to pass the parameters to a helper function.
+#define BUF_SIZE 1024
+		char str[BUF_SIZE];
+		va_list ap;
+		string dest_mod;
 
-            switch (error & ErrAllModules) {
-                case ErrBackup:
-                    src_mod = "Backup";
-                    break;
-                case ErrConfig:
-                    src_mod = "Config";
-                    break;
-                case ErrDriver:
-                    src_mod = "Driver";
-                    break;
-                case ErrErrors:
-                    src_mod = "Errors";
-                    break;
-                case ErrLockMgr:
-                    src_mod = "Lock Manager";
-                    break;
-                case ErrLogs:
-                    src_mod = "Logs";
-                    break;
-                case ErrQExecutor:
-                    src_mod = "Query Executor";
-                    break;
-                case ErrQParser:
-                    src_mod = "Query Parser";
-                    break;
-                case ErrSBQLCli:
-                    src_mod = "SBQLCli";
-                    break;
-                case ErrServer:
-                    src_mod = "Server";
-                    break;
-                case ErrStore:
-                    src_mod = "Store";
-                    break;
-                case ErrTManager:
-                    src_mod = "Transaction Manager";
-                    break;
-                case ErrTypeChecker:
-                    src_mod = "Type Checker";
-                    break;
-                case ErrUserProgram:
-                    src_mod = "User Program";
-                    break;
-                default:
-                    src_mod = "Unknown";
-                    break;
-            }
-            if ((error & ~ErrAllModules) < 0x100) {
-                str = strerror(error & ~ErrAllModules);
-            } else {
-                int erridx = (error & ~ErrAllModules);
-                int i = 0;
-                while (ErrorMsg[i].e != EUnknown) {
-                    if (ErrorMsg[i].e == erridx)
-                        break;
-                    i++;
-                }
-                str = ErrorMsg[i].s;
-            }
-            if (owner.length() == 0)
-                dest_mod = "Unknown: ";
-            else
-                dest_mod = owner + ": ";
-        if (useLogFile) {
-            *consoleFile << dest_mod << src_mod << " said: " << str << " (errno: " << (error & ~ErrAllModules) << ")\n";
-            consoleFile->flush();
-        }
-        if (serr) {
-            cerr << dest_mod << src_mod << " said: " << str << " (errno: " << (error & ~ErrAllModules) << ")\n";
-            cerr.flush();
-        }
+		va_start(ap, format);
+		vsnprintf(str, BUF_SIZE, format, ap);
+		va_end(ap);
+		
+		//Being a little bit paranoid won't hurt ;)
+		str[BUF_SIZE - 1] = 0;
+		put_string(str, V_DEPRECATED);
+#undef BUF_SIZE
+		return *this;
+	}
 
-        return *this;
-    };
+	ErrorConsoleAdapter ErrorConsole::operator()(VerbosityLevel l)
+	{
+		return ErrorConsoleAdapter(*this, l);
+	}
 
-    ErrorConsole& ErrorConsole::operator<<(const string &errorMsg) {
-        string dest_mod;
+	ErrorConsole::~ErrorConsole()
+	{
+	}
 
-        if (owner.length() == 0)
-            dest_mod = "Unknown: ";
-        else
-            dest_mod = owner + ": ";
-        if (useLogFile) {
-            *consoleFile << dest_mod << errorMsg << "\n";
-            consoleFile->flush();
-        }
-        if (serr) {
-            cerr << dest_mod << errorMsg << "\n";
-            cerr.flush();
-        }
-        return *this;
-    };
+	ErrorConsole &ErrorConsole::get_instance(const string &mod)
+	{
+		Locker l(write_lock);
+		map<string, ErrorConsole*>::const_iterator
+			i = modules.find(mod);
+		if (i != modules.end()){
+			return *(i->second);
+		}
+		return *(modules[mod] = new ErrorConsole(mod));
 
-    ErrorConsole& ErrorConsole::printf(const char *format, ...) {
-        char str[1024];
-        va_list ap;
-        string dest_mod;
+	}
 
-        va_start(ap, format);
-        vsnprintf(str, 1024, format, ap);
-        va_end(ap);
 
-        if (owner.length() == 0)
-            dest_mod = "Unknown: ";
-        else
-            dest_mod = owner + ": ";
-        if (useLogFile) {
-        *consoleFile << dest_mod << str;
-        consoleFile->flush();
-        }
-        if (serr) {
-            cerr << dest_mod << str;
-            cerr.flush();
-        }
-        return *this;
-    };
 
-    void ErrorConsole::free(void) {
-        if (consoleFile != NULL) {
-            delete consoleFile;
-            consoleFile = NULL;
-        }
-    };
+	ErrorConsoleAdapter::ErrorConsoleAdapter(ErrorConsole &cons, VerbosityLevel l) :
+		cons(cons), l(l)
+	{
+	}
 
-    ErrorConsole::~ErrorConsole() {
-    };
+	
+	ErrorConsoleAdapter &ErrorConsoleAdapter::operator<<(int error)
+	{
+		cons.put_errno(error, l);
+		return *this;
+	}
+
+	
+	ErrorConsoleAdapter &ErrorConsoleAdapter::operator<<(const string &error)
+	{
+		cons.put_string(error, l);
+		return *this;
+	}
+
+	ErrorConsoleAdapter &ErrorConsoleAdapter::printf(const char *format, ...)
+	{
+		//CAUTION!!! This code is duplicated above. It's ugly, but most
+		//portable. Compilers have different implementations of va_list,
+		//so it is not easy to pass the parameters to a helper function.
+#define BUF_SIZE 1024
+		char str[BUF_SIZE];
+		va_list ap;
+		string dest_mod;
+
+		va_start(ap, format);
+		vsnprintf(str, BUF_SIZE, format, ap);
+		va_end(ap);
+		
+		//Being a little bit paranoid won't hurt ;)
+		str[BUF_SIZE - 1] = 0;
+		cons.put_string(str, l);
+#undef BUF_SIZE
+		return *this;
+	}
 }
+

@@ -80,7 +80,7 @@ namespace TManager
 			LogManager* logm;
 			TransactionManager* tm;
 			LockManager* lm;
-			ErrorConsole err;
+			ErrorConsole &err;
 			Semaphore* sem;    /* for operation on Store Manager */
 			DMLControl *dmlStructs;
 	      public:

@@ -85,5 +85,4 @@ int main()
 	*ec << "LogManager shut down";
 	delete log;
 	*ec << "Finished";
-	delete ec;
 }

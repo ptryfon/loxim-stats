@@ -9,14 +9,13 @@ namespace Store
 	NamedItems::NamedItems()
 	{
 #ifdef IX_DEBUG
-		this->ec = new ErrorConsole("Store: NamedItems");
+		this->ec = &ErrorConsole::get_instance("Store: NamedItems");
 #endif
 	};
 
 	NamedItems::~NamedItems()
 	{
 #ifdef IX_DEBUG
-		delete(this->ec);
 #endif
 	};
 

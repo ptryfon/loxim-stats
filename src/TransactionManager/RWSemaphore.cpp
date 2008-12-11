@@ -2,6 +2,8 @@
 #include <TransactionManager/RWSemaphore.h>
 #include <Errors/Errors.h>
 
+using namespace Errors;
+
 /*
  *	Julian Krzemiñski (julian.krzeminski@students.mimuw.edu.pl)
  */

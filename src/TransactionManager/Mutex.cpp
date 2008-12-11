@@ -4,6 +4,7 @@
 #include <Errors/ErrorConsole.h>
 #include <Errors/Errors.h>
 
+using namespace Errors;
 /*
  *	Julian Krzemi�ski (julian.krzeminski@students.mimuw.edu.pl)
  */

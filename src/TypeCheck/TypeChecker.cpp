@@ -536,7 +536,7 @@ namespace TypeCheck
 
 	/* ----------------		TCGlobalResult methods		------------------- */
 	void TCGlobalResult::printOutput() {
-		ErrorConsole ec("TypeChecker");
+		ErrorConsole &ec(ErrorConsole::get_instance("TypeChecker"));
 		ec << "TypeChecking result: " + overallResult  + "\n ";
 		if (overallResult == "ERROR") {
 			ec << "Query type check returned errors: \n";

@@ -2,10 +2,10 @@
 
 namespace Store
 {
-	StoreSchemas::StoreSchemas()
+	StoreSchemas::StoreSchemas() :
+		ec(ErrorConsole::get_instance("Store: Schemas"))
 	{
-	    ec = new ErrorConsole("Store: Schemas");
-	    *ec << "StoreSchemas constructed";
+	    ec(V_DEBUG) << "StoreSchemas constructed";
 	    STORE_IX_INITIALPAGECOUNT = STORE_IXC_INITIALPAGECOUNT;
 	    STORE_IX_NAMEMAXLEN = STORE_IXC_NAMEMAXLEN;
 	    STORE_IX_NULLVALUE = STORE_IXC_NULLVALUE;

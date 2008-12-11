@@ -10,7 +10,8 @@ namespace LockMgr
 
 /*_____SingleLock___________________________________________________*/    
 
-    SingleLock::SingleLock(TransactionID* _tid, AccessMode _mode, Semaphore *_sem, int _id)
+    SingleLock::SingleLock(TransactionID* _tid, AccessMode _mode, Semaphore *_sem, int _id) : 
+	    err(ErrorConsole::get_instance("LockManager"))
     {
 	inside 	= 1;	
 	id 	= _id;
@@ -33,7 +34,6 @@ namespace LockMgr
 	mutex = new Mutex();
 	mutex->init();
 	
-	err = ErrorConsole("LockManager");
     }
 
     SingleLock::~SingleLock()

@@ -1,5 +1,7 @@
 #include <Indexes/Monitor.h>
 
+using namespace Errors;
+
 namespace Indexes {
 	
 	Monitor::Monitor() {

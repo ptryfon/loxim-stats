@@ -42,7 +42,7 @@ namespace Logs
 
     string getLogFilePath() { return logFilePath; }
 
-    LogManager() { ec = new ErrorConsole("Log"); crashRecoveryInProgress = false; }
+    LogManager() { ec = &ErrorConsole::get_instance("Log"); crashRecoveryInProgress = false; }
 
     int init();
     int start( StoreManager *store );

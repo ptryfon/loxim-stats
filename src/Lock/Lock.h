@@ -72,7 +72,7 @@ class LockManager
 	    
 	    	int single_lock_id;
 	    	Mutex *mutex;
-	    	ErrorConsole err;	    
+	    	ErrorConsole &err;	    
 	    
 	public: 
 

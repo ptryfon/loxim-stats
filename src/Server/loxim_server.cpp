@@ -47,18 +47,12 @@ int main(int argc, char **argv) {
         SBQLConfig config("Server");
 	int error = config.init();
 	if (error) {
-	    fprintf(stderr, "Config init failed with %d\n", error);
+	    cerr << "Config init failed with code " << error << "\n";
 	    exit(1);
 	}
-	ErrorConsole con("Server");
-//XXX GT HARDCODING!! changed to be read from conf file
-        error = con.init();
-	if (error) {
-	    fprintf(stderr, "ErrorConsole init failed with %d\n", error);
-	    exit(2);
-	}
+	ErrorConsole &con(ErrorConsole::get_instance("Server"));
 	LogManager::checkForBackup();
-	con.printf("[Listener.Start]--> Initializing Log manager and Store manager \n");
+	con(V_INFO) << "Initializing Log manager and Store manager\n";
 	LogManager *lm = new LogManager();
 	lm->init();
 	DBStoreManager *sm = new DBStoreManager();
@@ -66,12 +60,12 @@ int main(int argc, char **argv) {
 	LockManager::init();
 	TransactionManager::init(sm, lm);
 	sm->setTManager(TransactionManager::getHandle());
-	con.printf("[Listener.Start]--> Starting Store manager.. \n");
+	con(V_INFO) << "Starting Store manager...\n";
 	sm->start();
-	con.printf("[Listener.Start]--> Starting Log manager.. \n");
+	con(V_INFO) << "Starting Log manager...\n";
 	lm->start(sm);
 	QueryBuilder::startup();
-	con.printf("[Listener.Start]--> Starting Index manager.. \n");
+	con(V_INFO) << "Starting Index manager...\n";
 	Indexes::IndexManager::init(LogManager::isCleanClosed());
 	ClassGraph::ClassGraph::init(-1);
 	Schemas::InterfaceMaps::Instance().init(); //must be called after ClassGraph::init()
@@ -92,6 +86,6 @@ int main(int argc, char **argv) {
 		delete TransactionManager::getHandle();
 	}
 	else
-		cout << "prepare failed" << endl;
+		con(V_SEVERE_ERROR) << "Couldn't connect to socket\n";
 	return 0;
 }

@@ -5,7 +5,6 @@ namespace Store
 	Classes::~Classes()
 	{
 #ifdef IX_DEBUG
-		delete(this->ec);
 #endif
 	};
 

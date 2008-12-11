@@ -43,7 +43,7 @@ namespace Logs
 /* ------------------------- LogManager ----------------------- */	
 	LogManager::LogManager() 
 	{
-		ec = new ErrorConsole("ARIESLog");
+		ec = &ErrorConsole::get_instance("ARIESLog");
 #ifdef DEBUG_MODE
 		*ec << "LogManager::Constructor";
 #endif
@@ -74,7 +74,6 @@ namespace Logs
 		}
 #ifdef DEBUG_MODE
 		*ec << "LogManager::Destructor done";
-		delete ec;
 #endif
 	}
 	

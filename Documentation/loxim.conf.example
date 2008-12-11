@@ -1,6 +1,8 @@
 [Errors]
 logfile=/tmp/loxim_error_log
-stderr=2
+stderr=on
+logfile_verbosity=debug
+serr_verbosity=info
 
 [Store]
 store_file_default=/tmp/loxim_default

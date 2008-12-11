@@ -31,7 +31,7 @@ namespace Indexes
 	int IndexManager::dataDesc = descInitValue;
 
 	int IndexManager::init(bool cleanShutdown) {
-		ec = new ErrorConsole("IndexManager");
+		ec = &ErrorConsole::get_instance("IndexManager");
 		int err;
 		config.reset(new SBQLConfig("Index"));
 		//rolledBack.reset(new set<int>());
@@ -72,7 +72,6 @@ namespace Indexes
 		delete handle;
 		handle = NULL;
 		*ec << "closed";
-		delete ec;
 		return err;
 	}
 	/*

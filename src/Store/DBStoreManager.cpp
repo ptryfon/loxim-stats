@@ -16,7 +16,7 @@ namespace Store
 
 	DBStoreManager::DBStoreManager()
 	{
-		ec = new ErrorConsole("Store");
+		ec = &ErrorConsole::get_instance("Store");
 #ifdef DEBUG_MODE
 		*ec << "Store::StoreManager::Constructor begin";
 #endif
@@ -47,7 +47,6 @@ namespace Store
 			pagemgr = NULL;
 		}
 		if(ec) {
-			delete ec;
 			ec = NULL;
 		}
 		if(config) {

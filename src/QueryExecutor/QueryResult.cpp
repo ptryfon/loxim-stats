@@ -21,31 +21,31 @@ using namespace std;
 namespace QExecutor {
 
 //constructors
-QuerySequenceResult::QuerySequenceResult() 			{ ec = new ErrorConsole("QueryExecutor"); }
-QuerySequenceResult::QuerySequenceResult(vector<QueryResult*> s){ seq = s; ec = new ErrorConsole("QueryExecutor"); }
-QueryBagResult::QueryBagResult() 				{ ec = new ErrorConsole("QueryExecutor"); }
-QueryBagResult::QueryBagResult(vector<QueryResult*> b)		{ bag = b; ec = new ErrorConsole("QueryExecutor");}
-QueryStructResult::QueryStructResult() 				{ ec = new ErrorConsole("QueryExecutor"); }
-QueryStructResult::QueryStructResult(vector<QueryResult*> s)	{ str = s; ec = new ErrorConsole("QueryExecutor"); }
+QuerySequenceResult::QuerySequenceResult() 			{ ec = &ErrorConsole::get_instance("QueryExecutor"); }
+QuerySequenceResult::QuerySequenceResult(vector<QueryResult*> s){ seq = s; ec = &ErrorConsole::get_instance("QueryExecutor"); }
+QueryBagResult::QueryBagResult() 				{ ec = &ErrorConsole::get_instance("QueryExecutor"); }
+QueryBagResult::QueryBagResult(vector<QueryResult*> b)		{ bag = b; ec = &ErrorConsole::get_instance("QueryExecutor");}
+QueryStructResult::QueryStructResult() 				{ ec = &ErrorConsole::get_instance("QueryExecutor"); }
+QueryStructResult::QueryStructResult(vector<QueryResult*> s)	{ str = s; ec = &ErrorConsole::get_instance("QueryExecutor"); }
 QueryStructResult::QueryStructResult(QueryResult *elem, QueryResult *value) { 
-	str.push_back(elem); str.push_back(value); ec = new ErrorConsole("QueryExecutor"); }
-QueryBinderResult::QueryBinderResult()				{ ec = new ErrorConsole("QueryExecutor"); }
-QueryBinderResult::QueryBinderResult(string n, QueryResult* r) 	{ name=n; item=r; ec = new ErrorConsole("QueryExecutor"); }
-QueryStringResult::QueryStringResult()				{ ec = new ErrorConsole("QueryExecutor"); }
-QueryStringResult::QueryStringResult(string v) 			{ value=v; ec = new ErrorConsole("QueryExecutor"); }
-QueryIntResult::QueryIntResult()				{ ec = new ErrorConsole("QueryExecutor"); }
-QueryIntResult::QueryIntResult(int v) 				{ value=v; ec = new ErrorConsole("QueryExecutor"); }
-QueryDoubleResult::QueryDoubleResult()				{ ec = new ErrorConsole("QueryExecutor"); }
-QueryDoubleResult::QueryDoubleResult(double v) 			{ value=v; ec = new ErrorConsole("QueryExecutor"); }
-QueryBoolResult::QueryBoolResult()				{ ec = new ErrorConsole("QueryExecutor"); }
-QueryBoolResult::QueryBoolResult(bool v) 			{ value=v; ec = new ErrorConsole("QueryExecutor"); }
-QueryReferenceResult::QueryReferenceResult()			{ ec = new ErrorConsole("QueryExecutor"); refed = false; }
-QueryReferenceResult::QueryReferenceResult(LogicalID* v) 	{ value=v; m_key.setEmpty(); ec = new ErrorConsole("QueryExecutor"); refed = false; }
-QueryReferenceResult::QueryReferenceResult(LogicalID* v, InterfaceKey k) 	{ value=v; m_key=k; ec = new ErrorConsole("QueryExecutor"); refed = false; }
-QueryNothingResult::QueryNothingResult() 			{ ec = new ErrorConsole("QueryExecutor"); }
-QueryVirtualResult::QueryVirtualResult() 			{ ec = new ErrorConsole("QueryExecutor"); refed = false;}
+	str.push_back(elem); str.push_back(value); ec = &ErrorConsole::get_instance("QueryExecutor"); }
+QueryBinderResult::QueryBinderResult()				{ ec = &ErrorConsole::get_instance("QueryExecutor"); }
+QueryBinderResult::QueryBinderResult(string n, QueryResult* r) 	{ name=n; item=r; ec = &ErrorConsole::get_instance("QueryExecutor"); }
+QueryStringResult::QueryStringResult()				{ ec = &ErrorConsole::get_instance("QueryExecutor"); }
+QueryStringResult::QueryStringResult(string v) 			{ value=v; ec = &ErrorConsole::get_instance("QueryExecutor"); }
+QueryIntResult::QueryIntResult()				{ ec = &ErrorConsole::get_instance("QueryExecutor"); }
+QueryIntResult::QueryIntResult(int v) 				{ value=v; ec = &ErrorConsole::get_instance("QueryExecutor"); }
+QueryDoubleResult::QueryDoubleResult()				{ ec = &ErrorConsole::get_instance("QueryExecutor"); }
+QueryDoubleResult::QueryDoubleResult(double v) 			{ value=v; ec = &ErrorConsole::get_instance("QueryExecutor"); }
+QueryBoolResult::QueryBoolResult()				{ ec = &ErrorConsole::get_instance("QueryExecutor"); }
+QueryBoolResult::QueryBoolResult(bool v) 			{ value=v; ec = &ErrorConsole::get_instance("QueryExecutor"); }
+QueryReferenceResult::QueryReferenceResult()			{ ec = &ErrorConsole::get_instance("QueryExecutor"); refed = false; }
+QueryReferenceResult::QueryReferenceResult(LogicalID* v) 	{ value=v; m_key.setEmpty(); ec = &ErrorConsole::get_instance("QueryExecutor"); refed = false; }
+QueryReferenceResult::QueryReferenceResult(LogicalID* v, InterfaceKey k) 	{ value=v; m_key=k; ec = &ErrorConsole::get_instance("QueryExecutor"); refed = false; }
+QueryNothingResult::QueryNothingResult() 			{ ec = &ErrorConsole::get_instance("QueryExecutor"); }
+QueryVirtualResult::QueryVirtualResult() 			{ ec = &ErrorConsole::get_instance("QueryExecutor"); refed = false;}
 QueryVirtualResult::QueryVirtualResult(string _vo_name, vector<LogicalID *> _view_defs, vector<QueryResult *> _seeds, LogicalID *_view_parent) {
-vo_name = _vo_name; view_defs = _view_defs; seeds = _seeds; ec = new ErrorConsole("QueryExecutor"); refed = false; view_parent = _view_parent;}
+vo_name = _vo_name; view_defs = _view_defs; seeds = _seeds; ec = &ErrorConsole::get_instance("QueryExecutor"); refed = false; view_parent = _view_parent;}
 
 //function clone()
 QueryResult* QuerySequenceResult::clone()	{ return new QuerySequenceResult(seq); }

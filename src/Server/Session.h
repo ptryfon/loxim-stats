@@ -54,13 +54,13 @@ namespace Server{
 	class Worker{
 		friend void *W_starter(void *arg);
 		protected:
+			Session &session;
+			ErrorConsole &err_cons;
+			int shutting_down;
 			pthread_t thread;
 			pthread_mutex_t mutex;
-			int shutting_down;
-			Session &session;
 			pthread_cond_t idle_cond, completion_cond;
 			shared_ptr<Package> cur_package;
-			ErrorConsole &err_cons;
 			bool aborting;
 
 			void start_continue();
@@ -92,14 +92,14 @@ namespace Server{
 	class KeepAliveThread{
 		private:
 			friend void *thread_starter(void*);
+			Session &session;
+			ErrorConsole &err_cons;
+			pthread_t thread;
 			bool running;
 			bool shutting_down;
 			pthread_cond_t cond;
 			pthread_mutex_t cond_mutex;
 			void main_loop();
-			Session &session;
-			pthread_t thread;
-			ErrorConsole &err_cons;
 			bool answer_received;
 		public:
 			KeepAliveThread(Session &session, ErrorConsole &err_cons);
@@ -163,23 +163,23 @@ namespace Server{
 			
 			/******************/
 			
-			uint64_t id;
-			auto_ptr<UserData> user_data;
-			ErrorConsole &err_cons;
-			auto_ptr<AbstractSocket> socket;
 			Server &server;
-			ProtocolLayer0 bare_layer0;
-			ProtocolLayerWrap layer0;
-			QueryParser qPa;
+			auto_ptr<AbstractSocket> socket;
+			ErrorConsole &err_cons;
+			uint64_t id;
+			int shutting_down;
+			int error;
 			QueryExecutor qEx;
-			Clipboard clipboard;
 			KeepAliveThread KAthread;
 			Worker worker;
+			ProtocolLayer0 bare_layer0;
+			ProtocolLayerWrap layer0;
+			auto_ptr<UserData> user_data;
+			QueryParser qPa;
+			Clipboard clipboard;
 			string sessionid;
 			SessionStats stats;
 			char salt[20];
-			int error;
-			int shutting_down;
 			pthread_mutex_t send_mutex;
 			pthread_t thread;
 		

@@ -16,7 +16,7 @@ namespace Store
 		this->store = store;
 		this->file = new File(store);
 		this->started = 0;
-		this->ec = new ErrorConsole("Store");
+		this->ec = &ErrorConsole::get_instance("Store");
 	};
 
 	Buffer::~Buffer()
@@ -30,8 +30,6 @@ namespace Store
 			file = 0;
 		}
 
-		if (ec)
-			delete ec;
 	};
 
 	int Buffer::start()

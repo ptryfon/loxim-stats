@@ -29,7 +29,7 @@ int ClassGraph::getHandle(ClassGraph*& cg) {
 }
 
 int ClassGraph::init(int sessionId) {
-	ec = new ErrorConsole("QueryExecutor");
+	ec = &ErrorConsole::get_instance("QueryExecutor");
 	int errcode = 0;
 	Transaction *tr;
 	errcode = (TransactionManager::getHandle())->createTransaction(sessionId, tr);
@@ -852,7 +852,6 @@ ClassGraph::~ClassGraph() {
 		//gdyz to sa wskazniki do obiektow z classGraph.
 		delete (*i).second;
 	}
-	delete ec;
 	for(vector<LogicalID*>::iterator i = lidsToDel.begin(); i != lidsToDel.end(); ++i) {
 		delete (*i);
 	}

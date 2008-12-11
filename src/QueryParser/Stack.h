@@ -13,6 +13,7 @@
 #include <Errors/Errors.h>
 
 using namespace std;
+ 
 
 namespace QParser {
 
@@ -456,7 +457,7 @@ namespace QParser {
 			virtual Signature *cloneFlat();
 			virtual int type() {return Signature::SNOTHING;}
 			virtual int compareNamedSigCrt(Signature *flatSig, bool needTName) {
-				return (this->type() == flatSig->type() ? 0 : (ErrTypeChecker | ESigTypesDiffer));}
+				return (this->type() == flatSig->type() ? 0 : (Errors::ErrTypeChecker | Errors::ESigTypesDiffer));}
 			virtual void putToString() {cout << "(void)";}
 			virtual string toString() {
 				string ret = "(void," + attrsToString() + ") ";

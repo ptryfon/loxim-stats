@@ -397,7 +397,7 @@ namespace QParser {
 
 	DataScheme* DataScheme::dScheme(int sessionId) {
 		if (datScheme == NULL) {
-			ErrorConsole ec("QueryParser");
+			ErrorConsole &ec(ErrorConsole::get_instance("QueryParser"));
 			ec << "dScheme initialized out of any transactions.\n";
 			datScheme = new DataScheme();
 			datScheme->readData(sessionId);

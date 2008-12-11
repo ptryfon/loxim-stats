@@ -156,7 +156,7 @@ namespace Server{
 		try{
 			qEx.set_priviliged_mode(true);
 			qEx.initCg();
-			err_cons.printf("session %d bootstrapped. active sessions: %d\n", 
+			err_cons(V_INFO).printf("session %d bootstrapped. active sessions: %d\n", 
 					get_id(), server.get_sessions_count());
 			if (init_phase()){
 				KAthread.start();
@@ -165,11 +165,11 @@ namespace Server{
 				worker.stop();
 				KAthread.stop();
 			}
-			err_cons.printf("session %d quitting\n", id);
+			err_cons(V_INFO).printf("session %d quitting\n", id);
 			server.end_session(get_id(), 0);
 		} catch (LoximException &ex){
-			err_cons << "Caught LoximException in Session::main_loop\n";
-			err_cons << ex.to_string();
+			err_cons(V_INFO) << "Caught LoximException in Session::main_loop\n";
+			err_cons(V_INFO) << ex.to_string();
 			worker.stop();
 			KAthread.stop();
 			server.end_session(get_id(), ex.get_error());
@@ -254,7 +254,7 @@ namespace Server{
 						CharArray(strdup((qbr->getName().c_str()))),
 						dp->getDataType(), dp);
 			default:
-				err_cons.printf("Unknown type");
+				err_cons(V_ERROR).printf("Unknown type");
 					return 0; //TODO ERROR
 				break;
 		}
@@ -266,11 +266,11 @@ namespace Server{
 	{
 		Locker l(send_mutex);
 		layer0.write_package(VSCSendValuesPackage());
-		err_cons.printf("SendValues sent\n");
+		err_cons(V_DEBUG).printf("SendValues sent\n");
 		layer0.write_package(VSCSendValuePackage(0, 0, qres.get())); 
-		err_cons.printf("Sent query result\n");
+		err_cons(V_DEBUG).printf("Sent query result\n");
 		layer0.write_package(VSCFinishedPackage());
-		err_cons.printf("Sending values finished\n");
+		err_cons(V_DEBUG).printf("Sending values finished\n");
 	}
 
 	void Session::send_bye()
@@ -302,24 +302,24 @@ namespace Server{
 	bool Session::init_phase()
 	{
 		layer0.read_package(ID_WCHelloPackage);
-		err_cons.printf("Got WCHELLO\n");
+		err_cons(V_DEBUG).printf("Got WCHELLO\n");
 		layer0.write_package(WSHelloPackage(PROTO_VERSION_MAJOR, PROTO_VERSION_MINOR,
 				LOXIM_VERSION_MAJOR, LOXIM_VERSION_MINOR,
 				get_server().get_config_max_package_size(), 0,
 				AUTH_TRUST | AUTH_PASS_MYSQL, salt));
-		err_cons.printf("WSHELLO sent\n");
+		err_cons(V_DEBUG).printf("WSHELLO sent\n");
 		layer0.read_package(ID_WCLoginPackage);
-		err_cons.printf("Got WCLOGIN\n");
+		err_cons(V_DEBUG).printf("Got WCLOGIN\n");
 		layer0.write_package(ASCOkPackage());
-		err_cons.printf("ASCOK sent\n");
+		err_cons(V_DEBUG).printf("ASCOK sent\n");
 
 		auto_ptr<Package> package(layer0.read_package(ID_WCPasswordPackage));
-		err_cons.printf("Got login: %s\n",
+		err_cons(V_DEBUG).printf("Got login: %s\n",
 				((WCPasswordPackage*)(package.get()))->getLogin()->getBuffor());
 		if (authorize(((WCPasswordPackage*)(package.get()))->getLogin()->getBuffor(),
 					((WCPasswordPackage*)(package.get()))->getPassword()->getBuffor())){
 			layer0.write_package(WSAuthorizedPackage());
-			err_cons.printf("WSAUTHORIZED sent\n");
+			err_cons(V_DEBUG).printf("WSAUTHORIZED sent\n");
 			return true;
 		} else {
 			send_error(EUserUnknown);
@@ -331,7 +331,6 @@ namespace Server{
 	bool Session::authorize(const string &login, const string &passwd)
 	{
 		auto_ptr<QueryResult> qres;
-		int res;
 		bool correct;
 		try{
 			execute_statement("begin");
@@ -354,7 +353,7 @@ namespace Server{
 	void Session::free_state()
 	{
 
-		err_cons.printf("In free state :)\n");
+		err_cons(V_DEBUG).printf("In free state :)\n");
 		sigset_t sigmask;
 		pthread_sigmask(0, NULL, &sigmask);
 		sigaddset(&sigmask, SIGUSR1);
@@ -374,7 +373,7 @@ namespace Server{
 
 	bool is_admin_stmt(const string &stmt)
 	{
-		int i;
+		size_t i;
 		for (i = 0; i < stmt.length() && isspace(stmt.at(i)); ++i) { }
 		if (i == stmt.length())
 			return false;
@@ -392,7 +391,7 @@ namespace Server{
 				AllStats::getHandle()->getQueriesStats()->endExecuteQuery(get_id());
 				throw LoximException(EParse);
 			}
-			err_cons.printf("Executing administrative statement: %s\n", stmt.c_str());
+			err_cons(V_DEBUG).printf("Executing administrative statement: %s\n", stmt.c_str());
 			int error = AdminParser::AdminExecutor::get_instance()->execute(stmt, this);
 			if (error) {
 				AllStats::getHandle()->getQueriesStats()->endExecuteQuery(get_id());
@@ -402,12 +401,12 @@ namespace Server{
 				return auto_ptr<QueryResult>(new QueryNothingResult());
 			}
 		}else{
-			err_cons.printf("EXECUTING REGULAR STATEMENT:\n%s\n\n", stmt.c_str());
+			err_cons(V_DEBUG).printf("EXECUTING REGULAR STATEMENT:\n%s\n\n", stmt.c_str());
 			TreeNode *tn;
 			string tcrs;
 			int tcr = qPa.parseIt(id, stmt, tn, tcrs, true, true);
 			if (tcr){
-				err_cons.printf("Query not parsed\n");
+				err_cons(V_DEBUG).printf("Query not parsed\n");
 				AllStats::getHandle()->getQueriesStats()->endExecuteQuery(get_id());
 				throw LoximException(EParse);
 			}
@@ -415,12 +414,12 @@ namespace Server{
 			int res = qEx.executeQuery(tn, &qres);
 			delete tn;
 			if (res){
-				err_cons.printf("Execute failed\n");
+				err_cons(V_DEBUG).printf("Execute failed\n");
 				AllStats::getHandle()->getQueriesStats()->endExecuteQuery(get_id());
 				throw LoximException(res);
 			}
-			err_cons.printf("Executed\n");
-			err_cons.printf("%s\n", qres->toString().c_str());
+			err_cons(V_DEBUG).printf("Executed\n");
+			err_cons(V_DEBUG).printf("%s\n", qres->toString().c_str());
 			AllStats::getHandle()->getQueriesStats()->endExecuteQuery(get_id());
 			return auto_ptr<QueryResult>(qres);
 		}
@@ -429,7 +428,6 @@ namespace Server{
 
 	void Session::handle_signal(int i)
 	{
-		printf("Signal handler :)\n");
 		shutting_down = 1;
 	}
 
@@ -584,7 +582,7 @@ namespace Server{
 		}
 		//no package is being worked on
 		if (package->getPackageType() == ID_ASCByePackage){
-			err_cons.printf("Client closed connection\n");
+			err_cons(V_INFO).printf("Client closed connection\n");
 			session.shutdown(0);
 			return;
 		} else { 
@@ -600,13 +598,13 @@ namespace Server{
 	{
 		switch (package->getPackageType()){
 			case ID_VSCSendValuesPackage :
-				err_cons.printf("Got VSCSendValues - ignoring\n");
+				err_cons(V_WARNING).printf("Got VSCSendValues - ignoring\n");
 				break;
 			case ID_QCStatementPackage:{
 				shared_ptr<QCStatementPackage>
 					stmt_pkg = dynamic_pointer_cast<QCStatementPackage>(package);
 				if (stmt_pkg->getFlags() & STATEMENT_FLAG_EXECUTE){
-					err_cons.printf("Got SCStatement - executing\n");
+					err_cons(V_DEBUG).printf("Got SCStatement - executing\n");
 					auto_ptr<QueryResult> qres;
 					/* We've got a very poor error design, so
 					 * what we want here is to send every
@@ -632,16 +630,16 @@ namespace Server{
 					sres.release();
 					return;
 				} else {
-					err_cons.printf("Got SCStatement - ignoring\n");
+					err_cons(V_WARNING).printf("Got SCStatement - ignoring\n");
 					return;
 				}
 				break;
 			}
 			case ID_ASCSetOptPackage:
-				err_cons.printf("SCSetOpt - ignoring\n");
+				err_cons(V_WARNING).printf("SCSetOpt - ignoring\n");
 				break;
 			case ID_QCExecutePackage:
-				err_cons.printf("Got SCExecute - ignoring\n");
+				err_cons(V_WARNING).printf("Got SCExecute - ignoring\n");
 				break;
 				/* 
 				 * there is no Abort, Bye and Pong case but this is on
@@ -650,7 +648,7 @@ namespace Server{
 				 * the protocol thread
 				 */
 			default: 
-				err_cons.printf("Unexpected package of type %d\n",
+				err_cons(V_WARNING).printf("Unexpected package of type %d\n",
 						package->getPackageType());
 				throw LoximException(EProtocol);
 			
@@ -688,7 +686,7 @@ namespace Server{
 
 	void KeepAliveThread::main_loop()
 	{
-		err_cons.printf("KeepAliveThred::main_loop starts\n");
+		err_cons(V_DEBUG).printf("KeepAliveThred::main_loop starts\n");
 		struct timeval now;
 		struct timespec tout;
 		int res;
@@ -701,9 +699,9 @@ namespace Server{
 			res = pthread_cond_timedwait(&cond, &cond_mutex, &tout);
 			if (!shutting_down && res == ETIMEDOUT){
 				//actual action
-				err_cons.printf("Keepalive check\n");
+				err_cons(V_DEBUG).printf("Keepalive check\n");
 				if (!answer_received){
-					err_cons.printf("Keepalive thread has just discovered client death.\n");
+					err_cons(V_INFO).printf("Keepalive thread has just discovered client death.\n");
 					session.shutdown(EClientLost);
 					return;
 				} else {
@@ -711,7 +709,7 @@ namespace Server{
 					try{
 						session.send_ping();
 					} catch (exception e) {
-						err_cons.printf("Warning: keepalive thread died (couldn't send ping");
+						err_cons(V_WARNING).printf("Warning: keepalive thread died (couldn't send ping");
 						return;
 					}
 				}
@@ -719,7 +717,7 @@ namespace Server{
 			}
 		} while (!shutting_down && (res == ETIMEDOUT || res == 0));
 		if (!shutting_down)
-			err_cons.printf("Warning: keepalive thread died\n");
+			err_cons(V_WARNING).printf("Warning: keepalive thread died\n");
 		else
 			res = 0;
 		pthread_mutex_unlock(&cond_mutex);

@@ -69,13 +69,13 @@ namespace Server{
 			 */
 			void end_session(uint64_t, int code);
 		protected:
-			ErrorConsole err_cons;
 			int prepared, shutting_down;
+			string hostname;
+			int port;
+			ErrorConsole &err_cons;
 			map<uint64_t, shared_ptr<Session> > open_sessions;
 			pthread_mutex_t open_sessions_mutex;
 			auto_ptr<TCPIPServerSocket> socket;
-			string hostname;
-			int port;
 	};
 }
 

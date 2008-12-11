@@ -143,7 +143,7 @@ namespace QParser {
 
 	int QueryParser::parseIt(int sessionId, string query, TreeNode *&qTree, string &tcResultString, bool toBeTypeChecked, bool toBeOptimized) {
 		QueryParser::setStatEvalRun(0);
-		ErrorConsole ec("QueryParser");
+		ErrorConsole &ec(ErrorConsole::get_instance("QueryParser"));
 
 
 		stringstream ss (stringstream::in | stringstream::out);

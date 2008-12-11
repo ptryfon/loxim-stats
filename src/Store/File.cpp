@@ -28,12 +28,11 @@ namespace Store
 		this->finterfaces = 0;
 		this->fschemas = 0;
 
-		this->ec = new ErrorConsole("Store: File");
+		this->ec = &ErrorConsole::get_instance("Store: File");
 	};
 
 	File::~File()
 	{
-		delete this->ec;
 	}
 
 	int File::getStream(unsigned short fileID, int* file)

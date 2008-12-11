@@ -7238,7 +7238,6 @@ QueryExecutor::~QueryExecutor() {
 	sent_virtuals.clear();
 	fakeLid_map.clear();
 	*ec << "[QE] QueryExecutor shutting down\n";
-	delete ec;
 	//delete QueryBuilder::getHandle();
 }
 
@@ -7327,8 +7326,8 @@ int QueryExecutor::objDeclRec(DeclareDefineNode *obd, string rootName, bool type
 /* RESULT STACK */
 
 
-ResultStack::ResultStack() { ec = new ErrorConsole("QueryExecutor"); }
-ResultStack::~ResultStack() { this->deleteAll(); if (ec != NULL) delete ec; }
+ResultStack::ResultStack() { ec = &ErrorConsole::get_instance("QueryExecutor"); }
+ResultStack::~ResultStack() { this->deleteAll(); }
 
 int ResultStack::push(QueryResult *r) {
 	rs.push_back(r);

@@ -21,9 +21,8 @@ namespace LockMgr
     	lockMgr = new LockManager();;
     }
 
-    LockManager::LockManager()
+    LockManager::LockManager() : err(ErrorConsole::get_instance("LockManager"))
     {
-		err = ErrorConsole("LockManager");
 		transaction_locks = new TransactionIdMap;
 		map_of_locks      = new DBPhysicalIdMap;
 		single_lock_id	  = 0;

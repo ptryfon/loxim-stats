@@ -74,7 +74,7 @@ class SingleLock
 		Mutex *mutex;
 		DBPhysicalID *phid;
 		
-		ErrorConsole err;
+		ErrorConsole &err;
 
 		/* deadlock prevention - wait-die strategy */
 		int preventDeadlock(TransactionID* _tid);

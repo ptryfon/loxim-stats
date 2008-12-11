@@ -142,7 +142,6 @@ public:
 		if ((seq.size()) > 0) {
 			for (unsigned int i = 0; i < (seq.size()); i++ ) { delete (seq.at(i)); };
 		};
-		if (ec != NULL) delete ec;
 	};
 	int type() const;
 	bool collection();
@@ -194,7 +193,6 @@ public:
 		if ((bag.size()) > 0) {
 			for (unsigned int i = 0; i < (bag.size()); i++ ) { delete (bag.at(i)); };
 		};
-		if (ec != NULL) delete ec;
 	};
 	int type() const;
 	bool collection();
@@ -251,7 +249,6 @@ public:
 		if ((str.size()) > 0) {
 			for (unsigned int i = 0; i < (str.size()); i++ ) { delete (str.at(i)); };
 		};
-		if (ec != NULL) delete ec;
 	};
 	int type() const;
 	bool collection();
@@ -300,7 +297,7 @@ public:
 	QueryBinderResult();
 	QueryBinderResult(string n, QueryResult* r);
 	QueryResult* clone();
-	virtual ~QueryBinderResult() { if (item != NULL) delete item; if (ec != NULL) delete ec; };
+	virtual ~QueryBinderResult() { if (item != NULL) delete item; };
 	string getName();
 	void setName(string n);
 	QueryResult* getItem();
@@ -342,7 +339,7 @@ public:
 	QueryStringResult();
 	QueryStringResult(string  v);
 	QueryResult* clone();
-	virtual ~QueryStringResult() { if (ec != NULL) delete ec; };
+	virtual ~QueryStringResult() { };
 	string getValue();
 	void setValue(string v);
 	int type() const;
@@ -375,7 +372,7 @@ public:
 	QueryIntResult();
 	QueryIntResult(int  v);
 	QueryResult* clone();
-	virtual ~QueryIntResult() { if (ec != NULL) delete ec; };
+	virtual ~QueryIntResult() { };
 	int getValue();
 	void setValue(int v);
 	int type() const;
@@ -417,7 +414,7 @@ public:
 	QueryDoubleResult();
 	QueryDoubleResult(double v);
 	QueryResult* clone();
-	virtual ~QueryDoubleResult() { if (ec != NULL) delete ec; };
+	virtual ~QueryDoubleResult() { };
 	double getValue();
 	void setValue(double v);
 	int type() const;
@@ -458,7 +455,7 @@ public:
 	QueryBoolResult();
 	QueryBoolResult(bool v);
 	QueryResult* clone();
-	virtual ~QueryBoolResult() { if (ec != NULL) delete ec; };
+	virtual ~QueryBoolResult() {  };
 	bool getValue();
 	void setValue(bool v);
 	int type() const;
@@ -497,7 +494,7 @@ public:
 	QueryReferenceResult(LogicalID* v);
 	QueryReferenceResult(LogicalID* v, InterfaceKey k);
 	QueryResult* clone();
-	virtual ~QueryReferenceResult() { if (value != NULL) delete value; if (ec != NULL) delete ec; };
+	virtual ~QueryReferenceResult() { if (value != NULL) delete value; };
 	LogicalID* getValue();
 	void setValue(LogicalID* v);
 	InterfaceKey getInterfaceKey() const;
@@ -533,7 +530,7 @@ class QueryNothingResult : public QueryResult
 public:
 	QueryNothingResult();
 	QueryResult* clone();
-	virtual ~QueryNothingResult() { if (ec != NULL) delete ec; };
+	virtual ~QueryNothingResult() { };
 	int type() const;
 	bool collection();
 	bool isEmpty();
@@ -573,7 +570,6 @@ public:
 	virtual ~QueryVirtualResult() { 
 		seeds.clear();
 		view_defs.clear();
-		if (ec != NULL) delete ec;
 		if (view_parent != NULL) delete view_parent; 
 	};
 	

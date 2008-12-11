@@ -37,9 +37,8 @@ namespace TManager
 	}
 
 /*______Transaction_________________________________________*/
-	Transaction::Transaction(TransactionID* tid, Semaphore* _sem)
+	Transaction::Transaction(TransactionID* tid, Semaphore* _sem) : err(ErrorConsole::get_instance("TransactionManager"))
 	{
-		err = ErrorConsole("TransactionManager");
 		err.printf("Transaction started, id: %d\n", tid->getId());
 		sem = _sem;
 		this->tid = tid;
@@ -757,9 +756,8 @@ namespace TManager
 
 /*______TransactionManager______________________________________ */
 
-	TransactionManager::TransactionManager()
+	TransactionManager::TransactionManager() : err(ErrorConsole::get_instance("TransactionManager"))
 	{
-		err = ErrorConsole("TransactionManager");
 		sem = new RWUJSemaphore();
 		sem->init();
 		mutex = new Mutex();
