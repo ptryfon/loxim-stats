@@ -377,15 +377,15 @@ crud: /*empty*/ {$$ = new Crud();}
 	//	;
 	//
 	    
-interfaceBind: INTERFACE NAME SHOWS NAME {$$ = new InterfaceBind ($2, $4);};
+interfaceBind: NAME SHOWS NAME {$$ = new InterfaceBind ($1, $3);};
 
-interface: INTERFACE NAME LEFTPROCPAR OBJECT_NAME_IS NAME SEMICOLON interface_struct RIGHTPROCPAR {$7->setInterfaceName($2); $7->setObjectName($5); $$ = $7;}
-	| INTERFACE NAME EXTENDS name_defs LEFTPROCPAR OBJECT_NAME_IS NAME SEMICOLON interface_struct RIGHTPROCPAR {$9->setInterfaceName($2); $9->setSupers($4); $9->setObjectName($7); $$=$9;}
+interface: INTERFACE NAME LEFTPROCPAR INSTANCE NAME COLON interface_struct RIGHTPROCPAR {$7->setInterfaceName($2); $7->setObjectName($5); $$ = $7;}
+	| INTERFACE NAME EXTENDS name_defs LEFTPROCPAR INSTANCE NAME COLON interface_struct RIGHTPROCPAR {$9->setInterfaceName($2); $9->setSupers($4); $9->setObjectName($7); $$=$9;}
 	;
 
-interface_struct: LEFTPAR attributes RIGHTPAR semicolon_opt  methods { InterfaceNode *n = new InterfaceNode(); n->setAttributes($2->getFields()); n->setMethods($5->getMethods()); $$=n;}
-	| LEFTPAR attributes RIGHTPAR semicolon_opt { InterfaceNode *n = new InterfaceNode(); n->setAttributes($2->getFields()); $$=n;}
-	| LEFTPAR RIGHTPAR semicolon_opt  methods { InterfaceNode *n = new InterfaceNode(); n->setMethods($4->getMethods()); $$=n;}
+interface_struct: LEFTPROCPAR attributes RIGHTPROCPAR semicolon_opt  methods { InterfaceNode *n = new InterfaceNode(); n->setAttributes($2->getFields()); n->setMethods($5->getMethods()); $$=n;}
+	| LEFTPROCPAR attributes RIGHTPROCPAR semicolon_opt { InterfaceNode *n = new InterfaceNode(); n->setAttributes($2->getFields()); $$=n;}
+	| LEFTPROCPAR RIGHTPROCPAR semicolon_opt  methods { InterfaceNode *n = new InterfaceNode(); n->setMethods($4->getMethods()); $$=n;}
 	;
 
 attributes: attribute semicolon_opt { $$ = new InterfaceAttributes($1);}
