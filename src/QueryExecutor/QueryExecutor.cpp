@@ -2331,7 +2331,12 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 					return qeErrorOccur("[QE] objectFromBinder() expected a binder, got something else", EOtherResExp);
 				}
 				string newobject_name = ((QueryBinderResult*)binder)->getName();
-
+				if (!system_privilige_checking && assert_privilige(Privilige::CREATE_PRIV, newobject_name) == false) 
+				{
+					continue;
+				}
+				
+				
 				if (needsDeepCardCheck) {
 					int cum;
 					errcode = this->checkSubCardsRec(tree->getCoerceSig(), binder, true, cum);
@@ -2355,11 +2360,6 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				if (errcode) return errcode;
 				if (!foundView)
 				{	
-					if (!system_privilige_checking &&
-						assert_privilige(Privilige::CREATE_PRIV, newobject_name) == false) {
-						continue;
-					}
-					
 					QueryBinderResult* binderR = (QueryBinderResult*)binder;
 
 					ec->printf("[QE] TNCREATE - checking bind for %s\n", newobject_name.c_str());
@@ -4042,8 +4042,19 @@ int QueryExecutor::persistDelete(LogicalID *lid) {
 	if (optr == NULL) {
 		return 0;
 	}
-
+	
 	string object_name = optr->getName();
+	
+	if (!system_privilige_checking &&
+		assert_privilige(Privilige::DELETE_PRIV, object_name) == false) {
+		/*
+		ofstream out("privilige.debug", ios::app);
+		out << "delete " << object_name << endl;
+		out.close();
+		*/
+		return 0;
+	}
+
 	//Class does not have to be root.
 	Store::ExtendedType et = (optr->getValue())->getSubtype(); 
 	if (et == Store::Class) {
@@ -4087,16 +4098,7 @@ int QueryExecutor::persistDelete(LogicalID *lid) {
 	
 
 	if (optr->getIsRoot()) {
-		if (!system_privilige_checking &&
-			assert_privilige(Privilige::DELETE_PRIV, object_name) == false) {
-			/*
-			ofstream out("privilige.debug", ios::app);
-			out << "delete " << object_name << endl;
-			out.close();
-			*/
-			return 0;
-		}
-		if (((optr->getValue())->getSubtype()) == Store::View) {
+		if (et == Store::View) {
 			if ((errcode = tr->removeView(optr)) != 0) {
 				*ec << "[QE] Error in removeView.";
 				antyStarveFunction(errcode);
@@ -4112,21 +4114,17 @@ int QueryExecutor::persistDelete(LogicalID *lid) {
 		}
 		*ec << "[QE] Root removed";
 	}
-	if (!system_privilige_checking &&
-		assert_privilige(Privilige::DELETE_PRIV, object_name) == false) {
-		/*
-		ofstream out("privilige.debug", ios::app);
-		out << "delete " << object_name << endl;
-		out.close();
-		*/
-		return 0;
-	}
+
 	if ((errcode = tr->deleteObject(optr)) != 0) {
 		*ec << "[QE] Error in deleteObject.";
 		antyStarveFunction(errcode);
 		inTransaction = false;
 		return errcode;
 	}
+	
+	if (et == Store::Class || et == Store::Interface || et == Store::View)
+		InterfaceMaps::Instance().updateAsImplementationIsRemoved(object_name);
+	
 	return 0;
 }
 

@@ -3,6 +3,7 @@
 #include <map>
 #include <vector>
 #include <string>
+#include <set>
 
 namespace Store
 {
@@ -46,17 +47,23 @@ namespace Schemas
 	};
 
 	typedef map<string, string> TDict;
+	typedef map<string, set<string> > TStringToStringSet;
 	typedef map<string, ImplementationInfo> TIntToImpInfo;
 
 	class BindMap
 	{
 		private:
 			TIntToImpInfo m_intToImp;
+			TStringToStringSet m_reverseMap; //implementation -> interfaces 
+
+			void addToReverseMap(string interface, string implementation);
+			void removeInterfaceFromReverseMap(string interface, string implementation);
 
 		public:
 			BindMap();
 			void addBind(string interface, string boundName, string boundObjectName, BindType type);
 			void removeBind(const string& interface);
+			void removeEntriesForImplementation(string implementationName);
 			bool hasBind(const string& interface) const {return (m_intToImp.find(interface) != m_intToImp.end());}
 			void clear();
 

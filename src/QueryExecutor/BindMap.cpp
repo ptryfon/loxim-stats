@@ -8,22 +8,51 @@ BindMap::BindMap()
 	clear();
 }
 
+void BindMap::addToReverseMap(string interface, string implementation)
+{
+	set<string> s = m_reverseMap[implementation];
+	s.insert(interface);
+	m_reverseMap[implementation] = s;
+}
+
+void BindMap::removeInterfaceFromReverseMap(string interface, string implementation)
+{
+	set<string> s = m_reverseMap[implementation];
+	s.erase(interface);
+	m_reverseMap[implementation] = s;
+}
+
 void BindMap::addBind(string interface, string boundName, string boundObjectName, BindType t)
 {
 	ImplementationInfo iI(t);
 	iI.setName(boundName);
 	iI.setObjectName(boundObjectName);
 	m_intToImp[interface] = iI;
+	addToReverseMap(interface, boundName);
 }
 
 void BindMap::removeBind(const string& interface)
 {
+	ImplementationInfo iI = m_intToImp[interface];
 	m_intToImp.erase(interface);
+	removeInterfaceFromReverseMap(interface, iI.getName());
+}
+
+void BindMap::removeEntriesForImplementation(string implementationName)
+{
+	set<string> s = m_reverseMap[implementationName];
+	for (set<string>::iterator it = s.begin(); it != s.end(); ++it)
+	{
+		string interfaceName = (*it);
+		removeBind(interfaceName);
+	}
+	m_reverseMap.erase(implementationName);
 }
 
 void BindMap::clear()
 {
 	m_intToImp.clear();
+	m_reverseMap.clear();
 }
 
 ImplementationInfo BindMap::getImpForInterface(const string& iName, bool &found, bool final) const

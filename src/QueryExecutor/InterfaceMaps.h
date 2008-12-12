@@ -94,7 +94,6 @@ namespace Schemas
 			bool insertNewInterfaceAndPropagateHierarchy(Schema interfaceSchema, bool checkValidity = true, bool tryOnly = false);
 			int removeInterface(string interfaceName, bool checkValidity = true);
 			
-			//TODO - per outer scheme!
 			int addBind(string objectName, TManager::Transaction *tr);
 			void addBind(string interfaceName, string impName, string impObjName, int type);
 			void removeBind(string objectName) {m_bindMap.removeBind(m_objNameToName[objectName]);}
@@ -103,7 +102,8 @@ namespace Schemas
 			void getInterfaceBindForObjName(string oName, string& iName, string& cName, string &invName, int &type, bool &found, bool final = false) const;
 			ImplementationInfo getImplementationForInterface(string name, bool &found, bool final = false) const;
 			void getClassBindForInterface(string interfaceName, LogicalID*& classGraphLid) const;
-			BindMap getBindMap() const {return m_bindMap;}  
+			void updateAsImplementationIsRemoved(string implementationName) {m_bindMap.removeEntriesForImplementation(implementationName);}
+			//BindMap getBindMap() const {return m_bindMap;}  
 			
 			string getObjectNameForInterface(string i, bool &found) const;
 			string getInterfaceNameForObject(string i, bool &found) const;
@@ -135,7 +135,7 @@ namespace Schemas
 
 			mutable InterfaceMembersCache m_cache;
 
-			BindMap m_bindMap;  //TODO - per outer scheme!
+			BindMap m_bindMap;
 
 			ErrorConsole *ec;
 	};
