@@ -5,6 +5,7 @@
 #include <fstream>
 #include <string>
 #include <map>
+#include <memory>
 
 namespace Errors {
 
