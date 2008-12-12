@@ -6,12 +6,12 @@ Cpatient includes create ("John" as name, 55 as age) as Opatient;
 Cpatient includes create ("Mary" as name, 67 as age) as Opatient;
 
 "creating interface Ipatient with object name OIpatient and binding it to Cpatient";
-create interface Ipatient {object name is OIpatient; (name; age) proc1(param1); };
-interface Ipatient shows Cpatient;
+create interface Ipatient {instance OIpatient: {name; age} proc1(param1) };
+Ipatient shows Cpatient;
 
 "creating interface Ipatient2 and binding it to interface Ipatient";
-create interface Ipatient2 {object name is OIpatient2; (name)};
-interface Ipatient2 shows Ipatient;
+create interface Ipatient2 {instance OIpatient2: {name}};
+Ipatient2 shows Ipatient;
 
 "querying through Ipatient2 (for objects OIpatient2)"
 OIpatient2;
@@ -20,8 +20,8 @@ OIpatient2;
 create view OldPatientsDef {virtual objects OldPatients() { return (Opatient where age > 60) as op}	procedure on_retrieve() {return deref(op)}}
 
 "creating interface IoldPatient and binding it to objects OldPatients"
-create interface IoldPatient {object name is OIoldPatient; (name)};
-interface IoldPatient shows OldPatients;
+create interface IoldPatient {instance OIoldPatient: {name}};
+IoldPatient shows OldPatients;
 
 "creating Schemas Patients1 and Patients2"
 create schema Patients1 { Ipatient2 OldPatients }
