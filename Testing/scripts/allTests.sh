@@ -1,5 +1,5 @@
 #!/bin/bash
 
-./allMemcheck.sh
-./allHelgrind.sh
 ./allPerfTools.sh
+./allHelgrind.sh
+./allMemcheck.sh

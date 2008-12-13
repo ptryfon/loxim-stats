@@ -5,7 +5,7 @@ source lib.sh
 
 output="../results/memoryLeaks/"
 outputDir=$output$cleanData
-fileName=$2"-"$fullData
+fileName=$2"-"$fullData".txt"
 standardOpt="--leak-check=full --leak-resolution=high --num-callers=30 --vex-iropt-precise-memory-exns=yes"
 if [ ! -e $outputDir ]
 then
@@ -16,7 +16,7 @@ logfile=$outputDir"/"$fileName
 
 if [ $# -ge 2 ] 
 then
-	echo "++++++++++++++ starting helgrind test for $1 +++++++++++++"
+	echo "++++++++++++++ starting memcheck test for $1 +++++++++++++"
 	echo "====================== starting loxim ======================"
 	if [ $# -eq 3 ]
 	then
@@ -34,7 +34,7 @@ then
 	wait
 
 
-	echo "+++++++++++++++++ helgrind test for $1 finished  ++++++++++++++"
+	echo "+++++++++++++++++ memcheck test for $1 finished  ++++++++++++++"
 else
-	echo "usage ./helgrind test fileName [optionalArgsForHelgrind]"
+	echo "usage memcheck test fileName [optionalArgsForMemcheck]"
 fi

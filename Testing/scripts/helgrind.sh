@@ -9,7 +9,7 @@
 source lib.sh
 
 output="../results/threadsProblems/"
-fileName=$2"-"$fullData
+fileName=$2"-"$fullData".txt"
 logfile=$output$fileName
 
 if [ $# -ge 2 ] 

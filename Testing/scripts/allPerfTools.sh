@@ -17,6 +17,6 @@ makeTest "./perfTools.sh \"./mamyConnAtOnce.sh 20\" 20atOnce" 140
 makeTest "./perfTools.sh \"./szpitalCreate.sh 1\" 1create" 220
 makeTest "{ ./perfTools.sh \"./szpitalCreate.sh 1\" 1createFor10Queries; ./perfTools.sh \"./szpitalQuery.sh 10\" 10Queries; }" 500
 makeTest "{ ./perfTools.sh \"./szpitalCreate.sh 1\" 1createFor1Query; ./perfTools.sh \"./szpitalQuery.sh 1\" 1Query; }" 400
-makeTest "./perfTools.sh \"./szpitalCreate.sh 3\" 3create" 300
+makeTest "./perfTools.sh \"./szpitalCreate.sh 3\" 3create" 400
 makeTest "./perfTools.sh \"./szpitalCreate.sh 5\" 5create" 600
 ##

@@ -5,7 +5,7 @@ loximData="/tmp/loxim/*"
 loximDataDir="/tmp/loxim"
 loxim_server="../../src/loxim_server"
 lsbql="../../src/lsbql"
-mySuffix="-ft1"
+mySuffix="-t1"
 cleanData=$(date +%Y-%m-%d)
 fullData=$(date +%Y-%m-%d-%H-%M)$mySuffix
 data=$cleanData$mySuffix
@@ -26,7 +26,7 @@ prepareDirs() {
 
 cleanDefault() {
 
-	rm /tmp/sbclasses  /tmp/sbdefault  /tmp/sbindexdata  /tmp/sbindexmeta /tmp/sbinterfaces  /tmp/sbmap  /tmp/sbroots  /tmp/sbviews /tmp/szbd_logs 2>/dev/null
+	rm /tmp/sbschemas /tmp/sbclasses  /tmp/sbdefault  /tmp/sbindexdata  /tmp/sbindexmeta /tmp/sbinterfaces  /tmp/sbmap  /tmp/sbroots  /tmp/sbviews /tmp/szbd_logs 2>/dev/null
 
 }
 makeTest() {
