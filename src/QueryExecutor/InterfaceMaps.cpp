@@ -214,6 +214,15 @@ ImplementationInfo InterfaceMaps::getImplementationForInterface(string name, boo
 	return m_bindMap.getImpForInterface(name, found, final);
 }
 
+ImplementationInfo InterfaceMaps::getImplementationForObject(string name, bool &found, bool final) const
+{	
+	ImplementationInfo iI;
+	string iName = getInterfaceNameForObject(name, found);
+	if (!found) return iI;
+	return m_bindMap.getImpForInterface(iName, found, final);
+}
+
+/*
 void InterfaceMaps::getInterfaceBindForObjName(string oName, string& iName, string& impName, string &impObjName, int &type, bool &found, bool final) const
 {
 	iName = getInterfaceNameForObject(oName, found);
@@ -223,7 +232,9 @@ void InterfaceMaps::getInterfaceBindForObjName(string oName, string& iName, stri
 	impObjName = i.getObjectName();
 	type = i.getType();
 }
+*/
 
+/*
 void InterfaceMaps::getClassBindForInterface(string interfaceName, LogicalID*& classGraphLid) const
 {
 	ec->printf("InterfaceMaps::getClassBindForInterface called for %s\n", interfaceName.c_str());
@@ -236,6 +247,40 @@ void InterfaceMaps::getClassBindForInterface(string interfaceName, LogicalID*& c
 	if (errcode) {ec->printf("InterfaceMaps::getClassBindForInterface: error - no handle\n"); return;}
 	cg->getClassLidByName(cName, classGraphLid);
 	if ((classGraphLid) && (!(cg->vertexExist(classGraphLid)))) classGraphLid = NULL;
+}
+*/
+
+//TODO - see below
+void InterfaceMaps::implementationUpdated(string implementationName, string objectName, int type, TManager::Transaction *tr)
+{
+	set<string> iShowing = m_bindMap.interfacesShowingImplementation(implementationName);
+	for (set<string>::iterator it = iShowing.begin(); it != iShowing.end(); ++it)
+	{   //For every interface bound to implementation (which was just updated), check if it still matches this implementation 
+		string interfaceName = (*it);
+		bool matches;
+		int errcode = Schema::interfaceMatchesImplementation(interfaceName, implementationName, tr, type, matches);	
+		if (!matches)
+		{   //if not, remove bind from the map and re-validate (invalidate in this case) schemas that are using this interface
+			m_bindMap.removeBind(interfaceName);
+			OuterSchemas::Instance().revalidateAllSchemasUsingName(interfaceName, tr);
+		}
+	}
+	//change object name associated with implementation name in bind map to objectName (can be the same name) 
+	m_bindMap.changeObjectNameForImplementation(implementationName, objectName);
+}
+
+//TODO - A shows B, B shows C, C removed -> invalidate schemas using A too! (perhaps handle it in Schemas)
+void InterfaceMaps::implementationRemoved(string implementationName, TManager::Transaction *tr) 
+{   //all schemas using implementationName or any interfaceName bound to it should be re-validated;
+	OuterSchemas::Instance().revalidateAllSchemasUsingName(implementationName, tr);
+	set<string> iShowing = m_bindMap.interfacesShowingImplementation(implementationName);
+	for (set<string>::iterator it = iShowing.begin(); it != iShowing.end(); ++it)
+	{ 
+		string interfaceName = (*it);
+		m_bindMap.removeBind(interfaceName);
+		OuterSchemas::Instance().revalidateAllSchemasUsingName(interfaceName, tr);
+	}
+	m_bindMap.removeEntriesForImplementation(implementationName);
 }
 
 bool InterfaceMaps::checkHierarchyValidity() const

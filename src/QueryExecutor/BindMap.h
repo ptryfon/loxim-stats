@@ -64,6 +64,8 @@ namespace Schemas
 			void addBind(string interface, string boundName, string boundObjectName, BindType type);
 			void removeBind(const string& interface);
 			void removeEntriesForImplementation(string implementationName);
+			set<string> interfacesShowingImplementation(string implementationName);
+			void changeObjectNameForImplementation(string implementationName, string newObjectName);
 			bool hasBind(const string& interface) const {return (m_intToImp.find(interface) != m_intToImp.end());}
 			void clear();
 

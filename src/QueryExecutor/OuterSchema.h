@@ -99,8 +99,8 @@ namespace Schemas
 
 	};
 	
+	typedef map<string, set<string> > TNameInSchemas;
 	typedef map<string, OuterSchema> TOuterSchemas;
-	typedef map<string, TOuterSchemas> TNameInSchemas;
 	
 	class OuterSchemas
 	{
@@ -125,7 +125,8 @@ namespace Schemas
 			void removeSchema(string name);
 			bool hasSchemaName(const string &s) {return (m_outerSchemas.find(s) != m_outerSchemas.end());}
 			OuterSchema getSchema(string name) const;
-			TOuterSchemas getAllSchemasUsingName(string s) const;
+			set<string> getAllSchemasUsingName(string s) const;
+			void revalidateAllSchemasUsingName(string s, TManager::Transaction *tr);
 			
 			string toString(TManager::Transaction *tr) const;
 			void debugPrint(TManager::Transaction *tr) const;
@@ -137,7 +138,7 @@ namespace Schemas
 	class OuterSchemaValidator
 	{
 		public:
-			static STATE validate(OuterSchema *&s, TManager::Transaction *tr, bool isNew);
+			static STATE validate(OuterSchema *&s, TManager::Transaction *tr, bool isNew = false);
 			static bool isError(STATE s) {return (s >= ERROR_NAME_NOT_UNIQUE);} 
 		private:
 			static SchemaValidity validateInterfaceBind(string interfaceName, TManager::Transaction *tr);

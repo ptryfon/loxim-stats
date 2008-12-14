@@ -170,7 +170,7 @@ int OuterSchemas::loadOuterSchemas(TManager::Transaction *tr, TLidsVector *lvec)
 		if (errcode) return errcode;
 		STATE state = OuterSchemaValidator::validate(sp, tr, true);
 		if (OuterSchemaValidator::isError(state)) return -1; //TODO
-		m_outerSchemas[sp->getName()] = *sp;
+		addSchema(*sp);
 	}
 
 	return 0;
@@ -227,8 +227,8 @@ void OuterSchemas::addSchema(OuterSchema s)
 	for (it = aps.begin(); it != aps.end(); ++it)
 	{
 		string apsName = (*it).first;
-		TOuterSchemas schemasForName = getAllSchemasUsingName(apsName);
-		schemasForName[name] = s;
+		set<string> schemasForName = getAllSchemasUsingName(apsName);
+		schemasForName.insert(name);
 		m_namesInSchemas[apsName] = schemasForName;
 	}
 }
@@ -241,7 +241,7 @@ void OuterSchemas::removeSchema(string name)
 	for (it = aps.begin(); it != aps.end(); ++it)
 	{
 		string apsName = (*it).first;
-		TOuterSchemas schemasForName = getAllSchemasUsingName(apsName);
+		set<string> schemasForName = getAllSchemasUsingName(apsName);
 		schemasForName.erase(name);
 		m_namesInSchemas[apsName] = schemasForName;
 	}
@@ -257,13 +257,29 @@ OuterSchema OuterSchemas::getSchema(string name) const
 	return s;
 }
 
-TOuterSchemas OuterSchemas::getAllSchemasUsingName(string s) const
+set<string> OuterSchemas::getAllSchemasUsingName(string s) const
 {
-	TOuterSchemas out;
+	set<string> out;
 	TNameInSchemas::const_iterator it = m_namesInSchemas.find(s);
 	if (it != m_namesInSchemas.end())
 		out = (*it).second;
 	return out;
+}
+
+void OuterSchemas::revalidateAllSchemasUsingName(string s, TManager::Transaction *tr)
+{
+	set<string> toValidate = getAllSchemasUsingName(s);
+	set<string>::iterator it;
+	for (it = toValidate.begin(); it != toValidate.end(); ++it)
+	{
+		string name = (*it);
+		OuterSchema sch = m_outerSchemas[name];
+		OuterSchema *schP = &sch;
+		STATE s = OuterSchemaValidator::validate(schP, tr);
+		if (OuterSchemaValidator::isError(s)) 
+			sch.setValidity(OUTERSCHEMA_INVALID_OTHER);
+		m_outerSchemas[name] = sch;
+	}
 }
 
 string OuterSchemas::toString(TManager::Transaction *tr) const

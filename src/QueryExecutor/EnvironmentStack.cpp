@@ -537,12 +537,18 @@ int QueryResult::nested_and_push_on_envs(QueryExecutor * qe, Transaction *&tr) {
 		{
 			string interfaceName = k.getKey();
 			LogicalID* classGraphLid = NULL;
-			Schemas::InterfaceMaps::Instance().getClassBindForInterface(interfaceName, classGraphLid);
-			if (classGraphLid)
+			bool found;
+			Schemas::ImplementationInfo iI = Schemas::InterfaceMaps::Instance().getImplementationForInterface(interfaceName, found, true);
+			if (iI.getType() == Schemas::BIND_CLASS)
 			{
-				qe->getEnvs()->pushInterface(interfaceName, classGraphLid);
-			}				
-		}	
+				string className = iI.getName();
+				qe->getCg()->getClassLidByName(className, classGraphLid);
+				if (classGraphLid && qe->getCg()->vertexExist(classGraphLid))
+				{
+					qe->getEnvs()->pushInterface(interfaceName, classGraphLid);
+				}
+			}
+		}
 	}
 	//FIXME gtimoszuk fix it!!!
 	bool classFound;

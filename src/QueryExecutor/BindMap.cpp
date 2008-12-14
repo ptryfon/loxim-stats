@@ -49,6 +49,23 @@ void BindMap::removeEntriesForImplementation(string implementationName)
 	m_reverseMap.erase(implementationName);
 }
 
+set<string> BindMap::interfacesShowingImplementation(string implementationName)
+{
+	return m_reverseMap[implementationName];
+}
+
+void BindMap::changeObjectNameForImplementation(string implementationName, string newObjectName)
+{
+	set<string> s = m_reverseMap[implementationName];
+	for (set<string>::iterator it = s.begin(); it != s.end(); ++it)
+	{
+		string interfaceName = (*it);
+		ImplementationInfo iI = m_intToImp[interfaceName];
+		iI.setObjectName(newObjectName);
+		m_intToImp[interfaceName] = iI;
+	}
+}
+
 void BindMap::clear()
 {
 	m_intToImp.clear();

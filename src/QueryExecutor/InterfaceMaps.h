@@ -94,16 +94,16 @@ namespace Schemas
 			bool insertNewInterfaceAndPropagateHierarchy(Schema interfaceSchema, bool checkValidity = true, bool tryOnly = false);
 			int removeInterface(string interfaceName, bool checkValidity = true);
 			
-			int addBind(string objectName, TManager::Transaction *tr);
 			void addBind(string interfaceName, string impName, string impObjName, int type);
 			void removeBind(string objectName) {m_bindMap.removeBind(m_objNameToName[objectName]);}
 			bool isInterfaceBound(string n) const {return m_bindMap.hasBind(n);}
 			bool isObjectNameBound(string o) const;
-			void getInterfaceBindForObjName(string oName, string& iName, string& cName, string &invName, int &type, bool &found, bool final = false) const;
+			//void getInterfaceBindForObjName(string oName, string& iName, string& cName, string &invName, int &type, bool &found, bool final = false) const;
 			ImplementationInfo getImplementationForInterface(string name, bool &found, bool final = false) const;
-			void getClassBindForInterface(string interfaceName, LogicalID*& classGraphLid) const;
-			void updateAsImplementationIsRemoved(string implementationName) {m_bindMap.removeEntriesForImplementation(implementationName);}
-			//BindMap getBindMap() const {return m_bindMap;}  
+			ImplementationInfo getImplementationForObject(string name, bool &found, bool final = false) const;
+			//void getClassBindForInterface(string interfaceName, LogicalID*& classGraphLid) const;
+			void implementationRemoved(string implementationName, TManager::Transaction *tr);
+			void implementationUpdated(string implementationName, string objectName, int type, TManager::Transaction *tr);
 			
 			string getObjectNameForInterface(string i, bool &found) const;
 			string getInterfaceNameForObject(string i, bool &found) const;
@@ -127,6 +127,7 @@ namespace Schemas
 			void clearMap();
 			bool checkHierarchyValidity() const;
 			TStringSet getAllExt(string intName) const;
+			int addBind(string objectName, TManager::Transaction *tr);			
 
 			TDict m_objNameToName;
 			TInterfaceToSchemas m_nameToSchema;

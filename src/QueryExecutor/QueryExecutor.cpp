@@ -595,16 +595,21 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			if (Schemas::InterfaceMaps::Instance().isObjectNameBound(name))
 			{
 				ec->printf("[QE] object name bound in interface maps\n");
-				string iN, cN, invN;
 				bool found;
-				int type;
-				Schemas::InterfaceMaps::Instance().getInterfaceBindForObjName(name, iN, cN, invN, type, found, true);
+				string iName = InterfaceMaps::Instance().getInterfaceNameForObject(name, found);
 				if (found)
 				{
-					ec->printf("[QE] name %s recognized as interface object name, bound through %s->%s to %s objects\n",
-								   name.c_str(), iN.c_str(), cN.c_str(), invN.c_str());
-					errcode = envs->bindName(invN, sectionNumber, tr, this, result, iN);
-					if (errcode) return errcode;
+					int type;
+					ImplementationInfo iI = InterfaceMaps::Instance().getImplementationForInterface(iName, found, true);
+					string impName = iI.getName();
+					string impObjName = iI.getObjectName();
+					if (found)
+					{
+						ec->printf("[QE] name %s recognized as interface object name, bound through %s->%s to %s objects\n",
+									   name.c_str(), iName.c_str(), impName.c_str(), impObjName.c_str());
+						errcode = envs->bindName(impObjName, sectionNumber, tr, this, result, iName);
+						if (errcode) return errcode;
+					}
 				}
 			}
 			ec->printf("[QE] TNNAME: pushing result..\n");
@@ -2298,6 +2303,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			if(classIsUpdated) {
 				errcode = cg->updateClass(optr, tr, this);
 				if(errcode != 0) return errcode;
+				InterfaceMaps::Instance().implementationUpdated(optr->getName(), invariant_name, BIND_CLASS, tr);	
 			} else {
 				errcode = cg->addClass(optr, tr, this);
 				if(errcode != 0) return errcode;
@@ -2366,36 +2372,41 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 					bool interfaced = false;
 					int implType;
 					string iName;
+					bool found;
 					SetOfLids classMarks;
 					InterfaceKey k;
 					if (InterfaceMaps::Instance().isObjectNameBound(newobject_name))
 					{   //Creating an interface object
-						string cName, invName;
-						bool found;
-						InterfaceMaps::Instance().getInterfaceBindForObjName(newobject_name, iName, cName, invName, implType, found, true);
-						if (!found || cName.empty() || invName.empty()) return -1; //TODO should not happen		
-						if (implType == BIND_CLASS)
+						iName = InterfaceMaps::Instance().getInterfaceNameForObject(newobject_name, found);						
+						ImplementationInfo iI = InterfaceMaps::Instance().getImplementationForInterface(iName, found, true);
+						string impName = iI.getName();
+						string impObjName = iI.getObjectName();
+						int implType = iI.getType();
+						if (found)
 						{
-							LogicalID* classGraphLid = NULL;
-							cg->getClassLidByName(cName, classGraphLid);
-							if (classGraphLid)
+							if (implType == BIND_CLASS)
 							{
-								binderR->setName(invName);
-								SetOfLids classMarks;
-								classMarks.insert(classGraphLid);
+								LogicalID* classGraphLid = NULL;
+								cg->getClassLidByName(impName, classGraphLid);
+								if (classGraphLid)
+								{
+									binderR->setName(impObjName);
+									SetOfLids classMarks;
+									classMarks.insert(classGraphLid);
+									interfaced = true;
+								}
+							}
+							else if (implType == BIND_VIEW)
+							{
+								bool foundBoundView;
+								binderR->setName(impObjName);
+								errcode = createOnView(impObjName, foundBoundView, binderR, result);
+								if (errcode) return errcode;
 								interfaced = true;
 							}
+							else 
+								return -1; //Should not happen - we requested FINAL bind in getInterfaceBindForObjName call
 						}
-						else if (implType == BIND_VIEW)
-						{
-							bool foundBoundView;
-							binderR->setName(invName);
-							errcode = createOnView(invName, foundBoundView, binderR, result);
-							if (errcode) return errcode;
-							interfaced = true;
-						}
-						else 
-							return -1; //Should not happen - we requested FINAL bind in getInterfaceBindForObjName call
 					}
 										
 					ObjectPointer *optr;
@@ -4123,7 +4134,7 @@ int QueryExecutor::persistDelete(LogicalID *lid) {
 	}
 	
 	if (et == Store::Class || et == Store::Interface || et == Store::View)
-		InterfaceMaps::Instance().updateAsImplementationIsRemoved(object_name);
+		InterfaceMaps::Instance().implementationRemoved(object_name, tr);
 	
 	return 0;
 }
