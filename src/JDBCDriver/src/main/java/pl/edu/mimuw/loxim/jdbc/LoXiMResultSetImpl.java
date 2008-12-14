@@ -1,5 +1,6 @@
 package pl.edu.mimuw.loxim.jdbc;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
@@ -33,9 +34,10 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 	private boolean closed;
 	private SQLWarning warning;
 	private int fetchSize;
-	
+	private boolean wasNull;
 	private int index = -1;
-	private List<Object> results;
+	private List<List<Object>> results;
+	private List<Object> currentResult;
 	
 	LoXiMResultSetImpl(LoXiMStatement statement) throws SQLException {
 		this.statement = statement;
@@ -127,8 +129,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public InputStream getAsciiStream(int columnIndex) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		return getBinaryStream(columnIndex);
 	}
 
 	@Override
@@ -138,8 +139,14 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public BigDecimal getBigDecimal(int columnIndex) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		checkClosed();
+		Object o = getColumn(columnIndex);
+		if (o == null) {
+			return null;
+		}
+		
+		Number n = convertResult(columnIndex, Number.class);
+		return BigDecimal.valueOf(n.doubleValue());
 	}
 
 	@Override
@@ -161,8 +168,12 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public InputStream getBinaryStream(int columnIndex) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		checkClosed();
+		byte[] bytes = getBytes(columnIndex);
+		if (bytes == null) {
+			return null;
+		}
+		return new ByteArrayInputStream(bytes);
 	}
 
 	@Override
@@ -182,8 +193,19 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public boolean getBoolean(int columnIndex) throws SQLException {
-		// TODO Auto-generated method stub
-		return false;
+		checkClosed();
+		Object o = convertResult(columnIndex, Object.class);
+		if (o == null) {
+			return false;
+		}
+		String boolStr = o.toString();
+		if (boolStr.equals("1")) {
+			return true;
+		}
+		if (boolStr.equals("0")) {
+			return false;
+		}
+		throw new IllegalArgumentException("Object at index " + columnIndex + " cannot be mapped from " + o.getClass() + " to boolean");
 	}
 
 	@Override
@@ -204,8 +226,21 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public byte[] getBytes(int columnIndex) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		checkClosed();
+		Object o = getColumn(columnIndex);
+		if (o == null) {
+			return null;
+		}
+		
+		if (o instanceof byte[]) {
+			return (byte []) o;
+		}
+		
+		if (o instanceof String) {
+			return ((String) o).getBytes();
+		}
+
+		throw new IllegalArgumentException("Object at index " + columnIndex + " cannot be mapped from " + o.getClass() + " to byte[]");
 	}
 
 	@Override
@@ -375,7 +410,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 	@Override
 	public Object getObject(int columnIndex) throws SQLException {
 		checkClosed();
-		return results.get(columnIndex);
+		return getColumn(columnIndex);
 	}
 
 	@Override
@@ -536,8 +571,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public InputStream getUnicodeStream(int columnIndex) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		return getBinaryStream(columnIndex);
 	}
 
 	@Override
@@ -603,11 +637,11 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 	@Override
 	public boolean next() throws SQLException {
 		checkClosed();
-
+		wasNull = false;
 		if (index < results.size()) {
 			index++;
 		}
-		
+		currentResult = results.get(index);
 		return index < results.size();
 	}
 
@@ -1126,8 +1160,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 	@Override
 	public boolean wasNull() throws SQLException {
 		checkClosed();
-		// TODO Auto-generated method stub
-		return false;
+		return wasNull;
 	}
 
 	@Override
@@ -1149,18 +1182,28 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 		}
 	}
 	
-	private <T> T convertResult(int idx, Class<T> clazz) throws IllegalArgumentException {
-		Object res = results.get(idx - 1);
+	private Object getColumn(int idx) throws SQLException {
+		try {
+			Object o = currentResult.get(idx - 1);
+			wasNull = (o == null);
+			return o;
+		} catch (IndexOutOfBoundsException e) {
+			throw new SQLException("Column #" + idx + " does not exist");
+		}
+	}
+	
+	private <T> T convertResult(int idx, Class<T> clazz) throws SQLException, IllegalArgumentException {
+		Object res = getColumn(idx);
+
+		if (clazz.isInstance(res)) {
+			return (T) res;
+		}
 		
 		if (res == null) {
 			if (Number.class.isAssignableFrom(clazz)) {
 				return clazz.cast(0);
 			}
 			return null;
-		}
-		
-		if (clazz.isInstance(res)) {
-			return (T) res;
 		}
 		
 		if (res instanceof LoXiMObject) {
