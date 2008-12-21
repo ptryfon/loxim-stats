@@ -373,8 +373,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public LoXiMResultSetMetaData getMetaData() throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		return new LoXiMResultSetMetaDataImpl();
 	}
 
 	@Override
