@@ -16,40 +16,40 @@
 
 
 #if HAVE_VERBOSITY_COMPILE == EC_V_DEBUG
-#define debug_printf(ec, ...) (ec).printf(Errors::V_DEBUG, __VA_ARGS__)
-#define debug_print(ec, msg) (ec).print(Errors::V_DEBUG, msg)
+#define debug_printf(ec, ...) (ec).do_not_use_directly_printf(Errors::V_DEBUG, __VA_ARGS__)
+#define debug_print(ec, msg) (ec).do_not_use_directly_print(Errors::V_DEBUG, msg)
 #else
 #define debug_printf(ec, ...)
 #define debug_print(ec, msg)
 #endif
 
 #if HAVE_VERBOSITY_COMPILE >= EC_V_INFO
-#define info_printf(ec, ...) (ec).printf(Errors::V_INFO, __VA_ARGS__)
-#define info_print(ec, msg) (ec).print(Errors::V_INFO, msg)
+#define info_printf(ec, ...) (ec).do_not_use_directly_printf(Errors::V_INFO, __VA_ARGS__)
+#define info_print(ec, msg) (ec).do_not_use_directly_print(Errors::V_INFO, msg)
 #else
 #define info_printf(ec, ...)
 #define info_print(ec, msg)
 #endif
 
 #if HAVE_VERBOSITY_COMPILE >= EC_V_WARNING
-#define warning_printf(ec, ...) (ec).printf(Errors::V_WARNING, __VA_ARGS__)
-#define warning_print(ec, msg) (ec).print(Errors::V_WARNING, msg)
+#define warning_printf(ec, ...) (ec).do_not_use_directly_printf(Errors::V_WARNING, __VA_ARGS__)
+#define warning_print(ec, msg) (ec).do_not_use_directly_print(Errors::V_WARNING, msg)
 #else
 #define warning_printf(ec, ...)
 #define warning_print(ec, msg)
 #endif
 
 #if HAVE_VERBOSITY_COMPILE >= EC_V_ERROR
-#define error_printf(ec, ...) (ec).printf(Errors::V_ERROR, __VA_ARGS__)
-#define error_print(ec, msg) (ec).print(Errors::V_ERROR, msg)
+#define error_printf(ec, ...) (ec).do_not_use_directly_printf(Errors::V_ERROR, __VA_ARGS__)
+#define error_print(ec, msg) (ec).do_not_use_directly_print(Errors::V_ERROR, msg)
 #else
 #define error_printf(ec, ...)
 #define error_print(ec, msg)
 #endif
 
 #if HAVE_VERBOSITY_COMPILE >= EC_V_SEVERE_ERROR
-#define severe_printf(ec, ...) (ec).printf(Errors::V_SEVERE_ERROR, __VA_ARGS__)
-#define severe_print(ec, msg) (ec).printf(Errors::V_SEVERE_ERROR, msg)
+#define severe_printf(ec, ...) (ec).do_not_use_directly_printf(Errors::V_SEVERE_ERROR, __VA_ARGS__)
+#define severe_print(ec, msg) (ec).do_not_use_directly_printf(Errors::V_SEVERE_ERROR, msg)
 #else
 #define severe_printf(ec, ...)
 #define severe_print(ec, msg)
@@ -120,9 +120,9 @@ namespace Errors {
 		public:
 			static ErrorConsole &get_instance(ConsoleInstance module);
 
-			void print(VerbosityLevel l, const std::string &msg);
-			void print(VerbosityLevel l, int error);
-			void printf(VerbosityLevel l, const char *format, ...);
+			void do_not_use_directly_print(VerbosityLevel l, const std::string &msg);
+			void do_not_use_directly_print(VerbosityLevel l, int error);
+			void do_not_use_directly_printf(VerbosityLevel l, const char *format, ...);
 			
 			~ErrorConsole();
 	};

@@ -130,7 +130,7 @@ namespace Errors {
 	}
 
 
-	void ErrorConsole::print(VerbosityLevel l, const string &error_msg)
+	void ErrorConsole::do_not_use_directly_print(VerbosityLevel l, const string &error_msg)
 	{
 		const string &instance_name(names[instance]);
 		Locker lock(write_lock);
@@ -144,19 +144,19 @@ namespace Errors {
 		}
 	}
 
-	void ErrorConsole::print(VerbosityLevel l, int error)
+	void ErrorConsole::do_not_use_directly_print(VerbosityLevel l, int error)
 	{
 		const string &src_mod = err_module_desc(error);
 		string str = SBQLstrerror(error);
 		stringstream ss;
 		ss << src_mod << " said: " << str << " (errno: " 
 				<< (error & ~ErrAllModules) << ")";
-		print(l, ss.str());
+		do_not_use_directly_print(l, ss.str());
 	}
 
 
 
-	void ErrorConsole::printf(VerbosityLevel l, const char *format, ...)
+	void ErrorConsole::do_not_use_directly_printf(VerbosityLevel l, const char *format, ...)
 	{
 #define BUF_SIZE 1024
 		char str[BUF_SIZE];
@@ -169,7 +169,7 @@ namespace Errors {
 		
 		//Being a little bit paranoid won't hurt ;)
 		str[BUF_SIZE - 1] = 0;
-		print(l, str);
+		do_not_use_directly_print(l, str);
 #undef BUF_SIZE
 	}
 
