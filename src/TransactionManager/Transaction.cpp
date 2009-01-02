@@ -39,7 +39,7 @@ namespace TManager
 /*______Transaction_________________________________________*/
 	Transaction::Transaction(TransactionID* tid, Semaphore* _sem) : err(ErrorConsole::get_instance(EC_TRANSACTION_MANAGER))
 	{
-		err.printf("Transaction started, id: %d\n", tid->getId());
+		debug_printf(err, "Transaction started, id: %d\n", tid->getId());
 		sem = _sem;
 		this->tid = tid;
 		tm = TransactionManager::getHandle();
@@ -85,9 +85,9 @@ namespace TManager
 	{
 		int errorNumber;
 
-		err.printf("Transaction: %u getObjectPointer, mode %d\n", tid->getId(), mode);
+		debug_printf(err, "Transaction: %u getObjectPointer, mode %d\n", tid->getId(), mode);
 		if(lid->toInteger() & 0xFF000000) {
-			err.printf("TransactionStore::getObject from systemViews LID = %u\n", lid->toInteger());
+			debug_printf(err, "TransactionStore::getObject from systemViews LID = %u\n", lid->toInteger());
 			/* Obiekty widoku systemowego, gdy zapalone są bity 31-24*/
 			sem->lock_read();
 
@@ -114,7 +114,7 @@ namespace TManager
 		}
 
 		if (p == NULL && !allowNullObject) {
-			err.printf("getObjectPointer, object doesn't exist while we expect existing object\n");
+			debug_printf(err, "getObjectPointer, object doesn't exist while we expect existing object\n");
 			errorNumber = ENoObject | ErrTManager;
 			abort();
 		}
@@ -128,7 +128,7 @@ namespace TManager
 
 //	    DBPhysicalID oldId = (*((op->getLogicalID())->getPhysicalID()));
 
-	    err.printf("Transaction: %d modifyObject\n", tid->getId());
+	    debug_printf(err, "Transaction: %d modifyObject\n", tid->getId());
 
 	    errorNumber = lm->lock(op->getLogicalID(), tid, Write);
 
@@ -160,7 +160,7 @@ namespace TManager
 	{
  		int errorNumber;
 
-		err.printf("Transaction: %d createObject\n", tid->getId());
+		debug_printf(err, "Transaction: %d createObject\n", tid->getId());
 
 		sem->lock_write();
 			errorNumber = sm->createObject( tid, name, value, p);
@@ -185,7 +185,7 @@ namespace TManager
 	{
 		int errorNumber;
 
-		err.printf("Transaction: %d deleteObject\n", tid->getId());
+		debug_printf(err, "Transaction: %d deleteObject\n", tid->getId());
 		/* exclusive lock for this object */
 		errorNumber = lm->lock(object->getLogicalID(), tid, Write);
 
@@ -214,7 +214,7 @@ namespace TManager
 	{
 		int errorNumber;
 
-		err.printf("Transaction: %d getRoots\n", tid->getId());
+		debug_printf(err, "Transaction: %d getRoots\n", tid->getId());
 
 		sem->lock_read();
 			errorNumber = sm->getRoots(tid, p);
@@ -241,7 +241,7 @@ namespace TManager
 	{
 		int errorNumber;
 
-		err.printf("Transaction: %d getRoots by name \n", tid->getId());
+		debug_printf(err, "Transaction: %d getRoots by name \n", tid->getId());
 
 		sem->lock_read();
 			errorNumber = sm->getRoots(tid, name, p);
@@ -268,7 +268,7 @@ namespace TManager
 	{
 		int errorNumber;
 
-		err.printf("Transaction: %d getRootsLID\n", tid->getId());
+		debug_printf(err, "Transaction: %d getRootsLID\n", tid->getId());
 
 		sem->lock_read();
 		errorNumber = sm->getRootsLID(tid, p);
@@ -283,7 +283,7 @@ namespace TManager
 	{
 		int errorNumber;
 
-		err.printf("Transaction: %d getRootsLID by name \n", tid->getId());
+		debug_printf(err, "Transaction: %d getRootsLID by name \n", tid->getId());
 
 		sem->lock_read();
 		errorNumber = sm->getRootsLID(tid, name, p);
@@ -297,7 +297,7 @@ namespace TManager
 	int Transaction::getRootsLIDWithBegin(string nameBegin, vector<LogicalID*>* &p) {
 		int errorNumber;
 
-		err.printf("Transaction: %d getRootsLID by nameBegin \n", tid->getId());
+		debug_printf(err, "Transaction: %d getRootsLID by nameBegin \n", tid->getId());
 
 		sem->lock_read();
 		errorNumber = sm->getRootsLIDWithBegin(tid, nameBegin, p);
@@ -312,7 +312,7 @@ namespace TManager
 	{
 		int errorNumber;
 
-		err.printf("Transaction: %d addRoot\n", tid->getId());
+		debug_printf(err, "Transaction: %d addRoot\n", tid->getId());
 
 		sem->lock_write();
 			errorNumber = sm->addRoot(tid, p);
@@ -333,7 +333,7 @@ namespace TManager
 	{
 		int errorNumber;
 
-		err.printf("Transaction: %d removeRoot\n", tid->getId());
+		debug_printf(err, "Transaction: %d removeRoot\n", tid->getId());
 
 		errorNumber = lm->lock( p->getLogicalID(), tid, Write);
 
@@ -357,7 +357,7 @@ namespace TManager
 	{
 		int errorNumber;
 
-		err.printf("Transaction: %d getViewsLID\n", tid->getId());
+		debug_printf(err, "Transaction: %d getViewsLID\n", tid->getId());
 
 		sem->lock_read();
 		errorNumber = sm->getViewsLID(tid, p);
@@ -372,7 +372,7 @@ namespace TManager
 	{
 		int errorNumber;
 
-		err.printf("Transaction: %d getViewsLID by name \n", tid->getId());
+		debug_printf(err, "Transaction: %d getViewsLID by name \n", tid->getId());
 
 		sem->lock_read();
 		errorNumber = sm->getViewsLID(tid, name, p);
@@ -388,7 +388,7 @@ namespace TManager
 	{
 		int errorNumber;
 
-		err.printf("Transaction: %d addView\n", tid->getId());
+		debug_printf(err, "Transaction: %d addView\n", tid->getId());
 
 		sem->lock_write();
 			errorNumber = sm->addView(tid, name,  p);
@@ -406,7 +406,7 @@ namespace TManager
 	{
 		int errorNumber;
 
-		err.printf("Transaction: %d removeView\n", tid->getId());
+		debug_printf(err, "Transaction: %d removeView\n", tid->getId());
 
 		errorNumber = lm->lock( p->getLogicalID(), tid, Write);
 
@@ -429,7 +429,7 @@ namespace TManager
 	{
 		int errorNumber;
 
-		err.printf("Transaction: %d getClassesLID\n", tid->getId());
+		debug_printf(err, "Transaction: %d getClassesLID\n", tid->getId());
 
 		sem->lock_read();
 		errorNumber = sm->getClassesLID(tid, p);
@@ -444,7 +444,7 @@ namespace TManager
 	{
 		int errorNumber;
 
-		err.printf("Transaction: %d getClassesLID by name \n", tid->getId());
+		debug_printf(err, "Transaction: %d getClassesLID by name \n", tid->getId());
 
 		sem->lock_read();
 		errorNumber = sm->getClassesLID(tid, name, p);
@@ -459,7 +459,7 @@ namespace TManager
 	{
 		int errorNumber;
 
-		err.printf("Transaction: %d getClassesLID by name \n", tid->getId());
+		debug_printf(err, "Transaction: %d getClassesLID by name \n", tid->getId());
 
 		sem->lock_read();
 		errorNumber = sm->getClassesLIDByInvariant(tid, invariantName, p);
@@ -476,7 +476,7 @@ namespace TManager
 	{
 		int errorNumber;
 
-		err.printf("Transaction: %d addClass\n", tid->getId());
+		debug_printf(err, "Transaction: %d addClass\n", tid->getId());
 
 		sem->lock_write();
 			errorNumber = sm->addClass(tid, name, invariantName,  p);
@@ -494,7 +494,7 @@ namespace TManager
 	{
 		int errorNumber;
 
-		err.printf("Transaction: %d removeClass\n", tid->getId());
+		debug_printf(err, "Transaction: %d removeClass\n", tid->getId());
 
 		errorNumber = lm->lock( p->getLogicalID(), tid, Write);
 
@@ -518,7 +518,7 @@ namespace TManager
 	{
 		int errorNumber;
 
-		err.printf("Transaction: %d getInterfacesLID\n", tid->getId());
+		debug_printf(err, "Transaction: %d getInterfacesLID\n", tid->getId());
 
 		sem->lock_read();
 		errorNumber = sm->getInterfacesLID(tid, p);
@@ -533,7 +533,7 @@ namespace TManager
 	{
 		int errorNumber;
 
-		err.printf("Transaction: %d getInterfacesLID by name \n", tid->getId());
+		debug_printf(err, "Transaction: %d getInterfacesLID by name \n", tid->getId());
 
 		sem->lock_read();
 		errorNumber = sm->getInterfacesLID(tid, name, p);
@@ -549,7 +549,7 @@ namespace TManager
 	{
 		int errorNumber;
 
-		err.printf("Transaction: %d getInterfacesLID\n", tid->getId());
+		debug_printf(err, "Transaction: %d getInterfacesLID\n", tid->getId());
 
 		sem->lock_read();
 		errorNumber = sm->getSystemViewsLID(tid, p);
@@ -564,7 +564,7 @@ namespace TManager
 	{
 		int errorNumber;
 
-		err.printf("Transaction: %d getInterfacesLID by name \n", tid->getId());
+		debug_printf(err, "Transaction: %d getInterfacesLID by name \n", tid->getId());
 
 		sem->lock_read();
 		errorNumber = sm->getSystemViewsLID(tid, name, p);
@@ -578,7 +578,7 @@ namespace TManager
 	int Transaction::addInterface(const string& name, const string& objectName, ObjectPointer* &p)
 	{
 		int errorNumber;
-		err.printf("Transaction: %d addInterface\n", tid->getId());
+		debug_printf(err, "Transaction: %d addInterface\n", tid->getId());
 
 		sem->lock_write();
 			errorNumber = sm->addInterface(tid, name, objectName, p);
@@ -593,7 +593,7 @@ namespace TManager
 	int Transaction::bindInterface(const string& name, const string& bindName)
 	{
 		int errorNumber;
-		err.printf("Transaction: %d bindInterface\n", tid->getId());
+		debug_printf(err, "Transaction: %d bindInterface\n", tid->getId());
 
 		sem->lock_write();
 			errorNumber = sm->bindInterface(tid, name, bindName);
@@ -606,7 +606,7 @@ namespace TManager
 	int Transaction::getInterfaceBindForObjectName(const string& objectName, string& interfaceName, string& bindName)
 	{
 		int errorNumber;
-		err.printf("Transaction: %d getInterfaceBindForObjectName\n", tid->getId());
+		debug_printf(err, "Transaction: %d getInterfaceBindForObjectName\n", tid->getId());
 
 		sem->lock_read();
 			errorNumber = sm->getInterfaceBindForObjectName(tid, objectName, interfaceName, bindName);
@@ -620,7 +620,7 @@ namespace TManager
 	int Transaction::removeInterface(ObjectPointer* &p)
 	{
 		int errorNumber;
-		err.printf("Transaction: %d removeInterface\n", tid->getId());
+		debug_printf(err, "Transaction: %d removeInterface\n", tid->getId());
 		errorNumber = lm->lock( p->getLogicalID(), tid, Write);
 
 		if (errorNumber == 0)
@@ -639,7 +639,7 @@ namespace TManager
 	int Transaction::addSchema(const string& name, ObjectPointer* &p)
 	{
 		int errorNumber;
-		err.printf("Transaction: %d addSchema\n", tid->getId());
+		debug_printf(err, "Transaction: %d addSchema\n", tid->getId());
 
 		sem->lock_write();
 			errorNumber = sm->addSchema(tid, name, p);
@@ -654,7 +654,7 @@ namespace TManager
 	int Transaction::removeSchema(ObjectPointer* &p)
 	{
 		int errorNumber;
-		err.printf("Transaction: %d removeSchema\n", tid->getId());
+		debug_printf(err, "Transaction: %d removeSchema\n", tid->getId());
 		errorNumber = lm->lock( p->getLogicalID(), tid, Write);
 
 		if (errorNumber == 0)
@@ -672,7 +672,7 @@ namespace TManager
 	{
 		int errorNumber;
 
-		err.printf("Transaction: %d getSchemasLID\n", tid->getId());
+		debug_printf(err, "Transaction: %d getSchemasLID\n", tid->getId());
 
 		sem->lock_read();
 		errorNumber = sm->getSchemasLID(tid, p);
@@ -687,7 +687,7 @@ namespace TManager
 	{
 		int errorNumber;
 
-		err.printf("Transaction: %d getSchemasID by name \n", tid->getId());
+		debug_printf(err, "Transaction: %d getSchemasID by name \n", tid->getId());
 
 		sem->lock_read();
 		errorNumber = sm->getSchemasLID(tid, name, p);
@@ -742,7 +742,7 @@ namespace TManager
 
 	int Transaction::commit()
 	{
-	    err.printf("Transaction commit, tid = %d\n", tid->getId());
+	    debug_printf(err, "Transaction commit, tid = %d\n", tid->getId());
 	    return tm->commit(this);
 	}
 
@@ -780,21 +780,21 @@ namespace TManager
 
 		int errorCode = conf.getInt( "minimal_transaction_id", minimalTransactionId);
 		if (errorCode)
-		    err.printf("Cannot read minimal_transaction_id from configuration, using default value %d\n", minimalTransactionId);
+		    debug_printf(err, "Cannot read minimal_transaction_id from configuration, using default value %d\n", minimalTransactionId);
 		errorCode  = conf.getString( "semaphores_timeout", semTime);
 		if (semTime == "on")
 		    semaphoresTimeout = true;
 		if (errorCode)
-		    err << "Cannot read semaphores_timeout from configuration, using default value " + semTime;
+		    debug_print(err,  "Cannot read semaphores_timeout from configuration, using default value " + semTime);
 		errorCode  = conf.getInt( "reader_timeout", readerTimeout);
 		if (errorCode)
-		    err.printf("Cannot read reader_timout from configuration, using default value %d\n", readerTimeout);
+		    debug_printf(err, "Cannot read reader_timout from configuration, using default value %d\n", readerTimeout);
 		errorCode  = conf.getInt( "writer_timeout", writerTimeout);
 		if (errorCode)
-		    err.printf("Cannot read writer_timeout from configuration, using default value %d\n", writerTimeout);
+		    debug_printf(err, "Cannot read writer_timeout from configuration, using default value %d\n", writerTimeout);
 		errorCode  = conf.getInt( "boost_after_deadlock", boostAfterDeadlock);
 		if (errorCode)
-		    err.printf("Cannot read boost_after_deadlock from configuration, using default value %d\n", boostAfterDeadlock);
+		    debug_printf(err, "Cannot read boost_after_deadlock from configuration, using default value %d\n", boostAfterDeadlock);
 /*		err.printf("First trans %i\n", minimalTransactionId);
 		err << "Semaphores timeout " + semTime;
 		err.printf("Reader timeout %i\n", readerTimeout);
@@ -813,7 +813,7 @@ namespace TManager
 
 	TransactionManager::~TransactionManager()
 	{
-		err.printf("Destroying TransactionManager\n");
+		debug_printf(err, "Destroying TransactionManager\n");
 		/* unlock all unfinished transactions */
 		for (list<TransactionID*>::iterator i = transactions->begin();	i != transactions->end(); i++)
 		    LockManager::getHandle()->unlockAll(*i);
@@ -840,7 +840,7 @@ namespace TManager
 	 */
 	int TransactionManager::createTransaction(int sessionId, Transaction* &tr, int id)
 	{
-	    err.printf("Creating new transaction\n");
+	    debug_printf(err, "Creating new transaction\n");
 	    mutex->down();
 			int currentId = transactionId;
 			transactionId++;
@@ -851,7 +851,7 @@ namespace TManager
 			    tid = new TransactionID(sessionId, currentId, (int*)NULL);
 			addTransaction(tid);
 			IndexManager::getHandle()->begin(currentId);
-			err.printf("Transaction created -> number %d prio: %d\n", tid->getId(), tid->getPriority());
+			debug_printf(err, "Transaction created -> number %d prio: %d\n", tid->getId(), tid->getPriority());
 	    mutex->up();
 
 	    tr = new Transaction(tid, sem);
@@ -865,7 +865,7 @@ namespace TManager
 	int TransactionManager::init(StoreManager *strMgr, LogManager *logsMgr)
 	{
 		tranMgr = new TransactionManager();
-		getHandle()->err.printf("Transaction Manager's starting....\n");
+		debug_printf(getHandle()->err, "Transaction Manager's starting....\n");
 	    getHandle()->storeMgr = strMgr;
 	    getHandle()->logMgr = logsMgr;
 	    return getHandle()->loadConfig();
@@ -906,11 +906,11 @@ namespace TManager
 
 		/* commit record in logs*/
 		errorNumber = logMgr->commitTransaction(tr->getId()->getId(), id);
-		err.printf("Transaction commit, tid = %d, logs errno = %d\n", tr->getId()->getId(), errorNumber);
+		debug_printf(err, "Transaction commit, tid = %d, logs errno = %d\n", tr->getId()->getId(), errorNumber);
 
 		/* unlock all objects hold by transaction */
 		errorNumber = LockManager::getHandle()->unlockAll(tr->getId());
-		err.printf("Transaction commit, tid = %d, lock errno = %d\n", tr->getId()->getId(), errorNumber);
+		debug_printf(err, "Transaction commit, tid = %d, lock errno = %d\n", tr->getId()->getId(), errorNumber);
 
 		/* commit transaction in store */
 		storeMgr->commitTransaction(tr->getId());
@@ -933,11 +933,11 @@ namespace TManager
 
 		/* rollback record in logs plus perform rollback operation */
 		errorNumber = logMgr->rollbackTransaction(tr->getId()->getId(), storeMgr, id);
-		err.printf("Transaction abort, tid = %d, logs errno = %d\n", tr->getId()->getId(), errorNumber);
+		debug_printf(err, "Transaction abort, tid = %d, logs errno = %d\n", tr->getId()->getId(), errorNumber);
 
 		/* unlock all objects hold by transaction */
 		errorNumber = LockManager::getHandle()->unlockAll(tr->getId());
-		err.printf("Transaction abort, tid = %d, lock errno = %d\n", tr->getId()->getId(), errorNumber);
+		debug_printf(err, "Transaction abort, tid = %d, lock errno = %d\n", tr->getId()->getId(), errorNumber);
 
 		/* abort transaction in store */
 		storeMgr->abortTransaction(tr->getId());

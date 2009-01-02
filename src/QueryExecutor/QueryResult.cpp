@@ -134,7 +134,7 @@ void QuerySequenceResult::addResult(QueryResult *r){
 
 int QuerySequenceResult::getResult(QueryResult *&r){ 
 	if (seq.empty()) { 
-		*ec << (ErrQExecutor | EQEmptySet);
+		debug_print(*ec,  (ErrQExecutor | EQEmptySet));
 		return (ErrQExecutor | EQEmptySet); 
 	} 
 	else { 
@@ -147,7 +147,7 @@ int QuerySequenceResult::getResult(QueryResult *&r){
 
 int QuerySequenceResult::at(unsigned int i, QueryResult *&r){ 
 	if ( i < 0 || i >= seq.size() ) {
-		*ec << (ErrQExecutor | EQEmptySet);
+		debug_print(*ec,  (ErrQExecutor | EQEmptySet));
 		return (ErrQExecutor | EQEmptySet); 
 	};
 	r=(seq.at(i));
@@ -157,7 +157,7 @@ int QuerySequenceResult::at(unsigned int i, QueryResult *&r){
 int QuerySequenceResult::lastElem(QueryResult *&r){ 
 	int s = seq.size();
 	if ( s == 0 ) {
-		*ec << (ErrQExecutor | EQEmptySet);
+		debug_print(*ec,  (ErrQExecutor | EQEmptySet));
 		return (ErrQExecutor | EQEmptySet); 
 	}
 	r=(seq.at(s - 1));
@@ -193,7 +193,7 @@ void QueryBagResult::addResult(QueryResult *r){
 }
 int QueryBagResult::getResult(QueryResult *&r){
 	if (bag.empty()) { 
-		*ec << (ErrQExecutor | EQEmptySet);
+		debug_print(*ec,  (ErrQExecutor | EQEmptySet));
 		return (ErrQExecutor | EQEmptySet); 
 	}
 	else {
@@ -206,7 +206,7 @@ int QueryBagResult::getResult(QueryResult *&r){
 
 int QueryBagResult::at(unsigned int i, QueryResult *&r){ 
 	if ( i < 0 || i >= bag.size() ) {
-		*ec << (ErrQExecutor | EQEmptySet);
+		debug_print(*ec,  (ErrQExecutor | EQEmptySet));
 		return (ErrQExecutor | EQEmptySet); 
 	};
 	r=(bag.at(i));
@@ -216,7 +216,7 @@ int QueryBagResult::at(unsigned int i, QueryResult *&r){
 int QueryBagResult::lastElem(QueryResult *&r){ 
 	int s = bag.size();
 	if ( s == 0 ) {
-		*ec << (ErrQExecutor | EQEmptySet);
+		debug_print(*ec,  (ErrQExecutor | EQEmptySet));
 		return (ErrQExecutor | EQEmptySet); 
 	}
 	r=(bag.at(s - 1));
@@ -245,7 +245,7 @@ if ((r->type()) == (QueryResult::QSTRUCT)) {
 
 int QueryStructResult::getResult(QueryResult *&r){ 
 	if (str.empty()) { 
-		*ec << (ErrQExecutor | EQEmptySet);
+		debug_print(*ec,  (ErrQExecutor | EQEmptySet));
 		return (ErrQExecutor | EQEmptySet);  
 	} 
 	else { 
@@ -258,7 +258,7 @@ int QueryStructResult::getResult(QueryResult *&r){
 
 int QueryStructResult::at(unsigned int i, QueryResult *&r){ 
 	if ( i < 0 || i >= str.size() ) {
-		*ec << (ErrQExecutor | EQEmptySet);
+		debug_print(*ec,  (ErrQExecutor | EQEmptySet));
 		return (ErrQExecutor | EQEmptySet); 
 	};
 	r=(str.at(i));
@@ -268,7 +268,7 @@ int QueryStructResult::at(unsigned int i, QueryResult *&r){
 int QueryStructResult::lastElem(QueryResult *&r){ 
 	int s = str.size();
 	if ( s == 0 ) {
-		*ec << (ErrQExecutor | EQEmptySet);
+		debug_print(*ec,  (ErrQExecutor | EQEmptySet));
 		return (ErrQExecutor | EQEmptySet); 
 	}
 	r=(str.at(s - 1));
@@ -304,8 +304,8 @@ InterfaceKey QueryReferenceResult::getInterfaceKey() const {return m_key;}
 //function plus()
 int QueryIntResult::plus(QueryResult *r, QueryResult *&res){ 
 	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
-		*ec << "[QE] ERROR! + arguments must be INT or DOUBLE";
-		*ec << (ErrQExecutor | ENumberExpected);
+		debug_print(*ec,  "[QE] ERROR! + arguments must be INT or DOUBLE");
+		debug_print(*ec,  (ErrQExecutor | ENumberExpected));
 		return (ErrQExecutor | ENumberExpected);
 	}
 	if (r->type() == QueryResult::QINT) {
@@ -321,8 +321,8 @@ int QueryIntResult::plus(QueryResult *r, QueryResult *&res){
 
 int QueryDoubleResult::plus(QueryResult *r, QueryResult *&res){
 	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
-		*ec << "[QE] ERROR! + arguments must be INT or DOUBLE";
-		*ec << (ErrQExecutor | ENumberExpected);
+		debug_print(*ec,  "[QE] ERROR! + arguments must be INT or DOUBLE");
+		debug_print(*ec,  (ErrQExecutor | ENumberExpected));
 		return (ErrQExecutor | ENumberExpected); 
 	}
 	if (r->type() == QueryResult::QINT) {
@@ -339,8 +339,8 @@ int QueryDoubleResult::plus(QueryResult *r, QueryResult *&res){
 //function minus()
 int QueryIntResult::minus(QueryResult *r, QueryResult *&res){
 	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
-		*ec << "[QE] ERROR! - arguments must be INT or DOUBLE";
-		*ec << (ErrQExecutor | ENumberExpected);
+		debug_print(*ec,  "[QE] ERROR! - arguments must be INT or DOUBLE");
+		debug_print(*ec,  (ErrQExecutor | ENumberExpected));
 		return (ErrQExecutor | ENumberExpected); 
 	} 
 	if (r->type() == QueryResult::QINT) {
@@ -356,8 +356,8 @@ int QueryIntResult::minus(QueryResult *r, QueryResult *&res){
 
 int QueryDoubleResult::minus(QueryResult *r, QueryResult *&res){ 
 	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
-		*ec << "[QE] ERROR! - arguments must be INT or DOUBLE";
-		*ec << (ErrQExecutor | ENumberExpected);
+		debug_print(*ec,  "[QE] ERROR! - arguments must be INT or DOUBLE");
+		debug_print(*ec,  (ErrQExecutor | ENumberExpected));
 		return (ErrQExecutor | ENumberExpected);
 	}
 	if (r->type() == QueryResult::QINT) {
@@ -386,8 +386,8 @@ int QueryDoubleResult::minus(QueryResult *&res){
 //function times()
 int QueryIntResult::times(QueryResult *r, QueryResult *&res){ 
 	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
-		*ec << "[QE] ERROR! * arguments must be INT or DOUBLE";
-		*ec << (ErrQExecutor | ENumberExpected);
+		debug_print(*ec,  "[QE] ERROR! * arguments must be INT or DOUBLE");
+		debug_print(*ec,  (ErrQExecutor | ENumberExpected));
 		return (ErrQExecutor | ENumberExpected);
 	}
 	if (r->type() == QueryResult::QINT) {
@@ -403,8 +403,8 @@ int QueryIntResult::times(QueryResult *r, QueryResult *&res){
 
 int QueryDoubleResult::times(QueryResult *r, QueryResult *&res){ 
 	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
-		*ec << "[QE] ERROR! * arguments must be INT or DOUBLE";
-		*ec << (ErrQExecutor | ENumberExpected);
+		debug_print(*ec,  "[QE] ERROR! * arguments must be INT or DOUBLE");
+		debug_print(*ec,  (ErrQExecutor | ENumberExpected));
 		return (ErrQExecutor | ENumberExpected);
 	}
 	if (r->type() == QueryResult::QINT) {
@@ -421,14 +421,14 @@ int QueryDoubleResult::times(QueryResult *r, QueryResult *&res){
 //function divide_by()
 int QueryIntResult::divide_by(QueryResult *r, QueryResult *&res){
 	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
-		*ec << "[QE] ERROR! / arguments must be INT or DOUBLE";
-		*ec << (ErrQExecutor | ENumberExpected);
+		debug_print(*ec,  "[QE] ERROR! / arguments must be INT or DOUBLE");
+		debug_print(*ec,  (ErrQExecutor | ENumberExpected));
 		return (ErrQExecutor | ENumberExpected);
 	}
 	if (r->type() == QueryResult::QINT) {
 		if (((QueryIntResult*) r)->getValue() == 0) {
-			*ec << "[QE] Division by 0 error!";
-			*ec << (ErrQExecutor | EDivBy0);
+			debug_print(*ec,  "[QE] Division by 0 error!");
+			debug_print(*ec,  (ErrQExecutor | EDivBy0));
 			return (ErrQExecutor | EDivBy0);
 		}
 		double tmp_value = (double)value / (double)(((QueryIntResult*) r)->getValue());
@@ -436,8 +436,8 @@ int QueryIntResult::divide_by(QueryResult *r, QueryResult *&res){
 	}
 	else { //QDOUBLE
 		if (((QueryDoubleResult*) r)->getValue() == 0) {
-			*ec << "[QE] Division by 0 error!";
-			*ec << (ErrQExecutor | EDivBy0);
+			debug_print(*ec,  "[QE] Division by 0 error!");
+			debug_print(*ec,  (ErrQExecutor | EDivBy0));
 			return (ErrQExecutor | EDivBy0);
 		}
 		double tmp_value = (double)value / ((QueryDoubleResult*) r)->getValue();
@@ -448,14 +448,14 @@ int QueryIntResult::divide_by(QueryResult *r, QueryResult *&res){
 
 int QueryDoubleResult::divide_by(QueryResult *r, QueryResult *&res){ 
 	if ((r->type() != QueryResult::QINT) && (r->type() != QueryResult::QDOUBLE)) {
-		*ec << "[QE] ERROR! / arguments must be INT or DOUBLE";
-		*ec << (ErrQExecutor | ENumberExpected);
+		debug_print(*ec,  "[QE] ERROR! / arguments must be INT or DOUBLE");
+		debug_print(*ec,  (ErrQExecutor | ENumberExpected));
 		return (ErrQExecutor | ENumberExpected);
 	}
 	if (r->type() == QueryResult::QINT) {
 		if (((QueryIntResult*) r)->getValue() == 0) {
-			*ec << "[QE] Division by 0 error!";
-			*ec << (ErrQExecutor | EDivBy0);
+			debug_print(*ec,  "[QE] Division by 0 error!");
+			debug_print(*ec,  (ErrQExecutor | EDivBy0));
 			return (ErrQExecutor | EDivBy0);
 		}
 		double tmp_value = value / (double)(((QueryIntResult*) r)->getValue());
@@ -463,8 +463,8 @@ int QueryDoubleResult::divide_by(QueryResult *r, QueryResult *&res){
 	}
 	else { //QDOUBLE
 		if (((QueryDoubleResult*) r)->getValue() == 0) {
-			*ec << "[QE] Division by 0 error!";
-			*ec << (ErrQExecutor | EDivBy0);
+			debug_print(*ec,  "[QE] Division by 0 error!");
+			debug_print(*ec,  (ErrQExecutor | EDivBy0));
 			return (ErrQExecutor | EDivBy0);
 		}
 		double tmp_value = value / ((QueryDoubleResult*) r)->getValue();
@@ -476,8 +476,8 @@ int QueryDoubleResult::divide_by(QueryResult *r, QueryResult *&res){
 // boolean functions
 int QueryBoolResult::bool_and(QueryResult *r, QueryResult *&res){ 
 	if (r->type() != QueryResult::QBOOL ) {
-		*ec << "[QE] ERROR! AND arguments must be BOOLEAN";
-		*ec << (ErrQExecutor | EBoolExpected);
+		debug_print(*ec,  "[QE] ERROR! AND arguments must be BOOLEAN");
+		debug_print(*ec,  (ErrQExecutor | EBoolExpected));
 		return (ErrQExecutor | EBoolExpected);
 	}
 	bool tmp_value = value && ((QueryBoolResult*) r)->getValue();
@@ -487,8 +487,8 @@ int QueryBoolResult::bool_and(QueryResult *r, QueryResult *&res){
 
 int QueryBoolResult::bool_or(QueryResult *r, QueryResult *&res){ 
 	if (r->type() != QueryResult::QBOOL ) {
-		*ec << "[QE] ERROR! OR arguments must be BOOLEAN";
-		*ec << (ErrQExecutor | EBoolExpected);
+		debug_print(*ec,  "[QE] ERROR! OR arguments must be BOOLEAN");
+		debug_print(*ec,  (ErrQExecutor | EBoolExpected));
 		return (ErrQExecutor | EBoolExpected);
 	}
 	bool tmp_value = value || ((QueryBoolResult*) r)->getValue();
@@ -800,40 +800,40 @@ int QuerySequenceResult::getBoolValue(bool &b) {
 	if (seq.size() == 1)
 		return ((seq.at(0))->getBoolValue(b));
 	else
-		*ec << (ErrQExecutor | EBoolExpected);
+		debug_print(*ec,  (ErrQExecutor | EBoolExpected));
 		return (ErrQExecutor | EBoolExpected);
 }
 int QueryBagResult::getBoolValue(bool &b) {
 	if (bag.size() == 1)
 		return ((bag.at(0))->getBoolValue(b));
 	else
-		*ec << (ErrQExecutor | EBoolExpected);
+		debug_print(*ec,  (ErrQExecutor | EBoolExpected));
 		return (ErrQExecutor | EBoolExpected);
 }
 int QueryStructResult::getBoolValue(bool &b) { 
 	if (str.size() == 1)
 		return ((str.at(0))->getBoolValue(b));
 	else
-		*ec << (ErrQExecutor | EBoolExpected);
+		debug_print(*ec,  (ErrQExecutor | EBoolExpected));
 		return (ErrQExecutor | EBoolExpected);
 }
 int QueryBinderResult::getBoolValue(bool &b) {
 	if (item != NULL)
 		return (item->getBoolValue(b));
 	else
-		*ec << (ErrQExecutor | EBoolExpected);
+		debug_print(*ec,  (ErrQExecutor | EBoolExpected));
 		return (ErrQExecutor | EBoolExpected);
 }
 int QueryStringResult::getBoolValue(bool &b) { 
-	*ec << (ErrQExecutor | EBoolExpected);
+	debug_print(*ec,  (ErrQExecutor | EBoolExpected));
 	return (ErrQExecutor | EBoolExpected);
 }
 int QueryIntResult::getBoolValue(bool &b) { 
-	*ec << (ErrQExecutor | EBoolExpected);
+	debug_print(*ec,  (ErrQExecutor | EBoolExpected));
 	return (ErrQExecutor | EBoolExpected);
 }
 int QueryDoubleResult::getBoolValue(bool &b) { 
-	*ec << (ErrQExecutor | EBoolExpected);
+	debug_print(*ec,  (ErrQExecutor | EBoolExpected));
 	return (ErrQExecutor | EBoolExpected);
 }
 int QueryBoolResult::getBoolValue(bool &b) { 
@@ -841,16 +841,16 @@ int QueryBoolResult::getBoolValue(bool &b) {
 	return 0;
 }
 int QueryReferenceResult::getBoolValue(bool &b) { 
-	*ec << (ErrQExecutor | EBoolExpected);
+	debug_print(*ec,  (ErrQExecutor | EBoolExpected));
 	return (ErrQExecutor | EBoolExpected);
 }
 int QueryNothingResult::getBoolValue(bool &b) { 
-	*ec << (ErrQExecutor | EBoolExpected);
+	debug_print(*ec,  (ErrQExecutor | EBoolExpected));
 	return (ErrQExecutor | EBoolExpected);
 }
 
 int QueryVirtualResult::getBoolValue(bool &b) { 
-	*ec << (ErrQExecutor | EBoolExpected);
+	debug_print(*ec,  (ErrQExecutor | EBoolExpected));
 	return (ErrQExecutor | EBoolExpected);
 }
 
@@ -859,44 +859,44 @@ int QuerySequenceResult::getReferenceValue(QueryResult *&r) {
 	if (seq.size() == 1)
 		return ((seq.at(0))->getReferenceValue(r));
 	else
-		*ec << (ErrQExecutor | ERefExpected);
+		debug_print(*ec,  (ErrQExecutor | ERefExpected));
 		return (ErrQExecutor | ERefExpected);
 }
 int QueryBagResult::getReferenceValue(QueryResult *&r) {
 	if (bag.size() == 1)
 		return ((bag.at(0))->getReferenceValue(r));
 	else
-		*ec << (ErrQExecutor | ERefExpected);
+		debug_print(*ec,  (ErrQExecutor | ERefExpected));
 		return (ErrQExecutor | ERefExpected);
 }
 int QueryStructResult::getReferenceValue(QueryResult *&r) { 
 	if (str.size() == 1)
 		return ((str.at(0))->getReferenceValue(r));
 	else
-		*ec << (ErrQExecutor | ERefExpected);
+		debug_print(*ec,  (ErrQExecutor | ERefExpected));
 		return (ErrQExecutor | ERefExpected);
 }
 int QueryBinderResult::getReferenceValue(QueryResult *&r) {
 	if (item != NULL)
 		return (item->getReferenceValue(r));
 	else
-		*ec << (ErrQExecutor | ERefExpected);
+		debug_print(*ec,  (ErrQExecutor | ERefExpected));
 		return (ErrQExecutor | ERefExpected);
 }
 int QueryStringResult::getReferenceValue(QueryResult *&r) { 
-	*ec << (ErrQExecutor | ERefExpected);
+	debug_print(*ec,  (ErrQExecutor | ERefExpected));
 	return (ErrQExecutor | ERefExpected);
 }
 int QueryIntResult::getReferenceValue(QueryResult *&r) { 
-	*ec << (ErrQExecutor | ERefExpected);
+	debug_print(*ec,  (ErrQExecutor | ERefExpected));
 	return (ErrQExecutor | ERefExpected);
 }
 int QueryDoubleResult::getReferenceValue(QueryResult *&r) { 
-	*ec << (ErrQExecutor | ERefExpected);
+	debug_print(*ec,  (ErrQExecutor | ERefExpected));
 	return (ErrQExecutor | ERefExpected);
 }
 int QueryBoolResult::getReferenceValue(QueryResult *&r) { 
-	*ec << (ErrQExecutor | ERefExpected);
+	debug_print(*ec,  (ErrQExecutor | ERefExpected));
 	return (ErrQExecutor | ERefExpected);
 }
 int QueryReferenceResult::getReferenceValue(QueryResult *&r) { 
@@ -904,12 +904,12 @@ int QueryReferenceResult::getReferenceValue(QueryResult *&r) {
 	return 0;
 }
 int QueryNothingResult::getReferenceValue(QueryResult *&r) { 
-	*ec << (ErrQExecutor | ERefExpected);
+	debug_print(*ec,  (ErrQExecutor | ERefExpected));
 	return (ErrQExecutor | ERefExpected);
 }
 
 int QueryVirtualResult::getReferenceValue(QueryResult *&r) { 
-	*ec << (ErrQExecutor | ERefExpected);
+	debug_print(*ec,  (ErrQExecutor | ERefExpected));
 	return (ErrQExecutor | ERefExpected);
 }
 
@@ -959,7 +959,7 @@ void QueryBagResult::sortBag_in_orderBy() {
 }
 
 int QueryBagResult::postSort(QueryResult *&f) {
-	*ec << "[QE] postSort()";
+	debug_print(*ec,  "[QE] postSort()");
 	int errcode;
 	f = new QuerySequenceResult();
 	for (unsigned int i = 0; i < bag.size(); i++) {

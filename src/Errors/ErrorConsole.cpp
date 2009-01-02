@@ -63,10 +63,20 @@ namespace Errors {
 		if (conf_file->getBool("stderr", serr))
 			serr = true;
 		log_file_level = parse_verbosity("logfile_verbosity");
+
 		serr_level = parse_verbosity("serr_verbosity");
 		string f;
 		use_log_file = !conf_file->getString("logfile", f) &&
 			f.compare("OFF") && f.compare("off");
+		if ((serr && serr_level > HAVE_VERBOSITY_COMPILE) ||
+				(use_log_file && log_file_level >
+				 HAVE_VERBOSITY_COMPILE))
+			cerr << 
+"WARNING: Not all messages are compiled for this verbosity level. Consult" 
+<< endl << 
+"--enable-cust-verb option in the configure script and recompile the server to"
+<< endl <<
+"have them available." << endl;
 		if (use_log_file) {
 			console_file = auto_ptr<ofstream>(new ofstream(f.c_str(), ios::app));
 			if (!console_file->is_open())
@@ -90,7 +100,7 @@ namespace Errors {
 			return V_INFO;
 		if (!strcasecmp(s_l.c_str(), "debug"))
 			return V_DEBUG;
-		cerr << "Unknown verbosity level for " + property + 
+		cerr << "WARNING: Unknown verbosity level for " + property + 
 			", falling back to default" << endl;
 		return V_DEFAULT;
 	}
@@ -120,7 +130,7 @@ namespace Errors {
 	}
 
 
-	void ErrorConsole::put_string(const string &error_msg, VerbosityLevel l)
+	void ErrorConsole::print(VerbosityLevel l, const string &error_msg)
 	{
 		const string &instance_name(names[instance]);
 		Locker lock(write_lock);
@@ -134,34 +144,20 @@ namespace Errors {
 		}
 	}
 
-	void ErrorConsole::put_errno(int error, VerbosityLevel l)
+	void ErrorConsole::print(VerbosityLevel l, int error)
 	{
 		const string &src_mod = err_module_desc(error);
 		string str = SBQLstrerror(error);
 		stringstream ss;
 		ss << src_mod << " said: " << str << " (errno: " 
 				<< (error & ~ErrAllModules) << ")";
-		put_string(ss.str(), l);
+		print(l, ss.str());
 	}
 
 
-	ErrorConsole& ErrorConsole::operator<<(int error)
-	{
-		put_errno(error);
-		return *this;
-	}
 
-	ErrorConsole& ErrorConsole::operator<<(const string &error_msg)
+	void ErrorConsole::printf(VerbosityLevel l, const char *format, ...)
 	{
-		put_string(error_msg);
-		return *this;
-	}
-
-	ErrorConsole& ErrorConsole::printf(const char *format, ...)
-	{
-		//CAUTION!!! This code is duplicated below. It's ugly, but most
-		//portable. Compilers have different implementations of va_list,
-		//so it is not easy to pass the parameters to a helper function.
 #define BUF_SIZE 1024
 		char str[BUF_SIZE];
 		va_list ap;
@@ -173,15 +169,10 @@ namespace Errors {
 		
 		//Being a little bit paranoid won't hurt ;)
 		str[BUF_SIZE - 1] = 0;
-		put_string(str, V_DEPRECATED);
+		print(l, str);
 #undef BUF_SIZE
-		return *this;
 	}
 
-	ErrorConsoleAdapter ErrorConsole::operator()(VerbosityLevel l)
-	{
-		return ErrorConsoleAdapter(*this, l);
-	}
 
 	ErrorConsole::~ErrorConsole()
 	{
@@ -201,48 +192,5 @@ namespace Errors {
 
 
 
-	ErrorConsoleAdapter::ErrorConsoleAdapter(ErrorConsole &cons, VerbosityLevel l) :
-		cons(cons), l(l)
-	{
-	}
-
-	
-	ErrorConsoleAdapter &ErrorConsoleAdapter::operator<<(int error)
-	{
-		cons.put_errno(error, l);
-		return *this;
-	}
-
-	
-	ErrorConsoleAdapter &ErrorConsoleAdapter::operator<<(const string &error)
-	{
-		cons.put_string(error, l);
-		return *this;
-	}
-	
-	void ErrorConsoleAdapter::print(const string &msg)
-	{
-		cons.put_string(msg, l);
-	}
-
-	void ErrorConsoleAdapter::printf(const char *format, ...)
-	{
-		//CAUTION!!! This code is duplicated above. It's ugly, but most
-		//portable. Compilers have different implementations of va_list,
-		//so it is not easy to pass the parameters to a helper function.
-#define BUF_SIZE 1024
-		char str[BUF_SIZE];
-		va_list ap;
-		string dest_mod;
-
-		va_start(ap, format);
-		vsnprintf(str, BUF_SIZE, format, ap);
-		va_end(ap);
-		
-		//Being a little bit paranoid won't hurt ;)
-		str[BUF_SIZE - 1] = 0;
-		cons.put_string(str, l);
-#undef BUF_SIZE
-	}
 }
 

@@ -9,7 +9,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
-#include <SystemStats/AllStats.h>;
+#include <SystemStats/AllStats.h>
 #include <time.h>
 #include <sys/time.h>
 
@@ -83,25 +83,25 @@ namespace Store
 			sschemas = "/tmp/sbschemas";
 
 		fmap = ::open(smap.c_str(), O_RDWR);
-		ec->printf("fmap = %d, errno = %d, errmsg = %s",
+		debug_printf(*ec, "fmap = %d, errno = %d, errmsg = %s",
 			fmap, errno, strerror(errno));
 		froots = ::open(sroots.c_str(), O_RDWR);
-		ec->printf("froots = %d, errno = %d, errmsg = %s",
+		debug_printf(*ec, "froots = %d, errno = %d, errmsg = %s",
 			froots, errno, strerror(errno));
 		fdefault = ::open(sdefault.c_str(), O_RDWR);
-		ec->printf("fdefault = %d, errno = %d, errmsg = %s",
+		debug_printf(*ec, "fdefault = %d, errno = %d, errmsg = %s",
 			fdefault, errno, strerror(errno));
 		fviews = ::open(sviews.c_str(), O_RDWR);
-		ec->printf("fviews = %d, errno = %d, errmsg = %s",
+		debug_printf(*ec, "fviews = %d, errno = %d, errmsg = %s",
 			fviews, errno, strerror(errno));
 		fclasses = ::open(sclasses.c_str(), O_RDWR);
-		ec->printf("fclasses = %d, errno = %d, errmsg = %s",
+		debug_printf(*ec, "fclasses = %d, errno = %d, errmsg = %s",
 			fclasses, errno, strerror(errno));
 		finterfaces = ::open(sinterfaces.c_str(), O_RDWR);
-		ec->printf("finterfaces = %d, errno = %d, errmsg = %s",
+		debug_printf(*ec, "finterfaces = %d, errno = %d, errmsg = %s",
 			finterfaces, errno, strerror(errno));
 		fschemas = ::open(sschemas.c_str(), O_RDWR);
-		ec->printf("fschemas = %d, errno = %d, errmsg = %s",
+		debug_printf(*ec, "fschemas = %d, errno = %d, errmsg = %s",
 			fschemas, errno, strerror(errno));
 
 

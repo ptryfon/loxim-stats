@@ -16,42 +16,42 @@
 
 
 #if HAVE_VERBOSITY_COMPILE == EC_V_DEBUG
-#define debug_printf(ec, fmt, ...) (ec)(Errors::V_DEBUG).printf((fmt), __VA_ARGS__)
-#define debug_print(ec, msg) (ec)(Errors::V_DEBUG).print(msg)
+#define debug_printf(ec, ...) (ec).printf(Errors::V_DEBUG, __VA_ARGS__)
+#define debug_print(ec, msg) (ec).print(Errors::V_DEBUG, msg)
 #else
-#define debug_printf(ec, fmt, ...)
+#define debug_printf(ec, ...)
 #define debug_print(ec, msg)
 #endif
 
 #if HAVE_VERBOSITY_COMPILE >= EC_V_INFO
-#define info_printf(ec, fmt, ...) (ec)(Errors::V_INFO).printf((fmt), __VA_ARGS__)
-#define info_print(ec, msg) (ec)(Errors::V_INFO).print(msg)
+#define info_printf(ec, ...) (ec).printf(Errors::V_INFO, __VA_ARGS__)
+#define info_print(ec, msg) (ec).print(Errors::V_INFO, msg)
 #else
-#define info_printf(ec, fmt, ...)
+#define info_printf(ec, ...)
 #define info_print(ec, msg)
 #endif
 
 #if HAVE_VERBOSITY_COMPILE >= EC_V_WARNING
-#define warning_printf(ec, fmt, ...) (ec)(Errors::V_WARNING).printf((fmt), __VA_ARGS__)
-#define warning_print(ec, msg) (ec)(Errors::V_WARNING).print(msg)
+#define warning_printf(ec, ...) (ec).printf(Errors::V_WARNING, __VA_ARGS__)
+#define warning_print(ec, msg) (ec).print(Errors::V_WARNING, msg)
 #else
-#define warning_printf(ec, fmt, ...)
+#define warning_printf(ec, ...)
 #define warning_print(ec, msg)
 #endif
 
 #if HAVE_VERBOSITY_COMPILE >= EC_V_ERROR
-#define error_printf(ec, fmt, ...) (ec)(Errors::V_ERROR).printf((fmt), __VA_ARGS__)
-#define error_print(ec, msg) (ec)(Errors::V_ERROR).print(msg)
+#define error_printf(ec, ...) (ec).printf(Errors::V_ERROR, __VA_ARGS__)
+#define error_print(ec, msg) (ec).print(Errors::V_ERROR, msg)
 #else
-#define error_printf(ec, fmt, ...)
+#define error_printf(ec, ...)
 #define error_print(ec, msg)
 #endif
 
 #if HAVE_VERBOSITY_COMPILE >= EC_V_SEVERE_ERROR
-#define severe_printf(ec, fmt, ...) (ec)(Errors::V_SEVERE_ERROR).printf((fmt), __VA_ARGS__)
-#define severe_print(ec, msg) (ec)(Errors::V_SEVERE_ERROR).printf(msg)
+#define severe_printf(ec, ...) (ec).printf(Errors::V_SEVERE_ERROR, __VA_ARGS__)
+#define severe_print(ec, msg) (ec).printf(Errors::V_SEVERE_ERROR, msg)
 #else
-#define severe_printf(ec, fmt, ...)
+#define severe_printf(ec, ...)
 #define severe_print(ec, msg)
 #endif
 
@@ -94,26 +94,6 @@ namespace Errors {
 
 	static const VerbosityLevel V_DEFAULT = V_WARNING;
 
-	// Which level should we assume for messages, which don't use the
-	// levels? I chose this one in order not to scare the user with huge
-	// amount warnings/information/errors, but I am not sure if this is the
-	// right choice.
-	static const VerbosityLevel V_DEPRECATED = V_DEBUG;
-
-	class ErrorConsole;
-
-	class ErrorConsoleAdapter {
-		protected:
-			ErrorConsole &cons;
-			VerbosityLevel l;
-		public:
-			ErrorConsoleAdapter(ErrorConsole &, VerbosityLevel);
-			ErrorConsoleAdapter& operator<<(int error);
-			ErrorConsoleAdapter& operator<<(const std::string &errorMsg);
-			void printf(const char *format, ...);
-			void print(const std::string &msg);
-	};
-
 	class ErrorConsole {
 		friend class ErrorConsoleAdapter;
 		private:
@@ -135,24 +115,15 @@ namespace Errors {
 			static const string verb_error_name;
 			static const string verb_severe_error_name;
 			static const Config::SBQLConfig &get_config();
-			void put_string(const std::string &,
-					VerbosityLevel l = V_DEPRECATED);
-			void put_errno(int error, VerbosityLevel l =
-					V_DEPRECATED);
 			
 			ErrorConsole(ConsoleInstance module);
 		public:
 			static ErrorConsole &get_instance(ConsoleInstance module);
 
-			ErrorConsole& operator<<(int error) __attribute__
-				((deprecated));
-			ErrorConsole& operator<<(const std::string &errorMsg)
-				__attribute__ ((deprecated));
-			ErrorConsole& printf(const char *format, ...)
-				__attribute__ ((deprecated));
+			void print(VerbosityLevel l, const std::string &msg);
+			void print(VerbosityLevel l, int error);
+			void printf(VerbosityLevel l, const char *format, ...);
 			
-			ErrorConsoleAdapter operator()(VerbosityLevel l);
-
 			~ErrorConsole();
 	};
 

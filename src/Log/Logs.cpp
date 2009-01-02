@@ -33,7 +33,7 @@ int LogManager::init()
 //  config->init( "../Server/Server.conf" );
   if( ( errCode = config->getString( "logspath", logFilePath ) ) ) return errCode;
 
-  ec->printf( "LogsPath: %s\n", logFilePath.c_str() );
+  debug_printf(*ec,  "LogsPath: %s\n", logFilePath.c_str() );
 
   // nie wykonujecie tej metody!
   // jedyne miejsce gdzie ec->init ma prawo wystapic to main()
@@ -58,7 +58,7 @@ int LogManager::init()
     ::close( fd );
   }
 
-  *ec << "LogManager: initialize()";
+  debug_print(*ec,  "LogManager: initialize()");
 
   return 0;
 }
@@ -72,9 +72,9 @@ int LogManager::start( StoreManager *store )
   errCode = cr->init( this, store );
   if( errCode == 0 )
   {
-    ec->printf( "CrashRecovery::Recover BEGIN !\n" );
+    debug_printf(*ec,  "CrashRecovery::Recover BEGIN !\n" );
     errCode = cr->Recover();
-    ec->printf( "CrashRecovery::Recover END !\n" );
+    debug_printf(*ec,  "CrashRecovery::Recover END !\n" );
   }
 
   delete cr;
@@ -149,7 +149,7 @@ int LogManager::destroy()
 
   ::close( fileDes );
 
-  *ec << "LogManager: destroy()";
+  debug_print(*ec,  "LogManager: destroy()");
 
   return 0;
 }
@@ -160,7 +160,7 @@ int LogManager::beginTransaction( int tid, unsigned &id )
   record->getId( id );
   logThread->push( record );
 
-  *ec << "LogManager: beginTransaction";
+  debug_print(*ec,  "LogManager: beginTransaction");
 
   return 0;
 }
@@ -172,7 +172,7 @@ int LogManager::write( int tid, LogicalID *lid, string name, DataValue *oldVal, 
   record->getId( id );
   pushLogable( tid, record );
 
-  *ec << "LogManager: write";
+  debug_print(*ec,  "LogManager: write");
 
   return 0;
 }
@@ -183,7 +183,7 @@ int LogManager::addRoot( int tid, LogicalID *lid, unsigned &id )
   record->getId( id );
   pushLogable( tid, record );
 
-  *ec << "LogManager: addRoot";
+  debug_print(*ec,  "LogManager: addRoot");
   return 0;
 }
 
@@ -193,7 +193,7 @@ int LogManager::removeRoot( int tid, LogicalID *lid, unsigned &id )
   record->getId( id );
   pushLogable( tid, record );
 
-  *ec << "LogManager: addRoot";
+  debug_print(*ec,  "LogManager: addRoot");
   return 0;
 }
 
@@ -204,7 +204,7 @@ int LogManager::checkpoint( vector<int> *tids, unsigned &id )
   logThread->push( record );
   flushLog();
 
-  *ec << "LogManager: checkpoint!!";
+  debug_print(*ec,  "LogManager: checkpoint!!");
 
   return 0;
 }
@@ -216,7 +216,7 @@ int LogManager::endCheckpoint( unsigned &id )
   logThread->push( record );
   flushLog();
 
-  *ec << "LogManager: end checkpoint";
+  debug_print(*ec,  "LogManager: end checkpoint");
 
   return 0;
 }
@@ -233,7 +233,7 @@ int LogManager::commitTransaction( int tid, unsigned &id )
   //sk
   err = flushLog();
   
-  *ec << "LogManager: commitTransaction";
+  debug_print(*ec,  "LogManager: commitTransaction");
 
   //sk
   return err;
@@ -283,7 +283,7 @@ int LogManager::rollbackTransaction( int tid, StoreManager *sm, unsigned &id )
   record->getId( id );
   logThread->push( record );
 
-  *ec << "LogManager: rollbackTransaction";
+  debug_print(*ec,  "LogManager: rollbackTransaction");
 
   return 0;
 }
@@ -295,7 +295,7 @@ int LogManager::shutdown( unsigned &id )
   logThread->push( record );
   flushLog();
 
-  *ec << "LogManager: shutdown";
+  debug_print(*ec,  "LogManager: shutdown");
 
   return 0;
 }

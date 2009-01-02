@@ -32,7 +32,7 @@ namespace LockMgr
 
     LockManager::~LockManager()
     {
-		err.printf("LockManager - destructor\n");
+		debug_printf(err, "LockManager - destructor\n");
 		delete mutex;
 
 		/*
@@ -73,7 +73,7 @@ namespace LockMgr
 
 	    	if (pos == map_of_locks->end())
 	    	{
-			err.printf("New lock, tid = %d\n", tid->getId() );
+			debug_printf(err, "New lock, tid = %d\n", tid->getId() );
 			/* creating new single lock */
 			RWUJSemaphore* rwsem = new RWUJSemaphore();
 			rwsem->init();
@@ -85,7 +85,7 @@ namespace LockMgr
 	    	}
 	    	else
 	    	{
-			err.printf("Wait for lock, tid = %d\n", tid->getId() );
+			debug_printf(err, "Wait for lock, tid = %d\n", tid->getId() );
 			/* modifying existing single lock for this PhysicalID */
 			mutex->up();
 			lock = pos->second;
@@ -95,7 +95,7 @@ namespace LockMgr
 
 			mutex->down();
 		}
-		err.printf("Lock received\n");
+		debug_printf(err, "Lock received\n");
 		if ((*transaction_locks)[tid] == 0 )
 		    (*transaction_locks)[tid] = new SingleLockSet;
 
@@ -109,7 +109,7 @@ namespace LockMgr
     {
 		int errorCode = 0;
 
-		err.printf("LockAll, tid = %d\n", tid->getId());
+		debug_printf(err, "LockAll, tid = %d\n", tid->getId());
 		mutex->down();
 
 		set<LogicalID*>::iterator pos = lock_set->begin();
@@ -125,7 +125,7 @@ namespace LockMgr
 
     int LockManager::unlockAll(TransactionID* transaction_id)
     {
-		err.printf("UnlockAll, tid = %d\n", transaction_id->getId());
+		debug_printf(err, "UnlockAll, tid = %d\n", transaction_id->getId());
 		mutex->down();
 		TransactionIdMap::iterator pos = transaction_locks->find(transaction_id);
 		if (pos != transaction_locks->end())
@@ -134,7 +134,7 @@ namespace LockMgr
 		    for (SingleLockSet::iterator iter = locks->begin();
 		        iter != locks->end(); iter++)
 		    {
-				err.printf("Unlock single, tid = %d\n", transaction_id->getId());
+				debug_printf(err, "Unlock single, tid = %d\n", transaction_id->getId());
 				int delete_lock = unlock((*iter), transaction_id);
 
 				if (delete_lock)
@@ -157,7 +157,7 @@ namespace LockMgr
     {
 	int errorNumber = 0;
 
-	err.printf("modifyLockLID, tid = %d\n", tid->getId());
+	debug_printf(err, "modifyLockLID, tid = %d\n", tid->getId());
 
 	mutex->down();
 	    DBPhysicalID* newPHID = newLID->getPhysicalID(tid);

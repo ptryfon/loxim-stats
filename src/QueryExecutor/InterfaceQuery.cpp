@@ -17,13 +17,13 @@ int InterfaceQuery::produceQuery(Schema *interfaceSchema, ErrorConsole *ec, cons
     
     QueryNode *selectionQuery = NULL;
     constructSelection(interfaceSchema, ec, selectionQuery);
-    ec->printf("InterfaceQuery::produceQuery> selectionQuery ready: %s\n", selectionQuery->toString(0, true).c_str());
+    debug_printf(*ec, "InterfaceQuery::produceQuery> selectionQuery ready: %s\n", selectionQuery->toString(0, true).c_str());
     
     QueryNode *dotQuery = new NonAlgOpNode(classInvariantNameNode, selectionQuery, NonAlgOpNode::dot);
     string interfaceObjName = interfaceSchema->getAssociatedObjectName();    
     query = new NameAsNode(dotQuery, interfaceObjName, false);
 
-    ec->printf("InterfaceQuery::produceQuery> whole query ready: %s\n", query->toString(0, true).c_str());
+    debug_printf(*ec, "InterfaceQuery::produceQuery> whole query ready: %s\n", query->toString(0, true).c_str());
     return 0;
 }
 

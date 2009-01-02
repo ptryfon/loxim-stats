@@ -11,7 +11,7 @@ namespace Store
 
 	int Classes::createEntry(TransactionID* tid, int logicalID, const char* name, int& size_needed, char*& entry_buf) {
 #ifdef IX_DEBUG
-		ec->printf("Not possible to create class with this method.");
+		debug_printf(*ec, "Not possible to create class with this method.");
 #endif
 		return 1;
 	}
@@ -50,7 +50,7 @@ namespace Store
 
 	int Classes::addClass(TransactionID* tid, int logicalID, const char* name, const char* invariantName) {
 #ifdef IX_DEBUG
-		ec->printf("addClass(logicalID=%i, name=\"%s\", invariantName=\"%s\", transactionID=%i, transactionTimeStamp=%i)\n",
+		debug_printf(*ec, "addClass(logicalID=%i, name=\"%s\", invariantName=\"%s\", transactionID=%i, transactionTimeStamp=%i)\n",
 			logicalID, name, invariantName, tid->getId(), tid->getTimeStamp());
 #endif
 		char* entry_buf;

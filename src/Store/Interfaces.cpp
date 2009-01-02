@@ -5,7 +5,7 @@ namespace Store
 	Interfaces::Interfaces()
 	{
 	    ec = &ErrorConsole::get_instance(EC_STORE_INTERFACES);
-	    *ec << "Interfaces constructed";
+	    debug_print(*ec,  "Interfaces constructed");
 	    STORE_IX_INITIALPAGECOUNT = STORE_IXC_INITIALPAGECOUNT;
 	    STORE_IX_NAMEMAXLEN = STORE_IXC_NAMEMAXLEN;
 	    STORE_IX_NULLVALUE = STORE_IXC_NULLVALUE;
@@ -16,7 +16,7 @@ namespace Store
 
 	Interfaces::~Interfaces()
 	{
-	    ec->printf("Interfaces destructor called, my last message\n");
+	    debug_printf(*ec, "Interfaces destructor called, my last message\n");
 	}
 
 	int Interfaces::getInterfaceBindForObjectName(TransactionID* tid, const string &oName, string &interfaceName, string &bindName)
@@ -26,7 +26,7 @@ namespace Store
 	    
 	    if (entriesVec->size() > 1)
 	    {	//TODO
-		ec->printf("ERROR in getInterfaceBindForObjectName\n");
+		debug_printf(*ec, "ERROR in getInterfaceBindForObjectName\n");
 		return -1;
 	    }
 	    else if (entriesVec->size() == 1)
@@ -35,7 +35,7 @@ namespace Store
 	    
 		interfaceName = en->getName();
 		bindName = en->getBindName();
-		ec->printf("Found entry for object name %s: int - %s, bind - %s  \n", oName.c_str(), interfaceName.c_str(), bindName.c_str());    
+		debug_printf(*ec, "Found entry for object name %s: int - %s, bind - %s  \n", oName.c_str(), interfaceName.c_str(), bindName.c_str());
 		return 0;
 	    }
 	    else //No interface
@@ -49,7 +49,7 @@ namespace Store
 	    
 	    if (entriesVec->size() > 1)
 	    {	//TODO
-		ec->printf("ERROR in getInterfaceBindForName\n");
+		debug_printf(*ec, "ERROR in getInterfaceBindForName\n");
 		return -1;
 	    }
 	    else if (entriesVec->size() == 1)
@@ -58,7 +58,7 @@ namespace Store
 	    
 		oName = en->getObjectName();
 		bindName = en->getBindName();
-		ec->printf("Found entry for interface name %s: obj - %s, bind - %s  \n", interfaceName.c_str(), oName.c_str(), bindName.c_str());
+		debug_printf(*ec, "Found entry for interface name %s: obj - %s, bind - %s  \n", interfaceName.c_str(), oName.c_str(), bindName.c_str());
 		return 0;    
 	    }
 	    else 
@@ -96,7 +96,7 @@ namespace Store
 	    int errcode = getInterfaceBindForName(tid, name, objectName, oldBindName); 
 	    if (!errcode)
 	    {
-		ec->printf("Interfaces::bindInterface binding interface with name:%s, objectName:%s with %s\n", name.c_str(), objectName.c_str(), bindName.c_str());
+		debug_printf(*ec, "Interfaces::bindInterface binding interface with name:%s, objectName:%s with %s\n", name.c_str(), objectName.c_str(), bindName.c_str());
 	    
 		vector<int>* lids = getItems(tid, name.c_str());
 		if (lids->size() == 1)
@@ -115,17 +115,17 @@ namespace Store
 	    int size = 0;
 	    int err;
 
-	    ec->printf("Interfaces::addInterface creating entry\n");
+	    debug_printf(*ec, "Interfaces::addInterface creating entry\n");
 
 	    if ((err=createEntry(tid, lid, name.c_str(), objectName.c_str(), size, entryBuf, bindName.c_str()))!=0)
 		return err;
 
-	    ec->printf("Interfaces::addInterface Entry created\n");
+	    debug_printf(*ec, "Interfaces::addInterface Entry created\n");
 
 	    if ((err=addItem(tid, size, entryBuf))!=0)
 		return err;
 
-	    ec->printf("Interfaces::addInterface item added\n");
+	    debug_printf(*ec, "Interfaces::addInterface item added\n");
 
 	    if (entryBuf != NULL)
 		delete entryBuf;

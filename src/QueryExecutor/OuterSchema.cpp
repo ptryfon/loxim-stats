@@ -73,7 +73,7 @@ bool OuterSchema::canDelete(string name) const
 
 void OuterSchema::print(ErrorConsole *ec) const
 {
-	ec->printf("OuterSchema %s\n", m_name.c_str());
+	debug_printf(*ec, "OuterSchema %s\n", m_name.c_str());
 	TNameToAccess::const_iterator it;
 	for (it = m_namesInSchema.begin(); it != m_namesInSchema.end(); ++it)
 	{
@@ -83,7 +83,7 @@ void OuterSchema::print(ErrorConsole *ec) const
 		if (canRead(name)) crudString += "READ ";
 		if (canUpdate(name)) crudString += "UPDATE ";
 		if (canDelete(name)) crudString += "DELETE ";
-		ec->printf("\t %s %s \n", name.c_str(), crudString.c_str());	
+		debug_printf(*ec, "\t %s %s \n", name.c_str(), crudString.c_str());
 	}
 }
 
@@ -184,20 +184,20 @@ int OuterSchemas::init()
 	{
 		return errcode;
 	}
-	ec->printf("OuterSchemas::init() getting lids..\n");
+	debug_printf(*ec, "OuterSchemas::init() getting lids..\n");
 	vector<LogicalID*>* schemasLids;
 	errcode = tr->getSchemasLID(schemasLids);
 	if (errcode != 0) 
 	{
-		ec->printf("OuterSchemas::init() error\n");
+		debug_printf(*ec, "OuterSchemas::init() error\n");
 		return errcode;
 	}
 	
-	ec->printf("OuterSchemas::init() loading outer schemas..\n");
+	debug_printf(*ec, "OuterSchemas::init() loading outer schemas..\n");
 	errcode = loadOuterSchemas(tr, schemasLids);
 	if (errcode != 0) 
 	{
-		ec->printf("OuterSchemas::loadOuterSchemas() error, %d\n", errcode);
+		debug_printf(*ec, "OuterSchemas::loadOuterSchemas() error, %d\n", errcode);
 		return errcode;
 	}
 	errcode = tr->commit();
@@ -205,7 +205,7 @@ int OuterSchemas::init()
 	{
 		return errcode;
 	}
-	ec->printf("OuterSchemas::init(): loaded %d schemas, returning\n", m_outerSchemas.size());
+	debug_printf(*ec, "OuterSchemas::init(): loaded %d schemas, returning\n", m_outerSchemas.size());
 	return 0;
 }
 

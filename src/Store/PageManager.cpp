@@ -30,12 +30,12 @@ namespace Store
 	int PageManager::insertObject(TransactionID* tid, PagePointer *pPtr, Serialized& obj, int* pidoffset, unsigned log_id)
 	{
 		ErrorConsole &ec(ErrorConsole::get_instance(EC_STORE));
-		ec << "Store::PageManager::insertObject begin...";
+		debug_print(ec,  "Store::PageManager::insertObject begin...");
 		page_data *page = reinterpret_cast<page_data*>(pPtr->getPage());
 		int roffset = -1;
 
 		if( page->free_space < static_cast<int>(obj.size) ) {
-			ec << "Store::PageManager::insertObject not enough free space on page";
+			debug_print(ec,  "Store::PageManager::insertObject not enough free space on page");
 			return -1;
 		}
 
@@ -52,7 +52,7 @@ namespace Store
 				for(int i=0; i<page->object_count-1; i++) {
 					if( page->object_offset[i] <= page->object_offset[i+1] ) {
 						if( page->object_offset[i] < page->object_offset[i+1] ) {
-							ec << "Store::PageManager::insertObject corrupted page offsets detected";
+							debug_print(ec,  "Store::PageManager::insertObject corrupted page offsets detected");
 							return -11;
 						}
 						else {
@@ -65,7 +65,7 @@ namespace Store
 
 		if( page->free_space < static_cast<int>(obj.size + sizeof(int)) )
 			if( roffset == -1 ) {
-				ec << "Store::PageManager::insertObject not enough free space on page";
+				debug_print(ec,  "Store::PageManager::insertObject not enough free space on page");
 				return -2;
 			}
 
@@ -103,14 +103,14 @@ namespace Store
 
 		page->header.timestamp = static_cast<int>(log_id);
 
-		ec << "Store::PageManager::insertObject done";
+		debug_print(ec,  "Store::PageManager::insertObject done");
 		return 0;
 	}
 
 	int PageManager::deserialize(TransactionID* tid, PagePointer *ptr, int objindex, ObjectPointer*& newobj)
 	{
 		ErrorConsole &ec(ErrorConsole::get_instance(EC_STORE));
-		ec << "Store::PageManager::deserializeObj begin...";
+		debug_print(ec,  "Store::PageManager::deserializeObj begin...");
 		page_data *p = reinterpret_cast<page_data*>(ptr->getPage());
 		int osize = objindex > 0 ?
 			p->object_offset[objindex-1] - p->object_offset[objindex] :
@@ -157,14 +157,14 @@ namespace Store
                     delete lid;
                 }
                 
-		ec << "Store::PageManager::deserializeObj done";
+		debug_print(ec,  "Store::PageManager::deserializeObj done");
 		return 0;
 	}
 
 	int PageManager::initializeFile(File* file)
 	{
 		ErrorConsole &ec(ErrorConsole::get_instance(EC_STORE));
-		ec << "Store::PageManager::initializeFile begin...";
+		debug_print(ec,  "Store::PageManager::initializeFile begin...");
 		char* rawpage = new char[STORE_PAGESIZE];
 		page_data* p = reinterpret_cast<page_data*>(rawpage);
 
@@ -177,14 +177,14 @@ namespace Store
 		file->writePage(STORE_FILE_DEFAULT, 0, rawpage);
 
 		delete[] rawpage;
-		ec << "Store::PageManager::initializeFile done";
+		debug_print(ec,  "Store::PageManager::initializeFile done");
 		return 0;
 	}
 
 	int PageManager::initializePage(unsigned int page_num, char* page)
 	{
 		ErrorConsole &ec(ErrorConsole::get_instance(EC_STORE));
-		ec << "Store::PageManager::initializePage begin...";
+		debug_print(ec,  "Store::PageManager::initializePage begin...");
 
 		bool isFreeMapPage = (page_num%(MAX_OBJECT_COUNT+1) == 0);
 
@@ -203,7 +203,7 @@ namespace Store
 			p->header.page_type = STORE_PAGE_DATAPAGE;
 			p->free_space = MAX_FREE_SPACE;
 		}
-		ec << "Store::PageManager::initializePage done";
+		debug_print(ec,  "Store::PageManager::initializePage done");
 		return 0;
 	}
 
@@ -218,7 +218,7 @@ namespace Store
 	// w ogolnosci trzeba wyszukac strone ktora bedzie miala dodatkowo
 	// sizeof(int) miejsca, aby dodaj pole do tablicy offsetow
 		ErrorConsole &ec(ErrorConsole::get_instance(EC_STORE));
-		ec.printf("Store::PageManager::getFreePage(%i) begin...\n", objsize);
+		debug_printf(ec, "Store::PageManager::getFreePage(%i) begin...\n", objsize);
 		int pii = 0;
 		do	{
 			PagePointer* pPtr = buffer->getPagePointer(tid, STORE_FILE_DEFAULT, pii);
@@ -229,14 +229,14 @@ namespace Store
 				if( p->object_offset[i] >= static_cast<int>(objsize+sizeof(int)) ) {
 					int rid = pPtr->getPageID()+i+1;
 					pPtr->release(tid, 0);
-					ec << "Store::PageManager::getFreePage done";
+					debug_print(ec,  "Store::PageManager::getFreePage done");
 					return (rid);
 				}
 			}
 			if(p->object_count < static_cast<int>(MAX_OBJECT_COUNT)) {
 				int rid = pPtr->getPageID()+p->object_count+1;
 				pPtr->release(tid, 0);
-				ec << "Store::PageManager::getFreePage done";
+				debug_print(ec,  "Store::PageManager::getFreePage done");
 				return (rid);
 			}
 
@@ -244,14 +244,14 @@ namespace Store
 			pii += MAX_OBJECT_COUNT+1;
 		} while(pii > 0);
 
-		ec << "Store::PageManager::getFreePage done";
+		debug_print(ec,  "Store::PageManager::getFreePage done");
 		return 0;
 	}
 
 	int PageManager::updateFreeMap(TransactionID* tid, PagePointer *pPtr)
 	{
 		ErrorConsole &ec(ErrorConsole::get_instance(EC_STORE));
-		ec << "Store::PageManager::updateFreeMap begin...";
+		debug_print(ec,  "Store::PageManager::updateFreeMap begin...");
 		page_data* p = reinterpret_cast<page_data*>(pPtr->getPage());
 
 		int pii = p->header.page_id - (p->header.page_id % (MAX_OBJECT_COUNT + 1));
@@ -262,10 +262,10 @@ namespace Store
 
 		int offset = (p->header.page_id % (MAX_OBJECT_COUNT + 1)) - 1;
 
-		ec.printf("p->header.page_id = %i, pii = %i, offset = %i\n", p->header.page_id, pii, offset);
+		debug_printf(ec, "p->header.page_id = %i, pii = %i, offset = %i\n", p->header.page_id, pii, offset);
 
 		if(f->object_count < offset) {
-			ec << "Store::PageManager::updateFreeMap ERROR: HEADER PAGE FAULT";
+			debug_print(ec,  "Store::PageManager::updateFreeMap ERROR: HEADER PAGE FAULT");
 			return -1;
 		}
 		if(f->object_count == offset) {
@@ -276,7 +276,7 @@ namespace Store
 
 		pFree->releaseSync(tid, 1);
 
-		ec << "Store::PageManager::updateFreeMap done";
+		debug_print(ec,  "Store::PageManager::updateFreeMap done");
 		return 0;
 	}
 
@@ -289,7 +289,7 @@ namespace Store
 	void PageManager::printPage(unsigned char* bytes, int lines)
 	{
 		ErrorConsole &ec(ErrorConsole::get_instance(EC_STORE));
-		ec << "Store::PageManager::printPage...";
+		debug_print(ec,  "Store::PageManager::printPage...");
 		ostringstream ostr;
 		ostr << endl;
 		for(int l=0; l<lines; l++) {
@@ -311,7 +311,7 @@ namespace Store
 			}
 			ostr << endl;
 		}
-		ec << ostr.str();
+		debug_print(ec,  ostr.str());
 	}
 
 }

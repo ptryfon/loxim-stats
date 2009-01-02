@@ -151,8 +151,8 @@ namespace QParser {
 		lexer->switch_streams(&ss, 0);
 		int res = parser->parse();
 		if (res != 0){
-			ec << "Query not parsed properly...\n";
-			ec << (ErrQParser | ENotParsed);
+			debug_print(ec,  "Query not parsed properly...\n");
+			debug_print(ec,  (ErrQParser | ENotParsed));
 			return (ErrQParser | ENotParsed);
 		} else {
 			Deb::ug("Query parsed OK.");
@@ -177,19 +177,19 @@ namespace QParser {
 			bool metadataCorrect = DataScheme::dScheme(sessionId)->getIsComplete();
 			bool metadataUpToDate = DataScheme::dScheme(sessionId)->getIsUpToDate();
 			if (!metadataCorrect || !metadataUpToDate) {
-				ec<< "Data scheme is not complete or not up to date; optimization and typechecking blocked.";
+				debug_print(ec,  "Data scheme is not complete or not up to date); optimization and typechecking blocked.");
 			}
 
 			int typeCheckErrCode = 0;
 			if (shouldTypeCheck && toBeTypeChecked && metadataCorrect && metadataUpToDate) {
-				if (isTcOffTmp()) { ec << "Typechecking turned off temporarily"; tcResultString = "";}
+				if (isTcOffTmp()) { debug_print(ec,  "Typechecking turned off temporarily"); tcResultString = "";}
 				else {
 					Deb::ug(" \n \n TYPECHECK BEGIN !!! \n \n");
 					TypeChecker *tc = new TypeCheck::TypeChecker(nt);
 					typeCheckErrCode = tc->doTypeChecking(tcResultString);
 					Deb::ug(" \n \n TYPECHECK DONE... \n ");
 					if ((typeCheckErrCode != 0) && (typeCheckErrCode != (ErrTypeChecker | ETCNotApplicable))) {
-						ec << "TC, Parser: typeCheckErrorCode says general TC error, should return string to user.\n";
+						debug_print(ec,  "TC, Parser: typeCheckErrorCode says general TC error, should return string to user.\n");
 						return typeCheckErrCode;
 					}
 					if (typeCheckErrCode == 0) {

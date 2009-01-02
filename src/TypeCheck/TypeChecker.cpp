@@ -537,12 +537,12 @@ namespace TypeCheck
 	/* ----------------		TCGlobalResult methods		------------------- */
 	void TCGlobalResult::printOutput() {
 		ErrorConsole &ec(ErrorConsole::get_instance(EC_TYPE_CHECKER));
-		ec << "TypeChecking result: " + overallResult  + "\n ";
+		debug_print(ec,  "TypeChecking result: " + overallResult  + "\n ");
 		if (overallResult == "ERROR") {
-			ec << "Query type check returned errors: \n";
+			debug_print(ec,  "Query type check returned errors: \n");
 			cout << "errors size: " << errors.size() << endl;
 			for (unsigned int i = 0; i < errors.size(); i++) {
-				ec << " -->" + errors[i].getOutput() + " \n";
+				debug_print(ec,  " -->" + errors[i].getOutput() + " \n");
 			}
 		}
 	}

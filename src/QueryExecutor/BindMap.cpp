@@ -96,7 +96,7 @@ void BindMap::print(ErrorConsole *ec) const
 		string interface = (*bit).first;
 		string impName = i.getName();
 		string impObjName = i.getObjectName();
-		ec->printf("%s->(%s,%s)\n", interface.c_str(), impName.c_str(), impObjName.c_str());
+		debug_printf(*ec, "%s->(%s,%s)\n", interface.c_str(), impName.c_str(), impObjName.c_str());
 	}
 }
 

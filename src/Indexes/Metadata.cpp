@@ -34,14 +34,14 @@ namespace Indexes
 		//1. czy taka nazwa nie jest jeszcze uzywana
 
 		if (indexNames.count(name) > 0) {
-			ec->printf("INDEX::addIndex: nazwa %s jest juz uzywana\n", name.c_str());
+			debug_printf(*ec, "INDEX::addIndex: nazwa %s jest juz uzywana\n", name.c_str());
 			return ErrIndexes | EIndexExists;
 		}
 
 		//2. czy te pola nie sa jeszcze indeksowane
 
 		if (isFieldIndexed(rootName, fieldName)) {
-			ec->printf("INDEX::add Index: pole %s.%s jest juz indeksowane\n", rootName.c_str(), fieldName.c_str());
+			debug_printf(*ec, "INDEX::add Index: pole %s.%s jest juz indeksowane\n", rootName.c_str(), fieldName.c_str());
 			return ErrIndexes | EFieldIndexed;
 		}
 
@@ -150,7 +150,7 @@ namespace Indexes
 				//notUpdated zawiera wszystkie pola po ktorych musi byc indeksowanie
 
 				if (db_value->getType() != Store::Vector) {
-					ec->printf("dodawany obiekt ma zly typ\n");
+					debug_printf(*ec, "dodawany obiekt ma zly typ\n");
 					return EBadValue | ErrIndexes;
 					//ih->addEntry(tid, op);
 					//return addEmptyEntries(notUpdated, toWhichIndex);
@@ -292,7 +292,7 @@ namespace Indexes
 		IndexHandler* ih = it->second;
 		indexNames.erase(it);
 		if (INDEX_DEBUG_MODE) {
-			ec->printf("rozmiar indexNames po usunieciu: %d\n" ,indexNames.size());
+			debug_printf(*ec, "rozmiar indexNames po usunieciu: %d\n" ,indexNames.size());
 		}
 		indexesMap::iterator mapIt = indexes.find(ih->getRoot()); //na pewno bedzie znaleziony
 		(mapIt->second).erase(ih->getField());

@@ -11,28 +11,28 @@ InterfaceMaps::InterfaceMaps() {ec = &ErrorConsole::get_instance(EC_INTERFACE_MA
 
 void InterfaceMaps::printAll() const
 {
-	ec->printf("\n\n Interfaces in map: \n");
+	debug_printf(*ec, "\n\n Interfaces in map: \n");
 	TInterfaceToSchemas::const_iterator it;
 	for (it = m_nameToSchema.begin(); it != m_nameToSchema.end(); ++it)
 	{
 		string name = (*it).first;
 		Schema s = (*it).second;
-		ec->printf("\n***%s***\n", name.c_str()); 		
+		debug_printf(*ec, "\n***%s***\n", name.c_str());
 		s.printAll(ec);
 	}	
 	
-	ec->printf("\n InterfacesHierarchy: \n");
+	debug_printf(*ec, "\n InterfacesHierarchy: \n");
 	TInterfaceToHierarchy::const_iterator hit;
 	for (hit = m_nameToHierarchy.begin(); hit != m_nameToHierarchy.end(); ++hit)
 	{
 		string name = (*hit).first;
 		HierarchyInfo h = (*hit).second;
-		ec->printf("\n***%s***\n", name.c_str());
+		debug_printf(*ec, "\n***%s***\n", name.c_str());
 		
 		TStringSet parents = h.getParents();
 		TStringSet children = h.getChildren();
 		
-		ec->printf("\t Parents: ");
+		debug_printf(*ec, "\t Parents: ");
 		TStringSet::iterator p;
 		string totalPar;
 		for (p = parents.begin(); p!=parents.end(); ++p)
@@ -40,26 +40,26 @@ void InterfaceMaps::printAll() const
 			string par = *p;
 			totalPar += par + " ";
 		}
-		*ec << totalPar;	
+		debug_print(*ec,  totalPar);
 		
-		ec->printf("\n\t Children: ");
+		debug_printf(*ec, "\n\t Children: ");
 		string totalChild;
 		for (p = children.begin(); p!=children.end(); ++p)
 		{
 			string child = *p;
 			totalChild += child + " ";
 		}
-		*ec << totalChild;
-		ec->printf("\n");
+		debug_print(*ec,  totalChild);
+		debug_printf(*ec, "\n");
 	}
 	
-	ec->printf("\n InterfacesInExtends: \n");
+	debug_printf(*ec, "\n InterfacesInExtends: \n");
 	TNameInHierarchy::const_iterator nit;
 	for (nit = m_nameToInterfacesExtending.begin(); nit != m_nameToInterfacesExtending.end(); ++nit)
 	{
 		string name = (*nit).first;
 		TStringSet ext = (*nit).second;
-		ec->printf("Interface %s is extended by: ", name.c_str());
+		debug_printf(*ec, "Interface %s is extended by: ", name.c_str());
 		TStringSet::iterator i;
 		string totalExt;
 		for (i = ext.begin(); i != ext.end(); ++i)
@@ -67,14 +67,14 @@ void InterfaceMaps::printAll() const
 			string extName = *i;
 			totalExt += extName + " ";
 		}
-		*ec << totalExt;
-		ec->printf("\n");
+		debug_print(*ec,  totalExt);
+		debug_printf(*ec, "\n");
 	}
 	
-	ec->printf("\n BindMap:\n");
+	debug_printf(*ec, "\n BindMap:\n");
 	m_bindMap.print(ec);
 	
-	ec->printf("\n");
+	debug_printf(*ec, "\n");
 }
 
 int InterfaceMaps::init()
@@ -85,20 +85,20 @@ int InterfaceMaps::init()
 	{
 		return errcode;
 	}
-	ec->printf("InterfaceMaps::init() getting lids..\n");
+	debug_printf(*ec, "InterfaceMaps::init() getting lids..\n");
 	vector<LogicalID*>* interfacesLids;
 	errcode = tr->getInterfacesLID(interfacesLids);
 	if (errcode != 0) 
 	{
-		ec->printf("InterfaceMaps::init() error\n");
+		debug_printf(*ec, "InterfaceMaps::init() error\n");
 		return errcode;
 	}
 	
-	ec->printf("InterfaceMaps::init() loadingSchemas..\n");
+	debug_printf(*ec, "InterfaceMaps::init() loadingSchemas..\n");
 	errcode = loadSchemas(tr, interfacesLids);
 	if (errcode != 0) 
 	{
-		ec->printf("InterfaceMaps::loadSchemas() error, %d\n", errcode);
+		debug_printf(*ec, "InterfaceMaps::loadSchemas() error, %d\n", errcode);
 		return errcode;
 	}
 	errcode = tr->commit();
@@ -107,7 +107,7 @@ int InterfaceMaps::init()
 		return errcode;
 	}
 	//printAll();
-	ec->printf("InterfaceMaps::init(): loaded %d interfaces, returning\n", m_nameToSchema.size());
+	debug_printf(*ec, "InterfaceMaps::init(): loaded %d interfaces, returning\n", m_nameToSchema.size());
 	return 0;
 }
 
@@ -139,19 +139,19 @@ int InterfaceMaps::loadSchemas(TManager::Transaction *tr, TLidsVector *lvec)
 		if (errcode) return errcode;
 		insertNewInterfaceAndPropagateHierarchy(*interfaceSchema, false, false);
 		string oN = interfaceSchema->getAssociatedObjectName();
-		ec->printf("InterfaceMaps::loadSchemas: adding bind for int=%s, obj=%s\n", interfaceSchema->getName().c_str(), oN.c_str());
+		debug_printf(*ec, "InterfaceMaps::loadSchemas: adding bind for int=%s, obj=%s\n", interfaceSchema->getName().c_str(), oN.c_str());
 		errcode = addBind(oN, tr);
 		if (errcode)
 		{
 			clearMaps();
-			ec->printf("InterfaceMaps::loadSchemas: error in FindClassBoundToInterface\n");
+			debug_printf(*ec, "InterfaceMaps::loadSchemas: error in FindClassBoundToInterface\n");
 			return errcode;
 		}
 	}
 
 	if (!checkHierarchyValidity())
 	{   //Interfaces corrupted - Loop in hierarchy! (TODO)
-		ec->printf("InterfaceMaps::loadSchemas: error - corrupted hierarchy!\n");
+		debug_printf(*ec, "InterfaceMaps::loadSchemas: error - corrupted hierarchy!\n");
 		return -1;
 	}
 	
@@ -321,7 +321,7 @@ bool InterfaceMaps::insertNewInterfaceAndPropagateHierarchy(Schema interfaceSche
 	TInterfaceToHierarchy ithCpy(m_nameToHierarchy);
 	
 	string interfaceName = interfaceSchema.getName();
-	ec->printf("insertNewInterfaceAndPropagateHierarchy starts with interfaceName = %s\n", interfaceName.c_str());
+	debug_printf(*ec, "insertNewInterfaceAndPropagateHierarchy starts with interfaceName = %s\n", interfaceName.c_str());
 	TSupers supers = interfaceSchema.getSupers();	
 	HierarchyInfo hI;
 	
@@ -356,7 +356,7 @@ bool InterfaceMaps::insertNewInterfaceAndPropagateHierarchy(Schema interfaceSche
 	bool valid = checkHierarchyValidity();
 	if ((checkValidity && !valid) || (tryOnly))
 	{
-		ec->printf("insertNewInterfaceAndPropagateHierarchy: reversing changes\n");
+		debug_printf(*ec, "insertNewInterfaceAndPropagateHierarchy: reversing changes\n");
 		m_nameToSchema.erase(interfaceName);
 		m_nameToHierarchy = ithCpy;
 		m_nameToInterfacesExtending = nihCpy;

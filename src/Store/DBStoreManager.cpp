@@ -188,7 +188,7 @@ namespace Store
 	int DBStoreManager::getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object)
 	{
 			if(lid->toInteger() & 0xFF000000) {
-				ec->printf("Store::Manager::getObject from systemViews LID = %u\n", lid->toInteger());
+				debug_printf(*ec, "Store::Manager::getObject from systemViews LID = %u\n", lid->toInteger());
 			/* Obiekty widoku systemowego, gdy zapalone są bity 31-24*/
 			return systemviews->getObject( tid, lid, mode, object);
 			}
@@ -199,7 +199,7 @@ namespace Store
 
 		if (map->equal(p_id, map->RIP))
 		{
-			*ec << "Store::Manager::getObject failed: Object not found\n(brak ustalonego kodu bledu dla tej operacji, default -> return 2;";
+			debug_print(*ec,  "Store::Manager::getObject failed: Object not found\n(brak ustalonego kodu bledu dla tej operacji, default -> return 2);");
 			object = NULL;
 			return 0;
 		}
@@ -218,7 +218,7 @@ namespace Store
                 }
                 
 		if(rval) {
-			*ec << "Store::Manager::getObject failed";
+			debug_print(*ec,  "Store::Manager::getObject failed");
 			return -1;
 		}
 
@@ -305,7 +305,7 @@ namespace Store
 #endif
 		physical_id *p_id = NULL;
 		if( (map->getPhysicalID(tid, object->getLogicalID()->toInteger(),&p_id)) == 2 ) {
-			ec->printf("Store::Manager::deleteObject failed: LID=%d out of range\n(brak ustalonego kodu bledu dla tej operacji, default -> return 2;\n", object->getLogicalID()->toInteger());
+			debug_printf(*ec, "Store::Manager::deleteObject failed: LID=%d out of range\n(brak ustalonego kodu bledu dla tej operacji, default -> return 2;\n", object->getLogicalID()->toInteger());
 			return 2; //out of range
 		}
 #ifdef DEBUG_MODE
@@ -313,7 +313,7 @@ namespace Store
 #endif
 		if((!p_id->file_id) && (!p_id->page_id) && (!p_id->offset)) return 2;
 		if( p_id->offset > STORE_PAGESIZE/4 ) {
-			*ec << "Store::Manager::deleteObject failed: invalid offset";
+			debug_print(*ec,  "Store::Manager::deleteObject failed: invalid offset");
 			return 3;
 		}
 		PagePointer *pPtr = buffer->getPagePointer(tid, p_id->file_id, p_id->page_id);
@@ -376,7 +376,7 @@ namespace Store
 		for(i = p->object_count-1; i > 0; i--)
 			if( p->object_offset[i] >= p->object_offset[i-1] )
 				if( p->object_offset[i] > p->object_offset[i-1] ) {
-					*ec << "Store::Manager::deleteObject corrupted page offsets detected";
+					debug_print(*ec,  "Store::Manager::deleteObject corrupted page offsets detected");
 					break;
 				}
 				else {
@@ -795,7 +795,7 @@ int DBStoreManager::getClassesLID(TransactionID* tid, vector<LogicalID*>*& p_cla
 		vector<int>* rvec;
 		rvec = interfaces->getItems(tid, name.c_str());
 
-		*ec << "Store::Manager::getInterfacesLID(BY NAME) past getItems";
+		debug_print(*ec,  "Store::Manager::getInterfacesLID(BY NAME) past getItems");
 
 		vector<int>::iterator obj_iter;
 		for(obj_iter=rvec->begin(); obj_iter!=rvec->end(); obj_iter++)
@@ -818,14 +818,14 @@ int DBStoreManager::getClassesLID(TransactionID* tid, vector<LogicalID*>*& p_cla
 #endif
 		int lid = object->getLogicalID()->toInteger();
 
-		ec->printf("Store::Manager::addInterface lid = %d\n", lid);
+		debug_printf(*ec, "Store::Manager::addInterface lid = %d\n", lid);
 
 		int err = interfaces->addInterface(tid, lid, name, objectName);
 
-		ec->printf("Store::Manager::addInterface after interfaces->addInterface");
+		debug_printf(*ec, "Store::Manager::addInterface after interfaces->addInterface");
 
 		if (err != 0) {
-		    *ec << "Store::Manager::addInterface: error in Interfaces::addInterface";
+		    debug_print(*ec,  "Store::Manager::addInterface: error in Interfaces::addInterface");
 		    return err;
 		}
 
@@ -843,7 +843,7 @@ int DBStoreManager::getClassesLID(TransactionID* tid, vector<LogicalID*>*& p_cla
 		int err = interfaces->bindInterface(tid, name, bindName);
 
 		if (err != 0) {
-		    *ec << "Store::Manager::bindInterface: error in Interfaces::bindInterface";
+		    debug_print(*ec,  "Store::Manager::bindInterface: error in Interfaces::bindInterface");
 		    return err;
 		}
 
@@ -919,12 +919,12 @@ int DBStoreManager::getClassesLID(TransactionID* tid, vector<LogicalID*>*& p_cla
 #endif
 		int lid = object->getLogicalID()->toInteger();
 
-		ec->printf("Store::Manager::addSchema lid = %d\n", lid);
+		debug_printf(*ec, "Store::Manager::addSchema lid = %d\n", lid);
 
 		int err = schemas->addItem(tid, lid, name.c_str());
 
 		if (err != 0) {
-		    *ec << "Store::Manager::addSchema: error in Schemas::addSchema";
+		    debug_print(*ec,  "Store::Manager::addSchema: error in Schemas::addSchema");
 		    return err;
 		}
 

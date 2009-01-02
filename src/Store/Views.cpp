@@ -24,7 +24,7 @@ namespace Store
 	int Views::initializeFile(File* file)
 	{
 #ifdef IXV_DEBUG
-		ec->printf("initializeFile()\n");
+		debug_printf(*ec, "initializeFile()\n");
 #endif
 
 		char* buf = new char[STORE_PAGESIZE];
@@ -59,7 +59,7 @@ namespace Store
 	int Views::initializePage(unsigned int pageID, char* buf)
 	{
 #ifdef IXV_DEBUG
-		ec->printf("initializePage(pageID=%i)\n", pageID);
+		debug_printf(*ec, "initializePage(pageID=%i)\n", pageID);
 #endif
 
 		ixv_page* page = (ixv_page*) buf;
@@ -77,7 +77,7 @@ namespace Store
 	int Views::addView(TransactionID* tid, int logicalID, const char* name)
 	{
 #ifdef IXV_DEBUG
-		ec->printf("addView(logicalID=%i, name=\"%s\", transactionID=%i, transactionTimeStamp=%i)\n", logicalID, name, tid->getId(), tid->getTimeStamp());
+		debug_printf(*ec, "addView(logicalID=%i, name=\"%s\", transactionID=%i, transactionTimeStamp=%i)\n", logicalID, name, tid->getId(), tid->getTimeStamp());
 #endif
 
 		int i = 0;
@@ -142,7 +142,7 @@ namespace Store
 	int Views::removeView(TransactionID* tid, int logicalID)
 	{
 #ifdef IXV_DEBUG
-		ec->printf("removeView(logicalID=%i, tid->getId()=%i, tid->getTimeStamp()=%i)\n", logicalID, tid->getId(), tid->getTimeStamp());
+		debug_printf(*ec, "removeView(logicalID=%i, tid->getId()=%i, tid->getTimeStamp()=%i)\n", logicalID, tid->getId(), tid->getTimeStamp());
 #endif
 
 		int i = 0;
@@ -215,7 +215,7 @@ namespace Store
 	int Views::commitTransaction(TransactionID* tid)
 	{
 #ifdef IXV_DEBUG
-		ec->printf("commitTransaction(tid->getId()=%i)\n", tid->getId());
+		debug_printf(*ec, "commitTransaction(tid->getId()=%i)\n", tid->getId());
 #endif
 
 		return modifyTransaction(tid, 0);
@@ -224,7 +224,7 @@ namespace Store
 	int Views::abortTransaction(TransactionID* tid)
 	{
 #ifdef IXV_DEBUG
-		ec->printf("abortTransaction(tid->getId()=%i)\n", tid->getId());
+		debug_printf(*ec, "abortTransaction(tid->getId()=%i)\n", tid->getId());
 #endif
 
 		return modifyTransaction(tid, 1);
@@ -233,7 +233,7 @@ namespace Store
 	int Views::abortAllTransactions()
 	{
 #ifdef IXV_DEBUG
-		ec->printf("abortAllTransactions()\n");
+		debug_printf(*ec, "abortAllTransactions()\n");
 #endif
 
 		return modifyTransaction(0, 2);
@@ -326,7 +326,7 @@ namespace Store
 	vector<int>* Views::getViews(TransactionID* tid)
 	{
 #ifdef IXV_DEBUG
-		ec->printf("getViews(tid->getId()=%i, tid->getTimeStamp()=%i)\n", tid->getId(), tid->getTimeStamp());
+		debug_printf(*ec, "getViews(tid->getId()=%i, tid->getTimeStamp()=%i)\n", tid->getId(), tid->getTimeStamp());
 #endif
 
 		return getViews(tid, "");
@@ -335,7 +335,7 @@ namespace Store
 	vector<int>* Views::getViews(TransactionID* tid, const char* name)
 	{
 #ifdef IXV_DEBUG
-		ec->printf("getViews(name=\"%s\", tid->getId()=%i, tid->getTimeStamp()=%i)\n", name, tid->getId(), tid->getTimeStamp());
+		debug_printf(*ec, "getViews(name=\"%s\", tid->getId()=%i, tid->getTimeStamp()=%i)\n", name, tid->getId(), tid->getTimeStamp());
 #endif
 
 		vector<int>* views = new vector<int>();

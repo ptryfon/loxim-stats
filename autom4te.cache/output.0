@@ -20091,11 +20091,13 @@ if test "${enable_cust_verb+set}" = set; then
   enableval=$enable_cust_verb; 
 fi
 
+cust_verb_forced=yes
 if test "x$enable_cust_verb" = "xno" -o "x$enable_cust_verb" = "xyes" -o \
 "x$enable_cust_verb" = "x" ; then
 
 	#these don't make any sense, so we fall back to the default - INFO
 	enable_cust_verb=INFO
+	cust_verb_forced=no
 fi
 
 if test "x$enable_cust_verb" != "xDEBUG" -a "x$enable_cust_verb" != "xINFO" -a \
@@ -21546,7 +21548,16 @@ echo "$as_me: executing $ac_file commands" >&6;}
 
 
   case $ac_file$ac_mode in
-    "depfiles":C) test x"$AMDEP_TRUE" != x"" || for mf in $CONFIG_FILES; do
+    "depfiles":C) test x"$AMDEP_TRUE" != x"" || # Autoconf 2.62 quotes --file arguments for eval, but not when files
+# are listed without --file.  Let's play safe and only enable the eval
+# if we detect the quoting.
+case $CONFIG_FILES in
+*\'*) eval set x "$CONFIG_FILES" ;;
+*)   set x $CONFIG_FILES ;;
+esac
+shift
+for mf
+do
   # Strip MF so we end up with the name of the file.
   mf=`echo "$mf" | sed -e 's/:.*$//'`
   # Check whether this is an Automake generated Makefile or not.
@@ -21702,4 +21713,15 @@ if test "$no_create" != yes; then
   $ac_cs_success || { (exit 1); exit 1; }
 fi
 
+
+if test "x$cust_verb_forced" = "xno" ; then
+	{ echo "$as_me:$LINENO: WARNING: Not all messages will be compiled, which is probably fine
+		     for you (by default only debug messages are not compiled),
+		     but if you would like to change this behaviour consult the
+		     --enable-cust-verb option." >&5
+echo "$as_me: WARNING: Not all messages will be compiled, which is probably fine
+		     for you (by default only debug messages are not compiled),
+		     but if you would like to change this behaviour consult the
+		     --enable-cust-verb option." >&2;}
+fi
 

@@ -45,7 +45,7 @@ namespace Logs
 	{
 		ec = &ErrorConsole::get_instance(EC_ARIES_LOG);
 #ifdef DEBUG_MODE
-		*ec << "LogManager::Constructor";
+		debug_print(*ec,  "LogManager::Constructor");
 #endif
 		fd = -1;
 	}
@@ -53,13 +53,13 @@ namespace Logs
 	LogManager::~LogManager() 
 	{
 #ifdef DEBUG_MODE
-		*ec << "LogManager::Destructor beginning";
+		debug_print(*ec,  "LogManager::Destructor beginning");
 #endif
 		if(fd != -1) 
 		{
 			if(::close(fd) < 0)
-				ec->printf("close: errno = %d, errmsg = %s",
-					errno, strerror(errno));;
+				debug_printf(*ec, "close: errno = %d, errmsg = %s",
+					errno, strerror(errno));
 			fd = -1;
 		}
 		if(config) 
@@ -73,7 +73,7 @@ namespace Logs
 			transTable = NULL;
 		}
 #ifdef DEBUG_MODE
-		*ec << "LogManager::Destructor done";
+		debug_print(*ec,  "LogManager::Destructor done");
 #endif
 	}
 	
@@ -82,7 +82,7 @@ namespace Logs
 		string logFilePath;
 		
 #ifdef DEBUG_MODE
-		*ec << "LogManager::init beginning";
+		debug_print(*ec,  "LogManager::init beginning");
 #endif
 		config = new SBQLConfig("ARIESLog");
 		transTable = new LogTransactionTable();
@@ -93,7 +93,7 @@ namespace Logs
 				return EBadFile | ErrLogs;
 		LogRecord::init(::lseek(fd, 0, SEEK_END));
 #ifdef DEBUG_MODE
-		*ec << "LogManager::init done";
+		debug_print(*ec,  "LogManager::init done");
 #endif
 		return 0;
 	}
@@ -102,11 +102,11 @@ namespace Logs
 	/// argument store jest zbedny
 	{
 #ifdef DEBUG_MODE
-		*ec << "LogManager::start";
+		debug_print(*ec,  "LogManager::start");
 #endif
 		
 #ifdef DEBUG_MODE
-		*ec << "LogManager::start done";
+		debug_print(*ec,  "LogManager::start done");
 #endif
 		return 0;
 	}
@@ -114,11 +114,11 @@ namespace Logs
 	/// argument store jest zbedny
 	{
 #ifdef DEBUG_MODE
-		*ec << "LogManager::start";
+		debug_print(*ec,  "LogManager::start");
 #endif
 		
 #ifdef DEBUG_MODE
-		*ec << "LogManager::start done";
+		debug_print(*ec,  "LogManager::start done");
 #endif
 		return 0;
 	}
@@ -126,11 +126,11 @@ namespace Logs
 	int LogManager::shutdown(unsigned &id) 
 	{
 #ifdef DEBUG_MODE
-		*ec << "LogManager::shutdown";
+		debug_print(*ec,  "LogManager::shutdown");
 #endif
 		
 #ifdef DEBUG_MODE
-		*ec << "LogManager::shutdown done";
+		debug_print(*ec,  "LogManager::shutdown done");
 #endif
 		return 0;
 	};
@@ -157,7 +157,7 @@ namespace Logs
 		if (sync_file_range(fd, 0, toLSN, SYNC_FILE_RANGE_WAIT_BEFORE | SYNC_FILE_RANGE_WRITE | SYNC_FILE_RANGE_WAIT_AFTER) < 0)
 			return ESyncLog;
 #ifdef DEBUG_MODE
-		ec->printf("LogManager::syncLog up to %d done.\n", toLSN);
+		debug_printf(*ec, "LogManager::syncLog up to %d done.\n", toLSN);
 #endif
 		return 0;
 	}
@@ -178,7 +178,7 @@ namespace Logs
 
 		id = ti->lastLSN;
 #ifdef DEBUG_MODE
-		ec->printf("LogManager::transaction %d started with LSN = %d\n", tid, id);
+		debug_printf(*ec, "LogManager::transaction %d started with LSN = %d\n", tid, id);
 #endif
 		return 0;
 	}
@@ -188,7 +188,7 @@ namespace Logs
 		transaction_info* ti = transTable->find(tid);
 		int res = endTransaction(ti, id);
 #ifdef DEBUG_MODE
-		ec->printf("LogManager::transaction %d commited with LSN = %d\n", tid, id);
+		debug_printf(*ec, "LogManager::transaction %d commited with LSN = %d\n", tid, id);
 #endif
 		return res;
 	}
@@ -217,7 +217,7 @@ namespace Logs
 	int LogManager::rollbackTransaction(int tid, /*StoreManager *sm, ////*/unsigned int &id)
 	{
 #ifdef DEBUG_MODE
-		ec->printf("LogManager::rollbackTransaction %d\n", tid);
+		debug_printf(*ec, "LogManager::rollbackTransaction %d\n", tid);
 #endif
 		transaction_info* ti = transTable->find(tid);
 		/*RollbackLogRecord* record = new RollbackLogRecord(-1, tid);
@@ -234,7 +234,7 @@ namespace Logs
 		while (undoNxtLSN > 0)
 		{
 #ifdef DEBUG_MODE
-			ec->printf("LogManager:: LSN of the record to be undone: %d\n", undoNxtLSN);
+			debug_printf(*ec, "LogManager:: LSN of the record to be undone: %d\n", undoNxtLSN);
 #endif
 			LogRecord::read(fd, undoNxtLSN, record);
 			undoNxtLSN = record->getUndoNxtLSN();
@@ -284,7 +284,7 @@ cout << "undoData newVal: '" << undoData->newVal->toString() << "'\n";//////////
 		
 		endTransaction(ti, id);
 #ifdef DEBUG_MODE
-		*ec << "LogManager: rollback finished.\n";
+		debug_print(*ec,  "LogManager: rollback finished.\n");
 #endif
 		return 0;
 	}
@@ -309,7 +309,7 @@ cout << "undoData newVal: '" << undoData->newVal->toString() << "'\n";//////////
 			
 			id = ti->lastLSN;
 #ifdef DEBUG_MODE
-			ec->printf("LogManager::transaction %d: update written to the log with LSN = %d\n", tid, id);
+			debug_printf(*ec, "LogManager::transaction %d: update written to the log with LSN = %d\n", tid, id);
 #endif
 		};
 		

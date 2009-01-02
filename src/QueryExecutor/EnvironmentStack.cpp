@@ -52,21 +52,21 @@ int EnvironmentStack::push(QueryBagResult *r, Transaction *&tr, QueryExecutor *q
 			}
 		}
 	}
-	*ec << r->toString(0, true);
+	debug_print(*ec,  r->toString(0, true));
 	es.push_back(r);
 	es_priors.push_back(actual_prior);
-	*ec << "[QE] Environment Stack pushed";
+	debug_print(*ec,  "[QE] Environment Stack pushed");
 	return 0;
 }
 
 int EnvironmentStack::pop(){
 	if (es.empty()) {
-		*ec << (ErrQExecutor | EQEmptySet);
+		debug_print(*ec,  (ErrQExecutor | EQEmptySet));
 		return (ErrQExecutor | EQEmptySet);
 	}
 	if (es.size() == sectionDBnumber) {
-		*ec << "error: trying to pop() Data Base section";
-		*ec << (ErrQExecutor | EQEUnexpectedErr);
+		debug_print(*ec,  "error: trying to pop() Data Base section");
+		debug_print(*ec,  (ErrQExecutor | EQEUnexpectedErr));
 		return (ErrQExecutor | EQEUnexpectedErr);
 	}
 	// delete ??
@@ -83,37 +83,37 @@ int EnvironmentStack::pop(){
 	
 	es.pop_back();
 	es_priors.pop_back();
-	*ec << "[QE] Environment Stack popped";
+	debug_print(*ec,  "[QE] Environment Stack popped");
 	return 0;
 }
 
 int EnvironmentStack::pushDBsection() {
 	if (sectionDBnumber != 0) {
-		*ec << "error: DBsection already pushed, can't be pushed once more";
-		*ec << (ErrQExecutor | EQEUnexpectedErr);
+		debug_print(*ec,  "error: DBsection already pushed, can't be pushed once more");
+		debug_print(*ec,  (ErrQExecutor | EQEUnexpectedErr));
 		return (ErrQExecutor | EQEUnexpectedErr);
 	}
 	QueryResult *r = new QueryBagResult();
 	es.push_back((QueryBagResult *)r);
 	es_priors.push_back(actual_prior);
 	sectionDBnumber = es.size();
-	*ec << "[QE] Data Base section pushed on Environment Stack";
+	debug_print(*ec,  "[QE] Data Base section pushed on Environment Stack");
 	return 0;
 }
 
 int EnvironmentStack::popDBsection() {
 	if (sectionDBnumber == 0) {
-		*ec << "error: DBsection wasn't pushed, can't be poped";
-		*ec << (ErrQExecutor | EQEUnexpectedErr);
+		debug_print(*ec,  "error: DBsection wasn't pushed, can't be poped");
+		debug_print(*ec,  (ErrQExecutor | EQEUnexpectedErr));
 		return (ErrQExecutor | EQEUnexpectedErr);
 	}
 	if (es.empty()) {
-		*ec << (ErrQExecutor | EQEmptySet);
+		debug_print(*ec,  (ErrQExecutor | EQEmptySet));
 		return (ErrQExecutor | EQEmptySet);
 	}
 	if (sectionDBnumber > es.size()) {
-		*ec <<"error: DBsection number is greater then environment stack size";
-		*ec << (ErrQExecutor | EQEUnexpectedErr);
+		debug_print(*ec, "error: DBsection number is greater then environment stack size");
+		debug_print(*ec,  (ErrQExecutor | EQEUnexpectedErr));
 		return (ErrQExecutor | EQEUnexpectedErr);
 	}
 	while (sectionDBnumber <= es.size()) {
@@ -122,18 +122,18 @@ int EnvironmentStack::popDBsection() {
 		es_priors.pop_back();
 	}	
 	sectionDBnumber = 0;
-	*ec << "[QE] Data Base section popped from Environment Stack";
+	debug_print(*ec,  "[QE] Data Base section popped from Environment Stack");
 	return 0;
 }
 
 int EnvironmentStack::top(QueryBagResult *&r) {
 	if (es.empty()) {
-		*ec << (ErrQExecutor | EQEmptySet);
+		debug_print(*ec,  (ErrQExecutor | EQEmptySet));
 		return (ErrQExecutor | EQEmptySet);
 	}
 	if (es.size() == sectionDBnumber) {
-		*ec << "error: trying to top() Data Base section";
-		*ec << (ErrQExecutor | EQEUnexpectedErr);
+		debug_print(*ec,  "error: trying to top() Data Base section");
+		debug_print(*ec,  (ErrQExecutor | EQEUnexpectedErr));
 		return (ErrQExecutor | EQEUnexpectedErr);
 	}
 	r=(es.back());
@@ -147,10 +147,10 @@ int EnvironmentStack::size() { return es.size(); }
 
 int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, QueryExecutor *qe, QueryResult *&r, string iName) {
 	int errcode;
-	*ec << "[QE] Name binding on ES";
-	*ec << toString() ;
+	debug_print(*ec,  "[QE] Name binding on ES");
+	debug_print(*ec,  toString() );
 	unsigned int number = (es.size());
-	ec->printf("[QE] bindName: ES got %u sections\n", number);
+	debug_printf(*ec, "[QE] bindName: ES got %u sections\n", number);
 	r = new QueryBagResult();
 	bool found_one = false;
 	bool found_normal = false;
@@ -163,36 +163,36 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 	for (unsigned int i = number; i >= 1; i--) {
 		if (es_priors.at(i - 1) == actual_prior) {
 			if (i == sectionDBnumber) {
-				ec->printf("[QE] bindName: ES section %u is Data Base section\n", i);
+				debug_printf(*ec, "[QE] bindName: ES section %u is Data Base section\n", i);
 				vector<LogicalID*>* vec;
 				if ((errcode = tr->getRootsLID(name, vec)) != 0) {
-					*ec << "[QE] bindName - error in getRootsLID";
+					debug_print(*ec,  "[QE] bindName - error in getRootsLID");
 					qe->antyStarveFunction(errcode);
 					qe->inTransaction = false;
 					return errcode;
 				}
 				int vecSize = vec->size();
-				ec->printf("[QE] %d Roots LID by name taken\n", vecSize);
+				debug_printf(*ec, "[QE] %d Roots LID by name taken\n", vecSize);
 				
 				vector<LogicalID*>* vec_virt;
 				if ((errcode = tr->getViewsLID(name, vec_virt)) != 0) {
-					*ec << "[QE] bindName - error in getViewsLID";
+					debug_print(*ec,  "[QE] bindName - error in getViewsLID");
 					qe->antyStarveFunction(errcode);
 					qe->inTransaction = false;
 					return errcode;
 				}
 				int vecSize_virt = vec_virt->size();
-				ec->printf("[QE] %d Views LID by name taken\n", vecSize_virt);
+				debug_printf(*ec, "[QE] %d Views LID by name taken\n", vecSize_virt);
 				
 				vector<LogicalID*>* vec_sysvirt;
 				if ((errcode = tr->getSystemViewsLID(name, vec_sysvirt)) != 0) {
-					*ec << "[QE] bindName - error in getSystemViewsLID";
+					debug_print(*ec,  "[QE] bindName - error in getSystemViewsLID");
 					qe->antyStarveFunction(errcode);
 					qe->inTransaction = false;
 					return errcode;
 				}
 				int vecSize_sysvirt = vec_sysvirt->size();
-				ec->printf("[QE] %d SystemViews LID by name taken\n", vecSize_sysvirt);
+				debug_printf(*ec, "[QE] %d SystemViews LID by name taken\n", vecSize_sysvirt);
 				
 				if (vecSize_virt == 0 && vecSize_sysvirt == 0) 
 				{ 
@@ -235,24 +235,24 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 				}
 				else if (vecSize != 0) {
 					if (vecSize_virt != 0) {
-						*ec << "[QE] bindName error: Real and virtual objects have the same name";
+						debug_print(*ec,  "[QE] bindName error: Real and virtual objects have the same name");
 					} else {
-						*ec << "[QE] bindName error: Real and system view objects have the same name";
+						debug_print(*ec,  "[QE] bindName error: Real and system view objects have the same name");
 					}
-					*ec << (ErrQExecutor | EBadBindName);
+					debug_print(*ec,  (ErrQExecutor | EBadBindName));
 					return (ErrQExecutor | EBadBindName);
 				} else if(vecSize_virt != 0 && vecSize_sysvirt != 0) {
-					*ec << "[QE] bindName error: virtual objects and system view objects have the same name";
-					*ec << (ErrQExecutor | EBadBindName);
+					debug_print(*ec,  "[QE] bindName error: virtual objects and system view objects have the same name");
+					debug_print(*ec,  (ErrQExecutor | EBadBindName));
 					return (ErrQExecutor | EBadBindName);
 				} else if (vecSize_virt > 1) {
-					*ec << "[QE] bindName error: Multiple views defining virtual objects with the same name";
-					*ec << (ErrQExecutor | EBadBindName);
+					debug_print(*ec,  "[QE] bindName error: Multiple views defining virtual objects with the same name");
+					debug_print(*ec,  (ErrQExecutor | EBadBindName));
 					return (ErrQExecutor | EBadBindName);
 				}
 				else if (vecSize_sysvirt > 1) {
-					*ec << "[QE] bindName error: Multiple system views defining objects with the same name";
-					*ec << (ErrQExecutor | EBadBindName);
+					debug_print(*ec,  "[QE] bindName error: Multiple system views defining objects with the same name");
+					debug_print(*ec,  (ErrQExecutor | EBadBindName));
 					return (ErrQExecutor | EBadBindName);
 				}
 				else {
@@ -289,7 +289,7 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 						}
 					} else {
 						// Galaz dla wirtualnych widokow�
-						*ec << "[QE] TUTAJ WYNIKI";
+						debug_print(*ec,  "[QE] TUTAJ WYNIKI");
 						found_one = true;
 						LogicalID *svlid = vec_sysvirt->at(0);
 						QueryReferenceResult *sysvirtres = new QueryReferenceResult(svlid);
@@ -303,24 +303,24 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 			else {
 				section = (es.at(i - 1));
 				sectionSize = (section->size());
-				ec->printf("[QE] bindName: ES section %u got %u elements\n", i, sectionSize);
+				debug_printf(*ec, "[QE] bindName: ES section %u got %u elements\n", i, sectionSize);
 				for (unsigned int j = 0; j < sectionSize; j++) {
 					errcode = (section->at(j,sth));
 					if (errcode != 0) return errcode;
 					if ((sth->type()) == (QueryResult::QBINDER)) {
 						current = (((QueryBinderResult *) sth)->getName());
-						ec->printf("[QE] bindName: current %u name is: %s\n", j, current.c_str());
+						debug_printf(*ec, "[QE] bindName: current %u name is: %s\n", j, current.c_str());
 						if (current == name) {
 							found_one = true;
 							int found_type = (((QueryBinderResult*) sth)->getItem())->type();
 							if (found_type == QueryResult::QVIRTUAL) found_virtual = true;
 							else found_normal = true;
 							if ((found_virtual) && (found_normal)) {
-								*ec << "[QE] bindName error: Real and virtual objects have the same name";
-								*ec << (ErrQExecutor | EBadBindName);
+								debug_print(*ec,  "[QE] bindName error: Real and virtual objects have the same name");
+								debug_print(*ec,  (ErrQExecutor | EBadBindName));
 								return (ErrQExecutor | EBadBindName);
 							}
-							*ec << "[QE] bindName: Object added to Result";
+							debug_print(*ec,  "[QE] bindName: Object added to Result");
 							r->addResult(((QueryBinderResult *) sth)->getItem());
 						}
 					}
@@ -329,17 +329,17 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 			}
 		}
 		if (found_one) {
-			ec->printf("[QE] bindName: bind at %d section, Parser said it should be binded at %d\n", i - 1, sectionNo);
+			debug_printf(*ec, "[QE] bindName: bind at %d section, Parser said it should be binded at %d\n", i - 1, sectionNo);
 			return 0;
 		}
 	}
-	ec->printf("[QE] bindName: name not binded on ES, Parser said it should be binded at %d\n", sectionNo);
+	debug_printf(*ec, "[QE] bindName: name not binded on ES, Parser said it should be binded at %d\n", sectionNo);
 	return 0;
 }
 
 
 int EnvironmentStack::bindProcedureName(string name, unsigned int queries_size, Transaction *&tr, QueryExecutor *qe, string &code, vector<string> &params, int &bindSectionNo, LogicalID*& bindClassLid) {
-	*ec << "[QE] Procedure Name binding on ES";
+	debug_print(*ec,  "[QE] Procedure Name binding on ES");
 	int errcode;
 	unsigned int envs_size = (es.size());
 	int founded = 0;
@@ -349,16 +349,16 @@ int EnvironmentStack::bindProcedureName(string name, unsigned int queries_size, 
 	for (unsigned int i = envs_size; i >= 1; i--) {
 		if (es_priors.at(i - 1) == actual_prior) {
 			if (i == sectionDBnumber) {
-				ec->printf("[QE] bindProcedureName: ES section %u is Data Base section\n", i);
+				debug_printf(*ec, "[QE] bindProcedureName: ES section %u is Data Base section\n", i);
 				vector<LogicalID*>* vec;
 				if ((errcode = tr->getRootsLID(name, vec)) != 0) {
-					*ec << "[QE] bindName - error in getRootsLID";
+					debug_print(*ec,  "[QE] bindName - error in getRootsLID");
 					qe->antyStarveFunction(errcode);
 					qe->inTransaction = false;
 					return errcode;
 				}
 				int vecSize = vec->size();
-				ec->printf("[QE] %d Roots LID by name taken\n", vecSize);
+				debug_printf(*ec, "[QE] %d Roots LID by name taken\n", vecSize);
 				for (int i = 0; i < vecSize; i++ ) {
 					LogicalID *lid = vec->at(i);
 					errcode = qe->procCheck(queries_size, lid, code, params, founded);
@@ -369,14 +369,14 @@ int EnvironmentStack::bindProcedureName(string name, unsigned int queries_size, 
 			else {
 				QueryBagResult *section = (es.at(i - 1));
 				unsigned int sectionSize = (section->size());
-				ec->printf("[QE] bindProcedureName: ES section %u got %u elements\n", i, sectionSize);
+				debug_printf(*ec, "[QE] bindProcedureName: ES section %u got %u elements\n", i, sectionSize);
 				for (unsigned int j = 0; j < sectionSize; j++) {
 					QueryResult *sth;
 					errcode = (section->at(j,sth));
 					if (errcode != 0) return errcode;
 					if ((sth->type()) == (QueryResult::QBINDER)) {
 						string current = (((QueryBinderResult *) sth)->getName());
-						ec->printf("[QE] bindProcedureName: current %u name is: %s\n", j, current.c_str());
+						debug_printf(*ec, "[QE] bindProcedureName: current %u name is: %s\n", j, current.c_str());
 						if (current == name) {
 							QueryResult *item = (((QueryBinderResult *) sth)->getItem());
 							if (item->isReferenceValue()) {
@@ -429,12 +429,12 @@ int EnvironmentStack::bindProcedureName(string name, unsigned int queries_size, 
 			}
 		}
 		if (founded > 0) {
-			ec->printf("[QE] bindProcedureName: name binded at %d section of envs\n", i - 1);
+			debug_printf(*ec, "[QE] bindProcedureName: name binded at %d section of envs\n", i - 1);
 			bindSectionNo = i - 1;
 			return 0;
 		}
 	}
-	ec->printf("[QE] bindProcedureName: name not binded on ES\n");
+	debug_printf(*ec, "[QE] bindProcedureName: name not binded on ES\n");
 	
 	return 0;
 }
@@ -565,26 +565,26 @@ int QueryResult::nested_and_push_on_envs(QueryExecutor * qe, Transaction *&tr) {
 
 
 int QuerySequenceResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult *&r, vector<DataValue*> &dataVal_vec) {
-	*ec << "[QE] nested(): ERROR! QuerySequenceResult shouldn't be nested";
-	*ec << (ErrQExecutor | EOtherResExp);
+	debug_print(*ec,  "[QE] nested(): ERROR! QuerySequenceResult shouldn't be nested");
+	debug_print(*ec,  (ErrQExecutor | EOtherResExp));
 	return (ErrQExecutor | EOtherResExp);
 	// nested () function is applied to rows of a QueryResult and so, it shouldn't be applied to sequences and bags
 }
 
 int QueryBagResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult *&r, vector<DataValue*> &dataVal_vec) {
-	*ec << "[QE] nested(): ERROR! QueryBagResult shouldn't be nested";
-	*ec << (ErrQExecutor | EOtherResExp);
+	debug_print(*ec,  "[QE] nested(): ERROR! QueryBagResult shouldn't be nested");
+	debug_print(*ec,  (ErrQExecutor | EOtherResExp));
 	return (ErrQExecutor | EOtherResExp);
 	// nested () function is applied to rows of a QueryResult and so, it shouldn't be applied to sequences and bags
 }
 
 int QueryStructResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult *&r, vector<DataValue*> &dataVal_vec) {
-	*ec << "[QE] nested(): QueryStructResult";
+	debug_print(*ec,  "[QE] nested(): QueryStructResult");
 	r = new QueryBagResult();
 	int errcode;
 	for (unsigned int i = 0; i < str.size(); i++) {
 		if ((str.at(i))->type() == QueryResult::QSTRUCT) {
-			*ec << (ErrQExecutor | EOtherResExp);
+			debug_print(*ec,  (ErrQExecutor | EOtherResExp));
 			return (ErrQExecutor | EOtherResExp); // one row shouldn't contain another row;
 		}
 		else {
@@ -598,31 +598,31 @@ int QueryStructResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult 
 }
 
 int QueryStringResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult *&r, vector<DataValue*> &dataVal_vec) {
-	*ec << "[QE] nested(): QueryStringResult can't be nested";
+	debug_print(*ec,  "[QE] nested(): QueryStringResult can't be nested");
 	r = new QueryBagResult();
 	return 0;
 }
 
 int QueryIntResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult *&r, vector<DataValue*> &dataVal_vec) {
-	*ec << "[QE] nested(): QueryIntResult can't be nested";
+	debug_print(*ec,  "[QE] nested(): QueryIntResult can't be nested");
 	r = new QueryBagResult();
 	return 0;
 }
 
 int QueryDoubleResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult *&r, vector<DataValue*> &dataVal_vec) {
-	*ec << "[QE] nested(): QueryDoubleResult can't be nested";
+	debug_print(*ec,  "[QE] nested(): QueryDoubleResult can't be nested");
 	r = new QueryBagResult();
 	return 0;
 }
 
 int QueryBoolResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult *&r, vector<DataValue*> &dataVal_vec) {
-	*ec << "[QE] nested(): QueryBoolResult can't be nested";
+	debug_print(*ec,  "[QE] nested(): QueryBoolResult can't be nested");
 	r = new QueryBagResult();
 	return 0;
 }
 
 int QueryNothingResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult *&r, vector<DataValue*> &dataVal_vec) {
-	*ec << "[QE] nested(): QueryNothingResult can't be nested";
+	debug_print(*ec,  "[QE] nested(): QueryNothingResult can't be nested");
 	r = new QueryBagResult();
 	return 0;
 }
@@ -631,7 +631,7 @@ int QueryBinderResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult 
 	r = new QueryBagResult();
 	if (item != NULL) {
 		QueryBinderResult *tmp_value = new QueryBinderResult(name,item);
-		ec->printf("[QE] nested(): QueryBinderResult copy returned name: %s\n", name.c_str());
+		debug_printf(*ec, "[QE] nested(): QueryBinderResult copy returned name: %s\n", name.c_str());
 		r->addResult(tmp_value);
 	}
 	return 0;
@@ -640,7 +640,7 @@ int QueryBinderResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult 
 int QueryReferenceResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult *&r, vector<DataValue*> &dataVal_vec) {
 	r = new QueryBagResult();
 	int errcode;
-	ec->printf("[QE] nested(): QueryReferenceResult\n");
+	debug_printf(*ec, "[QE] nested(): QueryReferenceResult\n");
 	/* remote ID */
 	if ((value != NULL) && (value->getServer() != "")) 
 		return EUnknownNode;
@@ -650,7 +650,7 @@ int QueryReferenceResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResu
         ObjectPointer *GTpom  = NULL;
 	if (value != NULL) {
 		if ((errcode = tr->getObjectPointer(value, Store::Read, optr, false)) != 0) {
-			*ec << "[QE] Error in getObjectPointer";
+			debug_print(*ec,  "[QE] Error in getObjectPointer");
 			qe->antyStarveFunction(errcode);
 			qe->inTransaction = false;
                         //gtimoszuk
@@ -682,21 +682,21 @@ int QueryReferenceResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResu
 		int vType = dataVal->getType();
 		switch (vType) {
 			case Store::Integer: {
-				*ec << "[QE] nested(): QueryReferenceResult pointing integer value - can't be nested";
+				debug_print(*ec,  "[QE] nested(): QueryReferenceResult pointing integer value - can't be nested");
 				break;
 			}
 			case Store::Double: {
-				*ec << "[QE] nested(): QueryReferenceResult pointing double value - can't be nested";
+				debug_print(*ec,  "[QE] nested(): QueryReferenceResult pointing double value - can't be nested");
 				break;
 			}
 			case Store::String: {
-				*ec << "[QE] nested(): QueryReferenceResult pointing string value - can't be nested";
+				debug_print(*ec,  "[QE] nested(): QueryReferenceResult pointing string value - can't be nested");
 				break;
 			}
 			case Store::Pointer: {
 				LogicalID *tmp_logID = dataVal->getPointer();
 				if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, optr, false)) != 0) {
-					*ec << "[QE] Error in getObjectPointer";
+					debug_print(*ec,  "[QE] Error in getObjectPointer");
 					qe->antyStarveFunction(errcode);
 					qe->inTransaction = false;
                                         if (optr != NULL) {
@@ -707,28 +707,28 @@ int QueryReferenceResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResu
 				string tmp_name = optr->getName();
 				QueryReferenceResult *final_ref = new QueryReferenceResult(tmp_logID);
 				QueryBinderResult *final_binder = new QueryBinderResult(tmp_name, final_ref);
-				*ec << "[QE] nested(): valuevalueQueryReferenceResult pointing reference value";
+				debug_print(*ec,  "[QE] nested(): valuevalueQueryReferenceResult pointing reference value");
 				r->addResult(final_binder);
-				ec->printf("[QE] nested(): new QueryBinderResult returned name: %s\n", tmp_name.c_str());
+				debug_printf(*ec, "[QE] nested(): new QueryBinderResult returned name: %s\n", tmp_name.c_str());
 				
 				break;
 			}
 			case Store::Vector: {
 				vector<LogicalID*>* tmp_vec = (dataVal->getVector());
-				*ec << "[QE] nested(): QueryReferenceResult pointing vector value";
+				debug_print(*ec,  "[QE] nested(): QueryReferenceResult pointing vector value");
 				int vec_size = tmp_vec->size();
 			
 				bool filterOut;				
 				string k = getInterfaceKey().getKey();
 				TStringSet namesVisible = Schemas::InterfaceMaps::Instance().getAllFieldNamesAndCheckBind(k, filterOut);
 				if (filterOut)
-					ec->printf("[QE] nested(): field names will be filtered out, %d names visible\n", namesVisible.size());
+					debug_printf(*ec, "[QE] nested(): field names will be filtered out, %d names visible\n", namesVisible.size());
 				
 				for (int i = 0; i < vec_size; i++ ) {
 					LogicalID *tmp_logID = tmp_vec->at(i);
                                         ObjectPointer *optr2;
 					if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, optr2, false)) != 0) {
-						*ec << "[QE] Error in getObjectPointer";
+						debug_print(*ec,  "[QE] Error in getObjectPointer");
 						qe->antyStarveFunction(errcode);
 						qe->inTransaction = false;
 						if ((optr2 != NULL) && !(*optr == *optr2)) {
@@ -748,9 +748,9 @@ int QueryReferenceResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResu
 					tmp_logID->setDirectParent(this->value);
 					QueryReferenceResult *final_ref = new QueryReferenceResult(tmp_logID);
 					QueryBinderResult *final_binder = new QueryBinderResult(tmp_name, final_ref);
-					ec->printf("[QE] nested(): vector element number %d\n", i);
+					debug_printf(*ec, "[QE] nested(): vector element number %d\n", i);
 					r->addResult(final_binder);
-					ec->printf("[QE] nested(): new QueryBinderResult returned name: %s\n", tmp_name.c_str());
+					debug_printf(*ec, "[QE] nested(): new QueryBinderResult returned name: %s\n", tmp_name.c_str());
 					
 					DataValue* tdv;
 					tdv = optr2->getValue();
@@ -764,8 +764,8 @@ int QueryReferenceResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResu
 				break;
 			}
 			default : {
-				*ec << "[QE] nested(): ERROR! QueryReferenceResult pointing unknown format value";
-				*ec << (ErrQExecutor | EUnknownValue);
+				debug_print(*ec,  "[QE] nested(): ERROR! QueryReferenceResult pointing unknown format value");
+				debug_print(*ec,  (ErrQExecutor | EUnknownValue));
                                 if (optr != NULL) {
                                     delete optr;
                                 }
@@ -816,7 +816,7 @@ int QueryReferenceResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResu
 				QueryResult *virt_res = new QueryVirtualResult(view_name, view_defs, seeds, value);
 				QueryBinderResult *virt_binder = new QueryBinderResult(view_name, virt_res);
 				r->addResult(virt_binder);
-				ec->printf("[QE] nested(): new QueryVirtualResult returned name: %s\n", view_name.c_str());
+				debug_printf(*ec, "[QE] nested(): new QueryVirtualResult returned name: %s\n", view_name.c_str());
 			}
 		}
             if (GTpom != NULL) {
@@ -840,7 +840,7 @@ int QueryReferenceResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResu
 int QueryVirtualResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult *&r, vector<DataValue*> &dataVal_vec) {
 	r = new QueryBagResult();
 	int errcode;
-	ec->printf("[QE] nested(): QueryVirtualResult\n");
+	debug_printf(*ec, "[QE] nested(): QueryVirtualResult\n");
 	
 	string on_navigate_code = "";
 	string on_navigate_paramname = "";
@@ -879,7 +879,7 @@ int QueryVirtualResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult
 					ObjectPointer *optr;
 					LogicalID *tmp_logID = ((QueryReferenceResult *) next_res)->getValue();
 					if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, optr, false)) != 0) {
-						*ec << "[QE] Error in getObjectPointer";
+						debug_print(*ec,  "[QE] Error in getObjectPointer");
 						qe->antyStarveFunction(errcode);
 						qe->inTransaction = false;
 						return errcode;

@@ -241,9 +241,9 @@ namespace Indexes {
 			
 			//wydruk kontrolny po optymalizacji
 			if (possible) {
-				(IndexManager::getHandle())->ec->printf("index implicitly used: %s\n", ((dynamic_cast<QueryNode*>(tree))->deParse()).c_str());
+				debug_printf(*((IndexManager::getHandle())->ec), "index implicitly used: %s\n", ((dynamic_cast<QueryNode*>(tree))->deParse()).c_str());
 			} else {
-				(*((IndexManager::getHandle())->ec)) << "no implicit index optimisation";
+				debug_print((*((IndexManager::getHandle())->ec)),  "no implicit index optimisation");
 			}
 		}
 	}

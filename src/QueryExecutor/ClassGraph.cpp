@@ -34,13 +34,13 @@ int ClassGraph::init(int sessionId) {
 	Transaction *tr;
 	errcode = (TransactionManager::getHandle())->createTransaction(sessionId, tr);
 	if (errcode != 0) {
-		ec->printf("Error in loading Class Graph.");
+		debug_printf(*ec, "Error in loading Class Graph.");
 		return errcode;
 	}
 	vector<LogicalID*>* classesLids;
 	errcode = tr->getClassesLID(classesLids);
 	if (errcode != 0) {
-		ec->printf("Error in loading Class Graph.");
+		debug_printf(*ec, "Error in loading Class Graph.");
 		return errcode;
 	}
 	ClassGraph* tmp = new ClassGraph();
@@ -640,7 +640,7 @@ int ClassGraph::fetchExtInvariantNamesForLid(LogicalID* lid, Transaction *&tr, Q
 int ClassGraph::fetchInvariantNames(string& invariantName, Transaction *&tr, QueryExecutor *qe, stringHashSet& invariantsNames, bool noInvariantName, bool sub) 
 {
 	string dirCaption = (sub)?("sub"):("ext");
-	ec->printf("[QE] fetching %sInvariants of invariant: %s", dirCaption.c_str(), invariantName.c_str());
+	debug_printf(*ec, "[QE] fetching %sInvariants of invariant: %s", dirCaption.c_str(), invariantName.c_str());
 	int errcode = 0;
 	if(lazy) {
 		errcode = invariantToCohesiveSubgraph(invariantName, tr, qe);
@@ -651,7 +651,7 @@ int ClassGraph::fetchInvariantNames(string& invariantName, Transaction *&tr, Que
 	if(noInvariantName) {
 		invariantsNames.erase(invariantName);
 	}
-	ec->printf("[QE] fetching %sInvariants: %i", dirCaption.c_str(), invariantsNames.size());
+	debug_printf(*ec, "[QE] fetching %sInvariants: %i", dirCaption.c_str(), invariantsNames.size());
 	/*for(stringHashSet::iterator i = invariantsNames.begin(); i != invariantsNames.end(); i++)
 		(*ec)<<(*i);*/
 	return 0;
@@ -837,7 +837,7 @@ int ClassGraph::belongsToInvariant(LogicalID* lid, string& invariantUpName, Tran
 
 int ClassGraph::trErrorOccur(QueryExecutor* qe, string msg, int errcode ) {
 	if(qe != NULL) return qe->trErrorOccur(msg, errcode);
-	*ec << msg;
+	debug_print(*ec,  msg);
 	return errcode;
 }
 

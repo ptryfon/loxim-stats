@@ -38,11 +38,11 @@ namespace LockMgr
 
     SingleLock::~SingleLock()
     {
-	err.printf("SingleLock destructor\n");
+	debug_printf(err, "SingleLock destructor\n");
 	delete mutex;
 	delete sem;
 	
-	err.printf("SingleLock destructor - free structures memory \n");
+	debug_printf(err, "SingleLock destructor - free structures memory \n");
 	/* quaranteed to be empty */
 	delete currentRead;
 	delete currentWrite;
@@ -55,7 +55,7 @@ namespace LockMgr
 	/* younger dies ( younger = higher id ) */
 	{
 	    /* deadlock exception - rollback transaction */
-	    err.printf("Deadlock exception\n");
+	    debug_printf(err, "Deadlock exception\n");
 	    return ErrTManager | EDeadlock; 
 	}
 	else return 0;
@@ -80,7 +80,7 @@ namespace LockMgr
 	mutex->up();
 	/* here we lost control on _mode, should be fixed later!!! */
 
-	err.printf("Wait for lock, tid = %d, mode = %d\n", _tid->getId(), _mode);
+	debug_printf(err, "Wait for lock, tid = %d, mode = %d\n", _tid->getId(), _mode);
 	if (_mode == Read && !isCurrentRead && !isCurrentWrite)
 	{
 		/* many readers -> OK, reader and writer -> prevent deadlock */
@@ -113,13 +113,13 @@ namespace LockMgr
 	}
 	else if (_mode == Write && isCurrentRead)	/* upgrade lock from read to write */
 	{
-		err.printf("Standard upgrade");
+		debug_printf(err, "Standard upgrade");
 		if ((errorCode = preventDeadlock(_tid)) == 0)
 		    errorCode = sem->lock_upgrade(_tid->getPriority());
 //oldversion		    errorCode = sem->lock_upgrade(_tid->getId());
 	}
 	
-	err.printf("Locking object, tid = %d\n", _tid->getId());
+	debug_printf(err, "Locking object, tid = %d\n", _tid->getId());
 	if (errorCode == 0)
 	{
 	    mutex->down();
@@ -127,12 +127,12 @@ namespace LockMgr
 		waiting--;
 		if (_mode == Read)
 		{
-		    err.printf("New Reader, tid = %d\n", _tid->getId());
+		    debug_printf(err, "New Reader, tid = %d\n", _tid->getId());
 		    currentRead->insert(_tid);
 		}
 		else
 		{
-		    err.printf("New Writer, tid = %d\n", _tid->getId());
+		    debug_printf(err, "New Writer, tid = %d\n", _tid->getId());
 		    currentWrite->insert(_tid);
 		}
 		/* for readers we keep the oldest transaction id */

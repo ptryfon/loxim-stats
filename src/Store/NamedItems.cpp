@@ -28,7 +28,7 @@ namespace Store
 	int NamedItems::initializeFile(File* file)
 	{
 #ifdef IX_DEBUG
-		ec->printf("initializeFile()\n");
+		debug_printf(*ec, "initializeFile()\n");
 #endif
 
 		char* buf = new char[STORE_PAGESIZE];
@@ -63,7 +63,7 @@ namespace Store
 	int NamedItems::initializePage(unsigned int pageID, char* buf)
 	{
 #ifdef IX_DEBUG
-		ec->printf("initializePage(pageID=%i)\n", pageID);
+		debug_printf(*ec, "initializePage(pageID=%i)\n", pageID);
 #endif
 
 		ixr_page* page = (ixr_page*) buf;
@@ -85,7 +85,7 @@ namespace Store
 		while (i > 0)
 		{
 			if (buffer==NULL)
-			    ec->printf("NamedItems::addItem ERROR!-null buffer (no init called)!\n");
+			    debug_printf(*ec, "NamedItems::addItem ERROR!-null buffer (no init called)!\n");
 			//ec->printf("NI::aI Store_file_ %d\n", STORE_FILE_);
 			PagePointer* page_pointer = buffer->getPagePointer(tid, STORE_FILE_, (unsigned int) i);
 			page_pointer->aquire(tid);
@@ -150,7 +150,7 @@ namespace Store
 	{
 
 #ifdef IX_DEBUG
-		ec->printf("addItem(logicalID=%i, name=\"%s\", transactionID=%i, transactionTimeStamp=%i)\n", logicalID, name, tid->getId(), tid->getTimeStamp());
+		debug_printf(*ec, "addItem(logicalID=%i, name=\"%s\", transactionID=%i, transactionTimeStamp=%i)\n", logicalID, name, tid->getId(), tid->getTimeStamp());
 #endif
 		char* entry_buf;
 		int size_needed = 0;
@@ -159,7 +159,7 @@ namespace Store
 		//ec->printf("NamedItems::addItem after create Entry, errorcode = %d, size_needed = %d \n", errcode, size_needed);
 		if(errcode != 0) return errcode;
 		if (entry_buf == NULL)
-		    ec->printf("NamedItems::addItem NULL entry_buf\n");
+		    debug_printf(*ec, "NamedItems::addItem NULL entry_buf\n");
 		addItem(tid, size_needed, entry_buf);
 		//ec->printf("NamedItems::addItem past addItem(size, buf)\n");
 		if(entry_buf != NULL){
@@ -232,7 +232,7 @@ namespace Store
 	int NamedItems::removeItem(TransactionID* tid, int logicalID)
 	{
 #ifdef IX_DEBUG
-		ec->printf("removeItem(logicalID=%i, transactionID=%i, transactionTimeStamp=%i)\n", logicalID, tid->getId(), tid->getTimeStamp());
+		debug_printf(*ec, "removeItem(logicalID=%i, transactionID=%i, transactionTimeStamp=%i)\n", logicalID, tid->getId(), tid->getTimeStamp());
 #endif
 
 		int i = 0;
@@ -305,7 +305,7 @@ namespace Store
 	int NamedItems::commitTransaction(TransactionID* tid)
 	{
 #ifdef IX_DEBUG
-		ec->printf("commitTransaction(transactionID=%i)\n", tid->getId());
+		debug_printf(*ec, "commitTransaction(transactionID=%i)\n", tid->getId());
 #endif
 
 		return modifyTransaction(tid, 0);
@@ -314,7 +314,7 @@ namespace Store
 	int NamedItems::abortTransaction(TransactionID* tid)
 	{
 #ifdef IX_DEBUG
-		ec->printf("abortTransaction(transactionID=%i)\n", tid->getId());
+		debug_printf(*ec, "abortTransaction(transactionID=%i)\n", tid->getId());
 #endif
 
 		return modifyTransaction(tid, 1);
@@ -323,7 +323,7 @@ namespace Store
 	int NamedItems::abortAllTransactions()
 	{
 #ifdef IX_DEBUG
-		ec->printf("abortAllTransactions()\n");
+		debug_printf(*ec, "abortAllTransactions()\n");
 #endif
 
 		return modifyTransaction(0, 2);
@@ -416,7 +416,7 @@ namespace Store
 	vector<int>* NamedItems::getItems(TransactionID* tid)
 	{
 #ifdef IX_DEBUG
-		ec->printf("getItems(transactionID=%i, transactionTimeStamp=%i)\n", tid->getId(), tid->getTimeStamp());
+		debug_printf(*ec, "getItems(transactionID=%i, transactionTimeStamp=%i)\n", tid->getId(), tid->getTimeStamp());
 #endif
 
 		return getItems(tid, "");
@@ -434,16 +434,16 @@ namespace Store
 		i = 1;
 
 #ifdef IX_DEBUG
-		ec->printf("NamedItems::getItemsByAnything starts\n");
+		debug_printf(*ec, "NamedItems::getItemsByAnything starts\n");
 #endif
 		while (i > 0)
 		{
 
 			if (buffer == NULL)
-			    ec->printf("NULL buffer!!\n");
+			    debug_printf(*ec, "NULL buffer!!\n");
 			page_pointer = buffer->getPagePointer(tid, STORE_FILE_, (unsigned int) i);
 			if (page_pointer == NULL)
-			    ec->printf("NULL page pointer (buffer not started?)\n");
+			    debug_printf(*ec, "NULL page pointer (buffer not started?)\n");
 			page_pointer->aquire(tid);
 
 			page_buf = page_pointer->getPage();
@@ -477,7 +477,7 @@ namespace Store
 						if (entries != NULL)
 						{    
 						    const ix_entry *en = *&entry; 
-						    ec->printf("CopyingEntry: %s to %s\n", entry->name, en->name);
+						    debug_printf(*ec, "CopyingEntry: %s to %s\n", entry->name, en->name);
 						    entries->push_back(en);						
 						}
 						roots->push_back(entry->l_id);
@@ -497,7 +497,7 @@ namespace Store
 
 	vector<int>* Classes::getClassByInvariant(TransactionID* tid, const char* invariantName) {
 #ifdef IX_DEBUG
-		ec->printf("getClassByInvariant(invariantName=\"%s\", transactionID=%i, transactionTimeStamp=%i)\n", invariantName, tid->getId(), tid->getTimeStamp());
+		debug_printf(*ec, "getClassByInvariant(invariantName=\"%s\", transactionID=%i, transactionTimeStamp=%i)\n", invariantName, tid->getId(), tid->getTimeStamp());
 #endif
 		//return getItemsByAnything(findByName, invariantName, transactionID, transactionTimeStamp);
 		return getItemsByAnything(tid, findByInvariantName, invariantName);
@@ -506,7 +506,7 @@ namespace Store
 	vector<int>* Interfaces::getInterfaceByObjectName(TransactionID* tid, const char* objectName, vector<const ix_entry*>* entries)
 	{
 #ifdef IX_DEBUG
-		ec->printf("getInterfaceByObjectName(objectName=\"%s\", transactionID=%i, transactionTimeStamp=%i)\n", objectName, tid->getId(), tid->getTimeStamp());
+		debug_printf(*ec, "getInterfaceByObjectName(objectName=\"%s\", transactionID=%i, transactionTimeStamp=%i)\n", objectName, tid->getId(), tid->getTimeStamp());
 #endif
 		return getItemsByAnything(tid, findByObjectName, objectName, NULL, entries);	
 	}
@@ -514,7 +514,7 @@ namespace Store
 	vector<int>* NamedItems::getByNameWithEntries(TransactionID* tid, const char* name, vector<const ix_entry*>* entries)
 	{
 #ifdef IX_DEBUG
-		ec->printf("getInterfaceName(name=\"%s\", transactionID=%i, transactionTimeStamp=%i)\n", name, tid->getId(), tid->getTimeStamp());
+		debug_printf(*ec, "getInterfaceName(name=\"%s\", transactionID=%i, transactionTimeStamp=%i)\n", name, tid->getId(), tid->getTimeStamp());
 #endif
 		return getItemsByAnything(tid, findByName, name, NULL, entries);	
 	}
@@ -523,7 +523,7 @@ namespace Store
 
 	vector<int>* NamedRoots::getRootsWithBegin(TransactionID* tid, const char* nameBegin) {
 #ifdef IX_DEBUG
-		ec->printf("getRootsWithBegin(nameBegin=\"%s\", transactionID=%i, transactionTimeStamp=%i)\n", nameBegin, tid->getId(), tid->getTimeStamp());
+		debug_printf(*ec, "getRootsWithBegin(nameBegin=\"%s\", transactionID=%i, transactionTimeStamp=%i)\n", nameBegin, tid->getId(), tid->getTimeStamp());
 #endif
 		return getItemsByAnything(tid, findNamesWithBegin, nameBegin);
 	}
@@ -531,7 +531,7 @@ namespace Store
 	vector<int>* NamedItems::getItems(TransactionID* tid, const char* name, vector<Indexes::RootEntry*> *indexContent)
 	{
 #ifdef IX_DEBUG
-		ec->printf("getItems(name=\"%s\", transactionID=%i, transactionTimeStamp=%i)\n", name, tid->getId(), tid->getTimeStamp());
+		debug_printf(*ec, "getItems(name=\"%s\", transactionID=%i, transactionTimeStamp=%i)\n", name, tid->getId(), tid->getTimeStamp());
 #endif
 
 		return getItemsByAnything(tid, findByName, name, indexContent);

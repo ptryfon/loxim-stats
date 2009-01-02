@@ -12,11 +12,13 @@ AC_ARG_ENABLE([cust-verb], [AS_HELP_STRING([--enable-cust-verb=ARG], [Messages
 			of which minimum importance will be compiled. Valid
 			values are: DEBUG, INFO, WARNING, ERROR,
 			SEVERE_ERROR])])
+cust_verb_forced=yes
 if test "x$enable_cust_verb" = "xno" -o "x$enable_cust_verb" = "xyes" -o \
 "x$enable_cust_verb" = "x" ; then
 
 	#these don't make any sense, so we fall back to the default - INFO
 	enable_cust_verb=INFO
+	cust_verb_forced=no
 fi
 
 if test "x$enable_cust_verb" != "xDEBUG" -a "x$enable_cust_verb" != "xINFO" -a \
@@ -47,4 +49,11 @@ AC_CONFIG_FILES([Makefile src/Makefile src/Log/Makefile src/Lock/Makefile
 		src/Server/Makefile src/TypeCheck/Makefile
 		src/Config/Makefile src/Util/Makefile Documentation/Makefile])
 AC_OUTPUT
+
+if test "x$cust_verb_forced" = "xno" ; then
+	AC_MSG_WARN([Not all messages will be compiled, which is probably fine
+		     for you (by default only debug messages are not compiled),
+		     but if you would like to change this behaviour consult the
+		     --enable-cust-verb option.])
+fi
 

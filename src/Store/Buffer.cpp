@@ -337,9 +337,9 @@ namespace Store
 			}
 
 			if (started == 1) {
-				ec->printf("Store::Buffer: dbwriter started with dirty(%d)\n", dbwriter.dirty_pages);
+				debug_printf(*ec, "Store::Buffer: dbwriter started with dirty(%d)\n", dbwriter.dirty_pages);
 				dbWriterWrite();
-				ec->printf("Store::Buffer: dbwriter finished with dirty(%d)\n", dbwriter.dirty_pages);
+				debug_printf(*ec, "Store::Buffer: dbwriter finished with dirty(%d)\n", dbwriter.dirty_pages);
 			} else {
 				::pthread_mutex_unlock(&dbwriter.mutex);
 				break;
@@ -364,7 +364,7 @@ namespace Store
 			n_page = &((*it).second);
 
 			if (n_page->haspage && (n_page->lock == 0) && n_page->dirty) {
-				ec->printf("Store::Buffer: dbwriter writing(file:%d, page:%d)\n", (*it).first.first, (*it).first.second);
+				debug_printf(*ec, "Store::Buffer: dbwriter writing(file:%d, page:%d)\n", (*it).first.first, (*it).first.second);
 				file->writePage((*it).first.first, (*it).first.second, n_page->page);
 				n_page->dirty = 0;
 				dbwriter.dirty_pages--;

@@ -1,3 +1,4 @@
+#include <Errors/ErrorConsole.h>
 #include <Indexes/IndexManager.h>
 #include <Indexes/QueryOptimizer.h>
 #include <Indexes/VisibilityResolver.h>
@@ -38,7 +39,7 @@ namespace Indexes
 
 		handle = new IndexManager();
 		if( ( err = config->getString( "index_file", handle->indexDataFile) ) ) {
-	  		ec->printf("Cannot read 'indexFile' from configuration file\n");
+	  		debug_printf(*ec, "Cannot read 'indexFile' from configuration file\n");
 	  		return err;
   		}
 
@@ -49,7 +50,7 @@ namespace Indexes
 			return err;
 		}
 
-		*ec << "started";
+		debug_print(*ec,  "started");
 		return 0;
 	}
 
@@ -59,7 +60,7 @@ namespace Indexes
 			return EIncorrectState | ErrIndexes;
 		}
 
-		*ec << "shutting down...";
+		debug_print(*ec,  "shutting down...");
 
 		 //zapisanie metadanych
 		if ((err = handle->finalize())) {
@@ -71,7 +72,7 @@ namespace Indexes
 
 		delete handle;
 		handle = NULL;
-		*ec << "closed";
+		debug_print(*ec,  "closed");
 		return err;
 	}
 	/*
@@ -97,7 +98,7 @@ namespace Indexes
 		int errCode;
 
 		if( ( errCode = config->getString( paramName, value ) ) ) {
-  			ec->printf("Cannot read %s from configuration file\n", paramName.c_str());
+  			debug_printf(*ec, "Cannot read %s from configuration file\n", paramName.c_str());
   			return errCode;
   		}
 
@@ -108,17 +109,17 @@ namespace Indexes
 		int err;
 		if (lockDesc != descInitValue) {
 			if ((err = close(lockDesc))) {
-				ec->printf("Error closing index lock file. Errorcode: %d\n", err);
+				debug_printf(*ec, "Error closing index lock file. Errorcode: %d\n", err);
 			}
 		}
 		if (dataDesc != descInitValue) {
 			if ((err = close(dataDesc))) {
-				ec->printf("Error closing index data file. Errorcode: %d\n", err);
+				debug_printf(*ec, "Error closing index data file. Errorcode: %d\n", err);
 			}
 		}
 		if (listDesc != descInitValue) {
 			if ((err = close(listDesc))) {
-				ec->printf("Error closing index list file. Errorcode: %d\n", err);
+				debug_printf(*ec, "Error closing index list file. Errorcode: %d\n", err);
 			}
 		}
 
@@ -132,18 +133,18 @@ namespace Indexes
   		tm = TransactionManager::getHandle();
 
   		if( ( errCode = config->getString( indexMetadataParamName, indexMetadata ) ) ) {
-  			ec->printf("Cannot read %s from configuration file\n", indexMetadataParamName);
+  			debug_printf(*ec, "Cannot read %s from configuration file\n", indexMetadataParamName);
   			return closeFiles(errCode);
   		}
 
   		if( ( errCode = config->getString( indexMetaFileParamName, indexMetaFile ) ) ) {
-  			ec->printf("Cannot read %s from configuration file\n", indexMetadataParamName);
+  			debug_printf(*ec, "Cannot read %s from configuration file\n", indexMetadataParamName);
   			return closeFiles(errCode);
   		}
 
   		bool implicitIndexCall;
   		if( ( errCode = config->getBool( implicitIndexCallParamName, implicitIndexCall ) ) ) {
-			ec->printf("Cannot read %s from configuration file\n", implicitIndexCallParamName);
+			debug_printf(*ec, "Cannot read %s from configuration file\n", implicitIndexCallParamName);
 			return closeFiles(errCode);
   		}
   		QueryOptimizer::setImplicitIndexCall(implicitIndexCall);
@@ -160,13 +161,13 @@ namespace Indexes
 		}
 
 		if (!cleanShutdown) {
-			ec->printf("Shutdown wasn't clean. Rebuilding indexes...\n");
+			debug_printf(*ec, "Shutdown wasn't clean. Rebuilding indexes...\n");
 
 			if ((errCode = rebuild(-1))) {
 				return errCode;
 			}
 
-			ec->printf("Indexes rebuilding done\n");
+			debug_printf(*ec, "Indexes rebuilding done\n");
 		} else {
 			NonloggedDataSerializer* ds = new NonloggedDataSerializer();
 			errCode = ds->deserialize(indexMetaFile);
@@ -224,11 +225,11 @@ namespace Indexes
 
 		int err;
 
-		ec->printf("loading indexes\n");
+		debug_printf(*ec, "loading indexes\n");
 
 		Transaction *tr;
 		if ((err = tm->createTransaction(-1, tr))) {
-			ec->printf(loadIndexListErrMsg);
+			debug_printf(*ec, loadIndexListErrMsg);
 			return err;
 		}
 
@@ -236,12 +237,12 @@ namespace Indexes
 
 		// metadane indeksow przechowywane sa w root'cie o danej nazwie
 		if ((err = tr->getRoots(indexMetadata, indexes))) {
-			ec->printf(loadIndexListErrMsg);
+			debug_printf(*ec, loadIndexListErrMsg);
 			return err;
 		}
 
 		if (indexes->size() > 1) {
-			ec->printf("wiecej niz jeden obiekt zawiera metadane indeksow\n");
+			debug_printf(*ec, "wiecej niz jeden obiekt zawiera metadane indeksow\n");
 			return EMetaIncorrect | ErrIndexes;
 		}
 
@@ -260,14 +261,14 @@ namespace Indexes
 			// obiekty w tych root'ach maja nazwe taka jak indeks i dwa obiekty typu string o nazwach "root" i "field"
 			DataValue* value = indexOptr->getValue();
 			if (value->getType() != Store::Vector) {
-				ec->printf("bledny wpis w metadanych indeksow. korzen nie jest obiektem zlozonym\n");
+				debug_printf(*ec, "bledny wpis w metadanych indeksow. korzen nie jest obiektem zlozonym\n");
 				return EMetaIncorrect | ErrIndexes;
 			}
 			nameLids = value->getVector();
 			// iterowanie po zawartosci root'a
 			for (j = 0; j < nameLids->size(); j++) {
 				if ((err = tr->getObjectPointer(nameLids->at(j), Store::Read, optr, false))) {
-					ec->printf(loadIndexListErrMsg);
+					debug_printf(*ec, loadIndexListErrMsg);
 					return err;
 				}
 				// obiekt wewnatrz root'a = obiekt reprezentujacy indeks.jego nazwa = nazwa indeksu
@@ -275,19 +276,19 @@ namespace Indexes
 				value = optr->getValue();
 				// ten obiekt musi zawierac obiekty "root" i "field"
 				if (value->getType() != Store::Vector) {
-					ec->printf("bledny wpis w metadanych indeksow. obiekt %s nie zawiera informacji o indeksowanych polach - pomijam\n", indexName.c_str());
+					debug_printf(*ec, "bledny wpis w metadanych indeksow. obiekt %s nie zawiera informacji o indeksowanych polach - pomijam\n", indexName.c_str());
 					continue;
 				}
 				fieldLids = value->getVector();
 				if (fieldLids->size() != 3) {
-					ec->printf("bledny wpis w metadanych indeksow. obiekt %s metadanych indeksow ma niewlasciwa liczbe pol - pomijam\n", indexName.c_str());
+					debug_printf(*ec, "bledny wpis w metadanych indeksow. obiekt %s metadanych indeksow ma niewlasciwa liczbe pol - pomijam\n", indexName.c_str());
 					continue;
 				}
 				field = root = type = false;
 				// iteracja po zawartosci obiektu reprezentujacego indeks
 				for (k = 0; k < fieldLids->size(); k++) {
 					if ((err = tr->getObjectPointer(fieldLids->at(k), Store::Read, optr, false))) {
-						ec->printf(loadIndexListErrMsg);
+						debug_printf(*ec, loadIndexListErrMsg);
 						return err;
 					}
 					value = optr->getValue();
@@ -309,17 +310,17 @@ namespace Indexes
 						compType = value->getInt();
 						type = true;
 					} else {
-						ec->printf("obiekt %s.%s metadanych indeksow ma niewlasciwa nazwe\n", indexName.c_str(), optr->getName().c_str());
+						debug_printf(*ec, "obiekt %s.%s metadanych indeksow ma niewlasciwa nazwe\n", indexName.c_str(), optr->getName().c_str());
 						continue;
 					}
 				}
 				if (!(field && root && type)) {
 					// nie znaleziono nazwy root'a albo nazwy pola
-					ec->printf("obiekt %s metadanych indeksow nie zawiera informacji o indeksowanych polach\n", indexName.c_str());
+					debug_printf(*ec, "obiekt %s metadanych indeksow nie zawiera informacji o indeksowanych polach\n", indexName.c_str());
 					return EMetaIncorrect | ErrIndexes;
 				}
 				if ((err = testAndAddIndex(indexName, rootName, fieldName, compType, nameLids->at(j)))) {
-					ec->printf("nie udalo sie utworzyc indeksu: %s on %s(%s). Powtorzona nazwa lub wskazane pole jest juz indeksowane. Kod bledu: %d\n", indexName.c_str(), rootName.c_str(), fieldName.c_str(), err);
+					debug_printf(*ec, "nie udalo sie utworzyc indeksu: %s on %s(%s). Powtorzona nazwa lub wskazane pole jest juz indeksowane. Kod bledu: %d\n", indexName.c_str(), rootName.c_str(), fieldName.c_str(), err);
 					return err;
 				}
 			}
@@ -342,11 +343,11 @@ namespace Indexes
 		}
 
 		if ((err = tr->commit())) {
-			ec->printf(loadIndexListErrMsg);
+			debug_printf(*ec, loadIndexListErrMsg);
 			return err;
 		}
 
-		ec->printf("zakonczono wczytywanie indeksow\n");
+		debug_printf(*ec, "zakonczono wczytywanie indeksow\n");
 		return 0;
 	}
 
@@ -410,10 +411,10 @@ namespace Indexes
 			return err2;
 		}
 
-		*ec << "adding index to database";
+		debug_print(*ec,  "adding index to database");
 		Transaction *tr;
 		if ((err = tm->createTransaction(sessionId, tr))) {
-			ec->printf("Cannot create index\n");
+			debug_printf(*ec, "Cannot create index\n");
 			return err;
 		}
 
@@ -423,7 +424,7 @@ namespace Indexes
 
 		err = tr->createObject(ROOT_DB_NAME, new DBDataValue(indexedRootName), optr);
 		if (err) {
-			ec->printf("Cannot create index\n");
+			debug_printf(*ec, "Cannot create index\n");
 			if ((err2 = tr->abort())) {
 				return err2;
 			}
@@ -434,7 +435,7 @@ namespace Indexes
 
 		err = tr->createObject(FIELD_DB_NAME, new DBDataValue(indexedFieldName), optr);
 		if (err) {
-			ec->printf("Cannot create index\n");
+			debug_printf(*ec, "Cannot create index\n");
 			if ((err2 = tr->abort())) {
 				return err2;
 			}
@@ -445,7 +446,7 @@ namespace Indexes
 
 		err = tr->createObject(CMP_TYPE, new DBDataValue(comp->serialize()), optr);
 		if (err) {
-			ec->printf("Cannot create index\n");
+			debug_printf(*ec, "Cannot create index\n");
 			if ((err2 = tr->abort())) {
 				return err2;
 			}
@@ -456,7 +457,7 @@ namespace Indexes
 
 		err = tr->createObject(indexName, new DBDataValue(vectorValue), optr);
 		if (err) {
-			ec->printf("Cannot create index\n");
+			debug_printf(*ec, "Cannot create index\n");
 			if ((err2 = tr->abort())) {
 				return err2;
 			}
@@ -467,7 +468,7 @@ namespace Indexes
 		ObjectPointer *rootOptr;
 
 		if ((err = tr->getObjectPointer(rootLid, Store::Write, rootOptr, false))) {
-			ec->printf("Cannot create index\n");
+			debug_printf(*ec, "Cannot create index\n");
 			if ((err2 = tr->abort())) {
 				return err2;
 			}
@@ -485,7 +486,7 @@ namespace Indexes
 
 		err = tr->modifyObject(rootOptr, dbDataVal);
 		if (err) {
-			ec->printf("Cannot create index\n");
+			debug_printf(*ec, "Cannot create index\n");
 			if ((err2 = tr->abort())) {
 				return err2;
 			}
@@ -504,7 +505,7 @@ namespace Indexes
 				return err2;
 			}
 			if ((err2 = dropIndex(indexName))) {
-				ec->printf("Cannot undo 'create index'\n");
+				debug_printf(*ec, "Cannot undo 'create index'\n");
 				//fatal
 				return err2;
 			}
@@ -512,9 +513,9 @@ namespace Indexes
 		}
 
 		if ((err = tr->commit())) {
-			ec->printf("Cannot create index\n");
+			debug_printf(*ec, "Cannot create index\n");
 			if (dropIndex(indexName)) {
-				ec->printf("Cannot undo 'create index'\n");
+				debug_printf(*ec, "Cannot undo 'create index'\n");
 				//fatal
 				exit(1);
 			}
@@ -535,14 +536,14 @@ namespace Indexes
 		if ((err = indexListSem->lock_read())) {
 			return err;
 		}
-		*ec << "listing indexes";
+		debug_print(*ec,  "listing indexes");
 		string2index::const_iterator it;
 		IndexHandler* ih;
 		QueryBagResult *bagResult = new QueryBagResult();
 		QueryStructResult *structResult;
 		for (it = indexNames.begin(); it != indexNames.end(); ++it) {
 			ih = it->second;
-			ec->printf("index: %s on %s (%s)\n", ih->getName().c_str(), ih->getRoot().c_str(), ih->getField().c_str());
+			debug_printf(*ec, "index: %s on %s (%s)\n", ih->getName().c_str(), ih->getRoot().c_str(), ih->getField().c_str());
 			structResult = new QueryStructResult();
 			structResult->addResult(new QueryBinderResult("name", new QueryStringResult(ih->getName())));
 			structResult->addResult(new QueryBinderResult("type", new QueryStringResult(ih->getType())));
@@ -558,7 +559,7 @@ namespace Indexes
 	}
 
 	int IndexManager::dropIndex(int sessionId, string indexName, QueryResult **result) {
-		*ec << "dropping index";
+		debug_print(*ec,  "dropping index");
 		int err;
 
 		string2index::iterator it;
@@ -584,31 +585,31 @@ namespace Indexes
 
 		err = tm->createTransaction(sessionId, tr);
 		if (err) {
-			ec->printf("Cannot drop index\n");
+			debug_printf(*ec, "Cannot drop index\n");
 			return err;
 		}
 
 		err = tr->getObjectPointer(indexLid, Store::Write, optr, false);
 		if (err) {
-			ec->printf("Cannot drop index\n");
+			debug_printf(*ec, "Cannot drop index\n");
 			return err;
 		}
 
 		err = tr->removeRoot(optr);
 		if (err) {
-			ec->printf("Cannot drop index\n");
+			debug_printf(*ec, "Cannot drop index\n");
 			return err;
 		}
 
 		err = tr->deleteObject(optr);
 		if (err) {
-			ec->printf("Cannot drop index\n");
+			debug_printf(*ec, "Cannot drop index\n");
 			return err;
 		}
 
 		err = tr->commit();
 		if (err) {
-			ec->printf("Cannot drop index\n");
+			debug_printf(*ec, "Cannot drop index\n");
 			return err;
 		}
 

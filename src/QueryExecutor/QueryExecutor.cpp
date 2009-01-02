@@ -52,7 +52,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, map<string, QueryResult*> *param
 #endif
 	//printf("Debug: EQ: tree type is: %d\n", tree->type());
 	errcode = executeQuery(tree, result);
-	*ec << "[QE] past inner executeQuery";
+	debug_print(*ec,  "[QE] past inner executeQuery");
 #ifdef QUERY_CACHE
 	if (errorcode != 0)
 	    return errorcode;
@@ -71,7 +71,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, map<string, QueryResult*> *param
 int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 
 	int errcode;
-	*ec << "[QE] executeQuery()";
+	debug_print(*ec,  "[QE] executeQuery()");
 
 	if (tree != NULL) {
 		int nodeType = tree->type();
@@ -84,42 +84,42 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			if (nodeType == TreeNode::TNTRANS) {
 				if (((TransactNode *) tree)->getOp() == TransactNode::begin) {
 					if (antyStarve) {
-						ec->printf("[QE] Asking TransactionManager to REOPEN transaction number : %d\n", transactionNumber);
+						debug_printf(*ec, "[QE] Asking TransactionManager to REOPEN transaction number : %d\n", transactionNumber);
 						errcode = TransactionManager::getHandle()->createTransaction(session->get_id(), tr, transactionNumber);
 						antyStarve = false;
 					}
 					else {
-						*ec << "[QE] Asking TransactionManager for a NEW transaction";
+						debug_print(*ec,  "[QE] Asking TransactionManager for a NEW transaction");
 						errcode = TransactionManager::getHandle()->createTransaction(session->get_id(), tr);
 					}
 					if (errcode != 0) {
-						*ec << "[QE] Error in createTransaction";
-						*ec << "[QE] Transction not opened";
+						debug_print(*ec,  "[QE] Error in createTransaction");
+						debug_print(*ec,  "[QE] Transction not opened");
 						*result = new QueryNothingResult();
-						*ec << "[QE] nothing to do: QueryNothingResult created";
+						debug_print(*ec,  "[QE] nothing to do: QueryNothingResult created");
 						inTransaction = false;
 						return errcode;
 					}
 					else {
 						transactionNumber = tr->getId()->getId();
-						ec->printf("[QE] Transaction number : %d opened succesfully\n", transactionNumber);
+						debug_printf(*ec, "[QE] Transaction number : %d opened succesfully\n", transactionNumber);
 						*result = new QueryNothingResult();
-						*ec << "[QE] nothing else to do: QueryNothingResult created";
+						debug_print(*ec,  "[QE] nothing else to do: QueryNothingResult created");
 						inTransaction = true;
 						return 0;
 					}
 				}
 				else {
-					*ec << "[QE] Transction not opened, type < begin; > first";
+					debug_print(*ec,  "[QE] Transction not opened, type < begin); > first");
 					*result = new QueryNothingResult();
-					*ec << "[QE] nothing to do: QueryNothingResult created";
+					debug_print(*ec,  "[QE] nothing to do: QueryNothingResult created");
 					return 0;
 				}
 			}
 			else {
-				*ec << "[QE] Transction not opened, type < begin; > first";
+				debug_print(*ec,  "[QE] Transction not opened, type < begin); > first");
 				*result = new QueryNothingResult();
-				*ec << "[QE] nothing to do: QueryNothingResult created";
+				debug_print(*ec,  "[QE] nothing to do: QueryNothingResult created");
 				return 0;
 			}
 		}
@@ -127,42 +127,42 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			TransactNode::transactionOp op = ((TransactNode *) tree)->getOp();
 			switch (op) {
 				case TransactNode::begin: {
-					*ec << "[QE] ERROR! Transaction already opened. It can't be opened once more!";
+					debug_print(*ec,  "[QE] ERROR! Transaction already opened. It can't be opened once more!");
 					*result = new QueryNothingResult();
-					*ec << (ErrQExecutor | ETransactionOpened);
+					debug_print(*ec,  (ErrQExecutor | ETransactionOpened));
 					return (ErrQExecutor | ETransactionOpened);
 				}
 				case TransactNode::end: {
 					errcode = tr->commit();
 					inTransaction = false;
 					if (errcode != 0) {
-						*ec << "[QE] error in transaction->commit()";
+						debug_print(*ec,  "[QE] error in transaction->commit()");
 						*result = new QueryNothingResult();
 						return errcode;
 					}
-					*ec << "[QE] Transaction commited succesfully";
+					debug_print(*ec,  "[QE] Transaction commited succesfully");
 					break;
 				}
 				case TransactNode::abort: {
 					errcode = tr->abort();
 					inTransaction = false;
 					if (errcode != 0) {
-						*ec << "[QE] error in transaction->abort()";
+						debug_print(*ec,  "[QE] error in transaction->abort()");
 						*result = new QueryNothingResult();
 						return errcode;
 					}
-					*ec << "[QE] Transaction aborted succesfully";
+					debug_print(*ec,  "[QE] Transaction aborted succesfully");
 					break;
 				}
 				default: {
-					*ec << "[QE] ERROR! unknown transaction operator";
+					debug_print(*ec,  "[QE] ERROR! unknown transaction operator");
 					*result = new QueryNothingResult();
-					*ec << (ErrQExecutor | EUnknownNode);
+					debug_print(*ec,  (ErrQExecutor | EUnknownNode));
 					return (ErrQExecutor | EUnknownNode);
 				}
 			}
 			*result = new QueryNothingResult();
-			*ec << "[QE] Nothing else to do. QueryNothingResult created";
+			debug_print(*ec,  "[QE] Nothing else to do. QueryNothingResult created");
 			return 0;
 		}
 		else if (nodeType == (TreeNode::TNVALIDATION)) {
@@ -361,7 +361,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 		    }
 		}	/** Type declarations / definitions, TC nodes */
 		else if (nodeType == TreeNode::TNOBJDECL) {
-			*ec << "Will try execute object declaration\n";
+			debug_print(*ec,  "Will try execute object declaration\n");
 			errcode = this->executeObjectDeclarationOrTypeDefinition((DeclareDefineNode *) tree, false);
 			*result = new QueryNothingResult();
 			if (errcode != 0) return errcode;
@@ -413,19 +413,19 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			if (errcode == 0) next_errcode = deVirtualize(tmp_result, *result);
 
 			int howMany = QueryResult::getCount();
-			ec->printf(" QueryResults in use: %d\n", howMany);
+			debug_printf(*ec, " QueryResults in use: %d\n", howMany);
 
 			if (errcode != 0) return errcode;
 			if (next_errcode != 0) return errcode;
-			*ec << "[QE] Done!";
+			debug_print(*ec,  "[QE] Done!");
 			return 0;
 		}
 
 	} //if tree != NULL
 	else { // tree == NULL; return empty result
-		*ec << "[QE] empty tree, nothing to do";
+		debug_print(*ec,  "[QE] empty tree, nothing to do");
 		*result = new QueryNothingResult();
-		*ec << "[QE] QueryNothingResult created";
+		debug_print(*ec,  "[QE] QueryNothingResult created");
 	}
 	return 0;
 }
@@ -471,24 +471,24 @@ int QueryExecutor::execute_locally(string query, QueryResult **res, QueryParser 
 
 	int parsercode = parser.parseIt(session->get_id(), query, tree);
 	if (parsercode != 0) {
-		*ec << "exec. locally, parser code aint 0, error! , query: " + query + ". \n";
+		debug_print(*ec,  "exec. locally, parser code aint 0, error! , query: " + query + ". \n");
 	}
-	*ec << "IN EXEC_LOCALLY: will push dbsection; \n";
+	debug_print(*ec,  "IN EXEC_LOCALLY: will push dbsection); \n");
 	int errcode = envs->pushDBsection();
 	if (errcode != 0) {
-		*ec << "!!!!! pushDB doesn't work\n";
+		debug_print(*ec,  "!!!!! pushDB doesn't work\n");
 		return errcode;
 	}
 	errcode = this->executeRecQuery(tree);
 	if (errcode != 0) {
-		*ec << "!!!!! executeRecQuery ended with error, so cant popDB section properly!!! so doing it here.\n";
+		debug_print(*ec,  "!!!!! executeRecQuery ended with error, so cant popDB section properly!!! so doing it here.\n");
 		envs->popDBsection();
 		return errcode;
 	}
 	errcode = envs->popDBsection();
-	if (errcode != 0) {*ec << "Error on popDBsection, in exec. locally"; return errcode;}
+	if (errcode != 0) { debug_print(*ec,  "Error on popDBsection, in exec. locally"); return errcode;}
 	errcode = qres->pop(*res);
-	if (errcode != 0) {*ec << "Error on pop from qres, in exec. locally"; return errcode;}
+	if (errcode != 0) { debug_print(*ec,  "Error on pop from qres, in exec. locally"); return errcode;}
 
 	return 0;
 }
@@ -558,29 +558,29 @@ bool QueryExecutor::assert_remove_user_priv() {
 int QueryExecutor::executeRecQuery(TreeNode *tree) {
 
 	int errcode;
-	*ec << "[QE] executeRecQuery()";
+	debug_print(*ec,  "[QE] executeRecQuery()");
 
 	if (this->evalStopped()) {
-		*ec << "[QE] query evaluating stopped by Server, aborting transaction ";
+		debug_print(*ec,  "[QE] query evaluating stopped by Server, aborting transaction ");
 		errcode = tr->abort();
 		inTransaction = false;
 		if (errcode != 0) {
-			*ec << "[QE] error in transaction->abort()";
+			debug_print(*ec,  "[QE] error in transaction->abort()");
 			return errcode;
 		}
-		*ec << "[QE] Transaction aborted succesfully";
-		*ec << (ErrQExecutor | EEvalStopped);
+		debug_print(*ec,  "[QE] Transaction aborted succesfully");
+		debug_print(*ec,  (ErrQExecutor | EEvalStopped));
 		return (ErrQExecutor | EEvalStopped);
 	}
 
 	if (tree != NULL) {
 		int nodeType = tree->type();
-		*ec << "[QE] TreeType taken";
-		*ec << tree->toString(0, true);
+		debug_print(*ec,  "[QE] TreeType taken");
+		debug_print(*ec,  tree->toString(0, true));
 		switch (nodeType)
 		{
 		case TreeNode::TNNAME: {
-			*ec << "[QE] Type: TNNAME";
+			debug_print(*ec,  "[QE] Type: TNNAME");
 			string name = tree->getName();
 			if (!system_privilige_checking && assert_privilige(Privilige::READ_PRIV, name) == false) {
 			    errcode = qres->push(new QueryBagResult());
@@ -591,10 +591,10 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			errcode = envs->bindName(name, sectionNumber, tr, this, result);
 			if (errcode != 0) return errcode;
 			
-			ec->printf("[QE] TNNAME: checking object name\n");
+			debug_printf(*ec, "[QE] TNNAME: checking object name\n");
 			if (Schemas::InterfaceMaps::Instance().isObjectNameBound(name))
 			{
-				ec->printf("[QE] object name bound in interface maps\n");
+				debug_printf(*ec, "[QE] object name bound in interface maps\n");
 				bool found;
 				string iName = InterfaceMaps::Instance().getInterfaceNameForObject(name, found);
 				if (found)
@@ -605,23 +605,23 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 					string impObjName = iI.getObjectName();
 					if (found)
 					{
-						ec->printf("[QE] name %s recognized as interface object name, bound through %s->%s to %s objects\n",
+						debug_printf(*ec, "[QE] name %s recognized as interface object name, bound through %s->%s to %s objects\n",
 									   name.c_str(), iName.c_str(), impName.c_str(), impObjName.c_str());
 						errcode = envs->bindName(impObjName, sectionNumber, tr, this, result, iName);
 						if (errcode) return errcode;
 					}
 				}
 			}
-			ec->printf("[QE] TNNAME: pushing result..\n");
+			debug_printf(*ec, "[QE] TNNAME: pushing result..\n");
 
 			errcode = qres->push(result);
 			if (errcode != 0) return errcode;
-			*ec << "[QE] Done!";
+			debug_print(*ec,  "[QE] Done!");
 			return 0;
 		}//case TNNAME
 
 		case TreeNode::TNPROC: {
-			*ec << "[QE] Type: TNPROC";
+			debug_print(*ec,  "[QE] Type: TNPROC");
 
 			string name = ((ProcedureNode *) tree)->getName();
 			QueryNode* tmpQN = ((ProcedureNode *) tree)->getCode();
@@ -650,7 +650,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 
 			errcode = tr->modifyObject(optr, optr->getValue());
 			if (errcode != 0) {
-				*ec << "[QE] TNPROC - Error in modifyObject.";
+				debug_print(*ec,  "[QE] TNPROC - Error in modifyObject.");
 				antyStarveFunction(errcode);
 				inTransaction = false;
 				return errcode;
@@ -665,7 +665,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		}//case TNPROC
 
 		case TreeNode::TNREGPROC: {
-			*ec << "[QE] Type: TNREGPROC";
+			debug_print(*ec,  "[QE] Type: TNREGPROC");
 			QueryNode *query = ((RegisterProcNode *) tree)->getQuery();
 			if(query != NULL) {
 				errcode = executeRecQuery(query);
@@ -678,15 +678,15 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			if (errcode != 0) return errcode;
 
 			if (execution_result->type() != QueryResult::QREFERENCE) {
-				*ec << "[QE] TNREGPROC error - execution result is not QueryReference";
-				*ec << (ErrQExecutor | ERefExpected);
+				debug_print(*ec,  "[QE] TNREGPROC error - execution result is not QueryReference");
+				debug_print(*ec,  (ErrQExecutor | ERefExpected));
 				return (ErrQExecutor | ERefExpected);
 			}
 
 			ObjectPointer *optr;
 			errcode = tr->getObjectPointer (((QueryReferenceResult*)execution_result)->getValue(), Store::Read, optr, false);
 			if (errcode != 0) {
-				*ec << "[QE] register proc operation - Error in getObjectPointer.";
+				debug_print(*ec,  "[QE] register proc operation - Error in getObjectPointer.");
 				antyStarveFunction(errcode);
 				inTransaction = false;
 				return errcode;
@@ -694,7 +694,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 
 			errcode = tr->addRoot(optr);
 			if (errcode != 0) {
-				*ec << "[QE] Error in addRoot";
+				debug_print(*ec,  "[QE] Error in addRoot");
 				antyStarveFunction(errcode);
 				inTransaction = false;
 				return errcode;
@@ -707,7 +707,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		}//case TNREGPROC
 
 		case TreeNode::TNCALLPROC: {
-			*ec << "[QE] Type: TNCALLPROC";
+			debug_print(*ec,  "[QE] Type: TNCALLPROC");
 
 			vector<QueryNode*> queries = ((CallProcNode *) tree)->getQueries();
 			unsigned int queries_size = ((CallProcNode *) tree)->howManyParts();
@@ -757,19 +757,19 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		}//case TNCALLPROC
 
 		case TreeNode::TNRETURN: {
-			*ec << "[QE] Type: TNRETURN (begin)";
+			debug_print(*ec,  "[QE] Type: TNRETURN (begin)");
 			QueryNode *query = ((ReturnNode *) tree)->getQuery();
 			if(query != NULL) {
 				errcode = executeRecQuery(query);
 				if(errcode != 0) return errcode;
 			}
 			else qres->push(new QueryNothingResult());
-			*ec << "[QE] Type: TNRETURN (done)";
+			debug_print(*ec,  "[QE] Type: TNRETURN (done)");
 			return EEvalStopped;
 		}//case TNRETURN
 
 		case TreeNode::TNTHROWEXCEPTION: {
-			*ec << "[QE] Type: TN THROW EXCEPTION (begin)";
+			debug_print(*ec,  "[QE] Type: TN THROW EXCEPTION (begin)");
 			QueryNode *query = ((ThrowExceptionNode *) tree)->getQuery();
 			string exception_name = "";
 			if(query != NULL) {
@@ -784,11 +784,11 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			}
 
 			if (exception_name == "WrongParameterException") {
-				*ec << "[QE] USER EXCEPTION THROWN (done)";
+				debug_print(*ec,  "[QE] USER EXCEPTION THROWN (done)");
 				return (ErrUserProgram | EUserWrongParam);
 			}
 			else {
-				*ec << "[QE] UNKNOWN EXCEPTION THROWN (done)";
+				debug_print(*ec,  "[QE] UNKNOWN EXCEPTION THROWN (done)");
 				return (ErrUserProgram | EUserUnknown);
 			}
 
@@ -797,7 +797,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		}//case TNTHROWEXCEPTION
 
 		case TreeNode::TNVIEW: {
-			*ec << "[QE] Type: TNVIEW";
+			debug_print(*ec,  "[QE] Type: TNVIEW");
 
 			string view_name = ((ViewNode *) tree)->getName();
 			QueryNode* virtual_objects = ((ViewNode *) tree)->getVirtualObjects();
@@ -829,14 +829,14 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			errcode = qres->pop(execution_result);
 			if (errcode != 0) return errcode;
 			if (execution_result->type() != QueryResult::QREFERENCE) {
-				*ec << "[QE] TNVIEW error - execution result is not QueryReference";
-				*ec << (ErrQExecutor | ERefExpected);
+				debug_print(*ec,  "[QE] TNVIEW error - execution result is not QueryReference");
+				debug_print(*ec,  (ErrQExecutor | ERefExpected));
 				return (ErrQExecutor | ERefExpected);
 			}
 			LogicalID* lid = ((QueryReferenceResult*)execution_result)->getValue();
 			errcode = tr->getObjectPointer (lid, Store::Read, optr, false);
 			if (errcode != 0) {
-				*ec << "[QE] view creating operation - Error in getObjectPointer.";
+				debug_print(*ec,  "[QE] view creating operation - Error in getObjectPointer.");
 				antyStarveFunction(errcode);
 				inTransaction = false;
 				return errcode;
@@ -846,8 +846,8 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				|| (virt_obj_name == "on_delete") || (virt_obj_name == "on_retrieve")
 				|| (virt_obj_name == "on_navigate") || (virt_obj_name == "on_virtualize")
 				|| (virt_obj_name == "on_store") || (virt_obj_name == "on_insert")) {
-				*ec << "[QE] TNVIEW error - virtual objects shouldn't be named like \'on_\' procedures";
-				*ec << (ErrQExecutor | EBadViewDef);
+				debug_print(*ec,  "[QE] TNVIEW error - virtual objects shouldn't be named like \'on_\' procedures");
+				debug_print(*ec,  (ErrQExecutor | EBadViewDef));
 				return (ErrQExecutor | EBadViewDef);
 			}
 
@@ -869,14 +869,14 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				errcode = qres->pop(execution_result);
 				if (errcode != 0) return errcode;
 				if (execution_result->type() != QueryResult::QREFERENCE) {
-					*ec << "[QE] TNVIEW error - execution result is not QueryReference";
-					*ec << (ErrQExecutor | ERefExpected);
+					debug_print(*ec,  "[QE] TNVIEW error - execution result is not QueryReference");
+					debug_print(*ec,  (ErrQExecutor | ERefExpected));
 					return (ErrQExecutor | ERefExpected);
 				}
 				lid = ((QueryReferenceResult*)execution_result)->getValue();
 				errcode = tr->getObjectPointer (lid, Store::Read, optr, false);
 				if (errcode != 0) {
-					*ec << "[QE] view creating operation - Error in getObjectPointer.";
+					debug_print(*ec,  "[QE] view creating operation - Error in getObjectPointer.");
 					antyStarveFunction(errcode);
 					inTransaction = false;
 					return errcode;
@@ -894,8 +894,8 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			}
 			if ((on_upd_num > 1) || (on_cre_num > 1) || (on_del_num > 1) || (on_ret_num > 1)
 				|| (on_ins_num > 1) || (on_nav_num > 1) || (on_vir_num > 1) || (on_sto_num > 1)) {
-				*ec << "[QE] TNVIEW error - multiple \'on_\' procedure definition found";
-				*ec << (ErrQExecutor | EBadViewDef);
+				debug_print(*ec,  "[QE] TNVIEW error - multiple \'on_\' procedure definition found");
+				debug_print(*ec,  (ErrQExecutor | EBadViewDef));
 				return (ErrQExecutor | EBadViewDef);
 			}
 
@@ -908,8 +908,8 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				errcode = qres->pop(execution_result);
 				if (errcode != 0) return errcode;
 				if (execution_result->type() != QueryResult::QREFERENCE) {
-					*ec << "[QE] TNVIEW error - execution result is not QueryReference";
-					*ec << (ErrQExecutor | ERefExpected);
+					debug_print(*ec,  "[QE] TNVIEW error - execution result is not QueryReference");
+					debug_print(*ec,  (ErrQExecutor | ERefExpected));
 					return (ErrQExecutor | ERefExpected);
 				}
 				lid = ((QueryReferenceResult*)execution_result)->getValue();
@@ -948,7 +948,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 
 			ObjectPointer *newObject;
 			if ((errcode = tr->createObject(view_name, value, newObject)) != 0) {
-				*ec << "[QE] Error in createObject";
+				debug_print(*ec,  "[QE] Error in createObject");
 				antyStarveFunction(errcode);
 				inTransaction = false;
 				return errcode;
@@ -957,7 +957,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			newObject->getValue()->setSubtype(Store::View);
 			errcode = tr->modifyObject(newObject, newObject->getValue());
 			if (errcode != 0) {
-				*ec << "[QE] TNVIEW - Error in modifyObject.";
+				debug_print(*ec,  "[QE] TNVIEW - Error in modifyObject.");
 				antyStarveFunction(errcode);
 				inTransaction = false;
 				return errcode;
@@ -972,7 +972,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		} // case: TNVIEW
 
 		case TreeNode::TNREGVIEW: {
-			*ec << "[QE] Type: TNREGVIEW";
+			debug_print(*ec,  "[QE] Type: TNREGVIEW");
 			QueryNode *query = ((RegisterViewNode *) tree)->getQuery();
 			if(query != NULL) {
 				errcode = executeRecQuery(query);
@@ -987,8 +987,8 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			int errcode2;
 			
 			if (execution_result->type() != QueryResult::QREFERENCE) {
-				*ec << "[QE] TNREGVIEW error - execution result is not QueryReference";
-				*ec << (ErrQExecutor | ERefExpected);
+				debug_print(*ec,  "[QE] TNREGVIEW error - execution result is not QueryReference");
+				debug_print(*ec,  (ErrQExecutor | ERefExpected));
 				return (ErrQExecutor | ERefExpected);
 			}
 
@@ -998,7 +998,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			if (errcode != 0) {
 				errcode2 = persistDelete(execution_result_lid);
 				if(errcode2 != 0) return errcode2;
-				*ec << "[QE] register view operation - Error in getObjectPointer.";
+				debug_print(*ec,  "[QE] register view operation - Error in getObjectPointer.");
 				antyStarveFunction(errcode);
 				inTransaction = false;
 				return errcode;
@@ -1012,7 +1012,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				if (errcode != 0) {
 					errcode2 = persistDelete(execution_result_lid);
 					if(errcode2 != 0) return errcode2;
-					*ec << "[QE] register view operation - Error in getObjectPointer.";
+					debug_print(*ec,  "[QE] register view operation - Error in getObjectPointer.");
 					antyStarveFunction(errcode);
 					inTransaction = false;
 					return errcode;
@@ -1027,21 +1027,21 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			if ((errcode = tr->getSystemViewsLID(virtual_objects_name, vec_sysvirt)) != 0) {
 				errcode2 = persistDelete(execution_result_lid);
 				if(errcode2 != 0) return errcode2;
-				*ec << "[QE] register view operation - error in getSystemViewsLID";
+				debug_print(*ec,  "[QE] register view operation - error in getSystemViewsLID");
 				antyStarveFunction(errcode);
 				inTransaction = false;
 				return errcode;
 			}
 			int vecSize_sysvirt = vec_sysvirt->size();
-			ec->printf("[QE] %d SystemViews LID by name taken\n", vecSize_sysvirt);
+			debug_printf(*ec, "[QE] %d SystemViews LID by name taken\n", vecSize_sysvirt);
 			
 			if (vecSize_sysvirt > 0) {
-				*ec << "[QE] register view operation error: new virtual objects and a system view have the same name";
+				debug_print(*ec,  "[QE] register view operation error: new virtual objects and a system view have the same name");
 				
 				errcode = persistDelete(execution_result_lid);
 				if(errcode != 0) return errcode;
 				
-				*ec << (ErrQExecutor | EBadViewDef);
+				debug_print(*ec,  (ErrQExecutor | EBadViewDef));
 				return (ErrQExecutor | EBadViewDef);
 			}
 			
@@ -1049,21 +1049,21 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			if ((errcode = tr->getViewsLID(virtual_objects_name, vec_virt)) != 0) {
 				errcode2 = persistDelete(execution_result_lid);
 				if(errcode2 != 0) return errcode2;
-				*ec << "[QE] register view operation - error in getViewsLID";
+				debug_print(*ec,  "[QE] register view operation - error in getViewsLID");
 				antyStarveFunction(errcode);
 				inTransaction = false;
 				return errcode;
 			}
 			int vecSize_virt = vec_virt->size();
-			ec->printf("[QE] %d Views LID by name taken\n", vecSize_virt);
+			debug_printf(*ec, "[QE] %d Views LID by name taken\n", vecSize_virt);
 			
 			if (vecSize_virt > 0) {
-				*ec << "[QE] register view operation error: virtual objects name already taken";
+				debug_print(*ec,  "[QE] register view operation error: virtual objects name already taken");
 				
 				errcode = persistDelete(execution_result_lid);
 				if(errcode != 0) return errcode;
 				
-				*ec << (ErrQExecutor | EBadViewDef);
+				debug_print(*ec,  (ErrQExecutor | EBadViewDef));
 				return (ErrQExecutor | EBadViewDef);
 			}
 			
@@ -1071,7 +1071,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			if ((errcode = tr->getRootsLID(virtual_objects_name, vec_roots)) != 0) {
 				errcode2 = persistDelete(execution_result_lid);
 				if(errcode2 != 0) return errcode2;
-				*ec << "[QE] register view operation - error in getRootsLID";
+				debug_print(*ec,  "[QE] register view operation - error in getRootsLID");
 				antyStarveFunction(errcode);
 				inTransaction = false;
 				return errcode;
@@ -1079,20 +1079,20 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			unsigned int vecSize_roots = vec_roots->size();
 			
 			if (vecSize_roots > 0) {
-				ec->printf("[QE] %d Roots LID by name taken\n", vecSize_roots);
-				*ec << "[QE] WARNING, root objects with the same name as new virtual objects found. These objects will be transformed into virtuals.";
+				debug_printf(*ec, "[QE] %d Roots LID by name taken\n", vecSize_roots);
+				debug_print(*ec,  "[QE] WARNING, root objects with the same name as new virtual objects found. These objects will be transformed into virtuals.");
 				
 				string proc_code = "";
 				string proc_param = "";
 				errcode = getOn_procedure(execution_result_lid, "on_create", proc_code, proc_param);
 				if (errcode != 0) return errcode;
 				if (proc_code == "") {
-					*ec << "[QE] operator <create> - this VirtualObject doesn't have this operation defined";
+					debug_print(*ec,  "[QE] operator <create> - this VirtualObject doesn't have this operation defined");
 					
 					errcode = persistDelete(execution_result_lid);
 					if(errcode != 0) return errcode;
 					
-					*ec << (ErrQExecutor | EOperNotDefined);
+					debug_print(*ec,  (ErrQExecutor | EOperNotDefined));
 					return (ErrQExecutor | EOperNotDefined);
 				}
 				
@@ -1140,7 +1140,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			if (errcode != 0) { 
 				errcode2 = persistDelete(execution_result_lid);
 				if(errcode2 != 0) return errcode2;
-				*ec << "[QE] Error in addView";
+				debug_print(*ec,  "[QE] Error in addView");
 				antyStarveFunction(errcode);
 				inTransaction = false;
 				return errcode;
@@ -1150,7 +1150,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			if (errcode != 0) { 
 				errcode2 = persistDelete(execution_result_lid);
 				if(errcode2 != 0) return errcode2;
-				*ec << "[QE] Error in addRoot";
+				debug_print(*ec,  "[QE] Error in addRoot");
 				antyStarveFunction(errcode);
 				inTransaction = false;
 				return errcode;
@@ -1163,7 +1163,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		}//case TNREGVIEW
 		
 		case TreeNode::TNVIRTUALIZEAS: {
-			*ec << "[QE] Type: TNVIRTUALIZEAS";
+			debug_print(*ec,  "[QE] Type: TNVIRTUALIZEAS");
 			QueryResult *final_result = new QueryBagResult();
 
 			QueryResult *l_tmp;
@@ -1188,16 +1188,16 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			if (((VirtualizeAsNode *) tree)->getSubQuery() == NULL) {
 				vector<LogicalID*>* vec_virt;
 				if ((errcode = tr->getViewsLID(virtualizeAsName, vec_virt)) != 0) {
-					*ec << "[QE] error in getViewsLID";
+					debug_print(*ec,  "[QE] error in getViewsLID");
 					antyStarveFunction(errcode);
 					inTransaction = false;
 					return errcode;
 				}
 				int vecSize_virt = vec_virt->size();
-				ec->printf("[QE] %d Views LID by name taken\n", vecSize_virt);
+				debug_printf(*ec, "[QE] %d Views LID by name taken\n", vecSize_virt);
 				if (vecSize_virt != 1) {
-					*ec << "[QE] bindName error, while searching for a view";
-					*ec << (ErrQExecutor | EBadBindName);
+					debug_print(*ec,  "[QE] bindName error, while searching for a view");
+					debug_print(*ec,  (ErrQExecutor | EBadBindName));
 					return (ErrQExecutor | EBadBindName);
 				}
 
@@ -1205,8 +1205,8 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				errcode = getOn_procedure(referenced_view_lid, "on_virtualize", referenced_view_code, referenced_view_param);
 				if (errcode != 0) return errcode;
 				if (referenced_view_code == "") {
-					*ec << "[QE] operator <virtualize as> - this VirtualObject doesn't have this operation defined";
-					*ec << (ErrQExecutor | EOperNotDefined);
+					debug_print(*ec,  "[QE] operator <virtualize as> - this VirtualObject doesn't have this operation defined");
+					debug_print(*ec,  (ErrQExecutor | EOperNotDefined));
 					return (ErrQExecutor | EOperNotDefined);
 				}
 			}
@@ -1227,15 +1227,15 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 							errcode = getOn_procedure(referenced_view_lid, "on_virtualize", referenced_view_code, referenced_view_param);
 							if (errcode != 0) return errcode;
 							if (referenced_view_code == "") {
-								*ec << "[QE] operator <virtualize as> - this VirtualObject doesn't have this operation defined";
-								*ec << (ErrQExecutor | EOperNotDefined);
+								debug_print(*ec,  "[QE] operator <virtualize as> - this VirtualObject doesn't have this operation defined");
+								debug_print(*ec,  (ErrQExecutor | EOperNotDefined));
 								return (ErrQExecutor | EOperNotDefined);
 							}
 							subqueryResult = tmp_subquery_res;
 						}
 						else {
-							*ec << "[QE] <virtualize as> - error evaluating subquery";
-							*ec << (ErrQExecutor | EQEUnexpectedErr);
+							debug_print(*ec,  "[QE] <virtualize as> - error evaluating subquery");
+							debug_print(*ec,  (ErrQExecutor | EQEUnexpectedErr));
 							return (ErrQExecutor | EQEUnexpectedErr);
 						}
 					}
@@ -1245,7 +1245,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 						ObjectPointer *optrOut;
 						errcode = tr->getObjectPointer (maybe_parent, Store::Read, optrOut, false);
 						if (errcode != 0) {
-							*ec << "[QE] <virtualize as> - Error in getObjectPointer.";
+							debug_print(*ec,  "[QE] <virtualize as> - Error in getObjectPointer.");
 							antyStarveFunction(errcode);
 							inTransaction = false;
 							return errcode;
@@ -1257,14 +1257,14 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 						DataValue* db_value = optrOut->getValue();
 						int vType = db_value->getType();
 						if (vType != Store::Vector) {
-							*ec << "[QE] <virtualize as> - ERROR! looking for subview in referenced object, object is not vector type";
-							*ec << (ErrQExecutor | EOtherResExp);
+							debug_print(*ec,  "[QE] <virtualize as> - ERROR! looking for subview in referenced object, object is not vector type");
+							debug_print(*ec,  (ErrQExecutor | EOtherResExp));
 							return (ErrQExecutor | EOtherResExp);
 						}
 						vector<LogicalID*> *insVector = db_value->getVector();
 						if (insVector == NULL) {
-							*ec << "[QE] <virtualize as> - insVector == NULL";
-							*ec << (ErrQExecutor | EQEUnexpectedErr);
+							debug_print(*ec,  "[QE] <virtualize as> - insVector == NULL");
+							debug_print(*ec,  (ErrQExecutor | EQEUnexpectedErr));
 							return (ErrQExecutor | EQEUnexpectedErr);
 						}
 
@@ -1272,7 +1272,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 							LogicalID *maybe_subview_logID = insVector->at(j);
 							ObjectPointer *maybe_subview_optr;
 							if ((errcode = tr->getObjectPointer(maybe_subview_logID, Store::Read, maybe_subview_optr, false)) != 0) {
-								*ec << "[QE] <virtualize as> - Error in getObjectPointer";
+								debug_print(*ec,  "[QE] <virtualize as> - Error in getObjectPointer");
 								antyStarveFunction(errcode);
 								inTransaction = false;
 								return errcode;
@@ -1287,8 +1287,8 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 								if (errcode != 0) return errcode;
 								if (maybe_subview_name == virtualizeAsName) {
 									if (referenced_view_lid != NULL){
-										*ec << "[QE] ERROR! More then one subview defining virtual objects with same name";
-										*ec << (ErrQExecutor | EBadViewDef);
+										debug_print(*ec,  "[QE] ERROR! More then one subview defining virtual objects with same name");
+										debug_print(*ec,  (ErrQExecutor | EBadViewDef));
 										return (ErrQExecutor | EBadViewDef);
 									}
 									else referenced_view_lid = maybe_subview_logID;
@@ -1297,36 +1297,36 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 						}
 
 						if (referenced_view_lid == NULL) {
-							*ec << "[QE] operator <virtualize as> - this object doesn't have this operation defined, subview missing";
-							*ec << (ErrQExecutor | EOperNotDefined);
+							debug_print(*ec,  "[QE] operator <virtualize as> - this object doesn't have this operation defined, subview missing");
+							debug_print(*ec,  (ErrQExecutor | EOperNotDefined));
 							return (ErrQExecutor | EOperNotDefined);
 						}
 						else {
 							errcode = getOn_procedure(referenced_view_lid, "on_virtualize", referenced_view_code, referenced_view_param);
 							if (errcode != 0) return errcode;
 							if (referenced_view_code == "") {
-								*ec << "[QE] operator <virtualize as> - this VirtualObject doesn't have this operation defined";
-								*ec << (ErrQExecutor | EOperNotDefined);
+								debug_print(*ec,  "[QE] operator <virtualize as> - this VirtualObject doesn't have this operation defined");
+								debug_print(*ec,  (ErrQExecutor | EOperNotDefined));
 								return (ErrQExecutor | EOperNotDefined);
 							}
 							subquery_view_parent = maybe_parent;
 						}
 					}
 					else {
-						*ec << "[QE] <virtualize as> - subquery should evaluate to single virtual result or single reference";
-						*ec << (ErrQExecutor | EQEUnexpectedErr);
+						debug_print(*ec,  "[QE] <virtualize as> - subquery should evaluate to single virtual result or single reference");
+						debug_print(*ec,  (ErrQExecutor | EQEUnexpectedErr));
 						return (ErrQExecutor | EQEUnexpectedErr);
 					}
 				}
 				else {
-					*ec << "[QE] operator <virtualize as> - subquery should evaluate to one element bag";
-					*ec << (ErrQExecutor | EQEUnexpectedErr);
+					debug_print(*ec,  "[QE] operator <virtualize as> - subquery should evaluate to one element bag");
+					debug_print(*ec,  (ErrQExecutor | EQEUnexpectedErr));
 					return (ErrQExecutor | EQEUnexpectedErr);
 				}
 			}
 
 			if (((lResult->type()) == QueryResult::QSEQUENCE) || ((lResult->type()) == QueryResult::QBAG)) {
-				*ec << "[QE] For each row of this score, the right argument will be computed";
+				debug_print(*ec,  "[QE] For each row of this score, the right argument will be computed");
 				for (unsigned int i = 0; i < (lResult->size()); i++) {
 					QueryResult *currentResult;
 					if ((lResult->type()) == QueryResult::QSEQUENCE)
@@ -1374,18 +1374,18 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				}
 			}
 			else {
-				*ec << "[QE] ERROR! Virtualize As operation, bad left argument";
-				*ec << (ErrQExecutor | EOtherResExp);
+				debug_print(*ec,  "[QE] ERROR! Virtualize As operation, bad left argument");
+				debug_print(*ec,  (ErrQExecutor | EOtherResExp));
 				return (ErrQExecutor | EOtherResExp);
 			}
 			errcode = qres->push(final_result);
 			if (errcode != 0) return errcode;
-			*ec << "[QE] Virtualize As operation Done!";
+			debug_print(*ec,  "[QE] Virtualize As operation Done!");
 			return 0;
 		}//case TNVIRTUALIZEAS
 
 		case TreeNode::TNINTERFACEBIND: {
-		    *ec << "[QE] Type: TNINTERFACEBIND";
+		    debug_print(*ec,  "[QE] Type: TNINTERFACEBIND");
 		    string leftName = ((InterfaceBind *)tree)->getInterfaceName();
 		    string rightName = ((InterfaceBind *)tree)->getImplementationName();
 			
@@ -1398,7 +1398,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			if (!exists)
 				return qeErrorOccur("[QE] TNINTERFACEBIND: no interface or object name \"" + leftName + "\" in db", ENoInterfaceFound);
 				
-			ec->printf("Got name: %s\n", interfaceSchema->getName().c_str());
+			debug_printf(*ec, "Got name: %s\n", interfaceSchema->getName().c_str());
 			//implementation name
 			Schema *implementationSchema;
 			int implementationType;
@@ -1408,7 +1408,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			if (!exists)
 				return qeErrorOccur("[QE] TNINTERFACEBIND: no implementation \"" + rightName + "\" in db", ENoImplementationFound);
 
-			ec->printf("Got implementation name: %s\n", implementationSchema->getName().c_str());
+			debug_printf(*ec, "Got implementation name: %s\n", implementationSchema->getName().c_str());
 			
 		    //Check if implementation fits interface	    
 		    bool matches;
@@ -1416,7 +1416,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			string implementationName = implementationSchema->getName();   //TODO - we already have schemas here
  		    if (implementationType == BIND_VIEW)
 			{
-				ec->printf("Bind to a view - matching can't be easily checked, so it won't\n");
+				debug_printf(*ec, "Bind to a view - matching can't be easily checked, so it won't\n");
 				matches = true;
 			}
 			else
@@ -1424,11 +1424,11 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				errcode = Schema::interfaceMatchesImplementation(interfaceName, implementationName, tr, implementationType, matches);
 				if (errcode) 
 				{
-					ec->printf("[QE] INTERFACESBIND - error in interfaceMatchesImplementation: %s, %s\n", interfaceName.c_str(), implementationName.c_str()); 
+					debug_printf(*ec, "[QE] INTERFACESBIND - error in interfaceMatchesImplementation: %s, %s\n", interfaceName.c_str(), implementationName.c_str());
 					return errcode;
 				}
 				string resS = matches ? "fits": "does not fit";
-				ec->printf("[QE] TNINTERFACEBIND - interface %s %s implementation %s\n",interfaceName.c_str(),resS.c_str(),implementationName.c_str());
+				debug_printf(*ec, "[QE] TNINTERFACEBIND - interface %s %s implementation %s\n",interfaceName.c_str(),resS.c_str(),implementationName.c_str());
 			}
 		    //Bind interface
 		    
@@ -1438,7 +1438,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				errcode = tr->bindInterface(interfaceName, implementationName);
 				if (errcode) 
 				{
-					ec->printf("[QE] INTERFACESBIND - error in bindInterface\n");
+					debug_printf(*ec, "[QE] INTERFACESBIND - error in bindInterface\n");
 					return -1; //TODO - errcode
 				}
 				InterfaceMaps::Instance().addBind(interfaceName, implementationName, implementationObjectName, implementationType);			
@@ -1449,13 +1449,13 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		    QueryResult *result = new QueryNothingResult();
 		    errcode = qres->push(result);
 		    if (errcode != 0) return errcode;
-		    *ec << "[QE] TNINTERFACEBIND done";
+		    debug_print(*ec,  "[QE] TNINTERFACEBIND done");
 		    return 0;
 		}
 
 		case TreeNode::TNREGINTERFACE: {
 
-		    *ec << "[QE] Type: TNREGINTERFACE";
+		    debug_print(*ec,  "[QE] Type: TNREGINTERFACE");
 
 		    QueryNode *query = ((RegisterInterfaceNode *) tree)->getQuery();
 		    ObjectPointer *optr;
@@ -1467,7 +1467,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		    }
 		    else qres->push(new QueryNothingResult());
 
-		    ec->printf("[QE] TNREGINTERFACE inner result pushed\n");
+		    debug_printf(*ec, "[QE] TNREGINTERFACE inner result pushed\n");
 
 		    QueryResult *execution_result;
 		    errcode = qres->pop(execution_result);
@@ -1477,7 +1477,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				return qeErrorOccur( "[QE] TNREGINTERFACE error - execution result is not QueryReference", ERefExpected );
 		    }
 
-		    ec->printf("[QE] TNREGINTERFACE got reference\n");
+		    debug_printf(*ec, "[QE] TNREGINTERFACE got reference\n");
 
 			LogicalID* interfaceLid = ((QueryReferenceResult*)execution_result)->getValue();
 		    errcode = tr->getObjectPointer (interfaceLid, Store::Read, optr, false);
@@ -1486,10 +1486,10 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		    	return trErrorOccur("[QE] register interface operation - Error in getObjectPointer.", errcode);
 		    }
 
-		    ec->printf("[QE] TNREGINTERFACE got object pointer\n");
+		    debug_printf(*ec, "[QE] TNREGINTERFACE got object pointer\n");
 
-		    *ec << optr->getName().c_str();
-		    ec->printf("[QE] TNREGINTERFACE got name\n");
+		    debug_print(*ec,  optr->getName().c_str());
+		    debug_printf(*ec, "[QE] TNREGINTERFACE got name\n");
 
 		    string object_name = "";
 		    vector<LogicalID*>* inner_vec = (optr->getValue())->getVector();
@@ -1506,26 +1506,26 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				}
 		    }
 			
-			*ec << "[QE] Checking if name is already used in database..";
+			debug_print(*ec,  "[QE] Checking if name is already used in database..");
 
 			bool taken;
 			string interfaceName = optr->getName().c_str();
 			if ((errcode = nameTaken(interfaceName, taken)) != 0) 
 			{
-			    *ec << "[QE] TNREGINTERFACE: returning error from nameTaken";
+			    debug_print(*ec,  "[QE] TNREGINTERFACE: returning error from nameTaken");
 			    return errcode;
 			}
     		if (taken)
 			    return qeErrorOccur("[QE] TNREGINTERFACE: interface name \"" + interfaceName + "\" already in use", ENotUniqueInterfaceName);
 			if ((errcode = nameTaken(object_name, taken)) != 0) 
 			{
-			    *ec << "[QE] TNREGINTERFACE: returning error from nameTaken";
+			    debug_print(*ec,  "[QE] TNREGINTERFACE: returning error from nameTaken");
 			    return errcode;
 			}
     		if (taken)
 			    return qeErrorOccur("[QE] TNREGINTERFACE: interface object name \"" + interfaceName + "\" already in use", ENotUniqueInterfaceName);
 
-			*ec << "[QE] TNINTERFACENODE: Interface name and object name unique";
+			debug_print(*ec,  "[QE] TNINTERFACENODE: Interface name and object name unique");
 
 			errcode = tr->addRoot(optr);
 		    if (errcode != 0) 
@@ -1533,7 +1533,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		    	return trErrorOccur("[QE] Error in addRoot", errcode);
 		    }
 
-		    ec->printf("[QE] TNREGINTERFACE addRoot processed\n");
+		    debug_printf(*ec, "[QE] TNREGINTERFACE addRoot processed\n");
 			
 		    errcode = tr->addInterface(interfaceName, object_name.c_str(), optr);
 		    if (errcode != 0) 
@@ -1542,12 +1542,12 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		    }
 			Schema *s;
 			errcode = Schema::interfaceFromLogicalID(interfaceLid, tr, s);
-			ec->printf("[QE] schema %s\n", s->getName().c_str());
+			debug_printf(*ec, "[QE] schema %s\n", s->getName().c_str());
 			if (errcode)
 			{
 				return trErrorOccur("[QE] Error in interfaceFromLogicalID", errcode);
 			}
-			ec->printf("[QE] TNREGINTERFACE inserting into map..\n");
+			debug_printf(*ec, "[QE] TNREGINTERFACE inserting into map..\n");
 			bool inserted = InterfaceMaps::Instance().insertNewInterfaceAndPropagateHierarchy(*s);
 			if (!inserted)
 			{
@@ -1557,30 +1557,30 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		    errcode = qres->push(execution_result);
 		    if (errcode != 0) return errcode;
 
-		    *ec << "[QE] TNREGINTERFACE returning";
+		    debug_print(*ec,  "[QE] TNREGINTERFACE returning");
 
 		    return 0;
 		}
 
 		case TreeNode::TNINTERFACEMETHOD: {
-		    *ec << "[QE] Type: TNINTERFACEMETHOD";
+		    debug_print(*ec,  "[QE] Type: TNINTERFACEMETHOD");
 		    string name = ((InterfaceMethod *) tree)->getName();
 		    vector<LogicalID *> methodLids;
 
-		    ec->printf("[QE] Type: TNINTERFACEMETHOD name=%s\n", name.c_str());
+		    debug_printf(*ec, "[QE] Type: TNINTERFACEMETHOD name=%s\n", name.c_str());
 
 		    QueryResult *methodStruct = new QueryStructResult();
 		    QueryResult *paramName, *paramNameBinder;
 		    
 		    // get and process arguments (ADTODO-check name uniqueness)
 		    TAttributes params = ((InterfaceMethod *) tree)->getParams();
-		    ec->printf("[QE] TNINTERFACEMETHOD parameter count = %d\n", params.size());
+		    debug_printf(*ec, "[QE] TNINTERFACEMETHOD parameter count = %d\n", params.size());
 		    for(TAttributes::iterator it = params.begin(); it != params.end(); ++it) 
 		    {
 			paramName = new QueryStringResult(it->getName());
 			paramNameBinder = new QueryBinderResult(QE_METHOD_PARAM_BIND_NAME, paramName);
 			methodStruct->addResult(paramNameBinder);
-			ec->printf("[QE] TNINTERFACEMETHOD parameter (%s) added\n", it->getName().c_str());
+			debug_printf(*ec, "[QE] TNINTERFACEMETHOD parameter (%s) added\n", it->getName().c_str());
 		    }
 
 		    //ADTODO-check memory!
@@ -1588,24 +1588,24 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		    QueryResult *methodBinder = new QueryBinderResult(name, methodStruct);
 		    ObjectPointer *optr;
 
-		    ec->printf("[QE] TNINTERFACEMETHOD making object from binder\n");
+		    debug_printf(*ec, "[QE] TNINTERFACEMETHOD making object from binder\n");
 
 		    if ((errcode = objectFromBinder(methodBinder, optr))!=0)
 			return errcode;
 
-		    ec->printf("[QE] TNINTERFACEMETHOD object made\n");
+		    debug_printf(*ec, "[QE] TNINTERFACEMETHOD object made\n");
 
 		    QueryResult *lidres = new QueryReferenceResult(optr->getLogicalID());
 		    if ((errcode = qres->push(lidres))!=0)
 			return errcode;
 
-		    *ec << "[QE] TNINTERFACEMETHOD proccessing complete";
+		    debug_print(*ec,  "[QE] TNINTERFACEMETHOD proccessing complete");
 		    return 0;
 		}
 
 		case TreeNode::TNINTERFACEATTRIBUTE: {
 		    string name = ((InterfaceAttribute *) tree)->getName();
-		    ec->printf("[QE] Type: TNINTERFACEATTRIBUTE Name = %s\n", name.c_str());
+		    debug_printf(*ec, "[QE] Type: TNINTERFACEATTRIBUTE Name = %s\n", name.c_str());
 		    		    
 		    QueryResult *nameString = new QueryStringResult(name);
 		    QueryResult *nameBinder = new QueryBinderResult(QE_NAME_BIND_NAME, nameString);
@@ -1618,17 +1618,17 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		    if ((errcode = qres->push(lidres))!=0)
 			return errcode;
 
-		    *ec << "[QE] TNINTERFACEATTRIBUTE proccessing complete";
+		    debug_print(*ec,  "[QE] TNINTERFACEATTRIBUTE proccessing complete");
 		    return 0;
 		}
 
 		case TreeNode::TNINTERFACENODE: {
-			*ec << "[QE] Type: TNINTERFACENODE";
+			debug_print(*ec,  "[QE] Type: TNINTERFACENODE");
 			
 			InterfaceNode *node = (InterfaceNode *)tree;			
 			string interfaceName = node->getInterfaceName();
 			string objectName = node->getObjectName();
-			*ec << "[QE] Interface name: " << interfaceName;
+			debug_print(*ec,  "[QE] Interface name: " + interfaceName);
 
 			Schema *intSchema;
 			Schema::interfaceFromInterfaceNode(node, intSchema);
@@ -1641,7 +1641,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 
 			// get and process supers
 			QParser::TSupers supers = node->getSupers();
-			ec->printf("[QE] TNINTERFACENODE: supers count: %d\n", supers.size());
+			debug_printf(*ec, "[QE] TNINTERFACENODE: supers count: %d\n", supers.size());
 			QParser::TSupers::iterator it;
 			for (it = supers.begin(); it != supers.end(); ++it)
 			{
@@ -1651,11 +1651,11 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			
 			// get and process attributes (ADTODO-check name uniqueness)
 			TAttributes attributes = node->getAttributes();
-			ec->printf("[QE] TNINTERFACENODE: attributes count: %d\n", attributes.size());
+			debug_printf(*ec, "[QE] TNINTERFACENODE: attributes count: %d\n", attributes.size());
 			for(TAttributes::iterator it = attributes.begin(); it != attributes.end(); it++) 
 			{
 			    InterfaceAttribute *a = new InterfaceAttribute(*it);
-			    ec->printf("[QE] TNINTERFACENODE: adding attribute\n");
+			    debug_printf(*ec, "[QE] TNINTERFACENODE: adding attribute\n");
 			    if ((errcode = executeRecQuery(a)) != 0)
 			        return errcode;
 			    QueryResult *execution_result;
@@ -1671,7 +1671,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			    LogicalID* newLid;
 			    if ((errcode = lidFromReference(QE_FIELD_BIND_NAME, lid, newLid))!=0)
 			        return errcode;
-			    ec->printf("[QE] TNINTERFACENODE: attribute added, lid = %d\n", newLid);
+			    debug_printf(*ec, "[QE] TNINTERFACENODE: attribute added, lid = %d\n", newLid);
 			    interfaceLids.push_back(newLid);
 			}
 
@@ -1706,13 +1706,13 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			if ((errcode = createObjectAndPutOnQRes(dbValue, interfaceName, Store::Interface, newLid))!=0)
 			    return errcode;
 
-			*ec << "[QE] TNINTERFACENODE processing complete";
+			debug_print(*ec,  "[QE] TNINTERFACENODE processing complete");
 			return 0;
 		}
 			
 		case TreeNode::TNSCHEMANODE:
 		{
-			*ec << "[QE] Type: TNSCHEMANODE";
+			debug_print(*ec,  "[QE] Type: TNSCHEMANODE");
 			SchemaNode *sn = (SchemaNode *)tree;
 			string schemaName = sn->getName();
 			TNameToAccess accessPoints = sn->getAccessPoints();
@@ -1723,7 +1723,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			if (errcode || taken) 
 			{   
 				if (errcode) return errcode;
-				ec->printf("[QE] TNSCHEMANODE - cannot create schema %s, name already in use\n", schemaName.c_str());
+				debug_printf(*ec, "[QE] TNSCHEMANODE - cannot create schema %s, name already in use\n", schemaName.c_str());
 				return -1;  //TODO
 			}
 			
@@ -1733,13 +1733,13 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			STATE state = OuterSchemaValidator::validate(oSchemaP, tr, true);
 			if (OuterSchemaValidator::isError(state))
 			{   //TODO - be more specific (bad name list, non-unique name, transaction error)
-				ec->printf("[QE] Validator returned error - schema can't be added\n");
+				debug_printf(*ec, "[QE] Validator returned error - schema can't be added\n");
 				return state;
 			}	
 			
 			//process aps
 			vector<LogicalID *> schemaLids;
-			ec->printf("[QE] TNSchema: access points count: %d\n", accessPoints.size());
+			debug_printf(*ec, "[QE] TNSchema: access points count: %d\n", accessPoints.size());
 			Schemas::TNameToAccess::iterator it;
 			for (it = accessPoints.begin(); it != accessPoints.end(); ++it)
 			{
@@ -1754,13 +1754,13 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			if ((errcode = createObjectAndPutOnQRes(dbValue, schemaName, Store::StoreSchema, newLid))!=0)
 			    return errcode;
 
-			*ec << "[QE] TNSCHEMANODE processing complete";
+			debug_print(*ec,  "[QE] TNSCHEMANODE processing complete");
 			return 0;		
 		}
 				
 		case TreeNode::TNREGSCHEMA:
 		{
-			*ec << "[QE] Type: TNREGSCHEMA";
+			debug_print(*ec,  "[QE] Type: TNREGSCHEMA");
 
 			RegisterSchemaNode* rs = (RegisterSchemaNode *)tree;
 			SchemaNode query = rs->getSchemaQuery();
@@ -1768,7 +1768,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			errcode = executeRecQuery(&query);
 			if(errcode != 0) return errcode;
 
-		    ec->printf("[QE] TNREGSCHEMA inner result pushed\n");
+		    debug_printf(*ec, "[QE] TNREGSCHEMA inner result pushed\n");
 
 		    QueryResult *execution_result;
 		    errcode = qres->pop(execution_result);
@@ -1778,7 +1778,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				return qeErrorOccur( "[QE] TNREGSCHEMA error - execution result is not QueryReference", ERefExpected );
 		    }
 
-		    ec->printf("[QE] TNREGSCHEMA got reference\n");
+		    debug_printf(*ec, "[QE] TNREGSCHEMA got reference\n");
 			LogicalID* schemaLid = ((QueryReferenceResult*)execution_result)->getValue();
 		    errcode = tr->getObjectPointer (schemaLid, Store::Read, optr, false);
 		    if (errcode != 0) 
@@ -1786,17 +1786,17 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		    	return trErrorOccur("[QE] TNREGSCHEMA - Error in getObjectPointer.", errcode);
 		    }
 
-		    ec->printf("[QE] TNREGSCHEMA got object pointer\n");
+		    debug_printf(*ec, "[QE] TNREGSCHEMA got object pointer\n");
 		    errcode = tr->addRoot(optr);
 		    if (errcode != 0) 
 			{
 		    	return trErrorOccur("[QE] Error in addRoot", errcode);
 		    }
 
-		    ec->printf("[QE] TNREGSCHEMA addRoot processed\n");
+		    debug_printf(*ec, "[QE] TNREGSCHEMA addRoot processed\n");
 
-		    *ec << optr->getName().c_str();
-		    ec->printf("[QE] TNREGSCHEMA got name\n");
+		    debug_print(*ec,  optr->getName().c_str());
+		    debug_printf(*ec, "[QE] TNREGSCHEMA got name\n");
 
 		    errcode = tr->addSchema(optr->getName().c_str(), optr);
 		    if (errcode != 0) 
@@ -1814,7 +1814,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		    errcode = qres->push(execution_result);
 		    if (errcode != 0) return errcode;
 
-		    *ec << "[QE] TNREGSCHEMA returning";
+		    debug_print(*ec,  "[QE] TNREGSCHEMA returning");
 
 		    return 0;
 		 
@@ -1824,9 +1824,9 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		case TreeNode::TNEXCLUDES:
 		case TreeNode::TNINCLUDES: {
 			if(nodeType == TreeNode::TNINCLUDES) {
-				*ec << "[QE] Type: TNINCLUDES";
+				debug_print(*ec,  "[QE] Type: TNINCLUDES");
 			} else {
-				*ec << "[QE] Type: TNEXCLUDES";
+				debug_print(*ec,  "[QE] Type: TNEXCLUDES");
 			}
 			QueryNode *objectsQuery = ((ClassesObjectsNode *) tree)->getObjectsQuery();
 			if(objectsQuery != NULL) {
@@ -1903,7 +1903,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 
 
 		case TreeNode::TNINSTANCEOF: {
-			*ec << "[QE] Type: TNINSTANCEOF";
+			debug_print(*ec,  "[QE] Type: TNINSTANCEOF");
 			bool isInstanceOf = true;
 			if(((ObjectsClassesNode*)tree)->getObjectsQuery() != NULL && ((ObjectsClassesNode*)tree)->getClassesQuery() != NULL) {
 				//getting object
@@ -1970,12 +1970,12 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			}
 			errcode = qres->push(new QueryBoolResult(isInstanceOf));
 			if(errcode != 0) return errcode;
-			*ec << "[QE] TNINSTANCEOF processing complete";
+			debug_print(*ec,  "[QE] TNINSTANCEOF processing complete");
 			return 0;
 		}
 
 		case TreeNode::TNCAST: {
-			*ec << "[QE] Type: TNCAST";
+			debug_print(*ec,  "[QE] Type: TNCAST");
 			QueryResult *execResultObject;
 			errcode = execRecursivQueryAndPop(((ObjectsClassesNode*)tree)->getObjectsQuery(), execResultObject);
 			if(errcode != 0) return errcode;
@@ -2044,12 +2044,12 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			}
 			errcode = qres->push(finalResult);
 			if(errcode != 0) return errcode;
-			*ec << "[QE] TNCAST processing complete";
+			debug_print(*ec,  "[QE] TNCAST processing complete");
 			return 0;
 		}
 
 		case TreeNode::TNCLASS: {
-			*ec << "[QE] Type: TNCLASS";
+			debug_print(*ec,  "[QE] Type: TNCLASS");
 			vector<LogicalID *> classVector;//main class object
 			string className = ((ClassNode *) tree)->getName();
 			string invariantName = ((ClassNode *) tree)->getInvariant();
@@ -2245,7 +2245,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		}
 
 		case TreeNode::TNREGCLASS: {
-			*ec << "[QE] Type: TNREGCLASS";
+			debug_print(*ec,  "[QE] Type: TNREGCLASS");
 			QueryNode *query = ((RegisterClassNode *) tree)->getQuery();
 			if(query != NULL) {
 				errcode = executeRecQuery(query);
@@ -2309,7 +2309,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				if(errcode != 0) return errcode;
 			}
 
-			*ec << cg->toString();
+			debug_print(*ec,  cg->toString());
 
 			errcode = qres->push(execution_result);
 			if (errcode != 0) return errcode;
@@ -2317,7 +2317,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		}
 
 		case TreeNode::TNCREATE: {
-			*ec << "[QE] Type: TNCREATE";
+			debug_print(*ec,  "[QE] Type: TNCREATE");
 			QueryResult *result = new QueryBagResult();
 			errcode = executeRecQuery (tree->getArg());
 			if (errcode != 0) return errcode;
@@ -2368,7 +2368,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				{	
 					QueryBinderResult* binderR = (QueryBinderResult*)binder;
 
-					ec->printf("[QE] TNCREATE - checking bind for %s\n", newobject_name.c_str());
+					debug_printf(*ec, "[QE] TNCREATE - checking bind for %s\n", newobject_name.c_str());
 					bool interfaced = false;
 					int implType;
 					string iName;
@@ -2427,11 +2427,11 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 						k.setKey(iName);
 					}
 					
-					ec->printf("[QE] TNCREATE - adding root for %s\n", optr->getName().c_str());
+					debug_printf(*ec, "[QE] TNCREATE - adding root for %s\n", optr->getName().c_str());
 
 					errcode = tr->addRoot(optr);
 					if (errcode != 0) {
-						*ec << "[QE] Error in addRoot";
+						debug_print(*ec,  "[QE] Error in addRoot");
 						antyStarveFunction(errcode);
 						inTransaction = false;
 						return errcode;
@@ -2447,42 +2447,42 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			//delete bagRes;
 			errcode = qres->push(result);
 			if (errcode != 0) return errcode;
-			*ec << "[QE] CREATE Done!";
+			debug_print(*ec,  "[QE] CREATE Done!");
 			return 0;
 		} //case TNCREATE
 
 		case TreeNode::TNINT: {
 			int intValue = ((IntNode *) tree)->getValue();
-			ec->printf("[QE] TNINT: %d\n", intValue);
+			debug_printf(*ec, "[QE] TNINT: %d\n", intValue);
 			QueryResult *result = new QueryIntResult(intValue);
 			errcode = qres->push(result);
 			if (errcode != 0) return errcode;
-			ec->printf("[QE] QueryIntResult (%d) created\n",intValue);
+			debug_printf(*ec, "[QE] QueryIntResult (%d) created\n",intValue);
 			return 0;
 		} //case TNINT
 
 		case TreeNode::TNSTRING: {
 			string stringValue = ((StringNode *) tree)->getValue();
-			*ec << "[QE] TNSTRING: " << stringValue;
+			debug_print(*ec,  "[QE] TNSTRING: " + stringValue);
 			QueryResult *result = new QueryStringResult(stringValue);
 			errcode = qres->push(result);
 			if (errcode != 0) return errcode;
-			*ec << "[QE] QueryStringResult created";
+			debug_print(*ec,  "[QE] QueryStringResult created");
 			return 0;
 		} //case TNSTRING
 
 		case TreeNode::TNDOUBLE: {
 			double doubleValue = ((DoubleNode *) tree)->getValue();
-			ec->printf("[QE] TNDOUBLE: %f\n", doubleValue);
+			debug_printf(*ec, "[QE] TNDOUBLE: %f\n", doubleValue);
 			QueryResult *result = new QueryDoubleResult(doubleValue);
 			errcode = qres->push(result);
 			if (errcode != 0) return errcode;
-			ec->printf("[QE] QueryDoubleResult (%f) created\n", doubleValue);
+			debug_printf(*ec, "[QE] QueryDoubleResult (%f) created\n", doubleValue);
 			return 0;
 		} //case TNDOUBLE
 
 		case TreeNode::TNAS: {
-			*ec << "[QE] AS/GROUP_AS operation recognized";
+			debug_print(*ec,  "[QE] AS/GROUP_AS operation recognized");
 			string name = tree->getName();
 			errcode = executeRecQuery(tree->getArg());
 			if (errcode != 0) return errcode;
@@ -2492,13 +2492,13 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			bool grouped = ((NameAsNode *) tree)->isGrouped();
 			QueryResult *final_result = new QueryBagResult();
 			if (grouped) {
-				*ec << "[QE] GROUP AS operation";
+				debug_print(*ec,  "[QE] GROUP AS operation");
 				QueryResult *tmp_binder = new QueryBinderResult(name, tmp_result);
-				*ec << "[QE] GROUP AS: new binder created and added to final result";
+				debug_print(*ec,  "[QE] GROUP AS: new binder created and added to final result");
 				final_result->addResult(tmp_binder);
 			}
 			else {
-				*ec << "[QE] AS operation";
+				debug_print(*ec,  "[QE] AS operation");
 				QueryResult *partial_result;
 				if (((tmp_result->type()) != QueryResult::QSEQUENCE) && ((tmp_result->type()) != QueryResult::QBAG)) {
 					partial_result = new QueryBagResult();
@@ -2512,20 +2512,20 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 					errcode = ((QueryBagResult *) partial_result)->at(i, nextResult);
 					if (errcode != 0) return errcode;
 					QueryResult *tmp_binder = new QueryBinderResult(name, nextResult);
-					*ec << "[QE] AS: new binder created and added to final result";
+					debug_print(*ec,  "[QE] AS: new binder created and added to final result");
 					final_result->addResult(tmp_binder);
 				}
 				//delete partial_result;
 			}
 			errcode = qres->push(final_result);
 			if (errcode != 0) return errcode;
-			*ec << "[QE] AS operation Done!";
+			debug_print(*ec,  "[QE] AS operation Done!");
 			return 0;
 		} //case TNAS
 
 		case TreeNode::TNUNOP: {
 			UnOpNode::unOp op = ((UnOpNode *) tree)->getOp();
-			*ec << "[QE] Unary operator - type recognized";
+			debug_print(*ec,  "[QE] Unary operator - type recognized");
 			errcode = executeRecQuery(tree->getArg());
 			if (errcode != 0) return errcode;
 			QueryResult *tmp_result;
@@ -2537,13 +2537,13 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			//delete tmp_result;
 			errcode = qres->push(op_result);
 			if (errcode != 0) return errcode;
-			*ec << "[QE] Unary operation Done!";
+			debug_print(*ec,  "[QE] Unary operation Done!");
 			return 0;
 		} //case TNUNOP
 
 		case TreeNode::TNALGOP: {
 			AlgOpNode::algOp op = ((AlgOpNode *) tree)->getOp();
-			*ec << "[QE] Algebraic operator - type recognized";
+			debug_print(*ec,  "[QE] Algebraic operator - type recognized");
 			QueryResult *lResult, *rResult;
 			errcode = executeRecQuery(((AlgOpNode *) tree)->getLArg());
 			if (errcode != 0) return errcode;
@@ -2560,12 +2560,12 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			//delete rResult;
 			errcode = qres->push(op_result);
 			if (errcode != 0) return errcode;
-			*ec << "[QE] Algebraic operation Done!";
+			debug_print(*ec,  "[QE] Algebraic operation Done!");
 			return 0;
 		} // TNALGOP
 
 		case TreeNode::TNFIX: {
-			*ec << "[QE] FIXPOINT operation recognized";
+			debug_print(*ec,  "[QE] FIXPOINT operation recognized");
 			QueryResult *final = new QueryStructResult();
 			int howManyOps = ((FixPointNode *) tree)->howManyParts();
 			for (int i = 0; i<howManyOps; i++) {
@@ -2577,15 +2577,15 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			bool looping = true;
 			while (looping) {
 				if (this->evalStopped()) {
-					*ec << "[QE] query evaluating stopped by Server, aborting transaction ";
+					debug_print(*ec,  "[QE] query evaluating stopped by Server, aborting transaction ");
 					errcode = tr->abort();
 					inTransaction = false;
 					if (errcode != 0) {
-						*ec << "[QE] error in transaction->abort()";
+						debug_print(*ec,  "[QE] error in transaction->abort()");
 						return errcode;
 					}
-					*ec << "[QE] Transaction aborted succesfully";
-					*ec << (ErrQExecutor | EEvalStopped);
+					debug_print(*ec,  "[QE] Transaction aborted succesfully");
+					debug_print(*ec,  (ErrQExecutor | EEvalStopped));
 					return (ErrQExecutor | EEvalStopped);
 				}
 
@@ -2614,31 +2614,31 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			}
 			errcode = qres->push(final);
 			if (errcode != 0) return errcode;
-			*ec << "[QE] Fixpoint operation Done!";
+			debug_print(*ec,  "[QE] Fixpoint operation Done!");
 			return 0;
 		} // TNFIX
 
 		case TreeNode::TNPARAM: {
-			*ec << "[QE] Parametr opeartion";
+			debug_print(*ec,  "[QE] Parametr opeartion");
 			QueryResult *res;
 			string paramName = ((ParamNode *) tree)->getName();
 			if (prms == NULL) {
-				*ec << "[QE] error! Parametr operation - params == NULL";
-				*ec << (ErrQExecutor | EQEUnexpectedErr);
+				debug_print(*ec,  "[QE] error! Parametr operation - params == NULL");
+				debug_print(*ec,  (ErrQExecutor | EQEUnexpectedErr));
 				return (ErrQExecutor | EQEUnexpectedErr);
 			}
 			int howMany = prms->count(paramName);
 			if (howMany != 1) {
-				*ec << "[QE] error! Parametr operation - wrong parametr";
-				*ec << (ErrQExecutor | EQEUnexpectedErr);
+				debug_print(*ec,  "[QE] error! Parametr operation - wrong parametr");
+				debug_print(*ec,  (ErrQExecutor | EQEUnexpectedErr));
 				return (ErrQExecutor | EQEUnexpectedErr);
 			}
 			map<string, QueryResult*>::iterator pos;
 			pos = prms->find(paramName);
 			if (pos != prms->end()) res = pos->second;
 			else {
-				*ec << "[QE] error! Parametr operation - index out of range";
-				*ec << (ErrQExecutor | EQEUnexpectedErr);
+				debug_print(*ec,  "[QE] error! Parametr operation - index out of range");
+				debug_print(*ec,  (ErrQExecutor | EQEUnexpectedErr));
 				return (ErrQExecutor | EQEUnexpectedErr);
 			}
 			QueryResult *final_res;
@@ -2646,13 +2646,13 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			if (errcode != 0) return errcode;
 			errcode = qres->push(final_res);
 			if (errcode != 0) return errcode;
-			*ec << "[QE] Parametr operation Done!";
+			debug_print(*ec,  "[QE] Parametr operation Done!");
 			return 0;
 		} // TNPARAM
 
 		case TreeNode::TNNONALGOP: {
 			NonAlgOpNode::nonAlgOp op = ((NonAlgOpNode *) tree)->getOp();
-			*ec << "[QE] NonAlgebraic operator - type recognized";
+			debug_print(*ec,  "[QE] NonAlgebraic operator - type recognized");
 			QueryResult *l_tmp_Result;
 			errcode = executeRecQuery (((NonAlgOpNode *) tree)->getLArg());
 			if (errcode != 0) return errcode;
@@ -2665,31 +2665,31 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			}
 			else
 				lResult = l_tmp_Result;
-			*ec << "[QE] Left argument of NonAlgebraic query has been computed";
+			debug_print(*ec,  "[QE] Left argument of NonAlgebraic query has been computed");
 			QueryResult *partial_result = new QueryBagResult();
 			QueryResult *visited_result = new QueryBagResult();
 			QueryResult *final_result = new QueryBagResult();
 			if ((op == NonAlgOpNode::closeBy) || (op == NonAlgOpNode::closeUniqueBy) || (op == NonAlgOpNode::leavesBy) || (op == NonAlgOpNode::leavesUniqueBy)) {
 				switch (op) {
 					case NonAlgOpNode::closeBy: {
-						*ec << "[QE] NonAlgebraic recursive operator <closeBy>";
+						debug_print(*ec,  "[QE] NonAlgebraic recursive operator <closeBy>");
 						partial_result->addResult(lResult);
 						final_result->addResult(lResult);
 						break;
 					}
 					case NonAlgOpNode::closeUniqueBy: {
-						*ec << "[QE] NonAlgebraic recursive operator <closeUniqueBy>";
+						debug_print(*ec,  "[QE] NonAlgebraic recursive operator <closeUniqueBy>");
 						partial_result->addResult(lResult);
 						final_result->addResult(lResult);
 						break;
 					}
 					case NonAlgOpNode::leavesBy: {
-						*ec << "[QE] NonAlgebraic recursive operator <leavesBy>";
+						debug_print(*ec,  "[QE] NonAlgebraic recursive operator <leavesBy>");
 						partial_result->addResult(lResult);
 						break;
 					}
 					case NonAlgOpNode::leavesUniqueBy: {
-						*ec << "[QE] NonAlgebraic recursive operator <leavesUniqueBy>";
+						debug_print(*ec,  "[QE] NonAlgebraic recursive operator <leavesUniqueBy>");
 						partial_result->addResult(lResult);
 						visited_result->addResult(lResult);
 						break;
@@ -2701,15 +2701,15 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				while (not (partial_result->isEmpty())) {
 
 					if (this->evalStopped()) {
-						*ec << "[QE] query evaluating stopped by Server, aborting transaction ";
+						debug_print(*ec,  "[QE] query evaluating stopped by Server, aborting transaction ");
 						errcode = tr->abort();
 						inTransaction = false;
 						if (errcode != 0) {
-							*ec << "[QE] error in transaction->abort()";
+							debug_print(*ec,  "[QE] error in transaction->abort()");
 							return errcode;
 						}
-						*ec << "[QE] Transaction aborted succesfully";
-						*ec << (ErrQExecutor | EEvalStopped);
+						debug_print(*ec,  "[QE] Transaction aborted succesfully");
+						debug_print(*ec,  (ErrQExecutor | EEvalStopped));
 						return (ErrQExecutor | EEvalStopped);
 					}
 
@@ -2725,7 +2725,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 					if (errcode != 0) return errcode;
 					errcode = qres->pop(newResult);
 					if (errcode != 0) return errcode;
-					*ec << "[QE] Computing right Argument with a new scope of ES";
+					debug_print(*ec,  "[QE] Computing right Argument with a new scope of ES");
 					errcode = envs->pop();
 					if (errcode != 0) return errcode;
 					switch (op) {
@@ -2836,7 +2836,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			else { // this is normal (not recursive) non algebraic operation
 				if (((lResult->type()) == QueryResult::QSEQUENCE) || ((lResult->type()) == QueryResult::QBAG)) {
 
-					*ec << "[QE] For each row of this score, the right argument will be computed";
+					debug_print(*ec,  "[QE] For each row of this score, the right argument will be computed");
 					for (unsigned int i = 0; i < (lResult->size()); i++) {
 						QueryResult *currentResult;
 
@@ -2848,11 +2848,11 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 
 						QueryResult *rResult;
 
-						ec->printf("[QE] nested operation started()\n");
+						debug_printf(*ec, "[QE] nested operation started()\n");
 						errcode = (currentResult)->nested_and_push_on_envs(this, tr);
 						if (errcode != 0) return errcode;
 
-						*ec << "[QE] Computing right Argument with a new scope of ES";
+						debug_print(*ec,  "[QE] Computing right Argument with a new scope of ES");
 						errcode = executeRecQuery (((NonAlgOpNode *) tree)->getRArg());
 						if (errcode != 0) return errcode;
 						errcode = qres->pop(rResult);
@@ -2863,30 +2863,30 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 
 						errcode = this->combine(op,currentResult,rResult,partial_result);
 						if (errcode != 0) return errcode;
-						*ec << "[QE] Combined partial results";
+						debug_print(*ec,  "[QE] Combined partial results");
 					}
 				}
 				else {
-					*ec << "[QE] ERROR! NonAlgebraic operation, bad left argument";
-					*ec << (ErrQExecutor | EOtherResExp);
+					debug_print(*ec,  "[QE] ERROR! NonAlgebraic operation, bad left argument");
+					debug_print(*ec,  (ErrQExecutor | EOtherResExp));
 					return (ErrQExecutor | EOtherResExp);
 				}
 				errcode = this->merge(op,partial_result, final_result);
 				if (errcode != 0) return errcode;
-				*ec << "[QE] Merged partial results into final result";
+				debug_print(*ec,  "[QE] Merged partial results into final result");
 			}
 			errcode = qres->push(final_result);
 			if (errcode != 0) return errcode;
-			*ec << "[QE] NonAlgebraic operation Done!";
+			debug_print(*ec,  "[QE] NonAlgebraic operation Done!");
 			return 0;
 		} //case TNNONALGOP
 
 		case TreeNode::TNCOND: {
 			CondNode::condOp op = ((CondNode *) tree)->getOp();
-			*ec << "[QE] Conditional operator - type recognized";
+			debug_print(*ec,  "[QE] Conditional operator - type recognized");
 			switch (op) {
 				case CondNode::iff: {
-					*ec << "[QE] IF <q1> THEN <q2> FI";
+					debug_print(*ec,  "[QE] IF <q1> THEN <q2> FI");
 					QueryResult *tmp_result;
 					errcode = executeRecQuery(((CondNode *) tree)->getCondition());
 					if (errcode != 0) return errcode;
@@ -2898,8 +2898,8 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 						if (errcode != 0) return errcode;
 					}
 					else {
-						*ec << "[QE] ERROR! <q1> must be BOOLEAN ";
-						*ec << (ErrQExecutor | EBoolExpected);
+						debug_print(*ec,  "[QE] ERROR! <q1> must be BOOLEAN ");
+						debug_print(*ec,  (ErrQExecutor | EBoolExpected));
 						return (ErrQExecutor | EBoolExpected);
 					}
 					if (bool_val) {
@@ -2914,7 +2914,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 					break;
 				}
 				case CondNode::ifElsee: {
-					*ec << "[QE] IF <q1> THEN <q2> ELSE <q3> FI";
+					debug_print(*ec,  "[QE] IF <q1> THEN <q2> ELSE <q3> FI");
 					QueryResult *tmp_result;
 					errcode = executeRecQuery(((CondNode *) tree)->getCondition());
 					if (errcode != 0) return errcode;
@@ -2926,8 +2926,8 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 						if (errcode != 0) return errcode;
 					}
 					else {
-						*ec << "[QE] ERROR! <q1> must be BOOLEAN ";
-						*ec << (ErrQExecutor | EBoolExpected);
+						debug_print(*ec,  "[QE] ERROR! <q1> must be BOOLEAN ");
+						debug_print(*ec,  (ErrQExecutor | EBoolExpected));
 						return (ErrQExecutor | EBoolExpected);
 					}
 					if (bool_val) {
@@ -2941,7 +2941,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 					break;
 				}
 				case CondNode::whilee: {
-					*ec << "[QE] WHILE <q1> DO <q2> OD";
+					debug_print(*ec,  "[QE] WHILE <q1> DO <q2> OD");
 					QueryResult *tmp_result;
 					errcode = executeRecQuery(((CondNode *) tree)->getCondition());
 					if (errcode != 0) return errcode;
@@ -2953,8 +2953,8 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 						if (errcode != 0) return errcode;
 					}
 					else {
-						*ec << "[QE] ERROR! <q1> must be BOOLEAN ";
-						*ec << (ErrQExecutor | EBoolExpected);
+						debug_print(*ec,  "[QE] ERROR! <q1> must be BOOLEAN ");
+						debug_print(*ec,  (ErrQExecutor | EBoolExpected));
 						return (ErrQExecutor | EBoolExpected);
 					}
 					while (bool_val) {
@@ -2971,8 +2971,8 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 							if (errcode != 0) return errcode;
 						}
 						else {
-							*ec << "[QE] ERROR! <q1> must be BOOLEAN ";
-							*ec << (ErrQExecutor | EBoolExpected);
+							debug_print(*ec,  "[QE] ERROR! <q1> must be BOOLEAN ");
+							debug_print(*ec,  (ErrQExecutor | EBoolExpected));
 							return (ErrQExecutor | EBoolExpected);
 						}
 					}
@@ -2982,12 +2982,12 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 					break;
 				}
 				default: {
-					*ec << "[QE] ERROR! Condition operation type not known";
-					*ec << (ErrQExecutor | EUnknownNode);
+					debug_print(*ec,  "[QE] ERROR! Condition operation type not known");
+					debug_print(*ec,  (ErrQExecutor | EUnknownNode));
 					return (ErrQExecutor | EUnknownNode);
 				}
 			}
-			*ec << "[QE] Condition operation Done!";
+			debug_print(*ec,  "[QE] Condition operation Done!");
 			return 0;
 		} //case TNCOND
 			case TreeNode::TNINDEXDML: {
@@ -3012,7 +3012,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			return errcode;
 		}
 		case TreeNode::TNLINK: {
-		*ec << "[QE] Link opeartion";
+		debug_print(*ec,  "[QE] Link opeartion");
 
 		LinkNode* link = (LinkNode*) tree;
 		QueryResult* structRes = new QueryStructResult();
@@ -3041,7 +3041,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		    return 0;
 		}
 		if ((errcode = tr->addRoot(optr)) != 0) {
-		    *ec << "[QE] Error in addRoot";
+		    debug_print(*ec,  "[QE] Error in addRoot");
 		    antyStarveFunction(errcode);
 		    inTransaction = false;
 		    return errcode;
@@ -3054,7 +3054,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		errcode = qres->push(result);
 		if (errcode != 0) return errcode;
 
-		*ec << "[QE] Link operation Done!";
+		debug_print(*ec,  "[QE] Link operation Done!");
 		return 0;
 		}
 		case TreeNode::TNREMOTE: {
@@ -3065,23 +3065,23 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 
 			if (rn->isDeref()) {
 			  //jesli deref to to!
-				ec->printf("[QE] zaczynam prosbe o zdalny deref");
+				debug_printf(*ec, "[QE] zaczynam prosbe o zdalny deref");
 				QueryResult *op_result;
 				errcode = this->derefQuery(qrr, op_result);
 				if (errcode != 0) return errcode;
 				//delete tmp_result;
 				errcode = qres->push(op_result);
 				if (errcode != 0) return errcode;
-				*ec << "[QE] Unary operation Done!";
+				debug_print(*ec,  "[QE] Unary operation Done!");
 				return 0;
 			}
 
-			*ec << "zaczynam wezel TNREMOTE!!!!!!!!!!!!!!!!!!!!!!!!!!!!";
+			debug_print(*ec,  "zaczynam wezel TNREMOTE!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 			vector<ObjectPointer*>* vec;
 
-			*ec << "remote 1";
+			debug_print(*ec,  "remote 1");
 			if (lid != NULL) {
-				ec->printf("prosba o nested na obiekcie zdalnym\n");
+				debug_printf(*ec, "prosba o nested na obiekcie zdalnym\n");
 
 				QueryResult *newStackSection;
 				vector<DataValue*> _tmp_dataVal_vec;
@@ -3089,10 +3089,10 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				if (errcode != 0) return errcode;
 				errcode = qres->push(newStackSection);
 				if (errcode != 0) return errcode;
-				ec->printf("nested na obiekcie zdalnym udalo sie. nowa sekcja stosu gotowa");
+				debug_printf(*ec, "nested na obiekcie zdalnym udalo sie. nowa sekcja stosu gotowa");
 				return 0;
 			}
-			*ec << "remote 1";
+			debug_print(*ec,  "remote 1");
 			if ((errcode = tr->getRoots(vec)) != 0) {
 				antyStarveFunction(errcode);
 				inTransaction = false;
@@ -3100,13 +3100,13 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			}
 			QueryBagResult *r = new QueryBagResult();
 			int vecSize = vec->size();
-			ec->printf("[QE] %d Roots LID by name taken\n", vecSize);
+			debug_printf(*ec, "[QE] %d Roots LID by name taken\n", vecSize);
 			for (int i = 0; i < vecSize; i++ ) {
 				 ObjectPointer *optr = vec->at(i);
 				 LogicalID *lid = optr->getLogicalID();
 				 string name = optr->getName();
 
-				ec->printf("[QE] LogicalID received: %d\n",  lid->toInteger());
+				debug_printf(*ec, "[QE] LogicalID received: %d\n",  lid->toInteger());
 				QueryReferenceResult *lidres = new QueryReferenceResult(lid);
 				QueryBinderResult *qbr = new QueryBinderResult(name, lidres);
 				r->addResult(qbr);
@@ -3118,7 +3118,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		case TreeNode::TNCOERCE : { // May appear only through TC coerce augments
 			CoerceNode *cn = (CoerceNode *) tree;
 			int cType = cn->getCType();
-			*ec << "[QE] COERCE Node to be processed... ";
+			debug_print(*ec,  "[QE] COERCE Node to be processed... ");
 			errcode = executeRecQuery(cn->getArg());
 			if (errcode != 0) return errcode;
 			QueryResult *tmp_result;
@@ -3131,23 +3131,23 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 
 			errcode = qres->push(op_result);
 			if (errcode != 0) return errcode;
-			*ec << "[QE] COERCE Node Done!";
+			debug_print(*ec,  "[QE] COERCE Node Done!");
 			return 0;
 		}
 		case TreeNode::TNCASTTO : {// May appear when variant result appears (eg. through union)...
 			//QE ignores this node - it assumes typechecker checked it correct.
-			*ec << "[QE] CAST TO Node ...";
+			debug_print(*ec,  "[QE] CAST TO Node ...");
 			errcode = executeRecQuery(((SimpleCastNode *)tree)->getArg());
 			if (errcode != 0) return errcode;
-			*ec << "[QE] CAST TO Node Done!";
+			debug_print(*ec,  "[QE] CAST TO Node Done!");
 			return 0;
 			//do not touch the qres stack - let superior node read what arg left there.
 			//if the loopCHECK was introduced - it would just throw 'CastNode' error on error...
 		}
 		default:
 			{
-			*ec << "Unknown node type";
-			*ec << (ErrQExecutor | EUnknownNode);
+			debug_print(*ec,  "Unknown node type");
+			debug_print(*ec,  (ErrQExecutor | EUnknownNode));
 			return (ErrQExecutor | EUnknownNode);
 			}
 
@@ -3155,11 +3155,11 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 
 	} // if tree!=Null
 	else { // tree == NULL; return empty result
-		*ec << "[QE] empty tree, nothing to do";
+		debug_print(*ec,  "[QE] empty tree, nothing to do");
 		QueryResult *result = new QueryNothingResult();
 		errcode = qres->push(result);
 		if (errcode != 0) return errcode;
-		*ec << "[QE] QueryNothingResult created";
+		debug_print(*ec,  "[QE] QueryNothingResult created");
 	}
 	return 0;
 }//executeQuerry
@@ -3167,7 +3167,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 
 
 int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
-	*ec << "[QE] derefQuery()";
+	debug_print(*ec,  "[QE] derefQuery()");
 	int errcode;
 	int argType = arg->type();
         ObjectPointer *optr = NULL;
@@ -3248,11 +3248,11 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 			}
 			InterfaceKey interfaceKey = qRef->getInterfaceKey();
 				
-			*ec << "[QE] derefQuery() - dereferencing Object";
+			debug_print(*ec,  "[QE] derefQuery() - dereferencing Object");
 
 			errcode = tr->getObjectPointer(lid, Store::Read, optr, true);
 			if (errcode != 0) {
-				*ec << "[QE] Error in getObjectPointer";
+				debug_print(*ec,  "[QE] Error in getObjectPointer");
 				antyStarveFunction(errcode);
 				inTransaction = false;
 				return errcode;
@@ -3281,38 +3281,38 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 			int vType = value->getType();
 			switch (vType) {
 				case Store::Integer: {
-					*ec << "[QE] derefQuery() - ObjectValue = Int";
+					debug_print(*ec,  "[QE] derefQuery() - ObjectValue = Int");
 					int tmp_value = value->getInt();
 					res = new QueryIntResult(tmp_value);
 					break;
 				}
 				case Store::Double: {
-					*ec << "[QE] derefQuery() - ObjectValue = Double";
+					debug_print(*ec,  "[QE] derefQuery() - ObjectValue = Double");
 					double tmp_value = value->getDouble();
 					res = new QueryDoubleResult(tmp_value);
 					break;
 				}
 				case Store::String: {
-					*ec << "[QE] derefQuery() - ObjectValue = String";
+					debug_print(*ec,  "[QE] derefQuery() - ObjectValue = String");
 					string tmp_value = value->getString();
 					res = new QueryStringResult(tmp_value);
 					break;
 				}
 				case Store::Pointer: {
-					*ec << "[QE] derefQuery() - ObjectValue = Pointer";
+					debug_print(*ec,  "[QE] derefQuery() - ObjectValue = Pointer");
 					LogicalID *tmp_value = new DBLogicalID(*value->getPointer());
 					//LogicalID *tmp_value = value->getPointer();
                                         res = new QueryReferenceResult(tmp_value);
 					break;
 				}
 				case Store::Vector: {
-					*ec << "[QE] derefQuery() - ObjectValue = Vector";
+					debug_print(*ec,  "[QE] derefQuery() - ObjectValue = Vector");
 					
 					bool filterOut;
 					string k = interfaceKey.getKey();
 					TStringSet namesVisible = InterfaceMaps::Instance().getAllFieldNamesAndCheckBind(k, filterOut);
 					if (filterOut)
-						ec->printf("[QE] derefQuery - field names will be filtered out, %d names visible\n", namesVisible.size());
+						debug_printf(*ec, "[QE] derefQuery - field names will be filtered out, %d names visible\n", namesVisible.size());
 					
 					vector<LogicalID*>* tmp_vec = value->getVector();
 					res = new QueryStructResult();
@@ -3322,7 +3322,7 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 						ObjectPointer *currOptr;
 						errcode = tr->getObjectPointer(currID, Store::Read, currOptr, false);
 						if (errcode != 0) {
-							*ec << "[QE] Error in getObjectPointer";
+							debug_print(*ec,  "[QE] Error in getObjectPointer");
 							antyStarveFunction(errcode);
 							inTransaction = false;
 							return errcode;
@@ -3361,8 +3361,8 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 					break;
 				}
 				default: {
-					*ec << "[QE] derefQuery() - wrong argument type";
-					*ec << (ErrQExecutor | EUnknownValue);
+					debug_print(*ec,  "[QE] derefQuery() - wrong argument type");
+					debug_print(*ec,  (ErrQExecutor | EUnknownValue));
 					return (ErrQExecutor | EUnknownValue);
 					break;
 				}
@@ -3385,8 +3385,8 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 			errcode = getOn_procedure(view_def, "on_retrieve", proc_code, proc_param);
 			if (errcode != 0) return errcode;
 			if (proc_code == "") {
-				*ec << "[QE] derefQuery() - this VirtualObject doesn't have this operation defined";
-				*ec << (ErrQExecutor | EOperNotDefined);
+				debug_print(*ec,  "[QE] derefQuery() - this VirtualObject doesn't have this operation defined");
+				debug_print(*ec,  (ErrQExecutor | EOperNotDefined));
 				return (ErrQExecutor | EOperNotDefined);
 			}
 
@@ -3403,8 +3403,8 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 			break;
 		}
 		default: {
-			*ec << "[QE] ERROR in derefQuery() - unknown result type";
-			*ec << (ErrQExecutor | EOtherResExp);
+			debug_print(*ec,  "[QE] ERROR in derefQuery() - unknown result type");
+			debug_print(*ec,  (ErrQExecutor | EOtherResExp));
 			return (ErrQExecutor | EOtherResExp);
 		}
 	}
@@ -3432,7 +3432,7 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 }
 
 int QueryExecutor::refQuery(QueryResult *arg, QueryResult *&res) {
-	*ec << "[QE] refQuery()";
+	debug_print(*ec,  "[QE] refQuery()");
 	int errcode;
 	int argType = arg->type();
 	switch (argType) {
@@ -3514,8 +3514,8 @@ int QueryExecutor::refQuery(QueryResult *arg, QueryResult *&res) {
 			break;
 		}
 		default: {
-			*ec << "[QE] ERROR in refQuery() - unknown result type";
-			*ec << (ErrQExecutor | EOtherResExp);
+			debug_print(*ec,  "[QE] ERROR in refQuery() - unknown result type");
+			debug_print(*ec,  (ErrQExecutor | EOtherResExp));
 			return (ErrQExecutor | EOtherResExp);
 		}
 	}
@@ -3525,7 +3525,7 @@ int QueryExecutor::refQuery(QueryResult *arg, QueryResult *&res) {
 int QueryExecutor::nameofQuery(QueryResult *arg, QueryResult *&res) {
 
 
-    *ec << "[QE] nameofQuery()";
+    debug_print(*ec,  "[QE] nameofQuery()");
     int errcode;
     int argType = arg->type();
     switch (argType) {
@@ -3605,11 +3605,11 @@ int QueryExecutor::nameofQuery(QueryResult *arg, QueryResult *&res) {
                 break;
             }
             LogicalID *ref_value = ((QueryReferenceResult *) arg)->getValue();
-            *ec << "[QE] nameof() - dereferencing Object";
+            debug_print(*ec,  "[QE] nameof() - dereferencing Object");
             ObjectPointer *optr;
             errcode = tr->getObjectPointer(ref_value, Store::Read, optr, true);
             if (errcode != 0) {
-                *ec << "[QE] Error in getObjectPointer";
+                debug_print(*ec,  "[QE] Error in getObjectPointer");
                 antyStarveFunction(errcode);
                 inTransaction = false;
                 return errcode;
@@ -3648,8 +3648,8 @@ int QueryExecutor::nameofQuery(QueryResult *arg, QueryResult *&res) {
 		break;
 	}
         default: {
-            *ec << "[QE] ERROR in derefQuery() - unknown result type";
-            *ec << (ErrQExecutor | EOtherResExp);
+            debug_print(*ec,  "[QE] ERROR in derefQuery() - unknown result type");
+            debug_print(*ec,  (ErrQExecutor | EOtherResExp));
             return (ErrQExecutor | EOtherResExp);
         }
     }
@@ -3677,25 +3677,25 @@ int QueryExecutor::unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&
 	int errcode;
 	switch (op) {
 		case UnOpNode::deref: {
-			*ec << "[QE] DEREF operation";
+			debug_print(*ec,  "[QE] DEREF operation");
 			errcode = this->derefQuery(arg, final);
 			if (errcode != 0) return errcode;
 			break;
 		}
 		case UnOpNode::ref: {
-			*ec << "[QE] REF operation";
+			debug_print(*ec,  "[QE] REF operation");
 			errcode = this->refQuery(arg, final);
 			if (errcode != 0) return errcode;
 			break;
 		}
 		case UnOpNode::nameof: {
-			*ec << "[QE] NAMEOF operation";
+			debug_print(*ec,  "[QE] NAMEOF operation");
 			errcode = this->nameofQuery(arg, final);
 			if (errcode != 0) return errcode;
 			break;
 		}
 		case UnOpNode::unMinus: {
-			*ec << "[QE] UN_MINUS operation";
+			debug_print(*ec,  "[QE] UN_MINUS operation");
 			QueryResult *derefArg;
 			errcode = this->derefQuery(arg,derefArg);
 			if ((derefArg->type() == QueryResult::QINT) || (derefArg->type() == QueryResult::QDOUBLE)) {
@@ -3706,14 +3706,14 @@ int QueryExecutor::unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&
 				if (errcode != 0) return errcode;
 			}
 			else {
-				*ec << "[QE] ERROR! UN_MINUS argument must be INT or DOUBLE";
-				*ec << (ErrQExecutor | ENumberExpected);
+				debug_print(*ec,  "[QE] ERROR! UN_MINUS argument must be INT or DOUBLE");
+				debug_print(*ec,  (ErrQExecutor | ENumberExpected));
 				return (ErrQExecutor | ENumberExpected);
 			}
 			break;
 		}
 		case UnOpNode::boolNot: {
-			*ec << "[QE] NOT operation";
+			debug_print(*ec,  "[QE] NOT operation");
 			if (arg->isBool()) {
 				bool bool_tmp;
 				errcode = arg->getBoolValue(bool_tmp);
@@ -3721,14 +3721,14 @@ int QueryExecutor::unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&
 				final = new QueryBoolResult(not bool_tmp);
 			}
 			else {
-				*ec << "[QE] ERROR! NOT argument must be BOOLEAN";
-				*ec << (ErrQExecutor | EBoolExpected);
+				debug_print(*ec,  "[QE] ERROR! NOT argument must be BOOLEAN");
+				debug_print(*ec,  (ErrQExecutor | EBoolExpected));
 				return (ErrQExecutor | EBoolExpected);
 			}
 			break;
 		}
 		case UnOpNode::count: {
-			*ec << "[QE] COUNT operation";
+			debug_print(*ec,  "[QE] COUNT operation");
 			QueryResult* bagArg = new QueryBagResult();
 			bagArg->addResult(arg);
 			int count_res = bagArg->size();
@@ -3736,7 +3736,7 @@ int QueryExecutor::unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&
 			break;
 		}
 		case UnOpNode::sum: {
-			*ec << "[QE] SUM operation";
+			debug_print(*ec,  "[QE] SUM operation");
 			QueryResult *bagArg = new QueryBagResult();
 			bagArg->addResult(arg);
 			unsigned int count_res = bagArg->size();
@@ -3777,7 +3777,7 @@ int QueryExecutor::unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&
 			break;
 		}
 		case UnOpNode::avg: {
-			*ec << "[QE] AVG operation";
+			debug_print(*ec,  "[QE] AVG operation");
 			QueryResult *bagArg = new QueryBagResult();
 			bagArg->addResult(arg);
 			unsigned int count_res = bagArg->size();
@@ -3814,7 +3814,7 @@ int QueryExecutor::unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&
 			break;
 		}
 		case UnOpNode::min: {
-			*ec << "[QE] MIN operation";
+			debug_print(*ec,  "[QE] MIN operation");
 			QueryResult *bagArg = new QueryBagResult();
 			bagArg->addResult(arg);
 			unsigned int count_res = bagArg->size();
@@ -3823,7 +3823,7 @@ int QueryExecutor::unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&
 			double d_min_res = 0.0;
 			bool d_counted = false;
 			if (count_res == 0) {
-				*ec << "[QE] MIN operation - can't evaluate min value on this set, QueryNothingResult created";
+				debug_print(*ec,  "[QE] MIN operation - can't evaluate min value on this set, QueryNothingResult created");
 				final = new QueryNothingResult();
 			}
 			else for (unsigned int i = 0; i < count_res; i++) {
@@ -3875,14 +3875,14 @@ int QueryExecutor::unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&
 					final = new QueryDoubleResult(d_min_res);
 				}
 				else { //no int or double value
-					*ec << "[QE] MIN - can't evaluate min value on this set, QueryNothingResult created";
+					debug_print(*ec,  "[QE] MIN - can't evaluate min value on this set, QueryNothingResult created");
 					final = new QueryNothingResult();
 				}
 			}
 			break;
 		}
 		case UnOpNode::max: {
-			*ec << "[QE] MAX operation";
+			debug_print(*ec,  "[QE] MAX operation");
 			QueryResult *bagArg = new QueryBagResult();
 			bagArg->addResult(arg);
 			unsigned int count_res = bagArg->size();
@@ -3891,7 +3891,7 @@ int QueryExecutor::unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&
 			double d_max_res = 0.0;
 			bool d_counted = false;
 			if (count_res == 0) {
-				*ec << "[QE] MAX operation - can't evaluate max value on this set, QueryNothingResult created";
+				debug_print(*ec,  "[QE] MAX operation - can't evaluate max value on this set, QueryNothingResult created");
 				final = new QueryNothingResult();
 			}
 			else for (unsigned int i = 0; i < count_res; i++) {
@@ -3943,14 +3943,14 @@ int QueryExecutor::unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&
 					final = new QueryDoubleResult(d_max_res);
 				}
 				else { //no int or double value
-					*ec << "[QE] MAX - can't evaluate max value on this set, QueryNothingResult created";
+					debug_print(*ec,  "[QE] MAX - can't evaluate max value on this set, QueryNothingResult created");
 					final = new QueryNothingResult();
 				}
 			}
 			break;
 		}
 		case UnOpNode::distinct: {
-			*ec << "[QE] DISTINCT operation";
+			debug_print(*ec,  "[QE] DISTINCT operation");
 			final = new QueryBagResult();
 			QueryResult *bagArg = new QueryBagResult();
 			bagArg->addResult(arg);
@@ -3972,18 +3972,18 @@ int QueryExecutor::unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&
 			break;
 		}
 		case UnOpNode::deleteOp: {
-			*ec << "[QE] DELETE operation";
+			debug_print(*ec,  "[QE] DELETE operation");
 			QueryResult* bagArg = new QueryBagResult();
 			bagArg->addResult(arg);
 			errcode = persistDelete(bagArg);
 			if(errcode != 0) return errcode;
-			*ec << "[QE] delete operation complete - QueryNothingResult created";
+			debug_print(*ec,  "[QE] delete operation complete - QueryNothingResult created");
 			final = new QueryNothingResult();
 			break;
 		}
 		default: { // unOperation type not known
-			*ec << "[QE] ERROR! Unary operation type not known";
-			*ec << (ErrQExecutor | EUnknownNode);
+			debug_print(*ec,  "[QE] ERROR! Unary operation type not known");
+			debug_print(*ec,  (ErrQExecutor | EUnknownNode));
 			return (ErrQExecutor | EUnknownNode);
 		}
 	}
@@ -4044,7 +4044,7 @@ int QueryExecutor::persistDelete(LogicalID *lid) {
 	int errcode = 0;
 	ObjectPointer *optr;
 	if ((errcode = tr->getObjectPointer (lid, Store::Write, optr, true)) !=0) {
-		*ec << "[QE] Error in getObjectPointer.";
+		debug_print(*ec,  "[QE] Error in getObjectPointer.");
 		antyStarveFunction(errcode);
 		inTransaction = false;
 		return errcode;
@@ -4087,7 +4087,7 @@ int QueryExecutor::persistDelete(LogicalID *lid) {
 	else if (et == Store::Interface) 
 	{
 		string interfaceName = object_name;
-		ec->printf("[QE] removing interface %s\n", interfaceName.c_str());
+		debug_printf(*ec, "[QE] removing interface %s\n", interfaceName.c_str());
 		//remove from maps - TODO: could result in corrupted map with checkValidity = false
 		InterfaceMaps::Instance().removeInterface(interfaceName, false);
 		//TODO - re-validate all Schemas using this name		
@@ -4098,7 +4098,7 @@ int QueryExecutor::persistDelete(LogicalID *lid) {
 	else if (et == Store::StoreSchema)
 	{
 		string schemaName = object_name;
-		ec->printf("[QE] removing schema %s\n", schemaName.c_str());
+		debug_printf(*ec, "[QE] removing schema %s\n", schemaName.c_str());
 		//remove from maps
 		OuterSchemas::Instance().removeSchema(schemaName);
 		errcode = tr->removeSchema(optr);
@@ -4111,23 +4111,23 @@ int QueryExecutor::persistDelete(LogicalID *lid) {
 	if (optr->getIsRoot()) {
 		if (et == Store::View) {
 			if ((errcode = tr->removeView(optr)) != 0) {
-				*ec << "[QE] Error in removeView.";
+				debug_print(*ec,  "[QE] Error in removeView.");
 				antyStarveFunction(errcode);
 				inTransaction = false;
 				return errcode;
 			}
 		}
 		if ((errcode = tr->removeRoot(optr)) != 0) {
-			*ec << "[QE] Error in removeRoot.";
+			debug_print(*ec,  "[QE] Error in removeRoot.");
 			antyStarveFunction(errcode);
 			inTransaction = false;
 			return errcode;
 		}
-		*ec << "[QE] Root removed";
+		debug_print(*ec,  "[QE] Root removed");
 	}
 
 	if ((errcode = tr->deleteObject(optr)) != 0) {
-		*ec << "[QE] Error in deleteObject.";
+		debug_print(*ec,  "[QE] Error in deleteObject.");
 		antyStarveFunction(errcode);
 		inTransaction = false;
 		return errcode;
@@ -4170,8 +4170,8 @@ int QueryExecutor::persistDelete(QueryResult* bagArg) {
 			if (errcode != 0) return errcode;
 
 			if (proc_code == "") {
-				*ec << "[QE] delete() - this VirtualObject doesn't have this operation defined";
-				*ec << (ErrQExecutor | EOperNotDefined);
+				debug_print(*ec,  "[QE] delete() - this VirtualObject doesn't have this operation defined");
+				debug_print(*ec,  (ErrQExecutor | EOperNotDefined));
 				return (ErrQExecutor | EOperNotDefined);
 			}
 
@@ -4188,11 +4188,11 @@ int QueryExecutor::persistDelete(QueryResult* bagArg) {
 			if (errcode != 0) return errcode;
 		}
 		else {
-			*ec << "[QE] ERROR! DELETE argument must consist of QREFERENCE";
-			*ec << (ErrQExecutor | ERefExpected);
+			debug_print(*ec,  "[QE] ERROR! DELETE argument must consist of QREFERENCE");
+			debug_print(*ec,  (ErrQExecutor | ERefExpected));
 			return (ErrQExecutor | ERefExpected);
 		}
-		*ec << "[QE] Object deleted";
+		debug_print(*ec,  "[QE] Object deleted");
 	}
 	return 0;
 }
@@ -4203,7 +4203,7 @@ int QueryExecutor::coerceOperate(int cType, QueryResult *arg, QueryResult *&fina
 
 	switch (cType) {
 		case CoerceNode::to_string : {
-			*ec << "	Coercing to string";
+			debug_print(*ec,  "	Coercing to string");
 			string final_value = "";
 			stringstream ss;
 			switch(arg->type()) {
@@ -4231,7 +4231,7 @@ int QueryExecutor::coerceOperate(int cType, QueryResult *arg, QueryResult *&fina
 			return 0;
 		}
 		case CoerceNode::to_double : { // from int/double/string/bool
-			*ec << "	Coercing to double";
+			debug_print(*ec,  "	Coercing to double");
 			double final_value = 0.0;
 			stringstream ss;
 			switch (arg->type()) {
@@ -4261,7 +4261,7 @@ int QueryExecutor::coerceOperate(int cType, QueryResult *arg, QueryResult *&fina
 			return 0;
 		}
 		case CoerceNode::to_int : { // from int/double/string/bool (!) rounds doubles down to their int part
-			*ec << "	Coercing to integer";
+			debug_print(*ec,  "	Coercing to integer");
 			int final_value = 0;
 			stringstream ss;
 			switch (arg->type()) {
@@ -4291,7 +4291,7 @@ int QueryExecutor::coerceOperate(int cType, QueryResult *arg, QueryResult *&fina
 			return 0;
 		}
 		case CoerceNode::to_bool : { // from int / double / string
-			*ec << "	Coercing to bool";
+			debug_print(*ec,  "	Coercing to bool");
 			string fval = "";
 			stringstream ss;
 			switch(arg->type()) {
@@ -4319,7 +4319,7 @@ int QueryExecutor::coerceOperate(int cType, QueryResult *arg, QueryResult *&fina
 			return 0;
 		}
 		case CoerceNode::element : {
-			*ec << "	Coercing - element()";
+			debug_print(*ec,  "	Coercing - element()");
 			//Arg is already a single element...
 			if (arg->type() != QueryResult::QBAG && arg->type() != QueryResult::QSEQUENCE) {
 				final = arg;
@@ -4350,7 +4350,7 @@ int QueryExecutor::coerceOperate(int cType, QueryResult *arg, QueryResult *&fina
 			break;
 		}
 		case CoerceNode::to_bag : {
-			*ec << "	Coercing to bag";
+			debug_print(*ec,  "	Coercing to bag");
 			// AddResult() takes care of everything!
 			final = new QueryBagResult();
 			final->addResult(arg);
@@ -4361,17 +4361,17 @@ int QueryExecutor::coerceOperate(int cType, QueryResult *arg, QueryResult *&fina
 			//if (arg->type() == QueryResult::QSEQUENCE) {}
 		}
 		case CoerceNode::to_seq : {
-			*ec << "	Coercing to sequence";
+			debug_print(*ec,  "	Coercing to sequence");
 			final = new QuerySequenceResult();
 			final->addResult(arg);
 			return 0;
 		}
 		case CoerceNode::can_del : {
-			*ec << "	Coerce checking if delete allowed, with card 1..*";
+			debug_print(*ec,  "	Coerce checking if delete allowed, with card 1..*");
 			return checkDelCard(arg, final);
 		}
 		case CoerceNode::ext_crt : {
-			*ec << "	Coerce checking if cardinality of created object allows more creates.";
+			debug_print(*ec,  "	Coerce checking if cardinality of created object allows more creates.");
 			QueryResult *bagRes = new QueryBagResult();
 			bagRes->addResult(arg);
 			map<string, int> rootCdMap;
@@ -4391,13 +4391,13 @@ int QueryExecutor::coerceOperate(int cType, QueryResult *arg, QueryResult *&fina
 				errcode = checkUpInRootCardMap(crtName, rootCdMap);
 				if (errcode != 0) return errcode;
 				if ((++rootCdMap[crtName]) > maxAllowed) {
-					*ec << "[QE] would create too many '" + crtName + "' roots. Returning coerce error.";
+					debug_print(*ec,  "[QE] would create too many '" + crtName + "' roots. Returning coerce error.");
 					return (ErrQExecutor | ECrcCrtExtTooMany);
 				}
 			}
 			break;
 		}
-		default: *ec << "	Coerce type not recognized"; break;
+		default: debug_print(*ec,  "	Coerce type not recognized"); break;
 	}
 	final = arg;
 	return 0;
@@ -4421,7 +4421,7 @@ int QueryExecutor::checkDelCard(QueryResult *arg, QueryResult *&final) {
 		ObjectPointer *optr;
 		errcode = tr->getObjectPointer (lid, Store::Read, optr, false);
 		if (errcode != 0) {
-			*ec << "[QE] check delete card - Error in getObjectPointer.";
+			debug_print(*ec,  "[QE] check delete card - Error in getObjectPointer.");
 			antyStarveFunction(errcode);
 			inTransaction = false;
 			return errcode;
@@ -4431,12 +4431,12 @@ int QueryExecutor::checkDelCard(QueryResult *arg, QueryResult *&final) {
 			errcode = checkUpInRootCardMap(optrName, delRootMap);
 			if (errcode != 0) return errcode;
 			if ((objectsLeft = --delRootMap[optrName]) == 0) {
-				*ec << "[QE] would leave no more roots with this name, but their card is >= 1.";
+				debug_print(*ec,  "[QE] would leave no more roots with this name, but their card is >= 1.");
 				return (ErrQExecutor | ECrcDelNonOptional);
 			}
 		} else {// complex ! - reach for the parent and check local card...
 			if (lid->getDirectParent() == NULL) {
-				*ec << "[QE] check delete card - Cannot delete child element, because parent not set.";
+				debug_print(*ec,  "[QE] check delete card - Cannot delete child element, because parent not set.");
 				return (ErrQExecutor | EQEUnexpectedErr);
 			}
 			LogicalID *ptLid = lid->getDirectParent();
@@ -4444,7 +4444,7 @@ int QueryExecutor::checkDelCard(QueryResult *arg, QueryResult *&final) {
 			if (errcode != 0) return errcode;
 			std::pair<unsigned int, string> key(ptLid->toInteger(), optrName);
 			if ((objectsLeft = --delSubMap[key]) == 0) {
-				*ec << "[QE] would delete all subobjects with this name, but their card is >= 1.";
+				debug_print(*ec,  "[QE] would delete all subobjects with this name, but their card is >= 1.");
 				return (ErrQExecutor | ECrcDelNonOptional);
 			}
 		}
@@ -4463,14 +4463,14 @@ int QueryExecutor::checkUpInDelSubMap(LogicalID *ptLid, string name, map<std::pa
 		ObjectPointer *optr;
 		errcode = tr->getObjectPointer (ptLid, Store::Read, optr, false);
 		if (errcode != 0) {
-			*ec << "[QE] check delete non-root - Error in getObjectPointer.";
+			debug_print(*ec,  "[QE] check delete non-root - Error in getObjectPointer.");
 			antyStarveFunction(errcode);
 			inTransaction = false;
 			return errcode;
 		}
 		int vType = optr->getValue()->getType();
 		if (vType != Store::Vector) {
-			*ec << "[QE] check delete non-root  - ERROR! the l-Value has to be a reference to Vector";
+			debug_print(*ec,  "[QE] check delete non-root  - ERROR! the l-Value has to be a reference to Vector");
 			return (ErrQExecutor | EOtherResExp);
 		}
 		vector<LogicalID*> *vec = optr->getValue()->getVector();
@@ -4478,7 +4478,7 @@ int QueryExecutor::checkUpInDelSubMap(LogicalID *ptLid, string name, map<std::pa
 		for (unsigned int i = 0; i < vec->size(); i++) {
 			errcode = tr->getObjectPointer(vec->at(i), Store::Read, optr, false);
 			if (errcode != 0) {
-				*ec << "[QE] check delete non-root - Error in getObjectPointer for one of the siblings.";
+				debug_print(*ec,  "[QE] check delete non-root - Error in getObjectPointer for one of the siblings.");
 				antyStarveFunction(errcode);
 				inTransaction = false;
 				return errcode;
@@ -4496,7 +4496,7 @@ int QueryExecutor::checkUpInRootCardMap(string optrName, map<string, int> &delRo
 		//add root with its number to map.
 		vector<LogicalID*>* vec;
 		if ((errcode = tr->getRootsLID(optrName, vec)) != 0) {
-			*ec << "[QE] check up in root Card map card - error in getRootsLID";
+			debug_print(*ec,  "[QE] check up in root Card map card - error in getRootsLID");
 			antyStarveFunction(errcode);
 			inTransaction = false;
 			return errcode;
@@ -4517,7 +4517,7 @@ int QueryExecutor::checkSubCardsRec(Signature *sig, ObjectPointer *optr) {
 	int result = 0;
 	int vType = optr->getValue()->getType();
 	if (vType != Store::Vector) return 0;
-	*ec << "[QE][TC] checkSubCardsRec(optr) - ObjectValue = Vector";
+	debug_print(*ec,  "[QE][TC] checkSubCardsRec(optr) - ObjectValue = Vector");
 	vector<LogicalID*>* tmp_vec = optr->getValue()->getVector();
 	int tmp_vec_size = tmp_vec->size();
 
@@ -4529,7 +4529,7 @@ int QueryExecutor::checkSubCardsRec(Signature *sig, ObjectPointer *optr) {
 		ObjectPointer *currOptr;
 		errcode = tr->getObjectPointer(currID, Store::Read, currOptr, false);
 		if (errcode != 0) {
-			*ec << "[QE] Error in getObjectPointer, in checkSubCardsRec(optr)";
+			debug_print(*ec,  "[QE] Error in getObjectPointer, in checkSubCardsRec(optr)");
 			antyStarveFunction(errcode);
 			inTransaction = false;
 			return errcode;
@@ -4738,7 +4738,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 		else if ((derefL->type() == QueryResult::QINT) || (derefL->type() == QueryResult::QDOUBLE)) {
 			switch (op) {
 				case AlgOpNode::plus: {
-					*ec << "[QE] + operation";
+					debug_print(*ec,  "[QE] + operation");
 					if (derefL->type() == QueryResult::QINT)
 						errcode = ((QueryIntResult *)derefL)->plus(derefR,final);
 					else
@@ -4747,7 +4747,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 					break;
 				}
 				case AlgOpNode::minus: {
-					*ec << "[QE] - operation";
+					debug_print(*ec,  "[QE] - operation");
 					if (derefL->type() == QueryResult::QINT)
 						errcode = ((QueryIntResult *)derefL)->minus(derefR,final);
 					else
@@ -4756,7 +4756,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 					break;
 				}
 				case AlgOpNode::times: {
-					*ec << "[QE] * operation";
+					debug_print(*ec,  "[QE] * operation");
 					if (derefL->type() == QueryResult::QINT)
 						errcode = ((QueryIntResult *)derefL)->times(derefR,final);
 					else
@@ -4765,7 +4765,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 					break;
 				}
 				case AlgOpNode::divide: {
-					*ec << "[QE] / operation";
+					debug_print(*ec,  "[QE] / operation");
 					if (derefL->type() == QueryResult::QINT)
 						errcode = ((QueryIntResult *)derefL)->divide_by(derefR,final);
 					else
@@ -4779,23 +4779,23 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 		else {
 			switch (op) {
 				case AlgOpNode::plus: {
-					*ec << "[QE] ERROR! + arguments must be INT or DOUBLE";
-					*ec << (ErrQExecutor | ENumberExpected);
+					debug_print(*ec,  "[QE] ERROR! + arguments must be INT or DOUBLE");
+					debug_print(*ec,  (ErrQExecutor | ENumberExpected));
 					return (ErrQExecutor | ENumberExpected);
 				}
 				case AlgOpNode::minus: {
-					*ec << "[QE] ERROR! - arguments must be INT or DOUBLE";
-					*ec << (ErrQExecutor | ENumberExpected);
+					debug_print(*ec,  "[QE] ERROR! - arguments must be INT or DOUBLE");
+					debug_print(*ec,  (ErrQExecutor | ENumberExpected));
 					return (ErrQExecutor | ENumberExpected);
 				}
 				case AlgOpNode::times: {
-					*ec << "[QE] ERROR! * arguments must be INT or DOUBLE";
-					*ec << (ErrQExecutor | ENumberExpected);
+					debug_print(*ec,  "[QE] ERROR! * arguments must be INT or DOUBLE");
+					debug_print(*ec,  (ErrQExecutor | ENumberExpected));
 					return (ErrQExecutor | ENumberExpected);
 				}
 				case AlgOpNode::divide: {
-					*ec << "[QE] ERROR! / arguments must be INT or DOUBLE";
-					*ec << (ErrQExecutor | ENumberExpected);
+					debug_print(*ec,  "[QE] ERROR! / arguments must be INT or DOUBLE");
+					debug_print(*ec,  (ErrQExecutor | ENumberExpected));
 					return (ErrQExecutor | ENumberExpected);
 				}
 				default: { break; }
@@ -4812,37 +4812,37 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 		if (errcode != 0) return errcode;
 		switch (op) {
 			case AlgOpNode::eq: {
-				*ec << "[QE] = operation";
+				debug_print(*ec,  "[QE] = operation");
 				bool bool_tmp = derefL->equal(derefR);
 				final = new QueryBoolResult(bool_tmp);
 				break;
 			}
 			case AlgOpNode::neq: {
-				*ec << "[QE] != operation";
+				debug_print(*ec,  "[QE] != operation");
 				bool bool_tmp = derefL->not_equal(derefR);
 				final = new QueryBoolResult(bool_tmp);
 				break;
 			}
 			case AlgOpNode::lt: {
-				*ec << "[QE] < operation";
+				debug_print(*ec,  "[QE] < operation");
 				bool bool_tmp = derefL->less_than(derefR);
 				final = new QueryBoolResult(bool_tmp);
 				break;
 			}
 			case AlgOpNode::gt: {
-				*ec << "[QE] > operation";
+				debug_print(*ec,  "[QE] > operation");
 				bool bool_tmp = derefL->greater_than(derefR);
 				final = new QueryBoolResult(bool_tmp);
 				break;
 			}
 			case AlgOpNode::le: {
-				*ec << "[QE] <= operation";
+				debug_print(*ec,  "[QE] <= operation");
 				bool bool_tmp = derefL->less_eq(derefR);
 				final = new QueryBoolResult(bool_tmp);
 				break;
 			}
 			case AlgOpNode::ge: {
-				*ec << "[QE] >= operation";
+				debug_print(*ec,  "[QE] >= operation");
 				bool bool_tmp = derefL->greater_eq(derefR);
 				final = new QueryBoolResult(bool_tmp);
 				break;
@@ -4860,13 +4860,13 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 			if (errcode != 0) return errcode;
 			switch (op) {
 				case AlgOpNode::boolOr: {
-					*ec << "[QE] OR operation";
+					debug_print(*ec,  "[QE] OR operation");
 					bool bool_tmp = (bool_l || bool_r);
 					final = new QueryBoolResult(bool_tmp);
 					break;
 				}
 				case AlgOpNode::boolAnd: {
-					*ec << "[QE] AND operation";
+					debug_print(*ec,  "[QE] AND operation");
 					bool bool_tmp = (bool_l && bool_r);
 					final = new QueryBoolResult(bool_tmp);
 					break;
@@ -4877,13 +4877,13 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 		else {
 			switch (op) {
 				case AlgOpNode::boolOr: {
-					*ec << "[QE] ERROR! OR arguments must be BOOLEAN";
-					*ec << (ErrQExecutor | EBoolExpected);
+					debug_print(*ec,  "[QE] ERROR! OR arguments must be BOOLEAN");
+					debug_print(*ec,  (ErrQExecutor | EBoolExpected));
 					return (ErrQExecutor | EBoolExpected);
 				}
 				case AlgOpNode::boolAnd: {
-					*ec << "[QE] ERROR! AND arguments must be BOOLEAN";
-					*ec << (ErrQExecutor | EBoolExpected);
+					debug_print(*ec,  "[QE] ERROR! AND arguments must be BOOLEAN");
+					debug_print(*ec,  (ErrQExecutor | EBoolExpected));
 					return (ErrQExecutor | EBoolExpected);
 				}
 				default : { break; }
@@ -4892,15 +4892,15 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 		return 0;
 	}
 	else if (op == AlgOpNode::bagUnion) {
-		*ec << "[QE] BAG_UNION operation";
+		debug_print(*ec,  "[QE] BAG_UNION operation");
 		final = new QueryBagResult();
 		((QueryBagResult *) final)->addResult(lArg);
 		((QueryBagResult *) final)->addResult(rArg);
 		return 0;
 	}
 	else if ((op == AlgOpNode::bagIntersect) || (op == AlgOpNode::bagMinus)) {
-		if (op == (AlgOpNode::bagIntersect)) *ec << "[QE] BAG_INTERSECT operation";
-		if (op == (AlgOpNode::bagMinus)) *ec << "[QE] BAG_MINUS operation";
+		if (op == (AlgOpNode::bagIntersect)) debug_print(*ec,  "[QE] BAG_INTERSECT operation");
+		if (op == (AlgOpNode::bagMinus)) debug_print(*ec,  "[QE] BAG_MINUS operation");
 
 		final = new QueryBagResult();
 		QueryResult *leftBag = new QueryBagResult();
@@ -4959,7 +4959,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 		return 0;
 	}
 	else if (op == AlgOpNode::comma) {
-		*ec << "[QE] COMMA operation";
+		debug_print(*ec,  "[QE] COMMA operation");
 		final = new QueryBagResult();
 		QueryResult *lBag = new QueryBagResult();
 		lBag->addResult(lArg);
@@ -4982,14 +4982,14 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 		return 0;
 	}
 	else if (op == AlgOpNode::semicolon) {
-		*ec << "[QE] SEMICOLON operation";
+		debug_print(*ec,  "[QE] SEMICOLON operation");
 		final = rArg;
 		return 0;
 	}
 	else if ((op == AlgOpNode::insert) || (op == AlgOpNode::insert_viewproc)) {
-		*ec << "[QE] INSERT operation";
+		debug_print(*ec,  "[QE] INSERT operation");
 		if (tn->isCoerced()) {
-			*ec << "[QE][TC] INSERT operation is COERCED !";
+			debug_print(*ec,  "[QE][TC] INSERT operation is COERCED !");
 			for (int i = 0; i < tn->nrOfCoerceActions(); i++) {
 				int actId = tn->getCoerceAction(i);
 				cout << actId << "- ";
@@ -5003,8 +5003,8 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 		QueryResult *lBag = new QueryBagResult();
 		lBag->addResult(lArg);
 		if (lBag->size() != 1) {
-			*ec << "[QE] ERROR! Left argument of insert operation must have size 1";
-			*ec << (ErrQExecutor | ERefExpected);
+			debug_print(*ec,  "[QE] ERROR! Left argument of insert operation must have size 1");
+			debug_print(*ec,  (ErrQExecutor | ERefExpected));
 			return (ErrQExecutor | ERefExpected);
 		}
 		QueryResult* outer;
@@ -5021,7 +5021,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 			QueryResult *rBag = new QueryBagResult();
 			rBag->addResult(rArg);
 			for (unsigned int i = 0; i < rBag->size(); i++) {
-				ec->printf("[QE] trying to INSERT %d element of rightArg into leftArg\n", i);
+				debug_printf(*ec, "[QE] trying to INSERT %d element of rightArg into leftArg\n", i);
 				QueryResult *toInsert;
 				errcode = ((QueryBagResult *) rBag)->at(i, toInsert);
 				if (errcode != 0) return errcode;
@@ -5034,8 +5034,8 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 					errcode = getOn_procedure(view_def, "on_store", proc_code, proc_param);
 					if (errcode != 0) return errcode;
 					if (proc_code == "") {
-						*ec << "[QE] INSERT on_store - this VirtualObject doesn't have this operation defined";
-						*ec << (ErrQExecutor | EOperNotDefined);
+						debug_print(*ec,  "[QE] INSERT on_store - this VirtualObject doesn't have this operation defined");
+						debug_print(*ec,  (ErrQExecutor | EOperNotDefined));
 						return (ErrQExecutor | EOperNotDefined);
 					}
 
@@ -5053,8 +5053,8 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 
 					while (on_store_res->type() == QueryResult::QBAG) {
 						if (on_store_res->size() != 1) {
-							*ec << "[QE] insert operation: on_store procedure result is not single";
-								*ec << (ErrQExecutor | EOtherResExp);
+							debug_print(*ec,  "[QE] insert operation: on_store procedure result is not single");
+								debug_print(*ec,  (ErrQExecutor | EOtherResExp));
 								return (ErrQExecutor | EOtherResExp);
 							}
 						QueryResult *curr;
@@ -5070,8 +5070,8 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 					errcode = getOn_procedure(main_view_def, "on_insert", proc_code, proc_param);
 					if (errcode != 0) return errcode;
 					if (proc_code == "") {
-						*ec << "[QE] operator <insert> - this VirtualObject doesn't have this operation defined";
-						*ec << (ErrQExecutor | EOperNotDefined);
+						debug_print(*ec,  "[QE] operator <insert> - this VirtualObject doesn't have this operation defined");
+						debug_print(*ec,  (ErrQExecutor | EOperNotDefined));
 						return (ErrQExecutor | EOperNotDefined);
 					}
 
@@ -5105,8 +5105,8 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 						if (errcode != 0) return errcode;
 						if (subview_name == toInsert_name) {
 							if (sub_view_def != NULL){
-								*ec << "[QE] ERROR! More then one subview defining virtual objects with same name";
-								*ec << (ErrQExecutor | EBadViewDef);
+								debug_print(*ec,  "[QE] ERROR! More then one subview defining virtual objects with same name");
+								debug_print(*ec,  (ErrQExecutor | EBadViewDef));
 								return (ErrQExecutor | EBadViewDef);
 							}
 							else {
@@ -5118,8 +5118,8 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 					}
 
 					if (sub_view_def == NULL) {
-						*ec << "[QE] operator <insert into> - this virtualObject doesn't have this operation defined, subview missing";
-						*ec << (ErrQExecutor | EOperNotDefined);
+						debug_print(*ec,  "[QE] operator <insert into> - this virtualObject doesn't have this operation defined, subview missing");
+						debug_print(*ec,  (ErrQExecutor | EOperNotDefined));
 						return (ErrQExecutor | EOperNotDefined);
 					}
 					string proc_code = "";
@@ -5127,8 +5127,8 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 					errcode = getOn_procedure(sub_view_def, "on_create", proc_code, proc_param);
 					if (errcode != 0) return errcode;
 					if (proc_code == "") {
-						*ec << "[QE] operator <insert into> - this VirtualObject doesn't have this operation defined";
-						*ec << (ErrQExecutor | EOperNotDefined);
+						debug_print(*ec,  "[QE] operator <insert into> - this VirtualObject doesn't have this operation defined");
+						debug_print(*ec,  (ErrQExecutor | EOperNotDefined));
 						return (ErrQExecutor | EOperNotDefined);
 					}
 
@@ -5146,8 +5146,8 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 					if (errcode != 0) return errcode;
 				}
 				else {
-					*ec << "[QE] Right argument of insert operation must consist of QREFERENCE or QBINDER";
-					*ec << (ErrQExecutor | ERefExpected);
+					debug_print(*ec,  "[QE] Right argument of insert operation must consist of QREFERENCE or QBINDER");
+					debug_print(*ec,  (ErrQExecutor | ERefExpected));
 					return (ErrQExecutor | ERefExpected);
 				}
 			}
@@ -5157,7 +5157,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 			ObjectPointer *optrOut;
 			errcode = tr->getObjectPointer (lidOut, Store::Write, optrOut, false);
 			if (errcode != 0) {
-				*ec << "[QE] insert operation - Error in getObjectPointer.";
+				debug_print(*ec,  "[QE] insert operation - Error in getObjectPointer.");
 				antyStarveFunction(errcode);
 				inTransaction = false;
 				return errcode;
@@ -5168,36 +5168,36 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 				final = new QueryNothingResult();
 				return 0;
 			}
-			*ec << "[QE] insert operation - getObjectPointer on leftArg done";
+			debug_print(*ec,  "[QE] insert operation - getObjectPointer on leftArg done");
 			DataValue* db_value = optrOut->getValue();
 			ExtendedType optrOut_extType = db_value->getSubtype();
-			*ec << "[QE] insert operation - Value taken";
+			debug_print(*ec,  "[QE] insert operation - Value taken");
 			int vType = db_value->getType();
 			if (vType != Store::Vector) {
-				*ec << "[QE] insert operation - ERROR! the l-Value has to be a reference to Vector";
-				*ec << (ErrQExecutor | EOtherResExp);
+				debug_print(*ec,  "[QE] insert operation - ERROR! the l-Value has to be a reference to Vector");
+				debug_print(*ec,  (ErrQExecutor | EOtherResExp));
 				return (ErrQExecutor | EOtherResExp);
 			}
 			vector<LogicalID*> *insVector = db_value->getVector();
 			if (insVector == NULL) {
-				*ec << "[QE] insert operation - insVector == NULL";
-				*ec << (ErrQExecutor | EQEUnexpectedErr);
+				debug_print(*ec,  "[QE] insert operation - insVector == NULL");
+				debug_print(*ec,  (ErrQExecutor | EQEUnexpectedErr));
 				return (ErrQExecutor | EQEUnexpectedErr);
 			}
-			*ec << "[QE] Vector taken";
-			ec->printf("[QE] Vec.size = %d\n", insVector->size());
+			debug_print(*ec,  "[QE] Vector taken");
+			debug_printf(*ec, "[QE] Vec.size = %d\n", insVector->size());
 
 			//----------	TC dynamic coerce input 	---------- //
 			bool needsExtCoerce = tn->needsCoerce(TypeCheck::DTable::CD_EXT_INS);
 			bool needsDeepCardCheck = tn->needsCoerce(TypeCheck::DTable::CD_CAN_INS);
 			map<string, int> subCardMap;
 			if (needsExtCoerce) {
-				*ec << "[QE][TC] Fill maps that help check card constraints are met on inserted objects.";
+				debug_print(*ec,  "[QE][TC] Fill maps that help check card constraints are met on inserted objects.");
 				for (unsigned int j = 0;  j < insVector->size(); j++) {
 					ObjectPointer *subPtr;
 					errcode = tr->getObjectPointer (insVector->at(j), Store::Read, subPtr, true);
 					if (errcode != 0) {
-						*ec << "[QE] insert operation - ext coerce - Error in getObjectPointer.";
+						debug_print(*ec,  "[QE] insert operation - ext coerce - Error in getObjectPointer.");
 						antyStarveFunction(errcode);
 						inTransaction = false;
 						return errcode;
@@ -5216,7 +5216,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 			rBag->addResult(rArg);
 			vector<LogicalID*> toInsVector;
 			for (unsigned int i = 0; i < rBag->size(); i++) {
-				ec->printf("[QE] trying to INSERT %d element of rightArg into leftArg\n", i);
+				debug_printf(*ec, "[QE] trying to INSERT %d element of rightArg into leftArg\n", i);
 				QueryResult *toInsert;
 				errcode = ((QueryBagResult *) rBag)->at(i, toInsert);
 				if (errcode != 0) return errcode;
@@ -5232,8 +5232,8 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 					errcode = getOn_procedure(view_def, "on_store", proc_code, proc_param);
 					if (errcode != 0) return errcode;
 					if (proc_code == "") {
-						*ec << "[QE] INSERT on_store - this VirtualObject doesn't have this operation defined";
-						*ec << (ErrQExecutor | EOperNotDefined);
+						debug_print(*ec,  "[QE] INSERT on_store - this VirtualObject doesn't have this operation defined");
+						debug_print(*ec,  (ErrQExecutor | EOperNotDefined));
 						return (ErrQExecutor | EOperNotDefined);
 					}
 
@@ -5251,8 +5251,8 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 
 					while (on_store_res->type() == QueryResult::QBAG) {
 						if (on_store_res->size() != 1) {
-							*ec << "[QE] insert operation: on_store procedure result is not single";
-								*ec << (ErrQExecutor | EOtherResExp);
+							debug_print(*ec,  "[QE] insert operation: on_store procedure result is not single");
+								debug_print(*ec,  (ErrQExecutor | EOtherResExp));
 								return (ErrQExecutor | EOtherResExp);
 							}
 						QueryResult *curr;
@@ -5269,7 +5269,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 						lidIn = ((QueryReferenceResult *) toInsert)->getValue();
 						errcode = tr->getObjectPointer (lidIn, Store::Read, checkIn, true);
 						if (errcode != 0) {
-							*ec << "[QE] insert operation - Error in getObjectPointer.";
+							debug_print(*ec,  "[QE] insert operation - Error in getObjectPointer.");
 							antyStarveFunction(errcode);
 							inTransaction = false;
 							return errcode;
@@ -5277,36 +5277,36 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 						object_name = checkIn->getName();
 						//Check external card constraints on inserted object
 						if (needsExtCoerce) {
-							*ec << "[QE][TC] insert:ref:: checking that no '"+object_name+"' here yet.";
+							debug_print(*ec,  "[QE][TC] insert:ref:: checking that no '"+object_name+"' here yet.");
 							if (subCardMap.find(object_name) == subCardMap.end())
 								subCardMap[object_name] = 0;
 							int subNum = (++subCardMap[object_name]);
 							if (subNum > 1) {
-								*ec << "[QE][TC] insert:ref:: coerce ERROR - card of inserted object exceeded.";
-								*ec << (ErrQExecutor | ECrcInsExtTooMany);
+								debug_print(*ec,  "[QE][TC] insert:ref:: coerce ERROR - card of inserted object exceeded.");
+								debug_print(*ec,  (ErrQExecutor | ECrcInsExtTooMany));
 								return (ErrQExecutor | ECrcInsExtTooMany);
 							}
 						}
 						//Check internal cards constraints (for subobjects)
 						if (needsDeepCardCheck) {
 							string txt = (optrIn == NULL ? " NULL!" : "NOT null...");
-							*ec << "optr is " + txt;
+							debug_print(*ec,  "optr is " + txt);
 							txt = (tn->getCoerceSig() == NULL ? " NULL!" : "NOT null...");
-							*ec << "coerceSig is " + txt;
+							debug_print(*ec,  "coerceSig is " + txt);
 							errcode = this->checkSubCardsRec(tn->getCoerceSig(), checkIn);
 							if (errcode != 0) return errcode;
 						}
 
 						errcode = tr->getObjectPointer (lidIn, Store::Write, optrIn, true);
 						if (errcode != 0) {
-							*ec << "[QE] insert operation - Error in getObjectPointer.";
+							debug_print(*ec,  "[QE] insert operation - Error in getObjectPointer.");
 							antyStarveFunction(errcode);
 							inTransaction = false;
 							return errcode;
 						}
 						if (optrIn == NULL) {
-							*ec << "[QE] ERROR in insert operation - objectPointer is NULL";
-							*ec << (ErrQExecutor | EQEUnexpectedErr);
+							debug_print(*ec,  "[QE] ERROR in insert operation - objectPointer is NULL");
+							debug_print(*ec,  (ErrQExecutor | EQEUnexpectedErr));
 							return (ErrQExecutor | EQEUnexpectedErr);
 						}
 						object_name = optrIn->getName();
@@ -5325,7 +5325,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 							//out.close();
 							return 0;
 						}*/
-						ec->printf("[QE] getObjectPointer on %d element of rightArg done\n", i);
+						debug_printf(*ec, "[QE] getObjectPointer on %d element of rightArg done\n", i);
 						
 						if ((((optrIn->getValue())->getType()) == Store::Vector) && (((optrIn->getValue())->getSubtype()) == Store::View)) {
 							string virtual_objects_name = "";
@@ -5335,7 +5335,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 								ObjectPointer *view_inner_optr;
 								errcode = tr->getObjectPointer (view_inner_vec->at(k), Store::Read, view_inner_optr, false);
 								if (errcode != 0) {
-									*ec << "[QE] insert view operation - Error in getObjectPointer.";
+									debug_print(*ec,  "[QE] insert view operation - Error in getObjectPointer.");
 									antyStarveFunction(errcode);
 									inTransaction = false;
 									return errcode;
@@ -5348,7 +5348,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 							
 							errcode = tr->getObjectPointer (lidOut, Store::Write, optrOut, false); 
 							if (errcode != 0) {
-								*ec << "[QE] insert operation - Error in getObjectPointer.";
+								debug_print(*ec,  "[QE] insert operation - Error in getObjectPointer.");
 								antyStarveFunction(errcode);
 								inTransaction = false;
 								return errcode;
@@ -5357,14 +5357,14 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 							optrOut_extType = db_value->getSubtype();
 							vType = db_value->getType();
 							if (vType != Store::Vector) {
-								*ec << "[QE] insert operation - ERROR! the l-Value has to be a reference to Vector";
-								*ec << (ErrQExecutor | EOtherResExp);
+								debug_print(*ec,  "[QE] insert operation - ERROR! the l-Value has to be a reference to Vector");
+								debug_print(*ec,  (ErrQExecutor | EOtherResExp));
 								return (ErrQExecutor | EOtherResExp);
 							}
 							insVector = db_value->getVector();
 							if (insVector == NULL) {
-								*ec << "[QE] insert operation - insVector == NULL";
-								*ec << (ErrQExecutor | EQEUnexpectedErr);
+								debug_print(*ec,  "[QE] insert operation - insVector == NULL");
+								debug_print(*ec,  (ErrQExecutor | EQEUnexpectedErr));
 								return (ErrQExecutor | EQEUnexpectedErr);
 							}
 							
@@ -5373,7 +5373,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 								ObjectPointer *to_virtualize_optr;
 								errcode = tr->getObjectPointer (insVector->at(k), Store::Read, to_virtualize_optr, false);
 								if (errcode != 0) {
-									*ec << "[QE] insert view operation - Error in getObjectPointer.";
+									debug_print(*ec,  "[QE] insert view operation - Error in getObjectPointer.");
 									antyStarveFunction(errcode);
 									inTransaction = false;
 									return errcode;
@@ -5384,7 +5384,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 							}
 							
 							if (subobjects_to_virtualize.size() > 0) {
-								*ec << "[QE] WARNING, subobjects with the same name as new virtual objects found. These objects will be transformed into virtuals.";
+								debug_print(*ec,  "[QE] WARNING, subobjects with the same name as new virtual objects found. These objects will be transformed into virtuals.");
 								string proc_code = "";
 								string proc_param = "";
 								errcode = getOn_procedure(lidIn, "on_create", proc_code, proc_param);
@@ -5392,12 +5392,12 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 									return errcode;
 								}
 								if (proc_code == "") {
-									*ec << "[QE] insert view <create operation> - this View doesn't have this operation defined";
+									debug_print(*ec,  "[QE] insert view <create operation> - this View doesn't have this operation defined");
 									
 									errcode = persistDelete(lidIn);
 									if(errcode != 0) return errcode;
 									
-									*ec << (ErrQExecutor | EOperNotDefined);
+									debug_print(*ec,  (ErrQExecutor | EOperNotDefined));
 									return (ErrQExecutor | EOperNotDefined);
 								}
 								
@@ -5438,7 +5438,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 							if ((((optrIn->getValue())->getType()) == Store::Vector) && (((optrIn->getValue())->getSubtype()) == Store::View)) {
 								errcode = tr->removeView(optrIn);
 								if (errcode != 0) {
-									*ec << "[QE] insert operation - Error in removeView.";
+									debug_print(*ec,  "[QE] insert operation - Error in removeView.");
 									antyStarveFunction(errcode);
 									inTransaction = false;
 									return errcode;
@@ -5447,16 +5447,16 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 
 							errcode = tr->removeRoot(optrIn);
 							if (errcode != 0) {
-								*ec << "[QE] insert operation - Error in removeRoot.";
+								debug_print(*ec,  "[QE] insert operation - Error in removeRoot.");
 								antyStarveFunction(errcode);
 								inTransaction = false;
 								return errcode;
 							}
-							*ec << "[QE] insert operation - Root removed";
+							debug_print(*ec,  "[QE] insert operation - Root removed");
 						}
 						else if (op != AlgOpNode::insert_viewproc) {
-							*ec << "[QE] ERROR in insert operation - right argument must be Root or a new object (or procedure, view)";
-							*ec << (ErrQExecutor | EQEUnexpectedErr);
+							debug_print(*ec,  "[QE] ERROR in insert operation - right argument must be Root or a new object (or procedure, view)");
+							debug_print(*ec,  (ErrQExecutor | EQEUnexpectedErr));
 							return (ErrQExecutor | EQEUnexpectedErr);
 						}
 						toInsVector.push_back(lidIn);
@@ -5467,13 +5467,13 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 						LogicalID *maybe_sub_view_def = NULL;
 
 						if (needsExtCoerce) {
-							*ec << "[QE][TC] insert:binder:: checking that no '"+object_name+"' here yet.";
+							debug_print(*ec,  "[QE][TC] insert:binder:: checking that no '"+object_name+"' here yet.");
 							if (subCardMap.find(object_name) == subCardMap.end())
 								subCardMap[object_name] = 0;
 							int subNum = (++subCardMap[object_name]);
 							if (subNum > 1) {
-								*ec << "[QE][TC] insert:binder:: coerce ERROR- card of inserted object exceeded.";
-								*ec << (ErrQExecutor | ECrcInsExtTooMany);
+								debug_print(*ec,  "[QE][TC] insert:binder:: coerce ERROR- card of inserted object exceeded.");
+								debug_print(*ec,  (ErrQExecutor | ECrcInsExtTooMany));
 								return (ErrQExecutor | ECrcInsExtTooMany);
 							}
 						}
@@ -5491,7 +5491,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 							LogicalID *maybe_subview_logID = insVector->at(j);
 							ObjectPointer *maybe_subview_optr;
 							if ((errcode = tr->getObjectPointer(maybe_subview_logID, Store::Read, maybe_subview_optr, false)) != 0) {
-								*ec << "[QE] INSERT operator - Error in getObjectPointer";
+								debug_print(*ec,  "[QE] INSERT operator - Error in getObjectPointer");
 								antyStarveFunction(errcode);
 								inTransaction = false;
 								return errcode;
@@ -5506,8 +5506,8 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 								if (errcode != 0) return errcode;
 								if (maybe_subview_name == object_name) {
 									if (maybe_sub_view_def != NULL){
-										*ec << "[QE] ERROR! More then one subview defining virtual objects with same name";
-										*ec << (ErrQExecutor | EBadViewDef);
+										debug_print(*ec,  "[QE] ERROR! More then one subview defining virtual objects with same name");
+										debug_print(*ec,  (ErrQExecutor | EBadViewDef));
 										return (ErrQExecutor | EBadViewDef);
 									}
 									else maybe_sub_view_def = maybe_subview_logID;
@@ -5526,8 +5526,8 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 							errcode = getOn_procedure(maybe_sub_view_def, "on_create", proc_code, proc_param);
 							if (errcode != 0) return errcode;
 							if (proc_code == "") {
-								*ec << "[QE] operator <insert into> - this VirtualObject doesn't have this operation defined";
-								*ec << (ErrQExecutor | EOperNotDefined);
+								debug_print(*ec,  "[QE] operator <insert into> - this VirtualObject doesn't have this operation defined");
+								debug_print(*ec,  (ErrQExecutor | EOperNotDefined));
 								return (ErrQExecutor | EOperNotDefined);
 							}
 
@@ -5555,8 +5555,8 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 						break;
 					}
 					default: {
-						*ec << "[QE] Right argument of insert operation must consist of QREFERENCE or QBINDER or QVIRTUAL";
-						*ec << (ErrQExecutor | ERefExpected);
+						debug_print(*ec,  "[QE] Right argument of insert operation must consist of QREFERENCE or QBINDER or QVIRTUAL");
+						debug_print(*ec,  (ErrQExecutor | ERefExpected));
 						return (ErrQExecutor | ERefExpected);
 					}
 				}
@@ -5564,7 +5564,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 
 			errcode = tr->getObjectPointer (lidOut, Store::Write, optrOut, false);
 			if (errcode != 0) {
-				*ec << "[QE] insert operation - Error in getObjectPointer.";
+				debug_print(*ec,  "[QE] insert operation - Error in getObjectPointer.");
 				antyStarveFunction(errcode);
 				inTransaction = false;
 				return errcode;
@@ -5573,32 +5573,32 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 			optrOut_extType = db_value->getSubtype();
 			vType = db_value->getType();
 			if (vType != Store::Vector) {
-				*ec << "[QE] insert operation - ERROR! the l-Value has to be a reference to Vector";
-				*ec << (ErrQExecutor | EOtherResExp);
+				debug_print(*ec,  "[QE] insert operation - ERROR! the l-Value has to be a reference to Vector");
+				debug_print(*ec,  (ErrQExecutor | EOtherResExp));
 				return (ErrQExecutor | EOtherResExp);
 			}
 			insVector = db_value->getVector();
 			if (insVector == NULL) {
-				*ec << "[QE] insert operation - insVector == NULL";
-				*ec << (ErrQExecutor | EQEUnexpectedErr);
+				debug_print(*ec,  "[QE] insert operation - insVector == NULL");
+				debug_print(*ec,  (ErrQExecutor | EQEUnexpectedErr));
 				return (ErrQExecutor | EQEUnexpectedErr);
 			}
 
 			for (unsigned int i = 0; i < toInsVector.size(); i++) {
-				*ec << "[QE] Inserting the object";
+				debug_print(*ec,  "[QE] Inserting the object");
 				insVector->push_back(toInsVector.at(i));
-				ec->printf("[QE] New Vec.size = %d\n", insVector->size());
+				debug_printf(*ec, "[QE] New Vec.size = %d\n", insVector->size());
 			}
 
 			DBDataValue *dbDataVal = new DBDataValue();
 			dbDataVal->setVector(insVector);
 			dbDataVal->setClassMarks(db_value->getClassMarks());
 			dbDataVal->setSubclasses(db_value->getSubclasses());
-			*ec << "[QE] dataValue: setVector done";
+			debug_print(*ec,  "[QE] dataValue: setVector done");
 			db_value = dbDataVal;
 			errcode = tr->modifyObject(optrOut, db_value);
 			if (errcode != 0) {
-				*ec << "[QE] insert operation - Error in modifyObject.";
+				debug_print(*ec,  "[QE] insert operation - Error in modifyObject.");
 				antyStarveFunction(errcode);
 				inTransaction = false;
 				return errcode;
@@ -5606,26 +5606,26 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 			(optrOut->getValue())->setSubtype(optrOut_extType);
 			errcode = tr->modifyObject(optrOut, optrOut->getValue());
 			if (errcode != 0) {
-				*ec << "[QE] insert operation - Error in modifyObject.";
+				debug_print(*ec,  "[QE] insert operation - Error in modifyObject.");
 				antyStarveFunction(errcode);
 				inTransaction = false;
 				return errcode;
 			}
-			*ec << "[QE] insert operation: value of the object was changed";
+			debug_print(*ec,  "[QE] insert operation: value of the object was changed");
 		}
 		else {
-			*ec << "[QE] ERROR! Left argument of insert operation must consist of QREFERENCE";
-			*ec << (ErrQExecutor | ERefExpected);
+			debug_print(*ec,  "[QE] ERROR! Left argument of insert operation must consist of QREFERENCE");
+			debug_print(*ec,  (ErrQExecutor | ERefExpected));
 			return (ErrQExecutor | ERefExpected);
 		}
-		*ec << "[QE] INSERT operation Done";
+		debug_print(*ec,  "[QE] INSERT operation Done");
 		final = new QueryNothingResult();
 		return 0;
 	}
 	else if ((op == AlgOpNode::assign) || (op == AlgOpNode::assign_viewproc)) {
-		*ec << "[QE] ASSIGN operation";
+		debug_print(*ec,  "[QE] ASSIGN operation");
 		if (tn->isCoerced()) {
-			*ec << "[QE][TC] ASSIGN operation is COERCED !";
+			debug_print(*ec,  "[QE][TC] ASSIGN operation is COERCED !");
 			for (int i = 0; i < tn->nrOfCoerceActions(); i++) {
 				int actId = tn->getCoerceAction(i);
 				cout << actId << "- ";
@@ -5639,8 +5639,8 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 		QueryResult *lBag = new QueryBagResult();
 		lBag->addResult(lArg);
 		if (lBag->size() != 1) {
-			*ec << "[QE] ERROR! operator <assign> expects that left argument is single REFERENCE";
-			*ec << (ErrQExecutor | ERefExpected);
+			debug_print(*ec,  "[QE] ERROR! operator <assign> expects that left argument is single REFERENCE");
+			debug_print(*ec,  (ErrQExecutor | ERefExpected));
 			return (ErrQExecutor | ERefExpected);
 		}
 		errcode = ((QueryBagResult *) lBag)->at(0, lArg);
@@ -5654,8 +5654,8 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 			errcode = getOn_procedure(view_def, "on_update", proc_code, proc_param);
 			if (errcode != 0) return errcode;
 			if (proc_code == "") {
-				*ec << "[QE] operator <assign> - this VirtualObject doesn't have this operation defined";
-				*ec << (ErrQExecutor | EOperNotDefined);
+				debug_print(*ec,  "[QE] operator <assign> - this VirtualObject doesn't have this operation defined");
+				debug_print(*ec,  (ErrQExecutor | EOperNotDefined));
 				return (ErrQExecutor | EOperNotDefined);
 			}
 
@@ -5676,7 +5676,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 			ObjectPointer *old_optr;
 			errcode = tr->getObjectPointer (old_lid, Store::Write, old_optr, false);
 			if (errcode != 0) {
-				*ec << "[QE] operator <assign>: error in getObjectPointer()";
+				debug_print(*ec,  "[QE] operator <assign>: error in getObjectPointer()");
 				antyStarveFunction(errcode);
 				inTransaction = false;
 				return errcode;
@@ -5686,11 +5686,11 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 				final = new QueryNothingResult();
 				return 0;
 			}
-			*ec << "[QE] operator <assign>: getObjectPointer on left argument done";
+			debug_print(*ec,  "[QE] operator <assign>: getObjectPointer on left argument done");
 			if ((old_optr->getIsRoot()) && ((old_optr->getValue())->getSubtype() == Store::View)) {
 				errcode = tr->removeView(old_optr);
 				if (errcode != 0) {
-					*ec << "[QE] Error in removeView.";
+					debug_print(*ec,  "[QE] Error in removeView.");
 					antyStarveFunction(errcode);
 					inTransaction = false;
 					return errcode;
@@ -5709,8 +5709,8 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 					errcode = getOn_procedure(view_def, "on_store", proc_code, proc_param);
 					if (errcode != 0) return errcode;
 					if (proc_code == "") {
-						*ec << "[QE] UPDATE on_store - this VirtualObject doesn't have this operation defined";
-						*ec << (ErrQExecutor | EOperNotDefined);
+						debug_print(*ec,  "[QE] UPDATE on_store - this VirtualObject doesn't have this operation defined");
+						debug_print(*ec,  (ErrQExecutor | EOperNotDefined));
 						return (ErrQExecutor | EOperNotDefined);
 					}
 
@@ -5728,8 +5728,8 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 
 					while (on_store_res->type() == QueryResult::QBAG) {
 						if (on_store_res->size() != 1) {
-							*ec << "[QE] update operation: on_store procedure result is not single";
-								*ec << (ErrQExecutor | EOtherResExp);
+							debug_print(*ec,  "[QE] update operation: on_store procedure result is not single");
+								debug_print(*ec,  (ErrQExecutor | EOtherResExp));
 								return (ErrQExecutor | EOtherResExp);
 							}
 						QueryResult *curr;
@@ -5737,7 +5737,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 						on_store_res = curr;
 					}
 					derefed = on_store_res;
-					*ec << "[QE] < query := ('virtual'); > operation";
+					debug_print(*ec,  "[QE] < query := ('virtual')); > operation");
 				}
 				int derefed_type = derefed->type();
 				//TC dynamic coerce... might need only if derefed_type is struct or binder...
@@ -5746,25 +5746,25 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 					case QueryResult::QINT: {
 						int intValue = ((QueryIntResult *) derefed)->getValue();
 						dbValue->setInt(intValue);
-						*ec << "[QE] < query := ('integer'); > operation";
+						debug_print(*ec,  "[QE] < query := ('integer')); > operation");
 						break;
 					}
 					case QueryResult::QDOUBLE: {
 						double doubleValue = ((QueryDoubleResult *) derefed)->getValue();
 						dbValue->setDouble(doubleValue);
-						*ec << "[QE] < query := ('double'); > operation";
+						debug_print(*ec,  "[QE] < query := ('double')); > operation");
 						break;
 					}
 					case QueryResult::QSTRING: {
 						string stringValue = ((QueryStringResult *) derefed)->getValue();
 						dbValue->setString(stringValue);
-						*ec << "[QE] < query := ('string'); > operation";
+						debug_print(*ec,  "[QE] < query := ('string')); > operation");
 						break;
 					}
 					case QueryResult::QREFERENCE: {
 						LogicalID* refValue = ((QueryReferenceResult *) derefed)->getValue();
 						dbValue->setPointer(refValue);
-						*ec << "[QE] < query := ('reference'); > operation";
+						debug_print(*ec,  "[QE] < query := ('reference')); > operation");
 						break;
 					}
 					case QueryResult::QSTRUCT: {
@@ -5785,7 +5785,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 							vectorValue.push_back(lid_tmp);
 						}
 						dbValue->setVector(&vectorValue);
-						*ec << "[QE] < query := ('struct'); > operation";
+						debug_print(*ec,  "[QE] < query := ('struct')); > operation");
 						break;
 					}
 					case QueryResult::QBINDER: {
@@ -5801,12 +5801,12 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 						LogicalID *lid_tmp = optr_tmp->getLogicalID();
 						vectorValue.push_back(lid_tmp);
 						dbValue->setVector(&vectorValue);
-						*ec << "[QE] < query := ('binder'); > operation";
+						debug_print(*ec,  "[QE] < query := ('binder')); > operation");
 						break;
 					}
 					default: {
-						*ec << "[QE] operator <assign>: error, bad type right argument evaluated by executeRecQuery";
-						*ec << (ErrQExecutor | EOtherResExp);
+						debug_print(*ec,  "[QE] operator <assign>: error, bad type right argument evaluated by executeRecQuery");
+						debug_print(*ec,  (ErrQExecutor | EOtherResExp));
 						return (ErrQExecutor | EOtherResExp);
 					}
 				}
@@ -5823,7 +5823,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 					errcode = tr->getObjectPointer (rArg_lid, Store::Write, rArg_optr, false);
 				else errcode = tr->getObjectPointer (rArg_lid, Store::Read, rArg_optr, false);
 				if (errcode != 0) {
-					*ec << "[QE] operator <assign>: error in getObjectPointer()";
+					debug_print(*ec,  "[QE] operator <assign>: error in getObjectPointer()");
 					antyStarveFunction(errcode);
 					inTransaction = false;
 					return errcode;
@@ -5833,8 +5833,8 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 				if (op == AlgOpNode::assign_viewproc) {
 					string rArg_name = rArg_optr->getName();
 					if (object_name != rArg_name) {
-						*ec << "[QE] operator <assign>: ERROR left and right arguments have different names";
-						*ec << (ErrQExecutor | EQEUnexpectedErr);
+						debug_print(*ec,  "[QE] operator <assign>: ERROR left and right arguments have different names");
+						debug_print(*ec,  (ErrQExecutor | EQEUnexpectedErr));
 						return (ErrQExecutor | EQEUnexpectedErr);
 					}
 
@@ -5845,7 +5845,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 							ObjectPointer *inner_optr;
 							errcode = tr->getObjectPointer (inner_vec->at(i), Store::Read, inner_optr, false);
 							if (errcode != 0) {
-								*ec << "[QE] register view operation - Error in getObjectPointer.";
+								debug_print(*ec,  "[QE] register view operation - Error in getObjectPointer.");
 								antyStarveFunction(errcode);
 								inTransaction = false;
 								return errcode;
@@ -5857,7 +5857,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 						}
 						errcode = tr->addView(virtual_objects_name.c_str(), old_optr);
 						if (errcode != 0) {
-							*ec << "[QE] Error in addView";
+							debug_print(*ec,  "[QE] Error in addView");
 							antyStarveFunction(errcode);
 							inTransaction = false;
 							return errcode;
@@ -5867,7 +5867,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 					dbValue->setVector(inner_vec);
 					errcode = tr->deleteObject(rArg_optr);
 					if (errcode != 0) {
-						*ec << "[QE] Error in deleteObject.";
+						debug_print(*ec,  "[QE] Error in deleteObject.");
 						antyStarveFunction(errcode);
 						inTransaction = false;
 						return errcode;
@@ -5876,13 +5876,13 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 				else if ((rArg_extType == Store::Procedure) || (rArg_extType == Store::View)) {
 					rArg_extType = Store::None;
 					string rArg_name = rArg_optr->getName();
-					if (object_name != rArg_name) *ec << "[QE] operator <assign>: warning left and right arguments have different names";
+					if (object_name != rArg_name) debug_print(*ec,  "[QE] operator <assign>: warning left and right arguments have different names");
 				}
 			}
 			DataValue* value = dbValue;
 			errcode = tr->modifyObject(old_optr, value);
 			if (errcode != 0) {
-				*ec << "[QE] operator <assign>: error in modifyObject()";
+				debug_print(*ec,  "[QE] operator <assign>: error in modifyObject()");
 				antyStarveFunction(errcode);
 				inTransaction = false;
 				return errcode;
@@ -5890,41 +5890,41 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 			(old_optr->getValue())->setSubtype(rArg_extType);
 			errcode = tr->modifyObject(old_optr, old_optr->getValue());
 			if (errcode != 0) {
-				*ec << "[QE] operator <assign>: error in modifyObject()";
+				debug_print(*ec,  "[QE] operator <assign>: error in modifyObject()");
 				antyStarveFunction(errcode);
 				inTransaction = false;
 				return errcode;
 			}
-			*ec << "[QE] operator <assign>: value of the object was changed";
+			debug_print(*ec,  "[QE] operator <assign>: value of the object was changed");
 		}
 		else {
-			*ec << "[QE] ERROR! operator <assign> expects that left argument is REFERENCE";
-			*ec << (ErrQExecutor | ERefExpected);
+			debug_print(*ec,  "[QE] ERROR! operator <assign> expects that left argument is REFERENCE");
+			debug_print(*ec,  (ErrQExecutor | ERefExpected));
 			return (ErrQExecutor | ERefExpected);
 		}
-		*ec << "[QE] ASSIGN operation Done";
+		debug_print(*ec,  "[QE] ASSIGN operation Done");
 		final = new QueryNothingResult();
 		return 0;
 	}
 	else { // algOperation type not known
-		*ec << "[QE] ERROR! Algebraic operation type not known";
-		*ec << (ErrQExecutor | EUnknownNode);
+		debug_print(*ec,  "[QE] ERROR! Algebraic operation type not known");
+		debug_print(*ec,  (ErrQExecutor | EUnknownNode));
 		return (ErrQExecutor | EUnknownNode);
 	}
 	return 0;
 }
 
 int QueryExecutor::combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryResult *rRes, QueryResult *&partial) {
-	*ec << "[QE] combine() function applied to the partial results";
+	debug_print(*ec,  "[QE] combine() function applied to the partial results");
 	int errcode;
 	switch (op) {
 		case NonAlgOpNode::dot: {
-			*ec << "[QE] combine(): NonAlgebraic operator <dot>";
+			debug_print(*ec,  "[QE] combine(): NonAlgebraic operator <dot>");
 			partial->addResult(rRes);
 			break;
 		}
 		case NonAlgOpNode::join: {
-			*ec << "[QE] combine(): NonAlgebraic operator <join>";
+			debug_print(*ec,  "[QE] combine(): NonAlgebraic operator <join>");
 			QueryResult *lBag = new QueryBagResult();
 			lBag->addResult(curr);
 			QueryResult *rBag = new QueryBagResult();
@@ -5946,7 +5946,7 @@ int QueryExecutor::combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryRe
 			break;
 		}
 		case NonAlgOpNode::where: {
-			*ec << "[QE] combine(): NonAlgebraic operator <where>";
+			debug_print(*ec,  "[QE] combine(): NonAlgebraic operator <where>");
 			if (rRes->isBool()) {
 				bool tmp_bool_value;
 				errcode = (rRes->getBoolValue(tmp_bool_value));
@@ -5955,14 +5955,14 @@ int QueryExecutor::combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryRe
 					partial->addResult(curr);
 			}
 			else {
-				*ec << "[QE] combine(): ERROR! Right argument of operator <where> is not boolean!";
-				*ec << (ErrQExecutor | EBoolExpected);
+				debug_print(*ec,  "[QE] combine(): ERROR! Right argument of operator <where> is not boolean!");
+				debug_print(*ec,  (ErrQExecutor | EBoolExpected));
 				return (ErrQExecutor | EBoolExpected);
 			}
 			break;
 		}
 		case NonAlgOpNode::orderBy: {
-			*ec << "[QE] combine(): NonAlgebraic operator <orderBy>";
+			debug_print(*ec,  "[QE] combine(): NonAlgebraic operator <orderBy>");
 			QueryResult *derefR;
 			errcode = this->derefQuery(rRes,derefR);
 			if (errcode != 0) return errcode;
@@ -5971,7 +5971,7 @@ int QueryExecutor::combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryRe
 			break;
 		}
 		case NonAlgOpNode::exists: {
-			*ec << "[QE] combine(): NonAlgebraic operator <exists>";
+			debug_print(*ec,  "[QE] combine(): NonAlgebraic operator <exists>");
 			if (rRes->isBool()) {
 				bool tmp_bool_value;
 				errcode = (rRes->getBoolValue(tmp_bool_value));
@@ -5980,14 +5980,14 @@ int QueryExecutor::combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryRe
 				partial->addResult(tmp_result);
 			}
 			else {
-				*ec << "[QE] combine(): ERROR! Right argument of operator <exists> is not boolean!";
-				*ec << (ErrQExecutor | EBoolExpected);
+				debug_print(*ec,  "[QE] combine(): ERROR! Right argument of operator <exists> is not boolean!");
+				debug_print(*ec,  (ErrQExecutor | EBoolExpected));
 				return (ErrQExecutor | EBoolExpected);
 			}
 			break;
 		}
 		case NonAlgOpNode::forAll: {
-			*ec << "[QE] combine(): NonAlgebraic operator <forAll>";
+			debug_print(*ec,  "[QE] combine(): NonAlgebraic operator <forAll>");
 			if (rRes->isBool()) {
 				bool tmp_bool_value;
 				errcode = (rRes->getBoolValue(tmp_bool_value));
@@ -5996,19 +5996,19 @@ int QueryExecutor::combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryRe
 				partial->addResult(tmp_result);
 			}
 			else {
-				*ec << "[QE] combine(): ERROR! Right argument of operator <forAll> is not boolean!";
-				*ec << (ErrQExecutor | EBoolExpected);
+				debug_print(*ec,  "[QE] combine(): ERROR! Right argument of operator <forAll> is not boolean!");
+				debug_print(*ec,  (ErrQExecutor | EBoolExpected));
 				return (ErrQExecutor | EBoolExpected);
 			}
 			break;
 		}
 		case NonAlgOpNode::forEach: {
-			*ec << "[QE] combine(): NonAlgebraic operator <forEach>";
+			debug_print(*ec,  "[QE] combine(): NonAlgebraic operator <forEach>");
 			break;
 		}
 		default: {
-			*ec << "[QE] combine(): unknown NonAlgebraic operator!";
-			*ec << (ErrQExecutor | EUnknownNode);
+			debug_print(*ec,  "[QE] combine(): unknown NonAlgebraic operator!");
+			debug_print(*ec,  (ErrQExecutor | EUnknownNode));
 			return (ErrQExecutor | EUnknownNode);
 			break;
 		}
@@ -6017,33 +6017,33 @@ int QueryExecutor::combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryRe
 }
 
 int QueryExecutor::merge(NonAlgOpNode::nonAlgOp op, QueryResult *partial, QueryResult *&final) {
-	*ec << "[QE] merge() function applied to the partial results, creating final result";
+	debug_print(*ec,  "[QE] merge() function applied to the partial results, creating final result");
 	int errcode;
 	switch (op) {
 		case NonAlgOpNode::dot: {
-			*ec << "[QE] merge(): NonAlgebraic operator <dot>";
+			debug_print(*ec,  "[QE] merge(): NonAlgebraic operator <dot>");
 			final = partial;
 			break;
 		}
 		case NonAlgOpNode::join: {
-			*ec << "[QE] merge(): NonAlgebraic operator <join>";
+			debug_print(*ec,  "[QE] merge(): NonAlgebraic operator <join>");
 			final = partial;
 			break;
 		}
 		case NonAlgOpNode::where: {
-			*ec << "[QE] merge(): NonAlgebraic operator <where>";
+			debug_print(*ec,  "[QE] merge(): NonAlgebraic operator <where>");
 			final = partial;
 			break;
 		}
 		case NonAlgOpNode::orderBy: {
-			*ec << "[QE] merge(): NonAlgebraic operator <orderBy>";
+			debug_print(*ec,  "[QE] merge(): NonAlgebraic operator <orderBy>");
 			((QueryBagResult *) partial)->sortBag_in_orderBy();
 			errcode = ((QueryBagResult *) partial)->postSort(final);
 			if (errcode != 0) return errcode;
 			break;
 		}
 		case NonAlgOpNode::exists: {
-			*ec << "[QE] merge(): NonAlgebraic operator <exists>";
+			debug_print(*ec,  "[QE] merge(): NonAlgebraic operator <exists>");
 			bool tmp_bool = false;
 			bool current_bool;
 			for (unsigned i = 0; i < (partial->size()); i++) {
@@ -6051,8 +6051,8 @@ int QueryExecutor::merge(NonAlgOpNode::nonAlgOp op, QueryResult *partial, QueryR
 				errcode = (((QueryBagResult *) partial)->at(i,tmp_result));
 				if (errcode != 0) return errcode;
 				if (not (tmp_result->isBool())) {
-					*ec << "[QE] merge(): ERROR! operator <exists> expects boolean type arguments";
-					*ec << (ErrQExecutor | EBoolExpected);
+					debug_print(*ec,  "[QE] merge(): ERROR! operator <exists> expects boolean type arguments");
+					debug_print(*ec,  (ErrQExecutor | EBoolExpected));
 					return (ErrQExecutor | EBoolExpected);
 				}
 				errcode = (tmp_result->getBoolValue(current_bool));
@@ -6065,7 +6065,7 @@ int QueryExecutor::merge(NonAlgOpNode::nonAlgOp op, QueryResult *partial, QueryR
 			break;
 		}
 		case NonAlgOpNode::forAll: {
-			*ec << "[QE] merge(): NonAlgebraic operator <forAll>";
+			debug_print(*ec,  "[QE] merge(): NonAlgebraic operator <forAll>");
 			bool tmp_bool = true;
 			bool current_bool;
 			for (unsigned i = 0; i < (partial->size()); i++) {
@@ -6073,8 +6073,8 @@ int QueryExecutor::merge(NonAlgOpNode::nonAlgOp op, QueryResult *partial, QueryR
 				errcode = (((QueryBagResult *) partial)->at(i,tmp_result));
 				if (errcode != 0) return errcode;
 				if (not (tmp_result->isBool())) {
-					*ec << "[QE] merge(): ERROR! operator <forAll> expects boolean type arguments";
-					*ec << (ErrQExecutor | EBoolExpected);
+					debug_print(*ec,  "[QE] merge(): ERROR! operator <forAll> expects boolean type arguments");
+					debug_print(*ec,  (ErrQExecutor | EBoolExpected));
 					return (ErrQExecutor | EBoolExpected);
 				}
 				errcode = (tmp_result->getBoolValue(current_bool));
@@ -6087,13 +6087,13 @@ int QueryExecutor::merge(NonAlgOpNode::nonAlgOp op, QueryResult *partial, QueryR
 			break;
 		}
 		case NonAlgOpNode::forEach: {
-			*ec << "[QE] merge(): NonAlgebraic operator <forEach>";
+			debug_print(*ec,  "[QE] merge(): NonAlgebraic operator <forEach>");
 			final = partial;
 			break;
 		}
 		default: {
-			*ec << "[QE] merge(): unknown NonAlgebraic operator!";
-			*ec << (ErrQExecutor | EUnknownNode);
+			debug_print(*ec,  "[QE] merge(): unknown NonAlgebraic operator!");
+			debug_print(*ec,  (ErrQExecutor | EUnknownNode));
 			return (ErrQExecutor | EUnknownNode);
 			break;
 		}
@@ -6102,11 +6102,11 @@ int QueryExecutor::merge(NonAlgOpNode::nonAlgOp op, QueryResult *partial, QueryR
 }
 
 int QueryExecutor::isIncluded(QueryResult *elem, QueryResult *set, bool &score) {
-	*ec << "[QE] isIncluded()";
+	debug_print(*ec,  "[QE] isIncluded()");
 	int errcode;
 	if (set->type() != QueryResult::QBAG) {
-		*ec << "[QE] isIncluded(): ERROR! set argument must be BAG";
-		*ec << (ErrQExecutor | EOtherResExp);
+		debug_print(*ec,  "[QE] isIncluded(): ERROR! set argument must be BAG");
+		debug_print(*ec,  (ErrQExecutor | EOtherResExp));
 		return (ErrQExecutor | EOtherResExp);
 	}
 	bool tmp_bool = false;
@@ -6123,35 +6123,35 @@ int QueryExecutor::isIncluded(QueryResult *elem, QueryResult *set, bool &score) 
 }
 
 int QueryExecutor::abort() {
-	*ec << "[QE] abort()";
+	debug_print(*ec,  "[QE] abort()");
 	if (inTransaction) {
 		int errcode = tr->abort();
 		inTransaction = false;
 		if (errcode != 0) {
-			*ec << "[QE] Error in abort()";
+			debug_print(*ec,  "[QE] Error in abort()");
 			return errcode;
 		}
-		*ec << "[QE] Transaction aborted succesfully. Done!";
+		debug_print(*ec,  "[QE] Transaction aborted succesfully. Done!");
 	}
 	else
-		*ec << "[QE] Transaction not opened. Closing nevertheless. Done!\n";
+		debug_print(*ec,  "[QE] Transaction not opened. Closing nevertheless. Done!\n");
 	return 0;
 }
 
 void QueryExecutor::antyStarveFunction(int errcode) {
 	if (errcode == (ErrTManager | EDeadlock)) {
 		antyStarve = true;
-		*ec << "[QE] EDeadlock error found => AntyStarve mode is on";
+		debug_print(*ec,  "[QE] EDeadlock error found => AntyStarve mode is on");
 	}
 }
 
 int QueryExecutor::objectFromBinder(QueryResult *res, ObjectPointer *&newObject) {
 	int errcode;
-	*ec << "[QE] objectFromBinder()";
-	ec->printf("[QE] QueryResult type: %d\n", res->type());
+	debug_print(*ec,  "[QE] objectFromBinder()");
+	debug_printf(*ec, "[QE] QueryResult type: %d\n", res->type());
 	if ((res->type()) != QueryResult::QBINDER) {
-		ec->printf("[QE] objectFromBinder() expected a binder, got something else: %d\n", res->type());
-		*ec << (ErrQExecutor | EOtherResExp);
+		debug_printf(*ec, "[QE] objectFromBinder() expected a binder, got something else: %d\n", res->type());
+		debug_print(*ec,  (ErrQExecutor | EOtherResExp));
 		return (ErrQExecutor | EOtherResExp);
 	}
 	string binderName = ((QueryBinderResult *) res)->getName();
@@ -6162,25 +6162,25 @@ int QueryExecutor::objectFromBinder(QueryResult *res, ObjectPointer *&newObject)
 		case QueryResult::QINT: {
 			int intValue = ((QueryIntResult *) binderItem)->getValue();
 			dbValue->setInt(intValue);
-			*ec << "[QE] objectFromBinder(): value is INT type";
+			debug_print(*ec,  "[QE] objectFromBinder(): value is INT type");
 			break;
 		}
 		case QueryResult::QDOUBLE: {
 			double doubleValue = ((QueryDoubleResult *) binderItem)->getValue();
 			dbValue->setDouble(doubleValue);
-			*ec << "[QE] objectFromBinder(): value is DOUBLE type";
+			debug_print(*ec,  "[QE] objectFromBinder(): value is DOUBLE type");
 			break;
 		}
 		case QueryResult::QSTRING: {
 			string stringValue = ((QueryStringResult *) binderItem)->getValue();
 			dbValue->setString(stringValue);
-			*ec << "[QE] objectFromBinder(): value is STRING type";
+			debug_print(*ec,  "[QE] objectFromBinder(): value is STRING type");
 			break;
 		}
 		case QueryResult::QREFERENCE: {
 			LogicalID* refValue = ((QueryReferenceResult *) binderItem)->getValue();
 			dbValue->setPointer(refValue);
-			*ec << "[QE] objectFromBinder(): value is REFERENCE type";
+			debug_print(*ec,  "[QE] objectFromBinder(): value is REFERENCE type");
 			break;
 		}
 		case QueryResult::QBINDER: {
@@ -6189,11 +6189,11 @@ int QueryExecutor::objectFromBinder(QueryResult *res, ObjectPointer *&newObject)
 			errcode = this->objectFromBinder(binderItem, optr);
 			if (errcode != 0) return errcode;
 			LogicalID *lid = optr->getLogicalID();
-			*ec << "[QE] objectFromBinder(): logical ID received";
+			debug_print(*ec,  "[QE] objectFromBinder(): logical ID received");
 			vectorValue.push_back(lid);
-			*ec << "[QE] objectFromBinder(): added to a vector";
+			debug_print(*ec,  "[QE] objectFromBinder(): added to a vector");
 			dbValue->setVector(&vectorValue);
-			*ec << "[QE] objectFromBinder(): value is BINDER type";
+			debug_print(*ec,  "[QE] objectFromBinder(): value is BINDER type");
 			break;
 		}
 		case QueryResult::QBAG: {
@@ -6203,17 +6203,17 @@ int QueryExecutor::objectFromBinder(QueryResult *res, ObjectPointer *&newObject)
 				errcode = ((QueryBagResult *) binderItem)->at(i, curr);
 				if (errcode != 0) return errcode;
 				if (curr->type() != QueryResult::QREFERENCE) {
-					*ec << "[QE] objectFromBinder() QueryReference expected";
-					*ec << (ErrQExecutor | ERefExpected);
+					debug_print(*ec,  "[QE] objectFromBinder() QueryReference expected");
+					debug_print(*ec,  (ErrQExecutor | ERefExpected));
 					return (ErrQExecutor | ERefExpected);
 				}
 				LogicalID *lid = ((QueryReferenceResult *) curr)->getValue();
-				*ec << "[QE] objectFromBinder(): logical ID received";
+				debug_print(*ec,  "[QE] objectFromBinder(): logical ID received");
 				vectorValue.push_back(lid);
-				*ec << "[QE] objectFromBinder(): added to a vector";
+				debug_print(*ec,  "[QE] objectFromBinder(): added to a vector");
 			}
 			dbValue->setVector(&vectorValue);
-			*ec << "[QE] objectFromBinder(): value is BAG type";
+			debug_print(*ec,  "[QE] objectFromBinder(): value is BAG type");
 			break;
 		}
 		case QueryResult::QSTRUCT: {
@@ -6226,12 +6226,12 @@ int QueryExecutor::objectFromBinder(QueryResult *res, ObjectPointer *&newObject)
 				errcode = this->objectFromBinder(curr, optr);
 				if (errcode != 0) return errcode;
 				LogicalID *lid = optr->getLogicalID();
-				*ec << "[QE] objectFromBinder(): logical ID received";
+				debug_print(*ec,  "[QE] objectFromBinder(): logical ID received");
 				vectorValue.push_back(lid);
-				*ec << "[QE] objectFromBinder(): added to a vector";
+				debug_print(*ec,  "[QE] objectFromBinder(): added to a vector");
 			}
 			dbValue->setVector(&vectorValue);
-			*ec << "[QE] objectFromBinder(): value is STRUCT type";
+			debug_print(*ec,  "[QE] objectFromBinder(): value is STRUCT type");
 			break;
 		}
 		case QueryResult::QVIRTUAL: {
@@ -6243,8 +6243,8 @@ int QueryExecutor::objectFromBinder(QueryResult *res, ObjectPointer *&newObject)
 			errcode = getOn_procedure(view_def, "on_store", proc_code, proc_param);
 			if (errcode != 0) return errcode;
 			if (proc_code == "") {
-				*ec << "[QE] CREATE on_store - this VirtualObject doesn't have this operation defined";
-				*ec << (ErrQExecutor | EOperNotDefined);
+				debug_print(*ec,  "[QE] CREATE on_store - this VirtualObject doesn't have this operation defined");
+				debug_print(*ec,  (ErrQExecutor | EOperNotDefined));
 				return (ErrQExecutor | EOperNotDefined);
 			}
 
@@ -6262,8 +6262,8 @@ int QueryExecutor::objectFromBinder(QueryResult *res, ObjectPointer *&newObject)
 
 			while (on_store_res->type() == QueryResult::QBAG) {
 				if (on_store_res->size() != 1) {
-					*ec << "[QE] objectFromBinder(): on_store procedure result is not single";
-					*ec << (ErrQExecutor | EOtherResExp);
+					debug_print(*ec,  "[QE] objectFromBinder(): on_store procedure result is not single");
+					debug_print(*ec,  (ErrQExecutor | EOtherResExp));
 					return (ErrQExecutor | EOtherResExp);
 				}
 				QueryResult *curr;
@@ -6274,19 +6274,19 @@ int QueryExecutor::objectFromBinder(QueryResult *res, ObjectPointer *&newObject)
 			QueryResult *next_binder = new QueryBinderResult(binderName, on_store_res);
 			errcode = this->objectFromBinder(next_binder, newObject);
 			if (errcode != 0) return errcode;
-			*ec << "[QE] objectFromBinder(): value is VIRTUAL type";
+			debug_print(*ec,  "[QE] objectFromBinder(): value is VIRTUAL type");
 			return 0;
 		}
 		default: {
-			*ec << "[QE] objectFromBinder(): bad type item in a binder";
-			*ec << (ErrQExecutor | EOtherResExp);
+			debug_print(*ec,  "[QE] objectFromBinder(): bad type item in a binder");
+			debug_print(*ec,  (ErrQExecutor | EOtherResExp));
 			return (ErrQExecutor | EOtherResExp);
 		}
 	}
 	DataValue* value;
 	value = dbValue;
 	if ((errcode = tr->createObject(binderName, value, newObject)) != 0) {
-		*ec << "[QE] Error in createObject";
+		debug_print(*ec,  "[QE] Error in createObject");
 		antyStarveFunction(errcode);
 		inTransaction = false;
 		return errcode;
@@ -6345,13 +6345,13 @@ int QueryExecutor::createNewSections(QueryVirtualResult *qvirt, QueryBinderResul
 }
 
 int QueryExecutor::procCheck(unsigned int qSize, LogicalID *lid, string &code, vector<string> &prms, int &founded) {
-	*ec << "[QE] checking if this LogicalID point procedure we look for";
+	debug_print(*ec,  "[QE] checking if this LogicalID point procedure we look for");
 	int errcode;
 	ObjectPointer *optr;
 
 	errcode = tr->getObjectPointer (lid, Store::Read, optr, false);
 	if (errcode != 0) {
-		*ec << "[QE] procCheck - Error in getObjectPointer.";
+		debug_print(*ec,  "[QE] procCheck - Error in getObjectPointer.");
 		antyStarveFunction(errcode);
 		inTransaction = false;
 		return errcode;
@@ -6374,7 +6374,7 @@ int QueryExecutor::procCheck(unsigned int qSize, LogicalID *lid, string &code, v
 			LogicalID *tmp_logID = tmp_vec->at(i);
 			ObjectPointer *tmp_optr;
 			if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, tmp_optr, false)) != 0) {
-				*ec << "[QE] procCheck - Error in getObjectPointer";
+				debug_print(*ec,  "[QE] procCheck - Error in getObjectPointer");
 				antyStarveFunction(errcode);
 				inTransaction = false;
 				return errcode;
@@ -6395,10 +6395,10 @@ int QueryExecutor::procCheck(unsigned int qSize, LogicalID *lid, string &code, v
 			}
 		}
 		if ((procBody_count == 1) && (params_count == qSize) && (others_count == 0)) {
-			*ec << "[QE] procCheck - success, this is procedure we've looked for";
+			debug_print(*ec,  "[QE] procCheck - success, this is procedure we've looked for");
 			if (founded != 0) {
-				*ec << "[QE] error there should be only one procedure in a scope with the same name and number of parameters";
-				*ec << (ErrQExecutor | EProcNotSingle);
+				debug_print(*ec,  "[QE] error there should be only one procedure in a scope with the same name and number of parameters");
+				debug_print(*ec,  (ErrQExecutor | EProcNotSingle));
 				return (ErrQExecutor | EProcNotSingle);
 			}
 			founded++;
@@ -6416,7 +6416,7 @@ int QueryExecutor::checkViewAndGetVirtuals(LogicalID *lid, string &name, string 
 	ObjectPointer *optr;
 	errcode = tr->getObjectPointer (lid, Store::Read, optr, false);
 	if (errcode != 0) {
-		*ec << "[QE] checkViewAndGetVirtuals - Error in getObjectPointer.";
+		debug_print(*ec,  "[QE] checkViewAndGetVirtuals - Error in getObjectPointer.");
 		antyStarveFunction(errcode);
 		inTransaction = false;
 		return errcode;
@@ -6431,7 +6431,7 @@ int QueryExecutor::checkViewAndGetVirtuals(LogicalID *lid, string &name, string 
 			LogicalID *tmp_logID = tmp_vec->at(i);
 			ObjectPointer *tmp_optr;
 			if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, tmp_optr, false)) != 0) {
-				*ec << "[QE] checkViewAndGetVirtuals - Error in getObjectPointer";
+				debug_print(*ec,  "[QE] checkViewAndGetVirtuals - Error in getObjectPointer");
 				antyStarveFunction(errcode);
 				inTransaction = false;
 				return errcode;
@@ -6446,18 +6446,18 @@ int QueryExecutor::checkViewAndGetVirtuals(LogicalID *lid, string &name, string 
 			}
 		}
 		if (actual_name_count == 0) {
-			*ec << "[QE] checkViewAndGetVirtuals error: \"VirtualObjects\" not found in this view ";
-			*ec << (ErrQExecutor | EBadViewDef);
+			debug_print(*ec,  "[QE] checkViewAndGetVirtuals error: \"VirtualObjects\" not found in this view ");
+			debug_print(*ec,  (ErrQExecutor | EBadViewDef));
 			return (ErrQExecutor | EBadViewDef);
 		}
 		else if (actual_name_count > 1) {
-			*ec << "[QE] checkViewAndGetVirtuals error: multiple \"VirtualObjects\" found in this view";
-			*ec << (ErrQExecutor | EBadViewDef);
+			debug_print(*ec,  "[QE] checkViewAndGetVirtuals error: multiple \"VirtualObjects\" found in this view");
+			debug_print(*ec,  (ErrQExecutor | EBadViewDef));
 			return (ErrQExecutor | EBadViewDef);
 		}
 		else if ((name != "") && (name != actual_name)) {
-			*ec << "[QE] checkViewAndGetVirtuals error: \"VirtualObjects\" have wrong value";
-			*ec << (ErrQExecutor | EBadViewDef);
+			debug_print(*ec,  "[QE] checkViewAndGetVirtuals error: \"VirtualObjects\" have wrong value");
+			debug_print(*ec,  (ErrQExecutor | EBadViewDef));
 			return (ErrQExecutor | EBadViewDef);
 		}
 		else name = actual_name;
@@ -6467,7 +6467,7 @@ int QueryExecutor::checkViewAndGetVirtuals(LogicalID *lid, string &name, string 
 			LogicalID *tmp_logID = tmp_vec->at(i);
 			ObjectPointer *tmp_optr;
 			if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, tmp_optr, false)) != 0) {
-				*ec << "[QE] checkViewAndGetVirtuals - Error in getObjectPointer";
+				debug_print(*ec,  "[QE] checkViewAndGetVirtuals - Error in getObjectPointer");
 				antyStarveFunction(errcode);
 				inTransaction = false;
 				return errcode;
@@ -6481,14 +6481,14 @@ int QueryExecutor::checkViewAndGetVirtuals(LogicalID *lid, string &name, string 
 					vector<LogicalID*>* tmp_vec_inner = (tmp_data_value->getVector());
 					int vec_size_inner = tmp_vec_inner->size();
 					if (vec_size_inner != 1) {
-						*ec << "[QE] checkViewAndGetVirtuals error: \"virtual objects\" procedure wrong format";
-						*ec << (ErrQExecutor | EBadViewDef);
+						debug_print(*ec,  "[QE] checkViewAndGetVirtuals error: \"virtual objects\" procedure wrong format");
+						debug_print(*ec,  (ErrQExecutor | EBadViewDef));
 						return (ErrQExecutor | EBadViewDef);
 					}
 					LogicalID *proc_code_lid = tmp_vec_inner->at(0);
 					ObjectPointer *proc_code_optr;
 					if ((errcode = tr->getObjectPointer(proc_code_lid, Store::Read, proc_code_optr, false)) != 0) {
-						*ec << "[QE] checkViewAndGetVirtuals - Error in getObjectPointer";
+						debug_print(*ec,  "[QE] checkViewAndGetVirtuals - Error in getObjectPointer");
 						antyStarveFunction(errcode);
 						inTransaction = false;
 						return errcode;
@@ -6501,8 +6501,8 @@ int QueryExecutor::checkViewAndGetVirtuals(LogicalID *lid, string &name, string 
 						proc_code = proc_code_data_value->getString();
 					}
 					else {
-						*ec << "[QE] checkViewAndGetVirtuals error: \"virtual objects\" procedure wrong format";
-						*ec << (ErrQExecutor | EBadViewDef);
+						debug_print(*ec,  "[QE] checkViewAndGetVirtuals error: \"virtual objects\" procedure wrong format");
+						debug_print(*ec,  (ErrQExecutor | EBadViewDef));
 						return (ErrQExecutor | EBadViewDef);
 					}
 					proc_code_founded++;
@@ -6510,20 +6510,20 @@ int QueryExecutor::checkViewAndGetVirtuals(LogicalID *lid, string &name, string 
 			}
 		}
 		if (proc_code_founded == 0) {
-			*ec << "[QE] checkViewAndGetVirtuals error: \"virtual objects\" procedure not found";
-			*ec << (ErrQExecutor | EBadViewDef);
+			debug_print(*ec,  "[QE] checkViewAndGetVirtuals error: \"virtual objects\" procedure not found");
+			debug_print(*ec,  (ErrQExecutor | EBadViewDef));
 			return (ErrQExecutor | EBadViewDef);
 		}
 		else if (proc_code_founded > 1) {
-			*ec << "[QE] checkViewAndGetVirtuals error: multiple \"virtual objects\" procedures found";
-			*ec << (ErrQExecutor | EBadViewDef);
+			debug_print(*ec,  "[QE] checkViewAndGetVirtuals error: multiple \"virtual objects\" procedures found");
+			debug_print(*ec,  (ErrQExecutor | EBadViewDef));
 			return (ErrQExecutor | EBadViewDef);
 		}
 		else code = proc_code;
 	}
 	else {
-		*ec << "[QE] checkViewAndGetVirtuals error: This is not a view";
-		*ec << (ErrQExecutor | EBadViewDef);
+		debug_print(*ec,  "[QE] checkViewAndGetVirtuals error: This is not a view");
+		debug_print(*ec,  (ErrQExecutor | EBadViewDef));
 		return (ErrQExecutor | EBadViewDef);
 	}
 	return 0;
@@ -6534,7 +6534,7 @@ int QueryExecutor::getSubviews(LogicalID *lid, string vo_name, vector<LogicalID 
 	ObjectPointer *optr;
 	errcode = tr->getObjectPointer (lid, Store::Read, optr, false);
 	if (errcode != 0) {
-		*ec << "[QE] getSubviews - Error in getObjectPointer.";
+		debug_print(*ec,  "[QE] getSubviews - Error in getObjectPointer.");
 		antyStarveFunction(errcode);
 		inTransaction = false;
 		return errcode;
@@ -6549,7 +6549,7 @@ int QueryExecutor::getSubviews(LogicalID *lid, string vo_name, vector<LogicalID 
 			LogicalID *tmp_logID = tmp_vec->at(i);
 			ObjectPointer *tmp_optr;
 			if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, tmp_optr, false)) != 0) {
-				*ec << "[QE] getSubviews - Error in getObjectPointer";
+				debug_print(*ec,  "[QE] getSubviews - Error in getObjectPointer");
 				antyStarveFunction(errcode);
 				inTransaction = false;
 				return errcode;
@@ -6564,8 +6564,8 @@ int QueryExecutor::getSubviews(LogicalID *lid, string vo_name, vector<LogicalID 
 		}
 	}
 	else {
-		*ec << "[QE] getSubviews error: This is not a view";
-		*ec << (ErrQExecutor | EBadViewDef);
+		debug_print(*ec,  "[QE] getSubviews error: This is not a view");
+		debug_print(*ec,  (ErrQExecutor | EBadViewDef));
 		return (ErrQExecutor | EBadViewDef);
 	}
 	return 0;
@@ -6576,7 +6576,7 @@ int QueryExecutor::getSubview(LogicalID *lid, string name, LogicalID *&subview_l
 	ObjectPointer *optr;
 	errcode = tr->getObjectPointer (lid, Store::Read, optr, false);
 	if (errcode != 0) {
-		*ec << "[QE] getSubview - Error in getObjectPointer.";
+		debug_print(*ec,  "[QE] getSubview - Error in getObjectPointer.");
 		antyStarveFunction(errcode);
 		inTransaction = false;
 		return errcode;
@@ -6591,7 +6591,7 @@ int QueryExecutor::getSubview(LogicalID *lid, string name, LogicalID *&subview_l
 			LogicalID *tmp_logID = tmp_vec->at(i);
 			ObjectPointer *tmp_optr;
 			if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, tmp_optr, false)) != 0) {
-				*ec << "[QE] getSubview - Error in getObjectPointer";
+				debug_print(*ec,  "[QE] getSubview - Error in getObjectPointer");
 				antyStarveFunction(errcode);
 				inTransaction = false;
 				return errcode;
@@ -6607,7 +6607,7 @@ int QueryExecutor::getSubview(LogicalID *lid, string name, LogicalID *&subview_l
 					LogicalID *tmp_logID2 = tmp_vec2->at(j);
 					ObjectPointer *tmp_optr2;
 					if ((errcode = tr->getObjectPointer(tmp_logID2, Store::Read, tmp_optr2, false)) != 0) {
-						*ec << "[QE] getSubview - Error in getObjectPointer";
+						debug_print(*ec,  "[QE] getSubview - Error in getObjectPointer");
 						antyStarveFunction(errcode);
 						inTransaction = false;
 						return errcode;
@@ -6629,8 +6629,8 @@ int QueryExecutor::getSubview(LogicalID *lid, string name, LogicalID *&subview_l
 		}
 	}
 	else {
-		*ec << "[QE] getSubview error: This is not a view";
-		*ec << (ErrQExecutor | EBadViewDef);
+		debug_print(*ec,  "[QE] getSubview error: This is not a view");
+		debug_print(*ec,  (ErrQExecutor | EBadViewDef));
 		return (ErrQExecutor | EBadViewDef);
 	}
 	return 0;
@@ -6643,7 +6643,7 @@ int QueryExecutor::getOn_procedure(LogicalID *lid, string procName, string &code
 	ObjectPointer *optr;
 	errcode = tr->getObjectPointer (lid, Store::Read, optr, false);
 	if (errcode != 0) {
-		*ec << "[QE] getOn_procedure - Error in getObjectPointer.";
+		debug_print(*ec,  "[QE] getOn_procedure - Error in getObjectPointer.");
 		antyStarveFunction(errcode);
 		inTransaction = false;
 		return errcode;
@@ -6659,7 +6659,7 @@ int QueryExecutor::getOn_procedure(LogicalID *lid, string procName, string &code
 			LogicalID *tmp_logID = tmp_vec->at(i);
 			ObjectPointer *tmp_optr;
 			if ((errcode = tr->getObjectPointer(tmp_logID, Store::Read, tmp_optr, false)) != 0) {
-				*ec << "[QE] getOn_procedure - Error in getObjectPointer";
+				debug_print(*ec,  "[QE] getOn_procedure - Error in getObjectPointer");
 				antyStarveFunction(errcode);
 				inTransaction = false;
 				return errcode;
@@ -6673,14 +6673,14 @@ int QueryExecutor::getOn_procedure(LogicalID *lid, string procName, string &code
 				vector<LogicalID*>* proc_vec = tmp_data_value->getVector();
 				int proc_vec_size = proc_vec->size();
 				if ((proc_vec_size == 0) || (proc_vec_size > 2)) {
-					ec->printf("[QE] getOn_procedure error: %s procedure wrong format\n", procName.c_str());
-					*ec << (ErrQExecutor | EBadViewDef);
+					debug_printf(*ec, "[QE] getOn_procedure error: %s procedure wrong format\n", procName.c_str());
+					debug_print(*ec,  (ErrQExecutor | EBadViewDef));
 					return (ErrQExecutor | EBadViewDef);
 				}
 				LogicalID *first_logID = proc_vec->at(0);
 				ObjectPointer *first_optr;
 				if ((errcode = tr->getObjectPointer(first_logID, Store::Read, first_optr, false)) != 0) {
-					*ec << "[QE] getOn_procedure - Error in getObjectPointer";
+					debug_print(*ec,  "[QE] getOn_procedure - Error in getObjectPointer");
 					antyStarveFunction(errcode);
 					inTransaction = false;
 					return errcode;
@@ -6696,8 +6696,8 @@ int QueryExecutor::getOn_procedure(LogicalID *lid, string procName, string &code
 					param = first_data_value->getString();
 				}
 				else {
-					ec->printf("[QE] getOn_procedure error: %s procedure wrong format\n", procName.c_str());
-					*ec << (ErrQExecutor | EBadViewDef);
+					debug_printf(*ec, "[QE] getOn_procedure error: %s procedure wrong format\n", procName.c_str());
+					debug_print(*ec,  (ErrQExecutor | EBadViewDef));
 					return (ErrQExecutor | EBadViewDef);
 				}
 
@@ -6705,7 +6705,7 @@ int QueryExecutor::getOn_procedure(LogicalID *lid, string procName, string &code
 					LogicalID *second_logID = proc_vec->at(1);
 					ObjectPointer *second_optr;
 					if ((errcode = tr->getObjectPointer(second_logID, Store::Read, second_optr, false)) != 0) {
-						*ec << "[QE] getOn_procedure - Error in getObjectPointer";
+						debug_print(*ec,  "[QE] getOn_procedure - Error in getObjectPointer");
 						antyStarveFunction(errcode);
 						inTransaction = false;
 						return errcode;
@@ -6721,8 +6721,8 @@ int QueryExecutor::getOn_procedure(LogicalID *lid, string procName, string &code
 						param = second_data_value->getString();
 					}
 					else {
-						ec->printf("[QE] getOn_procedure error: %s procedure wrong format\n", procName.c_str());
-						*ec << (ErrQExecutor | EBadViewDef);
+						debug_printf(*ec, "[QE] getOn_procedure error: %s procedure wrong format\n", procName.c_str());
+						debug_print(*ec,  (ErrQExecutor | EBadViewDef));
 						return (ErrQExecutor | EBadViewDef);
 					}
 				}
@@ -6730,14 +6730,14 @@ int QueryExecutor::getOn_procedure(LogicalID *lid, string procName, string &code
 			}
 		}
 		if (founded > 1) {
-			ec->printf("[QE] getOn_procedure error: Multiple %s procedures found\n", procName.c_str());
-			*ec << (ErrQExecutor | EBadViewDef);
+			debug_printf(*ec, "[QE] getOn_procedure error: Multiple %s procedures found\n", procName.c_str());
+			debug_print(*ec,  (ErrQExecutor | EBadViewDef));
 			return (ErrQExecutor | EBadViewDef);
 		}
 	}
 	else {
-		*ec << "[QE] getOn_procedure error: This is not a view";
-		*ec << (ErrQExecutor | EBadViewDef);
+		debug_print(*ec,  "[QE] getOn_procedure error: This is not a view");
+		debug_print(*ec,  (ErrQExecutor | EBadViewDef));
 		return (ErrQExecutor | EBadViewDef);
 	}
 	return 0;
@@ -6745,15 +6745,15 @@ int QueryExecutor::getOn_procedure(LogicalID *lid, string procName, string &code
 
 int QueryExecutor::callProcedure(string code, vector<QueryBagResult*> sections) {
 
-	*ec << "[QE] TNCALLPROC";
-	*ec << code;
+	debug_print(*ec,  "[QE] TNCALLPROC");
+	debug_print(*ec,  code);
 
 	int errcode;
 	QueryParser* tmpQP = new QueryParser(session->get_id());
 	TreeNode* tmpTN;
 	errcode = tmpQP->parseIt(session->get_id(), code, tmpTN);
 	if (errcode != 0) {
-		*ec << "[QE] TNCALLPROC error while parsing procedure code";
+		debug_print(*ec,  "[QE] TNCALLPROC error while parsing procedure code");
 		return errcode;
 	}
 
@@ -6879,8 +6879,8 @@ int QueryExecutor::deVirtualize(QueryResult *arg, QueryResult *&res) {
 			else {
 				unsigned int current_virtual_index = sent_virtuals.size();
 				if (current_virtual_index >= QE_VIRTUALS_TO_SEND_MAX_COUNT) {
-					*ec << "[QE] No more space left to remember next virtual object.";
-					*ec << (ErrQExecutor | EQEUnexpectedErr);
+					debug_print(*ec,  "[QE] No more space left to remember next virtual object.");
+					debug_print(*ec,  (ErrQExecutor | EQEUnexpectedErr));
 					return (ErrQExecutor | EQEUnexpectedErr);
 				}
 				sent_virtuals.push_back(arg);
@@ -6892,8 +6892,8 @@ int QueryExecutor::deVirtualize(QueryResult *arg, QueryResult *&res) {
 			break;
 		}
 		default: {
-			*ec << "[QE] ERROR in deVirtualize() - unknown result type";
-			*ec << (ErrQExecutor | EOtherResExp);
+			debug_print(*ec,  "[QE] ERROR in deVirtualize() - unknown result type");
+			debug_print(*ec,  (ErrQExecutor | EOtherResExp));
 			return (ErrQExecutor | EOtherResExp);
 		}
 	}
@@ -6982,8 +6982,8 @@ int QueryExecutor::reVirtualize(QueryResult *arg, QueryResult *&res) {
 			break;
 		}
 		default: {
-			*ec << "[QE] ERROR in reVirtualize() - unknown result type";
-			*ec << (ErrQExecutor | EOtherResExp);
+			debug_print(*ec,  "[QE] ERROR in reVirtualize() - unknown result type");
+			debug_print(*ec,  (ErrQExecutor | EOtherResExp));
 			return (ErrQExecutor | EOtherResExp);
 		}
 	}
@@ -6991,18 +6991,18 @@ int QueryExecutor::reVirtualize(QueryResult *arg, QueryResult *&res) {
 }
 
 int QueryExecutor::otherErrorOccur( string msg, int errcode ) {
-	*ec << msg;
+	debug_print(*ec,  msg);
 	return errcode;
 }
 
 int QueryExecutor::qeErrorOccur( string msg, int errcode ) {
-	*ec << msg;
-	*ec << (ErrQExecutor | errcode);
+	debug_print(*ec,  msg);
+	debug_print(*ec,  (ErrQExecutor | errcode));
 	return (ErrQExecutor | errcode);
 }
 
 int QueryExecutor::trErrorOccur( string msg, int errcode ) {
-	*ec << msg;
+	debug_print(*ec,  msg);
 	antyStarveFunction(errcode);
 	inTransaction = false;
 	return errcode;
@@ -7099,7 +7099,7 @@ int QueryExecutor::getInterfaceLID(string name, LogicalID *&lid)
     }
     if (interfaces->size() == 0)
     {
-	*ec << "[QE] getInterfaceLID - no interface " << name;
+	debug_print(*ec,  "[QE] getInterfaceLID - no interface " + name);
     }
     else
 	lid = interfaces->at(0);
@@ -7152,16 +7152,16 @@ int QueryExecutor::createOnView(string objectName, bool &found, QueryResult *bin
 	vector<LogicalID*>* vec_virt;
 	int errcode = 0;
 	if ((errcode = tr->getViewsLID(objectName, vec_virt)) != 0) {
-		*ec << "[QE] createOnView - error in getViewsLID";
+		debug_print(*ec,  "[QE] createOnView - error in getViewsLID");
 		antyStarveFunction(errcode);
 		inTransaction = false;
 		return errcode;
 	}
 	int vecSize_virt = vec_virt->size();
-	ec->printf("[QE] %d Views LID by name taken\n", vecSize_virt);
+	debug_printf(*ec, "[QE] %d Views LID by name taken\n", vecSize_virt);
 	if (vecSize_virt > 1) {
-		*ec << "[QE] Multiple views defining virtual objects with the same name";
-		*ec << (ErrQExecutor | EBadBindName);
+		debug_print(*ec,  "[QE] Multiple views defining virtual objects with the same name");
+		debug_print(*ec,  (ErrQExecutor | EBadBindName));
 		return (ErrQExecutor | EBadBindName);
 	}
 	else if (vecSize_virt == 1) {
@@ -7171,8 +7171,8 @@ int QueryExecutor::createOnView(string objectName, bool &found, QueryResult *bin
 		errcode = getOn_procedure(view_def, "on_create", proc_code, proc_param);
 		if (errcode != 0) return errcode;
 		if (proc_code == "") {
-			*ec << "[QE] operator <create> - this VirtualObject doesn't have this operation defined";
-			*ec << (ErrQExecutor | EOperNotDefined);
+			debug_print(*ec,  "[QE] operator <create> - this VirtualObject doesn't have this operation defined");
+			debug_print(*ec,  (ErrQExecutor | EOperNotDefined));
 			return (ErrQExecutor | EOperNotDefined);
 		}
 		vector<QueryBagResult*> envs_sections;
@@ -7214,7 +7214,7 @@ int QueryExecutor::createObjectAndPutOnQRes(DBDataValue* dbValue, string objectN
 	ObjectPointer *newObject;
 	DataValue* value = dbValue;
 	if ((errcode = tr->createObject(objectName, value, newObject)) != 0) {
-		*ec << "[QE] Error in createObject";
+		debug_print(*ec,  "[QE] Error in createObject");
 		antyStarveFunction(errcode);
 		inTransaction = false;
 		return errcode;
@@ -7224,7 +7224,7 @@ int QueryExecutor::createObjectAndPutOnQRes(DBDataValue* dbValue, string objectN
 		newObject->getValue()->setSubtype(type);
 		errcode = tr->modifyObject(newObject, newObject->getValue());
 		if (errcode != 0) {
-			*ec << "[QE] TNCLASS - Error in modifyObject.";
+			debug_print(*ec,  "[QE] TNCLASS - Error in modifyObject.");
 			antyStarveFunction(errcode);
 			inTransaction = false;
 			return errcode;
@@ -7246,7 +7246,7 @@ QueryExecutor::~QueryExecutor() {
 	delete qres;
 	sent_virtuals.clear();
 	fakeLid_map.clear();
-	*ec << "[QE] QueryExecutor shutting down\n";
+	debug_print(*ec,  "[QE] QueryExecutor shutting down\n");
 	//delete QueryBuilder::getHandle();
 }
 
@@ -7263,7 +7263,7 @@ int QueryExecutor::executeObjectDeclarationOrTypeDefinition(DeclareDefineNode *o
 	errcode = objDeclRec(obdNode, obdNode->getName(), isTypedef, obdNode->getName(), vec, true);
 	if (errcode != 0) return errcode;
 
-	for (unsigned int i = 0; i < vec->size(); i++) {*ec << "qry: " + vec->at(i);}
+	for (unsigned int i = 0; i < vec->size(); i++) {debug_print(*ec,  "qry: " + vec->at(i));}
 	QueryParser parser(false);
 	QueryResult *local_res = NULL;
 	int locResult = 0;
@@ -7272,8 +7272,8 @@ int QueryExecutor::executeObjectDeclarationOrTypeDefinition(DeclareDefineNode *o
 	}
 	if (locResult != 0)	return (ErrQExecutor | EMdnCreateError);
 	tr->getDmlStct()->addRoot(obdNode->getName(), (isTypedef ? DMLControl::type : DMLControl::object));
-	*ec << tr->getDmlStct()->depsToString();
-	*ec << tr->getDmlStct()->rootMdnsToString();
+	debug_print(*ec,  tr->getDmlStct()->depsToString());
+	debug_print(*ec,  tr->getDmlStct()->rootMdnsToString());
 	DataScheme::dScheme(session->get_id(), tr)->setUpToDate(false);
 	return 0;
 }
@@ -7300,13 +7300,13 @@ int QueryExecutor::objDeclRec(DeclareDefineNode *obd, string rootName, bool type
 			tName = obd->getSigNode()->getTypeName();
 			//check if its an object. (if so - well, error, can't do that, only defined type name allowed here).
 			if ((tr->getDmlStct()->findRoot(tName)) == DMLControl::object) {
-				*ec << "Found MDN object while looking for type - have to report error";
+				debug_print(*ec,  "Found MDN object while looking for type - have to report error");
 				return (ErrQExecutor | EObjectInsteadOfType);
 			}
 			if (typeDef) {//If not in typedef -were done. else - check for recurrence & update dependency structs.
-				*ec << "will look for dependencies..\n";
+				debug_print(*ec,  "will look for dependencies..\n");
 				if (tr->getDmlStct()->findDependency(tName, rootName) != 0) {
-					*ec << "Attempt to define inftly recurrent types: " + tName + " <--> " + obd->getName();
+					debug_print(*ec,  "Attempt to define inftly recurrent types: " + tName + " <--> " + obd->getName());
 					return (ErrQExecutor | ERecurrentTypes);
 				}
 				tr->getDmlStct()->markDependency (rootName, tName);
@@ -7321,7 +7321,7 @@ int QueryExecutor::objDeclRec(DeclareDefineNode *obd, string rootName, bool type
 				}
 			}
 			break;
-		default: *ec << "Unknown signature node kind"; break;
+		default: debug_print(*ec,  "Unknown signature node kind"); break;
 	}
 	if (!isTopLevel) {
 		//decide whether owner(parent node) is __MDN__, or __MDNT__, or some subobject somewhere...
@@ -7340,20 +7340,20 @@ ResultStack::~ResultStack() { this->deleteAll(); }
 
 int ResultStack::push(QueryResult *r) {
 	rs.push_back(r);
-	*ec << "[QE] Result Stack pushed";
+	debug_print(*ec,  "[QE] Result Stack pushed");
 	return 0;
 }
 
 int ResultStack::pop(QueryResult *&r){
 	if (rs.empty()) {
-		*ec << (ErrQExecutor | EQEmptySet);
+		debug_print(*ec,  (ErrQExecutor | EQEmptySet));
 		return (ErrQExecutor | EQEmptySet);
 	}
 	else {
 		r=(rs.back());
 		rs.pop_back();
 	};
-	*ec << "[QE] Result Stack popped";
+	debug_print(*ec,  "[QE] Result Stack popped");
 	return 0;
 }
 
