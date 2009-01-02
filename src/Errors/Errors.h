@@ -30,6 +30,7 @@ namespace Errors {
 		ErrTypeChecker =		0x4400000,
 		ErrUserProgram =		0x4800000,
 		ErrProtocol =			0x8200000,
+		ErrUnknown =			0x8400000,
 		ErrAllModules =			0xFF00000,
 
 // error codes 1-255 (0x01 - 0xFF) reser	ved for system errno.h
@@ -164,7 +165,7 @@ namespace Errors {
 		EUserWrongParam =		0x8100
 	};
 	string SBQLstrerror(int error);
-	string err_module_desc(int error);
+	const string &err_module_desc(int error);
 }
 
 #endif

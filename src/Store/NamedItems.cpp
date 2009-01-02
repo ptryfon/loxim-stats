@@ -9,7 +9,7 @@ namespace Store
 	NamedItems::NamedItems()
 	{
 #ifdef IX_DEBUG
-		this->ec = &ErrorConsole::get_instance("Store: NamedItems");
+		this->ec = &ErrorConsole::get_instance(EC_STORE_NAMED_ITEMS);
 #endif
 	};
 

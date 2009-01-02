@@ -28,7 +28,7 @@ namespace Store
 		this->finterfaces = 0;
 		this->fschemas = 0;
 
-		this->ec = &ErrorConsole::get_instance("Store: File");
+		this->ec = &ErrorConsole::get_instance(EC_STORE_FILE);
 	};
 
 	File::~File()

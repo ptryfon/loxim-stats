@@ -153,7 +153,7 @@ int OuterSchema::fromLogicalID(LogicalID *lid, TManager::Transaction *tr, OuterS
 
 OuterSchemas::OuterSchemas()
 {
-	 ec = &ErrorConsole::get_instance("OuterSchemas");
+	 ec = &ErrorConsole::get_instance(EC_OUTER_SCHEMAS);
 }
 
 int OuterSchemas::loadOuterSchemas(TManager::Transaction *tr, TLidsVector *lvec)

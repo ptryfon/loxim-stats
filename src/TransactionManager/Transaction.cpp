@@ -37,7 +37,7 @@ namespace TManager
 	}
 
 /*______Transaction_________________________________________*/
-	Transaction::Transaction(TransactionID* tid, Semaphore* _sem) : err(ErrorConsole::get_instance("TransactionManager"))
+	Transaction::Transaction(TransactionID* tid, Semaphore* _sem) : err(ErrorConsole::get_instance(EC_TRANSACTION_MANAGER))
 	{
 		err.printf("Transaction started, id: %d\n", tid->getId());
 		sem = _sem;
@@ -756,7 +756,7 @@ namespace TManager
 
 /*______TransactionManager______________________________________ */
 
-	TransactionManager::TransactionManager() : err(ErrorConsole::get_instance("TransactionManager"))
+	TransactionManager::TransactionManager() : err(ErrorConsole::get_instance(EC_TRANSACTION_MANAGER))
 	{
 		sem = new RWUJSemaphore();
 		sem->init();

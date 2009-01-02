@@ -6,10 +6,33 @@ AC_PROG_LEX
 AC_PROG_YACC
 AC_DISABLE_SHARED
 AC_PROG_LIBTOOL
+
+#code responsible for setting the ocmpiled-in verbosity level
+AC_ARG_ENABLE([cust-verb], [AS_HELP_STRING([--enable-cust-verb=ARG], [Messages
+			of which minimum importance will be compiled. Valid
+			values are: DEBUG, INFO, WARNING, ERROR,
+			SEVERE_ERROR])])
+if test "x$enable_cust_verb" = "xno" -o "x$enable_cust_verb" = "xyes" -o \
+"x$enable_cust_verb" = "x" ; then
+
+	#these don't make any sense, so we fall back to the default - INFO
+	enable_cust_verb=INFO
+fi
+
+if test "x$enable_cust_verb" != "xDEBUG" -a "x$enable_cust_verb" != "xINFO" -a \
+"x$enable_cust_verb" != "xWARNING" -a "x$enable_cust_verb" != "xERROR" -a \
+"x$enable_cust_verb" != "xSEVERE_ERROR" ; then
+	AC_MSG_ERROR([cust-verb should be on of DEBUG, INFO, WARNING, ERROR,
+			SEVERE_ERROR])
+fi
+
+AC_DEFINE_UNQUOTED([HAVE_VERBOSITY_COMPILE], [EC_V_${enable_cust_verb}], [Compiled-in verbosity level])
+
 AC_CHECK_LIB([readline], [readline], , AC_MSG_ERROR([You don't seem to have readline
 			library]))
 AC_CHECK_LIB([pthread], [pthread_create], , AC_MSG_ERROR([You don't seem to have
 			pthread library!]))
+AC_CONFIG_HEADERS([src/config.h])
 AC_CONFIG_FILES([Makefile src/Makefile src/Log/Makefile src/Lock/Makefile
 		src/Errors/Makefile src/Store/Makefile src/ARIESLog/Makefile
 		src/Indexes/Makefile src/Indexes/Tests/Makefile

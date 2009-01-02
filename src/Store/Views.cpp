@@ -5,7 +5,7 @@ namespace Store
 	Views::Views()
 	{
 #ifdef IXV_DEBUG
-		this->ec = &ErrorConsole::get_instance("Store: Views");
+		this->ec = &ErrorConsole::get_instance(EC_STORE_VIEWS);
 #endif
 	};
 

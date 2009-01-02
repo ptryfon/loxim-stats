@@ -595,15 +595,20 @@ configure.ac:8: the top level])
 m4trace:configure.ac:8: -1- AC_SUBST([LIBTOOL])
 m4trace:configure.ac:8: -1- AC_SUBST_TRACE([LIBTOOL])
 m4trace:configure.ac:8: -1- m4_pattern_allow([^LIBTOOL$])
-m4trace:configure.ac:9: -1- AH_OUTPUT([HAVE_LIBREADLINE], [/* Define to 1 if you have the `readline\' library (-lreadline). */
+m4trace:configure.ac:29: -1- AC_DEFINE_TRACE_LITERAL([HAVE_VERBOSITY_COMPILE])
+m4trace:configure.ac:29: -1- m4_pattern_allow([^HAVE_VERBOSITY_COMPILE$])
+m4trace:configure.ac:29: -1- AH_OUTPUT([HAVE_VERBOSITY_COMPILE], [/* Compiled-in verbosity level */
+#undef HAVE_VERBOSITY_COMPILE])
+m4trace:configure.ac:31: -1- AH_OUTPUT([HAVE_LIBREADLINE], [/* Define to 1 if you have the `readline\' library (-lreadline). */
 #undef HAVE_LIBREADLINE])
-m4trace:configure.ac:9: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBREADLINE])
-m4trace:configure.ac:9: -1- m4_pattern_allow([^HAVE_LIBREADLINE$])
-m4trace:configure.ac:11: -1- AH_OUTPUT([HAVE_LIBPTHREAD], [/* Define to 1 if you have the `pthread\' library (-lpthread). */
+m4trace:configure.ac:31: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBREADLINE])
+m4trace:configure.ac:31: -1- m4_pattern_allow([^HAVE_LIBREADLINE$])
+m4trace:configure.ac:33: -1- AH_OUTPUT([HAVE_LIBPTHREAD], [/* Define to 1 if you have the `pthread\' library (-lpthread). */
 #undef HAVE_LIBPTHREAD])
-m4trace:configure.ac:11: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBPTHREAD])
-m4trace:configure.ac:11: -1- m4_pattern_allow([^HAVE_LIBPTHREAD$])
-m4trace:configure.ac:13: -1- AC_CONFIG_FILES([Makefile src/Makefile src/Log/Makefile src/Lock/Makefile
+m4trace:configure.ac:33: -1- AC_DEFINE_TRACE_LITERAL([HAVE_LIBPTHREAD])
+m4trace:configure.ac:33: -1- m4_pattern_allow([^HAVE_LIBPTHREAD$])
+m4trace:configure.ac:35: -1- AC_CONFIG_HEADERS([src/config.h])
+m4trace:configure.ac:36: -1- AC_CONFIG_FILES([Makefile src/Makefile src/Log/Makefile src/Lock/Makefile
 		src/Errors/Makefile src/Store/Makefile src/ARIESLog/Makefile
 		src/Indexes/Makefile src/Indexes/Tests/Makefile
 		src/QueryParser/Makefile src/TransactionManager/Makefile
@@ -616,19 +621,19 @@ m4trace:configure.ac:13: -1- AC_CONFIG_FILES([Makefile src/Makefile src/Log/Make
 		src/protocol/layers/Makefile src/protocol/ptools/Makefile
 		src/Server/Makefile src/TypeCheck/Makefile
 		src/Config/Makefile src/Util/Makefile Documentation/Makefile])
-m4trace:configure.ac:26: -1- AC_SUBST([LIB@&t@OBJS], [$ac_libobjs])
-m4trace:configure.ac:26: -1- AC_SUBST_TRACE([LIB@&t@OBJS])
-m4trace:configure.ac:26: -1- m4_pattern_allow([^LIB@&t@OBJS$])
-m4trace:configure.ac:26: -1- AC_SUBST([LTLIBOBJS], [$ac_ltlibobjs])
-m4trace:configure.ac:26: -1- AC_SUBST_TRACE([LTLIBOBJS])
-m4trace:configure.ac:26: -1- m4_pattern_allow([^LTLIBOBJS$])
-m4trace:configure.ac:26: -1- AC_SUBST_TRACE([top_builddir])
-m4trace:configure.ac:26: -1- AC_SUBST_TRACE([srcdir])
-m4trace:configure.ac:26: -1- AC_SUBST_TRACE([abs_srcdir])
-m4trace:configure.ac:26: -1- AC_SUBST_TRACE([top_srcdir])
-m4trace:configure.ac:26: -1- AC_SUBST_TRACE([abs_top_srcdir])
-m4trace:configure.ac:26: -1- AC_SUBST_TRACE([builddir])
-m4trace:configure.ac:26: -1- AC_SUBST_TRACE([abs_builddir])
-m4trace:configure.ac:26: -1- AC_SUBST_TRACE([abs_top_builddir])
-m4trace:configure.ac:26: -1- AC_SUBST_TRACE([INSTALL])
-m4trace:configure.ac:26: -1- AC_SUBST_TRACE([MKDIR_P])
+m4trace:configure.ac:49: -1- AC_SUBST([LIB@&t@OBJS], [$ac_libobjs])
+m4trace:configure.ac:49: -1- AC_SUBST_TRACE([LIB@&t@OBJS])
+m4trace:configure.ac:49: -1- m4_pattern_allow([^LIB@&t@OBJS$])
+m4trace:configure.ac:49: -1- AC_SUBST([LTLIBOBJS], [$ac_ltlibobjs])
+m4trace:configure.ac:49: -1- AC_SUBST_TRACE([LTLIBOBJS])
+m4trace:configure.ac:49: -1- m4_pattern_allow([^LTLIBOBJS$])
+m4trace:configure.ac:49: -1- AC_SUBST_TRACE([top_builddir])
+m4trace:configure.ac:49: -1- AC_SUBST_TRACE([srcdir])
+m4trace:configure.ac:49: -1- AC_SUBST_TRACE([abs_srcdir])
+m4trace:configure.ac:49: -1- AC_SUBST_TRACE([top_srcdir])
+m4trace:configure.ac:49: -1- AC_SUBST_TRACE([abs_top_srcdir])
+m4trace:configure.ac:49: -1- AC_SUBST_TRACE([builddir])
+m4trace:configure.ac:49: -1- AC_SUBST_TRACE([abs_builddir])
+m4trace:configure.ac:49: -1- AC_SUBST_TRACE([abs_top_builddir])
+m4trace:configure.ac:49: -1- AC_SUBST_TRACE([INSTALL])
+m4trace:configure.ac:49: -1- AC_SUBST_TRACE([MKDIR_P])

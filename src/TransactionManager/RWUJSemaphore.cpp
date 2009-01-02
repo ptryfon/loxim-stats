@@ -190,7 +190,7 @@ namespace SemaphoreLib {
 
 	int RWUJSemaphore::status()	//Test routine
 	{
-	    ErrorConsole &ec(ErrorConsole::get_instance("TransactionManager"));
+	    ErrorConsole &ec(ErrorConsole::get_instance(EC_TRANSACTION_MANAGER));
 
 	    printf("Inside %d\n", inside);
 	    printf("Readers waiting %d\n", wait_readers);

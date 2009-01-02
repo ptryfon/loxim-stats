@@ -209,7 +209,7 @@ namespace QExecutor
 			inTransaction = false;
 			antyStarve = false;
 			transactionNumber = 0;
-			ec = &ErrorConsole::get_instance("QueryExecutor"); 
+			ec = &ErrorConsole::get_instance(EC_QUERY_EXECUTOR); 
 			stop = 0; 
 			this->session = session; 
 			system_privilige_checking = false; 

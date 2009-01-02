@@ -24,8 +24,36 @@ namespace Errors {
 	auto_ptr<SBQLConfig> ErrorConsole::conf_file;
 	VerbosityLevel log_file_level, serr_level;
 	pthread_mutex_t ErrorConsole::write_lock = PTHREAD_MUTEX_INITIALIZER;
-	map<string, ErrorConsole* > ErrorConsole::modules;
+	map<ConsoleInstance, ErrorConsole* > ErrorConsole::modules;
 	
+
+	const string ErrorConsole::names[] = {
+		"ARIESLog",
+		"IndexManager",
+		"InterfaceMaps",
+		"LockManager",
+		"Log",
+		"OuterSchemas",
+		"QueryExecutor",
+		"QueryParser",
+		"Server",
+		"Store",
+		"Store: Classes",
+		"Store: File",
+		"Store: Interfaces",
+		"Store: NamedItems",
+		"Store: NamedRoots",
+		"Store: Schemas",
+		"Store: Views",
+		"TransactionManager",
+		"TypeChecker"
+	};
+
+	const string ErrorConsole::verb_debug_name = "DEBUG";
+	const string ErrorConsole::verb_info_name = "INFO";
+	const string ErrorConsole::verb_warning_name = "WARNING";
+	const string ErrorConsole::verb_error_name = "ERROR";
+	const string ErrorConsole::verb_severe_error_name = "SEVERE_ERROR";
 
 	void ErrorConsole::init_static()
 	{
@@ -44,6 +72,7 @@ namespace Errors {
 			if (!console_file->is_open())
 				throw LoximException(ENoFile | ErrErrors);
 		}
+
 	}
 
 	VerbosityLevel ErrorConsole::parse_verbosity(const string &property)
@@ -66,13 +95,26 @@ namespace Errors {
 		return V_DEFAULT;
 	}
 
+	const string &ErrorConsole::verbosity_name(VerbosityLevel l)
+	{
+		switch (l){
+			case V_DEBUG: return verb_debug_name;
+			case V_INFO: return verb_info_name;
+			case V_WARNING: return verb_warning_name;
+			case V_ERROR: return verb_error_name;
+			case V_SEVERE_ERROR: return verb_severe_error_name;
+		}
+		/* not sure if it's the right decision */
+		return verb_debug_name;
+	}
+
 	const SBQLConfig &ErrorConsole::get_config()
 	{
 		init_static();
 		return *conf_file;
 	}
 
-	ErrorConsole::ErrorConsole(const string &module) : owner(module)
+	ErrorConsole::ErrorConsole(ConsoleInstance instance) : instance(instance)
 	{
 		init_static();
 	}
@@ -80,25 +122,21 @@ namespace Errors {
 
 	void ErrorConsole::put_string(const string &error_msg, VerbosityLevel l)
 	{
-		string dest_mod;
-		if (owner.length() == 0)
-			dest_mod = "Unknown: ";
-		else
-			dest_mod = owner + ": ";
+		const string &instance_name(names[instance]);
 		Locker lock(write_lock);
 		if (use_log_file && log_file_level >= l) {
-			*console_file << dest_mod << error_msg << endl;
+			*console_file << verbosity_name(l) << ": " << instance_name << ": " << error_msg << endl;
 			console_file->flush();
 		}
 		if (serr && serr_level >= l) {
-			cerr << dest_mod << error_msg << endl;
+			cerr << verbosity_name(l) << ": " << instance_name << ": " << error_msg << endl;
 			cerr.flush();
 		}
 	}
 
 	void ErrorConsole::put_errno(int error, VerbosityLevel l)
 	{
-		string src_mod = err_module_desc(error);
+		const string &src_mod = err_module_desc(error);
 		string str = SBQLstrerror(error);
 		stringstream ss;
 		ss << src_mod << " said: " << str << " (errno: " 
@@ -149,10 +187,10 @@ namespace Errors {
 	{
 	}
 
-	ErrorConsole &ErrorConsole::get_instance(const string &mod)
+	ErrorConsole &ErrorConsole::get_instance(ConsoleInstance mod)
 	{
 		Locker l(write_lock);
-		map<string, ErrorConsole*>::const_iterator
+		map<ConsoleInstance, ErrorConsole*>::const_iterator
 			i = modules.find(mod);
 		if (i != modules.end()){
 			return *(i->second);
@@ -181,8 +219,13 @@ namespace Errors {
 		cons.put_string(error, l);
 		return *this;
 	}
+	
+	void ErrorConsoleAdapter::print(const string &msg)
+	{
+		cons.put_string(msg, l);
+	}
 
-	ErrorConsoleAdapter &ErrorConsoleAdapter::printf(const char *format, ...)
+	void ErrorConsoleAdapter::printf(const char *format, ...)
 	{
 		//CAUTION!!! This code is duplicated above. It's ugly, but most
 		//portable. Compilers have different implementations of va_list,
@@ -200,7 +243,6 @@ namespace Errors {
 		str[BUF_SIZE - 1] = 0;
 		cons.put_string(str, l);
 #undef BUF_SIZE
-		return *this;
 	}
 }
 

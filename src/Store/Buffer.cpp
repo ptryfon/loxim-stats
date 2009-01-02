@@ -16,7 +16,7 @@ namespace Store
 		this->store = store;
 		this->file = new File(store);
 		this->started = 0;
-		this->ec = &ErrorConsole::get_instance("Store");
+		this->ec = &ErrorConsole::get_instance(EC_STORE);
 	};
 
 	Buffer::~Buffer()

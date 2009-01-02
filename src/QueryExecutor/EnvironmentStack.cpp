@@ -23,7 +23,7 @@ using namespace std;
 
 namespace QExecutor {
 
-EnvironmentStack::EnvironmentStack() { actualBindClassLid = NULL; actual_prior = 0; sectionDBnumber = 0; ec = &ErrorConsole::get_instance("QueryExecutor"); }
+EnvironmentStack::EnvironmentStack() { actualBindClassLid = NULL; actual_prior = 0; sectionDBnumber = 0; ec = &ErrorConsole::get_instance(EC_QUERY_EXECUTOR); }
 EnvironmentStack::~EnvironmentStack() { this->deleteAll(); }
 
 unsigned int EnvironmentStack::getSectionDBnumber() { return sectionDBnumber; }

@@ -7335,7 +7335,7 @@ int QueryExecutor::objDeclRec(DeclareDefineNode *obd, string rootName, bool type
 /* RESULT STACK */
 
 
-ResultStack::ResultStack() { ec = &ErrorConsole::get_instance("QueryExecutor"); }
+ResultStack::ResultStack() { ec = &ErrorConsole::get_instance(EC_QUERY_EXECUTOR); }
 ResultStack::~ResultStack() { this->deleteAll(); }
 
 int ResultStack::push(QueryResult *r) {

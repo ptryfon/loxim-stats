@@ -40,6 +40,7 @@ am__aclocal_m4_deps = $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
+CONFIG_HEADER = $(top_builddir)/src/config.h
 CONFIG_CLEAN_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
 libAdminParser_la_LIBADD =
@@ -47,7 +48,7 @@ am_libAdminParser_la_OBJECTS = AdminExecutableTreeNode.lo \
 	AdminExecutor.lo AdminTreeNode.lo ShutdownTreeNode.lo \
 	scanner.lo parser.lo
 libAdminParser_la_OBJECTS = $(am_libAdminParser_la_OBJECTS)
-DEFAULT_INCLUDES = -I.@am__isrc@
+DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/src
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \

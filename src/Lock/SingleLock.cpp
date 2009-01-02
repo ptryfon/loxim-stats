@@ -11,7 +11,7 @@ namespace LockMgr
 /*_____SingleLock___________________________________________________*/    
 
     SingleLock::SingleLock(TransactionID* _tid, AccessMode _mode, Semaphore *_sem, int _id) : 
-	    err(ErrorConsole::get_instance("LockManager"))
+	    err(ErrorConsole::get_instance(EC_LOCK_MANAGER))
     {
 	inside 	= 1;	
 	id 	= _id;

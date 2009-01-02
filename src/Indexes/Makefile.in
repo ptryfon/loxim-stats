@@ -39,6 +39,7 @@ am__aclocal_m4_deps = $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
+CONFIG_HEADER = $(top_builddir)/src/config.h
 CONFIG_CLEAN_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
 libIndexes_la_LIBADD =
@@ -49,7 +50,7 @@ am_libIndexes_la_OBJECTS = BTree.lo CachedNode.lo Cleaner.lo \
 	OptimizedField.lo QueryOptimizer.lo RootEntry.lo \
 	ToStringBuilder.lo TransactionImpact.lo VisibilityResolver.lo
 libIndexes_la_OBJECTS = $(am_libIndexes_la_OBJECTS)
-DEFAULT_INCLUDES = -I.@am__isrc@
+DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/src
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \

@@ -6,7 +6,7 @@ using namespace std;
 
 namespace Errors {
 
-	struct ErrorMessages {
+	const struct ErrorMessages {
 		int e;
 		string s;
 	} ErrorMsg[] = {
@@ -114,70 +114,40 @@ namespace Errors {
 
 		// THIS MUST BE THE LAST ENTRY
 		{EUnknown,         "Unknown error"}
+	}, 
+	ErrorModules[] = 
+	{
+		{ErrBackup, "Backup"},
+		{ErrConfig, "Config"},
+		{ErrErrors, "Errors"},
+		{ErrLockMgr, "Lock Manager"},
+		{ErrLogs, "Logs"},
+		{ErrQExecutor, "Query Executor"},
+		{ErrQParser, "Query Parser"},
+		{ErrClient, "Client"},
+		{ErrServer, "Server"},
+		{ErrStore, "Store"},
+		{ErrTManager, "Transaction Manager"},
+		{ErrIndexes, "Indexes"},
+		{ErrTypeChecker, "Type Checker"},
+		{ErrUserProgram, "User Program"},
+		{ErrProtocol, "Protocol"},
+		/* should be the last one */
+		{ErrUnknown, "Unknown"}
 	};
 
-	string err_module_desc(int error){
-		string src_mod;
-		switch(error & ErrAllModules) {
-			case ErrBackup:
-				src_mod = "Backup";
-				break;
-			case ErrConfig:
-				src_mod = "Config";
-				break;
-			case ErrDriver:
-				src_mod = "Driver";
-				break;
-			case ErrErrors:
-				src_mod = "Errors";
-				break;
-			case ErrLockMgr:
-				src_mod = "Lock Manager";
-				break;
-			case ErrLogs:
-				src_mod = "Logs";
-				break;
-			case ErrQExecutor:
-				src_mod = "Query Executor";
-				break;
-			case ErrQParser:
-				src_mod = "Query Parser";
-				break;
-			case ErrClient:
-				src_mod = "Client";
-				break;
-			case ErrServer:
-				src_mod = "Server";
-				break;
-			case ErrStore:
-				src_mod = "Store";
-				break;
-			case ErrTManager:
-				src_mod = "Transaction Manager";
-				break;
-			case ErrIndexes:
-				src_mod = "Indexes";
-				break;
-			case ErrTypeChecker:
-				src_mod = "Type Checker";
-				break;
-			case ErrUserProgram:
-				src_mod = "User Program";
-				break;
-			case ErrProtocol:
-				src_mod = "Protocol";
-				break;
-			default:
-				src_mod = "Unknown";
-				break;
-		}
-		return src_mod;
+	const string &err_module_desc(int error){
+		int eidx = error & ErrAllModules;
+		int i;
+		for (i = 0; ErrorModules[i].e != ErrUnknown && ErrorModules[i].e
+				!= eidx; ++i) {}
+		return ErrorModules[i].s;
 	}
 	string SBQLstrerror(int error)
 	{
-		string str;
+		const string &module(err_module_desc(error));
 		if ((error & ~ErrAllModules) < 0x100) {
-			str = ::strerror(error & ~ErrAllModules);
+			return module + ": " + ::strerror(error & ~ErrAllModules);
 		} else {
 			int erridx = (error & ~ErrAllModules);
 			int i = 0;
@@ -186,10 +156,8 @@ namespace Errors {
 					break;
 				i++;
 			}
-			str = ErrorMsg[i].s;
+			return module + ": " + ErrorMsg[i].s;
 		}
-
-		return err_module_desc(error) + ": " + str;
 	}
 }
 

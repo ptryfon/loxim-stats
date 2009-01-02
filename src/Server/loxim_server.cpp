@@ -50,9 +50,9 @@ int main(int argc, char **argv) {
 	    cerr << "Config init failed with code " << error << "\n";
 	    exit(1);
 	}
-	ErrorConsole &con(ErrorConsole::get_instance("Server"));
+	ErrorConsole &con(ErrorConsole::get_instance(EC_SERVER));
 	LogManager::checkForBackup();
-	con(V_INFO) << "Initializing Log manager and Store manager\n";
+	info_print(con, "Initializing Log manager and Store manager");
 	LogManager *lm = new LogManager();
 	lm->init();
 	DBStoreManager *sm = new DBStoreManager();
@@ -60,12 +60,12 @@ int main(int argc, char **argv) {
 	LockManager::init();
 	TransactionManager::init(sm, lm);
 	sm->setTManager(TransactionManager::getHandle());
-	con(V_INFO) << "Starting Store manager...\n";
+	info_print(con, "Starting Store manager...");
 	sm->start();
-	con(V_INFO) << "Starting Log manager...\n";
+	info_print(con, "Starting Log manager...");
 	lm->start(sm);
 	QueryBuilder::startup();
-	con(V_INFO) << "Starting Index manager...\n";
+	info_print(con, "Starting Index manager...");
 	Indexes::IndexManager::init(LogManager::isCleanClosed());
 	ClassGraph::ClassGraph::init(-1);
 	Schemas::InterfaceMaps::Instance().init(); //must be called after ClassGraph::init()
@@ -86,6 +86,6 @@ int main(int argc, char **argv) {
 		delete TransactionManager::getHandle();
 	}
 	else
-		con(V_SEVERE_ERROR) << "Couldn't connect to socket\n";
+		severe_print(con, "Couldn't connect to socket");
 	return 0;
 }

@@ -13,7 +13,7 @@ namespace Server{
 
 	Server::Server(const string &hostname, int port, const SBQLConfig &config) : 
 		prepared(0), shutting_down(0), hostname(hostname), port(port), 
-		err_cons(ErrorConsole::get_instance("Server"))
+		err_cons(ErrorConsole::get_instance(EC_SERVER))
 	{
 		if (config.getInt(CONFIG_ACCEPT_INTERVAL_NAME, config_accept_interval))
 			config_accept_interval = CONFIG_ACCEPT_INTERVAL_DEFAULT;
@@ -74,23 +74,23 @@ namespace Server{
 			sigset = sigset_tmpl;
 		}
 		pthread_mutex_lock(&open_sessions_mutex);
-		err_cons(V_INFO).printf("Quitting, telling sessions to shut down\n");
+		info_print(err_cons, "Quitting, telling sessions to shut down");
 		for (set<pair<const uint64_t, shared_ptr<Session> > >::iterator i = open_sessions.begin(); i != open_sessions.end(); i++){
 			i->second->shutdown(0);
 		}
 		pthread_mutex_unlock(&open_sessions_mutex);
-		err_cons(V_INFO).printf("Joining threads\n");
+		info_print(err_cons, "Joining threads");
 		for (set<pair<const uint64_t, shared_ptr<Session> > >::iterator i = open_sessions.begin(); i != open_sessions.end(); i++){
 			pthread_join(i->second->get_thread(), NULL);
 		}
 		open_sessions.clear();
-		err_cons(V_INFO).printf("Threads joined\n");
+		info_print(err_cons, "Threads joined");
 		return 0;
 	}
 
 	void Server::shutdown()
 	{
-		err_cons(V_INFO).printf("Server shutdown called\n");
+		info_print(err_cons, "Server shutdown called");
 		pthread_kill(thread, SIGUSR1);
 	}
 
@@ -112,7 +112,7 @@ namespace Server{
 			open_sessions.erase(session_id);
 		}	
 		pthread_mutex_unlock(&open_sessions_mutex);
-		err_cons(V_INFO).printf("Session %d ended with code %d, working sessions left: %d\n", session_id, code, get_sessions_count());
+		info_printf(err_cons, "Session %d ended with code %d (%s), working sessions left: %d", session_id, code, SBQLstrerror(code).c_str(), get_sessions_count());
 	}
 
 	void LSrv_signal_handler(pthread_t thread, int sig, void *arg)

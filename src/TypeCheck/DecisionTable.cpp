@@ -786,7 +786,7 @@ namespace TypeCheck
 
 		cout << "[TC] comparing " << flatSig->toString() << " \nto sig from datascheme: \n" << fullBSig->toString() << ".\n";
 		int comparison = fullBSig->compareNamedSigCrt(flatSig, false);
-		ErrorConsole &ec(ErrorConsole::get_instance("TypeChecker"));
+		ErrorConsole &ec(ErrorConsole::get_instance(EC_TYPE_CHECKER));
 		ec << "[TC] result of comparing the 2 signatures:";
 		ec << comparison;
 		if (comparison == 0) {
@@ -833,7 +833,7 @@ namespace TypeCheck
 		//now check that fRSig suits namedLSig well... (exactly like in createCheck..)
 		cout << "[TC]SDDIGN:  comparing base sig:" << namedLSig->toString() << " \nto assigned: \n" << fRSig->toString() << ".\n";
 		int comparison = namedLSig->compareNamedSigCrt(fRSig, true);
-		ErrorConsole &ec(ErrorConsole::get_instance("TypeChecker"));
+		ErrorConsole &ec(ErrorConsole::get_instance(EC_TYPE_CHECKER));
 		ec << "[TC] result of comparing the 2 signatures for assignment:";
 		ec << comparison;
 		if (comparison == 0) {	//SUCCESS
@@ -888,7 +888,7 @@ namespace TypeCheck
 		}
 		cout << "[TC] comparing chosen sub from DSCHEME sig: \n" << match->toString() << " \nto sig to be inserted: \n" << flatRSig->toString() << ".\n";
 		int comparison = match->compareNamedSigCrt(flatRSig, true);
-		ErrorConsole &ec(ErrorConsole::get_instance("TypeChecker"));
+		ErrorConsole &ec(ErrorConsole::get_instance(EC_TYPE_CHECKER));
 		ec << "[TC] result of comparing a chosen sub of left sig, with the right sig, for insert:";
 		ec << comparison;
 		if (comparison == 0) {//SUCCESS - just check the cardinalities.

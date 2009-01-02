@@ -4,7 +4,7 @@ namespace Store
 {
 	Interfaces::Interfaces()
 	{
-	    ec = &ErrorConsole::get_instance("Store: Interfaces");
+	    ec = &ErrorConsole::get_instance(EC_STORE_INTERFACES);
 	    *ec << "Interfaces constructed";
 	    STORE_IX_INITIALPAGECOUNT = STORE_IXC_INITIALPAGECOUNT;
 	    STORE_IX_NAMEMAXLEN = STORE_IXC_NAMEMAXLEN;

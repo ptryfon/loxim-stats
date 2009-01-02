@@ -16,7 +16,7 @@ namespace Store
 
 	DBStoreManager::DBStoreManager()
 	{
-		ec = &ErrorConsole::get_instance("Store");
+		ec = &ErrorConsole::get_instance(EC_STORE);
 #ifdef DEBUG_MODE
 		*ec << "Store::StoreManager::Constructor begin";
 #endif

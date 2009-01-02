@@ -3,7 +3,7 @@
 namespace Store
 {
 	StoreSchemas::StoreSchemas() :
-		ec(ErrorConsole::get_instance("Store: Schemas"))
+		ec(ErrorConsole::get_instance(EC_STORE_SCHEMAS))
 	{
 	    ec(V_DEBUG) << "StoreSchemas constructed";
 	    STORE_IX_INITIALPAGECOUNT = STORE_IXC_INITIALPAGECOUNT;

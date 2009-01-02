@@ -29,7 +29,7 @@ int ClassGraph::getHandle(ClassGraph*& cg) {
 }
 
 int ClassGraph::init(int sessionId) {
-	ec = &ErrorConsole::get_instance("QueryExecutor");
+	ec = &ErrorConsole::get_instance(EC_QUERY_EXECUTOR);
 	int errcode = 0;
 	Transaction *tr;
 	errcode = (TransactionManager::getHandle())->createTransaction(sessionId, tr);

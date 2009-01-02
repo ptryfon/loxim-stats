@@ -29,7 +29,7 @@ namespace Store
 
 	int PageManager::insertObject(TransactionID* tid, PagePointer *pPtr, Serialized& obj, int* pidoffset, unsigned log_id)
 	{
-		ErrorConsole &ec(ErrorConsole::get_instance("Store"));
+		ErrorConsole &ec(ErrorConsole::get_instance(EC_STORE));
 		ec << "Store::PageManager::insertObject begin...";
 		page_data *page = reinterpret_cast<page_data*>(pPtr->getPage());
 		int roffset = -1;
@@ -109,7 +109,7 @@ namespace Store
 
 	int PageManager::deserialize(TransactionID* tid, PagePointer *ptr, int objindex, ObjectPointer*& newobj)
 	{
-		ErrorConsole &ec(ErrorConsole::get_instance("Store"));
+		ErrorConsole &ec(ErrorConsole::get_instance(EC_STORE));
 		ec << "Store::PageManager::deserializeObj begin...";
 		page_data *p = reinterpret_cast<page_data*>(ptr->getPage());
 		int osize = objindex > 0 ?
@@ -163,7 +163,7 @@ namespace Store
 
 	int PageManager::initializeFile(File* file)
 	{
-		ErrorConsole &ec(ErrorConsole::get_instance("Store"));
+		ErrorConsole &ec(ErrorConsole::get_instance(EC_STORE));
 		ec << "Store::PageManager::initializeFile begin...";
 		char* rawpage = new char[STORE_PAGESIZE];
 		page_data* p = reinterpret_cast<page_data*>(rawpage);
@@ -183,7 +183,7 @@ namespace Store
 
 	int PageManager::initializePage(unsigned int page_num, char* page)
 	{
-		ErrorConsole &ec(ErrorConsole::get_instance("Store"));
+		ErrorConsole &ec(ErrorConsole::get_instance(EC_STORE));
 		ec << "Store::PageManager::initializePage begin...";
 
 		bool isFreeMapPage = (page_num%(MAX_OBJECT_COUNT+1) == 0);
@@ -217,7 +217,7 @@ namespace Store
 	// objsize to rozmiar obiektu jaki StoreManager chce umiescic na stronie
 	// w ogolnosci trzeba wyszukac strone ktora bedzie miala dodatkowo
 	// sizeof(int) miejsca, aby dodaj pole do tablicy offsetow
-		ErrorConsole &ec(ErrorConsole::get_instance("Store"));
+		ErrorConsole &ec(ErrorConsole::get_instance(EC_STORE));
 		ec.printf("Store::PageManager::getFreePage(%i) begin...\n", objsize);
 		int pii = 0;
 		do	{
@@ -250,7 +250,7 @@ namespace Store
 
 	int PageManager::updateFreeMap(TransactionID* tid, PagePointer *pPtr)
 	{
-		ErrorConsole &ec(ErrorConsole::get_instance("Store"));
+		ErrorConsole &ec(ErrorConsole::get_instance(EC_STORE));
 		ec << "Store::PageManager::updateFreeMap begin...";
 		page_data* p = reinterpret_cast<page_data*>(pPtr->getPage());
 
@@ -288,7 +288,7 @@ namespace Store
 
 	void PageManager::printPage(unsigned char* bytes, int lines)
 	{
-		ErrorConsole &ec(ErrorConsole::get_instance("Store"));
+		ErrorConsole &ec(ErrorConsole::get_instance(EC_STORE));
 		ec << "Store::PageManager::printPage...";
 		ostringstream ostr;
 		ostr << endl;
