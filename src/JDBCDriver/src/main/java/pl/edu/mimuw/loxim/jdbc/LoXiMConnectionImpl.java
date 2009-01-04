@@ -8,6 +8,7 @@ import java.sql.Array;
 import java.sql.Blob;
 import java.sql.CallableStatement;
 import java.sql.Clob;
+import java.sql.Connection;
 import java.sql.NClob;
 import java.sql.ResultSet;
 import java.sql.SQLClientInfoException;
@@ -20,6 +21,7 @@ import java.sql.Savepoint;
 import java.sql.Struct;
 import java.util.Calendar;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
@@ -29,6 +31,7 @@ import org.apache.commons.logging.LogFactory;
 
 import pl.edu.mimuw.loxim.parser.Parser;
 import pl.edu.mimuw.loxim.parser.SBQLParser;
+import pl.edu.mimuw.loxim.protocol.enums.Abort_reason_codesEnum;
 import pl.edu.mimuw.loxim.protocol.enums.Auth_methodsEnum;
 import pl.edu.mimuw.loxim.protocol.enums.Bye_reasonsEnum;
 import pl.edu.mimuw.loxim.protocol.enums.CollationsEnum;
@@ -40,6 +43,7 @@ import pl.edu.mimuw.loxim.protocol.packages.PackageUtil;
 import pl.edu.mimuw.loxim.protocol.packages.Q_c_statementPackage;
 import pl.edu.mimuw.loxim.protocol.packages.Q_s_executingPackage;
 import pl.edu.mimuw.loxim.protocol.packages.Q_s_execution_finishedPackage;
+import pl.edu.mimuw.loxim.protocol.packages.V_sc_abortPackage;
 import pl.edu.mimuw.loxim.protocol.packages.V_sc_sendvaluesPackage;
 import pl.edu.mimuw.loxim.protocol.packages.W_c_authorizedPackage;
 import pl.edu.mimuw.loxim.protocol.packages.W_c_helloPackage;
@@ -58,13 +62,17 @@ public class LoXiMConnectionImpl implements LoXiMConnectionInternal {
 	private SQLWarning warning;
 	
 	private static final Log log = LogFactory.getLog(LoXiMConnectionImpl.class);
+	
+	private static final String SQL_TR_COMMIT = "end";
+	private static final String SQL_TR_ROLLBACK = "abort";
+	private static final String SQL_TR_START = "begin";
 
-	private boolean autoCommit = true;
 	private boolean closed = true;
 	private PackageIO pacIO;
 	private Parser parser = new SBQLParser();
 	private int holdability = ResultSet.HOLD_CURSORS_OVER_COMMIT;
 	private Object statementMutex = new Object();
+	private boolean tx;
 
 	public LoXiMConnectionImpl(ConnectionInfo info) throws IOException, ProtocolException,
 			SQLInvalidAuthorizationSpecException, AuthException {
@@ -164,7 +172,7 @@ public class LoXiMConnectionImpl implements LoXiMConnectionInternal {
 			return;
 		}
 		
-		rollback0();
+		tx_rollback();
 		try {
 			pacIO.write(new A_sc_byePackage(Bye_reasonsEnum.br_reason1, null));
 			pacIO.close();
@@ -179,14 +187,7 @@ public class LoXiMConnectionImpl implements LoXiMConnectionInternal {
 	@Override
 	public void commit() throws SQLException {
 		checkClosed();
-		if (autoCommit) {
-			throw new SQLException("Cannot commit with autocommit mode on");
-		}
-		commit0();
-	}
-
-	private void commit0() {
-		// TODO
+		tx_commit();
 	}
 	
 	@Override
@@ -243,7 +244,7 @@ public class LoXiMConnectionImpl implements LoXiMConnectionInternal {
 	@Override
 	public boolean getAutoCommit() throws SQLException {
 		checkClosed();
-		return autoCommit;
+		return false;
 	}
 
 	@Override
@@ -281,8 +282,7 @@ public class LoXiMConnectionImpl implements LoXiMConnectionInternal {
 	@Override
 	public int getTransactionIsolation() throws SQLException {
 		checkClosed();
-		// TODO Auto-generated method stub
-		return 0;
+		return 0; //TODO
 	}
 
 	@Override
@@ -378,14 +378,25 @@ public class LoXiMConnectionImpl implements LoXiMConnectionInternal {
 	@Override
 	public void rollback() throws SQLException {
 		checkClosed();
-		if (autoCommit) {
-			throw new SQLException("Cannot rollback with autocommit mode on");
-		}
-		rollback0();
+		tx_rollback();
 	}
-
-	private void rollback0() {
-		// TODO
+	
+	private void tx_commit() throws SQLException {
+		execute(null, SQL_TR_COMMIT);
+		synchronized (statementMutex) {
+			tx = false;
+		}
+	}
+	
+	private void tx_rollback() throws SQLException {
+		execute(null, SQL_TR_ROLLBACK);
+		synchronized (statementMutex) {
+			tx = false;
+		}
+	}
+	
+	private void tx_begin() throws SQLException {
+		execute(null, SQL_TR_START);
 	}
 	
 	@Override
@@ -396,7 +407,7 @@ public class LoXiMConnectionImpl implements LoXiMConnectionInternal {
 	@Override
 	public void setAutoCommit(boolean autoCommit) throws SQLException {
 		checkClosed();
-		this.autoCommit = autoCommit;
+		throw new SQLFeatureNotSupportedException();
 	}
 
 	@Override
@@ -510,14 +521,17 @@ public class LoXiMConnectionImpl implements LoXiMConnectionInternal {
 	}
 	
 	@Override
-	public ExecutionResult execute(String stmt) throws SQLException {
-		
+	public ExecutionResult execute(LoXiMStatement stmt, String sbql) throws SQLException {
+		checkClosed();
 		synchronized (statementMutex) {
 			try {
+				if (!tx) {
+					tx_begin();
+				}
 				Q_c_statementPackage statementPac = new Q_c_statementPackage();
 				EnumSet<Statement_flagsEnum> flags = EnumSet.of(Statement_flagsEnum.sf_execute);
 				statementPac.setFlags(flags);
-				statementPac.setStatement(stmt);
+				statementPac.setStatement(sbql);
 				pacIO.write(statementPac);
 				Package pac = pacIO.read();
 				switch ((byte) pac.getPackageType()) {
@@ -526,17 +540,27 @@ public class LoXiMConnectionImpl implements LoXiMConnectionInternal {
 				case Q_s_executingPackage.ID:
 					PackageUtil.readPackage(pacIO, V_sc_sendvaluesPackage.class);
 					ResultReader reader = new ResultReader(pacIO);
-					ExecutionResult result = new ExecutionResult();
-					result.setResult(reader.readValues());
+					List<Object> res = reader.readValues();
 					Q_s_execution_finishedPackage exFin = PackageUtil.readPackage(pacIO, Q_s_execution_finishedPackage.class);
-					result.setUpdates((int) (exFin.getDelCnt() + exFin.getInsertsCnt() + exFin.getModAtomPointerCnt() + exFin.getNewRootsCnt()));
-					return result;
+					int updates = ((int) (exFin.getDelCnt() + exFin.getInsertsCnt() + exFin.getModAtomPointerCnt() + exFin.getNewRootsCnt()));
+					return new ExecutionResult(stmt, res, updates);
 				default:
 					throw new BadPackageException(pac.getClass());
 				}
 			} catch (ProtocolException e) {
 				throw new SQLException("Communication error", e);
 			}
+		}
+	}
+	
+	@Override
+	public void cancel() throws SQLException {
+		checkClosed();
+		try {
+			V_sc_abortPackage pac = new V_sc_abortPackage();
+			pacIO.write(pac);
+		} catch (ProtocolException e) {
+			throw new SQLException("Error when cancelling query execution", e);
 		}
 	}
 }

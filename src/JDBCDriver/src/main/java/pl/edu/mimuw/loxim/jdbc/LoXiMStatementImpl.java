@@ -12,6 +12,7 @@ public class LoXiMStatementImpl implements LoXiMStatement {
 	private int fetchSize;
 	private boolean closed;
 	private SQLWarning warning;
+	private ExecutionResult result;
 	
 	LoXiMStatementImpl(LoXiMConnectionInternal connection) {
 		this.connection = connection;
@@ -24,8 +25,8 @@ public class LoXiMStatementImpl implements LoXiMStatement {
 
 	@Override
 	public void cancel() throws SQLException {
-		// TODO Auto-generated method stub
-
+		checkClosed();
+		connection.cancel();
 	}
 
 	@Override
@@ -51,9 +52,8 @@ public class LoXiMStatementImpl implements LoXiMStatement {
 	@Override
 	public boolean execute(String sql) throws SQLException {
 		checkClosed();
-		execute0(sql);
-		// TODO
-		return false;
+		result = execute0(sql);
+		return !result.isEmpty();
 	}
 
 	@Override
@@ -86,20 +86,15 @@ public class LoXiMStatementImpl implements LoXiMStatement {
 	@Override
 	public LoXiMResultSet executeQuery(String sql) throws SQLException {
 		checkClosed();
-		execute0(sql);
-		LoXiMResultSet result = new LoXiMResultSetImpl(this);
-		
-		// TODO Auto-generated method stub
-		
-		return result;
+		result = execute0(sql);
+		return result.asLoXiMResultSet();
 	}
 
 	@Override
 	public int executeUpdate(String sql) throws SQLException {
 		checkClosed();
-		execute0(sql);
-		// TODO Auto-generated method stub
-		return 0;
+		result = execute0(sql);
+		return result.getUpdates();
 	}
 
 	@Override
@@ -157,47 +152,55 @@ public class LoXiMStatementImpl implements LoXiMStatement {
 
 	@Override
 	public boolean getMoreResults() throws SQLException {
-		// TODO Auto-generated method stub
+		checkClosed();
+		result.asLoXiMResultSet().close();
 		return false;
 	}
 
 	@Override
 	public boolean getMoreResults(int current) throws SQLException {
-		// TODO Auto-generated method stub
-		return false;
+		checkClosed();
+		if (current != Statement.CLOSE_CURRENT_RESULT) {
+			throw new SQLFeatureNotSupportedException("Only CLOSE_CURRENT_RESULT is supported");
+		}
+		return getMoreResults();
 	}
 
 	@Override
 	public int getQueryTimeout() throws SQLException {
+		checkClosed();
 		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	@Override
 	public LoXiMResultSet getResultSet() throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		checkClosed();
+		return result.asLoXiMResultSet();
 	}
 
 	@Override
 	public int getResultSetConcurrency() throws SQLException {
+		checkClosed();
 		return ResultSet.CONCUR_READ_ONLY;
 	}
 
 	@Override
 	public int getResultSetHoldability() throws SQLException {
+		checkClosed();
 		return ResultSet.HOLD_CURSORS_OVER_COMMIT;
 	}
 
 	@Override
 	public int getResultSetType() throws SQLException {
+		checkClosed();
 		return ResultSet.TYPE_FORWARD_ONLY;
 	}
 
 	@Override
 	public int getUpdateCount() throws SQLException {
-		// TODO Auto-generated method stub
-		return 0;
+		checkClosed();
+		return result.getUpdates();
 	}
 
 	@Override
@@ -297,6 +300,6 @@ public class LoXiMStatementImpl implements LoXiMStatement {
 	}
 	
 	private ExecutionResult execute0(String stmt) throws SQLException {
-		return connection.execute(stmt);
+		return connection.execute(this, stmt);
 	}
 }

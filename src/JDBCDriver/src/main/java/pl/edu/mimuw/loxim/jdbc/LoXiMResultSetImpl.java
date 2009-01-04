@@ -36,12 +36,12 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 	private int fetchSize;
 	private boolean wasNull;
 	private int index = -1;
-	private List<List<Object>> results;
-	private List<Object> currentResult;
+	private List<Object> results;
 	
-	LoXiMResultSetImpl(LoXiMStatement statement) throws SQLException {
+	LoXiMResultSetImpl(LoXiMStatement statement, List<Object> results) throws SQLException {
 		this.statement = statement;
 		this.fetchSize = statement.getFetchSize();
+		this.results = results;
 	}
 	
 	@Override
@@ -640,7 +640,6 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 		if (index < results.size()) {
 			index++;
 		}
-		currentResult = results.get(index);
 		return index < results.size();
 	}
 
@@ -1183,7 +1182,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 	
 	private Object getColumn(int idx) throws SQLException {
 		try {
-			Object o = currentResult.get(idx - 1);
+			Object o = null; // TODO
 			wasNull = (o == null);
 			return o;
 		} catch (IndexOutOfBoundsException e) {

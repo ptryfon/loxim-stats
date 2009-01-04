@@ -4,6 +4,8 @@ import java.sql.SQLException;
 
 interface LoXiMConnectionInternal extends LoXiMConnection {
 
-	public ExecutionResult execute(String stmt) throws SQLException;
+	public ExecutionResult execute(LoXiMStatement stmt, String sbql) throws SQLException;
+
+	public abstract void cancel() throws SQLException;
 	
 }

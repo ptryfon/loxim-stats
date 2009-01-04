@@ -1,26 +1,29 @@
 package pl.edu.mimuw.loxim.jdbc;
 
+import java.sql.SQLException;
 import java.util.List;
 
 class ExecutionResult {
 
-	private List<Object> result;
-	private int updates;
-	
-	public List<Object> getResult() {
-		return result;
-	}
-	
-	public void setResult(List<Object> result) {
-		this.result = result;
+	private final int updates;
+	private final int size;
+	private final LoXiMResultSet resultSet;
+		
+	public ExecutionResult(LoXiMStatement stmt, List<Object> result, int updates) throws SQLException {
+		this.updates = updates;
+		this.size = result.size();
+		resultSet = new LoXiMResultSetImpl(stmt, result);
 	}
 	
 	public int getUpdates() {
 		return updates;
 	}
-	
-	public void setUpdates(int updates) {
-		this.updates = updates;
+		
+	public LoXiMResultSet asLoXiMResultSet() throws SQLException {
+		return resultSet;
 	}
 	
+	public boolean isEmpty() {
+		return size == 0;
+	}
 }
