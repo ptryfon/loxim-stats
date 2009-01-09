@@ -112,7 +112,7 @@ namespace Server{
 			open_sessions.erase(session_id);
 		}	
 		pthread_mutex_unlock(&open_sessions_mutex);
-		info_printf(err_cons, "Session %d ended with code %d (%s), working sessions left: %d", session_id, code, SBQLstrerror(code).c_str(), get_sessions_count());
+		info_printf(err_cons, "Session %d ended with code %d (%s), working sessions left: %d", (int)session_id, (int)code, SBQLstrerror(code).c_str(), (int)get_sessions_count());
 	}
 
 	void LSrv_signal_handler(pthread_t thread, int sig, void *arg)
