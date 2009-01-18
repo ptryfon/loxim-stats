@@ -17,7 +17,7 @@ then
 		if [ ${#pid} -gt 0 ] 
 		then
 			kill -9 $pid
-			let ret=1
+			ret=1
 			cleanDefault
 			if [ $# -eq 2 ] 
 			then
@@ -34,7 +34,7 @@ then
 		if [ ${#pid} -gt 0 ] 
 		then
 			kill -9 $pid
-			let ret=1
+			ret=1
 		fi
 	done
 

@@ -38,12 +38,12 @@ if [ $# -eq 2 ]
 then
 	if [ -e $2.????.heap ] 
 	then
-		rm $2.????.heap
+		rm $2.????.heap 2> /dev/null
 	fi
 	#echo $@
 	echo "====================== starting loxim ======================"
-	HEAPPROFILE=$2 $loxim_server &
-	sleep 5
+	( export HEAP_PROFILE_ALLOCATION_INTERVAL=90000000000 ; export HEAP_PROFILE_INUSE_INTERVAL=90000000000 ; HEAPPROFILE=$2 $loxim_server ) &
+	sleep 5 
 	#running script 
 	echo "===================== starting script ======================"
 	$1
@@ -77,5 +77,5 @@ else
 	echo "usage: perftools [sciptToRun] [outputBeginnig]"
 fi
 
-rm *.heap
+rm *.heap 2> /dev/null
 echo "+++++++++++++++++ google perf tools test end ++++++++++++++"

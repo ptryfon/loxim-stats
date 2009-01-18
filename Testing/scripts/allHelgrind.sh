@@ -1,8 +1,10 @@
 #!/bin/bash
 
+source lib.sh
+
 $loximKiller 1 $loximData
 echo "~~~~~~~~~~~~~~~ ALL TESTS USING HELGRIND ~~~~~~~~~~~~~~~~~~~~"
-rm $loximData
+rm $loximData 2> /dev/null
 cleanDefault
 sleep 1
 
