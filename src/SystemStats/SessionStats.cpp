@@ -177,15 +177,15 @@ void SessionsStats::addPageWrites(int sessionId, int count) {
 	}
 }
 
-void SessionsStats::addSessionStats(string key, SessionStats* session) {
+void SessionsStats::addSessionStats(const string &key, SessionStats* session) {
 	setStatsStats(key, session);
 }
 
-SessionStats* SessionsStats::getSessionStats(string key) {
+SessionStats* SessionsStats::getSessionStats(const string &key) {
 	return dynamic_cast<SessionStats*>(getStatsStats(key));
 }
 
-void SessionsStats::removeSessionStats(string key) {
+void SessionsStats::removeSessionStats(const string &key) {
 	removeStats(key);
 }
 

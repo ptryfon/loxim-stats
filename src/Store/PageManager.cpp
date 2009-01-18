@@ -133,9 +133,9 @@ namespace Store
 
 		int slen = *(reinterpret_cast<int*>(curpos));
 		curpos += sizeof(int);
-		string name;
-		for(int i=0; i<slen; i++)
-			name += *(reinterpret_cast<char*>(curpos++));
+		
+		string name((reinterpret_cast<char*>(curpos)), slen);
+		curpos+=slen;
 
 		DBDataValue *value;
 		usedbytes = DBDataValue::deserialize(tid, curpos, value, true);

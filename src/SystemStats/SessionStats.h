@@ -71,9 +71,9 @@ namespace SystemStatsLib{
 			public:
 				SessionsStats();
 
-				void addSessionStats(string key, SessionStats* session);
-				SessionStats* getSessionStats(string key);
-				void removeSessionStats(string key);
+				void addSessionStats(const string &key, SessionStats* session);
+				SessionStats* getSessionStats(const string &key);
+				void removeSessionStats(const string &key);
 
 				void addDiskPageReads(int sessionId, int count);
 				void addPageReads(int sessionId, int count);

@@ -8,15 +8,14 @@
 
 using namespace SystemStatsLib;
 
-SystemStats::SystemStats(string name) {
-	this->name = name;
+SystemStats::SystemStats(string name) : name(name) {
 }
 
 string SystemStats::getName() {
 	return name;
 }
 
-int SystemStats::getIntStats(string name) {
+int SystemStats::getIntStats(const string &name) {
 	map<string, StatsValue*>::iterator cur = mapOfValues.find(name);
 		if (cur != mapOfValues.end()) {
 			return dynamic_cast<IntStatsValue*>(mapOfValues[name])->getValue();
@@ -25,7 +24,7 @@ int SystemStats::getIntStats(string name) {
 		}
 }
 
-void SystemStats::setIntStats(string name, int value) {
+void SystemStats::setIntStats(const string &name, int value) {
 	map<string, StatsValue*>::iterator cur = mapOfValues.find(name);
 		if (cur != mapOfValues.end()) {
 			dynamic_cast<IntStatsValue*>(mapOfValues[name])->setValue(value);
@@ -36,7 +35,7 @@ void SystemStats::setIntStats(string name, int value) {
 		}
 }
 
-double SystemStats::getDoubleStats(string name) {
+double SystemStats::getDoubleStats(const string &name) {
 	map<string, StatsValue*>::iterator cur = mapOfValues.find(name);
 		if (cur != mapOfValues.end()) {
 			return dynamic_cast<DoubleStatsValue*>(mapOfValues[name])->getValue();
@@ -45,7 +44,7 @@ double SystemStats::getDoubleStats(string name) {
 		}
 }
 
-void SystemStats::setDoubleStats(string name, double value) {
+void SystemStats::setDoubleStats(const string &name, double value) {
 	map<string, StatsValue*>::iterator cur = mapOfValues.find(name);
 		if (cur != mapOfValues.end()) {
 			dynamic_cast<DoubleStatsValue*>(mapOfValues[name])->setValue(value);
@@ -56,7 +55,7 @@ void SystemStats::setDoubleStats(string name, double value) {
 		}
 }
 
-string SystemStats::getStringStats(string name) {
+string SystemStats::getStringStats(const string &name) {
 	map<string, StatsValue*>::iterator cur = mapOfValues.find(name);
 		if (cur != mapOfValues.end()) {
 			return dynamic_cast<StringStatsValue*>(mapOfValues[name])->getValue();
@@ -65,7 +64,7 @@ string SystemStats::getStringStats(string name) {
 		}
 }
 
-void SystemStats::setStringStats(string name, string value) {
+void SystemStats::setStringStats(const string &name, string value) {
 	map<string, StatsValue*>::iterator cur = mapOfValues.find(name);
 		if (cur != mapOfValues.end()) {
 			dynamic_cast<StringStatsValue*>(mapOfValues[name])->setValue(value);
@@ -76,7 +75,7 @@ void SystemStats::setStringStats(string name, string value) {
 		}
 }
 
-SystemStats* SystemStats::getStatsStats(string name) {
+SystemStats* SystemStats::getStatsStats(const string &name) {
 	map<string, StatsValue*>::iterator cur = mapOfValues.find(name);
 		if (cur != mapOfValues.end()) {
 			return dynamic_cast<StatsStatsValue*>(mapOfValues[name])->getValue();
@@ -85,7 +84,7 @@ SystemStats* SystemStats::getStatsStats(string name) {
 		}
 }
 
-void SystemStats::setStatsStats(string name, SystemStats* value) {
+void SystemStats::setStatsStats(const string &name, SystemStats* value) {
 	map<string, StatsValue*>::iterator cur = mapOfValues.find(name);
 		if (cur != mapOfValues.end()) {
 			dynamic_cast<StatsStatsValue*>(mapOfValues[name])->setValue(value);
@@ -96,7 +95,7 @@ void SystemStats::setStatsStats(string name, SystemStats* value) {
 		}
 }
 
-void SystemStats::removeStats(string name) {
+void SystemStats::removeStats(const string &name) {
 	mapOfValues.erase(name);
 }
 

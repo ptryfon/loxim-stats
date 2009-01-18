@@ -55,19 +55,19 @@ namespace SystemStatsLib{
 
 			string getName();
 
-			int getIntStats(string name);
-			void setIntStats(string name, int value);
+			int getIntStats(const string &name);
+			void setIntStats(const string &name, int value);
 
-			double getDoubleStats(string name);
-			void setDoubleStats(string name, double value);
+			double getDoubleStats(const string &name);
+			void setDoubleStats(const string &name, double value);
 
-			string getStringStats(string name);
-			void setStringStats(string name, string value);
+			string getStringStats(const string &name);
+			void setStringStats(const string &name, string value);
 
-			SystemStats* getStatsStats(string name);
-			void setStatsStats(string name, SystemStats* value);
+			SystemStats* getStatsStats(const string &name);
+			void setStatsStats(const string &name, SystemStats* value);
 
-			void removeStats(string name);
+			void removeStats(const string &name);
 
 			map<string, StatsValue*> getAllStats();
 			virtual ~SystemStats();
