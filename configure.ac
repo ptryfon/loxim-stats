@@ -14,7 +14,8 @@ AC_ARG_ENABLE([cust-verb], [AS_HELP_STRING([--enable-cust-verb=ARG], [Messages
 			SEVERE_ERROR])])
 cust_verb_forced=yes
 if test "x$enable_cust_verb" = "xno" -o "x$enable_cust_verb" = "xyes" -o \
-"x$enable_cust_verb" = "x" ; then
+"x$enable_cust_verb" = "x"  
+then
 
 	#these don't make any sense, so we fall back to the default - INFO
 	enable_cust_verb=INFO
@@ -23,12 +24,20 @@ fi
 
 if test "x$enable_cust_verb" != "xDEBUG" -a "x$enable_cust_verb" != "xINFO" -a \
 "x$enable_cust_verb" != "xWARNING" -a "x$enable_cust_verb" != "xERROR" -a \
-"x$enable_cust_verb" != "xSEVERE_ERROR" ; then
+"x$enable_cust_verb" != "xSEVERE_ERROR"  
+then
 	AC_MSG_ERROR([cust-verb should be on of DEBUG, INFO, WARNING, ERROR,
 			SEVERE_ERROR])
 fi
 
 AC_DEFINE_UNQUOTED([HAVE_VERBOSITY_COMPILE], [EC_V_${enable_cust_verb}], [Compiled-in verbosity level])
+
+AC_ARG_ENABLE([tcmalloc], [AS_HELP_STRING([--enable-tcmalloc], [Enable linking with tcmalloc (brand new malloc from Google)])])
+if test "x$enable_tcmalloc" = "xyes"  
+then
+	AC_CHECK_LIB([tcmalloc], [malloc], , AC_MSG_ERROR([You don't seem to have
+			tcmalloc library!]))
+fi
 
 AC_CHECK_LIB([readline], [readline], , AC_MSG_ERROR([You don't seem to have readline
 			library]))
