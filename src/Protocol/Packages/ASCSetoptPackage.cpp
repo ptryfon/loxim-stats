@@ -6,26 +6,26 @@
 #include <Protocol/Enums/Packages.h>
 #include <Protocol/PackageFactory.h>
 #include <Protocol/Enums/Packages.h>
-#include <Protocol/Packages/AScSetoptPackage.h>
+#include <Protocol/Packages/ASCSetoptPackage.h>
 
 using namespace std;
 
 namespace Protocol {
-	AScSetoptPackage::AScSetoptPackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream):
+	ASCSetoptPackage::ASCSetoptPackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream):
 
 		key(stream.read_string(mask, cancel, length)),
 		value(stream.read_string(mask, cancel, length))
 	{
 	}
 
-	AScSetoptPackage::AScSetoptPackage(std::auto_ptr<ByteBuffer> key, std::auto_ptr<ByteBuffer> value):
+	ASCSetoptPackage::ASCSetoptPackage(std::auto_ptr<ByteBuffer> key, std::auto_ptr<ByteBuffer> value):
 
 		key(key),
 		value(value)
 	{
 	}
 
-	void AScSetoptPackage::serialize(const sigset_t &mask, const bool& cancel, DataStream &stream, bool with_header) const
+	void ASCSetoptPackage::serialize(const sigset_t &mask, const bool& cancel, DataStream &stream, bool with_header) const
 	{
 		if (with_header){
 			stream.write_uint8(mask, cancel, get_type());
@@ -35,30 +35,30 @@ namespace Protocol {
 		stream.write_string(mask, cancel, value);
 	}
 
-	uint8_t AScSetoptPackage::get_type() const
+	uint8_t ASCSetoptPackage::get_type() const
 	{
 		return A_SC_SETOPT_PACKAGE;
 	}
 
-	string AScSetoptPackage::to_string() const
+	string ASCSetoptPackage::to_string() const
 	{
 		stringstream ss;
-		ss << "AScSetoptPackage:" << endl;
+		ss << "ASCSetoptPackage:" << endl;
 		ss << "  key: " << key->get_const_data() << endl;
 		ss << "  value: " << value->get_const_data() << endl;
 		return ss.str();
 	}
 
-	size_t AScSetoptPackage::get_ser_size() const
+	size_t ASCSetoptPackage::get_ser_size() const
 	{
 		return 0 + key->get_ser_size() + value->get_ser_size();
 	}
 
-	const ByteBuffer &AScSetoptPackage::get_val_key() const
+	const ByteBuffer &ASCSetoptPackage::get_val_key() const
 	{
 		return *key.get();
 	}
-	const ByteBuffer &AScSetoptPackage::get_val_value() const
+	const ByteBuffer &ASCSetoptPackage::get_val_value() const
 	{
 		return *value.get();
 	}

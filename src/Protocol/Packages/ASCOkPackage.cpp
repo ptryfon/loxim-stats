@@ -6,20 +6,20 @@
 #include <Protocol/Enums/Packages.h>
 #include <Protocol/PackageFactory.h>
 #include <Protocol/Enums/Packages.h>
-#include <Protocol/Packages/VScFinishedPackage.h>
+#include <Protocol/Packages/ASCOkPackage.h>
 
 using namespace std;
 
 namespace Protocol {
-	VScFinishedPackage::VScFinishedPackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream)
+	ASCOkPackage::ASCOkPackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream)
 	{
 	}
 
-	VScFinishedPackage::VScFinishedPackage()
+	ASCOkPackage::ASCOkPackage()
 	{
 	}
 
-	void VScFinishedPackage::serialize(const sigset_t &mask, const bool& cancel, DataStream &stream, bool with_header) const
+	void ASCOkPackage::serialize(const sigset_t &mask, const bool& cancel, DataStream &stream, bool with_header) const
 	{
 		if (with_header){
 			stream.write_uint8(mask, cancel, get_type());
@@ -27,19 +27,19 @@ namespace Protocol {
 		}
 	}
 
-	uint8_t VScFinishedPackage::get_type() const
+	uint8_t ASCOkPackage::get_type() const
 	{
-		return V_SC_FINISHED_PACKAGE;
+		return A_SC_OK_PACKAGE;
 	}
 
-	string VScFinishedPackage::to_string() const
+	string ASCOkPackage::to_string() const
 	{
 		stringstream ss;
-		ss << "VScFinishedPackage:" << endl;
+		ss << "ASCOkPackage:" << endl;
 		return ss.str();
 	}
 
-	size_t VScFinishedPackage::get_ser_size() const
+	size_t ASCOkPackage::get_ser_size() const
 	{
 		return 0;
 	}

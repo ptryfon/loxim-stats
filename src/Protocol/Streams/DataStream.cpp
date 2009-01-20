@@ -1,3 +1,4 @@
+/* DO NOT MODIFY, this file is auto generated using lw_protogen*/
 #include <Protocol/Streams/DataStream.h>
 
 namespace Protocol {

@@ -14,12 +14,12 @@ namespace Protocol {
 			uint8_t month;
 			uint8_t day;
 			uint8_t hour;
-			uint8_t minuts;
+			uint8_t minutes;
 			uint8_t sec;
 			int16_t milis;
 		public:
 			DatetimePackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream);
-			DatetimePackage(int16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t minuts, uint8_t sec, int16_t milis);
+			DatetimePackage(int16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t minutes, uint8_t sec, int16_t milis);
 
 			void serialize(const sigset_t &mask, const bool& cancel, DataStream &stream, bool with_header = true) const;
 			uint8_t get_type() const;
@@ -29,7 +29,7 @@ namespace Protocol {
 			uint8_t get_val_month() const;
 			uint8_t get_val_day() const;
 			uint8_t get_val_hour() const;
-			uint8_t get_val_minuts() const;
+			uint8_t get_val_minutes() const;
 			uint8_t get_val_sec() const;
 			int16_t get_val_milis() const;
 	};

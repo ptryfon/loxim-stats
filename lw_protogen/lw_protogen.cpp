@@ -266,15 +266,22 @@ string make_class_name(const string &s)
 {
 	string res;
 	bool next_capital = true;
+	bool nc_burst = false;
 	for (int i = 0; i < s.length(); ++i){
-		if (s[i] == '_')
+		if (s[i] == '_'){
 			next_capital = true;
-		else
+			nc_burst = true;
+		} else
 			if (next_capital){
 				res += toupper(s[i]);
 				next_capital = false;
-			} else
-				res += s[i];
+			} else {
+				if (nc_burst && (i+1 < s.length()) && s[i+1] == '_')
+					res += toupper(s[i]);
+				else
+					res += s[i];
+				nc_burst = false;
+			}
 	}
 	return res;
 }

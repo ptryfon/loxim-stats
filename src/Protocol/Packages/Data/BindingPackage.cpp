@@ -13,14 +13,14 @@ using namespace std;
 namespace Protocol {
 	BindingPackage::BindingPackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream):
 
-		bindingName(stream.read_string(mask, cancel, length)),
+		binding_name(stream.read_string(mask, cancel, length)),
 		value(DataPackageFactory::deserialize_unknown(mask, cancel, length, stream))
 	{
 	}
 
-	BindingPackage::BindingPackage(std::auto_ptr<ByteBuffer> bindingName, std::auto_ptr<Package> value):
+	BindingPackage::BindingPackage(std::auto_ptr<ByteBuffer> binding_name, std::auto_ptr<Package> value):
 
-		bindingName(bindingName),
+		binding_name(binding_name),
 		value(value)
 	{
 	}
@@ -31,7 +31,7 @@ namespace Protocol {
 			stream.write_uint8(mask, cancel, get_type());
 			stream.write_uint32(mask, cancel, get_ser_size());
 		}
-		stream.write_string(mask, cancel, bindingName);
+		stream.write_string(mask, cancel, binding_name);
 		stream.write_varuint(mask, cancel, VarUint(value->get_type(), false));
 		value->serialize(mask, cancel, stream, false);
 	}
@@ -45,19 +45,19 @@ namespace Protocol {
 	{
 		stringstream ss;
 		ss << "BindingPackage:" << endl;
-		ss << "  bindingName: " << bindingName->get_const_data() << endl;
+		ss << "  binding_name: " << binding_name->get_const_data() << endl;
 		ss << "  value: " << value->to_string() << endl;
 		return ss.str();
 	}
 
 	size_t BindingPackage::get_ser_size() const
 	{
-		return 0 + bindingName->get_ser_size() + value->get_ser_size() + DataStream::get_varuint_size(VarUint(value->get_type(), false));
+		return 0 + binding_name->get_ser_size() + value->get_ser_size() + DataStream::get_varuint_size(VarUint(value->get_type(), false));
 	}
 
-	const ByteBuffer &BindingPackage::get_val_bindingName() const
+	const ByteBuffer &BindingPackage::get_val_binding_name() const
 	{
-		return *bindingName.get();
+		return *binding_name.get();
 	}
 	const Package &BindingPackage::get_val_value() const
 	{

@@ -8,7 +8,7 @@
 #include <Protocol/ByteBuffer.h>
 
 namespace Protocol {
-	class AScErrorPackage : public Package {
+	class ASCErrorPackage : public Package {
 		private:
 			uint32_t error_code;
 			VarUint error_object_id;
@@ -16,8 +16,8 @@ namespace Protocol {
 			uint32_t line;
 			uint32_t col;
 		public:
-			AScErrorPackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream);
-			AScErrorPackage(uint32_t error_code, VarUint error_object_id, std::auto_ptr<ByteBuffer> description, uint32_t line, uint32_t col);
+			ASCErrorPackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream);
+			ASCErrorPackage(uint32_t error_code, VarUint error_object_id, std::auto_ptr<ByteBuffer> description, uint32_t line, uint32_t col);
 
 			void serialize(const sigset_t &mask, const bool& cancel, DataStream &stream, bool with_header = true) const;
 			uint8_t get_type() const;

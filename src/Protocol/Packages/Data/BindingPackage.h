@@ -10,17 +10,17 @@
 namespace Protocol {
 	class BindingPackage : public Package {
 		private:
-			std::auto_ptr<ByteBuffer> bindingName;
+			std::auto_ptr<ByteBuffer> binding_name;
 			std::auto_ptr<Package> value;
 		public:
 			BindingPackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream);
-			BindingPackage(std::auto_ptr<ByteBuffer> bindingName, std::auto_ptr<Package> value);
+			BindingPackage(std::auto_ptr<ByteBuffer> binding_name, std::auto_ptr<Package> value);
 
 			void serialize(const sigset_t &mask, const bool& cancel, DataStream &stream, bool with_header = true) const;
 			uint8_t get_type() const;
 			std::string to_string() const;
 			size_t get_ser_size() const;
-			const ByteBuffer &get_val_bindingName() const;
+			const ByteBuffer &get_val_binding_name() const;
 			const Package &get_val_value() const;
 	};
 }

@@ -43,13 +43,13 @@ CONFIG_HEADER = $(top_builddir)/src/config.h
 CONFIG_CLEAN_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
 libProtocolPackages_la_LIBADD =
-am_libProtocolPackages_la_OBJECTS = AScByePackage.lo \
-	AScErrorPackage.lo AScOkPackage.lo AScSetoptPackage.lo \
+am_libProtocolPackages_la_OBJECTS = ASCByePackage.lo \
+	ASCErrorPackage.lo ASCOkPackage.lo ASCSetoptPackage.lo \
 	QCExecutePackage.lo QCStatementPackage.lo \
 	QSExecutingPackage.lo QSExecutionFinishedPackage.lo \
-	QSStmtparsedPackage.lo VScAbortPackage.lo \
-	VScFinishedPackage.lo VScSendvaluePackage.lo \
-	VScSendvaluesPackage.lo WCAuthorizedPackage.lo \
+	QSStmtparsedPackage.lo VSCAbortPackage.lo \
+	VSCFinishedPackage.lo VSCSendvaluePackage.lo \
+	VSCSendvaluesPackage.lo WCAuthorizedPackage.lo \
 	WCHelloPackage.lo WCLoginPackage.lo WCModePackage.lo \
 	WCPasswordPackage.lo WSHelloPackage.lo Package.lo
 libProtocolPackages_la_OBJECTS = $(am_libProtocolPackages_la_OBJECTS)
@@ -205,7 +205,7 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 SUBDIRS = Data 
 noinst_LTLIBRARIES = libProtocolPackages.la
-libProtocolPackages_la_SOURCES = AScByePackage.h AScByePackage.cpp AScErrorPackage.h AScErrorPackage.cpp AScOkPackage.h AScOkPackage.cpp AScSetoptPackage.h AScSetoptPackage.cpp QCExecutePackage.h QCExecutePackage.cpp QCStatementPackage.h QCStatementPackage.cpp QSExecutingPackage.h QSExecutingPackage.cpp QSExecutionFinishedPackage.h QSExecutionFinishedPackage.cpp QSStmtparsedPackage.h QSStmtparsedPackage.cpp VScAbortPackage.h VScAbortPackage.cpp VScFinishedPackage.h VScFinishedPackage.cpp VScSendvaluePackage.h VScSendvaluePackage.cpp VScSendvaluesPackage.h VScSendvaluesPackage.cpp WCAuthorizedPackage.h WCAuthorizedPackage.cpp WCHelloPackage.h WCHelloPackage.cpp WCLoginPackage.h WCLoginPackage.cpp WCModePackage.h WCModePackage.cpp WCPasswordPackage.h WCPasswordPackage.cpp WSHelloPackage.h WSHelloPackage.cpp Package.h Package.cpp 
+libProtocolPackages_la_SOURCES = ASCByePackage.h ASCByePackage.cpp ASCErrorPackage.h ASCErrorPackage.cpp ASCOkPackage.h ASCOkPackage.cpp ASCSetoptPackage.h ASCSetoptPackage.cpp QCExecutePackage.h QCExecutePackage.cpp QCStatementPackage.h QCStatementPackage.cpp QSExecutingPackage.h QSExecutingPackage.cpp QSExecutionFinishedPackage.h QSExecutionFinishedPackage.cpp QSStmtparsedPackage.h QSStmtparsedPackage.cpp VSCAbortPackage.h VSCAbortPackage.cpp VSCFinishedPackage.h VSCFinishedPackage.cpp VSCSendvaluePackage.h VSCSendvaluePackage.cpp VSCSendvaluesPackage.h VSCSendvaluesPackage.cpp WCAuthorizedPackage.h WCAuthorizedPackage.cpp WCHelloPackage.h WCHelloPackage.cpp WCLoginPackage.h WCLoginPackage.cpp WCModePackage.h WCModePackage.cpp WCPasswordPackage.h WCPasswordPackage.cpp WSHelloPackage.h WSHelloPackage.cpp Package.h Package.cpp 
 INCLUDES = -I$(top_srcdir)/src
 all: all-recursive
 
@@ -258,20 +258,20 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AScByePackage.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AScErrorPackage.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AScOkPackage.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AScSetoptPackage.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ASCByePackage.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ASCErrorPackage.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ASCOkPackage.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ASCSetoptPackage.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Package.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/QCExecutePackage.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/QCStatementPackage.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/QSExecutingPackage.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/QSExecutionFinishedPackage.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/QSStmtparsedPackage.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/VScAbortPackage.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/VScFinishedPackage.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/VScSendvaluePackage.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/VScSendvaluesPackage.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/VSCAbortPackage.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/VSCFinishedPackage.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/VSCSendvaluePackage.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/VSCSendvaluesPackage.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/WCAuthorizedPackage.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/WCHelloPackage.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/WCLoginPackage.Plo@am__quote@

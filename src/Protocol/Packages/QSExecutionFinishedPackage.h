@@ -10,22 +10,22 @@
 namespace Protocol {
 	class QSExecutionFinishedPackage : public Package {
 		private:
-			VarUint modAtomPointerCnt;
-			VarUint delCnt;
-			VarUint newRootsCnt;
-			VarUint insertsCnt;
+			VarUint mod_atom_pointer_cnt;
+			VarUint del_cnt;
+			VarUint new_roots_cnt;
+			VarUint inserts_cnt;
 		public:
 			QSExecutionFinishedPackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream);
-			QSExecutionFinishedPackage(VarUint modAtomPointerCnt, VarUint delCnt, VarUint newRootsCnt, VarUint insertsCnt);
+			QSExecutionFinishedPackage(VarUint mod_atom_pointer_cnt, VarUint del_cnt, VarUint new_roots_cnt, VarUint inserts_cnt);
 
 			void serialize(const sigset_t &mask, const bool& cancel, DataStream &stream, bool with_header = true) const;
 			uint8_t get_type() const;
 			std::string to_string() const;
 			size_t get_ser_size() const;
-			VarUint get_val_modAtomPointerCnt() const;
-			VarUint get_val_delCnt() const;
-			VarUint get_val_newRootsCnt() const;
-			VarUint get_val_insertsCnt() const;
+			VarUint get_val_mod_atom_pointer_cnt() const;
+			VarUint get_val_del_cnt() const;
+			VarUint get_val_new_roots_cnt() const;
+			VarUint get_val_inserts_cnt() const;
 	};
 }
 #endif

@@ -11,19 +11,19 @@ namespace Protocol {
 	class TimePackage : public Package {
 		private:
 			uint8_t hour;
-			uint8_t minuts;
+			uint8_t minutes;
 			uint8_t sec;
 			int16_t milis;
 		public:
 			TimePackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream);
-			TimePackage(uint8_t hour, uint8_t minuts, uint8_t sec, int16_t milis);
+			TimePackage(uint8_t hour, uint8_t minutes, uint8_t sec, int16_t milis);
 
 			void serialize(const sigset_t &mask, const bool& cancel, DataStream &stream, bool with_header = true) const;
 			uint8_t get_type() const;
 			std::string to_string() const;
 			size_t get_ser_size() const;
 			uint8_t get_val_hour() const;
-			uint8_t get_val_minuts() const;
+			uint8_t get_val_minutes() const;
 			uint8_t get_val_sec() const;
 			int16_t get_val_milis() const;
 	};

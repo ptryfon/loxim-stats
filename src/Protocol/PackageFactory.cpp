@@ -3,19 +3,19 @@
 #include <Protocol/Exceptions.h>
 #include <Protocol/PackageFactory.h>
 #include <Protocol/Enums/Enums.h>
-#include <Protocol/Packages/AScByePackage.h>
-#include <Protocol/Packages/AScErrorPackage.h>
-#include <Protocol/Packages/AScOkPackage.h>
-#include <Protocol/Packages/AScSetoptPackage.h>
+#include <Protocol/Packages/ASCByePackage.h>
+#include <Protocol/Packages/ASCErrorPackage.h>
+#include <Protocol/Packages/ASCOkPackage.h>
+#include <Protocol/Packages/ASCSetoptPackage.h>
 #include <Protocol/Packages/QCExecutePackage.h>
 #include <Protocol/Packages/QCStatementPackage.h>
 #include <Protocol/Packages/QSExecutingPackage.h>
 #include <Protocol/Packages/QSExecutionFinishedPackage.h>
 #include <Protocol/Packages/QSStmtparsedPackage.h>
-#include <Protocol/Packages/VScAbortPackage.h>
-#include <Protocol/Packages/VScFinishedPackage.h>
-#include <Protocol/Packages/VScSendvaluePackage.h>
-#include <Protocol/Packages/VScSendvaluesPackage.h>
+#include <Protocol/Packages/VSCAbortPackage.h>
+#include <Protocol/Packages/VSCFinishedPackage.h>
+#include <Protocol/Packages/VSCSendvaluePackage.h>
+#include <Protocol/Packages/VSCSendvaluesPackage.h>
 #include <Protocol/Packages/WCAuthorizedPackage.h>
 #include <Protocol/Packages/WCHelloPackage.h>
 #include <Protocol/Packages/WCLoginPackage.h>
@@ -31,19 +31,19 @@ namespace Protocol{
 			DataStream &stream)
 	{
 		switch (id) {
-			case A_SC_BYE_PACKAGE: return std::auto_ptr<Package>(new AScByePackage(mask, cancel, length, stream));
-			case A_SC_ERROR_PACKAGE: return std::auto_ptr<Package>(new AScErrorPackage(mask, cancel, length, stream));
-			case A_SC_OK_PACKAGE: return std::auto_ptr<Package>(new AScOkPackage(mask, cancel, length, stream));
-			case A_SC_SETOPT_PACKAGE: return std::auto_ptr<Package>(new AScSetoptPackage(mask, cancel, length, stream));
+			case A_SC_BYE_PACKAGE: return std::auto_ptr<Package>(new ASCByePackage(mask, cancel, length, stream));
+			case A_SC_ERROR_PACKAGE: return std::auto_ptr<Package>(new ASCErrorPackage(mask, cancel, length, stream));
+			case A_SC_OK_PACKAGE: return std::auto_ptr<Package>(new ASCOkPackage(mask, cancel, length, stream));
+			case A_SC_SETOPT_PACKAGE: return std::auto_ptr<Package>(new ASCSetoptPackage(mask, cancel, length, stream));
 			case Q_C_EXECUTE_PACKAGE: return std::auto_ptr<Package>(new QCExecutePackage(mask, cancel, length, stream));
 			case Q_C_STATEMENT_PACKAGE: return std::auto_ptr<Package>(new QCStatementPackage(mask, cancel, length, stream));
 			case Q_S_EXECUTING_PACKAGE: return std::auto_ptr<Package>(new QSExecutingPackage(mask, cancel, length, stream));
 			case Q_S_EXECUTION_FINISHED_PACKAGE: return std::auto_ptr<Package>(new QSExecutionFinishedPackage(mask, cancel, length, stream));
 			case Q_S_STMTPARSED_PACKAGE: return std::auto_ptr<Package>(new QSStmtparsedPackage(mask, cancel, length, stream));
-			case V_SC_ABORT_PACKAGE: return std::auto_ptr<Package>(new VScAbortPackage(mask, cancel, length, stream));
-			case V_SC_FINISHED_PACKAGE: return std::auto_ptr<Package>(new VScFinishedPackage(mask, cancel, length, stream));
-			case V_SC_SENDVALUE_PACKAGE: return std::auto_ptr<Package>(new VScSendvaluePackage(mask, cancel, length, stream));
-			case V_SC_SENDVALUES_PACKAGE: return std::auto_ptr<Package>(new VScSendvaluesPackage(mask, cancel, length, stream));
+			case V_SC_ABORT_PACKAGE: return std::auto_ptr<Package>(new VSCAbortPackage(mask, cancel, length, stream));
+			case V_SC_FINISHED_PACKAGE: return std::auto_ptr<Package>(new VSCFinishedPackage(mask, cancel, length, stream));
+			case V_SC_SENDVALUE_PACKAGE: return std::auto_ptr<Package>(new VSCSendvaluePackage(mask, cancel, length, stream));
+			case V_SC_SENDVALUES_PACKAGE: return std::auto_ptr<Package>(new VSCSendvaluesPackage(mask, cancel, length, stream));
 			case W_C_AUTHORIZED_PACKAGE: return std::auto_ptr<Package>(new WCAuthorizedPackage(mask, cancel, length, stream));
 			case W_C_HELLO_PACKAGE: return std::auto_ptr<Package>(new WCHelloPackage(mask, cancel, length, stream));
 			case W_C_LOGIN_PACKAGE: return std::auto_ptr<Package>(new WCLoginPackage(mask, cancel, length, stream));

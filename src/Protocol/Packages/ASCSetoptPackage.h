@@ -8,13 +8,13 @@
 #include <Protocol/ByteBuffer.h>
 
 namespace Protocol {
-	class AScSetoptPackage : public Package {
+	class ASCSetoptPackage : public Package {
 		private:
 			std::auto_ptr<ByteBuffer> key;
 			std::auto_ptr<ByteBuffer> value;
 		public:
-			AScSetoptPackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream);
-			AScSetoptPackage(std::auto_ptr<ByteBuffer> key, std::auto_ptr<ByteBuffer> value);
+			ASCSetoptPackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream);
+			ASCSetoptPackage(std::auto_ptr<ByteBuffer> key, std::auto_ptr<ByteBuffer> value);
 
 			void serialize(const sigset_t &mask, const bool& cancel, DataStream &stream, bool with_header = true) const;
 			uint8_t get_type() const;

@@ -17,19 +17,19 @@ namespace Protocol {
 		month(stream.read_uint8(mask, cancel, length)),
 		day(stream.read_uint8(mask, cancel, length)),
 		hour(stream.read_uint8(mask, cancel, length)),
-		minuts(stream.read_uint8(mask, cancel, length)),
+		minutes(stream.read_uint8(mask, cancel, length)),
 		sec(stream.read_uint8(mask, cancel, length)),
 		milis(stream.read_int16(mask, cancel, length))
 	{
 	}
 
-	DatetimePackage::DatetimePackage(int16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t minuts, uint8_t sec, int16_t milis):
+	DatetimePackage::DatetimePackage(int16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t minutes, uint8_t sec, int16_t milis):
 
 		year(year),
 		month(month),
 		day(day),
 		hour(hour),
-		minuts(minuts),
+		minutes(minutes),
 		sec(sec),
 		milis(milis)
 	{
@@ -45,7 +45,7 @@ namespace Protocol {
 		stream.write_uint8(mask, cancel, month);
 		stream.write_uint8(mask, cancel, day);
 		stream.write_uint8(mask, cancel, hour);
-		stream.write_uint8(mask, cancel, minuts);
+		stream.write_uint8(mask, cancel, minutes);
 		stream.write_uint8(mask, cancel, sec);
 		stream.write_int16(mask, cancel, milis);
 	}
@@ -63,7 +63,7 @@ namespace Protocol {
 		ss << "  month: " << ((int)month) << endl;
 		ss << "  day: " << ((int)day) << endl;
 		ss << "  hour: " << ((int)hour) << endl;
-		ss << "  minuts: " << ((int)minuts) << endl;
+		ss << "  minutes: " << ((int)minutes) << endl;
 		ss << "  sec: " << ((int)sec) << endl;
 		ss << "  milis: " << milis << endl;
 		return ss.str();
@@ -90,9 +90,9 @@ namespace Protocol {
 	{
 		return hour;
 	}
-	uint8_t DatetimePackage::get_val_minuts() const
+	uint8_t DatetimePackage::get_val_minutes() const
 	{
-		return minuts;
+		return minutes;
 	}
 	uint8_t DatetimePackage::get_val_sec() const
 	{

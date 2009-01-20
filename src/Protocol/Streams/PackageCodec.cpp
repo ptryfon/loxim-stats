@@ -1,3 +1,4 @@
+/* DO NOT MODIFY, this file is auto generated using lw_protogen*/
 #include <Protocol/Streams/PackageCodec.h>
 #include <Protocol/Packages/Package.h>
 #include <Protocol/Exceptions.h>

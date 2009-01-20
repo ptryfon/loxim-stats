@@ -1,3 +1,4 @@
+/* DO NOT MODIFY, this file is auto generated using lw_protogen*/
 #ifndef PROTOCOL_BYTE_BUFFER_H
 #define PROTOCOL_BYTE_BUFFER_H
 

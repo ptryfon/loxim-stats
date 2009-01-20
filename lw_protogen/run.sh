@@ -28,7 +28,13 @@ echo "Do it? (ctrl-c to abort)"
 read
 for a in $TO_COPY ; do
 	CUT_NAME=`echo $a| cut -c$(( $SKEL_LEN + 2 ))-`
-	cp $a $TARGET/$CUT_NAME
+	if [ "`echo -n $a | grep "\.am$"`" != "" ] ; then 
+		echo "## DO NOT MODIFY, this file is auto generated using lw_protogen" > $TARGET/$CUT_NAME
+	fi
+	if [ "`echo -n $a | grep -E "\.(cpp|h)$"`" != "" ] ; then echo
+		echo "/* DO NOT MODIFY, this file is auto generated using lw_protogen*/" > $TARGET/$CUT_NAME
+	fi
+	cat $a >> $TARGET/$CUT_NAME
 done
 echo "Launching: ./lw_protogen $XML $TARGET"
 if ./lw_protogen $XML $TARGET ; then

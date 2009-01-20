@@ -1,3 +1,4 @@
+/* DO NOT MODIFY, this file is auto generated using lw_protogen*/
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>

@@ -14,14 +14,14 @@ namespace Protocol {
 	QSStmtparsedPackage::QSStmtparsedPackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream):
 
 		statement_id(stream.read_uint64(mask, cancel, length)),
-		paramsCnt(stream.read_uint32(mask, cancel, length))
+		params_cnt(stream.read_uint32(mask, cancel, length))
 	{
 	}
 
-	QSStmtparsedPackage::QSStmtparsedPackage(uint64_t statement_id, uint32_t paramsCnt):
+	QSStmtparsedPackage::QSStmtparsedPackage(uint64_t statement_id, uint32_t params_cnt):
 
 		statement_id(statement_id),
-		paramsCnt(paramsCnt)
+		params_cnt(params_cnt)
 	{
 	}
 
@@ -32,7 +32,7 @@ namespace Protocol {
 			stream.write_uint32(mask, cancel, get_ser_size());
 		}
 		stream.write_uint64(mask, cancel, statement_id);
-		stream.write_uint32(mask, cancel, paramsCnt);
+		stream.write_uint32(mask, cancel, params_cnt);
 	}
 
 	uint8_t QSStmtparsedPackage::get_type() const
@@ -45,7 +45,7 @@ namespace Protocol {
 		stringstream ss;
 		ss << "QSStmtparsedPackage:" << endl;
 		ss << "  statement_id: " << statement_id << endl;
-		ss << "  paramsCnt: " << paramsCnt << endl;
+		ss << "  params_cnt: " << params_cnt << endl;
 		return ss.str();
 	}
 
@@ -58,8 +58,8 @@ namespace Protocol {
 	{
 		return statement_id;
 	}
-	uint32_t QSStmtparsedPackage::get_val_paramsCnt() const
+	uint32_t QSStmtparsedPackage::get_val_params_cnt() const
 	{
-		return paramsCnt;
+		return params_cnt;
 	}
 }

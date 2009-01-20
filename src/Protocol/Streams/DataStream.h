@@ -1,3 +1,4 @@
+/* DO NOT MODIFY, this file is auto generated using lw_protogen*/
 #ifndef DATA_STREAM_H
 #define DATA_STREAM_H
 

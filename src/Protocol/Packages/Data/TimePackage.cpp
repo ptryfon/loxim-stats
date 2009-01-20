@@ -14,16 +14,16 @@ namespace Protocol {
 	TimePackage::TimePackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream):
 
 		hour(stream.read_uint8(mask, cancel, length)),
-		minuts(stream.read_uint8(mask, cancel, length)),
+		minutes(stream.read_uint8(mask, cancel, length)),
 		sec(stream.read_uint8(mask, cancel, length)),
 		milis(stream.read_int16(mask, cancel, length))
 	{
 	}
 
-	TimePackage::TimePackage(uint8_t hour, uint8_t minuts, uint8_t sec, int16_t milis):
+	TimePackage::TimePackage(uint8_t hour, uint8_t minutes, uint8_t sec, int16_t milis):
 
 		hour(hour),
-		minuts(minuts),
+		minutes(minutes),
 		sec(sec),
 		milis(milis)
 	{
@@ -36,7 +36,7 @@ namespace Protocol {
 			stream.write_uint32(mask, cancel, get_ser_size());
 		}
 		stream.write_uint8(mask, cancel, hour);
-		stream.write_uint8(mask, cancel, minuts);
+		stream.write_uint8(mask, cancel, minutes);
 		stream.write_uint8(mask, cancel, sec);
 		stream.write_int16(mask, cancel, milis);
 	}
@@ -51,7 +51,7 @@ namespace Protocol {
 		stringstream ss;
 		ss << "TimePackage:" << endl;
 		ss << "  hour: " << ((int)hour) << endl;
-		ss << "  minuts: " << ((int)minuts) << endl;
+		ss << "  minutes: " << ((int)minutes) << endl;
 		ss << "  sec: " << ((int)sec) << endl;
 		ss << "  milis: " << milis << endl;
 		return ss.str();
@@ -66,9 +66,9 @@ namespace Protocol {
 	{
 		return hour;
 	}
-	uint8_t TimePackage::get_val_minuts() const
+	uint8_t TimePackage::get_val_minutes() const
 	{
-		return minuts;
+		return minutes;
 	}
 	uint8_t TimePackage::get_val_sec() const
 	{

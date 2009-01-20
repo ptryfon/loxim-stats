@@ -136,7 +136,7 @@
 		 	</packet>
 		 	<packet name="time" 	id-value="11">
 		 		<field name="hour" 		type="uint8"/>
-		 		<field name="minuts" 	type="uint8"/>
+		 		<field name="minutes" 	type="uint8"/>
 		 		<field name="sec" 		type="uint8"/>
 		 		<field name="milis" 	type="sint16"/>
 		 	</packet>
@@ -159,10 +159,10 @@
 		 	
 		 	<packet name="void" 		id-value="128"/>
 		 	<packet name="link" 		id-value="129">
-		 		<field name="valueId" type="varuint"/>
+		 		<field name="value_id" type="varuint"/>
 		 	</packet>
 		 	<packet name="binding" 		id-value="130">
-		 		<field name="bindingName" type="sstring" />
+		 		<field name="binding_name" type="sstring" />
 		 		<field name="type" type="varuint"/>
 		 		<field name="value" type="package-map" object-ref="data" object-ref-id="type"/>  
 		 	</packet>
@@ -176,10 +176,10 @@
 		 	<packet extends-packet="collection" name="sequence" 	id-value="133"/>
 		 	
 		 	<packet name="ref" 			id-value="134">
-		 		<field name="valueId" type="uint64"/>
+		 		<field name="value_id" type="uint64"/>
 		 	</packet>
 		 	<packet name="external_ref" id-value="135">
-		 		<field name="valueId" type="uint64"/>
+		 		<field name="value_id" type="uint64"/>
 		 		<field name="stamp"  type="uint64"/>
 		 	</packet>
 		 </packets>
@@ -313,7 +313,7 @@
 
 				<packet name="q_s_stmtparsed" id-value="65">
 					<field name="statement_id" type="uint64" />
-					<field name="paramsCnt" type="uint32" />
+					<field name="params_cnt" type="uint32" />
 				</packet>
 
 				<packet name="q_c_execute" id-value="66">
@@ -325,10 +325,10 @@
 				<packet name="q_s_executing" id-value="67" />
 
 				<packet name="q_s_execution_finished" id-value="68">
-					<field name="modAtomPointerCnt" type="varuint" />
-					<field name="delCnt" type="varuint" />
-					<field name="newRootsCnt" type="varuint" />
-					<field name="insertsCnt" type="varuint" />
+					<field name="mod_atom_pointer_cnt" type="varuint" />
+					<field name="del_cnt" type="varuint" />
+					<field name="new_roots_cnt" type="varuint" />
+					<field name="inserts_cnt" type="varuint" />
 				</packet>
 
 				<!--======================== Protokół właściwy - przesyłanie wartości ================================== -->
@@ -361,10 +361,10 @@
 				</packet>
 				<!--======================== Przesyłanie wyników ================= -->
 				<packet name="v_sc_sendvalues" id-value="32">
-					<field name="rootValueId" type="varuint" />
-					<field name="oBundlesCount" type="varuint" nullable="true"/>
-					<field name="oBidCount" type="varuint" nullable="true"/>
-					<field name="pVidCount" type="varuint" nullable="true"/>
+					<field name="root_value_id" type="varuint" />
+					<field name="o_bundles_count" type="varuint" nullable="true"/>
+					<field name="o_bid_count" type="varuint" nullable="true"/>
+					<field name="p_vid_count" type="varuint" nullable="true"/>
 				</packet>
 
 				<packet name="v_sc_sendvalue" id-value="33">
@@ -379,9 +379,9 @@
 				<packet name="v_sc_finished" id-value="34"></packet>
 
 				<packet name="v_sc_abort" id-value="35">
-					<field name="reasonCode" type="enum"
+					<field name="reason_code" type="enum"
 						object-ref="abort_reason_codes" />
-					<field name="reasonString" type="string" />
+					<field name="reason_string" type="string" />
 				</packet>
 			</packets>
 		</packet-group>

@@ -11,17 +11,17 @@ namespace Protocol {
 	class QSStmtparsedPackage : public Package {
 		private:
 			uint64_t statement_id;
-			uint32_t paramsCnt;
+			uint32_t params_cnt;
 		public:
 			QSStmtparsedPackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream);
-			QSStmtparsedPackage(uint64_t statement_id, uint32_t paramsCnt);
+			QSStmtparsedPackage(uint64_t statement_id, uint32_t params_cnt);
 
 			void serialize(const sigset_t &mask, const bool& cancel, DataStream &stream, bool with_header = true) const;
 			uint8_t get_type() const;
 			std::string to_string() const;
 			size_t get_ser_size() const;
 			uint64_t get_val_statement_id() const;
-			uint32_t get_val_paramsCnt() const;
+			uint32_t get_val_params_cnt() const;
 	};
 }
 #endif

@@ -1,3 +1,4 @@
+/* DO NOT MODIFY, this file is auto generated using lw_protogen*/
 #ifndef PROTOCOL_TCP_SERVER_H
 #define PROTOCOL_TCP_SERVER_H
 

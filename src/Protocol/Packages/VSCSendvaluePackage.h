@@ -8,14 +8,14 @@
 #include <Protocol/ByteBuffer.h>
 
 namespace Protocol {
-	class VScSendvaluePackage : public Package {
+	class VSCSendvaluePackage : public Package {
 		private:
 			VarUint value_id;
 			uint8_t flags;
 			std::auto_ptr<Package> data;
 		public:
-			VScSendvaluePackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream);
-			VScSendvaluePackage(VarUint value_id, uint8_t flags, std::auto_ptr<Package> data);
+			VSCSendvaluePackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream);
+			VSCSendvaluePackage(VarUint value_id, uint8_t flags, std::auto_ptr<Package> data);
 
 			void serialize(const sigset_t &mask, const bool& cancel, DataStream &stream, bool with_header = true) const;
 			uint8_t get_type() const;

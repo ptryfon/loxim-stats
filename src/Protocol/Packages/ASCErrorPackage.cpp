@@ -6,12 +6,12 @@
 #include <Protocol/Enums/Packages.h>
 #include <Protocol/PackageFactory.h>
 #include <Protocol/Enums/Packages.h>
-#include <Protocol/Packages/AScErrorPackage.h>
+#include <Protocol/Packages/ASCErrorPackage.h>
 
 using namespace std;
 
 namespace Protocol {
-	AScErrorPackage::AScErrorPackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream):
+	ASCErrorPackage::ASCErrorPackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream):
 
 		error_code(stream.read_uint32(mask, cancel, length)),
 		error_object_id(stream.read_varuint(mask, cancel, length)),
@@ -21,7 +21,7 @@ namespace Protocol {
 	{
 	}
 
-	AScErrorPackage::AScErrorPackage(uint32_t error_code, VarUint error_object_id, std::auto_ptr<ByteBuffer> description, uint32_t line, uint32_t col):
+	ASCErrorPackage::ASCErrorPackage(uint32_t error_code, VarUint error_object_id, std::auto_ptr<ByteBuffer> description, uint32_t line, uint32_t col):
 
 		error_code(error_code),
 		error_object_id(error_object_id),
@@ -31,7 +31,7 @@ namespace Protocol {
 	{
 	}
 
-	void AScErrorPackage::serialize(const sigset_t &mask, const bool& cancel, DataStream &stream, bool with_header) const
+	void ASCErrorPackage::serialize(const sigset_t &mask, const bool& cancel, DataStream &stream, bool with_header) const
 	{
 		if (with_header){
 			stream.write_uint8(mask, cancel, get_type());
@@ -44,15 +44,15 @@ namespace Protocol {
 		stream.write_uint32(mask, cancel, col);
 	}
 
-	uint8_t AScErrorPackage::get_type() const
+	uint8_t ASCErrorPackage::get_type() const
 	{
 		return A_SC_ERROR_PACKAGE;
 	}
 
-	string AScErrorPackage::to_string() const
+	string ASCErrorPackage::to_string() const
 	{
 		stringstream ss;
-		ss << "AScErrorPackage:" << endl;
+		ss << "ASCErrorPackage:" << endl;
 		ss << "  error_code: " << error_code << endl;
 		ss << "  error_object_id: " << (error_object_id.is_null()?0:error_object_id.get_val()) << endl;
 		ss << "  description: " << description->get_const_data() << endl;
@@ -61,28 +61,28 @@ namespace Protocol {
 		return ss.str();
 	}
 
-	size_t AScErrorPackage::get_ser_size() const
+	size_t ASCErrorPackage::get_ser_size() const
 	{
 		return 0 + 8 + DataStream::get_varuint_size(error_object_id) + description->get_ser_size() + 4 + 4;
 	}
 
-	uint32_t AScErrorPackage::get_val_error_code() const
+	uint32_t ASCErrorPackage::get_val_error_code() const
 	{
 		return error_code;
 	}
-	VarUint AScErrorPackage::get_val_error_object_id() const
+	VarUint ASCErrorPackage::get_val_error_object_id() const
 	{
 		return error_object_id;
 	}
-	const ByteBuffer &AScErrorPackage::get_val_description() const
+	const ByteBuffer &ASCErrorPackage::get_val_description() const
 	{
 		return *description.get();
 	}
-	uint32_t AScErrorPackage::get_val_line() const
+	uint32_t ASCErrorPackage::get_val_line() const
 	{
 		return line;
 	}
-	uint32_t AScErrorPackage::get_val_col() const
+	uint32_t ASCErrorPackage::get_val_col() const
 	{
 		return col;
 	}

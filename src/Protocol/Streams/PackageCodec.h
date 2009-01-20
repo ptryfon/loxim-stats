@@ -1,3 +1,4 @@
+/* DO NOT MODIFY, this file is auto generated using lw_protogen*/
 #ifndef PACKAGE_CODEC_H
 #define PACKAGE_CODEC_H
 

@@ -13,19 +13,19 @@ using namespace std;
 namespace Protocol {
 	QSExecutionFinishedPackage::QSExecutionFinishedPackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream):
 
-		modAtomPointerCnt(stream.read_varuint(mask, cancel, length)),
-		delCnt(stream.read_varuint(mask, cancel, length)),
-		newRootsCnt(stream.read_varuint(mask, cancel, length)),
-		insertsCnt(stream.read_varuint(mask, cancel, length))
+		mod_atom_pointer_cnt(stream.read_varuint(mask, cancel, length)),
+		del_cnt(stream.read_varuint(mask, cancel, length)),
+		new_roots_cnt(stream.read_varuint(mask, cancel, length)),
+		inserts_cnt(stream.read_varuint(mask, cancel, length))
 	{
 	}
 
-	QSExecutionFinishedPackage::QSExecutionFinishedPackage(VarUint modAtomPointerCnt, VarUint delCnt, VarUint newRootsCnt, VarUint insertsCnt):
+	QSExecutionFinishedPackage::QSExecutionFinishedPackage(VarUint mod_atom_pointer_cnt, VarUint del_cnt, VarUint new_roots_cnt, VarUint inserts_cnt):
 
-		modAtomPointerCnt(modAtomPointerCnt),
-		delCnt(delCnt),
-		newRootsCnt(newRootsCnt),
-		insertsCnt(insertsCnt)
+		mod_atom_pointer_cnt(mod_atom_pointer_cnt),
+		del_cnt(del_cnt),
+		new_roots_cnt(new_roots_cnt),
+		inserts_cnt(inserts_cnt)
 	{
 	}
 
@@ -35,10 +35,10 @@ namespace Protocol {
 			stream.write_uint8(mask, cancel, get_type());
 			stream.write_uint32(mask, cancel, get_ser_size());
 		}
-		stream.write_varuint(mask, cancel, modAtomPointerCnt);
-		stream.write_varuint(mask, cancel, delCnt);
-		stream.write_varuint(mask, cancel, newRootsCnt);
-		stream.write_varuint(mask, cancel, insertsCnt);
+		stream.write_varuint(mask, cancel, mod_atom_pointer_cnt);
+		stream.write_varuint(mask, cancel, del_cnt);
+		stream.write_varuint(mask, cancel, new_roots_cnt);
+		stream.write_varuint(mask, cancel, inserts_cnt);
 	}
 
 	uint8_t QSExecutionFinishedPackage::get_type() const
@@ -50,32 +50,32 @@ namespace Protocol {
 	{
 		stringstream ss;
 		ss << "QSExecutionFinishedPackage:" << endl;
-		ss << "  modAtomPointerCnt: " << (modAtomPointerCnt.is_null()?0:modAtomPointerCnt.get_val()) << endl;
-		ss << "  delCnt: " << (delCnt.is_null()?0:delCnt.get_val()) << endl;
-		ss << "  newRootsCnt: " << (newRootsCnt.is_null()?0:newRootsCnt.get_val()) << endl;
-		ss << "  insertsCnt: " << (insertsCnt.is_null()?0:insertsCnt.get_val()) << endl;
+		ss << "  mod_atom_pointer_cnt: " << (mod_atom_pointer_cnt.is_null()?0:mod_atom_pointer_cnt.get_val()) << endl;
+		ss << "  del_cnt: " << (del_cnt.is_null()?0:del_cnt.get_val()) << endl;
+		ss << "  new_roots_cnt: " << (new_roots_cnt.is_null()?0:new_roots_cnt.get_val()) << endl;
+		ss << "  inserts_cnt: " << (inserts_cnt.is_null()?0:inserts_cnt.get_val()) << endl;
 		return ss.str();
 	}
 
 	size_t QSExecutionFinishedPackage::get_ser_size() const
 	{
-		return 0 + DataStream::get_varuint_size(modAtomPointerCnt) + DataStream::get_varuint_size(delCnt) + DataStream::get_varuint_size(newRootsCnt) + DataStream::get_varuint_size(insertsCnt);
+		return 0 + DataStream::get_varuint_size(mod_atom_pointer_cnt) + DataStream::get_varuint_size(del_cnt) + DataStream::get_varuint_size(new_roots_cnt) + DataStream::get_varuint_size(inserts_cnt);
 	}
 
-	VarUint QSExecutionFinishedPackage::get_val_modAtomPointerCnt() const
+	VarUint QSExecutionFinishedPackage::get_val_mod_atom_pointer_cnt() const
 	{
-		return modAtomPointerCnt;
+		return mod_atom_pointer_cnt;
 	}
-	VarUint QSExecutionFinishedPackage::get_val_delCnt() const
+	VarUint QSExecutionFinishedPackage::get_val_del_cnt() const
 	{
-		return delCnt;
+		return del_cnt;
 	}
-	VarUint QSExecutionFinishedPackage::get_val_newRootsCnt() const
+	VarUint QSExecutionFinishedPackage::get_val_new_roots_cnt() const
 	{
-		return newRootsCnt;
+		return new_roots_cnt;
 	}
-	VarUint QSExecutionFinishedPackage::get_val_insertsCnt() const
+	VarUint QSExecutionFinishedPackage::get_val_inserts_cnt() const
 	{
-		return insertsCnt;
+		return inserts_cnt;
 	}
 }

@@ -1,3 +1,4 @@
+/* DO NOT MODIFY, this file is auto generated using lw_protogen*/
 #include <errno.h>
 #include <Protocol/Exceptions.h>
 

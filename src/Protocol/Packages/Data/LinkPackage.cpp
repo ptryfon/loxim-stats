@@ -13,13 +13,13 @@ using namespace std;
 namespace Protocol {
 	LinkPackage::LinkPackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream):
 
-		valueId(stream.read_varuint(mask, cancel, length))
+		value_id(stream.read_varuint(mask, cancel, length))
 	{
 	}
 
-	LinkPackage::LinkPackage(VarUint valueId):
+	LinkPackage::LinkPackage(VarUint value_id):
 
-		valueId(valueId)
+		value_id(value_id)
 	{
 	}
 
@@ -29,7 +29,7 @@ namespace Protocol {
 			stream.write_uint8(mask, cancel, get_type());
 			stream.write_uint32(mask, cancel, get_ser_size());
 		}
-		stream.write_varuint(mask, cancel, valueId);
+		stream.write_varuint(mask, cancel, value_id);
 	}
 
 	uint8_t LinkPackage::get_type() const
@@ -41,17 +41,17 @@ namespace Protocol {
 	{
 		stringstream ss;
 		ss << "LinkPackage:" << endl;
-		ss << "  valueId: " << (valueId.is_null()?0:valueId.get_val()) << endl;
+		ss << "  value_id: " << (value_id.is_null()?0:value_id.get_val()) << endl;
 		return ss.str();
 	}
 
 	size_t LinkPackage::get_ser_size() const
 	{
-		return 0 + DataStream::get_varuint_size(valueId);
+		return 0 + DataStream::get_varuint_size(value_id);
 	}
 
-	VarUint LinkPackage::get_val_valueId() const
+	VarUint LinkPackage::get_val_value_id() const
 	{
-		return valueId;
+		return value_id;
 	}
 }

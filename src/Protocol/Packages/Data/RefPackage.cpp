@@ -13,13 +13,13 @@ using namespace std;
 namespace Protocol {
 	RefPackage::RefPackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream):
 
-		valueId(stream.read_uint64(mask, cancel, length))
+		value_id(stream.read_uint64(mask, cancel, length))
 	{
 	}
 
-	RefPackage::RefPackage(uint64_t valueId):
+	RefPackage::RefPackage(uint64_t value_id):
 
-		valueId(valueId)
+		value_id(value_id)
 	{
 	}
 
@@ -29,7 +29,7 @@ namespace Protocol {
 			stream.write_uint8(mask, cancel, get_type());
 			stream.write_uint32(mask, cancel, get_ser_size());
 		}
-		stream.write_uint64(mask, cancel, valueId);
+		stream.write_uint64(mask, cancel, value_id);
 	}
 
 	uint8_t RefPackage::get_type() const
@@ -41,7 +41,7 @@ namespace Protocol {
 	{
 		stringstream ss;
 		ss << "RefPackage:" << endl;
-		ss << "  valueId: " << valueId << endl;
+		ss << "  value_id: " << value_id << endl;
 		return ss.str();
 	}
 
@@ -50,8 +50,8 @@ namespace Protocol {
 		return 0 + 8;
 	}
 
-	uint64_t RefPackage::get_val_valueId() const
+	uint64_t RefPackage::get_val_value_id() const
 	{
-		return valueId;
+		return value_id;
 	}
 }

@@ -6,26 +6,26 @@
 #include <Protocol/Enums/Packages.h>
 #include <Protocol/PackageFactory.h>
 #include <Protocol/Enums/Packages.h>
-#include <Protocol/Packages/AScByePackage.h>
+#include <Protocol/Packages/ASCByePackage.h>
 
 using namespace std;
 
 namespace Protocol {
-	AScByePackage::AScByePackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream):
+	ASCByePackage::ASCByePackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream):
 
 		reason_code(stream.read_uint32(mask, cancel, length)),
 		reason_description(stream.read_string(mask, cancel, length))
 	{
 	}
 
-	AScByePackage::AScByePackage(uint32_t reason_code, std::auto_ptr<ByteBuffer> reason_description):
+	ASCByePackage::ASCByePackage(uint32_t reason_code, std::auto_ptr<ByteBuffer> reason_description):
 
 		reason_code(reason_code),
 		reason_description(reason_description)
 	{
 	}
 
-	void AScByePackage::serialize(const sigset_t &mask, const bool& cancel, DataStream &stream, bool with_header) const
+	void ASCByePackage::serialize(const sigset_t &mask, const bool& cancel, DataStream &stream, bool with_header) const
 	{
 		if (with_header){
 			stream.write_uint8(mask, cancel, get_type());
@@ -35,30 +35,30 @@ namespace Protocol {
 		stream.write_string(mask, cancel, reason_description);
 	}
 
-	uint8_t AScByePackage::get_type() const
+	uint8_t ASCByePackage::get_type() const
 	{
 		return A_SC_BYE_PACKAGE;
 	}
 
-	string AScByePackage::to_string() const
+	string ASCByePackage::to_string() const
 	{
 		stringstream ss;
-		ss << "AScByePackage:" << endl;
+		ss << "ASCByePackage:" << endl;
 		ss << "  reason_code: " << reason_code << endl;
 		ss << "  reason_description: " << reason_description->get_const_data() << endl;
 		return ss.str();
 	}
 
-	size_t AScByePackage::get_ser_size() const
+	size_t ASCByePackage::get_ser_size() const
 	{
 		return 0 + 8 + reason_description->get_ser_size();
 	}
 
-	uint32_t AScByePackage::get_val_reason_code() const
+	uint32_t ASCByePackage::get_val_reason_code() const
 	{
 		return reason_code;
 	}
-	const ByteBuffer &AScByePackage::get_val_reason_description() const
+	const ByteBuffer &ASCByePackage::get_val_reason_description() const
 	{
 		return *reason_description.get();
 	}

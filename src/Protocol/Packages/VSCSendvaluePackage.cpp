@@ -6,12 +6,12 @@
 #include <Protocol/Enums/Packages.h>
 #include <Protocol/PackageFactory.h>
 #include <Protocol/Enums/Packages.h>
-#include <Protocol/Packages/VScSendvaluePackage.h>
+#include <Protocol/Packages/VSCSendvaluePackage.h>
 
 using namespace std;
 
 namespace Protocol {
-	VScSendvaluePackage::VScSendvaluePackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream):
+	VSCSendvaluePackage::VSCSendvaluePackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream):
 
 		value_id(stream.read_varuint(mask, cancel, length)),
 		flags(stream.read_uint8(mask, cancel, length)),
@@ -19,7 +19,7 @@ namespace Protocol {
 	{
 	}
 
-	VScSendvaluePackage::VScSendvaluePackage(VarUint value_id, uint8_t flags, std::auto_ptr<Package> data):
+	VSCSendvaluePackage::VSCSendvaluePackage(VarUint value_id, uint8_t flags, std::auto_ptr<Package> data):
 
 		value_id(value_id),
 		flags(flags),
@@ -27,7 +27,7 @@ namespace Protocol {
 	{
 	}
 
-	void VScSendvaluePackage::serialize(const sigset_t &mask, const bool& cancel, DataStream &stream, bool with_header) const
+	void VSCSendvaluePackage::serialize(const sigset_t &mask, const bool& cancel, DataStream &stream, bool with_header) const
 	{
 		if (with_header){
 			stream.write_uint8(mask, cancel, get_type());
@@ -39,35 +39,35 @@ namespace Protocol {
 		data->serialize(mask, cancel, stream, false);
 	}
 
-	uint8_t VScSendvaluePackage::get_type() const
+	uint8_t VSCSendvaluePackage::get_type() const
 	{
 		return V_SC_SENDVALUE_PACKAGE;
 	}
 
-	string VScSendvaluePackage::to_string() const
+	string VSCSendvaluePackage::to_string() const
 	{
 		stringstream ss;
-		ss << "VScSendvaluePackage:" << endl;
+		ss << "VSCSendvaluePackage:" << endl;
 		ss << "  value_id: " << (value_id.is_null()?0:value_id.get_val()) << endl;
 		ss << "  flags: " << flags << endl;
 		ss << "  data: " << data->to_string() << endl;
 		return ss.str();
 	}
 
-	size_t VScSendvaluePackage::get_ser_size() const
+	size_t VSCSendvaluePackage::get_ser_size() const
 	{
 		return 0 + DataStream::get_varuint_size(value_id) + 8 + data->get_ser_size() + DataStream::get_varuint_size(VarUint(data->get_type(), false));
 	}
 
-	VarUint VScSendvaluePackage::get_val_value_id() const
+	VarUint VSCSendvaluePackage::get_val_value_id() const
 	{
 		return value_id;
 	}
-	uint8_t VScSendvaluePackage::get_val_flags() const
+	uint8_t VSCSendvaluePackage::get_val_flags() const
 	{
 		return flags;
 	}
-	const Package &VScSendvaluePackage::get_val_data() const
+	const Package &VSCSendvaluePackage::get_val_data() const
 	{
 		return *data.get();
 	}

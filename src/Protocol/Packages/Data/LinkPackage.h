@@ -10,16 +10,16 @@
 namespace Protocol {
 	class LinkPackage : public Package {
 		private:
-			VarUint valueId;
+			VarUint value_id;
 		public:
 			LinkPackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream);
-			LinkPackage(VarUint valueId);
+			LinkPackage(VarUint value_id);
 
 			void serialize(const sigset_t &mask, const bool& cancel, DataStream &stream, bool with_header = true) const;
 			uint8_t get_type() const;
 			std::string to_string() const;
 			size_t get_ser_size() const;
-			VarUint get_val_valueId() const;
+			VarUint get_val_value_id() const;
 	};
 }
 #endif
