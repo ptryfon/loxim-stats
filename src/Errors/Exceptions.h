@@ -15,10 +15,10 @@ namespace Errors{
 
 		public:
 			LoximException(int err);
-			int get_error() const;
+			virtual int get_error() const;
 			const std::vector<std::string> &get_bt() const;
 			virtual ~LoximException() throw();
-			string to_string() const;
+			virtual string to_string() const;
 		protected:
 			int err;
 			std::string construct_message(int err);

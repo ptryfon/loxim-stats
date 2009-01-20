@@ -1,0 +1,21 @@
+This is a leightwieght protocol generator inspired by protoGen by Piotr Tabor.
+Its input is an xml file which should validate against the same XSD as for the
+original protoGen.
+
+The main goal is to be as much simplistic as possible and deliver a possibility
+to generate repeatable pieces of code in the protocol implementation for LoXiM.
+The only output is C++.
+
+This generator makes assumptions on the rest of LoXiM code and this is on
+purpose. It's more integrated with the rest of the project that way.
+
+It doesn't have the ambition to be protable, reusable or even error-proof. For
+more advanced use cases use protoGen or Google Protocol Buffers.
+
+Type make to compile it (you should have Xerces-C 3.0).
+
+To regenerate the protocol, run 
+/bin/sh run.sh
+
+
+Author: Marek Dopiera <siersciu@gmail.com>

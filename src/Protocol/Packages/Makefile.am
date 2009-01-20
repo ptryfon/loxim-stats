@@ -1,0 +1,4 @@
+SUBDIRS = Data 
+noinst_LTLIBRARIES = libProtocolPackages.la
+libProtocolPackages_la_SOURCES = AScByePackage.h AScByePackage.cpp AScErrorPackage.h AScErrorPackage.cpp AScOkPackage.h AScOkPackage.cpp AScSetoptPackage.h AScSetoptPackage.cpp QCExecutePackage.h QCExecutePackage.cpp QCStatementPackage.h QCStatementPackage.cpp QSExecutingPackage.h QSExecutingPackage.cpp QSExecutionFinishedPackage.h QSExecutionFinishedPackage.cpp QSStmtparsedPackage.h QSStmtparsedPackage.cpp VScAbortPackage.h VScAbortPackage.cpp VScFinishedPackage.h VScFinishedPackage.cpp VScSendvaluePackage.h VScSendvaluePackage.cpp VScSendvaluesPackage.h VScSendvaluesPackage.cpp WCAuthorizedPackage.h WCAuthorizedPackage.cpp WCHelloPackage.h WCHelloPackage.cpp WCLoginPackage.h WCLoginPackage.cpp WCModePackage.h WCModePackage.cpp WCPasswordPackage.h WCPasswordPackage.cpp WSHelloPackage.h WSHelloPackage.cpp Package.h Package.cpp 
+INCLUDES=-I$(top_srcdir)/src
