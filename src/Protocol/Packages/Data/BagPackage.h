@@ -5,19 +5,17 @@
 #include <string>
 #include <memory>
 #include <Protocol/Packages/Package.h>
+#include <Protocol/Packages/Data/CollectionPackage.h>
 #include <Protocol/ByteBuffer.h>
 
 namespace Protocol {
-	class BagPackage : public Package {
+	class BagPackage : public CollectionPackage {
 		private:
 		public:
 			BagPackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream);
 			BagPackage();
 
-			void serialize(const sigset_t &mask, const bool& cancel, DataStream &stream, bool with_header = true) const;
 			uint8_t get_type() const;
-			std::string to_string() const;
-			size_t get_ser_size() const;
 	};
 }
 #endif

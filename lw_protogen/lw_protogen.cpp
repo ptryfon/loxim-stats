@@ -141,6 +141,7 @@ class Package{
 		
 		string name;
 		int id;
+		string s_id;
 		string extends_group;
 		string extends_package;
 		vector<Field> fields;
@@ -149,6 +150,7 @@ class Package{
 		Package(DOMElement &el):
 			name(X2S(el.getAttribute(S2X("name").val()))),
 			id(atoi(X2S(el.getAttribute(S2X("id-value").val())).c_str())),
+			s_id(X2S(el.getAttribute(S2X("id-value").val()))),
 			extends_group(X2S(el.getAttribute(S2X("extends-group").val()))),
 			extends_package(X2S(el.getAttribute(S2X("extends-packet").val()))),
 			flattened(false)
@@ -402,7 +404,10 @@ map<string, Package> handle_packages(DOMElement &packages)
 		DOMNode &n = *lst.item(i);
 		if (n.getNodeType() == DOMNode::ELEMENT_NODE){
 			Package p(*dynamic_cast<DOMElement*>(&n));
-			res.insert(make_pair(p.name, p));
+			/*packages with no id and no fields don't make any sense*/
+			/*except for inheritance which we don't implement anyway*/
+			if (p.s_id.size() != 0 || p.fields.size() != 0)
+				res.insert(make_pair(p.name, p));
 		}
 	}
 	return res;
@@ -559,10 +564,16 @@ void generate_package_headers(const vector<pair<string, map<string, Package> > >
 			header << "#include <string>" << endl;
 			header << "#include <memory>" << endl;
 			header << "#include <Protocol/Packages/Package.h>" << endl;
+			if (j->second.extends_package.size()){
+				header << "#include <Protocol/Packages/" << first_upper(i->first) << "/" << make_class_name(j->second.extends_package) << "Package.h>" << endl;
+			}
 			header << "#include <Protocol/ByteBuffer.h>" << endl << endl;
 
 			header << "namespace Protocol {" << endl;
-			header << "\tclass " << cls << " : public Package {" << endl;
+			if (j->second.extends_package.size())
+				header << "\tclass " << cls << " : public " << make_class_name(j->second.extends_package) << "Package {" << endl;
+			else
+				header << "\tclass " << cls << " : public Package {" << endl;
 
 			header << "\t\tprivate:" << endl;
 
@@ -572,15 +583,19 @@ void generate_package_headers(const vector<pair<string, map<string, Package> > >
 			header << "\t\tpublic:" << endl;
 			header << "\t\t\t" << cls << "(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream);" << endl;
 			header << "\t\t\t" << get_ctor_sig(j->second, enums) << ";" << endl << endl;
-			header << "\t\t\tvoid serialize(const sigset_t &mask, const bool& cancel, DataStream &stream, bool with_header = true) const;" << endl; 
+			
+			if (!j->second.extends_package.size())
+				header << "\t\t\tvoid serialize(const sigset_t &mask, const bool& cancel, DataStream &stream, bool with_header = true) const;" << endl; 
 			header << "\t\t\tuint8_t get_type() const;" << endl;
-			header << "\t\t\tstd::string to_string() const;" << endl;
-			header << "\t\t\tsize_t get_ser_size() const;" << endl;
-			for (vector<Field>::const_iterator k = j->second.fields.begin(); k != j->second.fields.end(); ++k){
-				if (is_object(k->type))
-					header << "\t\t\tconst " << to_raw_C_type(k->type) << " &get_val_" << k->name << "() const;" << endl;
-				else
-					header << "\t\t\t" << to_C_type(k->type, enums, *k) << " get_val_" << k->name << "() const;" << endl;
+			if (!j->second.extends_package.size()){
+				header << "\t\t\tstd::string to_string() const;" << endl;
+				header << "\t\t\tsize_t get_ser_size() const;" << endl;
+				for (vector<Field>::const_iterator k = j->second.fields.begin(); k != j->second.fields.end(); ++k){
+					if (is_object(k->type))
+						header << "\t\t\tconst " << to_raw_C_type(k->type) << " &get_val_" << k->name << "() const;" << endl;
+					else
+						header << "\t\t\t" << to_C_type(k->type, enums, *k) << " get_val_" << k->name << "() const;" << endl;
+				}
 			}
 			header << "\t};" << endl;
 			header << "}" << endl;
@@ -647,44 +662,48 @@ void generate_package_implementations(const vector<pair<string, map<string, Pack
 			impl << "\t{" << endl;
 			impl << "\t}" << endl << endl;
 			
-			impl << "\tvoid " << cls << "::" << "serialize(const sigset_t &mask, const bool& cancel, DataStream &stream, bool with_header) const" << endl;
-			impl << "\t{" << endl;
-			impl << "\t\tif (with_header){" << endl;
-			impl << "\t\t\tstream.write_uint8(mask, cancel, get_type());" << endl;
-			impl << "\t\t\tstream.write_uint32(mask, cancel, get_ser_size());" << endl;
-			impl << "\t\t}" << endl;
-			for (vector<Field>::const_iterator field = j->second.fields.begin(); field != j->second.fields.end(); ++field){
-				if (!field->type.compare("package-map")){
-					impl << "\t\tstream.write_varuint(mask, cancel, VarUint(" << field->name << "->get_type(), false));" << endl;
-					impl << "\t\t" << field->name << "->serialize(mask, cancel, stream, false);" << endl;
-				} else
-					impl << "\t\tstream.write_" << to_stream_type(field->type, enums, *field) << "(mask, cancel, " << field->name << ");" << endl;
+			if (!j->second.extends_package.size()){
+				impl << "\tvoid " << cls << "::" << "serialize(const sigset_t &mask, const bool& cancel, DataStream &stream, bool with_header) const" << endl;
+				impl << "\t{" << endl;
+				impl << "\t\tif (with_header){" << endl;
+				impl << "\t\t\tstream.write_uint8(mask, cancel, get_type());" << endl;
+				impl << "\t\t\tstream.write_uint32(mask, cancel, get_ser_size());" << endl;
+				impl << "\t\t}" << endl;
+				for (vector<Field>::const_iterator field = j->second.fields.begin(); field != j->second.fields.end(); ++field){
+					if (!field->type.compare("package-map")){
+						impl << "\t\tstream.write_varuint(mask, cancel, VarUint(" << field->name << "->get_type(), false));" << endl;
+						impl << "\t\t" << field->name << "->serialize(mask, cancel, stream, false);" << endl;
+					} else
+						impl << "\t\tstream.write_" << to_stream_type(field->type, enums, *field) << "(mask, cancel, " << field->name << ");" << endl;
+				}
+				impl << "\t}" << endl << endl;
 			}
-			impl << "\t}" << endl << endl;
 			
 			impl << "\tuint8_t " << cls << "::get_type() const" << endl;
 			impl << "\t{" << endl;
 			impl << "\t\treturn " << make_upper(j->first) << "_PACKAGE;" << endl;
 			impl << "\t}" << endl << endl;
-			
-			impl << "\tstring " << cls << "::to_string() const" << endl;
-			impl << "\t{" << endl;
-			impl << "\t\tstringstream ss;" << endl;
-			impl << "\t\tss << \"" << cls << ":\" << endl;" << endl;
-			for (vector<Field>::const_iterator field = j->second.fields.begin(); field != j->second.fields.end(); ++field){
-				impl << "\t\tss << \"  "<< field->name << ": \" << " << get_to_string_impl(field->name, field->type) << " << endl;" << endl;
+
+			if (!j->second.extends_package.size()){
+				impl << "\tstring " << cls << "::to_string() const" << endl;
+				impl << "\t{" << endl;
+				impl << "\t\tstringstream ss;" << endl;
+				impl << "\t\tss << \"" << cls << ":\" << endl;" << endl;
+				for (vector<Field>::const_iterator field = j->second.fields.begin(); field != j->second.fields.end(); ++field){
+					impl << "\t\tss << \"  "<< field->name << ": \" << " << get_to_string_impl(field->name, field->type) << " << endl;" << endl;
+				}
+				impl << "\t\treturn ss.str();" << endl;
+				impl << "\t}" << endl << endl;
+
+				impl << "\tsize_t " << cls << "::get_ser_size() const" << endl;
+				impl << "\t{" << endl;
+				impl << "\t\treturn 0";
+				for (vector<Field>::const_iterator field = j->second.fields.begin(); field != j->second.fields.end(); ++field){
+					impl << " + " << get_size(field->name, field->type);
+				}
+				impl << ";" << endl;
+				impl << "\t}" << endl << endl;
 			}
-			impl << "\t\treturn ss.str();" << endl;
-			impl << "\t}" << endl << endl;
-			
-			impl << "\tsize_t " << cls << "::get_ser_size() const" << endl;
-			impl << "\t{" << endl;
-			impl << "\t\treturn 0";
-			for (vector<Field>::const_iterator field = j->second.fields.begin(); field != j->second.fields.end(); ++field){
-				impl << " + " << get_size(field->name, field->type);
-			}
-			impl << ";" << endl;
-			impl << "\t}" << endl << endl;
 
 			for (vector<Field>::const_iterator k = j->second.fields.begin(); k != j->second.fields.end(); ++k){
 				if (is_object(k->type))
@@ -873,8 +892,11 @@ void generate_makefiles(const vector<Enum> &enums, const vector<pair<string, map
 			sources += make_class_name(package->first) + "Package.h ";
 			sources += make_class_name(package->first) + "Package.cpp ";
 		}
+		/*ugly, but I don't have a better idea */
 		if (package_group->first.size() == 0)
 			sources += "Package.h Package.cpp ";
+		if (!package_group->first.compare("data"))
+			sources += "CollectionPackage.h CollectionPackage.cpp ";
 		mk << lib_name << "_la_SOURCES = " << sources << endl;
 		mk << "INCLUDES=-I$(top_srcdir)/src" << endl;
 	}

@@ -1,4 +1,3 @@
-/* DO NOT MODIFY, this file is auto generated using lw_protogen*/
 #include <string>
 #include <sstream>
 #include <Protocol/Exceptions.h>

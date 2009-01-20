@@ -7,7 +7,6 @@
 #include <Protocol/Packages/Data/BindingPackage.h>
 #include <Protocol/Packages/Data/BobPackage.h>
 #include <Protocol/Packages/Data/BoolPackage.h>
-#include <Protocol/Packages/Data/CollectionPackage.h>
 #include <Protocol/Packages/Data/DatePackage.h>
 #include <Protocol/Packages/Data/DatetimePackage.h>
 #include <Protocol/Packages/Data/DatetimetzPackage.h>
@@ -42,7 +41,6 @@ namespace Protocol{
 			case BINDING_PACKAGE: return std::auto_ptr<Package>(new BindingPackage(mask, cancel, length, stream));
 			case BOB_PACKAGE: return std::auto_ptr<Package>(new BobPackage(mask, cancel, length, stream));
 			case BOOL_PACKAGE: return std::auto_ptr<Package>(new BoolPackage(mask, cancel, length, stream));
-			case COLLECTION_PACKAGE: return std::auto_ptr<Package>(new CollectionPackage(mask, cancel, length, stream));
 			case DATE_PACKAGE: return std::auto_ptr<Package>(new DatePackage(mask, cancel, length, stream));
 			case DATETIME_PACKAGE: return std::auto_ptr<Package>(new DatetimePackage(mask, cancel, length, stream));
 			case DATETIMETZ_PACKAGE: return std::auto_ptr<Package>(new DatetimetzPackage(mask, cancel, length, stream));

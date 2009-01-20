@@ -19,29 +19,9 @@ namespace Protocol {
 	{
 	}
 
-	void StructPackage::serialize(const sigset_t &mask, const bool& cancel, DataStream &stream, bool with_header) const
-	{
-		if (with_header){
-			stream.write_uint8(mask, cancel, get_type());
-			stream.write_uint32(mask, cancel, get_ser_size());
-		}
-	}
-
 	uint8_t StructPackage::get_type() const
 	{
 		return STRUCT_PACKAGE;
-	}
-
-	string StructPackage::to_string() const
-	{
-		stringstream ss;
-		ss << "StructPackage:" << endl;
-		return ss.str();
-	}
-
-	size_t StructPackage::get_ser_size() const
-	{
-		return 0;
 	}
 
 }

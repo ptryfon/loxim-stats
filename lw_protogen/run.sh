@@ -1,5 +1,8 @@
 #!/bin/sh
-
+if [ ! -x ./lw_protogen ] ; then 
+	echo "First type make to compile lw_protogen and ensure that you have xerces-c 3.0"
+	exit 1
+fi
 #tune it to your needs
 export XERCESC_NLS_HOME=/usr/share/xerces-c/msg
 XML=loxim2.xml
@@ -13,7 +16,7 @@ for a in $TO_REMOVE ; do
 	echo rm $a
 done
 echo "Do it? (ctrl-c to abort)"
-read
+read a
 for a in $TO_REMOVE ; do
 	rm $a
 done
@@ -25,7 +28,7 @@ for a in $TO_COPY ; do
 	echo cp $a $TARGET/$CUT_NAME
 done
 echo "Do it? (ctrl-c to abort)"
-read
+read a
 for a in $TO_COPY ; do
 	CUT_NAME=`echo $a| cut -c$(( $SKEL_LEN + 2 ))-`
 	if [ "`echo -n $a | grep "\.am$"`" != "" ] ; then 
@@ -39,6 +42,7 @@ done
 echo "Launching: ./lw_protogen $XML $TARGET"
 if ./lw_protogen $XML $TARGET ; then
 	echo 'Success!'
+	echo "Remember to run autoreconf in the project's directory an reconfigure the project"
 else
 	echo 'Failed :('
 fi

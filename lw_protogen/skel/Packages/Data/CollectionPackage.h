@@ -1,4 +1,3 @@
-/* DO NOT MODIFY, this file is auto generated using lw_protogen*/
 #ifndef PROTOCOL_COLLECTION_PACKAGE_H
 #define PROTOCOL_COLLECTION_PACKAGE_H
 

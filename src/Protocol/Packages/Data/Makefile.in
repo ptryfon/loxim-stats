@@ -44,15 +44,14 @@ CONFIG_CLEAN_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
 libProtocolPackagesData_la_LIBADD =
 am_libProtocolPackagesData_la_OBJECTS = BagPackage.lo \
-	BindingPackage.lo BobPackage.lo BoolPackage.lo \
-	CollectionPackage.lo DatePackage.lo DatetimePackage.lo \
-	DatetimetzPackage.lo DoublePackage.lo ExternalRefPackage.lo \
-	LinkPackage.lo RefPackage.lo SequencePackage.lo \
-	Sint16Package.lo Sint32Package.lo Sint64Package.lo \
-	Sint8Package.lo StructPackage.lo TimePackage.lo \
-	TimetzPackage.lo Uint16Package.lo Uint32Package.lo \
-	Uint64Package.lo Uint8Package.lo VarcharPackage.lo \
-	VoidPackage.lo
+	BindingPackage.lo BobPackage.lo BoolPackage.lo DatePackage.lo \
+	DatetimePackage.lo DatetimetzPackage.lo DoublePackage.lo \
+	ExternalRefPackage.lo LinkPackage.lo RefPackage.lo \
+	SequencePackage.lo Sint16Package.lo Sint32Package.lo \
+	Sint64Package.lo Sint8Package.lo StructPackage.lo \
+	TimePackage.lo TimetzPackage.lo Uint16Package.lo \
+	Uint32Package.lo Uint64Package.lo Uint8Package.lo \
+	VarcharPackage.lo VoidPackage.lo CollectionPackage.lo
 libProtocolPackagesData_la_OBJECTS =  \
 	$(am_libProtocolPackagesData_la_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/src
@@ -196,7 +195,7 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 noinst_LTLIBRARIES = libProtocolPackagesData.la
-libProtocolPackagesData_la_SOURCES = BagPackage.h BagPackage.cpp BindingPackage.h BindingPackage.cpp BobPackage.h BobPackage.cpp BoolPackage.h BoolPackage.cpp CollectionPackage.h CollectionPackage.cpp DatePackage.h DatePackage.cpp DatetimePackage.h DatetimePackage.cpp DatetimetzPackage.h DatetimetzPackage.cpp DoublePackage.h DoublePackage.cpp ExternalRefPackage.h ExternalRefPackage.cpp LinkPackage.h LinkPackage.cpp RefPackage.h RefPackage.cpp SequencePackage.h SequencePackage.cpp Sint16Package.h Sint16Package.cpp Sint32Package.h Sint32Package.cpp Sint64Package.h Sint64Package.cpp Sint8Package.h Sint8Package.cpp StructPackage.h StructPackage.cpp TimePackage.h TimePackage.cpp TimetzPackage.h TimetzPackage.cpp Uint16Package.h Uint16Package.cpp Uint32Package.h Uint32Package.cpp Uint64Package.h Uint64Package.cpp Uint8Package.h Uint8Package.cpp VarcharPackage.h VarcharPackage.cpp VoidPackage.h VoidPackage.cpp 
+libProtocolPackagesData_la_SOURCES = BagPackage.h BagPackage.cpp BindingPackage.h BindingPackage.cpp BobPackage.h BobPackage.cpp BoolPackage.h BoolPackage.cpp DatePackage.h DatePackage.cpp DatetimePackage.h DatetimePackage.cpp DatetimetzPackage.h DatetimetzPackage.cpp DoublePackage.h DoublePackage.cpp ExternalRefPackage.h ExternalRefPackage.cpp LinkPackage.h LinkPackage.cpp RefPackage.h RefPackage.cpp SequencePackage.h SequencePackage.cpp Sint16Package.h Sint16Package.cpp Sint32Package.h Sint32Package.cpp Sint64Package.h Sint64Package.cpp Sint8Package.h Sint8Package.cpp StructPackage.h StructPackage.cpp TimePackage.h TimePackage.cpp TimetzPackage.h TimetzPackage.cpp Uint16Package.h Uint16Package.cpp Uint32Package.h Uint32Package.cpp Uint64Package.h Uint64Package.cpp Uint8Package.h Uint8Package.cpp VarcharPackage.h VarcharPackage.cpp VoidPackage.h VoidPackage.cpp CollectionPackage.h CollectionPackage.cpp 
 INCLUDES = -I$(top_srcdir)/src
 all: all-am
 

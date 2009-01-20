@@ -19,29 +19,9 @@ namespace Protocol {
 	{
 	}
 
-	void BagPackage::serialize(const sigset_t &mask, const bool& cancel, DataStream &stream, bool with_header) const
-	{
-		if (with_header){
-			stream.write_uint8(mask, cancel, get_type());
-			stream.write_uint32(mask, cancel, get_ser_size());
-		}
-	}
-
 	uint8_t BagPackage::get_type() const
 	{
 		return BAG_PACKAGE;
-	}
-
-	string BagPackage::to_string() const
-	{
-		stringstream ss;
-		ss << "BagPackage:" << endl;
-		return ss.str();
-	}
-
-	size_t BagPackage::get_ser_size() const
-	{
-		return 0;
 	}
 
 }

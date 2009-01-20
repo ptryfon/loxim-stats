@@ -19,29 +19,9 @@ namespace Protocol {
 	{
 	}
 
-	void SequencePackage::serialize(const sigset_t &mask, const bool& cancel, DataStream &stream, bool with_header) const
-	{
-		if (with_header){
-			stream.write_uint8(mask, cancel, get_type());
-			stream.write_uint32(mask, cancel, get_ser_size());
-		}
-	}
-
 	uint8_t SequencePackage::get_type() const
 	{
 		return SEQUENCE_PACKAGE;
-	}
-
-	string SequencePackage::to_string() const
-	{
-		stringstream ss;
-		ss << "SequencePackage:" << endl;
-		return ss.str();
-	}
-
-	size_t SequencePackage::get_ser_size() const
-	{
-		return 0;
 	}
 
 }
