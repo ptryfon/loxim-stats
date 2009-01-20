@@ -6,10 +6,6 @@
 
 namespace Protocol {
 
-	//only for testing, will be removed
-	ByteBuffer::ByteBuffer()
-	{
-	}
 
 	ByteBuffer::ByteBuffer(size_t size) : size(size), buffer(new char[size])
 	{
@@ -18,37 +14,44 @@ namespace Protocol {
 	ByteBuffer::ByteBuffer(const char *data, size_t size) : size(size),
 	buffer(new char[size])
 	{
-		memcpy(buffer.get(), data, size);
+		memcpy(buffer, data, size);
 	}
 
 	ByteBuffer::ByteBuffer(const std::string &s) : size(s.length()), buffer(new
 			char[s.length()])
 	{
-		memcpy(buffer.get(), s.c_str(), size);
+		memcpy(buffer, s.c_str(), size);
 	}
 	
 	ByteBuffer::ByteBuffer(const ByteBuffer& buf2) : size(buf2.size),
 	buffer(new char[buf2.size])
 	{
-		memcpy(buffer.get(), buf2.buffer.get(), size);
+		memcpy(buffer, buf2.buffer, size);
+	}
+	
+	ByteBuffer::~ByteBuffer()
+	{
+		delete[] buffer;
 	}
 
 	ByteBuffer &ByteBuffer::operator=(const ByteBuffer& buf2)
 	{
 		size = buf2.size;
-		buffer = std::auto_ptr<char>(new char[size]);
-		memcpy(buffer.get(), buf2.buffer.get(), size);
+		char *tmp_buf = new char[size];
+		delete[] buffer;
+		buffer = tmp_buf;
+		memcpy(buffer, buf2.buffer, size);
 		return *this;
 	}
 
 	char *ByteBuffer::get_data()
 	{
-		return buffer.get();
+		return buffer;
 	}
 
 	const char *ByteBuffer::get_const_data() const
 	{
-		return buffer.get();
+		return buffer;
 	}
 
 	size_t ByteBuffer::get_size() const
