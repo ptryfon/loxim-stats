@@ -11,6 +11,7 @@ store_file_roots=/tmp/loxim_roots
 store_file_views=/tmp/loxim_views
 store_file_fclasses=/tmp/loxim_classes
 store_file_interfaces=/tmp/loxim_interfaces
+store_file_schemas=/tmp/loxim_sbschemas
 
 store_buffer_maxpages=512
 store_buffer_maxdirty=32
