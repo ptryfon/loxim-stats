@@ -3,6 +3,7 @@
 
 
 #include <signal.h>
+#include <stdint.h>
 #include <memory>
 
 namespace Protocol {

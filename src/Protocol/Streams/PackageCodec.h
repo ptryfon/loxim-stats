@@ -3,7 +3,9 @@
 
 #include <signal.h>
 #include <memory>
+#include <stdint.h>
 #include <Protocol/Streams/PackageStream.h>
+
 
 namespace Protocol {
 	class Package;

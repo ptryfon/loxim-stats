@@ -2,6 +2,7 @@
 #define PROTOCOL_BYTE_BUFFER_H
 
 #include <memory>
+#include <string.h>
 
 namespace Protocol{
 	class ByteBuffer{
