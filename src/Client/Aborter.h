@@ -1,7 +1,7 @@
 #ifndef ABORTER_H
 #define ABORTER_H
 
-#include <Client/Client.h>
+#include <pthread.h>
 
 namespace Client{
 
@@ -12,7 +12,7 @@ namespace Client{
 	class Aborter{
 		friend void *AB_starter(void *arg);
 		public:
-			Aborter(Client *client);
+			Aborter(Client &client);
 			void start();
 			void stop();
 			void trigger();
@@ -20,8 +20,8 @@ namespace Client{
 			pthread_mutex_t mutex;
 			pthread_cond_t cond;
 			pthread_t thread;
-			int shutting_down;
-			Client *client;
+			bool shutting_down;
+			Client &client;
 
 			void loop();
 

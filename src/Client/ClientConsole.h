@@ -2,39 +2,42 @@
 #define CLIENT_CONSOLE_H
 
 #include <string>
+#include <fstream>
 #include <regex.h>
-#include <Client/StatementProvider.h>
 #include <stdio.h>
-
-using namespace std;
-
-#define CC_SLASH 1
-#define CC_DOT 2
+#include <memory>
+#include <Client/StatementProvider.h>
 
 namespace Client{
+	enum Modes{
+		CC_SLASH = 1,
+		CC_DOT
+	};
+
 	class ClientConsole : public StatementProvider{
 		private:
 			int mode;
-			string read_dot();
-			string read_slash();
-			bool is_meta_stmt(string stmt);
-			bool is_admin_stmt(string stmt);
-			void execute_meta_stmt(string stmt);
-			char *line_provider (const char *);
+			std::auto_ptr<std::ifstream> file;
 			regex_t dot_mode_regex;
 			regex_t slash_mode_regex;
 			regex_t ext_file_regex;
 			regex_t help_regex;
-			FILE *file;
-			bool line_empty(char *);
-			void open_file(const char *);
+			
+			std::string read_dot();
+			std::string read_slash();
+			bool is_meta_stmt(const std::string &stmt);
+			bool is_admin_stmt(const std::string &stmt);
+			void execute_meta_stmt(const std::string &stmt);
+			std::string line_provider (const std::string &);
+			bool line_empty(const std::string &);
+			void open_file(const std::string &);
 			void regex_init();
 		public:
 			ClientConsole();
 			ClientConsole(int mode);
 			//should be opened
-			ClientConsole(int mode, FILE *file);
-			string read_stmt();
+			ClientConsole(int mode, std::auto_ptr<std::ifstream> file);
+			std::string read_stmt();
 			~ClientConsole();
 	};
 }

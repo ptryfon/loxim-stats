@@ -11,7 +11,9 @@
 using namespace std;
 
 namespace Protocol {
-	BagPackage::BagPackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream)
+	BagPackage::BagPackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream):
+
+		CollectionPackage(mask, cancel, length, stream)
 	{
 	}
 

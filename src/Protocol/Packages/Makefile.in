@@ -44,14 +44,15 @@ CONFIG_CLEAN_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
 libProtocolPackages_la_LIBADD =
 am_libProtocolPackages_la_OBJECTS = ASCByePackage.lo \
-	ASCErrorPackage.lo ASCOkPackage.lo ASCSetoptPackage.lo \
-	QCExecutePackage.lo QCStatementPackage.lo \
-	QSExecutingPackage.lo QSExecutionFinishedPackage.lo \
-	QSStmtparsedPackage.lo VSCAbortPackage.lo \
-	VSCFinishedPackage.lo VSCSendvaluePackage.lo \
-	VSCSendvaluesPackage.lo WCAuthorizedPackage.lo \
+	ASCErrorPackage.lo ASCOkPackage.lo ASCPingPackage.lo \
+	ASCPongPackage.lo ASCSetoptPackage.lo QCExecutePackage.lo \
+	QCStatementPackage.lo QSExecutingPackage.lo \
+	QSExecutionFinishedPackage.lo QSStmtparsedPackage.lo \
+	VSCAbortPackage.lo VSCFinishedPackage.lo \
+	VSCSendvaluePackage.lo VSCSendvaluesPackage.lo \
 	WCHelloPackage.lo WCLoginPackage.lo WCModePackage.lo \
-	WCPasswordPackage.lo WSHelloPackage.lo Package.lo
+	WCPasswordPackage.lo WSAuthorizedPackage.lo WSHelloPackage.lo \
+	Package.lo
 libProtocolPackages_la_OBJECTS = $(am_libProtocolPackages_la_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/src
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -205,7 +206,7 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 SUBDIRS = Data 
 noinst_LTLIBRARIES = libProtocolPackages.la
-libProtocolPackages_la_SOURCES = ASCByePackage.h ASCByePackage.cpp ASCErrorPackage.h ASCErrorPackage.cpp ASCOkPackage.h ASCOkPackage.cpp ASCSetoptPackage.h ASCSetoptPackage.cpp QCExecutePackage.h QCExecutePackage.cpp QCStatementPackage.h QCStatementPackage.cpp QSExecutingPackage.h QSExecutingPackage.cpp QSExecutionFinishedPackage.h QSExecutionFinishedPackage.cpp QSStmtparsedPackage.h QSStmtparsedPackage.cpp VSCAbortPackage.h VSCAbortPackage.cpp VSCFinishedPackage.h VSCFinishedPackage.cpp VSCSendvaluePackage.h VSCSendvaluePackage.cpp VSCSendvaluesPackage.h VSCSendvaluesPackage.cpp WCAuthorizedPackage.h WCAuthorizedPackage.cpp WCHelloPackage.h WCHelloPackage.cpp WCLoginPackage.h WCLoginPackage.cpp WCModePackage.h WCModePackage.cpp WCPasswordPackage.h WCPasswordPackage.cpp WSHelloPackage.h WSHelloPackage.cpp Package.h Package.cpp 
+libProtocolPackages_la_SOURCES = ASCByePackage.h ASCByePackage.cpp ASCErrorPackage.h ASCErrorPackage.cpp ASCOkPackage.h ASCOkPackage.cpp ASCPingPackage.h ASCPingPackage.cpp ASCPongPackage.h ASCPongPackage.cpp ASCSetoptPackage.h ASCSetoptPackage.cpp QCExecutePackage.h QCExecutePackage.cpp QCStatementPackage.h QCStatementPackage.cpp QSExecutingPackage.h QSExecutingPackage.cpp QSExecutionFinishedPackage.h QSExecutionFinishedPackage.cpp QSStmtparsedPackage.h QSStmtparsedPackage.cpp VSCAbortPackage.h VSCAbortPackage.cpp VSCFinishedPackage.h VSCFinishedPackage.cpp VSCSendvaluePackage.h VSCSendvaluePackage.cpp VSCSendvaluesPackage.h VSCSendvaluesPackage.cpp WCHelloPackage.h WCHelloPackage.cpp WCLoginPackage.h WCLoginPackage.cpp WCModePackage.h WCModePackage.cpp WCPasswordPackage.h WCPasswordPackage.cpp WSAuthorizedPackage.h WSAuthorizedPackage.cpp WSHelloPackage.h WSHelloPackage.cpp Package.h Package.cpp 
 INCLUDES = -I$(top_srcdir)/src
 all: all-recursive
 
@@ -261,6 +262,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ASCByePackage.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ASCErrorPackage.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ASCOkPackage.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ASCPingPackage.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ASCPongPackage.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ASCSetoptPackage.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Package.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/QCExecutePackage.Plo@am__quote@
@@ -272,11 +275,11 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/VSCFinishedPackage.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/VSCSendvaluePackage.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/VSCSendvaluesPackage.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/WCAuthorizedPackage.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/WCHelloPackage.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/WCLoginPackage.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/WCModePackage.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/WCPasswordPackage.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/WSAuthorizedPackage.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/WSHelloPackage.Plo@am__quote@
 
 .cpp.o:

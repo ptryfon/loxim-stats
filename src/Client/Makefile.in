@@ -44,8 +44,8 @@ CONFIG_CLEAN_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
 libClient_la_LIBADD =
 am_libClient_la_OBJECTS = Aborter.lo Authenticator.lo ClientConsole.lo \
-	ConsoleAuthenticator.lo Client.lo Lsbql.lo ReadlineReader.lo \
-	StatementProvider.lo StatementSimpleParser.lo
+	ConsoleAuthenticator.lo Client.lo Lsbql.lo \
+	StatementProvider.lo
 libClient_la_OBJECTS = $(am_libClient_la_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/src
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -188,7 +188,7 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 noinst_LTLIBRARIES = libClient.la
-libClient_la_SOURCES = Aborter.cpp Aborter.h Authenticator.cpp Authenticator.h ClientConsole.cpp ClientConsole.h ConsoleAuthenticator.cpp ConsoleAuthenticator.h Client.cpp Client.h Lsbql.cpp ReadlineReader.cpp ReadlineReader.h StatementProvider.cpp StatementProvider.h StatementSimpleParser.cpp StatementSimpleParser.h 
+libClient_la_SOURCES = Aborter.cpp Aborter.h Authenticator.cpp Authenticator.h ClientConsole.cpp ClientConsole.h ConsoleAuthenticator.cpp ConsoleAuthenticator.h Client.cpp Client.h Lsbql.cpp StatementProvider.cpp StatementProvider.h 
 INCLUDES = -I$(top_srcdir)/src
 all: all-am
 
@@ -247,9 +247,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ClientConsole.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ConsoleAuthenticator.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Lsbql.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ReadlineReader.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/StatementProvider.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/StatementSimpleParser.Plo@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<

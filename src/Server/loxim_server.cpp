@@ -1,11 +1,13 @@
-#include <Server/Server.h>
 #include <string>
 #include <iostream>
 #include <getopt.h>
+#include <netdb.h>
+#include <Server/Server.h>
 #include <Indexes/IndexManager.h>
 #include <QueryExecutor/InterfaceMaps.h>
 #include <QueryExecutor/OuterSchema.h>
 
+extern int h_errno;
 using namespace std;
 
 #define DEFAULT_PORT 2000
@@ -39,7 +41,22 @@ void parse_args(int argc, char **argv, string *hostname, int *port) {
 	}
 }
 
-int main(int argc, char **argv) {
+/*in network order */
+uint32_t get_host_ip(const string& hostname, ErrorConsole &err_cons)
+{
+	struct hostent *hp;
+	hp = gethostbyname(hostname.c_str());
+	if (!hp){
+		severe_print(err_cons, "Could resolve hostname, check your configuration file");
+		exit(1);
+	}
+	uint32_t res;
+	memcpy(&res, hp->h_addr, 4);
+	return res;
+}
+
+int main(int argc, char **argv)
+{
 	string hostname;
 	int port;
 	parse_args(argc, argv, &hostname, &port);
@@ -50,6 +67,7 @@ int main(int argc, char **argv) {
 	    cerr << "Config init failed with code " << error << "\n";
 	    exit(1);
 	}
+	signal(SIGPIPE, SIG_IGN);
 	ErrorConsole &con(ErrorConsole::get_instance(EC_SERVER));
 	LogManager::checkForBackup();
 	info_print(con, "Initializing Log manager and Store manager");
@@ -71,21 +89,17 @@ int main(int argc, char **argv) {
 	Schemas::InterfaceMaps::Instance().init(); //must be called after ClassGraph::init()
 	Schemas::OuterSchemas::Instance().init();
 
-	::Server::Server serv(hostname, port, config);
-	if (!serv.prepare()){
-		serv.main_loop();
-		Indexes::IndexManager::shutdown(); //tutaj nie powinno juz byc zadnych aktywnych transakcji
-		QueryBuilder::shutdown();
-		sm->stop();
-		unsigned idx;
-		lm->shutdown(idx);//nie wiem czy tu to ma znaczenie,
-		//ale z reguly najlepiej niszczyc w odwrotnej kolejnosci niz sie otwieralo.
-		Schemas::OuterSchemas::Instance().deinit();
-		Schemas::InterfaceMaps::Instance().deinit();
-		ClassGraph::ClassGraph::shutdown();	
-		delete TransactionManager::getHandle();
-	}
-	else
-		severe_print(con, "Couldn't connect to socket");
+	::Server::Server serv(get_host_ip(hostname, con), htons(port), config);
+	serv.main_loop();
+	Indexes::IndexManager::shutdown(); //tutaj nie powinno juz byc zadnych aktywnych transakcji
+	QueryBuilder::shutdown();
+	sm->stop();
+	unsigned idx;
+	lm->shutdown(idx);//nie wiem czy tu to ma znaczenie,
+	//ale z reguly najlepiej niszczyc w odwrotnej kolejnosci niz sie otwieralo.
+	Schemas::OuterSchemas::Instance().deinit();
+	Schemas::InterfaceMaps::Instance().deinit();
+	ClassGraph::ClassGraph::shutdown();	
+	delete TransactionManager::getHandle();
 	return 0;
 }

@@ -13,6 +13,7 @@ using namespace std;
 namespace Protocol {
 	ASCSetoptPackage::ASCSetoptPackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream):
 
+
 		key(stream.read_string(mask, cancel, length)),
 		value(stream.read_string(mask, cancel, length))
 	{

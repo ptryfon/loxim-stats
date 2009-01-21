@@ -11,7 +11,9 @@
 using namespace std;
 
 namespace Protocol {
-	SequencePackage::SequencePackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream)
+	SequencePackage::SequencePackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream):
+
+		CollectionPackage(mask, cancel, length, stream)
 	{
 	}
 

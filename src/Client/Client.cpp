@@ -1,489 +1,330 @@
-#include <Client/Client.h>
-
 #include <string>
 #include <stdlib.h>
 #include <iostream>
-#include <protocol/sockets/TCPIPClientSocket.h>
-#include <protocol/layers/ProtocolLayer0.h>
-#include <protocol/packages/VSCSendValuesPackage.h>
-#include <protocol/packages/VSCSendValuePackage.h>
-#include <protocol/packages/VSCAbortPackage.h>
-#include <protocol/packages/VSCFinishedPackage.h>
-#include <protocol/packages/WCHelloPackage.h>
-#include <protocol/packages/WSHelloPackage.h>
-#include <protocol/packages/WCLoginPackage.h>
-#include <protocol/packages/WSAuthorizedPackage.h>
-#include <protocol/packages/WCPasswordPackage.h>
-#include <protocol/packages/ASCOkPackage.h>
-#include <protocol/packages/ASCByePackage.h>
-#include <protocol/packages/QCStatementPackage.h>
-#include <protocol/packages/data/BagData.h>
-#include <protocol/packages/data/SequenceData.h>
-#include <protocol/packages/data/ReferenceData.h>
-#include <protocol/packages/data/VarcharData.h>
-#include <protocol/packages/data/VOIDData.h>
-#include <protocol/packages/data/Sint32Data.h>
-#include <protocol/packages/data/DoubleData.h>
-#include <protocol/packages/data/BoolData.h>
-#include <protocol/packages/data/BindingData.h>
-#include <protocol/packages/data/DataPart.h>
-#include <protocol/packages/data/StructData.h>
-#include <protocol/ptools/CharArray.h>
-#include <Errors/Errors.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <stdio.h>
-#include <Client/Authenticator.h>
-#include <readline/readline.h>
 #include <signal.h>
+#include <stdio.h>
+#include <readline/readline.h>
+#include <Client/Client.h>
+#include <Client/Authenticator.h>
+#include <Errors/Errors.h>
+#include <Errors/Exceptions.h>
+#include <Util/Locker.h>
+#include <Util/smartptr.h>
+#include <Protocol/Exceptions.h>
+#include <Protocol/Streams/TCPClientStream.h>
+#include <Protocol/Enums/Enums.h>
+#include <Protocol/Streams/PackageStream.h>
+#include <Protocol/Streams/PackageCodec.h>
+#include <Protocol/Packages/ASCByePackage.h>
+#include <Protocol/Packages/ASCErrorPackage.h>
+#include <Protocol/Packages/ASCOkPackage.h>
+#include <Protocol/Packages/ASCPingPackage.h>
+#include <Protocol/Packages/ASCPongPackage.h>
+#include <Protocol/Packages/ASCSetoptPackage.h>
+#include <Protocol/Packages/QCExecutePackage.h>
+#include <Protocol/Packages/QCStatementPackage.h>
+#include <Protocol/Packages/VSCAbortPackage.h>
+#include <Protocol/Packages/VSCFinishedPackage.h>
+#include <Protocol/Packages/VSCSendvaluePackage.h>
+#include <Protocol/Packages/VSCSendvaluesPackage.h>
+#include <Protocol/Packages/WCHelloPackage.h>
+#include <Protocol/Packages/WCLoginPackage.h>
+#include <Protocol/Packages/WCPasswordPackage.h>
+#include <Protocol/Packages/WSAuthorizedPackage.h>
+#include <Protocol/Packages/WSHelloPackage.h>
+#include <Protocol/Packages/Data/BagPackage.h>
+#include <Protocol/Packages/Data/BindingPackage.h>
+#include <Protocol/Packages/Data/BoolPackage.h>
+#include <Protocol/Packages/Data/DoublePackage.h>
+#include <Protocol/Packages/Data/RefPackage.h>
+#include <Protocol/Packages/Data/SequencePackage.h>
+#include <Protocol/Packages/Data/Sint32Package.h>
+#include <Protocol/Packages/Data/StructPackage.h>
+#include <Protocol/Packages/Data/VarcharPackage.h>
+#include <Protocol/Packages/Data/VoidPackage.h>
 
-#include <protocol/auth/auth.h>
 
 
-#define CLIENT_NAME 	"Client"
-#define CLIENT_VERSION "1.0"
-
-using namespace protocol;
+using namespace Protocol;
 using namespace std;
 using namespace Errors;
+using namespace Util;
+using namespace _smptr;
 
-Client::Client *Client::Client::instance;
+namespace Client{
 
-void Client::signal_handler(int sig)
-{
-	Client::instance->abort();
-}
+	#define MAX_PACKAGE_SIZE 100000
 
-Client::Client::Client(const char* a_hostname, int a_port)
-{
-	hostname=strdup(a_hostname);
-	port=a_port;
-	aborter = new Aborter(this);
-	socket=NULL;
-	proto=NULL;
-	ws_hello=NULL;
-	instance = this;
-}
 
-Client::Client::~Client()
-{
-	delete aborter;
-	if (hostname)
-		free(hostname);
-	
-	if (socket)
-		delete socket;
-		
-	if (proto)
-		delete proto;
-	instance = NULL;
-}
-
-int Client::Client::connect()
-{
-	if (socket)
-		return -1;
-	
-	socket=new TCPIPClientSocket(hostname,port);
-	int res=(((TCPIPClientSocket*)socket)->connect());
-	
-	if (res>0)
+	Client::Client(uint32_t host, uint16_t port) :
+		stream(new PackageCodec(auto_ptr<DataStream>(new TCPClientStream(host, port)), MAX_PACKAGE_SIZE)),
+		error(0), waiting_for_result(false), aborter(*this)
 	{
-		proto=new ProtocolLayer0(socket);
-	};
-	
-	return res;
-}
-
-		
-
-int Client::Client::run(StatementProvider *provider)
-{
-	string stmt;
-	waiting_for_result = false;
-	pthread_mutex_init(&logic_mutex, 0);
-	pthread_cond_init(&read_cond, 0);
-	pthread_t result_handler;
-	error = 0;
-	pthread_create(&result_handler, 0, ::Client::result_handler_starter, this);
-	pthread_mutex_t cond_mutex;
-	pthread_mutex_init(&cond_mutex, 0);
-
-	//printf("run, thread %d\n", pthread_self());
-	aborter->start();
-	while (true){
-		stmt = provider->read_stmt();
-		pthread_mutex_lock(&logic_mutex);
-		if (!strcmp(stmt.c_str(), "quit")){
-			pthread_cancel(result_handler);
-			pthread_mutex_unlock(&logic_mutex);
-			ASCByePackage package("");
-			if (!proto->writePackage(&package))
-				return 1;
-			return 0;
-		}
-		QCStatementPackage package(STATEMENT_FLAG_EXECUTE, const_cast<char*>(stmt.c_str())); 
-		if (!proto->writePackage(&package)){
-			pthread_cancel(result_handler);
-			pthread_mutex_unlock(&logic_mutex);
-			return error;
-		}
-		else{
-			waiting_for_result = true;
-			register_handler();
-			pthread_cond_wait(&read_cond, &logic_mutex);
-			unregister_handler();
-			pthread_mutex_unlock(&logic_mutex);
-			if (error)
-				return error;
-		}	
+		pthread_mutex_init(&logic_mutex, 0);
+		pthread_cond_init(&read_cond, 0);
 	}
-}
 
-void Client::Client::abort()
-{
-	pthread_mutex_lock(&logic_mutex);
-	if (!waiting_for_result)
-		printf("Nothing to abort\n");
-	else{
-		/*sending*/
-		VSCAbortPackage package(0, "");
-		if (!proto->writePackage(&package)){
-			printf("I was unable to send abort command to the server\n");
-		}
-		waiting_for_result = false;
-		pthread_cond_signal(&read_cond);
+	Client::~Client()
+	{
 	}
-		pthread_mutex_unlock(&logic_mutex);
-}
-
-void *::Client::result_handler_starter(void *a)
-{
-	((Client::Client*)a)->result_handler();
-	return NULL;
-}
-
-void Client::Client::print_error(ASCErrorPackage *package)
-{
-	printf("Got error %d: %s\n", package->getError_code(), package->getReason()->getBuffor());
-}
 
 
-void Client::Client::result_handler()
-{
-	VSCSendValuePackage *pack;
-	ASCErrorPackage *err_pack;
-	//printf("result handler, thread %d\n", pthread_self());
-	while(true){
-		int res = receive_result(&pack, &err_pack);
-		//if error in protocol occurred or the server wants to close the connection
-		if (res > 0 || res == -1){
-			error = res;
-			pthread_cond_signal(&read_cond);
-			raise(SIGTERM);
-			pthread_exit(0);
-		} else {
-			pthread_mutex_lock(&logic_mutex);
-			if (waiting_for_result){
-				if (res == -2){
-					print_error(err_pack);
-					delete err_pack;
-				} else {
-					print_result(pack->getData(), 4);
-					delete pack;
+	void Client::run(StatementProvider &provider)
+	{
+		pthread_mutex_t cond_mutex;
+		pthread_mutex_init(&cond_mutex, 0);
+
+		pthread_t result_thread;
+		pthread_create(&result_thread, 0, result_handler_starter, this);
+		/* kill both on exit */
+		//result_handler->start();
+		aborter.start();
+		while (true){
+			string stmt = provider.read_stmt();
+			{
+				Locker l(logic_mutex);
+				if (!stmt.compare("quit")){
+					auto_ptr<ByteBuffer> buf(new ByteBuffer("Client quitted"));
+					ASCByePackage package(0, buf);
+					stream->write_package(mask, shutting_down, package);
+					return;
 				}
-				error = 0;
-				waiting_for_result = false;
-			} else {
-				if (res == -2)
-					delete err_pack;
-				else
-					delete pack;
-				error = EProtocol;
-				pthread_cond_signal(&read_cond);
-				pthread_mutex_unlock(&logic_mutex);
-				pthread_exit(0);
+				{
+					auto_ptr<ByteBuffer> b_stmt(new ByteBuffer(stmt));
+					QCStatementPackage package(SF_EXECUTE, b_stmt);
+					stream->write_package(mask, shutting_down, package);
+				}
+				waiting_for_result = true;
+				pthread_cond_wait(&read_cond, &logic_mutex);
 			}
-			pthread_cond_signal(&read_cond);
-			pthread_mutex_unlock(&logic_mutex);
 		}
 	}
+
+	void Client::abort()
+	{
+		Locker l(logic_mutex);
+		if (!waiting_for_result)
+			printf("Nothing to abort\n");
+		else{
+			auto_ptr<ByteBuffer> reason(new ByteBuffer("User aborted"));
+			VSCAbortPackage package(0, reason);
+			stream->write_package(mask, shutting_down, package);
+			waiting_for_result = false;
+			pthread_cond_signal(&read_cond);
+		}
+	}
+
+	void *result_handler_starter(void *a)
+	{
+		reinterpret_cast<Client*>(a)->result_handler();
+		return NULL;
+	}
+
+	void Client::print_error(const ASCErrorPackage &package)
+	{
+		cout << "Got error " << package.get_val_error_code() << ": " <<
+			package.get_val_description().to_string() << endl;
+	}
+
+	void Client::result_handler()
+	{
+		while(true){
+			auto_ptr<Package> result = receive_result();
+			//if error in protocol occurred or the server wants to close the connection
+			{
+				Locker l(logic_mutex);
+				if (waiting_for_result){
+					switch (result->get_type()){
+						case A_SC_ERROR_PACKAGE:
+							{
+								print_error(dynamic_cast<ASCErrorPackage&>(*result));
+								break;
+							}
+						case V_SC_SENDVALUE_PACKAGE:
+							{
+								print_result(dynamic_cast<VSCSendvaluePackage&>(*result).get_val_data(), 0);
+								break;
+							}
+						case A_SC_BYE_PACKAGE:
+							{
+								//close client
+								//connection
+							}
+						default:
+							throw runtime_error("internal error");
+					}
+					error = 0;
+					waiting_for_result = false;
+				} else {
+					//close client connection
+					error = EProtocol;
+				}
+				pthread_cond_signal(&read_cond);
+			}
+		}
+	}
+
+	auto_ptr<Package> Client::receive_result()
+	{
+		auto_ptr<Package> p(stream->read_package(mask, shutting_down));
+		if (p->get_type() == A_SC_ERROR_PACKAGE || p->get_type() == A_SC_BYE_PACKAGE){
+			return p;
+		}
+		if (p->get_type() != V_SC_SENDVALUES_PACKAGE){
+			throw ProtocolLogic();
+		}
+
+		p = stream->read_package(mask, shutting_down);
+		if (p->get_type() == A_SC_BYE_PACKAGE){
+			return p;
+		}
+		if (p->get_type() != V_SC_SENDVALUE_PACKAGE){
+			throw ProtocolLogic();
+		}
+
+		auto_ptr<Package> p2(stream->read_package(mask, shutting_down));
+		if (p2->get_type() != A_SC_BYE_PACKAGE && p2->get_type() != V_SC_FINISHED_PACKAGE){
+			throw ProtocolLogic();
+		}
+		if (p2->get_type() == A_SC_BYE_PACKAGE)
+			return p2;
+		else
+			return p;
+	}
+
+
+	void Client::print_result(const Package &package, int ind)
+	{
+		switch (package.get_type()){
+			case BAG_PACKAGE:
+				{
+					cout << string(ind, ' ') << "Bag" << endl;
+					const BagPackage &bag(dynamic_cast<const BagPackage&>(package));
+					const vector<shared_ptr<Package> > &items(bag.get_packages());
+					for (vector<shared_ptr<Package> >::const_iterator i = items.begin(); i != items.end(); ++i)
+						print_result(**i, ind+2);
+				}
+				break;
+			case STRUCT_PACKAGE:
+				{
+					cout << string(ind, ' ') << "Struct" << endl;
+					const StructPackage &strct(dynamic_cast<const StructPackage&>(package));
+					const vector<shared_ptr<Package> > &items(strct.get_packages());
+					for (vector<shared_ptr<Package> >::const_iterator i = items.begin(); i != items.end(); ++i)
+						print_result(**i, ind+2);
+				}
+				break;
+			case SEQUENCE_PACKAGE:
+				{
+					cout << string(ind, ' ') << "Sequence" << endl;
+					const SequencePackage &seq(dynamic_cast<const SequencePackage&>(package));
+					const vector<shared_ptr<Package> > &items(seq.get_packages());
+					for (vector<shared_ptr<Package> >::const_iterator i = items.begin(); i != items.end(); ++i)
+						print_result(**i, ind+2);
+				}
+				break;
+			case REF_PACKAGE:
+				cout << string(ind, ' ') << "ref(" << dynamic_cast<const RefPackage&>(package).get_val_value_id() << ")" << endl;
+				break;
+			case VARCHAR_PACKAGE:
+				cout << string(ind, ' ') << dynamic_cast<const VarcharPackage&>(package).get_val_value().to_string() << endl;
+				break;
+			case VOID_PACKAGE:
+				cout << string(ind, ' ') << "void" << endl;
+				break;
+			case SINT32_PACKAGE:
+				cout << string(ind, ' ') << dynamic_cast<const Sint32Package&>(package).get_val_value() << endl;
+				break;
+			case DOUBLE_PACKAGE:
+				cout << string(ind, ' ') << dynamic_cast<const DoublePackage&>(package).get_val_value() << endl;
+				break;
+			case BOOL_PACKAGE:
+				cout << string(ind, ' ') << dynamic_cast<const BoolPackage&>(package).get_val_value() << endl;
+				break;
+			case BINDING_PACKAGE:
+				{
+					const BindingPackage &bp(dynamic_cast<const BindingPackage&>(package));
+					cout << string(ind, ' ') << bp.get_val_binding_name().to_string() << "=>" << endl;
+					print_result(bp.get_val_value(), ind + 2);
+				}
+				break;
+			default:
+				cout << string(ind, ' ') << "Unknown data type" << endl;
+		}
+	}
+
+	string Client::get_hostname()
+	{
+		int size = 100;
+		char *buf = new char[size];
+		gethostname(buf, size);
+		buf[size - 1] = 0;
+		return string(buf);
+	}
+
+	void Client::authorize(Authenticator &auth)
+	{
+		{
+			auto_ptr<ByteBuffer> cl_name(new ByteBuffer("lsbql"));
+			//TODO, use autoconf
+			auto_ptr<ByteBuffer> cl_ver(new ByteBuffer("0.01"));
+			auto_ptr<ByteBuffer> cl_hname(new ByteBuffer(get_hostname()));
+			auto_ptr<ByteBuffer> cl_lang(new ByteBuffer("PL"));
+			WCHelloPackage hello(getpid(), cl_name, cl_ver, cl_hname, cl_lang, COLL_DEFAULT, 1);
+			stream->write_package(mask, shutting_down, hello);
+		}
+		auto_ptr<Package> hello = stream->read_package_expect(mask, shutting_down, W_S_HELLO_PACKAGE);
+
+		if (dynamic_cast<WSHelloPackage&>(*hello).get_val_auth_methods() & AM_TRUST)
+		{
+			auth_trust(auth.get_login());
+			return;
+		}
+
+		if (dynamic_cast<WSHelloPackage&>(*hello).get_val_auth_methods() & AM_MYSQL)
+		{
+			auth_pass_MySQL(auth.get_login(), auth.get_password());
+			return;
+		};
+		throw ProtocolLogic();
+	}
+
+
+
+
+	void Client::auth_trust(const string &user)
+	{
+		{
+			WCLoginPackage p(AM_TRUST);
+			stream->write_package(mask, shutting_down, p);
+		}
+		stream->read_package_expect(mask, shutting_down, A_SC_OK_PACKAGE);
+		{
+			auto_ptr<ByteBuffer> login(new ByteBuffer(user));
+			auto_ptr<ByteBuffer> passwd(new ByteBuffer(user));
+			WCPasswordPackage p(login, passwd);
+			stream->write_package(mask, shutting_down, p);
+		}
+		stream->read_package_expect(mask, shutting_down, W_S_AUTHORIZED_PACKAGE);
+	}
+
+
+	//Just a stub, it doesn't work
+	void Client::auth_pass_MySQL(const string &user, const string &passwd)
+	{
+		{
+			WCLoginPackage p(AM_MYSQL);
+			stream->write_package(mask, shutting_down, p);
+		}
+		stream->read_package_expect(mask, shutting_down, A_SC_OK_PACKAGE);
+		{
+			auto_ptr<ByteBuffer> login(new ByteBuffer(user));
+			auto_ptr<ByteBuffer> bpasswd(new ByteBuffer(passwd));
+			WCPasswordPackage p(login, bpasswd);
+			stream->write_package(mask, shutting_down, p);
+		}
+		stream->read_package_expect(mask, shutting_down, W_S_AUTHORIZED_PACKAGE);
+	}
 }
-
-//0 - successfuly received a result or an error report
-//-1 - received bye
-//-2 - received error report
-//>0 - error
-int Client::Client::receive_result(VSCSendValuePackage **res, ASCErrorPackage **err_res)
-{
-	Package *p, *p2;
-	p = proto->readPackage();
-	if (!p)
-		return EReceive;
-	if (p->getPackageType() == ID_ASCErrorPackage){
-		*err_res = (ASCErrorPackage*)p;
-		return -2;
-	}
-	if (p->getPackageType() == ID_ASCByePackage){
-		delete p;
-		return -1;
-	}
-	if (p->getPackageType() != ID_VSCSendValuesPackage){
-		delete p;
-		return EProtocol;
-	}
-	delete p;
-	
-	p = proto->readPackage();
-	if (!p)
-		return EReceive;
-	if (p->getPackageType() == ID_ASCByePackage){
-		delete p;
-		return -1;
-	}
-	if (p->getPackageType() != ID_VSCSendValuePackage){
-		delete p;
-		return EProtocol;
-	}
-	
-	p2 = proto->readPackage();
-	if (!p2){
-		delete p;
-		return EReceive;
-	}
-	if (p->getPackageType() == ID_ASCByePackage){
-		delete p;
-		delete p2;
-		return -1;
-	}
-	if (p2->getPackageType() != ID_VSCFinishedPackage){
-		delete p;
-		delete p2;
-		return EProtocol;
-	}
-	
-	delete p2;
-	*res = ((VSCSendValuePackage*)p);
-	return 0;
-}
-
-
-string Client::Client::ind_gen(int width)
-{
-    string res = "";
-    for (int i = 0; i < width; i++)
-	res += " ";
-    return res;
-}
-
-void Client::Client::print_result(DataPart *part, int indent)
-{
-	int cnt;
-	switch (part->getDataType()){
-	    case DATAPART_TYPE_BAG:
-		printf("%sBag\n", ind_gen(indent).c_str());
-		cnt = ((BagData*)part)->getCount();
-		for (int i = 0; i < cnt; i++)
-			print_result(((BagData*)part)->getDataParts()[i], indent + 2);
-		break;
-	    case DATAPART_TYPE_STRUCT:
-		printf("%sStruct\n", ind_gen(indent).c_str());
-		cnt = ((StructData*)part)->getCount();
-		for (int i = 0; i < cnt; i++)
-			print_result(((StructData*)part)->getDataParts()[i], indent + 2);
-		break;
-	    case DATAPART_TYPE_SEQUENCE:
-		printf("%sSequence\n", ind_gen(indent).c_str());
-		cnt = ((SequenceData*)part)->getCount();
-		for (int i = 0; i < cnt; i++)
-			print_result(((SequenceData*)part)->getDataParts()[i], indent + 2);
-		break;
-	    case DATAPART_TYPE_REFERENCE:
-		printf("%sref(%lld)\n", ind_gen(indent).c_str(), ((ReferenceData*)part)->getValue());
-		break;
-	    case DATAPART_TYPE_VARCHAR:
-		printf("%s%s\n", ind_gen(indent).c_str(), ((VarcharData*)part)->getValue()->getBuffor());
-		break;
-	    case DATAPART_TYPE_VOID:
-		printf("%svoid\n", ind_gen(indent).c_str());
-		break;
-	    case DATAPART_TYPE_SINT32:
-		printf("%s%d\n", ind_gen(indent).c_str(), ((Sint32Data*)part)->getValue());
-		break;
-	    case DATAPART_TYPE_DOUBLE:
-		printf("%s%0.14g\n", ind_gen(indent).c_str(), ((DoubleData*)part)->getValue());
-		break;
-	    case DATAPART_TYPE_BOOL:
-		printf("%s%s\n", ind_gen(indent).c_str(), (((BoolData*)part)->getValue()?"true":"false"));
-		break;
-	    case DATAPART_TYPE_BINDING:
-		printf("%s%s =>\n", ind_gen(indent).c_str(), ((BindingData*)part)->getBindingName()->getBuffor());
-		print_result(((BindingData*)part)->getDataPart(), indent+2);
-		break;
-	    default:
-		printf("Nieznany mi typ danych\n");
-	}
-}
-
-int Client::Client::authorize(Authenticator *auth)
-{
-	Package *p=new WCHelloPackage(getpid(),CLIENT_NAME,CLIENT_VERSION,"localhost","PLN",0,0);
-	if (!proto->writePackage(p))
-	{
-		printf("Hello nie posz�o\n");
-		delete p;
-		return -1;
-	};
-	delete p;
-	
-	p=proto->readPackage();
-	if (!p)
-	{
-		printf("Hello nie przysz�o\n");
-		delete p;
-		return -2;
-	}
-	
-	if (p->getPackageType()==ID_WSHelloPackage)
-	{
-		ws_hello=(WSHelloPackage*)p;			
-	}else
-	{
-		return -3;
-		delete p;
-	}
-	
-	if  (!p)
-		delete p;
-		
-	if (ws_hello->getAuthMethodsMap() && AUTH_TRUST)
-	{
-		int res=authTrust(new CharArray(strdup(auth->getLogin().c_str())));
-		return res;
-	};
-	
-	if (ws_hello->getAuthMethodsMap() && AUTH_PASS_MYSQL)
-	{
-		int res=authPassMySQL(
-		    new CharArray(strdup(auth->getLogin().c_str())), 
-		    new CharArray(strdup(auth->getPassword().c_str()))
-		);
-		return res;
-	};
-	
-	return 1;
-}
-
-
-
-
-int Client::Client::authTrust(CharArray* user)
-{
-	Package *p=new WCLoginPackage(AUTH_TRUST);
-	if (!proto->writePackage(p))
-	{
-		printf("Login: trust nie posz�o\n");
-		delete p;
-		return -1;
-	};
-	delete p;
-	
-	p=proto->readPackage();
-	if(!p)
-		return -2;
-		
-	if (p->getPackageType()!=ID_ASCOkPackage)
-	{
-		delete p;
-		return -3;
-	};
-	delete p;
-	
-	
-	p=new WCPasswordPackage(user,new CharArray(strdup("")));
-	if (!proto->writePackage(p))
-	{
-		printf("Login: trust nie posz�o\n");
-		delete p;
-		return -4;
-	};
-	delete p;
-	
-	p=proto->readPackage();
-	if(!p)
-		return -5;
-		
-	if (p->getPackageType()!=ID_WSAuthorizedPackage)
-	{
-		delete p;
-		return -6;
-	};
-	delete p;
-	
-	
-	return 1;
-};
-
-
-int Client::Client::authPassMySQL(CharArray* user, CharArray* pass)
-{
-	Package *p=new WCLoginPackage(AUTH_TRUST);
-	if (!proto->writePackage(p))
-	{
-		printf("Login: trust nie posz�o\n");
-		delete p;
-		return -1;
-	};
-	delete p;
-	
-	p=proto->readPackage();
-	if(!p)
-		return -2;
-		
-	if (p->getPackageType()!=ID_ASCOkPackage)
-	{
-		delete p;
-		return -3;
-	};
-	delete p;
-	
-	
-	p=new WCPasswordPackage(user, pass);
-	if (!proto->writePackage(p))
-	{
-		printf("Login: trust nie posz�o\n");
-		delete p;
-		return -4;
-	};
-	delete p;
-	
-	p=proto->readPackage();
-	if(!p)
-		return -5;
-		
-	if (p->getPackageType()!=ID_WSAuthorizedPackage)
-	{
-		delete p;
-		return -6;
-	};
-	delete p;
-	
-	
-	return 1;
-};
-
-void Client::Client::register_handler()
-{
-	struct sigaction s_action;
-	s_action.sa_handler = signal_handler;
-	s_action.sa_flags = 0;
-	s_action.sa_restorer = 0;
-	sigemptyset(&s_action.sa_mask);
-	sigaction(SIGINT, &s_action, &old_action);
-}
-
-void Client::Client::unregister_handler()
-{
-	sigaction(SIGINT, &old_action, NULL);
-}
-

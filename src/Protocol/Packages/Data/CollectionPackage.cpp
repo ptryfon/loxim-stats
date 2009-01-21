@@ -76,10 +76,11 @@ namespace Protocol {
 			res += DataStream::get_varuint_size(VarUint(packages[0]->get_type(), false));
 		else{
 			res += DataStream::get_varuint_size(VarUint(0, true));
-			for (vector<shared_ptr<Package> >::const_iterator i = packages.begin(); i != packages.end(); ++i){
+		}
+		for (vector<shared_ptr<Package> >::const_iterator i = packages.begin(); i != packages.end(); ++i){
+			if (!same_type)
 				res += DataStream::get_varuint_size(VarUint((*i)->get_type(), false));
-				res += (*i)->get_ser_size();
-			}
+			res += (*i)->get_ser_size();
 		}
 		return res;
 	}

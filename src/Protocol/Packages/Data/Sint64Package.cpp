@@ -13,6 +13,7 @@ using namespace std;
 namespace Protocol {
 	Sint64Package::Sint64Package(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream):
 
+
 		value(stream.read_int64(mask, cancel, length))
 	{
 	}
@@ -47,7 +48,7 @@ namespace Protocol {
 
 	size_t Sint64Package::get_ser_size() const
 	{
-		return 0 + 4;
+		return 0 + 8;
 	}
 
 	int64_t Sint64Package::get_val_value() const

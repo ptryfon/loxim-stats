@@ -3,6 +3,8 @@
 #include <math.h>
 #include <sstream>
 #include <signal.h>
+#include <Util/Locker.h>
+#include <Util/smartptr.h>
 #include <AdminParser/AdminExecutor.h>
 #include <Errors/Errors.h>
 #include <Errors/Exceptions.h>
@@ -10,98 +12,70 @@
 #include <SystemStats/SessionStats.h>
 #include <Server/SignalRouter.h>
 #include <Server/Session.h>
-#include <Util/Locker.h>
-#include <protocol/constants.h>
-#include <protocol/auth/auth.h>
-#include <protocol/ptools/Package.h>
-#include <protocol/packages/WCHelloPackage.h>
-#include <protocol/packages/WSHelloPackage.h>
-#include <protocol/packages/WCLoginPackage.h>
-#include <protocol/packages/WCPasswordPackage.h>
-#include <protocol/packages/ASCOkPackage.h>
-#include <protocol/packages/WSAuthorizedPackage.h>
-#include <protocol/packages/VSCSendValuesPackage.h>
-#include <protocol/packages/VSCSendValuePackage.h>
-#include <protocol/packages/VSCFinishedPackage.h>
-#include <protocol/packages/VSCAbortPackage.h>
-#include <protocol/packages/QCStatementPackage.h>
-#include <protocol/packages/ASCSetOptPackage.h>
-#include <protocol/packages/ASCErrorPackage.h>
-#include <protocol/packages/ASCPingPackage.h>
-#include <protocol/packages/ASCByePackage.h>
-#include <protocol/packages/ASCPongPackage.h>
-#include <protocol/packages/QCExecutePackage.h>
-#include <protocol/packages/QSExecutingPackage.h>
-#include <protocol/packages/data/BagData.h>
-#include <protocol/packages/data/SequenceData.h>
-#include <protocol/packages/data/ReferenceData.h>
-#include <protocol/packages/data/VarcharData.h>
-#include <protocol/packages/data/VOIDData.h>
-#include <protocol/packages/data/Sint32Data.h>
-#include <protocol/packages/data/DoubleData.h>
-#include <protocol/packages/data/BoolData.h>
-#include <protocol/packages/data/BindingData.h>
-#include <protocol/packages/data/DataPart.h>
-#include <protocol/packages/data/StructData.h>
+#include <Protocol/Enums/Enums.h>
+#include <Protocol/Streams/PackageStream.h>
+#include <Protocol/Packages/ASCByePackage.h>
+#include <Protocol/Packages/ASCErrorPackage.h>
+#include <Protocol/Packages/ASCOkPackage.h>
+#include <Protocol/Packages/ASCPingPackage.h>
+#include <Protocol/Packages/ASCPongPackage.h>
+#include <Protocol/Packages/ASCSetoptPackage.h>
+#include <Protocol/Packages/QCExecutePackage.h>
+#include <Protocol/Packages/QCStatementPackage.h>
+#include <Protocol/Packages/VSCAbortPackage.h>
+#include <Protocol/Packages/VSCFinishedPackage.h>
+#include <Protocol/Packages/VSCSendvaluePackage.h>
+#include <Protocol/Packages/VSCSendvaluesPackage.h>
+#include <Protocol/Packages/WCHelloPackage.h>
+#include <Protocol/Packages/WCLoginPackage.h>
+#include <Protocol/Packages/WCPasswordPackage.h>
+#include <Protocol/Packages/WSAuthorizedPackage.h>
+#include <Protocol/Packages/WSHelloPackage.h>
+#include <Protocol/Packages/Data/BagPackage.h>
+#include <Protocol/Packages/Data/BindingPackage.h>
+#include <Protocol/Packages/Data/BoolPackage.h>
+#include <Protocol/Packages/Data/DoublePackage.h>
+#include <Protocol/Packages/Data/RefPackage.h>
+#include <Protocol/Packages/Data/SequencePackage.h>
+#include <Protocol/Packages/Data/Sint32Package.h>
+#include <Protocol/Packages/Data/StructPackage.h>
+#include <Protocol/Packages/Data/VarcharPackage.h>
+#include <Protocol/Packages/Data/VoidPackage.h>
 
 using namespace std;
+using namespace _smptr;
 using namespace SystemStatsLib;
 using namespace Util;
+using namespace Protocol;
 
 namespace Server{
 
-
-	ProtocolLayerWrap::ProtocolLayerWrap(ProtocolLayer0 &layer0) : layer0(layer0)
-	{
-	}
-
-	auto_ptr<Package> ProtocolLayerWrap::read_package(int type)
-	{
-		auto_ptr<Package> package(layer0.readPackage());
-		if (!package.get())
-			throw LoximException(EReceive);
-		if (type && package->getPackageType() != type)
-			throw LoximException(EProtocol);
-		return package;
-	}
-
-	auto_ptr<Package> ProtocolLayerWrap::read_package(sigset_t &sig, int *cancel)
-	{
-		auto_ptr<Package> package(layer0.readPackage(&sig, cancel));
-		if (!package.get())
-			throw LoximException(EReceive);
-		return package;
-	}
-
-	void ProtocolLayerWrap::write_package(const Package &package)
-	{
-		if (!layer0.writePackage(const_cast<Package*>(&package)))
-			throw LoximException(ESend);
-	}
-
-
 	void *thread_start_continue(void *arg)
 	{
-		((Session*)arg)->main_loop();
+		reinterpret_cast<Session*>(arg)->main_loop();
 		return 0;
 	}
 
 	void LS_signal_handler(pthread_t thread, int sig, void* arg)
 	{
-		((Session*)arg)->handle_signal(sig);
+		reinterpret_cast<Session*>(arg)->handle_signal(sig);
 	}
 
 
-	Session::Session(Server &server, auto_ptr<AbstractSocket>
-			&socket, ErrorConsole &err_cons) :
-		server(server), socket(socket), err_cons(err_cons),
+	Session::Session(Server &server, auto_ptr<PackageStream>
+			stream) :
+		server(server), stream(stream),
+		err_cons(ErrorConsole::get_instance(EC_SERVER)),
 		id(get_new_id()), shutting_down(false), error(0), qEx(this),
-		KAthread(*this, err_cons), worker(*this,
-		err_cons), bare_layer0(this->socket.get()), layer0(bare_layer0)
+		KAthread(*this), worker(*this)
 	{
 		pthread_mutex_init(&send_mutex, 0);
 		for (int i = 0; i < 20; i++)
 			salt[i] = (char)(rand()%256-128);
+
+		pthread_sigmask(0, NULL, &mask);
+		sigaddset(&mask, SIGUSR1);
+
 		stats.setId(this->id);
 
 		/* Utworzenie numeru sesji */
@@ -197,128 +171,135 @@ namespace Server{
 	}
 
 
-	/**
-	 * Pretty ugly, isn't it? ;) Will be rewritten when new protocol is
-	 * plugged.
-	 */
-	DataPart *Session::serialize_res(const QueryResult &qr) const
+	auto_ptr<Package> Session::serialize_res(QueryResult &qr) const
 	{
-		DataPart **dparts, *dp;
-		QueryBinderResult *qbr;
 		switch (qr.type()) {
 			case QueryResult::QBAG:
-				dparts = new DataPart*[qr.size()];
-				for (unsigned int i = 0; i < qr.size(); i++){
-					QueryResult *iQ;
-					((QueryBagResult*)&qr)->at(i, iQ);
-					dparts[i] = serialize_res(*iQ);
+				{
+					auto_ptr<CollectionPackage> res(new BagPackage());
+					for (unsigned int i = 0; i < qr.size(); i++){
+						QueryResult *iQ;
+						dynamic_cast<QueryBagResult&>(qr).at(i, iQ);
+						res->push_back(serialize_res(*iQ));
+					}
+					return auto_ptr<Package>(res);
 				}
-				return new BagData(qr.size(), dparts);
 			case QueryResult::QSEQUENCE:
-				dparts = new DataPart*[qr.size()];
-				for (unsigned int i = 0; i < qr.size(); i++){
-					QueryResult *iQ;
-					((QuerySequenceResult*)&qr)->at(i, iQ);
-					dparts[i] = serialize_res(*iQ);
+				{
+					auto_ptr<CollectionPackage> res(new SequencePackage());
+					for (unsigned int i = 0; i < qr.size(); i++){
+						QueryResult *iQ;
+						dynamic_cast<QuerySequenceResult&>(qr).at(i, iQ);
+						res->push_back(serialize_res(*iQ));
+					}
+					return auto_ptr<Package>(res);
 				}
-				return new SequenceData(qr.size(), dparts);
 			case QueryResult::QSTRUCT:
-				dparts = new DataPart*[qr.size()];
-				for (unsigned int i = 0; i < qr.size(); i++){
-					QueryResult *iQ;
-					((QueryStructResult*)&qr)->at(i, iQ);
-					dparts[i] = serialize_res(*iQ);
+				{
+					auto_ptr<CollectionPackage> res(new StructPackage());
+					for (unsigned int i = 0; i < qr.size(); i++){
+						QueryResult *iQ;
+						dynamic_cast<QueryStructResult&>(qr).at(i, iQ);
+						res->push_back(serialize_res(*iQ));
+					}
+					return auto_ptr<Package>(res);
 				}
-				return new StructData(qr.size(), dparts);
 			case QueryResult::QREFERENCE:
-				return new
-					ReferenceData(
-							((QueryReferenceResult*)&qr)->getValue()->toInteger());
+				return auto_ptr<Package>(new RefPackage(dynamic_cast<QueryReferenceResult&>(qr).getValue()->toInteger()));
 			case QueryResult::QSTRING:
-				return new VarcharData(
-						strdup(((QueryStringResult *)&qr)->getValue().c_str()));
+				{
+					auto_ptr<ByteBuffer> buffer(new ByteBuffer(dynamic_cast<QueryStringResult&>(qr).getValue()));
+					return auto_ptr<Package>(new VarcharPackage(buffer));
+				}
 			case QueryResult::QRESULT:
-				return 0; //O co chodzi???!!!
+				throw runtime_error("unimplemented");
 			case QueryResult::QNOTHING:
-				return new VOIDData();
+				return auto_ptr<Package>(new VoidPackage());
 			case QueryResult::QINT:
-				return new Sint32Data(((QueryIntResult *)&qr)->getValue());
+				return auto_ptr<Package>(new Sint32Package(dynamic_cast<QueryIntResult&>(qr).getValue()));
 			case QueryResult::QDOUBLE:
-				return new DoubleData(((QueryDoubleResult*)&qr)->getValue());
+				return auto_ptr<Package>(new DoublePackage(dynamic_cast<QueryDoubleResult&>(qr).getValue()));
 			case QueryResult::QBOOL:
-				return new BoolData(((QueryBoolResult*)&qr)->getValue());
+				return auto_ptr<Package>(new BoolPackage(dynamic_cast<QueryBoolResult&>(qr).getValue()));
 			case QueryResult::QBINDER:
-				qbr = (QueryBinderResult *) &qr;
-				dp = serialize_res(*qbr->getItem());
-				return new BindingData(new
-						CharArray(strdup((qbr->getName().c_str()))),
-						dp->getDataType(), dp);
+				{
+					QueryBinderResult &qbr(dynamic_cast<QueryBinderResult&>
+							(qr));
+					auto_ptr<ByteBuffer> buffer(new ByteBuffer(qbr.getName()));
+					return auto_ptr<Package>(new BindingPackage(buffer, serialize_res(*qbr.getItem())));
+				}
 			default:
-				error_print(err_cons, "Unknown type");
-					return 0; //TODO ERROR
-				break;
+				throw runtime_error("unimplemented");
 		}
-		return 0;
 	}
 
 
-	void Session::respond(auto_ptr<DataPart> &qres)
+	void Session::respond(auto_ptr<Package> qres)
 	{
 		Locker l(send_mutex);
-		layer0.write_package(VSCSendValuesPackage());
+		stream->write_package(mask, shutting_down, VSCSendvaluesPackage(VarUint(0, false), VarUint(0, false), VarUint(0, false), VarUint(0, false)));
 		debug_print(err_cons, "SendValues sent");
-		layer0.write_package(VSCSendValuePackage(0, 0, qres.get())); 
+		VSCSendvaluePackage val(VarUint(0, false), 0, qres);
+		stream->write_package(mask, shutting_down, val); 
 		debug_print(err_cons, "Sent query result");
-		layer0.write_package(VSCFinishedPackage());
+		stream->write_package(mask, shutting_down, VSCFinishedPackage());
 		debug_print(err_cons, "Sending values finished");
 	}
 
 	void Session::send_bye()
 	{
 		Locker l(send_mutex);
-		layer0.write_package(ASCByePackage("bye from server"));
+		auto_ptr<ByteBuffer> buffer(new ByteBuffer("bye from server"));
+		ASCByePackage p(0, buffer);
+		stream->write_package(mask, shutting_down, p);
 	}
 
 	void Session::send_ping()
 	{
 		Locker l(send_mutex);
-		layer0.write_package(ASCPingPackage());
+		stream->write_package(mask, shutting_down, ASCPingPackage());
 	}
 
 	void Session::send_error(int error, const string &descr)
 	{
 		Locker l(send_mutex);
-		
-		layer0.write_package(ASCErrorPackage(error, 0, true, new
-					CharArray(strdup(descr.c_str())), 0,
-					0));
+		auto_ptr<ByteBuffer> b(new ByteBuffer(descr));
+		ASCErrorPackage p(error, VarUint(0, false), b, 0, 0);
+		stream->write_package(mask, shutting_down, p);
 	}
 
 	void Session::send_error(int error)
 	{
-		return send_error(error, Errors::SBQLstrerror(error));
+		return send_error(error, ::Errors::SBQLstrerror(error));
 	}
 
 	bool Session::init_phase()
 	{
-		layer0.read_package(ID_WCHelloPackage);
+		stream->read_package_expect(mask, shutting_down, W_C_HELLO_PACKAGE);
 		debug_print(err_cons, "Got WCHELLO");
-		layer0.write_package(WSHelloPackage(PROTO_VERSION_MAJOR, PROTO_VERSION_MINOR,
-				LOXIM_VERSION_MAJOR, LOXIM_VERSION_MINOR,
-				get_server().get_config_max_package_size(), 0,
-				AUTH_TRUST | AUTH_PASS_MYSQL, salt));
-		debug_print(err_cons, "WSHELLO sent");
-		layer0.read_package(ID_WCLoginPackage);
+		{
+			auto_ptr<ByteBuffer> buf(new ByteBuffer(salt));
+			WSHelloPackage p(0, 0, 0, 0,
+					get_server().get_config_max_package_size(),
+					0, AM_TRUST, buf);
+			stream->write_package(mask, shutting_down, p);
+			debug_print(err_cons, "WSHELLO sent");
+		}
+		stream->read_package_expect(mask, shutting_down, W_C_LOGIN_PACKAGE);
 		debug_print(err_cons, "Got WCLOGIN");
-		layer0.write_package(ASCOkPackage());
-		debug_print(err_cons, "ASCOK sent");
+		{
+			ASCOkPackage p;
+			stream->write_package(mask, shutting_down, p);
+			debug_print(err_cons, "ASCOK sent");
+		}
 
-		auto_ptr<Package> package(layer0.read_package(ID_WCPasswordPackage));
+		auto_ptr<Package> package(stream->read_package_expect(mask, shutting_down, W_C_PASSWORD_PACKAGE));
 		debug_printf(err_cons, "Got login: %s",
-				((WCPasswordPackage*)(package.get()))->getLogin()->getBuffor());
-		if (authorize(((WCPasswordPackage*)(package.get()))->getLogin()->getBuffor(),
-					((WCPasswordPackage*)(package.get()))->getPassword()->getBuffor())){
-			layer0.write_package(WSAuthorizedPackage());
+				dynamic_cast<WCPasswordPackage&>(*package).get_val_login().to_string().c_str());
+		if (authorize(dynamic_cast<WCPasswordPackage&>(*package).get_val_login().to_string(),
+					dynamic_cast<WCPasswordPackage&>(*package).get_val_password().to_string())){
+			WSAuthorizedPackage ap;
+			stream->write_package(mask, shutting_down, ap);
 			debug_print(err_cons, "WSAUTHORIZED sent");
 			return true;
 		} else {
@@ -339,7 +320,7 @@ namespace Server{
 			if (qres->type() != QueryResult::QBOOL)
 				return false;
 			else
-				correct = ((QueryBoolResult*)qres.get())->getValue();
+				correct = (dynamic_cast<QueryBoolResult&>(*qres)).getValue();
 			execute_statement("end");
 			if (correct) {
 				stats.setUserLogin(login);
@@ -354,11 +335,8 @@ namespace Server{
 	{
 
 		debug_print(err_cons, "In free state :)");
-		sigset_t sigmask;
-		pthread_sigmask(0, NULL, &sigmask);
-		sigaddset(&sigmask, SIGUSR1);
 		while (!shutting_down){
-			auto_ptr<Package> package = layer0.read_package(sigmask, &shutting_down);
+			auto_ptr<Package> package = stream->read_package(mask, shutting_down);
 			KAthread.set_answered();
 			worker.submit(package);
 		}
@@ -465,8 +443,10 @@ namespace Server{
 		return NULL;
 	}
 
-	Worker::Worker(Session &session, ErrorConsole &err_cons) :
-		session(session), err_cons(err_cons), shutting_down(0),
+	Worker::Worker(Session &session) :
+		session(session),
+		err_cons(ErrorConsole::get_instance(EC_SERVER)),
+		shutting_down(0),
 		thread(0)
 	{
 		pthread_mutex_init(&mutex, 0);
@@ -541,9 +521,10 @@ namespace Server{
 			return;
 		shutting_down = 1;
 		cancel_job(false, false);
-		pthread_mutex_lock(&mutex);
-		pthread_cond_signal(&idle_cond);
-		pthread_mutex_unlock(&mutex);
+		{
+			Locker l(mutex);
+			pthread_cond_signal(&idle_cond);
+		}
 		pthread_join(thread, NULL);
 		thread = 0;
 	}
@@ -552,15 +533,15 @@ namespace Server{
 	 * This can actually be tweaked as not everything needs to between lock
 	 * and unlock
 	 */
-	void Worker::submit(auto_ptr<Package> &package)
+	void Worker::submit(auto_ptr<Package> package)
 	{
 		Locker l(mutex);
 		aborting = false;
-		if (package->getPackageType() == ID_ASCPongPackage){
+		if (package->get_type() == A_SC_PONG_PACKAGE){
 			return;
 		}
 
-		if (package->getPackageType() == ID_VSCAbortPackage){
+		if (package->get_type() == V_SC_ABORT_PACKAGE){
 			if (cur_package.get()){
 				aborting = true;
 				cancel_job(true, true);
@@ -569,7 +550,7 @@ namespace Server{
 			cur_package.reset();
 			/* 
 			 * ignore aborts when they are inappropriate, because
-			 * thay may be simply late
+			 * they may be simply late
 			 */
 			return;
 		}
@@ -581,7 +562,7 @@ namespace Server{
 			throw LoximException(EProtocol);
 		}
 		//no package is being worked on
-		if (package->getPackageType() == ID_ASCByePackage){
+		if (package->get_type() == A_SC_BYE_PACKAGE){
 			info_print(err_cons, "Client closed connection");
 			session.shutdown(0);
 			return;
@@ -596,14 +577,14 @@ namespace Server{
 
 	void Worker::process_package(shared_ptr<Package> &package)
 	{
-		switch (package->getPackageType()){
-			case ID_VSCSendValuesPackage :
+		switch (package->get_type()){
+			case V_SC_SENDVALUES_PACKAGE :
 				warning_print(err_cons, "Got VSCSendValues - ignoring");
 				break;
-			case ID_QCStatementPackage:{
+			case Q_C_STATEMENT_PACKAGE:{
 				shared_ptr<QCStatementPackage>
 					stmt_pkg = dynamic_pointer_cast<QCStatementPackage>(package);
-				if (stmt_pkg->getFlags() & STATEMENT_FLAG_EXECUTE){
+				if (stmt_pkg->get_val_flags() & SF_EXECUTE){
 					debug_print(err_cons, "Got SCStatement - executing");
 					auto_ptr<QueryResult> qres;
 					/* We've got a very poor error design, so
@@ -616,18 +597,14 @@ namespace Server{
 					 */
 					try{
 						qres = auto_ptr<QueryResult>
-							(session.execute_statement(stmt_pkg->getStatement()->getBuffor()));
+							(session.execute_statement(stmt_pkg->get_val_statement().to_string()));
 					} catch (LoximException &ex) {
 						if (!aborting)
 							session.send_error(ex.get_error());
 						return;
 					} 
-					auto_ptr<DataPart> sres(session.serialize_res(*qres));
+					auto_ptr<Package> sres(session.serialize_res(*qres));
 					session.respond(sres);
-					//a temporary hack due to destruction of
-					//the serialized result in packages
-					//destructor
-					sres.release();
 					return;
 				} else {
 					warning_print(err_cons, "Got SCStatement - ignoring");
@@ -635,10 +612,10 @@ namespace Server{
 				}
 				break;
 			}
-			case ID_ASCSetOptPackage:
+			case A_SC_SETOPT_PACKAGE:
 				warning_print(err_cons, "SCSetOpt - ignoring");
 				break;
-			case ID_QCExecutePackage:
+			case Q_C_EXECUTE_PACKAGE:
 				warning_print(err_cons, "Got SCExecute - ignoring");
 				break;
 				/* 
@@ -648,8 +625,8 @@ namespace Server{
 				 * the protocol thread
 				 */
 			default: 
-				warning_printf(err_cons, "Unexpected package of type %d",
-						package->getPackageType());
+				warning_printf(err_cons, "Unexpected package of type %llu",
+						package->get_type());
 				throw LoximException(EProtocol);
 			
 		}
@@ -661,8 +638,9 @@ namespace Server{
 		return NULL;
 	}
 
-	KeepAliveThread::KeepAliveThread(Session &session, ErrorConsole &err_cons) :
-		session(session), err_cons(err_cons), thread(0)
+	KeepAliveThread::KeepAliveThread(Session &session) :
+		session(session),
+		err_cons(ErrorConsole::get_instance(EC_SERVER)), thread(0)
 	{
 		pthread_mutex_init(&(this->cond_mutex), 0);
 		pthread_cond_init(&(this->cond), 0);

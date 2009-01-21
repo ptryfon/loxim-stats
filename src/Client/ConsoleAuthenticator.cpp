@@ -39,36 +39,20 @@ namespace Client{
 		}
 	}
 
-	ConsoleAuthenticator::ConsoleAuthenticator()
+	ConsoleAuthenticator::ConsoleAuthenticator() :
+		ask(ASK_FOR_BOTH)
 	{
-		ask = ASK_FOR_BOTH;
 	}
 
 	
-	ConsoleAuthenticator::ConsoleAuthenticator(const string &login, const string &password)
+	ConsoleAuthenticator::ConsoleAuthenticator(const string &login, const string &password) :
+		login(login), password(password), ask(0)
 	{
-		this->login = login;
-		this->password = password;
-		ask = 0;
 	}
 	
-	ConsoleAuthenticator::ConsoleAuthenticator(const string &login)
+	ConsoleAuthenticator::ConsoleAuthenticator(const string &login) :
+		login(login), ask(ASK_FOR_PASSWORD)
 	{
-		ask = ASK_FOR_PASSWORD;
-		this->login = login;
-	}
-
-	ConsoleAuthenticator::ConsoleAuthenticator(const char *login, const char *password)
-	{
-		this->login = string(login);
-		this->password = string(password);
-		ask = 0;
-	}
-
-	ConsoleAuthenticator::ConsoleAuthenticator(const char *login)
-	{
-		this->login = string(login);
-		ask = ASK_FOR_PASSWORD;
 	}
 
 	
@@ -79,12 +63,12 @@ namespace Client{
 	}
 	
 	
-	string ConsoleAuthenticator::getLogin()
+	string ConsoleAuthenticator::get_login()
 	{
 		return login;
 	}
 	
-	string ConsoleAuthenticator::getPassword()
+	string ConsoleAuthenticator::get_password()
 	{
 		return password;
 	}

@@ -3,13 +3,11 @@
 
 #include <string>
 
-using namespace std;
-
 namespace Client{
 	class StatementProvider{
 	    public:
 		StatementProvider();
-		virtual string read_stmt() = 0;
+		virtual std::string read_stmt() = 0;
 		virtual ~StatementProvider();
 		
 	};

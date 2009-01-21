@@ -1,10 +1,12 @@
-#include <Client/ClientConsole.h>
-#include <stdio.h>
-#include <readline/readline.h>
-#include <readline/history.h>
 #include <errno.h>
 #include <string.h>
 #include <cstdlib>
+#include <iostream>
+
+#include <readline/readline.h>
+#include <readline/history.h>
+
+#include <Client/ClientConsole.h>
 
 using namespace std;
 
@@ -13,247 +15,220 @@ using namespace std;
 #define HELP_REGEX "^\\$help$"
 #define FILE_REGEX "^\\$file[[:space:]]+[^[:space:]]+.*"
 
+namespace Client{
 
-void Client::ClientConsole::regex_init()
-{
-	regcomp(&dot_mode_regex, DOT_MODE_REGEX, REG_EXTENDED);
-	regcomp(&slash_mode_regex, SLASH_MODE_REGEX, REG_EXTENDED);
-	regcomp(&ext_file_regex, FILE_REGEX, REG_EXTENDED);
-	regcomp(&help_regex, HELP_REGEX, REG_EXTENDED);
-}
 
-Client::ClientConsole::ClientConsole(int mode, FILE *file)
-{
-	this->mode = mode;
-	regex_init();
-	this->file = file;
-}
+	void ClientConsole::regex_init()
+	{
+		::regcomp(&dot_mode_regex, DOT_MODE_REGEX, REG_EXTENDED);
+		::regcomp(&slash_mode_regex, SLASH_MODE_REGEX, REG_EXTENDED);
+		::regcomp(&ext_file_regex, FILE_REGEX, REG_EXTENDED);
+		::regcomp(&help_regex, HELP_REGEX, REG_EXTENDED);
+	}
 
-Client::ClientConsole::ClientConsole(int mode)
-{
-	this->mode = mode;
-	regex_init();
-	file = 0;
-}
+	ClientConsole::ClientConsole(int mode, auto_ptr<ifstream> file) :
+		mode(mode), file(file)
+	{
+		regex_init();
+	}
 
-Client::ClientConsole::ClientConsole()
-{
-	this->mode = CC_SLASH;
-	regex_init();
-	file = 0;
-}
+	ClientConsole::ClientConsole(int mode) :
+		mode(mode)
+	{
+		regex_init();
+	}
 
-char *Client::ClientConsole::line_provider(const char *prompt)
-{
-	char *line = 0;
-	size_t len;
-	if (file){
-		if ((getline(&line, &len, file) == -1) || !line){
-			fclose(file);
-			file = 0;
-			return line_provider(prompt);
-		} else {
-			if (feof(file)){
-				fclose(file);
-				file = 0;
+	ClientConsole::ClientConsole() :
+		mode(CC_SLASH)
+	{
+		regex_init();
+	}
+
+	string ClientConsole::line_provider(const string &prompt)
+	{
+		if (file.get()){
+			string res;
+			getline(*file, res);
+			if (file->fail()){
+				file.reset();
+				return line_provider(prompt);
 			}
-			len = strlen(line);
-			if (len > 0 && line[len - 1] == '\n')
-				line[len - 1] = 0;
-			return line;
+			if (file->eof())
+				file.reset();
+			return res;
 		}
-	}
-	else {
-		line = readline(prompt);
-		if (line)
-			add_history(line);
-		return line;
-	}
-}
-
-string Client::ClientConsole::read_slash()
-{
-	string stmt;
-	char *line;
-	line = line_provider(" > ");
-	if (!line)
-		return "quit";
-	while (strcmp(line, "/")){
-		if (strcmp(stmt.c_str(), ""))
-			stmt += "\n";
-		//strange, but the old client used to do this
-		if (line[0] != '-' || line[1] != '-')
-			stmt += string(line);
-		if (!strcmp(stmt.c_str(), "quit"))
-			return stmt;
-		if (is_meta_stmt(stmt))
-			return stmt;
-		if (is_admin_stmt(stmt))
-			return stmt;
-		free(line);
-		line = line_provider(" \\ ");
-		if (!line)
-			return "quit";
-	}
-	free(line);
-	return stmt;
-}
-
-
-void Client::ClientConsole::open_file(const char *filename)
-{
-	int len = strlen(filename);
-	int i, j, k;
-	bool escaped;
-	char *fname = (char*)malloc(len);
-	if (!fname){
-		printf("Out of memory\n");
-		return;
-	}
-		
-	//unescape
-	escaped = false;
-	j = 0;
-	for (i = 0; i < len; i++){
-		if (escaped){
-			//TODO do some checking
-			fname[j] = filename[i];
-			j++;
-			escaped = false;
-
-		} else {
-			switch (filename[i]){
-				case '\\': 
-					escaped = true;
-					break;
-				case ' ':
-					//it's ok if there are only spaces after it - we ignore them
-					for (k = i + 1; k < len; k++)
-						if (!isspace(filename[k])){
-							printf("File name contains unescaped spaces\n");
-							free(fname);
-							return;
-						}
-					break;
-				default:
-					fname[j] = filename[i];
-					j++;
-					break;
-			}
-		}
-	}
-	fname[j] = 0;
-	file = fopen(fname, "r");
-	if (!file){
-		printf("Error opening file: %s\n", strerror(errno));
-	}
-	free(fname);
-			
-}
-
-
-void Client::ClientConsole::execute_meta_stmt(string stmt)
-{
-	if (!regexec(&dot_mode_regex, stmt.c_str(), 0, 0, 0)){
-		printf("Switching to dot mode\n");
-		mode = CC_DOT;
-		return;
-	}
-	if (!regexec(&slash_mode_regex, stmt.c_str(), 0, 0, 0)){
-		printf("Switching to slash mode\n");
-		mode = CC_SLASH;
-		return;
-	}
-	if (!regexec(&ext_file_regex, stmt.c_str(), 0, 0, 0)){
-		const char *buf = stmt.c_str();
-		while (!isspace(*buf))
-			buf++;
-		while (isspace(*buf))
-			buf++;
-		open_file(buf);
-		return;
-	}
-	if (!regexec(&help_regex, stmt.c_str(), 0, 0, 0)){
-		printf("Available client commands:\n");
-		printf("$set mode (dot|slash)  - change the input mode\n");
-		printf("$dot                   - same as $set mode dot\n");
-		printf("$slash                 - same as $set mode slash\n");
-		printf("$file <file>           - load an external file <file>. It will be interpeted in current mode.\n");
-		printf("                         Spaces should be escaped with \\\n");
-		printf("quit                   - close the session\n");
-		printf("$help                  - this help\n");
-		return;
-	}
-	printf("Invalid meta command\n");
-}
-
-bool Client::ClientConsole::is_meta_stmt(string stmt)
-{
-	return stmt.c_str()[0] == '$';
-}
-
-bool Client::ClientConsole::is_admin_stmt(string stmt)
-{
-	return stmt.c_str()[0] == '#';
-}
-
-bool Client::ClientConsole::line_empty(char *buf)
-{
-	while (*buf)
-		if (!isspace(*buf))
-			return false;
-		else
-			buf++;
-	return true;
-}
-
-
-string Client::ClientConsole::read_dot()
-{	
-	string stmt;
-	char *line;
-	line = line_provider(" > ");
-	if (!line)
-		return "quit";
-	if (!strcmp(line, ".")){
-		do {
-			free(line);
-			line = line_provider(" \\ ");
+		else {
+			char *line = readline(prompt.c_str());
+			if (line)
+				add_history(line);
 			if (!line)
 				return "quit";
-			if (strcmp(stmt.c_str(), ""))
+			string res(line);
+			free(line);
+			return res;
+		}
+	}
+
+	string ClientConsole::read_slash()
+	{
+		string stmt;
+		string line = line_provider(" > ");
+		while (line.compare("/")){
+			if (stmt.size() != 0)
 				stmt += "\n";
 			//strange, but the old client used to do this
-			if (strcmp(line, "/") && (line[0] != '-' || line[1] != '-'))
-				stmt += string(line);
-		} while (strcmp(line, "/"));
-		free(line);
-	} else {
-		while (line_empty(line)){
-			free(line);
-			line = line_provider(" > ");
+			if ((line.size() > 0 && line[0] != '-') || (line.size() > 1 && line[1] != '-'))
+				stmt += line;
+			if (!stmt.compare("quit"))
+				return stmt;
+			if (is_meta_stmt(stmt))
+				return stmt;
+			if (is_admin_stmt(stmt))
+				return stmt;
+			line = line_provider(" \\ ");
 		}
-		stmt = string(line);
-		free(line);
+		return stmt;
 	}
-	return stmt;
-}
 
-string Client::ClientConsole::read_stmt()
-{
-	string cmd;
-	do {
-	if (mode == CC_DOT)
-		cmd = read_dot();
-	else
-		cmd = read_slash();
-	if (is_meta_stmt(cmd))
-		execute_meta_stmt(cmd);
-	} while (is_meta_stmt(cmd));
-	return cmd;
-}
 
-Client::ClientConsole::~ClientConsole()
-{
-}
+	void ClientConsole::open_file(const string &filename)
+	{
+		//unescape
+		bool escaped = false;
+		string fname;
+		for (size_t i = 0; i < filename.length(); i++){
+			if (escaped){
+				//TODO do some checking
+				fname += filename[i];
+				escaped = false;
+			} else {
+				switch (filename[i]){
+					case '\\': 
+						escaped = true;
+						break;
+					case ' ':
+						//it's ok if there are only spaces after it - we ignore them
+						for (size_t k = i + 1; k < filename.length(); k++)
+							if (!isspace(filename[k])){
+								cout << "File name contains unescaped spaces, not opened." << endl;
+								return;
+							}
+						file = auto_ptr<ifstream>(new ifstream(fname.c_str()));
+						if (!file->is_open()){
+							cout << "Error opening file" << endl;
+							file.reset();
+						}
+						return;
+					default:
+						fname += filename[i];
+						break;
+				}
+			}
+		}
+		file = auto_ptr<ifstream>(new ifstream(fname.c_str()));
+		if (!file->is_open()){
+			cout << "Error opening file" << endl;
+			file.reset();
+		}
+	}
 
+
+	void ClientConsole::execute_meta_stmt(const string &stmt)
+	{
+		if (!regexec(&dot_mode_regex, stmt.c_str(), 0, 0, 0)){
+			printf("Switching to dot mode\n");
+			mode = CC_DOT;
+			return;
+		}
+		if (!regexec(&slash_mode_regex, stmt.c_str(), 0, 0, 0)){
+			printf("Switching to slash mode\n");
+			mode = CC_SLASH;
+			return;
+		}
+		if (!regexec(&ext_file_regex, stmt.c_str(), 0, 0, 0)){
+			
+			string::const_iterator i = stmt.begin();
+			while (!isspace(*i))
+				i++;
+			while (isspace(*i))
+				i++;
+			open_file(string(i, stmt.end()));
+			return;
+		}
+		if (!regexec(&help_regex, stmt.c_str(), 0, 0, 0)){
+			cout << "Available client commands:" << endl;
+			cout << "$set mode (dot|slash)  - change the input mode" << endl;
+			cout << "$dot                   - same as $set mode dot" << endl;
+			cout << "$slash                 - same as $set mode slash" << endl;
+			cout << "$file <file>           - load an external file <file>. It will be interpeted in current mode." << endl;
+			cout << "                         Spaces should be escaped with \\" << endl;
+			cout << "quit                   - close the session" << endl;
+			cout << "$help                  - this help" << endl;
+			return;
+		}
+		cout << "Invalid meta command" << endl;
+	}
+
+	bool ClientConsole::is_meta_stmt(const string &stmt)
+	{
+		return stmt.size() && (stmt[0] == '$');
+	}
+
+	bool ClientConsole::is_admin_stmt(const string &stmt)
+	{
+		return stmt.size() && (stmt[0] == '#');
+	}
+
+	bool ClientConsole::line_empty(const string &buf)
+	{
+		string::const_iterator i = buf.begin();
+		while (i != buf.end())
+			if (!isspace(*i))
+				return false;
+			else
+				++i;
+		return true;
+	}
+
+
+	string ClientConsole::read_dot()
+	{	
+		string stmt;
+		string line = line_provider(" > ");
+		if (!line.compare(".")){
+			do {
+				line = line_provider(" \\ ");
+				if (stmt.length() != 0)
+					stmt += "\n";
+				//strange, but the old client used to do this
+				if (line.compare("/") && (((line.length() > 0) && (line[0] != '-')) || (line.length() > 1) && (line[1] != '-')))
+					stmt += line;
+			} while (line.compare("/"));
+		} else {
+			while (line_empty(line)){
+				line = line_provider(" > ");
+			}
+			stmt = line;
+		}
+		return stmt;
+	}
+
+	string ClientConsole::read_stmt()
+	{
+		string cmd;
+		do {
+			if (mode == CC_DOT)
+				cmd = read_dot();
+			else
+				cmd = read_slash();
+			if (is_meta_stmt(cmd))
+				execute_meta_stmt(cmd);
+		} while (is_meta_stmt(cmd));
+		return cmd;
+	}
+
+	ClientConsole::~ClientConsole()
+	{
+	}
+
+}

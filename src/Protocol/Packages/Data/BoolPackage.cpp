@@ -13,6 +13,7 @@ using namespace std;
 namespace Protocol {
 	BoolPackage::BoolPackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream):
 
+
 		value(stream.read_bool(mask, cancel, length))
 	{
 	}

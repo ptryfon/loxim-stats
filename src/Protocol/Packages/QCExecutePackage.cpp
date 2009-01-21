@@ -13,6 +13,7 @@ using namespace std;
 namespace Protocol {
 	QCExecutePackage::QCExecutePackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream):
 
+
 		statement_id(stream.read_uint64(mask, cancel, length)),
 		flags(stream.read_uint64(mask, cancel, length))
 	{

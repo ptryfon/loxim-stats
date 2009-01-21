@@ -31,7 +31,7 @@ namespace Logs
     int fileDes; // deskryptor pliku dziennika
     ErrorConsole *ec;
     SBQLConfig *config;
-    string logFilePath;
+    std::string logFilePath;
     bool crashRecoveryInProgress;
     static bool cleanClosed;
 
@@ -40,7 +40,7 @@ namespace Logs
 
     public:
 
-    string getLogFilePath() { return logFilePath; }
+    std::string getLogFilePath() { return logFilePath; }
 
     LogManager() { ec = &ErrorConsole::get_instance(EC_LOG); crashRecoveryInProgress = false; }
 
@@ -68,7 +68,7 @@ namespace Logs
      * Nakazuje zapisac w logach informacje o starej i nowej wartosci
      * zmodyfikowanego atrybutu.
      */
-    int write( int tid, LogicalID *lid, string name, DataValue *oldVal, DataValue *newVal, unsigned &id, bool newLID = false );
+    int write( int tid, LogicalID *lid, std::string name, DataValue *oldVal, DataValue *newVal, unsigned &id, bool newLID = false );
 
     /**
      * Rozpoczyna tworzenie bezkonfliktowego punktu kontrolnego.

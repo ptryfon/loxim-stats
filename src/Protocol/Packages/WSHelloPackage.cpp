@@ -13,6 +13,7 @@ using namespace std;
 namespace Protocol {
 	WSHelloPackage::WSHelloPackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream):
 
+
 		protocol_major(stream.read_uint8(mask, cancel, length)),
 		protocol_minor(stream.read_uint8(mask, cancel, length)),
 		system_major(stream.read_uint8(mask, cancel, length)),

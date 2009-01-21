@@ -4,7 +4,8 @@
 
 namespace Protocol {
 	enum AuthMethods {
-		AM_TRUST = 0x0001
+		AM_TRUST = 0x0001,
+		AM_MYSQL = 0x0002
 	};
 }
 #endif /*PROTOCOL_AUTH_METHODS_H*/

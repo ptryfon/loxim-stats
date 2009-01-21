@@ -13,6 +13,7 @@ using namespace std;
 namespace Protocol {
 	ASCByePackage::ASCByePackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream):
 
+
 		reason_code(stream.read_uint32(mask, cancel, length)),
 		reason_description(stream.read_string(mask, cancel, length))
 	{

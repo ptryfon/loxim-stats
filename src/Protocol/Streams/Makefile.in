@@ -44,7 +44,7 @@ CONFIG_CLEAN_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
 libProtocolStreams_la_LIBADD =
 am_libProtocolStreams_la_OBJECTS = DataStream.lo FileDataStream.lo \
-	PackageCodec.lo PackageStream.lo
+	PackageCodec.lo PackageStream.lo TCPClientStream.lo
 libProtocolStreams_la_OBJECTS = $(am_libProtocolStreams_la_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/src
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -187,7 +187,7 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 noinst_LTLIBRARIES = libProtocolStreams.la
-libProtocolStreams_la_SOURCES = DataStream.h DataStream.cpp FileDataStream.cpp FileDataStream.h PackageCodec.h PackageCodec.cpp PackageStream.h PackageStream.cpp 
+libProtocolStreams_la_SOURCES = DataStream.h DataStream.cpp FileDataStream.cpp FileDataStream.h PackageCodec.h PackageCodec.cpp PackageStream.h PackageStream.cpp TCPClientStream.h TCPClientStream.cpp
 INCLUDES = -I$(top_srcdir)/src
 all: all-am
 
@@ -244,6 +244,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FileDataStream.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PackageCodec.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PackageStream.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TCPClientStream.Plo@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<

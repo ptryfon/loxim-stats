@@ -13,6 +13,7 @@ using namespace std;
 namespace Protocol {
 	DoublePackage::DoublePackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream):
 
+
 		value(stream.read_double(mask, cancel, length))
 	{
 	}

@@ -13,6 +13,7 @@ using namespace std;
 namespace Protocol {
 	Sint16Package::Sint16Package(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream):
 
+
 		value(stream.read_int16(mask, cancel, length))
 	{
 	}

@@ -13,6 +13,7 @@ using namespace std;
 namespace Protocol {
 	Sint32Package::Sint32Package(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream):
 
+
 		value(stream.read_int32(mask, cancel, length))
 	{
 	}

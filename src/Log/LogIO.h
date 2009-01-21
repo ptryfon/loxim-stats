@@ -6,10 +6,8 @@ namespace Logs
   class LogIO;
 }
 
-#include <stdio.h>
+#include <string>
 #include <Store/Store.h>
-
-using namespace Store;
 
 
 namespace Logs
@@ -32,16 +30,16 @@ namespace Logs
       return 0;
     }
     static int writeTransactionID( int tid, int fileDes ) { return writeInt( fileDes, tid ); }
-    static int readLogicalID( LogicalID *&lid, int fileDes, StoreManager* sm );
-    static int writeLogicalID( LogicalID *lid, int fileDes );
-    static int readDataValue( DataValue *&dv, int fileDes, StoreManager* sm );
+    static int readLogicalID( Store::LogicalID *&lid, int fileDes, Store::StoreManager* sm );
+    static int writeLogicalID( Store::LogicalID *lid, int fileDes );
+    static int readDataValue( Store::DataValue *&dv, int fileDes, Store::StoreManager* sm );
     static int readTransactionIDVector( vector< int > *&tidVec, int fileDes );
     static int writeTransactionIDVector( vector< int > *tidVec, int fileDes );
 
     /// Odczyt/zapis jednej wartosci typu `int`
     static int readInt( int fileDes, int &result );
     static int writeInt( int fileDes, int val );
-    static int readString( int fileDes, string &str );
+    static int readString( int fileDes, std::string &str );
     static int writeString( int fileDes, const char *buffer, unsigned len );//czemu buffer nie jest const char*??
 
     /// Zwraca wskaznik biezacej pozycji w pliku

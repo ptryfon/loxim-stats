@@ -16,40 +16,40 @@
 
 
 #if HAVE_VERBOSITY_COMPILE == EC_V_DEBUG
-#define debug_printf(ec, ...) (ec).do_not_use_directly_printf(Errors::V_DEBUG, __VA_ARGS__)
-#define debug_print(ec, msg) (ec).do_not_use_directly_print(Errors::V_DEBUG, msg)
+#define debug_printf(ec, ...) (ec).do_not_use_directly_printf(::Errors::V_DEBUG, __VA_ARGS__)
+#define debug_print(ec, msg) (ec).do_not_use_directly_print(::Errors::V_DEBUG, msg)
 #else
 #define debug_printf(ec, ...)
 #define debug_print(ec, msg)
 #endif
 
 #if HAVE_VERBOSITY_COMPILE >= EC_V_INFO
-#define info_printf(ec, ...) (ec).do_not_use_directly_printf(Errors::V_INFO, __VA_ARGS__)
-#define info_print(ec, msg) (ec).do_not_use_directly_print(Errors::V_INFO, msg)
+#define info_printf(ec, ...) (ec).do_not_use_directly_printf(::Errors::V_INFO, __VA_ARGS__)
+#define info_print(ec, msg) (ec).do_not_use_directly_print(::Errors::V_INFO, msg)
 #else
 #define info_printf(ec, ...)
 #define info_print(ec, msg)
 #endif
 
 #if HAVE_VERBOSITY_COMPILE >= EC_V_WARNING
-#define warning_printf(ec, ...) (ec).do_not_use_directly_printf(Errors::V_WARNING, __VA_ARGS__)
-#define warning_print(ec, msg) (ec).do_not_use_directly_print(Errors::V_WARNING, msg)
+#define warning_printf(ec, ...) (ec).do_not_use_directly_printf(::Errors::V_WARNING, __VA_ARGS__)
+#define warning_print(ec, msg) (ec).do_not_use_directly_print(::Errors::V_WARNING, msg)
 #else
 #define warning_printf(ec, ...)
 #define warning_print(ec, msg)
 #endif
 
 #if HAVE_VERBOSITY_COMPILE >= EC_V_ERROR
-#define error_printf(ec, ...) (ec).do_not_use_directly_printf(Errors::V_ERROR, __VA_ARGS__)
-#define error_print(ec, msg) (ec).do_not_use_directly_print(Errors::V_ERROR, msg)
+#define error_printf(ec, ...) (ec).do_not_use_directly_printf(::Errors::V_ERROR, __VA_ARGS__)
+#define error_print(ec, msg) (ec).do_not_use_directly_print(::Errors::V_ERROR, msg)
 #else
 #define error_printf(ec, ...)
 #define error_print(ec, msg)
 #endif
 
 #if HAVE_VERBOSITY_COMPILE >= EC_V_SEVERE_ERROR
-#define severe_printf(ec, ...) (ec).do_not_use_directly_printf(Errors::V_SEVERE_ERROR, __VA_ARGS__)
-#define severe_print(ec, msg) (ec).do_not_use_directly_printf(Errors::V_SEVERE_ERROR, msg)
+#define severe_printf(ec, ...) (ec).do_not_use_directly_printf(::Errors::V_SEVERE_ERROR, __VA_ARGS__)
+#define severe_print(ec, msg) (ec).do_not_use_directly_printf(::Errors::V_SEVERE_ERROR, msg)
 #else
 #define severe_printf(ec, ...)
 #define severe_print(ec, msg)
@@ -103,17 +103,17 @@ namespace Errors {
         		static std::auto_ptr<Config::SBQLConfig> conf_file;
 			static pthread_mutex_t write_lock;
 			static void init_static();
-			static VerbosityLevel parse_verbosity(const string &property);
-			static const string &verbosity_name(VerbosityLevel l);
+			static VerbosityLevel parse_verbosity(const std::string &property);
+			static const std::string &verbosity_name(VerbosityLevel l);
 		protected:
 			ConsoleInstance instance;
 			static std::map<ConsoleInstance, ErrorConsole* > modules;
-			static const string names[];
-			static const string verb_debug_name;
-			static const string verb_info_name;
-			static const string verb_warning_name;
-			static const string verb_error_name;
-			static const string verb_severe_error_name;
+			static const std::string names[];
+			static const std::string verb_debug_name;
+			static const std::string verb_info_name;
+			static const std::string verb_warning_name;
+			static const std::string verb_error_name;
+			static const std::string verb_severe_error_name;
 			static const Config::SBQLConfig &get_config();
 			
 			ErrorConsole(ConsoleInstance module);

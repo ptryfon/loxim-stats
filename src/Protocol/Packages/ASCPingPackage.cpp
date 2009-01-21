@@ -6,21 +6,21 @@
 #include <Protocol/Enums/Packages.h>
 #include <Protocol/PackageFactory.h>
 #include <Protocol/Enums/Packages.h>
-#include <Protocol/Packages/QSExecutingPackage.h>
+#include <Protocol/Packages/ASCPingPackage.h>
 
 using namespace std;
 
 namespace Protocol {
-	QSExecutingPackage::QSExecutingPackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream)
+	ASCPingPackage::ASCPingPackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream)
 
 	{
 	}
 
-	QSExecutingPackage::QSExecutingPackage()
+	ASCPingPackage::ASCPingPackage()
 	{
 	}
 
-	void QSExecutingPackage::serialize(const sigset_t &mask, const bool& cancel, DataStream &stream, bool with_header) const
+	void ASCPingPackage::serialize(const sigset_t &mask, const bool& cancel, DataStream &stream, bool with_header) const
 	{
 		if (with_header){
 			stream.write_uint8(mask, cancel, get_type());
@@ -28,19 +28,19 @@ namespace Protocol {
 		}
 	}
 
-	uint8_t QSExecutingPackage::get_type() const
+	uint8_t ASCPingPackage::get_type() const
 	{
-		return Q_S_EXECUTING_PACKAGE;
+		return A_SC_PING_PACKAGE;
 	}
 
-	string QSExecutingPackage::to_string() const
+	string ASCPingPackage::to_string() const
 	{
 		stringstream ss;
-		ss << "QSExecutingPackage:" << endl;
+		ss << "ASCPingPackage:" << endl;
 		return ss.str();
 	}
 
-	size_t QSExecutingPackage::get_ser_size() const
+	size_t ASCPingPackage::get_ser_size() const
 	{
 		return 0;
 	}

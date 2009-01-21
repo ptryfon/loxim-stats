@@ -6,10 +6,14 @@
 
 using namespace std;
 
-#define ASK_FOR_PASSWORD 1
-#define ASK_FOR_BOTH 2
 
 namespace Client{
+
+	enum {
+		ASK_FOR_PASSWORD = 1,
+		ASK_FOR_BOTH 
+	};
+
 	class ConsoleAuthenticator : public Authenticator {
 	    protected:
 		string login;
@@ -20,10 +24,8 @@ namespace Client{
 		ConsoleAuthenticator();
 		ConsoleAuthenticator(const string &login);
 		ConsoleAuthenticator(const string &login, const string &password);
-		ConsoleAuthenticator(const char *login);
-		ConsoleAuthenticator(const char *login, const char *password);
-		string getLogin();
-		string getPassword();
+		string get_login();
+		string get_password();
 		void invalid();
 		~ConsoleAuthenticator();
 	};

@@ -1,4 +1,8 @@
 #include <Client/Aborter.h>
+#include <Client/Client.h>
+#include <Util/Locker.h>
+
+using namespace Util;
 
 namespace Client{
 
@@ -8,10 +12,9 @@ namespace Client{
 		return NULL;
 	}
 
-	Aborter::Aborter(Client *client)
+	Aborter::Aborter(Client &client) :
+		shutting_down(false), client(client)
 	{
-		this->client = client;
-		this->shutting_down = 0;
 		pthread_mutex_init(&mutex, 0);
 		pthread_cond_init(&cond, 0);
 	}
@@ -23,10 +26,9 @@ namespace Client{
 
 	void Aborter::stop()
 	{
-		pthread_mutex_lock(&mutex);
-		shutting_down = 1;
+		Locker l(mutex);
+		shutting_down = true;
 		pthread_cond_signal(&cond);
-		pthread_mutex_unlock(&mutex);
 	}
 
 	/**
@@ -40,12 +42,12 @@ namespace Client{
 
 	void Aborter::loop()
 	{
-		pthread_mutex_lock(&mutex);
+		Locker l(mutex);
 		while (true){
 			pthread_cond_wait(&cond, &mutex);
 			if (shutting_down)
 				pthread_exit(NULL);
-			client->abort();
+			client.abort();
 		}
 	}
 

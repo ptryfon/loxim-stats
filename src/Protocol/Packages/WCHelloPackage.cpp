@@ -13,6 +13,7 @@ using namespace std;
 namespace Protocol {
 	WCHelloPackage::WCHelloPackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream):
 
+
 		pid(stream.read_int64(mask, cancel, length)),
 		client_name(stream.read_string(mask, cancel, length)),
 		client_version(stream.read_string(mask, cancel, length)),
@@ -71,7 +72,7 @@ namespace Protocol {
 
 	size_t WCHelloPackage::get_ser_size() const
 	{
-		return 0 + 4 + client_name->get_ser_size() + client_version->get_ser_size() + hostname->get_ser_size() + language->get_ser_size() + 8 + 1;
+		return 0 + 8 + client_name->get_ser_size() + client_version->get_ser_size() + hostname->get_ser_size() + language->get_ser_size() + 8 + 1;
 	}
 
 	int64_t WCHelloPackage::get_val_pid() const

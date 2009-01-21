@@ -13,6 +13,7 @@ using namespace std;
 namespace Protocol {
 	Uint8Package::Uint8Package(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream):
 
+
 		value(stream.read_uint8(mask, cancel, length))
 	{
 	}

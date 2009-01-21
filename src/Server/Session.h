@@ -8,16 +8,12 @@
 #include <QueryExecutor/QueryExecutor.h>
 #include <SystemStats/SessionStats.h>
 #include <Errors/ErrorConsole.h>
-#include <protocol/sockets/AbstractSocket.h>
-#include <protocol/layers/ProtocolLayer0.h>
-#include <protocol/packages/data/DataPart.h>
+#include <Protocol/Packages/Package.h>
+#include <Protocol/Streams/PackageStream.h>
 #include <Server/Server.h>
 #include <Server/Clipboard.h>
 #include <Util/smartptr.h>
 
-using namespace protocol;
-using namespace SystemStatsLib;
-using namespace _smptr;
 
 namespace Server{
 	class Server;
@@ -27,53 +23,37 @@ namespace Server{
 
 	class UserData {
 		protected:
-			string login;
-			string passwd;
+			std::string login;
+			std::string passwd;
 		public:
-			UserData(const string &login, const string &passwd);
+			UserData(const std::string &login, const std::string &passwd);
 			virtual ~UserData();
 
-			virtual string to_string() const;
-			virtual const string &get_login() const;
-			virtual const string &get_passwd() const;
+			virtual std::string to_string() const;
+			virtual const std::string &get_login() const;
+			virtual const std::string &get_passwd() const;
 	};
 
 	void LS_signal_handler(pthread_t, int, void*);
-
-	/* a temporary solution to introduce exceptions */
-	class ProtocolLayerWrap{
-		protected:
-			ProtocolLayer0 &layer0;
-		public:
-			ProtocolLayerWrap(ProtocolLayer0 &);
-			auto_ptr<Package> read_package(int type = 0);
-			auto_ptr<Package> read_package(sigset_t &, int*);
-			void write_package(const Package &p);
-	};
 
 	class Worker{
 		friend void *W_starter(void *arg);
 		protected:
 			Session &session;
-			ErrorConsole &err_cons;
+			Errors::ErrorConsole &err_cons;
 			int shutting_down;
 			pthread_t thread;
 			pthread_mutex_t mutex;
 			pthread_cond_t idle_cond, completion_cond;
-			shared_ptr<Package> cur_package;
+			_smptr::shared_ptr<Protocol::Package> cur_package;
 			bool aborting;
 
 			void start_continue();
-			void process_package(shared_ptr<Package> &package);
+			void process_package(_smptr::shared_ptr<Protocol::Package> &package);
 			void cancel_job(bool synchrounous, bool mutex_locked);
 		public:
-			enum sub_ret_t {
-				SUBM_SUCCESS = 1, /* package submitted */
-				SUBM_EXIT,        /* package turned out to be bye, so we should exit */
-				SUBM_ERROR        /* the package shouldn't have arrived now */
-			};
 
-			Worker(Session &session, ErrorConsole &err_cons);
+			Worker(Session &session);
 			void start();
 
 			/**
@@ -85,7 +65,7 @@ namespace Server{
 			 * Will throw an exception if the package shouldn't have
 			 * arrived. 
 			 */
-			void submit(auto_ptr<Package> &package); 
+			void submit(std::auto_ptr<Protocol::Package> package); 
 	};
 	
 	
@@ -93,7 +73,7 @@ namespace Server{
 		private:
 			friend void *thread_starter(void*);
 			Session &session;
-			ErrorConsole &err_cons;
+			Errors::ErrorConsole &err_cons;
 			pthread_t thread;
 			bool running;
 			bool shutting_down;
@@ -102,7 +82,7 @@ namespace Server{
 			void main_loop();
 			bool answer_received;
 		public:
-			KeepAliveThread(Session &session, ErrorConsole &err_cons);
+			KeepAliveThread(Session &session);
 
 			/**
 			 * Start the thread.
@@ -131,7 +111,7 @@ namespace Server{
 			 * The creator should take care to create objects synchronously,
 			 * however only Server should do this, so there is no problem.
 			 */
-			Session(Server &server, auto_ptr<AbstractSocket> &socket, ErrorConsole &err_cons);
+			Session(Server &server, std::auto_ptr<Protocol::PackageStream> stream);
 			~Session();
 			
 			uint64_t get_id() const;
@@ -147,7 +127,7 @@ namespace Server{
 			/**
 			 * Used by the executor
 			 */
-			void set_user_data(auto_ptr<UserData> &user_data);
+			void set_user_data(std::auto_ptr<UserData> &user_data);
 			
 			/**
 			 * Start the session.
@@ -155,7 +135,7 @@ namespace Server{
 			void start();
 
 			void shutdown(int reason);
-		protected:
+		private:
 			/* Static members */
 
 			static uint64_t next_id;
@@ -164,42 +144,40 @@ namespace Server{
 			/******************/
 			
 			Server &server;
-			auto_ptr<AbstractSocket> socket;
-			ErrorConsole &err_cons;
+			std::auto_ptr<Protocol::PackageStream> stream;
+			Errors::ErrorConsole &err_cons;
 			uint64_t id;
-			int shutting_down;
+			bool shutting_down;
 			int error;
-			QueryExecutor qEx;
+			QExecutor::QueryExecutor qEx;
 			KeepAliveThread KAthread;
 			Worker worker;
-			ProtocolLayer0 bare_layer0;
-			ProtocolLayerWrap layer0;
-			auto_ptr<UserData> user_data;
-			QueryParser qPa;
+			std::auto_ptr<UserData> user_data;
+			QParser::QueryParser qPa;
 			Clipboard clipboard;
 			string sessionid;
-			SessionStats stats;
+			SystemStatsLib::SessionStats stats;
 			char salt[20];
 			pthread_mutex_t send_mutex;
 			pthread_t thread;
-		
+			sigset_t mask;	
 
 			void main_loop();
-			/**
-			 * Ugly, but it requires protocol modifications to be
-			 * pretty.
+			/*
+			 * res should be const actually, but QueryResult has to
+			 * be corrected first
 			 */
-			DataPart* serialize_res(const QueryResult &res) const;
-			void respond(auto_ptr<DataPart> &qres);
+			std::auto_ptr<Protocol::Package> serialize_res(QExecutor::QueryResult &res) const;
+			void respond(std::auto_ptr<Protocol::Package> qres);
 			void send_bye();
 			void send_ping();
-			void send_error(int error, const string &descr);
+			void send_error(int error, const std::string &descr);
 			void send_error(int error);
 			
 			bool init_phase();
-			bool authorize(const string &login, const string &passwd);
+			bool authorize(const std::string &login, const std::string &passwd);
 			void free_state();
-			auto_ptr<QueryResult> execute_statement(const string &stmt);
+			std::auto_ptr<QExecutor::QueryResult> execute_statement(const std::string &stmt);
 		
 			void handle_signal(int);
 			

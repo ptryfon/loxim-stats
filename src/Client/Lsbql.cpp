@@ -1,44 +1,44 @@
 #include <stdio.h>
 #include <stdlib.h>
-
-#include <getopt.h>
-#include <string.h>
-#include <Client/Client.h>
-#include <Client/ClientConsole.h>
-
-#include <Client/ReadlineReader.h>
-#include <Client/ConsoleAuthenticator.h>
 #include <signal.h>
 #include <stdlib.h>
+#include <netdb.h>
 #include <errno.h>
 #include <string.h>
+#include <getopt.h>
+#include <string.h>
+#include <string>
+#include <iostream>
+#include <fstream>
 
-#define DEFAULT_HOST "localhost"
+#include <Client/Client.h>
+#include <Client/ClientConsole.h>
+#include <Client/ConsoleAuthenticator.h>
+
+#define DEFAULT_HOSTNAME "localhost"
 #define DEFAULT_PORT 2000
 
-using namespace protocol;
+using namespace Protocol;
+using namespace Client;
 
-Client::Client *loximClient;
+auto_ptr< ::Client::Client> client;
 
 void sig_handler(int a)
 {
-//	printf("Sig handler, %d\n", pthread_self());
-	loximClient->aborter->trigger();
+	client->aborter.trigger();
 }
 
-void print_usage(FILE *stream, char* program_name, int exit_code)
+void print_usage(const string &program_name, int exit_code)
 {
-	fprintf(stream, "U�ycie %s [opcje]\n", program_name);
-	fprintf(stream, 
-		"             --help          Wy�wietla te informacje\n"
-		" -h [adres]  --host [adres]  Ustawia adres (nazw�) serwera do kt�rego si� ��czymy (domy�lnie: %s)\n"
-		" -p [port]   --port [port]   Ustawia port do kt�rego si� ��czymy (domy�lnie: %d)\n"
-		" -l [login]  --login [login] Ustawia login (jezeli brak, to klient zapyta)\n"
-		" -P [passwd] --password [passwd] Ustawia haslo (jezeli brak, to klient zapyta)\n"
-		" -m [tryb]   --mode [tryb]   Poczatkowy wczytywania polecen (dot|slash) (domyslnie: slash)\n"
-		" -f [plik]   --file [plik]   Skrypt z zapytaniami\n",
-		DEFAULT_HOST,DEFAULT_PORT
-	);
+	cout << "LoXiM client" << endl;
+	cout << "Usage: " << program_name << " [opts]" << endl;
+	cout << "             --help           Print this information" << endl;
+	cout << " -h [addr]   --host [addr]    Set the address of the server (" << DEFAULT_HOSTNAME << " by default)" << endl;
+	cout << " -p [port]   --port [port]    Set the destination port (" << DEFAULT_PORT << "by default)" << endl;
+	cout << " -l [login]  --login [login]  Set the login" << endl;
+	cout << " -P [pwd]    --password [pwd] Set the password" << endl;
+	cout << " -m [mode]   --mode [mode]    Iinital mode of input (dot|slash) (slash by default)" << endl;
+	cout << " -f [file]   --file [file]    Read querries from file" << endl;
 	exit(exit_code);
 };
 
@@ -50,21 +50,24 @@ bool is_number(char *n)
 	return true;
 }
 
+/*in network order */
+uint32_t get_host_ip(const string& hostname)
+{
+	struct hostent *hp;
+	hp = gethostbyname(hostname.c_str());
+	if (!hp){
+		cout << "Could resolve hostname " << hostname;
+		exit(EINVAL);
+	}
+	uint32_t res;
+	memcpy(&res, hp->h_addr, 4);
+	return res;
+}
 
-/**
- * Metoda parsuje opcje i przekazuje je do klasy Client 
- */
-int main(int argc, char* argv[])
+int main(int argc, char** argv)
 {
 	printf("Welcome to loxim client.\n\n");
-	/*
-	ReadlineReader *r=new ReadlineReader();
-	while(true)
-	{
-		printf("otrzymano: %s\n\n",r->readStatement());
-	};*/
 	
-	/*Dost�pne kr�tkie opcje*/
 	const char* short_opt ="h:p:l:P:f:m:";
 	const struct option long_options[] =
 	{
@@ -77,46 +80,45 @@ int main(int argc, char* argv[])
 		{"mode",	1,	NULL,	'm'},
 		{NULL,		0,	NULL,	0}
 	};
-	char *login = 0, *password = 0;
-	FILE *file = 0;
-	char* hostname=NULL;
-	unsigned int port=DEFAULT_PORT;
+	string login, password, hostname = DEFAULT_HOSTNAME;
+	uint16_t port=DEFAULT_PORT;
 	int mode = CC_DOT;
+	auto_ptr<ifstream> file;
 	int next_option;
 	do {
 		next_option=getopt_long(argc,argv,short_opt, long_options,NULL);
 		switch (next_option)
 		{
 			case 'h':
-				hostname=strdup(optarg);
+				hostname=optarg;
 				break;
 				
 			case 'p':
 				if (!is_number(optarg)){
-					printf("Invalid port number\n");
-					exit(-1);
+					cout << "Invalid port number" << endl;
+					exit(EINVAL);
 				} else {
 					port= atoi(optarg);
 				}
-				port=atoi(optarg);
 				break;
 				
 			case 'H':
-				print_usage(stdout,argv[0],0);
+				print_usage(argv[0],0);
 				break;
 
 			case 'l':
-				login = strdup(optarg);
+				login = optarg;
 				break;
 
 			case 'P':
-				password = strdup(optarg);
+				password = optarg;
 				break;
 			case 'f':
-				file = fopen(optarg, "r");
-				if (!file){
-					printf("Cannot open file %s\nError %d: %s\n", optarg, errno, strerror(errno));
-					exit(-1);
+				file = auto_ptr<ifstream>(new ifstream(optarg));
+				if (!file->is_open()){
+					cout << "Cannot open file " << optarg << endl;
+					cout << "Error " << errno << ": (" << strerror(errno) << ")" << endl;
+					exit(EINVAL);
 				}
 				break;
 
@@ -129,60 +131,42 @@ int main(int argc, char* argv[])
 					mode = CC_SLASH;
 					break;
 				}
-				print_usage(stdout, argv[0], -1);
+				print_usage(argv[0], -1);
 			case -1:
 				break;
 				
 			default:
-				print_usage(stdout,argv[0],-1);
+				print_usage(argv[0],-1);
 				break;
 		}
 	}while (next_option != -1);
 	
-	loximClient=new Client::Client(hostname?hostname:DEFAULT_HOST, port);
-	int res=loximClient->connect();
-	if (res<0)
+	
+	client= auto_ptr< ::Client::Client>(new ::Client::Client(get_host_ip(hostname), htons(port)));
+	
+	cout << "Connected." << endl;
+
+	if (isatty(0))
+		cout << "Type $help to see the available commands" << endl;
 	{
-		fprintf(stderr, "Cannot connect to: %s:%d\n",hostname?hostname:DEFAULT_HOST, port);
-	}
-	
-	if (hostname)
-		free(hostname);
-	
-	if (res>0)
-	{	
-		printf("Connected :)\n");
-		if (isatty(0))
-			printf("Type $help to see the available commands\n");
-		Client::ConsoleAuthenticator *auth;
-		if (login && password)
-			auth = new Client::ConsoleAuthenticator(login, password);
+		auto_ptr<ConsoleAuthenticator> auth;
+		if (login.size() && password.size())
+			auth = auto_ptr<ConsoleAuthenticator>(new ConsoleAuthenticator(login, password));
 		else
-			if (login)
-				auth = new Client::ConsoleAuthenticator(login);
+			if (login.size())
+				auth = auto_ptr<ConsoleAuthenticator>(new ConsoleAuthenticator(login));
 			else
-				auth = new Client::ConsoleAuthenticator();
+				auth = auto_ptr<ConsoleAuthenticator>(new ConsoleAuthenticator());
 		auth->read();
-		res=loximClient->authorize(auth);
-		delete auth;
-		if (res>0)
-		{
-			printf("\nAuthorized :)\n");
-
-			Client::ClientConsole *cc;
-			if (file)
-				cc = new Client::ClientConsole(mode, file);
-			else
-				cc = new Client::ClientConsole(mode);
-			res=loximClient->run(cc);
-			delete cc;
-		}else
-		{
-			fprintf(stderr, "Cannot authorize.\n");	
-		}
+		client->authorize(*auth);
 	}
-	
-	delete loximClient;
+	cout << "Authorized." << endl;
 
-	return res;
+	auto_ptr<ClientConsole> cc;
+	if (file.get())
+		cc = auto_ptr<ClientConsole>(new ClientConsole(mode, file));
+	else
+		cc = auto_ptr<ClientConsole>(new ClientConsole(mode));
+	client->run(*cc);
+	return 0;
 }

@@ -6,6 +6,8 @@
 #include <Protocol/Packages/ASCByePackage.h>
 #include <Protocol/Packages/ASCErrorPackage.h>
 #include <Protocol/Packages/ASCOkPackage.h>
+#include <Protocol/Packages/ASCPingPackage.h>
+#include <Protocol/Packages/ASCPongPackage.h>
 #include <Protocol/Packages/ASCSetoptPackage.h>
 #include <Protocol/Packages/QCExecutePackage.h>
 #include <Protocol/Packages/QCStatementPackage.h>
@@ -16,11 +18,11 @@
 #include <Protocol/Packages/VSCFinishedPackage.h>
 #include <Protocol/Packages/VSCSendvaluePackage.h>
 #include <Protocol/Packages/VSCSendvaluesPackage.h>
-#include <Protocol/Packages/WCAuthorizedPackage.h>
 #include <Protocol/Packages/WCHelloPackage.h>
 #include <Protocol/Packages/WCLoginPackage.h>
 #include <Protocol/Packages/WCModePackage.h>
 #include <Protocol/Packages/WCPasswordPackage.h>
+#include <Protocol/Packages/WSAuthorizedPackage.h>
 #include <Protocol/Packages/WSHelloPackage.h>
 #include <Protocol/Packages/WCHelloPackage.h>
 
@@ -34,6 +36,8 @@ namespace Protocol{
 			case A_SC_BYE_PACKAGE: return std::auto_ptr<Package>(new ASCByePackage(mask, cancel, length, stream));
 			case A_SC_ERROR_PACKAGE: return std::auto_ptr<Package>(new ASCErrorPackage(mask, cancel, length, stream));
 			case A_SC_OK_PACKAGE: return std::auto_ptr<Package>(new ASCOkPackage(mask, cancel, length, stream));
+			case A_SC_PING_PACKAGE: return std::auto_ptr<Package>(new ASCPingPackage(mask, cancel, length, stream));
+			case A_SC_PONG_PACKAGE: return std::auto_ptr<Package>(new ASCPongPackage(mask, cancel, length, stream));
 			case A_SC_SETOPT_PACKAGE: return std::auto_ptr<Package>(new ASCSetoptPackage(mask, cancel, length, stream));
 			case Q_C_EXECUTE_PACKAGE: return std::auto_ptr<Package>(new QCExecutePackage(mask, cancel, length, stream));
 			case Q_C_STATEMENT_PACKAGE: return std::auto_ptr<Package>(new QCStatementPackage(mask, cancel, length, stream));
@@ -44,11 +48,11 @@ namespace Protocol{
 			case V_SC_FINISHED_PACKAGE: return std::auto_ptr<Package>(new VSCFinishedPackage(mask, cancel, length, stream));
 			case V_SC_SENDVALUE_PACKAGE: return std::auto_ptr<Package>(new VSCSendvaluePackage(mask, cancel, length, stream));
 			case V_SC_SENDVALUES_PACKAGE: return std::auto_ptr<Package>(new VSCSendvaluesPackage(mask, cancel, length, stream));
-			case W_C_AUTHORIZED_PACKAGE: return std::auto_ptr<Package>(new WCAuthorizedPackage(mask, cancel, length, stream));
 			case W_C_HELLO_PACKAGE: return std::auto_ptr<Package>(new WCHelloPackage(mask, cancel, length, stream));
 			case W_C_LOGIN_PACKAGE: return std::auto_ptr<Package>(new WCLoginPackage(mask, cancel, length, stream));
 			case W_C_MODE_PACKAGE: return std::auto_ptr<Package>(new WCModePackage(mask, cancel, length, stream));
 			case W_C_PASSWORD_PACKAGE: return std::auto_ptr<Package>(new WCPasswordPackage(mask, cancel, length, stream));
+			case W_S_AUTHORIZED_PACKAGE: return std::auto_ptr<Package>(new WSAuthorizedPackage(mask, cancel, length, stream));
 			case W_S_HELLO_PACKAGE: return std::auto_ptr<Package>(new WSHelloPackage(mask, cancel, length, stream));
 		}
 		throw ProtocolLogic();

@@ -2,90 +2,106 @@
 #include <string>
 #include <list>
 #include <iostream>
-#include <protocol/sockets/TCPIPServerSocket.h>
+#include <Errors/Exceptions.h>
+#include <Protocol/TCPServer.h>
+#include <Protocol/Exceptions.h>
+#include <Protocol/Streams/PackageCodec.h>
 #include <Server/Server.h>
 #include <Server/Session.h>
 #include <Server/SignalRouter.h>
+#include <Util/Locker.h>
 
 using namespace std;
+using namespace Protocol;
+using namespace Util;
+using namespace _smptr;
+using namespace Errors;
+
+#define CONFIG_MAX_SESSIONS_NAME "max_sessions"
+#define CONFIG_MAX_SESSIONS_DEFAULT 5
+#define CONFIG_MAX_PACKAGE_SIZE_NAME "package_size"
+#define CONFIG_MAX_PACKAGE_SIZE_DEFAULT 131072
+#define CONFIG_AUTH_TRUST_ALLOWED_NAME "auth_trust_allowed"
+#define CONFIG_AUTH_TRUST_ALLOWED_DEFAULT false
+#define CONFIG_KEEP_ALIVE_INTERVAL_NAME "keep_alive_interval"
+#define CONFIG_KEEP_ALIVE_INTERVAL_DEFAULT 60
+
+#define DEFAULT_BACKLOG 10
 
 namespace Server{
 
-	Server::Server(const string &hostname, int port, const SBQLConfig &config) : 
-		prepared(0), shutting_down(0), hostname(hostname), port(port), 
-		err_cons(ErrorConsole::get_instance(EC_SERVER))
+	Server::Server(uint32_t addr, int port, const SBQLConfig &config) :
+		shutting_down(false), err_cons(ErrorConsole::get_instance(EC_SERVER)),
+		config_max_sessions(config.getIntDefault(
+				CONFIG_MAX_SESSIONS_NAME,
+				CONFIG_MAX_SESSIONS_DEFAULT)),
+		config_max_package_size(config.getIntDefault(
+				CONFIG_MAX_PACKAGE_SIZE_NAME,
+				CONFIG_MAX_PACKAGE_SIZE_DEFAULT)),
+		config_keep_alive_interval(config.getIntDefault(
+				CONFIG_KEEP_ALIVE_INTERVAL_NAME,
+				CONFIG_KEEP_ALIVE_INTERVAL_DEFAULT)),
+		config_auth_trust_allowed(config.getBoolDefault(
+				CONFIG_AUTH_TRUST_ALLOWED_NAME,
+				CONFIG_AUTH_TRUST_ALLOWED_DEFAULT)),
+		thread(pthread_self()), server(addr, port, DEFAULT_BACKLOG)
 	{
-		if (config.getInt(CONFIG_ACCEPT_INTERVAL_NAME, config_accept_interval))
-			config_accept_interval = CONFIG_ACCEPT_INTERVAL_DEFAULT;
-		if (config.getInt(CONFIG_READ_INTERVAL_NAME, config_read_interval))
-			config_read_interval = CONFIG_READ_INTERVAL_DEFAULT;
-		if (config.getInt(CONFIG_MAX_SESSIONS_NAME, config_max_sessions))
-			config_max_sessions = CONFIG_MAX_SESSIONS_DEFAULT;
-		if (config.getInt(CONFIG_MAX_PACKAGE_SIZE_NAME, config_max_package_size))
-			config_max_package_size = CONFIG_MAX_PACKAGE_SIZE_DEFAULT;
-		if (config.getBool(CONFIG_AUTH_TRUST_ALLOWED_NAME, config_auth_trust_allowed))
-			config_auth_trust_allowed = CONFIG_AUTH_TRUST_ALLOWED_DEFAULT;
-		if (config.getInt(CONFIG_KEEP_ALIVE_INTERVAL_NAME, config_keep_alive_interval))
-			config_keep_alive_interval = CONFIG_KEEP_ALIVE_INTERVAL_DEFAULT;
 		pthread_mutex_init(&this->open_sessions_mutex, NULL);
+		SignalRouter::register_thread(thread, LSrv_signal_handler, this);
 	}
 
 	Server::~Server()
 	{
+		//XXX unregister from signal router
 		pthread_mutex_destroy(&this->open_sessions_mutex);
 	}
 
-	int Server::prepare()
+	void Server::main_loop()
 	{
-		thread = pthread_self();
-		SignalRouter::register_thread(thread, LSrv_signal_handler, this);
-		socket = auto_ptr<TCPIPServerSocket>(new 
-				TCPIPServerSocket(const_cast<char*>(hostname.c_str()), port));
-		int res;
-		if ((res = socket->bind()) == SOCKET_CONNECTION_STATUS_OK){
-			prepared = 1;
-			return 0;
-		} else
-			return res; 
-	}
-
-	int Server::main_loop()
-	{
-		auto_ptr<AbstractSocket> session_socket;
-		if (!prepared)
-			return -1;
 		sigset_t sigset_tmpl, sigset;
 		pthread_sigmask(0, NULL, &sigset_tmpl);
 		sigaddset(&sigset_tmpl, SIGUSR1);
 		sigset = sigset_tmpl;
-		while (!shutting_down && ((session_socket = auto_ptr<AbstractSocket>(socket->accept(&sigset, &shutting_down)))).get()){
-			if (!session_socket.get())
-				continue;
-			pthread_mutex_lock(&open_sessions_mutex);
-			if (!shutting_down && get_sessions_count() < get_config_max_sessions()){
-				shared_ptr<Session> new_session(new Session(*this, session_socket, err_cons));
-				open_sessions[new_session->get_id()] = new_session;
-				new_session->start();
-			} else{
-				session_socket->close();
-				session_socket.reset();
+		auto_ptr<DataStream> stream;
+		try{
+			while (!shutting_down){
+				auto_ptr<DataStream> stream = server.accept(sigset, shutting_down);
+				Locker l(open_sessions_mutex);
+				if (!shutting_down && get_sessions_count() < get_config_max_sessions()){
+					try{
+						auto_ptr<PackageStream> pstream(new PackageCodec(stream, get_config_max_package_size()));
+						shared_ptr<Session> new_session(new Session(*this, pstream));
+						open_sessions[new_session->get_id()] = new_session;
+						new_session->start();
+					} catch (LoximException &ex) {
+						warning_print(err_cons, "Caught exception while creating new session:");
+						warning_print(err_cons, ex.to_string());
+					} catch (...) {
+						warning_print(err_cons, "Caught unknown exception while creating new session");
+					}
+				}
 			}
-			pthread_mutex_unlock(&open_sessions_mutex);
-			sigset = sigset_tmpl;
+		} catch (OperationCancelled &ex) {
+			//this is a normal way of exiting the server
+		} catch (LoximException &ex){
+			info_print(err_cons, "Caught exception in server loop, shutting down");
+			debug_print(err_cons, ex.to_string());
+		} catch (...) {
+			info_print(err_cons, "Caught unknown exception in server loop, shutting down");
 		}
-		pthread_mutex_lock(&open_sessions_mutex);
-		info_print(err_cons, "Quitting, telling sessions to shut down");
-		for (set<pair<const uint64_t, shared_ptr<Session> > >::iterator i = open_sessions.begin(); i != open_sessions.end(); i++){
-			i->second->shutdown(0);
+		{
+			Locker l(open_sessions_mutex);
+			info_print(err_cons, "Quitting, telling sessions to shut down");
+			for (set<pair<const uint64_t, shared_ptr<Session> > >::iterator i = open_sessions.begin(); i != open_sessions.end(); i++){
+				i->second->shutdown(0);
+			}
 		}
-		pthread_mutex_unlock(&open_sessions_mutex);
 		info_print(err_cons, "Joining threads");
 		for (set<pair<const uint64_t, shared_ptr<Session> > >::iterator i = open_sessions.begin(); i != open_sessions.end(); i++){
 			pthread_join(i->second->get_thread(), NULL);
 		}
 		open_sessions.clear();
 		info_print(err_cons, "Threads joined");
-		return 0;
 	}
 
 	void Server::shutdown()
@@ -106,12 +122,13 @@ namespace Server{
 	void Server::end_session(uint64_t session_id, int code)
 	{
 		shared_ptr<Session> session = open_sessions[session_id];
-		pthread_mutex_lock(&open_sessions_mutex);
-		if (!shutting_down){
-			pthread_detach(session->get_thread());
-			open_sessions.erase(session_id);
-		}	
-		pthread_mutex_unlock(&open_sessions_mutex);
+		{
+			Locker l(open_sessions_mutex);
+			if (!shutting_down){
+				pthread_detach(session->get_thread());
+				open_sessions.erase(session_id);
+			}	
+		}
 		info_printf(err_cons, "Session %d ended with code %d (%s), working sessions left: %d", (int)session_id, (int)code, SBQLstrerror(code).c_str(), (int)get_sessions_count());
 	}
 
@@ -127,16 +144,6 @@ namespace Server{
 	}
 
 	
-	int Server::get_config_accept_interval() const
-	{
-		return config_accept_interval;
-	}
-
-	int Server::get_config_read_interval() const
-	{
-		return config_read_interval;
-	}
-
 	int Server::get_config_max_sessions() const
 	{
 		return config_max_sessions;

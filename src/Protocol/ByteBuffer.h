@@ -22,6 +22,7 @@ namespace Protocol{
 			size_t get_size() const;
 			/* how many bytes will the serialization take */
 			size_t get_ser_size() const;
+			std::string to_string() const;
 
 	};
 }

@@ -13,6 +13,7 @@ using namespace std;
 namespace Protocol {
 	QSExecutionFinishedPackage::QSExecutionFinishedPackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream):
 
+
 		mod_atom_pointer_cnt(stream.read_varuint(mask, cancel, length)),
 		del_cnt(stream.read_varuint(mask, cancel, length)),
 		new_roots_cnt(stream.read_varuint(mask, cancel, length)),

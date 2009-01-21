@@ -13,6 +13,7 @@ using namespace std;
 namespace Protocol {
 	VarcharPackage::VarcharPackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream):
 
+
 		value(stream.read_string(mask, cancel, length))
 	{
 	}
