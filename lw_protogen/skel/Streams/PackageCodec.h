@@ -12,13 +12,13 @@ namespace Protocol {
 	class DataStream;
 	class PackageCodec : public PackageStream {
 		private:
-			DataStream &stream;
+			std::auto_ptr<DataStream> stream;
 			const size_t limit;
 		public:
-			PackageCodec(DataStream &, size_t limit);
+			PackageCodec(std::auto_ptr<DataStream>, size_t limit);
 			virtual std::auto_ptr<Package> read_package(const
 					sigset_t&, const bool &);
-			virtual	std::auto_ptr<Package> read_package_excpect(
+			virtual	std::auto_ptr<Package> read_package_expect(
 					const sigset_t&, const bool &, uint8_t);
 			virtual void write_package(const sigset_t&, const bool&,
 					const Package&);

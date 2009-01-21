@@ -51,7 +51,8 @@
 		</enum>
 
 		<enum name="auth_methods" as-type="uint64">
-			<item name="am_trust" value="0x0001">
+			<item name="am_trust" value="0x0001"/>
+			<item name="am_mysql" value="0x0002">
 				<description lang="pl">
 					autoryzacja metoda stosowana przez serwer (??)
 					MySQL5 [1] - w oparciu o przesyłanie i
@@ -296,7 +297,7 @@
 						object-ref="auth_methods" />
 				</packet>
 
-				<packet name="w_c_authorized" id-value="14" />
+				<packet name="w_s_authorized" id-value="14" />
 
 				<packet name="w_c_password" id-value="15">
 					<field name="login" type="sstring" />
@@ -334,8 +335,8 @@
 				<!--======================== Protokół właściwy - przesyłanie wartości ================================== -->
 
 				<!--======================== Protokół właściwy - paczki różne -->
-				<!--packet name="a_sc_ping" id-value="128" />
-					<packet name="a_sc_pong" id-value="129" /-->
+				<packet name="a_sc_ping" id-value="128" />
+				<packet name="a_sc_pong" id-value="129" />
 				<!--======================== Komunikaty ogólne ================= -->
 				<packet name="a_sc_ok" id-value="1" />
 

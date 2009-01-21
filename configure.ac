@@ -50,11 +50,6 @@ AC_CONFIG_FILES([Makefile src/Makefile src/Log/Makefile src/Lock/Makefile
 		src/QueryParser/Makefile src/TransactionManager/Makefile
 		src/SystemStats/Makefile src/QueryExecutor/Makefile
 		src/Client/Makefile src/AdminParser/Makefile
-		src/protocol/Makefile src/protocol/auth/Makefile
-		src/protocol/pstreams/Makefile src/protocol/packages/Makefile
-		src/protocol/packages/data/Makefile
-		src/protocol/sockets/Makefile src/protocol/streams/Makefile
-		src/protocol/layers/Makefile src/protocol/ptools/Makefile
 		src/Server/Makefile src/TypeCheck/Makefile
 		src/Config/Makefile src/Util/Makefile Documentation/Makefile
 		src/Protocol/Makefile src/Protocol/Streams/Makefile

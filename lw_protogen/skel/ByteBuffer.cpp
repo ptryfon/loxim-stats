@@ -63,4 +63,9 @@ namespace Protocol {
 		return DataStream::get_varuint_size(VarUint(size, false)) + size;
 	}
 
+	std::string ByteBuffer::to_string() const
+	{
+		return std::string(buffer, size);
+	}
+
 }

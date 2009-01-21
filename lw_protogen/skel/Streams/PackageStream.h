@@ -13,7 +13,7 @@ namespace Protocol {
 		public:
 			virtual std::auto_ptr<Package> read_package(
 					const sigset_t&, const bool &) = 0;
-			virtual	std::auto_ptr<Package> read_package_excpect(
+			virtual	std::auto_ptr<Package> read_package_expect(
 					const sigset_t &, const bool &,
 					uint8_t) = 0;
 			virtual void write_package(const sigset_t&, const bool&,

@@ -481,7 +481,7 @@ string get_size(const string &name, const string &type)
 	if (!type.compare("sint32"))
 		return "4";
 	if (!type.compare("sint64"))
-		return "4";
+		return "8";
 	if (!type.compare("varuint"))
 		return "DataStream::get_varuint_size(" + name + ")";
 	if (!type.compare("bool"))
@@ -635,12 +635,18 @@ void generate_package_implementations(const vector<pair<string, map<string, Pack
 			impl << "using namespace std;" << endl << endl;
 			impl << "namespace Protocol {" << endl;
 			impl << "\t" << cls << "::" << cls << "(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream)";
-			if (j->second.fields.size() > 0)
+			if (j->second.fields.size() > 0 || j->second.extends_package.size())
 				impl << ":" << endl;
+			impl << endl;
+			if (j->second.extends_package.size()){
+				impl << "\t\t" << make_class_name(j->second.extends_package) << "Package(mask, cancel, length, stream)";
+				if (j->second.fields.size())
+					impl << "," << endl;
+			}
 			impl << endl;
 			for (vector<Field>::const_iterator field = j->second.fields.begin(); field != j->second.fields.end(); ++field){
 				if (!field->type.compare("package-map")){
-					impl << "\t\t" << field->name << "(" << first_upper(i->first) << "PackageFactory::deserialize_unknown(mask, cancel, length, stream))";
+					impl << "\t\t" << field->name << "(" << "DataPackageFactory::deserialize_unknown(mask, cancel, length, stream))";
 				} else 
 					impl << "\t\t" << field->name << "(stream.read_" << to_stream_type(field->type, enums, *field) << "(mask, cancel, length))";
 				if ((field + 1) != j->second.fields.end())

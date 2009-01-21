@@ -9413,7 +9413,7 @@ m4trace:configure.ac:33: -1- m4_pattern_allow([^HAVE_VERBOSITY_COMPILE$])
 m4trace:configure.ac:38: -1- m4_pattern_allow([^HAVE_LIBTCMALLOC$])
 m4trace:configure.ac:42: -1- m4_pattern_allow([^HAVE_LIBREADLINE$])
 m4trace:configure.ac:44: -1- m4_pattern_allow([^HAVE_LIBPTHREAD$])
-m4trace:configure.ac:63: -1- m4_pattern_allow([^LIB@&t@OBJS$])
-m4trace:configure.ac:63: -1- m4_pattern_allow([^LTLIBOBJS$])
-m4trace:configure.ac:63: -1- _AC_AM_CONFIG_HEADER_HOOK(["$ac_file"])
-m4trace:configure.ac:63: -1- _AM_OUTPUT_DEPENDENCY_COMMANDS
+m4trace:configure.ac:58: -1- m4_pattern_allow([^LIB@&t@OBJS$])
+m4trace:configure.ac:58: -1- m4_pattern_allow([^LTLIBOBJS$])
+m4trace:configure.ac:58: -1- _AC_AM_CONFIG_HEADER_HOOK(["$ac_file"])
+m4trace:configure.ac:58: -1- _AM_OUTPUT_DEPENDENCY_COMMANDS

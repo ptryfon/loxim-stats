@@ -25,8 +25,13 @@ namespace Protocol {
 			throw ConnectionError(errno);
 		struct sockaddr_in sa;
 		sa.sin_family = AF_INET;
-		sa.sin_port = htons(port);
-		sa.sin_addr.s_addr = htonl(address);
+		sa.sin_port = port;
+		sa.sin_addr.s_addr = address;
+		/* allows binding even if TCP/IP stack is still in TIMED_WAIT state
+		 * if it doesn't work, ignore it. It is not that important */
+		u_int yes=1;
+		setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
+
 		if (bind(sock, (struct sockaddr*)&sa, sizeof(sa)))
 			throw ConnectionError(errno);
 		if (listen(sock, backlog) < 0)
@@ -71,14 +76,19 @@ namespace Protocol {
 				res = pselect(sock+1, &fds, NULL, NULL, NULL,
 						&m.get_old_mask());
 			}
-			if (res < 0)
+			if (res < 0){
+				if (errno = EINTR && cancel)
+					throw OperationCancelled();
 				throw ConnectionError(errno);
+			}
 			if (res != 1)
 				//the OS is cheating ;)
 				throw ConnectionError(EIO);
 			set_non_block(true);
 			res = ::accept(sock, NULL, NULL);
 			if (res < 0){
+				if (errno = EINTR && cancel)
+					throw OperationCancelled();
 				if (should_repeat(errno))
 					continue;
 				throw ConnectionError(errno);

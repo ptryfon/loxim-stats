@@ -33,15 +33,21 @@ namespace Protocol {
 				res = pselect(fd+1, &fds, NULL, NULL, NULL,
 						&m.get_old_mask());
 			}
-			if (res < 0)
+			if (res < 0){
+				if (errno == EINTR && cancel)
+					throw OperationCancelled();
 				throw ReadError(errno);
+			}
 			if (res != 1){
 				//the OS is cheating ;)
 				throw ReadError(EIO);
 			}
 			res = ::read(fd, buf, len);
-			if (res < 0)
+			if (res < 0){
+				if (errno == EINTR && cancel)
+					throw OperationCancelled();
 				throw ReadError(errno);
+			}
 			if (res == 0)
 				throw ReadError(ENODATA);
 			len -= res;
@@ -64,15 +70,21 @@ namespace Protocol {
 				res = pselect(fd+1, NULL, &fds, NULL, NULL,
 						&m.get_old_mask());
 			}
-			if (res < 0)
+			if (res < 0){
+				if (errno == EINTR && cancel)
+					throw OperationCancelled();
 				throw WriteError(errno);
+			}
 			if (res != 1){
 				//the OS is cheating ;)
 				throw WriteError(EIO);
 			}
 			res = ::write(fd, buf + offset, len);
-			if (res < 0)
+			if (res < 0){
+				if (errno == EINTR && cancel)
+					throw OperationCancelled();
 				throw WriteError(errno);
+			}
 			if (res == 0)
 				throw WriteError(ENODATA);
 			offset += res;
@@ -312,12 +324,12 @@ namespace Protocol {
 	size_t FileDataStream::write_varuint(const sigset_t &mask, const bool
 			&cancel, VarUint data)
 	{
-		if (data.get_val() < 250){
-			write_uint8(mask, cancel, (uint8_t)data.get_val());
-			return 1;
-		}
 		if (data.is_null()){
 			write_uint8(mask, cancel, 250);
+			return 1;
+		}
+		if (data.get_val() < 250){
+			write_uint8(mask, cancel, (uint8_t)data.get_val());
 			return 1;
 		}
 		if (data.get_val() <= 0xFFFFU){
