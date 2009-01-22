@@ -14,5 +14,6 @@
 #define QE_NAME_BIND_NAME			"name"
 #define QE_TYPE_BIND_NAME			"type"
 #define QE_OBJECT_NAME_BIND_NAME		"objectName"
+#define QE_CRUD_BIND_NAME			"crud"
 
 #endif //_BINDNAMES_H

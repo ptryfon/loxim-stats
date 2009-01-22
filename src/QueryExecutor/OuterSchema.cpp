@@ -9,8 +9,18 @@ void OuterSchema::addName(string name, int crudFlags)
 {
 	if (crudFlags == 0)
 		return; //name with no access is like no name at all
-	
+
 	m_namesInSchema[name] = crudFlags;	
+	bool found;
+	string objectName = InterfaceMaps::Instance().getObjectNameForInterface(name, found);
+	if (found)
+		m_namesInSchema[objectName] = crudFlags;
+	else
+	{
+		string interfaceName = InterfaceMaps::Instance().getInterfaceNameForObject(name, found);
+		if (found)
+			m_namesInSchema[interfaceName] = crudFlags;
+	}
 }
 
 int OuterSchema::getCrudForName(string name) const
@@ -32,13 +42,6 @@ void OuterSchema::addName(string name, EntityType t, bool canCreate, bool canRea
 	if (canUpdate) crud += UPDATE;
 	if (canDelete) crud += DELETE;
 	addName(name, crud);
-	if (t == INTERFACE)
-	{
-		bool found;
-		string objectName = InterfaceMaps::Instance().getObjectNameForInterface(name, found);
-		if (found)
-			addName(objectName, crud); //TODO - CRUD for interface objects should be separate
-	}
 }
 
 void OuterSchema::removeName(string name)
@@ -125,7 +128,6 @@ int OuterSchema::fromLogicalID(LogicalID *lid, TManager::Transaction *tr, OuterS
 	s->setName(optr->getName());
 	if(dv->getSubtype() != Store::StoreSchema) return -1;
 	
-	TNameToAccess aps;
 	vector<LogicalID*>* lidVec = dv->getVector();
 	vector<LogicalID*>::iterator it;
 	for (it = lidVec->begin(); it!=lidVec->end(); ++it) 
@@ -140,10 +142,26 @@ int OuterSchema::fromLogicalID(LogicalID *lid, TManager::Transaction *tr, OuterS
 		{
 			string apName = dvInside->getString();
 			//cout << "AP Name: " << apName << endl;
-			aps[apName] = defaultCrud;	//TODO	  
+			++it;
+			if (it==lidVec->end())
+				return -1; //no crud for this one!
+			LogicalID* currentCrudLid = *it;
+			ObjectPointer *optrCrudInside;
+			errcode = tr->getObjectPointer (currentCrudLid, Store::Read, optrCrudInside, false);
+			if (errcode != 0)
+				return errcode;		
+			DataValue *dvCrudInside = optrCrudInside->getValue();
+			if (optrCrudInside->getName() != QE_CRUD_BIND_NAME) 
+			{
+				return -1; //crud expected!
+			}
+			else
+			{
+				int cr = dvCrudInside->getInt();
+				s->addName(apName, cr);
+			}
 		}
 	}
-	s->setAccessPoints(aps);
 	return 0;
 }
 

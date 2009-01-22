@@ -26,11 +26,11 @@ namespace
 			string lName = left->getName();
 			string rName = right->getName();
 			if (lName < rName)
-			return true;
+				return true;
 			else if (lName > rName)
-			return false;
+				return false;
 			else
-			return (left->getParamsCount() < right->getParamsCount());
+				return (left->getParamsCount() < right->getParamsCount());
 		}
     };
     
@@ -55,20 +55,20 @@ void Schemas::Method::sortParams()
 bool Schemas::Method::Matches(Schemas::Method other) const
 {	//both are sorted
     if (m_name != other.getName())
-	return false;
+		return false;
 	
     int count = getParamsCount();
     if (count != other.getParamsCount()) 
-	return false;	
+		return false;	
     
     TFields oP = other.getParams();
     TFields::const_iterator thisIt, otherIt;
     for (thisIt = m_params.begin(), otherIt = oP.begin(); thisIt != m_params.end(), otherIt != oP.end(); ++thisIt, ++otherIt)
     {
-	Field *f1 = *thisIt;
-	Field *f2 = *otherIt;
-	if (!f1->Matches(*f2))
-	    return false; 
+		Field *f1 = *thisIt;
+		Field *f2 = *otherIt;
+		if (!f1->Matches(*f2))
+			return false; 
     }
     return true;
 }
@@ -711,9 +711,9 @@ bool Matcher::matchesAny(Field *f, TFields impF)
     TFields::iterator it;
     for (it = impF.begin(); it != impF.end(); ++it)
     {
-	Field *cand = (*it);
-	if (f->Matches(*cand))
-	    return true;
+		Field *cand = (*it);
+		if (f->Matches(*cand))
+			return true;
     }
     return false;
 }
@@ -724,10 +724,10 @@ bool Matcher::matchesAny(Schemas::Method *m, TMethods impM)
     m->sortParams();
     for (it = impM.begin(); it != impM.end(); ++it)
     {
-	Schemas::Method *cand = (*it);
-	cand->sortParams();
-	if (m->Matches(*cand))
-	    return true;
+		Schemas::Method *cand = (*it);
+		cand->sortParams();
+		if (m->Matches(*cand))
+			return true;
     }
     return false;
 }
@@ -737,9 +737,9 @@ bool Matcher::MatchFields(TFields intF, TFields impF)
     TFields::iterator intI;
     for (intI = intF.begin(); intI != intF.end(); ++intI)
     {
-	Field *intField = (*intI);
-	if (!Matcher::matchesAny(intField, impF))
-	    return false;
+		Field *intField = (*intI);
+		if (!Matcher::matchesAny(intField, impF))
+			return false;
     }
     return true;
 }
@@ -750,9 +750,9 @@ bool Matcher::MatchMethods(TMethods intM, TMethods impM)
     TMethods::iterator intI;
     for (intI = intM.begin(); intI != intM.end(); ++intI)
     {
-	Schemas::Method *intMethod = (*intI);
-	if (!Matcher::matchesAny(intMethod, impM))
-	    return false;
+		Schemas::Method *intMethod = (*intI);
+		if (!Matcher::matchesAny(intMethod, impM))
+			return false;
     }
     return true;
 }

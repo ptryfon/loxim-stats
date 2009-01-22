@@ -113,12 +113,12 @@ namespace QExecutor
 		bool antyStarve;
 		
 		bool evalStopped() { return ( stop != 0 ); };
-		int executeRecQuery(TreeNode *tree);
+		int executeRecQuery(TreeNode *tree, bool checkPrivilieges = true);
 		int combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryResult *lRes, QueryResult *&partial);
 		int merge(NonAlgOpNode::nonAlgOp op, QueryResult *partial, QueryResult *&final);
-		int unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&final);
+		int unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&final, bool checkPrivilieges);
 		int coerceOperate(int cType, QueryResult *arg, QueryResult *&final, TreeNode *tree);
-		int algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResult *rArg, QueryResult *&final, AlgOpNode *tn);
+		int algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResult *rArg, QueryResult *&final, AlgOpNode *tn, bool checkPrivilieges);
 		int derefQuery(QueryResult *arg, QueryResult *&res);
 		int refQuery(QueryResult *arg, QueryResult *&res);
         	int nameofQuery(QueryResult *arg, QueryResult *&res);
@@ -143,6 +143,8 @@ namespace QExecutor
 		int lidFromString( string bindName, string value, LogicalID*& lid);
 		
 		int lidFromReference( string bindName, LogicalID* value, LogicalID*& lid);
+
+		int lidFromInt(string bindName, int value, LogicalID*& lid);
 		
 		int lidFromBinder( string bindName, QueryResult* result, LogicalID*& lid);
 		
@@ -154,9 +156,9 @@ namespace QExecutor
 		
 		int execRecursivQueryAndPop(TreeNode *query, QueryResult*& execResult);
 		
-		int persistDelete(QueryResult* bagArg);
+		int persistDelete(QueryResult* bagArg, bool checkPrivilieges = false);
 		
-		int persistDelete(LogicalID *lid);
+		int persistDelete(LogicalID *lid, bool checkPrivilieges = false);
 		
 		int persistDelete(vector<LogicalID*>* lids);
 		
@@ -180,7 +182,6 @@ namespace QExecutor
         	bool assert_bool_query(string query);
         	bool assert_privilige(string priv, string object);
         	bool priviliged_mode;
-        	bool system_privilige_checking;
 		/** typedefs   - type definitions / declarations */
 	
 		int executeObjectDeclarationOrTypeDefinition(DeclareDefineNode *obdNode, bool isTypedef);
@@ -212,7 +213,6 @@ namespace QExecutor
 			ec = &ErrorConsole::get_instance(EC_QUERY_EXECUTOR); 
 			stop = 0; 
 			this->session = session; 
-			system_privilige_checking = false; 
 		};
 		~QueryExecutor();
 		int initCg();
