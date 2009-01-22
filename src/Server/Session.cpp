@@ -13,6 +13,7 @@
 #include <Server/SignalRouter.h>
 #include <Server/Session.h>
 #include <Protocol/Enums/Enums.h>
+#include <Protocol/Exceptions.h>
 #include <Protocol/Streams/PackageStream.h>
 #include <Protocol/Packages/ASCByePackage.h>
 #include <Protocol/Packages/ASCErrorPackage.h>
@@ -143,7 +144,7 @@ namespace Server{
 			server.end_session(get_id(), 0);
 		} catch (LoximException &ex){
 			info_print(err_cons, "Caught LoximException in Session::main_loop");
-			info_print(err_cons, ex.to_string());
+			debug_print(err_cons, ex.to_string());
 			worker.stop();
 			KAthread.stop();
 			server.end_session(get_id(), ex.get_error());
@@ -259,6 +260,12 @@ namespace Server{
 		Locker l(send_mutex);
 		stream->write_package(mask, shutting_down, ASCPingPackage());
 	}
+	
+	void Session::send_pong()
+	{
+		Locker l(send_mutex);
+		stream->write_package(mask, shutting_down, ASCPongPackage());
+	}
 
 	void Session::send_error(int error, const string &descr)
 	{
@@ -333,15 +340,20 @@ namespace Server{
 
 	void Session::free_state()
 	{
-
 		debug_print(err_cons, "In free state :)");
-		while (!shutting_down){
-			auto_ptr<Package> package = stream->read_package(mask, shutting_down);
-			KAthread.set_answered();
-			worker.submit(package);
+		try{
+			while (!shutting_down){
+				auto_ptr<Package> package = stream->read_package(mask, shutting_down);
+				KAthread.set_answered();
+				worker.submit(package);
+			}
+		} catch (OperationCancelled &ex) {
+			//ignore this one - this is the way we shut down
 		}
 		if (!error){
-			send_bye();
+			try {
+				send_bye();
+			} catch (...) {} //we don't care about errors here
 			return;
 		}
 		else
@@ -477,18 +489,13 @@ namespace Server{
 			}
 			pthread_mutex_unlock(&mutex);
 			try{
-				try{
-					process_package(cur_package);
-				} catch (LoximException &ex) {
-					session.shutdown(ex.get_error());
-					//we don't own the mutex
-					return;
-				} catch (...) {
-					session.shutdown(EUnknown);
-					return;
-				}
+				process_package(cur_package);
 			} catch (LoximException &ex) {
 				session.shutdown(ex.get_error());
+				//we don't own the mutex
+				return;
+			} catch (...) {
+				session.shutdown(EUnknown);
 				return;
 			}
 			pthread_mutex_lock(&mutex);
@@ -537,6 +544,9 @@ namespace Server{
 	{
 		Locker l(mutex);
 		aborting = false;
+		if (package->get_type() == A_SC_PING_PACKAGE){
+			session.send_pong();
+		}
 		if (package->get_type() == A_SC_PONG_PACKAGE){
 			return;
 		}

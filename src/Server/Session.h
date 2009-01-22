@@ -171,6 +171,7 @@ namespace Server{
 			void respond(std::auto_ptr<Protocol::Package> qres);
 			void send_bye();
 			void send_ping();
+			void send_pong();
 			void send_error(int error, const std::string &descr);
 			void send_error(int error);
 			
