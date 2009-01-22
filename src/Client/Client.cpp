@@ -140,6 +140,11 @@ namespace Client{
 			//if error in protocol occurred or the server wants to close the connection
 			{
 				Locker l(logic_mutex);
+				if (result->get_type() == A_SC_PING_PACKAGE){
+					ASCPongPackage p;
+					stream->write_package(mask, shutting_down, p);
+					continue;
+				}
 				if (waiting_for_result){
 					switch (result->get_type()){
 						case A_SC_ERROR_PACKAGE:
@@ -173,30 +178,50 @@ namespace Client{
 
 	auto_ptr<Package> Client::receive_result()
 	{
-		auto_ptr<Package> p(stream->read_package(mask, shutting_down));
-		if (p->get_type() == A_SC_ERROR_PACKAGE || p->get_type() == A_SC_BYE_PACKAGE){
-			return p;
-		}
-		if (p->get_type() != V_SC_SENDVALUES_PACKAGE){
-			throw ProtocolLogic();
-		}
+		while (true){
+			auto_ptr<Package> p(stream->read_package(mask, shutting_down));
+			if (p->get_type() == A_SC_ERROR_PACKAGE || p->get_type() == A_SC_BYE_PACKAGE){
+				return p;
+			}
+			if (p->get_type() == A_SC_PING_PACKAGE){
+				Locker l(logic_mutex);
+				ASCPongPackage pong;
+				stream->write_package(mask, shutting_down, pong);
+				continue;
+			}
+			if (p->get_type() != V_SC_SENDVALUES_PACKAGE){
+				throw ProtocolLogic();
+			}
 
-		p = stream->read_package(mask, shutting_down);
-		if (p->get_type() == A_SC_BYE_PACKAGE){
-			return p;
-		}
-		if (p->get_type() != V_SC_SENDVALUE_PACKAGE){
-			throw ProtocolLogic();
-		}
+			p = stream->read_package(mask, shutting_down);
+			if (p->get_type() == A_SC_PING_PACKAGE){
+				Locker l(logic_mutex);
+				ASCPongPackage pong;
+				stream->write_package(mask, shutting_down, pong);
+				continue;
+			}
+			if (p->get_type() == A_SC_BYE_PACKAGE){
+				return p;
+			}
+			if (p->get_type() != V_SC_SENDVALUE_PACKAGE){
+				throw ProtocolLogic();
+			}
 
-		auto_ptr<Package> p2(stream->read_package(mask, shutting_down));
-		if (p2->get_type() != A_SC_BYE_PACKAGE && p2->get_type() != V_SC_FINISHED_PACKAGE){
-			throw ProtocolLogic();
+			auto_ptr<Package> p2(stream->read_package(mask, shutting_down));
+			if (p->get_type() == A_SC_PING_PACKAGE){
+				Locker l(logic_mutex);
+				ASCPongPackage pong;
+				stream->write_package(mask, shutting_down, pong);
+				continue;
+			}
+			if (p2->get_type() != A_SC_BYE_PACKAGE && p2->get_type() != V_SC_FINISHED_PACKAGE){
+				throw ProtocolLogic();
+			}
+			if (p2->get_type() == A_SC_BYE_PACKAGE)
+				return p2;
+			else
+				return p;
 		}
-		if (p2->get_type() == A_SC_BYE_PACKAGE)
-			return p2;
-		else
-			return p;
 	}
 
 
