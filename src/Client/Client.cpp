@@ -59,11 +59,16 @@ namespace Client{
 
 
 	Client::Client(uint32_t host, uint16_t port) :
-		stream(new PackageCodec(auto_ptr<DataStream>(new TCPClientStream(host, port)), MAX_PACKAGE_SIZE)),
-		error(0), waiting_for_result(false), aborter(*this)
+		stream(new PackageCodec(auto_ptr<DataStream>(new
+		TCPClientStream(host, port)), MAX_PACKAGE_SIZE)), error(0),
+		shutting_down(false), waiting_for_result(false),
+		aborter(*this) 
 	{
 		pthread_mutex_init(&logic_mutex, 0);
 		pthread_cond_init(&read_cond, 0);
+		pthread_sigmask(0, NULL, &mask);
+		sigaddset(&mask, SIGUSR1);
+
 	}
 
 	Client::~Client()
