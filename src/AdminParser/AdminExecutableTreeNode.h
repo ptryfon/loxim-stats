@@ -1,8 +1,11 @@
 #ifndef ADMIN_EXECUTABLE_TREE_NODE_H
 #define ADMIN_EXECUTABLE_TREE_NODE_H
 
-#include <Server/Session.h>
 #include <AdminParser/AdminTreeNode.h>
+
+namespace Server{
+	class Session;
+}
 
 namespace AdminParser{
     class AdminExecutableTreeNode : public AdminTreeNode {

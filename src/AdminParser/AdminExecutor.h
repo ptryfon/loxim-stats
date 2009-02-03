@@ -1,14 +1,18 @@
-#ifndef ADMIN_PARSER_H
-#define ADMIN_PARSER_H
+#ifndef ADMIN_EXECUTOR_H
+#define ADMIN_EXECUTOR_H
 
 #include <string>
-#include <AdminParser/AdminLexer.h>
-#include <AdminParser/parser.h>
-#include <Server/Session.h>
 #include <AdminParser/AdminExecutableTreeNode.h>
+#include <AdminParser/AdminParser.h>
+#include <AdminParser/AdminLexer.h>
 #include <pthread.h>
 
+namespace Server {
+	class Session;
+}
+
 namespace AdminParser{
+
     class AdminExecutor{
 	public:
 	    static AdminExecutor *get_instance();
@@ -19,8 +23,7 @@ namespace AdminParser{
 	    static AdminExecutor *instance;
 	    pthread_mutex_t exec_mutex;
 	    static pthread_mutex_t instance_mutex;
-	    AdminParser *parser;
-	    AdminLexer *lexer;
+	    ::AdminParser::AdminParser parser;
 	    
 	    /**
 	     * for returning results from parser

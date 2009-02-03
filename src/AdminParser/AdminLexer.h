@@ -4,8 +4,8 @@
 #ifndef YY_DECL
 
 #define	YY_DECL							\
-    int AdminParser::AdminLexer::lex(				\
-	AdminParser::AdminParser::semantic_type* yylval		\
+	int ::AdminParser::AdminLexer::lex(				\
+	AdminTreeNode* yylval		\
     )
 #endif
 
@@ -15,21 +15,23 @@
 #undef yyFlexLexer
 #endif
 
-#include <AdminParser/parser.h>
+#include <AdminParser/AdminParser.h>
 
 namespace AdminParser {
 
-    class AdminLexer : public AdminFlexLexer
-    {
-	public:
-	AdminLexer(std::istream* arg_yyin = 0,
-	    std::ostream* arg_yyout = 0);
+	class AdminTreeNode;
 
-        virtual ~AdminLexer();
+	class AdminLexer : public AdminFlexLexer
+	{
+		public:
+			AdminLexer(std::istream* arg_yyin = 0,
+					std::ostream* arg_yyout = 0);
 
-	virtual int lex(AdminParser::semantic_type* yylval);
+			virtual ~AdminLexer();
 
-    };
+			virtual int lex(AdminTreeNode* yylval);
+
+	};
 
 } 
 

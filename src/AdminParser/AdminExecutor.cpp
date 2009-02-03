@@ -1,46 +1,44 @@
-#include <AdminParser/AdminExecutor.h>
-#include <string>
-#include <Errors/Errors.h>
 #include <pthread.h>
+#include <string>
+#include <memory>
+#include <AdminParser/AdminExecutor.h>
+#include <Errors/Errors.h>
+#include <Errors/Exceptions.h>
+#include <Util/Locker.h>
 
-AdminParser::AdminExecutor *AdminParser::AdminExecutor::get_instance()
-{
-    pthread_mutex_lock(&instance_mutex);
-    if (!instance)
-	instance = new AdminExecutor();
-    pthread_mutex_unlock(&instance_mutex);
-    return instance;
+using namespace std;
+using namespace Util;
+using namespace Errors;
+
+namespace AdminParser{
+
+	AdminExecutor *AdminExecutor::get_instance()
+	{
+		pthread_mutex_lock(&instance_mutex);
+		if (!instance)
+			instance = new AdminExecutor();
+		pthread_mutex_unlock(&instance_mutex);
+		return instance;
+	}
+
+	int AdminExecutor::execute(std::string stmt, Server::Session *session)
+	{
+		Locker l(exec_mutex);
+		auto_ptr<AdminExecutableTreeNode> node = parser.parse(stmt);
+		node->execute(session);
+		return 0;
+	}
+
+	AdminExecutor::AdminExecutor()
+	{
+		pthread_mutex_init(&exec_mutex, 0);
+	}
+
+	AdminExecutor::~AdminExecutor()
+	{
+	}
+
+	AdminExecutor *AdminExecutor::instance = 0;
+	pthread_mutex_t AdminExecutor::instance_mutex = PTHREAD_MUTEX_INITIALIZER;
+
 }
-
-int AdminParser::AdminExecutor::execute(std::string stmt, Server::Session *session)
-{
-    pthread_mutex_lock(&exec_mutex);
-    stringstream stream(stringstream::in | stringstream::out);
-    stream << stmt;
-    lexer->switch_streams(&stream, 0);
-    int res = parser->parse();
-    if (res){
-	pthread_mutex_unlock(&exec_mutex);
-	return ENotParsed;
-    }
-    res = node->execute(session);
-    delete node;
-    pthread_mutex_unlock(&exec_mutex);
-    return res;
-}
-
-AdminParser::AdminExecutor::AdminExecutor()
-{
-    lexer = new AdminLexer();
-    parser = new AdminParser::AdminParser(lexer, &node);
-    pthread_mutex_init(&exec_mutex, 0);
-}
-
-AdminParser::AdminExecutor::~AdminExecutor()
-{
-    delete parser;
-    delete lexer;
-}
-
-AdminParser::AdminExecutor *AdminParser::AdminExecutor::instance = 0;
-pthread_mutex_t AdminParser::AdminExecutor::instance_mutex = PTHREAD_MUTEX_INITIALIZER;

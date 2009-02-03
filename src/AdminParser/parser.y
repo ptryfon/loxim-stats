@@ -1,17 +1,5 @@
-%skeleton "lalr1.cc"
 %defines
-%define "parser_class_name" "AdminParser"
-%name-prefix="AdminParser"
-%{ 
-
-#include "AdminExecutableTreeNode.h"
-#include "ShutdownTreeNode.h"
-namespace AdminParser{
-    class AdminLexer;
-}
-int AdminParserlex(void *lval, AdminParser::AdminLexer *lexer);
-
-%}
+%pure-parser
 %union{
     AdminTreeNode *node;
 }
@@ -40,7 +28,3 @@ opt_semi:
 
 %%
 
-void AdminParser::AdminParser::error(const AdminParser::AdminParser::location_type& l, const std::string& m)
-{
-    
-}

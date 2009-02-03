@@ -1,4 +1,5 @@
 #include <AdminParser/ShutdownTreeNode.h>
+#include <Server/Session.cpp>
 #include <iostream>
 
 namespace AdminParser{
