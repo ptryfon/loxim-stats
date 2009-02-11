@@ -162,6 +162,7 @@ string InterfaceMaps::getObjectNameForInterface(string i, bool &found) const
 {
 	string out;
 	found = false;
+	if (i.empty()) return out;
 	TInterfaceToSchemas::const_iterator it = m_nameToSchema.find(i);
 	if (it != m_nameToSchema.end())
 	{
@@ -175,6 +176,7 @@ string InterfaceMaps::getInterfaceNameForObject(string o, bool &found) const
 {
 	string out;
 	found = false;
+	if (o.empty()) return out;
 	TDict::const_iterator it = m_objNameToName.find(o);
 	if (it != m_objNameToName.end())
 	{
@@ -186,6 +188,7 @@ string InterfaceMaps::getInterfaceNameForObject(string o, bool &found) const
 
 bool InterfaceMaps::isObjectNameBound(string o) const
 {
+	if (o.empty()) return false;
 	bool f;
 	string i = getInterfaceNameForObject(o, f);
 	if (!f) return false;
@@ -221,34 +224,6 @@ ImplementationInfo InterfaceMaps::getImplementationForObject(string name, bool &
 	if (!found) return iI;
 	return m_bindMap.getImpForInterface(iName, found, final);
 }
-
-/*
-void InterfaceMaps::getInterfaceBindForObjName(string oName, string& iName, string& impName, string &impObjName, int &type, bool &found, bool final) const
-{
-	iName = getInterfaceNameForObject(oName, found);
-	if (!found) return;
-	ImplementationInfo i = getImplementationForInterface(iName, found, final);
-	impName = i.getName();
-	impObjName = i.getObjectName();
-	type = i.getType();
-}
-*/
-
-/*
-void InterfaceMaps::getClassBindForInterface(string interfaceName, LogicalID*& classGraphLid) const
-{
-	ec->printf("InterfaceMaps::getClassBindForInterface called for %s\n", interfaceName.c_str());
-	bool found;
-	ImplementationInfo i = m_bindMap.getImpForInterface(interfaceName, found, true);
-	if (!found || i.getType() != BIND_CLASS) return;
-	string cName = i.getName();
-	QExecutor::ClassGraph *cg;
-	int errcode = QExecutor::ClassGraph::getHandle(cg);
-	if (errcode) {ec->printf("InterfaceMaps::getClassBindForInterface: error - no handle\n"); return;}
-	cg->getClassLidByName(cName, classGraphLid);
-	if ((classGraphLid) && (!(cg->vertexExist(classGraphLid)))) classGraphLid = NULL;
-}
-*/
 
 //TODO - see below
 void InterfaceMaps::implementationUpdated(string implementationName, string objectName, int type, TManager::Transaction *tr)

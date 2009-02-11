@@ -4,6 +4,7 @@
 // Some methods from this classes assume that ClassGraph was initialized earlier
 
 #include <vector>
+#include <set>
 #include <string>
 
 namespace Errors
@@ -73,7 +74,7 @@ namespace Schemas
 	    TFields m_params;
     };
     typedef vector<Method *> TMethods;
-    typedef vector<string> TSupers;
+    typedef set<string> TSupers;
 
     class Schema 
     {
@@ -95,7 +96,7 @@ namespace Schemas
 
 		void addField(Field *f) {m_fields.push_back(f);}
 	    void addMethod(Method *m) {m_methods.push_back(m);}
-	    void addSuper(string s) {m_supers.push_back(s);}
+	    void addSuper(string s) {m_supers.insert(s);}
 
 		void printAll(Errors::ErrorConsole *ec) const; 
 		string toSchemaString() const;

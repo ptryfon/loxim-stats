@@ -381,11 +381,14 @@ interfaceBind: NAME SHOWS NAME {$$ = new InterfaceBind ($1, $3);};
 
 interface: INTERFACE NAME LEFTPROCPAR INSTANCE NAME COLON interface_struct RIGHTPROCPAR {$7->setInterfaceName($2); $7->setObjectName($5); $$ = $7;}
 	| INTERFACE NAME EXTENDS name_defs LEFTPROCPAR INSTANCE NAME COLON interface_struct RIGHTPROCPAR {$9->setInterfaceName($2); $9->setSupers($4); $9->setObjectName($7); $$=$9;}
+	| INTERFACE NAME EXTENDS name_defs LEFTPROCPAR interface_struct RIGHTPROCPAR {$6->setInterfaceName($2); $6->setSupers($4); $$=$6;}
+	| INTERFACE NAME LEFTPROCPAR interface_struct RIGHTPROCPAR {$4->setInterfaceName($2); $$=$4;}
 	;
 
-interface_struct: LEFTPROCPAR attributes RIGHTPROCPAR semicolon_opt  methods { InterfaceNode *n = new InterfaceNode(); n->setAttributes($2->getFields()); n->setMethods($5->getMethods()); $$=n;}
-	| LEFTPROCPAR attributes RIGHTPROCPAR semicolon_opt { InterfaceNode *n = new InterfaceNode(); n->setAttributes($2->getFields()); $$=n;}
-	| LEFTPROCPAR RIGHTPROCPAR semicolon_opt  methods { InterfaceNode *n = new InterfaceNode(); n->setMethods($4->getMethods()); $$=n;}
+interface_struct: LEFTPROCPAR attributes RIGHTPROCPAR semicolon_opt  methods { InterfaceNode *n = new InterfaceNode(); n->setAttributes($2->getUniqueFields()); n->setMethods($5->getUniqueMethods()); $$=n;}
+	| LEFTPROCPAR attributes RIGHTPROCPAR semicolon_opt { InterfaceNode *n = new InterfaceNode(); n->setAttributes($2->getUniqueFields()); $$=n;}
+	| LEFTPROCPAR RIGHTPROCPAR semicolon_opt  methods { InterfaceNode *n = new InterfaceNode(); n->setMethods($4->getUniqueMethods()); $$=n;}
+	| LEFTPROCPAR RIGHTPROCPAR semicolon_opt { InterfaceNode *n = new InterfaceNode(); $$=n;}
 	;
 
 attributes: attribute semicolon_opt { $$ = new InterfaceAttributes($1);}
@@ -399,7 +402,7 @@ methods: method semicolon_opt { $$ = new InterfaceMethods($1);}
 	;
 
 method: NAME LEFTPAR RIGHTPAR { $$ = new InterfaceMethod($1);}
-	| NAME LEFTPAR method_params RIGHTPAR { InterfaceMethod *m = new InterfaceMethod($1); m->addParams($3->getFields()); $$=m;}
+	| NAME LEFTPAR method_params RIGHTPAR { InterfaceMethod *m = new InterfaceMethod($1); m->addParams($3->getUniqueFields()); $$=m;}
 	;
 	
 method_params: attribute { $$ = new InterfaceMethodParams($1);} 

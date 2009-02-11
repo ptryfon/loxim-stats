@@ -39,6 +39,22 @@ using namespace Schemas;
 
 namespace QExecutor {
 
+QueryExecutor::QueryExecutor(Session *session) 
+{ 
+	envs = new EnvironmentStack(); 
+	qres = new ResultStack(); 
+	prms = NULL; 
+	tr = NULL; 
+	inTransaction = false;
+	antyStarve = false;
+	transactionNumber = 0;
+	ec = &ErrorConsole::get_instance(EC_QUERY_EXECUTOR); 
+	stop = 0; 
+	this->session = session;
+	im = &InterfaceMaps::Instance();
+	os = &OuterSchemas::Instance();
+}
+	
 int QueryExecutor::executeQuery(TreeNode *tree, map<string, QueryResult*> *params, QueryResult **result) {
 	int errcode;
 	prms = params;
@@ -237,9 +253,9 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 						string query = QueryBuilder::getHandle()->grant_priv_query(priv_name, name, user, grant_option);
 						QueryResult *local_res = NULL;
 						execute_locally(query, &local_res);
-						if (OuterSchemas::Instance().hasSchemaName(name) && priv_name == Privilige::READ_PRIV)
+						if (os->hasSchemaName(name) && priv_name == Privilige::READ_PRIV)
 						{   //read access to schema == access to all included names as spec. by associated CRUDs
-							OuterSchema s = OuterSchemas::Instance().getSchema(name);
+							OuterSchema s = os->getSchema(name);
 							TNameToAccess aps = s.getAccessPoints();
 							TNameToAccess::const_iterator it;
 							for (it = aps.begin(); it != aps.end(); ++it)
@@ -606,15 +622,15 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 			if (errcode != 0) return errcode;
 			
 			debug_printf(*ec, "[QE] TNNAME: checking object name\n");
-			if (Schemas::InterfaceMaps::Instance().isObjectNameBound(name))
+			if (im->isObjectNameBound(name))
 			{
 				debug_printf(*ec, "[QE] object name bound in interface maps\n");
 				bool found;
-				string iName = InterfaceMaps::Instance().getInterfaceNameForObject(name, found);
+				string iName = im->getInterfaceNameForObject(name, found);
 				if (found)
 				{
 					int type;
-					ImplementationInfo iI = InterfaceMaps::Instance().getImplementationForInterface(iName, found, true);
+					ImplementationInfo iI = im->getImplementationForInterface(iName, found, true);
 					string impName = iI.getName();
 					string impObjName = iI.getObjectName();
 					if (found)
@@ -1438,7 +1454,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 				errcode = Schema::interfaceMatchesImplementation(interfaceName, implementationName, tr, implementationType, matches);
 				if (errcode) 
 				{
-					debug_printf(*ec, "[QE] INTERFACESBIND - error in interfaceMatchesImplementation: %s, %s\n", interfaceName.c_str(), implementationName.c_str());
+					debug_printf(*ec, "[QE] INTERFACEBIND - error in interfaceMatchesImplementation: %s, %s\n", interfaceName.c_str(), implementationName.c_str());
 					return errcode;
 				}
 				string resS = matches ? "fits": "does not fit";
@@ -1448,14 +1464,23 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 		    
 		    if (matches)
 		    {
-				string implementationObjectName = implementationSchema->getAssociatedObjectName(); 
-				errcode = tr->bindInterface(interfaceName, implementationName);
-				if (errcode) 
+				string implementationObjectName = implementationSchema->getAssociatedObjectName();
+				string interfaceObjectName = interfaceSchema->getAssociatedObjectName();
+				if (interfaceObjectName.empty())
 				{
-					debug_printf(*ec, "[QE] INTERFACESBIND - error in bindInterface\n");
+					info_printf(*ec, "[QE] INTERFACEBIND - cannot bind interface %s: it has no associated object name\n", interfaceName.c_str()); 
 					return -1; //TODO - errcode
 				}
-				InterfaceMaps::Instance().addBind(interfaceName, implementationName, implementationObjectName, implementationType);			
+				else
+				{
+					errcode = tr->bindInterface(interfaceName, implementationName);
+					if (errcode) 
+					{
+						debug_printf(*ec, "[QE] INTERFACEBIND - error in bindInterface\n");
+						return -1; //TODO - errcode
+					}
+					im->addBind(interfaceName, implementationName, implementationObjectName, implementationType);
+				}
 			}		    
 			
 		    //Cleanup and return
@@ -1531,14 +1556,16 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 			}
     		if (taken)
 			    return qeErrorOccur("[QE] TNREGINTERFACE: interface name \"" + interfaceName + "\" already in use", ENotUniqueInterfaceName);
-			if ((errcode = nameTaken(object_name, taken)) != 0) 
+			if (!object_name.empty())
 			{
-			    debug_print(*ec,  "[QE] TNREGINTERFACE: returning error from nameTaken");
-			    return errcode;
+				if ((errcode = nameTaken(object_name, taken)) != 0) 
+				{
+					debug_print(*ec,  "[QE] TNREGINTERFACE: returning error from nameTaken");
+					return errcode;
+				}
+				if (taken)
+					return qeErrorOccur("[QE] TNREGINTERFACE: interface object name \"" + interfaceName + "\" already in use", ENotUniqueInterfaceName);
 			}
-    		if (taken)
-			    return qeErrorOccur("[QE] TNREGINTERFACE: interface object name \"" + interfaceName + "\" already in use", ENotUniqueInterfaceName);
-
 			debug_print(*ec,  "[QE] TNINTERFACENODE: Interface name and object name unique");
 
 			errcode = tr->addRoot(optr);
@@ -1562,7 +1589,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 				return trErrorOccur("[QE] Error in interfaceFromLogicalID", errcode);
 			}
 			debug_printf(*ec, "[QE] TNREGINTERFACE inserting into map..\n");
-			bool inserted = InterfaceMaps::Instance().insertNewInterfaceAndPropagateHierarchy(*s);
+			bool inserted = im->insertNewInterfaceAndPropagateHierarchy(*s);
 			if (!inserted)
 			{
 				return -1;  //TODO - errcode;
@@ -1646,7 +1673,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 
 			Schema *intSchema;
 			Schema::interfaceFromInterfaceNode(node, intSchema);
-			if (InterfaceMaps::Instance().checkIfCanBeInserted(*intSchema) == false)
+			if (im->checkIfCanBeInserted(*intSchema) == false)
 				return -1;  //TODO - errcode -> can't insert interface, inconsistent with current maps	
 			
 			// vector that holds all the logical ids
@@ -1829,7 +1856,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 			if (errcode) return errcode;	//TODO
 			STATE state = OuterSchemaValidator::validate(s, tr, true);
 			debug_print(*ec, "[QE] outer schema validated");
-			OuterSchemas::Instance().addSchema(*s);
+			os->addSchema(*s);
 
 		    errcode = qres->push(execution_result);
 		    if (errcode != 0) return errcode;
@@ -2323,7 +2350,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 			if(classIsUpdated) {
 				errcode = cg->updateClass(optr, tr, this);
 				if(errcode != 0) return errcode;
-				InterfaceMaps::Instance().implementationUpdated(optr->getName(), invariant_name, BIND_CLASS, tr);	
+				im->implementationUpdated(optr->getName(), invariant_name, BIND_CLASS, tr);	
 			} else {
 				errcode = cg->addClass(optr, tr, this);
 				if(errcode != 0) return errcode;
@@ -2395,10 +2422,10 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 					bool found;
 					SetOfLids classMarks;
 					InterfaceKey k;
-					if (InterfaceMaps::Instance().isObjectNameBound(newobject_name))
+					if (im->isObjectNameBound(newobject_name))
 					{   //Creating an interface object
-						iName = InterfaceMaps::Instance().getInterfaceNameForObject(newobject_name, found);						
-						ImplementationInfo iI = InterfaceMaps::Instance().getImplementationForInterface(iName, found, true);
+						iName = im->getInterfaceNameForObject(newobject_name, found);						
+						ImplementationInfo iI = im->getImplementationForInterface(iName, found, true);
 						string impName = iI.getName();
 						string impObjName = iI.getObjectName();
 						int implType = iI.getType();
@@ -3328,7 +3355,7 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 					
 					bool filterOut;
 					string k = interfaceKey.getKey();
-					TStringSet namesVisible = InterfaceMaps::Instance().getAllFieldNamesAndCheckBind(k, filterOut);
+					TStringSet namesVisible = im->getAllFieldNamesAndCheckBind(k, filterOut);
 					if (filterOut)
 						debug_printf(*ec, "[QE] derefQuery - field names will be filtered out, %d names visible\n", namesVisible.size());
 					
@@ -4088,7 +4115,7 @@ int QueryExecutor::persistDelete(LogicalID *lid, bool checkPrivilieges /*=false*
 		string interfaceName = object_name;
 		debug_printf(*ec, "[QE] removing interface %s\n", interfaceName.c_str());
 		//remove from maps - TODO: could result in corrupted map with checkValidity = false
-		InterfaceMaps::Instance().removeInterface(interfaceName, false);
+		im->removeInterface(interfaceName, false);
 		//TODO - re-validate all Schemas using this name		
 		errcode = tr->removeInterface(optr);
 		if (errcode != 0) 
@@ -4099,7 +4126,7 @@ int QueryExecutor::persistDelete(LogicalID *lid, bool checkPrivilieges /*=false*
 		string schemaName = object_name;
 		debug_printf(*ec, "[QE] removing schema %s\n", schemaName.c_str());
 		//remove from maps
-		OuterSchemas::Instance().removeSchema(schemaName);
+		os->removeSchema(schemaName);
 		errcode = tr->removeSchema(optr);
 		if (errcode != 0) 
 			return trErrorOccur("[QE] Error while removing outer schema", errcode);		
@@ -4133,7 +4160,7 @@ int QueryExecutor::persistDelete(LogicalID *lid, bool checkPrivilieges /*=false*
 	}
 	
 	if (et == Store::Class || et == Store::Interface || et == Store::View)
-		InterfaceMaps::Instance().implementationRemoved(object_name, tr);
+		im->implementationRemoved(object_name, tr);
 	
 	return 0;
 }

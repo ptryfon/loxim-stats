@@ -365,7 +365,7 @@ namespace QParser {
 	    InterfaceFields() {}
 	    TAttributes m_fields;
 	public:
-	    TAttributes getFields() const {return m_fields;}
+	    TAttributes getUniqueFields() const;
 	    void prependField(InterfaceAttribute *field) {m_fields.push_front(*field);}
 	    
 	    virtual TreeNode* clone() = 0;
@@ -385,9 +385,9 @@ namespace QParser {
     {
 	public:
 	    InterfaceMethodParams(InterfaceAttribute *methodParam) {prependField(methodParam);}
-    	    virtual int type() {return TNINTERFACEMETHODPARAMS;}
+    	virtual int type() {return TNINTERFACEMETHODPARAMS;}
 	    TreeNode* clone();
-    };
+	};
 
     class InterfaceMethod: public PrintableTreeNode
     {
@@ -413,7 +413,7 @@ namespace QParser {
 	    TMethods m_methods;
 	public:
 	    InterfaceMethods(InterfaceMethod *method) {prependMethod(method);}
-	    TMethods getMethods() const {return m_methods;}
+	    TMethods getUniqueMethods() const;
 	    void prependMethod(InterfaceMethod *method) {m_methods.push_front(*method);}
 	    
 	    TreeNode* clone();
@@ -428,7 +428,7 @@ namespace QParser {
 	    string m_objectName;
 	    TAttributes m_attributes;
 	    TMethods m_methods;
-	    TSupers m_supers;
+	    TSupers m_supers; 
 	public:
 	    InterfaceNode() {};
 	    string getInterfaceName() const {return m_interfaceName;}

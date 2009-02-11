@@ -311,12 +311,29 @@ namespace QParser
     {
 		return PrintHandler::vectorString(m_fields);
     }
+	TAttributes InterfaceFields::getUniqueFields() const
+	{
+		std::set<string> names;
+		TAttributes out;
+		TAttributes::const_reverse_iterator it;
+		for (it = m_fields.rbegin(); it != m_fields.rend(); ++it)
+		{
+			string name = it->getName();
+			if (names.find(name) == names.end())
+			{
+				out.push_back(*it);
+				names.insert(name);
+			}
+		}
+		return out;
+	}
+    
         
     TreeNode* InterfaceAttributes::clone()
     {
 		return new InterfaceAttributes(*this);    
-    }
-    
+    }	
+
     TreeNode* InterfaceMethodParams::clone()
     {
 		return new InterfaceMethodParams(*this);
@@ -349,6 +366,35 @@ namespace QParser
 		}
 		return res;
     }
+	TMethods InterfaceMethods::getUniqueMethods() const
+	{
+		map<string, set<int> > namesToArgs;
+		TMethods out;
+		TMethods::const_reverse_iterator it;
+		for (it = m_methods.rbegin(); it != m_methods.rend(); ++it)
+		{
+			string name = it->getName();
+			int argCount = it->getParams().size();
+			if (namesToArgs.find(name) == namesToArgs.end())
+			{
+				set<int> newSet;
+				newSet.insert(argCount);
+				namesToArgs[name] = newSet;
+				out.push_back(*it);		
+			}
+			else
+			{
+				set<int> counts = namesToArgs[name];
+				if (counts.find(argCount) == counts.end())
+				{
+					counts.insert(argCount);
+					namesToArgs[name] = counts;
+					out.push_back(*it);
+				}				
+			}
+		}
+		return out;
+	}
     
     void InterfaceNode::setSupers(NameListNode *supers)
     {

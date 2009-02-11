@@ -25,7 +25,7 @@
 namespace Server{
 	class Session;
 }
-namespace Schemas { class Schema; }
+namespace Schemas { class Schema; class InterfaceMaps; class OuterSchemas; }
 
 using namespace QParser;
 using namespace TManager;
@@ -103,6 +103,8 @@ namespace QExecutor
 		ErrorConsole *ec;
 		Transaction *tr;
 		ClassGraph *cg;
+		Schemas::InterfaceMaps *im;
+		Schemas::OuterSchemas *os;
 		EnvironmentStack *envs;
 		ResultStack *qres;
 		map<string, QueryResult*> *prms;
@@ -121,7 +123,7 @@ namespace QExecutor
 		int algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResult *rArg, QueryResult *&final, AlgOpNode *tn, bool checkPrivilieges);
 		int derefQuery(QueryResult *arg, QueryResult *&res);
 		int refQuery(QueryResult *arg, QueryResult *&res);
-        	int nameofQuery(QueryResult *arg, QueryResult *&res);
+        int nameofQuery(QueryResult *arg, QueryResult *&res);
 		int isIncluded(QueryResult *elem, QueryResult *set, bool &score);
 		int sortBag(QueryBagResult *inBag, QueryBagResult *&outBag);
 		int objectFromBinder(QueryResult *res, ObjectPointer *&newObject);
@@ -198,22 +200,11 @@ namespace QExecutor
 		int checkSingleSubCard(SigColl *sigc, QueryResult *single, map<string, int> &subMap);
 			
 	public:
-        	bool is_dba();
+        bool is_dba();
 		bool inTransaction;
 		//SessionData *session_data;
 		Server::Session *session;
-		QueryExecutor(Server::Session *session) { 
-			envs = new EnvironmentStack(); 
-			qres = new ResultStack(); 
-			prms = NULL; 
-			tr = NULL; 
-			inTransaction = false;
-			antyStarve = false;
-			transactionNumber = 0;
-			ec = &ErrorConsole::get_instance(EC_QUERY_EXECUTOR); 
-			stop = 0; 
-			this->session = session; 
-		};
+		QueryExecutor(Server::Session *session);
 		~QueryExecutor();
 		int initCg();
 		ClassGraph* getCg();

@@ -220,9 +220,8 @@ void Schema::interfaceFromInterfaceNode(const QParser::InterfaceNode *node, Sche
 		s->addMethod(meth);
 	}
 		
-	TSupers supers;
 	QParser::TSupers sups = node->getSupers();
-	supers.insert(supers.begin(), sups.begin(), sups.end());
+	TSupers supers(sups.begin(), sups.end());
 	s->setSupers(supers);
 	s->setSchemaType(BIND_INTERFACE);
 }
@@ -476,11 +475,12 @@ int Schema::fromClassVertex(QExecutor::ClassGraphVertex *cgv, Schema *&out)
 
 int Schema::completeSupersForBase(string baseString, vector<Schema *> *&out, TManager::Transaction *tr, int t)
 {
-    TSupers base;
-    base.push_back(baseString);
     out = new vector<Schema *>(0);
-    set<string> baseSet = vectorToSet<string>(base);
-    TSupers::iterator it;
+    vector<string> base;
+	base.push_back(baseString);
+	TSupers baseSet;
+    baseSet.insert(baseString);
+	
     int errcode;
     while (!base.empty())
     {
