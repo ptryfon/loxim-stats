@@ -208,6 +208,7 @@ namespace QExecutor
 		~QueryExecutor();
 		int initCg();
 		ClassGraph* getCg();
+		const Schemas::InterfaceMaps* getIm() {return im; }
 		int executeQuery(TreeNode *tree, map<string, QueryResult*>* params, QueryResult **result);
 		int executeQuery(TreeNode *tree, QueryResult **result);
 		void stopExecuting() { stop = 65535; };
@@ -232,7 +233,7 @@ namespace QExecutor
 		
 		int otherErrorOccur( string msg, int errcode );
 		
-		friend class Schemas::Schema;
+		//friend class Schemas::Schema;
 	};
 	
 	/*

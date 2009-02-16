@@ -156,6 +156,10 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 	bool found_normal = false;
 	bool found_virtual = false;
 	
+	InterfaceKey ik;
+	if (!iName.empty())
+		ik.setKey(iName);
+	
 	QueryBagResult *section;
 	unsigned int sectionSize;
 	QueryResult *sth;
@@ -199,10 +203,7 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 					for (int i = 0; i < vecSize; i++ ) 
 					{
 						found_one = true;
-						LogicalID *lid = vec->at(i);
-						InterfaceKey ik;
-						if (!iName.empty())
-							ik.setKey(iName);
+						LogicalID *lid = vec->at(i);		
 						QueryReferenceResult *lidres = new QueryReferenceResult(lid, ik);
 						r->addResult(lidres);
 					}
@@ -227,7 +228,7 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 							if(errcode != 0) return errcode;
 							if(!inInvariant) continue;
 							found_one = true;
-							QueryReferenceResult *lidres = new QueryReferenceResult(lid);
+							QueryReferenceResult *lidres = new QueryReferenceResult(lid, ik);
 							r->addResult(lidres);
 						}
 						delete vecSubInvariant;
@@ -285,6 +286,7 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 							view_defs.push_back(view_lid);
 							
 							QueryResult *virt_res = new QueryVirtualResult(name, view_defs, seeds, NULL);
+							((QueryVirtualResult *)virt_res)->setInterfaceKey(ik);
 							r->addResult(virt_res);
 						}
 					} else {
@@ -292,7 +294,7 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 						debug_print(*ec,  "[QE] TUTAJ WYNIKI");
 						found_one = true;
 						LogicalID *svlid = vec_sysvirt->at(0);
-						QueryReferenceResult *sysvirtres = new QueryReferenceResult(svlid);
+						QueryReferenceResult *sysvirtres = new QueryReferenceResult(svlid, ik);
 						r->addResult(sysvirtres);
 					}
 				}
@@ -408,7 +410,7 @@ int EnvironmentStack::bindProcedureName(string name, unsigned int queries_size, 
 						
 						errcode = qe->getCg()->findMethod(name, queries_size, cgLids, methodCode, methodParams, founded, actualBindClassLid, methodBindClassLid);
 						if (errcode) return errcode;
-						if (Schemas::InterfaceMaps::Instance().interfaceHasMethod(interfaceName, name, queries_size))
+						if (qe->getIm()->interfaceHasMethod(interfaceName, name, queries_size))
 						{// method visible via interface
 							done = true;
 							code = methodCode;
@@ -538,7 +540,7 @@ int QueryResult::nested_and_push_on_envs(QueryExecutor * qe, Transaction *&tr) {
 			string interfaceName = k.getKey();
 			LogicalID* classGraphLid = NULL;
 			bool found;
-			Schemas::ImplementationInfo iI = Schemas::InterfaceMaps::Instance().getImplementationForInterface(interfaceName, found, true);
+			Schemas::ImplementationInfo iI = qe->getIm()->getImplementationForInterface(interfaceName, found, true);
 			if (iI.getType() == Schemas::BIND_CLASS)
 			{
 				string className = iI.getName();
@@ -720,7 +722,7 @@ int QueryReferenceResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResu
 			
 				bool filterOut;				
 				string k = getInterfaceKey().getKey();
-				TStringSet namesVisible = Schemas::InterfaceMaps::Instance().getAllFieldNamesAndCheckBind(k, filterOut);
+				TStringSet namesVisible = qe->getIm()->getAllFieldNamesAndCheckBind(k, filterOut);
 				if (filterOut)
 					debug_printf(*ec, "[QE] nested(): field names will be filtered out, %d names visible\n", namesVisible.size());
 				
@@ -744,6 +746,8 @@ int QueryReferenceResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResu
 							continue;
 						}
 					}
+					//ADTODO nalezy zapewnic widocznosc wszystkich pol metodom
+					
 					//MH TODO: add a 'this->value' reference to each tmp_logID ?
 					tmp_logID->setDirectParent(this->value);
 					QueryReferenceResult *final_ref = new QueryReferenceResult(tmp_logID);
@@ -847,6 +851,13 @@ int QueryVirtualResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult
 	errcode = qe->getOn_procedure(view_defs.at(0), "on_navigate", on_navigate_code, on_navigate_paramname);
 	if (errcode != 0) return errcode;
 	
+	bool filterOut;
+	string k = getInterfaceKey().getKey();
+	TStringSet namesVisible = qe->getIm()->getAllFieldNamesAndCheckBind(k, filterOut);
+	if (filterOut)
+		debug_printf(*ec, "[QE] nested(): field names will be filtered out, %d names visible\n", namesVisible.size());
+				
+	
 	// Gdy znaleziona jest procedura on_navigate, wykonywane jest przejscie po wirtualnym pointerze.
 	if (on_navigate_code != "") {
 		
@@ -871,6 +882,8 @@ int QueryVirtualResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult
 			switch (next_res_type) {
 				case QueryResult::QVIRTUAL: {
 					string next_res_name = ((QueryVirtualResult *) next_res)->vo_name;
+					if (filterOut) 
+						((QueryVirtualResult *) next_res)->setInterfaceKey(getInterfaceKey());
 					QueryBinderResult *next_res_binder = new QueryBinderResult(next_res_name, next_res);
 					r->addResult(next_res_binder);
 					break;
@@ -885,6 +898,9 @@ int QueryVirtualResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult
 						return errcode;
 					}
 					string next_res_name = optr->getName();
+					
+					if (filterOut) 
+						((QueryReferenceResult *) next_res)->setInterfaceKey(getInterfaceKey());
 					
 					QueryBinderResult *next_res_binder = new QueryBinderResult(next_res_name, next_res);
 					r->addResult(next_res_binder);
@@ -910,6 +926,14 @@ int QueryVirtualResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult
 			string subview_code = "";
 			errcode = qe->checkViewAndGetVirtuals(subview_lid, subview_name, subview_code);
 			if (errcode != 0) return errcode;
+			
+			if (filterOut)
+			{
+				if (namesVisible.find(subview_name) == namesVisible.end())
+				{   //Subview filtered out
+					continue;
+				}
+			}
 			
 			vector<QueryBagResult*> envs_sections2;
 		

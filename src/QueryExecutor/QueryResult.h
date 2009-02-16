@@ -482,13 +482,21 @@ public:
         }
 };
 
+class InterfacedResult
+{
+	protected:
+		InterfaceKey m_key;
+	public:
+		InterfaceKey getInterfaceKey() const {return m_key;}
+		void setInterfaceKey(InterfaceKey k) {m_key = k;}
+};
 
-class QueryReferenceResult : public QueryResult
+
+class QueryReferenceResult : public QueryResult, public InterfacedResult
 {
 protected:
 	LogicalID *value;
 	bool refed;
-	InterfaceKey m_key;
 public:
 	QueryReferenceResult();
 	QueryReferenceResult(LogicalID* v);
@@ -497,7 +505,6 @@ public:
 	virtual ~QueryReferenceResult() { if (value != NULL) delete value; };
 	LogicalID* getValue();
 	void setValue(LogicalID* v);
-	InterfaceKey getInterfaceKey() const;
 	bool wasRefed();
 	void setRef();
 	int type() const;
@@ -553,7 +560,7 @@ public:
 };
 
 
-class QueryVirtualResult : public QueryResult
+class QueryVirtualResult : public QueryResult, public InterfacedResult
 {
 protected:
 	

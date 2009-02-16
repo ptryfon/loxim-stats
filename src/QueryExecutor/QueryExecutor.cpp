@@ -1481,7 +1481,9 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 					}
 					im->addBind(interfaceName, implementationName, implementationObjectName, implementationType);
 				}
-			}		    
+			}
+			else
+				return -1; //TODO - errcode (no match)
 			
 		    //Cleanup and return
 
@@ -3409,12 +3411,13 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 			break;
 		}
 		case QueryResult::QVIRTUAL: {
-			if (((QueryVirtualResult *) arg)->refed) {
+			QueryVirtualResult *vres = (QueryVirtualResult *) arg;
+			if (vres->refed) {
 				res = arg;
 				break;
 			}
-			LogicalID *view_def = ((QueryVirtualResult*) arg)->view_defs.at(0);
-			vector<QueryResult *> seeds = ((QueryVirtualResult*) arg)->seeds;
+			LogicalID *view_def = vres->view_defs.at(0);
+			vector<QueryResult *> seeds = vres->seeds;
 			string proc_code = "";
 			string proc_param = "";
 			errcode = getOn_procedure(view_def, "on_retrieve", proc_code, proc_param);
@@ -3424,17 +3427,49 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 				debug_print(*ec,  (ErrQExecutor | EOperNotDefined));
 				return (ErrQExecutor | EOperNotDefined);
 			}
+			
+			string k = vres->getInterfaceKey().getKey();
 
 			vector<QueryBagResult*> envs_sections;
 
-			errcode = createNewSections((QueryVirtualResult*) arg, NULL, NULL, envs_sections);
+			errcode = createNewSections(vres, NULL, NULL, envs_sections);
 			if (errcode != 0) return errcode;
 
 			errcode = callProcedure(proc_code, envs_sections);
 			if(errcode != 0) return errcode;
 
 			errcode = qres->pop(res);
-			if (errcode != 0) return errcode;
+			if (errcode != 0) return errcode;			
+					
+			bool filterOut;
+			TStringSet namesVisible = im->getAllFieldNamesAndCheckBind(k, filterOut);	
+			if ((res->type() == QueryResult::QSTRUCT) && (filterOut))
+			{
+				debug_printf(*ec, "[QE] derefQuery - dereferenced names will be filtered out, %d names visible\n", namesVisible.size());			
+				QueryStructResult *structres = (QueryStructResult *)res;
+				QueryStructResult *accepted = new QueryStructResult();
+				for (int it = 0; it != structres->size(); ++it)
+				{
+					QueryResult *currBinder;
+					errcode = structres->at(it, currBinder);
+					if (errcode) return errcode;
+					if (currBinder->type() == QueryResult::QBINDER)
+					{
+						QueryBinderResult* bindres = (QueryBinderResult *) currBinder;
+						string name = bindres->getName();
+						if (namesVisible.find(name) == namesVisible.end())
+						{   //name filtered out
+							continue;
+						}
+						accepted->addResult(currBinder);
+					}
+					else
+						accepted->addResult(currBinder);
+				}
+				res = accepted;
+			}
+			
+			
 			break;
 		}
 		default: {

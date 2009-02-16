@@ -43,9 +43,9 @@ QueryReferenceResult::QueryReferenceResult()			{ ec = &ErrorConsole::get_instanc
 QueryReferenceResult::QueryReferenceResult(LogicalID* v) 	{ value=v; m_key.setEmpty(); ec = &ErrorConsole::get_instance(EC_QUERY_EXECUTOR); refed = false; }
 QueryReferenceResult::QueryReferenceResult(LogicalID* v, InterfaceKey k) 	{ value=v; m_key=k; ec = &ErrorConsole::get_instance(EC_QUERY_EXECUTOR); refed = false; }
 QueryNothingResult::QueryNothingResult() 			{ ec = &ErrorConsole::get_instance(EC_QUERY_EXECUTOR); }
-QueryVirtualResult::QueryVirtualResult() 			{ ec = &ErrorConsole::get_instance(EC_QUERY_EXECUTOR); refed = false;}
+QueryVirtualResult::QueryVirtualResult() 			{ ec = &ErrorConsole::get_instance(EC_QUERY_EXECUTOR); refed = false; m_key.setEmpty();}
 QueryVirtualResult::QueryVirtualResult(string _vo_name, vector<LogicalID *> _view_defs, vector<QueryResult *> _seeds, LogicalID *_view_parent) {
-vo_name = _vo_name; view_defs = _view_defs; seeds = _seeds; ec = &ErrorConsole::get_instance(EC_QUERY_EXECUTOR); refed = false; view_parent = _view_parent;}
+vo_name = _vo_name; view_defs = _view_defs; seeds = _seeds; ec = &ErrorConsole::get_instance(EC_QUERY_EXECUTOR); refed = false; view_parent = _view_parent; m_key.setEmpty();}
 
 //function clone()
 QueryResult* QuerySequenceResult::clone()	{ return new QuerySequenceResult(seq); }
@@ -297,7 +297,6 @@ LogicalID* QueryReferenceResult::getValue()		{ return value; }
 void QueryReferenceResult::setValue(LogicalID* v)	{ value = v; }
 bool QueryReferenceResult::wasRefed()			{ return refed; }
 void QueryReferenceResult::setRef()			{ refed = true; }
-InterfaceKey QueryReferenceResult::getInterfaceKey() const {return m_key;}
 
 //algebraic operations plus, minus, times, divide_by, and, or.
 

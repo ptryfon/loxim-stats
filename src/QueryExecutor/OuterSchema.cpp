@@ -341,8 +341,9 @@ STATE OuterSchemaValidator::validate(OuterSchema *&s, TManager::Transaction *tr,
 		int errcode = Schema::getCIVObject(name, tr, exists, t, sp);
 		if (errcode) return ERROR_TM;		
 		if (!exists) return ERROR_NO_NAME;
-		if (t == BIND_INTERFACE)
-		{
+		if (t != BIND_INTERFACE) {s->setValidity(OUTERSCHEMA_INVALID_OTHER); return INVALID;} //Only interfaces are allowed in schema
+		if (!sp->getAssociatedObjectName().empty())
+		{		
 			SchemaValidity v = validateInterfaceBind(name, tr);
 			s->setValidity(v);
 			if (v != OUTERSCHEMA_VALID)
