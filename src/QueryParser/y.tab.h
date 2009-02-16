@@ -141,6 +141,7 @@ namespace QParser
   IndexBoundaryNode* IndexBoundary;
   QParser::InterfaceNode* interfacetree;
   QParser::InterfaceBind* iBind;
+  QParser::SchemaExpImpNode* schemaExpImp;
   QParser::Crud* crud;
   QParser::SchemaAPs* schema_aps;
   QParser::SchemaNode* schema;
@@ -296,7 +297,9 @@ namespace QParser
      DIVIDE_BY = 389,
      TIMES = 390,
      UMINUS = 391,
-     DOT = 392
+     DOT = 392,
+     EXPORT = 393,
+     IMPORT = 394
    };
 
     };

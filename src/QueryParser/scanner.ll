@@ -141,6 +141,8 @@ using namespace std;
 "throw"			return QParser::QueryParserGen::token::THROW;
 "object name is"	return QParser::QueryParserGen::token::OBJECT_NAME_IS;
 "schema"		return QParser::QueryParserGen::token::SCHEMA;
+"export"		return QParser::QueryParserGen::token::EXPORT;
+"import"		return QParser::QueryParserGen::token::IMPORT;
 
 ([_a-zA-Z][_a-zA-Z0-9]*)*::[_a-zA-Z][_a-zA-Z0-9]* yylval->str = new char[strlen(yytext) + 1]; yylval->str = strcpy(yylval->str,yytext); return QParser::QueryParserGen::token::EXTNAME;
 [_a-zA-Z][_a-zA-Z0-9]* 	yylval->str = new char[strlen(yytext) + 1]; yylval->str = strcpy(yylval->str,yytext); return QParser::QueryParserGen::token::NAME;

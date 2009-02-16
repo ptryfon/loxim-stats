@@ -1869,6 +1869,35 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 		 
 		 
 		}
+				
+		case TreeNode::TNSCHEMAEXPIMP:
+		{
+			debug_print(*ec, "[QE] TNSCHEMAEXPIMP starts");
+			const string ext = ".sch";
+			SchemaExpImpNode* schemaExpImpNode = (SchemaExpImpNode *)tree;
+			string schemaName = schemaExpImpNode->getSchemaName();
+			bool isExport = schemaExpImpNode->getIsExport();
+			string strres; 
+			if (isExport)
+			{
+				errcode = os->exportSchema(schemaName, tr);
+				if (errcode) return errcode;
+				strres = "exported";
+			}
+			else
+			{
+				errcode = os->importSchema(schemaName, tr);
+				if (errcode) return errcode;
+				strres = "imported";
+			}
+			
+			QueryResult *result = new QueryStringResult(strres);
+		    errcode = qres->push(result);
+		    if (errcode != 0) return errcode;
+		
+			debug_print(*ec, "[QE] TNSCHEMAEXPIMP returns");
+			return 0;	
+		}
 
 		case TreeNode::TNEXCLUDES:
 		case TreeNode::TNINCLUDES: {

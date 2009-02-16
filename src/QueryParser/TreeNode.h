@@ -76,7 +76,7 @@ namespace QParser {
 	    TNREGINTERFACE, TNREGCLASS, TNCLASS, TNDML, TNINCLUDES, TNEXCLUDES, TNCAST, TNINSTANCEOF, TNSYSTEMVIEWNAME,
 	 	TNINTERFACEBIND, TNINTERFACEINNERLINKAGELIST, TNINTERFACEINNERLINKAGE, TNSIGNATURE, TNOBJDECL, TNSTRUCTTYPE,
 		TNTYPEDEF, TNCOERCE, TNCASTTO, TNTHROWEXCEPTION, TNVIRTUALIZEAS, TNCRUD, TNREGSCHEMA, TNSCHEMANODE,
-		TNSCHEMABINDS, TNSCHEMAAPS};
+		TNSCHEMABINDS, TNSCHEMAAPS, TNSCHEMAEXPIMP};
 	 
 	TreeNode() : parent(NULL) { 
 		this->needed = false;
@@ -264,6 +264,22 @@ namespace QParser {
     };
 
 	/* Schema Nodes */
+	class SchemaExpImpNode : public PrintableTreeNode
+	{
+		private:
+			bool m_isExport;
+			string m_schemaName;
+			
+		public:
+			SchemaExpImpNode(string schemaName, bool isExport) : m_schemaName(schemaName), m_isExport(isExport) {}
+			string getSchemaName() const {return m_schemaName;}
+			bool getIsExport() const {return m_isExport;}
+			
+			int type() {return TNSCHEMAEXPIMP;}
+			TreeNode* clone() {return new SchemaExpImpNode(*this);}
+			string simpleString() const {string res = m_isExport ? "export" : "import"; res += " " + m_schemaName; return res;}	
+	};
+	
 	class Crud : public PrintableTreeNode
 	{
 		private:

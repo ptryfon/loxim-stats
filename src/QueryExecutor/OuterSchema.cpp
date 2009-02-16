@@ -2,6 +2,8 @@
 #include "InterfaceMaps.h"
 #include "TransactionManager/Transaction.h"
 #include "Store/DBLogicalID.h"
+#include <iostream>
+#include <fstream>
 
 using namespace Schemas;
 
@@ -10,11 +12,14 @@ void OuterSchema::addName(string name, int crudFlags)
 	if (crudFlags == 0)
 		return; //name with no access is like no name at all
 
-	m_namesInSchema[name] = crudFlags;	
+
 	bool found;
 	string objectName = InterfaceMaps::Instance().getObjectNameForInterface(name, found);
 	if (found)
-		m_namesInSchema[objectName] = crudFlags;
+	{
+		m_namesInSchema[name] = crudFlags;	
+		//m_namesInSchema[objectName] = crudFlags;
+	}
 	else
 	{
 		string interfaceName = InterfaceMaps::Instance().getInterfaceNameForObject(name, found);
@@ -110,7 +115,7 @@ string OuterSchema::toString(TManager::Transaction *tr) const
 		out += sp->toSchemaString();
 		out += " ";
 		out += getCrudString(crud);
-		out += "\n";
+		out += ";\n";
 	}
 	out += "}\n";
 	return out;
@@ -320,6 +325,32 @@ void OuterSchemas::debugPrint(TManager::Transaction *tr) const
 	cout << toString(tr);
 }
 
+int OuterSchemas::exportSchema(string schemaName, TManager::Transaction *tr) const
+{
+	if (!hasSchemaName(schemaName))
+		return -1;  //TODO - no schema by this name
+	OuterSchema s = getSchema(schemaName);
+	if (s.getValidity() != OUTERSCHEMA_VALID)
+		return -1; //TODO - invalid schema can't be exported
+	string exportedContent = s.toString(tr);
+	string fileName = getSchemaFile(schemaName);
+	ofstream file;
+	file.open(fileName.c_str(), ios::out | ios::trunc);
+	if (!file.is_open())
+		return -1; //TODO - couldn't open file
+	else
+	{
+		file << exportedContent;
+		file.close();
+	}
+	return 0;
+}
+
+int OuterSchemas::importSchema(string schemaName, TManager::Transaction *tr) const
+{   //TODO 
+	return -1;	
+}
+
 /***********************
 * OuterSchemaValidator *
 ***********************/
@@ -341,7 +372,7 @@ STATE OuterSchemaValidator::validate(OuterSchema *&s, TManager::Transaction *tr,
 		int errcode = Schema::getCIVObject(name, tr, exists, t, sp);
 		if (errcode) return ERROR_TM;		
 		if (!exists) return ERROR_NO_NAME;
-		if (t != BIND_INTERFACE) {s->setValidity(OUTERSCHEMA_INVALID_OTHER); return INVALID;} //Only interfaces are allowed in schema
+		if (t != BIND_INTERFACE) {s->setValidity(OUTERSCHEMA_INVALID_OTHER); return ERROR_NOT_INTERFACE;} //Only interfaces are allowed in schema
 		if (!sp->getAssociatedObjectName().empty())
 		{		
 			SchemaValidity v = validateInterfaceBind(name, tr);

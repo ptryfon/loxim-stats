@@ -110,6 +110,7 @@ namespace Schemas
 		    OuterSchemas& operator=(const OuterSchemas &oS);
 		    
 		    int loadOuterSchemas(TManager::Transaction *tr, TLidsVector *lvec);
+			static string getSchemaFile(string schemaName) {return schemaName + ".sch";}
 		
 		    TOuterSchemas m_outerSchemas;
 			TNameInSchemas m_namesInSchemas;
@@ -123,17 +124,20 @@ namespace Schemas
 			
 			void addSchema(OuterSchema s);
 			void removeSchema(string name);
-			bool hasSchemaName(const string &s) {return (m_outerSchemas.find(s) != m_outerSchemas.end());}
+			bool hasSchemaName(const string &s) const {return (m_outerSchemas.find(s) != m_outerSchemas.end());}
 			OuterSchema getSchema(string name) const;
 			set<string> getAllSchemasUsingName(string s) const;
 			void revalidateAllSchemasUsingName(string s, TManager::Transaction *tr);
 			
+			int exportSchema(string schemaName, TManager::Transaction *tr) const;
+			int importSchema(string schemaName, TManager::Transaction *tr) const;
+
 			string toString(TManager::Transaction *tr) const;
 			void debugPrint(TManager::Transaction *tr) const;
 			
 	};
 	
-	enum STATE {VALID, INVALID, ERROR_NAME_NOT_UNIQUE, ERROR_TM, ERROR_NO_NAME};		
+	enum STATE {VALID, INVALID, ERROR_NAME_NOT_UNIQUE, ERROR_TM, ERROR_NO_NAME, ERROR_NOT_INTERFACE};		
 	
 	class OuterSchemaValidator
 	{

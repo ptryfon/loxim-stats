@@ -116,51 +116,31 @@ void Schema::printAll(Errors::ErrorConsole *ec) const
 string Schema::toSchemaString() const
 {
 	string out;
-	string object_name_is;
-	string fieldsprefix;
-	string fieldspostfix;
+	string instance = "instance ";
 	string proc;
-	switch(m_schemaType)
-	{
-		case BIND_CLASS:
-			out += "class ";
-			object_name_is = "instance ";
-			fieldsprefix = ":\n{";
-			fieldspostfix = "} ";
-			proc = "procedure ";
-			break;
-		case BIND_INTERFACE:
-			out += "interface ";
-			object_name_is = "object name is ";
-			fieldsprefix = ":\n{";
-			fieldspostfix = "} ";
-			proc = "";
-			break;
-		case BIND_VIEW:
-		default:
-			out += "view ";
-			object_name_is = "virtual objects ";
-			fieldsprefix = "()";
-			fieldspostfix = "";
-			break;
-	}
-	out += m_name;
+	if (m_schemaType != BIND_INTERFACE)
+		return "";
+
+	out += "interface " + m_name;
 	out += "\n{\n\t";
-	out += object_name_is;
-	out += m_associatedObjectName;
-	out += fieldsprefix;
-		
+	out += "instance " + m_associatedObjectName + ":\n\t{";
+	
+	int i = 0;
 	for (TFields::const_iterator fit = m_fields.begin(); fit != m_fields.end(); ++fit)
 	{
+		if (i > 0) out += ";";
+		out += "\n\t\t";
 		const Field *f = *fit;
 		out += f->getName();
-		out += ";\n";
+		i++;
 	}
 		
-	out += fieldspostfix;
-	
+	out += "\n\t}";
+	i = 0;
 	for (TMethods::const_iterator mit = m_methods.begin(); mit != m_methods.end(); ++mit)
 	{
+		if (i > 0) out += ";";
+		out += "\n\t";
 		const Method *m = *mit;
 		out += proc;
 		out += m->getName();
@@ -173,14 +153,15 @@ string Schema::toSchemaString() const
 			if ((it + 1) != params.end())
 				out += ", ";
 		}
-		out += ");\n";
+		out += ")\n";
+		i++;
 	}
 		
 		
-	out += "\n}\n";
+	out += "\n}";
 	
-	out += m_associatedObjectName;
-	out += ";\n";
+	//out += m_associatedObjectName;
+	//out += ";\n";
 	return out;
 }
 
