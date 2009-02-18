@@ -6,13 +6,12 @@
 #include <string>
 #include <QueryParser/ClassNames.h>
 #include <QueryParser/TreeNode.h>
-#include <QueryParser/QueryParser.h>
 
 
 using namespace std;
 
 namespace QParser{
-
+class QueryParser;
 class DeathRmver
 {
 protected:

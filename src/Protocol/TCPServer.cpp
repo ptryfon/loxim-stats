@@ -2,7 +2,6 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <netinet/ip.h>
 #include <sys/select.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -56,7 +55,7 @@ namespace Protocol {
 	bool TCPServer::should_repeat(int error)
 	{
 		return error == ENETDOWN || error ==  EPROTO || error == ENOPROTOOPT ||
-			error == EHOSTDOWN || error ==  ENONET || error == EHOSTUNREACH ||
+			error == EHOSTDOWN || error == EHOSTUNREACH ||
 			error == EOPNOTSUPP || error == ENETUNREACH || error == EAGAIN ||
 			error == EWOULDBLOCK;
 	}

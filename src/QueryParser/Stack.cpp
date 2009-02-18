@@ -3,7 +3,6 @@
 #include <sstream>
 
 #include <QueryParser/Stack.h>
-#include <QueryParser/QueryParser.h>
 #include <QueryParser/TreeNode.h>
 #include <QueryParser/DataRead.h>
 #include <QueryParser/Deb.h>

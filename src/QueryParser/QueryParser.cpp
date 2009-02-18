@@ -1,6 +1,9 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <TypeCheck/TypeChecker.h>
+#include <QueryParser/ParserWrapper.h>
+#include <QueryParser/QueryParser.h>
 #include <QueryParser/QueryLexer.h>
 #include <QueryParser/TreeNode.h>
 #include <QueryParser/Stack.h>
@@ -11,11 +14,11 @@
 #include <QueryParser/JoinRpcer.h>
 #include <Errors/ErrorConsole.h>
 #include <Errors/Errors.h>
+#include <Errors/Exceptions.h>
 #include <Config/SBQLConfig.h>
 #include <Indexes/QueryOptimizer.h>
 #include <QueryParser/Deb.h>
 //#include <TypeCheck/TCConstants.h>
-#include <TypeCheck/TypeChecker.h>
 
 
 // using namespace std;
@@ -34,10 +37,8 @@ namespace QParser {
 	QueryParser::~QueryParser() {
 		if (sQres != NULL) delete sQres;
 		if (sEnvs != NULL) delete sEnvs;
-		delete parser;
-		delete lexer;
 	}
-	QueryParser::QueryParser() {
+	QueryParser::QueryParser() : parser(new ParserWrapper()) {
 		sQres = NULL;
 		sEnvs = NULL;
 		SBQLConfig conf("QueryParser");
@@ -51,11 +52,9 @@ namespace QParser {
 		if (shouldOptimize || shouldTypeCheck) {
 			DataScheme::reloadDScheme(-1);
 		}
-		lexer = new QueryLexer();
-		parser = new QueryParserGen(lexer, &d);
 	}
 
-	QueryParser::QueryParser(int sessionId) {
+	QueryParser::QueryParser(int sessionId) : parser(new ParserWrapper()){
 		sQres = NULL;
 		sEnvs = NULL;
 		SBQLConfig conf("QueryParser");
@@ -69,12 +68,10 @@ namespace QParser {
 		if (shouldOptimize || shouldTypeCheck) {
 			DataScheme::reloadDScheme(sessionId);
 		}
-		lexer = new QueryLexer();
-		parser = new QueryParserGen(lexer, &d);
 	}
 
 	//for internal use of parser.
-	QueryParser::QueryParser(int sessionId, bool readConfig) {
+	QueryParser::QueryParser(int sessionId, bool readConfig) : parser(new ParserWrapper()){
 		sQres = NULL;
 		sEnvs = NULL;
 		tcTurnedOffTmp = false;
@@ -90,8 +87,6 @@ namespace QParser {
 			shouldOptimize = false;
 			shouldTypeCheck = false;
 		} 
-		lexer = new QueryLexer();
-		parser = new QueryParserGen(lexer, &d);
 	}
 
 	void QueryParser::setTcOffTmp(bool tcoff) {
@@ -145,19 +140,14 @@ namespace QParser {
 		QueryParser::setStatEvalRun(0);
 		ErrorConsole &ec(ErrorConsole::get_instance(EC_QUERY_PARSER));
 
-
-		stringstream ss (stringstream::in | stringstream::out);
-		ss << query;
-		lexer->switch_streams(&ss, 0);
-		int res = parser->parse();
-		if (res != 0){
+		try{
+			qTree = parser->parse(query).release();
 			debug_print(ec,  "Query not parsed properly...\n");
 			debug_print(ec,  (ErrQParser | ENotParsed));
+		} catch (LoximException &ex) {
+			debug_print(ec, "Query parsed");
 			return (ErrQParser | ENotParsed);
-		} else {
-			Deb::ug("Query parsed OK.");
 		}
-		qTree = d;
 
 		Indexes::QueryOptimizer::optimizeWithIndexes(qTree);
 
@@ -173,7 +163,7 @@ namespace QParser {
 			cout << "\n--------------------------------------\n";
 		}
 		if ((shouldTypeCheck || shouldOptimize) && !qTree->skipPreprocessing()) {
-			TreeNode *nt = d->clone();
+			TreeNode *nt = qTree->clone();
 			bool metadataCorrect = DataScheme::dScheme(sessionId)->getIsComplete();
 			bool metadataUpToDate = DataScheme::dScheme(sessionId)->getIsUpToDate();
 			if (!metadataCorrect || !metadataUpToDate) {
@@ -267,82 +257,62 @@ namespace QParser {
 		return 0;
 	}
 
-    void QueryParser::testDeath(string _zap){
-//    	string zap = "(EMP join (WORKS_IN.DEPT)).NAME;";
-	    cout << "TESTDEATH START---------------------------------------------------------------------------------" << endl;
-	    stringstream ss (stringstream::in | stringstream::out);
-	    ss << _zap;
-	    lexer->switch_streams(&ss, 0);
-	    int res = parser->parse();
-			cout << "parse result: " << res << endl;
-	    TreeNode *tree = d;
-
-	    cout << "Odczyt z drzewka, ktore przekazuje:" << endl;
-	    cout << "--------------------------------------" << endl;
-	    tree->putToString();
-	    cout << "\n--------------------------------------" << endl;
-    	    QParser::DeathRmver *rmver = new QParser::DeathRmver(this);
-
-		cout << "now the following tree will be evaluated statically.." << endl;
-	    TreeNode *nt = d->clone();
-
-		rmver->rmvDeath(nt);
-
-	    cout << "TEST END__---------------------------------------------------------------------------------" << endl;
-		cout << "koniec testDeath\n";
-    }
-
-    int QueryParser::testParse (string query, TreeNode *&qTree) {
-	string zap = "EMP where SAL = (EMP where NAME=\"KUBA\").SAL;";
-
-	if (false && (query == zap)){
-	    cout << "TEST START---------------------------------------------------------------------------------" << endl;
-	    stringstream ss (stringstream::in | stringstream::out);
-	    ss << zap;
-	    lexer->switch_streams(&ss, 0);
-	    int res = parser->parse();
-
-	cout << "parse result: " << res << endl;
-	    TreeNode *tree = d;
-
-	    //printf( "po parsowaniu treeNode: %d. \n", tree);
-	    cout << "Odczyt z drzewka, ktore przekazuje:" << endl;
-	    cout << "--------------------------------------" << endl;
-	    tree->putToString();
-	    cout << "\n--------------------------------------" << endl;
-    	    QParser::Optimiser *opt = new QParser::Optimiser();
-	    int reslt;
-	    cout << "now the following tree will be evaluated statically.." << endl;
-	    TreeNode *nt = d->clone();
-
-	    if ((reslt = opt->stEvalTest(nt)) != 0)
-		fprintf (stderr, "static evaluation did not work out...\n");
-	    else {
-		cout << "static evaluatioin OK, result: "<< reslt << endl;
-
-
-		fprintf (stderr, "now I will try to optimise the tree..\n");
-
-		cout << "OPTYMALIZUJE--------------------------------------------------------"<< endl;
-		//cout << "przed optymalizacjia" << endl;
-		//nt->putToString();
-		//cout << "-----------" << endl;
-
-		int ooptres = nt->optimizeTree();
-		cout << "KONIEC OPTYMALIZACJI-------------------------------------------------------"<< endl;
-		/*the nt tree needs to be 'rolled' up: (in case the nonalgopnode
-		  we were operating on was the root... */
-		while (nt->getParent() != NULL) nt = nt->getParent();
-
-		fprintf (stderr, "__%d__", ooptres);
-
-		cout << "po JEDNYM PRZEBIEGU optymalizacji" << endl;
-		nt->putToString();
-		cout << "-----------" << endl;
-		fprintf (stderr, "end of optimisation.\n");
-	    }
-	    cout << "TEST END__---------------------------------------------------------------------------------" << endl;
+	void QueryParser::testDeath(string _zap)
+	{
+		try {
+			TreeNode *tree = parser->parse(_zap).release();
+			tree->putToString();
+			QParser::DeathRmver *rmver = new QParser::DeathRmver(this);
+			TreeNode *nt = tree->clone();
+			rmver->rmvDeath(nt);
+		} catch (...) {
+		}
 	}
+
+	int QueryParser::testParse (string query, TreeNode *&qTree) {
+		string zap = "EMP where SAL = (EMP where NAME=\"KUBA\").SAL;";
+
+		if (false && (query == zap)){
+			TreeNode *tree = parser->parse(zap).release();
+
+			//printf( "po parsowaniu treeNode: %d. \n", tree);
+			cout << "Odczyt z drzewka, ktore przekazuje:" << endl;
+			cout << "--------------------------------------" << endl;
+			tree->putToString();
+			cout << "\n--------------------------------------" << endl;
+			QParser::Optimiser *opt = new QParser::Optimiser();
+			int reslt;
+			cout << "now the following tree will be evaluated statically.." << endl;
+			TreeNode *nt = tree->clone();
+
+			if ((reslt = opt->stEvalTest(nt)) != 0)
+				fprintf (stderr, "static evaluation did not work out...\n");
+			else {
+				cout << "static evaluatioin OK, result: "<< reslt << endl;
+
+
+				fprintf (stderr, "now I will try to optimise the tree..\n");
+
+				cout << "OPTYMALIZUJE--------------------------------------------------------"<< endl;
+				//cout << "przed optymalizacjia" << endl;
+				//nt->putToString();
+				//cout << "-----------" << endl;
+
+				int ooptres = nt->optimizeTree();
+				cout << "KONIEC OPTYMALIZACJI-------------------------------------------------------"<< endl;
+				/*the nt tree needs to be 'rolled' up: (in case the nonalgopnode
+				  we were operating on was the root... */
+				while (nt->getParent() != NULL) nt = nt->getParent();
+
+				fprintf (stderr, "__%d__", ooptres);
+
+				cout << "po JEDNYM PRZEBIEGU optymalizacji" << endl;
+				nt->putToString();
+				cout << "-----------" << endl;
+				fprintf (stderr, "end of optimisation.\n");
+			}
+			cout << "TEST END__---------------------------------------------------------------------------------" << endl;
+		}
 
 		cout << "koniec parseIt\n";
 		return 0;

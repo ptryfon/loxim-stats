@@ -3,7 +3,6 @@
 #include <sstream>
 #include <exception>
 #include <string>
-#include <execinfo.h>
 #include <Util/smartptr.h>
 #include <Util/Backtrace.h>
 #include <vector>

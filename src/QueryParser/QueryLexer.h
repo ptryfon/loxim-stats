@@ -3,9 +3,9 @@
 
 #ifndef YY_DECL
 
-#define YY_DECL                                         \
-    int QParser::QueryLexer::lex(                       \
-        QParser::QueryParserGen::semantic_type* yylval  \
+#define YY_DECL              \
+	int QueryLexer::lex( \
+        YYSTYPE* yylval     \
     )
 
 #endif
@@ -16,17 +16,19 @@
 #undef yyFlexLexer
 #endif
 
-
-
-#include <parser.h>
+#include <iostream>
 
 namespace QParser{
-    class QueryLexer : public QueryFlexLexer {
-	public:
-	QueryLexer(std::istream* arg_yyin = 0, std::ostream* arg_yyout = 0);
-	virtual ~QueryLexer();
-	virtual int lex(QueryParserGen::semantic_type* yylval);
-    };
+	union YYSTYPE;
+	class QueryLexer : public QueryFlexLexer {
+		public:
+			QueryLexer(std::istream* arg_yyin = 0, std::ostream*
+					arg_yyout = 0);
+			virtual ~QueryLexer();
+			virtual int lex(YYSTYPE* yylval);
+	};
 }
+
+#undef __FLEX_LEXER_H
 
 #endif /* QUERY_LEXER_H */

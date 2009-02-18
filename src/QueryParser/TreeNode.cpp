@@ -2,6 +2,7 @@
 #include <QueryParser/Stack.h>
 #include <QueryParser/DataRead.h>
 #include <QueryParser/Optimizer.h>
+#include <QueryParser/QueryParser.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <QueryParser/Deb.h>

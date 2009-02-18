@@ -10,7 +10,6 @@
 #include <TypeCheck/TypeCheckResult.h>
 #include <TypeCheck/Rule.h>
 #include <QueryParser/TreeNode.h>
-//#include <QueryParser/IndexNode.h>
 
 #include <string>
 #include <fstream>

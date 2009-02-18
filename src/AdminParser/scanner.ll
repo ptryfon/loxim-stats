@@ -24,12 +24,6 @@ shutdown	{return KW_SHUTDOWN;}
 
 %%
 
-int AdminParserlex(void *lval, AdminParser::AdminLexer *lexer)
-{
-//    AdminParser::AdminParser::semantic_type *val = (AdminParser::AdminParser::semantic_type*)lval;
-//    return lexer->lex(val);
-	return 0;
-}
 
 AdminParser::AdminLexer::AdminLexer(std::istream* in, std::ostream* out) : AdminFlexLexer(in, out)
 {

@@ -154,8 +154,8 @@ namespace Logs
 	
 	int LogManager::syncLog(unsigned int toLSN)
 	{
-		if (sync_file_range(fd, 0, toLSN, SYNC_FILE_RANGE_WAIT_BEFORE | SYNC_FILE_RANGE_WRITE | SYNC_FILE_RANGE_WAIT_AFTER) < 0)
-			return ESyncLog;
+	//	if (sync_file_range(fd, 0, toLSN, SYNC_FILE_RANGE_WAIT_BEFORE | SYNC_FILE_RANGE_WRITE | SYNC_FILE_RANGE_WAIT_AFTER) < 0)
+		//	return ESyncLog;
 #ifdef DEBUG_MODE
 		debug_printf(*ec, "LogManager::syncLog up to %d done.\n", toLSN);
 #endif

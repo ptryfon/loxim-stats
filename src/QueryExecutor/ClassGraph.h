@@ -17,7 +17,6 @@ namespace QExecutor {
 #include <Store/Store.h>
 #include <Store/DBDataValue.h>
 #include <Store/DBLogicalID.h>
-#include <QueryParser/QueryParser.h>
 #include <QueryParser/Privilige.h>
 #include <QueryParser/TreeNode.h>
 #include <Errors/Errors.h>

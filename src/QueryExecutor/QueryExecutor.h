@@ -13,7 +13,6 @@
 #include <Store/Store.h>
 #include <Store/DBDataValue.h>
 #include <Store/DBLogicalID.h>
-#include <QueryParser/QueryParser.h>
 #include <QueryParser/Privilige.h>
 #include <QueryParser/TreeNode.h>
 #include <QueryParser/DataRead.h>
@@ -25,6 +24,11 @@
 namespace Server{
 	class Session;
 }
+
+namespace QParser {
+	class QueryParser;
+}
+
 namespace Schemas { class Schema; class InterfaceMaps; class OuterSchemas; }
 
 using namespace QParser;

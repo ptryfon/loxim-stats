@@ -2,6 +2,7 @@
 #define _QUERY_PARSER_H_
 
 #include <string>
+#include <memory>
 #include <QueryParser/ClassNames.h>
 
 using namespace std;
@@ -11,16 +12,13 @@ namespace QParser
 {
 #define DML_AC_RETURN_ERROR		"return_error"
 #define DML_AC_DO_QUERY			"perform_query"
-    class QueryParserGen;
-    class QueryLexer;
     class TreeNode;
+    class ParserWrapper;
 
     class QueryParser
     {
     	protected:
-	    QueryParserGen *parser;
-	    QueryLexer *lexer;
-	    TreeNode *d; //for the parser to return values
+	    auto_ptr<ParserWrapper> parser;
 	    StatQResStack *sQres;
 	    StatEnvStack *sEnvs;
 	    static int statEvalRun;	// for which time the stat eval is called - some things can be set only once

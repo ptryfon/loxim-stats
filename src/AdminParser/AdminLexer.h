@@ -11,8 +11,10 @@
 
 #ifndef __FLEX_LEXER_H
 #define yyFlexLexer AdminFlexLexer
+#define FlexLexer FlexLexer1
 #include <FlexLexer.h>
 #undef yyFlexLexer
+#undef FlexLexer
 #endif
 
 #include <AdminParser/AdminParser.h>
@@ -34,5 +36,7 @@ namespace AdminParser {
 	};
 
 } 
+
+#undef __FLEX_LEXER_H
 
 #endif /* ADMIN_LEXER_H */

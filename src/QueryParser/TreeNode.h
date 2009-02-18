@@ -12,7 +12,6 @@
 #include <Store/Store.h>
 #include <QueryParser/Privilige.h>
 #include <QueryExecutor/QueryResult.h>
-#include <QueryParser/QueryParser.h>
 #include <Indexes/BTree.h>
 #include <QueryExecutor/OuterSchema.h>
 //#include <TypeCheck/DecisionTable.h>
@@ -25,6 +24,7 @@ class Constraints;
 
 using namespace Indexes;
 namespace QParser {
+	class QueryParser;
 //for new treeNodes - make sure this is larger than the number of their inner operators/kinds. 
 #define _TN_MAX_OP		30
 	

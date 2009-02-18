@@ -1,4 +1,5 @@
 #include <QueryParser/DeathRmver.h>
+#include <QueryParser/QueryParser.h>
 
 
 namespace QParser{

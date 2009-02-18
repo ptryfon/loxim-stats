@@ -1,4 +1,5 @@
 #include <QueryParser/JoinRpcer.h>
+#include <QueryParser/QueryParser.h>
 
 namespace QParser{
 

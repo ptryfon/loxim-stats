@@ -1,56 +1,41 @@
-%pure-parser
-%skeleton "lalr1.cc"
 %defines
-%define "parser_class_name" "QueryParserGen"
-%name-prefix="QParser"
+%pure-parser
 
-%{
-#include <string>
-#include <vector>
-#include "TreeNode.h"
-#include "IndexNode.h"
-#include "Privilige.h"
-#include "../Indexes/BTree.h"
-  using namespace Indexes;
-  using namespace QParser;
-  class QueryLexer;
-  int QParserlex(void *lval, QParser::QueryLexer *lexer);
-%}
 
 %union {
   char* str;
   int num;
   double dbl;
   bool	bool_val;
-  QParser::TreeNode* tree;
-  QParser::QueryNode* qtree;
-  QParser::FixPointNode* fxtree;
-  QParser::VectorNode* vectree;
-  QParser::ProcedureNode* proctree;
-  QParser::ViewNode* viewtree;
-  QParser::ClassNode* classtree;
-  QParser::ClassCastNode* classcast;
-  QParser::Privilige *privilige;
-  QParser::PriviligeListNode *priv_list;
-  QParser::NameListNode *name_list;
-  QParser::InterfaceAttribute *attribute;
-  QParser::InterfaceAttributes *attributes;
-  QParser::InterfaceMethod* method;
-  QParser::InterfaceMethods *methods;
-  QParser::InterfaceMethodParams* method_params;
-  QParser::InterfaceNode* interfacetree;
-  QParser::InterfaceBind* iBind;
-  QParser::Crud* crud;
-  QParser::SchemaAPs* schema_aps;
-  QParser::SchemaNode* schema;
+  TreeNode* tree;
+  QueryNode* qtree;
+  FixPointNode* fxtree;
+  VectorNode* vectree;
+  ProcedureNode* proctree;
+  ViewNode* viewtree;
+  ClassNode* classtree;
+  ClassCastNode* classcast;
+  Privilige *privilige;
+  PriviligeListNode *priv_list;
+  NameListNode *name_list;
+  InterfaceAttribute *attribute;
+  InterfaceAttributes *attributes;
+  InterfaceMethod* method;
+  InterfaceMethods *methods;
+  InterfaceMethodParams* method_params;
+  InterfaceNode* interfacetree;
+  InterfaceBind* iBind;
+  Crud* crud;
+  SchemaAPs* schema_aps;
+  SchemaNode* schema;
   QParser::SchemaExpImpNode* schemaExpImp;
   ComparatorNode* comparatorNode;
   IndexSelectNode* indexSelect;
   IndexBoundaryNode* IndexBoundary;
 
-  QParser::SignatureNode* sigtree;
-  QParser::StructureTypeNode* stucturetree;
-  QParser::ObjectDeclareNode* obdecltree;
+  SignatureNode* sigtree;
+  StructureTypeNode* stucturetree;
+  ObjectDeclareNode* obdecltree;
 }
 
 %lex-param{ QueryLexer *lexer }
@@ -488,9 +473,4 @@ name_defs_semicolon:  NAME { $$ = new NameListNode($1);    }
 
 //subclass: EXTENDS name_defs SEMICOLON {}
 %%
-
-void QParser::QueryParserGen::error(const QParser::QueryParserGen::location_type& l, const std::string& m)
-{
-
-}
 

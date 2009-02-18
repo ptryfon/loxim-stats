@@ -263,7 +263,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 								string apsName = (*it).first;
 								int apsCrud = (*it).second;
 								set<string> inside_priv_names;
-								if (apsCrud & CREATE)
+								if (apsCrud & Schemas::CREATE)
 								{
 									inside_priv_names.insert(Privilige::CREATE_PRIV);
 								}

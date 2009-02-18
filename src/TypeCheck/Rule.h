@@ -19,6 +19,7 @@
 #include <map>
 #include <vector>
 
+
 using namespace Errors;
 using namespace QExecutor;
 using namespace QParser;
@@ -42,7 +43,12 @@ namespace TypeCheck
 		int ruleType;	// "BASE", "CARD", "TYPENAME", "COLLKIND", ... see public enumerator
 		
 	public:
-	enum RuleType { BASE, CARD, TYPENAME, COLLKIND };
+		enum RuleType { 
+			BASE,
+			CARD,
+			TYPENAME,
+			COLLKIND };
+
 		Rule() { ruleType = Rule::BASE;}
 		Rule(int rType) {ruleType = rType;}
 		virtual void setDTable(DTable *dt) {};

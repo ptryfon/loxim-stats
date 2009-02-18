@@ -33,8 +33,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 subdir = src/QueryParser
-DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in parser.cc \
-	parser.h scanner.cc
+DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in scanner.cc
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -46,7 +45,7 @@ LTLIBRARIES = $(noinst_LTLIBRARIES)
 libQueryParser_la_LIBADD =
 am_libQueryParser_la_OBJECTS = AuxRmver.lo DataRead.lo DeathRmver.lo \
 	Deb.lo JoinRpcer.lo Optimizer.lo Privilige.lo QueryParser.lo \
-	Stack.lo TreeNode.lo parser.lo scanner.lo
+	Stack.lo TreeNode.lo scanner.lo ParserWrapper.lo
 libQueryParser_la_OBJECTS = $(am_libQueryParser_la_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/src
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -64,9 +63,6 @@ LEXCOMPILE = $(LEX) $(LFLAGS) $(AM_LFLAGS)
 LTLEXCOMPILE = $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=compile $(LEX) $(LFLAGS) $(AM_LFLAGS)
 YLWRAP = $(top_srcdir)/ylwrap
-YACCCOMPILE = $(YACC) $(YFLAGS) $(AM_YFLAGS)
-LTYACCCOMPILE = $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
-	--mode=compile $(YACC) $(YFLAGS) $(AM_YFLAGS)
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
@@ -199,13 +195,13 @@ noinst_LTLIBRARIES = libQueryParser.la
 BUILT_SOURCES = parser.h
 AM_YFLAGS = -d -y
 AM_LFLAGS = -olex.yy.c
-libQueryParser_la_SOURCES = AuxRmver.cpp AuxRmver.h ClassNames.h DataRead.cpp DataRead.h DeathRmver.cpp DeathRmver.h Deb.cpp Deb.h IndexNode.h JoinRpcer.cpp JoinRpcer.h Optimizer.cpp Optimizer.h Privilige.cpp Privilige.h QueryLexer.h QueryParser.cpp QueryParser.h Stack.cpp Stack.h TreeNode.cpp TreeNode.h stack.hh location.hh position.hh parser.yy scanner.ll
+libQueryParser_la_SOURCES = AuxRmver.cpp AuxRmver.h ClassNames.h DataRead.cpp DataRead.h DeathRmver.cpp DeathRmver.h Deb.cpp Deb.h IndexNode.h JoinRpcer.cpp JoinRpcer.h Optimizer.cpp Optimizer.h Privilige.cpp Privilige.h QueryLexer.h QueryParser.cpp QueryParser.h Stack.cpp Stack.h TreeNode.cpp TreeNode.h scanner.ll ParserWrapper.h ParserWrapper.cpp
 INCLUDES = -I$(top_srcdir)/src
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
 .SUFFIXES:
-.SUFFIXES: .cc .cpp .ll .lo .o .obj .yy
+.SUFFIXES: .cc .cpp .ll .lo .o .obj
 $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
@@ -244,11 +240,6 @@ clean-noinstLTLIBRARIES:
 	  echo "rm -f \"$${dir}/so_locations\""; \
 	  rm -f "$${dir}/so_locations"; \
 	done
-parser.h: parser.cc
-	@if test ! -f $@; then \
-	  rm -f parser.cc; \
-	  $(MAKE) $(AM_MAKEFLAGS) parser.cc; \
-	else :; fi
 libQueryParser.la: $(libQueryParser_la_OBJECTS) $(libQueryParser_la_DEPENDENCIES) 
 	$(CXXLINK)  $(libQueryParser_la_OBJECTS) $(libQueryParser_la_LIBADD) $(LIBS)
 
@@ -264,11 +255,11 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Deb.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/JoinRpcer.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Optimizer.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ParserWrapper.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Privilige.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/QueryParser.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Stack.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TreeNode.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parser.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/scanner.Plo@am__quote@
 
 .cc.o:
@@ -315,9 +306,6 @@ distclean-compile:
 
 .ll.cc:
 	$(am__skiplex) $(SHELL) $(YLWRAP) $< $(LEX_OUTPUT_ROOT).c $@ -- $(LEXCOMPILE)
-
-.yy.cc:
-	$(am__skipyacc) $(SHELL) $(YLWRAP) $< y.tab.c $@ y.tab.h $*.h y.output $*.output -- $(YACCCOMPILE)
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -428,8 +416,6 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-	-rm -f parser.cc
-	-rm -f parser.h
 	-rm -f scanner.cc
 	-test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
 clean: clean-am
@@ -506,6 +492,8 @@ uninstall-am:
 	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
 	pdf pdf-am ps ps-am tags uninstall uninstall-am
 
+parser.h: parser.y
+	$(YACC) parser.y -o parser.c
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
