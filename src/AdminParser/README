@@ -12,9 +12,9 @@ provide a solution which would enable us to:
   feature)
 - call it reentrantly (a global parser is a BAD solution)
 - fit in our namespaces
-- have to code somewhat portable
+- be portable
 - build the parser using autotools
-- interface with some lexer which should fulfill similar requirements
+- interface with a lexer which should fulfill similar requirements
 
 
 HISTORY
@@ -55,14 +55,19 @@ The generated files are not to be used directly, there are some C++ wrappers
 which brutally include the generated files inside a proper namespace.
 This way we do not have to even use bison, yacc is enough (prooven on NetBSD).
 
-Forunatelly, things with flex were much better. Despite having to mess a lot
+Forunatelly, things with flex a bit better. Despite having to mess a lot
 with nasty macros (which is far from elegant), we use it to generate C++ish,
-working code directly.
+working code almoast directly.
 
 
 THINGS YOU REALLY NEED TO KNOW (if you're messing with the parsers):
 
-(based on the AdminParser, but you can use sed to get the manual for
-QueryParser ;))
-
+-AdminParser and QueryParser are analogous, so I'll describe only QueryParser
+-parser generation is as if it was C, but it includes C++ code in it
+-parser.c and parser.h are generated from parser.y, but parser.c is not compiled
+-parser.c is included in ParserWrapper.cpp which is normally compiled
+-parser.h is included in ParserWrapper.h
+-parser.h should not be included anywhere except ParserWrapper.h - use
+ ParserWrapper.h instead
+-lexer uses nast macros to avoid name conflicts
 
