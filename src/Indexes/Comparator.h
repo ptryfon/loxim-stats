@@ -6,6 +6,7 @@
 #include <Indexes/Node.h>
 #include <Store/Store.h>
 #include <QueryParser/TreeNode.h>
+#include <cassert>
 
 namespace QParser {
 //		class QueryNode;
@@ -317,6 +318,186 @@ namespace Indexes {
 			virtual string typeToString() const;
 	};
 
+	
+	template <class I>
+	int Comparator::compare (I* item, bool useLid) {
+		lid_t lidDiff = useLid && rootEntry ? rootEntry->logicalID - item->logicalID : 0;
+		return compare((char*)item, sizeof(I), lidDiff);
+	}
+	
+	template <class I>
+	string Comparator::keyToString (I* item) {
+		return keyToString((char*)item, sizeof(I));
+	}
+	
+	template <class I>
+	bool Comparator::lessThan (I* item) {
+		return compare(item, false) < 0;
+	}
+	
+	template <class I>
+	bool Comparator::equal (I* item) {
+		return compare(item, false) == 0;
+	}
+	
+	template <class I>
+	bool Comparator::greaterThan (I* item) {
+		return compare(item, true) > 0;
+	}
+	
+	template <class I>
+	bool Comparator::greaterOrEqual (I* item) {
+		return compare(item, false) >= 0;
+	}
+	
+	template <class I>
+	bool Comparator::lessOrEqual (I* item) {
+		return compare(item, false) <= 0;
+	}
+			
+	template <class I>
+	bool Comparator::infinityReached(I* item) {
+		return false;
+	}
+	
+	template <class I>
+	I* Comparator::getNextItem(I* item) {
+		return (I*) getNextItem(((char*) item), sizeof(I));
+	}
+	
+	template <class I>
+	I* Comparator::getItem(int itemNumber, Node* node, I* item) {
+		return (I*) getItem(itemNumber, ((char*) (node + 1)), sizeof(I));
+	}
+	
+	template <class I>
+	nodeEntry_off_t Comparator::getSpaceNeeded(I* item) {
+		return sizeof(I) + getSpaceNeeded();
+	}
+	
+	template <class I>
+	void Comparator::putKey(I* where) {
+		char* whereKey = (char*) where;
+		whereKey += sizeof(I);
+		putKey(whereKey, sizeof(I));;
+	}
+
+	template<class I>
+	string Comparator::nodeToString(Node* node, I* item) {
+		I* after = (I*) node->afterAddr();
+		I* entry = getItem(0, node, entry);
+		int count = 0;
+		stringstream content, all;
+		all << node->headerToString();
+		
+		int i = 1;
+		while(entry < after) {
+			count++;
+			content << "#" << i <<  ": klucz=" << keyToString(entry) << " wartosc=" << entry->toString() << "; ";
+			entry = getNextItem(entry);
+			i++;
+		}
+		all << "can take more=" << canTakeExtraKey(node) << " ilosc wpisow=" << count << " zawartosc: " << content.str() << "| nextEntry = " << entry << "; afterAddr = " << after << "|";
+		string result = all.str();
+		assert(entry == after);
+		return result;
+	}
+	
+	template<class I>
+	void Comparator::getValue(I* item) {
+		getValue((char*)item, sizeof(I));
+	}
+	
+	template<typename T>
+	void StringComparator::setValueConverted(T* value) {
+		stringstream temp;
+		temp << *value;
+		string v = temp.str();
+		strSize = normLen(v.size());
+		spaceNeeded = strSize + sizeof(nodeEntry_off_t);
+		
+		this->value = new char[strSize];
+		strncpy(this->value, v.c_str(), strSize);
+	}
+	
+	template <class T>
+	FixedLengthComparator<T>::FixedLengthComparator(T value, RootEntry* entry) : Comparator(entry), value(value) {
+		init();
+	}
+	
+	template <class T>
+	FixedLengthComparator<T>::FixedLengthComparator() {
+		init();
+	}
+	
+	template <class T>
+	void FixedLengthComparator<T>::init() {
+		//spaceNeeded = sizeof(NodeEntry) + sizeof(T);
+		MIN_NODE_SIZE_ALLOWED = constInit();
+	}
+	
+	template <class T>
+	T FixedLengthComparator<T>::getKey(char* item, unsigned int itemSize) {
+		return *((T*) getKeyAddr(item, itemSize));
+	}
+	
+	template <class T>
+	int FixedLengthComparator<T>::compare (char* item, unsigned int itemSize, lid_t lidDiff) {
+		T odds = value - getKey(item, itemSize);
+		if (odds == 0) {return lidDiff;}
+		return (odds < 0) ? -1 : 1;
+	}
+
+	template <class T>
+	string FixedLengthComparator<T>::keyToString (char* item, unsigned int itemSize) {
+		stringstream temp;
+		temp << getKey(item, itemSize); 
+		return temp.str();
+	}
+
+	template <class T>
+	char* FixedLengthComparator<T>::getKeyAddr(char* item, unsigned int itemSize) {
+		//entry + rozmiar + wielkosc offsetu
+		return item + itemSize;
+	}
+
+	template <class T>
+	nodeEntry_off_t FixedLengthComparator<T>::getKeySize(char* item, unsigned int itemSize) {
+		//odleglosc do nastepnego od entry - rozmiar entry - rozmiar offsetu
+		return sizeof(T);
+	}
+	
+	template <class T>
+	char* FixedLengthComparator<T>::getNextItem(char* itemAddress, unsigned int itemSize) {
+		//entry + offset do nastepnego (offset zaraz za naglowkiem)
+		return itemAddress + itemSize + sizeof(T);  
+	}
+	
+	template <class T>
+	nodeEntry_off_t FixedLengthComparator<T>::maxEntrySize() {
+		// wpis + 
+		return MAX_INDEX_STRUCT_SIZE + sizeof(T);
+	}
+
+	template <class T>
+	char* FixedLengthComparator<T>::getItem(int itemNumber, char* item0Address, unsigned int itemSize) {
+		return item0Address + (itemNumber * (itemSize + sizeof(T)));
+	}
+	
+	template <class T>
+	nodeEntry_off_t FixedLengthComparator<T>::getSpaceNeeded() {
+		return sizeof(T);
+	}
+
+	template <class T>
+	void FixedLengthComparator<T>::putKey(char* where, nodeEntry_off_t itemSize) {
+		*((T*)where) = value;
+	}
+	
+	template <class T>
+	void FixedLengthComparator<T>::getValue(char* item, unsigned int itemSize) {
+		setValue( *((T*) (item + itemSize)));
+	}
 }
 
 #endif /*COMPARATOR_H_*/
