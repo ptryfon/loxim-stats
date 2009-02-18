@@ -3,7 +3,7 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 #include <string>
-#include <termio.h>
+#include <termios.h>
 #include <cstdlib>
 
 using namespace std;
@@ -11,8 +11,8 @@ using namespace std;
 namespace Client{
 	void ConsoleAuthenticator::read()
 	{
-		struct  termio  lock;
-		struct  termio  save;
+		struct termios lock;
+		struct termios save;
 		char *buf;
 
 		if (ask == ASK_FOR_BOTH){
@@ -23,15 +23,15 @@ namespace Client{
 			free(buf);
 		} 
 		if (ask == ASK_FOR_BOTH || ask == ASK_FOR_PASSWORD){
-			ioctl(0, TCGETA, &lock);
-			ioctl(0, TCGETA, &save);
+			ioctl(0, TIOCGETA, &lock);
+			ioctl(0, TIOCGETA, &save);
 
 			lock.c_iflag &= ~(BRKINT);
 			lock.c_lflag &= ~(ECHO|ISIG);
-			ioctl(0, TCSETA, &lock);
+			ioctl(0, TIOCSETA, &lock);
 
 			buf = readline("Password: ");
-			ioctl(0, TCSETA, &save);
+			ioctl(0, TIOCSETA, &save);
 			if (!buf)
 				return;
 			password = string(buf);

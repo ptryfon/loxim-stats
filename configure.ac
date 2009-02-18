@@ -2,7 +2,12 @@ AC_INIT([loxim], [0.01], [loxim-devel@lists.sourceforge.net])
 AM_INIT_AUTOMAKE([foreign])
 AC_PROG_CC
 AC_PROG_CXX
+AC_PROG_CPP
+AC_PROG_INSTALL
 AC_PROG_LEX
+AC_PROG_LN_S
+AC_PROG_MAKE_SET
+AC_PROG_RANLIB
 AC_PROG_YACC
 AC_DISABLE_SHARED
 AC_PROG_LIBTOOL
@@ -32,6 +37,34 @@ fi
 
 AC_DEFINE_UNQUOTED([HAVE_VERBOSITY_COMPILE], [EC_V_${enable_cust_verb}], [Compiled-in verbosity level])
 
+# Checks for libraries.
+AC_CHECK_LIB([readline], [readline], , AC_MSG_ERROR([You don't seem to have readline
+			library]))
+
+# Checks for header files.
+AC_CHECK_HEADERS([fcntl.h libintl.h limits.h malloc.h netdb.h netinet/in.h stddef.h stdint.h stdlib.h string.h strings.h sys/socket.h sys/time.h unistd.h execinfo.h termio.h])
+
+# Checks for typedefs, structures, and compiler characteristics.
+AC_HEADER_STDBOOL
+AC_C_INLINE
+AC_TYPE_INT16_T
+AC_TYPE_INT32_T
+AC_TYPE_INT64_T
+AC_TYPE_INT8_T
+AC_TYPE_OFF_T
+AC_TYPE_SIZE_T
+AC_TYPE_SSIZE_T
+AC_TYPE_UINT16_T
+AC_TYPE_UINT32_T
+AC_TYPE_UINT64_T
+AC_TYPE_UINT8_T
+
+# Checks for library functions.
+AC_FUNC_ERROR_AT_LINE
+AC_FUNC_STRTOD
+AC_CHECK_FUNCS([ftruncate gethostbyname gethostname gettimeofday memmove memset regcomp select socket strcasecmp strchr strdup strerror strstr strtol backtrace])
+
+
 AC_ARG_ENABLE([tcmalloc], [AS_HELP_STRING([--enable-tcmalloc], [Enable linking with tcmalloc (brand new malloc from Google)])])
 if test "x$enable_tcmalloc" = "xyes"  
 then
@@ -39,8 +72,6 @@ then
 			tcmalloc library!]))
 fi
 
-AC_CHECK_LIB([readline], [readline], , AC_MSG_ERROR([You don't seem to have readline
-			library]))
 AC_CHECK_LIB([pthread], [pthread_create], , AC_MSG_ERROR([You don't seem to have
 			pthread library!]))
 AC_CONFIG_HEADERS([src/config.h])
