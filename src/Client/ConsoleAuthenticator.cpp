@@ -3,8 +3,16 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 #include <string>
+#include <sys/ioctl.h>
 #include <termios.h>
 #include <cstdlib>
+
+
+//Linux needs it
+#ifndef TIOCGETA
+#define TIOCGETA TCGETA
+#define TIOCSETA TCSETA
+#endif 
 
 using namespace std;
 
@@ -23,15 +31,15 @@ namespace Client{
 			free(buf);
 		} 
 		if (ask == ASK_FOR_BOTH || ask == ASK_FOR_PASSWORD){
-			ioctl(0, TIOCGETA, &lock);
-			ioctl(0, TIOCGETA, &save);
+			tcgetattr(0, &lock);
+			save = lock;
 
 			lock.c_iflag &= ~(BRKINT);
 			lock.c_lflag &= ~(ECHO|ISIG);
 			ioctl(0, TIOCSETA, &lock);
 
 			buf = readline("Password: ");
-			ioctl(0, TIOCSETA, &save);
+			tcsetattr(0, 0, &save);
 			if (!buf)
 				return;
 			password = string(buf);
