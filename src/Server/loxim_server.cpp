@@ -5,7 +5,9 @@
 #include <Server/Server.h>
 #include <Indexes/IndexManager.h>
 #include <QueryExecutor/InterfaceMaps.h>
+#include <QueryExecutor/QueryBuilder.h>
 #include <QueryExecutor/OuterSchema.h>
+#include <QueryExecutor/ClassGraph.h>
 
 extern int h_errno;
 using namespace std;

@@ -1,19 +1,17 @@
 #ifndef _ENVIRONMENTSTACK_H
 #define _ENVIRONMENTSTACK_H
 
-#include <stdio.h>
 #include <string>
 #include <vector>
-  
-#include <QueryExecutor/ClassGraph.h>
-#include <QueryExecutor/QueryResult.h>
-#include <TransactionManager/Transaction.h>
-#include <Store/Store.h>
-#include <Store/DBDataValue.h>
-#include <Store/DBLogicalID.h>
-#include <QueryParser/TreeNode.h>
-#include <Errors/Errors.h>
-#include <Errors/ErrorConsole.h>
+ 
+#include "HashMacro.h"
+#include "QueryParser/TreeNode.h"
+
+namespace QExecutor { class QueryResult; class QueryBagResult;}
+namespace TManager {class Transaction;}
+namespace Store {class LogicalID; class DataValue;}
+namespace Errors {class ErrorConsole;}
+namespace QParser {class TreeNode;}
 
 using namespace QParser;
 using namespace TManager;
@@ -29,15 +27,20 @@ namespace QExecutor
 	class EnvironmentStack
 	{
 	protected: 
-		//lidy zawarte w tej kolekcji naleza do grafu klas
+		//lidy zawarte w tej kolekcji naleza do grafu klas 
 		//i nie nalezy ich niszczyc w tej klasie
 		SectionToClassMap classesPerSection;
-
 		SectionToInterfaceMap interfacePerSection;
 		ErrorConsole *ec;
 		vector<QueryBagResult*> es;
 		unsigned int sectionDBnumber;
+
 	public:
+		vector<int> es_priors;
+		int actual_prior;
+		//za niszczenie tego obiektu odpowiada ClassGraph
+		LogicalID* actualBindClassLid;
+
 		EnvironmentStack();
 		virtual ~EnvironmentStack();
 		int push(QueryBagResult *r, Transaction *&tr, QueryExecutor *qe);
@@ -53,27 +56,8 @@ namespace QExecutor
 		int bindProcedureName(string name, unsigned int queries_size, Transaction *&tr, QueryExecutor *qe, string &code, vector<string> &params, int &bindSectionNo, LogicalID*& bindClassLid);
 		unsigned int getSectionDBnumber();
 		void deleteAll();
-		
-        	string toString() {
-			stringstream c;
-			//string sectionDBnumberS;
-			c << "[EnvironmentStack] sectionDBnumber=" << sectionDBnumber 
-				<< " actual_prior=" << actual_prior << endl;
-			string result = c.str();
-			for( unsigned int i = 0; i < es.size(); i++ ) {
-				stringstream s;
-				s << "es_elem prior: " << es_priors.at(i);
-				result += es[i]->toString( 1, true, s.str() );
-			}
-			return result;
-		}
-		
-		vector<int> es_priors;
-		int actual_prior;
-		//za niszczenie tego obiektu odpowiada ClassGraph
-		LogicalID* actualBindClassLid;
-	};
-	
+        string toString();
+	};	
 }
 
 #endif

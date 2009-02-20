@@ -48,6 +48,7 @@ using namespace _smptr;
 using namespace SystemStatsLib;
 using namespace Util;
 using namespace Protocol;
+using namespace QExecutor;
 
 namespace Server{
 

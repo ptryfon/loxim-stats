@@ -15,5 +15,6 @@
 #define QE_TYPE_BIND_NAME			"type"
 #define QE_OBJECT_NAME_BIND_NAME		"objectName"
 #define QE_CRUD_BIND_NAME			"crud"
+#define QE_VIEWDEF_VIRTUALOBJECTS_NAME	"VirtualObjects"
 
 #endif //_BINDNAMES_H

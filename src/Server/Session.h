@@ -6,6 +6,7 @@
 #include <Server/Session.h>
 #include <QueryParser/QueryParser.h>
 #include <QueryExecutor/QueryExecutor.h>
+#include <QueryExecutor/QueryResult.h>
 #include <SystemStats/SessionStats.h>
 #include <Errors/ErrorConsole.h>
 #include <Protocol/Packages/Package.h>

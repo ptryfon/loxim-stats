@@ -46,7 +46,8 @@ libQueryExecutor_la_LIBADD =
 am_libQueryExecutor_la_OBJECTS = BindMap.lo ClassGraph.lo \
 	EnvironmentStack.lo InterfaceMaps.lo InterfaceMatcher.lo \
 	InterfaceQuery.lo OuterSchema.lo QueryExecutor.lo \
-	QueryResult.lo
+	QueryResult.lo Signatures.lo QueryBuilder.lo ExecutorViews.lo \
+	ResultStack.lo
 libQueryExecutor_la_OBJECTS = $(am_libQueryExecutor_la_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/src
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -190,7 +191,7 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 noinst_LTLIBRARIES = libQueryExecutor.la
-libQueryExecutor_la_SOURCES = BindMap.h  BindMap.cpp BindNames.h ClassGraph.cpp ClassGraph.h EnvironmentStack.cpp EnvironmentStack.h HashMacro.h InterfaceKey.h InterfaceMaps.cpp InterfaceMaps.h InterfaceMatcher.cpp InterfaceMatcher.h InterfaceQuery.cpp InterfaceQuery.h OuterSchema.h OuterSchema.cpp QueryExecutor.cpp QueryExecutor.h QueryResult.cpp QueryResult.h
+libQueryExecutor_la_SOURCES = BindMap.h  BindMap.cpp BindNames.h ClassGraph.cpp ClassGraph.h EnvironmentStack.cpp EnvironmentStack.h HashMacro.h InterfaceKey.h InterfaceMaps.cpp InterfaceMaps.h InterfaceMatcher.cpp InterfaceMatcher.h InterfaceQuery.cpp InterfaceQuery.h OuterSchema.h OuterSchema.cpp QueryExecutor.cpp QueryExecutor.h QueryResult.cpp QueryResult.h QueryBuilder.h Signatures.h Signatures.cpp QueryBuilder.cpp ExecutorViews.h ExecutorViews.cpp ResultStack.h ResultStack.cpp
 INCLUDES = -I$(top_srcdir)/src
 all: all-am
 
@@ -246,12 +247,16 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BindMap.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ClassGraph.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/EnvironmentStack.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ExecutorViews.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/InterfaceMaps.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/InterfaceMatcher.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/InterfaceQuery.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/OuterSchema.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/QueryBuilder.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/QueryExecutor.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/QueryResult.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ResultStack.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Signatures.Plo@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<

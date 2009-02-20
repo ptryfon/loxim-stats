@@ -1,5 +1,6 @@
 #include <QueryExecutor/ClassGraph.h>
 #include <QueryExecutor/BindNames.h>
+#include <QueryExecutor/ExecutorViews.h>
 
 using namespace QParser;
 using namespace TManager;

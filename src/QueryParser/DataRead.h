@@ -154,14 +154,8 @@ namespace QParser {
 		static DataScheme *dScheme(int sessionId, Transaction *tr);
 		static void reloadDScheme(int sessionId, Transaction *tr);
 		static void reloadDScheme(int sessionId);
-		static bool bindError(vector<BinderWrap*> *vec) {
-			return (vec == NULL || vec->size() == 0 || vec->at(0) == NULL || vec->at(0)->getBinder() == NULL);
-		}
-		static Signature* extractSigFromBindVector(vector<BinderWrap*> *vec) {
-			if (bindError(vec)) return NULL;
-			Signature *sig = vec->at(0)->getBinder()->getValue()->clone();
-			return sig;
-		}
+		static bool bindError(vector<BinderWrap*> *vec);
+		static Signature* extractSigFromBindVector(vector<BinderWrap*> *vec);
 
 
 		void addMissedRoot(string name);

@@ -115,6 +115,18 @@ namespace QParser {
 		}
 		return resultSig;
 	}
+	
+	bool DataScheme::bindError(vector<BinderWrap*> *vec) 
+	{
+		return (vec == NULL || vec->size() == 0 || vec->at(0) == NULL || vec->at(0)->getBinder() == NULL);
+	}
+	
+	Signature* DataScheme::extractSigFromBindVector(vector<BinderWrap*> *vec) 
+	{
+		if (bindError(vec)) return NULL;
+		Signature *sig = vec->at(0)->getBinder()->getValue()->clone();
+		return sig;
+	}
 
 	void DataScheme::addBindEntity(DataObjectDef *obt, BinderWrap *&bw) {
 		SigRef *sigRef = new SigRef (obt->getMyId());

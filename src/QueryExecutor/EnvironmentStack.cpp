@@ -2,6 +2,8 @@
 #include <string>
 #include <vector>
 
+#include <QueryExecutor/ExecutorViews.h>
+#include <QueryExecutor/ClassGraph.h>
 #include <QueryExecutor/QueryResult.h>
 #include <QueryExecutor/InterfaceMaps.h>
 #include <QueryParser/ClassNames.h>
@@ -11,7 +13,8 @@
 #include <Store/DBLogicalID.h>
 #include <QueryParser/QueryParser.h>
 #include <QueryParser/TreeNode.h>
-#include <QueryExecutor/QueryExecutor.h>
+#include <QueryExecutor.h>
+#include <EnvironmentStack.h>
 #include <Errors/Errors.h>
 #include <Errors/ErrorConsole.h>
 
@@ -260,13 +263,13 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 					if (vecSize_virt == 1) {
 						LogicalID *view_lid = vec_virt->at(0);
 						string view_code;
-						errcode = qe->checkViewAndGetVirtuals(view_lid, name, view_code);
-						if (errcode != 0) return errcode;
+						errcode = qe->getExViews()->checkViewAndGetVirtuals(view_lid, name, view_code, tr);
+						if (errcode != 0) { qe->antyStarveFunction(errcode); qe->inTransaction = false; return errcode; }
 						
 						vector<QueryBagResult*> envs_sections;
 						
-						errcode = qe->createNewSections(NULL, NULL, view_lid, envs_sections);
-						if (errcode != 0) return errcode;
+						errcode = qe->getExViews()->createNewSections(NULL, NULL, view_lid, envs_sections, tr, qe);
+						if (errcode != 0) { qe->antyStarveFunction(errcode); qe->inTransaction = false; return errcode; }
 						
 						errcode = qe->callProcedure(view_code, envs_sections);
 						if(errcode != 0) return errcode;
@@ -516,12 +519,21 @@ void EnvironmentStack::deleteAll() {
 	es_priors.clear();
 }
 
-
-
-
+string EnvironmentStack::toString() 
+{
+	stringstream c;
+	c << "[EnvironmentStack] sectionDBnumber=" << sectionDBnumber 
+		<< " actual_prior=" << actual_prior << endl;
+	string result = c.str();
+	for( unsigned int i = 0; i < es.size(); i++ ) {
+		stringstream s;
+		s << "es_elem prior: " << es_priors.at(i);
+		result += es[i]->toString( 1, true, s.str() );
+	}
+	return result;
+}
 
 // nested function returns bag of binders, which will be pushed on the environment stack
-
 int QueryResult::nested_and_push_on_envs(QueryExecutor * qe, Transaction *&tr) {
 	int errcode;
 	QueryResult *r;
@@ -788,19 +800,21 @@ int QueryReferenceResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResu
 			LogicalID *tmp_logID = subviews_vector.at(i);
 			string view_name = "";
 			string view_code = "";
-			errcode = qe->checkViewAndGetVirtuals(tmp_logID, view_name, view_code);
+			errcode = qe->getExViews()->checkViewAndGetVirtuals(tmp_logID, view_name, view_code, tr);
 			if (errcode != 0) {
                             if (optr != NULL) {
                                 delete optr;
                             }
+							qe->antyStarveFunction(errcode);
+							qe->inTransaction = false;
                             return errcode;
                         }
 			
 			vector<QueryBagResult*> envs_sections;
 			envs_sections.push_back((QueryBagResult *) r);
 			
-			errcode = qe->createNewSections(NULL, NULL, tmp_logID, envs_sections);
-			if (errcode != 0) return errcode;
+			errcode = qe->getExViews()->createNewSections(NULL, NULL, tmp_logID, envs_sections, tr, qe);
+			if (errcode != 0) { qe->antyStarveFunction(errcode); qe->inTransaction = false; return errcode; }
 			
 			errcode = qe->callProcedure(view_code, envs_sections);
 			if(errcode != 0) return errcode;
@@ -824,22 +838,12 @@ int QueryReferenceResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResu
 			}
 		}
             if (GTpom != NULL) {
-                ///ObjectPointer objp = *GTpom;
-                //printf("%d \n", objp.getName());
-            delete GTpom;
+        		delete GTpom;
             }
 	}
-        /*if (optr != NULL) {
-            //ObjectPointer objp2 = *optr;
-            //printf("%d \n", objp2.getName());
-            delete optr;
-        }
-        */
-         
+     
 	return 0;
 }
-
-
 
 int QueryVirtualResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult *&r, vector<DataValue*> &dataVal_vec) {
 	r = new QueryBagResult();
@@ -848,8 +852,8 @@ int QueryVirtualResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult
 	
 	string on_navigate_code = "";
 	string on_navigate_paramname = "";
-	errcode = qe->getOn_procedure(view_defs.at(0), "on_navigate", on_navigate_code, on_navigate_paramname);
-	if (errcode != 0) return errcode;
+	errcode = qe->getExViews()->getOn_procedure(view_defs.at(0), "on_navigate", on_navigate_code, on_navigate_paramname, tr);
+	if (errcode != 0) { qe->antyStarveFunction(errcode); qe->inTransaction = false; return errcode;}
 	
 	bool filterOut;
 	string k = getInterfaceKey().getKey();
@@ -863,8 +867,8 @@ int QueryVirtualResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult
 		
 		vector<QueryBagResult*> envs_sections1;
 		
-		errcode = qe->createNewSections(this, NULL, NULL, envs_sections1);
-		if (errcode != 0) return errcode;
+		errcode = qe->getExViews()->createNewSections(this, NULL, NULL, envs_sections1, tr, qe);
+		if (errcode != 0) { qe->antyStarveFunction(errcode); qe->inTransaction = false; return errcode; }
 	
 		errcode = qe->callProcedure(on_navigate_code, envs_sections1);
 		if(errcode != 0) return errcode;
@@ -918,14 +922,14 @@ int QueryVirtualResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult
 	
 	else {
 		vector<LogicalID *> subviews;
-		errcode = qe->getSubviews(view_defs.at(0), vo_name, subviews);
-		if (errcode != 0) return errcode;
+		errcode = qe->getExViews()->getSubviews(view_defs.at(0), vo_name, subviews, tr);
+		if (errcode != 0) {qe->antyStarveFunction(errcode); qe->inTransaction = false; return errcode;}
 		for (unsigned int i = 0; i < subviews.size(); i++ ) {
 			LogicalID *subview_lid = subviews.at(i);
 			string subview_name = "";
 			string subview_code = "";
-			errcode = qe->checkViewAndGetVirtuals(subview_lid, subview_name, subview_code);
-			if (errcode != 0) return errcode;
+			errcode = qe->getExViews()->checkViewAndGetVirtuals(subview_lid, subview_name, subview_code, tr);
+			if (errcode != 0) {qe->antyStarveFunction(errcode); qe->inTransaction = false; return errcode;}
 			
 			if (filterOut)
 			{
@@ -937,8 +941,8 @@ int QueryVirtualResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult
 			
 			vector<QueryBagResult*> envs_sections2;
 		
-			errcode = qe->createNewSections(this, NULL, subview_lid, envs_sections2);
-			if (errcode != 0) return errcode;
+			errcode = qe->getExViews()->createNewSections(this, NULL, subview_lid, envs_sections2, tr, qe);
+			if (errcode != 0) { qe->antyStarveFunction(errcode); qe->inTransaction = false; return errcode; }
 			
 			errcode = qe->callProcedure(subview_code, envs_sections2);
 			if(errcode != 0) return errcode;
