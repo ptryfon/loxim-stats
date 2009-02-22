@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <protocol xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
 	xmlns='http://loxim.mimuw.edu.pl/protoGen'
-	xsi:schemaLocation='http://loxim.mimuw.edu.pl/protoGen file:/home/ptab/workspace/protoGen/src/protoGen.xsd'>
+	xsi:schemaLocation='http://loxim.mimuw.edu.pl/protoGen 
+			    https://loxim.svn.sourceforge.net/svnroot/loxim/trunk/Protogen/protogen/src/api/src/main/resources/protoGen.xsd'>
 
 	<metadata>
 		<major-version>2</major-version>

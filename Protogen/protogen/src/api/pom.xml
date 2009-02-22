@@ -65,7 +65,8 @@
           <validationSets>
             <validationSet>
               <dir>${basedir}/src/test/resources/example_xmls</dir>
-              <systemId>${basedir}/src/main/resources/protoGen.xsd</systemId>
+              <!--systemId>${basedir}/src/main/resources/protoGen.xsd</systemId-->
+	      <validating>true</validating>
             </validationSet>
           </validationSets>
         </configuration>
