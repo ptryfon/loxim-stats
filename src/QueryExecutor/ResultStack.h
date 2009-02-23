@@ -2,11 +2,9 @@
 #define _RESULTSTACK_H_
 
 #include <vector>
+#include <string>
 
 namespace Errors { class ErrorConsole; }
-
-using namespace std;
-using namespace Errors;
 
 namespace QExecutor
 {
@@ -15,8 +13,8 @@ namespace QExecutor
 	class ResultStack
 	{
 		protected: 
-			ErrorConsole *ec;
-			vector<QueryResult*> rs;
+			Errors::ErrorConsole *ec;
+			std::vector<QueryResult*> rs;
 		public:
 			ResultStack();
 			~ResultStack();
@@ -25,7 +23,7 @@ namespace QExecutor
 			bool empty();
 			int size();
 			void deleteAll();
-			string toString(); 
+			std::string toString(); 
 	};
 }
 
