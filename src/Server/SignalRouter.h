@@ -3,6 +3,7 @@
 
 #include <map>
 #include <pthread.h>
+#include <Util/Concurrency.h>
 
 using namespace std;
 
@@ -38,7 +39,7 @@ namespace Server{
 	class SignalRouter{
 		private:
 			static std::map<pthread_t, Receiver*> map;
-			static pthread_mutex_t map_protector;
+			static Util::Mutex map_protector;
 		public:
 			static void register_thread(pthread_t, Receiver*);
 			static void register_thread(pthread_t, recv_fun_t handler, void *arg);

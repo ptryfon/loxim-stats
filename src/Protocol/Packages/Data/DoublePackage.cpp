@@ -48,7 +48,7 @@ namespace Protocol {
 
 	size_t DoublePackage::get_ser_size() const
 	{
-		return 0 + 4;
+		return 0 + 8;
 	}
 
 	double DoublePackage::get_val_value() const

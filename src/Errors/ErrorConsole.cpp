@@ -10,7 +10,7 @@
 #include <Errors/Errors.h>
 #include <Errors/Exceptions.h>
 #include <Config/SBQLConfig.h>
-#include <Util/Locker.h>
+#include <Util/Concurrency.h>
 
 using namespace std;
 using namespace Config;
@@ -23,7 +23,7 @@ namespace Errors {
 	auto_ptr<ofstream> ErrorConsole::console_file;
 	auto_ptr<SBQLConfig> ErrorConsole::conf_file;
 	VerbosityLevel log_file_level, serr_level;
-	pthread_mutex_t ErrorConsole::write_lock = PTHREAD_MUTEX_INITIALIZER;
+	Mutex ErrorConsole::write_lock;
 	map<ConsoleInstance, ErrorConsole* > ErrorConsole::modules;
 	
 

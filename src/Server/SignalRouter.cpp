@@ -1,6 +1,6 @@
 #include <Server/SignalRouter.h>
 #include <signal.h>
-#include <Util/Locker.h>
+#include <Util/Concurrency.h>
 #include <Util/smartptr.h>
 
 using namespace std;
@@ -48,7 +48,7 @@ namespace Server{
 	}
 
 	map<pthread_t, Receiver*> SignalRouter::map;
-	pthread_mutex_t SignalRouter::map_protector = PTHREAD_MUTEX_INITIALIZER;
+	Mutex SignalRouter::map_protector;
 	
 	void SignalRouter::register_thread(pthread_t thread, Receiver *recv)
 	{

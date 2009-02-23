@@ -43,7 +43,7 @@ CONFIG_HEADER = $(top_builddir)/src/config.h
 CONFIG_CLEAN_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
 libUtil_la_LIBADD =
-am_libUtil_la_OBJECTS = Locker.lo Backtrace.lo Masker.lo
+am_libUtil_la_OBJECTS = Backtrace.lo InfLoopThread.lo Concurrency.lo
 libUtil_la_OBJECTS = $(am_libUtil_la_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/src
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -187,7 +187,7 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 noinst_LTLIBRARIES = libUtil.la
-libUtil_la_SOURCES = Locker.h Locker.cpp smartptr.h Backtrace.h Backtrace.cpp Masker.h Masker.cpp
+libUtil_la_SOURCES = smartptr.h Backtrace.h Backtrace.cpp InfLoopThread.h InfLoopThread.cpp Concurrency.h Concurrency.cpp
 INCLUDES = -I$(top_srcdir)/src
 all: all-am
 
@@ -241,8 +241,8 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Backtrace.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Locker.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Masker.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Concurrency.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/InfLoopThread.Plo@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<

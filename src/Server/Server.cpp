@@ -9,7 +9,7 @@
 #include <Server/Server.h>
 #include <Server/Session.h>
 #include <Server/SignalRouter.h>
-#include <Util/Locker.h>
+#include <Util/Concurrency.h>
 
 using namespace std;
 using namespace Protocol;
@@ -46,14 +46,12 @@ namespace Server{
 				CONFIG_AUTH_TRUST_ALLOWED_DEFAULT)),
 		thread(pthread_self()), server(addr, port, DEFAULT_BACKLOG)
 	{
-		pthread_mutex_init(&this->open_sessions_mutex, NULL);
 		SignalRouter::register_thread(thread, LSrv_signal_handler, this);
 	}
 
 	Server::~Server()
 	{
 		//XXX unregister from signal router
-		pthread_mutex_destroy(&this->open_sessions_mutex);
 	}
 
 	void Server::main_loop()

@@ -6,8 +6,8 @@
 #include <Server/Session.h>
 #include <Protocol/TCPServer.h>
 #include <Config/SBQLConfig.h>
-#include <pthread.h>
 #include <Util/smartptr.h>
+#include <Util/Concurrency.h>
 
 
 namespace Server{
@@ -21,7 +21,7 @@ namespace Server{
 			bool shutting_down;
 			Errors::ErrorConsole &err_cons;
 			std::map<uint64_t, _smptr::shared_ptr<Session> > open_sessions;
-			pthread_mutex_t open_sessions_mutex;
+			Util::Mutex open_sessions_mutex;
 			int config_max_sessions;
 			int config_max_package_size;
 			int config_keep_alive_interval;

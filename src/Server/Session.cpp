@@ -3,7 +3,7 @@
 #include <math.h>
 #include <sstream>
 #include <signal.h>
-#include <Util/Locker.h>
+#include <Util/Concurrency.h>
 #include <Util/smartptr.h>
 #include <AdminParser/AdminExecutor.h>
 #include <Errors/Errors.h>
@@ -71,7 +71,6 @@ namespace Server{
 		id(get_new_id()), shutting_down(false), error(0), qEx(this),
 		KAthread(*this), worker(*this)
 	{
-		pthread_mutex_init(&send_mutex, 0);
 		for (int i = 0; i < 20; i++)
 			salt[i] = (char)(rand()%256-128);
 
@@ -302,10 +301,9 @@ namespace Server{
 		}
 
 		auto_ptr<Package> package(stream->read_package_expect(mask, shutting_down, W_C_PASSWORD_PACKAGE));
-		debug_printf(err_cons, "Got login: %s",
-				dynamic_cast<WCPasswordPackage&>(*package).get_val_login().to_string().c_str());
-		if (authorize(dynamic_cast<WCPasswordPackage&>(*package).get_val_login().to_string(),
-					dynamic_cast<WCPasswordPackage&>(*package).get_val_password().to_string())){
+		WCPasswordPackage &pp(dynamic_cast<WCPasswordPackage&>(*package));
+		debug_printf(err_cons, "Got login: %s", pp.get_val_login().to_string().c_str());
+		if (authorize(pp.get_val_login().to_string(), pp.get_val_password().to_string())){
 			WSAuthorizedPackage ap;
 			stream->write_package(mask, shutting_down, ap);
 			debug_print(err_cons, "WSAUTHORIZED sent");
@@ -462,9 +460,6 @@ namespace Server{
 		shutting_down(0),
 		thread(0)
 	{
-		pthread_mutex_init(&mutex, 0);
-		pthread_cond_init(&idle_cond, 0);
-		pthread_cond_init(&completion_cond, 0);
 	}
 
 	void Worker::start()
@@ -476,50 +471,48 @@ namespace Server{
 	void Worker::start_continue()
 	{
 		//main loop
-		pthread_mutex_lock(&mutex);
+		Locker l(mutex);
 		while (true){
 			if (shutting_down){
-				pthread_mutex_unlock(&mutex);
 				return;
 			}
-			pthread_cond_wait(&idle_cond, &mutex);
+			l.wait(idle_cond);
 			if (shutting_down){
-				pthread_cond_signal(&completion_cond);
-				pthread_mutex_unlock(&mutex);
+				completion_cond.signal();
 				return;
 			}
-			pthread_mutex_unlock(&mutex);
 			try{
+				Unlocker ul(mutex);
 				process_package(cur_package);
 			} catch (LoximException &ex) {
 				session.shutdown(ex.get_error());
-				//we don't own the mutex
 				return;
 			} catch (...) {
 				session.shutdown(EUnknown);
 				return;
 			}
-			pthread_mutex_lock(&mutex);
 			cur_package.reset();
-			pthread_cond_signal(&completion_cond);
+			completion_cond.signal();
 			if (shutting_down){
-				pthread_mutex_unlock(&mutex);
 				return;
 			}
 		}
 	}
 
 	//TODO It might be a race condition!!!
-	void Worker::cancel_job(bool synchronous, bool mutex_locked)
+	void Worker::cancel_job(bool synchronous)
+	{
+		Locker l(mutex);
+		cancel_job_locked(synchronous, l);
+	}
+	
+	//TODO It might be a race condition!!!
+	void Worker::cancel_job_locked(bool synchronous, Locker &l)
 	{
 		session.qEx.stopExecuting();
 		if (synchronous){
-			if (!mutex_locked)
-				pthread_mutex_lock(&mutex);
 			if (cur_package.get())
-				pthread_cond_wait(&completion_cond, &mutex);
-			if (!mutex_locked)
-				pthread_mutex_unlock(&mutex);
+				l.wait(completion_cond);
 		}
 	}
 
@@ -528,10 +521,10 @@ namespace Server{
 		if (!thread)
 			return;
 		shutting_down = 1;
-		cancel_job(false, false);
+		cancel_job(false);
 		{
 			Locker l(mutex);
-			pthread_cond_signal(&idle_cond);
+			idle_cond.signal();
 		}
 		pthread_join(thread, NULL);
 		thread = 0;
@@ -555,7 +548,7 @@ namespace Server{
 		if (package->get_type() == V_SC_ABORT_PACKAGE){
 			if (cur_package.get()){
 				aborting = true;
-				cancel_job(true, true);
+				cancel_job_locked(true, l);
 				session.qEx.contExecuting();
 			}
 			cur_package.reset();
@@ -569,7 +562,7 @@ namespace Server{
 		//is received
 		if (cur_package.get()){
 			/* no need to wait for it */
-			cancel_job(false, true);
+			cancel_job_locked(false, l);
 			throw LoximException(EProtocol);
 		}
 		//no package is being worked on
@@ -580,7 +573,7 @@ namespace Server{
 		} else { 
 			//a regular package
 			cur_package = shared_ptr<Package>(package);
-			pthread_cond_signal(&idle_cond);
+			idle_cond.signal();
 			return;
 		}
 	}
@@ -653,8 +646,6 @@ namespace Server{
 		session(session),
 		err_cons(ErrorConsole::get_instance(EC_SERVER)), thread(0)
 	{
-		pthread_mutex_init(&(this->cond_mutex), 0);
-		pthread_cond_init(&(this->cond), 0);
 		this->shutting_down = false;
 	}
 
@@ -668,7 +659,7 @@ namespace Server{
 		if (!thread)
 			return;
 		shutting_down = 1;
-		pthread_cond_signal(&cond);
+		cond.signal();
 		pthread_join(thread, NULL);
 		thread = 0;
 	}
@@ -678,38 +669,37 @@ namespace Server{
 		debug_print(err_cons, "KeepAliveThred::main_loop starts");
 		struct timeval now;
 		struct timespec tout;
-		int res;
-		pthread_mutex_lock(&cond_mutex);
+		Locker l(cond_mutex);
 		answer_received = true;
-		do {
-			gettimeofday(&now, 0);
-			tout.tv_sec = now.tv_sec + session.get_server().get_config_keep_alive_interval();
-			tout.tv_nsec = now.tv_usec * 1000;
-			res = pthread_cond_timedwait(&cond, &cond_mutex, &tout);
-			if (!shutting_down && res == ETIMEDOUT){
-				//actual action
-				debug_print(err_cons, "Keepalive check");
-				if (!answer_received){
-					info_print(err_cons, "Keepalive thread has just discovered client death.");
-					session.shutdown(EClientLost);
-					return;
-				} else {
-					answer_received = false;
-					try{
-						session.send_ping();
-					} catch (exception e) {
-						warning_print(err_cons, "Warning: keepalive thread died (couldn't send ping");
+		try {
+			do {
+				gettimeofday(&now, 0);
+				tout.tv_sec = now.tv_sec + session.get_server().get_config_keep_alive_interval();
+				tout.tv_nsec = now.tv_usec * 1000;
+				l.timed_wait(cond, tout);
+				//rethink exceptions
+				if (!shutting_down){
+					//actual action
+					debug_print(err_cons, "Keepalive check");
+					if (!answer_received){
+						info_print(err_cons, "Keepalive thread has just discovered client death.");
+						session.shutdown(EClientLost);
 						return;
+					} else {
+						answer_received = false;
+						try{
+							session.send_ping();
+						} catch (exception e) {
+							warning_print(err_cons, "Warning: keepalive thread died (couldn't send ping");
+							return;
+						}
 					}
-				}
 
-			}
-		} while (!shutting_down && (res == ETIMEDOUT || res == 0));
-		if (!shutting_down)
+				}
+			} while (!shutting_down);
+		} catch (...) {
 			warning_print(err_cons, "Warning: keepalive thread died");
-		else
-			res = 0;
-		pthread_mutex_unlock(&cond_mutex);
+		}
 		pthread_exit(NULL);
 	}
 

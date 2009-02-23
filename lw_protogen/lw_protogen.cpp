@@ -487,7 +487,7 @@ string get_size(const string &name, const string &type)
 	if (!type.compare("bool"))
 		return "1";
 	if (!type.compare("double"))
-		return "4";
+		return "8";
 	if (!type.compare("bytes"))
 		return name + "->get_ser_size()";
 

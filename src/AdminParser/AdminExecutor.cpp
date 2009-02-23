@@ -4,7 +4,7 @@
 #include <AdminParser/AdminExecutor.h>
 #include <Errors/Errors.h>
 #include <Errors/Exceptions.h>
-#include <Util/Locker.h>
+#include <Util/Concurrency.h>
 
 using namespace std;
 using namespace Util;
@@ -31,7 +31,6 @@ namespace AdminParser{
 
 	AdminExecutor::AdminExecutor()
 	{
-		pthread_mutex_init(&exec_mutex, 0);
 	}
 
 	AdminExecutor::~AdminExecutor()

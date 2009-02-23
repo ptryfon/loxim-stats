@@ -2,10 +2,11 @@
 #define ADMIN_EXECUTOR_H
 
 #include <string>
+#include <pthread.h>
 #include <AdminParser/AdminExecutableTreeNode.h>
 #include <AdminParser/AdminParser.h>
 #include <AdminParser/AdminLexer.h>
-#include <pthread.h>
+#include <Util/Concurrency.h>
 
 namespace Server {
 	class Session;
@@ -21,7 +22,7 @@ namespace AdminParser{
 	    AdminExecutor();
 	    ~AdminExecutor();
 	    static AdminExecutor *instance;
-	    pthread_mutex_t exec_mutex;
+	    Util::Mutex exec_mutex;
 	    static pthread_mutex_t instance_mutex;
 	    ::AdminParser::AdminParser parser;
 	    

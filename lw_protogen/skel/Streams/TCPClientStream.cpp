@@ -9,7 +9,7 @@
 #include <Protocol/Exceptions.h>
 #include <Protocol/Streams/TCPClientStream.h>
 #include <Protocol/Streams/FileDataStream.h>
-#include <Util/Masker.h>
+#include <Util/Concurrency.h>
 
 
 using namespace std;

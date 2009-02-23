@@ -2,6 +2,7 @@
 #define ABORTER_H
 
 #include <pthread.h>
+#include <Util/Concurrency.h>
 
 namespace Client{
 
@@ -17,8 +18,8 @@ namespace Client{
 			void stop();
 			void trigger();
 		protected:
-			pthread_mutex_t mutex;
-			pthread_cond_t cond;
+			Util::Mutex mutex;
+			Util::CondVar cond;
 			pthread_t thread;
 			bool shutting_down;
 			Client &client;

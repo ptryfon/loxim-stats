@@ -7,6 +7,7 @@
 #include <Client/StatementProvider.h>
 #include <Client/Authenticator.h>
 #include <Client/Aborter.h>
+#include <Util/Concurrency.h>
 
 #include <string>
 #include <memory>
@@ -25,8 +26,8 @@ namespace Client{
 		private:
 			std::auto_ptr<Protocol::PackageStream> stream;
 
-			pthread_mutex_t logic_mutex;
-			pthread_cond_t read_cond;
+			Util::Mutex logic_mutex;
+			Util::CondVar read_cond;
 			int error;
 			bool shutting_down;
 			sigset_t mask;

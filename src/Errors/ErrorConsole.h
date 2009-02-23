@@ -1,12 +1,13 @@
 #ifndef _ERRORCONSOLE_H
 #define _ERRORCONSOLE_H
 
-#include <Config/SBQLConfig.h>
 #include <fstream>
 #include <string>
 #include <map>
 #include <memory>
 #include <config.h>
+#include <Config/SBQLConfig.h>
+#include <Util/Concurrency.h>
 
 #define EC_V_SEVERE_ERROR 1
 #define EC_V_ERROR 2
@@ -101,7 +102,7 @@ namespace Errors {
                         static bool use_log_file;
 			static std::auto_ptr<std::ofstream> console_file;
         		static std::auto_ptr<Config::SBQLConfig> conf_file;
-			static pthread_mutex_t write_lock;
+			static Util::Mutex write_lock;
 			static void init_static();
 			static VerbosityLevel parse_verbosity(const std::string &property);
 			static const std::string &verbosity_name(VerbosityLevel l);

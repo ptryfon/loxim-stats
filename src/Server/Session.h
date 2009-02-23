@@ -14,6 +14,7 @@
 #include <Server/Server.h>
 #include <Server/Clipboard.h>
 #include <Util/smartptr.h>
+#include <Util/Concurrency.h>
 
 
 namespace Server{
@@ -44,14 +45,15 @@ namespace Server{
 			Errors::ErrorConsole &err_cons;
 			int shutting_down;
 			pthread_t thread;
-			pthread_mutex_t mutex;
-			pthread_cond_t idle_cond, completion_cond;
+			Util::Mutex mutex;
+			Util::CondVar idle_cond, completion_cond;
 			_smptr::shared_ptr<Protocol::Package> cur_package;
 			bool aborting;
 
 			void start_continue();
 			void process_package(_smptr::shared_ptr<Protocol::Package> &package);
-			void cancel_job(bool synchrounous, bool mutex_locked);
+			void cancel_job(bool synchrounous);
+			void cancel_job_locked(bool synchronous, Util::Locker &l);
 		public:
 
 			Worker(Session &session);
@@ -78,8 +80,8 @@ namespace Server{
 			pthread_t thread;
 			bool running;
 			bool shutting_down;
-			pthread_cond_t cond;
-			pthread_mutex_t cond_mutex;
+			Util::CondVar cond;
+			Util::Mutex cond_mutex;
 			void main_loop();
 			bool answer_received;
 		public:
@@ -159,7 +161,7 @@ namespace Server{
 			string sessionid;
 			SystemStatsLib::SessionStats stats;
 			char salt[20];
-			pthread_mutex_t send_mutex;
+			Util::Mutex send_mutex;
 			pthread_t thread;
 			sigset_t mask;	
 

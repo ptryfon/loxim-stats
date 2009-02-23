@@ -10,7 +10,6 @@
 #include <Client/Authenticator.h>
 #include <Errors/Errors.h>
 #include <Errors/Exceptions.h>
-#include <Util/Locker.h>
 #include <Util/smartptr.h>
 #include <Protocol/Exceptions.h>
 #include <Protocol/Streams/TCPClientStream.h>
@@ -64,11 +63,8 @@ namespace Client{
 		shutting_down(false), waiting_for_result(false),
 		aborter(*this) 
 	{
-		pthread_mutex_init(&logic_mutex, 0);
-		pthread_cond_init(&read_cond, 0);
 		pthread_sigmask(0, NULL, &mask);
 		sigaddset(&mask, SIGUSR1);
-
 	}
 
 	Client::~Client()
@@ -102,7 +98,7 @@ namespace Client{
 					stream->write_package(mask, shutting_down, package);
 				}
 				waiting_for_result = true;
-				pthread_cond_wait(&read_cond, &logic_mutex);
+				l.wait(read_cond);
 			}
 		}
 	}
@@ -117,7 +113,7 @@ namespace Client{
 			VSCAbortPackage package(0, reason);
 			stream->write_package(mask, shutting_down, package);
 			waiting_for_result = false;
-			pthread_cond_signal(&read_cond);
+			read_cond.signal();
 		}
 	}
 
@@ -171,7 +167,7 @@ namespace Client{
 					//close client connection
 					error = EProtocol;
 				}
-				pthread_cond_signal(&read_cond);
+				read_cond.signal();
 			}
 		}
 	}
