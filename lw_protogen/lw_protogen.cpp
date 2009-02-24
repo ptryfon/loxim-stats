@@ -922,7 +922,7 @@ void generate_makefiles(const vector<Enum> &enums, const vector<pair<string, map
 		for (vector<pair<string, map<string, Package> > >::const_iterator pg = package_groups.begin(); pg != package_groups.end(); ++pg) {
 			enum_src += first_upper(pg->first) + "Packages.h ";
 		}
-		mk << "libProtocolEnums_la_SOURCES = " << enum_src << " dummy.cpp " << endl;
+		mk << "libProtocolEnums_la_SOURCES = " << enum_src << " Enums.h dummy.cpp " << endl;
 		mk << "INCLUDES=-I$(top_srcdir)/src" << endl;
 	}
 	{

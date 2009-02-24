@@ -1,0 +1,33 @@
+It would be nice to do these things in LoXiM:
+
+BUGS:
+-refer to bug tracker
+
+MODULARITY/AESTHETICS:
+-abstract from the current executor
+
+PERFORMANCE:
+-modify FileDataStream (Protocol) to do some buffering
+-remove memory leaks
+-remove not necessary memory allocations
+-improve statistics module (now nobody uses it but it allocates a lot of data)
+
+BUILD CHAIN:
+-let autotools be used to build lw_protogen, but only optionally, when Xerces-3
+ is available
+-tests (in indexes there are some and they don't compile (they're close))
+
+ADMINISTRATION:
+-there is a big mess in documentation, should be tidied up
+-start making backups
+-automatic builds and reports
+
+TESTS:
+-chceking: memory leaks, heap allocation, concurrency problems
+-white box testing
+-black box testing
+-make testing framework in a way that problems could be easly tracked
+
+DETAILS:
+-let server and client print their versions (according to what is specified in
+ configure.ac)

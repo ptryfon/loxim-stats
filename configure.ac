@@ -76,7 +76,7 @@ AC_CHECK_LIB([pthread], [pthread_create], , AC_MSG_ERROR([You don't seem to have
 AC_CONFIG_HEADERS([src/config.h])
 AC_CONFIG_FILES([Makefile src/Makefile src/Log/Makefile src/Lock/Makefile
 		src/Errors/Makefile src/Store/Makefile src/ARIESLog/Makefile
-		src/Indexes/Makefile src/Indexes/Tests/Makefile
+		src/Indexes/Makefile 
 		src/QueryParser/Makefile src/TransactionManager/Makefile
 		src/SystemStats/Makefile src/QueryExecutor/Makefile
 		src/Client/Makefile src/AdminParser/Makefile
