@@ -35,10 +35,10 @@ namespace Schemas
 	static string getCrudString(int crud)
 	{
 		string res = "";
-		if (crud & CREATE) res += "CREATE";
-		if (crud & READ) res += "READ";
-		if (crud & UPDATE) res += "UPDATE";
-		if (crud & DELETE) res += "DELETE";
+		if (crud & CREATE) res += "create";
+		if (crud & READ) res += " read";
+		if (crud & UPDATE) res += " update";
+		if (crud & DELETE) res += " delete";
 		return res;
 	}
 	
@@ -130,14 +130,14 @@ namespace Schemas
 			void revalidateAllSchemasUsingName(string s, TManager::Transaction *tr);
 			
 			int exportSchema(string schemaName, TManager::Transaction *tr) const;
-			int importSchema(string schemaName, TManager::Transaction *tr) const;
+			int importSchema(string schemaName, string &out) const;
 
 			string toString(TManager::Transaction *tr) const;
 			void debugPrint(TManager::Transaction *tr) const;
 			
 	};
 	
-	enum STATE {VALID, INVALID, ERROR_NAME_NOT_UNIQUE, ERROR_TM, ERROR_NO_NAME, ERROR_NOT_INTERFACE};		
+	enum STATE {VALID = 0, INVALID, ERROR_NAME_NOT_UNIQUE, ERROR_TM, ERROR_NO_NAME, ERROR_NOT_INTERFACE};		
 	
 	class OuterSchemaValidator
 	{

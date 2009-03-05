@@ -1,7 +1,10 @@
 #include "OuterSchema.h"
+#include "QueryResult.h"
 #include "InterfaceMaps.h"
 #include "TransactionManager/Transaction.h"
 #include "Store/DBLogicalID.h"
+#include "QueryParser/QueryParser.h"
+#include "QueryParser/TreeNode.h"
 #include <iostream>
 #include <fstream>
 
@@ -99,7 +102,7 @@ string OuterSchema::toString(TManager::Transaction *tr) const
 {
 	string out = "schema ";
 	out += m_name;
-	out += "\n{\n";
+	out += " \n{\n";
 	bool exists;
 	TNameToAccess::const_iterator it;
 	for (it = m_namesInSchema.begin(); it != m_namesInSchema.end(); ++it)
@@ -117,7 +120,7 @@ string OuterSchema::toString(TManager::Transaction *tr) const
 		out += getCrudString(crud);
 		out += ";\n";
 	}
-	out += "}\n";
+	out += "} \n";
 	return out;
 }
 
@@ -328,16 +331,28 @@ void OuterSchemas::debugPrint(TManager::Transaction *tr) const
 int OuterSchemas::exportSchema(string schemaName, TManager::Transaction *tr) const
 {
 	if (!hasSchemaName(schemaName))
+	{
+		debug_printf(*ec, "[OuterSchemas::exportSchema] no schema by name %s\n", schemaName.c_str());
 		return -1;  //TODO - no schema by this name
+	}
 	OuterSchema s = getSchema(schemaName);
-	if (s.getValidity() != OUTERSCHEMA_VALID)
+	/*
+	OuterSchema *sp = &s;
+	if (!OuterSchemaValidator::validate(sp, tr))
+	{
+		debug_printf(*ec, "[OuterSchemas::exportSchema] schema %s is invalid and cannot be exported\n", schemaName.c_str());
 		return -1; //TODO - invalid schema can't be exported
+	}
+	*/
 	string exportedContent = s.toString(tr);
 	string fileName = getSchemaFile(schemaName);
 	ofstream file;
 	file.open(fileName.c_str(), ios::out | ios::trunc);
 	if (!file.is_open())
+	{
+		debug_printf(*ec, "[OuterSchemas::exportSchema] could not open file %s\n", fileName.c_str());
 		return -1; //TODO - couldn't open file
+	}
 	else
 	{
 		file << exportedContent;
@@ -346,9 +361,34 @@ int OuterSchemas::exportSchema(string schemaName, TManager::Transaction *tr) con
 	return 0;
 }
 
-int OuterSchemas::importSchema(string schemaName, TManager::Transaction *tr) const
-{   //TODO 
-	return -1;	
+int OuterSchemas::importSchema(string schemaName, string &out) const
+{
+	if (hasSchemaName(schemaName))
+	{
+		debug_printf(*ec, "[OuterSchemas::importSchema] schema by name %s already exists\n", schemaName.c_str());
+		return -1;  //TODO - schema already exists
+	}
+	string schemaString, line;
+	string fileName = getSchemaFile(schemaName);
+	ifstream file;
+	file.open(fileName.c_str());
+	if (!file.is_open())
+	{
+		debug_printf(*ec, "[OuterSchemas::exportSchema] could not open file %s\n", fileName.c_str());
+		return -1; //TODO - couldn't open file
+	}
+	else
+	{
+		while (!file.eof())
+		{
+			getline(file,line);
+			schemaString += line;
+		}
+		file.close();
+	}
+	schemaString = "create " + schemaString;
+	out = schemaString;
+	return 0;
 }
 
 /***********************

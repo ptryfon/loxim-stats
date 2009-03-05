@@ -423,6 +423,36 @@ namespace QParser
 		}
 		return res;
     }
+	
+	void InterfacesWithCrud::addInterface(InterfaceNode *in, int crud)
+	{
+		TInterfaceWithCrud ic(*in, crud);
+		string name = in->getInterfaceName();
+		m_interfaces[name] = ic;
+	}
+	TreeNode* InterfacesWithCrud::clone()
+	{
+		return new InterfacesWithCrud(*this);
+	}
+	string InterfacesWithCrud::simpleString() const
+	{
+		return mapToString(m_interfaces);
+	}
+	string InterfacesWithCrud::mapToString(TInterfacesWithCrudMap im)
+	{
+		string out = "";
+		TInterfacesWithCrudMap::const_iterator it;
+		for (it = im.begin(); it != im.end(); ++it)
+		{
+			string name = it->first;
+			TInterfaceWithCrud ic = it->second;
+			InterfaceNode in = ic.first;
+			int crud = ic.second;
+			out += in.simpleString() + "\n\tCrud: " + Schemas::getCrudString(crud); + "\n";
+		}
+		return out;
+	}
+	
     
     TreeNode* RegisterInterfaceNode::clone() 
     {
@@ -507,7 +537,9 @@ namespace QParser
 	}
 	
 	SchemaNode::SchemaNode(string name, Schemas::TNameToAccess aps) :
-		m_name(name), m_accessPoints(aps) {}
+		m_name(name), m_accessPoints(aps), m_isFullyDefined(false) {}
+	SchemaNode::SchemaNode(string name, TInterfacesWithCrudMap i) :
+		m_name(name), m_interfaces(i), m_isFullyDefined(true) {}
 	TreeNode* SchemaNode::clone()
 	{
 		return new SchemaNode(*this);
@@ -515,8 +547,15 @@ namespace QParser
 	string SchemaNode::simpleString() const
 	{
 		string res = "SchemaNode: ";
-		res += "accessPoints: ";
-		res += mapString(m_accessPoints);
+		if (m_isFullyDefined)
+		{
+			res += "accessPoints: ";
+			res += mapString(m_accessPoints);
+		}
+		else
+		{
+			res += InterfacesWithCrud::mapToString(m_interfaces);
+		}
 		return res;
 	}
 		

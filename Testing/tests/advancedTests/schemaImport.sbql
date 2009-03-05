@@ -1,0 +1,18 @@
+begin;
+
+"creating class Cpatient and some objects of this class - Opatient"
+create class Cpatient {instance Opatient : {name; age} procedure proc1(param1) {return 0} };
+Cpatient includes create ("John" as name, 55 as age) as Opatient;
+Cpatient includes create ("Mary" as name, 67 as age) as Opatient;
+
+"creating view OldPatientsDef with virtual objects OldPatients"
+create view OldPatientsDef {virtual objects OldPatients() { return (Opatient where age > 60) as op}	procedure on_retrieve() {return deref(op)}}
+
+"importing schema Patients"
+import Patients;
+
+"binding created interfaces with implementations"
+IOldPatients shows OldPatients;
+IPatient shows Cpatient;
+
+end;

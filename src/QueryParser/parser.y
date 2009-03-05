@@ -25,6 +25,7 @@
   InterfaceMethodParams* method_params;
   InterfaceNode* interfacetree;
   InterfaceBind* iBind;
+  InterfacesWithCrud* interfaces;
   Crud* crud;
   SchemaAPs* schema_aps;
   SchemaNode* schema;
@@ -115,6 +116,7 @@
 %type <schemaExpImp> schemaExpImp
 %type <method_params> method_params
 %type <iBind> interfaceBind
+%type <interfaces> interfacesWithCrud
 %type <tree> type_decl_stmt
 %type <sigtree> signature
 %type <obdecltree> object_decl
@@ -298,6 +300,7 @@ grant_option_opt: /* empty */		{ $$ = false; }
 	    
 privilige:	READ				{ $$ = new Privilige(Privilige::Read);   }
 	    |	MODIFY				{ $$ = new Privilige(Privilige::Modify); }
+	    |   UPDATE				{ $$ = new Privilige(Privilige::Modify); }
 	    |	CREATE				{ $$ = new Privilige(Privilige::Create); }
 	    |	DELETE				{ $$ = new Privilige(Privilige::Delete); }
 	    ;
@@ -352,6 +355,8 @@ schemaExpImp: EXPORT NAME {$$ = new SchemaExpImpNode($2, true);}
 		;
 
 schema: SCHEMA NAME LEFTPROCPAR schema_aps RIGHTPROCPAR {$$ = new SchemaNode($2, $4->getAccessPoints());}
+	|   SCHEMA NAME LEFTPROCPAR interfacesWithCrud RIGHTPROCPAR {$$ = new SchemaNode($2, $4->getInterfaces());}
+	;
 
 schema_aps: /*empty*/ {$$ = new SchemaAPs();}
 	|   NAME crud schema_aps {$3->addAccessPoint($1, $2->getCrud()); $$=$3;}
@@ -360,20 +365,18 @@ schema_aps: /*empty*/ {$$ = new SchemaAPs();}
 crud: /*empty*/ {$$ = new Crud();}
 	|   privilige crud {$2->addAccessType($1->get_priv()); $$=$2;}
 	;
-	
-	
-	// schema_binds: /*empty*/ {$$ = new SchemaBinds();}
-	//	|   NAME SHOWS NAME schema_binds {$4->addBind($1, $3); $$=$4;}
-	//	;
-	//
 	    
 interfaceBind: NAME SHOWS NAME {$$ = new InterfaceBind ($1, $3);};
 
-interface: INTERFACE NAME LEFTPROCPAR INSTANCE NAME COLON interface_struct RIGHTPROCPAR {$7->setInterfaceName($2); $7->setObjectName($5); $$ = $7;}
+interface:  INTERFACE NAME LEFTPROCPAR INSTANCE NAME COLON interface_struct RIGHTPROCPAR {$7->setInterfaceName($2); $7->setObjectName($5); $$ = $7;}
 	| INTERFACE NAME EXTENDS name_defs LEFTPROCPAR INSTANCE NAME COLON interface_struct RIGHTPROCPAR {$9->setInterfaceName($2); $9->setSupers($4); $9->setObjectName($7); $$=$9;}
 	| INTERFACE NAME EXTENDS name_defs LEFTPROCPAR interface_struct RIGHTPROCPAR {$6->setInterfaceName($2); $6->setSupers($4); $$=$6;}
 	| INTERFACE NAME LEFTPROCPAR interface_struct RIGHTPROCPAR {$4->setInterfaceName($2); $$=$4;}
 	;
+
+interfacesWithCrud: interface crud SEMICOLON {InterfacesWithCrud *i = new InterfacesWithCrud(); i->addInterface($1, $2->getCrud()); $$=i;}
+	| interface crud SEMICOLON interfacesWithCrud {$4->addInterface($1, $2->getCrud()); $$ = $4;}
+	; 
 
 interface_struct: LEFTPROCPAR attributes RIGHTPROCPAR semicolon_opt  methods { InterfaceNode *n = new InterfaceNode(); n->setAttributes($2->getUniqueFields()); n->setMethods($5->getUniqueMethods()); $$=n;}
 	| LEFTPROCPAR attributes RIGHTPROCPAR semicolon_opt { InterfaceNode *n = new InterfaceNode(); n->setAttributes($2->getUniqueFields()); $$=n;}

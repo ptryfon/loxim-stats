@@ -1754,14 +1754,14 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 			debug_print(*ec,  "[QE] TNINTERFACENODE processing complete");
 			return 0;
 		}
-			
+				
 		case TreeNode::TNSCHEMANODE:
 		{
 			debug_print(*ec,  "[QE] Type: TNSCHEMANODE");
 			SchemaNode *sn = (SchemaNode *)tree;
 			string schemaName = sn->getName();
-			TNameToAccess accessPoints = sn->getAccessPoints();
-
+			bool fullyDefined = sn->getIsFullyDefined();
+			
 			//check if name is unique (not taken yet)
 			bool taken;
 			errcode = nameTaken(schemaName, taken);
@@ -1772,6 +1772,33 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 				return -1;  //TODO
 			}
 			
+			TNameToAccess accessPoints;
+			if (!fullyDefined) 
+				accessPoints = sn->getAccessPoints();
+			else
+			{
+				TInterfacesWithCrudMap icmap = sn->getInterfaces();
+				TInterfacesWithCrudMap::iterator it;
+				for (it = icmap.begin(); it != icmap.end(); ++it)
+				{
+					string apname = it->first;
+					TInterfaceWithCrud ic =  it->second;
+					InterfaceNode n = ic.first;
+					int crud = ic.second;
+					
+					RegisterInterfaceNode *rn = new RegisterInterfaceNode(&n);
+					errcode = executeRecQuery(rn, checkPrivilieges);
+					if (errcode)
+						return errcode;
+					QueryResult *execution_result;
+					if ((errcode = qres->pop(execution_result))!=0)
+			    		return errcode;
+					
+					debug_printf(*ec, "[QE] Schema: adding access point");
+					accessPoints[apname] = crud; 
+				}			
+				
+			}
 			OuterSchema oSchema(schemaName, accessPoints);
 			OuterSchema* oSchemaP = &oSchema;
 			//check schema validity with validator
@@ -1888,8 +1915,32 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 			}
 			else
 			{
-				errcode = os->importSchema(schemaName, tr);
-				if (errcode) return errcode;
+				string schemaString;
+				errcode = os->importSchema(schemaName, schemaString);
+				if (errcode) 
+				{
+					debug_print(*ec, "[QE] TNSCHEMAEXPIMP - schema import failed");
+					return errcode;
+				}
+				else
+				{
+					int id = session->get_id();
+					QueryParser parser(id);
+					TreeNode *tree = NULL;  
+					int errcode = parser.parseIt(id, schemaString, tree);
+					debug_printf(*ec, "[QE] TNSCHEMAEXPIMP parser on %s returned %d\n", schemaString.c_str(), errcode); 
+					errcode = executeRecQuery(tree, checkPrivilieges);
+					if (errcode) return errcode;
+					QueryResult *result;
+					errcode = qres->pop(result);
+					if (errcode) return errcode;
+					debug_printf(*ec, "[QE] TNSCHEMAEXPIMP executor returned %d\n", errcode); 
+					if (errcode)
+					{
+						debug_printf(*ec, "[QE] TNSCHEMAEXPIMP executor returned error: %d\n", errcode); 
+						return errcode;
+					}
+				}
 				strres = "imported";
 			}
 			

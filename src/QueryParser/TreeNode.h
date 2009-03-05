@@ -76,7 +76,7 @@ namespace QParser {
 	    TNREGINTERFACE, TNREGCLASS, TNCLASS, TNDML, TNINCLUDES, TNEXCLUDES, TNCAST, TNINSTANCEOF, TNSYSTEMVIEWNAME,
 	 	TNINTERFACEBIND, TNINTERFACEINNERLINKAGELIST, TNINTERFACEINNERLINKAGE, TNSIGNATURE, TNOBJDECL, TNSTRUCTTYPE,
 		TNTYPEDEF, TNCOERCE, TNCASTTO, TNTHROWEXCEPTION, TNVIRTUALIZEAS, TNCRUD, TNREGSCHEMA, TNSCHEMANODE,
-		TNSCHEMABINDS, TNSCHEMAAPS, TNSCHEMAEXPIMP};
+		TNSCHEMABINDS, TNSCHEMAAPS, TNSCHEMAEXPIMP, TNINTERFACESWITHCRUD};
 	 
 	TreeNode() : parent(NULL) { 
 		this->needed = false;
@@ -326,40 +326,6 @@ namespace QParser {
 			string simpleString() const;
 	};
 
-	class SchemaNode :public PrintableQueryNode
-	{
-		private:
-			string m_name;
-			Schemas::TNameToAccess m_accessPoints;
-
-		public:
-			SchemaNode() {}
-			SchemaNode(string name, Schemas::TNameToAccess aps);
-			string getName() const {return m_name;}
-			Schemas::TNameToAccess getAccessPoints() const {return m_accessPoints;}
-			
-			void setName(string name) {m_name = name;}
-			void setAccessPoints(Schemas::TNameToAccess aps) {m_accessPoints = aps;}
-
-			TreeNode *clone();	    
-			int type() {return TNSCHEMANODE;}
-			string simpleString() const;
-	};
-
-	class RegisterSchemaNode : public PrintableQueryNode
-	{
-		protected: 
-			SchemaNode m_schemaQuery;
-		
-		public:
-			RegisterSchemaNode(SchemaNode *query) {m_schemaQuery = *query;}		
-			SchemaNode getSchemaQuery() const {return m_schemaQuery;}
-			
-			TreeNode *clone();	    
-			int type() {return TNREGSCHEMA;}
-			string simpleString() const;
-	};
-    
 	/* Interface Nodes */
     class InterfaceAttribute: public PrintableTreeNode
     {
@@ -464,6 +430,23 @@ namespace QParser {
 	    string simpleString() const;	    
     };
     
+    typedef std::pair<InterfaceNode, int> TInterfaceWithCrud;
+    typedef std::map<string, TInterfaceWithCrud> TInterfacesWithCrudMap;
+    class InterfacesWithCrud : public PrintableTreeNode
+    {
+		protected:
+			TInterfacesWithCrudMap m_interfaces;
+		public:
+			InterfacesWithCrud() {};
+			TInterfacesWithCrudMap getInterfaces() const {return m_interfaces;}
+			void addInterface(InterfaceNode *in, int crud);
+	
+			TreeNode* clone();
+			int type() {return TNINTERFACESWITHCRUD;}
+			string simpleString() const;
+			static string mapToString(TInterfacesWithCrudMap im);
+	};
+    
     class RegisterInterfaceNode : public PrintableQueryNode
     {
 		protected:
@@ -493,6 +476,46 @@ namespace QParser {
 	    int type() {return TNINTERFACEBIND;}
 	    string simpleString() const {string res = "InterfaceBind: " + m_interfaceName + " -> " + m_implementationName; return res;}
     }; 
+    
+    class SchemaNode :public PrintableQueryNode
+	{
+		private:
+			string m_name;
+			bool m_isFullyDefined;
+			
+			Schemas::TNameToAccess m_accessPoints;
+			TInterfacesWithCrudMap m_interfaces;
+
+		public:
+			SchemaNode() {m_isFullyDefined = false;}
+			SchemaNode(string name, Schemas::TNameToAccess aps);
+			SchemaNode(string name, TInterfacesWithCrudMap i); 
+			string getName() const {return m_name;}
+			bool getIsFullyDefined() const {return m_isFullyDefined;}
+			Schemas::TNameToAccess getAccessPoints() const {return m_accessPoints;}
+			TInterfacesWithCrudMap getInterfaces() const {return m_interfaces;}
+			
+			void setName(string name) {m_name = name;}
+			void setAccessPoints(Schemas::TNameToAccess aps) {m_accessPoints = aps;}
+
+			TreeNode *clone();	    
+			int type() {return TNSCHEMANODE;}
+			string simpleString() const;
+	};
+
+	class RegisterSchemaNode : public PrintableQueryNode
+	{
+		protected: 
+			SchemaNode m_schemaQuery;
+		
+		public:
+			RegisterSchemaNode(SchemaNode *query) {m_schemaQuery = *query;}		
+			SchemaNode getSchemaQuery() const {return m_schemaQuery;}
+			
+			TreeNode *clone();	    
+			int type() {return TNREGSCHEMA;}
+			string simpleString() const;
+	};
 
 
     
