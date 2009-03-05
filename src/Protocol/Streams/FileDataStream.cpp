@@ -193,8 +193,13 @@ namespace Protocol {
 	double FileDataStream::read_double(const sigset_t &mask, const bool
 			&cancel, size_t &limit)
 	{
-		uint64_t res = read_uint64(mask, cancel, limit);
-		return *((double*)&res);
+		assert(sizeof(double) == 8);
+		union {
+			uint64_t int_val;
+			double double_val;
+		} u_val;
+		u_val.int_val = read_uint64(mask, cancel, limit);
+		return u_val.double_val;
 
 	}
 	
@@ -319,7 +324,12 @@ namespace Protocol {
 			&cancel, double data)
 	{
 		assert(sizeof(double) == 8);
-		return write_uint64(mask, cancel, *((uint64_t*)&data));
+		union {
+			uint64_t int_val;
+			double double_val;
+		} u_val;
+		u_val.double_val = data;
+		return write_uint64(mask, cancel, u_val.int_val);
 	}
 
 	size_t FileDataStream::write_varuint(const sigset_t &mask, const bool
