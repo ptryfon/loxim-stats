@@ -106,8 +106,8 @@ namespace Store
 		virtual int addSchema(TransactionID* tid, string name, ObjectPointer *&object);
 		virtual int removeSchema(TransactionID* tid, ObjectPointer *&object);
 
-		virtual int getSystemViewsLID(TransactionID* tid, vector<LogicalID*>*& p_systemviews);
-		virtual int getSystemViewsLID(TransactionID* tid, string name, vector<LogicalID*>*& p_systemviews);
+		virtual int getSystemViewsLID(Transaction* tr, vector<LogicalID*>*& p_systemviews);
+		virtual int getSystemViewsLID(Transaction* tr, string name, vector<LogicalID*>*& p_systemviews);
 
 		virtual int abortTransaction(TransactionID* tid);
 		virtual int commitTransaction(TransactionID* tid);

@@ -952,12 +952,12 @@ int DBStoreManager::getClassesLID(TransactionID* tid, vector<LogicalID*>*& p_cla
 	
 	
 //System Views
-	int DBStoreManager::getSystemViewsLID(TransactionID* tid, vector<LogicalID*>*& p_systemviews)
+	int DBStoreManager::getSystemViewsLID(Transaction* tr, vector<LogicalID*>*& p_systemviews)
 	{
 		#ifdef DEBUG_MODE
 			*ec << "Store::Manager::getSystemViewsLID(ALL) begin..";
 		#endif
-			int rval = getSystemViewsLID(tid, "", p_systemviews);
+			int rval = getSystemViewsLID(tr, "", p_systemviews);
 
 		#ifdef DEBUG_MODE
 			*ec << "Store::Manager::getSystemViewsLID(ALL) done";
@@ -965,14 +965,14 @@ int DBStoreManager::getClassesLID(TransactionID* tid, vector<LogicalID*>*& p_cla
 			return rval;
 	}
 
-	int DBStoreManager::getSystemViewsLID(TransactionID* tid, string name, vector<LogicalID*>*& p_systemviews)
+	int DBStoreManager::getSystemViewsLID(Transaction* tr, string name, vector<LogicalID*>*& p_systemviews)
 	{
 		#ifdef DEBUG_MODE
 				*ec << "Store::Manager::getSystemViewsLID(BY NAME) begin..";
 		#endif
 				p_systemviews = new vector<LogicalID*>(0);
 				vector<int>* rvec;
-				rvec = systemviews->getItems(tid, name.c_str());
+				rvec = systemviews->getItems(tr, name.c_str());
 
 				vector<int>::iterator obj_iter;
 				for(obj_iter=rvec->begin(); obj_iter!=rvec->end(); obj_iter++)

@@ -552,7 +552,7 @@ namespace TManager
 		debug_printf(err, "Transaction: %d getInterfacesLID\n", tid->getId());
 
 		sem->lock_read();
-		errorNumber = sm->getSystemViewsLID(tid, p);
+		errorNumber = sm->getSystemViewsLID(this, p);
 		sem->unlock();
 
 		if (errorNumber) abort();
@@ -567,7 +567,7 @@ namespace TManager
 		debug_printf(err, "Transaction: %d getInterfacesLID by name \n", tid->getId());
 
 		sem->lock_read();
-		errorNumber = sm->getSystemViewsLID(tid, name, p);
+		errorNumber = sm->getSystemViewsLID(this, name, p);
 		sem->unlock();
 
 		if (errorNumber) abort();

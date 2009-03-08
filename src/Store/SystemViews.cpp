@@ -36,6 +36,7 @@ namespace Store
 		registerView("%Configs", new SystemStatsView("CONFIGS_STATS"));
 		registerView("%Transactions", new SystemStatsView("TRANSACTIONS_STATS"));
 		registerView("%Queries", new SystemStatsView("QUERIES_STATS"));
+		registerView("%Roots", new RootsView());
 
 		/* Init views */
 		map<string,SystemView*>::iterator iter;
@@ -54,7 +55,7 @@ namespace Store
 		}
 	}
 
-	vector<int>* SystemViews::getItems(TransactionID* tid)
+	vector<int>* SystemViews::getItems(Transaction* tr)
 	{
 		//cout << "===> SystemViews::getItems(" << tid->getId() << ")" << endl;
 		vector<int>* systemviews = new vector<int>();
@@ -62,7 +63,7 @@ namespace Store
 		ObjectPointer* object;
 		map<string,SystemView*>::iterator iter;
 		for( iter = mapOfViews.begin(); iter != mapOfViews.end(); iter++ ) {
-			iter->second->refresh(object);
+			iter->second->refresh(tr, object);
 			if (object) {
 #ifdef DEBUG_MODE
 				*this->ec << "Store::SystemViews::getItems - add view " << (iter->first) << " [" << (object->getLogicalID()->toInteger()) << "]";
@@ -74,7 +75,7 @@ namespace Store
 		return systemviews;
 	};
 
-	vector<int>* SystemViews::getItems(TransactionID* tid, const char* name)
+	vector<int>* SystemViews::getItems(Transaction* tr, const char* name)
 	{
 #ifdef DEBUG_MODE
 		*this->ec << "Store::SystemViews::getItems";
@@ -87,7 +88,7 @@ namespace Store
 			*this->ec << "Store::SystemViews::mapOfViews[" << name << "]";
 #endif
 			ObjectPointer* object;
-			mapOfViews[sname]->refresh(object);
+			mapOfViews[sname]->refresh(tr, object);
 			if (object) {
 #ifdef DEBUG_MODE
 				*this->ec << "Store::SystemViews::mapOfViews - OBJECT";
@@ -236,7 +237,7 @@ namespace Store
 		return 0;
 	}
 
-	void InformationView::refresh(ObjectPointer*& object) {
+	void InformationView::refresh(Transaction *tr, ObjectPointer*& object) {
 		object = bag;
 	}
 
@@ -295,7 +296,7 @@ namespace Store
 		return 0;
 	}
 
-	void AllViewsView::refresh(ObjectPointer*& object) {
+	void AllViewsView::refresh(Transaction *tr, ObjectPointer*& object) {
 		object = bag;
 	}
 
@@ -327,7 +328,7 @@ namespace Store
 		return 0;
 	}
 
-	void CounterView::refresh(ObjectPointer*& object) {
+	void CounterView::refresh(Transaction *tr, ObjectPointer*& object) {
 		count->getValue()->setInt(c++);
 		object = count;
 	}
@@ -421,7 +422,7 @@ namespace Store
 		return 0;
 	}
 
-	void SystemStatsView::refresh(ObjectPointer*& object) {
+	void SystemStatsView::refresh(Transaction *tr, ObjectPointer*& object) {
 		if (viewsName) {
 			for (unsigned int i = 0; i < viewsName->size(); i++) {
 				delete (*viewsName)[i];
@@ -436,6 +437,96 @@ namespace Store
 		viewsName = new vector<ObjectPointer*>();
 		bag = createObjectFromSystemStats(ss);
 		object = bag;
+	}
+
+	/*=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
+	/* RootsView */
+
+	RootsView::~RootsView() {
+		release();
+	}
+
+	void RootsView::init(SystemViews* views)
+	{
+		SystemView::init(views);
+
+		bagValue = new DBDataValue();
+		vector<LogicalID*>* val = new vector<LogicalID*>();
+		bagValue->setVector(val);
+		createObjectPointer("Bag", bagValue, bag);
+//std::cerr << " + bag LID: " << bag->getLogicalID() << std::endl;
+	}
+
+	int RootsView::getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object)
+	{
+//std::cerr << " + %Roots getObj lid: " << lid->toInteger() << std::endl;
+		if (bag != NULL && *lid == *bag->getLogicalID()) {
+			object = bag;
+			return 0;
+		}
+		vector<ObjectPointer*>::iterator it;
+		for (it = objects.begin(); it != objects.end(); ++it) {
+			if (*lid == *(*it)->getLogicalID()) {
+				object = *it;
+				return 0;
+			}
+		}
+		return -1;
+	}
+
+	void RootsView::refresh(Transaction *tr, ObjectPointer*& object)
+	{
+//std::cerr << " + %Roots refr" << std::endl;
+		release();
+		fetch(tr);
+		object = bag;
+	}
+
+	void RootsView::fetch(Transaction *tr)
+	{
+		bagValue = new DBDataValue();
+		vector<LogicalID*>* bagVector = new vector<LogicalID*>();
+
+		vector<ObjectPointer*> *vroots = NULL;
+		int res = tr->getRoots(vroots);
+//std::cerr << " + res: " << res << "; vroots: " << vroots << std::endl;
+		if (res == 0 && vroots != NULL) {
+			ObjectPointer *cur;
+			DataValue *curValue;
+
+//std::cerr << " + roots count: " << vroots->size() << std::endl;
+			vector<ObjectPointer*>::iterator it;
+			for (it = vroots->begin(); it != vroots->end(); ++it) {
+//std::cerr << " + root obj lid: " << (*it)->getLogicalID()->toInteger() << std::endl;
+//std::cerr << " + root obj type: " << (*it)->getValue()->getType() << std::endl;
+//std::cerr << " + root obj name: " << (*it)->getName() << std::endl;
+				if (false) //TODO: skip system-internal roots
+					continue;
+				curValue = new DBDataValue();
+				curValue->setPointer((*it)->getLogicalID());
+				createObjectPointer((*it)->getName().c_str(), curValue, cur);
+//std::cerr << " + cur LID: " << cur->getLogicalID()->toInteger() << std::endl;
+				objects.push_back(cur);
+				bagVector->push_back(cur->getLogicalID());
+			}
+			delete vroots;
+		}
+
+		bagValue->setVector(bagVector);
+		createObjectPointer("Bag", bagValue, bag);
+//std::cerr << " + bag LID: " << bag->getLogicalID()->toInteger() << std::endl;
+	}
+
+	void RootsView::release()
+	{
+		if (bag == NULL)
+			return;
+		vector<ObjectPointer*>::iterator it;
+		for (it = objects.begin(); it != objects.end(); ++it)
+			delete *it;
+		delete bag;
+		bag = NULL;
+		objects.clear();
 	}
 
 };

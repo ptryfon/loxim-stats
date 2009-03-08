@@ -80,6 +80,10 @@ using namespace std;
 using namespace Logs;
 using namespace TManager;
 
+namespace TManager {
+	class Transaction;
+}
+
 namespace Store
 {
 	typedef struct Serialized Serialized;
@@ -275,8 +279,8 @@ namespace Store
 		virtual int removeSchema(TransactionID* tid, ObjectPointer *&object) = 0;
  		
 		// System views
-		virtual int getSystemViewsLID(TransactionID* tid, vector<LogicalID*>*& p_systemviews) = 0;
-		virtual int getSystemViewsLID(TransactionID* tid, string name, vector<LogicalID*>*& p_systemviews) = 0;
+		virtual int getSystemViewsLID(Transaction* tr, vector<LogicalID*>*& p_systemviews) = 0;
+		virtual int getSystemViewsLID(Transaction* tr, string name, vector<LogicalID*>*& p_systemviews) = 0;
 
 		// Transactions
 		virtual int abortTransaction(TransactionID* tid) = 0;
