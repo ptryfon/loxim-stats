@@ -10,7 +10,7 @@ public class LoXiMDataSourceImplTest {
 
 	private LoXiMDataSourceImpl ds;
 	
-	@Test(expected=NullPointerException.class)
+	@Test(expected=IllegalArgumentException.class)
 	public void testGetConnectionWithNoData() throws Exception {
 		ds = new LoXiMDataSourceImpl();
 		ds.getConnection();
