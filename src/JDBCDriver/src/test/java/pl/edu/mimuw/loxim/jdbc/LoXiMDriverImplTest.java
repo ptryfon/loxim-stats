@@ -38,12 +38,14 @@ public class LoXiMDriverImplTest {
 	@Test
 	public void testConnect() throws SQLException {
 		Properties info = new Properties();
+		info.setProperty("user", "root");
+		info.setProperty("password", "");
 		Connection con1 = driver.connect(DBTestInfo.DB_URL, info);
 		assertTrue(con1.isValid(0));
-		con1.close();
+//		con1.close();
 		Connection con2 = driver.connect(DBTestInfo.DB_URL_WITH_PORT, info);
 		assertTrue(con2.isValid(0));
-		con2.close();
+//		con2.close();
 	}
 
 	@Test

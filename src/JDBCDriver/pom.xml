@@ -20,18 +20,6 @@
 					<target>1.6</target>
 				</configuration>
 			</plugin>
-	<plugin>  
-      <artifactId>maven-surefire-plugin</artifactId>  
-      <configuration>  
-        <systemproperties>  
-          <property>  
-            <!-- Specific log4j config for tests -->  
-            <name>log4j.configuration</name>  
-            <value>test-log4j.properties</value>  
-          </property>  
-        </systemproperties>  
-      </configuration>  
-    </plugin>  
 		</plugins>
 	</build>
 
@@ -53,6 +41,13 @@
 			<artifactId>junit</artifactId>
 			<version>4.5</version>
 			<scope>test</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>1.2.14</version>
+			<scope>runtime</scope>
 		</dependency>	
 	</dependencies>
 

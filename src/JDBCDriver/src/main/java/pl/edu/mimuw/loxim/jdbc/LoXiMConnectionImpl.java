@@ -112,7 +112,7 @@ public class LoXiMConnectionImpl implements LoXiMConnectionInternal {
 			closed = false;
 		} finally {
 			if (closed) {
-				socket.close();	
+				socket.close();
 			}
 		}
 	}
@@ -127,14 +127,14 @@ public class LoXiMConnectionImpl implements LoXiMConnectionInternal {
 		pacIO.write(cLoginPackage);
 		PackageUtil.readPackage(pacIO, A_sc_okPackage.class);
 
-		log.debug("Sending authorization request");
+		log.debug("Sending authorization request in mode " + authMethod);
 		
 		switch (authMethod) {
 		case am_mysql5:
 			sendAuth(login, new String(AuthPassMySQL.encodePassword(password, salt)));
 			break;
 		case am_trust:
-			sendAuth(login, null);
+			sendAuth(login, login); // XXX empty password would be more appropriate
 			break;
 		default:
 			throw new ProtocolException("No authorization method provided");
@@ -313,7 +313,7 @@ public class LoXiMConnectionImpl implements LoXiMConnectionInternal {
 		if (timeout < 0) {
 			throw new SQLException("Timeout cannot be less than 0");
 		}
-		return isClosed(); // XXX
+		return !isClosed(); // XXX
 	}
 
 	@Override
@@ -396,6 +396,9 @@ public class LoXiMConnectionImpl implements LoXiMConnectionInternal {
 	}
 	
 	private void tx_begin() throws SQLException {
+		synchronized (statementMutex) {
+			tx = true;
+		}
 		execute(null, SQL_TR_START);
 	}
 	
@@ -539,6 +542,7 @@ public class LoXiMConnectionImpl implements LoXiMConnectionInternal {
 					throw new SQLException("Statement execution error: " + PackageUtil.toString((A_sc_errorPackage) pac));
 				case Q_s_executingPackage.ID:
 					PackageUtil.readPackage(pacIO, V_sc_sendvaluesPackage.class);
+				case V_sc_sendvaluesPackage.ID: // XXX temp bug fall through
 					ResultReader reader = new ResultReader(pacIO);
 					List<Object> res = reader.readValues();
 					Q_s_execution_finishedPackage exFin = PackageUtil.readPackage(pacIO, Q_s_execution_finishedPackage.class);

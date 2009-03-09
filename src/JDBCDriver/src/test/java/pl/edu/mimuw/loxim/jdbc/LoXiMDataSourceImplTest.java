@@ -21,6 +21,7 @@ public class LoXiMDataSourceImplTest {
 		ds = new LoXiMDataSourceImpl(DBTestInfo.DB_URL, DBTestInfo.DB_USER, DBTestInfo.DB_PASSWORD);
 		Connection con = ds.getConnection();
 		assertTrue(con.isValid(0));
+//		con.close();
 	}
 	
 	@Test
@@ -28,6 +29,7 @@ public class LoXiMDataSourceImplTest {
 		ds = new LoXiMDataSourceImpl(DBTestInfo.DB_URL);
 		Connection con = ds.getConnection(DBTestInfo.DB_USER, DBTestInfo.DB_PASSWORD);
 		assertTrue(con.isValid(0));
+//		con.close();
 	}
 
 }
