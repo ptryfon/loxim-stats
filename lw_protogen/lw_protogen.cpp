@@ -464,7 +464,7 @@ string get_ctor_sig(const Package &p, const vector<Enum> &enums)
 }
 
 
-string get_size(const string &name, const string &type)
+string get_size(const string &name, const string &type, const vector<Enum> &enums, const string &object_ref)
 {
 	if (!type.compare("uint8"))
 		return "1";
@@ -495,10 +495,12 @@ string get_size(const string &name, const string &type)
 		return name + "->get_ser_size()";
 	if (!type.compare("string"))
 		return name + "->get_ser_size()";
-	if (!type.compare("enum"))
-		return "8";
-	if (!type.compare("enum-map"))
-		return "8";
+	if (!type.compare("enum") || !type.compare("enum-map")){
+		vector<Enum>::const_iterator i = find_if(enums.begin(), enums.end(), enum_by_name_finder(object_ref));
+		if (i == enums.end())
+			throw runtime_error("no such enum as " + object_ref);
+		return get_size(name, i->type, enums, object_ref);
+	}
 
 	if (!type.compare("package"))
 		throw runtime_error("trying to dereference package meta type");
@@ -706,7 +708,7 @@ void generate_package_implementations(const vector<pair<string, map<string, Pack
 				impl << "\t{" << endl;
 				impl << "\t\treturn 0";
 				for (vector<Field>::const_iterator field = j->second.fields.begin(); field != j->second.fields.end(); ++field){
-					impl << " + " << get_size(field->name, field->type);
+					impl << " + " << get_size(field->name, field->type, enums, field->object_ref);
 				}
 				impl << ";" << endl;
 				impl << "\t}" << endl << endl;
