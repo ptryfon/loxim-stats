@@ -1,6 +1,7 @@
 #include "OuterSchema.h"
 #include "QueryResult.h"
 #include "InterfaceMaps.h"
+#include "CommonOperations.h"
 #include "TransactionManager/Transaction.h"
 #include "Store/DBLogicalID.h"
 #include "QueryParser/QueryParser.h"
@@ -9,6 +10,7 @@
 #include <fstream>
 
 using namespace Schemas;
+using namespace CommonOperations;
 
 void OuterSchema::addName(string name, int crudFlags)
 {
@@ -242,6 +244,96 @@ void OuterSchemas::deinit()
 	{
 		ec = NULL;
 	};
+}
+
+int OuterSchemas::addSchema(LogicalID *schemaLid, TManager::Transaction *tr, int ct)
+{
+	ObjectPointer *optr;
+	int errcode = tr->getObjectPointer(schemaLid, Store::Read, optr, false);
+	if (errcode) 
+	{
+		debug_printf(*ec, "[OuterSchemas::addSchema] error in getObjectPointer");
+		return errcode;
+	}
+	debug_printf(*ec, "[QE] TNREGSCHEMA got object pointer\n");
+	string schemaName = optr->getName();
+	
+	bool taken;
+	errcode = nameTaken(schemaName, tr, taken);	
+	if (errcode) return errcode;
+	if ((taken) && (ct == CT_CREATE))
+	{ 
+		debug_printf(*ec, "[QE] TNSCHEMANODE - cannot create schema %s, name already in use\n", schemaName.c_str());
+		return -1;
+	}
+	bool present = hasSchemaName(schemaName);
+	if ((!present) && (ct == CT_UPDATE))
+	{
+		debug_printf(*ec, "[QE] TNSCHEMANODE - cannot update schema %s, no such schema\n", schemaName.c_str());
+		return -1;	
+	}
+	if (present)
+	{
+		errcode = removeSchema(schemaName, tr);
+		if (errcode) return errcode;
+	}
+
+	errcode = tr->addRoot(optr);
+	if (errcode != 0) 
+	{
+		debug_printf(*ec, "[QE] TNSCHEMANODE - error in addRoot");
+		return errcode;
+	}
+	debug_printf(*ec, "[QE] TNREGSCHEMA addRoot processed\n");
+
+	errcode = tr->addSchema(schemaName.c_str(), optr);
+	if (errcode != 0) 
+	{
+		debug_printf(*ec, "[QE] TNSCHEMANODE - error in addSchema");
+		return errcode;
+	}
+
+	OuterSchema schema;
+	OuterSchema *s = &schema;
+	errcode = OuterSchema::fromLogicalID(schemaLid, tr, s);
+	if (errcode) return errcode;
+	STATE state = OuterSchemaValidator::validate(s, tr, true);
+	debug_printf(*ec, "[QE] outer schema validated");
+	addSchema(*s);
+	return 0;
+}
+
+int OuterSchemas::removeSchema(string name, TManager::Transaction *tr)
+{   
+	debug_printf(*ec, "[QE] removing schema %s\n", name.c_str());
+	vector<LogicalID*>* lids;
+	int errcode = tr->getSchemasLID(name, lids);
+	LogicalID *oldLid = lids->at(0);
+	ObjectPointer *p;
+	errcode = tr->getObjectPointer (oldLid, Store::Write, p, true);
+	if (errcode || !p) 
+	{
+		debug_printf(*ec, "[OuterSchemas::removeSchemas] getObjectPointer returned error\n");
+		return errcode;
+	}
+		
+	return removeSchema(name, tr, p);
+}
+
+int OuterSchemas::removeSchema(string name, TManager::Transaction *tr, ObjectPointer *p)
+{   
+	debug_printf(*ec, "[QE] removing schema %s\n", name.c_str());
+	int errcode = tr->removeSchema(p);
+	if (errcode) return errcode; 
+	if (p->getIsRoot())
+	{
+		errcode = tr->removeRoot(p);
+		if (errcode) return errcode;
+	}
+	errcode = tr->deleteObject(p);
+	if (errcode) return errcode;
+	removeSchema(name);
+	return 0;	
 }
 
 void OuterSchemas::addSchema(OuterSchema s)

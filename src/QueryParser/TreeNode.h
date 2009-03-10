@@ -450,31 +450,31 @@ namespace QParser {
     class RegisterInterfaceNode : public PrintableQueryNode
     {
 		protected:
-			QueryNode* m_query;
+			InterfaceNode m_interfaceQuery;
+			CreateType m_createType;
 		public:
-			RegisterInterfaceNode(QueryNode *query) {m_query = query;}
-			~RegisterInterfaceNode() {if (m_query) delete m_query; m_query=NULL;} 
-			QueryNode *getQuery() {return m_query;}
+			RegisterInterfaceNode(InterfaceNode *query, CreateType t) {m_interfaceQuery = *query; m_createType = t;}
+			InterfaceNode getInterfaceQuery() {return m_interfaceQuery;}
+			CreateType getCreateType() const {return m_createType;}
 			
 			TreeNode *clone();
 			int type() {return TNREGINTERFACE;}
-			string simpleString() const;	    
-
+			string simpleString() const;	   
     };
 
     class InterfaceBind: public PrintableQueryNode 
     {
         private:
     	    string m_interfaceName;
-	    string m_implementationName;
-	public:
-	    InterfaceBind(string interfaceName, string implementationName);
-	    string getInterfaceName() const {return m_interfaceName;}
-	    string getImplementationName() const {return m_implementationName;}
+			string m_implementationName;
+		public:
+			InterfaceBind(string interfaceName, string implementationName);
+			string getInterfaceName() const {return m_interfaceName;}
+			string getImplementationName() const {return m_implementationName;}
 
-	    TreeNode *clone();	    
-	    int type() {return TNINTERFACEBIND;}
-	    string simpleString() const {string res = "InterfaceBind: " + m_interfaceName + " -> " + m_implementationName; return res;}
+			TreeNode *clone();	    
+			int type() {return TNINTERFACEBIND;}
+			string simpleString() const {string res = "InterfaceBind: " + m_interfaceName + " -> " + m_implementationName; return res;}
     }; 
     
     class SchemaNode :public PrintableQueryNode
@@ -507,10 +507,12 @@ namespace QParser {
 	{
 		protected: 
 			SchemaNode m_schemaQuery;
+			CreateType m_createType;
 		
 		public:
-			RegisterSchemaNode(SchemaNode *query) {m_schemaQuery = *query;}		
+			RegisterSchemaNode(SchemaNode *query, CreateType t) {m_schemaQuery = *query; m_createType = t;}		
 			SchemaNode getSchemaQuery() const {return m_schemaQuery;}
+			CreateType getCreateType() const {return m_createType;}
 			
 			TreeNode *clone();	    
 			int type() {return TNREGSCHEMA;}

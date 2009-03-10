@@ -2,9 +2,11 @@
 #include "ClassGraph.h"
 #include "Errors/ErrorConsole.h"
 #include "TransactionManager/Transaction.h"
+#include "CommonOperations.h"
 
 using namespace Schemas;
 using namespace TManager;
+using namespace CommonOperations;
 
 
 InterfaceMaps::InterfaceMaps() {ec = &ErrorConsole::get_instance(EC_INTERFACE_MAPS);}
@@ -155,6 +157,208 @@ int InterfaceMaps::loadSchemas(TManager::Transaction *tr, TLidsVector *lvec)
 		return -1;
 	}
 	
+	return 0;
+}
+
+int InterfaceMaps::addInterface(LogicalID* interfaceLid, TManager::Transaction *tr, int ct, bool checkValidity)
+{
+	Schema *s;
+	int errcode = Schema::interfaceFromLogicalID(interfaceLid, tr, s);
+	if (errcode)
+	{
+		debug_printf(*ec, "[InterfaceMaps::addInterface] error in interfaceFromLogicalID");
+		return errcode;
+	}
+
+	ObjectPointer *optr;
+	errcode = tr->getObjectPointer (interfaceLid, Store::Read, optr, false);
+	if (errcode) 
+	{
+		debug_printf(*ec, "[InterfaceMaps::addInterface] getObjectPointer returned error\n");
+		return errcode;
+	}
+
+	debug_printf(*ec, "[InterfaceMaps::addInterface] got object pointer\n");
+	string interfaceName = optr->getName().c_str();
+	string objectName = "";
+	vector<LogicalID*>* vec = (optr->getValue())->getVector();
+	for (unsigned int i=0; i < vec->size(); i++)
+	{
+		ObjectPointer *inner;
+		errcode = tr->getObjectPointer (vec->at(i), Store::Read, inner, false);
+		if (errcode)
+		{
+			debug_printf(*ec, "[InterfaceMaps::addInterface] - Error in getObjectPointer\n");
+			return errcode;
+		}
+		if (inner->getName() == QE_OBJECT_NAME_BIND_NAME)
+		{
+			objectName = (inner->getValue())->getString();
+			break;
+		}
+	}
+	debug_printf(*ec,  "[InterfaceMaps::addInterface] interface name is %s, object name is %s", interfaceName.c_str(), objectName.c_str());
+	debug_printf(*ec,  "[InterfaceMaps::addInterface] Checking if name is already used in database..");
+
+	bool taken;
+	errcode = nameTaken(interfaceName, tr, taken);
+	if (errcode) return errcode;
+	if (ct == CT_CREATE)
+	{
+		if (taken)
+		{   
+			debug_printf(*ec, "[InterfaceMaps::addInterface] interface name %s already in use", interfaceName.c_str());
+			return (ErrQExecutor | ENotUniqueInterfaceName);
+		}
+		if (!objectName.empty())
+		{
+			errcode = nameTaken(objectName, tr, taken);
+			if (errcode || taken)
+			{
+				if (errcode) return errcode;
+				debug_printf(*ec, "[InterfaceMaps::addInterface] interface object name %s already in use", objectName.c_str());
+				return (ErrQExecutor | ENotUniqueInterfaceName);		
+			}		
+		}
+	}
+	bool present = hasInterface(interfaceName);
+	if (present)
+	{		
+		errcode = removeInterface(interfaceName, tr, false);
+		if (errcode) return errcode;		
+	}
+	
+	if ((checkValidity) && (!checkIfCanBeInserted(*s)))
+	{
+		debug_printf(*ec, "[InterfaceMaps::addInterface] interface %s is invalid in current hierarchy", s->getName().c_str());
+		return -1;
+	}
+	
+	errcode = tr->addRoot(optr);
+	if (errcode != 0) 
+	{
+		debug_print(*ec, "[InterfaceMaps::addInterface] error in addRoot");
+		return errcode;
+	}
+	debug_printf(*ec, "[InterfaceMaps::addInterface] addRoot processed\n");
+
+	errcode = tr->addInterface(interfaceName, objectName.c_str(), optr);
+	if (errcode != 0) 
+	{
+		debug_print(*ec, "[InterfaceMaps::addInterface] error in tr->addInterface");
+		return errcode;
+	}
+
+	debug_printf(*ec, "[InterfaceMaps::addInterface] inserting into map..\n");
+	insertNewInterfaceAndPropagateHierarchy(*s, checkValidity, false);
+	debug_print(*ec,  "[InterfaceMaps::addInterface] returning");
+	printAll();
+	return 0;	
+}
+
+int InterfaceMaps::removeInterface(string interfaceName, TManager::Transaction *tr, bool checkValidity)
+{
+	debug_printf(*ec, "[QE] removing interface %s\n", interfaceName.c_str());
+	vector<LogicalID*>* lids;
+	int errcode = tr->getInterfacesLID(interfaceName, lids);
+	LogicalID *oldLid = lids->at(0);
+	ObjectPointer *p;
+	errcode = tr->getObjectPointer (oldLid, Store::Write, p, true);
+	if (errcode || !p) 
+	{
+		debug_printf(*ec, "[InterfaceMaps::removeInterface] getObjectPointer returned error\n");
+		return errcode;
+	}
+		
+	return removeInterface(interfaceName, tr, p, checkValidity);
+}
+
+int InterfaceMaps::removeInterface(string interfaceName, TManager::Transaction *tr, ObjectPointer *p, bool checkValidity)
+{
+	debug_printf(*ec, "[QE] removing interface %s\n", interfaceName.c_str());
+	int errcode = tr->removeInterface(p);
+	if (errcode) return errcode;
+	if (p->getIsRoot())
+	{
+		errcode = tr->removeRoot(p);
+		if (errcode) return errcode;
+	}
+	errcode = tr->deleteObject(p);
+	if (errcode) return errcode;
+	errcode = removeInterfaceFromMaps(interfaceName, checkValidity);
+	if (errcode) return errcode;
+	return 0;
+}
+
+int InterfaceMaps::bindInterface(string interfaceOrObjectName, string implementationOrObjectName, TManager::Transaction *tr, bool &matches)
+{
+	matches = false;
+	
+	//find interface name
+	Schema *interfaceSchema;
+	bool exists = false;
+	Schema::getInterfaceForInterfaceOrObjectName(interfaceOrObjectName, exists, interfaceSchema);
+	if (!exists)
+	{
+		debug_printf(*ec, "[InterfaceMaps::bindInterface] no interface or object name %s in db", interfaceOrObjectName.c_str());
+		return (ErrQExecutor | ENoInterfaceFound);
+	}
+	string interfaceName = interfaceSchema->getName();
+	debug_printf(*ec, "[InterfaceMaps::bindInterface] Got name: %s\n", interfaceName.c_str());
+	
+	//find implementation name
+	Schema *implementationSchema;
+	int implementationType;
+	exists = false;
+	int errcode = Schema::getImplementationForName(implementationOrObjectName, tr, exists, implementationType, implementationSchema);
+	if (errcode) return errcode;
+	if (!exists)
+	{
+		debug_printf(*ec, "[InterfaceMaps::bindInterface] no implementation or object name %s in db", implementationOrObjectName.c_str());
+		return (ErrQExecutor | ENoImplementationFound);
+	}
+	string implementationName = implementationSchema->getName();
+	debug_printf(*ec, "[InterfaceMaps::bindInterface] Got implementation name: %s\n", implementationName.c_str());
+
+	//Check if implementation fits interface	    
+	if (implementationType == BIND_VIEW)
+	{
+		debug_printf(*ec, "[InterfaceMaps::bindInterface] Bind to a view - matching can't be easily checked, so it won't be\n");
+		matches = true;
+	}
+	else
+	{			
+		errcode = Schema::interfaceMatchesImplementation(interfaceName, implementationName, tr, implementationType, matches);
+		if (errcode) 
+		{
+			debug_printf(*ec, "[InterfaceMaps::bindInterface] - error in interfaceMatchesImplementation: %s, %s\n", interfaceName.c_str(), implementationName.c_str());
+			return errcode;
+		}
+		string resS = matches ? "fits": "does not fit";
+		debug_printf(*ec, "[InterfaceMaps::bindInterface] - interface %s %s implementation %s\n",interfaceName.c_str(),resS.c_str(),implementationName.c_str());
+	}
+	
+	//Bind interface
+	if (matches)
+	{
+		string implementationObjectName = implementationSchema->getAssociatedObjectName();
+		string interfaceObjectName = interfaceSchema->getAssociatedObjectName();
+		if (interfaceObjectName.empty())
+		{
+			debug_printf(*ec, "[InterfaceMaps::bindInterface] - cannot bind interface %s: it has no associated object name\n", interfaceName.c_str()); 
+			return -1;
+		}
+		else
+		{
+			errcode = tr->bindInterface(interfaceName, implementationName);
+			if (errcode) 
+			{
+				debug_printf(*ec, "[InterfaceMaps::bindInterface] - error in bindInterface\n");
+				return -1;
+			}
+			addBind(interfaceName, implementationName, implementationObjectName, implementationType);
+		}
+	}
 	return 0;
 }
 
@@ -347,7 +551,7 @@ bool InterfaceMaps::insertNewInterfaceAndPropagateHierarchy(Schema interfaceSche
 	return true;
 }
 
-int InterfaceMaps::removeInterface(string interfaceName, bool checkValidity)
+int InterfaceMaps::removeInterfaceFromMaps(string interfaceName, bool checkValidity)
 {	
 	if (!hasInterface(interfaceName))
 	{   //No such interface!

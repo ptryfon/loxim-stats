@@ -46,14 +46,12 @@ namespace QExecutor
 		bool evalStopped() { return ( stop != 0 ); };
 		int executeRecQuery(TreeNode *tree, bool checkPrivilieges = true);
 		int combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryResult *lRes, QueryResult *&partial);
-		int merge(NonAlgOpNode::nonAlgOp op, QueryResult *partial, QueryResult *&final);
 		int unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&final, bool checkPrivilieges);
 		int coerceOperate(int cType, QueryResult *arg, QueryResult *&final, TreeNode *tree);
 		int algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResult *rArg, QueryResult *&final, AlgOpNode *tn, bool checkPrivilieges);
 		int derefQuery(QueryResult *arg, QueryResult *&res);
 		int refQuery(QueryResult *arg, QueryResult *&res);
-        int nameofQuery(QueryResult *arg, QueryResult *&res);
-		int isIncluded(QueryResult *elem, QueryResult *set, bool &score);		
+        int nameofQuery(QueryResult *arg, QueryResult *&res);	
 				
 		int createObjectAndPutOnQRes(DBDataValue* dbValue, string objectName, Store::ExtendedType type, LogicalID*& newLid);
 		int executeObjectDeclarationOrTypeDefinition(DeclareDefineNode *obdNode, bool isTypedef);
@@ -64,22 +62,15 @@ namespace QExecutor
 		int lidFromReference( string bindName, LogicalID* value, LogicalID*& lid);
 		int lidFromInt(string bindName, int value, LogicalID*& lid);	
 		int lidFromBinder( string bindName, QueryResult* result, LogicalID*& lid);		
-		int classesLIDsFromNames(set<string>* names, vector<LogicalID*>& lids);	
 		void pushStringToLIDs(string name, string bindName, vector<LogicalID*>& lids);	  
 		void pushStringsToLIDs(set<string>* names, string bindName, vector<LogicalID*>& lids);
 		int objectFromBinder(QueryResult *res, ObjectPointer *&newObject);
-		int sortBag(QueryBagResult *inBag, QueryBagResult *&outBag);
-		int nameTaken(string name, bool &taken);
-		int classExists(string className, bool& exist);		
 		
 		int persistDelete(QueryResult* bagArg, bool checkPrivilieges = false);		
 		int persistDelete(LogicalID *lid, bool checkPrivilieges = false);	
 		int persistDelete(vector<LogicalID*>* lids);
 		int persistStaticMembersDelete(const string& object_name);
-		
-		int removePersistFromSubclasses(ObjectPointer *optr);		
-		int removePersistFromSuperclasses(ObjectPointer *optr);
-		
+	
     	void set_user_data(ValidationNode *node);
     	int execute_locally(string query, QueryResult **result);
 		int execute_locally(string query, QueryResult **result, QueryParser &parser); //for multi-queries

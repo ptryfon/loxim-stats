@@ -17,6 +17,7 @@ namespace TManager
 namespace Store
 {
 	class LogicalID;
+	class ObjectPointer;
 }
 
 using namespace Errors;
@@ -112,6 +113,9 @@ namespace Schemas
 		    int loadOuterSchemas(TManager::Transaction *tr, TLidsVector *lvec);
 			static string getSchemaFile(string schemaName) {return schemaName + ".sch";}
 		
+			void addSchema(OuterSchema s);
+			void removeSchema(string name);
+		
 		    TOuterSchemas m_outerSchemas;
 			TNameInSchemas m_namesInSchemas;
 		    ErrorConsole *ec;
@@ -122,8 +126,10 @@ namespace Schemas
 			void clearSchemas() {m_outerSchemas.clear();}
 			void deinit();
 			
-			void addSchema(OuterSchema s);
-			void removeSchema(string name);
+			int addSchema(LogicalID *lid, TManager::Transaction *tr, int createType);
+			int removeSchema(string name, TManager::Transaction *tr, ObjectPointer *p);
+			int removeSchema(string name, TManager::Transaction *tr);
+			
 			bool hasSchemaName(const string &s) const {return (m_outerSchemas.find(s) != m_outerSchemas.end());}
 			OuterSchema getSchema(string name) const;
 			set<string> getAllSchemasUsingName(string s) const;

@@ -23,6 +23,7 @@ namespace TManager
 namespace Store
 {
 	class LogicalID;
+	class ObjectPointer;
 }
 
 using namespace std;
@@ -89,24 +90,26 @@ namespace Schemas
 			int init();
 			void deinit();
 			void clearMaps();
+			void printAll() const;
 
-			bool checkIfCanBeInserted(Schema interfaceSchema) {return insertNewInterfaceAndPropagateHierarchy(interfaceSchema, true, true);} 
-			bool insertNewInterfaceAndPropagateHierarchy(Schema interfaceSchema, bool checkValidity = true, bool tryOnly = false);
-			int removeInterface(string interfaceName, bool checkValidity = true);
+			int addInterface(LogicalID* interfaceLid, TManager::Transaction *tr, int createType, bool checkValidity = true);
+			int removeInterface(string interfaceName, TManager::Transaction *tr, bool checkValidity = true);
+			int removeInterface(string interfaceName, TManager::Transaction *tr, ObjectPointer *p, bool checkValidity = true);
+
+			int bindInterface(string interfaceName, string implementationName, TManager::Transaction *tr, bool &matches); 
 			
-			void addBind(string interfaceName, string impName, string impObjName, int type);
-			void removeBind(string objectName) {m_bindMap.removeBind(m_objNameToName[objectName]);}
 			bool isInterfaceBound(string n) const {return m_bindMap.hasBind(n);}
 			bool isObjectNameBound(string o) const;
-			//void getInterfaceBindForObjName(string oName, string& iName, string& cName, string &invName, int &type, bool &found, bool final = false) const;
+
 			ImplementationInfo getImplementationForInterface(string name, bool &found, bool final = false) const;
 			ImplementationInfo getImplementationForObject(string name, bool &found, bool final = false) const;
-			//void getClassBindForInterface(string interfaceName, LogicalID*& classGraphLid) const;
+			
 			void implementationRemoved(string implementationName, TManager::Transaction *tr);
 			void implementationUpdated(string implementationName, string objectName, int type, TManager::Transaction *tr);
 			
 			string getObjectNameForInterface(string i, bool &found) const;
 			string getInterfaceNameForObject(string i, bool &found) const;
+
 			bool hasInterface(string n) const {return (m_nameToSchema.find(n) != m_nameToSchema.end());}
 			bool hasObjectName(string n) const {return (m_objNameToName.find(n) != m_objNameToName.end());}
 			
@@ -115,8 +118,6 @@ namespace Schemas
 			TMethods getMethodsIncludingDerived(string interfaceName, bool cache = true) const;
 			Schema getSchemaForInterface(string interfaceName) const;
 			bool interfaceHasMethod(string interfaceName, string methodName, int args) const;
-
-			void printAll() const;
 
 		private:
 		    InterfaceMaps();
@@ -127,7 +128,13 @@ namespace Schemas
 			void clearMap();
 			bool checkHierarchyValidity() const;
 			TStringSet getAllExt(string intName) const;
-			int addBind(string objectName, TManager::Transaction *tr);			
+			int addBind(string objectName, TManager::Transaction *tr);
+			int removeInterfaceFromMaps(string interfaceName, bool checkValidity = true);
+			bool checkIfCanBeInserted(Schema interfaceSchema) {return insertNewInterfaceAndPropagateHierarchy(interfaceSchema, true, true);} 
+			bool insertNewInterfaceAndPropagateHierarchy(Schema interfaceSchema, bool checkValidity = true, bool tryOnly = false);
+			
+			void addBind(string interfaceName, string impName, string impObjName, int type);
+			void removeBind(string objectName) {m_bindMap.removeBind(m_objNameToName[objectName]);}
 
 			TDict m_objNameToName;
 			TInterfaceToSchemas m_nameToSchema;

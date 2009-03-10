@@ -204,8 +204,12 @@ query	    : SYSTEMVIEWNAME { char *s = $1; $$ = new NameNode(s); delete s; }
 	    | CREATE_OR_UPDATE classquery {$$ = new RegisterClassNode ($2, CT_CREATE_OR_UPDATE);}
 	    | UPDATE classquery {$$ = new RegisterClassNode ($2, CT_UPDATE);}
 	    | CREATE classquery {$$ = new RegisterClassNode ($2, CT_CREATE);}
-	    | CREATE interface {$$ = new RegisterInterfaceNode ($2);}
-		| CREATE schema {$$ = new RegisterSchemaNode ($2);}
+	    | CREATE_OR_UPDATE interface {$$ = new RegisterInterfaceNode ($2, CT_CREATE_OR_UPDATE);}
+	    | UPDATE interface {$$ = new RegisterInterfaceNode ($2, CT_UPDATE);}
+	    | CREATE interface {$$ = new RegisterInterfaceNode ($2, CT_CREATE);}
+	    | CREATE_OR_UPDATE schema {$$ = new RegisterSchemaNode ($2, CT_CREATE_OR_UPDATE);}
+	    | UPDATE schema {$$ = new RegisterSchemaNode ($2, CT_UPDATE);}
+		| CREATE schema {$$ = new RegisterSchemaNode ($2, CT_CREATE);}
 	    | query INSERTINTO query { $$ = new AlgOpNode($1,$3,AlgOpNode::insert); }
 	    | query INSERTINTO viewproc { $$ = new AlgOpNode($1,$3,AlgOpNode::insert_viewproc); }
 	    | query INSERTINTO viewquery { $$ = new AlgOpNode($1,$3,AlgOpNode::insert_viewproc); }

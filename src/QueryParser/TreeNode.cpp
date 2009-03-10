@@ -456,12 +456,12 @@ namespace QParser
     
     TreeNode* RegisterInterfaceNode::clone() 
     {
-		return new RegisterInterfaceNode((QueryNode*) m_query->clone());
+		return new RegisterInterfaceNode(*this);
     }
     string RegisterInterfaceNode::simpleString() const
     {
-		string res;
-		res = "RegisterInterfaceNode: TODO \n";
+		string res = "RegisterInterfaceNode: ";
+		res += m_interfaceQuery.simpleString();
 		return res;
     }
 

@@ -14,6 +14,7 @@
 #include "InterfaceMatcher.h"
 #include "InterfaceMaps.h"
 #include "BindNames.h"
+#include "CommonOperations.h"
 #include <TransactionManager/Transaction.h>
 #include <Store/Store.h>
 #include <Store/DBDataValue.h>
@@ -38,6 +39,7 @@ using namespace Indexes;
 using namespace std;
 using namespace Server;
 using namespace Schemas;
+using namespace CommonOperations;
 
 namespace QExecutor {
 
@@ -1425,76 +1427,13 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 		    debug_print(*ec,  "[QE] Type: TNINTERFACEBIND");
 		    string leftName = ((InterfaceBind *)tree)->getInterfaceName();
 		    string rightName = ((InterfaceBind *)tree)->getImplementationName();
+		
+			bool matches;
+			errcode = im->bindInterface(leftName, rightName, tr, matches);
+			if (errcode) return trErrorOccur("[QE] TNINTERFACEBIND error in bindInterface", errcode);
+			string verbose = matches ? "bound" : "cannot bind: mismatch";
 			
-			// Recognize and check presence of names
-			
-			//interface name
-			Schema *interfaceSchema;
-			bool exists = false;
-			Schema::getInterfaceForInterfaceOrObjectName(leftName, exists, interfaceSchema);
-			if (!exists)
-				return qeErrorOccur("[QE] TNINTERFACEBIND: no interface or object name \"" + leftName + "\" in db", ENoInterfaceFound);
-				
-			debug_printf(*ec, "Got name: %s\n", interfaceSchema->getName().c_str());
-			//implementation name
-			Schema *implementationSchema;
-			int implementationType;
-			exists = false;
-			errcode = Schema::getImplementationForName(rightName, tr, exists, implementationType, implementationSchema);
-			if (errcode) return errcode;
-			if (!exists)
-				return qeErrorOccur("[QE] TNINTERFACEBIND: no implementation \"" + rightName + "\" in db", ENoImplementationFound);
-
-			debug_printf(*ec, "Got implementation name: %s\n", implementationSchema->getName().c_str());
-			
-		    //Check if implementation fits interface	    
-		    bool matches;
-			string interfaceName = interfaceSchema->getName();
-			string implementationName = implementationSchema->getName();   //TODO - we already have schemas here
- 		    if (implementationType == BIND_VIEW)
-			{
-				debug_printf(*ec, "Bind to a view - matching can't be easily checked, so it won't\n");
-				matches = true;
-			}
-			else
-			{			
-				errcode = Schema::interfaceMatchesImplementation(interfaceName, implementationName, tr, implementationType, matches);
-				if (errcode) 
-				{
-					debug_printf(*ec, "[QE] INTERFACEBIND - error in interfaceMatchesImplementation: %s, %s\n", interfaceName.c_str(), implementationName.c_str());
-					return errcode;
-				}
-				string resS = matches ? "fits": "does not fit";
-				debug_printf(*ec, "[QE] TNINTERFACEBIND - interface %s %s implementation %s\n",interfaceName.c_str(),resS.c_str(),implementationName.c_str());
-			}
-		    //Bind interface
-		    
-		    if (matches)
-		    {
-				string implementationObjectName = implementationSchema->getAssociatedObjectName();
-				string interfaceObjectName = interfaceSchema->getAssociatedObjectName();
-				if (interfaceObjectName.empty())
-				{
-					info_printf(*ec, "[QE] INTERFACEBIND - cannot bind interface %s: it has no associated object name\n", interfaceName.c_str()); 
-					return -1; //TODO - errcode
-				}
-				else
-				{
-					errcode = tr->bindInterface(interfaceName, implementationName);
-					if (errcode) 
-					{
-						debug_printf(*ec, "[QE] INTERFACEBIND - error in bindInterface\n");
-						return -1; //TODO - errcode
-					}
-					im->addBind(interfaceName, implementationName, implementationObjectName, implementationType);
-				}
-			}
-			else
-				return -1; //TODO - errcode (no match)
-			
-		    //Cleanup and return
-
-		    QueryResult *result = new QueryNothingResult();
+		    QueryResult *result = new QueryStringResult(verbose);
 		    errcode = qres->push(result);
 		    if (errcode != 0) return errcode;
 		    debug_print(*ec,  "[QE] TNINTERFACEBIND done");
@@ -1502,113 +1441,30 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 		}
 
 		case TreeNode::TNREGINTERFACE: {
-
 		    debug_print(*ec,  "[QE] Type: TNREGINTERFACE");
-
-		    QueryNode *query = ((RegisterInterfaceNode *) tree)->getQuery();
+			RegisterInterfaceNode* ri = (RegisterInterfaceNode *)tree;
+			CreateType ct = ri->getCreateType();
+			InterfaceNode query = ri->getInterfaceQuery();
 		    ObjectPointer *optr;
-
-		    if(query != NULL) 
-			{
-				errcode = executeRecQuery(query, checkPrivilieges);
-				if(errcode != 0) return errcode;
-		    }
-		    else qres->push(new QueryNothingResult());
+			errcode = executeRecQuery(&query, checkPrivilieges);
+			if (errcode) return errcode;
 
 		    debug_printf(*ec, "[QE] TNREGINTERFACE inner result pushed\n");
-
 		    QueryResult *execution_result;
 		    errcode = qres->pop(execution_result);
-		    if (errcode != 0) return errcode;
+		    if (errcode) return errcode;
 		    if (execution_result->type() != QueryResult::QREFERENCE) 
-			{
 				return qeErrorOccur( "[QE] TNREGINTERFACE error - execution result is not QueryReference", ERefExpected );
-		    }
-
 		    debug_printf(*ec, "[QE] TNREGINTERFACE got reference\n");
-
 			LogicalID* interfaceLid = ((QueryReferenceResult*)execution_result)->getValue();
-		    errcode = tr->getObjectPointer (interfaceLid, Store::Read, optr, false);
-		    if (errcode != 0) 
-			{
-		    	return trErrorOccur("[QE] register interface operation - Error in getObjectPointer.", errcode);
-		    }
 
-		    debug_printf(*ec, "[QE] TNREGINTERFACE got object pointer\n");
-
-		    debug_print(*ec,  optr->getName().c_str());
-		    debug_printf(*ec, "[QE] TNREGINTERFACE got name\n");
-
-		    string object_name = "";
-		    vector<LogicalID*>* inner_vec = (optr->getValue())->getVector();
-		    for (unsigned int i=0; i < inner_vec->size(); i++)
-		    {
-				ObjectPointer *inner_optr;
-				errcode = tr->getObjectPointer (inner_vec->at(i), Store::Read, inner_optr, false);
-				if (errcode != 0)
-					return trErrorOccur("[QE] register interface operation - Error in getObjectPointer.", errcode);
-				if (inner_optr->getName() == QE_OBJECT_NAME_BIND_NAME)
-				{
-					object_name = (inner_optr->getValue())->getString();
-					break;
-				}
-		    }
-			
-			debug_print(*ec,  "[QE] Checking if name is already used in database..");
-
-			bool taken;
-			string interfaceName = optr->getName().c_str();
-			if ((errcode = nameTaken(interfaceName, taken)) != 0) 
-			{
-			    debug_print(*ec,  "[QE] TNREGINTERFACE: returning error from nameTaken");
-			    return errcode;
-			}
-    		if (taken)
-			    return qeErrorOccur("[QE] TNREGINTERFACE: interface name \"" + interfaceName + "\" already in use", ENotUniqueInterfaceName);
-			if (!object_name.empty())
-			{
-				if ((errcode = nameTaken(object_name, taken)) != 0) 
-				{
-					debug_print(*ec,  "[QE] TNREGINTERFACE: returning error from nameTaken");
-					return errcode;
-				}
-				if (taken)
-					return qeErrorOccur("[QE] TNREGINTERFACE: interface object name \"" + interfaceName + "\" already in use", ENotUniqueInterfaceName);
-			}
-			debug_print(*ec,  "[QE] TNINTERFACENODE: Interface name and object name unique");
-
-			errcode = tr->addRoot(optr);
-		    if (errcode != 0) 
-			{
-		    	return trErrorOccur("[QE] Error in addRoot", errcode);
-		    }
-
-		    debug_printf(*ec, "[QE] TNREGINTERFACE addRoot processed\n");
-			
-		    errcode = tr->addInterface(interfaceName, object_name.c_str(), optr);
-		    if (errcode != 0) 
-			{
-		    	return trErrorOccur("[QE] Error in addInterface", errcode);
-		    }
-			Schema *s;
-			errcode = Schema::interfaceFromLogicalID(interfaceLid, tr, s);
-			debug_printf(*ec, "[QE] schema %s\n", s->getName().c_str());
-			if (errcode)
-			{
-				return trErrorOccur("[QE] Error in interfaceFromLogicalID", errcode);
-			}
-			debug_printf(*ec, "[QE] TNREGINTERFACE inserting into map..\n");
-			bool inserted = im->insertNewInterfaceAndPropagateHierarchy(*s);
-			if (!inserted)
-			{
-				return -1;  //TODO - errcode;
-			}
+			bool checkValidity = true;
+			errcode = im->addInterface(interfaceLid, tr, ct, checkValidity);
+			if (errcode) return trErrorOccur("[QE] TNREGINTERFACE error in addInterface", errcode);
 			
 		    errcode = qres->push(execution_result);
-		    if (errcode != 0) return errcode;
-
+		    if (errcode) return errcode;
 		    debug_print(*ec,  "[QE] TNREGINTERFACE returning");
-
 		    return 0;
 		}
 
@@ -1677,11 +1533,6 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 			string objectName = node->getObjectName();
 			debug_print(*ec,  "[QE] Interface name: " + interfaceName);
 
-			Schema *intSchema;
-			Schema::interfaceFromInterfaceNode(node, intSchema);
-			if (im->checkIfCanBeInserted(*intSchema) == false)
-				return -1;  //TODO - errcode -> can't insert interface, inconsistent with current maps	
-			
 			// vector that holds all the logical ids
 			vector<LogicalID *> interfaceLids;
 			pushStringToLIDs(objectName, QE_OBJECT_NAME_BIND_NAME, interfaceLids);
@@ -1762,16 +1613,6 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 			string schemaName = sn->getName();
 			bool fullyDefined = sn->getIsFullyDefined();
 			
-			//check if name is unique (not taken yet)
-			bool taken;
-			errcode = nameTaken(schemaName, taken);
-			if (errcode || taken) 
-			{   
-				if (errcode) return errcode;
-				debug_printf(*ec, "[QE] TNSCHEMANODE - cannot create schema %s, name already in use\n", schemaName.c_str());
-				return -1;  //TODO
-			}
-			
 			TNameToAccess accessPoints;
 			if (!fullyDefined) 
 				accessPoints = sn->getAccessPoints();
@@ -1786,7 +1627,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 					InterfaceNode n = ic.first;
 					int crud = ic.second;
 					
-					RegisterInterfaceNode *rn = new RegisterInterfaceNode(&n);
+					RegisterInterfaceNode *rn = new RegisterInterfaceNode(&n, CT_CREATE_OR_UPDATE);
 					errcode = executeRecQuery(rn, checkPrivilieges);
 					if (errcode)
 						return errcode;
@@ -1799,15 +1640,6 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 				}			
 				
 			}
-			OuterSchema oSchema(schemaName, accessPoints);
-			OuterSchema* oSchemaP = &oSchema;
-			//check schema validity with validator
-			STATE state = OuterSchemaValidator::validate(oSchemaP, tr, true);
-			if (OuterSchemaValidator::isError(state))
-			{   //TODO - be more specific (bad name list, non-unique name, transaction error)
-				debug_printf(*ec, "[QE] Validator returned error - schema can't be added\n");
-				return state;
-			}	
 			
 			//process aps
 			vector<LogicalID *> schemaLids;
@@ -1837,66 +1669,30 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 		case TreeNode::TNREGSCHEMA:
 		{
 			debug_print(*ec,  "[QE] Type: TNREGSCHEMA");
-
 			RegisterSchemaNode* rs = (RegisterSchemaNode *)tree;
 			SchemaNode query = rs->getSchemaQuery();
+			CreateType ct = rs->getCreateType();
 		    ObjectPointer *optr;
 			errcode = executeRecQuery(&query, checkPrivilieges);
-			if(errcode != 0) return errcode;
-
+			if (errcode) return errcode;
+			
 		    debug_printf(*ec, "[QE] TNREGSCHEMA inner result pushed\n");
-
 		    QueryResult *execution_result;
 		    errcode = qres->pop(execution_result);
-		    if (errcode != 0) return errcode;
+		    if (errcode) return errcode;
 		    if (execution_result->type() != QueryResult::QREFERENCE) 
-			{
 				return qeErrorOccur( "[QE] TNREGSCHEMA error - execution result is not QueryReference", ERefExpected );
-		    }
 
 		    debug_printf(*ec, "[QE] TNREGSCHEMA got reference\n");
 			LogicalID* schemaLid = ((QueryReferenceResult*)execution_result)->getValue();
-		    errcode = tr->getObjectPointer (schemaLid, Store::Read, optr, false);
-		    if (errcode != 0) 
-			{
-		    	return trErrorOccur("[QE] TNREGSCHEMA - Error in getObjectPointer.", errcode);
-		    }
-
-		    debug_printf(*ec, "[QE] TNREGSCHEMA got object pointer\n");
-		    errcode = tr->addRoot(optr);
-		    if (errcode != 0) 
-			{
-		    	return trErrorOccur("[QE] Error in addRoot", errcode);
-		    }
-
-		    debug_printf(*ec, "[QE] TNREGSCHEMA addRoot processed\n");
-
-		    debug_print(*ec,  optr->getName().c_str());
-		    debug_printf(*ec, "[QE] TNREGSCHEMA got name\n");
-
-		    errcode = tr->addSchema(optr->getName().c_str(), optr);
-		    if (errcode != 0) 
-			{
-		    	return trErrorOccur("[QE] Error in addSchema", errcode);
-		    }
-			
-			OuterSchema schema;
-			OuterSchema *s = &schema;
-			errcode = OuterSchema::fromLogicalID(schemaLid, tr, s);
-			debug_print(*ec, "[QE] got outer schema from logicalID");
-			if (errcode) return errcode;	//TODO
-			STATE state = OuterSchemaValidator::validate(s, tr, true);
-			debug_print(*ec, "[QE] outer schema validated");
-			os->addSchema(*s);
+		    errcode = os->addSchema(schemaLid, tr, ct);
+			if (errcode)
+				return trErrorOccur("[QE] TNREGSCHEMA error in addSchema", errcode);
 
 		    errcode = qres->push(execution_result);
-		    if (errcode != 0) return errcode;
-
+		    if (errcode) return errcode;
 		    debug_print(*ec,  "[QE] TNREGSCHEMA returning");
-
 		    return 0;
-		 
-		 
 		}
 				
 		case TreeNode::TNSCHEMAEXPIMP:
@@ -2193,9 +1989,9 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 
 			//class name
 			bool classExist;
-			errcode = classExists(className, classExist);
+			errcode = cg->classExists(className, tr, classExist);
 			if(errcode != 0) {
-				return errcode;
+				return trErrorOccur("[QE] Error in classExists", errcode);
 			}
 			if(classExist && ct == CT_CREATE) {
 				return qeErrorOccur("[QE] Class: \"" + className + "\" already exist.", ENotUniqueClassName);
@@ -2224,9 +2020,9 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 				if (errcode != 0) {
 					return otherErrorOccur("[QE] Not unique extended class name.", errcode);
 				}
-				errcode = classesLIDsFromNames(classesNames, extendedclassesLIDs);
+				errcode = cg->classesLIDsFromNames(classesNames, tr, extendedclassesLIDs);
 				if(errcode != 0) {
-					return errcode;
+					return trErrorOccur("[QE] Error in getClassesLID", errcode);
 				}
 				pushStringsToLIDs(classesNames, QE_EXTEND_BIND_NAME, classVector);
 			}
@@ -2332,8 +2128,8 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 					return trErrorOccur("[QE] update class operation - Error in getObjectPointer.", errcode);
 				}
 				//usuniecie informacji z nadklas
-				errcode = removePersistFromSuperclasses(upOptr);
-				if(errcode != 0) return errcode;
+				errcode = cg->removePersistFromSuperclasses(upOptr, tr);
+				if(errcode != 0) return trErrorOccur("[QE] error in removePersistFromSuperclasses", errcode);
 
 				//Przekazanie podklas.
 				//KLUCZOWA OPERACJA. Update istnieje po to, zeby podmienic klase, tak by,
@@ -2902,7 +2698,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 									errcode = (((QueryBagResult *) nResult)->at(i, current_new_result));
 								if (errcode != 0) return errcode;
 								bool isIncl;
-								errcode = this->isIncluded(current_new_result, final_result, isIncl);
+								errcode = isIncluded(current_new_result, final_result, isIncl);
 								if (errcode != 0) return errcode;
 								if (not (isIncl)) { // occur check
 									partial_result->addResult(current_new_result);
@@ -2953,7 +2749,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 										errcode = (((QueryBagResult *) nResult)->at(i, c_result));
 									if (errcode != 0) return errcode;
 									bool isIncl;
-									errcode = this->isIncluded(c_result, visited_result, isIncl);
+									errcode = isIncluded(c_result, visited_result, isIncl);
 									if (errcode != 0) return errcode;
 									if (not (isIncl)) { // occur check
 										partial_result->addResult(c_result);
@@ -3007,7 +2803,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 					debug_print(*ec,  (ErrQExecutor | EOtherResExp));
 					return (ErrQExecutor | EOtherResExp);
 				}
-				errcode = this->merge(op,partial_result, final_result);
+				errcode = merge(op,partial_result, ec, final_result);
 				if (errcode != 0) return errcode;
 				debug_print(*ec,  "[QE] Merged partial results into final result");
 			}
@@ -4124,44 +3920,6 @@ int QueryExecutor::unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&
 	return 0;
 }
 
-int QueryExecutor::removePersistFromSubclasses(ObjectPointer *superOptr) {
-	SetOfLids* objectToChange = superOptr->getValue()->getSubclasses();
-	if(objectToChange == NULL) return 0;
-	for(SetOfLids::iterator i = objectToChange->begin(); i != objectToChange->end(); ++i) {
-		ObjectPointer* optr;
-		int errcode = tr->getObjectPointer( *i, Store::Read, optr, false);
-		if(errcode != 0) {
-			return trErrorOccur("[QE] Can't get object to remove classMark.", errcode);
-		}
-		DataValue* newDV = optr->getValue()->clone();
-		newDV->removeClassMark(superOptr->getLogicalID());
-		errcode = tr->modifyObject(optr, newDV);
-		if(errcode != 0) {
-			return trErrorOccur("[QE] Can't modify object and set classMark.", errcode);
-		}
-	}
-	return 0;
-}
-
-int QueryExecutor::removePersistFromSuperclasses(ObjectPointer *subOptr) {
-	SetOfLids* objectToChange = subOptr->getValue()->getClassMarks();
-	if(objectToChange == NULL) return 0;
-	for(SetOfLids::iterator i = objectToChange->begin(); i != objectToChange->end(); ++i) {
-		ObjectPointer* optr;
-		int errcode = tr->getObjectPointer( *i, Store::Read, optr, false);
-		if(errcode != 0) {
-			return trErrorOccur("[QE] Can't get object to remove classMark.", errcode);
-		}
-		DataValue* newDV = optr->getValue()->clone();
-		newDV->removeSubclass(subOptr->getLogicalID());
-		errcode = tr->modifyObject(optr, newDV);
-		if(errcode != 0) {
-			return trErrorOccur("[QE] Can't modify object and set classMark.", errcode);
-		}
-	}
-	return 0;
-}
-
 int QueryExecutor::persistStaticMembersDelete(const string& object_name) {
 	vector<LogicalID*>* lids;
 	int errcode = tr->getRootsLIDWithBegin(ClassGraph::classNameToExtPrefix(object_name), lids);
@@ -4201,10 +3959,10 @@ int QueryExecutor::persistDelete(LogicalID *lid, bool checkPrivilieges /*=false*
 		errcode = persistStaticMembersDelete(object_name);
 		if (errcode != 0) return errcode;
 		//Removing class from superclasses and subclasses and updating class graph.
-		errcode = removePersistFromSuperclasses(optr);
-		if (errcode != 0) return errcode;
-		errcode = removePersistFromSubclasses(optr);
-		if (errcode != 0) return errcode;
+		errcode = cg->removePersistFromSuperclasses(optr, tr);
+		if (errcode != 0) return trErrorOccur("[QE] error in removePersistFromSuperclasses.", errcode);
+		errcode = cg->removePersistFromSubclasses(optr, tr);
+		if (errcode != 0) return trErrorOccur("[QE] error in removePersistFromSubclasses", errcode);
 		cg->removeClass(optr->getLogicalID());
 		//Removing class from class file.
 		errcode = tr->removeClass(optr);
@@ -4215,23 +3973,19 @@ int QueryExecutor::persistDelete(LogicalID *lid, bool checkPrivilieges /*=false*
 	else if (et == Store::Interface) 
 	{
 		string interfaceName = object_name;
-		debug_printf(*ec, "[QE] removing interface %s\n", interfaceName.c_str());
-		//remove from maps - TODO: could result in corrupted map with checkValidity = false
-		im->removeInterface(interfaceName, false);
-		//TODO - re-validate all Schemas using this name		
-		errcode = tr->removeInterface(optr);
+		errcode = im->removeInterface(interfaceName, tr, optr);
 		if (errcode != 0) 
 			return trErrorOccur("[QE] Error while removing interface", errcode);
+		im->implementationRemoved(interfaceName, tr);
+		return 0;
 	}
 	else if (et == Store::StoreSchema)
 	{
 		string schemaName = object_name;
-		debug_printf(*ec, "[QE] removing schema %s\n", schemaName.c_str());
-		//remove from maps
-		os->removeSchema(schemaName);
-		errcode = tr->removeSchema(optr);
-		if (errcode != 0) 
-			return trErrorOccur("[QE] Error while removing outer schema", errcode);		
+		errcode = os->removeSchema(schemaName, tr, optr);
+		if (errcode)
+			return trErrorOccur("[QE] Error while removing outer schema", errcode);
+		return 0;
 	}
 	
 	
@@ -4261,7 +4015,7 @@ int QueryExecutor::persistDelete(LogicalID *lid, bool checkPrivilieges /*=false*
 		return errcode;
 	}
 	
-	if (et == Store::Class || et == Store::Interface || et == Store::View)
+	if (et == Store::Class || et == Store::View)
 		im->implementationRemoved(object_name, tr);
 	
 	return 0;
@@ -5662,111 +5416,7 @@ int QueryExecutor::combine(NonAlgOpNode::nonAlgOp op, QueryResult *curr, QueryRe
 	return 0;
 }
 
-int QueryExecutor::merge(NonAlgOpNode::nonAlgOp op, QueryResult *partial, QueryResult *&final) {
-	debug_print(*ec,  "[QE] merge() function applied to the partial results, creating final result");
-	int errcode;
-	switch (op) {
-		case NonAlgOpNode::dot: {
-			debug_print(*ec,  "[QE] merge(): NonAlgebraic operator <dot>");
-			final = partial;
-			break;
-		}
-		case NonAlgOpNode::join: {
-			debug_print(*ec,  "[QE] merge(): NonAlgebraic operator <join>");
-			final = partial;
-			break;
-		}
-		case NonAlgOpNode::where: {
-			debug_print(*ec,  "[QE] merge(): NonAlgebraic operator <where>");
-			final = partial;
-			break;
-		}
-		case NonAlgOpNode::orderBy: {
-			debug_print(*ec,  "[QE] merge(): NonAlgebraic operator <orderBy>");
-			((QueryBagResult *) partial)->sortBag_in_orderBy();
-			errcode = ((QueryBagResult *) partial)->postSort(final);
-			if (errcode != 0) return errcode;
-			break;
-		}
-		case NonAlgOpNode::exists: {
-			debug_print(*ec,  "[QE] merge(): NonAlgebraic operator <exists>");
-			bool tmp_bool = false;
-			bool current_bool;
-			for (unsigned i = 0; i < (partial->size()); i++) {
-				QueryResult *tmp_result;
-				errcode = (((QueryBagResult *) partial)->at(i,tmp_result));
-				if (errcode != 0) return errcode;
-				if (not (tmp_result->isBool())) {
-					debug_print(*ec,  "[QE] merge(): ERROR! operator <exists> expects boolean type arguments");
-					debug_print(*ec,  (ErrQExecutor | EBoolExpected));
-					return (ErrQExecutor | EBoolExpected);
-				}
-				errcode = (tmp_result->getBoolValue(current_bool));
-				if (errcode != 0) return errcode;
-				if (current_bool)
-					tmp_bool = true;
-			}
-			QueryBoolResult * tmp_bool_res = new QueryBoolResult(tmp_bool);
-			final->addResult(tmp_bool_res);
-			break;
-		}
-		case NonAlgOpNode::forAll: {
-			debug_print(*ec,  "[QE] merge(): NonAlgebraic operator <forAll>");
-			bool tmp_bool = true;
-			bool current_bool;
-			for (unsigned i = 0; i < (partial->size()); i++) {
-				QueryResult *tmp_result;
-				errcode = (((QueryBagResult *) partial)->at(i,tmp_result));
-				if (errcode != 0) return errcode;
-				if (not (tmp_result->isBool())) {
-					debug_print(*ec,  "[QE] merge(): ERROR! operator <forAll> expects boolean type arguments");
-					debug_print(*ec,  (ErrQExecutor | EBoolExpected));
-					return (ErrQExecutor | EBoolExpected);
-				}
-				errcode = (tmp_result->getBoolValue(current_bool));
-				if (errcode != 0) return errcode;
-				if (not current_bool)
-					tmp_bool = false;
-			}
-			QueryBoolResult *tmp_bool_res = new QueryBoolResult(tmp_bool);
-			final->addResult(tmp_bool_res);
-			break;
-		}
-		case NonAlgOpNode::forEach: {
-			debug_print(*ec,  "[QE] merge(): NonAlgebraic operator <forEach>");
-			final = partial;
-			break;
-		}
-		default: {
-			debug_print(*ec,  "[QE] merge(): unknown NonAlgebraic operator!");
-			debug_print(*ec,  (ErrQExecutor | EUnknownNode));
-			return (ErrQExecutor | EUnknownNode);
-			break;
-		}
-	}
-	return 0;
-}
 
-int QueryExecutor::isIncluded(QueryResult *elem, QueryResult *set, bool &score) {
-	debug_print(*ec,  "[QE] isIncluded()");
-	int errcode;
-	if (set->type() != QueryResult::QBAG) {
-		debug_print(*ec,  "[QE] isIncluded(): ERROR! set argument must be BAG");
-		debug_print(*ec,  (ErrQExecutor | EOtherResExp));
-		return (ErrQExecutor | EOtherResExp);
-	}
-	bool tmp_bool = false;
-	for (unsigned int i = 0; i < set->size(); i++) {
-		QueryResult *tmp_res;
-		errcode = ((QueryBagResult *) set)->at(i, tmp_res);
-		if (errcode != 0) return errcode;
-		bool eq = elem->equal(tmp_res);
-		if (eq)
-			tmp_bool = true;
-	}
-	score = tmp_bool;
-	return 0;
-}
 
 int QueryExecutor::abort() {
 	debug_print(*ec,  "[QE] abort()");
@@ -6098,51 +5748,7 @@ void QueryExecutor::pushStringsToLIDs(set<string>* names, string bindName, vecto
 	}
 }
 
-int QueryExecutor::classesLIDsFromNames(set<string>* names, vector<LogicalID*>& lids) {
-	for(set<string>::iterator i = names->begin(); i != names->end(); i++) {
-		vector<LogicalID *>* addedClasses;
-		int errcode = tr->getClassesLID(*i, addedClasses);
-		if(errcode != 0) {
-			delete addedClasses;
-			return trErrorOccur("[QE] Error in getClassesLID", errcode);
-		}
-		if(addedClasses->size() == 0) {
-			delete addedClasses;
-			return qeErrorOccur("[QE] Class: \"" + (*i) + "\" not found.", ENoClassDefFound);
-		}
-		lids.push_back(addedClasses->at(0));
-		delete addedClasses;
-	}
-	return 0;
-}
 
-int QueryExecutor::nameTaken(string name, bool &taken)
-{
-	taken = false;
-	vector<LogicalID *>* lids;
-	int errcode = tr->getRootsLID(name, lids);
-	if (errcode || !lids)
-	{
-		if (lids) delete lids;
-		return trErrorOccur("[QE] Error in getRootsLID", errcode);
-	}
-	if (lids->size() == 0) return 0;
-	taken = true;
-	return 0;	
-}
-
-
-int QueryExecutor::classExists(string className, bool& exist) {
-	vector<LogicalID *>* addedClasses;
-	int errcode = tr->getClassesLID(className, addedClasses);
-	if(errcode != 0) {
-		delete addedClasses;
-		return trErrorOccur("[QE] Error in getClassesLID", errcode);
-	}
-	exist = addedClasses->size() != 0;
-	delete addedClasses;
-	return 0;
-}
 
 int QueryExecutor::lidFromVector( string bindName, vector<QueryResult*> value, LogicalID*& lid) {
 	return lidFromBinder(bindName, new QueryBagResult(value), lid);

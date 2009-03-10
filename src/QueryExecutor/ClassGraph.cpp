@@ -257,6 +257,77 @@ int ClassGraphVertex::initNotGraphProperties(ObjectPointer *optr, Transaction *&
 	return 0;
 }
 
+int ClassGraph::classExists(string name, Transaction *tr, bool &exists)
+{
+	exists = false;
+	vector<LogicalID *>* addedClasses;
+	int errcode = tr->getClassesLID(name, addedClasses);
+	if(errcode != 0) {
+		delete addedClasses;
+		errcode;
+	}
+	exists = addedClasses->size() != 0;
+	delete addedClasses;
+	return 0;
+}
+	
+int ClassGraph::classesLIDsFromNames(set<string>* names, Transaction *tr, vector<LogicalID*>& lids) 
+{
+	for(set<string>::iterator i = names->begin(); i != names->end(); i++) {
+		vector<LogicalID *>* addedClasses;
+		int errcode = tr->getClassesLID(*i, addedClasses);
+		if(errcode != 0) {
+			delete addedClasses;
+			return errcode;
+		}
+		if(addedClasses->size() == 0) {
+			delete addedClasses;
+			return errcode;
+		}
+		lids.push_back(addedClasses->at(0));
+		delete addedClasses;
+	}
+	return 0;
+}
+
+int ClassGraph::removePersistFromSubclasses(ObjectPointer *superOptr, Transaction *tr) {
+	SetOfLids* objectToChange = superOptr->getValue()->getSubclasses();
+	if(objectToChange == NULL) return 0;
+	for(SetOfLids::iterator i = objectToChange->begin(); i != objectToChange->end(); ++i) {
+		ObjectPointer* optr;
+		int errcode = tr->getObjectPointer( *i, Store::Read, optr, false);
+		if(errcode != 0) {
+			return errcode;
+		}
+		DataValue* newDV = optr->getValue()->clone();
+		newDV->removeClassMark(superOptr->getLogicalID());
+		errcode = tr->modifyObject(optr, newDV);
+		if(errcode != 0) {
+			return errcode;
+		}
+	}
+	return 0;
+}
+
+int ClassGraph::removePersistFromSuperclasses(ObjectPointer *subOptr, Transaction *tr) {
+	SetOfLids* objectToChange = subOptr->getValue()->getClassMarks();
+	if(objectToChange == NULL) return 0;
+	for(SetOfLids::iterator i = objectToChange->begin(); i != objectToChange->end(); ++i) {
+		ObjectPointer* optr;
+		int errcode = tr->getObjectPointer( *i, Store::Read, optr, false);
+		if(errcode != 0) {
+			return errcode;
+		}
+		DataValue* newDV = optr->getValue()->clone();
+		newDV->removeSubclass(subOptr->getLogicalID());
+		errcode = tr->modifyObject(optr, newDV);
+		if(errcode != 0) {
+			return errcode;
+		}
+	}
+	return 0;
+}
+
 int ClassGraph::findMethod(string name, unsigned int argsCount, SetOfLids* classesToSearch, Method*& method, bool& found, LogicalID* classLidToStartSearching, SearchPhase searchPhase, LogicalID*& bindClassLid) {
 	int errcode = 0;
 	for(SetOfLids::iterator i = classesToSearch->begin(); i != classesToSearch->end(); ++i) {

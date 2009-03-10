@@ -191,6 +191,11 @@ namespace QExecutor
 
 		virtual int lidToClassGraphLid(LogicalID* lidFrom, LogicalID*& lidTo);
 
+		int classExists(string name, Transaction *tr, bool &exists);
+		int classesLIDsFromNames(set<string>* names, Transaction *tr, vector<LogicalID*>& lids);
+		int removePersistFromSubclasses(ObjectPointer *optr, Transaction *tr);		
+		int removePersistFromSuperclasses(ObjectPointer *optr,Transaction *tr);
+
 		virtual bool vertexExist(LogicalID* lid) {
 			return classGraph.find(lid) != classGraph.end();
 		}
