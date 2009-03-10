@@ -64,7 +64,7 @@ namespace Protocol {
 
 	size_t ASCErrorPackage::get_ser_size() const
 	{
-		return 0 + 8 + DataStream::get_varuint_size(error_object_id) + description->get_ser_size() + 4 + 4;
+		return 0 + 4 + DataStream::get_varuint_size(error_object_id) + description->get_ser_size() + 4 + 4;
 	}
 
 	uint32_t ASCErrorPackage::get_val_error_code() const

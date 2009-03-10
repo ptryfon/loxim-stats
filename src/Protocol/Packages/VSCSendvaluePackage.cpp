@@ -57,7 +57,7 @@ namespace Protocol {
 
 	size_t VSCSendvaluePackage::get_ser_size() const
 	{
-		return 0 + DataStream::get_varuint_size(value_id) + 8 + data->get_ser_size() + DataStream::get_varuint_size(VarUint(data->get_type(), false));
+		return 0 + DataStream::get_varuint_size(value_id) + 1 + data->get_ser_size() + DataStream::get_varuint_size(VarUint(data->get_type(), false));
 	}
 
 	VarUint VSCSendvaluePackage::get_val_value_id() const

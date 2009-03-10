@@ -52,7 +52,7 @@ namespace Protocol {
 
 	size_t ASCByePackage::get_ser_size() const
 	{
-		return 0 + 8 + reason_description->get_ser_size();
+		return 0 + 4 + reason_description->get_ser_size();
 	}
 
 	uint32_t ASCByePackage::get_val_reason_code() const

@@ -52,7 +52,7 @@ namespace Protocol {
 
 	size_t VSCAbortPackage::get_ser_size() const
 	{
-		return 0 + 8 + reason_string->get_ser_size();
+		return 0 + 4 + reason_string->get_ser_size();
 	}
 
 	uint32_t VSCAbortPackage::get_val_reason_code() const
