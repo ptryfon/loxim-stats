@@ -1,5 +1,5 @@
-#include <Server/SignalRouter.h>
 #include <signal.h>
+#include <Util/SignalRouter.h>
 #include <Util/Concurrency.h>
 #include <Util/smartptr.h>
 
@@ -7,21 +7,24 @@ using namespace std;
 using namespace Util;
 using namespace _smptr;
 
-namespace Server{
+namespace Util{
 
-	static void SR_signal_route(int i)
+	map<pthread_t, Receiver*> SignalRouter::map;
+	Mutex SignalRouter::map_protector;
+	
+	void SignalRouter::signal_route(int i)
 	{
 		SignalRouter::route(i);
 	}
 
-	void SR_cleaner(void *arg)
+	void SignalRouter::cleaner(void *arg)
 	{
 		Locker l(SignalRouter::map_protector);
 		auto_ptr<Receiver> r(SignalRouter::map[pthread_self()]);
 		SignalRouter::map.erase(pthread_self());
 	}
 	
-	void *SR_starter(void *arg)
+	void *SignalRouter::starter(void *arg)
 	{
 		
 		Receiver *r = (Receiver*)arg;
@@ -29,12 +32,12 @@ namespace Server{
 		int error;
 		SignalRouter::register_thread(pthread_self(), r);
 		sigemptyset(&sig.sa_mask);
-		sig.sa_handler = SR_signal_route;
+		sig.sa_handler = SignalRouter::signal_route;
 		sig.sa_flags = 0;
 		if (sigaction(r->get_sig(), &sig, 0)){
 			//TODO: do sth
 		}
-		pthread_cleanup_push(SR_cleaner, NULL);
+		pthread_cleanup_push(SignalRouter::cleaner, NULL);
 
 
 		if ((error = pthread_sigmask(SIG_SETMASK, r->get_sigmask(), NULL))){
@@ -47,9 +50,6 @@ namespace Server{
 		return NULL;
 	}
 
-	map<pthread_t, Receiver*> SignalRouter::map;
-	Mutex SignalRouter::map_protector;
-	
 	void SignalRouter::register_thread(pthread_t thread, Receiver *recv)
 	{
 		map[thread] = recv;
@@ -90,7 +90,7 @@ namespace Server{
 			delete r;
 			return error;
 		}
-		if ((error = pthread_create(thread, NULL, SR_starter, r))){
+		if ((error = pthread_create(thread, NULL, SignalRouter::starter, r))){
 			delete r;
 			return error;
 		}

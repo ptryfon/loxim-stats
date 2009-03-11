@@ -2,29 +2,91 @@
 #define INF_LOOP_THREAD_H
 
 #include <pthread.h>
+#include <cassert>
+#include <Errors/Exceptions.h>
 
 namespace Util {
+
+	template<class T>
+	class InfLoopStarter {
+		int start(pthread_t *thread, void **starter(void*), void *arg) const;
+	};
+
+	class PthreadInfLoopStarter {
+	public:
+		int start(pthread_t *thread, void *(starter(void*)), void *arg) const
+		{
+			return pthread_create(thread, 0, starter, arg);
+		}
+
+		void join(pthread_t thread)
+		{
+			pthread_join(thread, NULL);
+		}
+	};
+
+	class InfLoopLogic {
+		public:
+			void kill(bool synchronous);
+			void on_exit();
+			void loop();
+	};
+
+	template <class T>
 	class InfLoopThread {
 		private:
-			static void* starter(void *);
-			void pre_loop();
+			static void* starter(void *arg)
+			{
+				InfLoopThread<T> *thread_obj =
+					reinterpret_cast<InfLoopThread<T>*>(arg);
+				assert(thread_obj != NULL);
+				thread_obj->alive = true;
+				try {
+					thread_obj->logic->loop();
+				} catch (...) {
+					//XXX some logging here
+				}
+				thread_obj->alive = false;
+				try{
+					thread_obj->logic->on_exit();
+				} catch (...) {
+					//XXX some logging here
+				}
+				return NULL;
+			}
 		protected:
-			bool shutting_down;
 			bool alive;
 			pthread_t thread;
-			pthread_mutex_t loop_mutex;
-			pthread_mutex_t loop_cond;
-			virtual void loop() = 0;
+			auto_ptr<T> logic;
 		public:
-			InfLoopThread();
-			virtual ~InfLoopThread();
+			template <class Starter>
+			InfLoopThread(auto_ptr<T> logic, const Starter &st) :
+				alive(false), logic(logic)
+			{
+				int error = st.start(&thread,
+						InfLoopThread<T>::starter,
+						this);	
+				if (error)
+					//throw Errors::LoximException(error);
+					{}
+			}
+			~InfLoopThread()
+			{
+				kill(true);
+			}
 
-			/* kill the thread in order to be sure that destructor
-			 * won't block */
-			virtual void kill(bool synchronous) = 0;
+			bool is_alive()
+			{
+				return alive;
+			}
 
-			bool is_alive();
-
+			
+			void kill(bool synchronous)
+			{
+				logic->kill(synchronous);
+				if (synchronous && alive)
+					pthread_join(thread, 0);
+			}
 
 	};
 }

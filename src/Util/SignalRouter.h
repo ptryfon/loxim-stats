@@ -5,13 +5,10 @@
 #include <pthread.h>
 #include <Util/Concurrency.h>
 
-using namespace std;
 
-namespace Server{
+namespace Util{
 
 	typedef void (*recv_fun_t)(pthread_t, int, void *);
-	void *SR_starter(void *arg);
-	void SR_cleaner(void *arg);
 	class Receiver{
 		private:
 			recv_fun_t receiver;
@@ -39,15 +36,16 @@ namespace Server{
 	class SignalRouter{
 		private:
 			static std::map<pthread_t, Receiver*> map;
-			static Util::Mutex map_protector;
+			static Mutex map_protector;
+			static void signal_route(int i);
 		public:
+			static void *starter(void *arg);
+			static void cleaner(void *arg);
 			static void register_thread(pthread_t, Receiver*);
 			static void register_thread(pthread_t, recv_fun_t handler, void *arg);
 			static void unregister_thread(pthread_t);
 			static void route(int sig);
 			static int spawn_and_register(pthread_t*, void *(*starter)(void*), recv_fun_t handler, void* arg, int sig);
-		friend void SR_cleaner(void *arg);
-		friend void *SR_starter(void *arg);
 	};
 
 

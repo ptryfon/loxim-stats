@@ -10,7 +10,7 @@
 #include <Errors/Exceptions.h>
 #include <SystemStats/AllStats.h>
 #include <SystemStats/SessionStats.h>
-#include <Server/SignalRouter.h>
+#include <Util/SignalRouter.h>
 #include <Server/Session.h>
 #include <Protocol/Enums/Enums.h>
 #include <Protocol/Exceptions.h>
