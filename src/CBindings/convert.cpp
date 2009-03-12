@@ -14,7 +14,7 @@
 #include <Protocol/Packages/Data/RefPackage.h>
 #include <Protocol/Packages/Data/BindingPackage.h>
 
-#include "liblx.h"
+#include <CBindings/loxim_c_client.h>
 
 char* alloc_str(const char *begin, size_t length)
 {

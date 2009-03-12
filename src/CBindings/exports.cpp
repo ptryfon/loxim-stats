@@ -4,10 +4,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "liblx.h"
-
 #include <Client/SimpleClient.h>
 #include <Protocol/Packages/Package.h>
+#include <CBindings/loxim_c_client.h>
 
 
 

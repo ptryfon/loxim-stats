@@ -936,7 +936,7 @@ void generate_makefiles(const vector<Enum> &enums, const vector<pair<string, map
 		}
 		mk << "SUBDIRS = Streams Packages Enums" << endl;
 		mk << "noinst_LTLIBRARIES = libProtocol.la" << endl;
-		string src = "Exceptions.cpp Exceptions.h TCPServer.h TCPServer.cpp ByteBuffer.h ByteBuffer.cpp PackageFactory.h PackageFactory.cpp VarUint.h ";
+		string src = "Exceptions.cpp Exceptions.h TCPServer.h TCPServer.cpp ByteBuffer.h ByteBuffer.cpp VarUint.h ";
 		for (vector<pair<string, map<string, Package> > >::const_iterator pg = package_groups.begin(); pg != package_groups.end(); ++pg) {
 			src += first_upper(pg->first) + "PackageFactory.h ";
 			src += first_upper(pg->first) + "PackageFactory.cpp ";

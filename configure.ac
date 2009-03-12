@@ -84,7 +84,7 @@ AC_CONFIG_FILES([Makefile src/Makefile src/Log/Makefile src/Lock/Makefile
 		src/Config/Makefile src/Util/Makefile Documentation/Makefile
 		src/Protocol/Makefile src/Protocol/Streams/Makefile
 		src/Protocol/Enums/Makefile src/Protocol/Packages/Data/Makefile
-		src/Protocol/Packages/Makefile])
+		src/Protocol/Packages/Makefile src/CBindings/Makefile])
 AC_OUTPUT
 
 if test "x$cust_verb_forced" = "xno" ; then
