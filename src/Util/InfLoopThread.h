@@ -3,6 +3,7 @@
 
 #include <pthread.h>
 #include <cassert>
+#include <memory>
 #include <Errors/Exceptions.h>
 #include <Util/Concurrency.h>
 

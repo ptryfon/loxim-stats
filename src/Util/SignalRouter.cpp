@@ -1,4 +1,5 @@
 #include <signal.h>
+#include <memory>
 #include <Errors/Errors.h>
 #include <Errors/Exceptions.h>
 #include <Util/SignalRouter.h>
