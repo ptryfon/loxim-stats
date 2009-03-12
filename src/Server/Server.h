@@ -8,15 +8,13 @@
 #include <Config/SBQLConfig.h>
 #include <Util/smartptr.h>
 #include <Util/Concurrency.h>
-
+#include <Util/SignalReceiver.h>
 
 namespace Server{
 
-	void LSrv_signal_handler(pthread_t, int, void*);
 
 	class Session;
-	class Server{
-		friend void LSrv_signal_handler(pthread_t, int, void*);
+	class Server : public Util::SignalReceiver{
 		private:
 			bool shutting_down;
 			Errors::ErrorConsole &err_cons;
@@ -26,10 +24,9 @@ namespace Server{
 			int config_max_package_size;
 			int config_keep_alive_interval;
 			bool config_auth_trust_allowed;
-			pthread_t thread;
 			Protocol::TCPServer server;
 			
-			void handle_signal(int sig);
+			void signal_handler(int sig);
 		public:
 
 			Server(uint32_t host, int port, const Config::SBQLConfig &config);

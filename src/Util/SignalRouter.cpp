@@ -1,13 +1,50 @@
 #include <signal.h>
+#include <Errors/Errors.h>
+#include <Errors/Exceptions.h>
 #include <Util/SignalRouter.h>
+#include <Util/SignalReceiver.h>
 #include <Util/Concurrency.h>
-#include <Util/smartptr.h>
 
 using namespace std;
 using namespace Util;
-using namespace _smptr;
+using namespace Errors;
 
 namespace Util{
+	class Receiver{
+		private:
+			SignalReceiver &receiver;
+			std::vector<int> signals;
+			sigset_t sigmask;
+		public:
+
+			Receiver(SignalReceiver &receiver, sigset_t mask,
+					const std::vector<int> &signals) : 
+				receiver(receiver), signals(signals)
+			{
+				sigmask = mask;
+			}
+
+			void receive(int sig)
+			{
+				receiver.signal_handler(sig);
+			}
+
+			SignalReceiver &get_receiver()
+			{
+				return receiver;
+			}
+
+			const vector<int> &get_signals()
+			{
+				return signals;
+			}
+
+			const sigset_t &get_sigmask()
+			{
+				return sigmask;
+			}
+
+	};
 
 	map<pthread_t, Receiver*> SignalRouter::map;
 	Mutex SignalRouter::map_protector;
@@ -27,164 +64,104 @@ namespace Util{
 	void *SignalRouter::starter(void *arg)
 	{
 		
-		Receiver *r = (Receiver*)arg;
+		Receiver &r(*reinterpret_cast<Receiver*>(arg));
 		struct sigaction sig;
 		int error;
 		SignalRouter::register_thread(pthread_self(), r);
-		sigemptyset(&sig.sa_mask);
 		sig.sa_handler = SignalRouter::signal_route;
 		sig.sa_flags = 0;
-		if (sigaction(r->get_sig(), &sig, 0)){
-			//TODO: do sth
+		for (vector<int>::const_iterator i = r.get_signals().begin(); i != r.get_signals().end(); ++i) {
+			if (sigaction(*i, &sig, 0)){
+				//TODO: do sth
+			}
 		}
 		pthread_cleanup_push(SignalRouter::cleaner, NULL);
-
-
-		if ((error = pthread_sigmask(SIG_SETMASK, r->get_sigmask(), NULL))){
+		if ((error = pthread_sigmask(SIG_SETMASK, &r.get_sigmask(), NULL))){
 			//TODO: do something reasonable here!!!
 		}
 		//now that we've assured that signals will be properly handled,
 		//we may start the thread's logic
-		r->get_starter()(r->get_arg());
+		StartableSignalReceiver &recv = dynamic_cast<StartableSignalReceiver&>(r.get_receiver());
+		try {
+			recv.start();
+		} catch ( ... ) {
+			//XXX log it
+		}
 		pthread_cleanup_pop(1);
 		return NULL;
 	}
 
-	void SignalRouter::register_thread(pthread_t thread, Receiver *recv)
+	void SignalRouter::register_thread(pthread_t thread, Receiver &recv)
 	{
-		map[thread] = recv;
+		Locker l(map_protector);
+		if (map.find(thread) != map.end())
+			throw LoximException(EINVAL);
+		map[thread] = &recv;
 	}
 
-	void SignalRouter::register_thread(pthread_t thread, recv_fun_t recv, void *arg)
+	void SignalRouter::register_thread(pthread_t thread, SignalReceiver &receiver)
 	{
-		Receiver *r = new Receiver(recv, arg);
-		Locker l(map_protector);
-		map[thread] = r;
+		vector<int> v;
+		sigset_t mask;
+		int error = pthread_sigmask(SIG_SETMASK, NULL, &mask);
+		if (error)
+			throw LoximException(error);
+		Receiver *r = new Receiver(receiver, mask, v);
+		register_thread(thread, *r);
 	}
 	
 	void SignalRouter::unregister_thread(pthread_t thread)
 	{
+		Locker l(map_protector);
+		Receiver *r = map[thread];
 		map.erase(thread);
+		delete r;
 	}
 
 	void SignalRouter::route(int sig)
 	{
 		//ignore signals for which a route does not exist
 		if (map.find(pthread_self()) != map.end())
-			map[pthread_self()]->call(sig);	
+			map[pthread_self()]->receive(sig);	
 	}
 
-	int SignalRouter::spawn_and_register(pthread_t* thread, void *(*starter)(void*), recv_fun_t handler, void* arg, int sig)
+	void SignalRouter::spawn_and_register(StartableSignalReceiver
+			&recv, const sigset_t &mask, const vector<int> &signals)
 	{
-		sigset_t old_mask, new_mask;
+		sigset_t block_mask, old_mask;
 		int error;
-		if ((error = pthread_sigmask(0, NULL, &old_mask)))
-			return error;
-		new_mask = old_mask;
-		Receiver *r = new Receiver(handler, starter, arg, sig, &old_mask);
-		if ((error = sigaddset(&new_mask, sig))){
-			delete r;
-			return error;
+		if (sigfillset(&block_mask))
+			throw new LoximException(errno);
+		auto_ptr<Receiver> r(new Receiver(recv, mask, signals));
+		Masker m(block_mask);
+		if ((error = pthread_create(&(recv.get_thread()), NULL, SignalRouter::starter, r.get()))) {
+			throw LoximException(error);
 		}
-		if ((error = pthread_sigmask(SIG_SETMASK, &new_mask, NULL))){
-			delete r;
-			return error;
-		}
-		if ((error = pthread_create(thread, NULL, SignalRouter::starter, r))){
-			delete r;
-			return error;
-		}
-		pthread_sigmask(SIG_SETMASK, &old_mask, NULL);
+		r.release();
 		//actually there should be some synchronisation to ensure that
 		//the second initialisation part was also successful
-		return 0;
+	}
+			
+	void SignalRouter::spawn_and_register(StartableSignalReceiver& recv, int sig)
+	{
+		sigset_t mask;
+		if (sigfillset(&mask))
+			throw new LoximException(errno);
+		if (sigdelset(&mask, sig))
+			throw new LoximException(errno);
+		vector<int> v;
+		v.push_back(sig);
+		spawn_and_register(recv, mask, v);
+	}
+
+	void SignalRouter::spawn_and_register(StartableSignalReceiver &recv)
+	{
+		sigset_t mask;
+		if (sigfillset(&mask))
+			throw new LoximException(errno);
+		vector<int> v;
+		spawn_and_register(recv, mask, v);
 	}
 	
-	void Receiver::set_receiver(recv_fun_t receiver)
-	{
-		this->receiver = receiver;
-	}
-	
-	recv_fun_t Receiver::get_receiver()
-	{
-		return receiver;
-	}
-	
-	void Receiver::set_arg(void *arg)
-	{
-		this->arg = arg;
-	}
-	
-	void *Receiver::get_arg()
-	{
-		return arg;
-	}
-
-
-	int Receiver::get_sig()
-	{
-		return sig;
-	}
-
-	void Receiver::set_sig(int sig)
-	{
-		this->sig = sig;
-	}
-
-	void Receiver::set_sigmask(sigset_t *mask)
-	{
-		this->sigmask = *mask;
-	}
-
-	sigset_t *Receiver::get_sigmask()
-	{
-		return &sigmask;
-	}
-
-	void Receiver::call(int sig)
-	{
-		receiver(pthread_self(), sig, arg);
-	}
-
-	void *(*Receiver::get_starter())(void*)
-	{
-		return starter;
-	}
-	
-	Receiver::Receiver(recv_fun_t receiver, void *(*starter)(void*), void *arg, int sig, sigset_t *sigmask)
-	{
-		this->receiver = receiver;
-		this->starter = starter;
-		this->arg = arg;
-		this->sig = sig;
-		if (sigmask)
-			this->sigmask = *sigmask;
-	}
-	
-	Receiver::Receiver(const Receiver& r)
-	{
-		this->receiver = r.receiver;
-		this->arg = r.arg;
-		this->starter = r.starter;
-		this->sigmask = r.sigmask;
-		this->sig = r.sig;
-	}
-	
-	Receiver::Receiver(recv_fun_t receiver, void *arg)
-	{
-		this->receiver = receiver;
-		this->arg = arg;
-	}
-
-
-	Receiver &Receiver::operator=(const Receiver &r)
-	{
-		this->receiver = r.receiver;
-		this->arg = r.arg;
-		this->starter = r.starter;
-		this->sigmask = r.sigmask;
-		this->sig = r.sig;
-		return *this;
-	}
 }
 

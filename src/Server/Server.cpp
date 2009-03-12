@@ -44,14 +44,14 @@ namespace Server{
 		config_auth_trust_allowed(config.getBoolDefault(
 				CONFIG_AUTH_TRUST_ALLOWED_NAME,
 				CONFIG_AUTH_TRUST_ALLOWED_DEFAULT)),
-		thread(pthread_self()), server(addr, port, DEFAULT_BACKLOG)
+		server(addr, port, DEFAULT_BACKLOG)
 	{
-		SignalRouter::register_thread(thread, LSrv_signal_handler, this);
+		SignalRouter::register_thread(thread, *this);
+		thread = pthread_self();
 	}
 
 	Server::~Server()
 	{
-		//XXX unregister from signal router
 	}
 
 	void Server::main_loop()
@@ -70,7 +70,7 @@ namespace Server{
 						auto_ptr<PackageStream> pstream(new PackageCodec(stream, get_config_max_package_size()));
 						shared_ptr<Session> new_session(new Session(*this, pstream));
 						open_sessions[new_session->get_id()] = new_session;
-						new_session->start();
+						new_session->launch();
 					} catch (LoximException &ex) {
 						warning_print(err_cons, "Caught exception while creating new session:");
 						warning_print(err_cons, ex.to_string());
@@ -108,7 +108,7 @@ namespace Server{
 		pthread_kill(thread, SIGUSR1);
 	}
 
-	void Server::handle_signal(int sig)
+	void Server::signal_handler(int sig)
 	{
 		shutting_down = 1;
 	}
@@ -130,11 +130,6 @@ namespace Server{
 		info_printf(err_cons, "Session %d ended with code %d (%s), working sessions left: %d", (int)session_id, (int)code, SBQLstrerror(code).c_str(), (int)get_sessions_count());
 	}
 
-	void LSrv_signal_handler(pthread_t thread, int sig, void *arg)
-	{
-		Server *serv = (Server*)arg;
-		serv->handle_signal(sig);
-	}
 
 	int Server::get_sessions_count() const
 	{

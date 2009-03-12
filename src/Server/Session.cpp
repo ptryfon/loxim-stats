@@ -52,16 +52,6 @@ using namespace QExecutor;
 
 namespace Server{
 
-	void *thread_start_continue(void *arg)
-	{
-		reinterpret_cast<Session*>(arg)->main_loop();
-		return 0;
-	}
-
-	void LS_signal_handler(pthread_t thread, int sig, void* arg)
-	{
-		reinterpret_cast<Session*>(arg)->handle_signal(sig);
-	}
 
 
 	Session::Session(Server &server, auto_ptr<PackageStream>
@@ -94,6 +84,11 @@ namespace Server{
 		AllStats::getHandle()->getQueriesStats()->endSession(this->id);
 	}
 
+	void Session::start()
+	{
+		main_loop();
+	}
+
 	uint64_t Session::get_id() const
 	{
 		return id;
@@ -102,11 +97,6 @@ namespace Server{
 	Server &Session::get_server() const
 	{
 		return server;
-	}
-
-	pthread_t Session::get_thread() const
-	{
-		return thread;
 	}
 
 	const UserData *Session::get_user_data() const
@@ -120,10 +110,9 @@ namespace Server{
 	}
 
 
-	void Session::start()
+	void Session::launch()
 	{
-		SignalRouter::spawn_and_register(&thread, thread_start_continue,
-				LS_signal_handler, this, SIGUSR1);
+		SignalRouter::spawn_and_register(*this, SIGUSR1);
 	}
 
 	void Session::main_loop()
@@ -415,7 +404,7 @@ namespace Server{
 	}
 
 
-	void Session::handle_signal(int i)
+	void Session::signal_handler(int i)
 	{
 		shutting_down = 1;
 	}

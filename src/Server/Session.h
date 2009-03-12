@@ -15,6 +15,7 @@
 #include <Server/Clipboard.h>
 #include <Util/smartptr.h>
 #include <Util/Concurrency.h>
+#include <Util/SignalReceiver.h>
 
 
 namespace Server{
@@ -104,11 +105,9 @@ namespace Server{
 	};
 
 
-	class Session{
+	class Session : public Util::StartableSignalReceiver {
 		friend class KeepAliveThread;
 		friend class Worker;
-		friend void LS_signal_handler(pthread_t, int, void*);
-		friend void *thread_start_continue(void*);
 		public:
 			/** 
 			 * The creator should take care to create objects synchronously,
@@ -119,7 +118,6 @@ namespace Server{
 			
 			uint64_t get_id() const;
 			Server &get_server() const;
-			pthread_t get_thread() const;
 
 			/**
 			 * @deprecated Overrides smart pointer and therefore can
@@ -136,6 +134,8 @@ namespace Server{
 			 * Start the session.
 			 */
 			void start();
+
+			void launch();
 
 			void shutdown(int reason);
 		private:
@@ -162,7 +162,6 @@ namespace Server{
 			SystemStatsLib::SessionStats stats;
 			char salt[20];
 			Util::Mutex send_mutex;
-			pthread_t thread;
 			sigset_t mask;	
 
 			void main_loop();
@@ -183,7 +182,7 @@ namespace Server{
 			void free_state();
 			std::auto_ptr<QExecutor::QueryResult> execute_statement(const std::string &stmt);
 		
-			void handle_signal(int);
+			void signal_handler(int);
 			
 			bool is_white(char c) const;
 	};

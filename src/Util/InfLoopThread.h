@@ -4,6 +4,7 @@
 #include <pthread.h>
 #include <cassert>
 #include <Errors/Exceptions.h>
+#include <Util/Concurrency.h>
 
 namespace Util {
 
@@ -58,6 +59,8 @@ namespace Util {
 			bool alive;
 			pthread_t thread;
 			auto_ptr<T> logic;
+			Mutex start_mutex;
+			CondVar start_cond;
 		public:
 			template <class Starter>
 			InfLoopThread(auto_ptr<T> logic, const Starter &st) :
