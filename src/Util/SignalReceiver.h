@@ -10,7 +10,7 @@ namespace Util {
 			pthread_t thread;
 
 		public:
-			~SignalReceiver();
+			virtual ~SignalReceiver();
 			pthread_t &get_thread() { return thread; }
 
 			virtual void signal_handler(int sig) = 0;
