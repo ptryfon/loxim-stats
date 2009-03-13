@@ -80,33 +80,36 @@ namespace Util{
 				return NULL;
 			}
 		}
-		pthread_cleanup_push(SignalRouter::cleaner, NULL);
-		//now that we've assured that signals will be properly handled,
-		//we may start the thread's logic
-		StartableSignalReceiver &recv =
-			dynamic_cast<StartableSignalReceiver&>(r->get_receiver());
-		try {
-			recv.init();
-		} catch ( ... ) {
-			r->error = EINVAL;
-			r->cond.signal();
-			return NULL;
-		}
-		if ((r->error = pthread_sigmask(SIG_SETMASK, &r->get_sigmask(),
-						NULL))){
-			r->cond.signal();
-			return NULL;
-		}
 		{
-			Locker l(r->mutex);
-			r->cond.signal();
+			//now that we've assured that signals will be properly handled,
+			//we may start the thread's logic
+			StartableSignalReceiver &recv =
+				dynamic_cast<StartableSignalReceiver&>(r->get_receiver());
+			try {
+				recv.init();
+			} catch ( ... ) {
+				r->error = EINVAL;
+				r->cond.signal();
+				SignalRouter::cleaner(NULL);
+				return NULL;
+			}
+			if ((r->error = pthread_sigmask(SIG_SETMASK, &r->get_sigmask(),
+							NULL))){
+				r->cond.signal();
+				SignalRouter::cleaner(NULL);
+				return NULL;
+			}
+			{
+				Locker l(r->mutex);
+				r->cond.signal();
+			}
+			try {
+				recv.start();
+			} catch ( ... ) {
+				//XXX log it
+			}
+			SignalRouter::cleaner(NULL);
 		}
-		try {
-			recv.start();
-		} catch ( ... ) {
-			//XXX log it
-		}
-		pthread_cleanup_pop(1);
 		return NULL;
 	}
 
@@ -169,8 +172,6 @@ namespace Util{
 		l.wait(r->cond);
 		if (r->error)
 			throw LoximException(r->error);
-		//actually there should be some synchronisation to ensure that
-		//the second initialisation part was also successful
 	}
 			
 	void SignalRouter::spawn_and_register(StartableSignalReceiver& recv,

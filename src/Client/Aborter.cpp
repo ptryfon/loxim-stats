@@ -5,23 +5,13 @@ using namespace Util;
 
 namespace Client{
 
-	void *AB_starter(void *arg)
-	{
-		((Aborter*)arg)->loop();
-		return NULL;
-	}
 
 	Aborter::Aborter(Client &client) :
 		shutting_down(false), client(client)
 	{
 	}
 
-	void Aborter::start()
-	{
-		pthread_create(&thread, NULL, AB_starter, this);
-	}
-
-	void Aborter::stop()
+	void Aborter::kill(bool synchronous)
 	{
 		Locker l(mutex);
 		shutting_down = true;
@@ -32,19 +22,23 @@ namespace Client{
 	 * The idea is to make sending an abort non-blocking. If we're in the
 	 * middle of sending an abort, it won't do anything.
 	 */
-	void Aborter::trigger()
+	void Aborter::signal_handler(int sig)
 	{
 		cond.signal();
 	}
 
-	void Aborter::loop()
+	void Aborter::start()
 	{
-		Locker l(mutex);
-		while (true){
-			l.wait(cond);
-			if (shutting_down)
-				pthread_exit(NULL);
-			client.abort();
+		try{
+			Locker l(mutex);
+			while (!shutting_down){
+				l.wait(cond);
+				if (shutting_down)
+					pthread_exit(NULL);
+				client.abort();
+			}
+		} catch (...) {
+			//XXX log it
 		}
 	}
 

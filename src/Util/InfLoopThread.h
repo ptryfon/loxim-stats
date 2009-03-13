@@ -29,6 +29,12 @@ namespace Util {
 				SignalRouter::spawn_and_register(*(this->logic.get()),
 						mask, signals);
 			}
+			InfLoopThread(auto_ptr<T> logic, int sig) :
+				logic(logic), killed(false)
+			{
+				SignalRouter::spawn_and_register(*(this->logic.get()),
+						sig);
+			}
 			~InfLoopThread()
 			{
 				kill(true);

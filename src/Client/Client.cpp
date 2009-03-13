@@ -11,6 +11,7 @@
 #include <Errors/Errors.h>
 #include <Errors/Exceptions.h>
 #include <Util/smartptr.h>
+#include <Util/InfLoopThread.h>
 #include <Protocol/Exceptions.h>
 #include <Protocol/Streams/TCPClientStream.h>
 #include <Protocol/Enums/Enums.h>
@@ -56,12 +57,58 @@ namespace Client{
 
 	#define MAX_PACKAGE_SIZE 100000
 
+	StatementReader::StatementReader(Client &client, StatementProvider &provider) :
+		shutting_down(false), client(client), provider(provider)
+	{
+	}
+
+	void StatementReader::kill(bool synchronous)
+	{
+		Locker l(mutex);
+		shutting_down = true;
+		cond.signal();
+	}
+
+	/**
+	 * The idea is to make sending an abort non-blocking. If we're in the
+	 * middle of sending an abort, it won't do anything.
+	 */
+	void StatementReader::signal_handler(int sig)
+	{
+		cond.signal();
+	}
+
+	void StatementReader::start()
+	{
+		try {
+			while (!shutting_down){
+				string stmt = provider.read_stmt();
+				{
+					Locker l(client.logic_mutex);
+					if (!stmt.compare("quit")){
+						auto_ptr<ByteBuffer> buf(new ByteBuffer("Client quitted"));
+						ASCByePackage package(0, buf);
+						client.stream->write_package(client.mask, shutting_down, package);
+						client.shutting_down = true;
+						return;
+					}
+					{
+						auto_ptr<ByteBuffer> b_stmt(new ByteBuffer(stmt));
+						QCStatementPackage package(SF_EXECUTE, b_stmt);
+						client.stream->write_package(client.mask, shutting_down, package);
+					}
+					client.waiting_for_result = true;
+					l.wait(client.read_cond);
+				}
+			}
+		} catch (...) {
+		}
+	}
 
 	Client::Client(uint32_t host, uint16_t port) :
 		stream(new PackageCodec(auto_ptr<DataStream>(new
 		TCPClientStream(host, port)), MAX_PACKAGE_SIZE)), error(0),
-		shutting_down(false), waiting_for_result(false),
-		aborter(*this) 
+		shutting_down(false), waiting_for_result(false)
 	{
 		pthread_sigmask(0, NULL, &mask);
 		sigaddset(&mask, SIGUSR1);
@@ -77,30 +124,11 @@ namespace Client{
 		pthread_mutex_t cond_mutex;
 		pthread_mutex_init(&cond_mutex, 0);
 
-		pthread_t result_thread;
-		pthread_create(&result_thread, 0, result_handler_starter, this);
-		/* kill both on exit */
-		//result_handler->start();
-		aborter.start();
-		while (true){
-			string stmt = provider.read_stmt();
-			{
-				Locker l(logic_mutex);
-				if (!stmt.compare("quit")){
-					auto_ptr<ByteBuffer> buf(new ByteBuffer("Client quitted"));
-					ASCByePackage package(0, buf);
-					stream->write_package(mask, shutting_down, package);
-					return;
-				}
-				{
-					auto_ptr<ByteBuffer> b_stmt(new ByteBuffer(stmt));
-					QCStatementPackage package(SF_EXECUTE, b_stmt);
-					stream->write_package(mask, shutting_down, package);
-				}
-				waiting_for_result = true;
-				l.wait(read_cond);
-			}
-		}
+		auto_ptr<Aborter> aborter(new Aborter(*this));
+		InfLoopThread<Aborter> aborter_thread(aborter, SIGINT);
+		auto_ptr<StatementReader> reader(new StatementReader(*this, provider));
+		InfLoopThread<StatementReader> reader_thread(reader, SIGINT);
+		result_handler();
 	}
 
 	void Client::abort()
@@ -131,44 +159,51 @@ namespace Client{
 
 	void Client::result_handler()
 	{
-		while(true){
-			auto_ptr<Package> result = receive_result();
-			//if error in protocol occurred or the server wants to close the connection
-			{
-				Locker l(logic_mutex);
-				if (result->get_type() == A_SC_PING_PACKAGE){
-					ASCPongPackage p;
-					stream->write_package(mask, shutting_down, p);
-					continue;
-				}
-				if (waiting_for_result){
-					switch (result->get_type()){
-						case A_SC_ERROR_PACKAGE:
-							{
-								print_error(dynamic_cast<ASCErrorPackage&>(*result));
-								break;
-							}
-						case V_SC_SENDVALUE_PACKAGE:
-							{
-								print_result(dynamic_cast<VSCSendvaluePackage&>(*result).get_val_data(), 0);
-								break;
-							}
-						case A_SC_BYE_PACKAGE:
-							{
-								//close client
-								//connection
-							}
-						default:
-							throw runtime_error("internal error");
+		try {
+			while(true){
+				auto_ptr<Package> result = receive_result();
+				//if error in protocol occurred or the server wants to close the connection
+				{
+					Locker l(logic_mutex);
+					if (result->get_type() == A_SC_PING_PACKAGE){
+						ASCPongPackage p;
+						stream->write_package(mask, shutting_down, p);
+						continue;
 					}
-					error = 0;
-					waiting_for_result = false;
-				} else {
-					//close client connection
-					error = EProtocol;
+					if (waiting_for_result){
+						switch (result->get_type()){
+							case A_SC_ERROR_PACKAGE:
+								{
+									print_error(dynamic_cast<ASCErrorPackage&>(*result));
+									break;
+								}
+							case V_SC_SENDVALUE_PACKAGE:
+								{
+									print_result(dynamic_cast<VSCSendvaluePackage&>(*result).get_val_data(), 0);
+									break;
+								}
+							case A_SC_BYE_PACKAGE:
+								{
+									//close client
+									//connection
+								}
+							default:
+								throw runtime_error("internal error");
+						}
+						error = 0;
+						waiting_for_result = false;
+					} else {
+						//close client connection
+						error = EProtocol;
+					}
+					read_cond.signal();
 				}
-				read_cond.signal();
 			}
+			exit(0);
+		}  catch (LoximException &ex) {
+			if (shutting_down)
+				exit(0);
+			exit(1);
 		}
 	}
 

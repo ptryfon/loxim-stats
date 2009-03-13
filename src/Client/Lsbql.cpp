@@ -23,10 +23,6 @@ using namespace Client;
 
 auto_ptr< ::Client::Client> client;
 
-void sig_handler(int a)
-{
-	client->aborter.trigger();
-}
 
 void print_usage(const string &program_name, int exit_code)
 {
@@ -146,6 +142,10 @@ int main(int argc, char** argv)
 	
 	cout << "Connected." << endl;
 
+	sigset_t mask;
+	pthread_sigmask(0, NULL, &mask);
+	sigaddset(&mask, SIGINT);
+	pthread_sigmask(0, &mask, NULL);
 	if (isatty(0))
 		cout << "Type $help to see the available commands" << endl;
 	{

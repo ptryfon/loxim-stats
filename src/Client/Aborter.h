@@ -3,29 +3,23 @@
 
 #include <pthread.h>
 #include <Util/Concurrency.h>
+#include <Util/SignalReceiver.h>
 
 namespace Client{
 
-	void *AB_starter(void *arg);
-
 	class Client;
 
-	class Aborter{
-		friend void *AB_starter(void *arg);
+	class Aborter : public Util::StartableSignalReceiver {
 		public:
 			Aborter(Client &client);
 			void start();
-			void stop();
-			void trigger();
+			void kill(bool synchronous);
+			void signal_handler(int sig);
 		protected:
 			Util::Mutex mutex;
 			Util::CondVar cond;
-			pthread_t thread;
 			bool shutting_down;
 			Client &client;
-
-			void loop();
-
 	};
 }
 

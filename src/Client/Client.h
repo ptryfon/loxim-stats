@@ -8,6 +8,7 @@
 #include <Client/Authenticator.h>
 #include <Client/Aborter.h>
 #include <Util/Concurrency.h>
+#include <Util/SignalReceiver.h>
 
 #include <string>
 #include <memory>
@@ -18,10 +19,25 @@ namespace Client{
 	void signal_handler(int sig);
 	class Aborter;
 
+	class StatementReader : public Util::StartableSignalReceiver {
+		public:
+			StatementReader(Client &client, StatementProvider &provider);
+			void start();
+			void kill(bool synchronous);
+			void signal_handler(int sig);
+		protected:
+			Util::Mutex mutex;
+			Util::CondVar cond;
+			bool shutting_down;
+			Client &client;
+			StatementProvider &provider;
+	};
+
 	class Client
 	{
 		friend void *result_handler_starter(void *a);
 		friend void signal_handler(int sig);
+		friend class StatementReader;
 	
 		private:
 			std::auto_ptr<Protocol::PackageStream> stream;
@@ -32,8 +48,7 @@ namespace Client{
 			bool shutting_down;
 			sigset_t mask;
 			bool waiting_for_result;
-		public:
-			Aborter aborter;
+			
 		private:
 			
 			std::auto_ptr<Protocol::Package> receive_result();

@@ -89,6 +89,7 @@ namespace Server{
 		}
 		{
 			Locker l(open_sessions_mutex);
+			shutting_down = 1;
 			info_print(err_cons, "Quitting, telling sessions to shut down");
 			for (set<pair<const uint64_t, shared_ptr<Session> > >::iterator i = open_sessions.begin(); i != open_sessions.end(); i++){
 				i->second->shutdown(0);
@@ -119,14 +120,15 @@ namespace Server{
 	 */
 	void Server::end_session(uint64_t session_id, int code)
 	{
+		if (shutting_down)
+			return;
+		Locker l(open_sessions_mutex);
+		if (shutting_down)
+			return;
+
 		shared_ptr<Session> session = open_sessions[session_id];
-		{
-			Locker l(open_sessions_mutex);
-			if (!shutting_down){
-				pthread_detach(session->get_thread());
-				open_sessions.erase(session_id);
-			}	
-		}
+		pthread_detach(session->get_thread());
+		open_sessions.erase(session_id);
 		info_printf(err_cons, "Session %d ended with code %d (%s), working sessions left: %d", (int)session_id, (int)code, SBQLstrerror(code).c_str(), (int)get_sessions_count());
 	}
 
