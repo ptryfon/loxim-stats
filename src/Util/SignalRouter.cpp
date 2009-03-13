@@ -1,5 +1,6 @@
 #include <signal.h>
 #include <memory>
+#include <cassert>
 #include <Errors/Errors.h>
 #include <Errors/Exceptions.h>
 #include <Util/SignalRouter.h>
@@ -9,14 +10,17 @@
 using namespace std;
 using namespace Util;
 using namespace Errors;
+using namespace _smptr;
 
 namespace Util{
 	class Receiver{
-		private:
+		public:
 			SignalReceiver &receiver;
 			std::vector<int> signals;
 			sigset_t sigmask;
-		public:
+			int error;
+			Mutex mutex;
+			CondVar cond;
 
 			Receiver(SignalReceiver &receiver, sigset_t mask,
 					const std::vector<int> &signals) : 
@@ -47,7 +51,7 @@ namespace Util{
 
 	};
 
-	map<pthread_t, Receiver*> SignalRouter::map;
+	map<pthread_t, shared_ptr<Receiver> > SignalRouter::map;
 	Mutex SignalRouter::map_protector;
 	
 	void SignalRouter::signal_route(int i)
@@ -58,31 +62,45 @@ namespace Util{
 	void SignalRouter::cleaner(void *arg)
 	{
 		Locker l(SignalRouter::map_protector);
-		auto_ptr<Receiver> r(SignalRouter::map[pthread_self()]);
 		SignalRouter::map.erase(pthread_self());
 	}
 	
 	void *SignalRouter::starter(void *arg)
 	{
-		
-		Receiver &r(*reinterpret_cast<Receiver*>(arg));
+		shared_ptr<Receiver> r(
+			*(reinterpret_cast<shared_ptr<Receiver>*>(arg)));
 		struct sigaction sig;
-		int error;
 		SignalRouter::register_thread(pthread_self(), r);
 		sig.sa_handler = SignalRouter::signal_route;
 		sig.sa_flags = 0;
-		for (vector<int>::const_iterator i = r.get_signals().begin(); i != r.get_signals().end(); ++i) {
-			if (sigaction(*i, &sig, 0)){
-				//TODO: do sth
+		for (vector<int>::const_iterator i = r->get_signals().begin();
+				i != r->get_signals().end(); ++i) {
+			if ((r->error = sigaction(*i, &sig, 0))){
+				r->cond.signal();
+				return NULL;
 			}
 		}
 		pthread_cleanup_push(SignalRouter::cleaner, NULL);
-		if ((error = pthread_sigmask(SIG_SETMASK, &r.get_sigmask(), NULL))){
-			//TODO: do something reasonable here!!!
-		}
 		//now that we've assured that signals will be properly handled,
 		//we may start the thread's logic
-		StartableSignalReceiver &recv = dynamic_cast<StartableSignalReceiver&>(r.get_receiver());
+		StartableSignalReceiver &recv =
+			dynamic_cast<StartableSignalReceiver&>(r->get_receiver());
+		try {
+			recv.init();
+		} catch ( ... ) {
+			r->error = EINVAL;
+			r->cond.signal();
+			return NULL;
+		}
+		if ((r->error = pthread_sigmask(SIG_SETMASK, &r->get_sigmask(),
+						NULL))){
+			r->cond.signal();
+			return NULL;
+		}
+		{
+			Locker l(r->mutex);
+			r->cond.signal();
+		}
 		try {
 			recv.start();
 		} catch ( ... ) {
@@ -92,31 +110,31 @@ namespace Util{
 		return NULL;
 	}
 
-	void SignalRouter::register_thread(pthread_t thread, Receiver &recv)
+	void SignalRouter::register_thread(pthread_t thread,
+			shared_ptr<Receiver> recv)
 	{
 		Locker l(map_protector);
 		if (map.find(thread) != map.end())
 			throw LoximException(EINVAL);
-		map[thread] = &recv;
+		map[thread] = recv;
 	}
 
-	void SignalRouter::register_thread(pthread_t thread, SignalReceiver &receiver)
+	void SignalRouter::register_thread(pthread_t thread, SignalReceiver
+			&receiver)
 	{
 		vector<int> v;
 		sigset_t mask;
 		int error = pthread_sigmask(SIG_SETMASK, NULL, &mask);
 		if (error)
 			throw LoximException(error);
-		Receiver *r = new Receiver(receiver, mask, v);
-		register_thread(thread, *r);
+		register_thread(thread, shared_ptr<Receiver>(new
+					Receiver(receiver, mask, v)));
 	}
 	
 	void SignalRouter::unregister_thread(pthread_t thread)
 	{
 		Locker l(map_protector);
-		Receiver *r = map[thread];
 		map.erase(thread);
-		delete r;
 	}
 
 	void SignalRouter::route(int sig)
@@ -127,23 +145,36 @@ namespace Util{
 	}
 
 	void SignalRouter::spawn_and_register(StartableSignalReceiver
-			&recv, const sigset_t &mask, const vector<int> &signals)
+			&recv, const sigset_t &mask, const vector<int>
+			&signals)
 	{
-		sigset_t block_mask, old_mask;
-		int error;
+		sigset_t block_mask;
+		int lerror;
 		if (sigfillset(&block_mask))
 			throw new LoximException(errno);
-		auto_ptr<Receiver> r(new Receiver(recv, mask, signals));
-		Masker m(block_mask);
-		if ((error = pthread_create(&(recv.get_thread()), NULL, SignalRouter::starter, r.get()))) {
-			throw LoximException(error);
+		shared_ptr<Receiver> r(new Receiver(recv, mask, signals));
+		auto_ptr<shared_ptr<Receiver> > rp(new
+				shared_ptr<Receiver>(r));
+		Locker l(r->mutex);
+		{
+			Masker m(block_mask);
+			if ((lerror = pthread_create(&(recv.get_thread()),
+							NULL,
+							SignalRouter::starter,
+							rp.get()))) {
+				throw LoximException(lerror);
+			}
+
 		}
-		r.release();
+		l.wait(r->cond);
+		if (r->error)
+			throw LoximException(r->error);
 		//actually there should be some synchronisation to ensure that
 		//the second initialisation part was also successful
 	}
 			
-	void SignalRouter::spawn_and_register(StartableSignalReceiver& recv, int sig)
+	void SignalRouter::spawn_and_register(StartableSignalReceiver& recv,
+			int sig)
 	{
 		sigset_t mask;
 		if (sigfillset(&mask))

@@ -6,6 +6,7 @@
 #include <pthread.h>
 #include <signal.h>
 #include <Util/Concurrency.h>
+#include <Util/smartptr.h>
 
 
 namespace Util{
@@ -17,16 +18,19 @@ namespace Util{
 
 	class SignalRouter{
 		private:
-			static std::map<pthread_t, Receiver*> map;
+			static std::map<pthread_t, 
+				_smptr::shared_ptr<Receiver> > map;
 			static Mutex map_protector;
 			static void signal_route(int i);
-			static void register_thread(pthread_t, Receiver&);
+			static void register_thread(pthread_t,
+					_smptr::shared_ptr<Receiver>);
 			static void *starter(void *arg);
 			static void cleaner(void *arg);
 			static void route(int sig);
 		public:
 			static void unregister_thread(pthread_t);
-			static void register_thread(pthread_t, SignalReceiver&);
+			static void register_thread(pthread_t,
+					SignalReceiver&);
 			static void spawn_and_register(
 					StartableSignalReceiver&, const
 					sigset_t&, const std::vector<int>&);

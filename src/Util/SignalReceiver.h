@@ -14,6 +14,9 @@ namespace Util {
 			pthread_t &get_thread() { return thread; }
 
 			virtual void signal_handler(int sig) = 0;
+			//this is guaranteed to be called with all signals not
+			//yet unmasked
+			virtual void init() { };
 
 	};
 

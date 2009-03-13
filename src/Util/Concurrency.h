@@ -20,6 +20,8 @@ namespace Util{
 		public:
 			Mutex();
 			~Mutex();
+			void lock();
+			void unlock();
 		private:
 			
 			//just to forbid value semantics
@@ -28,8 +30,6 @@ namespace Util{
 			
 			/*lock/unlock methods are private and this is on
 			 * purpose, use Locker/Unlocker classes*/
-			void lock();
-			void unlock();
 
 	};
 
@@ -40,12 +40,12 @@ namespace Util{
 			CondVar();
 			~CondVar();
 			void signal();
+			void wait(Mutex &m);
 		private:
 			/* wait is private on purpose - it should only be
 			 * called with a mutex locked, so it's moved to Locker
 			 * */
 			pthread_cond_t cond;
-			void wait(Mutex &m);
 			bool timed_wait(Mutex &m, struct timespec &tout);
 
 	};
