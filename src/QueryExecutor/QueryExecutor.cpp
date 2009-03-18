@@ -15,6 +15,7 @@
 #include "InterfaceMaps.h"
 #include "BindNames.h"
 #include "CommonOperations.h"
+#include "AccessMap.h"
 #include <TransactionManager/Transaction.h>
 #include <Store/Store.h>
 #include <Store/DBDataValue.h>
@@ -58,6 +59,7 @@ QueryExecutor::QueryExecutor(Session *session)
 	this->session = session;
 	im = &InterfaceMaps::Instance();
 	os = &OuterSchemas::Instance();
+	am = new AccessMap();
 }
 
 int QueryExecutor::pop_qres(QueryResult *&r)
@@ -98,6 +100,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 
 	int errcode;
 	debug_print(*ec,  "[QE] executeQuery()");
+	am->reset();
 
 	if (tree != NULL) {
 		int nodeType = tree->type();
@@ -241,7 +244,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 					string name = name_list_or_null->get_name();
 					name_list_or_null = name_list_or_null->try_get_name_list();
 
-					grant_priv = grant_priv && assert_grant_priv(priv_name, name);
+					grant_priv = grant_priv && am->canGiveAccess(name);
 					if (grant_priv == false) break;
 				};
 		    };
@@ -263,39 +266,53 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 						string query = QueryBuilder::getHandle()->grant_priv_query(priv_name, name, user, grant_option);
 						QueryResult *local_res = NULL;
 						execute_locally(query, &local_res);
+						debug_printf(*ec, "Checking for schema by name %s", name.c_str());
 						if (os->hasSchemaName(name) && priv_name == Privilige::READ_PRIV)
 						{   //read access to schema == access to all included names as spec. by associated CRUDs
 							OuterSchema s = os->getSchema(name);
 							TNameToAccess aps = s.getAccessPoints();
+							debug_printf(*ec, "Schema %s has %d access points defined", name.c_str(), aps.size());
 							TNameToAccess::const_iterator it;
 							for (it = aps.begin(); it != aps.end(); ++it)
 							{
 								string apsName = (*it).first;
 								int apsCrud = (*it).second;
-								set<string> inside_priv_names;
-								if (apsCrud & Schemas::CREATE)
+								debug_printf(*ec, "AccessPoint: %s -> crud: %d ", apsName.c_str(), apsCrud);
+								string objName;
+								bool found;
+								if (im->hasInterface(apsName)) objName = im->getObjectNameForInterface(apsName, found); 
+								else if (im->hasObjectName(apsName)) objName = apsName;
+								else return -1; //TODO - no such interface or object name									 
+								if (!objName.empty())
 								{
-									inside_priv_names.insert(Privilige::CREATE_PRIV);
+									set<string> inside_priv_names;
+									if (apsCrud & QExecutor::CREATE)
+									{
+										inside_priv_names.insert(Privilige::CREATE_PRIV);
+									}
+									if (apsCrud & READ)
+									{
+										inside_priv_names.insert(Privilige::READ_PRIV);
+									}
+									if (apsCrud & UPDATE)
+									{
+										inside_priv_names.insert(Privilige::MODIFY_PRIV);
+									}
+									if (apsCrud & DELETE)
+									{
+										inside_priv_names.insert(Privilige::DELETE_PRIV);
+									}
+									for (set<string>::iterator i = inside_priv_names.begin(); i != inside_priv_names.end(); ++i)
+									{
+										string aps_priv_name = (*i);
+										string apsQuery = QueryBuilder::getHandle()->grant_priv_query(aps_priv_name, objName, user, false);
+										QueryResult *aps_local_res = NULL;
+										execute_locally(apsQuery, &local_res);
+									}
 								}
-								if (apsCrud & READ)
-								{
-									inside_priv_names.insert(Privilige::READ_PRIV);
-								}
-								if (apsCrud & UPDATE)
-								{
-									inside_priv_names.insert(Privilige::MODIFY_PRIV);
-								}
-								if (apsCrud & DELETE)
-								{
-									inside_priv_names.insert(Privilige::DELETE_PRIV);
-								}
-								for (set<string>::iterator i = inside_priv_names.begin(); i != inside_priv_names.end(); ++i)
-								{
-									string aps_priv_name = (*i);
-									string apsQuery = QueryBuilder::getHandle()->grant_priv_query(aps_priv_name, apsName, user, false);
-									QueryResult *aps_local_res = NULL;
-									execute_locally(apsQuery, &local_res);
-								}
+								string apsQuery = QueryBuilder::getHandle()->grant_priv_query(Privilige::READ_PRIV, apsName, user, false);				 
+								QueryResult *aps_local_res = NULL;
+								execute_locally(apsQuery, &local_res);
 							}			
 						}
 					};
@@ -322,7 +339,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			    string name = name_list_or_null->get_name();
 			    name_list_or_null = name_list_or_null->try_get_name_list();
 
-			    revoke_priv = revoke_priv && assert_revoke_priv(priv_name, name);
+			    revoke_priv = revoke_priv && am->canRevokeAccess();
 			    if (revoke_priv == false) break;
 			};
 		    };
@@ -353,7 +370,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 		}
 		else if (nodeType == (TreeNode::TNCREATEUSER)) {
 		    CreateUserNode *createUserNode = (CreateUserNode *) tree;
-		    bool create_priv = assert_create_user_priv();
+		    bool create_priv = am->canCreateUser();
 
 		    if (create_priv) {
 			string user   = createUserNode->get_user();
@@ -371,8 +388,8 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 		}
 		else if (nodeType == (TreeNode::TNREMOVEUSER)) {
 		    RemoveUserNode *removeUserNode = (RemoveUserNode *) tree;
-		    bool remove_priv = assert_remove_user_priv();
-
+		    bool remove_priv = am->canRemoveUser();
+				
 		    if (remove_priv) {
 			string user   = removeUserNode->get_user();
 			string query = QueryBuilder::getHandle()->remove_user_query(user);
@@ -426,7 +443,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			errcode = envs->pushDBsection();
 			
 			if (errcode == 0) {
-				errcode = this->executeRecQuery(tree, true);
+				errcode = this->executeRecQuery(tree);
 				if (errcode == EEvalStopped) errcode = 0;
 			}
 			int pop_errcode = envs->popDBsection();
@@ -466,7 +483,9 @@ void QueryExecutor::set_user_data(ValidationNode *val_node) {
 
     auto_ptr<UserData> user_data(new UserData(login, passwd));
     session->set_user_data(user_data);
+	am->resetForUser(login, this);
 };
+
 int QueryExecutor::execute_locally(string query, QueryResult **res) {
 
     QueryParser parser(session->get_id());
@@ -481,7 +500,7 @@ int QueryExecutor::execute_locally(string query, QueryResult **res) {
 		pushed = true;
 	}
 
-    errcode = this->executeRecQuery(tree, false);
+    errcode = this->executeRecQuery(tree);
 
     if (errcode != 0) return errcode;
     errcode = qres->pop(*res);
@@ -508,7 +527,7 @@ int QueryExecutor::execute_locally(string query, QueryResult **res, QueryParser 
 		debug_print(*ec,  "!!!!! pushDB doesn't work\n");
 		return errcode;
 	}
-	errcode = this->executeRecQuery(tree, false);
+	errcode = this->executeRecQuery(tree);
 	if (errcode != 0) {
 		debug_print(*ec,  "!!!!! executeRecQuery ended with error, so cant popDB section properly!!! so doing it here.\n");
 		envs->popDBsection();
@@ -522,66 +541,7 @@ int QueryExecutor::execute_locally(string query, QueryResult **res, QueryParser 
 	return 0;
 }
 
-bool QueryExecutor::is_dba() {
-    string login = session->get_user_data()->get_login();
-    return "root" == login;
-};
-
-bool QueryExecutor::assert_privilige(string priv_name, string object) {
-    if (is_dba()) return true;
-    string query = QueryBuilder::getHandle()->
-			query_for_privilige(session->get_user_data()->get_login(), priv_name, object);
-
-    return assert_bool_query(query);
-};
-
-bool QueryExecutor::assert_bool_query(string query) {
-    QueryResult *result = NULL;
-    int local_ret = execute_locally(query, &result);
-    if (local_ret || result == NULL || result->isBool() == false) 
-	{
-		return false;
-    }
-    bool b;
-    result->getBoolValue(b);
-    return b;
-};
-
-bool QueryExecutor::assert_grant_priv(string priv_name, string name) {
-    if (is_dba()) return true;
-
-    string query = QueryBuilder::getHandle()->
-			query_for_privilige_grant(session->get_user_data()->get_login(), priv_name, name);
-
-    return assert_bool_query(query);
-};
-
-bool QueryExecutor::assert_revoke_priv(string priv_name, string name) {
-    if (is_dba()) return true;
-    return false;
-};
-
-bool QueryExecutor::assert_create_user_priv() {
-    if (is_dba()) return true;
-
-    string query = QueryBuilder::getHandle()->
-			query_for_privilige(session->get_user_data()->get_login(), Privilige::CREATE_PRIV, "xuser");
-    return assert_bool_query(query);
-};
-
-bool QueryExecutor::assert_remove_user_priv() {
-    if (is_dba()) return true;
-
-    string query = QueryBuilder::getHandle()->
-			query_for_privilige(session->get_user_data()->get_login(), Privilige::DELETE_PRIV, "xuser");
-    return assert_bool_query(query);
-};
-
-
-
-
-
-int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true*/) {
+int QueryExecutor::executeRecQuery(TreeNode *tree) {
 
 	int errcode;
 	debug_print(*ec,  "[QE] executeRecQuery()");
@@ -609,19 +569,15 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 			debug_print(*ec,  "[QE] Type: TNNAME");
 			string name = tree->getName();
 			
-			if (checkPrivilieges)
+			if (!am->hasAccess(READ, name))
 			{
-				debug_print(*ec, "[QE] checking privilieges\n");
-				bool allowed = assert_privilige(Privilige::READ_PRIV, name);
-				if (checkPrivilieges &&  !allowed) 
-				{
-					info_print(*ec, "[QE] Access to %s objects not allowed for current user");
-					errcode = qres->push(new QueryBagResult());			
-					return 0;
-				}
+				debug_printf(*ec, "[QE] no rights to access objects of name %s", name.c_str());	
+				errcode = qres->push(new QueryBagResult());
+				if (errcode) return errcode;
+				return 0;
 			}
 			else
-				debug_print(*ec, "[QE] NOT checking privilieges!\n");
+				debug_printf(*ec, "[QE] user has read rights to object %s", name.c_str());
 			
 			int sectionNumber = ((NameNode *) tree)->getBindSect();
 			QueryResult *result = new QueryBagResult();
@@ -644,6 +600,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 					{
 						debug_printf(*ec, "[QE] name %s recognized as interface object name, bound through %s->%s to %s objects\n",
 									   name.c_str(), iName.c_str(), impName.c_str(), impObjName.c_str());
+						am->addAccess(impObjName, am->getAccess(name));
 						errcode = envs->bindName(impObjName, sectionNumber, tr, this, result, iName);
 						if (errcode) return errcode;
 					}
@@ -705,7 +662,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 			debug_print(*ec,  "[QE] Type: TNREGPROC");
 			QueryNode *query = ((RegisterProcNode *) tree)->getQuery();
 			if(query != NULL) {
-				errcode = executeRecQuery(query, checkPrivilieges);
+				errcode = executeRecQuery(query);
 				if(errcode != 0) return errcode;
 			}
 			else qres->push(new QueryNothingResult());
@@ -765,7 +722,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 
 			QueryResult *new_envs_sect = new QueryBagResult();
 			for (unsigned int i=0; i<queries_size; i++) {
-				errcode = executeRecQuery(queries[i], checkPrivilieges);
+				errcode = executeRecQuery(queries[i]);
 				if(errcode != 0) return errcode;
 				QueryResult *execution_result;
 				errcode = qres->pop(execution_result);
@@ -797,7 +754,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 			debug_print(*ec,  "[QE] Type: TNRETURN (begin)");
 			QueryNode *query = ((ReturnNode *) tree)->getQuery();
 			if(query != NULL) {
-				errcode = executeRecQuery(query, checkPrivilieges);
+				errcode = executeRecQuery(query);
 				if(errcode != 0) return errcode;
 			}
 			else qres->push(new QueryNothingResult());
@@ -810,7 +767,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 			QueryNode *query = ((ThrowExceptionNode *) tree)->getQuery();
 			string exception_name = "";
 			if(query != NULL) {
-				errcode = executeRecQuery(query, checkPrivilieges);
+				errcode = executeRecQuery(query);
 				if(errcode != 0) return errcode;
 			}
 			QueryResult *execution_result;
@@ -858,7 +815,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 			vector<LogicalID *> vec_lid;
 
 			if(virtual_objects != NULL) {
-				errcode = executeRecQuery(virtual_objects, checkPrivilieges);
+				errcode = executeRecQuery(virtual_objects);
 				if(errcode != 0) return errcode;
 			}
 			else qres->push(new QueryNothingResult());
@@ -899,7 +856,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 
 			for (unsigned int i = 0; i < procs_num; i++) {
 				if(procs[i] != NULL) {
-					errcode = executeRecQuery(procs[i], checkPrivilieges);
+					errcode = executeRecQuery(procs[i]);
 					if(errcode != 0) return errcode;
 				}
 				else qres->push(new QueryNothingResult());
@@ -938,7 +895,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 
 			for (unsigned int i = 0; i < views_num; i++) {
 				if(views[i] != NULL) {
-					errcode = executeRecQuery(views[i], checkPrivilieges);
+					errcode = executeRecQuery(views[i]);
 					if(errcode != 0) return errcode;
 				}
 				else qres->push(new QueryNothingResult());
@@ -955,7 +912,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 
 			for (unsigned int i = 0; i < objects_num; i++) {
 				if (objects[i] != NULL) {
-					errcode = executeRecQuery (objects[i], checkPrivilieges);
+					errcode = executeRecQuery (objects[i]);
 					if (errcode != 0) return errcode;
 					QueryResult *tmp_result;
 					errcode = qres->pop(tmp_result);
@@ -1012,7 +969,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 			debug_print(*ec,  "[QE] Type: TNREGVIEW");
 			QueryNode *query = ((RegisterViewNode *) tree)->getQuery();
 			if(query != NULL) {
-				errcode = executeRecQuery(query, checkPrivilieges);
+				errcode = executeRecQuery(query);
 				if(errcode != 0) return errcode;
 			}
 			else qres->push(new QueryNothingResult());
@@ -1206,7 +1163,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 			QueryResult *final_result = new QueryBagResult();
 
 			QueryResult *l_tmp;
-			errcode = executeRecQuery (((VirtualizeAsNode *) tree)->getQuery(), checkPrivilieges);
+			errcode = executeRecQuery (((VirtualizeAsNode *) tree)->getQuery());
 			if (errcode != 0) return errcode;
 			errcode = qres->pop(l_tmp);
 			if (errcode != 0) return errcode;
@@ -1250,7 +1207,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 				}
 			}
 			else {
-				errcode = executeRecQuery (((VirtualizeAsNode *) tree)->getSubQuery(), checkPrivilieges);
+				errcode = executeRecQuery (((VirtualizeAsNode *) tree)->getSubQuery());
 				if (errcode != 0) return errcode;
 				QueryResult *r_tmp;
 				errcode = qres->pop(r_tmp);
@@ -1446,7 +1403,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 			CreateType ct = ri->getCreateType();
 			InterfaceNode query = ri->getInterfaceQuery();
 		    ObjectPointer *optr;
-			errcode = executeRecQuery(&query, checkPrivilieges);
+			errcode = executeRecQuery(&query);
 			if (errcode) return errcode;
 
 		    debug_printf(*ec, "[QE] TNREGINTERFACE inner result pushed\n");
@@ -1553,7 +1510,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 			{
 			    InterfaceAttribute *a = new InterfaceAttribute(*it);
 			    debug_printf(*ec, "[QE] TNINTERFACENODE: adding attribute\n");
-			    if ((errcode = executeRecQuery(a, checkPrivilieges)) != 0)
+			    if ((errcode = executeRecQuery(a)) != 0)
 			        return errcode;
 			    QueryResult *execution_result;
 			    if ((errcode = qres->pop(execution_result))!=0)
@@ -1577,7 +1534,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 			for(QParser::TMethods::iterator it = methods.begin(); it != methods.end(); it++) 
 			{
 			    InterfaceMethod *m = new InterfaceMethod(*it);
-			    if ((errcode = executeRecQuery(m, checkPrivilieges)) != 0)
+			    if ((errcode = executeRecQuery(m)) != 0)
 			        return errcode;
 			    QueryResult *execution_result;
 			    if ((errcode = qres->pop(execution_result))!=0)
@@ -1628,7 +1585,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 					int crud = ic.second;
 					
 					RegisterInterfaceNode *rn = new RegisterInterfaceNode(&n, CT_CREATE_OR_UPDATE);
-					errcode = executeRecQuery(rn, checkPrivilieges);
+					errcode = executeRecQuery(rn);
 					if (errcode)
 						return errcode;
 					QueryResult *execution_result;
@@ -1673,7 +1630,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 			SchemaNode query = rs->getSchemaQuery();
 			CreateType ct = rs->getCreateType();
 		    ObjectPointer *optr;
-			errcode = executeRecQuery(&query, checkPrivilieges);
+			errcode = executeRecQuery(&query);
 			if (errcode) return errcode;
 			
 		    debug_printf(*ec, "[QE] TNREGSCHEMA inner result pushed\n");
@@ -1725,7 +1682,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 					TreeNode *tree = NULL;  
 					int errcode = parser.parseIt(id, schemaString, tree);
 					debug_printf(*ec, "[QE] TNSCHEMAEXPIMP parser on %s returned %d\n", schemaString.c_str(), errcode); 
-					errcode = executeRecQuery(tree, checkPrivilieges);
+					errcode = executeRecQuery(tree);
 					if (errcode) return errcode;
 					QueryResult *result;
 					errcode = qres->pop(result);
@@ -1757,7 +1714,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 			}
 			QueryNode *objectsQuery = ((ClassesObjectsNode *) tree)->getObjectsQuery();
 			if(objectsQuery != NULL) {
-				errcode = executeRecQuery(objectsQuery, checkPrivilieges);
+				errcode = executeRecQuery(objectsQuery);
 				if(errcode != 0) return errcode;
 			}
 			else qres->push(new QueryNothingResult());
@@ -1774,7 +1731,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 			QueryNode *classQuery = ((ClassesObjectsNode *) tree)->getClassesQuery();
 			SetOfLids classMarks;
 			if(classQuery != NULL) {
-				errcode = executeRecQuery(classQuery, checkPrivilieges);
+				errcode = executeRecQuery(classQuery);
 				if(errcode != 0) return errcode;
 				QueryResult *classResult;
 				errcode = qres->pop(classResult);
@@ -1834,13 +1791,13 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 			bool isInstanceOf = true;
 			if(((ObjectsClassesNode*)tree)->getObjectsQuery() != NULL && ((ObjectsClassesNode*)tree)->getClassesQuery() != NULL) {
 				//getting object
-				errcode = executeRecQuery(((ObjectsClassesNode*)tree)->getObjectsQuery(), checkPrivilieges);
+				errcode = executeRecQuery(((ObjectsClassesNode*)tree)->getObjectsQuery());
 				if(errcode != 0) return errcode;
 				QueryResult *exec_result_object;//czy to nalezy usunac?
 				errcode = qres->pop(exec_result_object);
 				if (errcode != 0) return errcode;
 				//getting classes
-				errcode = executeRecQuery(((ObjectsClassesNode*)tree)->getClassesQuery(), checkPrivilieges);
+				errcode = executeRecQuery(((ObjectsClassesNode*)tree)->getClassesQuery());
 				if(errcode != 0) return errcode;
 				QueryResult *exec_result_classes;//czy to nalezy usunac?
 				errcode = qres->pop(exec_result_classes);
@@ -2052,7 +2009,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 			//adding methods
 			vector<QueryNode*> procs = ((ClassNode *) tree)->getProcedures();
 			for(vector<QueryNode*>::iterator i = procs.begin(); i != procs.end(); i++) {
-				errcode = executeRecQuery(*i, checkPrivilieges);
+				errcode = executeRecQuery(*i);
 				if(errcode != 0) return errcode;
 				QueryResult *execution_result;
 				errcode = qres->pop(execution_result);
@@ -2077,7 +2034,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 			//adding static methods
 			vector<QueryNode*> staticProcs = ((ClassNode *) tree)->getStaticProcedures();
 			for(vector<QueryNode*>::iterator i = staticProcs.begin(); i != staticProcs.end(); i++) {
-				errcode = executeRecQuery(*i, checkPrivilieges);
+				errcode = executeRecQuery(*i);
 				if(errcode != 0) return errcode;
 				QueryResult *execution_result;
 				errcode = qres->pop(execution_result);
@@ -2175,7 +2132,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 			debug_print(*ec,  "[QE] Type: TNREGCLASS");
 			QueryNode *query = ((RegisterClassNode *) tree)->getQuery();
 			if(query != NULL) {
-				errcode = executeRecQuery(query, checkPrivilieges);
+				errcode = executeRecQuery(query);
 				if(errcode != 0) return errcode;
 			}
 			else qres->push(new QueryNothingResult());
@@ -2246,7 +2203,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 		case TreeNode::TNCREATE: {
 			debug_print(*ec,  "[QE] Type: TNCREATE");
 			QueryResult *result = new QueryBagResult();
-			errcode = executeRecQuery (tree->getArg(), checkPrivilieges);
+			errcode = executeRecQuery (tree->getArg());
 			if (errcode != 0) return errcode;
 			QueryResult *tmp_result;
 			errcode = qres->pop(tmp_result);
@@ -2264,8 +2221,9 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 					return qeErrorOccur("[QE] objectFromBinder() expected a binder, got something else", EOtherResExp);
 				}
 				string newobject_name = ((QueryBinderResult*)binder)->getName();
-				if (checkPrivilieges && assert_privilige(Privilige::CREATE_PRIV, newobject_name) == false) 
+				if (!am->hasAccess(CREATE, newobject_name)) 
 				{
+					debug_printf(*ec, "[QE] TNCREATE: user has no rights to create %s objects", newobject_name.c_str());
 					continue;
 				}
 				
@@ -2416,7 +2374,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 		case TreeNode::TNAS: {
 			debug_print(*ec,  "[QE] AS/GROUP_AS operation recognized");
 			string name = tree->getName();
-			errcode = executeRecQuery(tree->getArg(), checkPrivilieges);
+			errcode = executeRecQuery(tree->getArg());
 			if (errcode != 0) return errcode;
 			QueryResult *tmp_result;
 			errcode = qres->pop(tmp_result);
@@ -2458,13 +2416,13 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 		case TreeNode::TNUNOP: {
 			UnOpNode::unOp op = ((UnOpNode *) tree)->getOp();
 			debug_print(*ec,  "[QE] Unary operator - type recognized");
-			errcode = executeRecQuery(tree->getArg(), checkPrivilieges);
+			errcode = executeRecQuery(tree->getArg());
 			if (errcode != 0) return errcode;
 			QueryResult *tmp_result;
 			errcode = qres->pop(tmp_result);
 			if (errcode != 0) return errcode;
 			QueryResult *op_result;
-			errcode = this->unOperate(op, tmp_result, op_result, checkPrivilieges);
+			errcode = this->unOperate(op, tmp_result, op_result);
 			if (errcode != 0) return errcode;
 			//delete tmp_result;
 			errcode = qres->push(op_result);
@@ -2477,16 +2435,16 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 			AlgOpNode::algOp op = ((AlgOpNode *) tree)->getOp();
 			debug_print(*ec,  "[QE] Algebraic operator - type recognized");
 			QueryResult *lResult, *rResult;
-			errcode = executeRecQuery(((AlgOpNode *) tree)->getLArg(), checkPrivilieges);
+			errcode = executeRecQuery(((AlgOpNode *) tree)->getLArg());
 			if (errcode != 0) return errcode;
-			errcode = executeRecQuery (((AlgOpNode *) tree)->getRArg(), checkPrivilieges);
+			errcode = executeRecQuery (((AlgOpNode *) tree)->getRArg());
 			if (errcode != 0) return errcode;
 			errcode = qres->pop(rResult);
 			if (errcode != 0) return errcode;
 			errcode = qres->pop(lResult);
 			if (errcode != 0) return errcode;
 			QueryResult *op_result;
-			errcode = this->algOperate(op, lResult, rResult, op_result, (AlgOpNode *) tree, checkPrivilieges);
+			errcode = this->algOperate(op, lResult, rResult, op_result, (AlgOpNode *) tree);
 			if (errcode != 0) return errcode;
 			//delete lResult;
 			//delete rResult;
@@ -2528,7 +2486,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 
 				for (int i = 0; i<howManyOps; i++) {
 					string currName = ((FixPointNode *) tree)->getName(i);
-					errcode = executeRecQuery (((FixPointNode *) tree)->getQuery(i), checkPrivilieges);
+					errcode = executeRecQuery (((FixPointNode *) tree)->getQuery(i));
 					if (errcode != 0) return errcode;
 					QueryResult *currRes;
 					errcode = qres->pop(currRes);
@@ -2536,7 +2494,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 					QueryResult *currBinder = new QueryBinderResult(currName, currRes);
 					next_final->addResult(currBinder);
 				}
-				errcode = envs->pop();
+				errcode = envs->pop(this);
 				if (errcode != 0) return errcode;
 				if (not (final->equal(next_final))) {
 					//delete final;
@@ -2586,7 +2544,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 			NonAlgOpNode::nonAlgOp op = ((NonAlgOpNode *) tree)->getOp();
 			debug_print(*ec,  "[QE] NonAlgebraic operator - type recognized");
 			QueryResult *l_tmp_Result;
-			errcode = executeRecQuery (((NonAlgOpNode *) tree)->getLArg(), checkPrivilieges);
+			errcode = executeRecQuery (((NonAlgOpNode *) tree)->getLArg());
 			if (errcode != 0) return errcode;
 			errcode = qres->pop(l_tmp_Result);
 			if (errcode != 0) return errcode;
@@ -2653,12 +2611,12 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 					if (errcode != 0) return errcode;
 
 					QueryResult *newResult;
-					errcode = executeRecQuery (((NonAlgOpNode *) tree)->getRArg(), false);
+					errcode = executeRecQuery (((NonAlgOpNode *) tree)->getRArg());
 					if (errcode != 0) return errcode;
 					errcode = qres->pop(newResult);
 					if (errcode != 0) return errcode;
 					debug_print(*ec,  "[QE] Computing right Argument with a new scope of ES");
-					errcode = envs->pop();
+					errcode = envs->pop(this);
 					if (errcode != 0) return errcode;
 					switch (op) {
 						case NonAlgOpNode::closeBy: {
@@ -2785,12 +2743,12 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 						if (errcode != 0) return errcode;
 
 						debug_print(*ec,  "[QE] Computing right Argument with a new scope of ES");
-						errcode = executeRecQuery (((NonAlgOpNode *) tree)->getRArg(), false);
+						errcode = executeRecQuery (((NonAlgOpNode *) tree)->getRArg());
 						if (errcode != 0) return errcode;
 						errcode = qres->pop(rResult);
 						if (errcode != 0) return errcode;
 
-						errcode = envs->pop();
+						errcode = envs->pop(this);
 						if (errcode != 0) return errcode;
 
 						errcode = this->combine(op,currentResult,rResult,partial_result);
@@ -2820,7 +2778,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 				case CondNode::iff: {
 					debug_print(*ec,  "[QE] IF <q1> THEN <q2> FI");
 					QueryResult *tmp_result;
-					errcode = executeRecQuery(((CondNode *) tree)->getCondition(), checkPrivilieges);
+					errcode = executeRecQuery(((CondNode *) tree)->getCondition());
 					if (errcode != 0) return errcode;
 					errcode = qres->pop(tmp_result);
 					if (errcode != 0) return errcode;
@@ -2835,7 +2793,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 						return (ErrQExecutor | EBoolExpected);
 					}
 					if (bool_val) {
-						errcode = executeRecQuery(((CondNode *) tree)->getLArg(), checkPrivilieges);
+						errcode = executeRecQuery(((CondNode *) tree)->getLArg());
 						if (errcode != 0) return errcode;
 					}
 					else {
@@ -2848,7 +2806,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 				case CondNode::ifElsee: {
 					debug_print(*ec,  "[QE] IF <q1> THEN <q2> ELSE <q3> FI");
 					QueryResult *tmp_result;
-					errcode = executeRecQuery(((CondNode *) tree)->getCondition(), checkPrivilieges);
+					errcode = executeRecQuery(((CondNode *) tree)->getCondition());
 					if (errcode != 0) return errcode;
 					errcode = qres->pop(tmp_result);
 					if (errcode != 0) return errcode;
@@ -2863,11 +2821,11 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 						return (ErrQExecutor | EBoolExpected);
 					}
 					if (bool_val) {
-						errcode = executeRecQuery(((CondNode *) tree)->getLArg(), checkPrivilieges);
+						errcode = executeRecQuery(((CondNode *) tree)->getLArg());
 						if (errcode != 0) return errcode;
 					}
 					else {
-						errcode = executeRecQuery(((CondNode *) tree)->getRArg(), checkPrivilieges);
+						errcode = executeRecQuery(((CondNode *) tree)->getRArg());
 						if (errcode != 0) return errcode;
 					}
 					break;
@@ -2875,7 +2833,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 				case CondNode::whilee: {
 					debug_print(*ec,  "[QE] WHILE <q1> DO <q2> OD");
 					QueryResult *tmp_result;
-					errcode = executeRecQuery(((CondNode *) tree)->getCondition(), checkPrivilieges);
+					errcode = executeRecQuery(((CondNode *) tree)->getCondition());
 					if (errcode != 0) return errcode;
 					errcode = qres->pop(tmp_result);
 					if (errcode != 0) return errcode;
@@ -2890,11 +2848,11 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 						return (ErrQExecutor | EBoolExpected);
 					}
 					while (bool_val) {
-						errcode = executeRecQuery(((CondNode *) tree)->getLArg(), checkPrivilieges);
+						errcode = executeRecQuery(((CondNode *) tree)->getLArg());
 						if (errcode != 0) return errcode;
 						errcode = qres->pop(tmp_result);
 						if (errcode != 0) return errcode;
-						errcode = executeRecQuery(((CondNode *) tree)->getCondition(), checkPrivilieges);
+						errcode = executeRecQuery(((CondNode *) tree)->getCondition());
 						if (errcode != 0) return errcode;
 						errcode = qres->pop(tmp_result);
 						if (errcode != 0) return errcode;
@@ -2928,7 +2886,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 			QueryResult *tmp_result, *derefResult;
 			vector<QueryResult*> subresults;
 			for (unsigned int i = 0; i < subqueries.size(); i++) {
-				errcode = executeRecQuery(subqueries.at(i), checkPrivilieges);
+				errcode = executeRecQuery(subqueries.at(i));
 				if (errcode != 0) return errcode;
 				errcode = qres->pop(tmp_result);
 				if (errcode != 0) return errcode;
@@ -2961,13 +2919,10 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 		if (errcode != 0) return errcode;
 
 		string object_name = optr->getName();
-		if (checkPrivilieges && assert_privilige(Privilige::CREATE_PRIV, object_name) == false) {
+		if (!am->hasAccess(CREATE, object_name)) 
+		{
+			debug_printf(*ec,  "[QE] user has no rights to create %s objects", object_name.c_str());	
 		    QueryBagResult * result = new QueryBagResult();
-		    /*
-		    ofstream out("privilige.debug", ios::app);
-		    out << "create " << object_name << endl;
-		    out.close();
-		    */
 		    errcode = qres->push(result);
 		    if (errcode != 0) return errcode;
 		    return 0;
@@ -3051,7 +3006,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 			CoerceNode *cn = (CoerceNode *) tree;
 			int cType = cn->getCType();
 			debug_print(*ec,  "[QE] COERCE Node to be processed... ");
-			errcode = executeRecQuery(cn->getArg(), checkPrivilieges);
+			errcode = executeRecQuery(cn->getArg());
 			if (errcode != 0) return errcode;
 			QueryResult *tmp_result;
 			errcode = qres->pop(tmp_result);
@@ -3069,7 +3024,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree, bool checkPrivilieges /*=true
 		case TreeNode::TNCASTTO : {// May appear when variant result appears (eg. through union)...
 			//QE ignores this node - it assumes typechecker checked it correct.
 			debug_print(*ec,  "[QE] CAST TO Node ...");
-			errcode = executeRecQuery(((SimpleCastNode *)tree)->getArg(), checkPrivilieges);
+			errcode = executeRecQuery(((SimpleCastNode *)tree)->getArg());
 			if (errcode != 0) return errcode;
 			debug_print(*ec,  "[QE] CAST TO Node Done!");
 			return 0;
@@ -3603,7 +3558,7 @@ int QueryExecutor::nameofQuery(QueryResult *arg, QueryResult *&res) {
     return 0;
 }
 
-int QueryExecutor::unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&final, bool checkPrivilieges) {
+int QueryExecutor::unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&final) {
 	int errcode;
 	switch (op) {
 		case UnOpNode::deref: {
@@ -3905,7 +3860,7 @@ int QueryExecutor::unOperate(UnOpNode::unOp op, QueryResult *arg, QueryResult *&
 			debug_print(*ec,  "[QE] DELETE operation");
 			QueryResult* bagArg = new QueryBagResult();
 			bagArg->addResult(arg);
-			errcode = persistDelete(bagArg, checkPrivilieges);
+			errcode = persistDelete(bagArg);
 			if(errcode != 0) return errcode;
 			debug_print(*ec,  "[QE] delete operation complete - QueryNothingResult created");
 			final = new QueryNothingResult();
@@ -3932,7 +3887,7 @@ int QueryExecutor::persistStaticMembersDelete(const string& object_name) {
 	return 0;
 }
 
-int QueryExecutor::persistDelete(LogicalID *lid, bool checkPrivilieges /*=false*/) {
+int QueryExecutor::persistDelete(LogicalID *lid) {
 	int errcode = 0;
 	ObjectPointer *optr;
 	if ((errcode = tr->getObjectPointer (lid, Store::Write, optr, true)) !=0) {
@@ -3948,10 +3903,12 @@ int QueryExecutor::persistDelete(LogicalID *lid, bool checkPrivilieges /*=false*
 	
 	string object_name = optr->getName();
 	
-	if (checkPrivilieges &&
-		assert_privilige(Privilige::DELETE_PRIV, object_name) == false) 
+	if (!am->hasAccess(DELETE, object_name))
+	{
+		debug_printf(*ec, "[QE] user has no delete right to %s objects", object_name.c_str());
 		return 0;
-
+	}
+	
 	//Class does not have to be root.
 	Store::ExtendedType et = (optr->getValue())->getSubtype(); 
 	if (et == Store::Class) {
@@ -4030,7 +3987,7 @@ int QueryExecutor::persistDelete(vector<LogicalID*>* lids) {
 	return 0;
 }
 
-int QueryExecutor::persistDelete(QueryResult* bagArg, bool checkPrivilieges /*=false*/) {
+int QueryExecutor::persistDelete(QueryResult* bagArg) {
 	int errcode = 0;
 	for (unsigned int i = 0; i < bagArg->size(); i++) {
 		QueryResult* toDelete;  //the object to be deleted
@@ -4040,7 +3997,7 @@ int QueryExecutor::persistDelete(QueryResult* bagArg, bool checkPrivilieges /*=f
 		
 		if (toDeleteType == QueryResult::QREFERENCE) {
 			LogicalID *lid = ((QueryReferenceResult *) toDelete)->getValue();
-			errcode = persistDelete(lid, checkPrivilieges);
+			errcode = persistDelete(lid);
 			if(errcode != 0) return errcode;
 		}
 		else if (toDeleteType == QueryResult::QVIRTUAL) {
@@ -4080,7 +4037,7 @@ int QueryExecutor::persistDelete(QueryResult* bagArg, bool checkPrivilieges /*=f
 }
 
 
-int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResult *rArg, QueryResult *&final, AlgOpNode *tn, bool checkPrivilieges) {
+int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResult *rArg, QueryResult *&final, AlgOpNode *tn) {
 	int errcode;
 	if ((op == AlgOpNode::plus) || (op == AlgOpNode::minus) || (op == AlgOpNode::times) || (op == AlgOpNode::divide)) {
 		QueryResult *derefL, *derefR;
@@ -4555,8 +4512,9 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 				return errcode;
 			}
 			string outer_name = optrOut->getName();
-			if (checkPrivilieges &&
-				assert_privilige(Privilige::MODIFY_PRIV, outer_name) == false) {
+			if (!am->hasAccess(UPDATE, outer_name))
+			{
+				debug_printf(*ec, "[QE] user has no update access for %s objects", outer_name.c_str());
 				final = new QueryNothingResult();
 				return 0;
 			}
@@ -5074,7 +5032,9 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 				return errcode;
 			}
 			string object_name = old_optr->getName();
-			if (checkPrivilieges && assert_privilige(Privilige::MODIFY_PRIV, object_name) == false) {
+			if (!am->hasAccess(UPDATE, object_name))
+			{
+				debug_printf(*ec,  "[QE] user has no update right on %s objects to assign", object_name.c_str());
 				final = new QueryNothingResult();
 				return 0;
 			}
@@ -5680,7 +5640,7 @@ int QueryExecutor::callProcedure(string code, vector<QueryBagResult*> sections) 
 			if (errcode != 0) return errcode;
 		}
 
-		errcode = executeRecQuery(tmpTN, false);
+		errcode = executeRecQuery(tmpTN);
 		if (errcode == 0) {
 			//skoro errcode == 0 tzn ze wywolana byla procedura a nie funkcja
 			//nie bylo return value, wiec nie zwracam dalej otrzymanego wyniku
@@ -5693,7 +5653,7 @@ int QueryExecutor::callProcedure(string code, vector<QueryBagResult*> sections) 
 		if(errcode != 0) return errcode;
 
 		for (unsigned int i = 0; i < sections.size(); i++) {
-			errcode = envs->pop();
+			errcode = envs->pop(this);
 			if (errcode != 0) return errcode;
 		}
 		envs->es_priors[globalSectionNumber] = oldGlobalSectionPrior;
@@ -5727,7 +5687,7 @@ int QueryExecutor::trErrorOccur( string msg, int errcode ) {
 int QueryExecutor::execRecursivQueryAndPop(TreeNode *query, QueryResult*& execResult) {
 	int errcode;
 	if(query != NULL) {
-		errcode = executeRecQuery(query, false);
+		errcode = executeRecQuery(query);
 		if(errcode != 0) return errcode;
 	}
 	else qres->push(new QueryNothingResult());
@@ -5747,8 +5707,6 @@ void QueryExecutor::pushStringsToLIDs(set<string>* names, string bindName, vecto
 		pushStringToLIDs(*i, bindName, lids);
 	}
 }
-
-
 
 int QueryExecutor::lidFromVector( string bindName, vector<QueryResult*> value, LogicalID*& lid) {
 	return lidFromBinder(bindName, new QueryBagResult(value), lid);
@@ -5906,6 +5864,7 @@ QueryExecutor::~QueryExecutor() {
 	delete envs;
 	delete qres;
 	delete exViews;
+	delete am;
 	debug_print(*ec,  "[QE] QueryExecutor shutting down\n");
 }
 

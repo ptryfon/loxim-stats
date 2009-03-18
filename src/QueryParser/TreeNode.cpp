@@ -1,3 +1,4 @@
+#include "QueryExecutor/AccessMap.h"
 #include <QueryParser/TreeNode.h>
 #include <QueryParser/Stack.h>
 #include <QueryParser/DataRead.h>
@@ -280,7 +281,7 @@ namespace QParser
 			int access = (*it).second;
 			res += name;
 			res += ": ";
-			res += Schemas::getCrudString(access);
+			res += getCrudString(access);
 			res += ", ";
 		}
 		return res;
@@ -448,7 +449,7 @@ namespace QParser
 			TInterfaceWithCrud ic = it->second;
 			InterfaceNode in = ic.first;
 			int crud = ic.second;
-			out += in.simpleString() + "\n\tCrud: " + Schemas::getCrudString(crud); + "\n";
+			out += in.simpleString() + "\n\tCrud: " + getCrudString(crud); + "\n";
 		}
 		return out;
 	}
@@ -484,19 +485,19 @@ namespace QParser
 		switch (priv)
 		{
 			case Privilige::Create:
-				m_crud |= Schemas::CREATE;
+				m_crud |= CREATE;
 				break;
 				
 			case Privilige::Read:
-				m_crud |= Schemas::READ;
+				m_crud |= READ;
 				break;
 				
 			case Privilige::Modify:
-				m_crud |= Schemas::UPDATE;
+				m_crud |= UPDATE;
 				break;
 				
 			case Privilige::Delete:
-				m_crud |= Schemas::DELETE;
+				m_crud |= DELETE;
 				break;
 			
 			default:
@@ -510,7 +511,7 @@ namespace QParser
 	}	
 	string Crud::simpleString() const
 	{
-		string res = "Crud: " + Schemas::getCrudString(m_crud);
+		string res = "Crud: " + getCrudString(m_crud);
 		return res;
 	}
 

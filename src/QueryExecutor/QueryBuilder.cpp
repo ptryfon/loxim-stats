@@ -61,6 +61,12 @@ namespace QExecutor
 		return query;
 	}
 
+	string QueryBuilder::query_for_user_priviliges(string login)
+	{
+		string query = "deref((xuser where login=\"" + login + "\").xprivilige)";
+		return query;		
+	}
+	
 	string QueryBuilder::query_for_privilige(string user, string priv, string object) 
 	{
 		string user_query = "(xuser where login=\"" + user + "\")";

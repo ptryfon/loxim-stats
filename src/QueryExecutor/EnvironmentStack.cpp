@@ -6,6 +6,7 @@
 #include <QueryExecutor/ClassGraph.h>
 #include <QueryExecutor/QueryResult.h>
 #include <QueryExecutor/InterfaceMaps.h>
+#include <QueryExecutor/AccessMap.h>
 #include <QueryParser/ClassNames.h>
 #include <TransactionManager/Transaction.h>
 #include <Store/Store.h>
@@ -58,11 +59,12 @@ int EnvironmentStack::push(QueryBagResult *r, Transaction *&tr, QueryExecutor *q
 	debug_print(*ec,  r->toString(0, true));
 	es.push_back(r);
 	es_priors.push_back(actual_prior);
+	qe->getAccessMap()->addSectionInfo(es.size() - 1, r); 
 	debug_print(*ec,  "[QE] Environment Stack pushed");
 	return 0;
 }
 
-int EnvironmentStack::pop(){
+int EnvironmentStack::pop(QueryExecutor *qe){
 	if (es.empty()) {
 		debug_print(*ec,  (ErrQExecutor | EQEmptySet));
 		return (ErrQExecutor | EQEmptySet);
@@ -84,6 +86,7 @@ int EnvironmentStack::pop(){
 	if (sectionIntIt != interfacePerSection.end())
 		interfacePerSection.erase(sectionIntIt);
 	
+	qe->getAccessMap()->removeSection(es.size() - 1); 
 	es.pop_back();
 	es_priors.pop_back();
 	debug_print(*ec,  "[QE] Environment Stack popped");
@@ -515,6 +518,7 @@ void EnvironmentStack::deleteAll() {
 	for (unsigned int i = 0; i < (es.size()); i++) {
 		delete es.at(i);
 	};
+	
 	es.clear();
 	es_priors.clear();
 }
@@ -758,6 +762,8 @@ int QueryReferenceResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResu
 							continue;
 						}
 					}
+					else
+						namesVisible.insert(tmp_name);
 					//ADTODO nalezy zapewnic widocznosc wszystkich pol metodom
 					
 					//MH TODO: add a 'this->value' reference to each tmp_logID ?
@@ -777,6 +783,8 @@ int QueryReferenceResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResu
                                             delete optr2;
                                         }
 				}
+				qe->getAccessMap()->propagateAccess(optr->getName(), namesVisible);
+					
 				break;
 			}
 			default : {
@@ -938,6 +946,8 @@ int QueryVirtualResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult
 					continue;
 				}
 			}
+			else
+				namesVisible.insert(subview_name);
 			
 			vector<QueryBagResult*> envs_sections2;
 		
@@ -971,6 +981,7 @@ int QueryVirtualResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult
 			}
 			
 		}
+		qe->getAccessMap()->propagateAccess(vo_name, namesVisible);							
 	}
 	return 0;
 }

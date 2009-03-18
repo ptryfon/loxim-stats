@@ -252,7 +252,7 @@ int InterfaceMaps::addInterface(LogicalID* interfaceLid, TManager::Transaction *
 	debug_printf(*ec, "[InterfaceMaps::addInterface] inserting into map..\n");
 	insertNewInterfaceAndPropagateHierarchy(*s, checkValidity, false);
 	debug_print(*ec,  "[InterfaceMaps::addInterface] returning");
-	printAll();
+	//printAll();
 	return 0;	
 }
 

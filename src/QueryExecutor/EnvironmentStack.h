@@ -46,7 +46,7 @@ namespace QExecutor
 		int push(QueryBagResult *r, Transaction *&tr, QueryExecutor *qe);
 		int pushClasses(DataValue* dv, QueryExecutor *qe, bool& classFound);
 		int pushInterface(string interfaceName, LogicalID* boundClassLid);
-		int pop();
+		int pop(QueryExecutor *qe);
 		int pushDBsection();
 		int popDBsection();
 		int top(QueryBagResult *&r);

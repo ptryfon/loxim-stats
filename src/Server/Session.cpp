@@ -14,6 +14,7 @@
 #include <Server/Session.h>
 #include <Protocol/Enums/Enums.h>
 #include <Protocol/Exceptions.h>
+#include <QueryExecutor/AccessMap.h>
 #include <Protocol/Streams/PackageStream.h>
 #include <Protocol/Packages/ASCByePackage.h>
 #include <Protocol/Packages/ASCErrorPackage.h>
@@ -290,8 +291,10 @@ namespace Server{
 		}
 
 		auto_ptr<Package> package(stream->read_package_expect(mask, shutting_down, W_C_PASSWORD_PACKAGE));
+		debug_printf(err_cons, "package string: %s", package->to_string().c_str());
 		WCPasswordPackage &pp(dynamic_cast<WCPasswordPackage&>(*package));
 		debug_printf(err_cons, "Got login: %s", pp.get_val_login().to_string().c_str());
+		debug_printf(err_cons, "Got passwd: %s", pp.get_val_password().to_string().c_str());
 		if (authorize(pp.get_val_login().to_string(), pp.get_val_password().to_string())){
 			WSAuthorizedPackage ap;
 			stream->write_package(mask, shutting_down, ap);
@@ -365,7 +368,7 @@ namespace Server{
 		AllStats::getHandle()->getQueriesStats()->beginExecuteQuery(get_id(), stmt.c_str());
 
 		if (is_admin_stmt(stmt)){
-			if (!qEx.is_dba()){
+			if (!qEx.getAccessMap()->isDba()){
 				AllStats::getHandle()->getQueriesStats()->endExecuteQuery(get_id());
 				throw LoximException(EParse);
 			}

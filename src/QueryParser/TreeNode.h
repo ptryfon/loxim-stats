@@ -287,7 +287,7 @@ namespace QParser {
 			bool m_default;
 
 		public:
-			Crud (int crud = Schemas::OuterSchema::defaultCrud) {m_crud = crud; m_default = (crud == Schemas::OuterSchema::defaultCrud);}		
+			Crud (int crud = 0) {m_crud = crud; m_default = (crud == 0);}		
 			void addAccessType(int priv);
 			int getCrud() const {return m_crud;}
 

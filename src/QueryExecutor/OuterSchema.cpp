@@ -1,4 +1,5 @@
 #include "OuterSchema.h"
+#include "AccessMap.h"
 #include "QueryResult.h"
 #include "InterfaceMaps.h"
 #include "CommonOperations.h"

@@ -25,24 +25,7 @@ using namespace std;
 
 namespace Schemas
 {
-	enum CRUD
-	{
-		CREATE  =   1,
-		READ	=   2,
-		UPDATE  =   4,
-		DELETE  =   8
-	};
 
-	static string getCrudString(int crud)
-	{
-		string res = "";
-		if (crud & CREATE) res += "create";
-		if (crud & READ) res += " read";
-		if (crud & UPDATE) res += " update";
-		if (crud & DELETE) res += " delete";
-		return res;
-	}
-	
 	enum EntityType
 	{
 		INTERFACE,
@@ -92,9 +75,6 @@ namespace Schemas
 			
 			void print(ErrorConsole *ec) const;
 			string toString(TManager::Transaction *tr) const;
-
-			static const int defaultCrud = READ; //read-only access
-			static const int noAccess = 0;
 
 			static int fromLogicalID(Store::LogicalID *lid, TManager::Transaction *tr, OuterSchema *&s);
 
