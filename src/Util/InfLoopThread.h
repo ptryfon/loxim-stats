@@ -37,18 +37,16 @@ namespace Util {
 			}
 			~InfLoopThread()
 			{
-				kill(true);
+				kill();
+				pthread_join(logic->get_thread(), 0);
 			}
 
-			void kill(bool synchronous)
+			void kill()
 			{
 				Locker l(mutex);
 				if (!killed) {
-					logic->kill(synchronous);
-					if (synchronous){
-						pthread_join(logic->get_thread(),
-								0);
-					}
+					killed = true;
+					logic->kill();
 				}
 			}
 

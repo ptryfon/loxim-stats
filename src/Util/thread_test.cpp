@@ -22,7 +22,7 @@ class InfLogic : public StartableSignalReceiver {
 		}
 
 		
-		void kill(bool synchronous)
+		void kill()
 		{
 			cout << "kill called" << endl;
 			Locker l(m);

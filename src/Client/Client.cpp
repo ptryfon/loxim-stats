@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <stdio.h>
+#include <config.h>
 #include <readline/readline.h>
 #include <Client/Client.h>
 #include <Client/Authenticator.h>
@@ -56,157 +57,147 @@ using namespace _smptr;
 namespace Client{
 
 	#define MAX_PACKAGE_SIZE 100000
+	class ProtocolThread : public Util::StartableSignalReceiver {
+		friend class Client;
+		private:
+		Client &client;
+		sigset_t mask;
+		int error;
+		public:
 
-	StatementReader::StatementReader(Client &client, StatementProvider &provider) :
-		shutting_down(false), client(client), provider(provider)
-	{
-	}
+		ProtocolThread(Client &c) : client(c), error(0)
+		{
+			pthread_sigmask(0, NULL, &mask);
+			sigaddset(&mask, SIGUSR1);
+		}
 
-	void StatementReader::kill(bool synchronous)
-	{
-		Locker l(mutex);
-		shutting_down = true;
-		cond.signal();
-	}
+		//call under mutex
+		void gentle_exit(int error, bool send_bye)
+		{
+			this->error = error;
+			client.shutting_down = true;
+			client.waiting_for_result = false;
+			client.exit(error, send_bye);
+			client.read_cond.signal();
+		}
 
-	/**
-	 * The idea is to make sending an abort non-blocking. If we're in the
-	 * middle of sending an abort, it won't do anything.
-	 */
-	void StatementReader::signal_handler(int sig)
-	{
-		cond.signal();
-	}
-
-	void StatementReader::start()
-	{
-		try {
-			while (!shutting_down){
-				string stmt = provider.read_stmt();
-				{
+		void start()
+		{
+			try {
+				while(true){
+					auto_ptr<Package> result = client.receive_result();
 					Locker l(client.logic_mutex);
-					if (!stmt.compare("quit")){
-						auto_ptr<ByteBuffer> buf(new ByteBuffer("Client quitted"));
-						ASCByePackage package(0, buf);
-						client.stream->write_package(client.mask, shutting_down, package);
-						client.shutting_down = true;
+					if (result->get_type() == A_SC_BYE_PACKAGE) {
+						gentle_exit(0, true);
 						return;
 					}
-					{
-						auto_ptr<ByteBuffer> b_stmt(new ByteBuffer(stmt));
-						QCStatementPackage package(SF_EXECUTE, b_stmt);
-						client.stream->write_package(client.mask, shutting_down, package);
+					if (client.waiting_for_result && (
+							result->get_type() ==
+							A_SC_ERROR_PACKAGE ||
+							result->get_type() ==
+							V_SC_SENDVALUE_PACKAGE)) {
+						client.waiting_for_result = false;
+						client.result = result;
+						client.read_cond.signal();
+					} else {
+						gentle_exit(EProtocol, false);
+						return;
 					}
-					client.waiting_for_result = true;
-					l.wait(client.read_cond);
 				}
+			} catch (OperationCancelled &ex) {
+				gentle_exit(0, true);
+			} catch (LoximException &ex) {
+				gentle_exit(ex.get_error(), false);
+			} catch (...) {
+				gentle_exit(EUnknown, false);
 			}
-		} catch (...) {
 		}
+
+		void kill()
+		{
+			pthread_kill(thread, SIGUSR1);
+		}
+
+		void signal_handler(int i)
+		{
+			client.shutting_down = true;
+		}
+	};
+
+	OnExit::~OnExit()
+	{
 	}
 
-	Client::Client(uint32_t host, uint16_t port) :
-		stream(new PackageCodec(auto_ptr<DataStream>(new
-		TCPClientStream(host, port)), MAX_PACKAGE_SIZE)), error(0),
-		shutting_down(false), waiting_for_result(false)
+	void Client::init(Authenticator &auth)
 	{
 		pthread_sigmask(0, NULL, &mask);
 		sigaddset(&mask, SIGUSR1);
+		authorize(auth);
+		auto_ptr<ProtocolThread> proto_thread_obj(new ProtocolThread(*this));
+		proto_thread = auto_ptr<InfLoopThread<ProtocolThread> >(new
+				InfLoopThread<ProtocolThread>(proto_thread_obj,
+					SIGUSR1));
+	}
+
+	Client::Client(uint32_t host, uint16_t port, Authenticator &auth) :
+		stream(new PackageCodec(auto_ptr<DataStream>(new
+		TCPClientStream(host, port)), MAX_PACKAGE_SIZE)), error(0),
+		shutting_down(false), waiting_for_result(false), on_exit(NULL)
+	{
+		init(auth);
+	}
+	Client::Client(uint32_t host, uint16_t port, Authenticator &auth, OnExit
+			&on_exit) :
+		stream(new PackageCodec(auto_ptr<DataStream>(new
+		TCPClientStream(host, port)), MAX_PACKAGE_SIZE)), error(0),
+		shutting_down(false), waiting_for_result(false), on_exit(&on_exit)
+	{
+		init(auth);
 	}
 
 	Client::~Client()
 	{
+		//proto_thread touches client's properties, so we do this here
+		//to be sure that they are still valid when the destruction
+		//happens
+		proto_thread.reset();
 	}
 
-
-	void Client::run(StatementProvider &provider)
-	{
-		pthread_mutex_t cond_mutex;
-		pthread_mutex_init(&cond_mutex, 0);
-
-		auto_ptr<Aborter> aborter(new Aborter(*this));
-		InfLoopThread<Aborter> aborter_thread(aborter, SIGINT);
-		auto_ptr<StatementReader> reader(new StatementReader(*this, provider));
-		InfLoopThread<StatementReader> reader_thread(reader, SIGINT);
-		result_handler();
-	}
 
 	void Client::abort()
 	{
 		Locker l(logic_mutex);
-		if (!waiting_for_result)
-			printf("Nothing to abort\n");
-		else{
+		if (waiting_for_result) {
 			auto_ptr<ByteBuffer> reason(new ByteBuffer("User aborted"));
 			VSCAbortPackage package(0, reason);
 			stream->write_package(mask, shutting_down, package);
 			waiting_for_result = false;
+			result.reset();
 			read_cond.signal();
 		}
 	}
 
-	void *result_handler_starter(void *a)
-	{
-		reinterpret_cast<Client*>(a)->result_handler();
-		return NULL;
-	}
 
-	void Client::print_error(const ASCErrorPackage &package)
+	//called under mutex
+	void Client::exit(int error, bool send_bye) throw()
 	{
-		cout << "Got error " << package.get_val_error_code() << ": " <<
-			package.get_val_description().to_string() << endl;
-	}
-
-	void Client::result_handler()
-	{
-		try {
-			while(true){
-				auto_ptr<Package> result = receive_result();
-				//if error in protocol occurred or the server wants to close the connection
-				{
-					Locker l(logic_mutex);
-					if (result->get_type() == A_SC_PING_PACKAGE){
-						ASCPongPackage p;
-						stream->write_package(mask, shutting_down, p);
-						continue;
-					}
-					if (waiting_for_result){
-						switch (result->get_type()){
-							case A_SC_ERROR_PACKAGE:
-								{
-									print_error(dynamic_cast<ASCErrorPackage&>(*result));
-									break;
-								}
-							case V_SC_SENDVALUE_PACKAGE:
-								{
-									print_result(dynamic_cast<VSCSendvaluePackage&>(*result).get_val_data(), 0);
-									break;
-								}
-							case A_SC_BYE_PACKAGE:
-								{
-									//close client
-									//connection
-								}
-							default:
-								throw runtime_error("internal error");
-						}
-						error = 0;
-						waiting_for_result = false;
-					} else {
-						//close client connection
-						error = EProtocol;
-					}
-					read_cond.signal();
-				}
+		if (send_bye){
+			try {
+				this->send_bye();
+			} catch (...) {
+				//don't care
 			}
-			exit(0);
-		}  catch (LoximException &ex) {
-			if (shutting_down)
-				exit(0);
-			exit(1);
+		}
+		try {
+			if (on_exit)
+				on_exit->exit(error);
+		} catch ( ... ) {
+			//XXX log it
 		}
 	}
 
+
+	//this can return ASCError, ASCBye or ASCSendValue
 	auto_ptr<Package> Client::receive_result()
 	{
 		while (true){
@@ -256,66 +247,6 @@ namespace Client{
 	}
 
 
-	void Client::print_result(const Package &package, int ind)
-	{
-		switch (package.get_type()){
-			case BAG_PACKAGE:
-				{
-					cout << string(ind, ' ') << "Bag" << endl;
-					const BagPackage &bag(dynamic_cast<const BagPackage&>(package));
-					const vector<shared_ptr<Package> > &items(bag.get_packages());
-					for (vector<shared_ptr<Package> >::const_iterator i = items.begin(); i != items.end(); ++i)
-						print_result(**i, ind+2);
-				}
-				break;
-			case STRUCT_PACKAGE:
-				{
-					cout << string(ind, ' ') << "Struct" << endl;
-					const StructPackage &strct(dynamic_cast<const StructPackage&>(package));
-					const vector<shared_ptr<Package> > &items(strct.get_packages());
-					for (vector<shared_ptr<Package> >::const_iterator i = items.begin(); i != items.end(); ++i)
-						print_result(**i, ind+2);
-				}
-				break;
-			case SEQUENCE_PACKAGE:
-				{
-					cout << string(ind, ' ') << "Sequence" << endl;
-					const SequencePackage &seq(dynamic_cast<const SequencePackage&>(package));
-					const vector<shared_ptr<Package> > &items(seq.get_packages());
-					for (vector<shared_ptr<Package> >::const_iterator i = items.begin(); i != items.end(); ++i)
-						print_result(**i, ind+2);
-				}
-				break;
-			case REF_PACKAGE:
-				cout << string(ind, ' ') << "ref(" << dynamic_cast<const RefPackage&>(package).get_val_value_id() << ")" << endl;
-				break;
-			case VARCHAR_PACKAGE:
-				cout << string(ind, ' ') << dynamic_cast<const VarcharPackage&>(package).get_val_value().to_string() << endl;
-				break;
-			case VOID_PACKAGE:
-				cout << string(ind, ' ') << "void" << endl;
-				break;
-			case SINT32_PACKAGE:
-				cout << string(ind, ' ') << dynamic_cast<const Sint32Package&>(package).get_val_value() << endl;
-				break;
-			case DOUBLE_PACKAGE:
-				cout << string(ind, ' ') << dynamic_cast<const DoublePackage&>(package).get_val_value() << endl;
-				break;
-			case BOOL_PACKAGE:
-				cout << string(ind, ' ') << dynamic_cast<const BoolPackage&>(package).get_val_value() << endl;
-				break;
-			case BINDING_PACKAGE:
-				{
-					const BindingPackage &bp(dynamic_cast<const BindingPackage&>(package));
-					cout << string(ind, ' ') << bp.get_val_binding_name().to_string() << "=>" << endl;
-					print_result(bp.get_val_value(), ind + 2);
-				}
-				break;
-			default:
-				cout << string(ind, ' ') << "Unknown data type" << endl;
-		}
-	}
-
 	string Client::get_hostname()
 	{
 		int size = 100;
@@ -329,9 +260,9 @@ namespace Client{
 	{
 		{
 			auto_ptr<ByteBuffer> cl_name(new ByteBuffer("lsbql"));
-			//TODO, use autoconf
-			auto_ptr<ByteBuffer> cl_ver(new ByteBuffer("0.01"));
+			auto_ptr<ByteBuffer> cl_ver(new ByteBuffer(PACKAGE_VERSION));
 			auto_ptr<ByteBuffer> cl_hname(new ByteBuffer(get_hostname()));
+			//XXX use locale
 			auto_ptr<ByteBuffer> cl_lang(new ByteBuffer("PL"));
 			WCHelloPackage hello(getpid(), cl_name, cl_ver, cl_hname, cl_lang, COLL_DEFAULT, 1);
 			stream->write_package(mask, shutting_down, hello);
@@ -387,5 +318,35 @@ namespace Client{
 			stream->write_package(mask, shutting_down, p);
 		}
 		stream->read_package_expect(mask, shutting_down, W_S_AUTHORIZED_PACKAGE);
+	}
+
+	//may return null as a result of an abort
+	auto_ptr<Package> Client::execute_stmt(const string &stmt)
+	{
+		Locker l(logic_mutex);
+		if (waiting_for_result)
+			throw ProtocolLogic();
+		auto_ptr<ByteBuffer> b_stmt(new ByteBuffer(stmt));
+		QCStatementPackage package(SF_EXECUTE, b_stmt);
+		stream->write_package(mask, shutting_down,
+				package);
+		waiting_for_result = true;
+		l.wait(read_cond);
+		//if result == NULL then it is an effect of abort
+		if (proto_thread->get_logic().error)
+			throw LoximException(proto_thread->get_logic().error);
+		return result;
+	}
+
+	void Client::send_bye()
+	{
+		//shutting_down is almoast for sure true now, so let's override
+		//it with sd
+		bool sd = false;
+		auto_ptr<ByteBuffer> buf(new ByteBuffer( "Client quitted"));
+		ASCByePackage package(0, buf);
+		stream->write_package(mask, sd,	package);
+		shutting_down = true;
+		return;
 	}
 }

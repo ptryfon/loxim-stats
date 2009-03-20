@@ -6,7 +6,6 @@
 #include <regex.h>
 #include <stdio.h>
 #include <memory>
-#include <Client/StatementProvider.h>
 
 namespace Client{
 	enum Modes{
@@ -14,7 +13,7 @@ namespace Client{
 		CC_DOT
 	};
 
-	class ClientConsole : public StatementProvider{
+	class ClientConsole  {
 		private:
 			int mode;
 			std::auto_ptr<std::ifstream> file;

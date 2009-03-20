@@ -6,6 +6,8 @@
 #include <Util/SignalRouter.h>
 #include <Util/SignalReceiver.h>
 #include <Util/Concurrency.h>
+#include <Util/Backtrace.h>
+#include <iostream>
 
 using namespace std;
 using namespace Util;
@@ -27,6 +29,10 @@ namespace Util{
 				receiver(receiver), signals(signals)
 			{
 				sigmask = mask;
+			}
+
+			~Receiver()
+			{
 			}
 
 			void receive(int sig)
@@ -69,16 +75,12 @@ namespace Util{
 	{
 		shared_ptr<Receiver> r(
 			*(reinterpret_cast<shared_ptr<Receiver>*>(arg)));
-		struct sigaction sig;
-		SignalRouter::register_thread(pthread_self(), r);
-		sig.sa_handler = SignalRouter::signal_route;
-		sig.sa_flags = 0;
-		for (vector<int>::const_iterator i = r->get_signals().begin();
-				i != r->get_signals().end(); ++i) {
-			if ((r->error = sigaction(*i, &sig, 0))){
-				r->cond.signal();
-				return NULL;
-			}
+		try {
+			SignalRouter::register_thread(r);
+		} catch (...) {
+			if (!r->error)
+				r->error = EIO;
+			r->cond.signal();
 		}
 		{
 			//now that we've assured that signals will be properly handled,
@@ -113,25 +115,41 @@ namespace Util{
 		return NULL;
 	}
 
-	void SignalRouter::register_thread(pthread_t thread,
-			shared_ptr<Receiver> recv)
+	//it has side effects - modifies r->error
+	void SignalRouter::register_thread(shared_ptr<Receiver> r)
 	{
+		pthread_t thread = pthread_self();
 		Locker l(map_protector);
 		if (map.find(thread) != map.end())
 			throw LoximException(EINVAL);
-		map[thread] = recv;
+		map[thread] = r;
+		struct sigaction sig;
+		sig.sa_handler = SignalRouter::signal_route;
+		sig.sa_flags = 0;
+		for (vector<int>::const_iterator i = r->get_signals().begin();
+				i != r->get_signals().end(); ++i) {
+			if ((r->error = sigaction(*i, &sig, 0))){
+				throw LoximException(r->error);
+			}
+		}
 	}
 
-	void SignalRouter::register_thread(pthread_t thread, SignalReceiver
-			&receiver)
+	void SignalRouter::register_thread(SignalReceiver &receiver, const
+			vector<int> &sigs)
 	{
-		vector<int> v;
 		sigset_t mask;
 		int error = pthread_sigmask(SIG_SETMASK, NULL, &mask);
 		if (error)
 			throw LoximException(error);
-		register_thread(thread, shared_ptr<Receiver>(new
-					Receiver(receiver, mask, v)));
+		register_thread(shared_ptr<Receiver>(new Receiver(receiver,
+						mask, sigs)));
+	}
+	
+	void SignalRouter::register_thread(SignalReceiver &receiver, int sig)
+	{
+		vector<int> v;
+		v.push_back(sig);
+		register_thread(receiver, v);
 	}
 	
 	void SignalRouter::unregister_thread(pthread_t thread)

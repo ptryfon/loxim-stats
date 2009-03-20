@@ -46,8 +46,8 @@ namespace Server{
 				CONFIG_AUTH_TRUST_ALLOWED_DEFAULT)),
 		server(addr, port, DEFAULT_BACKLOG)
 	{
-		SignalRouter::register_thread(thread, *this);
 		thread = pthread_self();
+		SignalRouter::register_thread(*this, SIGUSR1);
 	}
 
 	Server::~Server()

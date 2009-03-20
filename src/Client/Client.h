@@ -4,40 +4,28 @@
 #include <Protocol/Packages/Package.h>
 #include <Protocol/Streams/PackageStream.h>
 #include <Protocol/Packages/ASCErrorPackage.h>
-#include <Client/StatementProvider.h>
 #include <Client/Authenticator.h>
-#include <Client/Aborter.h>
 #include <Util/Concurrency.h>
 #include <Util/SignalReceiver.h>
+#include <Util/InfLoopThread.h>
 
 #include <string>
 #include <memory>
 
 namespace Client{
 
-	void *result_handler_starter(void *a);
-	void signal_handler(int sig);
-	class Aborter;
+	class ProtocolThread;
 
-	class StatementReader : public Util::StartableSignalReceiver {
+	class OnExit
+	{
 		public:
-			StatementReader(Client &client, StatementProvider &provider);
-			void start();
-			void kill(bool synchronous);
-			void signal_handler(int sig);
-		protected:
-			Util::Mutex mutex;
-			Util::CondVar cond;
-			bool shutting_down;
-			Client &client;
-			StatementProvider &provider;
+			virtual void exit(int error) = 0;
+			virtual ~OnExit();
 	};
 
 	class Client
 	{
-		friend void *result_handler_starter(void *a);
-		friend void signal_handler(int sig);
-		friend class StatementReader;
+		friend class ProtocolThread;
 	
 		private:
 			std::auto_ptr<Protocol::PackageStream> stream;
@@ -48,29 +36,28 @@ namespace Client{
 			bool shutting_down;
 			sigset_t mask;
 			bool waiting_for_result;
+			bool alive;
+			std::auto_ptr<Protocol::Package> result;
+			std::auto_ptr<Util::InfLoopThread<ProtocolThread> > proto_thread;
+			OnExit *on_exit;
 			
-		private:
-			
+			void exit(int error, bool send_bye) throw ();
+			void authorize(Authenticator&);
+			void send_bye();
+			void init(Authenticator &);
 			std::auto_ptr<Protocol::Package> receive_result();
-			void result_handler();
 			void auth_trust(const std::string &user);
 			void auth_pass_MySQL(const std::string &user, const std::string &password);
-			void print_result(const Protocol::Package &package, int indent);
-			void print_error(const Protocol::ASCErrorPackage &package);
 			std::string get_hostname();
 
 		public:
 			/* in network order */
-			Client(uint32_t address, uint16_t port);
+			Client(uint32_t address, uint16_t port, Authenticator &auth);
+			Client(uint32_t address, uint16_t port, Authenticator &auth, OnExit &on_exit);
 			~Client();
-
-			void run(StatementProvider &provider);
-
-			void authorize(Authenticator &auth);
-			
-			void send_statement();
+			//may return null as a result of an abort
+			std::auto_ptr<Protocol::Package> execute_stmt(const string &stmt);
 			void abort();
-
 	};
 }
 
