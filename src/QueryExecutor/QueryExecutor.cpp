@@ -2753,12 +2753,19 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 						errcode = (currentResult)->nested_and_push_on_envs(this, tr);
 						if (errcode != 0) return errcode;
 
+						QueryBagResult *pseudoVars = new QueryBagResult();
+						pseudoVars->addResult(new QueryBinderResult("_position", new QueryIntResult(i)));
+						envs->push(pseudoVars, tr, this);
+
 						debug_print(*ec,  "[QE] Computing right Argument with a new scope of ES");
 						errcode = executeRecQuery (((NonAlgOpNode *) tree)->getRArg());
 						if (errcode != 0) return errcode;
 						errcode = qres->pop(rResult);
 						if (errcode != 0) return errcode;
 
+						errcode = envs->pop(this);
+						if (errcode != 0) return errcode;
+						// TODO: delete pseudoVars;
 						errcode = envs->pop(this);
 						if (errcode != 0) return errcode;
 
