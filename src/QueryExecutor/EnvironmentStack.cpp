@@ -671,10 +671,10 @@ int QueryReferenceResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResu
 			debug_print(*ec,  "[QE] Error in getObjectPointer");
 			qe->antyStarveFunction(errcode);
 			qe->inTransaction = false;
-                        //gtimoszuk
+/*                        //gtimoszuk
                         if (optr  != NULL) {
                             delete  optr;
-                        }
+                        } */
 
 			return errcode;
 		}
@@ -749,9 +749,9 @@ int QueryReferenceResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResu
 						debug_print(*ec,  "[QE] Error in getObjectPointer");
 						qe->antyStarveFunction(errcode);
 						qe->inTransaction = false;
-						if ((optr2 != NULL) && !(*optr == *optr2)) {
+/*						if ((optr2 != NULL) && !(*optr == *optr2)) {
                                                     delete optr2;
-                                                }
+                                                } */
                                                 return errcode;
 					}
 					string tmp_name = optr2->getName();
@@ -779,9 +779,9 @@ int QueryReferenceResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResu
 					if ((dataVal->getSubtype() != Store::View) && (tdv->getType() == Store::Vector) && (tdv->getSubtype() == Store::View)) {
 						subviews_vector.push_back(tmp_logID);
 					}
-                                        if ((optr2 != NULL) && !(*optr == *optr2)) {
+/*                                        if ((optr2 != NULL) && !(*optr == *optr2)) {
                                             delete optr2;
-                                        }
+                                        } */
 				}
 				qe->getAccessMap()->propagateAccess(optr->getName(), namesVisible);
 					
@@ -845,9 +845,9 @@ int QueryReferenceResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResu
 				debug_printf(*ec, "[QE] nested(): new QueryVirtualResult returned name: %s\n", view_name.c_str());
 			}
 		}
-            if (GTpom != NULL) {
+/*            if (GTpom != NULL) {
         		delete GTpom;
-            }
+            } */
 	}
      
 	return 0;

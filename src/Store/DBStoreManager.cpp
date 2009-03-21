@@ -1091,8 +1091,10 @@ int DBStoreManager::getClassesLID(TransactionID* tid, vector<LogicalID*>*& p_cla
 
 	DBPhysicalID* DBStoreManager::getPhysicalID(TransactionID* tid, LogicalID* lid)
 	{
-		physical_id* pid;
+		physical_id* pid = NULL;
 		map->getPhysicalID(tid, lid->toInteger(), &pid);
+		if (pid == NULL)
+			return NULL;
 		return new DBPhysicalID(*pid);
 	}
 

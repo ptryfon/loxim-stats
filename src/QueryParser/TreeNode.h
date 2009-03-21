@@ -67,7 +67,7 @@ namespace QParser {
 
 
     public:
-	enum TreeNodeType { TNINT, TNSTRING, TNDOUBLE, TNVECTOR, TNNAME, 
+	enum TreeNodeType { TNINT, TNSTRING, TNDOUBLE, TNREFID, TNVECTOR, TNNAME, 
 	    TNAS, TNUNOP, TNALGOP, TNNONALGOP, TNTRANS, TNCREATE, TNCOND, TNLINK, TNPARAM, TNFIX, 
 	    TNPROC, TNCALLPROC, TNRETURN, TNREGPROC, TNVIEW, TNREGVIEW, TNVALIDATION, TNCREATEUSER, 	
 	    TNREMOVEUSER, TNPRIVLIST, TNNAMELIST, TNGRANTPRIV, TNREVOKEPRIV, TNREMOTE, TNINDEXDDL, TNINDEXDML,
@@ -911,6 +911,34 @@ namespace QParser {
         string valueS;
         c << value; c >> valueS;
         return getPrefixForLevel( level, name ) + "[Int] value=" + valueS  + "\n";
+      }
+    virtual void serialize(){cout << this->getValue();};  
+      virtual string deParse() { 
+      	stringstream ss;
+	string str;
+	ss << value;
+	ss >> str; 
+	string result; 
+	result = " " + str + " "; 
+	return result; };
+    };  
+
+// query := refid(integer)
+    class RefidNode : public ValueNode 
+    {
+    protected:
+	int value;
+    public:
+	RefidNode(int _value) : value(_value) {}
+	virtual TreeNode* clone();
+	virtual int type() { return TreeNode::TNREFID; }
+	int getValue() {return value;}
+  	virtual ~RefidNode() {}
+      virtual string toString( int level = 0, bool recursive = false, string name = "" ) {
+        stringstream c;
+        string valueS;
+        c << value; c >> valueS;
+        return getPrefixForLevel( level, name ) + "[Refid] value=" + valueS  + "\n";
       }
     virtual void serialize(){cout << this->getValue();};  
       virtual string deParse() { 

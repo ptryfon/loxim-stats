@@ -67,6 +67,8 @@ namespace LockMgr
 		int errorNumber = 0;
 
 	    	DBPhysicalID* phid = lid->getPhysicalID(tid);
+		if (phid == NULL)
+			return ENoFile;
 	    	DBPhysicalIdMap::iterator pos = map_of_locks->find(phid);
 
 		SingleLock* lock = NULL;

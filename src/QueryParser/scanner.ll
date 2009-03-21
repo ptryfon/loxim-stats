@@ -153,6 +153,7 @@ $[_a-zA-Z][_a-zA-Z0-9]* yylval->str = new char[strlen(yytext) + 1]; yylval->str 
 [0-1]".."[0-1"*"] yylval->str = new char[strlen(yytext) + 1]; yylval->str = strcpy(yylval->str,yytext); return CARDCONST;
 [0-9]+ 			yylval->num = atoi(yytext); return INTEGER;
 [0-9]+"."[0-9]+		yylval->dbl = atof(yytext); return DOUBLE;
+refid\([0-9]+\)		yylval->num = atoi(yytext+6); return REFID;
 
 "/*"	BEGIN(comment);
 <comment>"*/" BEGIN(INITIAL);

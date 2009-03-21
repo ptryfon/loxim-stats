@@ -20,6 +20,7 @@ namespace QParser
     TreeNode* NameNode::clone()     { NameNode * nowy =  new NameNode(name); nowy->setUsedBy(this->getUsedBy()); nowy->setBoundIn(this->getBoundIn()); nowy->copyAttrsOf(this); return nowy; }
 	TreeNode* ParamNode::clone()    { TreeNode * nowy =  new ParamNode(name); nowy->copyAttrsOf(this); return nowy;}
 	TreeNode* IntNode::clone()      { IntNode * nowy = new IntNode(value); nowy->copyAttrsOf(this); return nowy;}
+	TreeNode* RefidNode::clone()      { RefidNode * nowy = new RefidNode(value); nowy->copyAttrsOf(this); return nowy;}
 	TreeNode* StringNode::clone()   { StringNode * nowy = new StringNode(value);  nowy->copyAttrsOf(this); return nowy;}
 	TreeNode* DoubleNode::clone()   { DoubleNode * nowy = new DoubleNode(value); nowy->copyAttrsOf(this); return nowy; }
 	TreeNode* NameAsNode::clone()   { NameAsNode * nowy =  new NameAsNode((QueryNode*)arg->clone(), name, group); nowy->setUsedBy(this->getUsedBy()); nowy->copyAttrsOf(this); return nowy;}

@@ -2351,6 +2351,17 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			return 0;
 		} //case TNINT
 
+		case TreeNode::TNREFID: {
+			int intValue = ((RefidNode *) tree)->getValue();
+			debug_printf(*ec, "[QE] TNREFID: %d\n", intValue);
+			LogicalID *lid = new DBLogicalID(intValue);
+			QueryResult *result = new QueryReferenceResult(lid);
+			errcode = qres->push(result);
+			if (errcode != 0) return errcode;
+			debug_printf(*ec, "[QE] QueryReferenceResult (%d) created\n",intValue);
+			return 0;
+		} //case TNREFID
+
 		case TreeNode::TNSTRING: {
 			string stringValue = ((StringNode *) tree)->getValue();
 			debug_print(*ec,  "[QE] TNSTRING: " + stringValue);
@@ -3219,10 +3230,10 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 						this->derefQuery(currIDRes, currInside);
 						QueryResult *currBinder = new QueryBinderResult(currName, currInside);
 						res->addResult(currBinder);
-                                                //gtimoszuk
+/*                                                //gtimoszuk
                                                 if (currOptr != NULL) {
                                                     delete currOptr;
-                                                }
+                                                } */
 					}
 					break;
 				}
@@ -3321,11 +3332,11 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 			if (errcode != 0) return errcode;
 		}
 	}
-        //gtimoszuk
+/*        //gtimoszuk
         
         if (optr != NULL) {
             delete optr;
-        }
+        } */
          
         return 0;
 }
