@@ -466,7 +466,7 @@ namespace QExecutor
 					tmp_lid = new DBLogicalID(new_id);
 					fakeLid_map[virtualToString] = tmp_lid;
 				}
-				res = new QueryReferenceResult(tmp_lid);
+				res = new QueryReferenceResult(new DBLogicalID(tmp_lid->toInteger()));
 				break;
 			}
 			default: {
