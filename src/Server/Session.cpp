@@ -121,7 +121,7 @@ namespace Server{
 		try{
 			qEx.set_priviliged_mode(true);
 			qEx.initCg();
-			info_printf(err_cons, "session %d bootstrapped. active sessions: %d", 
+			info_printf(err_cons, "session %d bootstrapped. active sessions: %d",
 					get_id(), server.get_sessions_count());
 			if (init_phase()){
 				KAthread.start();
@@ -231,7 +231,7 @@ namespace Server{
 		stream->write_package(mask, shutting_down, VSCSendvaluesPackage(VarUint(0, false), VarUint(0, false), VarUint(0, false), VarUint(0, false)));
 		debug_print(err_cons, "SendValues sent");
 		VSCSendvaluePackage val(VarUint(0, false), 0, qres);
-		stream->write_package(mask, shutting_down, val); 
+		stream->write_package(mask, shutting_down, val);
 		debug_print(err_cons, "Sent query result");
 		stream->write_package(mask, shutting_down, VSCFinishedPackage());
 		debug_print(err_cons, "Sending values finished");
@@ -250,7 +250,7 @@ namespace Server{
 		Locker l(send_mutex);
 		stream->write_package(mask, shutting_down, ASCPingPackage());
 	}
-	
+
 	void Session::send_pong()
 	{
 		Locker l(send_mutex);
@@ -349,7 +349,7 @@ namespace Server{
 		}
 		else
 			throw LoximException(error);
-		
+
 	}
 
 	bool is_admin_stmt(const string &stmt)
@@ -497,7 +497,7 @@ namespace Server{
 		Locker l(mutex);
 		cancel_job_locked(synchronous, l);
 	}
-	
+
 	//TODO It might be a race condition!!!
 	void Worker::cancel_job_locked(bool synchronous, Locker &l)
 	{
@@ -544,7 +544,7 @@ namespace Server{
 				session.qEx.contExecuting();
 			}
 			cur_package.reset();
-			/* 
+			/*
 			 * ignore aborts when they are inappropriate, because
 			 * they may be simply late
 			 */
@@ -562,7 +562,7 @@ namespace Server{
 			info_print(err_cons, "Client closed connection");
 			session.shutdown(0);
 			return;
-		} else { 
+		} else {
 			//a regular package
 			cur_package = shared_ptr<Package>(package);
 			idle_cond.signal();
@@ -598,7 +598,7 @@ namespace Server{
 						if (!aborting)
 							session.send_error(ex.get_error());
 						return;
-					} 
+					}
 					auto_ptr<Package> sres(session.serialize_res(*qres));
 					session.respond(sres);
 					return;
@@ -614,17 +614,17 @@ namespace Server{
 			case Q_C_EXECUTE_PACKAGE:
 				warning_print(err_cons, "Got SCExecute - ignoring");
 				break;
-				/* 
+				/*
 				 * there is no Abort, Bye and Pong case but this is on
-				 * purpose. To avoid race conditions (there is no 
+				 * purpose. To avoid race conditions (there is no
 				 * reply to these), these package types are handled in
 				 * the protocol thread
 				 */
-			default: 
-				warning_printf(err_cons, "Unexpected package of type %llu",
+			default:
+				warning_printf(err_cons, "Unexpected package of type %hhu",
 						package->get_type());
 				throw LoximException(EProtocol);
-			
+
 		}
 	}
 
