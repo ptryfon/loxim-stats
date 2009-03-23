@@ -51,14 +51,13 @@
 		</dependency>	
 	</dependencies>
 
-	<inceptionYear>2008</inceptionYear>
+	<inceptionYear>2009</inceptionYear>
 
 	<developers>
 		<developer>
 			<name>Adam Michalik</name>
 			<email>adam.michalik@students.mimuw.edu.pl</email>
 			<roles>
-				<role>Project Manager</role>
 				<role>Developer</role>
 				<role>Tester</role>
 			</roles>

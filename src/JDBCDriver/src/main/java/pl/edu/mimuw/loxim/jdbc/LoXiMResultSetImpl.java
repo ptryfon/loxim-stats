@@ -21,10 +21,12 @@ import java.sql.SQLWarning;
 import java.sql.SQLXML;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 
+import pl.edu.mimuw.loxim.data.LoXiMCollection;
 import pl.edu.mimuw.loxim.data.LoXiMObject;
 import pl.edu.mimuw.loxim.jdbc.util.DateUtil;
 
@@ -1180,9 +1182,24 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 		}
 	}
 	
+	/**
+	 * Gets the object from the given column. First column is 1.
+	 * 
+	 * @param idx
+	 * @return
+	 * @throws SQLException
+	 */
 	private Object getColumn(int idx) throws SQLException {
 		try {
-			Object o = null; // TODO
+			Object o = results.get(index);
+			if (o instanceof LoXiMCollection) {
+				LoXiMCollection collection = (LoXiMCollection) o;
+				o = new ArrayList<Object>(collection.getData()).get(index - 1);
+			} else {
+				if (idx != 1) {
+					throw new IndexOutOfBoundsException();
+				}
+			}
 			wasNull = (o == null);
 			return o;
 		} catch (IndexOutOfBoundsException e) {
@@ -1194,7 +1211,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 		Object res = getColumn(idx);
 
 		if (clazz.isInstance(res)) {
-			return (T) res;
+			return clazz.cast(res);
 		}
 		
 		if (res == null) {
@@ -1209,5 +1226,17 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 		}
 		
 		throw new IllegalArgumentException("Object at index " + idx + " cannot be mapped from " + res.getClass() + " to " + clazz);
+	}
+	
+	@Override
+	public String toString() {
+		StringBuilder buf = new StringBuilder(results.size() * 16);
+		buf.append("{\n");
+		for (Object o : results) {
+			buf.append(o);
+			buf.append('\n');
+		}
+		buf.append("}");
+		return buf.toString();
 	}
 }

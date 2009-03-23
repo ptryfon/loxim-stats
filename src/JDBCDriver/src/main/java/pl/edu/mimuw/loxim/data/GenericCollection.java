@@ -3,10 +3,14 @@ package pl.edu.mimuw.loxim.data;
 import java.util.ArrayList;
 import java.util.Collection;
 
-public class GenericCollection implements Struct, Sequence, Bag {
+public abstract class GenericCollection implements Struct, Sequence, Bag {
 
-	private Collection<Object> data = new ArrayList<Object>();
-	private Class<?> globalType;
+	protected Collection<Object> data = new ArrayList<Object>();
+	protected Class<?> globalType;
+	
+	protected GenericCollection() {
+
+	}
 	
 	@Override
 	public Collection<Object> getData() {
@@ -24,9 +28,5 @@ public class GenericCollection implements Struct, Sequence, Bag {
 	}
 
 	@Override
-	public <T> T mapTo(Class<T> clazz) throws IllegalArgumentException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
+	public abstract String toString();
 }

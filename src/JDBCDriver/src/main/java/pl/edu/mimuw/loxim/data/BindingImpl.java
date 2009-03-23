@@ -31,4 +31,8 @@ public class BindingImpl implements Binding {
 		return null;
 	}
 
+	@Override
+	public String toString() {
+		return "Binding { " + bindingName + " => " + value + " }";
+	}
 }

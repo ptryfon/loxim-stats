@@ -20,4 +20,8 @@ public class LinkImpl implements Link {
 		return null;
 	}
 
+	@Override
+	public String toString() {
+		return "Link { " + valueId + " }";
+	}
 }

@@ -19,6 +19,7 @@ import java.sql.SQLWarning;
 import java.sql.SQLXML;
 import java.sql.Savepoint;
 import java.sql.Struct;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.EnumSet;
 import java.util.List;
@@ -29,6 +30,7 @@ import java.util.Properties;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import pl.edu.mimuw.loxim.data.LoXiMCollection;
 import pl.edu.mimuw.loxim.parser.Parser;
 import pl.edu.mimuw.loxim.parser.SBQLParser;
 import pl.edu.mimuw.loxim.protocol.enums.Abort_reason_codesEnum;
@@ -111,7 +113,7 @@ public class LoXiMConnectionImpl implements LoXiMConnectionInternal {
 			}
 			closed = false;
 		} finally {
-			if (closed) {
+			if (closed) { // ie. if an exception was thrown
 				socket.close();
 			}
 		}
@@ -119,7 +121,7 @@ public class LoXiMConnectionImpl implements LoXiMConnectionInternal {
 
 	private boolean login(String login, String password, EnumSet<Auth_methodsEnum> authMethods, byte[] salt)
 			throws ProtocolException, AuthException {
-		log.info("Logging in");
+		log.debug("Logging in");
 		Auth_methodsEnum authMethod = selectAuthMethod(authMethods);
 		log.debug("Authorization method selected: " + authMethod);
 		log.debug("Sending login package");
@@ -172,7 +174,8 @@ public class LoXiMConnectionImpl implements LoXiMConnectionInternal {
 			return;
 		}
 		
-		tx_rollback();
+		log.debug("Closing connection");
+		
 		try {
 			pacIO.write(new A_sc_byePackage(Bye_reasonsEnum.br_reason1, null));
 			pacIO.close();
@@ -180,8 +183,9 @@ public class LoXiMConnectionImpl implements LoXiMConnectionInternal {
 			throw new SQLException(e);
 		} catch (IOException e) {
 			throw new SQLException(e);
+		} finally {
+			closed = true;
 		}
-		closed = true;
 	}
 
 	@Override
@@ -382,24 +386,27 @@ public class LoXiMConnectionImpl implements LoXiMConnectionInternal {
 	}
 	
 	private void tx_commit() throws SQLException {
-		execute(null, SQL_TR_COMMIT);
+		log.debug("Commit transaction");
+		execute(createStatement(), SQL_TR_COMMIT);
 		synchronized (statementMutex) {
 			tx = false;
 		}
 	}
 	
 	private void tx_rollback() throws SQLException {
-		execute(null, SQL_TR_ROLLBACK);
+		log.debug("Rollback transaction");
+		execute(createStatement(), SQL_TR_ROLLBACK);
 		synchronized (statementMutex) {
 			tx = false;
 		}
 	}
 	
 	private void tx_begin() throws SQLException {
+		log.debug("Start transaction");
 		synchronized (statementMutex) {
 			tx = true;
 		}
-		execute(null, SQL_TR_START);
+		execute(createStatement(), SQL_TR_START);
 	}
 	
 	@Override
@@ -480,7 +487,10 @@ public class LoXiMConnectionImpl implements LoXiMConnectionInternal {
 
 	@Override
 	protected void finalize() throws SQLException {
-		close();
+		if (!closed) {
+			log.warn("Closing connection on finalization.");
+			close();
+		}
 	}
 	
 	private void checkClosed() throws SQLException {
@@ -529,32 +539,53 @@ public class LoXiMConnectionImpl implements LoXiMConnectionInternal {
 		synchronized (statementMutex) {
 			try {
 				if (!tx) {
+					log.debug("Starting transaction implicitly");
 					tx_begin();
 				}
+				log.debug("Executing statement: '" + sbql + "'");
 				Q_c_statementPackage statementPac = new Q_c_statementPackage();
 				EnumSet<Statement_flagsEnum> flags = EnumSet.of(Statement_flagsEnum.sf_execute);
 				statementPac.setFlags(flags);
 				statementPac.setStatement(sbql);
+				log.debug("Sending statement for execution");
 				pacIO.write(statementPac);
+				log.debug("Reading statement result of '" + sbql + "'");
 				Package pac = pacIO.read();
 				switch ((byte) pac.getPackageType()) {
 				case A_sc_errorPackage.ID:
 					throw new SQLException("Statement execution error: " + PackageUtil.toString((A_sc_errorPackage) pac));
 				case Q_s_executingPackage.ID:
 					PackageUtil.readPackage(pacIO, V_sc_sendvaluesPackage.class);
-				case V_sc_sendvaluesPackage.ID: // XXX temp bug fall through
+				case V_sc_sendvaluesPackage.ID: // FIXME bug workaround fallthrough 
 					ResultReader reader = new ResultReader(pacIO);
-					List<Object> res = reader.readValues();
-					Q_s_execution_finishedPackage exFin = PackageUtil.readPackage(pacIO, Q_s_execution_finishedPackage.class);
-					int updates = ((int) (exFin.getDelCnt() + exFin.getInsertsCnt() + exFin.getModAtomPointerCnt() + exFin.getNewRootsCnt()));
-					return new ExecutionResult(stmt, res, updates);
+					List<Object> res = unfoldResultList(reader.readValues());
+//	FIXME bug workaround				Q_s_execution_finishedPackage exFin = PackageUtil.readPackage(pacIO, Q_s_execution_finishedPackage.class);
+//					int updates = ((int) (exFin.getDelCnt() + exFin.getInsertsCnt() + exFin.getModAtomPointerCnt() + exFin.getNewRootsCnt()));
+					return new ExecutionResult(stmt, res, 0); // FIXME 
 				default:
 					throw new BadPackageException(pac.getClass());
 				}
 			} catch (ProtocolException e) {
-				throw new SQLException("Communication error", e);
+				throw new SQLException("Query execution error - " + e.getLocalizedMessage(), e);
 			}
 		}
+	}
+	
+	private List<Object> unfoldResultList(List<Object> resultList) {
+		List<Object> unfoldedResult;
+		
+		if (resultList.size() == 1) {
+			Object res = resultList.get(0);
+			if (res instanceof LoXiMCollection) {
+				LoXiMCollection collection = (LoXiMCollection) res;
+				unfoldedResult = new ArrayList<Object>(collection.getData());
+			} else {
+				unfoldedResult = resultList; 
+			}
+		} else {
+			unfoldedResult = resultList;
+		}
+		return unfoldedResult;
 	}
 	
 	@Override

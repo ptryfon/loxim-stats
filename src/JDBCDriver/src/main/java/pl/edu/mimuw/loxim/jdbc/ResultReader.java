@@ -6,6 +6,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.SimpleTimeZone;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import pl.edu.mimuw.loxim.data.BagImpl;
 import pl.edu.mimuw.loxim.data.Binding;
 import pl.edu.mimuw.loxim.data.BindingImpl;
 import pl.edu.mimuw.loxim.data.ExtReference;
@@ -17,7 +21,10 @@ import pl.edu.mimuw.loxim.data.LoXiMCollection;
 import pl.edu.mimuw.loxim.data.PackageToJavaTypeMapper;
 import pl.edu.mimuw.loxim.data.Reference;
 import pl.edu.mimuw.loxim.data.ReferenceImpl;
+import pl.edu.mimuw.loxim.data.SequenceImpl;
+import pl.edu.mimuw.loxim.data.StructImpl;
 import pl.edu.mimuw.loxim.data.VoidImpl;
+import pl.edu.mimuw.loxim.protocol.packages.A_sc_okPackage;
 import pl.edu.mimuw.loxim.protocol.packages.PackageUtil;
 import pl.edu.mimuw.loxim.protocol.packages.V_sc_sendvaluePackage;
 import pl.edu.mimuw.loxim.protocol.packages_data.BagPackage;
@@ -52,6 +59,8 @@ import pl.edu.mimuw.loxim.protogen.lang.java.template.ptools.Package;
 
 class ResultReader {
 	
+	private static final Log log = LogFactory.getLog(ResultReader.class);
+	
 	private PackageIO pacIO;
 	
 	public ResultReader(PackageIO pacIO) {
@@ -60,15 +69,23 @@ class ResultReader {
 	
 	public List<Object> readValues() throws ProtocolException {
 		List<Object> results = new ArrayList<Object>();
-
+		log.debug("Reading statement result values");
+		int i = 0;
 		for (Package pac = PackageUtil.readPackage(pacIO, Package.class); pac.getPackageType() == V_sc_sendvaluePackage.ID; pac = PackageUtil.readPackage(pacIO, Package.class)) {
-			results.add(readValue(((V_sc_sendvaluePackage) pac).getData()));
+			log.debug("Reading result value #" + i);
+			Object value = readValue(((V_sc_sendvaluePackage) pac).getData());
+			log.debug("Result value #" + i + " is " + value.getClass().getName() + " - " + value);
+			results.add(value);
+			i++;
 		}
-		
+		log.debug("Read " + i + " result values");
+// FIXME		pacIO.write(new A_sc_okPackage());
 		return results;
 	}
 	
 	private Object readValue(Package dataPac) throws ProtocolException {
+		log.debug("Reading value from package " + dataPac.getClass().getSimpleName());
+		
 		switch ((int) dataPac.getPackageType()) {
 		
 		// simple types
@@ -179,19 +196,30 @@ class ResultReader {
 			
 			// multi
 		case (int) BagPackage.ID:
+			LoXiMCollection bag = new BagImpl();
+			fillCollection(bag, (CollectionPackage) dataPac);
+			return bag;
+			
 		case (int) StructPackage.ID:
+			LoXiMCollection struct = new StructImpl();
+			fillCollection(struct, (CollectionPackage) dataPac);
+			return struct;
+		
 		case (int) SequencePackage.ID:
-			LoXiMCollection collection = new GenericCollection();
-			CollectionPackage cPac = (CollectionPackage) dataPac;
-			Collection<Object> data = collection.getData();
-			for (Package p : cPac.getDataParts()) {
-				data.add(readValue(p));
-			}
-			collection.setGlobalType(PackageToJavaTypeMapper.getJavaClass(cPac.getGlobalType()));
-			return collection;
+			LoXiMCollection sequence = new SequenceImpl();
+			fillCollection(sequence, (CollectionPackage) dataPac);
+			return sequence;
+
 		default:
 			throw new ProtocolException("Unhandled value type: " + dataPac.getPackageType());
 		}
 	}
 	
+	private void fillCollection(LoXiMCollection collection, CollectionPackage cPac) throws ProtocolException {
+		Collection<Object> data = collection.getData();
+		for (Package p : cPac.getDataParts()) {
+			data.add(readValue(p));
+		}
+		collection.setGlobalType(PackageToJavaTypeMapper.getJavaClass(cPac.getGlobalType()));
+	}
 }

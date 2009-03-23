@@ -1,6 +1,7 @@
 package pl.edu.mimuw.loxim.jdbc;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -8,7 +9,6 @@ import java.sql.SQLException;
 import java.util.Properties;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class LoXiMDriverImplTest {
@@ -42,10 +42,10 @@ public class LoXiMDriverImplTest {
 		info.setProperty("password", "");
 		Connection con1 = driver.connect(DBTestInfo.DB_URL, info);
 		assertTrue(con1.isValid(0));
-//		con1.close();
 		Connection con2 = driver.connect(DBTestInfo.DB_URL_WITH_PORT, info);
 		assertTrue(con2.isValid(0));
-//		con2.close();
+		con1.close();
+		con2.close();
 	}
 
 	@Test
