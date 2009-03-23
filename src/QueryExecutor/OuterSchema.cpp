@@ -137,7 +137,8 @@ int OuterSchema::fromLogicalID(LogicalID *lid, TManager::Transaction *tr, OuterS
 		return errcode;
 	DataValue* dv = optr->getValue();
 	s->setName(optr->getName());
-	if(dv->getSubtype() != Store::StoreSchema) return -1;
+	if(dv->getSubtype() != Store::StoreSchema) 
+		return (ErrQExecutor | EOtherResExp);;
 	
 	vector<LogicalID*>* lidVec = dv->getVector();
 	vector<LogicalID*>::iterator it;
@@ -152,10 +153,9 @@ int OuterSchema::fromLogicalID(LogicalID *lid, TManager::Transaction *tr, OuterS
 		if (optrInside->getName() == QE_FIELD_BIND_NAME) 
 		{
 			string apName = dvInside->getString();
-			//cout << "AP Name: " << apName << endl;
 			++it;
 			if (it==lidVec->end())
-				return -1; //no crud for this one!
+				return (ErrQExecutor | EOtherResExp);; //no crud for this one!
 			LogicalID* currentCrudLid = *it;
 			ObjectPointer *optrCrudInside;
 			errcode = tr->getObjectPointer (currentCrudLid, Store::Read, optrCrudInside, false);
@@ -164,7 +164,7 @@ int OuterSchema::fromLogicalID(LogicalID *lid, TManager::Transaction *tr, OuterS
 			DataValue *dvCrudInside = optrCrudInside->getValue();
 			if (optrCrudInside->getName() != QE_CRUD_BIND_NAME) 
 			{
-				return -1; //crud expected!
+				return (ErrQExecutor | EOtherResExp);; //crud expected!
 			}
 			else
 			{
@@ -197,9 +197,10 @@ int OuterSchemas::loadOuterSchemas(TManager::Transaction *tr, TLidsVector *lvec)
 		OuterSchema *sp = &s;
 		errcode = OuterSchema::fromLogicalID(schemaLid, tr, sp);
 		if (errcode) return errcode;
-		STATE state = OuterSchemaValidator::validate(sp, tr, true);
-		if (OuterSchemaValidator::isError(state)) return -1; //TODO
-		addSchema(*sp);
+		STATE state = OuterSchemaValidator::validate(*sp, tr, true);
+		if (OuterSchemaValidator::isError(state))
+			return (ErrQExecutor | ESchemaIsCriticallyInvalid);
+		addSchema(*sp, state);
 	}
 
 	return 0;
@@ -256,7 +257,7 @@ int OuterSchemas::addSchema(LogicalID *schemaLid, TManager::Transaction *tr, int
 		debug_printf(*ec, "[OuterSchemas::addSchema] error in getObjectPointer");
 		return errcode;
 	}
-	debug_printf(*ec, "[QE] TNREGSCHEMA got object pointer\n");
+	debug_printf(*ec, "[OuterSchemas::addSchema] got object pointer\n");
 	string schemaName = optr->getName();
 	
 	bool taken;
@@ -264,14 +265,14 @@ int OuterSchemas::addSchema(LogicalID *schemaLid, TManager::Transaction *tr, int
 	if (errcode) return errcode;
 	if ((taken) && (ct == CT_CREATE))
 	{ 
-		debug_printf(*ec, "[QE] TNSCHEMANODE - cannot create schema %s, name already in use\n", schemaName.c_str());
-		return -1;
+		debug_printf(*ec, "[OuterSchemas::addSchema] - cannot create schema %s, name already in use\n", schemaName.c_str());
+		return (ErrQExecutor | ENotUniqueSchemaName);
 	}
 	bool present = hasSchemaName(schemaName);
 	if ((!present) && (ct == CT_UPDATE))
 	{
-		debug_printf(*ec, "[QE] TNSCHEMANODE - cannot update schema %s, no such schema\n", schemaName.c_str());
-		return -1;	
+		debug_printf(*ec, "[OuterSchemas::addSchema] - cannot update schema %s, no such schema\n", schemaName.c_str());
+		return (ErrQExecutor | ENoSchemaFound);
 	}
 	if (present)
 	{
@@ -282,25 +283,26 @@ int OuterSchemas::addSchema(LogicalID *schemaLid, TManager::Transaction *tr, int
 	errcode = tr->addRoot(optr);
 	if (errcode != 0) 
 	{
-		debug_printf(*ec, "[QE] TNSCHEMANODE - error in addRoot");
+		debug_printf(*ec, "[OuterSchemas::addSchema] - error in addRoot");
 		return errcode;
 	}
-	debug_printf(*ec, "[QE] TNREGSCHEMA addRoot processed\n");
+	debug_printf(*ec, "[OuterSchemas::addSchema] addRoot processed\n");
 
 	errcode = tr->addSchema(schemaName.c_str(), optr);
 	if (errcode != 0) 
 	{
-		debug_printf(*ec, "[QE] TNSCHEMANODE - error in addSchema");
+		debug_printf(*ec, "[OuterSchemas::addSchema] - error in addSchema");
 		return errcode;
 	}
 
-	OuterSchema schema;
-	OuterSchema *s = &schema;
+	OuterSchema *s = NULL;
 	errcode = OuterSchema::fromLogicalID(schemaLid, tr, s);
 	if (errcode) return errcode;
-	STATE state = OuterSchemaValidator::validate(s, tr, true);
-	debug_printf(*ec, "[QE] outer schema validated");
-	addSchema(*s);
+	STATE state = OuterSchemaValidator::validate(*s, tr, true);
+	debug_printf(*ec, "[OuterSchema::addSchema] validation shows state %d", state);
+	if (OuterSchemaValidator::isError(state))
+		return (ErrQExecutor | EInvalidSchemaDefinition);
+	addSchema(*s, state);
 	return 0;
 }
 
@@ -337,10 +339,11 @@ int OuterSchemas::removeSchema(string name, TManager::Transaction *tr, ObjectPoi
 	return 0;	
 }
 
-void OuterSchemas::addSchema(OuterSchema s)
+void OuterSchemas::addSchema(OuterSchema s, STATE state)
 {
 	string name = s.getName();
 	m_outerSchemas[name] = s;
+	m_schemasValidity[name] = state;
 	TNameToAccess aps = s.getAccessPoints();
 	TNameToAccess::const_iterator it;
 	for (it = aps.begin(); it != aps.end(); ++it)
@@ -365,6 +368,7 @@ void OuterSchemas::removeSchema(string name)
 		m_namesInSchemas[apsName] = schemasForName;
 	}
 	m_outerSchemas.erase(name);
+	m_schemasValidity.erase(name);
 }
 
 OuterSchema OuterSchemas::getSchema(string name) const
@@ -393,11 +397,8 @@ void OuterSchemas::revalidateAllSchemasUsingName(string s, TManager::Transaction
 	{
 		string name = (*it);
 		OuterSchema sch = m_outerSchemas[name];
-		OuterSchema *schP = &sch;
-		STATE s = OuterSchemaValidator::validate(schP, tr);
-		if (OuterSchemaValidator::isError(s)) 
-			sch.setValidity(OUTERSCHEMA_INVALID_OTHER);
-		m_outerSchemas[name] = sch;
+		STATE s = OuterSchemaValidator::validate(sch, tr);
+		m_schemasValidity[name] = s;
 	}
 }
 
@@ -421,22 +422,38 @@ void OuterSchemas::debugPrint(TManager::Transaction *tr) const
 	cout << toString(tr);
 }
 
+STATE OuterSchemas::getValidity(string schemaName) const
+{
+	TValidityMap::const_iterator it =  m_schemasValidity.find(schemaName);
+	if (it != m_schemasValidity.end())
+	{
+		STATE s = it->second;
+		return s;
+	}
+	return INVALID_OTHER;
+}
+
+bool OuterSchemas::isValid(string schemaName) const
+{
+	STATE s = getValidity(schemaName);
+	return (!OuterSchemaValidator::isInvalid(s));
+}
+
 int OuterSchemas::exportSchema(string schemaName, TManager::Transaction *tr) const
 {
 	if (!hasSchemaName(schemaName))
 	{
 		debug_printf(*ec, "[OuterSchemas::exportSchema] no schema by name %s\n", schemaName.c_str());
-		return -1;  //TODO - no schema by this name
+		return (ErrQExecutor | ENoSchemaFound);
 	}
 	OuterSchema s = getSchema(schemaName);
-	/*
-	OuterSchema *sp = &s;
-	if (!OuterSchemaValidator::validate(sp, tr))
+	STATE state = getValidity(schemaName);
+	if (OuterSchemaValidator::isInvalid(state))
 	{
-		debug_printf(*ec, "[OuterSchemas::exportSchema] schema %s is invalid and cannot be exported\n", schemaName.c_str());
-		return -1; //TODO - invalid schema can't be exported
+		debug_printf(*ec, "[OuterSchemas::exportSchema] schema %s is invalid (%d) and cannot be exported\n", schemaName.c_str(), state);
+		return (ErrQExecutor | ESchemaInvalidCannotExport);
 	}
-	*/
+	
 	string exportedContent = s.toString(tr);
 	string fileName = getSchemaFile(schemaName);
 	ofstream file;
@@ -444,7 +461,7 @@ int OuterSchemas::exportSchema(string schemaName, TManager::Transaction *tr) con
 	if (!file.is_open())
 	{
 		debug_printf(*ec, "[OuterSchemas::exportSchema] could not open file %s\n", fileName.c_str());
-		return -1; //TODO - couldn't open file
+		return (ErrQExecutor | ENoFile);
 	}
 	else
 	{
@@ -458,8 +475,8 @@ int OuterSchemas::importSchema(string schemaName, string &out) const
 {
 	if (hasSchemaName(schemaName))
 	{
-		debug_printf(*ec, "[OuterSchemas::importSchema] schema by name %s already exists\n", schemaName.c_str());
-		return -1;  //TODO - schema already exists
+		debug_printf(*ec, "[OuterSchemas::importSchema] schema by name %s already exists (delete first)\n", schemaName.c_str());
+		return (ErrQExecutor | ESchemaAlreadyExists);
 	}
 	string schemaString, line;
 	string fileName = getSchemaFile(schemaName);
@@ -468,7 +485,7 @@ int OuterSchemas::importSchema(string schemaName, string &out) const
 	if (!file.is_open())
 	{
 		debug_printf(*ec, "[OuterSchemas::exportSchema] could not open file %s\n", fileName.c_str());
-		return -1; //TODO - couldn't open file
+		return (ErrQExecutor | ENoFile);
 	}
 	else
 	{
@@ -488,14 +505,14 @@ int OuterSchemas::importSchema(string schemaName, string &out) const
 * OuterSchemaValidator *
 ***********************/
 	
-STATE OuterSchemaValidator::validate(OuterSchema *&s, TManager::Transaction *tr, bool isNew)
+STATE OuterSchemaValidator::validate(const OuterSchema &s, TManager::Transaction *tr, bool beforeAdding)
 {   
-	s->setValidity(OUTERSCHEMA_INVALID_OTHER);
-	string outerSchemaName = s->getName();
-	if (isNew && OuterSchemas::Instance().hasSchemaName(outerSchemaName))
+	STATE validity = VALID;
+	string outerSchemaName = s.getName();
+	if (beforeAdding && OuterSchemas::Instance().hasSchemaName(outerSchemaName))
 		return ERROR_NAME_NOT_UNIQUE;
 	
-	TNameToAccess aps = s->getAccessPoints();
+	TNameToAccess aps = s.getAccessPoints();
 	for (TNameToAccess::iterator it = aps.begin(); it != aps.end(); ++it)
 	{
 		string name = (*it).first;
@@ -505,26 +522,25 @@ STATE OuterSchemaValidator::validate(OuterSchema *&s, TManager::Transaction *tr,
 		int errcode = Schema::getCIVObject(name, tr, exists, t, sp);
 		if (errcode) return ERROR_TM;		
 		if (!exists) return ERROR_NO_NAME;
-		if (t != BIND_INTERFACE) {s->setValidity(OUTERSCHEMA_INVALID_OTHER); return ERROR_NOT_INTERFACE;} //Only interfaces are allowed in schema
+		if (t != BIND_INTERFACE) 
+			return ERROR_NOT_INTERFACE; //Only interfaces are allowed in schema
 		if (!sp->getAssociatedObjectName().empty())
-		{		
-			SchemaValidity v = validateInterfaceBind(name, tr);
-			s->setValidity(v);
-			if (v != OUTERSCHEMA_VALID)
-				return INVALID;
+		{	//If interface has object name, it must be bound	   
+			STATE interfaceValidity = validateInterfaceBind(name, tr);
+			if (isInvalid(interfaceValidity))
+				validity = interfaceValidity;
 		}
 	}
 
-	s->setValidity(OUTERSCHEMA_VALID);
-	return VALID;
+	return validity;
 }
 
-SchemaValidity OuterSchemaValidator::validateInterfaceBind(string interfaceName, TManager::Transaction *tr)
+STATE OuterSchemaValidator::validateInterfaceBind(string interfaceName, TManager::Transaction *tr)
 {
 	bool found;
 	ImplementationInfo i = InterfaceMaps::Instance().getImplementationForInterface(interfaceName, found, false);
 	if (!found)
-		return OUTERSCHEMA_INVALID_NO_BIND;
+		return INVALID_NO_BIND;
 
 	string boundName = i.getName();
 	int boundType = i.getType();
@@ -532,14 +548,14 @@ SchemaValidity OuterSchemaValidator::validateInterfaceBind(string interfaceName,
 	bool matches;
 	Schema::interfaceMatchesImplementation(interfaceName, boundName, tr, boundType, matches);
 	if (!matches)
-		return OUTERSCHEMA_INVALID_BAD_BIND;
+		return INVALID_BAD_BIND;
 	
 	if (boundType == BIND_INTERFACE)
 	{
 		return validateInterfaceBind(boundName, tr);
 	}
 
-	return OUTERSCHEMA_VALID;
+	return VALID;
 }
 
 

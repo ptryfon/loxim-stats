@@ -63,12 +63,13 @@ namespace QExecutor
 			TNameToExtendedAccess m_accessMap;
 			TIntToStringSet m_sectionToNamesMap;
 			string m_user;
+			string m_userSchemaName;
 			bool m_isDba;
 			ErrorConsole *ec;
 			
 			int mergeCruds(int crud1, int crud2) const;	
 			
-			
+			void resetForSchema(string schemaName);
 			void addSectionInfo(int secNo, set<string> names);
 			
 			static string getUserTableName() {return "xuser";}
@@ -77,6 +78,8 @@ namespace QExecutor
 		public:
 			AccessMap();
 			
+			bool isSchemaValid() const;
+
 			bool hasAccess(int access, string objectName) const;
 			bool isDba() const {return m_isDba;}
 			
@@ -95,7 +98,7 @@ namespace QExecutor
 			int getAccess(string name) const;
 			
 			void reset();
-			void resetForUser(string username, QueryExecutor *qe);
+			int resetForUser(string username, QueryExecutor *qe);
 			
 	};
 }

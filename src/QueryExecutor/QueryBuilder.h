@@ -22,6 +22,7 @@ namespace QExecutor
 			string remove_user_query(string user);
 			string grant_priv_query(string priv, string object, string user, int grant_option = 0);
 			string revoke_priv_query(string priv, string object, string user);
+			string revoke_all_privs_query(string user);
 			string query_for_user_priviliges(string login);
 			string query_for_privilige(string user, string privilige, string object);
 			string query_for_privilige_grant(string user, string privilige, string object);

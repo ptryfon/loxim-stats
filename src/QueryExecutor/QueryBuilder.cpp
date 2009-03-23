@@ -60,6 +60,12 @@ namespace QExecutor
 		string query = "delete (" + user_query + "." + priv_query + ")";
 		return query;
 	}
+	
+	string QueryBuilder::revoke_all_privs_query(string user)
+	{
+		string query = "delete ((xuser where login=\"" + user + "\").xprivilige)";
+		return query;
+	}
 
 	string QueryBuilder::query_for_user_priviliges(string login)
 	{

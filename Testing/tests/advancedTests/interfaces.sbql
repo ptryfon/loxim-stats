@@ -62,15 +62,15 @@ create interface IoldPatient {instance OIoldPatient: {name}};
 IoldPatient shows OldPatients;
 
 "creating Schemas Patients1 and Patients2. First one contains a view - that should be recognized as error"
-create schema Patients1 { Ipatient2 OldPatients }
-create schema Patients2 { Ipatient IoldPatient }
+create schema Patients1 { Ipatient2 read OldPatients read update }
+create schema Patients2 { Ipatient read create IoldPatient read }
 
 "exporting schema Patients2";
 export Patients2;
 
-"creating user scott with password tiger and giving him permissions to Patients1"
+"creating user scott with password tiger and giving him permissions to Patients2"
 create user scott passwd tiger
-grant read on Patients1 to scott
+grant read on Patients2 to scott
 deref(xuser)
 
 

@@ -152,9 +152,9 @@ int InterfaceMaps::loadSchemas(TManager::Transaction *tr, TLidsVector *lvec)
 	}
 
 	if (!checkHierarchyValidity())
-	{   //Interfaces corrupted - Loop in hierarchy! (TODO)
+	{   
 		debug_printf(*ec, "InterfaceMaps::loadSchemas: error - corrupted hierarchy!\n");
-		return -1;
+		return (ErrQExecutor | EInterfaceHierarchyInvalid);
 	}
 	
 	return 0;
@@ -346,7 +346,7 @@ int InterfaceMaps::bindInterface(string interfaceOrObjectName, string implementa
 		if (interfaceObjectName.empty())
 		{
 			debug_printf(*ec, "[InterfaceMaps::bindInterface] - cannot bind interface %s: it has no associated object name\n", interfaceName.c_str()); 
-			return -1;
+			return (ErrQExecutor | ECannotBindNoObjectName);
 		}
 		else
 		{
@@ -354,7 +354,7 @@ int InterfaceMaps::bindInterface(string interfaceOrObjectName, string implementa
 			if (errcode) 
 			{
 				debug_printf(*ec, "[InterfaceMaps::bindInterface] - error in bindInterface\n");
-				return -1;
+				return (ErrTManager | EOther);
 			}
 			addBind(interfaceName, implementationName, implementationObjectName, implementationType);
 		}
@@ -586,7 +586,7 @@ int InterfaceMaps::removeInterfaceFromMaps(string interfaceName, bool checkValid
 		m_nameToSchema[interfaceName] = s;
 		m_nameToHierarchy = ithCpy;
 		m_nameToInterfacesExtending = nihCpy;
-		return -1;  //Removal illegal, not removed
+		return (ErrQExecutor | ESpoilsInterfaceHierarchy); //Removal illegal, not removed
 	}
 	
 	string oN = s.getAssociatedObjectName();

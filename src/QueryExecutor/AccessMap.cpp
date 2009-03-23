@@ -1,9 +1,12 @@
 #include "AccessMap.h"
 #include "QueryBuilder.h"
 #include "QueryResult.h"
+#include "OuterSchema.h"
+#include "InterfaceMaps.h"
 #include "QueryExecutor.h"
 #include "Errors/ErrorConsole.h"
 
+using namespace Schemas;
 namespace QExecutor
 {
 	bool canCreate(int crud)	{ return (crud & CREATE); }
@@ -15,6 +18,13 @@ namespace QExecutor
 	{
 		ec = &ErrorConsole::get_instance(EC_QUERY_EXECUTOR); 
 		m_isDba = false;
+	}
+	
+	bool AccessMap::isSchemaValid() const
+	{
+		if (m_isDba || m_userSchemaName.empty())
+			return true;
+		return OuterSchemas::Instance().isValid(m_userSchemaName);
 	}
 	
 	int AccessMap::getAccess(string name) const
@@ -152,19 +162,57 @@ namespace QExecutor
 		m_sectionToNamesMap[secNo] = names;
 	}
 	
+	void AccessMap::resetForSchema(string schemaName)
+	{   //asserting: schema exists and is valid
+		reset();
+		m_baseMap.clear();
+		
+		OuterSchemas &os = OuterSchemas::Instance();
+		OuterSchema s = os.getSchema(schemaName);
+		TNameToAccess ap = s.getAccessPoints();
+		m_baseMap[schemaName] = TAccess(READ, false);
+		for (TNameToAccess::iterator it = ap.begin(); it != ap.end(); ++it)
+		{
+			string name = it->first;
+			int crud = it->second;
+			InterfaceMaps &im = InterfaceMaps::Instance();
+			if (im.hasInterface(name))
+			{
+				bool found;
+				string objectName = im.getObjectNameForInterface(name, found);
+				if (found)
+				{
+					if (!objectName.empty())
+						addAccess(objectName, crud, false, true);
+					addAccess(name, READ, false, true);
+				}
+			}
+			else if (im.hasObjectName(name))
+			{
+				bool found;
+				string interfaceName = im.getInterfaceNameForObject(name, found);
+				if (found)
+				{
+					addAccess(name, crud, false, true);
+					addAccess(interfaceName, READ, false, true);
+				}			
+			}
+		}
+	}
+	
 	void AccessMap::reset()
 	{
 		m_accessMap.clear();
 		m_sectionToNamesMap.clear();
 	}
 	
-	void AccessMap::resetForUser(string username, QueryExecutor *qe)
+	int AccessMap::resetForUser(string username, QueryExecutor *qe)
 	{
 		debug_printf(*ec, "[AccessMap::resetForUser] starts!");	
 		reset();
 		m_user = username;
 		m_isDba = username == "root" ? true :false;
-		if (m_isDba) return;
+		if (m_isDba) return 0;
 		
 		//TODO - do bindNames zabrac to i stringi z QueryBuilder'a
 		const string privNameBind = "priv_name";
@@ -177,60 +225,61 @@ namespace QExecutor
 		qe->execute_locally(query, &res);
 		debug_printf(*ec, "[AccessMap::resetForUser] executed..");	
 		
-		if (res->type() != QueryResult::QBAG)
+		if (res->type() != QueryResult::QSTRUCT)
 		{
-			debug_printf(*ec, "[AccessMap::resetForUser] error: QBAG expected!");
-			return;
+			debug_printf(*ec, "[AccessMap::resetForUser] error: QSTRUCT expected!");
+			return (ErrQExecutor | EOtherResExp);			
 		}
-		QueryBagResult *bagRes = (QueryBagResult *)res;
-		vector<QueryResult*> resultsVec = bagRes->getVector();
-		vector<QueryResult*>::iterator it;
-		for (it = resultsVec.begin(); it != resultsVec.end(); ++it)
+		QueryStructResult *currStructResult = (QueryStructResult *)res;
+		string privName, objectName;
+		bool canGive = false;
+		while (!(currStructResult->isEmpty()))
 		{
-			QueryResult *currResult = *it;
-			if (currResult->type() != QueryResult::QSTRUCT)
+			debug_printf(*ec, "[AccessMap::resetForUser] loops..");
+			QueryResult *innerResult;
+			currStructResult->getResult(innerResult);
+			if (innerResult->type() != QueryResult::QBINDER)
 			{
-				debug_printf(*ec, "[AccessMap::resetForUser] error: QSTRUCT expected!");
-				return;			
+				debug_printf(*ec, "[AccessMap::resetForUser] error: QBINDER expected!");
+				return (ErrQExecutor | EOtherResExp);		
 			}
-			QueryStructResult *currStructResult = (QueryStructResult *)currResult;
-			string privName, objectName;
-			bool canGive = false;
-			while (!(currStructResult->isEmpty()))
+			QueryBinderResult *innerBinderResult = (QueryBinderResult *)innerResult;
+			QueryResult *item = innerBinderResult->getItem();
+			string name = innerBinderResult->getName();
+			if (name == privNameBind)
 			{
-				debug_printf(*ec, "[AccessMap::resetForUser] loops..");
-				QueryResult *innerResult;
-				currStructResult->getResult(innerResult);
-				if (innerResult->type() != QueryResult::QBINDER)
-				{
-					debug_printf(*ec, "[AccessMap::resetForUser] error: QBINDER expected!");
-					return;		
-				}
-				QueryBinderResult *innerBinderResult = (QueryBinderResult *)innerResult;
-				QueryResult *item = innerBinderResult->getItem();
-				string name = innerBinderResult->getName();
-				if (name == privNameBind)
-				{
-					QueryStringResult *s = (QueryStringResult *)item;
-					privName = s->getValue();
-				}
-				else if (name == objectNameBind)
-				{
-					QueryStringResult *s = (QueryStringResult *)item;
-					objectName = s->getValue();
-				}
-				else if (name == grantOptionBind)
-				{
-					QueryIntResult *s = (QueryIntResult *)item;
-					canGive = (s->getValue() == 1);				
-				}
+				QueryStringResult *s = (QueryStringResult *)item;
+				privName = s->getValue();
 			}
-			int crud = getCrudFromName(privName);
-			debug_printf(*ec, "[AccessMap::resetForUser] Adding access %s for user %s to object %s", privName.c_str(), username.c_str(), objectName.c_str()); 
-			if (canGive) debug_printf(*ec, "[AccessMap::resetForUser] with right to give access"); 	
-			addAccess(objectName, crud, canGive, true);
+			else if (name == objectNameBind)
+			{
+				QueryStringResult *s = (QueryStringResult *)item;
+				objectName = s->getValue();
+			}
+			else if (name == grantOptionBind)
+			{
+				QueryIntResult *s = (QueryIntResult *)item;
+				canGive = (s->getValue() == 1);				
+			}
 		}
-		debug_printf(*ec, "[AccessMap::resetForUser] ends!");	
+		int crud = getCrudFromName(privName);
+		debug_printf(*ec, "[AccessMap::resetForUser] Adding access %s for user %s to schema %s", privName.c_str(), username.c_str(), objectName.c_str()); 
+		if (canGive) debug_printf(*ec, "[AccessMap::resetForUser] with right to give access"); 	
+		addAccess(objectName, crud, canGive, true);
+		if (!OuterSchemas::Instance().hasSchemaName(objectName))
+		{
+			debug_printf(*ec, "[AccessMap::resetForUser] no such schema (user rights invalid)!");		
+			return (ErrQExecutor | ENoSchemaFound);		
+		}
+		if (!OuterSchemas::Instance().isValid(objectName))
+		{
+			debug_printf(*ec, "[AccessMap::resetForUser] user is not allowed to access db through this schema (schema invalid)!");		
+			return (ErrQExecutor | EUserHasInvalidSchema);
+		}
+		resetForSchema(objectName);
+		
+		debug_printf(*ec, "[AccessMap::resetForUser] ends!");
+		return 0;
 	}
 	
 	set<string> AccessMap::namesFromBinders(QueryResult *bindersBagResult)

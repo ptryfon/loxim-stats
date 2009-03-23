@@ -234,92 +234,58 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 
 		    /* check if user has privilige to grant other privilige */
 		    bool grant_priv = true;
-		    while (priv_list_or_null != NULL) {
-			Privilige *privilige = priv_list_or_null->get_priv();
-			string priv_name = privilige->get_priv_name();
-			priv_list_or_null = priv_list_or_null->try_get_priv_list();
+		    while (priv_list_or_null != NULL) 
+			{
+				Privilige *privilige = priv_list_or_null->get_priv();
+				string priv_name = privilige->get_priv_name();
+				priv_list_or_null = priv_list_or_null->try_get_priv_list();
 
-			NameListNode *name_list_or_null = grant_node->get_name_list();
-				while (name_list_or_null != NULL) {
+				NameListNode *name_list_or_null = grant_node->get_name_list();
+				while (name_list_or_null != NULL) 
+				{
 					string name = name_list_or_null->get_name();
 					name_list_or_null = name_list_or_null->try_get_name_list();
 
 					grant_priv = grant_priv && am->canGiveAccess(name);
 					if (grant_priv == false) break;
-				};
-		    };
-		    if (grant_priv) {
+				}
+		    }
+		    if (grant_priv) 
+			{
 				string user = grant_node->get_user();
 				int grant_option = grant_node->get_with_grant_option();
 				priv_list_or_null = grant_node->get_priv_list();
 
-				while (priv_list_or_null != NULL) {
+				if (priv_list_or_null != NULL)
+				{
 					Privilige *privilige = priv_list_or_null->get_priv();
 					string priv_name = privilige->get_priv_name();
-					priv_list_or_null = priv_list_or_null->try_get_priv_list();
-
+					
 					NameListNode *name_list_or_null = grant_node->get_name_list();
-					while (name_list_or_null != NULL) {
+					if (name_list_or_null != NULL) 
+					{
 						string name = name_list_or_null->get_name();
-						name_list_or_null = name_list_or_null->try_get_name_list();
-
-						string query = QueryBuilder::getHandle()->grant_priv_query(priv_name, name, user, grant_option);
-						QueryResult *local_res = NULL;
-						execute_locally(query, &local_res);
+						
+						//Only works if granting read access to schema (as specified)
 						debug_printf(*ec, "Checking for schema by name %s", name.c_str());
 						if (os->hasSchemaName(name) && priv_name == Privilige::READ_PRIV)
-						{   //read access to schema == access to all included names as spec. by associated CRUDs
-							OuterSchema s = os->getSchema(name);
-							TNameToAccess aps = s.getAccessPoints();
-							debug_printf(*ec, "Schema %s has %d access points defined", name.c_str(), aps.size());
-							TNameToAccess::const_iterator it;
-							for (it = aps.begin(); it != aps.end(); ++it)
-							{
-								string apsName = (*it).first;
-								int apsCrud = (*it).second;
-								debug_printf(*ec, "AccessPoint: %s -> crud: %d ", apsName.c_str(), apsCrud);
-								string objName;
-								bool found;
-								if (im->hasInterface(apsName)) objName = im->getObjectNameForInterface(apsName, found); 
-								else if (im->hasObjectName(apsName)) objName = apsName;
-								else return -1; //TODO - no such interface or object name									 
-								if (!objName.empty())
-								{
-									set<string> inside_priv_names;
-									if (apsCrud & QExecutor::CREATE)
-									{
-										inside_priv_names.insert(Privilige::CREATE_PRIV);
-									}
-									if (apsCrud & READ)
-									{
-										inside_priv_names.insert(Privilige::READ_PRIV);
-									}
-									if (apsCrud & UPDATE)
-									{
-										inside_priv_names.insert(Privilige::MODIFY_PRIV);
-									}
-									if (apsCrud & DELETE)
-									{
-										inside_priv_names.insert(Privilige::DELETE_PRIV);
-									}
-									for (set<string>::iterator i = inside_priv_names.begin(); i != inside_priv_names.end(); ++i)
-									{
-										string aps_priv_name = (*i);
-										string apsQuery = QueryBuilder::getHandle()->grant_priv_query(aps_priv_name, objName, user, false);
-										QueryResult *aps_local_res = NULL;
-										execute_locally(apsQuery, &local_res);
-									}
-								}
-								string apsQuery = QueryBuilder::getHandle()->grant_priv_query(Privilige::READ_PRIV, apsName, user, false);				 
-								QueryResult *aps_local_res = NULL;
-								execute_locally(apsQuery, &local_res);
-							}			
+						{
+							//remove previous access for this user
+							string query = QueryBuilder::getHandle()->revoke_all_privs_query(user);
+							QueryResult *local_res = NULL;
+							execute_locally(query, &local_res);	
+							
+							//grant read access to schema
+							query = QueryBuilder::getHandle()->grant_priv_query(priv_name, name, user, grant_option);
+							local_res = NULL;
+							execute_locally(query, &local_res);			
 						}
-					};
-				};
+					}
+				}
 				*result = new QueryBoolResult(true);
 		    }
-		    else {
+		    else 
+			{
 				*result = new QueryBoolResult(false);
 		    }
 		}
@@ -329,43 +295,52 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 
 		    /* check if user has privilige to revoke other privilige */
 		    bool revoke_priv = true;
-		    while (priv_list_or_null != NULL) {
-			Privilige *privilige = priv_list_or_null->get_priv();
-			string priv_name = privilige->get_priv_name();
-			priv_list_or_null = priv_list_or_null->try_get_priv_list();
+		    while (priv_list_or_null != NULL) 
+			{
+				Privilige *privilige = priv_list_or_null->get_priv();
+				string priv_name = privilige->get_priv_name();
+				priv_list_or_null = priv_list_or_null->try_get_priv_list();
 
-			NameListNode *name_list_or_null = revoke_node->get_name_list();
-			while (name_list_or_null != NULL) {
-			    string name = name_list_or_null->get_name();
-			    name_list_or_null = name_list_or_null->try_get_name_list();
+				NameListNode *name_list_or_null = revoke_node->get_name_list();
+				while (name_list_or_null != NULL) 
+				{
+					string name = name_list_or_null->get_name();
+					name_list_or_null = name_list_or_null->try_get_name_list();
 
-			    revoke_priv = revoke_priv && am->canRevokeAccess();
-			    if (revoke_priv == false) break;
-			};
-		    };
-		    if (revoke_priv) {
-			string user = revoke_node->get_user();
-			priv_list_or_null = revoke_node->get_priv_list();
+					revoke_priv = revoke_priv && am->canRevokeAccess();
+					if (revoke_priv == false) break;
+				}
+		    }
+		    if (revoke_priv) 
+			{
+				string user = revoke_node->get_user();
+				priv_list_or_null = revoke_node->get_priv_list();
 
-			while (priv_list_or_null != NULL) {
-			    Privilige *privilige = priv_list_or_null->get_priv();
-			    string priv_name = privilige->get_priv_name();
-			    priv_list_or_null = priv_list_or_null->try_get_priv_list();
+				if (priv_list_or_null != NULL) 
+				{
+					Privilige *privilige = priv_list_or_null->get_priv();
+					string priv_name = privilige->get_priv_name();
 
-			    NameListNode *name_list_or_null = revoke_node->get_name_list();
-			    while (name_list_or_null != NULL) {
-				string name = name_list_or_null->get_name();
-				name_list_or_null = name_list_or_null->try_get_name_list();
-
-				string query = QueryBuilder::getHandle()->revoke_priv_query(priv_name, name, user);
-				QueryResult *local_res = NULL;
-				execute_locally(query, &local_res);
-			    };
-			};
+					NameListNode *name_list_or_null = revoke_node->get_name_list();
+					if (name_list_or_null != NULL) 
+					{
+						string name = name_list_or_null->get_name();
+						//Only works if revoking read access to schema (as specified)
+						debug_printf(*ec, "Checking for schema by name %s", name.c_str());
+						if (os->hasSchemaName(name) && priv_name == Privilige::READ_PRIV)
+						{
+							//remove access for this user
+							string query = QueryBuilder::getHandle()->revoke_all_privs_query(user);
+							QueryResult *local_res = NULL;
+							execute_locally(query, &local_res);		
+						}
+					}
+				}
 			*result = new QueryBoolResult(true);
 		    }
-		    else {
-			*result = new QueryBoolResult(false);
+		    else 
+			{
+				*result = new QueryBoolResult(false);
 		    }
 		}
 		else if (nodeType == (TreeNode::TNCREATEUSER)) {
@@ -1387,7 +1362,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		
 			bool matches;
 			errcode = im->bindInterface(leftName, rightName, tr, matches);
-			if (errcode) return trErrorOccur("[QE] TNINTERFACEBIND error in bindInterface", errcode);
+			if (errcode) return errorOccur("[QE] TNINTERFACEBIND error in bindInterface", errcode);
 			string verbose = matches ? "bound" : "cannot bind: mismatch";
 			
 		    QueryResult *result = new QueryStringResult(verbose);
@@ -1417,7 +1392,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 
 			bool checkValidity = true;
 			errcode = im->addInterface(interfaceLid, tr, ct, checkValidity);
-			if (errcode) return trErrorOccur("[QE] TNREGINTERFACE error in addInterface", errcode);
+			if (errcode) return errorOccur("[QE] TNREGINTERFACE error in addInterface", errcode);
 			
 		    errcode = qres->push(execution_result);
 		    if (errcode) return errcode;
@@ -1594,8 +1569,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 					
 					debug_printf(*ec, "[QE] Schema: adding access point");
 					accessPoints[apname] = crud; 
-				}			
-				
+				}							
 			}
 			
 			//process aps
@@ -1644,7 +1618,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			LogicalID* schemaLid = ((QueryReferenceResult*)execution_result)->getValue();
 		    errcode = os->addSchema(schemaLid, tr, ct);
 			if (errcode)
-				return trErrorOccur("[QE] TNREGSCHEMA error in addSchema", errcode);
+				return errorOccur("[QE] TNREGSCHEMA error in addSchema", errcode);
 
 		    errcode = qres->push(execution_result);
 		    if (errcode) return errcode;
@@ -1663,7 +1637,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			if (isExport)
 			{
 				errcode = os->exportSchema(schemaName, tr);
-				if (errcode) return errcode;
+				if (errcode) return errorOccur("[QE] TNSCHEMAEXPIMP error in exportSchema", errcode);
 				strres = "exported";
 			}
 			else
@@ -1671,10 +1645,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				string schemaString;
 				errcode = os->importSchema(schemaName, schemaString);
 				if (errcode) 
-				{
-					debug_print(*ec, "[QE] TNSCHEMAEXPIMP - schema import failed");
-					return errcode;
-				}
+					return errorOccur("[QE] TNSCHEMAEXPIMP - schema import error", errcode);
 				else
 				{
 					int id = session->get_id();
@@ -5682,6 +5653,16 @@ int QueryExecutor::callProcedure(string code, vector<QueryBagResult*> sections) 
 
 	if (tmpQP != NULL) delete tmpQP;
 	return 0;
+}
+
+int QueryExecutor::errorOccur(string msg, int errcode)
+{
+	int module = (errcode & ErrAllModules);
+	if (module == ErrQExecutor)
+		return qeErrorOccur(msg, errcode);
+	if (module == ErrTManager)
+		return trErrorOccur(msg, errcode);
+	return otherErrorOccur(msg, errcode);
 }
 
 int QueryExecutor::otherErrorOccur( string msg, int errcode ) {

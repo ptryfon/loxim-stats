@@ -105,6 +105,7 @@ namespace QExecutor
 		int createOnView(string objectName, bool &found, QueryResult *binder, QueryResult *&result);
 		int pop_qres(QueryResult *&r);
 			
+		int errorOccur(string msg, int errcode);
 		int trErrorOccur( string msg, int errcode );	
 		int qeErrorOccur( string msg, int errcode );	
 		int otherErrorOccur( string msg, int errcode );	

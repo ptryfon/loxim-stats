@@ -216,7 +216,8 @@ int Schema::interfaceFromLogicalID(LogicalID *lid, TManager::Transaction *tr, Sc
 		return errcode;
 	DataValue* dv = optr->getValue();
 	s->setName(optr->getName());
-	if(dv->getSubtype() != Store::Interface) return -1;
+	if(dv->getSubtype() != Store::Interface)
+		return (ErrQExecutor | EOtherResExp);
 	
 	vector<LogicalID*>* lidVec = dv->getVector();
 	vector<LogicalID*>::iterator it;
@@ -233,7 +234,6 @@ int Schema::interfaceFromLogicalID(LogicalID *lid, TManager::Transaction *tr, Sc
 		if (optrInside->getName() == QE_OBJECT_NAME_BIND_NAME) 
 		{
 			string objectName = dvInside->getString();
-			//cout << "object NAME: " << objectName << endl;
 			s->setAssociatedObjectName(objectName);
 		}
 		else if (optrInside->getName() == QE_METHOD_BIND_NAME) 
@@ -246,7 +246,6 @@ int Schema::interfaceFromLogicalID(LogicalID *lid, TManager::Transaction *tr, Sc
 
 			DataValue* dvMeth = optrMeth->getValue();
 			string methName = optrMeth->getName();
-			//cout << "Method name: " << methName << endl;
 			Schemas::Method *m = new Schemas::Method();
 			m->setName(methName);
 			
@@ -264,7 +263,6 @@ int Schema::interfaceFromLogicalID(LogicalID *lid, TManager::Transaction *tr, Sc
 				if (memberName == QE_METHOD_PARAM_BIND_NAME)
 				{
 					string fieldName = dvMethInside->getString();
-					//cout << "Method param name: " << fieldName << endl;
 					Field *f = new Field(fieldName);
 					m->addParam(f);    
 				}
@@ -287,14 +285,12 @@ int Schema::interfaceFromLogicalID(LogicalID *lid, TManager::Transaction *tr, Sc
 			else
 				fieldName = dvInside->getString();
 
-			//cout << "FIELD NAME: " << fieldName << endl;
 			Field *f = new Field(fieldName);
 			s->addField(f);		
 		}
 		else if (optrInside->getName() == QE_EXTEND_BIND_NAME) 
 		{
 			string extendName = dvInside->getString();
-			//cout << "Extend NAME: " << extendName << endl;
 			s->addSuper(extendName);
 		}
 	}
@@ -311,8 +307,8 @@ int Schema::viewFromLogicalID(LogicalID *lid, TManager::Transaction *tr, Schema 
 		return errcode;
 	DataValue* dv = optr->getValue();
 	s->setName(optr->getName());
-	//cout << dv->getSubtype();
-	if(dv->getSubtype() != Store::View) return -1;
+	if(dv->getSubtype() != Store::View)
+		return (ErrQExecutor | EOtherResExp);
 	
 	vector<LogicalID*>* lidVec = dv->getVector();
 	vector<LogicalID*>::iterator it;
@@ -329,7 +325,6 @@ int Schema::viewFromLogicalID(LogicalID *lid, TManager::Transaction *tr, Schema 
 		if (optrInside->getName() == QE_VIEWDEF_VIRTUALOBJECTS_NAME) 
 		{
 			string objectName = dvInside->getString();
-			//cout << "object NAME: " << objectName << endl;
 			s->setAssociatedObjectName(objectName);
 		}
 	}
@@ -388,7 +383,8 @@ int Schema::fromNameIncludingDerivedMembers(string name, Schema *&out, TManager:
     vector<Schema *> *allSchemas;
     int errorcode = completeSupersForBase(name, allSchemas, tr, t);
     if (errorcode) return errorcode;
-    if (allSchemas->size() < 1) return -1; //TODO
+    if (allSchemas->size() < 1) 
+		return (ErrQExecutor | EOtherResExp);
     out = allSchemas->back();
     string objectName = allSchemas->front()->getAssociatedObjectName();
     allSchemas->pop_back();
@@ -399,7 +395,6 @@ int Schema::fromNameIncludingDerivedMembers(string name, Schema *&out, TManager:
 		out->join(toJoin);
     }
     out->setAssociatedObjectName(objectName);
-    //cout << "fromNameIncludingDerivedMembers returning" << endl;
     return 0;
 }
 
@@ -449,8 +444,6 @@ int Schema::fromClassVertex(QExecutor::ClassGraphVertex *cgv, Schema *&out)
 			out->addMethod(method);
 		}
 	}
-	//cout << "fromClassVertex returning" << endl;
-	//cout << out->toSchemaString();
 	return 0;
 }
 
@@ -473,7 +466,7 @@ int Schema::completeSupersForBase(string baseString, vector<Schema *> *&out, TMa
 			case BIND_INTERFACE:
 			{		
 				if (!InterfaceMaps::Instance().hasInterface(name))
-					return -1;  //corrupted map..
+					return (ErrQExecutor | EInterfaceMapCorrupted); 
 		
 				s = new Schema();
 				*s = InterfaceMaps::Instance().getSchemaForInterface(name);
@@ -489,7 +482,7 @@ int Schema::completeSupersForBase(string baseString, vector<Schema *> *&out, TMa
 				bool fExists;
 				cg->getClassVertexByName(name, cgv, fExists);
 				if (!fExists)
-					return -1;  //corrupted graph..
+					return (ErrQExecutor | EClassGraphCorrupted);  //corrupted graph..
 			
 				errcode = fromClassVertex(cgv, s);
 				if (errcode) return errcode;
@@ -503,7 +496,7 @@ int Schema::completeSupersForBase(string baseString, vector<Schema *> *&out, TMa
 				break;
 			}
 			default:
-				return -1;
+				return (ErrQExecutor | EOtherResExp);
 				break;
 		}
 		
@@ -603,7 +596,6 @@ int Schema::getClassByName(string name, bool &exists, Schema *&out)
 		if (errcode) return errcode; //graph corrupted
 		return 0;
 	}
-	//cout << "getClassByName returning" << endl;
 	return 0;
 }
 
@@ -755,19 +747,16 @@ int Matcher::FindImpBoundToInterface(const string& interfaceObjectName, TManager
     found = false;
 	if (interfaceName.empty())
     {   //nie ma takiego interfejsu (interfaceObjectName nie jest nazwa obiektu zadnego interfejsu)
-		//cout << "InterfaceNameEmpty!";
-		return -1;
+		return (ErrQExecutor | ENoInterfaceFound);
 	}
 	else if (errcode)
 	{
-		//cout << "Errcode!";
 		return errcode;
     }
     else
     {
 		if (impName.empty())
 		{	//jest to nazwa obiektow spelniajacych interfejs, ale interfejs jest nie zwiazany z implementacja
-			//cout << "impName empty";
 			return 0;
 		}
 		else 

@@ -90,14 +90,35 @@ namespace Errors {
 		ENotUniqueClassName =		0x1910,
 		ENoClassDefFound =		0x1920,
 		EOneResultExpected =		0x1930,
+		
 		ENotUniqueInterfaceName =	0x1940,
-		ENoInterfaceFound =		0x1950,
+		ENotUniqueInterfaceObjectName = 0x1941,
+		ENoInterfaceFound =		0x1942,
+		ENoSchemaFound  =		0x1943,
+		ENotUniqueSchemaName =  0x1944,
+		EUserHasNoSchema	=   0x1945,
+		EUserHasInvalidSchema = 0x1946,
+		ESpoilsInterfaceHierarchy = 0x1947,
+		ESchemaIsCriticallyInvalid = 0x1948,
+		ECannotAddSchema = 0x1949,
+		ESchemaInvalidCannotExport = 0x1950,
+		ESchemaAlreadyExists = 0x1951,
+		EInterfaceHierarchyInvalid = 0x1952,
+		ECannotBindNoObjectName = 0x1953,
+		EInterfaceMapCorrupted = 0x1954,
+		EClassGraphCorrupted = 0x1955,
+		EInvalidSchemaDefinition = 0x1956,
+		
+		
+		
 		ENoImplementationFound =	0x1960,
 		EObjectInsteadOfType =		0x1970,
 		EMdnCreateError =		0x1980,
 		ERecurrentTypes =		0x1990,
 		ESuchMdnExists =		0x1991,
 		ECrcCrtExtTooMany =		0x1992,
+		
+		
 	
 // Config
 		ENotInit =			0x1A00,
@@ -119,6 +140,7 @@ namespace Errors {
 		ESemaphoreInit =		0x2500,
 		EUpgradeLock =			0x2600,
 		EMutexInit =			0x2700,
+		EOther  =				0x2750,
 
 // plug for h_errno from gethost	byname(3)
 		ENoHost =			0x2800,
