@@ -19,29 +19,7 @@ set(READLINE_DIR "${CMAKE_SOURCE_DIR}/CMakeScripts/")
 find_package(READLINE REQUIRED)
 
 set(INCDIR
-    ${CMAKE_SOURCE_DIR}/src/
-    ${CMAKE_SOURCE_DIR}/src/AdminParser/
-    ${CMAKE_SOURCE_DIR}/src/ARIESLog/
-    ${CMAKE_SOURCE_DIR}/src/CBindings/
-    ${CMAKE_SOURCE_DIR}/src/Client/
-    ${CMAKE_SOURCE_DIR}/src/config/
-    ${CMAKE_SOURCE_DIR}/src/Errors/
-    ${CMAKE_SOURCE_DIR}/src/Indexes/
-    ${CMAKE_SOURCE_DIR}/Lock/
-    ${CMAKE_SOURCE_DIR}/Log/
-    ${CMAKE_SOURCE_DIR}/Protocol/
-    ${CMAKE_SOURCE_DIR}/Protocol/Enums/
-    ${CMAKE_SOURCE_DIR}/Protocol/Packages/
-    ${CMAKE_SOURCE_DIR}/Protocol/Packages/Data/
-    ${CMAKE_SOURCE_DIR}/Protocol/Streams/
-    ${CMAKE_SOURCE_DIR}/QueryExecutor/
-    ${CMAKE_SOURCE_DIR}/QueryParser/
-    ${CMAKE_SOURCE_DIR}/Server/
-    ${CMAKE_SOURCE_DIR}/Store/
-    ${CMAKE_SOURCE_DIR}/SystemStats/
-    ${CMAKE_SOURCE_DIR}/TransactionManager/
-    ${CMAKE_SOURCE_DIR}/Util/
-    ${CMAKE_SOURCE_DIR}/TypeCheck/)
+    ${CMAKE_SOURCE_DIR}/src/)
 
 
 if( ${FLEX_EXECUTABLE} )
