@@ -4,7 +4,6 @@ include_directories(${CMAKE_SOURCE_DIR}/src ${CMAKE_BINARY_DIR}/src ${INCDIR})
 set(Server_STAT_SRCS
 Clipboard.cpp
 Clipboard.h
-loxim_server.cpp
 Server.cpp
 Server.h
 Session.cpp

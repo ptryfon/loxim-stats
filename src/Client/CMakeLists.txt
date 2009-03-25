@@ -10,8 +10,7 @@ set(Client_STAT_SRCS
     Client.cpp
     Client.h
     SimpleClient.cpp
-    SimpleClient.h
-    Lsbql.cpp)
+    SimpleClient.h)
 
 add_library(Client STATIC ${Client_STAT_SRCS})
 target_link_libraries(Client Errors)

@@ -68,25 +68,11 @@ add_subdirectory(SystemStats)
 add_subdirectory(TransactionManager)
 add_subdirectory(TypeCheck)
 add_subdirectory(Util)
+add_subdirectory(Programs)
 
 #add_dependencies(Client Errors Util)
 #add_dependencies(Util Errors)
 
 
 
-add_executable(lsbql dummy.cpp)
-add_dependencies(lsbql lsbqlLib)
-target_link_libraries(lsbql lsbqlLib)
 
-add_executable(loxim_server dummy.cpp)
-target_link_libraries(loxim_server Log Lock Config Errors Store ARIESLog Indexes QueryParser TransactionManager SystemStats QueryExecutor AdminParser TypeCheck Server Util ProtocolEnums Protocol ProtocolStreams ProtocolPackagesData ProtocolPackages pthread)
-#add_dependencies(loxim_server serverLib)
-#target_link_libraries(loxim_server serverLib)
-
-add_library(lsbqlLib STATIC dummy.cpp)
-target_link_libraries(lsbqlLib Errors Client Util ProtocolEnums Protocol ProtocolStreams ProtocolPackagesData ProtocolPackages Config ${READLINE_LIBRARY} pthread)
-
-#add_library(serverLib STATIC dummy.cpp)
-#target_link_libraries(serverLib Log Lock Config Errors Store ARIESLog Indexes QueryParser TransactionManager SystemStats QueryExecutor AdminParser TypeCheck Server Util ProtocolEnums Protocol ProtocolStreams ProtocolPackagesData ProtocolPackages pthread)
-
-install(TARGETS lsbql loxim_server DESTINATION bin)
