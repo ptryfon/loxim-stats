@@ -1,0 +1,92 @@
+
+include_directories(${CMAKE_SOURCE_DIR}/src ${CMAKE_BINARY_DIR}/src ${INCDIR})
+
+INCLUDE (CheckIncludeFiles)
+INCLUDE (CheckFunctionExists)
+
+set (PACKAGE_VERSION 0.01)
+set (HAVE_VERBOSITY_COMPILE EC_V_INFO)
+CHECK_INCLUDE_FILES (malloc.h HAVE_MALLOC_H)
+CHECK_INCLUDE_FILES (dlfcn.h HAVE_DLFCN_H)
+CHECK_INCLUDE_FILES (fcntl.h HAVE_FCNTL_H)
+CHECK_INCLUDE_FILES (inttypes.h HAVE_INTTYPES_H)
+CHECK_INCLUDE_FILES (libintl.h HAVE_LIBINTL_H)
+CHECK_INCLUDE_FILES (limits.h HAVE_LIMITS_H)
+CHECK_INCLUDE_FILES (memory.h HAVE_MEMORY_H)
+CHECK_INCLUDE_FILES (netdb.h HAVE_NETDB_H)
+CHECK_INCLUDE_FILES (netinet/in.h HAVE_NETINET_IN_H)
+CHECK_INCLUDE_FILES (stddef.h HAVE_STDDEF_H)
+CHECK_INCLUDE_FILES (stdint.h HAVE_STDINT_H)
+CHECK_INCLUDE_FILES (stdlib.h HAVE_STDLIB_H)
+CHECK_INCLUDE_FILES (string.h HAVE_STRING_H)
+CHECK_INCLUDE_FILES (strings.h HAVE_STRINGS_H)
+CHECK_INCLUDE_FILES (sys/socket.h HAVE_SYS_SOCKET_H)
+CHECK_INCLUDE_FILES (sys/stat.h HAVE_SYS_STAT_H)
+CHECK_INCLUDE_FILES (sys/time.h HAVE_SYS_TIME_H)
+CHECK_INCLUDE_FILES (sys/types.h HAVE_SYS_TYPES_H)
+CHECK_INCLUDE_FILES (termio.h HAVE_TERMIO_H)
+CHECK_INCLUDE_FILES (unistd.h HAVE_UNISTD_H)
+
+
+CHECK_FUNCTION_EXISTS (backtrace HAVE_BACKTRACE)
+CHECK_FUNCTION_EXISTS (ftruncate HAVE_FTRUNCATE)
+CHECK_FUNCTION_EXISTS (gethostbyname HAVE_GETHOSTBYNAME)
+CHECK_FUNCTION_EXISTS (gethostname HAVE_GETHOSTNAME)
+CHECK_FUNCTION_EXISTS (gettimeofday HAVE_GETTIMEOFDAY)
+CHECK_FUNCTION_EXISTS (memmove HAVE_MEMMOVE)
+CHECK_FUNCTION_EXISTS (memset HAVE_MEMSET)
+CHECK_FUNCTION_EXISTS (select HAVE_SELECT)
+CHECK_FUNCTION_EXISTS (regcomp HAVE_REGCOMP)
+CHECK_FUNCTION_EXISTS (socket HAVE_SOCKET)
+CHECK_FUNCTION_EXISTS (strcasecmp HAVE_STRCASECMP)
+CHECK_FUNCTION_EXISTS (strchr HAVE_STRCHR)
+CHECK_FUNCTION_EXISTS (strdup HAVE_STRDUP)
+CHECK_FUNCTION_EXISTS (strerror HAVE_STRERROR)
+CHECK_FUNCTION_EXISTS (strstr HAVE_STRSTR)
+CHECK_FUNCTION_EXISTS (strtol HAVE_STRTOL)
+
+find_library(GTESTLib gtest)
+
+CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
+
+
+add_subdirectory(AdminParser)
+add_subdirectory(ARIESLog)
+add_subdirectory(CBindings)
+add_subdirectory(Client)
+add_subdirectory(Config)
+add_subdirectory(Errors)
+add_subdirectory(Indexes)
+add_subdirectory(Lock)
+add_subdirectory(Log)
+add_subdirectory(Protocol)
+add_subdirectory(QueryExecutor)
+add_subdirectory(QueryParser)
+add_subdirectory(Server)
+add_subdirectory(Store)
+add_subdirectory(SystemStats)
+add_subdirectory(TransactionManager)
+add_subdirectory(TypeCheck)
+add_subdirectory(Util)
+
+#add_dependencies(Client Errors Util)
+#add_dependencies(Util Errors)
+
+
+
+add_executable(lsbql dummy.cpp)
+add_dependencies(lsbql lsbqlLib)
+target_link_libraries(lsbql lsbqlLib)
+
+add_executable(loxim_server dummy.cpp)
+target_link_libraries(loxim_server Log Lock Config Errors Store ARIESLog Indexes QueryParser TransactionManager SystemStats QueryExecutor AdminParser TypeCheck Server Util ProtocolEnums Protocol ProtocolStreams ProtocolPackagesData ProtocolPackages pthread)
+#add_dependencies(loxim_server serverLib)
+#target_link_libraries(loxim_server serverLib)
+
+add_library(lsbqlLib STATIC dummy.cpp)
+target_link_libraries(lsbqlLib Errors Client Util ProtocolEnums Protocol ProtocolStreams ProtocolPackagesData ProtocolPackages Config ${READLINE_LIBRARY} pthread)
+
+#add_library(serverLib STATIC dummy.cpp)
+#target_link_libraries(serverLib Log Lock Config Errors Store ARIESLog Indexes QueryParser TransactionManager SystemStats QueryExecutor AdminParser TypeCheck Server Util ProtocolEnums Protocol ProtocolStreams ProtocolPackagesData ProtocolPackages pthread)
+
+install(TARGETS lsbql loxim_server DESTINATION bin)

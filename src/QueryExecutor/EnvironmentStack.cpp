@@ -14,8 +14,8 @@
 #include <Store/DBLogicalID.h>
 #include <QueryParser/QueryParser.h>
 #include <QueryParser/TreeNode.h>
-#include <QueryExecutor.h>
-#include <EnvironmentStack.h>
+#include <QueryExecutor/QueryExecutor.h>
+#include <QueryExecutor/EnvironmentStack.h>
 #include <Errors/Errors.h>
 #include <Errors/ErrorConsole.h>
 
