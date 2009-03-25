@@ -18,6 +18,11 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/CMakeScripts")
 set(READLINE_DIR "${CMAKE_SOURCE_DIR}/CMakeScripts/") 
 find_package(READLINE REQUIRED)
 
+include (CPack)
+include (CTest)
+
+enable_testing()
+
 #set(INCDIR
 #    ${CMAKE_SOURCE_DIR}/src/
 #    ${CMAKE_SOURCE_DIR}/src/AdminParser/
@@ -55,5 +60,4 @@ endif ( ${BISON_EXECUTABLE})
 add_subdirectory (src)
 add_subdirectory (Documentation)
 
-include (CPack)
-include (CTest)
+

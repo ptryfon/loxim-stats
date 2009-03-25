@@ -13,8 +13,7 @@ SignalReceiver.cpp
 SignalReceiver.h
 SignalRouter.cpp
 SignalRouter.h
-smartptr.h
-thread_test.cpp)
+smartptr.h)
 
 
 add_library(Util STATIC ${Util_STAT_SRCS})

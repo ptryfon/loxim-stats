@@ -69,6 +69,7 @@ add_subdirectory(TransactionManager)
 add_subdirectory(TypeCheck)
 add_subdirectory(Util)
 add_subdirectory(Programs)
+add_subdirectory(Test)
 
 #add_dependencies(Client Errors Util)
 #add_dependencies(Util Errors)
