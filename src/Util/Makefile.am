@@ -6,3 +6,4 @@ libUtilTest_la_LIBADD = libUtil.la ../Errors/libErrors.la
 thread_test_SOURCES = thread_test.cpp
 thread_test_LDADD = libUtilTest.la
 INCLUDES=-I$(top_srcdir)/src
+TESTS = thread_test
