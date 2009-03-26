@@ -33,4 +33,8 @@ public class ExtReferenceImpl implements ExtReference {
 		return null;
 	}
 
+	@Override
+	public String toString() {
+		return "extRef([" + stamp + "] " + valueId + ")";
+	}
 }

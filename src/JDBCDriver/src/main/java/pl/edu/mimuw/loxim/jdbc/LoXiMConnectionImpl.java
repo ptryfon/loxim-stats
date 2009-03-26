@@ -8,7 +8,6 @@ import java.sql.Array;
 import java.sql.Blob;
 import java.sql.CallableStatement;
 import java.sql.Clob;
-import java.sql.Connection;
 import java.sql.NClob;
 import java.sql.ResultSet;
 import java.sql.SQLClientInfoException;
@@ -33,7 +32,6 @@ import org.apache.commons.logging.LogFactory;
 import pl.edu.mimuw.loxim.data.LoXiMCollection;
 import pl.edu.mimuw.loxim.parser.Parser;
 import pl.edu.mimuw.loxim.parser.SBQLParser;
-import pl.edu.mimuw.loxim.protocol.enums.Abort_reason_codesEnum;
 import pl.edu.mimuw.loxim.protocol.enums.Auth_methodsEnum;
 import pl.edu.mimuw.loxim.protocol.enums.Bye_reasonsEnum;
 import pl.edu.mimuw.loxim.protocol.enums.CollationsEnum;
@@ -44,7 +42,6 @@ import pl.edu.mimuw.loxim.protocol.packages.A_sc_okPackage;
 import pl.edu.mimuw.loxim.protocol.packages.PackageUtil;
 import pl.edu.mimuw.loxim.protocol.packages.Q_c_statementPackage;
 import pl.edu.mimuw.loxim.protocol.packages.Q_s_executingPackage;
-import pl.edu.mimuw.loxim.protocol.packages.Q_s_execution_finishedPackage;
 import pl.edu.mimuw.loxim.protocol.packages.V_sc_abortPackage;
 import pl.edu.mimuw.loxim.protocol.packages.V_sc_sendvaluesPackage;
 import pl.edu.mimuw.loxim.protocol.packages.W_c_authorizedPackage;
@@ -69,13 +66,13 @@ public class LoXiMConnectionImpl implements LoXiMConnectionInternal {
 	private static final String SQL_TR_ROLLBACK = "abort";
 	private static final String SQL_TR_START = "begin";
 
-	private boolean closed = true;
+	private volatile boolean closed = true;
 	private PackageIO pacIO;
 	private Parser parser = new SBQLParser();
-	private int holdability = ResultSet.HOLD_CURSORS_OVER_COMMIT;
-	private Object statementMutex = new Object();
+	private final int holdability = ResultSet.HOLD_CURSORS_OVER_COMMIT;
+	private final Object statementMutex = new Object();
 	private boolean tx;
-
+	
 	public LoXiMConnectionImpl(ConnectionInfo info) throws IOException, ProtocolException,
 			SQLInvalidAuthorizationSpecException, AuthException {
 
@@ -101,7 +98,7 @@ public class LoXiMConnectionImpl implements LoXiMConnectionInternal {
 			log.debug("Sending WCHello");
 			pacIO.write(pac);
 			log.debug("Receiving WSHello");
-			W_s_helloPackage sHelloPackage = PackageUtil.readPackage(pacIO, W_s_helloPackage.class);
+			W_s_helloPackage sHelloPackage = pacIO.read(W_s_helloPackage.class);
 			log.debug("Received WSHello");
 			
 			// LOGIN
@@ -112,6 +109,7 @@ public class LoXiMConnectionImpl implements LoXiMConnectionInternal {
 				throw new SQLInvalidAuthorizationSpecException("No authorization");
 			}
 			closed = false;
+			log.info("Connection stablished successfully ");
 		} finally {
 			if (closed) { // ie. if an exception was thrown
 				socket.close();
@@ -127,7 +125,7 @@ public class LoXiMConnectionImpl implements LoXiMConnectionInternal {
 		log.debug("Sending login package");
 		W_c_loginPackage cLoginPackage = new W_c_loginPackage(authMethod);
 		pacIO.write(cLoginPackage);
-		PackageUtil.readPackage(pacIO, A_sc_okPackage.class);
+		pacIO.read(A_sc_okPackage.class);
 
 		log.debug("Sending authorization request in mode " + authMethod);
 		
@@ -555,7 +553,7 @@ public class LoXiMConnectionImpl implements LoXiMConnectionInternal {
 				case A_sc_errorPackage.ID:
 					throw new SQLException("Statement execution error: " + PackageUtil.toString((A_sc_errorPackage) pac));
 				case Q_s_executingPackage.ID:
-					PackageUtil.readPackage(pacIO, V_sc_sendvaluesPackage.class);
+					pacIO.read(V_sc_sendvaluesPackage.class);
 				case V_sc_sendvaluesPackage.ID: // FIXME bug workaround fallthrough 
 					ResultReader reader = new ResultReader(pacIO);
 					List<Object> res = unfoldResultList(reader.readValues());

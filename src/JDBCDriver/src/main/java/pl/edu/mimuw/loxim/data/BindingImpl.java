@@ -33,6 +33,6 @@ public class BindingImpl implements Binding {
 
 	@Override
 	public String toString() {
-		return "Binding { " + bindingName + " => " + value + " }";
+		return "{ " + bindingName + " => " + value + " }";
 	}
 }

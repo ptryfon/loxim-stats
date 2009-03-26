@@ -71,7 +71,7 @@ class ResultReader {
 		List<Object> results = new ArrayList<Object>();
 		log.debug("Reading statement result values");
 		int i = 0;
-		for (Package pac = PackageUtil.readPackage(pacIO, Package.class); pac.getPackageType() == V_sc_sendvaluePackage.ID; pac = PackageUtil.readPackage(pacIO, Package.class)) {
+		for (Package pac = pacIO.read(); pac.getPackageType() == V_sc_sendvaluePackage.ID; pac = pacIO.read()) {
 			log.debug("Reading result value #" + i);
 			Object value = readValue(((V_sc_sendvaluePackage) pac).getData());
 			log.debug("Result value #" + i + " is " + value.getClass().getName() + " - " + value);
