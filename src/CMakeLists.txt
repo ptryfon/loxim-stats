@@ -5,7 +5,6 @@ INCLUDE (CheckIncludeFiles)
 INCLUDE (CheckFunctionExists)
 
 set (PACKAGE_VERSION 0.01)
-set (HAVE_VERBOSITY_COMPILE EC_V_INFO)
 CHECK_INCLUDE_FILES (malloc.h HAVE_MALLOC_H)
 CHECK_INCLUDE_FILES (dlfcn.h HAVE_DLFCN_H)
 CHECK_INCLUDE_FILES (fcntl.h HAVE_FCNTL_H)
@@ -44,6 +43,14 @@ CHECK_FUNCTION_EXISTS (strdup HAVE_STRDUP)
 CHECK_FUNCTION_EXISTS (strerror HAVE_STRERROR)
 CHECK_FUNCTION_EXISTS (strstr HAVE_STRSTR)
 CHECK_FUNCTION_EXISTS (strtol HAVE_STRTOL)
+
+if (NOT HAVE_VERBOSITY_COMPILE)
+    MESSAGE (STATUS "WARNING: Not all messages will be compiled, which is probably fine for you
+(by default only debug messages are not compiled), but if you would like to
+change this behaviour consult the --enable-cust-verb option.")
+    set (HAVE_VERBOSITY_COMPILE EC_V_INFO)
+endif (NOT HAVE_VERBOSITY_COMPILE)
+
 
 find_library(GTESTLib gtest)
 
