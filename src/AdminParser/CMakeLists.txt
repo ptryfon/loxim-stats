@@ -17,6 +17,8 @@ find_program(FLEX_EXECUTABLE flex
 
 
 add_custom_command(
+    #TARGET AdminParser 
+    #PRE_BUILD
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/parser.h ${CMAKE_CURRENT_BINARY_DIR}/parser.c
     COMMAND ${BISON_EXECUTABLE} -oparser.c parser.y
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/parser.y ${BISON_EXECUTABLE}
@@ -24,6 +26,8 @@ add_custom_command(
 add_custom_target(generate_admin_parser DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/parser.c)
 
 add_custom_command(
+    #TARGET AdminParser 
+    #PRE_BUILD
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/scanner.cc
     COMMAND ${FLEX_EXECUTABLE} -oscanner.cc scanner.ll
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/scanner.ll ${FLEX_EXECUTABLE}

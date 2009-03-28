@@ -6,20 +6,24 @@ set (CMAKE_VERBOSE_MAKEFILE 0)
 
 
 #DEBUG INFO
-MESSAGE(STATUS "DEB CXX ${CMAKE_CXX_FLAGS_DEBUG}")
-MESSAGE(STATUS "REL CXX ${CMAKE_CXX_FLAGS_RELEASE}")
-MESSAGE(STATUS "DEB C ${CMAKE_C_FLAGS_DEBUG}")
-MESSAGE(STATUS "REL C ${CMAKE_C_FLAGS_RELEASE}")
-MESSAGE(STATUS "NONE LINK ${CMAKE_EXE_LINKER_FLAGS}")
-MESSAGE(STATUS "REL LINK ${CMAKE_EXE_LINKER_FLAGS_RELEASE}")
-MESSAGE(STATUS "DEB LINK  ${CMAKE_EXE_LINKER_FLAGS_DEBUG}")
-#
+#MESSAGE(STATUS "DEB CXX ${CMAKE_CXX_FLAGS_DEBUG}")
+#MESSAGE(STATUS "REL CXX ${CMAKE_CXX_FLAGS_RELEASE}")
+#MESSAGE(STATUS "DEB C ${CMAKE_C_FLAGS_DEBUG}")
+#MESSAGE(STATUS "REL C ${CMAKE_C_FLAGS_RELEASE}")
+#MESSAGE(STATUS "NONE LINK ${CMAKE_EXE_LINKER_FLAGS}")
+#MESSAGE(STATUS "REL LINK ${CMAKE_EXE_LINKER_FLAGS_RELEASE}")
+#MESSAGE(STATUS "DEB LINK  ${CMAKE_EXE_LINKER_FLAGS_DEBUG}")
+
+################################################################################
 
 #BUILD FLAGS DEFINITIONS 
 
 SET(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -Wall -W -Wshadow -Wunused-variable -Wunused-parameter -Wunused-function -Wunused -Wno-system-headers -Wno-deprecated -Woverloaded-virtual -Wwrite-strings -fprofile-arcs -ftest-coverage")
 SET(CMAKE_C_FLAGS_DEBUG "-g -O0 -Wall -W -fprofile-arcs -ftest-coverage")
 SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "-fprofile-arcs -ftest-coverage")
+
+SET(CMAKE_CXX_FLAGS_RELEASE "-03 -DNDEBUG -fomit-frame-pointer")
+SET(CMAKE_C_FLAGS_RELEASE "-03 -DNDEBUG -fomit-frame-pointer")
 
 #BUILD TYPE DEFINITION
 
@@ -44,17 +48,13 @@ SET(CPACK_PACKAGE_VENDOR "Grzegorz Timoszuk")
 SET(CPACK_PACKAGE_VERSION_MAJOR "0")
 SET(CPACK_PACKAGE_VERSION_MINOR "01")
 #SET(CPACK_PACKAGE_VERSION_PATCH "2")
-SET(CPACK_PACKAGE_INSTALL_DIRECTORY "CMake ${CMake_VERSION_MAJOR}.${CMake_VERSION_MINOR}")
+SET(CPACK_PACKAGE_INSTALL_DIRECTORY "LoXiM-${CMake_VERSION_MAJOR}.${CMake_VERSION_MINOR}")
+MESSAGE (STATUS "CPACK_SOURCE_INGNORE_FILES ${CPACK_SOURCE_INGNORE_FILES}")
+SET(CPACK_SOURCE_IGNORE_FILES ${CPACK_SOURCE_IGNORE_FILES} CMakeFiles/ CMakeCache.txt _CPack_Packages .svn/ CPackConfig.cmake DartConfiguration.tcl CPackSourceConfig.cmake LoXiM-0.01.1* Protogen/ lw_protogen/ cmake_install.cmake CTestTestfile.cmake install_manifest.txt "\\\\.swp$" "~$" "\\\\.a$" "\\\\.tmp$" loxim_server lsbql ) 
+MESSAGE (STATUS "CPACK_SOURCE_INGNORE_FILES ${CPACK_SOURCE_INGNORE_FILES}")
 
 #path to addtional modules
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/CMakeScripts")
-
-
-
-include (CPack)
-include (CTest)
-
-enable_testing()
 
 #set(INCDIR
 #    ${CMAKE_SOURCE_DIR}/src/
@@ -132,7 +132,19 @@ endif (PYTHONINTERP_FOUND)
 
 if (PYTHONLIBS_FOUND)
     MESSAGE(STATUS "python libs --  ${PYTHON_LIBRARIES}, includes ${PYTHON_INCLUDE_PATH}")
-endif (PYTHONLIBS_FOUND)
+endif ( PYTHONLIBS_FOUND )
+
+if ( GOOGLETEST_FOUND )
+    if ( PYTHONINTERP_FOUND ) 
+        if ( PYTHONLIBS_FOUND )
+            if ( ${CMAKE_BUILD_TYPE} MATCHES  "Debug" )
+                SET ( G_UNIT_TESTS_ENABLED 1 )
+                #                MESSAGE(STATUS "HHHHHHHUUUUUUUUURRRRA")
+            endif ( ${CMAKE_BUILD_TYPE} MATCHES  "Debug" )
+        endif ( PYTHONLIBS_FOUND )
+    endif ( PYTHONINTERP_FOUND ) 
+endif ( GOOGLETEST_FOUND )
+
 ################################################################################
 
 
@@ -141,11 +153,12 @@ endif (PYTHONLIBS_FOUND)
 set(TCMALLOC_DIR "${CMAKE_SOURCE_DIR}/CMakeScripts/") 
 find_package(TCMALLOC)
 
-if (USE_TCMALLOC) 
-    if (TCMALLOC_FOUND) 
-        MESSAGE (STATUS "ALA MA KOTA")
-    endif (TCMALLOC_FOUND)
-endif (USE_TCMALLOC) 
+if ( USE_TCMALLOC ) 
+    if ( TCMALLOC_FOUND ) 
+        SET ( G_PERF_TOOLS_TESTS_ENABLED 1 )
+        #        MESSAGE ( STATUS "ALA MA KOTA")
+    endif ( TCMALLOC_FOUND )
+endif ( USE_TCMALLOC ) 
 
 find_program(VALGRIND_EXECUTABLE valgrind valgrind.bin 
     PATHS 
@@ -156,11 +169,25 @@ find_program(VALGRIND_EXECUTABLE valgrind valgrind.bin
 
 if(VALGRIND_EXECUTABLE) 
     MESSAGE(STATUS "Found valgrind  -- ${VALGRIND_EXECUTABLE}")
+    SET ( VALGRING_TESTS_ENABLED 1 )
 else (VALGRIND_EXECUTABLE) 
     MESSAGE(STATUS "Valgrind not found")
 endif(VALGRIND_EXECUTABLE) 
 
+if ( G_PERF_TOOLS_TESTS_ENABLED ) 
+    if ( VALGRING_TESTS_ENABLED )
+        SET ( VALGRING_TESTS_ENABLED 0 )
+    endif ( VALGRING_TESTS_ENABLED )
+endif ( G_PERF_TOOLS_TESTS_ENABLED )
+
 ###############################################################################
+
+
+include (CPack)
+include (CTest)
+
+enable_testing()
+
 
 #recursive build for subdirectiories
 if (FLEX_EXECUTABLE)

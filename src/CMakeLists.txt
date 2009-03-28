@@ -52,7 +52,9 @@ change this behaviour consult the --enable-cust-verb option.")
 endif (NOT HAVE_VERBOSITY_COMPILE)
 
 
-find_library(GTESTLib gtest)
+if ( ${CMAKE_BUILD_TYPE} MATCHES  "Debug" )
+    set (HAVE_VERBOSITY_COMPILE EC_V_DEBUG)
+endif ( ${CMAKE_BUILD_TYPE} MATCHES  "Debug" )
 
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
