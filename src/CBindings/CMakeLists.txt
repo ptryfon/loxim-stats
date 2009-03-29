@@ -9,5 +9,5 @@ liblx.h)
 
 add_library(CClient STATIC ${CClient_STAT_SRCS})
 
-add_library(CBindings SHARED ${CClient_STAT_SRCS})
-install(TARGETS CBindings DESTINATION lib) 
+#add_library(CBindings SHARED ${CClient_STAT_SRCS})
+#install(TARGETS CBindings DESTINATION lib) 
