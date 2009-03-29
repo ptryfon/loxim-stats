@@ -13,10 +13,10 @@
 using namespace Schemas;
 using namespace CommonOperations;
 
-void OuterSchema::addName(string name, int crudFlags)
+int OuterSchema::addName(string name, int crudFlags)
 {
 	if (crudFlags == 0)
-		return; //name with no access is like no name at all
+		return 0; //name with no access is like no name at all
 
 
 	bool found;
@@ -31,7 +31,11 @@ void OuterSchema::addName(string name, int crudFlags)
 		string interfaceName = InterfaceMaps::Instance().getInterfaceNameForObject(name, found);
 		if (found)
 			m_namesInSchema[interfaceName] = crudFlags;
+		else
+			return (ErrQExecutor | EInvalidSchemaDefinition);
 	}
+	
+	return 0;
 }
 
 int OuterSchema::getCrudForName(string name) const
@@ -43,16 +47,6 @@ int OuterSchema::getCrudForName(string name) const
 		return crud;
 	}
 	return 0;
-}
-
-void OuterSchema::addName(string name, EntityType t, bool canCreate, bool canRead, bool canUpdate, bool canDelete)
-{   //bool values ensure CRUD int validity
-	int crud = 0;
-	if (canCreate) crud += CREATE;
-	if (canRead) crud += READ;
-	if (canUpdate) crud += UPDATE;
-	if (canDelete) crud += DELETE;
-	addName(name, crud);
 }
 
 void OuterSchema::removeName(string name)
@@ -142,6 +136,9 @@ int OuterSchema::fromLogicalID(LogicalID *lid, TManager::Transaction *tr, OuterS
 	
 	vector<LogicalID*>* lidVec = dv->getVector();
 	vector<LogicalID*>::iterator it;
+	
+	ErrorConsole *ec = &ErrorConsole::get_instance(EC_OUTER_SCHEMAS);
+
 	for (it = lidVec->begin(); it!=lidVec->end(); ++it) 
 	{
 		LogicalID* currentLid = *it;
@@ -169,7 +166,9 @@ int OuterSchema::fromLogicalID(LogicalID *lid, TManager::Transaction *tr, OuterS
 			else
 			{
 				int cr = dvCrudInside->getInt();
-				s->addName(apName, cr);
+				errcode = s->addName(apName, cr);
+				if (errcode != 0)
+					return errcode;
 			}
 		}
 	}
@@ -299,7 +298,7 @@ int OuterSchemas::addSchema(LogicalID *schemaLid, TManager::Transaction *tr, int
 	errcode = OuterSchema::fromLogicalID(schemaLid, tr, s);
 	if (errcode) return errcode;
 	STATE state = OuterSchemaValidator::validate(*s, tr, true);
-	debug_printf(*ec, "[OuterSchema::addSchema] validation shows state %d", state);
+	info_printf(*ec, "[OuterSchema::addSchema] validation shows state %d", state);
 	if (OuterSchemaValidator::isError(state))
 		return (ErrQExecutor | EInvalidSchemaDefinition);
 	addSchema(*s, state);
@@ -396,10 +395,16 @@ void OuterSchemas::revalidateAllSchemasUsingName(string s, TManager::Transaction
 	for (it = toValidate.begin(); it != toValidate.end(); ++it)
 	{
 		string name = (*it);
-		OuterSchema sch = m_outerSchemas[name];
-		STATE s = OuterSchemaValidator::validate(sch, tr);
-		m_schemasValidity[name] = s;
+		revalidateSchema(name, tr);
 	}
+}
+
+void OuterSchemas::revalidateSchema(string name, TManager::Transaction *tr)
+{
+	if (m_outerSchemas.find(name) == m_outerSchemas.end()) return;
+	OuterSchema sch = m_outerSchemas[name];
+	STATE s = OuterSchemaValidator::validate(sch, tr);
+	m_schemasValidity[name] = s;
 }
 
 string OuterSchemas::toString(TManager::Transaction *tr) const
@@ -450,7 +455,7 @@ int OuterSchemas::exportSchema(string schemaName, TManager::Transaction *tr) con
 	STATE state = getValidity(schemaName);
 	if (OuterSchemaValidator::isInvalid(state))
 	{
-		debug_printf(*ec, "[OuterSchemas::exportSchema] schema %s is invalid (%d) and cannot be exported\n", schemaName.c_str(), state);
+		info_printf(*ec, "[OuterSchemas::exportSchema] schema %s is invalid (%d) and cannot be exported\n", schemaName.c_str(), state);
 		return (ErrQExecutor | ESchemaInvalidCannotExport);
 	}
 	
@@ -513,6 +518,9 @@ STATE OuterSchemaValidator::validate(const OuterSchema &s, TManager::Transaction
 		return ERROR_NAME_NOT_UNIQUE;
 	
 	TNameToAccess aps = s.getAccessPoints();
+	ErrorConsole *ec = &ErrorConsole::get_instance(EC_OUTER_SCHEMAS);
+		
+	info_printf(*ec, "[OuterSchemaValidator::validate] outerSchemaName %s, accessPoint count %d", outerSchemaName.c_str(), aps.size());	
 	for (TNameToAccess::iterator it = aps.begin(); it != aps.end(); ++it)
 	{
 		string name = (*it).first;
@@ -520,6 +528,7 @@ STATE OuterSchemaValidator::validate(const OuterSchema &s, TManager::Transaction
 		Schema *sp = NULL;
 		int t;
 		int errcode = Schema::getCIVObject(name, tr, exists, t, sp);
+		info_printf(*ec, "[OuterSchemaValidator::validate] outerSchemaName %s, name %s, type %d", outerSchemaName.c_str(), name.c_str(), t);	
 		if (errcode) return ERROR_TM;		
 		if (!exists) return ERROR_NO_NAME;
 		if (t != BIND_INTERFACE) 
@@ -546,10 +555,14 @@ STATE OuterSchemaValidator::validateInterfaceBind(string interfaceName, TManager
 	int boundType = i.getType();
 	
 	bool matches;
-	Schema::interfaceMatchesImplementation(interfaceName, boundName, tr, boundType, matches);
-	if (!matches)
-		return INVALID_BAD_BIND;
-	
+	if (boundType != BIND_VIEW)
+	{
+		Schema::interfaceMatchesImplementation(interfaceName, boundName, tr, boundType, matches);
+		if (!matches)
+		{
+			return INVALID_BAD_BIND;
+		}
+	}
 	if (boundType == BIND_INTERFACE)
 	{
 		return validateInterfaceBind(boundName, tr);

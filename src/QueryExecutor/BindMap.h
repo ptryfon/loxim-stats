@@ -25,9 +25,9 @@ namespace Schemas
 
 	enum BindType
 	{
+		BIND_INTERFACE,
 		BIND_CLASS,
-		BIND_VIEW,
-		BIND_INTERFACE	
+		BIND_VIEW
 	};
 
 	class ImplementationInfo

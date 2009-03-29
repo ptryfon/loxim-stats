@@ -359,6 +359,7 @@ int InterfaceMaps::bindInterface(string interfaceOrObjectName, string implementa
 			addBind(interfaceName, implementationName, implementationObjectName, implementationType);
 		}
 	}
+	OuterSchemas::Instance().revalidateAllSchemasUsingName(interfaceName, tr);
 	return 0;
 }
 

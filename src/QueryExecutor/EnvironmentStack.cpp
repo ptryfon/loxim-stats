@@ -27,7 +27,7 @@ using namespace std;
 
 namespace QExecutor {
 
-EnvironmentStack::EnvironmentStack() { actualBindClassLid = NULL; actual_prior = 0; sectionDBnumber = 0; ec = &ErrorConsole::get_instance(EC_QUERY_EXECUTOR); }
+EnvironmentStack::EnvironmentStack() { actualBindClassLid = NULL; actual_prior = 0; sectionDBnumber = 0; ec = &ErrorConsole::get_instance(EC_QUERY_EXECUTOR);}
 EnvironmentStack::~EnvironmentStack() { this->deleteAll(); }
 
 unsigned int EnvironmentStack::getSectionDBnumber() { return sectionDBnumber; }
@@ -315,9 +315,17 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 				for (unsigned int j = 0; j < sectionSize; j++) {
 					errcode = (section->at(j,sth));
 					if (errcode != 0) return errcode;
+					
 					if ((sth->type()) == (QueryResult::QBINDER)) {
 						current = (((QueryBinderResult *) sth)->getName());
 						debug_printf(*ec, "[QE] bindName: current %u name is: %s\n", j, current.c_str());
+						
+						if (qe->getAccessMap()->hasAccess(READ, current) == false)
+						{
+							debug_printf(*ec, "[QE] bindName: name %s is not accessible due to interface\n", current.c_str());
+							continue;
+						}
+						
 						if (current == name) {
 							found_one = true;
 							int found_type = (((QueryBinderResult*) sth)->getItem())->type();
@@ -696,6 +704,7 @@ int QueryReferenceResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResu
 		/* end of link processing */
 		
 		vector<LogicalID*> subviews_vector;
+		map<string, bool> namesAccessible;
 
 		int vType = dataVal->getType();
 		switch (vType) {
@@ -755,16 +764,14 @@ int QueryReferenceResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResu
                                                 return errcode;
 					}
 					string tmp_name = optr2->getName();
-					if (filterOut)
-					{
-						if (namesVisible.find(tmp_name) == namesVisible.end())
-						{   //Field filtered out
-							continue;
-						}
+					if ((filterOut) && (namesVisible.find(tmp_name) == namesVisible.end()))
+					{   //Field filtered out
+						namesAccessible[tmp_name] = false;
 					}
 					else
-						namesVisible.insert(tmp_name);
-					//ADTODO nalezy zapewnic widocznosc wszystkich pol metodom
+					{
+						namesAccessible[tmp_name] = true;
+					}
 					
 					//MH TODO: add a 'this->value' reference to each tmp_logID ?
 					tmp_logID->setDirectParent(this->value);
@@ -783,7 +790,7 @@ int QueryReferenceResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResu
                                             delete optr2;
                                         } */
 				}
-				qe->getAccessMap()->propagateAccess(optr->getName(), namesVisible);
+				qe->getAccessMap()->propagateAccess(optr->getName(), namesAccessible);
 					
 				break;
 			}
@@ -849,7 +856,7 @@ int QueryReferenceResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResu
         		delete GTpom;
             } */
 	}
-     
+    
 	return 0;
 }
 
@@ -865,6 +872,7 @@ int QueryVirtualResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult
 	
 	bool filterOut;
 	string k = getInterfaceKey().getKey();
+	map<string, bool> accessibleNames;
 	TStringSet namesVisible = qe->getIm()->getAllFieldNamesAndCheckBind(k, filterOut);
 	if (filterOut)
 		debug_printf(*ec, "[QE] nested(): field names will be filtered out, %d names visible\n", namesVisible.size());
@@ -938,16 +946,15 @@ int QueryVirtualResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult
 			string subview_code = "";
 			errcode = qe->getExViews()->checkViewAndGetVirtuals(subview_lid, subview_name, subview_code, tr);
 			if (errcode != 0) {qe->antyStarveFunction(errcode); qe->inTransaction = false; return errcode;}
-			
-			if (filterOut)
-			{
-				if (namesVisible.find(subview_name) == namesVisible.end())
-				{   //Subview filtered out
-					continue;
-				}
+
+			if ((filterOut) && (namesVisible.find(subview_name) == namesVisible.end()))
+			{   //Field filtered out
+				accessibleNames[subview_name] = false;
 			}
 			else
-				namesVisible.insert(subview_name);
+			{
+				accessibleNames[subview_name] = true;
+			}
 			
 			vector<QueryBagResult*> envs_sections2;
 		
@@ -981,7 +988,7 @@ int QueryVirtualResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult
 			}
 			
 		}
-		qe->getAccessMap()->propagateAccess(vo_name, namesVisible);							
+		qe->getAccessMap()->propagateAccess(vo_name, accessibleNames);							
 	}
 	return 0;
 }

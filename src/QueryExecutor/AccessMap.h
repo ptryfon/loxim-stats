@@ -29,7 +29,8 @@ namespace QExecutor
 		READ		=   2,
 		UPDATE		=   4,
 		DELETE		=   8,
-		FULL_ACCESS	=   CREATE + READ + UPDATE + DELETE
+		FULL_ACCESS	=   CREATE + READ + UPDATE + DELETE,
+		PROCEDURE_ONLY = 16
 	};
 
 	static string getCrudString(int crud)
@@ -64,6 +65,8 @@ namespace QExecutor
 			TIntToStringSet m_sectionToNamesMap;
 			string m_user;
 			string m_userSchemaName;
+			bool m_procedureAccessControl;
+			int m_procLevel;
 			bool m_isDba;
 			ErrorConsole *ec;
 			
@@ -90,13 +93,14 @@ namespace QExecutor
 			
 			void addAccessList(set<string> names, int crud, bool grant = false);
 			void addSectionInfo(int secNo, QueryResult *r);
-			void propagateAccess(string father, set<string> children);			
+			void propagateAccess(string father, map<string, bool> children);		
 			void removeSection(int secNo);
 			void removeAllSections();
 
 			void addAccess(string name, int crud, bool grant = false, bool base = false);
 			int getAccess(string name) const;
 			
+			void setProcedureAccessControl(bool enable, int level);
 			void reset();
 			int resetForUser(string username, QueryExecutor *qe);
 			

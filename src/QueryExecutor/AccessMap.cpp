@@ -18,6 +18,8 @@ namespace QExecutor
 	{
 		ec = &ErrorConsole::get_instance(EC_QUERY_EXECUTOR); 
 		m_isDba = false;
+		m_procedureAccessControl = false;
+		m_procLevel = -1;
 	}
 	
 	bool AccessMap::isSchemaValid() const
@@ -29,17 +31,28 @@ namespace QExecutor
 	
 	int AccessMap::getAccess(string name) const
 	{
-		if (m_isDba) return FULL_ACCESS;
+		
 		TNameToExtendedAccess::const_iterator it = m_accessMap.find(name);
 		if (it == m_accessMap.end())
 		{
 			if (name == getUserTableName())
-				return READ;
+				return m_isDba ? FULL_ACCESS : READ;
 			it = m_baseMap.find(name);
 			if (it == m_baseMap.end())
-				return NO_ACCESS;
+				return m_isDba ? FULL_ACCESS : NO_ACCESS;
 		}
-		return it->second.first;		
+		int access = it->second.first;
+		if (access == PROCEDURE_ONLY)
+		{
+			if (m_procedureAccessControl)
+			{
+				info_printf(*ec, "Procedure access control is on");
+				return FULL_ACCESS;
+			}
+			else
+				return NO_ACCESS; //even for m_dba - becouse it is through interface
+		}
+		return m_isDba ? FULL_ACCESS : access;
 	}
 	
 	bool AccessMap::canGiveAccess(string objectName) const
@@ -63,8 +76,7 @@ namespace QExecutor
 	bool AccessMap::hasAccess(int access, string objectName) const
 	{
 		int crud = getAccess(objectName);
-		string dba = m_isDba  ? "dba" : "not dba"; 
-		debug_printf(*ec, "user is %s, asking for %d access to %s, found rights = %d, cross = %d", dba.c_str(), access, objectName.c_str(), crud, crud & access);
+		info_printf(*ec, "user is %s, asking for %d access to %s, found rights = %d, cross = %d", m_isDba  ? "dba" : "not dba", access, objectName.c_str(), crud, crud & access);
 		return (access == (crud & access));		
 	}
 	
@@ -80,6 +92,7 @@ namespace QExecutor
 	
 	int AccessMap::mergeCruds(int crud1, int crud2) const
 	{
+		if ((crud1 == PROCEDURE_ONLY) || (crud2 == PROCEDURE_ONLY)) return PROCEDURE_ONLY;
 		int crud = 0;
 		if (canCreate(crud1) || canCreate(crud2)) crud += CREATE;		
 		if (canRead(crud1) || canRead(crud2)) crud += READ;
@@ -90,7 +103,7 @@ namespace QExecutor
 	
 	void AccessMap::addAccess(string name, int crud, bool canGive, bool base)
 	{
-		debug_printf(*ec, "[AccessMap::addAccess]: adding access type %d for user %s to name %s", crud, m_user.c_str(), name.c_str());
+		info_printf(*ec, "[AccessMap::addAccess]: adding access type %d for user %s to name %s", crud, m_user.c_str(), name.c_str());
 		if (base)
 		{
 			TNameToExtendedAccess::iterator it = m_baseMap.find(name);
@@ -122,13 +135,25 @@ namespace QExecutor
 		}
 	}
 	
-	void AccessMap::propagateAccess(string father, set<string> children)
-	{
-		if (m_isDba) return;
-		debug_printf(*ec, "[AccessMap::propagateAccess]: adding %d children for %s", children.size(), father.c_str());
+	void AccessMap::propagateAccess(string father, map<string, bool> children)
+	{   //false value in map indicates that this field is not visible through interface and accessible only by procedures
+		//debug_printf(*ec, "[AccessMap::propagateAccess]: adding %d children for %s", children.size(), father.c_str());
 		int crud = getAccess(father);
-		if (crud == NO_ACCESS) return;
-		addAccessList(children, crud);		
+		if (crud == NO_ACCESS) return;  //Shouldn't happen
+		
+		set<string> accessibleChildren;
+		set<string> procedureOnlyChildren;
+		for (map<string, bool>::iterator it = children.begin(); it != children.end(); ++it)
+		{
+			string name = it->first;
+			bool procedureOnly = !(it->second);
+			if (procedureOnly)
+				procedureOnlyChildren.insert(name);
+			else
+				accessibleChildren.insert(name);
+		}
+		addAccessList(accessibleChildren, crud);	
+		addAccessList(procedureOnlyChildren, PROCEDURE_ONLY);
 	}
 	
 	void AccessMap::removeSection(int secNo)
@@ -308,6 +333,19 @@ namespace QExecutor
 	{
 		if (m_isDba) return;
 		return addSectionInfo(secNo, namesFromBinders(r));
+	}
+	
+	void AccessMap::setProcedureAccessControl(bool enable, int level)
+	{
+		info_printf(*ec, "setProcedureAccessControl: %s, %d", enable ? "enable" : "disable", level); 
+		if ((m_procLevel == -1) || (level == m_procLevel))
+		{
+			m_procedureAccessControl = enable;
+			if (!enable)
+				m_procLevel = -1;
+			else
+				m_procLevel = level;
+		}
 	}
 	
 }

@@ -695,13 +695,14 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				return 0;
 			}
 
+			am->setProcedureAccessControl(true, bindSectionNumber);
 			QueryResult *new_envs_sect = new QueryBagResult();
 			for (unsigned int i=0; i<queries_size; i++) {
 				errcode = executeRecQuery(queries[i]);
-				if(errcode != 0) return errcode;
+				if(errcode != 0) {am->setProcedureAccessControl(false, bindSectionNumber); return errcode;}
 				QueryResult *execution_result;
 				errcode = qres->pop(execution_result);
-				if (errcode != 0) return errcode;
+				if (errcode != 0) {am->setProcedureAccessControl(false, bindSectionNumber); return errcode;}
 				QueryResult *new_binder = new QueryBinderResult(params[i], execution_result);
 				new_envs_sect->addResult(new_binder);
 			}
@@ -718,6 +719,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 
 			errcode = callProcedure(code, envs_sections);
 
+			am->setProcedureAccessControl(false, bindSectionNumber);
 			envs->actualBindClassLid = oldBindClassLid;
 			envs->es_priors[bindSectionNumber] = oldBindSectionPrior;
 			if(errcode != 0) return errcode;
@@ -1574,7 +1576,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			
 			//process aps
 			vector<LogicalID *> schemaLids;
-			debug_printf(*ec, "[QE] TNSchema: access points count: %d\n", accessPoints.size());
+			info_printf(*ec, "[QE] TNSchema: schema by name %s has access points count: %d\n", schemaName.c_str(), accessPoints.size());
 			Schemas::TNameToAccess::iterator it;
 			for (it = accessPoints.begin(); it != accessPoints.end(); ++it)
 			{

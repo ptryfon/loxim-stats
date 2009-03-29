@@ -84,31 +84,31 @@ void Schema::sortVectors()
 
 void Schema::printAll(Errors::ErrorConsole *ec) const
 {
-	debug_printf(*ec, "Schema for %s\n", m_name.c_str());
-	debug_printf(*ec, "\tFields:\n");
+	info_printf(*ec, "Schema for %s\n", m_name.c_str());
+	info_printf(*ec, "\tFields:\n");
 	int i = 0;
 	TFields::const_iterator itF;
 	for (itF = m_fields.begin(); itF != m_fields.end(); ++itF)
     {
 		i++;
 		const Field *f = *itF;
-        debug_printf(*ec, "\t\t%d. %s\n", i, f->getName().c_str());
+        info_printf(*ec, "\t\t%d. %s\n", i, f->getName().c_str());
     }
-	debug_printf(*ec, "\tMethods:\n");
+	info_printf(*ec, "\tMethods:\n");
     TMethods::const_iterator itM;
     i = 0;
     for (itM = m_methods.begin(); itM != m_methods.end(); ++itM)
     {
 		i++;
 		const Method *m = *itM;
-        debug_printf(*ec, "\t\t%d. %s\n", i, m->getName().c_str());
+        info_printf(*ec, "\t\t%d. %s\n", i, m->getName().c_str());
         int j = 0;
         TFields params = m->getParams();
         TFields::iterator itP;
         for (itP = params.begin(); itP != params.end(); ++itP)
         {
     	    j++;
-    	    debug_printf(*ec, "\t\t\t %d. %s\n", j, (*itP)->getName().c_str());
+    	    info_printf(*ec, "\t\t\t %d. %s\n", j, (*itP)->getName().c_str());
         }
     }
 }
@@ -366,6 +366,8 @@ int Schema::interfaceMatchesImplementation(string interface, string implementati
 {
     Schema *intSchema;
     Schema *impSchema;
+	
+	ErrorConsole *ec = &ErrorConsole::get_instance(EC_OUTER_SCHEMAS);
     int errorcode = fromNameIncludingDerivedMembers(interface, intSchema, tr, BIND_INTERFACE);
     if (errorcode) return errorcode;
     
@@ -373,7 +375,8 @@ int Schema::interfaceMatchesImplementation(string interface, string implementati
     if (errorcode) return errorcode;
     
     out = Matcher::MatchInterfaceWithImplementation(*intSchema, *impSchema);
-    delete intSchema;
+    
+	delete intSchema;
     delete impSchema;
     return 0;
 }
@@ -734,11 +737,11 @@ bool Matcher::MatchInterfaceWithImplementation(Schema interface, Schema implemen
 {
     interface.sortVectors();
     implementation.sortVectors();
-    
+
     bool result = MatchFields(interface.getFields(), implementation.getFields());
     if (!result) {return result;}
     result = MatchMethods(interface.getMethods(), implementation.getMethods());
-    return result;
+	return result;
 }
 
 int Matcher::FindImpBoundToInterface(const string& interfaceObjectName, TManager::Transaction *tr, string& interfaceName, string &impName, string &impObjName, bool &found, int &t)

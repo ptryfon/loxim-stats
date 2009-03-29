@@ -1,18 +1,37 @@
 begin;
 
+"TESTING INTERFACE SYNTAX"
 "creating interface ITest without objects or fields"
 create interface ITest { {} proctest()};
 "dereferencing it"
 deref(deref(ITest));
 "creating an interface with duplicate fields and methods"
 create interface ITest2 { instance OTest2: {imie; imie; imie; nazwisko; nazwisko; wiek} m1(); m1(arg1); m1(arg1, arg2); m1(); m1(); m2(arg1)};
-"dereferencing it"
+"dereferencing it - all duplicates should have been removed"
 deref(deref(ITest2));
 "creating class CTest with just one method"
 create class CTest { procedure proctest() {return 0} };
 "trying to bind ITest to CTest - should fail as ITest has no objects"
 ITest shows CTest;
 
+"TESTING FIELD VISIBILITY FOR METHODS"
+"creating interface Iperson and class Cperson";
+create interface Iperson {instance OIperson: {name; surname} getAge()};
+create class Cperson {instance Operson: {name; surname; age} procedure getAge() {return age} };
+"creating three Operson objects"; 
+Cperson includes create ("John" as name, "Black" as surname, 71 as age) as Operson;
+Cperson includes create ("Mary" as name, "White" as surname, 34 as age) as Operson;
+Cperson includes create ("Sarah" as name, "Connor" as surname, 30 as age) as Operson;
+
+"binding Iperson to Cperson";
+Iperson shows Cperson;
+
+"calling accessible method that returns inaccessible field - should return John Black";
+deref(OIperson where getAge() > 50);
+"calling inaccessible field directly - should return empty bag"
+deref(OIperson.age);
+
+"TESTING DERIVATION"
 "creating interface Ipl and class Ceng";
 create interface Ipl {instance OIpl: {name; surname} method()};
 create class Ceng {instance Oeng: {name; surname; age} procedure method() {return age} };
@@ -26,18 +45,21 @@ create class Cengsub extends Ceng {instance Oengsub: {extrafield}};
 Cengsub includes create ("Sarah" as name, "Schwarz" as surname, 50 as age, "extrafield" as extrafield) as Oengsub;
 "binding Ipl to Ceng";
 Ipl shows Ceng;
-"dereferencing OIpl - first, all objects, then - only with name Sarah. Should show Oengsub object as well"
+"dereferencing OIpl - first, all objects, then - only with name Sarah. Should show Oengsub object (Sarah Schwarz) as well"
 deref(OIpl);
 deref(OIpl where name = "Sarah");
+
+"TESTING DELETE AND CREATE THROUGH INTERFACE"
 "deleting all OIpl objects - should result in deleting all Oeng and Oengsub objects"
 delete OIpl;
 "dereferencing Oeng objects - should be empty now, as all such objects were deleted through interface"
 deref(Oeng);
 "creating object OIpl"
-create ("o" as name, "p" as surname) as OIpl;
+create ("New" as name, "Entry" as surname) as OIpl;
 "dereferencing Oeng objects - should show one object, as it was created by statement above"
 deref(Oeng);
 
+"TESTING BINDING INTERFACE TO ANOTHER INTERFACE OR VIEW"
 "creating class Cpatient and some objects of this class - Opatient"
 create class Cpatient {instance Opatient : {name; age} procedure proc1(param1) {return 0} };
 Cpatient includes create ("John" as name, 55 as age) as Opatient;
@@ -61,6 +83,7 @@ create view OldPatientsDef {virtual objects OldPatients() { return (Opatient whe
 create interface IoldPatient {instance OIoldPatient: {name}};
 IoldPatient shows OldPatients;
 
+"TESTING SCHEMA CREATION AND EXPORT"
 "creating Schemas Patients1 and Patients2. First one contains a view - that should be recognized as error"
 create schema Patients1 { Ipatient2 read OldPatients read update }
 create schema Patients2 { Ipatient read create IoldPatient read }
@@ -68,10 +91,12 @@ create schema Patients2 { Ipatient read create IoldPatient read }
 "exporting schema Patients2";
 export Patients2;
 
+"TESTING GIVING SCHEMA TO USER"
 "creating user scott with password tiger and giving him permissions to Patients2"
 create user scott passwd tiger
 grant read on Patients2 to scott
 deref(xuser)
 
+"ACCESS THROUGH SCHEMA CAN BE TESTED IN NEW SESSION WITH LOGIN=scott AND passwd=tiger NOW"
 
 end;

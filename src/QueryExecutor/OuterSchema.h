@@ -37,9 +37,9 @@ namespace Schemas
 	enum STATE 
 	{
 		VALID = 0,
-		INVALID_OTHER,
-		INVALID_NO_BIND,
-		INVALID_BAD_BIND,
+		INVALID_OTHER = 1,
+		INVALID_NO_BIND = 2,
+		INVALID_BAD_BIND = 3,
 		ERROR_NAME_NOT_UNIQUE,
 		ERROR_TM,
 		ERROR_NO_NAME,
@@ -54,13 +54,12 @@ namespace Schemas
 			TNameToAccess m_namesInSchema;
 			string m_name;
 			
-			void addName(string name, int crudFlags);
+			int addName(string name, int crudFlags);
 			int getCrudForName(string name) const;
 			
 		public:
 			OuterSchema(string name="no_name") {m_name = name; }
 			OuterSchema(string name, TNameToAccess aps) {m_name = name; setAccessPoints(aps); }
-			void addName(string name, EntityType type, bool canCreate = true, bool canRead = true, bool canUpdate = true, bool canDelete = true);
 			void setName(string n) {m_name = n;}
 			void setAccessPoints(TNameToAccess aps) {m_namesInSchema = aps;}
 
@@ -116,12 +115,14 @@ namespace Schemas
 			int removeSchema(string name, TManager::Transaction *tr);
 			
 			bool isValid(string schemaName) const;
-
+			
 			bool hasSchemaName(const string &s) const {return (m_outerSchemas.find(s) != m_outerSchemas.end());}
 			OuterSchema getSchema(string name) const;
 			set<string> getAllSchemasUsingName(string s) const;
 			void revalidateAllSchemasUsingName(string s, TManager::Transaction *tr);
+			void revalidateSchema(string schemaName, TManager::Transaction *tr);
 			
+
 			int exportSchema(string schemaName, TManager::Transaction *tr) const;
 			int importSchema(string schemaName, string &out) const;
 
