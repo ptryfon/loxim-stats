@@ -6,7 +6,7 @@ import pl.edu.mimuw.loxim.protogen.lang.java.template.streams.PackageInputStream
 import pl.edu.mimuw.loxim.protogen.lang.java.template.streams.PackageOutputStreamWriter;
 
 public class ASCPingPackage extends Package {
-	public final static short ID=(short)129;
+	public final static short ID=(short)128;
 
 	@Override
 	public long getPackageType() {
