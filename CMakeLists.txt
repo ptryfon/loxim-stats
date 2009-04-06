@@ -22,8 +22,8 @@ SET(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -Wall -W -Wshadow -Wunused-variable -Wunused-p
 SET(CMAKE_C_FLAGS_DEBUG "-g -O0 -Wall -W -fprofile-arcs -ftest-coverage")
 SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "-fprofile-arcs -ftest-coverage")
 
-SET(CMAKE_CXX_FLAGS_RELEASE "-03 -DNDEBUG -fomit-frame-pointer")
-SET(CMAKE_C_FLAGS_RELEASE "-03 -DNDEBUG -fomit-frame-pointer")
+SET(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -fomit-frame-pointer")
+SET(CMAKE_C_FLAGS_RELEASE "-O3 -DNDEBUG -fomit-frame-pointer")
 
 #BUILD TYPE DEFINITION
 
