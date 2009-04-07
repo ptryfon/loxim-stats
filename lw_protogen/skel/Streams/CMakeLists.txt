@@ -1,4 +1,3 @@
-## DO NOT MODIFY, this file is auto generated using lw_protogen
 
 include_directories(${CMAKE_SOURCE_DIR}/src ${CMAKE_BINARY_DIR}/src ${INCDIR})
 

@@ -10,7 +10,7 @@ TARGET=../src/Protocol
 #needs to be ralative!!!
 SKEL=skel
 echo "Cleaning target directory"
-TO_REMOVE=`find $TARGET | grep -v svn | grep -E "(\.(h|cpp)|Makefile.am)$" `
+TO_REMOVE=`find $TARGET | grep -v svn | grep -E "(\.(h|cpp)|CMakeLists\.txt)$" `
 echo "About to remove the following files"
 for a in $TO_REMOVE ; do
 	echo rm $a
@@ -31,7 +31,7 @@ echo "Do it? (ctrl-c to abort)"
 read a
 for a in $TO_COPY ; do
 	CUT_NAME=`echo $a| cut -c$(( $SKEL_LEN + 2 ))-`
-	if [ "`echo -n $a | grep "\.am$"`" != "" ] ; then 
+	if [ "`echo -n $a | grep "CMakeLists.txt$"`" != "" ] ; then 
 		echo "## DO NOT MODIFY, this file is auto generated using lw_protogen" > $TARGET/$CUT_NAME
 	fi
 	if [ "`echo -n $a | grep -E "\.(cpp|h)$"`" != "" ] ; then echo
@@ -42,7 +42,7 @@ done
 echo "Launching: ./lw_protogen $XML $TARGET"
 if ./lw_protogen $XML $TARGET ; then
 	echo 'Success!'
-	echo "Remember to run autoreconf in the project's directory an reconfigure the project"
+	echo "Remember to run cmake in the project's directory an reconfigure the project"
 else
 	echo 'Failed :('
 fi
