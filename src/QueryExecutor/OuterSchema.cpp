@@ -110,11 +110,11 @@ string OuterSchema::toString(TManager::Transaction *tr) const
 		Schema s;
 		Schema *sp = &s;
 		int t;
-		int errcode = Schema::getCIVObject(name, tr, exists, t, sp);
+		Schema::getCIVObject(name, tr, exists, t, sp);
 		
 		out += sp->toSchemaString();
 		out += " ";
-		out += getCrudString(crud);
+		out += AccessMap::getCrudString(crud);
 		out += ";\n";
 	}
 	out += "} \n";
@@ -136,8 +136,6 @@ int OuterSchema::fromLogicalID(LogicalID *lid, TManager::Transaction *tr, OuterS
 	
 	vector<LogicalID*>* lidVec = dv->getVector();
 	vector<LogicalID*>::iterator it;
-	
-	ErrorConsole *ec = &ErrorConsole::get_instance(EC_OUTER_SCHEMAS);
 
 	for (it = lidVec->begin(); it!=lidVec->end(); ++it) 
 	{
@@ -410,8 +408,6 @@ void OuterSchemas::revalidateSchema(string name, TManager::Transaction *tr)
 string OuterSchemas::toString(TManager::Transaction *tr) const
 {	
 	string out;
-	bool exists;
-	int type;
 	TOuterSchemas::const_iterator it;
 	for (it = m_outerSchemas.begin(); it != m_outerSchemas.end(); ++it)
 	{

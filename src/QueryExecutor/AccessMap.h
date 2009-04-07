@@ -33,25 +33,6 @@ namespace QExecutor
 		PROCEDURE_ONLY = 16
 	};
 
-	static string getCrudString(int crud)
-	{
-		string res = "";
-		if (crud & CREATE) res += "create";
-		if (crud & READ) res += " read";
-		if (crud & UPDATE) res += " update";
-		if (crud & DELETE) res += " delete";
-		return res;
-	}
-	
-	static int getCrudFromName(string name)
-	{
-		if (name == "Create") return CREATE;
-		if (name == "Read") return READ;
-		if (name == "Update") return UPDATE;
-		if (name == "Delete") return DELETE;
-		return NO_ACCESS;
-	}
-	
 	bool canCreate(int crud);
 	bool canRead(int crud);
 	bool canUpdate(int crud);
@@ -65,8 +46,13 @@ namespace QExecutor
 			TIntToStringSet m_sectionToNamesMap;
 			string m_user;
 			string m_userSchemaName;
+			
 			bool m_procedureAccessControl;
 			int m_procLevel;
+			bool m_disabled;
+			int m_disabledLevel;
+			void setAccessControl(bool procedureOnly, bool enable, int level);		
+			
 			bool m_isDba;
 			ErrorConsole *ec;
 			
@@ -99,11 +85,17 @@ namespace QExecutor
 
 			void addAccess(string name, int crud, bool grant = false, bool base = false);
 			int getAccess(string name) const;
+
+			void enableProcedureOnly(int sec);
+			void disableProcedureOnly(int sec);
+			void disableAccessControl(int sec);
+			void enableAccessControl(int sec);
 			
-			void setProcedureAccessControl(bool enable, int level);
 			void reset();
 			int resetForUser(string username, QueryExecutor *qe);
-			
+
+			static string getCrudString(int crud);	
+			static int getCrudFromName(string name);		
 	};
 }
 

@@ -695,14 +695,14 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				return 0;
 			}
 
-			am->setProcedureAccessControl(true, bindSectionNumber);
+			am->enableProcedureOnly(bindSectionNumber);
 			QueryResult *new_envs_sect = new QueryBagResult();
 			for (unsigned int i=0; i<queries_size; i++) {
 				errcode = executeRecQuery(queries[i]);
-				if(errcode != 0) {am->setProcedureAccessControl(false, bindSectionNumber); return errcode;}
+				if(errcode != 0) {am->disableProcedureOnly(bindSectionNumber); return errcode;}
 				QueryResult *execution_result;
 				errcode = qres->pop(execution_result);
-				if (errcode != 0) {am->setProcedureAccessControl(false, bindSectionNumber); return errcode;}
+				if (errcode != 0) {am->disableProcedureOnly(bindSectionNumber); return errcode;}
 				QueryResult *new_binder = new QueryBinderResult(params[i], execution_result);
 				new_envs_sect->addResult(new_binder);
 			}
@@ -719,7 +719,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 
 			errcode = callProcedure(code, envs_sections);
 
-			am->setProcedureAccessControl(false, bindSectionNumber);
+			am->disableProcedureOnly(bindSectionNumber);
 			envs->actualBindClassLid = oldBindClassLid;
 			envs->es_priors[bindSectionNumber] = oldBindSectionPrior;
 			if(errcode != 0) return errcode;

@@ -274,7 +274,9 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 						errcode = qe->getExViews()->createNewSections(NULL, NULL, view_lid, envs_sections, tr, qe);
 						if (errcode != 0) { qe->antyStarveFunction(errcode); qe->inTransaction = false; return errcode; }
 						
+						qe->getAccessMap()->disableAccessControl(es.size() - 1);
 						errcode = qe->callProcedure(view_code, envs_sections);
+						qe->getAccessMap()->enableAccessControl(es.size() - 1);
 						if(errcode != 0) return errcode;
 						
 						QueryResult *res;

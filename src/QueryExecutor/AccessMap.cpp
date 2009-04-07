@@ -9,6 +9,26 @@
 using namespace Schemas;
 namespace QExecutor
 {
+	
+	string AccessMap::getCrudString(int crud)
+	{
+		string res = "";
+		if (crud & CREATE) res += "create";
+		if (crud & READ) res += " read";
+		if (crud & UPDATE) res += " update";
+		if (crud & DELETE) res += " delete";
+		return res;
+	}
+	
+	int AccessMap::getCrudFromName(string name)
+	{
+		if (name == "Create") return CREATE;
+		if (name == "Read") return READ;
+		if (name == "Update") return UPDATE;
+		if (name == "Delete") return DELETE;
+		return NO_ACCESS;
+	}
+	
 	bool canCreate(int crud)	{ return (crud & CREATE); }
 	bool canRead(int crud)		{ return (crud & READ); }
 	bool canUpdate(int crud)	{ return (crud & UPDATE); }
@@ -19,7 +39,9 @@ namespace QExecutor
 		ec = &ErrorConsole::get_instance(EC_QUERY_EXECUTOR); 
 		m_isDba = false;
 		m_procedureAccessControl = false;
+		m_disabled = false;
 		m_procLevel = -1;
+		m_disabledLevel = -1;
 	}
 	
 	bool AccessMap::isSchemaValid() const
@@ -31,7 +53,7 @@ namespace QExecutor
 	
 	int AccessMap::getAccess(string name) const
 	{
-		
+		if (m_disabled) return FULL_ACCESS;
 		TNameToExtendedAccess::const_iterator it = m_accessMap.find(name);
 		if (it == m_accessMap.end())
 		{
@@ -46,7 +68,7 @@ namespace QExecutor
 		{
 			if (m_procedureAccessControl)
 			{
-				info_printf(*ec, "Procedure access control is on");
+				debug_printf(*ec, "Procedure access control is on");
 				return FULL_ACCESS;
 			}
 			else
@@ -76,7 +98,7 @@ namespace QExecutor
 	bool AccessMap::hasAccess(int access, string objectName) const
 	{
 		int crud = getAccess(objectName);
-		info_printf(*ec, "user is %s, asking for %d access to %s, found rights = %d, cross = %d", m_isDba  ? "dba" : "not dba", access, objectName.c_str(), crud, crud & access);
+		debug_printf(*ec, "user is %s, asking for %d access to %s, found rights = %d, cross = %d", m_isDba  ? "dba" : "not dba", access, objectName.c_str(), crud, crud & access);
 		return (access == (crud & access));		
 	}
 	
@@ -103,7 +125,7 @@ namespace QExecutor
 	
 	void AccessMap::addAccess(string name, int crud, bool canGive, bool base)
 	{
-		info_printf(*ec, "[AccessMap::addAccess]: adding access type %d for user %s to name %s", crud, m_user.c_str(), name.c_str());
+		debug_printf(*ec, "[AccessMap::addAccess]: adding access type %d for user %s to name %s", crud, m_user.c_str(), name.c_str());
 		if (base)
 		{
 			TNameToExtendedAccess::iterator it = m_baseMap.find(name);
@@ -335,17 +357,37 @@ namespace QExecutor
 		return addSectionInfo(secNo, namesFromBinders(r));
 	}
 	
-	void AccessMap::setProcedureAccessControl(bool enable, int level)
+	void AccessMap::setAccessControl(bool procedureOnly, bool enable, int level)
 	{
-		info_printf(*ec, "setProcedureAccessControl: %s, %d", enable ? "enable" : "disable", level); 
-		if ((m_procLevel == -1) || (level == m_procLevel))
+		if (procedureOnly)
 		{
-			m_procedureAccessControl = enable;
-			if (!enable)
-				m_procLevel = -1;
-			else
-				m_procLevel = level;
+			debug_printf(*ec, "setAccessControl: procedureOnly %s, %d", enable ? "enabled" : "disabled", level); 
+			if ((m_procLevel == -1) || (level == m_procLevel))
+			{
+				m_procedureAccessControl = enable;
+				if (!enable)
+					m_procLevel = -1;
+				else
+					m_procLevel = level;
+			}
+		}
+		else
+		{
+			debug_printf(*ec, "setAccessControl: fullAccess %s, %d", enable ? "enabled" : "disabled", level); 
+			if ((m_disabledLevel == -1) || (level == m_disabledLevel))
+			{
+				m_disabled = enable;
+				if (!enable)
+					m_disabledLevel = -1;
+				else
+					m_disabledLevel = level;
+			}
 		}
 	}
+	
+	void AccessMap::enableProcedureOnly(int sec) {return setAccessControl(true, true, sec);}
+	void AccessMap::disableProcedureOnly(int sec) {return setAccessControl(true, false, sec);}
+	void AccessMap::disableAccessControl(int sec) {return setAccessControl(false, true, sec);}
+	void AccessMap::enableAccessControl(int sec) {return setAccessControl(false, false, sec);}
 	
 }

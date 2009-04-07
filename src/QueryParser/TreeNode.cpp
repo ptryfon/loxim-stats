@@ -282,7 +282,7 @@ namespace QParser
 			int access = (*it).second;
 			res += name;
 			res += ": ";
-			res += getCrudString(access);
+			res += AccessMap::getCrudString(access);
 			res += ", ";
 		}
 		return res;
@@ -450,7 +450,7 @@ namespace QParser
 			TInterfaceWithCrud ic = it->second;
 			InterfaceNode in = ic.first;
 			int crud = ic.second;
-			out += in.simpleString() + "\n\tCrud: " + getCrudString(crud); + "\n";
+			out += in.simpleString() + "\n\tCrud: " + AccessMap::getCrudString(crud); + "\n";
 		}
 		return out;
 	}
@@ -512,7 +512,7 @@ namespace QParser
 	}	
 	string Crud::simpleString() const
 	{
-		string res = "Crud: " + getCrudString(m_crud);
+		string res = "Crud: " + AccessMap::getCrudString(m_crud);
 		return res;
 	}
 
