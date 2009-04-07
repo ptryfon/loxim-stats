@@ -881,123 +881,104 @@ void generate_makefiles(const vector<Enum> &enums, const vector<pair<string, map
 	cout << "Generating CMakeLists.txt" << endl;
 	cout << " Generating makefiles for packages" << endl;
 	string includes = "include_directories(${CMAKE_SOURCE_DIR}/src ${CMAKE_BINARY_DIR}/src ${INCDIR})";
-    for (vector<pair<string, map<string, Package> > >::const_iterator package_group = package_groups.begin(); package_group != package_groups.end(); ++package_group) {
+	for (vector<pair<string, map<string, Package> > >::const_iterator package_group = package_groups.begin(); package_group != package_groups.end(); ++package_group) {
 		ofstream mk((target_dir + "/Packages/" + first_upper(package_group->first) + "/CMakeLists.txt").c_str());
-	    mk << notice2 << endl << endl;
+		mk << notice2 << endl << endl;
 		mk << includes << endl;
-        if (!mk.is_open()){
+		if (!mk.is_open()){
 			cout << "  !!! Couldn't create CMakeLists !!! " << endl;
 			exit(1);
 		}
 
-        if (package_group->first.size() == 0 ) {
+		if (package_group->first.size() == 0 ) {
 
-            for (vector<pair<string, map<string, Package> > >::const_iterator
-                    package_groupHelp = package_groups.begin();
-                    package_groupHelp != package_groups.end();
-                    ++package_groupHelp) {
-                if (package_groupHelp->first.size() != 0) {
-                    mk << "add_subdirectory(" << first_upper(package_groupHelp->first) << ")" << endl;
-                }
-            }
+			for (vector<pair<string, map<string, Package> > >::const_iterator
+					package_groupHelp = package_groups.begin();
+					package_groupHelp != package_groups.end();
+					++package_groupHelp) {
+				if (package_groupHelp->first.size() != 0) {
+					mk << "add_subdirectory(" << first_upper(package_groupHelp->first) << ")" << endl;
+				}
+			}
 
-        }
+		}
 
-        mk << "set (ProtocolPackages" << first_upper(package_group->first) << "STAT_SRCS" << endl;
-        /* adding sources */
-        for (map<string, Package>::const_iterator package = package_group->second.begin(); package != package_group->second.end(); ++package) {
-            mk << "\t" << make_class_name(package->first) + "Package.h " << endl;
-            mk << "\t" << make_class_name(package->first) + "Package.cpp " << endl;
-        }
-        /* ugly, but I don't have a better idea */
-        if (package_group->first.size() == 0)
-            mk <<  "\tPackage.h" << endl << "\tPackage.cpp)" << endl;
-        if (!package_group->first.compare("data"))
-            mk << "\tCollectionPackage.h" << endl << "\tCollectionPackage.cpp)" << endl;
+		mk << "set (ProtocolPackages" << first_upper(package_group->first) << "STAT_SRCS" << endl;
+		/* adding sources */
+		for (map<string, Package>::const_iterator package = package_group->second.begin(); package != package_group->second.end(); ++package) {
+			mk << "\t" << make_class_name(package->first) + "Package.h " << endl;
+			mk << "\t" << make_class_name(package->first) + "Package.cpp " << endl;
+		}
+		/* ugly, but I don't have a better idea */
+		if (package_group->first.size() == 0)
+			mk <<  "\tPackage.h" << endl << "\tPackage.cpp)" << endl;
+		if (!package_group->first.compare("data"))
+			mk << "\tCollectionPackage.h" << endl << "\tCollectionPackage.cpp)" << endl;
 
-        mk << "add_library(ProtocolPackages" << first_upper(package_group->first) << " STATIC ${ProtocolPackages" <<  first_upper(package_group->first) << "STAT_SRCS})" << endl;
-        
-        if (package_group->first.size() != 0) {
-            mk << "target_link_libraries(ProtocolPackages" << first_upper(package_group->first) << " Protocol ProtocolStreams)" << endl;
-        }
+		mk << "add_library(ProtocolPackages" << first_upper(package_group->first) << " STATIC ${ProtocolPackages" <<  first_upper(package_group->first) << "STAT_SRCS})" << endl;
 
+		if (package_group->first.size() != 0) {
+			mk << "target_link_libraries(ProtocolPackages" << first_upper(package_group->first) << " Protocol ProtocolStreams)" << endl;
+		}
 
-        /*
-           if (package_group->first.size() == 0){
+	}
+	{
+		cout << " Generating CMakeLists.txt for enums" << endl;
+		ofstream mk((target_dir + "/Enums/CMakeLists.txt").c_str());
+		if (!mk.is_open()){
+			cout << "   !!!! Couldn't create makefile for enums" << endl;
+			exit(1);
+		}
+		mk << notice2 << endl << endl;
+		mk << includes << endl;
+		mk << "set(ProtocolEnums_STAT_SRCS";
 
-           string subdirs;
+		for (vector<Enum>::const_iterator en = enums.begin(); en != enums.end(); ++en) {
+			mk << endl << "\t" << make_class_name(en->name) + ".h " ;
+		}
+		for (vector<pair<string, map<string, Package> > >::const_iterator pg = package_groups.begin(); pg != package_groups.end(); ++pg) {
+			mk << endl << "\t" << first_upper(pg->first) + "Packages.h ";
+		}
+		mk << endl << "dummy.cpp)" << endl;
+		mk << "add_library(ProtocolEnums STATIC ${ProtocolEnums_STAT_SRCS}) " << endl;
+	}
+	{
+		cout << " Generating global CMakeLists.txt" << endl;
+		ofstream mk((target_dir + "/CMakeLists.txt").c_str());
+		if (!mk.is_open()){
+			cout << "   !!!! Couldn't create global makefile" << endl;
+			exit(1);
+		}
+		mk << notice2 << endl << endl;
+		mk << includes << endl;
+		mk << "add_subdirectory(Streams)" << endl;
+		mk << "add_subdirectory(Packages)" << endl;
+		mk << "add_subdirectory(Enums)" << endl;
+		mk << "set(Protocol_STAT_SRCS" << endl;
+		mk << "\tExceptions.cpp" << endl;
+		mk << "\tExceptions.h" << endl;
+		mk << "\tTCPServer.h" << endl;
+		mk << "\tTCPServer.cpp" << endl;
+		mk << "\tByteBuffer.h" << endl;
+		mk << "\tByteBuffer.cpp" << endl;
+		for (vector<pair<string, map<string, Package> > >::const_iterator pg = package_groups.begin(); pg != package_groups.end(); ++pg) {
+			mk << "\t" << first_upper(pg->first) << "PackageFactory.h " << endl;
+			mk << "\t" << first_upper(pg->first) << "PackageFactory.cpp " << endl;
+		}
+		mk << "\tVarUint.h)" << endl;
+		mk << "add_library(Protocol STATIC ${Protocol_STAT_SRCS})" << endl;
+		mk << "target_link_libraries(Protocol ";
 
-           for (vector<pair<string, map<string, Package> > >::const_iterator pg = package_groups.begin(); pg != package_groups.end(); ++pg) {
-           if (pg->first.size() != 0)
-           subdirs += first_upper(pg->first) + " ";
-           }
-           mk << "SUBDIRS = " << subdirs << endl;
-           }
-           */
-        /*
-           string lib_name = "libProtocolPackages" + first_upper(package_group->first);
-           mk << "noinst_LTLIBRARIES = " << lib_name <<  ".la" << endl;
-           mk << lib_name << "_la_SOURCES = " << sources << endl;
-           mk << "INCLUDES=-I$(top_srcdir)/src" << endl;*/
-    }
-    {
-        cout << " Generating CMakeLists.txt for enums" << endl;
-        ofstream mk((target_dir + "/Enums/CMakeLists.txt").c_str());
-        if (!mk.is_open()){
-            cout << "   !!!! Couldn't create makefile for enums" << endl;
-            exit(1);
-        }
-        mk << notice2 << endl << endl;
-        mk << includes << endl;
-        mk << "set(ProtocolEnums_STAT_SRCS";
-
-        for (vector<Enum>::const_iterator en = enums.begin(); en != enums.end(); ++en) {
-            mk << endl << "\t" << make_class_name(en->name) + ".h " ;
-        }
-        for (vector<pair<string, map<string, Package> > >::const_iterator pg = package_groups.begin(); pg != package_groups.end(); ++pg) {
-            mk << endl << "\t" << first_upper(pg->first) + "Packages.h ";
-        }
-        mk << endl << "dummy.cpp)" << endl;
-        mk << "add_library(ProtocolEnums STATIC ${ProtocolEnums_STAT_SRCS}) " << endl;
-    }
-    {
-        cout << " Generating global CMakeLists.txt" << endl;
-        ofstream mk((target_dir + "/CMakeLists.txt").c_str());
-        if (!mk.is_open()){
-            cout << "   !!!! Couldn't create global makefile" << endl;
-            exit(1);
-        }
-        mk << notice2 << endl << endl;
-        mk << includes << endl;
-        mk << "add_subdirectory(Streams)" << endl;
-        mk << "add_subdirectory(Packages)" << endl;
-        mk << "add_subdirectory(Enums)" << endl;
-        mk << "set(Protocol_STAT_SRCS" << endl;
-        mk << "\tExceptions.cpp" << endl;
-        mk << "\tExceptions.h" << endl;
-        mk << "\tTCPServer.h" << endl;
-        mk << "\tTCPServer.cpp" << endl;
-        mk << "\tByteBuffer.h" << endl;
-        mk << "\tByteBuffer.cpp" << endl;
-        for (vector<pair<string, map<string, Package> > >::const_iterator pg = package_groups.begin(); pg != package_groups.end(); ++pg) {
-            mk << "\t" << first_upper(pg->first) << "PackageFactory.h " << endl;
-            mk << "\t" << first_upper(pg->first) << "PackageFactory.cpp " << endl;
-        }
-        mk << "\tVarUint.h)" << endl;
-        mk << "add_library(Protocol STATIC ${Protocol_STAT_SRCS})" << endl;
-        mk << "target_link_libraries(Protocol ";
-
-        for (vector<pair<string, map<string, Package> > >::const_iterator package_group = package_groups.begin(); package_group != package_groups.end(); ++package_group) {
-
-            mk <<  "ProtocolPackages" + first_upper(package_group->first) + " ";
-        }
-        mk << ")" << endl;
-    }
+		for (vector<pair<string, map<string, Package> > >::const_iterator package_group = package_groups.begin(); package_group != package_groups.end(); ++package_group) {
+			mk <<  "ProtocolPackages" + first_upper(package_group->first) + " ";
+		}
+		mk << ")" << endl;
+	}
 }
 
-    int main (int argc, char* argv[]) {
-        if (argc != 3)
-            usage(argv[0]);
+	int main (int argc, char* argv[]) {
+		if (argc != 3)
+			usage(argv[0]);
 
 	target_dir = argv[2];
 
