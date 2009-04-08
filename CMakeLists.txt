@@ -1,24 +1,60 @@
 #GLOBAL CMAKE SETTINGS 
 
-set (CMAKE_VERBOSE_MAKEFILE 0)
+set (CMAKE_VERBOSE_MAKEFILE 1) 
 
 ################################################################################
 
 
-#DEBUG INFO
-#MESSAGE(STATUS "DEB CXX ${CMAKE_CXX_FLAGS_DEBUG}")
-#MESSAGE(STATUS "REL CXX ${CMAKE_CXX_FLAGS_RELEASE}")
+#DEBUG INFO #MESSAGE(STATUS "DEB CXX ${CMAKE_CXX_FLAGS_DEBUG}") 
+#MESSAGE(STATUS "REL CXX ${CMAKE_CXX_FLAGS_RELEASE}") 
 #MESSAGE(STATUS "DEB C ${CMAKE_C_FLAGS_DEBUG}")
-#MESSAGE(STATUS "REL C ${CMAKE_C_FLAGS_RELEASE}")
-#MESSAGE(STATUS "NONE LINK ${CMAKE_EXE_LINKER_FLAGS}")
-#MESSAGE(STATUS "REL LINK ${CMAKE_EXE_LINKER_FLAGS_RELEASE}")
+#MESSAGE(STATUS "REL C ${CMAKE_C_FLAGS_RELEASE}") 
+#MESSAGE(STATUS "NONE LINK ${CMAKE_EXE_LINKER_FLAGS}") #MESSAGE(STATUS "REL LINK ${CMAKE_EXE_LINKER_FLAGS_RELEASE}")
 #MESSAGE(STATUS "DEB LINK  ${CMAKE_EXE_LINKER_FLAGS_DEBUG}")
+
+################################################################################
+
+#Determining processor type, works only unix systems 
+FIND_PROGRAM(CMAKE_UNAME uname 
+  PATHS 
+  /bin 
+  /usr/bin 
+  /usr/local/bin 
+  /usr/pkg/bin 
+  /usr/pkg/usr/bin )
+
+IF (UNIX AND NOT WIN32) 
+	IF (CMAKE_UNAME) 
+		EXEC_PROGRAM(uname ARGS -m OUTPUT_VARIABLE CMAKE_SYSTEM_PROCESSOR) 
+		MESSAGE (STATUS "CMAKE_SYSTEM_PROCESSOR- " ${CMAKE_SYSTEM_PROCESSOR})
+	ENDIF (CMAKE_UNAME)
+ENDIF (UNIX AND NOT WIN32) 
+
+#ON 64 bit processor in debug mode you can do code coverage or have shared library never both of them
+IF (CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64" )
+	IF (CMAKE_BUILD_TYPE MATCHES "Debug" )
+		IF (USER_COVERAGE)
+			SET (DO_NOT_BUILD_SHARED 1)
+		ENDIF (USER_COVERAGE)
+	ENDIF (CMAKE_BUILD_TYPE MATCHES "Debug" )
+ENDIF (CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64" )
+
+
 
 ################################################################################
 
 #BUILD FLAGS DEFINITIONS 
 
-SET(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -Wall -W -Wshadow -Wunused-variable -Wunused-parameter -Wunused-function -Wunused -Wno-system-headers -Wno-deprecated -Woverloaded-virtual -Wwrite-strings -fprofile-arcs -ftest-coverage")
+IF (CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64" )
+  IF (USER_COVERAGE)
+	SET(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -Wall -W -Wshadow -Wunused-variable -Wunused-parameter -Wunused-function -Wunused -Wno-system-headers -Wno-deprecated -Woverloaded-virtual -Wwrite-strings -fprofile-arcs -ftest-coverage")
+  ELSE (USER_COVERAGE)
+	SET(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -Wall -W -Wshadow -Wunused-variable -Wunused-parameter -Wunused-function -Wunused -Wno-system-headers -Wno-deprecated -Woverloaded-virtual -Wwrite-strings")
+  ENDIF (USER_COVERAGE)
+ELSE (CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64" )
+  SET(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -Wall -W -Wshadow -Wunused-variable -Wunused-parameter -Wunused-function -Wunused -Wno-system-headers -Wno-deprecated -Woverloaded-virtual -Wwrite-strings -fprofile-arcs -ftest-coverage")
+ENDIF (CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64" )
+
 SET(CMAKE_C_FLAGS_DEBUG "-g -O0 -Wall -W -fprofile-arcs -ftest-coverage")
 SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "-fprofile-arcs -ftest-coverage")
 
@@ -28,7 +64,7 @@ SET(CMAKE_C_FLAGS_RELEASE "-O3 -DNDEBUG -fomit-frame-pointer")
 #BUILD TYPE DEFINITION
 
 IF(NOT CMAKE_BUILD_TYPE)
-    SET(CMAKE_BUILD_TYPE Debug)
+  SET(CMAKE_BUILD_TYPE Debug)
 ENDIF(NOT CMAKE_BUILD_TYPE)
 MESSAGE(STATUS "CURRNET BUILD TYPE -- ${CMAKE_BUILD_TYPE}")
 
@@ -87,29 +123,29 @@ set(READLINE_DIR "${CMAKE_SOURCE_DIR}/CMakeScripts/")
 find_package(READLINE REQUIRED)
 
 find_program(BISON_EXECUTABLE bison
-    PATHS 
-    /usr/bin
-    /bin
-    /usr/pkg/bin
-    /usr/pkg/usr/bin)
+  PATHS 
+  /usr/bin
+  /bin
+  /usr/pkg/bin
+  /usr/pkg/usr/bin)
 
 find_program(FLEX_EXECUTABLE flex
-    PATHS 
-    /usr/bin
-    /bin
-    /usr/pkg/bin
-    /usr/pkg/usr/bin)
+  PATHS 
+  /usr/bin
+  /bin
+  /usr/pkg/bin
+  /usr/pkg/usr/bin)
 
 if(BISON_EXECUTABLE)
-    MESSAGE (STATUS "bison found -- ${BISON_EXECUTABLE}")
+  MESSAGE (STATUS "bison found -- ${BISON_EXECUTABLE}")
 else (BISON_EXECUTABLE)
-    MESSAGE (FATAL_ERROR "bison NOT found")
+  MESSAGE (FATAL_ERROR "bison NOT found")
 endif (BISON_EXECUTABLE)
 
 if(FLEX_EXECUTABLE)
-    MESSAGE (STATUS "flex found -- ${FLEX_EXECUTABLE}")
+  MESSAGE (STATUS "flex found -- ${FLEX_EXECUTABLE}")
 else (FLEX_EXECUTABLE)
-    MESSAGE (FATAL_ERROR "flex NOT found")
+  MESSAGE (FATAL_ERROR "flex NOT found")
 endif(FLEX_EXECUTABLE) 
 
 ###############################################################################
@@ -127,22 +163,22 @@ include(FindPythonLibs)
 find_package (PythonInterp)
 find_package (PythonLibs)
 if (PYTHONINTERP_FOUND) 
-    MESSAGE(STATUS "python found -- ${PYTHON_EXECUTABLE}")
+  MESSAGE(STATUS "python found -- ${PYTHON_EXECUTABLE}")
 endif (PYTHONINTERP_FOUND) 
 
 if (PYTHONLIBS_FOUND)
-    MESSAGE(STATUS "python libs --  ${PYTHON_LIBRARIES}, includes ${PYTHON_INCLUDE_PATH}")
+  MESSAGE(STATUS "python libs --  ${PYTHON_LIBRARIES}, includes ${PYTHON_INCLUDE_PATH}")
 endif ( PYTHONLIBS_FOUND )
 
 if ( GOOGLETEST_FOUND )
-    if ( PYTHONINTERP_FOUND ) 
-        if ( PYTHONLIBS_FOUND )
-            if ( ${CMAKE_BUILD_TYPE} MATCHES  "Debug" )
-                SET ( G_UNIT_TESTS_ENABLED 1 )
-                #                MESSAGE(STATUS "HHHHHHHUUUUUUUUURRRRA")
-            endif ( ${CMAKE_BUILD_TYPE} MATCHES  "Debug" )
-        endif ( PYTHONLIBS_FOUND )
-    endif ( PYTHONINTERP_FOUND ) 
+  if ( PYTHONINTERP_FOUND ) 
+	if ( PYTHONLIBS_FOUND )
+	  if ( ${CMAKE_BUILD_TYPE} MATCHES  "Debug" )
+		SET ( G_UNIT_TESTS_ENABLED 1 )
+		#                MESSAGE(STATUS "HHHHHHHUUUUUUUUURRRRA")
+	  endif ( ${CMAKE_BUILD_TYPE} MATCHES  "Debug" )
+	endif ( PYTHONLIBS_FOUND )
+  endif ( PYTHONINTERP_FOUND ) 
 endif ( GOOGLETEST_FOUND )
 
 ################################################################################
@@ -154,30 +190,30 @@ set(TCMALLOC_DIR "${CMAKE_SOURCE_DIR}/CMakeScripts/")
 find_package(TCMALLOC)
 
 if ( USE_TCMALLOC ) 
-    if ( TCMALLOC_FOUND ) 
-        SET ( G_PERF_TOOLS_TESTS_ENABLED 1 )
-        #        MESSAGE ( STATUS "ALA MA KOTA")
-    endif ( TCMALLOC_FOUND )
+  if ( TCMALLOC_FOUND ) 
+	SET ( G_PERF_TOOLS_TESTS_ENABLED 1 )
+	#        MESSAGE ( STATUS "ALA MA KOTA")
+  endif ( TCMALLOC_FOUND )
 endif ( USE_TCMALLOC ) 
 
 find_program(VALGRIND_EXECUTABLE valgrind valgrind.bin 
-    PATHS 
-    /usr/bin
-    /bin
-    /usr/pkg/bin
-    /usr/pkg/usr/bin)
+  PATHS 
+  /usr/bin
+  /bin
+  /usr/pkg/bin
+  /usr/pkg/usr/bin)
 
 if(VALGRIND_EXECUTABLE) 
-    MESSAGE(STATUS "Found valgrind  -- ${VALGRIND_EXECUTABLE}")
-    SET ( VALGRING_TESTS_ENABLED 1 )
+  MESSAGE(STATUS "Found valgrind  -- ${VALGRIND_EXECUTABLE}")
+  SET ( VALGRING_TESTS_ENABLED 1 )
 else (VALGRIND_EXECUTABLE) 
-    MESSAGE(STATUS "Valgrind not found")
+  MESSAGE(STATUS "Valgrind not found")
 endif(VALGRIND_EXECUTABLE) 
 
 if ( G_PERF_TOOLS_TESTS_ENABLED ) 
-    if ( VALGRING_TESTS_ENABLED )
-        SET ( VALGRING_TESTS_ENABLED 0 )
-    endif ( VALGRING_TESTS_ENABLED )
+  if ( VALGRING_TESTS_ENABLED )
+	SET ( VALGRING_TESTS_ENABLED 0 )
+  endif ( VALGRING_TESTS_ENABLED )
 endif ( G_PERF_TOOLS_TESTS_ENABLED )
 
 ###############################################################################
@@ -191,10 +227,10 @@ enable_testing()
 
 #recursive build for subdirectiories
 if (FLEX_EXECUTABLE)
-    if(BISON_EXECUTABLE) 
-        add_subdirectory (src)
-        add_subdirectory (Documentation)
-    endif (BISON_EXECUTABLE) 
+  if(BISON_EXECUTABLE) 
+	add_subdirectory (src)
+	add_subdirectory (Documentation)
+  endif (BISON_EXECUTABLE) 
 endif (FLEX_EXECUTABLE) 
 
 

@@ -45,16 +45,35 @@ CHECK_FUNCTION_EXISTS (strstr HAVE_STRSTR)
 CHECK_FUNCTION_EXISTS (strtol HAVE_STRTOL)
 
 if (NOT HAVE_VERBOSITY_COMPILE)
-    MESSAGE (STATUS "WARNING: Not all messages will be compiled, which is probably fine for you
-(by default only debug messages are not compiled), but if you would like to
-change this behaviour consult the --enable-cust-verb option.")
-    set (HAVE_VERBOSITY_COMPILE EC_V_INFO)
+	MESSAGE (STATUS "WARNING: Not all messages will be compiled, which is probably fine for you
+	(by default only debug messages are not compiled), but if you would like to
+	change this behaviour consult the -DHAVE_VERBOSITY_COMPILE option.")
+	if ( ${CMAKE_BUILD_TYPE} MATCHES  "Debug" )
+		set (HAVE_VERBOSITY_COMPILE EC_V_DEBUG)
+	else ( ${CMAKE_BUILD_TYPE} MATCHES  "Debug" )
+		set (HAVE_VERBOSITY_COMPILE EC_V_INFO)
+	endif ( ${CMAKE_BUILD_TYPE} MATCHES  "Debug" )
 endif (NOT HAVE_VERBOSITY_COMPILE)
 
+IF (HAVE_VERBOSITY_COMPILE MATCHES "Debug")
+	SET (HAVE_VERBOSITY_COMPILE EC_V_DEBUG)	
+ENDIF (HAVE_VERBOSITY_COMPILE MATCHES "Debug")
 
-if ( ${CMAKE_BUILD_TYPE} MATCHES  "Debug" )
-    set (HAVE_VERBOSITY_COMPILE EC_V_DEBUG)
-endif ( ${CMAKE_BUILD_TYPE} MATCHES  "Debug" )
+IF (HAVE_VERBOSITY_COMPILE MATCHES "Info")
+	SET (HAVE_VERBOSITY_COMPILE EC_V_INFO)	
+ENDIF (HAVE_VERBOSITY_COMPILE MATCHES "Info")
+
+IF (HAVE_VERBOSITY_COMPILE MATCHES "Warning")
+	SET (HAVE_VERBOSITY_COMPILE EC_V_WARNING)	
+ENDIF (HAVE_VERBOSITY_COMPILE MATCHES "Warning")
+
+IF (HAVE_VERBOSITY_COMPILE MATCHES "Error")
+	SET (HAVE_VERBOSITY_COMPILE EC_V_ERROR)	
+ENDIF (HAVE_VERBOSITY_COMPILE MATCHES "Error")
+
+IF (HAVE_VERBOSITY_COMPILE MATCHES "Severe_error")
+	SET (HAVE_VERBOSITY_COMPILE EC_V_SEVERE_ERROR)	
+ENDIF (HAVE_VERBOSITY_COMPILE MATCHES "Severe_error")
 
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
