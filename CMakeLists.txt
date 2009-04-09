@@ -1,6 +1,6 @@
 #GLOBAL CMAKE SETTINGS 
 
-set (CMAKE_VERBOSE_MAKEFILE 1) 
+set (CMAKE_VERBOSE_MAKEFILE 0) 
 
 ################################################################################
 
@@ -117,6 +117,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/CMakeScripts")
 #    ${CMAKE_SOURCE_DIR}/Util/
 #    ${CMAKE_SOURCE_DIR}/TypeCheck/)
 
+################################################################################
+
 #programs and libs required by LoXiM to build
 
 set(READLINE_DIR "${CMAKE_SOURCE_DIR}/CMakeScripts/") 
@@ -190,16 +192,15 @@ set(TCMALLOC_DIR "${CMAKE_SOURCE_DIR}/CMakeScripts/")
 find_package(TCMALLOC)
 
 if ( USE_TCMALLOC ) 
-  if ( TCMALLOC_FOUND ) 
-	SET ( G_PERF_TOOLS_TESTS_ENABLED 1 )
-	#        MESSAGE ( STATUS "ALA MA KOTA")
-  endif ( TCMALLOC_FOUND )
+	if ( TCMALLOC_FOUND ) 
+		SET ( G_PERF_TOOLS_TESTS_ENABLED 1 )
+	endif ( TCMALLOC_FOUND )
 endif ( USE_TCMALLOC ) 
 
 find_program(VALGRIND_EXECUTABLE valgrind valgrind.bin 
-  PATHS 
-  /usr/bin
-  /bin
+	PATHS 
+	/usr/bin
+	/bin
   /usr/pkg/bin
   /usr/pkg/usr/bin)
 
@@ -234,7 +235,6 @@ if (FLEX_EXECUTABLE)
 endif (FLEX_EXECUTABLE) 
 
 
-#LOGGING LEVEL DEFINITON
 
 
 ################################################################################
