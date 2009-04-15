@@ -5631,7 +5631,10 @@ int QueryExecutor::callProcedure(string code, vector<QueryBagResult*> sections) 
 			if (errcode != 0) return errcode;
 		}
 
+		am->disableAccessControl(envs->size() - 1);
 		errcode = executeRecQuery(tmpTN);
+		am->enableAccessControl(envs->size() - 1);	
+		
 		if (errcode == 0) {
 			//skoro errcode == 0 tzn ze wywolana byla procedura a nie funkcja
 			//nie bylo return value, wiec nie zwracam dalej otrzymanego wyniku

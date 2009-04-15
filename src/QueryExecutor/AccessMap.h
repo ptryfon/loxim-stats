@@ -12,7 +12,7 @@
 */
 
 namespace Errors {class ErrorConsole;}
-namespace QExecutor {class QueryExecutor; class QueryResult;}
+namespace QExecutor {class QueryExecutor; class QueryResult; class QueryVirtualResult;}
 using namespace Errors;
 using namespace std;
 
@@ -60,7 +60,11 @@ namespace QExecutor
 			
 			void resetForSchema(string schemaName);
 			void addSectionInfo(int secNo, set<string> names);
-			
+			void adjustEnvironment(QueryVirtualResult *r, bool add);
+
+			void removeAccess(set<string> children);
+			void removeAccess(string name, bool base = false);
+
 			static string getUserTableName() {return "xuser";}
 			static set<string> namesFromBinders(QueryResult *bindersBagResult);
 	
@@ -82,6 +86,9 @@ namespace QExecutor
 			void propagateAccess(string father, map<string, bool> children);		
 			void removeSection(int secNo);
 			void removeAllSections();
+			
+			void addViewEnvironment(QueryVirtualResult *r);
+			void removeViewEnvironment(QueryVirtualResult *r);
 
 			void addAccess(string name, int crud, bool grant = false, bool base = false);
 			int getAccess(string name) const;

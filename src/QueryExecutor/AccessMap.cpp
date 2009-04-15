@@ -157,6 +157,23 @@ namespace QExecutor
 		}
 	}
 	
+	void AccessMap::removeAccess(string name, bool base)
+	{
+		debug_printf(*ec, "[AccessMap::removeAccess]: removing access to %s", name.c_str());
+		m_accessMap.erase(name);
+		if (base)
+			m_baseMap.erase(name);
+	}
+	
+	void AccessMap::removeAccess(set<string> names)
+	{
+		set<string>::iterator it;
+		for (it = names.begin(); it != names.end(); ++it)
+		{
+			removeAccess(*it);
+		}	
+	}
+	
 	void AccessMap::propagateAccess(string father, map<string, bool> children)
 	{   //false value in map indicates that this field is not visible through interface and accessible only by procedures
 		//debug_printf(*ec, "[AccessMap::propagateAccess]: adding %d children for %s", children.size(), father.c_str());
@@ -206,6 +223,7 @@ namespace QExecutor
 	
 	void AccessMap::addSectionInfo(int secNo, set<string> names)
 	{
+		debug_printf(*ec, "[AccessMap::addSection]: adding section no. %d", secNo);
 		m_sectionToNamesMap[secNo] = names;
 	}
 	
@@ -353,8 +371,56 @@ namespace QExecutor
 
 	void AccessMap::addSectionInfo(int secNo, QueryResult *r)
 	{
-		if (m_isDba) return;
 		return addSectionInfo(secNo, namesFromBinders(r));
+	}
+	
+	void AccessMap::adjustEnvironment(QueryVirtualResult *r, bool add)
+	{
+		debug_printf(*ec, "[AccessMap::adjustEnvironment] starts");				
+		set<string> names;
+		vector<QueryResult *> seeds = r->seeds;
+		for (vector<QueryResult *>::iterator it = seeds.begin(); it != seeds.end(); ++it)
+		{
+			QueryResult *seedResult = *it;
+			
+			if (seedResult->type() == QueryResult::QBINDER)
+			{
+				QueryBinderResult *seedBind = (QueryBinderResult *)seedResult;
+				string name = seedBind->getName();
+				names.insert(name);
+			}
+			else
+			{
+				debug_printf(*ec, "[AccessMap::adjustEnvironment] error: BINDER expected!");
+				return;
+			}
+		}
+		string parentName = r->vo_name;
+		if (add)
+		{
+			map<string, bool> truemap;
+			bool visibleThroughInterface = true;
+				
+			for (set<string>::iterator it = names.begin(); it != names.end(); ++it)
+			{
+				truemap[*it] = visibleThroughInterface;
+			}
+			propagateAccess(parentName, truemap);
+		}
+		else
+		{
+			removeAccess(names);
+		}	
+	}
+		
+	void AccessMap::addViewEnvironment(QueryVirtualResult *r)
+	{
+		adjustEnvironment(r, true);
+	}
+	
+	void AccessMap::removeViewEnvironment(QueryVirtualResult *r)
+	{
+		adjustEnvironment(r, false);
 	}
 	
 	void AccessMap::setAccessControl(bool procedureOnly, bool enable, int level)
@@ -384,7 +450,7 @@ namespace QExecutor
 			}
 		}
 	}
-	
+
 	void AccessMap::enableProcedureOnly(int sec) {return setAccessControl(true, true, sec);}
 	void AccessMap::disableProcedureOnly(int sec) {return setAccessControl(true, false, sec);}
 	void AccessMap::disableAccessControl(int sec) {return setAccessControl(false, true, sec);}

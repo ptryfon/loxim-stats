@@ -273,10 +273,8 @@ int EnvironmentStack::bindName(string name, int sectionNo, Transaction *&tr, Que
 						
 						errcode = qe->getExViews()->createNewSections(NULL, NULL, view_lid, envs_sections, tr, qe);
 						if (errcode != 0) { qe->antyStarveFunction(errcode); qe->inTransaction = false; return errcode; }
-						
-						qe->getAccessMap()->disableAccessControl(es.size() - 1);
+							
 						errcode = qe->callProcedure(view_code, envs_sections);
-						qe->getAccessMap()->enableAccessControl(es.size() - 1);
 						if(errcode != 0) return errcode;
 						
 						QueryResult *res;
@@ -877,8 +875,11 @@ int QueryVirtualResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult
 	map<string, bool> accessibleNames;
 	TStringSet namesVisible = qe->getIm()->getAllFieldNamesAndCheckBind(k, filterOut);
 	if (filterOut)
+	{
+		for (TStringSet::iterator it = namesVisible.begin(); it != namesVisible.end(); ++it)
+			accessibleNames[*it] = true;
 		debug_printf(*ec, "[QE] nested(): field names will be filtered out, %d names visible\n", namesVisible.size());
-				
+	}			
 	
 	// Gdy znaleziona jest procedura on_navigate, wykonywane jest przejscie po wirtualnym pointerze.
 	if (on_navigate_code != "") {
@@ -989,9 +990,11 @@ int QueryVirtualResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult
 				r->addResult(final_binder);
 			}
 			
-		}
-		qe->getAccessMap()->propagateAccess(vo_name, accessibleNames);							
+		}		
 	}
+	qe->getAccessMap()->propagateAccess(vo_name, accessibleNames);
+	qe->getAccessMap()->addViewEnvironment(this);
+	
 	return 0;
 }
 
