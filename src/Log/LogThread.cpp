@@ -3,6 +3,7 @@
 #include <signal.h>
 #include <unistd.h>
 
+namespace Logs {
 
 /* LogThread class */
 
@@ -97,5 +98,7 @@ int LogThread::flush() {
   ::pthread_mutex_unlock( &threadFlagMutex );
 
   return err;
+}
+
 }
 

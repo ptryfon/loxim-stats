@@ -3,10 +3,10 @@
 
 #include <Store/Store.h>
 #include <sstream>
-#include <Store/DBStoreManager.h>
+//#include <Store/DBStoreManager.h>
 
-using namespace std;
-using namespace TManager;
+//using namespace std;
+//using namespace TManager;
 
 namespace Store
 {
@@ -17,21 +17,21 @@ namespace Store
 		DBLogicalID(unsigned int value);
 		DBLogicalID(const LogicalID& lid);
 
-		virtual DBPhysicalID* getPhysicalID(TransactionID* tid);
+		virtual DBPhysicalID* getPhysicalID(TManager::TransactionID* tid);
 		virtual void toByteArray(unsigned char** lid, int* length);
-		virtual string toString() const;
+		virtual std::string toString() const;
 		virtual unsigned int toInteger() const;
 		virtual Serialized serialize() const;
 		static int deserialize(unsigned char* bytes, DBLogicalID*& lid);
 		virtual LogicalID* clone() const;
-        virtual string getServer() const;
-        virtual void setServer(string server);
+        virtual std::string getServer() const;
+        virtual void setServer(std::string server);
         virtual void setPort(int port);
         virtual int getPort() const;
         virtual LogicalID* getRemoteID()  const;
         virtual void setRemoteID(LogicalID* remoteID);
-		virtual string getParentRoot() const;
-		virtual void setParentRoot(string parentRoot);
+		virtual std::string getParentRoot() const;
+		virtual void setParentRoot(std::string parentRoot);
 		virtual void setDirectParent (LogicalID *lid); //MH TC
 		virtual LogicalID* getDirectParent() const;	//MH TC
 
@@ -42,8 +42,8 @@ namespace Store
 
 		unsigned int value;
 	private:
-		string parentRoot;
-		string server;
+		std::string parentRoot;
+		std::string server;
 		int port;
 		LogicalID* remoteID;
 		LogicalID* directParentID;	//often NULLs here

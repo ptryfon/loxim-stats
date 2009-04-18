@@ -7,8 +7,6 @@
 #include <string>
 #include "LogIO.h"
 #include <Log/Logs.h>
-#include <Store/DBDataValue.h>
-#include <Store/DBLogicalID.h>
 #include <Store/DBStoreManager.h>
 #include "LogsGlobals.cpp"
 #include <TransactionManager/Transaction.h>

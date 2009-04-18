@@ -1,5 +1,6 @@
 #include <iostream>
 #include <Store/DBObjectPointer.h>
+#include <Store/DBStoreManager.h>
 #include <Store/DBLogicalID.h>
 #include <Store/DBDataValue.h>
 #include <map>

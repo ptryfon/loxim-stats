@@ -7,8 +7,6 @@
 #include <QueryExecutor/QueryResult.h>
 #include <QueryExecutor/QueryExecutor.h>
 #include <Store/Store.h>
-#include <Store/DBStoreManager.h>
-#include <Store/DBObjectPointer.h>
 #include <Errors/ErrorConsole.h>
 #include <Errors/Errors.h>
 #include <TransactionManager/Transaction.h>

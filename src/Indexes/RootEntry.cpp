@@ -3,6 +3,8 @@
 #include <Indexes/ToStringBuilder.h>
 #include <sstream>
 
+using namespace Store;
+
 namespace Indexes {
 
  	RootEntry::RootEntry(ts_t add_timestamp, ts_t del_t, tid_t cur_tran, lid_t l_id): 

@@ -1,12 +1,11 @@
-#include "OuterSchema.h"
-#include "AccessMap.h"
-#include "QueryResult.h"
-#include "InterfaceMaps.h"
-#include "CommonOperations.h"
-#include "TransactionManager/Transaction.h"
-#include "Store/DBLogicalID.h"
-#include "QueryParser/QueryParser.h"
-#include "QueryParser/TreeNode.h"
+#include <QueryExecutor/OuterSchema.h>
+#include <QueryExecutor/AccessMap.h>
+#include <QueryExecutor/QueryResult.h>
+#include <QueryExecutor/InterfaceMaps.h>
+#include <QueryExecutor/CommonOperations.h>
+#include <TransactionManager/Transaction.h>
+#include <QueryParser/QueryParser.h>
+#include <QueryParser/TreeNode.h>
 #include <iostream>
 #include <fstream>
 

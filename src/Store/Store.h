@@ -4,9 +4,21 @@
 //#define DEBUG_MODE
 
 #include <set>
+#include <string>
+#include <vector>
+
 #include <QueryExecutor/HashMacro.h>
+#include <Config/SBQLConfig.h>
+#include <Store/DBPhysicalID.h>
 
+namespace TManager {
+	class Transaction;
+	class TransactionID;
+}
 
+namespace Logs {
+	class LogManager;
+}
 
 
 namespace Store
@@ -16,6 +28,7 @@ namespace Store
 	class DataValue;
 	class ObjectPointer;
 	class StoreManager;
+	class NamedRoots;
 	struct LIDComparator;
 	class hashLogicalID;
 	struct eqLogicalID;
@@ -51,78 +64,55 @@ namespace Store
 		Read	= 0x01,
 		Write	= 0x02,
 	};
-};
 
-#include <string>
-#include <vector>
+	class DataValue;
+	class LogicalID;
 
-#include <Config/SBQLConfig.h>
-#include <Log/Logs.h>
-#include <TransactionManager/Transaction.h>
-#include <Store/DBPhysicalID.h>
-
-/////////////////////////// WORDAROUND ///////////////////////////
-//namespace Logs
-//{
-//	class LogManager {};
-//};
-//namespace TManager
-//{
-//	class TransactionID {};
-//};
-//namespace Config
-//{
-//	class SBQLConfig {};
-//};
-/////////////////////////// WORDAROUND ///////////////////////////
-
-using namespace std;
-using namespace Logs;
-using namespace TManager;
-
-namespace TManager {
-	class Transaction;
-}
-
-namespace Store
-{
-	typedef struct Serialized Serialized;
-
-// Using "PhysicalID" interface removed
-//	include DBPhysicalID.h instead
-
-/*	class PhysicalID
+	class Serialized
 	{
-	public:
-		// Class functions
-		virtual unsigned short getFile() = 0;
-		virtual unsigned int getPage() = 0;
-		virtual unsigned short getOffset() = 0;
-		virtual long long getLockAddress() = 0;
+		public:
+		Serialized();
+		Serialized(int size);
+		Serialized(const Serialized&);
+		Serialized& operator=(const Serialized&);
+		virtual ~Serialized();
+		Serialized& operator+=(const Serialized&);
+		Serialized& operator+=(const int&);
+		Serialized& operator+=(const unsigned int&);
+		Serialized& operator+=(const double&);
+		Serialized& operator+=(const std::string&);
+		Serialized& operator+=(const LogicalID&);
+		Serialized& operator+=(const DataValue&);
+		Serialized& operator+=(SetOfLids* const &s);
+		template <class T> Serialized& operator+=(const T&);
+		void info() const;
 
-		// Operators
-		virtual ~PhysicalID() {};
+		unsigned char* bytes;
+		int size;
+	private:
+		int realsize;
+		template <typename T> Serialized p_baseTypeSerialize(const T&);
 	};
-*/
+
 
 	class LogicalID
 	{
 	public:
 		// Class functions
-		virtual DBPhysicalID* getPhysicalID(TransactionID* tid) = 0;
+		virtual DBPhysicalID* getPhysicalID(TManager::TransactionID* tid) = 0;
 		virtual void toByteArray(unsigned char** lid, int* length) = 0;
-		virtual string toString() const = 0;
+		virtual std::string toString() const = 0;
 		virtual unsigned int toInteger() const = 0;
 		virtual Serialized serialize() const = 0;
 		virtual LogicalID* clone() const = 0;
-		virtual string getServer() const = 0;
-		virtual void setServer(string server) = 0;
+		virtual std::string getServer() const = 0;
+		virtual void setServer(std::string server) = 0;
 		virtual int getPort() const = 0;
 		virtual void setPort(int port) = 0;
 		virtual LogicalID* getRemoteID()  const = 0;
 		virtual void setRemoteID(LogicalID* remoteID) = 0;
-		virtual string getParentRoot() const = 0;
-		virtual void setParentRoot(string parentRoot) = 0;
+		virtual std::string getParentRoot() const = 0;
+		virtual void setParentRoot(std::string parentRoot) = 0;
 		virtual void setDirectParent (LogicalID *lid) = 0; //MH TC
 		virtual LogicalID* getDirectParent() const = 0;	//MH TC
 		// Operators
@@ -176,20 +166,20 @@ namespace Store
 		virtual void removeSubclass(LogicalID* lid) = 0;
 
 		virtual void setSubtype(ExtendedType type) = 0;
-		virtual string toString() = 0;
+		virtual std::string toString() = 0;
 		virtual Serialized serialize() const = 0;
 		virtual DataValue* clone() const = 0;
 
 		// Specific type accessors
 		virtual int getInt() const = 0;
 		virtual double getDouble() const = 0;
-		virtual string getString() const = 0;
+		virtual std::string getString() const = 0;
 		virtual LogicalID* getPointer() const = 0;
 		virtual vector<LogicalID*>* getVector() const = 0;
 
 		virtual void setInt(int value) = 0;
 		virtual void setDouble(double value) = 0;
-		virtual void setString(string value) = 0;
+		virtual void setString(std::string value) = 0;
 		virtual void setPointer(LogicalID* value) = 0;
 		virtual void setVector(vector<LogicalID*>* value) = 0;
 
@@ -197,7 +187,7 @@ namespace Store
 		virtual bool operator==(DataValue& dv) = 0;
 		virtual DataValue& operator=(const int& val) = 0;
 		virtual DataValue& operator=(const double& val) = 0;
-		virtual DataValue& operator=(const string& val) = 0;
+		virtual DataValue& operator=(const std::string& val) = 0;
 		virtual DataValue& operator=(const LogicalID& val) = 0;
 		virtual DataValue& operator=(const vector<LogicalID*>& val) = 0;
 		virtual ~DataValue() {};
@@ -209,18 +199,18 @@ namespace Store
 	public:
 		// Class functions
 		virtual LogicalID* getLogicalID() const = 0;
-		virtual string getName() const = 0;
+		virtual std::string getName() const = 0;
 		virtual AccessMode getMode() const = 0;
 		virtual DataValue* getValue() const = 0;
 		virtual void setValue(DataValue* val) = 0;
-		virtual string toString() = 0;
+		virtual std::string toString() = 0;
 		virtual Serialized serialize() const = 0;
 		virtual bool getIsRoot() const = 0;
 		virtual void setIsRoot(bool isRoot) = 0;
 		virtual vector<LogicalID*>* getClasses() const = 0;
 		virtual void setClasses(vector<LogicalID*>* value) = 0;
-		virtual string getParentRoot() const = 0;
-		virtual void setParentRoot(string parentRoot) = 0;
+		virtual std::string getParentRoot() const = 0;
+		virtual void setParentRoot(std::string parentRoot) = 0;
 
 		// Operators
 		virtual bool operator==(ObjectPointer& dv) {
@@ -235,115 +225,83 @@ namespace Store
 		static StoreManager* theStore;
 
 		// Object
-		virtual int getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object) = 0;
-		virtual int createObject(TransactionID* tid, string name, DataValue* value, ObjectPointer*& object, LogicalID* lid=NULL) = 0;
-		virtual int deleteObject(TransactionID* tid, ObjectPointer* object) = 0;
-		virtual int modifyObject(TransactionID* tid, ObjectPointer*& object, DataValue* value) = 0;
+		virtual int getObject(TManager::TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object) = 0;
+		virtual int createObject(TManager::TransactionID* tid, std::string name, DataValue* value, ObjectPointer*& object, LogicalID* lid=NULL) = 0;
+		virtual int deleteObject(TManager::TransactionID* tid, ObjectPointer* object) = 0;
+		virtual int modifyObject(TManager::TransactionID* tid, ObjectPointer*& object, DataValue* value) = 0;
 
 		virtual int replaceDV(ObjectPointer* obj, DataValue* dv) = 0;
 
 		// Roots
-		virtual int getRoots(TransactionID* tid, vector<ObjectPointer*>*& roots) = 0;
-		virtual int getRoots(TransactionID* tid, string name, vector<ObjectPointer*>*& roots) = 0;
-		virtual int getRootsLID(TransactionID* tid, vector<LogicalID*>*& roots) = 0;
-		virtual int getRootsLID(TransactionID* tid, string name, vector<LogicalID*>*& roots) = 0;
-		virtual int getRootsLIDWithBegin(TransactionID* tid, string nameBegin, vector<LogicalID*>*& roots) = 0;
-		virtual int addRoot(TransactionID* tid, ObjectPointer*& object) = 0;
-		virtual int removeRoot(TransactionID* tid, ObjectPointer*& object) = 0;
+		virtual int getRoots(TManager::TransactionID* tid, vector<ObjectPointer*>*& roots) = 0;
+		virtual int getRoots(TManager::TransactionID* tid, std::string name, vector<ObjectPointer*>*& roots) = 0;
+		virtual int getRootsLID(TManager::TransactionID* tid, vector<LogicalID*>*& roots) = 0;
+		virtual int getRootsLID(TManager::TransactionID* tid, std::string name, vector<LogicalID*>*& roots) = 0;
+		virtual int getRootsLIDWithBegin(TManager::TransactionID* tid, std::string nameBegin, vector<LogicalID*>*& roots) = 0;
+		virtual int addRoot(TManager::TransactionID* tid, ObjectPointer*& object) = 0;
+		virtual int removeRoot(TManager::TransactionID* tid, ObjectPointer*& object) = 0;
+		virtual NamedRoots* getRoots() = 0;
+
 
 		// Views
-		virtual int getViewsLID(TransactionID* tid, vector<LogicalID*>*& roots) = 0;
-		virtual int getViewsLID(TransactionID* tid, string name, vector<LogicalID*>*& roots) = 0;
-		virtual int addView(TransactionID* tid, const char* name, ObjectPointer*& object) = 0;
-		virtual int removeView(TransactionID* tid, ObjectPointer*& object) = 0;
+		virtual int getViewsLID(TManager::TransactionID* tid, vector<LogicalID*>*& roots) = 0;
+		virtual int getViewsLID(TManager::TransactionID* tid, std::string name, vector<LogicalID*>*& roots) = 0;
+		virtual int addView(TManager::TransactionID* tid, const char* name, ObjectPointer*& object) = 0;
+		virtual int removeView(TManager::TransactionID* tid, ObjectPointer*& object) = 0;
 
 		// Classes
-		virtual int getClassesLID(TransactionID* tid, vector<LogicalID*>*& roots) = 0;
-		virtual int getClassesLID(TransactionID* tid, string name, vector<LogicalID*>*& roots) = 0;
-		virtual int getClassesLIDByInvariant(TransactionID* tid, string invariantName, vector<LogicalID*>*& roots) = 0;
-		virtual int addClass(TransactionID* tid, const char* name, const char* invariantName, ObjectPointer*& object) = 0;
-		virtual int removeClass(TransactionID* tid, ObjectPointer*& object) = 0;
+		virtual int getClassesLID(TManager::TransactionID* tid, vector<LogicalID*>*& roots) = 0;
+		virtual int getClassesLID(TManager::TransactionID* tid, std::string name, vector<LogicalID*>*& roots) = 0;
+		virtual int getClassesLIDByInvariant(TManager::TransactionID* tid, std::string invariantName, vector<LogicalID*>*& roots) = 0;
+		virtual int addClass(TManager::TransactionID* tid, const char* name, const char* invariantName, ObjectPointer*& object) = 0;
+		virtual int removeClass(TManager::TransactionID* tid, ObjectPointer*& object) = 0;
 
 		// Interfaces
-		virtual int getInterfacesLID(TransactionID* tid, vector<LogicalID*>*& roots) = 0;
-		virtual int getInterfacesLID(TransactionID* tid, string name, vector<LogicalID*>*& roots) = 0;
-		virtual int addInterface(TransactionID* tid, const string& name, const string& objectName, ObjectPointer*& object) = 0;
-		virtual int bindInterface(TransactionID* tid, const string& name, const string& bindName) = 0;
-		virtual int getInterfaceBindForObjectName(TransactionID *tid, const string& oName, string& iName, string& bName) = 0;
-		virtual int removeInterface(TransactionID* tid, ObjectPointer*& object) = 0;
+		virtual int getInterfacesLID(TManager::TransactionID* tid, vector<LogicalID*>*& roots) = 0;
+		virtual int getInterfacesLID(TManager::TransactionID* tid, std::string name, vector<LogicalID*>*& roots) = 0;
+		virtual int addInterface(TManager::TransactionID* tid, const std::string& name, const std::string& objectName, ObjectPointer*& object) = 0;
+		virtual int bindInterface(TManager::TransactionID* tid, const std::string& name, const std::string& bindName) = 0;
+		virtual int getInterfaceBindForObjectName(TManager::TransactionID *tid, const std::string& oName, std::string& iName, std::string& bName) = 0;
+		virtual int removeInterface(TManager::TransactionID* tid, ObjectPointer*& object) = 0;
 
 		// Schemas
-		virtual int getSchemasLID(TransactionID* tid, vector<LogicalID*>*& s) = 0;
-		virtual int getSchemasLID(TransactionID* tid, string name, vector<LogicalID*> *&s) = 0;
-		virtual int addSchema(TransactionID* tid, string name, ObjectPointer *&object) = 0;
-		virtual int removeSchema(TransactionID* tid, ObjectPointer *&object) = 0;
+		virtual int getSchemasLID(TManager::TransactionID* tid, vector<LogicalID*>*& s) = 0;
+		virtual int getSchemasLID(TManager::TransactionID* tid, std::string name, vector<LogicalID*> *&s) = 0;
+		virtual int addSchema(TManager::TransactionID* tid, std::string name, ObjectPointer *&object) = 0;
+		virtual int removeSchema(TManager::TransactionID* tid, ObjectPointer *&object) = 0;
  		
 		// System views
-		virtual int getSystemViewsLID(Transaction* tr, vector<LogicalID*>*& p_systemviews) = 0;
-		virtual int getSystemViewsLID(Transaction* tr, string name, vector<LogicalID*>*& p_systemviews) = 0;
+		virtual int getSystemViewsLID(TManager::Transaction* tr, vector<LogicalID*>*& p_systemviews) = 0;
+		virtual int getSystemViewsLID(TManager::Transaction* tr, std::string name, vector<LogicalID*>*& p_systemviews) = 0;
 
 		// Transactions
-		virtual int abortTransaction(TransactionID* tid) = 0;
-		virtual int commitTransaction(TransactionID* tid) = 0;
+		virtual int abortTransaction(TManager::TransactionID* tid) = 0;
+		virtual int commitTransaction(TManager::TransactionID* tid) = 0;
 
 		// Data creation
 		virtual DataValue* createIntValue(int value) = 0;
 		virtual DataValue* createDoubleValue(double value) = 0;
-		virtual DataValue* createStringValue(string value) = 0;
+		virtual DataValue* createStringValue(std::string value) = 0;
 		virtual DataValue* createPointerValue(LogicalID* value) = 0;
 		virtual DataValue* createVectorValue(vector<LogicalID*>* value) = 0;
 
 		// Object Creation for Logs
 		virtual ObjectPointer* createObjectPointer(LogicalID* lid) = 0;
-		virtual ObjectPointer* createObjectPointer(LogicalID* lid, string name, DataValue* dv) = 0;
+		virtual ObjectPointer* createObjectPointer(LogicalID* lid, std::string name, DataValue* dv) = 0;
 
 		// Deserialization
 		virtual int logicalIDFromByteArray(unsigned char* buffer, LogicalID*& lid) = 0;
-		virtual int dataValueFromByteArray(TransactionID* id, unsigned char* buffer, DataValue*& value) = 0;
+		virtual int dataValueFromByteArray(TManager::TransactionID* id, unsigned char* buffer, DataValue*& value) = 0;
 
 		// Misc
-		virtual LogManager* getLogManager() = 0;
-		virtual DBPhysicalID* getPhysicalID(TransactionID* tid, LogicalID* lid) = 0;
+		virtual Logs::LogManager* getLogManager() = 0;
+		virtual DBPhysicalID* getPhysicalID(TManager::TransactionID* tid, LogicalID* lid) = 0;
 		virtual int checkpoint(unsigned int& cid) = 0;
 		virtual int endCheckpoint(unsigned int& cid) = 0;
 
 		// Operators
 		virtual ~StoreManager() {};
 	};
-
-	typedef struct Serialized
-	{
-		Serialized();
-		Serialized(int size);
-		Serialized(const Serialized&);
-		Serialized& operator=(const Serialized&);
-		virtual ~Serialized();
-		Serialized& operator+=(const Serialized&);
-		Serialized& operator+=(const int&);
-		Serialized& operator+=(const unsigned int&);
-		Serialized& operator+=(const double&);
-		Serialized& operator+=(const string&);
-		Serialized& operator+=(const LogicalID&);
-		Serialized& operator+=(const DataValue&);
-		Serialized& operator+=(SetOfLids* const &s);
-		template <class T> Serialized& operator+=(const T&);
-		void info() const;
-
-		unsigned char* bytes;
-		int size;
-	private:
-		int realsize;
-		template <typename T> Serialized p_baseTypeSerialize(const T&);
-	} Serialized;
-
-	//class Misc
-	//{
-	//public:
-	//	Misc(){lastlid = 0;};
-	//   vector <ObjectPointer*> vect;
-	//	vector <ObjectPointer*> roots;
-	//	int lastlid;
-	//};
 
 };
 

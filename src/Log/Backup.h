@@ -132,11 +132,11 @@ class BackupManager
 
     if( fileExists( logsPath ) )
     {
-      LogRecord *lr = new RedoLogsRecord();
+	  Logs::LogRecord *lr = new Logs::RedoLogsRecord();
       int fileDes = ::open( logsPath.c_str(), O_WRONLY, S_IWUSR | S_IRUSR );
 
       ::lseek( fileDes, 0, SEEK_END );
-      LogRecord::writeLogRecord( lr, fileDes );
+	  Logs::LogRecord::writeLogRecord( lr, fileDes );
 
       close( fileDes );
     }

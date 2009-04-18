@@ -2,8 +2,6 @@
 #include "QueryResult.h"
 #include "QueryBuilder.h"
 #include <QueryParser/TreeNode.h>
-#include <Store/DBLogicalID.h>
-#include <Store/DBDataValue.h>
 #include <Errors/ErrorConsole.h>
 #include <TypeCheck/TCConstants.h>
 

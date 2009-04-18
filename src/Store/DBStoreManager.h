@@ -59,7 +59,7 @@ namespace Store
 		TransactionManager* getTManager();
 		Buffer* getBuffer();
 		Map* getMap();
-		NamedRoots* getRoots();
+		virtual NamedRoots* getRoots();
 		Views* getViews();
 		Classes* getClasses();
 		Interfaces* getInterfaces();

@@ -5,8 +5,6 @@
 #include <QueryExecutor/QueryResult.h>
 #include <TransactionManager/Transaction.h>
 #include <Store/Store.h>
-#include <Store/DBDataValue.h>
-#include <Store/DBLogicalID.h>
 #include <QueryParser/QueryParser.h>
 #include <QueryParser/TreeNode.h>
 #include <Errors/Errors.h>

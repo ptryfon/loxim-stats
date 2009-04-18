@@ -3,6 +3,7 @@
 #include <getopt.h>
 #include <netdb.h>
 #include <Server/Server.h>
+#include <Store/DBStoreManager.h>
 #include <Indexes/IndexManager.h>
 #include <QueryExecutor/InterfaceMaps.h>
 #include <QueryExecutor/QueryBuilder.h>

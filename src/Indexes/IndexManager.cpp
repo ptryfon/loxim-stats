@@ -1,4 +1,5 @@
 #include <Errors/ErrorConsole.h>
+#include <Store/DBDataValue.h>
 #include <Indexes/IndexManager.h>
 #include <Indexes/QueryOptimizer.h>
 #include <Indexes/VisibilityResolver.h>

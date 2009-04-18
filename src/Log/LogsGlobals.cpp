@@ -4,7 +4,11 @@
 #include <Log/LogThread.h>
 #include <Log/LogRecord.h>
 
+namespace Logs {
+
 map< int, LogRecord * > LogRecord::dictionary;
 unsigned LogRecord::idSeq = 0;
+
+}
 
 #endif

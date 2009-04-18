@@ -50,7 +50,7 @@ namespace Logs
 		/**
 		* irrelevant for object deletion
 		*/
-		string name;
+		std::string name;
 	} undo_data; /// jeszcze nie wszystko?
 	
 	class LogRecord 
@@ -150,7 +150,7 @@ namespace Logs
 		public:
 			UpdateLogRecord();
 			UpdateLogRecord(unsigned int LSN);
-			UpdateLogRecord(unsigned int prevLSN, int tid, LogicalID* lid, string name, DataValue *oldVal, DataValue *newVal);
+			UpdateLogRecord(unsigned int prevLSN, int tid, LogicalID* lid, std::string name, DataValue *oldVal, DataValue *newVal);
 			~UpdateLogRecord();
 			
 			int undo();

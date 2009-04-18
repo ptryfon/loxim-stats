@@ -3,6 +3,7 @@
 
 #include <Indexes/BTree.h>
 #include <TransactionManager/Mutex.h>
+#include <TransactionManager/RWUJSemaphore.h>
 #include <Errors/Errors.h>
 #include <Indexes/Node.h>
 

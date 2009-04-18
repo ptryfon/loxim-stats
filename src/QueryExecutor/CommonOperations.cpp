@@ -1,8 +1,7 @@
-#include "CommonOperations.h"
-#include "QueryResult.h"
-#include "Store/DBLogicalID.h"
-#include "Errors/ErrorConsole.h"
-#include "TransactionManager/Transaction.h"
+#include <QueryExecutor/CommonOperations.h>
+#include <QueryExecutor/QueryResult.h>
+#include <Errors/ErrorConsole.h>
+#include <TransactionManager/Transaction.h>
 
 namespace CommonOperations
 {

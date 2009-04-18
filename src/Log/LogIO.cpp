@@ -1,8 +1,15 @@
-#include <Log/LogIO.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <errno.h>
+#include <Log/LogIO.h>
+#include <Store/Store.h>
+#include <TransactionManager/Transaction.h>
 
+
+using namespace TManager;
+using namespace Store;
+
+namespace Logs {
 
 int LogIO::readInt( int fileDes, int &result )
 {
@@ -165,6 +172,7 @@ int LogIO::writeString( int fileDes, const char *buffer, unsigned len )
   return 0;
 }
 
+}
 
 
 

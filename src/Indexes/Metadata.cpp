@@ -1,5 +1,5 @@
 #include <Indexes/IndexManager.h>
-#include <Store/DBObjectPointer.h>
+#include <Store/NamedItems.h>
 
 #include <memory>
 
@@ -319,7 +319,7 @@ namespace Indexes
 	int IndexManager::buildIndex(IndexHandler* ih, TransactionID* tid) {
 
 		int err;
-		DBStoreManager* sm = dynamic_cast<DBStoreManager*>(Store::StoreManager::theStore);
+		StoreManager* sm = dynamic_cast<StoreManager*>(Store::StoreManager::theStore);
 
 		//czy tu powinien byc lockStore read?
 

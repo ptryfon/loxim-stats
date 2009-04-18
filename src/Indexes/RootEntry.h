@@ -19,7 +19,7 @@ namespace Indexes {
 			RootEntry(ts_t add_timestamp, ts_t del_t, tid_t cur_tran, lid_t l_id);
 			//int addEntry(ObjectPointer* op, TransactionID* tid) {return 0;};
 			
-			string toString();
+			std::string toString();
 		};
 		
 		

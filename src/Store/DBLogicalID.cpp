@@ -1,6 +1,8 @@
 #include <Store/DBLogicalID.h>
+#include <TransactionManager/Transaction.h>
 
 using namespace std;
+using namespace TManager;
 
 namespace Store
 {

@@ -99,7 +99,7 @@ namespace Indexes
 			virtual ~BTree();
 			
 			/** szereguje dostep do korzenia */
-			Semaphore *rootSem;
+			SemaphoreLib::Semaphore *rootSem;
 			
 			//open(char* file)
 			 /** jesli wczytywany jest instniejacy index to musi byc zainicjalizowany */

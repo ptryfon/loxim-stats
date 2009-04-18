@@ -1,6 +1,6 @@
-#include <Indexes/EntrySieve.h>
-
 #include <Store/DBLogicalID.h>
+#include <Store/NamedItems.h>
+#include <Indexes/EntrySieve.h>
 #include <Indexes/IndexManager.h>
 
 using namespace Store;

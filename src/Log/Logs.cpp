@@ -8,6 +8,8 @@
 #include <errno.h>
 
 
+namespace Logs {
+
 /* LogManager class */
 
 bool LogManager::cleanClosed = true;
@@ -303,5 +305,7 @@ int LogManager::shutdown( unsigned &id )
 unsigned int LogManager::getLogicalTimerValue()
 {
   return LogRecord::getIdSeq();
+}
+
 }
 

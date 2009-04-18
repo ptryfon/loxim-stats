@@ -6,10 +6,7 @@
 #include <list>
 #include <map>
 #include <string>
-//#include <QueryParser/Stack.h>
 #include <TypeCheck/ClassNames.h>
-//#include <Store/DBStoreManager.h>
-//#include <Store/DBObjectPointer.h>
 #include <TransactionManager/Transaction.h>
 #include <QueryParser/Deb.h>
 

@@ -32,7 +32,7 @@ namespace Store
 
 		int getStream(unsigned short fileID, int* file);
 
-		ErrorConsole* ec;
+		Errors::ErrorConsole* ec;
 
 	public:
 		File(DBStoreManager* store);

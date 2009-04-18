@@ -1,8 +1,11 @@
-#include <assert.h>
+#include <cassert>
+#include <Store/NamedItems.h>
 #include <Indexes/Cleaner.h>
 #include <Indexes/Node.h>
 #include <Indexes/VisibilityResolver.h>
 #include <Indexes/IndexManager.h>
+
+using namespace std;
 
 namespace Indexes {
 
