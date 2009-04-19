@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <CBindings/loxim_client.h>
+#include <CBindings/liblx.h>
 
 
 void print_data(LXDATA *d, int lev)
