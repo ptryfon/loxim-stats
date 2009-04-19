@@ -1073,6 +1073,11 @@ int DBStoreManager::getClassesLID(TransactionID* tid, vector<LogicalID*>*& p_cla
 		return new DBObjectPointer(name, dv, lid);
 	}
 
+	LogicalID* DBStoreManager::createLID(unsigned int lid)
+	{
+		return new DBLogicalID(lid);
+	}
+
 	int DBStoreManager::logicalIDFromByteArray(unsigned char* buffer, LogicalID*& lid)
 	{
 		DBLogicalID* dlid;

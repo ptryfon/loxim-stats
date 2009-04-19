@@ -5,21 +5,19 @@
 #include <ios>
 #include <list>
 
-#include "QueryExecutor.h"
-#include "EnvironmentStack.h"
-#include "ExecutorViews.h"
-#include "ClassGraph.h"
-#include "ResultStack.h"
-#include "QueryBuilder.h"
-#include "InterfaceMatcher.h"
-#include "InterfaceMaps.h"
-#include "BindNames.h"
-#include "CommonOperations.h"
-#include "AccessMap.h"
+#include <QueryExecutor/QueryExecutor.h>
+#include <QueryExecutor/EnvironmentStack.h>
+#include <QueryExecutor/ExecutorViews.h>
+#include <QueryExecutor/ClassGraph.h>
+#include <QueryExecutor/ResultStack.h>
+#include <QueryExecutor/QueryBuilder.h>
+#include <QueryExecutor/InterfaceMatcher.h>
+#include <QueryExecutor/InterfaceMaps.h>
+#include <QueryExecutor/BindNames.h>
+#include <QueryExecutor/CommonOperations.h>
+#include <QueryExecutor/AccessMap.h>
 #include <TransactionManager/Transaction.h>
 #include <Store/Store.h>
-#include <Store/DBDataValue.h>
-#include <Store/DBLogicalID.h>
 #include <QueryParser/ClassNames.h>
 #include <QueryParser/QueryParser.h>
 #include <QueryParser/TreeNode.h>
@@ -533,7 +531,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		debug_print(*ec,  (ErrQExecutor | EEvalStopped));
 		return (ErrQExecutor | EEvalStopped);
 	}
-
+	StoreManager *sm = StoreManager::theStore;
 	if (tree != NULL) {
 		int nodeType = tree->type();
 		debug_print(*ec,  "[QE] TreeType taken");
@@ -913,8 +911,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				}
 			}
 
-			DBDataValue *dbValue = new DBDataValue();
-			dbValue->setVector(&vec_lid);
+			DataValue *dbValue = sm->createVectorValue(&vec_lid);
 			DataValue* value = dbValue;
 
 			ObjectPointer *newObject;
@@ -1530,8 +1527,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			}
 
 			// create result
-			DBDataValue *dbValue = new DBDataValue();
-			dbValue->setVector(&interfaceLids);
+			DataValue *dbValue = sm->createVectorValue(&interfaceLids);
 			LogicalID* newLid;
 			if ((errcode = createObjectAndPutOnQRes(dbValue, interfaceName, Store::Interface, newLid))!=0)
 			    return errcode;
@@ -1589,8 +1585,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			}
 
 			//create DBResult and then, an object from it		
-			DBDataValue *dbValue = new DBDataValue();
-			dbValue->setVector(&schemaLids);
+			DataValue *dbValue = sm->createVectorValue(&schemaLids);
 			LogicalID* newLid;
 			if ((errcode = createObjectAndPutOnQRes(dbValue, schemaName, Store::StoreSchema, newLid))!=0)
 			    return errcode;
@@ -2036,8 +2031,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			}
 
 			// Seting extended classes (property classMarks)
-			DBDataValue *dbValue = new DBDataValue();
-			dbValue->setVector(&classVector);
+			DataValue *dbValue = sm->createVectorValue(&classVector);
 			for(vector<LogicalID *>::iterator i = extendedclassesLIDs.begin(); i != extendedclassesLIDs.end(); ++i) {
 				dbValue->addClassMark(*i);
 			}
@@ -2327,7 +2321,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 		case TreeNode::TNREFID: {
 			int intValue = ((RefidNode *) tree)->getValue();
 			debug_printf(*ec, "[QE] TNREFID: %d\n", intValue);
-			LogicalID *lid = new DBLogicalID(intValue);
+			LogicalID *lid = StoreManager::theStore->createLID(intValue);
 			QueryResult *result = new QueryReferenceResult(lid);
 			errcode = qres->push(result);
 			if (errcode != 0) return errcode;
@@ -3167,7 +3161,7 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 				}
 				case Store::Pointer: {
 					debug_print(*ec,  "[QE] derefQuery() - ObjectValue = Pointer");
-					LogicalID *tmp_value = new DBLogicalID(*value->getPointer());
+					LogicalID *tmp_value = value->getPointer()->clone();
 					//LogicalID *tmp_value = value->getPointer();
                                         res = new QueryReferenceResult(tmp_value);
 					break;
@@ -3185,7 +3179,7 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 					res = new QueryStructResult();
 					int tmp_vec_size = tmp_vec->size();
 					for (int i = 0; i < tmp_vec_size; i++) {
-						LogicalID *currID = new DBLogicalID(*tmp_vec->at(i));
+						LogicalID *currID = tmp_vec->at(i)->clone();
 						ObjectPointer *currOptr;
 						errcode = tr->getObjectPointer(currID, Store::Read, currOptr, false);
 						if (errcode != 0) {
@@ -4930,9 +4924,8 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 				insVector->push_back(toInsVector.at(i));
 				debug_printf(*ec, "[QE] New Vec.size = %d\n", insVector->size());
 			}
-
-			DBDataValue *dbDataVal = new DBDataValue();
-			dbDataVal->setVector(insVector);
+			StoreManager *sm = StoreManager::theStore;
+			DataValue *dbDataVal = sm->createVectorValue(insVector);
 			dbDataVal->setClassMarks(db_value->getClassMarks());
 			dbDataVal->setSubclasses(db_value->getSubclasses());
 			debug_print(*ec,  "[QE] dataValue: setVector done");
@@ -5039,7 +5032,8 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 					return errcode;
 				}
 			}
-			DBDataValue *dbValue = new DBDataValue();
+			StoreManager *sm = StoreManager::theStore;
+			DataValue *dbValue = sm->createIntValue(0);
 			if (op == AlgOpNode::assign) {
 				QueryResult *derefed;
 				errcode = this->derefQuery(rArg, derefed);
@@ -5403,7 +5397,8 @@ int QueryExecutor::objectFromBinder(QueryResult *res, ObjectPointer *&newObject)
 	}
 	string binderName = ((QueryBinderResult *) res)->getName();
 	QueryResult *binderItem = ((QueryBinderResult *) res)->getItem();
-	DBDataValue *dbValue = new DBDataValue();
+	StoreManager *sm = StoreManager::theStore;
+	DataValue *dbValue = sm->createIntValue(0);
 	int binderItemType = binderItem->type();
 	switch (binderItemType) {
 		case QueryResult::QINT: {
@@ -5737,7 +5732,7 @@ int QueryExecutor::lidFromBinder( string bindName, QueryResult* result, LogicalI
 	return 0;
 }
 
-int QueryExecutor::createObjectAndPutOnQRes(DBDataValue* dbValue, string objectName, Store::ExtendedType type, LogicalID*& newLid) {
+int QueryExecutor::createObjectAndPutOnQRes(DataValue* dbValue, string objectName, Store::ExtendedType type, LogicalID*& newLid) {
 	int errcode = 0;
 	ObjectPointer *newObject;
 	DataValue* value = dbValue;

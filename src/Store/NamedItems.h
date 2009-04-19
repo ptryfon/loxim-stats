@@ -7,6 +7,8 @@ namespace Store
 	class Interfaces;
 	class StoreSchemas;
 	class NamedRoots;
+	class Buffer;
+	class File;
 };
 
 #define IXR_DEBUG	1
@@ -26,17 +28,16 @@ namespace Store
 #include <vector>
 
 #include <Store/Struct.h>
-#include <Store/File.h>
-#include <Store/Buffer.h>
-#include <Store/PagePointer.h>
 #include <Log/Logs.h>
 #include <Indexes/RootEntry.h>
+#include <TransactionManager/Transaction.h>
 #ifdef IXR_DEBUG
 #include <Errors/ErrorConsole.h>
 #endif
 
 using namespace std;
 using namespace Logs;
+using namespace TManager;
 
 namespace Store
 {

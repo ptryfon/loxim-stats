@@ -9,11 +9,11 @@ namespace Store
 	{
 	public:
 		DBPhysicalID(physical_id pid);
-		virtual unsigned short getFile() const;
-		virtual unsigned int getPage() const;
-		virtual unsigned short getOffset() const;		
-		virtual long long getLockAddress() const;
-		virtual ~DBPhysicalID(){};
+		unsigned short getFile() const;
+		unsigned int getPage() const;
+		unsigned short getOffset() const;		
+		long long getLockAddress() const;
+		~DBPhysicalID(){};
 
 	private:
 		unsigned short file;

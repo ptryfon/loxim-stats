@@ -1,9 +1,11 @@
 #include <Indexes/IndexManager.h>
+#include <Store/Store.h>
 #include <Store/NamedItems.h>
 
 #include <memory>
 
 using namespace QExecutor;
+using namespace Store;
 namespace Indexes
 {
 	bool INDEX_DEBUG_MODE = false;
@@ -328,13 +330,13 @@ namespace Indexes
 		sm->getRoots()->getRoots(tid, "", indexContent);
 
 		RootEntry* e;
-		DBLogicalID* lid;
+		LogicalID* lid;
 		vector<RootEntry*>::iterator it;
 		ObjectPointer* optr;
 
 		for(it=indexContent->begin(); it!=indexContent->end(); it++) {
 			e = *it;
-			lid = new DBLogicalID(e->logicalID);
+			lid = sm->createLID(e->logicalID);
 			//err = LockManager::getHandle()->lock(lid, tid, Store::Read); //bez blokady bo to root
 
 			if ((err = Store::StoreManager::theStore->getObject(tid, lid, Store::Read, optr))) {

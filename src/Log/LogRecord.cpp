@@ -3,8 +3,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <errno.h>
-#include <Store/DBStoreManager.h>
 
+namespace Logs{
 
 int BeginTransactionRecord::modifySetsBackDir(CrashRecovery* cr)
     {
@@ -554,4 +554,6 @@ int RemoveRootRecord::rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm,
     //Wycofywana tranzakcja usunęła roota więc go dodajemy.
     return addRootToStore( sm );
   return 0;
+}
+
 }

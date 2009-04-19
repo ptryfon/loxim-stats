@@ -84,7 +84,7 @@ namespace Store
 		Serialized& operator+=(const LogicalID&);
 		Serialized& operator+=(const DataValue&);
 		Serialized& operator+=(SetOfLids* const &s);
-		template <class T> Serialized& operator+=(const T&);
+		//Serialized& operator+=(const T&);
 		void info() const;
 
 		unsigned char* bytes;
@@ -284,6 +284,8 @@ namespace Store
 		virtual DataValue* createStringValue(std::string value) = 0;
 		virtual DataValue* createPointerValue(LogicalID* value) = 0;
 		virtual DataValue* createVectorValue(vector<LogicalID*>* value) = 0;
+
+		virtual LogicalID* createLID(unsigned int) = 0;
 
 		// Object Creation for Logs
 		virtual ObjectPointer* createObjectPointer(LogicalID* lid) = 0;

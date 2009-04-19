@@ -10,7 +10,6 @@
 #include <QueryParser/ClassNames.h>
 #include <TransactionManager/Transaction.h>
 #include <Store/Store.h>
-#include <Store/DBDataValue.h>
 #include <QueryParser/QueryParser.h>
 #include <QueryParser/TreeNode.h>
 #include <QueryExecutor/QueryExecutor.h>
@@ -688,7 +687,7 @@ int QueryReferenceResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResu
                 GTpom = optr;
                 //gtimoszuk simple hack to be able to free optr later (which is GTpom)...
                 //yes making memory leak to deal w with another memory leak...
-		DataValue* dataVal = new DBDataValue(*optr->getValue());
+		DataValue* dataVal = optr->getValue()->clone();
 
                 //DataValue* dataVal = optr->getValue();
                 dataVal_vec.push_back(dataVal);

@@ -15,7 +15,7 @@ namespace QParser {	class QueryParser; }
 namespace Errors { class ErrorConsole; }
 namespace Schemas { class Schema; class InterfaceMaps; class OuterSchemas; }
 namespace TManager { class Transaction; }
-namespace Store { class LogicalID; class DBDataValue; class ObjectPointer;}
+namespace Store { class LogicalID; class ObjectPointer;}
 
 using namespace QParser;
 using namespace TManager;
@@ -54,7 +54,7 @@ namespace QExecutor
 		int refQuery(QueryResult *arg, QueryResult *&res);
         int nameofQuery(QueryResult *arg, QueryResult *&res);	
 				
-		int createObjectAndPutOnQRes(DBDataValue* dbValue, string objectName, Store::ExtendedType type, LogicalID*& newLid);
+		int createObjectAndPutOnQRes(DataValue* dbValue, string objectName, Store::ExtendedType type, LogicalID*& newLid);
 		int executeObjectDeclarationOrTypeDefinition(DeclareDefineNode *obdNode, bool isTypedef);
 		int execRecursivQueryAndPop(TreeNode *query, QueryResult*& execResult);	
 		

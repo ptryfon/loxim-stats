@@ -1,5 +1,4 @@
 #include <Indexes/RootEntry.h>
-#include <Store/DBLogicalID.h>
 #include <Indexes/ToStringBuilder.h>
 #include <sstream>
 
@@ -15,7 +14,7 @@ namespace Indexes {
 	}
 
 	LogicalID* RootEntry::getLogicalID() {
-		return new DBLogicalID(logicalID);
+		return StoreManager::theStore->createLID(logicalID);
 	}
 	
 	/*

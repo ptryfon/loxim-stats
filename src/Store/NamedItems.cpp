@@ -3,6 +3,8 @@
  */
 
 #include <Store/NamedItems.h>
+#include <Store/File.h>
+#include <Store/PagePointer.h>
 
 namespace Store
 {

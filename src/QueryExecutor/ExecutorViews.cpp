@@ -1,10 +1,9 @@
-#include "ExecutorViews.h"
-#include "QueryResult.h"
-#include "QueryExecutor.h"
-#include "BindNames.h"
-#include "Store/DBLogicalID.h"
-#include "Errors/ErrorConsole.h"
-#include "TransactionManager/Transaction.h"
+#include <QueryExecutor/ExecutorViews.h>
+#include <QueryExecutor/QueryResult.h>
+#include <QueryExecutor/QueryExecutor.h>
+#include <QueryExecutor/BindNames.h>
+#include <Errors/ErrorConsole.h>
+#include <TransactionManager/Transaction.h>
 
 namespace QExecutor
 {
@@ -463,10 +462,10 @@ namespace QExecutor
 					}
 					sent_virtuals.push_back(arg);
 					unsigned int new_id = QE_VIRTUALS_TO_SEND_MIN_ID + current_virtual_index;
-					tmp_lid = new DBLogicalID(new_id);
+					tmp_lid = StoreManager::theStore->createLID(new_id);
 					fakeLid_map[virtualToString] = tmp_lid;
 				}
-				res = new QueryReferenceResult(new DBLogicalID(tmp_lid->toInteger()));
+				res = new QueryReferenceResult(StoreManager::theStore->createLID(tmp_lid->toInteger()));
 				break;
 			}
 			default: {

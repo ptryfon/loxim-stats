@@ -117,6 +117,7 @@ namespace Store
 		virtual DataValue* createStringValue(string value);
 		virtual DataValue* createPointerValue(LogicalID* value);
 		virtual DataValue* createVectorValue(vector<LogicalID*>* value);
+		virtual LogicalID* createLID(unsigned int);
 
 		virtual ObjectPointer* createObjectPointer(LogicalID* lid);
 		virtual ObjectPointer* createObjectPointer(LogicalID* lid, string name, DataValue* dv);

@@ -1,5 +1,4 @@
 #include <Errors/ErrorConsole.h>
-#include <Store/DBDataValue.h>
 #include <Indexes/IndexManager.h>
 #include <Indexes/QueryOptimizer.h>
 #include <Indexes/VisibilityResolver.h>
@@ -331,8 +330,9 @@ namespace Indexes
 			//jesli nie ma zadnego root'a z metadanymi to jednego trzeba zrobic
 			vector<LogicalID*>* vectorValue = new vector<LogicalID*>(0);
 			ObjectPointer *optr;
+			StoreManager *sm = StoreManager::theStore;
 			if (
-				(err = tr->createObject(indexMetadata, new DBDataValue(vectorValue), optr)) ||
+				(err = tr->createObject(indexMetadata, sm->createVectorValue(vectorValue), optr)) ||
 				(err = tr->addRoot(optr))
 			   ) {
 				return err;
@@ -422,8 +422,8 @@ namespace Indexes
 		vector<LogicalID*>* vectorValue = new vector<LogicalID*>(0);
 
 		ObjectPointer *optr;
-
-		err = tr->createObject(ROOT_DB_NAME, new DBDataValue(indexedRootName), optr);
+		StoreManager *sm = StoreManager::theStore;
+		err = tr->createObject(ROOT_DB_NAME, sm->createStringValue(indexedRootName), optr);
 		if (err) {
 			debug_printf(*ec, "Cannot create index\n");
 			if ((err2 = tr->abort())) {
@@ -434,7 +434,7 @@ namespace Indexes
 
 		vectorValue->push_back(optr->getLogicalID());
 
-		err = tr->createObject(FIELD_DB_NAME, new DBDataValue(indexedFieldName), optr);
+		err = tr->createObject(FIELD_DB_NAME, sm->createStringValue(indexedFieldName), optr);
 		if (err) {
 			debug_printf(*ec, "Cannot create index\n");
 			if ((err2 = tr->abort())) {
@@ -445,7 +445,7 @@ namespace Indexes
 
 		vectorValue->push_back(optr->getLogicalID());
 
-		err = tr->createObject(CMP_TYPE, new DBDataValue(comp->serialize()), optr);
+		err = tr->createObject(CMP_TYPE, sm->createIntValue(comp->serialize()), optr);
 		if (err) {
 			debug_printf(*ec, "Cannot create index\n");
 			if ((err2 = tr->abort())) {
@@ -456,7 +456,7 @@ namespace Indexes
 
 		vectorValue->push_back(optr->getLogicalID());
 
-		err = tr->createObject(indexName, new DBDataValue(vectorValue), optr);
+		err = tr->createObject(indexName, sm->createVectorValue(vectorValue), optr);
 		if (err) {
 			debug_printf(*ec, "Cannot create index\n");
 			if ((err2 = tr->abort())) {
@@ -478,8 +478,8 @@ namespace Indexes
 		rootOptr->getValue()->getVector()->push_back(optr->getLogicalID());
 
 		//czy trzeba robic nowy obiekt?
-		DBDataValue *dbDataVal = new DBDataValue();
-		dbDataVal->setVector(rootOptr->getValue()->getVector());
+		DataValue *dbDataVal = sm->createVectorValue(
+			rootOptr->getValue()->getVector());
 
 		LogicalID* lid = optr->getLogicalID()->clone();
 

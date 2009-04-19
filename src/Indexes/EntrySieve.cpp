@@ -1,4 +1,3 @@
-#include <Store/DBLogicalID.h>
 #include <Store/NamedItems.h>
 #include <Indexes/EntrySieve.h>
 #include <Indexes/IndexManager.h>
@@ -100,7 +99,7 @@ namespace Indexes
 		if (removed) {
 			return;
 		}
-		result->push_back( new QueryReferenceResult( new DBLogicalID(currentLid) ) );
+		result->push_back( new QueryReferenceResult( StoreManager::theStore->createLID(currentLid) ) );
 	}
 	
 	bool EntrySieve::indexVisible(RootEntry* entry) {
