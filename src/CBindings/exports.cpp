@@ -6,7 +6,7 @@
 
 #include <Client/SimpleClient.h>
 #include <Protocol/Packages/Package.h>
-#include <CBindings/liblx.h>
+#include <CBindings/loxim_client.h>
 
 
 
