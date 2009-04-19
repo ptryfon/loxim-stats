@@ -1,4 +1,4 @@
-#include <CBindings/liblx.h>
+#include <CBindings/loxim_client.h>
 
 #ifndef NULL
 #define NULL ((void*)0)
