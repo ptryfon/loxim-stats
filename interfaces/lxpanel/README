@@ -1,0 +1,17 @@
+
+This is the administration panel for Loxim.
+
+Installation instructions:
+
+1. copy the files into the location suitable for your web server
+2. insert the valid path to php into the first line of *.cgi in this directory
+3. edit config.cgi
+4. ensure you have the minimal php configuration:
+
+[php]
+short_open_tag = off
+magic_quotes_gpc = off
+
+5. make sure all the files have proper permissions (depending on your setup)
+6. watch phpinfo() output by browsing pi.cgi, search for lxsbql
+

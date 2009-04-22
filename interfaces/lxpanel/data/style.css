@@ -1,0 +1,301 @@
+html,
+body {
+	margin: 0;
+	padding: 0;
+	height: 100%;
+}
+
+body {
+	font: 0.85em sans-serif;
+}
+
+a:link,
+a:visited {
+	color: #a06c14;
+}
+
+/* ------------------------------ */
+
+.info,
+.error {
+	margin: 1em 2em;
+	padding: 0.5em 1em;
+	border: 1px dotted;
+}
+
+.info {
+	background-color: #b5cae8;
+	border-color: #113569;
+}
+
+.error {
+	background-color: #fbcf84;
+	border-color: #a06c14;
+}
+
+/* ------------------------------ */
+
+form {
+	margin: 1em 0;
+}
+
+table.form tr th {
+	padding: 0.5em 1em;
+	text-align: right;
+}
+
+table.form tr th:after {
+	content: ":";
+}
+
+table.form tr.submit td {
+	padding: 1em;
+	text-align: center;
+}
+
+/* ------------------------------ */
+
+div.loginpage {
+	height: 100%;
+	width: 30em;
+	margin: 0 auto;
+	border: solid #b5cae8;
+	border-width: 0 10px;
+}
+
+div.loginpage h1 {
+	margin: 0;
+	padding: 2.5em 0 0 0;
+	font-size: 2.5em;
+	background-color: #385178;
+	color: white;
+}
+
+div.loginpage .authsel {
+	margin: 3em 0 1.5em 0;
+	text-align: center;
+	font-style: italic;
+}
+
+div.loginpage table.form {
+	margin: 0 auto;
+}
+
+div.loginpage .version {
+	position: absolute;
+	bottom: 0;
+	padding: 1em;
+	font-size: smaller;
+}
+
+/* ------------------------------ */
+
+div.page div.menu {
+	position: absolute;
+	top: 0.5em;
+	left: 0.5em;
+	width: 18em;
+	font-size: 0.9em;
+}
+
+div.page div.menu a:link,
+div.page div.menu a:visited {
+	color: #2f5b9c;
+}
+
+div.page div.menu h2 {
+	margin: 0;
+	padding: 1.5em 0 0 0;
+	background-color: #113569;
+	color: white;
+	font-size: 1.5em;
+	font-weight: bold;
+}
+
+div.page div.menu ul#menu {
+	margin: 1em 0;
+	padding: 0;
+	list-style: none;
+	line-height: 2;
+}
+
+div.page div.menu ul#menu li a {
+	display: block;
+	padding-left: 0.5em;
+	border-left: 5px solid #385178;
+	border-bottom: 1px dotted #385178;
+	text-decoration: none;
+	color: black;
+}
+
+div.page div.menu ul#menu li a:hover {
+	border-color: #84ace8;
+}
+
+div.page div.menu h3 {
+	margin: 0.5em 0 0 0;
+	padding: 0.5em;
+	background-color: #b5cae8;
+	text-align: center;
+	font-size: 1em;
+}
+
+div.page div.menu ol#history,
+div.page div.menu ul#favourites {
+	margin: 0 0 0.5em 0;
+	padding: 0.5em 0 0.5em 2.5em;
+	border: solid #b5cae8;
+	border-width: 0 2px 2px 2px;
+	line-height: 1.5;
+}
+
+div.page div.menu ul#favourites a.delete {
+	text-decoration: none;
+	color: black;
+	font-weight: bold;
+}
+
+/* ------------------------------ */
+
+div.page div.pack {
+	position: absolute;
+	top: 0.5em;
+	left: 20em;
+	right: 2em;
+}
+
+div.page div.status {
+	font-family: monospace;
+	color: gray;
+}
+
+div.page div.content {
+	margin: 1.5em 0 0.5em 0;
+	padding: 1em;
+	border: 2px solid #fbcf84;
+}
+
+div.page div.content h1 {
+	margin: 0.5em -0.77em;
+	padding: 0.1em 0.5em;
+	background-color: #fbcf84;
+	font-size: 1.3em;
+	font-style: italic;
+}
+
+div.page div.content h1:first-child {
+	margin-top: -0.77em;
+	background-color: #fbcf84;
+}
+
+div.page div.content .resultview {
+	margin: 1em;
+	text-align: center;
+	font-style: italic;
+}
+
+/* ------------------------------ */
+
+.resultblock {
+	margin: 1em;
+}
+
+.resultblock ul {
+	padding-left: 2em;
+	list-style: none;
+	line-height: 1.4;
+}
+
+.resultblock > ul {
+	padding-left: 0;
+}
+
+.resultblock ul li img {
+	border: 0;
+	margin-right: 0.5em;
+}
+
+.resultblock form {
+	font-size: 80%;
+}
+.resultblock form input {
+	width: 5em;
+}
+
+.resultops table {
+	border-left: 3px solid #eee;
+	border-color: #a06c14;
+}
+
+.resultops table td {
+	padding: 1em;
+}
+
+.queryblock a {
+	font-weight: bold;
+}
+
+/* ------------------------------ */
+
+table.stat1,
+table.stat2 {
+	width: 100%;
+	line-height: 1.5;
+}
+
+table.stat1 tr.title td,
+table.stat2 tr.title td {
+	background-color: #ddd;
+	text-align: center;
+	font-weight: bold;
+}
+
+table.stat1 th {
+	width: 32%;
+	padding-left: 1em;
+	padding-right: 1em;
+}
+
+table.statl {
+	margin: 0.5em 0;
+	border: 2px solid #ddd;
+	border-color: #ddd;
+	line-height: 1.5;
+}
+
+table.statl tr.title td {
+	background-color: #ddd;
+	text-align: center;
+	font-weight: bold;
+}
+
+table.statl th {
+	background-color: #ddd;
+	padding-left: 1em;
+	padding-right: 1em;
+}
+
+table.statl td {
+	padding-left: 0.5em;
+	padding-right: 0.5em;
+}
+
+/* ------------------------------ */
+
+div.querywin {
+	background-color: #eee;
+	text-align: center;
+}
+
+div.querywin h1 {
+	margin: 0;
+	padding: 0.2em 0.5em;
+	background-color: #fbcf84;
+	font-size: 1.3em;
+	font-style: italic;
+}
+
+div.querywin table.form {
+	margin: 0 auto;
+}
+

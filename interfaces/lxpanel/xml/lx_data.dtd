@@ -1,0 +1,22 @@
+
+<!ENTITY % datapart "void|int|double|string|bool|ref|bag|struct|seq|bind" >
+
+<!ELEMENT data (part+) >
+<!ELEMENT part (%datapart;) >
+<!ELEMENT void EMPTY >
+<!ELEMENT int (#PCDATA) >
+<!ELEMENT double (#PCDATA) >
+<!ELEMENT string (#PCDATA) >
+<!ELEMENT bool (#PCDATA) >
+<!ELEMENT ref (#PCDATA) >
+<!ELEMENT bag ((%datapart;)*) >
+<!ELEMENT struct ((%datapart;)*) >
+<!ELEMENT seq ((%datapart;)*) >
+<!ELEMENT bind (k, v) >
+<!ELEMENT k (#PCDATA) >
+<!ELEMENT v (%datapart;) >
+
+<!ATTLIST data xmlns CDATA #IMPLIED>
+<!ATTLIST part version CDATA #FIXED "1">
+<!ATTLIST part id ID #IMPLIED>
+
