@@ -34,7 +34,7 @@
 namespace Client {
 
 
-const std::string SimpleClient::version = "0.93";
+const std::string SimpleClient::version = "0.99";
 
 enum {
 	ECliUnknown =		0x7000,
