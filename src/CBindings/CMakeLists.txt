@@ -8,15 +8,15 @@ exports.cpp
 loxim_client.h)
 
 set(CBindings_DEPS
+Config
 Errors
 Client
 Util
 Protocol
-ProtocolEnums
 ProtocolStreams
 ProtocolPackages
 ProtocolPackagesData
-Config
+SystemStats
 )
 
 #TODO: use CBindings_DEPS to generate this list instead of hardcoding it
@@ -40,6 +40,11 @@ set(CBindings_ext_SRCS
 ../Protocol/Exceptions.cpp
 ../Protocol/PackageFactory.cpp
 ../Protocol/TCPServer.cpp
+../Protocol/Streams/DataStream.cpp
+../Protocol/Streams/FileDataStream.cpp
+../Protocol/Streams/PackageCodec.cpp
+../Protocol/Streams/PackageStream.cpp
+../Protocol/Streams/TCPClientStream.cpp
 ../Protocol/Packages/ASCByePackage.cpp
 ../Protocol/Packages/ASCErrorPackage.cpp
 ../Protocol/Packages/ASCOkPackage.cpp
@@ -88,6 +93,13 @@ set(CBindings_ext_SRCS
 ../Protocol/Packages/Data/Uint8Package.cpp
 ../Protocol/Packages/Data/VarcharPackage.cpp
 ../Protocol/Packages/Data/VoidPackage.cpp
+../SystemStats/AllStats.cpp
+../SystemStats/ConfigStats.cpp
+../SystemStats/QueriesStats.cpp
+../SystemStats/SessionStats.cpp
+../SystemStats/StoreStats.cpp
+../SystemStats/SystemStats.cpp
+../SystemStats/TransactionsStats.cpp
 )
 add_library(loxim_client_static STATIC ${CBindings_SRCS} ${CBindings_ext_SRCS})
 add_library(loxim_client_shared SHARED ${CBindings_SRCS} ${CBindings_ext_SRCS})
