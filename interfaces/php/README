@@ -1,0 +1,14 @@
+
+This is the PHP module with Loxim support.
+
+Installation instructions:
+
+1. copy the files to php-5.2.9/ext/lxsbql/
+2. cd php-5.2.9
+3. rm -rf autom4te.cache
+4. ./buildconf --force
+5a. ./configure --with-lxsbql
+5b. ./configure --with-lxsbql=/path/where/liblx/is/installed
+6. make
+7. ./sapi/cli/php ext/lxsbql/t0.php
+

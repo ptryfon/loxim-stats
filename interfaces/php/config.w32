@@ -1,0 +1,13 @@
+// $Id$
+// vim:ft=javascript
+
+// If your extension references something external, use ARG_WITH
+// ARG_WITH("lxsbql", "for lxsbql support", "no");
+
+// Otherwise, use ARG_ENABLE
+// ARG_ENABLE("lxsbql", "enable lxsbql support", "no");
+
+if (PHP_LXSBQL != "no") {
+	EXTENSION("lxsbql", "lxsbql.c");
+}
+
