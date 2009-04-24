@@ -13,12 +13,14 @@ set(ProtocolEnums_STAT_SRCS
 	AbortReasonCodes.h 
 	DataPackages.h 
 	Packages.h 
-dummy.cpp)
+	dummy.cpp)
 
 add_library(ProtocolEnums STATIC ${ProtocolEnums_STAT_SRCS}) 
 set_target_properties(ProtocolEnums PROPERTIES OUTPUT_NAME protocolenums)
 set_target_properties(ProtocolEnums PROPERTIES CLEAN_DIRECT_OUTPUT 1)
 
-add_library(ProtocolEnums_shared SHARED ${ProtocolEnums_STAT_SRCS}) 
-set_target_properties(ProtocolEnums_shared PROPERTIES OUTPUT_NAME protocolenums)
-set_target_properties(ProtocolEnums_shared PROPERTIES CLEAN_DIRECT_OUTPUT 1)
+IF (NOT DO_NOT_BUILD_SHARED)
+	add_library(ProtocolEnums_shared SHARED ${ProtocolEnums_STAT_SRCS}) 
+	set_target_properties(ProtocolEnums_shared PROPERTIES OUTPUT_NAME protocolenums)
+	set_target_properties(ProtocolEnums_shared PROPERTIES CLEAN_DIRECT_OUTPUT 1)
+ENDIF (NOT DO_NOT_BUILD_SHARED)
