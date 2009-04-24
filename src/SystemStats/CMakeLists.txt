@@ -18,3 +18,4 @@ TransactionsStats.cpp
 TransactionsStats.h)
 
 add_library(SystemStats STATIC ${SystemStats_STAT_SRCS})
+add_library(SystemStats_shared SHARED ${SystemStats_STAT_SRCS})

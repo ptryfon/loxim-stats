@@ -17,3 +17,9 @@ smartptr.h)
 
 
 add_library(Util STATIC ${Util_STAT_SRCS})
+set_target_properties(Util PROPERTIES OUTPUT_NAME util)
+set_target_properties(Util PROPERTIES CLEAN_DIRECT_OUTPUT 1)
+
+add_library(Util_shared SHARED ${Util_STAT_SRCS})
+set_target_properties(Util_shared PROPERTIES OUTPUT_NAME util)
+set_target_properties(Util_shared PROPERTIES CLEAN_DIRECT_OUTPUT 1)

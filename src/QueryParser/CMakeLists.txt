@@ -1,5 +1,5 @@
 
-include_directories(${CMAKE_SOURCE_DIR}/src ${CMAKE_BINARY_DIR}/src ${INCDIR} ${INCDIR})
+include_directories(${CMAKE_SOURCE_DIR}/src ${CMAKE_BINARY_DIR}/src ${INCDIR} )
 
 find_program(BISON_EXECUTABLE bison
     PATHS 
@@ -17,20 +17,18 @@ find_program(FLEX_EXECUTABLE flex
 
 
 add_custom_command(
-    OUTPUT ${CMAKE_CURRNET_BINARY_DIR}/parser.h ${CMAKE_CURRENT_BINARY_DIR}/parser.c
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/parser.h ${CMAKE_CURRENT_BINARY_DIR}/parser.c
     COMMAND ${BISON_EXECUTABLE} -oparser.c parser.y
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/parser.y
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/parser.y ${BISON_EXECUTABLE}
     )
 add_custom_target(generate_query_parser DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/parser.c)
 
 add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/scanner.cc
     COMMAND ${FLEX_EXECUTABLE} -oscanner.cc scanner.ll
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/scanner.ll
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/scanner.ll ${FLEX_EXECUTABLE}
     )
 add_custom_target(generate_query_lexer DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/scanner.cc)
-
-
 
 set(QueryParser_STAT_SRCS
 AuxRmver.cpp

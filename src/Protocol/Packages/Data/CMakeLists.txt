@@ -54,5 +54,13 @@ set (ProtocolPackagesDataSTAT_SRCS
 	VoidPackage.cpp 
 	CollectionPackage.h
 	CollectionPackage.cpp)
+
 add_library(ProtocolPackagesData STATIC ${ProtocolPackagesDataSTAT_SRCS})
 target_link_libraries(ProtocolPackagesData Protocol ProtocolStreams)
+set_target_properties(ProtocolPackagesData PROPERTIES OUTPUT_NAME protocolpackagesdata)
+set_target_properties(ProtocolPackagesData PROPERTIES CLEAN_DIRECT_OUTPUT 1)
+
+add_library(ProtocolPackagesData_shared SHARED ${ProtocolPackagesDataSTAT_SRCS})
+#target_link_libraries(ProtocolPackagesData_shared Protocol_shared ProtocolStreams_shared)
+set_target_properties(ProtocolPackagesData_shared PROPERTIES OUTPUT_NAME protocolpackagesdata)
+set_target_properties(ProtocolPackagesData_shared PROPERTIES CLEAN_DIRECT_OUTPUT 1)
