@@ -47,6 +47,7 @@ namespace QExecutor
 			string m_user;
 			string m_userSchemaName;
 			
+			//Access checking can be disabled when procedure body is executed
 			bool m_procedureAccessControl;
 			int m_procLevel;
 			bool m_disabled;
@@ -54,9 +55,12 @@ namespace QExecutor
 			void setAccessControl(bool procedureOnly, bool enable, int level);		
 			
 			bool m_isDba;
+			bool m_userValidation; //read access to xuser will be granted only if this is true (just after successfull login, before any query) 
+			bool m_keepSection; //if true, section with accessible names won't be dropped (used with non-algorithmic operators)
 			ErrorConsole *ec;
 			
-			int mergeCruds(int crud1, int crud2) const;	
+			int mergeCruds(int crud1, int crud2) const;
+			int deriveFatherCrud(int crud) const;
 			
 			void resetForSchema(string schemaName);
 			void addSectionInfo(int secNo, set<string> names);
@@ -86,12 +90,14 @@ namespace QExecutor
 			void propagateAccess(string father, map<string, bool> children);		
 			void removeSection(int secNo);
 			void removeAllSections();
+			void setKeepSection(bool keep);
 			
 			void addViewEnvironment(QueryVirtualResult *r);
 			void removeViewEnvironment(QueryVirtualResult *r);
 
 			void addAccess(string name, int crud, bool grant = false, bool base = false);
 			int getAccess(string name) const;
+			string getUserSchema() const;
 
 			void enableProcedureOnly(int sec);
 			void disableProcedureOnly(int sec);

@@ -5,6 +5,7 @@
 #include <QueryExecutor/InterfaceQuery.h>
 #include <QueryExecutor/ClassGraph.h>
 #include <QueryExecutor/QueryResult.h>
+#include <Errors/ErrorConsole.h>
 #include <set>
 
 using namespace Schemas;
@@ -82,33 +83,33 @@ void Schema::sortVectors()
     sort(m_methods.begin(), m_methods.end(), AscendingMethodSort());
 }
 
-void Schema::printAll(Errors::ErrorConsole *ec) const
+void Schema::printAll() const
 {
-	info_printf(*ec, "Schema for %s\n", m_name.c_str());
-	info_printf(*ec, "\tFields:\n");
+	debug_printf(*ec, "Schema for %s\n", m_name.c_str());
+	debug_printf(*ec, "\tFields:\n");
 	int i = 0;
 	TFields::const_iterator itF;
 	for (itF = m_fields.begin(); itF != m_fields.end(); ++itF)
     {
 		i++;
 		const Field *f = *itF;
-        info_printf(*ec, "\t\t%d. %s\n", i, f->getName().c_str());
+        debug_printf(*ec, "\t\t%d. %s\n", i, f->getName().c_str());
     }
-	info_printf(*ec, "\tMethods:\n");
+	debug_printf(*ec, "\tMethods:\n");
     TMethods::const_iterator itM;
     i = 0;
     for (itM = m_methods.begin(); itM != m_methods.end(); ++itM)
     {
 		i++;
 		const Method *m = *itM;
-        info_printf(*ec, "\t\t%d. %s\n", i, m->getName().c_str());
+        debug_printf(*ec, "\t\t%d. %s\n", i, m->getName().c_str());
         int j = 0;
         TFields params = m->getParams();
         TFields::iterator itP;
         for (itP = params.begin(); itP != params.end(); ++itP)
         {
     	    j++;
-    	    info_printf(*ec, "\t\t\t %d. %s\n", j, (*itP)->getName().c_str());
+    	    debug_printf(*ec, "\t\t\t %d. %s\n", j, (*itP)->getName().c_str());
         }
     }
 }
@@ -165,7 +166,7 @@ string Schema::toSchemaString() const
 	return out;
 }
 
-Schema::Schema(int type) : m_schemaType(type) {}
+Schema::Schema(int type) : m_schemaType(type) {ec = &ErrorConsole::get_instance(EC_QUERY_EXECUTOR);}
 
 Schema::~Schema() {}
 
@@ -300,6 +301,7 @@ int Schema::interfaceFromLogicalID(LogicalID *lid, TManager::Transaction *tr, Sc
 
 int Schema::viewFromLogicalID(LogicalID *lid, TManager::Transaction *tr, Schema *&s)
 {
+	
 	s = new Schema();
 	ObjectPointer *optr;
 	int errcode = tr->getObjectPointer(lid, Store::Read, optr, false);
@@ -329,6 +331,8 @@ int Schema::viewFromLogicalID(LogicalID *lid, TManager::Transaction *tr, Schema 
 		}
 	}
 	s->setSchemaType(BIND_VIEW);
+	//ErrorConsole *econ = &ErrorConsole::get_instance(EC_QUERY_EXECUTOR);
+	//debug_printf(*econ, "[Schema::viewFromLogicalID] got view schema with name %s and vo_name %s", s->getName().c_str(), s->getAssociatedObjectName().c_str());
 	return 0;
 }
 
@@ -352,14 +356,31 @@ int Schema::viewFromName(string name, TManager::Transaction *tr, bool &exists, S
 	exists = false;
 	vector<LogicalID*>* viewsLids;
 	int errcode = tr->getViewsLID(name, viewsLids);
+	
+	//ErrorConsole *econ = &ErrorConsole::get_instance(EC_QUERY_EXECUTOR);
+	//debug_printf(*econ, "[Schema::viewFromName] called getViewLids for name %s, got %d entries", name.c_str(), viewsLids ? viewsLids->size() : 0);		
 	if (errcode) 
 	{
+		//debug_printf(*econ, "[Schema::viewFromName] error in getViewsLID");
 		return errcode;
 	}
-	if (viewsLids->size() == 0) return 0;
+	if (viewsLids->size() == 0) 
+	{
+		errcode = tr->getRootsLID(name, viewsLids);
+		//debug_printf(*econ, "[Schema::viewFromName] called getRootsLids for name %s, got %d entries", name.c_str(), viewsLids ? viewsLids->size() : 0);				
+		if (errcode) 
+		{
+			//debug_printf(*econ, "[Schema::viewFromName] error in getRootsLID");
+			return errcode;
+		}
+		if (viewsLids->size() != 1) return 0;
+	}
+
+	errcode = viewFromLogicalID(viewsLids->at(0), tr, out);	
+	if (errcode == (ErrQExecutor | EOtherResExp))
+		return 0; //found matching root, but it's not a view
 	exists = true;
-	
-	return viewFromLogicalID(viewsLids->at(0), tr, out);	
+	return errcode;
 }
 
 int Schema::interfaceMatchesImplementation(string interface, string implementation, TManager::Transaction *tr, int t, bool &out)
@@ -367,7 +388,6 @@ int Schema::interfaceMatchesImplementation(string interface, string implementati
     Schema *intSchema;
     Schema *impSchema;
 	
-	ErrorConsole *ec = &ErrorConsole::get_instance(EC_OUTER_SCHEMAS);
     int errorcode = fromNameIncludingDerivedMembers(interface, intSchema, tr, BIND_INTERFACE);
     if (errorcode) return errorcode;
     

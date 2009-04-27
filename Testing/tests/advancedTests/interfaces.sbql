@@ -26,7 +26,7 @@ Cperson includes create ("Sarah" as name, "Connor" as surname, 30 as age) as Ope
 "binding Iperson to Cperson";
 Iperson shows Cperson;
 
-"calling accessible method that returns inaccessible field - should return John Black";
+"calling accessible method that uses inaccessible field - should return John Black";
 deref(OIperson where getAge() > 50);
 "calling inaccessible field directly - should return empty bag"
 deref(OIperson.age);
@@ -49,7 +49,7 @@ Ipl shows Ceng;
 deref(OIpl);
 deref(OIpl where name = "Sarah");
 
-"TESTING DELETE AND CREATE THROUGH INTERFACE"
+"TESTING DELETE, CREATE AND MODIFY THROUGH INTERFACE"
 "deleting all OIpl objects - should result in deleting all Oeng and Oengsub objects"
 delete OIpl;
 "dereferencing Oeng objects - should be empty now, as all such objects were deleted through interface"
@@ -58,12 +58,16 @@ deref(Oeng);
 create ("New" as name, "Entry" as surname) as OIpl;
 "dereferencing Oeng objects - should show one object, as it was created by statement above"
 deref(Oeng);
+"modifying object OIpl"
+Oeng.name := "Newest";
+"dereferencing Oeng object - should show new name"
+deref(Oeng);
 
 "TESTING BINDING INTERFACE TO ANOTHER INTERFACE OR VIEW"
 "creating class Cpatient and some objects of this class - Opatient"
 create class Cpatient {instance Opatient : {name; age} procedure proc1(param1) {return 0} };
-Cpatient includes create ("John" as name, 55 as age) as Opatient;
-Cpatient includes create ("Mary" as name, 67 as age) as Opatient;
+Cpatient includes create ((("John" as firstName), ("Malkucki" as lastName)) as name, 55 as age) as Opatient;
+Cpatient includes create ((("Dorothy" as firstName), ("Boone" as lastName)) as name, 67 as age) as Opatient;
 
 "creating interface Ipatient with object name OIpatient and binding it to Cpatient";
 create interface Ipatient {instance OIpatient: {name; age} proc1(param1) };
@@ -81,12 +85,13 @@ create view OldPatientsDef {virtual objects OldPatients() { return (Opatient whe
 
 "creating interface IoldPatient and binding it to objects OldPatients"
 create interface IoldPatient {instance OIoldPatient: {name}};
+IoldPatient shows OldPatientsDef;
 IoldPatient shows OldPatients;
 
 "TESTING SCHEMA CREATION AND EXPORT"
 "creating Schemas Patients1 and Patients2. First one contains a view - that should be recognized as error"
 create schema Patients1 { Ipatient2 read OldPatients read update }
-create schema Patients2 { Ipatient read create IoldPatient read }
+create schema Patients2 { Ipatient create read update IoldPatient read }
 
 "exporting schema Patients2";
 export Patients2;

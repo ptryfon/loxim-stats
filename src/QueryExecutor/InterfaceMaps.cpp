@@ -20,7 +20,7 @@ void InterfaceMaps::printAll() const
 		string name = (*it).first;
 		Schema s = (*it).second;
 		debug_printf(*ec, "\n***%s***\n", name.c_str());
-		s.printAll(ec);
+		s.printAll();
 	}	
 	
 	debug_printf(*ec, "\n InterfacesHierarchy: \n");
@@ -438,7 +438,7 @@ void InterfaceMaps::implementationUpdated(string implementationName, string obje
 	{   //For every interface bound to implementation (which was just updated), check if it still matches this implementation 
 		string interfaceName = (*it);
 		bool matches;
-		int errcode = Schema::interfaceMatchesImplementation(interfaceName, implementationName, tr, type, matches);	
+		Schema::interfaceMatchesImplementation(interfaceName, implementationName, tr, type, matches);	
 		if (!matches)
 		{   //if not, remove bind from the map and re-validate (invalidate in this case) schemas that are using this interface
 			m_bindMap.removeBind(interfaceName);
@@ -604,7 +604,7 @@ TStringSet InterfaceMaps::getAllExt(string interfaceName) const
 {
 	TStringSet allExt;
 	TInterfaceToHierarchy::const_iterator it = m_nameToHierarchy.find(interfaceName);
-	if (it == m_nameToHierarchy.end());
+	if (it == m_nameToHierarchy.end())
 	{   //Should not happen!
 		return allExt;
 	}

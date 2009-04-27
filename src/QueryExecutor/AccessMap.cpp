@@ -40,6 +40,8 @@ namespace QExecutor
 		m_isDba = false;
 		m_procedureAccessControl = false;
 		m_disabled = false;
+		m_userValidation = false;
+		m_keepSection = false;
 		m_procLevel = -1;
 		m_disabledLevel = -1;
 	}
@@ -58,7 +60,10 @@ namespace QExecutor
 		if (it == m_accessMap.end())
 		{
 			if (name == getUserTableName())
-				return m_isDba ? FULL_ACCESS : READ;
+			{
+				if (m_isDba) return FULL_ACCESS;
+				else if (m_userValidation) return READ;
+			}
 			it = m_baseMap.find(name);
 			if (it == m_baseMap.end())
 				return m_isDba ? FULL_ACCESS : NO_ACCESS;
@@ -174,10 +179,19 @@ namespace QExecutor
 		}	
 	}
 	
+	int AccessMap::deriveFatherCrud(int fatherCrud) const
+	{
+		int crud = NO_ACCESS;
+		if (canRead(fatherCrud)) crud += READ;
+		if (canUpdate(fatherCrud)) crud += UPDATE + DELETE + CREATE;
+		return crud;
+	}
+	
 	void AccessMap::propagateAccess(string father, map<string, bool> children)
 	{   //false value in map indicates that this field is not visible through interface and accessible only by procedures
 		//debug_printf(*ec, "[AccessMap::propagateAccess]: adding %d children for %s", children.size(), father.c_str());
-		int crud = getAccess(father);
+		int fatherCrud = getAccess(father);
+		int crud = deriveFatherCrud(fatherCrud);
 		if (crud == NO_ACCESS) return;  //Shouldn't happen
 		
 		set<string> accessibleChildren;
@@ -197,6 +211,7 @@ namespace QExecutor
 	
 	void AccessMap::removeSection(int secNo)
 	{
+		if (m_keepSection) return;
 		debug_printf(*ec, "[AccessMap::removeSection]: removing section no. %d", secNo);
 		TIntToStringSet::iterator it = m_sectionToNamesMap.find(secNo);
 		if (it != m_sectionToNamesMap.end())
@@ -269,15 +284,17 @@ namespace QExecutor
 	{
 		m_accessMap.clear();
 		m_sectionToNamesMap.clear();
+		m_keepSection = false;
 	}
 	
 	int AccessMap::resetForUser(string username, QueryExecutor *qe)
-	{
+	{	
 		debug_printf(*ec, "[AccessMap::resetForUser] starts!");	
 		reset();
 		m_user = username;
 		m_isDba = username == "root" ? true :false;
 		if (m_isDba) return 0;
+		m_userValidation = true;
 		
 		//TODO - do bindNames zabrac to i stringi z QueryBuilder'a
 		const string privNameBind = "priv_name";
@@ -293,6 +310,7 @@ namespace QExecutor
 		if (res->type() != QueryResult::QSTRUCT)
 		{
 			debug_printf(*ec, "[AccessMap::resetForUser] error: QSTRUCT expected!");
+			m_userValidation = false;
 			return (ErrQExecutor | EOtherResExp);			
 		}
 		QueryStructResult *currStructResult = (QueryStructResult *)res;
@@ -306,6 +324,7 @@ namespace QExecutor
 			if (innerResult->type() != QueryResult::QBINDER)
 			{
 				debug_printf(*ec, "[AccessMap::resetForUser] error: QBINDER expected!");
+				m_userValidation = false;
 				return (ErrQExecutor | EOtherResExp);		
 			}
 			QueryBinderResult *innerBinderResult = (QueryBinderResult *)innerResult;
@@ -333,17 +352,20 @@ namespace QExecutor
 		addAccess(objectName, crud, canGive, true);
 		if (!OuterSchemas::Instance().hasSchemaName(objectName))
 		{
-			debug_printf(*ec, "[AccessMap::resetForUser] no such schema (user rights invalid)!");		
+			debug_printf(*ec, "[AccessMap::resetForUser] no such schema (user rights invalid)!");
+			m_userValidation = false;
 			return (ErrQExecutor | ENoSchemaFound);		
 		}
 		if (!OuterSchemas::Instance().isValid(objectName))
 		{
 			debug_printf(*ec, "[AccessMap::resetForUser] user is not allowed to access db through this schema (schema invalid)!");		
+			m_userValidation = false;
 			return (ErrQExecutor | EUserHasInvalidSchema);
 		}
 		resetForSchema(objectName);
 		
 		debug_printf(*ec, "[AccessMap::resetForUser] ends!");
+		m_userValidation = false;
 		return 0;
 	}
 	
@@ -369,9 +391,19 @@ namespace QExecutor
 		return out;
 	}
 
+	string AccessMap::getUserSchema() const
+	{
+		return m_userSchemaName;
+	}
+	
 	void AccessMap::addSectionInfo(int secNo, QueryResult *r)
 	{
 		return addSectionInfo(secNo, namesFromBinders(r));
+	}
+	
+	void AccessMap::setKeepSection(bool keep)
+	{
+		m_keepSection = keep;
 	}
 	
 	void AccessMap::adjustEnvironment(QueryVirtualResult *r, bool add)

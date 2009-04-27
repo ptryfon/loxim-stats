@@ -194,37 +194,40 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 		}
 		else if (nodeType == (TreeNode::TNVALIDATION)) {
 		    const UserData *user_data = session->get_user_data();
+			bool res;
 		    /* if user_data != NULL -> user id logged in, cannot log twice in one sesion */
 		    if (user_data != NULL) {
-			*result = new QueryBoolResult(false);
+				res = false;
 		    }
 		    else {
-			ValidationNode *val_node = (ValidationNode *) tree;
-			if (priviliged_mode) {
-			    set_user_data(val_node);
-			    *result = new QueryBoolResult(true);
-			}
-			else {
-			    string pass_check_query = QueryBuilder::getHandle()->
-					    query_for_password(val_node->get_login(), val_node->get_passwd());
-
-    			    QueryResult *local_res = NULL;
-			    int local_ret = execute_locally(pass_check_query, &local_res);
-			    if (local_ret || local_res == NULL || local_res->isBool() == false) {
-				*result = new QueryBoolResult(false);
-			    }
-			    else {
-				bool b;
-				local_res->getBoolValue(b);
-				if (b) {
-				    /* user_data is now NULL value */
-				    set_user_data(val_node);
+				ValidationNode *val_node = (ValidationNode *) tree;
+				if (priviliged_mode) {
+					set_user_data(val_node);
+					res = true;
 				}
-				*result = local_res;
-			    }
-			}
+				else {
+					string pass_check_query = QueryBuilder::getHandle()->
+							query_for_password(val_node->get_login(), val_node->get_passwd());
 
+					    QueryResult *local_res = NULL;
+					int local_ret = execute_locally(pass_check_query, &local_res);
+					if (local_ret || local_res == NULL || local_res->isBool() == false) {
+						res = false;
+					}
+					else {
+						bool b;
+						local_res->getBoolValue(b);
+						if (b) 
+						{
+							/* user_data is now NULL value */
+							set_user_data(val_node);
+						}
+						res = b;
+						delete local_res;
+					}
+				}
 		    }
+			*result = new QueryBoolResult(res);
 		}
 		else if (nodeType == (TreeNode::TNGRANTPRIV)) {
 		    GrantPrivNode *grant_node = (GrantPrivNode *) tree;
@@ -2522,6 +2525,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			NonAlgOpNode::nonAlgOp op = ((NonAlgOpNode *) tree)->getOp();
 			debug_print(*ec,  "[QE] NonAlgebraic operator - type recognized");
 			QueryResult *l_tmp_Result;
+			am->setKeepSection(true);
 			errcode = executeRecQuery (((NonAlgOpNode *) tree)->getLArg());
 			if (errcode != 0) return errcode;
 			errcode = qres->pop(l_tmp_Result);

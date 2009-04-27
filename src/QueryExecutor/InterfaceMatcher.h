@@ -36,6 +36,7 @@ namespace TManager
 }
 
 using namespace std;
+using namespace Errors;
 
 namespace Schemas
 {    
@@ -98,7 +99,7 @@ namespace Schemas
 	    void addMethod(Method *m) {m_methods.push_back(m);}
 	    void addSuper(string s) {m_supers.insert(s);}
 
-		void printAll(Errors::ErrorConsole *ec) const; 
+		void printAll() const; 
 		string toSchemaString() const;
 	    void sortVectors();
 	    void join(Schema *s, bool sort = true);
@@ -130,6 +131,8 @@ namespace Schemas
 	    TFields m_fields;
 	    TMethods m_methods;
 	    TSupers m_supers;
+
+		ErrorConsole *ec;
     };
     
     class Matcher 
