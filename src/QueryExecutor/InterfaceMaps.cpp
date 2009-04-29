@@ -231,7 +231,7 @@ int InterfaceMaps::addInterface(LogicalID* interfaceLid, TManager::Transaction *
 	if ((checkValidity) && (!checkIfCanBeInserted(*s)))
 	{
 		debug_printf(*ec, "[InterfaceMaps::addInterface] interface %s is invalid in current hierarchy", s->getName().c_str());
-		return -1;
+		return (ErrQExecutor | ESpoilsInterfaceHierarchy);;
 	}
 	
 	errcode = tr->addRoot(optr);
@@ -463,33 +463,51 @@ void InterfaceMaps::implementationRemoved(string implementationName, TManager::T
 	m_bindMap.removeEntriesForImplementation(implementationName);
 }
 
+bool InterfaceMaps::checkDerivationValidity(string baseName, TStringSet forbiddenNames, TStringSet *&namesAlreadyCheckedUpwardsP) const
+{
+	if (forbiddenNames.find(baseName) != forbiddenNames.end())
+		return false;
+	forbiddenNames.insert(baseName);
+	
+	TInterfaceToHierarchy::const_iterator innIt = m_nameToHierarchy.find(baseName);
+	if (innIt == m_nameToHierarchy.end())
+		return false;
+	
+	TStringSet curPars = (*innIt).second.getParents();
+	for (TStringSet::iterator itP = curPars.begin(); itP != curPars.end(); ++itP)
+	{
+		string parentName = *itP;
+		bool validBranch = checkDerivationValidity(parentName, forbiddenNames, namesAlreadyCheckedUpwardsP);
+		if (!validBranch)
+			return false; //derivation loop somewhere
+		debug_printf(*ec, "[InterfaceMaps::checkDerivationValidity] name %s checked to have valid parents", parentName.c_str());
+		namesAlreadyCheckedUpwardsP->insert(parentName);
+	}	
+	
+	return true;
+}
+
 bool InterfaceMaps::checkHierarchyValidity() const
 {
 	TStringSet namesAlreadyCheckedUpwards;
+	TStringSet *namesAlreadyCheckedUpwardsP = &namesAlreadyCheckedUpwards;
 	TInterfaceToHierarchy::const_iterator it;
 	for (it = m_nameToHierarchy.begin(); it != m_nameToHierarchy.end(); ++it)
 	{
 		string name = (*it).first;
+		//debug_printf(*ec, "[InterfaceMaps::checkHierarchyValidity] checking name %s", name.c_str());
 		if (namesAlreadyCheckedUpwards.find(name) != namesAlreadyCheckedUpwards.end())
 			continue;   //this name was already checked for valid parents		
+		//debug_printf(*ec, "[InterfaceMaps::checkHierarchyValidity] name %s not checked before", name.c_str());
+
+		if (!hasInterface(name))
+			return false;   //"ghost" interface name in extends  
+		//debug_printf(*ec, "[InterfaceMaps::checkHierarchyValidity] name %s has interface", name.c_str());
 		
-		TStringSet fromThisNameIncluding;
-		vector<string> workingVec;
-		workingVec.push_back(name);
-		while (!workingVec.empty())
-		{
-			string pName = workingVec.back();
-			if (!hasInterface(pName))
-				return false;   //"ghost" interface name in extends  
-			workingVec.pop_back();
-			if (fromThisNameIncluding.find(pName) != fromThisNameIncluding.end())
-				return false;   //loop!
-			fromThisNameIncluding.insert(pName);
-			TInterfaceToHierarchy::const_iterator innIt = m_nameToHierarchy.find(pName);
-			TStringSet curPars = (*innIt).second.getParents();
-			workingVec.insert(workingVec.begin(), curPars.begin(), curPars.end());			
-		}
-		namesAlreadyCheckedUpwards.insert(fromThisNameIncluding.begin(), fromThisNameIncluding.end());
+		TStringSet forbiddenNames; //empty
+		
+		if (!checkDerivationValidity(name, forbiddenNames, namesAlreadyCheckedUpwardsP))
+			return false; //found loop
 	}
 	return true;	
 }
@@ -712,6 +730,7 @@ TStringSet InterfaceMaps::getAllFieldNamesAndCheckBind(string interface, bool &f
 				{
 					string name = (*it)->getName();
 					namesVisible.insert(name);
+					debug_printf(*ec, "[InterfaceMaps::getAllFieldNamesAndCheckBind] got name: %s", name.c_str());
 				}
 			}
 		}

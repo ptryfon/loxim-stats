@@ -3201,6 +3201,7 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 								continue;
 							}
 						}
+						
 						//MH set direct parent id...
 						currID->setDirectParent(lid);
 						QueryResult *currIDRes = new QueryReferenceResult(currID);

@@ -127,6 +127,8 @@ namespace Schemas
 		    int loadSchemas(TManager::Transaction *tr, TLidsVector *lvec);
 			void clearMap();
 			bool checkHierarchyValidity() const;
+			bool checkDerivationValidity(string baseName, TStringSet forbiddenNames, TStringSet *&namesAlreadyCheckedUpwardsP) const;
+
 			TStringSet getAllExt(string intName) const;
 			int addBind(string objectName, TManager::Transaction *tr);
 			int removeInterfaceFromMaps(string interfaceName, bool checkValidity = true);

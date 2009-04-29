@@ -49,6 +49,33 @@ Ipl shows Ceng;
 deref(OIpl);
 deref(OIpl where name = "Sarah");
 
+"TESTING MULTIDERIVATION"
+"creating interface IVehicle and class CVehicle"
+create interface IVehicle { {mass} paintBlack()};
+create class CVehicle { instance OVehicle: {mass; colour} procedure paintBlack() {colour = "black"} }; 
+"creating interfaces ICar, IShip and classes CCar, CShip";
+create interface ICar extends IVehicle { instance OICar: {landSpeed} move()};
+create class CCar extends CVehicle {instance OCar: {landSpeed; traction} procedure move() {return "driving"} };
+create interface IShip extends IVehicle { instance OIShip: {waterSpeed} move()};
+create class CShip extends CVehicle {instance OShip: {waterSpeed; submergible} procedure move() {return "swimming"} };
+"creating class CAmphibia and interface IAmphibia";
+create class CAmphibia extends CCar, CShip {instance OAmphibia: {}};
+create interface IAmphibia extends ICar, IShip {instance OIAmphibia: {}};
+"binding IAmphibia to CAmphibia"
+IAmphibia shows CAmphibia;
+"creating an OAmphibia object and dereferencing it through interface"
+CAmphibia includes (create (5000 as mass, 30 as landSpeed, 20 as waterSpeed, "yes" as submergible, "good" as traction, "green" as colour) as OAmphibia);
+deref(OIAmphibia);
+"Calling move() method on OIAmphibia objects: this method is derived both from ICar and from IShip. It should either result in driving or swimming" 
+OIAmphibia.move();
+
+"TESTING INTERFACE DERIVATION HIERARCHY VALIDITY CHECKER"
+"creating two most simple interfaces, I1 and I2, I2 deriving from I1"
+create interface I1 { {} };
+create interface I2 extends I1 { {} };
+"attempting to update I1 so it now would derive from I2, making a derivation loop - should be disallowed"
+update interface I1 extends I2 { {} };
+
 "TESTING DELETE, CREATE AND MODIFY THROUGH INTERFACE"
 "deleting all OIpl objects - should result in deleting all Oeng and Oengsub objects"
 delete OIpl;
