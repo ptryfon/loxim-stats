@@ -90,6 +90,20 @@ Oeng.name := "Newest";
 "dereferencing Oeng object - should show new name"
 deref(Oeng);
 
+"TESTING UPDATING INTERFACES AND BOND VALIDITY CHECKER"
+"creating interface IUpdate and class CUpdate, binding them"
+create interface IUpdate { instance OIUpdate: {field} };
+create class CUpdate { instance OUpdate: {field; extrafield} };
+IUpdate shows CUpdate;
+"creating an OUpdate object and querying it through IUpdate";
+CUpdate includes (create ("field" as field, "extrafield" as extrafield) as OUpdate);
+deref(OIUpdate);
+"updating IUpdate to have another field that is not present in CUpdate class and dereferencing it";
+update interface IUpdate { instance OIUpdate: {field; fieldAddedByUpdate} };
+deref(deref(IUpdate));
+"It worked, but now a IUpdate->CUpdate binding should be dropped: query below for OIUpdate objects should give empty bag"
+deref(OIUpdate); 
+
 "TESTING BINDING INTERFACE TO ANOTHER INTERFACE OR VIEW"
 "creating class Cpatient and some objects of this class - Opatient"
 create class Cpatient {instance Opatient : {name; age} procedure proc1(param1) {return 0} };

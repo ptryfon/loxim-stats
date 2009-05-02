@@ -223,15 +223,22 @@ int InterfaceMaps::addInterface(LogicalID* interfaceLid, TManager::Transaction *
 	}
 	bool present = hasInterface(interfaceName);
 	if (present)
-	{		
+	{	
+		if ((checkValidity) && (!checkIfCanBeReplaced(*s)))
+		{
+			debug_printf(*ec, "[InterfaceMaps::addInterface] update of %s illegel: would invalidate interface hierarchy", s->getName().c_str());
+			return (ErrQExecutor | ESpoilsInterfaceHierarchy);	
+		}	
 		errcode = removeInterface(interfaceName, tr, false);
 		if (errcode) return errcode;		
 	}
-	
-	if ((checkValidity) && (!checkIfCanBeInserted(*s)))
+	else
 	{
-		debug_printf(*ec, "[InterfaceMaps::addInterface] interface %s is invalid in current hierarchy", s->getName().c_str());
-		return (ErrQExecutor | ESpoilsInterfaceHierarchy);;
+		if ((checkValidity) && (!checkIfCanBeInserted(*s)))
+		{
+			debug_printf(*ec, "[InterfaceMaps::addInterface] interface %s is invalid in current hierarchy", s->getName().c_str());
+			return (ErrQExecutor | ESpoilsInterfaceHierarchy);
+		}
 	}
 	
 	errcode = tr->addRoot(optr);
@@ -430,10 +437,10 @@ ImplementationInfo InterfaceMaps::getImplementationForObject(string name, bool &
 	return m_bindMap.getImpForInterface(iName, found, final);
 }
 
-//TODO - see below
 void InterfaceMaps::implementationUpdated(string implementationName, string objectName, int type, TManager::Transaction *tr)
 {
 	set<string> iShowing = m_bindMap.interfacesShowingImplementation(implementationName);
+	set<string> affectedInterfaces;
 	for (set<string>::iterator it = iShowing.begin(); it != iShowing.end(); ++it)
 	{   //For every interface bound to implementation (which was just updated), check if it still matches this implementation 
 		string interfaceName = (*it);
@@ -441,20 +448,33 @@ void InterfaceMaps::implementationUpdated(string implementationName, string obje
 		Schema::interfaceMatchesImplementation(interfaceName, implementationName, tr, type, matches);	
 		if (!matches)
 		{   //if not, remove bind from the map and re-validate (invalidate in this case) schemas that are using this interface
-			m_bindMap.removeBind(interfaceName);
-			OuterSchemas::Instance().revalidateAllSchemasUsingName(interfaceName, tr);
+			set<string> affectedNames = m_bindMap.getAllBoundNames(interfaceName);
+			affectedInterfaces.insert(affectedNames.begin(), affectedNames.end());		
 		}
 	}
+	
+	for(set<string>::iterator it = affectedInterfaces.begin(); it != affectedInterfaces.end(); ++it)
+	{
+		string interfaceName = *it;
+		m_bindMap.removeBind(interfaceName);
+		OuterSchemas::Instance().revalidateAllSchemasUsingName(interfaceName, tr);
+	}
+	
 	//change object name associated with implementation name in bind map to objectName (can be the same name) 
 	m_bindMap.changeObjectNameForImplementation(implementationName, objectName);
 }
 
-//TODO - A shows B, B shows C, C removed -> invalidate schemas using A too! (perhaps handle it in Schemas)
 void InterfaceMaps::implementationRemoved(string implementationName, TManager::Transaction *tr) 
 {   //all schemas using implementationName or any interfaceName bound to it should be re-validated;
-	OuterSchemas::Instance().revalidateAllSchemasUsingName(implementationName, tr);
 	set<string> iShowing = m_bindMap.interfacesShowingImplementation(implementationName);
+	set<string> affectedInterfaces;
 	for (set<string>::iterator it = iShowing.begin(); it != iShowing.end(); ++it)
+	{ 
+		string interfaceName = (*it);
+		set<string> affectedNames = m_bindMap.getAllBoundNames(interfaceName);
+		affectedInterfaces.insert(affectedNames.begin(), affectedNames.end());			
+	}
+	for (set<string>::iterator it = affectedInterfaces.begin(); it != affectedInterfaces.end(); ++it)
 	{ 
 		string interfaceName = (*it);
 		m_bindMap.removeBind(interfaceName);
@@ -511,6 +531,31 @@ bool InterfaceMaps::checkHierarchyValidity() const
 	}
 	return true;	
 }
+
+bool InterfaceMaps::checkIfCanBeReplaced(Schema newSchema) 
+{
+	TNameInHierarchy nihCpy(m_nameToInterfacesExtending);
+	TInterfaceToHierarchy ithCpy(m_nameToHierarchy);
+	BindMap bindCpy(m_bindMap);
+	TDict objNameCpy(m_objNameToName);
+	TInterfaceToSchemas nameToSchCpy(m_nameToSchema);
+
+	string interfaceName = newSchema.getName();
+	removeInterfaceFromMaps(interfaceName, false);
+	insertNewInterfaceAndPropagateHierarchy(newSchema, false, false);
+	bool valid = checkHierarchyValidity();
+	if (!valid)
+	{
+		m_nameToInterfacesExtending = nihCpy;
+		m_nameToHierarchy = ithCpy;
+		m_bindMap = bindCpy;
+		m_objNameToName = objNameCpy;
+		m_nameToSchema = nameToSchCpy;
+		return false;		
+	}
+	return true;
+} 
+			
 
 
 bool InterfaceMaps::insertNewInterfaceAndPropagateHierarchy(Schema interfaceSchema, bool checkValidity, bool tryOnly)

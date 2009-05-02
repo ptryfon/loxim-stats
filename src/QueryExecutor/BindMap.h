@@ -63,6 +63,7 @@ namespace Schemas
 			BindMap();
 			void addBind(string interface, string boundName, string boundObjectName, BindType type);
 			void removeBind(const string& interface);
+			set<string> getAllBoundNames(string interfaceName);
 			void removeEntriesForImplementation(string implementationName);
 			set<string> interfacesShowingImplementation(string implementationName);
 			void changeObjectNameForImplementation(string implementationName, string newObjectName);

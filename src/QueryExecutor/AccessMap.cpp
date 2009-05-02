@@ -305,7 +305,7 @@ namespace QExecutor
 		string query = QueryBuilder::getHandle()->query_for_user_priviliges(username);
 		QueryResult *res;
 		qe->execute_locally(query, &res);
-		debug_printf(*ec, "[AccessMap::resetForUser] executed..");	
+		debug_printf(*ec, "[AccessMap::resetForUser] executed.. resType = %d", res->type());	
 		
 		if (res->type() != QueryResult::QSTRUCT)
 		{

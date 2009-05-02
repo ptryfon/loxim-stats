@@ -133,6 +133,7 @@ namespace Schemas
 			int addBind(string objectName, TManager::Transaction *tr);
 			int removeInterfaceFromMaps(string interfaceName, bool checkValidity = true);
 			bool checkIfCanBeInserted(Schema interfaceSchema) {return insertNewInterfaceAndPropagateHierarchy(interfaceSchema, true, true);} 
+			bool checkIfCanBeReplaced(Schema newSchema);
 			bool insertNewInterfaceAndPropagateHierarchy(Schema interfaceSchema, bool checkValidity = true, bool tryOnly = false);
 			
 			void addBind(string interfaceName, string impName, string impObjName, int type);
