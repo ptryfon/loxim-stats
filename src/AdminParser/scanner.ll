@@ -9,6 +9,7 @@ ws	[ \t\n]+
 	#include <AdminParser/AdminLexer.h>
 	#include <iostream>
 	#include <stdexcept>
+	#include <cstdio>
 	using namespace std;
 %}
 
