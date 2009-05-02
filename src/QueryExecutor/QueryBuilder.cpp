@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "QueryBuilder.h"
 #include "TypeCheck/TCConstants.h"
 

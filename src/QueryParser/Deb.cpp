@@ -1,6 +1,7 @@
 #include <QueryParser/Deb.h>
 #include <Config/SBQLConfig.h>
 #include <stdarg.h>
+#include <stdio.h>
 using namespace Config;
 
 namespace QParser {

@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #include <Client/SimpleClient.h>
 #include <Protocol/Packages/Package.h>
