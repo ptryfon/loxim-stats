@@ -35,11 +35,13 @@ outputCurrPath=""
 mode="slash"
 customTestPath=""
 customParameters="";
-loximServerPid="a0"
+loximServerPid="0"
+answerPath=""
 
 #parsing parameters
 generateRunNumber() {
 	if [ -e $LOXIM_HOME/Testing/scripts/runNumber.txt ]; then
+
 		runNumber=`cat $LOXIM_HOME/Testing/scripts/runNumber.txt`
 		runNumber=$((runNumber + 1))
 	else

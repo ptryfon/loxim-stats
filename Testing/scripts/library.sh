@@ -11,6 +11,7 @@ helgrind="valgrind --tool=helgrind"
 massif="valgrind --tool=massif --max-snapshots=1000"
 drd="valgrind --tool=drd"
 
+
 declare -a loximStoreFiles
 
 #generation of outputs names for result and output (lsbql client output)
@@ -18,11 +19,13 @@ declare -a loximStoreFiles
 #	*test name
 makeOuptunName() {
 	outputCurrPath=$outputPath"/"$runNumber"_"$testType"_"$1"_"$fullData
+	echo "######## output path $outputCurrPath ###########################################" 
 	#echo makeOuptunName $outputCurrPath
 }
 
 makeResultName() {
 	resultCurrPath=$resultPath"/"$runNumber"_"$testType"_"$1"_"$fullData
+	echo "######## results path $resultCurrPath ##########################################" 
 	#echo makeResultName $resultCurrPath
 }
 
@@ -143,9 +146,9 @@ runSingleAdvancedTest() {
 	cat $1 | while read SIMPLETEST; do
 		currentTest=`echo $SIMPLETEST | cut -f1 -d" "`
 		echo "----------------- running simple test $currentTest -----------------------------"
-		echo currentTest $currentTest
+		#echo currentTest $currentTest
 		mode=`echo $SIMPLETEST | cut -f2 -d" "`
-		echo mode $mode
+		#echo mode $mode
 		$lsbql -l root -P a -m $mode -f $LOXIM_HOME"/Testing/tests/simpleTests/"$currentTest >> $outputCurrPath 
 	done
 	findLoximServerPid
@@ -187,7 +190,23 @@ postprocessOutput() {
 						pprof --inuse_objects --pdf $loximServer $resultCurrPath.0001.heap > $resultCurrPath"InUseObjects.pdf";
 						pprof --inuse_objects --text $loximServer $resultCurrPath.0001.heap > $resultCurrPath"InUseObjects.text";
 						pprof --inuse_objects --gif $loximServer $resultCurrPath.0001.heap > $resultCurrPath"InUseObjects.gif";;
+		corr) echo diff $answerPath $outputCurrPath  $resultCurrPath;  diff $answerPath $outputCurrPath > $resultCurrPath ;;
 	esac
+}
+
+#This function has one parametet test name (and it checks test type and class
+findAnswerFile() {
+	if [ $testType = "corr" ]; then
+		if [ $testClass = "advanced" ]; then
+			echo advanced
+			answerPath=$LOXIM_HOME/Testing/answers/advanced/`echo $1 | cut -f1 -d"."`".txt"
+			echo $answerPath
+		else 
+			echo simple
+			answerPath=$LOXIM_HOME/Testing/answers/simple/`echo $1 | cut -f1 -d"."`".txt"
+			echo $answerPath
+		fi
+	fi 
 }
  
 #this function is core of testing suite
@@ -199,6 +218,7 @@ makeTest() {
 			cat $LOXIM_HOME/Testing/tests/simpleTests/all.txt | while read LINE; do
 				makeOuptunName `echo $LINE | cut -f1 -d" "`
 				makeResultName `echo $LINE | cut -f1 -d" "`
+				findAnswerFile `echo $LINE | cut -f1 -d" "`
 				runSingleTest $testPath`echo $LINE | cut -f1 -d" "` `echo $LINE | cut -f2 -d" "`
 				postprocessOutput
 			done
@@ -206,6 +226,7 @@ makeTest() {
 			cat $LOXIM_HOME/Testing/tests/advancedTests/all.txt | while read LINE; do
 				makeOuptunName `echo $LINE | cut -f1 -d" "`
 				makeResultName `echo $LINE | cut -f1 -d" "`
+				findAnswerFile `echo $LINE | cut -f1 -d" "`
 				runSingleAdvancedTest $testPath`echo $LINE | cut -f1 -d" "` 
 				postprocessOutput
 			done
@@ -213,6 +234,7 @@ makeTest() {
 	else 
 		makeOuptunName $testName
 		makeResultName $testName
+		findAnswerFile $testName
 		if [ $testClass == "simple" ]; then 
 				runSingleTest $testPath $mode
 		else
