@@ -47,19 +47,21 @@ ENDIF (CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64" )
 
 IF (CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64" )
   IF (USER_COVERAGE)
-	SET(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -Wall -W -Wshadow -Wunused-variable -Wunused-parameter -Wunused-function -Wunused -Wno-system-headers -Wno-deprecated -Woverloaded-virtual -Wwrite-strings -fprofile-arcs -ftest-coverage")
+	SET(CMAKE_CXX_FLAGS_DEBUG "-fPIC -g -O0 -Wall -W -Wshadow -Wunused-variable -Wunused-parameter -Wunused-function -Wunused -Wno-system-headers -Wno-deprecated -Woverloaded-virtual -Wwrite-strings -fprofile-arcs -ftest-coverage")
+	SET(CMAKE_C_FLAGS_DEBUG "-fPIC -g -O0 -Wall -W -fprofile-arcs -ftest-coverage")
+	SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "-fPIC -fprofile-arcs -ftest-coverage")
   ELSE (USER_COVERAGE)
-	SET(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -Wall -W -Wshadow -Wunused-variable -Wunused-parameter -Wunused-function -Wunused -Wno-system-headers -Wno-deprecated -Woverloaded-virtual -Wwrite-strings")
+	SET(CMAKE_CXX_FLAGS_DEBUG "-fPIC -g -O0 -Wall -W -Wshadow -Wunused-variable -Wunused-parameter -Wunused-function -Wunused -Wno-system-headers -Wno-deprecated -Woverloaded-virtual -Wwrite-strings")
+	SET(CMAKE_C_FLAGS_DEBUG "-fPIC -g -O0 -Wall -W")
+	SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "-fPIC")
   ENDIF (USER_COVERAGE)
 ELSE (CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64" )
-  SET(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -Wall -W -Wshadow -Wunused-variable -Wunused-parameter -Wunused-function -Wunused -Wno-system-headers -Wno-deprecated -Woverloaded-virtual -Wwrite-strings -fprofile-arcs -ftest-coverage")
+  SET(CMAKE_CXX_FLAGS_DEBUG "-fPIC -g -O0 -Wall -W -Wshadow -Wunused-variable -Wunused-parameter -Wunused-function -Wunused -Wno-system-headers -Wno-deprecated -Woverloaded-virtual -Wwrite-strings -fprofile-arcs -ftest-coverage")
 ENDIF (CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64" )
 
-SET(CMAKE_C_FLAGS_DEBUG "-g -O0 -Wall -W -fprofile-arcs -ftest-coverage")
-SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "-fprofile-arcs -ftest-coverage")
 
-SET(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -fomit-frame-pointer")
-SET(CMAKE_C_FLAGS_RELEASE "-O3 -DNDEBUG -fomit-frame-pointer")
+SET(CMAKE_CXX_FLAGS_RELEASE "-fPIC -O3 -DNDEBUG -fomit-frame-pointer")
+SET(CMAKE_C_FLAGS_RELEASE "-fPIC -O3 -DNDEBUG -fomit-frame-pointer")
 
 #BUILD TYPE DEFINITION
 
