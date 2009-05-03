@@ -1,0 +1,129 @@
+Welcome to loxim client.
+
+Connected.
+Authorized.
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+void
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Bag
+  ref(2)
+Got error 7680: Unknown: EParse
+Bag
+  ref(3)
+Got error 7680: Unknown: EParse
+Bag
+  ref(5)
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Bag
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Bag
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Bag
+Got error 7680: Unknown: EParse
+Bag
+  ref(6)
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Bag
+  ref(6)
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Bag
+  ref(6)
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Bag
+  ref(6)
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Bag
+  ref(6)
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Bag
+  ref(6)
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+ref(7)
+ref(9)
+ref(11)
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Bag
+Bag
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Bag
+Bag
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Bag
+Bag
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+Got error 7680: Unknown: EParse
+void
+Server disconnected

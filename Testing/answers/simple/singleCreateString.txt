@@ -1,0 +1,9 @@
+Welcome to loxim client.
+
+Connected.
+Authorized.
+void
+Bag
+  ref(2)
+void
+Connection error

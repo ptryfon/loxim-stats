@@ -1,0 +1,172 @@
+Welcome to loxim client.
+
+Connected.
+Authorized.
+void
+Bag
+  ref(6)
+Bag
+  ref(11)
+Bag
+  ref(16)
+Bag
+  ref(21)
+Bag
+  ref(26)
+Bag
+  ref(31)
+Bag
+  ref(35)
+Bag
+  ref(39)
+Bag
+  ref(43)
+Bag
+  ref(47)
+Bag
+  ref(51)
+Bag
+  ref(56)
+Bag
+  ref(61)
+Bag
+  ref(66)
+Bag
+  ref(71)
+Bag
+  ref(76)
+Bag
+  ref(81)
+Bag
+  ref(89)
+Bag
+  ref(97)
+Bag
+  ref(105)
+Bag
+  ref(113)
+Bag
+  ref(121)
+Bag
+  ref(129)
+Bag
+  ref(137)
+Bag
+  ref(145)
+Bag
+  ref(153)
+Bag
+  ref(161)
+Bag
+  ref(169)
+Bag
+  ref(177)
+Bag
+  ref(185)
+Bag
+  ref(193)
+Bag
+  ref(201)
+Bag
+  ref(209)
+Bag
+  ref(217)
+Bag
+  ref(225)
+Bag
+  ref(233)
+Bag
+  ref(241)
+Bag
+  ref(249)
+Bag
+  ref(257)
+Bag
+  ref(265)
+Bag
+  ref(273)
+Bag
+  ref(281)
+Bag
+  ref(289)
+Bag
+  ref(297)
+Bag
+  ref(305)
+Bag
+  ref(313)
+Bag
+  ref(321)
+Bag
+  ref(329)
+Bag
+  ref(337)
+Bag
+  ref(345)
+Bag
+  ref(353)
+Bag
+  ref(361)
+Bag
+  ref(369)
+Bag
+  ref(377)
+Bag
+  ref(385)
+Bag
+  ref(393)
+void
+Server disconnected
+Welcome to loxim client.
+
+Connected.
+Authorized.
+void
+35.8333
+2500
+Bag
+  Jxxx
+  Migdalek
+  Dziecinny
+  Heart
+1760
+Bag
+  Struct
+    Jan
+    Kowalski
+  Struct
+    Anna
+    Nowak
+  Struct
+    Tomasz
+    Rom
+  Struct
+    Krzysztof
+    Kowalski
+  Struct
+    Mariola
+    Glowacka
+  Struct
+    Tomasz
+    Tomek
+Bag
+  Struct
+    angina
+    cholinex
+  Struct
+    katar
+    aerozol
+  Struct
+    zlamanie
+    gips
+  Struct
+    zawal
+    sorbonit
+  Struct
+    zapalenie
+    antybiotyk X
+6
+7
+60
+void
+Server disconnected

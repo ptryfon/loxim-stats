@@ -8,5 +8,5 @@ t1.deref(liczba);
 /
 end;
 /
-#shutdown
+quit
 /

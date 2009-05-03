@@ -1,0 +1,180 @@
+Welcome to loxim client.
+
+Connected.
+Authorized.
+void
+TESTING INTERFACE SYNTAX
+creating interface ITest without objects or fields
+ref(5)
+dereferencing it
+Struct
+  objectName=>
+    
+  method=>
+    Struct
+creating an interface with duplicate fields and methods
+ref(25)
+dereferencing it - all duplicates should have been removed
+Struct
+  objectName=>
+    OTest2
+  field=>
+    wiek
+  field=>
+    nazwisko
+  field=>
+    imie
+  method=>
+    Struct
+      Param=>
+        arg1
+  method=>
+    Struct
+  method=>
+    Struct
+      Param=>
+        arg2
+      Param=>
+        arg1
+  method=>
+    Struct
+      Param=>
+        arg1
+creating class CTest with just one method
+ref(29)
+trying to bind ITest to CTest - should fail as ITest has no objects
+Got error 20978003: Query Executor: Cannot bind interface: it has no object name defined
+TESTING FIELD VISIBILITY FOR METHODS
+creating interface Iperson and class Cperson
+ref(37)
+ref(45)
+creating three Operson objects
+Bag
+  ref(49)
+Bag
+  ref(53)
+Bag
+  ref(57)
+binding Iperson to Cperson
+bound
+calling accessible method that returns inaccessible field - should return John Black
+Struct
+  name=>
+    John
+  surname=>
+    Black
+calling inaccessible field directly - should return empty bag
+Bag
+TESTING DERIVATION
+creating interface Ipl and class Ceng
+ref(65)
+ref(73)
+creating three Oeng objects
+Bag
+  ref(77)
+Bag
+  ref(81)
+Bag
+  ref(85)
+creating class Cengsub, which derives from Ceng
+ref(89)
+creating a Oengsub object
+Bag
+  ref(94)
+binding Ipl to Ceng
+bound
+dereferencing OIpl - first, all objects, then - only with name Sarah. Should show Oengsub object (Sarah Schwarz) as well
+Bag
+  Struct
+    name=>
+      John
+    surname=>
+      Black
+  Struct
+    name=>
+      Mary
+    surname=>
+      White
+  Struct
+    name=>
+      Sarah
+    surname=>
+      Connor
+  Struct
+    name=>
+      Sarah
+    surname=>
+      Schwarz
+Bag
+  Struct
+    name=>
+      Sarah
+    surname=>
+      Connor
+  Struct
+    name=>
+      Sarah
+    surname=>
+      Schwarz
+TESTING DELETE AND CREATE THROUGH INTERFACE
+deleting all OIpl objects - should result in deleting all Oeng and Oengsub objects
+void
+dereferencing Oeng objects - should be empty now, as all such objects were deleted through interface
+Bag
+creating object OIpl
+Bag
+  ref(97)
+dereferencing Oeng objects - should show one object, as it was created by statement above
+Struct
+  name=>
+    New
+  surname=>
+    Entry
+TESTING BINDING INTERFACE TO ANOTHER INTERFACE OR VIEW
+creating class Cpatient and some objects of this class - Opatient
+ref(105)
+Bag
+  ref(108)
+Bag
+  ref(111)
+creating interface Ipatient with object name OIpatient and binding it to Cpatient
+ref(120)
+bound
+creating interface Ipatient2 and binding it to interface Ipatient
+ref(124)
+bound
+querying through Ipatient2 (for objects OIpatient2)
+Bag
+  ref(108)
+  ref(111)
+creating view OldPatientsDef with virtual objects OldPatients
+ref(130)
+creating interface IoldPatient and binding it to objects OldPatients
+ref(134)
+bound
+TESTING SCHEMA CREATION AND EXPORT
+creating Schemas Patients1 and Patients2. First one contains a view - that should be recognized as error
+Got error 20978006: Query Executor: Invalid schema definition
+ref(144)
+exporting schema Patients2
+exported
+TESTING GIVING SCHEMA TO USER
+creating user scott with password tiger and giving him permissions to Patients2
+1
+1
+Struct
+  login=>
+    scott
+  password=>
+    tiger
+  xprivilige=>
+    Struct
+      priv_name=>
+        Read
+      object_name=>
+        Patients2
+      grant_option=>
+        0
+ACCESS THROUGH SCHEMA CAN BE TESTED IN NEW SESSION WITH LOGIN=scott AND passwd=tiger NOW
+void
+Server disconnected

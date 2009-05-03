@@ -1,0 +1,871 @@
+Welcome to loxim client.
+
+Connected.
+Authorized.
+void
+Bag
+  ref(3)
+Bag
+  ref(5)
+Bag
+  ref(7)
+Bag
+  ref(9)
+Bag
+  ref(11)
+Bag
+  ref(13)
+Bag
+  ref(15)
+Bag
+  ref(17)
+Bag
+  ref(19)
+Bag
+  ref(21)
+Bag
+  ref(23)
+Bag
+  ref(25)
+Bag
+  ref(27)
+Bag
+  ref(29)
+Bag
+  ref(31)
+Bag
+  ref(33)
+Bag
+  ref(35)
+Bag
+  ref(37)
+Bag
+  ref(39)
+Bag
+  ref(41)
+Bag
+  ref(43)
+Bag
+  ref(45)
+Bag
+  ref(47)
+Bag
+  ref(49)
+Bag
+  ref(51)
+Bag
+  ref(53)
+Bag
+  ref(55)
+Bag
+  ref(57)
+Bag
+  ref(59)
+Bag
+  ref(61)
+Bag
+  ref(63)
+Bag
+  ref(65)
+Bag
+  ref(67)
+Bag
+  ref(69)
+Bag
+  ref(71)
+Bag
+  ref(73)
+Bag
+  ref(75)
+Bag
+  ref(77)
+Bag
+  ref(79)
+Bag
+  ref(81)
+Bag
+  ref(83)
+Bag
+  ref(85)
+Bag
+  ref(87)
+Bag
+  ref(89)
+Bag
+  ref(91)
+Bag
+  ref(93)
+Bag
+  ref(95)
+Bag
+  ref(97)
+Bag
+  ref(99)
+Bag
+  ref(101)
+Bag
+  ref(103)
+Bag
+  ref(105)
+Bag
+  ref(107)
+Bag
+  ref(109)
+Bag
+  ref(111)
+Bag
+  ref(113)
+Bag
+  ref(115)
+Bag
+  ref(117)
+Bag
+  ref(119)
+Bag
+  ref(121)
+Bag
+  ref(123)
+Bag
+  ref(125)
+Bag
+  ref(127)
+Bag
+  ref(129)
+Bag
+  ref(131)
+Bag
+  ref(133)
+Bag
+  ref(135)
+Bag
+  ref(137)
+Bag
+  ref(139)
+Bag
+  ref(141)
+Bag
+  ref(143)
+Bag
+  ref(145)
+Bag
+  ref(147)
+Bag
+  ref(149)
+Bag
+  ref(151)
+Bag
+  ref(153)
+Bag
+  ref(155)
+Bag
+  ref(157)
+Bag
+  ref(159)
+Bag
+  ref(161)
+Bag
+  ref(163)
+Bag
+  ref(165)
+Bag
+  ref(167)
+Bag
+  ref(169)
+Bag
+  ref(171)
+Bag
+  ref(173)
+Bag
+  ref(175)
+Bag
+  ref(177)
+Bag
+  ref(179)
+Bag
+  ref(181)
+Bag
+  ref(183)
+Bag
+  ref(185)
+Bag
+  ref(187)
+Bag
+  ref(189)
+Bag
+  ref(191)
+Bag
+  ref(193)
+Bag
+  ref(195)
+Bag
+  ref(197)
+Bag
+  ref(199)
+Bag
+  ref(201)
+Bag
+  ref(203)
+Bag
+  ref(205)
+Bag
+  ref(207)
+Bag
+  ref(209)
+Bag
+  ref(211)
+Bag
+  ref(213)
+Bag
+  ref(215)
+Bag
+  ref(217)
+Bag
+  ref(219)
+Bag
+  ref(221)
+Bag
+  ref(223)
+Bag
+  ref(225)
+Bag
+  ref(227)
+Bag
+  ref(229)
+Bag
+  ref(231)
+Bag
+  ref(233)
+Bag
+  ref(235)
+Bag
+  ref(237)
+Bag
+  ref(239)
+Bag
+  ref(241)
+Bag
+  ref(243)
+Bag
+  ref(245)
+Bag
+  ref(247)
+Bag
+  ref(249)
+Bag
+  ref(251)
+Bag
+  ref(253)
+Bag
+  ref(255)
+Bag
+  ref(257)
+Bag
+  ref(259)
+Bag
+  ref(261)
+Bag
+  ref(263)
+Bag
+  ref(265)
+Bag
+  ref(267)
+Bag
+  ref(269)
+Bag
+  ref(271)
+Bag
+  ref(273)
+Bag
+  ref(275)
+Bag
+  ref(277)
+Bag
+  ref(279)
+Bag
+  ref(281)
+Bag
+  ref(283)
+Bag
+  ref(285)
+Bag
+  ref(287)
+Bag
+  ref(289)
+Bag
+  ref(291)
+Bag
+  ref(293)
+Bag
+  ref(295)
+Bag
+  ref(297)
+Bag
+  ref(299)
+Bag
+  ref(301)
+Bag
+  ref(303)
+Bag
+  ref(305)
+Bag
+  ref(307)
+Bag
+  ref(309)
+Bag
+  ref(311)
+Bag
+  ref(313)
+Bag
+  ref(315)
+Bag
+  ref(317)
+Bag
+  ref(319)
+Bag
+  ref(321)
+Bag
+  ref(323)
+Bag
+  ref(325)
+Bag
+  ref(327)
+Bag
+  ref(329)
+Bag
+  ref(331)
+Bag
+  ref(333)
+Bag
+  ref(335)
+Bag
+  ref(337)
+Bag
+  ref(339)
+Bag
+  ref(341)
+Bag
+  ref(343)
+Bag
+  ref(345)
+Bag
+  ref(347)
+Bag
+  ref(349)
+Bag
+  ref(351)
+Bag
+  ref(353)
+Bag
+  ref(355)
+Bag
+  ref(357)
+Bag
+  ref(359)
+Bag
+  ref(361)
+Bag
+  ref(363)
+Bag
+  ref(365)
+Bag
+  ref(367)
+Bag
+  ref(369)
+Bag
+  ref(371)
+Bag
+  ref(373)
+Bag
+  ref(375)
+Bag
+  ref(377)
+Bag
+  ref(379)
+Bag
+  ref(381)
+Bag
+  ref(383)
+Bag
+  ref(385)
+Bag
+  ref(387)
+Bag
+  ref(389)
+Bag
+  ref(391)
+Bag
+  ref(393)
+Bag
+  ref(395)
+Bag
+  ref(397)
+Bag
+  ref(399)
+Bag
+  ref(401)
+Bag
+  ref(403)
+Bag
+  ref(405)
+Bag
+  ref(407)
+Bag
+  ref(409)
+Bag
+  ref(411)
+Bag
+  ref(413)
+Bag
+  ref(415)
+Bag
+  ref(417)
+Bag
+  ref(419)
+Bag
+  ref(421)
+Bag
+  ref(423)
+Bag
+  ref(425)
+Bag
+  ref(427)
+Bag
+  ref(429)
+Bag
+  ref(431)
+Bag
+  ref(433)
+Bag
+  ref(435)
+Bag
+  ref(437)
+Bag
+  ref(439)
+Bag
+  ref(441)
+Bag
+  ref(443)
+Bag
+  ref(445)
+Bag
+  ref(447)
+Bag
+  ref(449)
+Bag
+  ref(451)
+Bag
+  ref(453)
+Bag
+  ref(455)
+Bag
+  ref(457)
+Bag
+  ref(459)
+Bag
+  ref(461)
+Bag
+  ref(463)
+Bag
+  ref(465)
+Bag
+  ref(467)
+Bag
+  ref(469)
+Bag
+  ref(471)
+Bag
+  ref(473)
+Bag
+  ref(475)
+Bag
+  ref(477)
+Bag
+  ref(479)
+Bag
+  ref(481)
+Bag
+  ref(483)
+Bag
+  ref(485)
+Bag
+  ref(487)
+Bag
+  ref(489)
+Bag
+  ref(491)
+Bag
+  ref(493)
+Bag
+  ref(495)
+Bag
+  ref(497)
+Bag
+  ref(499)
+Bag
+  ref(501)
+Bag
+  ref(503)
+Bag
+  ref(505)
+Bag
+  ref(507)
+Bag
+  ref(509)
+Bag
+  ref(511)
+Bag
+  ref(513)
+Bag
+  ref(515)
+Bag
+  ref(517)
+Bag
+  ref(519)
+Bag
+  ref(521)
+Bag
+  ref(523)
+Bag
+  ref(525)
+Bag
+  ref(527)
+Bag
+  ref(529)
+Bag
+  ref(531)
+Bag
+  ref(533)
+Bag
+  ref(535)
+Bag
+  ref(537)
+Bag
+  ref(539)
+Bag
+  ref(541)
+Bag
+  ref(543)
+Bag
+  ref(545)
+Bag
+  ref(547)
+Bag
+  ref(549)
+Bag
+  ref(551)
+Bag
+  ref(553)
+Bag
+  ref(555)
+Bag
+  ref(557)
+Bag
+  ref(559)
+Bag
+  ref(561)
+Bag
+  ref(563)
+Bag
+  ref(565)
+Bag
+  ref(567)
+Bag
+  ref(569)
+Bag
+  ref(571)
+Bag
+  ref(573)
+Bag
+  ref(575)
+Bag
+  ref(577)
+Bag
+  ref(579)
+Bag
+  ref(581)
+Bag
+  ref(583)
+Bag
+  ref(585)
+Bag
+  ref(587)
+Bag
+  ref(589)
+Bag
+  ref(591)
+Bag
+  ref(593)
+Bag
+  ref(595)
+Bag
+  ref(597)
+Bag
+  ref(599)
+Bag
+  ref(601)
+Bag
+  ref(603)
+Bag
+  ref(605)
+Bag
+  ref(607)
+Bag
+  ref(609)
+Bag
+  ref(611)
+Bag
+  ref(613)
+Bag
+  ref(615)
+Bag
+  ref(617)
+Bag
+  ref(619)
+Bag
+  ref(621)
+Bag
+  ref(623)
+Bag
+  ref(625)
+Bag
+  ref(627)
+Bag
+  ref(629)
+Bag
+  ref(631)
+Bag
+  ref(633)
+Bag
+  ref(635)
+Bag
+  ref(637)
+Bag
+  ref(639)
+Bag
+  ref(641)
+Bag
+  ref(643)
+Bag
+  ref(645)
+Bag
+  ref(647)
+Bag
+  ref(649)
+Bag
+  ref(651)
+Bag
+  ref(653)
+Bag
+  ref(655)
+Bag
+  ref(657)
+Bag
+  ref(659)
+Bag
+  ref(661)
+Bag
+  ref(663)
+Bag
+  ref(665)
+Bag
+  ref(667)
+Bag
+  ref(669)
+Bag
+  ref(671)
+Bag
+  ref(673)
+Bag
+  ref(675)
+Bag
+  ref(677)
+Bag
+  ref(679)
+Bag
+  ref(681)
+Bag
+  ref(683)
+Bag
+  ref(685)
+Bag
+  ref(687)
+Bag
+  ref(689)
+Bag
+  ref(691)
+Bag
+  ref(693)
+Bag
+  ref(695)
+Bag
+  ref(697)
+Bag
+  ref(699)
+Bag
+  ref(701)
+Bag
+  ref(703)
+Bag
+  ref(705)
+Bag
+  ref(707)
+Bag
+  ref(709)
+Bag
+  ref(711)
+Bag
+  ref(713)
+Bag
+  ref(715)
+Bag
+  ref(717)
+Bag
+  ref(719)
+Bag
+  ref(721)
+Bag
+  ref(723)
+Bag
+  ref(725)
+Bag
+  ref(727)
+Bag
+  ref(729)
+Bag
+  ref(731)
+Bag
+  ref(733)
+Bag
+  ref(735)
+Bag
+  ref(737)
+Bag
+  ref(739)
+Bag
+  ref(741)
+Bag
+  ref(743)
+Bag
+  ref(745)
+Bag
+  ref(747)
+Bag
+  ref(749)
+Bag
+  ref(751)
+Bag
+  ref(753)
+Bag
+  ref(755)
+Bag
+  ref(757)
+Bag
+  ref(759)
+Bag
+  ref(761)
+Bag
+  ref(763)
+Bag
+  ref(765)
+Bag
+  ref(767)
+Bag
+  ref(769)
+Bag
+  ref(771)
+Bag
+  ref(773)
+Bag
+  ref(775)
+Bag
+  ref(777)
+Bag
+  ref(779)
+Bag
+  ref(781)
+Bag
+  ref(783)
+Bag
+  ref(785)
+Bag
+  ref(787)
+Bag
+  ref(789)
+Bag
+  ref(791)
+Bag
+  ref(793)
+Bag
+  ref(795)
+Bag
+  ref(797)
+Bag
+  ref(799)
+Bag
+  ref(801)
+Bag
+  ref(803)
+Bag
+  ref(805)
+Bag
+  ref(807)
+Bag
+  ref(809)
+Bag
+  ref(811)
+Bag
+  ref(813)
+Bag
+  ref(815)
+Bag
+  ref(817)
+Bag
+  ref(819)
+Bag
+  ref(821)
+Bag
+  ref(823)
+Bag
+  ref(825)
+Bag
+  ref(827)
+Bag
+  ref(829)
+Bag
+  ref(831)
+Bag
+  ref(833)
+Bag
+  ref(835)
+Bag
+  ref(837)
+Bag
+  ref(839)
+Bag
+  ref(841)
+Bag
+  ref(843)
+Bag
+  ref(845)
+Bag
+  ref(847)
+Bag
+  ref(849)
+Bag
+  ref(851)
+Bag
+  ref(853)
+Bag
+  ref(855)
+Bag
+  ref(857)
+Bag
+  ref(859)
+Bag
+  ref(861)
+Bag
+  ref(863)
+Bag
+  ref(865)
+void
+Server disconnected

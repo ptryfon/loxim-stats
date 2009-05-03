@@ -1,0 +1,46 @@
+Welcome to loxim client.
+
+Connected.
+Authorized.
+void
+Bag
+  ref(4)
+Bag
+  ref(7)
+Bag
+  ref(10)
+Bag
+  ref(15)
+Bag
+  ref(20)
+Bag
+  ref(25)
+Bag
+  ref(30)
+Bag
+  ref(35)
+Bag
+  ref(40)
+Bag
+  ref(45)
+Bag
+  ref(50)
+Bag
+  ref(57)
+Bag
+  ref(64)
+Bag
+  ref(71)
+Bag
+  ref(78)
+Bag
+  ref(85)
+Bag
+  ref(92)
+Bag
+  ref(99)
+void
+void
+void
+void
+Server disconnected

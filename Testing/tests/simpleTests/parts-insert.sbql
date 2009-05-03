@@ -1,0 +1,125 @@
+begin
+/
+
+create  (
+	"A" as name,
+	"detail" as kind,
+	50 as detailCost,
+	10 as detailMass
+) as Part
+/
+
+create  (
+	"B" as name,
+	"detail" as kind,
+	10 as detailCost,
+	1 as detailMass
+) as Part
+/
+
+create  (
+	"C" as name,
+	"detail" as kind,
+	20 as detailCost,
+	2 as detailMass
+) as Part 
+/
+
+create  (
+	"D" as name,
+	"detail" as kind,
+	10 as detailCost,
+	15 as detailMass
+) as Part 
+/
+
+create  (
+	"E" as name,
+	"detail" as kind,
+	5 as detailCost,
+	10 as detailMass
+) as Part 
+/
+
+create  (
+	"F" as name,
+	"detail" as kind,
+	5 as detailCost,
+	10 as detailMass
+) as Part 
+/
+
+create  (
+	"assembly1" as name,
+	"aggregate" as kind,
+	150 as assemblyCost,
+	1 as assemblyMass,
+	(ref (Part where name="A" as leadsTo), 5 as amount) as Component
+) as Part 
+/
+
+create  (
+	"assembly2" as name,
+	"aggregate" as kind,
+	15 as assemblyCost,
+	22 as assemblyMass,
+	(ref (Part where name="B" as leadsTo), 2 as amount) as Component,
+	(ref (Part where name="C" as leadsTo), 7 as amount) as Component	
+) as Part 
+/
+
+create  (
+	"assembly3" as name,
+	"aggregate" as kind,
+	15 as assemblyCost,
+	14 as assemblyMass,
+	(ref (Part where name="D" as leadsTo), 5 as amount) as Component,
+	(ref (Part where name="E" as leadsTo), 3 as amount) as Component	
+) as Part 
+/
+
+create  (
+	"assembly4" as name,
+	"aggregate" as kind,
+	11 as assemblyCost,
+	12 as assemblyMass,
+	(ref (Part where name="F" as leadsTo), 8 as amount) as Component,
+	(ref (Part where name="C" as leadsTo), 1 as amount) as Component	
+) as Part 
+/
+
+create  (
+	"top1" as name,
+	"aggregate" as kind,
+	11 as assemblyCost,
+	12 as assemblyMass,
+	(ref (Part where name="assembly1" as leadsTo), 8 as amount) as Component,
+	(ref (Part where name="assembly4" as leadsTo), 1 as amount) as Component	
+) as Part 
+/
+
+create  (
+	"top2" as name,
+	"aggregate" as kind,
+	11 as assemblyCost,
+	12 as assemblyMass,
+	(ref (Part where name="assembly2" as leadsTo), 8 as amount) as Component,
+	(ref (Part where name="assembly3" as leadsTo), 1 as amount) as Component	
+) as Part 
+/
+
+create  (
+	"whole" as name,
+	"aggregate" as kind,
+	11 as assemblyCost,
+	12 as assemblyMass,
+	(ref (Part where name="top1" as leadsTo), 8 as amount) as Component,
+	(ref (Part where name="top2" as leadsTo), 1 as amount) as Component,
+	(ref (Part where name="A" as leadsTo), 1 as amount) as Component		
+) as Part 
+/
+
+end
+/
+quit
+/

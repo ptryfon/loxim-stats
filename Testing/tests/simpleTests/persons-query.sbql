@@ -1,0 +1,22 @@
+begin;
+/
+
+deref((person where name = "Kazimierz") leaves by child.person).name;
+/
+
+deref((person where name = "Kazimierz") close by child.person).name;
+/
+
+deref((max(person.age) as maxAge).(person where age = maxAge).((name join surname join (age as wiek)) as daneNajstarszejOsoby));
+/
+
+(distinct(deref(person.surname)) as _name).((_name as rodzina) join (sum((person where surname = _name).salary) as zarobek));
+/
+
+(distinct(deref(person.surname)) as nazwisko group as nazwiska);
+/
+
+end;
+/
+quit
+/

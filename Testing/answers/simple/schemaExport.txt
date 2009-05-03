@@ -1,0 +1,22 @@
+Welcome to loxim client.
+
+Connected.
+Authorized.
+void
+creating class Cpatient and some objects of this class - Opatient
+ref(9)
+Bag
+  ref(12)
+Bag
+  ref(15)
+creating view OldPatientsDef with virtual objects OldPatients
+ref(21)
+creating schema Patients with full interface definitions
+ref(39)
+binding created interfaces with implementations
+bound
+bound
+exporting schema Patients
+exported
+void
+Server disconnected

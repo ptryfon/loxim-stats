@@ -1,0 +1,9 @@
+Welcome to loxim client.
+
+Connected.
+Authorized.
+void
+Bag
+  ref(3)
+void
+Server disconnected

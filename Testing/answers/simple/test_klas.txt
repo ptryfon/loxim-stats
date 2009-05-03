@@ -1,0 +1,124 @@
+Welcome to loxim client.
+
+Connected.
+Authorized.
+void
+ref(5)
+ref(9)
+ref(24)
+Bag
+  ref(25)
+Bag
+  ref(26)
+ref(34)
+ref(46)
+ref(54)
+ref(62)
+ref(79)
+Bag
+  ref(84)
+Bag
+  ref(89)
+Bag
+  ref(94)
+Bag
+  ref(101)
+Bag
+  ref(108)
+Bag
+  ref(114)
+Bag
+  ref(120)
+Bag
+  ref(126)
+Bag
+  ref(132)
+Bag
+  ref(138)
+9
+4
+7
+Bag
+  1
+Bag
+  0
+Bag
+  -1
+Bag
+ref(5)
+Bag
+  100000
+  40000
+Bag
+Bag
+  ref(101)
+  ref(108)
+Bag
+  Struct
+    producent=>
+      Dobra Firma
+    nazwa=>
+      AT 1
+    cena=>
+      1000
+    poborMocy=>
+      130
+    mocMuzyczna=>
+      50
+    naIleStacji=>
+      99
+    wypozyczony=>
+      0
+  Struct
+    producent=>
+      Firma
+    nazwa=>
+      super AT 1000
+    cena=>
+      400
+    poborMocy=>
+      100
+    mocMuzyczna=>
+      40
+    naIleStacji=>
+      9
+    wypozyczony=>
+      0
+Bag
+  1
+Bag
+  0
+Bag
+  Struct
+    producent=>
+      Dobra Firma
+    nazwa=>
+      AT 1
+    cena=>
+      1000
+    poborMocy=>
+      130
+    mocMuzyczna=>
+      50
+    naIleStacji=>
+      99
+  Struct
+    producent=>
+      Firma
+    nazwa=>
+      super AT 1000
+    cena=>
+      400
+    poborMocy=>
+      100
+    mocMuzyczna=>
+      40
+    naIleStacji=>
+      9
+Bag
+void
+0
+4
+7
+void
+ > Server disconnected

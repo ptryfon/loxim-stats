@@ -1,0 +1,321 @@
+Welcome to loxim client.
+
+Connected.
+Authorized.
+void
+Bag
+  ref(6)
+Bag
+  ref(11)
+Bag
+  ref(16)
+Bag
+  ref(21)
+Bag
+  ref(26)
+Bag
+  ref(31)
+Bag
+  ref(36)
+Bag
+  ref(41)
+Bag
+  ref(46)
+Bag
+  ref(51)
+Bag
+  ref(68)
+Bag
+  ref(82)
+Bag
+  ref(96)
+Bag
+  ref(104)
+Bag
+  ref(121)
+void
+Server disconnected
+Welcome to loxim client.
+
+Connected.
+Authorized.
+void
+Bag
+  ref(121)
+  ref(82)
+  ref(96)
+  ref(31)
+  ref(104)
+  ref(41)
+  ref(68)
+  ref(26)
+  ref(46)
+  ref(36)
+  ref(26)
+  ref(51)
+  ref(11)
+  ref(16)
+  ref(6)
+  ref(21)
+Bag
+  Samolot
+  Skrzydlo
+  Ogon
+  Dziob
+  Poklad
+  skrzydlo_wlasciwe
+  Silnik
+  Lotka
+  ogon_wlasciwy
+  Stabilizator
+  Lotka
+  korpus_wlasciwy
+  Sruba
+  Lopatka
+  Wirnik
+  Obudowa
+Bag
+  Struct
+    ref(121)
+    howMany=>
+      1
+  Struct
+    ref(82)
+    howMany=>
+      2
+  Struct
+    ref(96)
+    howMany=>
+      1
+  Struct
+    ref(31)
+    howMany=>
+      1
+  Struct
+    ref(104)
+    howMany=>
+      1
+  Struct
+    ref(41)
+    howMany=>
+      2
+  Struct
+    ref(68)
+    howMany=>
+      4
+  Struct
+    ref(26)
+    howMany=>
+      8
+  Struct
+    ref(46)
+    howMany=>
+      1
+  Struct
+    ref(36)
+    howMany=>
+      1
+  Struct
+    ref(26)
+    howMany=>
+      3
+  Struct
+    ref(51)
+    howMany=>
+      1
+  Struct
+    ref(11)
+    howMany=>
+      1804
+  Struct
+    ref(16)
+    howMany=>
+      292
+  Struct
+    ref(6)
+    howMany=>
+      12
+  Struct
+    ref(21)
+    howMany=>
+      4
+Bag
+  Struct
+    Samolot
+    1
+  Struct
+    Skrzydlo
+    2
+  Struct
+    Ogon
+    1
+  Struct
+    Dziob
+    1
+  Struct
+    Poklad
+    1
+  Struct
+    skrzydlo_wlasciwe
+    2
+  Struct
+    Silnik
+    4
+  Struct
+    Lotka
+    8
+  Struct
+    ogon_wlasciwy
+    1
+  Struct
+    Stabilizator
+    1
+  Struct
+    Lotka
+    3
+  Struct
+    korpus_wlasciwy
+    1
+  Struct
+    Sruba
+    1804
+  Struct
+    Lopatka
+    292
+  Struct
+    Wirnik
+    12
+  Struct
+    Obudowa
+    4
+Bag
+  Struct
+    ref(6)
+    12
+  Struct
+    ref(11)
+    1804
+  Struct
+    ref(16)
+    292
+  Struct
+    ref(21)
+    4
+  Struct
+    ref(26)
+    11
+  Struct
+    ref(31)
+    1
+  Struct
+    ref(36)
+    1
+  Struct
+    ref(41)
+    2
+  Struct
+    ref(46)
+    1
+  Struct
+    ref(51)
+    1
+  Struct
+    ref(68)
+    4
+  Struct
+    ref(82)
+    2
+  Struct
+    ref(96)
+    1
+  Struct
+    ref(104)
+    1
+  Struct
+    ref(121)
+    1
+Bag
+  Struct
+    Wirnik
+    12
+  Struct
+    Sruba
+    1804
+  Struct
+    Lopatka
+    292
+  Struct
+    Obudowa
+    4
+  Struct
+    Lotka
+    11
+  Struct
+    Dziob
+    1
+  Struct
+    Stabilizator
+    1
+  Struct
+    skrzydlo_wlasciwe
+    2
+  Struct
+    ogon_wlasciwy
+    1
+  Struct
+    korpus_wlasciwy
+    1
+  Struct
+    Silnik
+    4
+  Struct
+    Skrzydlo
+    2
+  Struct
+    Ogon
+    1
+  Struct
+    Poklad
+    1
+  Struct
+    Samolot
+    1
+Bag
+  Struct
+    ref(6)
+    12
+  Struct
+    ref(11)
+    1804
+  Struct
+    ref(16)
+    292
+  Struct
+    ref(21)
+    4
+  Struct
+    ref(26)
+    11
+  Struct
+    ref(31)
+    1
+  Struct
+    ref(36)
+    1
+  Struct
+    ref(41)
+    2
+  Struct
+    ref(46)
+    1
+  Struct
+    ref(51)
+    1
+Bag
+  Struct
+    engineCost=>
+      1929887446
+    engineMass=>
+      100031673
+void
+Server disconnected

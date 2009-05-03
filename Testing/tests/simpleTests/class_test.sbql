@@ -1,0 +1,263 @@
+begin
+/
+
+create class Product {
+    instance product : {name; price}
+}
+/
+
+create class AudioCD extends Product {
+    instance AudioCD : {singer}
+}
+/
+
+create class ElectronicProduct extends Product {
+    instance electronicProduct : { energyConsumption }
+    static {NOTEQUAL; EQUAL}
+ 
+    static procedure compare(v1, v2) {
+        if v1 > v2 then
+            return deref(ElectronicProduct::NOTEQUAL)
+        else if v1 = v2 then
+                return deref(ElectronicProduct::EQUAL)
+             fi
+        fi;
+        return (-ElectronicProduct::NOTEQUAL)
+    }
+ 
+    procedure compare( prodElt ) {
+        return ElectronicProduct::compare(prodElt.energyConsumption, energyConsumption)
+    }
+}
+/
+
+create 1 as ElectronicProduct::NOTEQUAL
+/
+ 
+create 0 as ElectronicProduct::EQUAL
+/
+
+create class CDPlayer extends ElectronicProduct {
+    instance cdPlayer : {forHowManyCDs}
+ 
+    procedure compare(cd) {
+        return super::compare(cd) + ElectronicProduct::compare(forHowManyCDs, cd.forHowManyCDs)
+    }
+}
+/
+
+create class Tuner extends ElectronicProduct {
+    instance tuner : {forHowManyStations}
+ 
+    procedure compareTunerOnly(t) {
+        return ElectronicProduct::compare(forHowManyStations, t.forHowManyStations)
+    }
+ 
+    procedure compare( t ) {
+        return compareTunerOnly( t ) + super::compare(t)
+    }
+}
+/
+
+create class Amplifier extends ElectronicProduct {
+    instance amplifier : {power}
+ 
+    procedure compare( amp ) {
+        return super::compare(amp) + ElectronicProduct::compare(power, amp.power)
+    }
+}
+/
+
+create or update class Amplituner extends Amplifier, Tuner {
+    instance amplituner : {}
+ 
+    procedure compare( at ) {
+        if at instanceof Amplituner then
+            return Amplifier::compare(at) + Tuner::compareTunerOnly(at)
+        fi;
+    return - at.porownaj(at)
+    }
+}
+/
+
+create or update class ForBorrowing {
+    instance : {borrowed}
+ 
+    procedure canBeBorrowed() {
+        if(wypozyczony = 0) then return self fi
+    }
+ 
+    procedure constructor() {
+        self :< 0 as borrowed;
+        return self
+    }
+ 
+    procedure destructor() {
+        delete self.borrowed;
+        return ForBorrowing excludes self
+    }
+ 
+    procedure borrow() {
+        if borrowed = 0 then
+            borrowed := 1;
+            return 1
+        else
+            return 0
+        fi
+    }
+ 
+    procedure bringBack() {
+        borrowed := 0
+    }
+}
+/
+
+AudioCD includes create (
+    "Ipecac" as producer,
+    "thank you for giving me your valuable time" as name,
+    "Kaada" as singer,
+     40 as price
+) as audioCD
+/
+ 
+AudioCD includes create (
+    "Nonesuch" as producer,
+    "Blues Dream" as name,
+    "Bill Frisell" as singer,
+    45 as price
+) as audioCD
+/
+ 
+AudioCD includes create (
+    "epic" as producer,
+    "time's up" as name,
+    "Living Color" as singer,
+    50 as price
+) as compactDisk
+/
+ 
+Amplituner includes create (
+    "Good Company" as producer,
+    "AT 1" as name,
+    1000 as price,
+    130 as energyConsumption,
+    50 as power,
+    99 as forHowManyStations
+) as amplituner
+/
+ 
+Amplituner includes create (
+    "Company" as producer,
+    "super AT 1000" as name,
+    400 as price,
+    100 as energyConsumption,
+    40 as power,
+    9 as forHowManyStations
+) as amplituner
+/
+ 
+Tuner includes create (
+    "Company" as producer,
+    "super T 1000" as name,
+    150 as price,
+    10 as energyConsumption,
+    9 as forHowManyStations
+) as tuner
+/
+ 
+Tuner includes create (
+    "Good Company" as producer,
+    "T 3" as name,
+    300 as price,
+    10 as energyConsumption,
+    999 as forHowManyStations
+) as tuner
+/
+ 
+Amplifier includes create (
+    "Good Company" as producer,
+    "A 1" as name,
+    1000 as price,
+    150 as energyConsumption,
+    60 as power
+) as amplifier
+/
+ 
+Amplifier includes create (
+    "Company" as producer,
+    "super A 1000" as name,
+    350 as price,
+    180 as energyConsumption,
+    60 as power
+) as amplifier
+/
+ 
+CDPlayer includes create (
+    "Good Company" as producer,
+    "CD 1" as name,
+    1000 as price,
+    150 as energyConsumption,
+    1 as forHowManyCDs
+) as cdPlayer
+/
+
+count(product)
+/
+ 
+count(tuner)
+/
+ 
+count(electronicProduct)
+/
+
+(amplituner where name = "AT 1").compare(amplituner where name="super AT 1000")
+/
+-- This should return 0 but generates an error !!!!!!!
+-- (amplituner where name = "AT 1").compare(amplifier where name="A 1")
+-- /
+-- Result: { 0 }
+ 
+(amplifier where name = "A 1").compare(amplituner where name= "AT 1")
+/
+ 
+(amplifier where name= "super A 1000").compare(amplifier where name="A 1")
+/
+
+amplituner.priceInCents()
+/
+
+update class Product {
+    instance product : {producer; name; price}
+ 
+    procedure priceInCents() {
+        return 100 * price
+    }
+}
+/
+ 
+amplituner.priceInCents()
+/
+
+deref(cast(product as (ForBorrowing)))
+/
+
+(ForBorrowing includes amplituner).constructor()
+/
+
+deref(cast(product as (ForBorrowing)))
+/
+
+(amplituner where producer = "Company").borrow()
+/
+
+deref(cast(product as (ForBorrowing)).ForBorrowing::destructor())
+/
+ 
+deref(cast(product as (ForBorrowing)))
+/
+
+end
+/
+
+quit
+/

@@ -1,0 +1,170 @@
+Welcome to loxim client.
+
+Connected.
+Authorized.
+void
+Bag
+  ref(4)
+Bag
+  ref(7)
+Bag
+  ref(10)
+Bag
+  ref(15)
+Bag
+  ref(20)
+Bag
+  ref(25)
+Bag
+  ref(30)
+Bag
+  ref(35)
+Bag
+  ref(40)
+Bag
+  ref(45)
+Bag
+  ref(50)
+Bag
+  ref(57)
+Bag
+  ref(64)
+Bag
+  ref(71)
+Bag
+  ref(78)
+Bag
+  ref(85)
+Bag
+  ref(92)
+Bag
+  ref(99)
+void
+void
+void
+void
+Server disconnected
+Welcome to loxim client.
+
+Connected.
+Authorized.
+void
+Bag
+  5
+Bag
+  1
+  32.5
+  17.2346
+  10.474
+  8.29219
+  8.00515
+  8
+  8
+  8
+Struct
+  x=>
+    Bag
+      ref(99)
+  y=>
+    Bag
+      ref(15)
+      ref(20)
+      ref(25)
+      ref(30)
+      ref(35)
+      ref(40)
+      ref(45)
+      ref(50)
+      ref(57)
+      ref(64)
+      ref(71)
+      ref(78)
+      ref(85)
+      ref(92)
+      ref(99)
+Bag
+  Struct
+    dzial=>
+      ref(4)
+    1400
+  Struct
+    dzial=>
+      ref(7)
+    1700
+  Struct
+    dzial=>
+      ref(10)
+    1700
+Bag
+  1000
+  3000
+  1500
+  1000
+  1000
+  2000
+  1500
+  1000
+  1500
+  1000
+  2000
+  2000
+  1000
+  1500
+  3000
+Bag
+Bag
+  1300
+  3900
+  1950
+  1300
+  1300
+  2600
+  1950
+  1300
+  1950
+  1300
+  2600
+  2600
+  1300
+  1950
+  3900
+Bag
+  Kaminski
+Bag
+  31200
+Bag
+  Struct
+    zarobki_szefa=>
+      1300
+    maksymalne_w_dziale=>
+      2600
+  Struct
+    zarobki_szefa=>
+      1950
+    maksymalne_w_dziale=>
+      3900
+  Struct
+    zarobki_szefa=>
+      3900
+    maksymalne_w_dziale=>
+      3900
+Bag
+  ref(103)
+Bag
+31200
+void
+Bag
+  Struct
+    d=>
+      ref(4)
+    2
+  Struct
+    d=>
+      ref(7)
+    2
+  Struct
+    d=>
+      ref(10)
+    3
+void
+Server disconnected

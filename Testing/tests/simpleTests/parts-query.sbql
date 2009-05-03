@@ -1,0 +1,115 @@
+begin
+/
+
+/* czesci w skladzie calosci */
+
+(Part where name = "whole") close by (Component.leadsTo.Part)
+/
+
+-- czesci w skladzie calosci (wydruk nazw)
+
+((Part where name = "whole") close by (Component.leadsTo.Part))
+.
+deref(name)
+/
+
+
+/* ile poszczegolnych czesci w calosci? 8 */
+
+((Part where name="whole"), (1 as howMany))
+close by (Component.((leadsTo.Part), (howMany*amount) as howMany))
+/
+
+-- ile poszczegolnych czesci w calosci? Z wydrukiem nazw
+
+(
+  ((Part where name="whole") as x, (1 as howMany))
+  close by (x.Component.((leadsTo.Part) as x, (howMany*amount) as howMany))
+)
+.
+(deref(x.name), howMany)
+/
+
+
+/* ile kazdej czesci w calosci? */
+
+(
+   (  
+      ((Part where name="whole") as x, (1 as howMany))
+      close by (x.Component.((leadsTo.Part) as x, (howMany*amount) as howMany))
+   ) group as allEngineParts
+)
+.
+(
+   (distinct(allEngineParts.x) as y)
+   .
+   (y, sum((allEngineParts where x==y).howMany))
+)
+/
+
+/* ile kazdej czesci w calosci? Z wydrukiem nazw */
+
+
+(
+   (  
+      ((Part where name="whole") as x, (1 as howMany))
+      close by (x.Component.((leadsTo.Part) as x, (howMany*amount) as howMany))
+   ) group as allEngineParts
+)
+.
+(
+   (distinct(allEngineParts.x) as y)
+   .
+   (deref(y.name), sum((allEngineParts where x==y).howMany))
+)
+/
+
+
+/* ile kazdej czesci detalowej w calosci? Z leaves by */
+
+(
+   (  
+      ((Part where name="whole") as x, (1 as howMany))
+      leaves by (x.Component.((leadsTo.Part) as x, (howMany*amount) as howMany))
+   ) group as allEngineParts
+)
+.
+(
+   (distinct(allEngineParts.x) as y)
+   .
+   (y, sum((allEngineParts where x==y).howMany))
+)
+/
+
+/* koszt i masa calosci */
+
+(   
+   (       
+      ((Part where name="whole") as x, (1 as howMany))
+      close by x.Component.((leadsTo.Part) as x, (amount*howMany) as howMany)
+   ) group as allEngineParts
+).
+(       
+   (   
+      (allEngineParts where x.kind="detail").
+             ((howMany * x.detailCost) as c, (howMany * x.detailMass) as m)
+      union
+      (allEngineParts where x.kind="aggregate").
+             ((howMany * x.assemblyCost) as c, (howMany* x.assemblyMass) as m)
+   ) group as CostMassIncrease
+).
+(sum(CostMassIncrease.c) as engineCost, sum(CostMassIncrease.m) as engineMass)
+/
+
+
+/* a to przybliza pierwiastek z 2 */
+
+((1 as x, 1 as counter)
+       close by (((2/x + x)/2 as x, (counter + 1) as counter) where counter <= 20)
+).(x where counter = 20)
+/
+
+end
+/
+query
+/

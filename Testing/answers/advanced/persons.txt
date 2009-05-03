@@ -1,0 +1,98 @@
+Welcome to loxim client.
+
+Connected.
+Authorized.
+void
+void
+Bag
+  ref(6)
+Bag
+  ref(16)
+Bag
+  ref(27)
+Bag
+  ref(37)
+Bag
+  ref(51)
+Bag
+  ref(61)
+Bag
+  ref(71)
+Bag
+  ref(81)
+Bag
+  ref(92)
+Bag
+  ref(102)
+Bag
+  ref(112)
+Bag
+  ref(122)
+void
+void
+void
+void
+void
+void
+void
+void
+void
+void
+void
+void
+void
+void
+Server disconnected
+Welcome to loxim client.
+
+Connected.
+Authorized.
+void
+Bag
+  Jakub
+  Anna
+  Patrycja
+  Rafal
+Bag
+  Kazimierz
+  Janina
+  Barbara
+  Zdzislaw
+  Jakub
+  Anna
+  Marcin
+  Patrycja
+  Rafal
+daneNajstarszejOsoby=>
+  Struct
+    Kazimierz
+    Kolodziejczyk
+    wiek=>
+      130
+Bag
+  Struct
+    rodzina=>
+      Kolodziejczyk
+    zarobek=>
+      0
+  Struct
+    rodzina=>
+      Sitek
+    zarobek=>
+      4000
+  Struct
+    rodzina=>
+      Trzonek
+    zarobek=>
+      5500
+Bag
+  nazwiska=>
+    Bag
+      nazwisko=>
+        Kolodziejczyk
+      nazwisko=>
+        Sitek
+      nazwisko=>
+        Trzonek
+void
+Server disconnected

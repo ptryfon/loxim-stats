@@ -1,0 +1,287 @@
+Welcome to loxim client.
+
+Connected.
+Authorized.
+void
+Bag
+  ref(6)
+Bag
+  ref(11)
+Bag
+  ref(16)
+Bag
+  ref(21)
+Bag
+  ref(26)
+Bag
+  ref(31)
+Bag
+  ref(39)
+Bag
+  ref(50)
+Bag
+  ref(61)
+Bag
+  ref(72)
+Bag
+  ref(83)
+Bag
+  ref(94)
+Bag
+  ref(108)
+void
+Server disconnected
+Welcome to loxim client.
+
+Connected.
+Authorized.
+void
+Bag
+  ref(108)
+  ref(83)
+  ref(94)
+  ref(6)
+  ref(39)
+  ref(72)
+  ref(50)
+  ref(61)
+  ref(6)
+  ref(31)
+  ref(16)
+  ref(11)
+  ref(16)
+  ref(21)
+  ref(26)
+Bag
+  whole
+  top1
+  top2
+  A
+  assembly1
+  assembly4
+  assembly2
+  assembly3
+  A
+  F
+  C
+  B
+  C
+  D
+  E
+Bag
+  Struct
+    ref(108)
+    howMany=>
+      1
+  Struct
+    ref(83)
+    howMany=>
+      8
+  Struct
+    ref(94)
+    howMany=>
+      1
+  Struct
+    ref(6)
+    howMany=>
+      1
+  Struct
+    ref(39)
+    howMany=>
+      64
+  Struct
+    ref(72)
+    howMany=>
+      8
+  Struct
+    ref(50)
+    howMany=>
+      8
+  Struct
+    ref(61)
+    howMany=>
+      1
+  Struct
+    ref(6)
+    howMany=>
+      320
+  Struct
+    ref(31)
+    howMany=>
+      64
+  Struct
+    ref(16)
+    howMany=>
+      8
+  Struct
+    ref(11)
+    howMany=>
+      16
+  Struct
+    ref(16)
+    howMany=>
+      56
+  Struct
+    ref(21)
+    howMany=>
+      5
+  Struct
+    ref(26)
+    howMany=>
+      3
+Bag
+  Struct
+    whole
+    1
+  Struct
+    top1
+    8
+  Struct
+    top2
+    1
+  Struct
+    A
+    1
+  Struct
+    assembly1
+    64
+  Struct
+    assembly4
+    8
+  Struct
+    assembly2
+    8
+  Struct
+    assembly3
+    1
+  Struct
+    A
+    320
+  Struct
+    F
+    64
+  Struct
+    C
+    8
+  Struct
+    B
+    16
+  Struct
+    C
+    56
+  Struct
+    D
+    5
+  Struct
+    E
+    3
+Bag
+  Struct
+    ref(6)
+    321
+  Struct
+    ref(11)
+    16
+  Struct
+    ref(16)
+    64
+  Struct
+    ref(21)
+    5
+  Struct
+    ref(26)
+    3
+  Struct
+    ref(31)
+    64
+  Struct
+    ref(39)
+    64
+  Struct
+    ref(50)
+    8
+  Struct
+    ref(61)
+    1
+  Struct
+    ref(72)
+    8
+  Struct
+    ref(83)
+    8
+  Struct
+    ref(94)
+    1
+  Struct
+    ref(108)
+    1
+Bag
+  Struct
+    A
+    321
+  Struct
+    B
+    16
+  Struct
+    C
+    64
+  Struct
+    D
+    5
+  Struct
+    E
+    3
+  Struct
+    F
+    64
+  Struct
+    assembly1
+    64
+  Struct
+    assembly2
+    8
+  Struct
+    assembly3
+    1
+  Struct
+    assembly4
+    8
+  Struct
+    top1
+    8
+  Struct
+    top2
+    1
+  Struct
+    whole
+    1
+Bag
+  Struct
+    ref(6)
+    321
+  Struct
+    ref(11)
+    16
+  Struct
+    ref(16)
+    64
+  Struct
+    ref(21)
+    5
+  Struct
+    ref(26)
+    3
+  Struct
+    ref(31)
+    64
+Bag
+  Struct
+    engineCost=>
+      27808
+    engineMass=>
+      4569
+void
+void
+void
+void
+ > Server disconnected

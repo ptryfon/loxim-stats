@@ -1,0 +1,151 @@
+-- Author: Sebastian Kaczanowski
+
+-- test zastępowania na poziomie kolekcji (narazie tylko dla poziomu root)
+begin;
+
+create class A {
+	instance a : {}
+};
+/
+create class B extends A {
+	instance b : {}
+};
+/
+create class C extends A {
+	instance c : {}
+};
+/
+create 1 as c;
+/
+create 2 as b;
+/
+
+create ( (create 1 as b) ) as cB
+
+create ( (create 1 as b) as instance of B ) as cB 
+
+--ponizsze zapytanie w tym momencie niczego nie wybierze o ile baza byla pusta
+a;
+/
+
+b as instance of B;
+/
+
+--ponizsze zapytanie wybierze b
+a;
+/
+
+c as instance of C;
+/
+--ponizsze zapytanie wybierze b i c
+a;
+/
+
+create 3 as a;
+/
+
+--ponizsze zapytanie wybierze a, b, c
+a;
+/
+
+(create 4 as d) as instance of C;
+/
+
+--ponizsze zapytanie wybierze a, b, c
+--obiekt d nie zachowuje invariantu, wiec nie jest zastepowany na poziomie kolekcji
+a;
+/
+
+create class CC {
+	instance a : {}
+};
+/
+
+create class D extends CC {
+	instance d : {}
+};
+/
+
+d as instance of D;
+/
+
+--ponizsze zapytanie wybierze a, b, c, d
+--jak widac nazwa invariantu nie musi byc unikatowa
+a;
+/
+
+create class E extends D {
+};
+/
+
+(create 5 as e) as instance of E;
+/
+
+(create "d" as d) as instance of E;
+/
+
+--Ponizsze zapytanie wybierze a, b, c, d = 4 nie wybierze obiektu d = "d".
+--Obiekty, ktore sa instancjami jedynie klas, ktore nie maja inwariantow,
+--nie biora udzialu w podmienianiu na poziomie kolekcji.
+a;
+/
+
+create class F extends E {
+	instance f : {}
+};
+/
+
+(create 6 as f) as instance of F;
+/
+
+--Ponizsze zapytanie wybierze a, b, c, d = 4 i f.
+--Jesli wsrod nadklas klas obiektu znajduje sie klasa bez inwariantu
+--to nie ogranicza to mozliwosci podmieniania tego obiektu na poziomie kolekcji.
+a;
+/
+
+
+-- koniec testu zastępowania na poziomie kolekcji
+
+create class VerySimpleInvariant {
+    instance simpleObject : {}
+}
+
+create class VerySimple {}
+
+create class VerySimpleExtended extends VerySimple {}
+
+create class VSE3 extends VerySimpleExtended {}
+
+create class ProcAndFields {
+    instance pf : {
+        field1;
+        field2;
+    }
+    procedure getField1(){return field1}
+    procedure sumf1f2(){return field1 + field2}
+    procedure get7(){return 7}
+}
+
+create class ProcAndFieldsExtended extends ProcAndFields {
+    instance pfe : {
+        field3;
+        field4;
+    }
+    procedure getField1(){return field1}
+    procedure sumf1f2(){return field1 + field2}
+}
+
+create class Full extends VerySimple, VerySimpleInvariant{
+    instance fullObject : {
+        field1;
+        field2
+    }
+    procedure getField1(){return field1}
+    procedure sumf1f2(){return field1 + field2}
+}
+
+end;
+
+quit
+

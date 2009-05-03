@@ -6,5 +6,5 @@ deref(t1);
 /
 end;
 /
-#shutdown
+quit
 /

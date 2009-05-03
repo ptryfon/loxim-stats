@@ -1,0 +1,139 @@
+Welcome to loxim client.
+
+Connected.
+Authorized.
+void
+void
+void
+Bag
+  ref(4)
+Bag
+  ref(7)
+Bag
+  ref(11)
+Bag
+  ref(15)
+Bag
+  ref(21)
+void
+void
+Bag
+  Struct
+    no=>
+      1
+    name=>
+      dep1
+  Struct
+    no=>
+      1
+    name=>
+      dep1
+  Struct
+    no=>
+      1
+    name=>
+      dep1
+void
+Bag
+  Struct
+    no=>
+      1
+    name=>
+      zmienionyDep1
+  Struct
+    no=>
+      1
+    name=>
+      zmienionyDep1
+  Struct
+    no=>
+      1
+    name=>
+      dep1
+void
+void
+Bag
+  ref(22)
+void
+Bag
+  ref(23)
+  ref(24)
+  ref(25)
+  ref(26)
+  ref(27)
+  ref(28)
+  ref(29)
+  ref(30)
+  ref(31)
+  ref(32)
+void
+void
+void
+void
+Bag
+  ref(33)
+void
+void
+Bag
+  Struct
+    Jakub
+    4500
+  Struct
+    Jakub
+    4500
+  Struct
+    Jakub
+    4500
+  Struct
+    Jakub
+    4500
+  Struct
+    Jakub
+    4500
+  Struct
+    Jakub
+    4500
+  Struct
+    Jakub
+    4500
+  Struct
+    Jakub
+    4500
+  Struct
+    Jakub
+    4500
+  Struct
+    Jakub
+    4500
+Bag
+  Struct
+    Jakub
+    4500
+  Struct
+    Jakub
+    4500
+  Struct
+    Jakub
+    4500
+  Struct
+    Jakub
+    4500
+  Struct
+    Jakub
+    4500
+  Struct
+    Jakub
+    4500
+  Struct
+    Jakub
+    4500
+  Struct
+    Jakub
+    4500
+  Struct
+    Jakub
+    4500
+  Struct
+    Jakub
+    4500
+Connection error

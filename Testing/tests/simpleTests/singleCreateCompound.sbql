@@ -6,5 +6,5 @@ create (
 /
 end;
 /
-#shutdown
+quit
 /

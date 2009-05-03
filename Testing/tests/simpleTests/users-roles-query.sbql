@@ -1,0 +1,73 @@
+begin;
+/
+
+-- wypisuje wszystkie nazwy roli uzytkownika scott 
+deref(deref(Userrole where deref(User).name = "scott").role).name;
+/
+
+-- wypisuje wszystkie nazwy role uzytkownika User3 
+deref(deref(Userrole where deref(User).name = "User3").role).name;
+/
+
+-- wypisuje wszystkie rozne nazwy roli uzytkownika User1 
+distinct(deref(deref(Userrole where deref(User).name = "User1").role).name);
+/
+
+-- wypisuje wszystkie role uzytkownika User1 
+deref(deref(Userrole where deref(User).name = "User1").role).name;
+/
+
+-- wypisuje liczbe rol do ktorych nalezy User2  
+count(deref(deref(Userrole where deref(User).name = "User2").role).name);
+/
+
+-- sprawdza czy uzytkownik User5 i uztykownik User6 maja te same role (rownosc na zbiorach) 
+deref(deref(Userrole where deref(User).name = "User5").role).name = deref(deref(Userrole where deref(User).name = "User6").role).name;
+/
+
+-- wypisuje role uzytkownika uporzadkowane po nazwie 
+deref(deref(Userrole where deref(User).name = "User6").role) order by name;
+/
+
+-- sprawdza czy uzytkownik User3 nalezy do odpowiednich roli 
+deref(deref(Userrole where deref(User).name = "User3").role) exists (name = "create_lecture_role" or name = "create_schedule_role");
+/
+
+-- zlicza wszystkie rozne role 
+count (distinct(Userrole.deref(role.name)));
+/
+
+-- zlaczenie zalezne - uzytkownika i roli do ktorych nalezy - wypisuje referencje
+((Userrole where deref(User).name = "dba") join User);
+/
+
+-- jak wyzej ale zamiast referencji wypisuje zawartosc obiektow 
+deref(deref(((Userrole where deref(User).name = "dba") join User)));
+/
+
+-- wypisuje hasla uzytkownikow ktorzy naleza do role modify_schedule_role 
+deref(Userrole where deref(role).name = "modify_schedule_role").deref(User).password;
+/
+
+-- wypisuje cale drzewo uzytkownikow (root, subUser, subsubUser, ....)
+deref( distinct( (User where name = "dba") close by (subUser.leadsTo.User)));
+/
+
+-- wypisuje uzytkownikow ktorzy nie maja poduzytkownikow 
+deref( distinct( (User where name = "dba") leaves by (subUser.leadsTo.User)));
+/
+
+-- dla kazdego uzytkownika wypisuje jego referencje plus 1 jesli dziedziczy uprawnienia, 
+-- i 0 jesli nie dziedziczy ( uzytkownik dziedziczy jesli na kazdej krawedzi pomiedzy nim a rootem
+-- dziedziczy = 1)
+((User where name = "dba"), (1 as granted)) close by (subUser.((leadsTo.User), (granted * inherit) as granted));
+/
+
+-- zapytanie ktore daje bledny wynik: powinno wypisac wszystkich uzytkownik, wypisuje tylko roota 
+(( ((User where name = "dba") as u, (1 as granted)) close by (subUser.((leadsTo.User) as u, (granted * inherit) as granted))) group as allUsers ).((distinct(allUsers.u) as a).(a, sum((allUsers where u = a).granted)));
+/
+
+end;
+/
+quit
+/

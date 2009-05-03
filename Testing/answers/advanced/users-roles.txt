@@ -1,0 +1,660 @@
+Welcome to loxim client.
+
+Connected.
+Authorized.
+void
+void
+void
+void
+void
+void
+void
+void
+void
+Bag
+  ref(2)
+Bag
+  ref(3)
+Bag
+  ref(4)
+Bag
+  ref(5)
+Bag
+  ref(8)
+Bag
+  ref(14)
+Bag
+  ref(20)
+Bag
+  ref(26)
+Bag
+  ref(32)
+Bag
+  ref(38)
+Bag
+  ref(44)
+Bag
+  ref(50)
+Bag
+  ref(56)
+Bag
+  ref(62)
+Bag
+  ref(74)
+Bag
+  ref(98)
+Bag
+  ref(100)
+Bag
+  ref(102)
+Bag
+  ref(104)
+Bag
+  ref(106)
+Bag
+  ref(108)
+Bag
+  ref(110)
+Bag
+  ref(112)
+Bag
+  ref(114)
+Bag
+  ref(116)
+Bag
+  ref(118)
+Bag
+  ref(120)
+Bag
+  ref(122)
+Bag
+  ref(124)
+Bag
+  ref(126)
+Bag
+  ref(128)
+Bag
+  ref(130)
+Bag
+  ref(132)
+Bag
+  ref(134)
+Bag
+  ref(136)
+Bag
+  ref(138)
+Bag
+  ref(140)
+Bag
+  ref(143)
+Bag
+  ref(146)
+Bag
+  ref(149)
+Bag
+  ref(152)
+Bag
+  ref(155)
+Bag
+  ref(158)
+Bag
+  ref(161)
+Bag
+  ref(164)
+Bag
+  ref(167)
+Bag
+  ref(170)
+Bag
+  ref(173)
+Bag
+  ref(176)
+Bag
+  ref(179)
+Bag
+  ref(182)
+Bag
+  ref(185)
+Bag
+  ref(188)
+Bag
+  ref(191)
+Bag
+  ref(193)
+Bag
+  ref(196)
+void
+Server disconnected
+Welcome to loxim client.
+
+Connected.
+Authorized.
+void
+Bag
+  modify_all_role
+  modify_student_role
+Bag
+  create_student_role
+  create_lecture_role
+  create_lecturer_role
+  create_schedule_role
+Bag
+  read_schedule_role
+  read_student_role
+Bag
+  read_schedule_role
+  read_student_role
+3
+0
+Sequence
+  Struct
+    name=>
+      delete_lecture_role
+Bag
+  1
+21
+Bag
+  Struct
+    ref(143)
+    ref(141)
+Struct
+  User=>
+    Struct
+      name=>
+        dba
+      password=>
+        passdba
+      subUser=>
+        Struct
+          leadsTo=>
+            ref(74)
+          inherit=>
+            1
+      subUser=>
+        Struct
+          leadsTo=>
+            ref(62)
+          inherit=>
+            1
+      subUser=>
+        Struct
+          leadsTo=>
+            ref(56)
+          inherit=>
+            0
+      subUser=>
+        Struct
+          leadsTo=>
+            ref(50)
+          inherit=>
+            1
+      subUser=>
+        Struct
+          leadsTo=>
+            ref(44)
+          inherit=>
+            0
+      subUser=>
+        Struct
+          leadsTo=>
+            ref(38)
+          inherit=>
+            1
+      subUser=>
+        Struct
+          leadsTo=>
+            ref(32)
+          inherit=>
+            0
+  role=>
+    Struct
+      name=>
+        dba_role
+  name=>
+    dba
+  password=>
+    passdba
+  subUser=>
+    Struct
+      leadsTo=>
+        ref(74)
+      inherit=>
+        1
+  subUser=>
+    Struct
+      leadsTo=>
+        ref(62)
+      inherit=>
+        1
+  subUser=>
+    Struct
+      leadsTo=>
+        ref(56)
+      inherit=>
+        0
+  subUser=>
+    Struct
+      leadsTo=>
+        ref(50)
+      inherit=>
+        1
+  subUser=>
+    Struct
+      leadsTo=>
+        ref(44)
+      inherit=>
+        0
+  subUser=>
+    Struct
+      leadsTo=>
+        ref(38)
+      inherit=>
+        1
+  subUser=>
+    Struct
+      leadsTo=>
+        ref(32)
+      inherit=>
+        0
+Bag
+  pass_User2
+  pass_User8
+Bag
+  Struct
+    name=>
+      User10
+    password=>
+      pass_User10
+  Struct
+    name=>
+      User9
+    password=>
+      pass_User9
+    subUser=>
+      Struct
+        leadsTo=>
+          ref(8)
+        inherit=>
+          1
+  Struct
+    name=>
+      User8
+    password=>
+      pass_User8
+    subUser=>
+      Struct
+        leadsTo=>
+          ref(14)
+        inherit=>
+          1
+  Struct
+    name=>
+      User7
+    password=>
+      pass_User7
+    subUser=>
+      Struct
+        leadsTo=>
+          ref(20)
+        inherit=>
+          1
+  Struct
+    name=>
+      User6
+    password=>
+      pass_User6
+    subUser=>
+      Struct
+        leadsTo=>
+          ref(26)
+        inherit=>
+          1
+  Struct
+    name=>
+      User5
+    password=>
+      pass_User5
+    subUser=>
+      Struct
+        leadsTo=>
+          ref(32)
+        inherit=>
+          1
+  Struct
+    name=>
+      User4
+    password=>
+      pass_User4
+    subUser=>
+      Struct
+        leadsTo=>
+          ref(38)
+        inherit=>
+          1
+  Struct
+    name=>
+      User3
+    password=>
+      pass_User3
+    subUser=>
+      Struct
+        leadsTo=>
+          ref(44)
+        inherit=>
+          1
+  Struct
+    name=>
+      User2
+    password=>
+      pass_User2
+    subUser=>
+      Struct
+        leadsTo=>
+          ref(50)
+        inherit=>
+          1
+  Struct
+    name=>
+      User1
+    password=>
+      pass_User1
+    subUser=>
+      Struct
+        leadsTo=>
+          ref(56)
+        inherit=>
+          1
+  Struct
+    name=>
+      scott
+    password=>
+      tiger
+    subUser=>
+      Struct
+        leadsTo=>
+          ref(20)
+        inherit=>
+          1
+    subUser=>
+      Struct
+        leadsTo=>
+          ref(14)
+        inherit=>
+          1
+    subUser=>
+      Struct
+        leadsTo=>
+          ref(8)
+        inherit=>
+          0
+  Struct
+    name=>
+      dba
+    password=>
+      passdba
+    subUser=>
+      Struct
+        leadsTo=>
+          ref(74)
+        inherit=>
+          1
+    subUser=>
+      Struct
+        leadsTo=>
+          ref(62)
+        inherit=>
+          1
+    subUser=>
+      Struct
+        leadsTo=>
+          ref(56)
+        inherit=>
+          0
+    subUser=>
+      Struct
+        leadsTo=>
+          ref(50)
+        inherit=>
+          1
+    subUser=>
+      Struct
+        leadsTo=>
+          ref(44)
+        inherit=>
+          0
+    subUser=>
+      Struct
+        leadsTo=>
+          ref(38)
+        inherit=>
+          1
+    subUser=>
+      Struct
+        leadsTo=>
+          ref(32)
+        inherit=>
+          0
+Struct
+  name=>
+    User10
+  password=>
+    pass_User10
+Bag
+  Struct
+    ref(98)
+    granted=>
+      1
+  Struct
+    ref(74)
+    granted=>
+      1
+  Struct
+    ref(62)
+    granted=>
+      1
+  Struct
+    ref(56)
+    granted=>
+      0
+  Struct
+    ref(50)
+    granted=>
+      1
+  Struct
+    ref(44)
+    granted=>
+      0
+  Struct
+    ref(38)
+    granted=>
+      1
+  Struct
+    ref(32)
+    granted=>
+      0
+  Struct
+    ref(20)
+    granted=>
+      1
+  Struct
+    ref(14)
+    granted=>
+      1
+  Struct
+    ref(8)
+    granted=>
+      0
+  Struct
+    ref(56)
+    granted=>
+      1
+  Struct
+    ref(50)
+    granted=>
+      0
+  Struct
+    ref(44)
+    granted=>
+      1
+  Struct
+    ref(38)
+    granted=>
+      0
+  Struct
+    ref(32)
+    granted=>
+      1
+  Struct
+    ref(26)
+    granted=>
+      0
+  Struct
+    ref(14)
+    granted=>
+      1
+  Struct
+    ref(8)
+    granted=>
+      1
+  Struct
+    ref(50)
+    granted=>
+      1
+  Struct
+    ref(44)
+    granted=>
+      0
+  Struct
+    ref(38)
+    granted=>
+      1
+  Struct
+    ref(32)
+    granted=>
+      0
+  Struct
+    ref(26)
+    granted=>
+      1
+  Struct
+    ref(20)
+    granted=>
+      0
+  Struct
+    ref(8)
+    granted=>
+      1
+  Struct
+    ref(44)
+    granted=>
+      1
+  Struct
+    ref(38)
+    granted=>
+      0
+  Struct
+    ref(32)
+    granted=>
+      1
+  Struct
+    ref(26)
+    granted=>
+      0
+  Struct
+    ref(20)
+    granted=>
+      1
+  Struct
+    ref(14)
+    granted=>
+      0
+  Struct
+    ref(38)
+    granted=>
+      1
+  Struct
+    ref(32)
+    granted=>
+      0
+  Struct
+    ref(26)
+    granted=>
+      1
+  Struct
+    ref(20)
+    granted=>
+      0
+  Struct
+    ref(14)
+    granted=>
+      1
+  Struct
+    ref(8)
+    granted=>
+      0
+  Struct
+    ref(32)
+    granted=>
+      1
+  Struct
+    ref(26)
+    granted=>
+      0
+  Struct
+    ref(20)
+    granted=>
+      1
+  Struct
+    ref(14)
+    granted=>
+      0
+  Struct
+    ref(8)
+    granted=>
+      1
+  Struct
+    ref(26)
+    granted=>
+      1
+  Struct
+    ref(20)
+    granted=>
+      0
+  Struct
+    ref(14)
+    granted=>
+      1
+  Struct
+    ref(8)
+    granted=>
+      0
+  Struct
+    ref(20)
+    granted=>
+      1
+  Struct
+    ref(14)
+    granted=>
+      0
+  Struct
+    ref(8)
+    granted=>
+      1
+  Struct
+    ref(14)
+    granted=>
+      1
+  Struct
+    ref(8)
+    granted=>
+      0
+  Struct
+    ref(8)
+    granted=>
+      1
+Bag
+  Struct
+    ref(98)
+    1
+void
+Server disconnected

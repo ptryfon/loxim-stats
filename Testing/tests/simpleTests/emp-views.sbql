@@ -1,0 +1,30 @@
+begin
+/
+create view RichEmpDef {
+	virtual objects RichEmp() {
+		return (emp where count(sal) = 1 and sal > 2700) as re
+	}
+	procedure on_retrieve() {
+		return deref(re.name)
+	}
+	procedure on_delete() {
+		delete re
+	}
+	
+	view salaryDef {
+		virtual objects salary() {
+			return re.sal as s
+		}
+		procedure on_retrieve() {
+			return deref(s)
+		}
+		procedure on_update(x) {
+			s := x
+		}
+	}
+}
+/
+end
+/
+quit
+/

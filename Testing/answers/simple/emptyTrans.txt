@@ -1,0 +1,7 @@
+Welcome to loxim client.
+
+Connected.
+Authorized.
+void
+void
+Server disconnected

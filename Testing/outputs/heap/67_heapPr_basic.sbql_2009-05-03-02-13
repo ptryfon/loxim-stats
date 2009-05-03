@@ -1,0 +1,36 @@
+Welcome to loxim client.
+
+Connected.
+Type $help to see the available commands
+Authorized.
+void
+Bag
+  ref(2)
+Bag
+  ref(3)
+Bag
+  ref(4)
+Bag
+  ref(5)
+Bag
+  ref(7)
+Bag
+  ref(2)
+  ref(3)
+  ref(4)
+  ref(5)
+Bag
+  1
+  2
+  10
+  8.3
+Bag
+  ref(7)
+8.4
+Bag
+  8.4
+4
+Bag
+  1
+void
+Server disconnected
