@@ -12,8 +12,7 @@ set(CBindings_SRCS
 
 IF (NOT DO_NOT_BUILD_SHARED)
 	add_library(loxim_client_shared SHARED ${CBindings_SRCS})
-	target_link_libraries(loxim_client_shared Client readline pthread Protocol ProtocolStreams)
-	#target_link_libraries(loxim_client_shared Client_shared readline pthread Protocol_shared ProtocolStreams_shared)
+	target_link_libraries(loxim_client_shared Client ${READLINE_LIBRARY} pthread Protocol ProtocolStreams)
 	set_target_properties(loxim_client_shared PROPERTIES OUTPUT_NAME loxim_client)
 	set_target_properties(loxim_client_shared PROPERTIES CLEAN_DIRECT_OUTPUT 1)
 	#	target_link_libraries(loxim_client_shared LINK_INTERFACE_LIBRARIES Client_shared READLINE_LIBRARY pthread)

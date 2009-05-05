@@ -31,13 +31,13 @@ IF (UNIX AND NOT WIN32)
 ENDIF (UNIX AND NOT WIN32) 
 
 #ON 64 bit processor in debug mode you can do code coverage or have shared library never both of them
-IF (CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64" )
+IF (CMAKE_SYSTEM_PROCESSOR MATCHES "(x86_|amd)64" )
 	IF (CMAKE_BUILD_TYPE MATCHES "Debug" )
 		IF (USER_COVERAGE)
 			SET (DO_NOT_BUILD_SHARED 1)
 		ENDIF (USER_COVERAGE)
 	ENDIF (CMAKE_BUILD_TYPE MATCHES "Debug" )
-ENDIF (CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64" )
+ENDIF (CMAKE_SYSTEM_PROCESSOR MATCHES "(x86_|amd)64" )
 
 
 
@@ -45,7 +45,7 @@ ENDIF (CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64" )
 
 #BUILD FLAGS DEFINITIONS 
 
-IF (CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64" )
+IF (CMAKE_SYSTEM_PROCESSOR MATCHES "(x86_|amd)64" )
   IF (USER_COVERAGE)
 	SET(CMAKE_CXX_FLAGS_DEBUG "-fPIC -g -O0 -Wall -W -Wshadow -Wunused-variable -Wunused-parameter -Wunused-function -Wunused -Wno-system-headers -Wno-deprecated -Woverloaded-virtual -Wwrite-strings -fprofile-arcs -ftest-coverage")
 	SET(CMAKE_C_FLAGS_DEBUG "-fPIC -g -O0 -Wall -W -fprofile-arcs -ftest-coverage")
@@ -55,9 +55,9 @@ IF (CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64" )
 	SET(CMAKE_C_FLAGS_DEBUG "-fPIC -g -O0 -Wall -W")
 	SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "-fPIC")
   ENDIF (USER_COVERAGE)
-ELSE (CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64" )
+ELSE (CMAKE_SYSTEM_PROCESSOR MATCHES "(x86_|amd)64" )
   SET(CMAKE_CXX_FLAGS_DEBUG "-fPIC -g -O0 -Wall -W -Wshadow -Wunused-variable -Wunused-parameter -Wunused-function -Wunused -Wno-system-headers -Wno-deprecated -Woverloaded-virtual -Wwrite-strings -fprofile-arcs -ftest-coverage")
-ENDIF (CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64" )
+ENDIF (CMAKE_SYSTEM_PROCESSOR MATCHES "(x86_|amd)64" )
 
 
 SET(CMAKE_CXX_FLAGS_RELEASE "-fPIC -O3 -DNDEBUG -fomit-frame-pointer")
