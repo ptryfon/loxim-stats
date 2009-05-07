@@ -20,13 +20,11 @@ declare -a loximStoreFiles
 makeOuptunName() {
 	outputCurrPath=$outputPath"/"$runNumber"_"$testType"_"$1"_"$fullData
 	echo "######## output path $outputCurrPath ###########################################" 
-	#echo makeOuptunName $outputCurrPath
 }
 
 makeResultName() {
 	resultCurrPath=$resultPath"/"$runNumber"_"$testType"_"$1"_"$fullData
 	echo "######## results path $resultCurrPath ##########################################" 
-	#echo makeResultName $resultCurrPath
 }
 
 
