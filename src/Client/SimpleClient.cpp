@@ -266,7 +266,7 @@ void SimpleClient::execute(const std::string &query,
 		memcpy(tmp, bb.get_const_data(), size);
 		tmp[size] = '\0';
 		std::string msg = tmp;
-		delete(tmp);
+		delete[](tmp);
 
 		int code = pack_err->get_val_error_code();
 		throw ErrorException(code, msg);
