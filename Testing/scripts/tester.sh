@@ -37,6 +37,8 @@ customTestPath=""
 customParameters="";
 loximServerPid="0"
 answerPath=""
+login=root
+password=ala
 
 #parsing parameters
 generateRunNumber() {
@@ -50,7 +52,7 @@ generateRunNumber() {
 	echo $runNumber > $LOXIM_HOME/Testing/scripts/runNumber.txt
 }
 
-set -- `getopt t:An:T:c:o:m: $*`
+set -- `getopt t:An:T:c:o:m:l:P:O:p:r: $*`
 
 for i
 do
@@ -80,6 +82,8 @@ do
 		-p) shift; customTestPath=$1; shift;;
 		-O) shift; customParameters=$1; shift;;
 		-o) shift; outputPath=$1; shift;;
+		-l) shift; login=$1; shift;;
+		-P) shift; password=$1; shift;;
 		--) shift; break;;
 	esac
 done

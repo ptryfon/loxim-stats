@@ -124,12 +124,23 @@ runSingleTest() {
 	echo "#################### starting single simple test $testType test path $1 ########" 
 	runLoximServer $testType 
 	sleep $serverDelay 
-	$lsbql -l root -P a -m $2 -f $1 >> $outputCurrPath
+	echo mode $mode login $login password $password
+	$lsbql -l $login -P $password -m $2 -f $1 >> $outputCurrPath
 	findLoximServerPid
 	stopLoximServer
 	removeLoximStoreObjects 
 	wait
 	echo "################### single simple test finished ################################" 
+}
+
+getLoginAndPass() {
+	if [ "$3" != "" ]; then
+		login=$3
+	fi
+	if [ "$4" != "" ]; then
+		password=$4
+	fi
+
 }
 
 #this function run advanced test. It opens file with test definition (there should be 
@@ -143,11 +154,12 @@ runSingleAdvancedTest() {
 	sleep $serverDelay
 	cat $1 | while read SIMPLETEST; do
 		currentTest=`echo $SIMPLETEST | cut -f1 -d" "`
+		getLoginAndPass $SIMPLETEST
 		echo "----------------- running simple test $currentTest -----------------------------"
 		#echo currentTest $currentTest
 		mode=`echo $SIMPLETEST | cut -f2 -d" "`
-		#echo mode $mode
-		$lsbql -l root -P a -m $mode -f $LOXIM_HOME"/Testing/tests/simpleTests/"$currentTest >> $outputCurrPath 
+		echo mode $mode login $login password $password
+		$lsbql -l $login -P $password -m $mode -f $LOXIM_HOME"/Testing/tests/simpleTests/"$currentTest >> $outputCurrPath 
 	done
 	findLoximServerPid
 	stopLoximServer
@@ -217,6 +229,7 @@ makeTest() {
 				makeOuptunName `echo $LINE | cut -f1 -d" "`
 				makeResultName `echo $LINE | cut -f1 -d" "`
 				findAnswerFile `echo $LINE | cut -f1 -d" "`
+				getLoginAndPass $LINE
 				runSingleTest $testPath`echo $LINE | cut -f1 -d" "` `echo $LINE | cut -f2 -d" "`
 				postprocessOutput
 			done
