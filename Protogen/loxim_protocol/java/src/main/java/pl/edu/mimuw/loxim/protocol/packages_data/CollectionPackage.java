@@ -1,6 +1,6 @@
 package pl.edu.mimuw.loxim.protocol.packages_data;
 
-import pl.edu.mimuw.loxim.protocol.packages.PackagesFactory;
+import pl.edu.mimuw.loxim.protocol.packages_data.DataPackagesFactory;
 import pl.edu.mimuw.loxim.protogen.lang.java.template.exception.ProtocolException;
 import pl.edu.mimuw.loxim.protogen.lang.java.template.ptools.Package;
 import pl.edu.mimuw.loxim.protogen.lang.java.template.streams.PackageInputStreamReader;
@@ -38,9 +38,9 @@ public abstract class CollectionPackage extends Package {
 			dataParts = new Package[count.intValue()];
 			for (int i = 0; i < count; i++) {
 				if (globalType == null) {
-					dataParts[i] = PackagesFactory.getInstance().createPackage(reader.readVaruint());
+					dataParts[i] = DataPackagesFactory.getInstance().createPackage(reader.readVaruint());
 				} else {
-					dataParts[i] = PackagesFactory.getInstance().createPackage(globalType);
+					dataParts[i] = DataPackagesFactory.getInstance().createPackage(globalType);
 				}
 				dataParts[i].deserializeContent(reader);
 			}
