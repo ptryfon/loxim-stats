@@ -811,13 +811,11 @@ public class LoXiMDatabaseMetaDataImpl implements LoXiMDatabaseMetaData {
 
 	@Override
 	public boolean supportsMultipleOpenResults() throws SQLException {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public boolean supportsMultipleResultSets() throws SQLException {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
@@ -828,13 +826,11 @@ public class LoXiMDatabaseMetaDataImpl implements LoXiMDatabaseMetaData {
 
 	@Override
 	public boolean supportsNamedParameters() throws SQLException {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public boolean supportsNonNullableColumns() throws SQLException {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
@@ -906,7 +902,6 @@ public class LoXiMDatabaseMetaDataImpl implements LoXiMDatabaseMetaData {
 
 	@Override
 	public boolean supportsSavepoints() throws SQLException {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
@@ -942,7 +937,6 @@ public class LoXiMDatabaseMetaDataImpl implements LoXiMDatabaseMetaData {
 
 	@Override
 	public boolean supportsSelectForUpdate() throws SQLException {
-		// TODO Auto-generated method stub
 		return false;
 	}
 

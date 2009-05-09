@@ -3,6 +3,7 @@ package pl.edu.mimuw.loxim.protogen.lang.java.template.pstreams;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -20,10 +21,10 @@ public class PackageIO implements Closeable {
 
 	private static final Log log = LogFactory.getLog(PackageIO.class);
 	
-	private Socket socket;
-	private PackageInputStream pis;
-	private PackageOutputStream pos;
-	private Reader reader;
+	private final Socket socket;
+	private final PackageInputStream pis;
+	private final PackageOutputStream pos;
+	private final Reader reader;
 	private final Object writeMutex = new Object();
 	private volatile boolean closed = false;
 	
@@ -64,9 +65,13 @@ public class PackageIO implements Closeable {
 					filterPackage(pis.readPackage());
 				}
 			} catch (Exception e) { // Yes, all exceptions as they have to be forwarded to the PackageIO object
-				if (!closed) {
-					buffer.add(new PoisonPillPackage(e));
+				log.debug("Exception " + e + " was thrown and will be forwarded as a poison pill", e);
+				try {
+					PackageIO.this.close();
+				} catch (IOException ioe) {
+					log.debug(ioe, ioe);
 				}
+				buffer.add(new PoisonPillPackage(e));
 			}
 		}
 		
@@ -78,7 +83,7 @@ public class PackageIO implements Closeable {
 					log.debug("PING...PONG");
 					PackageIO.this.write(new ASCPongPackage());
 				} catch (ProtocolException e) {
-					// Could not send PONG? Not a tragedy...
+					// Could not send PONG? That's not critical, however the client can be disconnected.
 					log.warn("Could not send PONG response to PING", e);
 				}
 				break;
@@ -106,6 +111,9 @@ public class PackageIO implements Closeable {
 	}
 
 	public void write(Package pac) throws ProtocolException {
+		if (closed) {
+			throw new ProtocolException("Connection closed");
+		}
 		log.debug("Writing package " + pac.getClass().getSimpleName());
 		synchronized (writeMutex) {
 			pos.writePackage(pac);			
@@ -113,16 +121,22 @@ public class PackageIO implements Closeable {
 	}
 	
 	public Package read() throws ProtocolException {
+		if (closed) {
+			throw new ProtocolException("Connection closed");
+		}
 		Package pac = reader.read();
 		if (pac.getPackageType() == PoisonPillPackage.ID) {
 			PoisonPillPackage pill = (PoisonPillPackage) pac;
 			Exception e = pill.getException();
-			log.debug("Received poison pill package from the reader. Exception " + e + " was thrown and will be forwarded");
+			log.debug("Received poison pill package from the reader. Exception " + e + " was thrown and will be forwarded", e);
 			if (e instanceof RuntimeException) {
-				throw (RuntimeException) e;
+				log.debug("Throwing RTE");
+				throw new RuntimeException(e); // For a new stack trace
 			} else if (e instanceof ProtocolException) {
-				throw (ProtocolException) e;
+				log.debug("Throwing PE");
+				throw new ProtocolException(e); // For a new stack trace
 			} else {
+				log.debug("Throwing IE");
 				throw new IllegalStateException("Unexpected exception", e);
 			}
 		}

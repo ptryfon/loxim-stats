@@ -15,21 +15,28 @@ import pl.edu.mimuw.loxim.jdbc.LoXiMDriverImpl;
 public class Client {
 
 	public static void main(String[] args) throws SQLException, IOException {
-		String url = "jdbc:loxim:localhost/db"; // args[0];
-		Driver driver = new LoXiMDriverImpl();
-		Properties info = new Properties();
-		info.setProperty("user", "root");
-		info.setProperty("password", "");
-		Connection con = driver.connect(url, info);
-		BufferedReader inReader = new BufferedReader(new InputStreamReader(System.in));
-		for (String sbql = inReader.readLine(); !sbql.equals("quit"); sbql = inReader.readLine()) {
-			Statement stmt = con.createStatement();
-			ResultSet result = stmt.executeQuery(sbql);
-			System.out.println("ResultSet:");
-			System.out.println(result);
-			con.commit();
+		Connection con = null;
+		try {
+			String url = "jdbc:loxim:localhost/db"; // args[0];
+			Driver driver = new LoXiMDriverImpl();
+			Properties info = new Properties();
+			info.setProperty("user", "root");
+			info.setProperty("password", "");
+			con = driver.connect(url, info);
+			BufferedReader inReader = new BufferedReader(new InputStreamReader(System.in));
+			for (String sbql = inReader.readLine(); (sbql != null) && (!sbql.equals("quit")); sbql = inReader.readLine()) {
+				if (!sbql.trim().isEmpty()) { 
+					Statement stmt = con.createStatement();
+					ResultSet result = stmt.executeQuery(sbql);
+					System.out.println("ResultSet:");
+					System.out.println(result);
+				}
+			}
+		} finally {
+			if (con != null) {
+				con.close();
+			}
 		}
-		con.close();
 	}
 
 }

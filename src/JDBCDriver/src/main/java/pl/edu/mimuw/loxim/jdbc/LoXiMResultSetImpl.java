@@ -15,6 +15,7 @@ import java.sql.NClob;
 import java.sql.Ref;
 import java.sql.ResultSet;
 import java.sql.RowId;
+import java.sql.SQLDataException;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.sql.SQLWarning;
@@ -22,12 +23,14 @@ import java.sql.SQLXML;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 
-import pl.edu.mimuw.loxim.data.LoXiMCollection;
+import pl.edu.mimuw.loxim.data.Binding;
 import pl.edu.mimuw.loxim.data.LoXiMObject;
+import pl.edu.mimuw.loxim.data.Struct;
 import pl.edu.mimuw.loxim.jdbc.util.DateUtil;
 
 public class LoXiMResultSetImpl implements LoXiMResultSet {
@@ -97,11 +100,11 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 		int[] columns = findColumns(columnLabel);
 		
 		if (columns.length == 0) {
-			throw new SQLException("Column " + columnLabel + " not found");
+			throw new SQLDataException("Column " + columnLabel + " not found");
 		}
 		
 		if (columns.length > 1) {
-			throw new SQLException(columns.length + " columns found for name " + columnLabel);
+			throw new SQLDataException(columns.length + " columns found for name " + columnLabel + ": " + Arrays.toString(columns));
 		}
 		
 		return columns[0];
@@ -109,8 +112,35 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 	
 	@Override
 	public int[] findColumns(String columnLabel) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		checkClosed();
+		Object o = results.get(index);
+		if (o instanceof Struct) {
+			List<Object> data = new ArrayList<Object>(((Struct) o).getData());
+			List<Integer> cols = new ArrayList<Integer>(data.size());
+			for (int i = 0; i < data.size(); i++) {
+				Object object = data.get(i);
+				if (object instanceof Binding) {
+					Binding binding = (Binding) object;
+					if (binding.getBindingName().equals(columnLabel)) {
+						cols.add(i);
+					}
+				}
+			}
+			int[] colArray = new int[cols.size()];
+			for (int i = 0; i < cols.size(); i++) {
+				colArray[i] = cols.get(i);
+			}
+			return colArray;
+		} else if (o instanceof Binding) {
+			Binding binding = (Binding) o;
+			if (binding.getBindingName().equals(columnLabel)) {
+				return new int[]{1};
+			} else {
+				return new int[0];	
+			}
+		} else {
+			return new int[0];
+		}
 	}
 
 	@Override
@@ -1171,7 +1201,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 	@Override
 	public <T> T unwrap(Class<T> iface) throws SQLException {
 		if (isWrapperFor(iface)) {
-			return (T) this;
+			return iface.cast(this);
 		}
 		throw new SQLException("Not a wrapper for " + iface);
 	}
@@ -1192,9 +1222,8 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 	private Object getColumn(int idx) throws SQLException {
 		try {
 			Object o = results.get(index);
-			if (o instanceof LoXiMCollection) {
-				LoXiMCollection collection = (LoXiMCollection) o;
-				o = new ArrayList<Object>(collection.getData()).get(index - 1);
+			if (o instanceof Struct) {
+				o = new ArrayList<Object>(((Struct) o).getData()).get(idx - 1);
 			} else {
 				if (idx != 1) {
 					throw new IndexOutOfBoundsException();
@@ -1203,7 +1232,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 			wasNull = (o == null);
 			return o;
 		} catch (IndexOutOfBoundsException e) {
-			throw new SQLException("Column #" + idx + " does not exist");
+			throw new SQLDataException("Column #" + idx + " does not exist");
 		}
 	}
 	

@@ -248,23 +248,21 @@ public class LoXiMStatementImpl implements LoXiMStatement {
 	@Override
 	public void setFetchSize(int rows) throws SQLException {
 		checkClosed();
-		if (rows < 0) {
-			throw new SQLException("Fetch size must be >= 0");
-		}
-		if (rows > 0) {
-			fetchSize = rows;
-		}
+		checkGEThan(rows, 0);
+		fetchSize = rows;
 	}
 
 	@Override
 	public void setMaxFieldSize(int max) throws SQLException {
 		checkClosed();
+		checkGEThan(max, 0);
 		// do nothing
 	}
 
 	@Override
 	public void setMaxRows(int max) throws SQLException {
 		checkClosed();
+		checkGEThan(max, 0);
 		// do nothing
 	}
 
@@ -274,8 +272,15 @@ public class LoXiMStatementImpl implements LoXiMStatement {
 		// do nothing
 	}
 
+	private void checkGEThan(int num, int limit) throws SQLException {
+		if (num < limit) {
+			throw new SQLException("The parameter " + num + " is not >= " + limit);
+		}
+	}
+	
 	@Override
 	public void setQueryTimeout(int seconds) throws SQLException {
+		checkClosed();
 		// TODO Auto-generated method stub
 
 	}

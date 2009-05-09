@@ -6,13 +6,19 @@ import java.util.List;
 class ExecutionResult {
 
 	private final int updates;
-	private final int size;
-	private final LoXiMResultSet resultSet;
+	private final List<Object> result;
+	private LoXiMStatement stmt;
 		
-	public ExecutionResult(LoXiMStatement stmt, List<Object> result, int updates) throws SQLException {
+	public ExecutionResult(List<Object> result, int updates) throws SQLException {
 		this.updates = updates;
-		this.size = result.size();
-		resultSet = new LoXiMResultSetImpl(stmt, result);
+		this.result = result;
+	}
+	
+	public void setStmt(LoXiMStatement stmt) {
+		if (this.stmt != null) {
+			throw new IllegalStateException("Statement already set");
+		}
+		this.stmt = stmt;
 	}
 	
 	public int getUpdates() {
@@ -20,10 +26,13 @@ class ExecutionResult {
 	}
 		
 	public LoXiMResultSet asLoXiMResultSet() throws SQLException {
-		return resultSet;
+		if (stmt == null) {
+			throw new IllegalStateException("Statement not set");
+		}
+		return new LoXiMResultSetImpl(stmt, result);
 	}
 	
 	public boolean isEmpty() {
-		return size == 0;
+		return result.isEmpty();
 	}
 }

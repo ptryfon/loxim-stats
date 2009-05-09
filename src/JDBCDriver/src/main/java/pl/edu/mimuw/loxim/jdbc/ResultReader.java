@@ -9,23 +9,23 @@ import java.util.SimpleTimeZone;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import pl.edu.mimuw.loxim.data.Bag;
 import pl.edu.mimuw.loxim.data.BagImpl;
 import pl.edu.mimuw.loxim.data.Binding;
 import pl.edu.mimuw.loxim.data.BindingImpl;
 import pl.edu.mimuw.loxim.data.ExtReference;
 import pl.edu.mimuw.loxim.data.ExtReferenceImpl;
-import pl.edu.mimuw.loxim.data.GenericCollection;
 import pl.edu.mimuw.loxim.data.Link;
 import pl.edu.mimuw.loxim.data.LinkImpl;
 import pl.edu.mimuw.loxim.data.LoXiMCollection;
 import pl.edu.mimuw.loxim.data.PackageToJavaTypeMapper;
 import pl.edu.mimuw.loxim.data.Reference;
 import pl.edu.mimuw.loxim.data.ReferenceImpl;
+import pl.edu.mimuw.loxim.data.Sequence;
 import pl.edu.mimuw.loxim.data.SequenceImpl;
+import pl.edu.mimuw.loxim.data.Struct;
 import pl.edu.mimuw.loxim.data.StructImpl;
 import pl.edu.mimuw.loxim.data.VoidImpl;
-import pl.edu.mimuw.loxim.protocol.packages.A_sc_okPackage;
-import pl.edu.mimuw.loxim.protocol.packages.PackageUtil;
 import pl.edu.mimuw.loxim.protocol.packages.V_sc_sendvaluePackage;
 import pl.edu.mimuw.loxim.protocol.packages_data.BagPackage;
 import pl.edu.mimuw.loxim.protocol.packages_data.BindingPackage;
@@ -196,17 +196,17 @@ class ResultReader {
 			
 			// multi
 		case (int) BagPackage.ID:
-			LoXiMCollection bag = new BagImpl();
+			Bag bag = new BagImpl();
 			fillCollection(bag, (CollectionPackage) dataPac);
 			return bag;
 			
 		case (int) StructPackage.ID:
-			LoXiMCollection struct = new StructImpl();
+			Struct struct = new StructImpl();
 			fillCollection(struct, (CollectionPackage) dataPac);
 			return struct;
 		
 		case (int) SequencePackage.ID:
-			LoXiMCollection sequence = new SequenceImpl();
+			Sequence sequence = new SequenceImpl();
 			fillCollection(sequence, (CollectionPackage) dataPac);
 			return sequence;
 
