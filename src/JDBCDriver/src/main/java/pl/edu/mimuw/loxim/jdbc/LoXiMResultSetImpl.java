@@ -128,7 +128,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 			}
 			int[] colArray = new int[cols.size()];
 			for (int i = 0; i < cols.size(); i++) {
-				colArray[i] = cols.get(i);
+				colArray[i] = cols.get(i) + 1;
 			}
 			return colArray;
 		} else if (o instanceof Binding) {
@@ -449,6 +449,12 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 		return getObject(findColumn(columnLabel));
 	}
 
+	@Override
+	public List<Object> getObjects(String colName) throws SQLException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
 	@Override
 	public Object getObject(int columnIndex, Map<String, Class<?>> map) throws SQLException {
 		throw new SQLFeatureNotSupportedException();
@@ -1224,15 +1230,22 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 			Object o = results.get(index);
 			if (o instanceof Struct) {
 				o = new ArrayList<Object>(((Struct) o).getData()).get(idx - 1);
-			} else {
-				if (idx != 1) {
-					throw new IndexOutOfBoundsException();
+				if (o instanceof Binding) {
+					o = ((Binding) o).getValue();
 				}
+				wasNull = (o == null);
+				return o;
+			} else if (idx == 1) {
+				if (o instanceof Binding) {
+					o = ((Binding) o).getValue();
+				}
+				wasNull = (o == null);
+				return o;
+			} else {
+				throw new IndexOutOfBoundsException();
 			}
-			wasNull = (o == null);
-			return o;
 		} catch (IndexOutOfBoundsException e) {
-			throw new SQLDataException("Column #" + idx + " does not exist");
+			throw new SQLDataException("Column #" + idx + " does not exist", e);
 		}
 	}
 	

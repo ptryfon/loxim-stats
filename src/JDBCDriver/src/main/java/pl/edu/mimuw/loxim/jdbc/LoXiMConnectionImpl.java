@@ -8,6 +8,7 @@ import java.sql.Array;
 import java.sql.Blob;
 import java.sql.CallableStatement;
 import java.sql.Clob;
+import java.sql.Connection;
 import java.sql.NClob;
 import java.sql.ResultSet;
 import java.sql.SQLClientInfoException;
@@ -141,7 +142,7 @@ public class LoXiMConnectionImpl implements LoXiMConnectionInternal {
 				throw new SQLInvalidAuthorizationSpecException("No authorization");
 			}
 			closed = false;
-			log.info("Connection stablished successfully ");
+			log.info("Connection established successfully ");
 		} finally {
 			if (closed) { // ie. if an exception was thrown
 				socket.close();
@@ -166,7 +167,7 @@ public class LoXiMConnectionImpl implements LoXiMConnectionInternal {
 			sendAuth(login, new String(AuthPassMySQL.encodePassword(password, salt)));
 			break;
 		case am_trust:
-			sendAuth(login, login); // XXX empty password would be more appropriate
+			sendAuth(login, login);
 			break;
 		default:
 			throw new ProtocolException("No authorization method provided");
@@ -319,7 +320,7 @@ public class LoXiMConnectionImpl implements LoXiMConnectionInternal {
 	@Override
 	public int getTransactionIsolation() throws SQLException {
 		checkClosed();
-		return 0; //TODO
+		return Connection.TRANSACTION_SERIALIZABLE; //???
 	}
 
 	@Override
@@ -341,7 +342,6 @@ public class LoXiMConnectionImpl implements LoXiMConnectionInternal {
 	@Override
 	public boolean isReadOnly() throws SQLException {
 		checkClosed();
-		// TODO Auto-generated method stub
 		return false;
 	}
 

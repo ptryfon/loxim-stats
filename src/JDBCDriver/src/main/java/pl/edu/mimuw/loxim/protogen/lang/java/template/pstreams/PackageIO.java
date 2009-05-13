@@ -3,7 +3,6 @@ package pl.edu.mimuw.loxim.protogen.lang.java.template.pstreams;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.Socket;
-import java.net.SocketException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -56,6 +55,13 @@ public class PackageIO implements Closeable {
 
 		}
 		
+		private Throwable getRootCause(Throwable t) {
+			while (t.getCause() != null) {
+				t = t.getCause();
+			}
+			return t;
+		}
+		
 		@Override
 		public void run() {
 			log.debug("Starting reader thread");
@@ -65,9 +71,12 @@ public class PackageIO implements Closeable {
 					filterPackage(pis.readPackage());
 				}
 			} catch (Exception e) { // Yes, all exceptions as they have to be forwarded to the PackageIO object
-				log.debug("Exception " + e + " was thrown and will be forwarded as a poison pill", e);
+				log.debug("Exception '" + e + "' was thrown and will be forwarded as a poison pill", e);
 				try {
-					PackageIO.this.close();
+					if (getRootCause(e) instanceof IOException) {
+						log.debug("Closing the socket");
+						PackageIO.this.close();
+					}
 				} catch (IOException ioe) {
 					log.debug(ioe, ioe);
 				}
@@ -94,7 +103,24 @@ public class PackageIO implements Closeable {
 		
 		public Package read() throws ProtocolException {
 			try {
-				return buffer.take();
+				Package pac = buffer.take();
+				if (pac.getPackageType() == PoisonPillPackage.ID) {
+					PoisonPillPackage pill = (PoisonPillPackage) pac;
+					Exception e = pill.getException();
+					log.debug("Received poison pill package from the reader. Exception " + e + " was thrown and will be forwarded", e);
+					if (e instanceof RuntimeException) {
+						log.debug("Throwing RTE");
+						throw new RuntimeException(e); // For a new stack trace
+					} else if (e instanceof ProtocolException) {
+						log.debug("Throwing PE");
+						throw new ProtocolException(e); // For a new stack trace
+					} else {
+						log.debug("Throwing ISE");
+						throw new IllegalStateException("Unexpected exception", e);
+					}
+				} else {
+					return pac;
+				}
 			} catch (InterruptedException e) {
 				throw new IllegalStateException(e); // this should never happen
 			}
@@ -125,22 +151,6 @@ public class PackageIO implements Closeable {
 			throw new ProtocolException("Connection closed");
 		}
 		Package pac = reader.read();
-		if (pac.getPackageType() == PoisonPillPackage.ID) {
-			PoisonPillPackage pill = (PoisonPillPackage) pac;
-			Exception e = pill.getException();
-			log.debug("Received poison pill package from the reader. Exception " + e + " was thrown and will be forwarded", e);
-			if (e instanceof RuntimeException) {
-				log.debug("Throwing RTE");
-				throw new RuntimeException(e); // For a new stack trace
-			} else if (e instanceof ProtocolException) {
-				log.debug("Throwing PE");
-				throw new ProtocolException(e); // For a new stack trace
-			} else {
-				log.debug("Throwing IE");
-				throw new IllegalStateException("Unexpected exception", e);
-			}
-		}
-		
 		log.debug("Read package " + pac.getClass().getSimpleName());
 		return pac;
 	}
