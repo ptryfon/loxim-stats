@@ -1,0 +1,35 @@
+begin;
+$slash
+
+--Zapytanie bezposrednio o obiekty OPrac nie zwroci zadnych danych, bo
+--uzytkownik nie ma do nich prawa. Moze jedynie korzystac z interfejsow 
+--nalezacych do przypisanego mu schematu zewnetrznego
+OPrac
+/
+--Ponizsze zapytanie nie da zadnych rezultatow z podobnych przyczyn
+PracZWarszawyDef
+/
+--Dostep do obiektow OIPrac1 interfejsu IPrac1 jest prawidlowy i zgodny ze schematem
+--Operacja odczytu na tym obiekcie powiedzie sie, zwracajac jego strukture
+deref(OIPrac1)
+/
+--Przy pomocy interfejsu IPrac1 mozna rowniez zmieniac poszczegolne pola tej struktury:
+(OIPrac1 where nazwisko = "Kowalski").imie := "Jaroslaw"
+/
+--Pole imie obiektu odpowiedniego OPrac zostalo zmienione
+deref(OIPrac1)
+/
+--Mozemy zmienic rowniez adres, wstawiajac obiekt zlozony
+(OIPrac1 where nazwisko = "Kowalski").adres := ("Staromiejska" as ulica,
+		2 as numerDomu,
+		15 as numerMieszkania,
+		"Krakow" as miasto)
+/
+--Kiedy teraz sprobujemy odczytac OPrac przez interfejs OIPrac1, Kowalskiego juz
+--nie bedzie - bo tylko pracownicy z Warszawy sa widoczni.
+deref(OIPrac1)
+/
+--Koniec sesji uzytkownika wardane
+end
+/
+quit

@@ -1,0 +1,236 @@
+begin;
+$slash
+--Wykonane polecenie ustawilo odpowiedni (wielolinijkowy) wariant skladni       
+--Tworzymy klase COsoba.
+--Wynikiem tego zapytania jest referencja do obiektu definicji klasy.                                                                                                                                                                                                                                
+create class COsoba 
+{
+  instance OOsoba: 
+  {
+    imie;
+    nazwisko;
+    rokUrodzenia;
+    adres
+  } 
+} 
+/                    
+--Tworzymy klase CPrac, ktora dziedziczy po klasie COsoba.                             
+create class CPrac extends COsoba
+{
+  instance OPrac:
+  {
+    zarobki
+  }
+  procedure dajPodwyzke()
+  {
+    zarobki := 1.1 * zarobki
+  }
+}
+/
+--Tworzymy dwa obiekty nalezace do klasy CPrac.
+--Wynikiem zapytania beda referencje do stworzonych obiektow.                                                                
+CPrac includes 
+(
+  create 
+  (
+    "Jan" as imie,
+    "Kowalski" as nazwisko,
+    (
+      "Marszalkowska" as ulica,
+      12 as numerDomu,
+      3 as numerMieszkania,
+      "Warszawa" as miasto
+    ) as adres,
+    5000 as zarobki
+  ) as OPrac
+)
+/
+CPrac includes 
+(
+  create 
+  (
+    "Jolanta" as imie,
+    "Nowak" as nazwisko,
+    (
+      "Warszawska" as ulica,
+      1 as numerDomu,
+      12 as numerMieszkania,
+      "Szczecin" as miasto
+    ) as adres,
+    5500 as zarobki
+  ) as OPrac
+)
+/
+--Definiujemy interfejs IOsoba.
+--Interfejs ten nie pozwala na dostep do zadnych obiektow, gdyz nie definiuje
+--nazwy niezmienniczej (brak skladni instance). Mozna natomiast po nim
+--dziedziczyc i do tego w tym przykladzie sluzy.
+--Wynikiem zapytania jest referencja do obiektu definicji interfejsu.
+create interface IOsoba
+{
+  {
+    imie;
+    nazwisko
+  }
+}
+/
+--Tworzymy dwa rozne interfejsy dziedziczace po interfejsie IOsoba.
+create interface IPrac1 extends IOsoba
+{
+  instance OIPrac1:
+  {
+    adres;
+    rokUrodzenia
+  }
+}
+/
+create interface IPrac2 extends IOsoba
+{
+  instance OIPrac2:
+  {
+    zarobki
+  }
+  dajPodwyzke()
+}
+/
+--Definiujemy perspektywe PracZWarszawyDef.
+--Umozliwia ona odczyt wszystkich pracownikow (obiektow OPrac) z Warszawy.
+create view PracZWarszawyDef
+{
+  virtual objects PracZWarszawy()
+  {
+    return OPrac where adres.miasto = "Warszawa" as pw
+  }
+  procedure on_retrieve()
+  {
+    return deref(pw)
+  }
+}
+/
+--Do perspektywy PracZWarszawyDef wstawiamy procedure pomocnicza
+PracZWarszawyDef :< 
+  procedure dorosly(rokUrodzenia)
+  {
+    if 2009 - rokUrodzenia >= 18 then
+      return true
+    else
+      return false
+    fi
+  }
+/
+--Do perspektywy PracZWarszawyDef wstawiamy kolejne podperspektywy.
+--Ma to na celu umozliwienie dostepu do poszczegolnych pol jej wirtualnych obiektow.
+--Perspektywa rokUrodzeniaDef wykorzystuje wczesniej wstawiona procedure dorosly
+PracZWarszawyDef :< 
+  view imieDef
+  {
+    virtual objects imie()
+    {
+      return pw.imie as i
+    }
+    procedure on_retrieve()
+    {
+      return deref(i)
+    }
+    procedure on_update(new_val)
+    {
+      i := new_val
+    }
+  }
+/
+PracZWarszawyDef :< 
+  view nazwiskoDef
+  {
+    virtual objects nazwisko()
+    {
+      return pw.nazwisko as n
+    }
+    procedure on_retrieve()
+    {
+      return deref(n)
+    }
+    procedure on_update(new_val)
+    {
+      n := new_val
+    }
+  }
+/
+PracZWarszawyDef :< 
+  view rokUrodzeniaDef
+  {
+    virtual objects rokUrodzenia()
+    {
+      return pw.rokUrodzenia as r
+    }
+    procedure on_retrieve() 
+    {  
+      return deref(r)
+    }
+    procedure on_update(new_val)
+    {
+      if dorosly(new_val) then 
+        n := new_val 
+      fi
+    }
+  }
+/
+PracZWarszawyDef :<
+  view adresDef
+  {
+    virtual objects adres()
+    {
+      return pw.adres as a
+    }
+    procedure on_retrieve()
+    {
+      return deref(a)
+    }
+    procedure on_update(new_val)
+    {
+      a := new_val
+    }
+  }
+/
+--Poleceniem shows wiazemy interfejs IPrac1 z perspektywa PracZWarszawyDef
+--Wynikiem jest potwierdzenie utworzenia wiazania
+IPrac1 shows PracZWarszawyDef
+/
+--Interfejs IPrac2 zwiazany zostaje z klasa CPrac
+IPrac2 shows CPrac
+/
+--Definiujemy schemat zewnetrzny SWarDane.
+--Ten schemat zezwala na korzystanie tylko z interfejsu IPrac1.
+--Po nazwie interfejsu wymienione sa dozwolone operacje.  
+create schema SWarDane
+{
+  IPrac1 read update delete
+}
+/
+--Tworzymy schemat SZarobki, wykorzystujacy interfejs IPrac2
+--Dostep odczytu do IPrac2 pozwala rowniez na wykonywanie udostepnionych w nim metod
+create schema SZarobki
+{
+  IPrac2 read
+}
+/
+--Schematy sa eksportowane
+--W wyniku tych polecen zostana utworzone pliki SWarDane.sch i SZarobki.sch
+export SWarDane
+/
+export SZarobki
+/
+--Tworzymy uzytkownika wardane i przypisujemy mu schemat SWarDane
+create user wardane passwd haslo
+/
+grant read on SWarDane to wardane
+/
+--Tworzymy uzytkownika szarobki i przypisujemy mu schemat SZarobki
+create user szarobki passwd haslo
+/
+grant read on SZarobki to szarobki
+/
+--Koniec sesji administratora 
+end
+/
+quit
+

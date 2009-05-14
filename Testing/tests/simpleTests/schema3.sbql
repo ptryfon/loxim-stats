@@ -1,0 +1,34 @@
+begin;
+$slash
+
+--Analogicznie jak dla poprzedniego uzytkownika, bezposrednie zapytanie
+--o obiekty OPrac zwroci pusty wynik
+OPrac
+/
+--Zapytanie przez interfejs IPrac2 pokaze nam wszystkie, odpowiednio ograniczone
+--obiekty OPrac
+deref(OIPrac2)
+/
+--Mozemy wykorzystac dostepna przez interfejs metode dajPodwyzke.
+--Wywola sie na wszystkich obiektach spelniajacych warunek where
+(OIPrac2 where zarobki < 6000).dajPodwyzke()
+/
+--Sprawdzamy efekt wykonania metody
+deref(OIPrac2.zarobki)
+/
+--Probujemy skasowac obiekty OPrac przez interfejs IPrac2.
+--Jako za uzytkownik szarobki nie ma takich uprawnien, obiekty nie usuna sie.
+delete OIPrac2
+/
+OIPrac2
+/
+--IPrac2 nie pozwala rowniez na modyfikacje pol. Bezposrednia proba zmiany
+--pola zarobki nie powiedzie sie
+(OIPrac2 where imie = "Jaroslaw").zarobki := 200
+/
+deref(OIPrac2.zarobki)
+/
+--Koniec sesji uzytkownika szarobki
+end
+/
+quit

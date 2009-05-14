@@ -103,7 +103,7 @@ namespace QExecutor
 	bool AccessMap::hasAccess(int access, string objectName) const
 	{
 		int crud = getAccess(objectName);
-		debug_printf(*ec, "user is %s, asking for %d access to %s, found rights = %d, cross = %d", m_isDba  ? "dba" : "not dba", access, objectName.c_str(), crud, crud & access);
+		//debug_printf(*ec, "user is %s, asking for %d access to %s, found rights = %d, cross = %d", m_isDba  ? "dba" : "not dba", access, objectName.c_str(), crud, crud & access);
 		return (access == (crud & access));		
 	}
 	
@@ -130,7 +130,7 @@ namespace QExecutor
 	
 	void AccessMap::addAccess(string name, int crud, bool canGive, bool base)
 	{
-		debug_printf(*ec, "[AccessMap::addAccess]: adding access type %d for user %s to name %s", crud, m_user.c_str(), name.c_str());
+		//debug_printf(*ec, "[AccessMap::addAccess]: adding access type %d for user %s to name %s", crud, m_user.c_str(), name.c_str());
 		if (base)
 		{
 			TNameToExtendedAccess::iterator it = m_baseMap.find(name);
@@ -164,7 +164,7 @@ namespace QExecutor
 	
 	void AccessMap::removeAccess(string name, bool base)
 	{
-		debug_printf(*ec, "[AccessMap::removeAccess]: removing access to %s", name.c_str());
+		//debug_printf(*ec, "[AccessMap::removeAccess]: removing access to %s", name.c_str());
 		m_accessMap.erase(name);
 		if (base)
 			m_baseMap.erase(name);
@@ -212,7 +212,7 @@ namespace QExecutor
 	void AccessMap::removeSection(int secNo)
 	{
 		if (m_keepSection) return;
-		debug_printf(*ec, "[AccessMap::removeSection]: removing section no. %d", secNo);
+		//debug_printf(*ec, "[AccessMap::removeSection]: removing section no. %d", secNo);
 		TIntToStringSet::iterator it = m_sectionToNamesMap.find(secNo);
 		if (it != m_sectionToNamesMap.end())
 		{
@@ -238,7 +238,7 @@ namespace QExecutor
 	
 	void AccessMap::addSectionInfo(int secNo, set<string> names)
 	{
-		debug_printf(*ec, "[AccessMap::addSection]: adding section no. %d", secNo);
+		//debug_printf(*ec, "[AccessMap::addSection]: adding section no. %d", secNo);
 		m_sectionToNamesMap[secNo] = names;
 	}
 	
@@ -301,11 +301,11 @@ namespace QExecutor
 		const string objectNameBind = "object_name";
 		const string grantOptionBind = "grant_option";
 		
-		debug_printf(*ec, "[AccessMap::resetForUser] executing..");	
+		//debug_printf(*ec, "[AccessMap::resetForUser] executing..");	
 		string query = QueryBuilder::getHandle()->query_for_user_priviliges(username);
 		QueryResult *res;
 		qe->execute_locally(query, &res);
-		debug_printf(*ec, "[AccessMap::resetForUser] executed.. resType = %d", res->type());	
+		//debug_printf(*ec, "[AccessMap::resetForUser] executed.. resType = %d", res->type());	
 		
 		if (res->type() != QueryResult::QSTRUCT)
 		{
@@ -318,7 +318,7 @@ namespace QExecutor
 		bool canGive = false;
 		while (!(currStructResult->isEmpty()))
 		{
-			debug_printf(*ec, "[AccessMap::resetForUser] loops..");
+			//debug_printf(*ec, "[AccessMap::resetForUser] loops..");
 			QueryResult *innerResult;
 			currStructResult->getResult(innerResult);
 			if (innerResult->type() != QueryResult::QBINDER)
@@ -459,7 +459,7 @@ namespace QExecutor
 	{
 		if (procedureOnly)
 		{
-			debug_printf(*ec, "setAccessControl: procedureOnly %s, %d", enable ? "enabled" : "disabled", level); 
+			//debug_printf(*ec, "setAccessControl: procedureOnly %s, %d", enable ? "enabled" : "disabled", level); 
 			if ((m_procLevel == -1) || (level == m_procLevel))
 			{
 				m_procedureAccessControl = enable;
@@ -471,7 +471,7 @@ namespace QExecutor
 		}
 		else
 		{
-			debug_printf(*ec, "setAccessControl: fullAccess %s, %d", enable ? "enabled" : "disabled", level); 
+			//debug_printf(*ec, "setAccessControl: fullAccess %s, %d", enable ? "enabled" : "disabled", level); 
 			if ((m_disabledLevel == -1) || (level == m_disabledLevel))
 			{
 				m_disabled = enable;
