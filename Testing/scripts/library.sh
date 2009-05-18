@@ -10,7 +10,8 @@ memcheck="valgrind --tool=memcheck --leak-check=full --show-reachable=yes --leak
 helgrind="valgrind --tool=helgrind"
 massif="valgrind --tool=massif --max-snapshots=1000"
 drd="valgrind --tool=drd"
-
+nodefraction=0.0005
+edgefraction=0.00001
 
 declare -a loximStoreFiles
 
@@ -176,31 +177,33 @@ postprocessOutput() {
 	echo "~~~~~~~~ postprocessing results from test ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"	
 	case $testType in
 		heap) ms_print $resultCurrPath > $resultCurrPath"_ms_print" ;;
-		leaksPr) mv /tmp/`ls /tmp | grep loxim_server | grep $loximServerPid` $resultCurrPath".heap"
+		leaksPr) echo ten plik ma być!!  `ls /tmp | grep loxim_server | grep $loximServerPid`
+						mv /tmp/`ls /tmp | grep loxim_server | grep $loximServerPid` $resultCurrPath".heap"
 						pprof --inuse_objects --lines --heapcheck --ps $loximServer $resultCurrPath.heap >  $resultCurrPath".ps";
 						pprof --inuse_objects --lines --heapcheck --pdf $loximServer $resultCurrPath.heap >  $resultCurrPath".pdf";
 						pprof --inuse_objects --lines --heapcheck --gif $loximServer $resultCurrPath.heap >  $resultCurrPath".gif";
 						pprof --inuse_objects --lines --heapcheck --text $loximServer $resultCurrPath.heap >  $resultCurrPath".txt" ;;
-		heapPr)	pprof --alloc_space --ps $loximServer $resultCurrPath.0001.heap > $resultCurrPath"AllocSpace.ps";
-						pprof --alloc_space --pdf $loximServer $resultCurrPath.0001.heap > $resultCurrPath"AllocSpace.pdf";
-						pprof --alloc_space --text $loximServer $resultCurrPath.0001.heap > $resultCurrPath"AllocSpace.text";
-						pprof --alloc_space --gif $loximServer $resultCurrPath.0001.heap > $resultCurrPath"AllocSpace.gif";
+		heapPr)	pprof --alloc_space --ps --nodefraction=$nodefraction --edgefraction=$edgefraction $loximServer $resultCurrPath.0001.heap > $resultCurrPath"AllocSpace.ps";
+						pprof --alloc_space --pdf --nodefraction=$nodefraction --edgefraction=$edgefraction $loximServer $resultCurrPath.0001.heap > $resultCurrPath"AllocSpace.pdf";
+						pprof --alloc_space --text --nodefraction=$nodefraction --edgefraction=$edgefraction $loximServer $resultCurrPath.0001.heap > $resultCurrPath"AllocSpace.text";
+						pprof --alloc_space --gif --nodefraction=$nodefraction --edgefraction=$edgefraction $loximServer $resultCurrPath.0001.heap > $resultCurrPath"AllocSpace.gif";
 	
-						pprof --alloc_objects --ps $loximServer $resultCurrPath.0001.heap > $resultCurrPath"AllocObjects.ps";
-						pprof --alloc_objects --pdf $loximServer $resultCurrPath.0001.heap > $resultCurrPath"AllocObjects.pdf";
-						pprof --alloc_objects --text $loximServer $resultCurrPath.0001.heap > $resultCurrPath"AllocObjects.text";
-						pprof --alloc_objects --gif $loximServer $resultCurrPath.0001.heap > $resultCurrPath"AllocObjects.gif";
+						pprof --alloc_objects --ps --nodefraction=$nodefraction --edgefraction=$edgefraction $loximServer $resultCurrPath.0001.heap > $resultCurrPath"AllocObjects.ps";
+						pprof --alloc_objects --pdf --nodefraction=$nodefraction --edgefraction=$edgefraction $loximServer $resultCurrPath.0001.heap > $resultCurrPath"AllocObjects.pdf";
+						pprof --alloc_objects --text --nodefraction=$nodefraction --edgefraction=$edgefraction $loximServer $resultCurrPath.0001.heap > $resultCurrPath"AllocObjects.text";
+						pprof --alloc_objects --gif --nodefraction=$nodefraction --edgefraction=$edgefraction $loximServer $resultCurrPath.0001.heap > $resultCurrPath"AllocObjects.gif";
 
-						pprof --inuse_space --ps $loximServer $resultCurrPath.0001.heap > $resultCurrPath"InUseSpace.ps";
-						pprof --inuse_space --pdf $loximServer $resultCurrPath.0001.heap > $resultCurrPath"InUseSpace.pdf";
-						pprof --inuse_space --text $loximServer $resultCurrPath.0001.heap > $resultCurrPath"InUseSpace.text";
-						pprof --inuse_space --gif $loximServer $resultCurrPath.0001.heap > $resultCurrPath"InUseSpace.gif";
+						pprof --inuse_space --ps --nodefraction=$nodefraction --edgefraction=$edgefraction $loximServer $resultCurrPath.0001.heap > $resultCurrPath"InUseSpace.ps";
+						pprof --inuse_space --pdf --nodefraction=$nodefraction --edgefraction=$edgefraction $loximServer $resultCurrPath.0001.heap > $resultCurrPath"InUseSpace.pdf";
+						pprof --inuse_space --text --nodefraction=$nodefraction --edgefraction=$edgefraction $loximServer $resultCurrPath.0001.heap > $resultCurrPath"InUseSpace.text";
+						pprof --inuse_space --gif --nodefraction=$nodefraction --edgefraction=$edgefraction $loximServer $resultCurrPath.0001.heap > $resultCurrPath"InUseSpace.gif";
 	
-						pprof --inuse_objects --ps $loximServer $resultCurrPath.0001.heap > $resultCurrPath"InUseObjects.ps";
-						pprof --inuse_objects --pdf $loximServer $resultCurrPath.0001.heap > $resultCurrPath"InUseObjects.pdf";
-						pprof --inuse_objects --text $loximServer $resultCurrPath.0001.heap > $resultCurrPath"InUseObjects.text";
-						pprof --inuse_objects --gif $loximServer $resultCurrPath.0001.heap > $resultCurrPath"InUseObjects.gif";;
-		corr) echo diff $answerPath $outputCurrPath  $resultCurrPath;  diff $answerPath $outputCurrPath > $resultCurrPath ;;
+						pprof --inuse_objects --ps --nodefraction=$nodefraction --edgefraction=$edgefraction $loximServer $resultCurrPath.0001.heap > $resultCurrPath"InUseObjects.ps";
+						pprof --inuse_objects --pdf --nodefraction=$nodefraction --edgefraction=$edgefraction $loximServer $resultCurrPath.0001.heap > $resultCurrPath"InUseObjects.pdf";
+						pprof --inuse_objects --text --nodefraction=$nodefraction --edgefraction=$edgefraction $loximServer $resultCurrPath.0001.heap > $resultCurrPath"InUseObjects.text";
+						pprof --inuse_objects --gif --nodefraction=$nodefraction --edgefraction=$edgefraction $loximServer $resultCurrPath.0001.heap > $resultCurrPath"InUseObjects.gif";;
+		corr) echo diff $answerPath $outputCurrPath  $resultCurrPath;  diff $answerPath $outputCurrPath > $resultCurrPath;
+					return `wc -l $resultCurrPath | cut -f1 -d" "`;;
 	esac
 }
 
@@ -252,8 +255,17 @@ makeTest() {
 				runSingleAdvancedTest $testPath 
 		fi
 		postprocessOutput
+		echo lastReturn $lastReturn
+		lastReturn=$?
+	fi
+	#stupid hack because sometimes there info about help in answer file
+	#here should be inteligent output comparer 
+	if [ lastReturn -lt 3 ]; then
+		retValue=0
 	fi
 	echo "%%%%%%%%%%%%%%%%%%% TEST FINISHED %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
+	echo retValue $retValue
+	exit $retValue
 }
 
 

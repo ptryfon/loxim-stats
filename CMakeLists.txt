@@ -243,6 +243,7 @@ if (FLEX_EXECUTABLE)
   if(BISON_EXECUTABLE) 
 	add_subdirectory (src)
 	add_subdirectory (Documentation)
+	add_subdirectory (Testing)
   endif (BISON_EXECUTABLE) 
 endif (FLEX_EXECUTABLE) 
 
