@@ -52,7 +52,7 @@ generateRunNumber() {
 	echo $runNumber > $LOXIM_HOME/Testing/scripts/runNumber.txt
 }
 
-set -- `getopt t:An:T:c:o:m:l:P:O:p:r: $*`
+set -- `getopt t:An:T:c:o:m:l:P:C:p:r: $*`
 
 for i
 do
@@ -80,7 +80,7 @@ do
 									mode="dot"
 							 fi; shift;;
 		-p) shift; customTestPath=$1; shift;;
-		-O) shift; customParameters=$1; shift;;
+		-C) shift; customParameters=$1; shift;;
 		-o) shift; outputPath=$1; shift;;
 		-l) shift; login=$1; shift;;
 		-P) shift; password=$1; shift;;
