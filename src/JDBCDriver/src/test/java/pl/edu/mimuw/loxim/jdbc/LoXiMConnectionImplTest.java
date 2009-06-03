@@ -9,8 +9,10 @@ import org.apache.commons.logging.LogFactory;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
+@Ignore
 public class LoXiMConnectionImplTest {
 
 	private static final Log log = LogFactory.getLog(LoXiMConnectionImplTest.class);

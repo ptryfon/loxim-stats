@@ -9,8 +9,10 @@ import java.sql.SQLException;
 import java.util.Properties;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
+@Ignore
 public class LoXiMDriverImplTest {
 
 	private LoXiMDriverImpl driver;

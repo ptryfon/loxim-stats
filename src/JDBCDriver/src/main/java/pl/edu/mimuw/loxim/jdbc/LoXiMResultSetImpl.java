@@ -23,7 +23,6 @@ import java.sql.SQLXML;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
@@ -42,13 +41,13 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 	private boolean wasNull;
 	private int index = -1;
 	private List<Object> results;
-	
+
 	LoXiMResultSetImpl(LoXiMStatement statement, List<Object> results) throws SQLException {
 		this.statement = statement;
 		this.fetchSize = statement.getFetchSize();
 		this.results = results;
 	}
-	
+
 	@Override
 	public boolean absolute(int row) throws SQLException {
 		checkClosed();
@@ -84,7 +83,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 		if (closed) {
 			return;
 		}
-		
+
 		closed = true;
 	}
 
@@ -94,22 +93,27 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 		throw new SQLException("The result set is CONCUR_READ_ONLY");
 	}
 
-	@Override
-	public int findColumn(String columnLabel) throws SQLException {
+	private int findColumn0(String columnLabel) throws SQLException {
 		checkClosed();
 		int[] columns = findColumns(columnLabel);
-		
 		if (columns.length == 0) {
-			throw new SQLDataException("Column " + columnLabel + " not found");
+			return 0;
 		}
-		
 		if (columns.length > 1) {
-			throw new SQLDataException(columns.length + " columns found for name " + columnLabel + ": " + Arrays.toString(columns));
+			throw new SQLDataException("Multiple columns (" + columns.length + ") for name " + columnLabel);
 		}
-		
 		return columns[0];
 	}
-	
+
+	@Override
+	public int findColumn(String columnLabel) throws SQLException {
+		int column = findColumn0(columnLabel);
+		if (column == 0) {
+			throw new SQLDataException("No such column: " + columnLabel);
+		}
+		return column;
+	}
+
 	@Override
 	public int[] findColumns(String columnLabel) throws SQLException {
 		checkClosed();
@@ -134,9 +138,9 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 		} else if (o instanceof Binding) {
 			Binding binding = (Binding) o;
 			if (binding.getBindingName().equals(columnLabel)) {
-				return new int[]{1};
+				return new int[] { 1 };
 			} else {
-				return new int[0];	
+				return new int[0];
 			}
 		} else {
 			return new int[0];
@@ -156,7 +160,8 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public Array getArray(String columnLabel) throws SQLException {
-		return getArray(findColumn(columnLabel));
+		int col = findColumn0(columnLabel);
+		return col == 0 ? null : getArray(col);
 	}
 
 	@Override
@@ -166,7 +171,8 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public InputStream getAsciiStream(String columnLabel) throws SQLException {
-		return getAsciiStream(findColumn(columnLabel));
+		int col = findColumn0(columnLabel);
+		return col == 0 ? null : getAsciiStream(col);
 	}
 
 	@Override
@@ -176,14 +182,15 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 		if (o == null) {
 			return null;
 		}
-		
+
 		Number n = convertResult(columnIndex, Number.class);
 		return BigDecimal.valueOf(n.doubleValue());
 	}
 
 	@Override
 	public BigDecimal getBigDecimal(String columnLabel) throws SQLException {
-		return getBigDecimal(findColumn(columnLabel));
+		int col = findColumn0(columnLabel);
+		return col == 0 ? null : getBigDecimal(col);
 	}
 
 	@Override
@@ -210,7 +217,8 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public InputStream getBinaryStream(String columnLabel) throws SQLException {
-		return getBinaryStream(findColumn(columnLabel));
+		int col = findColumn0(columnLabel);
+		return col == 0 ? null : getBinaryStream(col);
 	}
 
 	@Override
@@ -220,7 +228,8 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public Blob getBlob(String columnLabel) throws SQLException {
-		return getBlob(findColumn(columnLabel));
+		int col = findColumn0(columnLabel);
+		return col == 0 ? null : getBlob(col);
 	}
 
 	@Override
@@ -237,12 +246,14 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 		if (boolStr.equals("0")) {
 			return false;
 		}
-		throw new IllegalArgumentException("Object at index " + columnIndex + " cannot be mapped from " + o.getClass() + " to boolean");
+		throw new IllegalArgumentException("Object at index " + columnIndex + " cannot be mapped from " + o.getClass()
+				+ " to boolean");
 	}
 
 	@Override
 	public boolean getBoolean(String columnLabel) throws SQLException {
-		return getBoolean(findColumn(columnLabel));
+		int col = findColumn0(columnLabel);
+		return col == 0 ? false : getBoolean(col);
 	}
 
 	@Override
@@ -253,7 +264,8 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public byte getByte(String columnLabel) throws SQLException {
-		return getByte(findColumn(columnLabel));
+		int col = findColumn0(columnLabel);
+		return col == 0 ? 0 : getByte(col);
 	}
 
 	@Override
@@ -263,21 +275,23 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 		if (o == null) {
 			return null;
 		}
-		
+
 		if (o instanceof byte[]) {
-			return (byte []) o;
+			return (byte[]) o;
 		}
-		
+
 		if (o instanceof String) {
 			return ((String) o).getBytes();
 		}
 
-		throw new IllegalArgumentException("Object at index " + columnIndex + " cannot be mapped from " + o.getClass() + " to byte[]");
+		throw new IllegalArgumentException("Object at index " + columnIndex + " cannot be mapped from " + o.getClass()
+				+ " to byte[]");
 	}
 
 	@Override
 	public byte[] getBytes(String columnLabel) throws SQLException {
-		return getBytes(findColumn(columnLabel));
+		int col = findColumn0(columnLabel);
+		return col == 0 ? null : getBytes(col);
 	}
 
 	@Override
@@ -289,7 +303,8 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public Reader getCharacterStream(String columnLabel) throws SQLException {
-		return getCharacterStream(findColumn(columnLabel));
+		int col = findColumn0(columnLabel);
+		return col == 0 ? null : getCharacterStream(col);
 	}
 
 	@Override
@@ -299,7 +314,8 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public Clob getClob(String columnLabel) throws SQLException {
-		return getClob(findColumn(columnLabel));
+		int col = findColumn0(columnLabel);
+		return col == 0 ? null : getClob(col);
 	}
 
 	@Override
@@ -320,17 +336,18 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public Date getDate(String columnLabel) throws SQLException {
-		return getDate(findColumn(columnLabel));
+		int col = findColumn0(columnLabel);
+		return col == 0 ? null : getDate(col);
 	}
 
 	@Override
 	public Date getDate(int columnIndex, Calendar cal) throws SQLException {
 		Date date = getDate(columnIndex);
-		
+
 		if (date == null || cal == null) {
 			return date;
 		}
-		
+
 		cal.setTime(date);
 		DateUtil.resetToDate(cal);
 		return new Date(cal.getTime().getTime());
@@ -338,7 +355,8 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public Date getDate(String columnLabel, Calendar cal) throws SQLException {
-		return getDate(findColumn(columnLabel), cal);
+		int col = findColumn0(columnLabel);
+		return col == 0 ? null : getDate(col, cal);
 	}
 
 	@Override
@@ -349,7 +367,8 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public double getDouble(String columnLabel) throws SQLException {
-		return getDouble(findColumn(columnLabel));
+		int col = findColumn0(columnLabel);
+		return col == 0 ? 0 : getDouble(col);
 	}
 
 	@Override
@@ -372,7 +391,8 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public float getFloat(String columnLabel) throws SQLException {
-		return getFloat(findColumn(columnLabel));
+		int col = findColumn0(columnLabel);
+		return col == 0 ? 0 : getFloat(col);
 	}
 
 	@Override
@@ -389,7 +409,8 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public int getInt(String columnLabel) throws SQLException {
-		return getInt(findColumn(columnLabel));
+		int col = findColumn0(columnLabel);
+		return col == 0 ? 0 : getInt(col);
 	}
 
 	@Override
@@ -400,7 +421,8 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public long getLong(String columnLabel) throws SQLException {
-		return getLong(findColumn(columnLabel));
+		int col = findColumn0(columnLabel);
+		return col == 0 ? 0 : getLong(col);
 	}
 
 	@Override
@@ -415,7 +437,8 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public Reader getNCharacterStream(String columnLabel) throws SQLException {
-		return getNCharacterStream(findColumn(columnLabel));
+		int col = findColumn0(columnLabel);
+		return col == 0 ? null : getNCharacterStream(col);
 	}
 
 	@Override
@@ -425,7 +448,8 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public NClob getNClob(String columnLabel) throws SQLException {
-		return getNClob(findColumn(columnLabel));
+		int col = findColumn0(columnLabel);
+		return col == 0 ? null : getNClob(col);
 	}
 
 	@Override
@@ -435,7 +459,8 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public String getNString(String columnLabel) throws SQLException {
-		return getNString(findColumn(columnLabel));
+		int col = findColumn0(columnLabel);
+		return col == 0 ? null : getNString(col);
 	}
 
 	@Override
@@ -446,15 +471,26 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public Object getObject(String columnLabel) throws SQLException {
-		return getObject(findColumn(columnLabel));
+		List<Object> list = getObjects(columnLabel);
+		if (list.isEmpty()) {
+			return null;
+		}
+		if (list.size() == 1) {
+			return list.get(0);
+		}
+		return list;
 	}
 
 	@Override
-	public List<Object> getObjects(String colName) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+	public List<Object> getObjects(String columnLabel) throws SQLException {
+		int[] cols = findColumns(columnLabel);
+		List<Object> list = new ArrayList<Object>(cols.length);
+		for (int i : cols) {
+			list.add(getObject(i));
+		}
+		return list;
 	}
-	
+
 	@Override
 	public Object getObject(int columnIndex, Map<String, Class<?>> map) throws SQLException {
 		throw new SQLFeatureNotSupportedException();
@@ -462,7 +498,8 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public Object getObject(String columnLabel, Map<String, Class<?>> map) throws SQLException {
-		return getObject(findColumn(columnLabel), map);
+		int col = findColumn0(columnLabel);
+		return col == 0 ? null : getObject(col, map);
 	}
 
 	@Override
@@ -472,7 +509,8 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public Ref getRef(String columnLabel) throws SQLException {
-		return getRef(findColumn(columnLabel));
+		int col = findColumn0(columnLabel);
+		return col == 0 ? null : getRef(col);
 	}
 
 	@Override
@@ -487,7 +525,8 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public RowId getRowId(String columnLabel) throws SQLException {
-		return getRowId(findColumn(columnLabel));
+		int col = findColumn0(columnLabel);
+		return col == 0 ? null : getRowId(col);
 	}
 
 	@Override
@@ -497,7 +536,8 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public SQLXML getSQLXML(String columnLabel) throws SQLException {
-		return getSQLXML(findColumn(columnLabel));
+		int col = findColumn0(columnLabel);
+		return col == 0 ? null : getSQLXML(col);
 	}
 
 	@Override
@@ -508,7 +548,8 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public short getShort(String columnLabel) throws SQLException {
-		return getShort(findColumn(columnLabel));
+		int col = findColumn0(columnLabel);
+		return col == 0 ? 0 : getShort(col);
 	}
 
 	@Override
@@ -525,7 +566,8 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public String getString(String columnLabel) throws SQLException {
-		return getString(findColumn(columnLabel));
+		int col = findColumn0(columnLabel);
+		return col == 0 ? null : getString(col);
 	}
 
 	@Override
@@ -536,26 +578,28 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public Time getTime(String columnLabel) throws SQLException {
-		return getTime(findColumn(columnLabel));
+		int col = findColumn0(columnLabel);
+		return col == 0 ? null : getTime(col);
 	}
 
 	@Override
 	public Time getTime(int columnIndex, Calendar cal) throws SQLException {
-        Time t = getTime(columnIndex);
+		Time t = getTime(columnIndex);
 
-        if (t == null || cal == null) {
-            return t;
-        }
+		if (t == null || cal == null) {
+			return t;
+		}
 
-        cal.setTime(t);
-        DateUtil.resetToTime(cal);
+		cal.setTime(t);
+		DateUtil.resetToTime(cal);
 
-        return new Time(cal.getTime().getTime());
+		return new Time(cal.getTime().getTime());
 	}
 
 	@Override
 	public Time getTime(String columnLabel, Calendar cal) throws SQLException {
-		return getTime(findColumn(columnLabel), cal);
+		int col = findColumn0(columnLabel);
+		return col == 0 ? null : getTime(col, cal);
 	}
 
 	@Override
@@ -566,23 +610,25 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public Timestamp getTimestamp(String columnLabel) throws SQLException {
-		return getTimestamp(findColumn(columnLabel));
+		int col = findColumn0(columnLabel);
+		return col == 0 ? null : getTimestamp(col);
 	}
 
 	@Override
 	public Timestamp getTimestamp(int columnIndex, Calendar cal) throws SQLException {
-        Timestamp ts = getTimestamp(columnIndex);
+		Timestamp ts = getTimestamp(columnIndex);
 
-        if (cal != null && ts != null) {
-            ts.setTime(DateUtil.getTimeInMillis(ts, null, cal));
-        }
+		if (cal != null && ts != null) {
+			ts.setTime(DateUtil.getTimeInMillis(ts, null, cal));
+		}
 
-        return ts;
+		return ts;
 	}
 
 	@Override
 	public Timestamp getTimestamp(String columnLabel, Calendar cal) throws SQLException {
-		return getTimestamp(findColumn(columnLabel), cal);
+		int col = findColumn0(columnLabel);
+		return col == 0 ? null : getTimestamp(col, cal);
 	}
 
 	@Override
@@ -598,12 +644,13 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 		} catch (MalformedURLException e) {
 			throw new SQLException(e);
 		}
-		
+
 	}
 
 	@Override
 	public URL getURL(String columnLabel) throws SQLException {
-		return getURL(findColumn(columnLabel));
+		int col = findColumn0(columnLabel);
+		return col == 0 ? null : getURL(col);
 	}
 
 	@Override
@@ -613,7 +660,8 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 
 	@Override
 	public InputStream getUnicodeStream(String columnLabel) throws SQLException {
-		return getUnicodeStream(findColumn(columnLabel));
+		int col = findColumn0(columnLabel);
+		return col == 0 ? null : getUnicodeStream(col);
 	}
 
 	@Override
@@ -1217,7 +1265,7 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 			throw new SQLException("Result set is closed");
 		}
 	}
-	
+
 	/**
 	 * Gets the object from the given column. First column is 1.
 	 * 
@@ -1248,28 +1296,29 @@ public class LoXiMResultSetImpl implements LoXiMResultSet {
 			throw new SQLDataException("Column #" + idx + " does not exist", e);
 		}
 	}
-	
+
 	private <T> T convertResult(int idx, Class<T> clazz) throws SQLException, IllegalArgumentException {
 		Object res = getColumn(idx);
 
 		if (clazz.isInstance(res)) {
 			return clazz.cast(res);
 		}
-		
+
 		if (res == null) {
 			if (Number.class.isAssignableFrom(clazz)) {
 				return clazz.cast(0);
 			}
 			return null;
 		}
-		
+
 		if (res instanceof LoXiMObject) {
 			return ((LoXiMObject) res).mapTo(clazz);
 		}
-		
-		throw new IllegalArgumentException("Object at index " + idx + " cannot be mapped from " + res.getClass() + " to " + clazz);
+
+		throw new IllegalArgumentException("Object at index " + idx + " cannot be mapped from " + res.getClass()
+				+ " to " + clazz);
 	}
-	
+
 	@Override
 	public String toString() {
 		StringBuilder buf = new StringBuilder(results.size() * 16);

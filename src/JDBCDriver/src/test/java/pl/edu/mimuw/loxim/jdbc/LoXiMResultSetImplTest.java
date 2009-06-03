@@ -3,6 +3,7 @@ package pl.edu.mimuw.loxim.jdbc;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
@@ -39,7 +40,7 @@ public class LoXiMResultSetImplTest {
 		result = new LoXiMResultSetImpl(statement, list);
 	}
 	
-//	@Test
+	@Test
 	public void testSimpleObjects() throws SQLException {
 		list.add(1);
 		list.add("asdf");
@@ -88,18 +89,53 @@ public class LoXiMResultSetImplTest {
 		b1.setValue("bbb");
 		d.add(b1);
 		list.add(s);
+		s = new StructImpl();
+		d = s.getData();
+		b1 = new BindingImpl();
+		b1.setBindingName("firstName");
+		b1.setValue("Adam");
+		d.add(b1);
+		b1 = new BindingImpl();
+		b1.setBindingName("firstName");
+		b1.setValue("Jan");
+		d.add(b1);
+		b1 = new BindingImpl();
+		b1.setBindingName("firstName");
+		b1.setValue("Ryszard");
+		d.add(b1);
+		list.add(s);
 		assertTrue(result.isBeforeFirst());
 		assertTrue(result.next());
 		assertEquals(1, result.getInt(1));
 		assertEquals(1, result.getInt("a"));
+		assertNull(result.getObject("lala"));
+		assertEquals(0, result.getInt("lala"));
 		testException(0);
 		testException(2);
 		assertTrue(result.next());
 		assertEquals(2, result.getInt(1));
 		assertEquals("bbb", result.getString(2));
 		assertEquals("bbb", result.getString("kilof"));
+		assertEquals("bbb", result.getObject("kilof"));
+		assertEquals(Arrays.asList("bbb"), result.getObjects("kilof"));
 		testException(0);
 		testException(3);
+		assertTrue(result.next());
+		assertEquals("Adam", result.getString(1));
+		assertEquals("Jan", result.getString(2));
+		assertEquals("Ryszard", result.getString(3));
+		assertEquals(Arrays.asList("Adam", "Jan", "Ryszard"), result.getObject("firstName"));
+		assertEquals(Arrays.asList("Adam", "Jan", "Ryszard"), result.getObjects("firstName"));
+		assertNull(result.getObject("lastName"));
+		assertTrue(result.getObjects("lastName").isEmpty());
+		try {
+			System.out.println(result.getString("firstName"));
+			fail();
+		} catch (SQLException e) {
+			// should be thrown
+		}
+		testException(0);
+		testException(4);
 		assertFalse(result.next());
 		assertTrue(result.isAfterLast());
 	}

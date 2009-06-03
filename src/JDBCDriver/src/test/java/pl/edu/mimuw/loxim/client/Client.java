@@ -16,16 +16,19 @@ import pl.edu.mimuw.loxim.jdbc.LoXiMDriverImpl;
 public class Client {
 
 	public static void main(String[] args) throws SQLException, IOException {
+		if (args.length != 3) {
+			System.out.println("Wywo³anie:\njava " + Client.class.getName() + " <JDBC db url> <user> <password>");
+		}
 		Connection con = null;
 		try {
-			String url = "jdbc:loxim:localhost/db"; // args[0];
+			String url = args[0];
 			Driver driver = new LoXiMDriverImpl();
 			Properties info = new Properties();
-			info.setProperty("user", "root");
-			info.setProperty("password", "");
+			info.setProperty("user", args[1]);
+			info.setProperty("password", args[2]);
 			con = driver.connect(url, info);
 			Client cli = new Client();
-			cli.execute(con, new InputStreamReader(System.in)); // args[1]
+			cli.execute(con, new InputStreamReader(System.in));
 		} finally {
 			if (con != null) {
 				con.close();

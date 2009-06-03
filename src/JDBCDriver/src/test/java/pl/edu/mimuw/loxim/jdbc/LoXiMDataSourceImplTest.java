@@ -5,8 +5,10 @@ import static org.junit.Assert.assertTrue;
 import java.sql.Connection;
 import java.sql.SQLInvalidAuthorizationSpecException;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
+@Ignore
 public class LoXiMDataSourceImplTest {
 
 	private LoXiMDataSourceImpl ds;

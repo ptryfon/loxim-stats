@@ -8,6 +8,6 @@ public interface LoXiMResultSet extends ResultSet {
 
 	public int[] findColumns(String columnLabel) throws SQLException;
 	
-	public List<Object> getObjects(String colName) throws SQLException;
+	public List<Object> getObjects(String columnLabel) throws SQLException;
 	
 }
