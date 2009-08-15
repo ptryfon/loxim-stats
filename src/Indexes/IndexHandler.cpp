@@ -5,8 +5,10 @@
 #include <sys/types.h>
 #include <Indexes/Cleaner.h>
 #include <Indexes/IndexManager.h>
+#include <Util/Concurrency.h>
 
 using namespace std;
+using namespace Util;
 namespace Indexes {
 
 	//inicjalizacja zmiennych statycznych
@@ -169,23 +171,22 @@ namespace Indexes {
 		
 		err = removeFromList(node);
 		cnode->setDirty();
-		
-		if ((err = newNodeMutex->down())) {
-			return err;
+	
+		{	
+			Mutex::Locker l(*newNodeMutex);
+
+			nodeAddress_t droppedTmp = droppedNode;
+			droppedNode = node->id;
+			node->nextNode = droppedTmp;
+			//dodajemy na poczatku
+			droppedCachedNodes.push_front(droppedNode);
+			if (droppedLastNode == NEW_NODE) {
+				//lista usunietych byla pusta
+				droppedLastNode = droppedNode;
+			}
+
+			err = freeNode(cnode, false);
 		}
-		
-		nodeAddress_t droppedTmp = droppedNode;
-		droppedNode = node->id;
-		node->nextNode = droppedTmp;
-		//dodajemy na poczatku
-		droppedCachedNodes.push_front(droppedNode);
-		if (droppedLastNode == NEW_NODE) {
-			//lista usunietych byla pusta
-			droppedLastNode = droppedNode;
-		}
-		
-		err = freeNode(cnode, false);
-		err = newNodeMutex->up();
 		return err;
 	}
 	
@@ -196,10 +197,7 @@ namespace Indexes {
 		if (nodeID == NEW_NODE) {
 			//mutex write nocache down
 			
-			if ((err = newNodeMutex->down())) {
-				return err;
-			}
-			
+			newNodeMutex->lock();		
 			if (droppedNode != NEW_NODE) {
 				// mamy jakies zwolnione bloki, trzeba je uzyc aby zmniejszyc fragmentacje
 				//musimy wczytac zeby dostac adres nastepnego wolnego
@@ -225,7 +223,7 @@ namespace Indexes {
 				if ((err = addToList(node))) {
 					return err;
 				}
-				err = newNodeMutex->up();
+				newNodeMutex->unlock();
 				
 				return err;
 			} else {
@@ -237,9 +235,7 @@ namespace Indexes {
 				nodeAddress_t newNodeID = nextFreeNodeAddr;
 				nextFreeNodeAddr += NODE_SIZE;
 				
-				if ((err = newNodeMutex->up())) {
-					return err;
-				}
+				newNodeMutex->unlock();
 				
 				if ((err = cacheMonitor->lock())) {
 					return err;
@@ -261,9 +257,9 @@ namespace Indexes {
 				cNode->setDirty();
 				addToCacheMap(cNode);
 				err = cacheMonitor->unlock();
-				newNodeMutex->up();
+				newNodeMutex->unlock();
 				err = addToList(node);
-				newNodeMutex->down();
+				newNodeMutex->lock();
 				return err;
 			}
 		} else { //nodeID != NEW_NODE
@@ -437,13 +433,14 @@ namespace Indexes {
 	}
 	
 	CachedNode* IndexHandler::choose2flush() {
-		newNodeMutex->down();
-		assert(!(freeHandlers.empty() && droppedCachedNodes.empty()));
 		CachedNode* cnode = NULL;
-		if (!droppedCachedNodes.empty()) {
-			cnode = getDropped2flush();		
+		{
+			Mutex::Locker l(*newNodeMutex);
+			assert(!(freeHandlers.empty() && droppedCachedNodes.empty()));
+			if (!droppedCachedNodes.empty()) {
+				cnode = getDropped2flush();		
+			}
 		}
-		newNodeMutex->up();
 		
 		if (cnode) {
 			return cnode;
@@ -523,9 +520,10 @@ namespace Indexes {
 			return 0;
 		}
 		int err;
-		IOMutex->down();
-		err = flushNotSync(cnode);
-		IOMutex->up();
+		{
+			Mutex::Locker l(*IOMutex);
+			err = flushNotSync(cnode);
+		}
 		return err;
 	}
 	
@@ -585,9 +583,8 @@ namespace Indexes {
 	
 	int IndexHandler::readNode(Node* node, nodeAddress_t nodeID) {
 		int err;
-		IOMutex->down();
+		Mutex::Locker l(*IOMutex);
 		err = readNodeNotSync(node, nodeID);
-		IOMutex->up();
 		return err;
 	}
 	
@@ -644,12 +641,6 @@ namespace Indexes {
 		cacheMonitor = new Monitor();
 		newNodeMutex = new RecursiveMutex();
 		IOMutex = new Mutex();
-		if ((err = newNodeMutex->init())) {
-			return err;
-		}
-		if ((err = IOMutex->init())) {
-			return err;
-		}
 		if( ( index_fd = ::open( indexFileName.c_str(), O_RDWR | O_CREAT, S_IWUSR | S_IRUSR ) ) < 0 ) {
 			err = errno; 
 			printf("Cannot open file %s\n", indexFileName.c_str());
@@ -721,48 +712,47 @@ namespace Indexes {
 				}
 			}
 		}
+		{
+			Mutex::Locker l(*newNodeMutex);
 		
-		newNodeMutex->down();
-		
-		if (droppedNode != NEW_NODE) {
-			//lista usunietych jest niepusta
-			
-			cacheMonitor->lock();
-			
-			cnode = cacheLookup(droppedLastNode);
-			if (!cnode) {
-				inCache = false;
-				cnode = new CachedNode(droppedLastNode);
-			}
-			
-			Node* node;
-			assert(cnode->users == 0);
-			cnode->users = 1; //na potrzeby testow
-			if ((err = cnode->getNode(node))) {
-				return err;
-			}
-			cnode->users = 0; //na potrzeby testow
-			
-			node->nextNode = firstNode;
-			
-			cnode->setDirty();
-			
-			if (!inCache) {
-				//jesli nie bylo go w cache'u to zrzuc na dysk
-				if ((err = flush(cnode))) {
+			if (droppedNode != NEW_NODE) {
+				//lista usunietych jest niepusta
+
+				cacheMonitor->lock();
+
+				cnode = cacheLookup(droppedLastNode);
+				if (!cnode) {
+					inCache = false;
+					cnode = new CachedNode(droppedLastNode);
+				}
+
+				Node* node;
+				assert(cnode->users == 0);
+				cnode->users = 1; //na potrzeby testow
+				if ((err = cnode->getNode(node))) {
 					return err;
 				}
+				cnode->users = 0; //na potrzeby testow
+
+				node->nextNode = firstNode;
+
+				cnode->setDirty();
+
+				if (!inCache) {
+					//jesli nie bylo go w cache'u to zrzuc na dysk
+					if ((err = flush(cnode))) {
+						return err;
+					}
+				}
+
+				cacheMonitor->unlock();
+			} else {
+				//lista usunietych jest pusta
+				droppedNode = firstNode;
 			}
-		
-			cacheMonitor->unlock();
-		} else {
-			//lista usunietych jest pusta
-			droppedNode = firstNode;
+
+			droppedLastNode = lastNode;
 		}
-		
-		droppedLastNode = lastNode;
-		
-		newNodeMutex->up();
 		IndexManager::getHandle()->getResolver()->indexDropped(getId());
 		return err;
 	}

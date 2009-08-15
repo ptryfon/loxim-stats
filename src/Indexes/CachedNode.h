@@ -2,13 +2,11 @@
 #define __CACHEDNODE_H__
 
 #include <Indexes/BTree.h>
-#include <TransactionManager/Mutex.h>
-#include <TransactionManager/RWUJSemaphore.h>
 #include <Errors/Errors.h>
 #include <Indexes/Node.h>
+#include <Util/Concurrency.h>
 
 namespace Indexes {
-using namespace SemaphoreLib;
 	
 	class CachedNode {
 		private:
@@ -20,10 +18,10 @@ using namespace SemaphoreLib;
 			nodeAddress_t nodeID;
 	
 			/** synchronizuje wczytanie i dostep do wezla */
-			Mutex* mutex;
+			Util::Mutex* mutex;
 			
 			/** organizuje dostep do danych wezla odczyt-zapis */
-			RWUJSemaphore* sem;
+			Util::RWUJSemaphore* sem;
 			
 			/** czy wezel jest juz wczytany z hdd */
 			bool loaded;

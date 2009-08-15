@@ -3,6 +3,7 @@
 #include <Indexes/QueryOptimizer.h>
 #include <Indexes/VisibilityResolver.h>
 #include <Indexes/NonloggedDataSerializer.h>
+#include <Util/Concurrency.h>
 //#include <stdio.h>
 
 #define indexMetadataParamName	"index_metadata"
@@ -16,6 +17,8 @@
 #define FIELD_DB_NAME	"field"
 #define CMP_TYPE		"cmpType"
 
+
+using namespace Util;
 namespace Indexes
 {
 
@@ -150,9 +153,6 @@ namespace Indexes
   		QueryOptimizer::setImplicitIndexCall(implicitIndexCall);
 
 		indexListSem = new RWUJSemaphore();
-		if ((errCode = indexListSem->init())) {
-			return errCode;
-		}
 
 		resolver.reset(new VisibilityResolver());
 
@@ -370,10 +370,6 @@ namespace Indexes
 			delete it->second;
 		}
 
-		if ((err = indexListSem->destroy())) {
-			return err;
-		}
-
 		delete indexListSem;
 
 		return 0;
@@ -392,9 +388,7 @@ namespace Indexes
 	{
 		int err = 0;
 		// czy taki indeks mozna utworzyc
-		if ((err = indexListSem->lock_write())) {
-			return err;
-		}
+		indexListSem->lock_write();
 
 		IndexHandler *ih = NULL;
 
@@ -404,10 +398,7 @@ namespace Indexes
 			ih= addIndex(indexName, indexedRootName, indexedFieldName, NULL);
 		}
 
-		if ((err = indexListSem->unlock())) {
-			return err;
-		}
-
+		indexListSem->unlock();
 		if (err2) {
 			return err2;
 		}
@@ -534,9 +525,7 @@ namespace Indexes
 	int IndexManager::listIndex(QueryResult **result)
 	{
 		int err;
-		if ((err = indexListSem->lock_read())) {
-			return err;
-		}
+		indexListSem->lock_read();
 		debug_print(*ec,  "listing indexes");
 		string2index::const_iterator it;
 		IndexHandler* ih;
@@ -553,9 +542,7 @@ namespace Indexes
 			bagResult->addResult(structResult);
 		}
 		*result = bagResult;
-		if ((err = indexListSem->unlock())) {
-			return err;
-		}
+		indexListSem->unlock();
 		return 0;
 	}
 
@@ -565,18 +552,14 @@ namespace Indexes
 
 		string2index::iterator it;
 		LogicalID* indexLid;
-		if ((err = indexListSem->lock_read())) {
-			return err;
-		}
+		indexListSem->lock_read();
 		int err2 = prepareToDrop(indexName, it, indexLid);
 
 		if (err2 == 0) {
 			err2 = it->second->changeState(IndexHandler::READY, IndexHandler::DROPPING);
 		}
 
-		if ((err = indexListSem->unlock())) {
-			return err;
-		}
+		indexListSem->unlock();
 
 		if (err2) {
 			return err2;

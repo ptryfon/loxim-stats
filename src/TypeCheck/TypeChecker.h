@@ -1,11 +1,16 @@
 #ifndef __TC_TYPE_CHECKER_H__
 #define __TC_TYPE_CHECKER_H__
 
+#include <string>
+#include <fstream>
+#include <iostream>
+#include <map>
+#include <vector>
+
 #include <Errors/ErrorConsole.h>
 #include <QueryExecutor/QueryResult.h>
 #include <Store/Store.h>
 #include <TransactionManager/Transaction.h>
-#include <TransactionManager/Mutex.h>
 #include <QueryParser/Deb.h>
 #include <QueryParser/Stack.h>
 #include <QueryParser/TreeNode.h>
@@ -16,17 +21,13 @@
 #include <TypeCheck/Rule.h>
 #include <TypeCheck/TypeCheckResult.h>
 #include <TypeCheck/RestoreAlgorithm.h>
-
-#include <string>
-#include <fstream>
-#include <iostream>
-#include <map>
-#include <vector>
+#include <Util/Concurrency.h>
 
 using namespace Errors;
 using namespace QExecutor;
 using namespace QParser;
 using namespace TManager;
+using namespace Util;
 using namespace std;
 
 

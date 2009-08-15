@@ -7,10 +7,10 @@
 #include <Store/Store.h>
 #include <Indexes/IndexHandler.h>
 #include <TransactionManager/Transaction.h>
-#include <TransactionManager/Mutex.h>
 #include <QueryParser/TreeNode.h>
 #include <Indexes/EntrySieve.h>
 #include <Indexes/VisibilityResolver.h>
+#include <Util/Concurrency.h>
 
 #include <string>
 #include <fstream>
@@ -146,7 +146,7 @@ namespace Indexes
 	public:
 
 		/** synchronizacja dostepu do listy indeksow */
-		RWUJSemaphore *indexListSem;
+		Util::RWUJSemaphore *indexListSem;
 
 		//DDL - wywolywane z IndexNode
 		int listIndex(QueryResult **result);

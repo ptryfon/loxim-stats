@@ -19,14 +19,13 @@ namespace LockMgr { class SingleLock; };
 #include <Store/Store.h>
 #include <Store/DBPhysicalID.h>
 #include <TransactionManager/Transaction.h>
-#include <TransactionManager/SemHeaders.h>
+#include <Util/Concurrency.h>
 #include <Errors/ErrorConsole.h>
 #include <Errors/Errors.h>
 
 using namespace Store;
 using namespace TManager;
 using namespace Errors;
-using namespace SemaphoreLib;
 
 namespace LockMgr 
 {
@@ -66,12 +65,12 @@ class SingleLock
 		/*
 		 * Semaphore for exclusion for accessing this object 
 		 */
-		Semaphore *sem;
+		Util::RWUJSemaphore *sem;
 		
 		/*
 		 * Protection if shared data
 		 */
-		Mutex *mutex;
+		Util::Mutex *mutex;
 		DBPhysicalID *phid;
 		
 		ErrorConsole &err;
@@ -80,7 +79,7 @@ class SingleLock
 		int preventDeadlock(TransactionID* _tid);
 
 	public:
-	    	SingleLock(TransactionID* tid, AccessMode mode, Semaphore *_sem, int id);	
+	    	SingleLock(TransactionID* tid, AccessMode mode, Util::RWUJSemaphore *_sem, int id);	
 	    	~SingleLock();     
    	    	int wait_for_lock(TransactionID* tid, AccessMode mode);
    	    	int unlock(TransactionID*);

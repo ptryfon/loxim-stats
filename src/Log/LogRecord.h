@@ -80,12 +80,12 @@ namespace Logs
     Metoda bierze zbiór tranzakcji do wycofania i jeśli rekord dotyczy tej tranzakcji to dokonuje wycofania w sm
     lub usuwa transakcję ze zbioru (begin) lub nie robi nic.
     */
-    virtual int rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm, CrashRecovery* cr = NULL) {return 0;}
-    virtual int ckptStart(CrashRecovery* cr) {return 0;}
-    virtual int ckptEnd(CrashRecovery* cr) {return 0;}
-    virtual int modifySetsBackDir(CrashRecovery* cr) {return 0;}
-    virtual int commit(SetOfTransactionIDS* setOfTIDs, StoreManager* sm) {return 0;}
-    virtual int shutDown(CrashRecovery* cr) {return 0;}
+    virtual int rollBack(SetOfTransactionIDS* /*setOfTIDs*/, StoreManager* /*sm*/, CrashRecovery* /*cr*/ = NULL) {return 0;}
+    virtual int ckptStart(CrashRecovery*) {return 0;}
+    virtual int ckptEnd(CrashRecovery*) {return 0;}
+    virtual int modifySetsBackDir(CrashRecovery*) {return 0;}
+    virtual int commit(SetOfTransactionIDS*, StoreManager*) {return 0;}
+    virtual int shutDown(CrashRecovery*) {return 0;}
   };
 
 
@@ -95,8 +95,8 @@ namespace Logs
 
     protected:
 
-    virtual int read( int fileDes, StoreManager* sm ) { return 0; }
-    virtual int write( int fileDes ) { return 0; }
+    virtual int read( int /*fileDes*/, StoreManager* /*sm*/) { return 0; }
+    virtual int write( int /*fileDes*/) { return 0; }
 
     virtual int instance( LogRecord *&result ) { result = new ShutdownRecord(); return 0; }
 
@@ -295,8 +295,8 @@ namespace Logs
   {
     friend class LogRecord;
 
-    virtual int read( int fileDes, StoreManager* sm ) { return 0; }
-    virtual int write( int fileDes ) { return 0; }
+    virtual int read( int, StoreManager*) { return 0; }
+    virtual int write( int /*fileDes*/ ) { return 0; }
     virtual int instance( LogRecord *&result ) { result = new EndCkptRecord(); return 0; }
 
     public:
@@ -310,8 +310,8 @@ namespace Logs
 
     protected:
 
-    virtual int read( int fileDes, StoreManager* sm ) { return 0; }
-    virtual int write( int fileDes ) { return 0; }
+    virtual int read( int, StoreManager*) { return 0; }
+    virtual int write( int ) { return 0; }
 
     virtual int instance( LogRecord *&result ) { result = new RedoLogsRecord(); return 0; }
 

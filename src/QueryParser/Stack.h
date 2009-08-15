@@ -197,7 +197,7 @@ namespace QParser {
 		virtual bool isColl () {return false;} /* overridden only in SigColl */
 		virtual bool isBinder () {return false;}
 		virtual string textCollKind() {return "";} //deprecated..now getCollKind() is enough.
-		virtual BinderWrap *statNested(TreeNode * treeNode) {return NULL;} /*the default behaviour of a signature*/
+		virtual BinderWrap *statNested(TreeNode *) {return NULL;} /*the default behaviour of a signature*/
 		virtual Signature *clone();
 		virtual Signature *cloneSole();
 		virtual Signature *cloneFlat();
@@ -214,7 +214,7 @@ namespace QParser {
 		virtual bool isSolelyEqualTo(Signature *sig) {//by default. in subclasses: does not compare nexts!
 			return ((sig != NULL) && (this->type() == sig->type()));
 		}
-		virtual int compareNamedSigCrt(Signature *flatSig, bool needTName) {return 0;}
+		virtual int compareNamedSigCrt(Signature * /*flatSig*/, bool /*needTName*/) {return 0;}
 		virtual int compareRecNamedSigCrt(Signature *flatSig, bool needTName, vector<pair<int, int> > &vPairs);
 		std::pair<int, int> cardToMapPair(string card);
 		virtual Signature *deref(){return this->cloneSole();}//by default. works fine for atom signatures.s
@@ -456,7 +456,7 @@ namespace QParser {
 			virtual Signature *cloneSole();
 			virtual Signature *cloneFlat();
 			virtual int type() {return Signature::SNOTHING;}
-			virtual int compareNamedSigCrt(Signature *flatSig, bool needTName) {
+			virtual int compareNamedSigCrt(Signature *flatSig, bool /*needTName*/) {
 				return (this->type() == flatSig->type() ? 0 : (Errors::ErrTypeChecker | Errors::ESigTypesDiffer));}
 			virtual void putToString() {cout << "(void)";}
 			virtual string toString() {

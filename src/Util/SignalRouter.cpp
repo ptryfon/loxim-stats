@@ -65,9 +65,9 @@ namespace Util{
 		SignalRouter::route(i);
 	}
 
-	void SignalRouter::cleaner(void *arg)
+	void SignalRouter::cleaner(void *)
 	{
-		Locker l(SignalRouter::map_protector);
+		Mutex::Locker l(SignalRouter::map_protector);
 		SignalRouter::map.erase(pthread_self());
 	}
 	
@@ -102,7 +102,7 @@ namespace Util{
 				return NULL;
 			}
 			{
-				Locker l(r->mutex);
+				Mutex::Locker l(r->mutex);
 				r->cond.signal();
 			}
 			try {
@@ -119,7 +119,7 @@ namespace Util{
 	void SignalRouter::register_thread(shared_ptr<Receiver> r)
 	{
 		pthread_t thread = pthread_self();
-		Locker l(map_protector);
+		Mutex::Locker l(map_protector);
 		if (map.find(thread) != map.end())
 			throw LoximException(EINVAL);
 		map[thread] = r;
@@ -154,7 +154,7 @@ namespace Util{
 	
 	void SignalRouter::unregister_thread(pthread_t thread)
 	{
-		Locker l(map_protector);
+		Mutex::Locker l(map_protector);
 		map.erase(thread);
 	}
 
@@ -176,7 +176,7 @@ namespace Util{
 		shared_ptr<Receiver> r(new Receiver(recv, mask, signals));
 		auto_ptr<shared_ptr<Receiver> > rp(new
 				shared_ptr<Receiver>(r));
-		Locker l(r->mutex);
+		Mutex::Locker l(r->mutex);
 		{
 			Masker m(block_mask);
 			if ((lerror = pthread_create(&(recv.get_thread()),

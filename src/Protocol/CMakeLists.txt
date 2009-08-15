@@ -16,15 +16,5 @@ set(Protocol_STAT_SRCS
 	PackageFactory.h 
 	PackageFactory.cpp 
 	VarUint.h)
-
 add_library(Protocol STATIC ${Protocol_STAT_SRCS})
 target_link_libraries(Protocol ProtocolPackagesData ProtocolPackages )
-set_target_properties(Protocol PROPERTIES OUTPUT_NAME protocol)
-set_target_properties(Protocol PROPERTIES CLEAN_DIRECT_OUTPUT 1)
-
-IF (NOT DO_NOT_BUILD_SHARED)
-	add_library(Protocol_shared SHARED ${Protocol_STAT_SRCS})
-	target_link_libraries(Protocol_shared ProtocolPackagesData_shared ProtocolPackages_shared )
-	set_target_properties(Protocol_shared PROPERTIES OUTPUT_NAME protocol)
-	set_target_properties(Protocol_shared PROPERTIES CLEAN_DIRECT_OUTPUT 1)
-ENDIF (NOT DO_NOT_BUILD_SHARED)

@@ -86,7 +86,7 @@ namespace Client{
 			try {
 				while(true){
 					auto_ptr<Package> result = client.receive_result();
-					Locker l(client.logic_mutex);
+					Mutex::Locker l(client.logic_mutex);
 					if (result->get_type() == A_SC_BYE_PACKAGE) {
 						gentle_exit(0, true);
 						return;
@@ -166,7 +166,7 @@ namespace Client{
 
 	void Client::abort()
 	{
-		Locker l(logic_mutex);
+		Mutex::Locker l(logic_mutex);
 		if (waiting_for_result) {
 			auto_ptr<ByteBuffer> reason(new ByteBuffer("User aborted"));
 			VSCAbortPackage package(0, reason);
@@ -206,7 +206,7 @@ namespace Client{
 				return p;
 			}
 			if (p->get_type() == A_SC_PING_PACKAGE){
-				Locker l(logic_mutex);
+				Mutex::Locker l(logic_mutex);
 				ASCPongPackage pong;
 				stream->write_package(mask, shutting_down, pong);
 				continue;
@@ -217,7 +217,7 @@ namespace Client{
 
 			p = stream->read_package(mask, shutting_down);
 			if (p->get_type() == A_SC_PING_PACKAGE){
-				Locker l(logic_mutex);
+				Mutex::Locker l(logic_mutex);
 				ASCPongPackage pong;
 				stream->write_package(mask, shutting_down, pong);
 				continue;
@@ -231,7 +231,7 @@ namespace Client{
 
 			auto_ptr<Package> p2(stream->read_package(mask, shutting_down));
 			if (p->get_type() == A_SC_PING_PACKAGE){
-				Locker l(logic_mutex);
+				Mutex::Locker l(logic_mutex);
 				ASCPongPackage pong;
 				stream->write_package(mask, shutting_down, pong);
 				continue;
@@ -323,7 +323,7 @@ namespace Client{
 	//may return null as a result of an abort
 	auto_ptr<Package> Client::execute_stmt(const string &stmt)
 	{
-		Locker l(logic_mutex);
+		Mutex::Locker l(logic_mutex);
 		if (waiting_for_result)
 			throw ProtocolLogic();
 		auto_ptr<ByteBuffer> b_stmt(new ByteBuffer(stmt));

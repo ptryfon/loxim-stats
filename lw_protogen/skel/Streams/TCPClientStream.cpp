@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <cstring>
 #include <Protocol/Exceptions.h>
 #include <Protocol/Streams/TCPClientStream.h>
 #include <Protocol/Streams/FileDataStream.h>
@@ -28,6 +29,7 @@ namespace Protocol {
 		if (sock < 0)
 			throw ConnectionError(errno);
 		struct sockaddr_in sa;
+		memset(&sa, 0, sizeof(sa));
 		sa.sin_family = AF_INET;
 		sa.sin_port = port;
 		sa.sin_addr.s_addr = address;

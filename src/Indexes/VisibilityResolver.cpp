@@ -1,14 +1,16 @@
 #include <assert.h>
 
 #include <Indexes/VisibilityResolver.h>
+#include <Util/Concurrency.h>
+
+using namespace Util;
 
 namespace Indexes {
 
 	VisibilityResolver::VisibilityResolver() {
 		tail = new TransactionImpact();
 		horizon = 0; //bez znaczenia - pierwsza transakcja zakonczona juz w trakcie inicjalizacji to ustawi
-		access = new SemaphoreLib::Mutex();
-		access->init();
+		access = new Util::Mutex();
 	}
 	
 	VisibilityResolver::~VisibilityResolver() {
@@ -43,7 +45,7 @@ namespace Indexes {
 			return true;
 		}
 		bool result;
-		access->down();
+		Mutex::Locker l(*access);
 		//jesli jest w mapie rollbacku to false
 		if (isRolledBack(from, index)) {
 			result = false;
@@ -58,21 +60,19 @@ namespace Indexes {
 				result = commitTime < begin;
 			}
 		}
-		access->up();
 		return result;
 	}
 	
 	void VisibilityResolver::begin(tid_t id) {
-		access->down();
+		Mutex::Locker l(*access);
 		active.insert(pair<tid_t, TransactionImpact*>(id, tail));
 		TransactionImpact* newTail = new TransactionImpact();
 		tail->insertAfter(newTail);
 		tail = newTail;
-		access->up();
 	}
 	
 	void VisibilityResolver::abort(tid_t id) {
-		access->down();
+		Mutex::Locker l(*access);
 		TransactionImpact* tr = prepare2finish(id);
 		TransactionImpact::impact_t tmp;
 		tr->entryCounter.swap(tmp);
@@ -84,11 +84,10 @@ namespace Indexes {
 				rolledBack[it->first].insert(pair<tid_t, unsigned long>(id, it->second));
 			}
 		}
-		access->up();
 	}
 	
 	void VisibilityResolver::commit(tid_t id, ts_t timestamp) {
-		access->down();
+		Mutex::Locker l(*access);
 		TransactionImpact* tr = prepare2finish(id);
 		if (!tr->entryCounter.empty()) {
 			//tylko jesli byly jakies zmiany w indeksach, wpp nie ma wplywu na indeksy
@@ -96,7 +95,6 @@ namespace Indexes {
 		}
 		//tr = prepare2finish(id);//mozna rozdzielic jesli wyjmiemy z 
 		finish(tr);
-		access->up();
 	}
 	
 	TransactionImpact* VisibilityResolver::prepare2finish(tid_t id) {
@@ -126,13 +124,12 @@ namespace Indexes {
 	}
 	
 	void VisibilityResolver::indexDropped(lid_t index) {
-		access->down();
+		Mutex::Locker l(*access);
 		rolledBack.erase(index);
-		access->up();
 	}
 	
 	void VisibilityResolver::entryDropped(tid_t tid, lid_t index, TransactionEntryStatus status) {
-		access->down();
+		Mutex::Locker l(*access);
 		TransactionImpact* ti;
 		active_t::iterator ait;
 		rolledBack_t::iterator rit;
@@ -171,14 +168,12 @@ namespace Indexes {
 			default:
 				;
 		}
-		access->up();
 	}
 	
 	void VisibilityResolver::entryAdded(tid_t tid, lid_t index) {
-		access->down();
+		Mutex::Locker l(*access);
 		active_t::iterator it = active.find(tid);
 		assert(it != active.end());
 		it->second->entryCounter[index]++;
-		access->up();
 	}
 }

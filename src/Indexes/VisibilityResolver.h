@@ -4,7 +4,7 @@
 #include <map>
 #include <Indexes/const.h>
 #include <Indexes/TransactionImpact.h>
-#include <TransactionManager/Mutex.h>
+#include <Util/Concurrency.h>
 
 using namespace std;
 namespace Indexes {
@@ -62,7 +62,7 @@ namespace Indexes {
 			commitTs_t commitTs;
 			
 			/** synchronizuje dostep do map */
-			SemaphoreLib::Mutex* access;
+			Util::Mutex* access;
 			
 			/** transakcjie o id <= niz horizon nie maja wplywu na zadna obecna transakcje. zaostaly zakonczone przed jakakolwiek aktywna transakcja */
 			tid_t horizon;

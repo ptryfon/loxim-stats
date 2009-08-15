@@ -227,7 +227,7 @@ namespace Server{
 
 	void Session::respond(auto_ptr<Package> qres)
 	{
-		Locker l(send_mutex);
+		Mutex::Locker l(send_mutex);
 		stream->write_package(mask, shutting_down, VSCSendvaluesPackage(VarUint(0, false), VarUint(0, false), VarUint(0, false), VarUint(0, false)));
 		debug_print(err_cons, "SendValues sent");
 		VSCSendvaluePackage val(VarUint(0, false), 0, qres);
@@ -239,7 +239,7 @@ namespace Server{
 
 	void Session::send_bye()
 	{
-		Locker l(send_mutex);
+		Mutex::Locker l(send_mutex);
 		auto_ptr<ByteBuffer> buffer(new ByteBuffer("bye from server"));
 		ASCByePackage p(0, buffer);
 		stream->write_package(mask, shutting_down, p);
@@ -247,19 +247,19 @@ namespace Server{
 
 	void Session::send_ping()
 	{
-		Locker l(send_mutex);
+		Mutex::Locker l(send_mutex);
 		stream->write_package(mask, shutting_down, ASCPingPackage());
 	}
 
 	void Session::send_pong()
 	{
-		Locker l(send_mutex);
+		Mutex::Locker l(send_mutex);
 		stream->write_package(mask, shutting_down, ASCPongPackage());
 	}
 
 	void Session::send_error(int error, const string &descr)
 	{
-		Locker l(send_mutex);
+		Mutex::Locker l(send_mutex);
 		auto_ptr<ByteBuffer> b(new ByteBuffer(descr));
 		ASCErrorPackage p(error, VarUint(0, false), b, 0, 0);
 		stream->write_package(mask, shutting_down, p);
@@ -407,7 +407,7 @@ namespace Server{
 	}
 
 
-	void Session::signal_handler(int i)
+	void Session::signal_handler(int)
 	{
 		shutting_down = 1;
 	}
@@ -463,7 +463,7 @@ namespace Server{
 	void Worker::start_continue()
 	{
 		//main loop
-		Locker l(mutex);
+		Mutex::Locker l(mutex);
 		while (true){
 			if (shutting_down){
 				return;
@@ -474,7 +474,7 @@ namespace Server{
 				return;
 			}
 			try{
-				Unlocker ul(mutex);
+				Mutex::Unlocker ul(l);
 				process_package(cur_package);
 			} catch (LoximException &ex) {
 				session.shutdown(ex.get_error());
@@ -494,12 +494,12 @@ namespace Server{
 	//TODO It might be a race condition!!!
 	void Worker::cancel_job(bool synchronous)
 	{
-		Locker l(mutex);
+		Mutex::Locker l(mutex);
 		cancel_job_locked(synchronous, l);
 	}
 
 	//TODO It might be a race condition!!!
-	void Worker::cancel_job_locked(bool synchronous, Locker &l)
+	void Worker::cancel_job_locked(bool synchronous, Mutex::Locker &l)
 	{
 		session.qEx.stopExecuting();
 		if (synchronous){
@@ -515,7 +515,7 @@ namespace Server{
 		shutting_down = 1;
 		cancel_job(false);
 		{
-			Locker l(mutex);
+			Mutex::Locker l(mutex);
 			idle_cond.signal();
 		}
 		pthread_join(thread, NULL);
@@ -528,7 +528,7 @@ namespace Server{
 	 */
 	void Worker::submit(auto_ptr<Package> package)
 	{
-		Locker l(mutex);
+		Mutex::Locker l(mutex);
 		aborting = false;
 		if (package->get_type() == A_SC_PING_PACKAGE){
 			session.send_pong();
@@ -661,7 +661,7 @@ namespace Server{
 		debug_print(err_cons, "KeepAliveThred::main_loop starts");
 		struct timeval now;
 		struct timespec tout;
-		Locker l(cond_mutex);
+		Mutex::Locker l(cond_mutex);
 		answer_received = true;
 		try {
 			do {

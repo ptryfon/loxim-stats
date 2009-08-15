@@ -40,6 +40,7 @@ for a in $TO_COPY ; do
 	cat $a >> $TARGET/$CUT_NAME
 done
 echo "Launching: ./lw_protogen $XML $TARGET"
+export LD_LIBRARY_PATH=/usr/local/lib
 if ./lw_protogen $XML $TARGET ; then
 	echo 'Success!'
 	echo "Remember to run cmake in the project's directory an reconfigure the project"

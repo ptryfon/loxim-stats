@@ -5,7 +5,6 @@
 #include <QueryParser/Stack.h>
 #include <QueryParser/TreeNode.h>
 #include <TransactionManager/Transaction.h>
-#include <TransactionManager/Mutex.h>
 
 #include <TypeCheck/Rule.h>
 #include <TypeCheck/TypeChecker.h>
@@ -22,6 +21,7 @@ using namespace Errors;
 using namespace QParser;
 using namespace std;
 using namespace TypeCheckConstants;
+using namespace Util;
 
 namespace TypeCheck
 {

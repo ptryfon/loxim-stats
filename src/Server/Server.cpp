@@ -64,7 +64,7 @@ namespace Server{
 		try{
 			while (!shutting_down){
 				auto_ptr<DataStream> stream = server.accept(sigset, shutting_down);
-				Locker l(open_sessions_mutex);
+				Mutex::Locker l(open_sessions_mutex);
 				if (!shutting_down && get_sessions_count() < get_config_max_sessions()){
 					try{
 						auto_ptr<PackageStream> pstream(new PackageCodec(stream, get_config_max_package_size()));
@@ -88,7 +88,7 @@ namespace Server{
 			info_print(err_cons, "Caught unknown exception in server loop, shutting down");
 		}
 		{
-			Locker l(open_sessions_mutex);
+			Mutex::Locker l(open_sessions_mutex);
 			shutting_down = 1;
 			info_print(err_cons, "Quitting, telling sessions to shut down");
 			for (set<pair<const uint64_t, shared_ptr<Session> > >::iterator i = open_sessions.begin(); i != open_sessions.end(); i++){
@@ -122,7 +122,7 @@ namespace Server{
 	{
 		if (shutting_down)
 			return;
-		Locker l(open_sessions_mutex);
+		Mutex::Locker l(open_sessions_mutex);
 		if (shutting_down)
 			return;
 

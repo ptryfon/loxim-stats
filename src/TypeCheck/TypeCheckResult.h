@@ -1,24 +1,26 @@
 #ifndef __TYPE_CHECK_RESULT_H__
 #define __TYPE_CHECK_RESULT_H__
 
-#include <TypeCheck/ClassNames.h>
-#include <Errors/ErrorConsole.h>
-#include <QueryExecutor/QueryResult.h>
-#include <QueryParser/Stack.h>
-#include <Store/Store.h>
-#include <TransactionManager/Transaction.h>
-#include <TransactionManager/Mutex.h>
-
 #include <string>
 #include <fstream>
 #include <iostream>
 #include <map>
 #include <vector>
 
+#include <TypeCheck/ClassNames.h>
+#include <Errors/ErrorConsole.h>
+#include <QueryExecutor/QueryResult.h>
+#include <QueryParser/Stack.h>
+#include <Store/Store.h>
+#include <TransactionManager/Transaction.h>
+#include <Util/Concurrency.h>
+
+
 using namespace Errors;
 using namespace QExecutor;
 using namespace QParser;
 using namespace TManager;
+using namespace Util;
 using namespace std;
 
 //#define INDEX_DEBUG_MODE 

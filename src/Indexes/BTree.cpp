@@ -7,7 +7,8 @@
 #include <Indexes/Cleaner.h>
 #include <Indexes/VisibilityResolver.h>
 #include <Indexes/IndexManager.h>
-//#include <TemplateComparator.h>
+
+using namespace Util;
 
 namespace Indexes
 {
@@ -828,9 +829,7 @@ namespace Indexes
 			return err;
 		}
 		
-		if ((err = rootSem->unlock())) {
-			return err;
-		}
+		rootSem->unlock();
 		
 	//	cout << endl << comp->nodeToString(currentNode) << endl;
 		while (true) { //iteracja zamiast rekurencji
@@ -896,7 +895,6 @@ namespace Indexes
 		this->defaultComparator = defaultComparator;
 		this->ih = ih;
 		rootSem = new RWUJSemaphore();
-		rootSem->init();
 		rootLevel = ROOT_PRIORITY;
 	}
 	

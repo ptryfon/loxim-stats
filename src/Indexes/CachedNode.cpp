@@ -2,13 +2,15 @@
 #include <Indexes/CachedNode.h>
 #include <Indexes/IndexHandler.h>
 
+using namespace Util;
+
 namespace Indexes {
 
 //class IndexHandler;
 	
 	int CachedNode::getNode(Node* &result) {
 		int err = 0;
-		mutex->down();
+		Mutex::Locker l(*mutex);
 		assert(users > 0); //do testow, flushNode pobiera wezel mimo ze nikt go nie uzywa 
 		if (!loaded) {
 			node = (Node*) malloc(NODE_SIZE);
@@ -22,7 +24,6 @@ namespace Indexes {
 			loaded = true;
 		}
 		fail:
-		mutex->up();
 		result = node;
 		return err;
 	}
@@ -80,14 +81,13 @@ namespace Indexes {
 		users = 0;
 		node = NULL;
 		mutex = new Mutex();
-		mutex->init();
 		sem = new RWUJSemaphore();
-		sem->init();
 		dirty = false;
 	}
 	
 	int CachedNode::unlock() {
-		return sem->unlock();
+		sem->unlock();
+		return 0;
 	}
 	
 	CachedNode::CachedNode(nodeAddress_t nodeID) {

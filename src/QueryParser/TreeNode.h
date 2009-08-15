@@ -117,11 +117,11 @@ namespace QParser {
 	virtual int getSectionNum(){ return -1;};  /* Nodes other than nonalgops don't hold this info. */
 	virtual TreeNode* factorSubQuery (TreeNode *subT, string newName);
 //	virtual TreeNode* optimizeByFactoring ();
-	virtual int swapSon (TreeNode *oldSon, TreeNode *newSon) {
+	virtual int swapSon (TreeNode * /*oldSon*/, TreeNode * /*newSon*/) {
 	/*should call an error. Subclasses that have at least 1 arg override this method.*/
 	    return -1;}
 	virtual string randomString();
-	virtual int staticEval (StatQResStack *&qres, StatEnvStack *&envs) {return -1;}	
+	virtual int staticEval (StatQResStack *& /*qres*/, StatEnvStack *& /*envs*/) {return -1;}	
 	virtual int optimizeTree () {Deb::ug( "type: %d.", type());	return 0;}
 	/* should be overridden in subclasses...*/
 	/* AND should have an argument for the data scheme ... ??? !!! */
@@ -148,7 +148,7 @@ namespace QParser {
 		return NULL;
 	}
 	
-	virtual void getInfixList(vector<TreeNode*> *auxVec){
+	virtual void getInfixList(vector<TreeNode*> * /*auxVec*/){
 		
 	}
     virtual string toString( int level = 0, bool recursive = false, string name = "" ) { return ""; }

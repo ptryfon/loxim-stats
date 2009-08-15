@@ -37,7 +37,7 @@ namespace TManager
 	}
 
 /*______Transaction_________________________________________*/
-	Transaction::Transaction(TransactionID* tid, Semaphore* _sem) : err(ErrorConsole::get_instance(EC_TRANSACTION_MANAGER))
+	Transaction::Transaction(TransactionID* tid, RWSemaphore* _sem) : err(ErrorConsole::get_instance(EC_TRANSACTION_MANAGER))
 	{
 		debug_printf(err, "Transaction started, id: %d\n", tid->getId());
 		sem = _sem;
@@ -759,9 +759,7 @@ namespace TManager
 	TransactionManager::TransactionManager() : err(ErrorConsole::get_instance(EC_TRANSACTION_MANAGER))
 	{
 		sem = new RWUJSemaphore();
-		sem->init();
 		mutex = new Mutex();
-		mutex->init();
 		transactions = new list<TransactionID*>;
 	 }
 
@@ -841,10 +839,11 @@ namespace TManager
 	int TransactionManager::createTransaction(int sessionId, Transaction* &tr, int id)
 	{
 	    debug_printf(err, "Creating new transaction\n");
-	    mutex->down();
+		TransactionID* tid;
+		{
+			Mutex::Locker(*mutex);
 			int currentId = transactionId;
 			transactionId++;
-			TransactionID* tid;
 			if (id > -1)
 			    tid = new TransactionID(sessionId, currentId, id);
 			else
@@ -852,8 +851,7 @@ namespace TManager
 			addTransaction(tid);
 			IndexManager::getHandle()->begin(currentId);
 			debug_printf(err, "Transaction created -> number %d prio: %d\n", tid->getId(), tid->getPriority());
-	    mutex->up();
-
+		}
 	    tr = new Transaction(tid, sem);
 	    int ret = tr->init(storeMgr, logMgr);
 	    if (ret == 0) {
@@ -878,25 +876,23 @@ namespace TManager
 	list<TransactionID*>* TransactionManager::getTransactions()
 	{
 	    /* block creating new transactions */
-	    mutex->down();
+	    Mutex::Locker l(*mutex);
 			list<TransactionID*>* copy_of_transactions = new list<TransactionID*>;
 			for (list<TransactionID*>::iterator i = transactions->begin();
 				i != transactions->end(); i++)
 
 				copy_of_transactions->push_back((*i)->clone());
-	    mutex->up();
 	    return copy_of_transactions;
 	}
 	vector<int>* TransactionManager::getTransactionsIds()
 	{
 	    /* block creating new transactions */
-	    mutex->down();
+	    Mutex::Locker l(*mutex);
 			vector<int>* copy_of_transactions = new vector<int>;
 			for (list<TransactionID*>::iterator i = transactions->begin();
 				i != transactions->end(); i++)
 
 				copy_of_transactions->push_back((*i)->getId());
-	    mutex->up();
 	    return copy_of_transactions;
 	}
 	int TransactionManager::commit(Transaction* tr)
@@ -957,9 +953,8 @@ namespace TManager
 
 	int TransactionManager::remove_from_list(TransactionID* tid)
 	{
-	    	mutex->down();
+	    	Mutex::Locker l(*mutex);
 			transactions->remove(tid);
-	    	mutex->up();
 	    	return 0;
 	}
 }

@@ -23,7 +23,7 @@ namespace AdminParser{
 
 	int AdminExecutor::execute(std::string stmt, Server::Session *session)
 	{
-		Locker l(exec_mutex);
+		Mutex::Locker l(exec_mutex);
 		auto_ptr<AdminExecutableTreeNode> node = parser.parse(stmt);
 		node->execute(session);
 		return 0;

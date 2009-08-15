@@ -8,8 +8,8 @@
 #include <Indexes/Node.h>
 #include <Indexes/RootEntry.h>
 #include <Store/Store.h>
-#include <TransactionManager/Semaphore.h>
 #include <Indexes/CachedNode.h>
+#include <Util/Concurrency.h>
 //#include <QueryParser/TreeNode.h>
 
 //using namespace QParser;
@@ -99,7 +99,7 @@ namespace Indexes
 			virtual ~BTree();
 			
 			/** szereguje dostep do korzenia */
-			SemaphoreLib::Semaphore *rootSem;
+			Util::RWSemaphore *rootSem;
 			
 			//open(char* file)
 			 /** jesli wczytywany jest instniejacy index to musi byc zainicjalizowany */

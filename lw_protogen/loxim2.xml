@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="iso8859-1"?>
 <protocol xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
 	xmlns='http://loxim.mimuw.edu.pl/protoGen'>	
 
@@ -14,37 +14,37 @@
 	</metadata>
 	<enums>
 		<enum name="features" as-type="uint64">
-			<!--============== Tryby transmisji i działania protokołu ===============-->
+			<!--============== Tryby transmisji i dzialania protokolu ===============-->
 			<item name="f_ssl" value="0x0001">
 				<description lang="pl">
-					Połaczenie moze byc szyfrowane metoda SSL
+					Polaczenie moze byc szyfrowane metoda SSL
 				</description>
 			</item>
 			<item name="f_o_ssl" value="0x0002">
 				<description lang="pl">
-					Obligatoryjne połaczenie szyfrowane metoda SSL
+					Obligatoryjne polaczenie szyfrowane metoda SSL
 					(wymusza tez obecnosc flagi F SSL)
 				</description>
 			</item>
 			<item name="f_zlib" value="0x0004">
 				<description lang="pl">
-					połaczenie moze byc kompresowane za pomoca
+					polaczenie moze byc kompresowane za pomoca
 					biblioteki ZLIB
 				</description>
 			</item>
 
-			<!--============== Tryby przetwarzania zapytań ======================-->
+			<!--============== Tryby przetwarzania zapytan ======================-->
 			<item name="f_autocommit" value="0x0010">
 				<description lang="pl">
 					serwer udostepnia tryb autocommit (kazde zapytanie
 					zadane poza transakcja rozpoczyna swoja transakcje,
-					które jest automatycznie zamykana po wykonaniu
+					ktore jest automatycznie zamykana po wykonaniu
 					polecenia)
 				</description>
 			</item>
 			<item name="f_optimization" value="0x0020">
 				<description lang="pl">
-					mozna właczyc optymalizator zapytań...
+					mozna wlaczyc optymalizator zapytan...
 				</description>
 			</item>
 			<!--============== Izolation levels =============================-->
@@ -55,8 +55,8 @@
 			<item name="am_mysql" value="0x0002">
 				<description lang="pl">
 					autoryzacja metoda stosowana przez serwer (??)
-					MySQL5 [1] - w oparciu o przesyłanie i
-					przechowywanie skrótu hasła algorytmem SHA1.
+					MySQL5 [1] - w oparciu o przesylanie i
+					przechowywanie skrotu hasla algorytmem SHA1.
 					Generalnie schemat jest nastepujacy:
 					<ul>
 						<li>
@@ -64,7 +64,7 @@
 							SHA1(password)
 						</li>
 						<li>
-							<b>Klient przesyła:</b>
+							<b>Klient przesyla:</b>
 							SHA1(password)XOR(SHA1(salt.SHA1(SHA1(password))))
 						</li>
 					</ul>
@@ -192,7 +192,7 @@
 					<field name="pid" type="sint64">
 						<description lang="pl">
 							PID procesu klienta - moze byc 0, gdy nie
-							obsługiwany
+							obslugiwany
 						</description>
 					</field>
 					<field name="client_name" type="sstring">
@@ -212,7 +212,7 @@
 					</field>
 					<field name="language" type="sstring" size="3">
 						<description lang="pl">
-							Jezyk uzytkownika - kod literowy według
+							Jezyk uzytkownika - kod literowy wedlug
 							standardu ISO-639-2
 							(http://www.loc.gov/standards/iso639-2/php/code_list.php)
 						</description>
@@ -220,67 +220,67 @@
 					<field name="collation" type="enum"
 						object-ref="collations">
 						<description lang="pl">
-							Kolacja. TODO: Sposób kodowania
+							Kolacja. TODO: Sposob kodowania
 						</description>
 					</field>
 					<field name="timezone" type="sint8">
 						<description>
 							Strefa czasowa klienta w postaci liczby
-							całkowitej opisujacej przesuniecie wzgledem
+							calkowitej opisujacej przesuniecie wzgledem
 							GMT. Czyli dopuszczalne wartosci to od -14
-							(to nie jest bład) do +12.
+							(to nie jest blad) do +12.
 						</description>
 					</field>
 				</packet>
 				<!--================ w_s_hello ==========================-->
 				<packet name="w_s_hello" id-value="11">
 					<field name="protocol_major" type="uint8"
-						value="2"><!-- może value=${getContex().protocolVersionMajor();}-->
+						value="2"><!-- moze value=${getContex().protocolVersionMajor();}-->
 						<description lang="pl">
-							Numer główny (major) wersji protokołu
+							Numer glowny (major) wersji protokolu
 						</description>
 					</field>
 					<field name="protocol_minor" type="uint8"
-						value="0"><!-- może value=${getContex().protocolVersionMinor();}-->
+						value="0"><!-- moze value=${getContex().protocolVersionMinor();}-->
 						<description lang="pl">
-							Numer pomocniczy (minor) wersji protokołu
+							Numer pomocniczy (minor) wersji protokolu
 						</description>
 					</field>
-					<field name="system_major" type="uint8" value="2"><!-- może value=${getContex().protocolVersionMajor();}-->
+					<field name="system_major" type="uint8" value="2"><!-- moze value=${getContex().protocolVersionMajor();}-->
 						<description lang="pl">
-							Numer główny (major) wersji systemu
+							Numer glowny (major) wersji systemu
 						</description>
 					</field>
-					<field name="system_minor" type="uint8" value="0"><!-- może value=${getContex().protocolVersionMinor();}-->
+					<field name="system_minor" type="uint8" value="0"><!-- moze value=${getContex().protocolVersionMinor();}-->
 						<description lang="pl">
 							Numer pomocniczy (minor) wersji systemu
 						</description>
 					</field>
 					<field name="max_package_size" type="uint32">
 						<description lang="pl">
-							Rozmiar maksymalnego paczki przesyłanego tym
-							protokołem - powinno byc > 1024 i wartosc
+							Rozmiar maksymalnego paczki przesylanego tym
+							protokolem - powinno byc > 1024 i wartosc
 							powyzej 1048586 powinna byc istotnie
-							uzasadniona (wartość jest odczytywana z
+							uzasadniona (wartosc jest odczytywana z
 							konfiguracji serwera)
 						</description>
 					</field>
 					<field name="features" type="enum-map"
 						object-ref="features">
 						<description lang="pl">
-							Mapa bitowa dostępnych cech serwera
+							Mapa bitowa dostepnych cech serwera
 						</description>
 					</field>
 					<field name="auth_methods" type="enum-map"
 						object-ref="auth_methods">
 						<description lang="pl">
-							Mapa bitowa dostępnych metod autoryzacji
+							Mapa bitowa dostepnych metod autoryzacji
 						</description>
 					</field>
 					<field name="salt" type="sstring" size="20">
 						<description lang="pl">
 							160 bitowy ciag losowy - uzywany przez
-							niektóre metody autoryzacji
+							niektore metody autoryzacji
 						</description>
 					</field>
 				</packet>
@@ -304,7 +304,7 @@
 					<field name="password" type="sstring" />
 				</packet>
 
-				<!--============================== Protokół właściwy ================================== -->
+				<!--============================== Protokol wlasciwy ================================== -->
 
 				<packet name="q_c_statement" id-value="64">
 					<field name="flags" type="enum-map"
@@ -332,12 +332,12 @@
 					<field name="inserts_cnt" type="varuint" />
 				</packet>
 
-				<!--======================== Protokół właściwy - przesyłanie wartości ================================== -->
+				<!--======================== Protokol wlasciwy - przesylanie wartosci ================================== -->
 
-				<!--======================== Protokół właściwy - paczki różne -->
+				<!--======================== Protokol wlasciwy - paczki rozne -->
 				<packet name="a_sc_ping" id-value="128" />
 				<packet name="a_sc_pong" id-value="129" />
-				<!--======================== Komunikaty ogólne ================= -->
+				<!--======================== Komunikaty ogolne ================= -->
 				<packet name="a_sc_ok" id-value="1" />
 
 				<packet name="a_sc_error" id-value="2">
@@ -360,7 +360,7 @@
 					<field name="key" type="sstring" />
 					<field name="value" type="string" />
 				</packet>
-				<!--======================== Przesyłanie wyników ================= -->
+				<!--======================== Przesylanie wynikow ================= -->
 				<packet name="v_sc_sendvalues" id-value="32">
 					<field name="root_value_id" type="varuint" />
 					<field name="o_bundles_count" type="varuint" nullable="true"/>
@@ -374,7 +374,7 @@
 						object-ref="send_value_flags" />
 					<field name="value_type" type="varuint" />
 					<field name="data" type="package-map" object-ref="data" object-ref-id="value_type"/>
-					<!-- Tu też trudności-->
+					<!-- Tu tez trudnosci-->
 				</packet>
 
 				<packet name="v_sc_finished" id-value="34"></packet>

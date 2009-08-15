@@ -43,7 +43,7 @@ namespace Util {
 
 			void kill()
 			{
-				Locker l(mutex);
+				Mutex::Locker l(mutex);
 				if (!killed) {
 					killed = true;
 					logic->kill();

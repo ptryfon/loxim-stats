@@ -1,26 +1,27 @@
 #ifndef __DECISION_TABLE_H__
 #define __DECISION_TABLE_H__
 
-#include <TypeCheck/ClassNames.h>
-#include <Errors/ErrorConsole.h>
-#include <QueryExecutor/QueryResult.h>
-#include <Store/Store.h>
-#include <TransactionManager/Transaction.h>
-#include <TransactionManager/Mutex.h>
-#include <TypeCheck/TypeCheckResult.h>
-#include <TypeCheck/Rule.h>
-#include <QueryParser/TreeNode.h>
-
 #include <string>
 #include <fstream>
 #include <iostream>
 #include <map>
 #include <vector>
 
+#include <TypeCheck/ClassNames.h>
+#include <Errors/ErrorConsole.h>
+#include <QueryExecutor/QueryResult.h>
+#include <Store/Store.h>
+#include <TransactionManager/Transaction.h>
+#include <TypeCheck/TypeCheckResult.h>
+#include <TypeCheck/Rule.h>
+#include <QueryParser/TreeNode.h>
+#include <Util/Concurrency.h>
+
 using namespace Errors;
 using namespace QExecutor;
 using namespace QParser;
 using namespace TManager;
+using namespace Util;
 using namespace std;
 
 

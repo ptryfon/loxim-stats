@@ -1,6 +1,8 @@
 
 #include <Lock/SingleLock.h>
 
+using namespace Util;
+
 /**
  *	@author Julian Krzemiñski (julian.krzeminski@students.mimuw.edu.pl)
  *	@author Dominik Klimczak (dominik.klimczak@students.mimuw.edu.pl)
@@ -10,7 +12,7 @@ namespace LockMgr
 
 /*_____SingleLock___________________________________________________*/    
 
-    SingleLock::SingleLock(TransactionID* _tid, AccessMode _mode, Semaphore *_sem, int _id) : 
+    SingleLock::SingleLock(TransactionID* _tid, AccessMode _mode, RWUJSemaphore *_sem, int _id) : 
 	    err(ErrorConsole::get_instance(EC_LOCK_MANAGER))
     {
 	inside 	= 1;	
@@ -32,7 +34,6 @@ namespace LockMgr
 	    currentWrite->insert(tid);
 
 	mutex = new Mutex();
-	mutex->init();
 	
     }
 
@@ -71,13 +72,15 @@ namespace LockMgr
 	int errorCode;
 	errorCode = 0;
 	/* prevention against deadlocks: strategy wait - die */
-	mutex->down();
+	int isCurrentRead;
+	int isCurrentWrite;
+	{
+		Mutex::Locker l(*mutex);
 
-	int isCurrentRead  = currentRead->find(_tid)  != currentRead->end();
-	int isCurrentWrite = currentWrite->find(_tid) != currentWrite->end();
-	waiting++;
-
-	mutex->up();
+		isCurrentRead  = currentRead->find(_tid)  != currentRead->end();
+		isCurrentWrite = currentWrite->find(_tid) != currentWrite->end();
+		waiting++;
+	}
 	/* here we lost control on _mode, should be fixed later!!! */
 
 	debug_printf(err, "Wait for lock, tid = %d, mode = %d\n", _tid->getId(), _mode);
@@ -85,10 +88,10 @@ namespace LockMgr
 	{
 		/* many readers -> OK, reader and writer -> prevent deadlock */
 		if (currentWrite->empty())
-		    errorCode = sem->lock_read();
+		    sem->lock_read();
 		else {
 		    if ((errorCode = preventDeadlock(_tid)) == 0)
-			errorCode = sem->lock_read();
+			sem->lock_read();
 		}
 	}
 	else if (_mode == Read && isCurrentRead)	/* reader inside */
@@ -104,7 +107,7 @@ namespace LockMgr
 	else if (_mode == Write && !isCurrentRead && !isCurrentWrite)
 	{
 		if ((errorCode = preventDeadlock(_tid)) == 0)
-		    errorCode = sem->lock_write();
+		    sem->lock_write();
 	}
 	else if (_mode == Write && isCurrentWrite)	/* this transaction holds object in exclusive access mode */
 	{
@@ -122,7 +125,7 @@ namespace LockMgr
 	debug_printf(err, "Locking object, tid = %d\n", _tid->getId());
 	if (errorCode == 0)
 	{
-	    mutex->down();
+	    Mutex::Locker l(*mutex);
 	
 		waiting--;
 		if (_mode == Read)
@@ -139,8 +142,6 @@ namespace LockMgr
 //oldversion		if (_tid->getId() < tid->getId()) tid = _tid;
 		if (_tid->getPriority() < tid->getPriority()) tid = _tid;
 		inside++;
-
-	    mutex->up();
 	}
    	return errorCode;
     }
@@ -149,7 +150,8 @@ namespace LockMgr
     {
 	int delete_lock = 0;  /* if true - object SingleLock will be destroyed afterwards */
 	
-	mutex->down();
+	{
+		Mutex::Locker l(*mutex);
 
 		inside--;
 		if (currentRead->find(tid) != currentRead->end())
@@ -159,8 +161,7 @@ namespace LockMgr
 		
 		if (inside == 0 && waiting == 0)
 		    delete_lock = 1;
-		
-	mutex->up();
+	}
 
 	sem->unlock();
 

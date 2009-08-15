@@ -1,6 +1,8 @@
 
 #include <Lock/Lock.h>
 
+using namespace Util;
+
 /**
  *	@author Dominik Klimczak (dominik.klimczak@students.mimuw.edu.pl)
  *	@author Julian Krzemi�ski (julian.krzeminski@students.mimuw.edu.pl)
@@ -27,7 +29,6 @@ namespace LockMgr
 		map_of_locks      = new DBPhysicalIdMap;
 		single_lock_id	  = 0;
 		mutex = new Mutex();
-		mutex->init();
     }
 
     LockManager::~LockManager()
@@ -51,18 +52,11 @@ namespace LockMgr
 
     int LockManager::lock(LogicalID* lid, TransactionID* tid, AccessMode mode)
     {
-		int errorCode = 0;
-
-		mutex->down();
-
-		errorCode = lock_primitive(lid, tid, mode);
-
-		mutex->up();
-
-		return errorCode;
+		Mutex::Locker l(*mutex);
+		return lock_primitive(lid, tid, mode, l);
     }
 
-    int LockManager::lock_primitive(LogicalID* lid, TransactionID* tid, AccessMode mode)
+    int LockManager::lock_primitive(LogicalID* lid, TransactionID* tid, AccessMode mode, Mutex::Locker &l)
     {
 		int errorNumber = 0;
 
@@ -78,7 +72,6 @@ namespace LockMgr
 			debug_printf(err, "New lock, tid = %d\n", tid->getId() );
 			/* creating new single lock */
 			RWUJSemaphore* rwsem = new RWUJSemaphore();
-			rwsem->init();
 			lock = new SingleLock(tid, mode, rwsem, single_lock_id);
 			lock->setPHID(phid);
 
@@ -89,13 +82,14 @@ namespace LockMgr
 	    	{
 			debug_printf(err, "Wait for lock, tid = %d\n", tid->getId() );
 			/* modifying existing single lock for this PhysicalID */
-			mutex->up();
-			lock = pos->second;
-			errorNumber = lock->wait_for_lock(tid, mode);
+			{
+				Mutex::Unlocker ul(l);
+				lock = pos->second;
+				errorNumber = lock->wait_for_lock(tid, mode);
 
-			if (errorNumber) return errorNumber;
+				if (errorNumber) return errorNumber;
 
-			mutex->down();
+			}
 		}
 		debug_printf(err, "Lock received\n");
 		if ((*transaction_locks)[tid] == 0 )
@@ -112,15 +106,14 @@ namespace LockMgr
 		int errorCode = 0;
 
 		debug_printf(err, "LockAll, tid = %d\n", tid->getId());
-		mutex->down();
+		Mutex::Locker l(*mutex);
 
 		set<LogicalID*>::iterator pos = lock_set->begin();
 		while(!errorCode && pos != lock_set->end())
 		{
-		    errorCode = lock_primitive(*pos, tid, mode);
+		    errorCode = lock_primitive(*pos, tid, mode, l);
 		}
 
-		mutex->up();
 		return errorCode;
     }
 
@@ -128,7 +121,7 @@ namespace LockMgr
     int LockManager::unlockAll(TransactionID* transaction_id)
     {
 		debug_printf(err, "UnlockAll, tid = %d\n", transaction_id->getId());
-		mutex->down();
+		Mutex::Locker l(*mutex);
 		TransactionIdMap::iterator pos = transaction_locks->find(transaction_id);
 		if (pos != transaction_locks->end())
 		{
@@ -151,7 +144,6 @@ namespace LockMgr
 		    delete locks;
 		}
 
-		mutex->up();
 		return 0;
     }
 
@@ -161,7 +153,8 @@ namespace LockMgr
 
 	debug_printf(err, "modifyLockLID, tid = %d\n", tid->getId());
 
-	mutex->down();
+	{
+		Mutex::Locker l(*mutex);
 	    DBPhysicalID* newPHID = newLID->getPhysicalID(tid);
 	    DBPhysicalIdMap::iterator pos = map_of_locks->find(oldPHID);
 	    if (pos != map_of_locks->end())
@@ -172,8 +165,7 @@ namespace LockMgr
 		    (*map_of_locks)[newPHID] = lock;
 	    }
 	    else errorNumber = -1;
-
-	mutex->up();
+	}
 
 	return errorNumber;
     }

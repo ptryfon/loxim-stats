@@ -16,8 +16,9 @@ class InfLogic : public StartableSignalReceiver {
 	private:
 		Mutex m;
 		CondVar c;
+		Mutex::Locker *l;
 	public:
-		void signal_handler(int sig)
+		void signal_handler(int)
 		{
 		}
 
@@ -25,7 +26,7 @@ class InfLogic : public StartableSignalReceiver {
 		void kill()
 		{
 			cout << "kill called" << endl;
-			Locker l(m);
+			Mutex::Locker l(m);
 			cout << "locked in killer" << endl;
 			c.signal();
 			cout << "after signal" << endl;
@@ -34,7 +35,7 @@ class InfLogic : public StartableSignalReceiver {
 		void init()
 		{
 			cout << "lock in init" << endl;
-			m.lock();
+			l = new Mutex::Locker(m);
 			cout << "locked in init" << endl;
 		}
 
@@ -42,9 +43,9 @@ class InfLogic : public StartableSignalReceiver {
 		{
 			try {
 				cout << "new thread (falling asleep)" << endl;
-				c.wait(m);
+				l->wait(c);
 				cout << "after wait" << endl;
-				m.unlock();
+				delete l;
 				cout << "exiting" << endl;
 			} catch (LoximException &ex) {
 				cout << "exception caught" << endl;
@@ -53,7 +54,7 @@ class InfLogic : public StartableSignalReceiver {
 		}
 };
 
-int main(int argc, char ** argv)
+int main(const int, const char* const* const)
 {
 	sigset_t mask;
 	sigfillset(&mask);

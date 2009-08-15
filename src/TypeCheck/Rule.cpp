@@ -1,3 +1,8 @@
+#include <string>
+#include <fstream>
+#include <iostream>
+#include <map>
+#include <vector>
 #include <TypeCheck/Rule.h>
 
 #include <Errors/ErrorConsole.h>
@@ -6,17 +11,13 @@
 #include <QueryParser/Stack.h>
 #include <QueryParser/Deb.h>
 #include <TransactionManager/Transaction.h>
-#include <TransactionManager/Mutex.h>
 #include <TypeCheck/TypeChecker.h>
-#include <string>
-#include <fstream>
-#include <iostream>
-#include <map>
-#include <vector>
+#include <Util/Concurrency.h>
 
 using namespace Errors;
 using namespace QParser;
 using namespace std;
+using namespace Util;
 
 
 

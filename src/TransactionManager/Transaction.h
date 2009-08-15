@@ -10,7 +10,7 @@ namespace TManager
 	class TransactionID;
 };
 
-#include<stdio.h>
+#include <cstdio>
 #include <list>
 #include <iterator>
 #include <vector>
@@ -21,17 +21,16 @@ namespace TManager
 #include <Log/Logs.h>
 #include <Errors/ErrorConsole.h>
 #include <Config/SBQLConfig.h>
-#include <TransactionManager/SemHeaders.h>
 #include <QueryParser/ClassNames.h>
 #include <TypeCheck/ClassNames.h>
 #include <TypeCheck/DMLControl.h>
+#include <Util/Concurrency.h>
 
 
 using namespace Store;
 using namespace LockMgr;
 using namespace Logs;
 using namespace Errors;
-using namespace SemaphoreLib;
 using namespace TypeCheck;
 
 namespace Indexes {
@@ -81,10 +80,10 @@ namespace TManager
 			TransactionManager* tm;
 			LockManager* lm;
 			ErrorConsole &err;
-			Semaphore* sem;    /* for operation on Store Manager */
+			Util::RWSemaphore* sem;    /* for operation on Store Manager */
 			DMLControl *dmlStructs;
 	      public:
-			Transaction(TransactionID* tId, Semaphore* sem);
+			Transaction(TransactionID* tId, Util::RWSemaphore* sem);
 		    	~Transaction();
 				DMLControl *getDmlStct();
 				void reloadDmlStct();
@@ -153,8 +152,8 @@ namespace TManager
 	class TransactionManager
 	{
 		private:
-			Mutex* mutex;
-			Semaphore* sem;
+			Util::Mutex* mutex;
+			Util::RWSemaphore* sem;
 			int transactionId;    /* counter of TransactionID objects */
 			static TransactionManager *tranMgr;
 			StoreManager* storeMgr;

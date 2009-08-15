@@ -9,11 +9,11 @@
 using namespace std;
 using namespace _smptr;
 
-vector<string> Util::get_backtrace(int omit)
+vector<string> Util::get_backtrace(int /* omit */)
 {
-	void *array[30];
 	vector<string> bt;
 	#if defined(HAVE_EXECINFO_H) && defined(HAVE_BACKTRACE)
+	void *array[30];
 	size_t size = backtrace(array, 30);
 	auto_ptr<char *> strings(backtrace_symbols(array, size));
 

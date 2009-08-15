@@ -133,7 +133,7 @@ namespace Errors {
 	void ErrorConsole::do_not_use_directly_print(VerbosityLevel l, const string &error_msg)
 	{
 		const string &instance_name(names[instance]);
-		Locker lock(write_lock);
+		Mutex::Locker lock(write_lock);
 		if (use_log_file && log_file_level >= l) {
 			*console_file << verbosity_name(l) << ": " << instance_name << ": " << error_msg << endl;
 			console_file->flush();
@@ -180,7 +180,7 @@ namespace Errors {
 
 	ErrorConsole &ErrorConsole::get_instance(ConsoleInstance mod)
 	{
-		Locker l(write_lock);
+		Mutex::Locker l(write_lock);
 		map<ConsoleInstance, ErrorConsole*>::const_iterator
 			i = modules.find(mod);
 		if (i != modules.end()){

@@ -54,7 +54,7 @@ namespace Server{
 			void start_continue();
 			void process_package(_smptr::shared_ptr<Protocol::Package> &package);
 			void cancel_job(bool synchrounous);
-			void cancel_job_locked(bool synchronous, Util::Locker &l);
+			void cancel_job_locked(bool synchronous, Util::Mutex::Locker &l);
 		public:
 
 			Worker(Session &session);

@@ -88,16 +88,12 @@ namespace Indexes
 	int IndexManager::removeRoot(TransactionID* tid, ObjectPointer* op) {
 		indexesMap::iterator it;
 		int err = 0;
-		if ((err = indexListSem->lock_write())) {
-			return err;
-		}
+		indexListSem->lock_write();
 		if (isRootIndexed(op->getName(), it)) {
 			err = removeRoot(tid, op, it);
 		}
 		int err2;
-		if ((err2 = indexListSem->unlock())) {
-			return err2;
-		}
+		indexListSem->unlock();
 
 		return err;
 	}
@@ -119,22 +115,18 @@ namespace Indexes
 
 		indexesMap::iterator it;
 
-		if ((err = indexListSem->lock_write())) {
-			return err;
-		}
+		indexListSem->lock_write();
 
 		if (!isRootIndexed(op->getName(), it)) {
 			if (INDEX_DEBUG_MODE) {
 				printf("root o nazwie %s nie jest indexowany\n", op->getName().c_str());
 			}
-			err = indexListSem->unlock();
+			indexListSem->unlock();
 			return err;
 		}
 		int err2 = removeRoot(tid, op, it);
 
-		if ((err = indexListSem->unlock())) {
-			return err;
-		}
+		indexListSem->unlock();
 
 		if (err2) {
 			return err2;
@@ -287,9 +279,8 @@ namespace Indexes
 	//index musi istniec
 	int IndexManager::dropIndex(string indexName) {
 		int err = 0;
-		if ((err = indexListSem->lock_write())) {
-			return err;
-		}
+		indexListSem->lock_write();
+
 		string2index::iterator it = indexNames.find(indexName);
 		IndexHandler* ih = it->second;
 		indexNames.erase(it);
@@ -307,9 +298,7 @@ namespace Indexes
 		if (INDEX_DEBUG_MODE) {
 			printf("rozmiar mapy zewnetrznej po usunieciu: %d\n" ,indexes.size());
 		}
-		if ((err = indexListSem->unlock())) {
-			return err;
-		}
+		indexListSem->unlock();
 		if ((err = ih->drop())) {
 			return err;
 		}
@@ -360,23 +349,18 @@ namespace Indexes
 		//*ec << "search otrzymal node'a select index\n";
 		//cout << node->putToString();
 
-		if ((err = indexListSem->lock_read())) {
-			return err;
-		}
+		indexListSem->lock_read();
 		string2index::iterator it = indexNames.find(node->getIndexName());
 		if (it == indexNames.end()) {
-			if ((err = indexListSem->unlock())) {
-				return err;
-			}
+			indexListSem->unlock();
+			
 			return ErrIndexes | ENoIndex;
 		}
 		IndexHandler *ih = it->second;
 
 		int err2 = ih->userEnter();
 
-		if ((err = indexListSem->unlock())) {
-			return err;
-		}
+		indexListSem->unlock();
 
 		if (err2) {
 			return err2;

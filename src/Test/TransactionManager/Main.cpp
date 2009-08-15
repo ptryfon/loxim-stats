@@ -2,9 +2,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include <TransactionManager/RWUJSemaphore.h>
+#include <Util/Concurrency.h>
 
-using namespace SemaphoreLib;
+using namespace Util;
 
 void* read( void*);
 void* upgrade( void*);
@@ -22,7 +22,6 @@ int main()
         int test = 2;		/* TEST MODE = 1 or 2 */
 
 	sem = new RWUJSemaphore();
-	sem->init();
     
 	if (test == 1)
 	{
@@ -90,7 +89,6 @@ void* upgrade(void* v)
     {
 	sem->unlock();
 	printf("Upgrader %d out\n", id); fflush(stdout);
-        sem->status();
     }
     else
     {

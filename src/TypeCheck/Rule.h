@@ -6,12 +6,11 @@
 #include <QueryExecutor/QueryResult.h>
 #include <Store/Store.h>
 #include <TransactionManager/Transaction.h>
-#include <TransactionManager/Mutex.h>
 #include <TypeCheck/TypeCheckResult.h>
-//#include <TypeCheck/TypeChecker.h>
 #include <TypeCheck/DecisionTable.h>
 #include <QueryParser/Deb.h>
 #include <QueryParser/Stack.h>
+#include <Util/Concurrency.h>
 
 #include <string>
 #include <fstream>
@@ -24,6 +23,7 @@ using namespace Errors;
 using namespace QExecutor;
 using namespace QParser;
 using namespace TManager;
+using namespace Util;
 using namespace std;
 
 

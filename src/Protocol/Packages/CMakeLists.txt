@@ -47,13 +47,4 @@ set (ProtocolPackagesSTAT_SRCS
 	WSHelloPackage.cpp 
 	Package.h
 	Package.cpp)
-
 add_library(ProtocolPackages STATIC ${ProtocolPackagesSTAT_SRCS})
-set_target_properties(ProtocolPackages PROPERTIES OUTPUT_NAME protocolpackages)
-set_target_properties(ProtocolPackages PROPERTIES CLEAN_DIRECT_OUTPUT 1)
-
-IF (NOT DO_NOT_BUILD_SHARED)
-	add_library(ProtocolPackages_shared SHARED ${ProtocolPackagesSTAT_SRCS})
-	set_target_properties(ProtocolPackages_shared PROPERTIES OUTPUT_NAME protocolpackages)
-	set_target_properties(ProtocolPackages_shared PROPERTIES CLEAN_DIRECT_OUTPUT 1)
-ENDIF (NOT DO_NOT_BUILD_SHARED)

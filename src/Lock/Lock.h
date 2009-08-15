@@ -20,16 +20,15 @@ namespace LockMgr { class LockManager; }
 #include <Store/Store.h>
 #include <Store/DBPhysicalID.h>
 #include <TransactionManager/Transaction.h>
-#include <TransactionManager/SemHeaders.h>
 #include <Errors/ErrorConsole.h>
 #include <Errors/Errors.h>
+#include <Util/Concurrency.h>
 
 
 
 using namespace Store;
 using namespace TManager;
 using namespace Errors;
-using namespace SemaphoreLib;
 
 namespace LockMgr 
 {
@@ -68,10 +67,10 @@ class LockManager
 	    	 * ( hovewer it can be locked by other tranasactions if share_lock was used )
 	    	 */
 	    	int unlock(SingleLock* , TransactionID*);
-	    	int lock_primitive(LogicalID* , TransactionID* , AccessMode );
+	    	int lock_primitive(LogicalID* , TransactionID* , AccessMode, Util::Mutex::Locker &l);
 	    
 	    	int single_lock_id;
-	    	Mutex *mutex;
+			Util::Mutex *mutex;
 	    	ErrorConsole &err;	    
 	    
 	public: 

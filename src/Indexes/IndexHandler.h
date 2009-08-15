@@ -66,10 +66,10 @@ namespace Indexes
 			static unsigned long usedCount;
 			
 			/** synchronizacja dostepu do zmiennych wyliczajacych adres nowego wezla */
-			static Mutex* newNodeMutex;
+			static Util::Mutex* newNodeMutex;
 			
 			/** synchronizuje operacje dyskowe na pliku */
-			static Mutex* IOMutex;
+			static Util::Mutex* IOMutex;
 			
 			/** dostep do mapy scache'owanych wezlow b-drzewa */
 			static Monitor* cacheMonitor;
