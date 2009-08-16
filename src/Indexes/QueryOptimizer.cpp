@@ -30,6 +30,8 @@ namespace Indexes {
 			default:
 				assert(false);
 		}
+		//not reached
+		return AlgOpNode::algOp();
 	}
 	
 	void QueryOptimizer::findPossibleFields(TreeNode* node) {

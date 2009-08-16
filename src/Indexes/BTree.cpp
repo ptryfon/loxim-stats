@@ -43,7 +43,7 @@ namespace Indexes
 	}
 
 	template <class I>
-	int BTree::splitChild(CachedNode* cparent, CachedNode* cchild, char* toChild, I* type) {
+	int BTree::splitChild(CachedNode* cparent, CachedNode* cchild, char* toChild, I* /*type*/) {
 		
 		Node *parent, *child;
 		
@@ -51,7 +51,8 @@ namespace Indexes
 		cchild->getNode(child);
 		
 		int err;
-		I *entry = defaultComparator->getItem(0, child, entry);
+		I *entry = NULL;
+		entry = defaultComparator->getItem(0, child, entry);
 		I *half = (I*) (((char*)child) + (MAX_NODE_CAPACITY / 2));
 		I *prevEntry = NULL;
 		
@@ -143,10 +144,10 @@ namespace Indexes
 		Node* nchild;
 		child->getNode(nchild);
 		if (nchild->leaf) {
-			RootEntry* e;
+			RootEntry* e = NULL;
 			return splitChild(parent, child, toChild, e);
 		} else {
-			NodeEntry* e;
+			NodeEntry* e = NULL;
 			return splitChild(parent, child, toChild, e);
 		}
 	}
@@ -192,7 +193,7 @@ namespace Indexes
 		rootLevel = level;
 	}
 	
-	void  BTree::rootChange(CachedNode* newRoot, CachedNode* oldRoot) {
+	void  BTree::rootChange(CachedNode* newRoot, CachedNode* /*oldRoot*/) {
 		rootAddr = newRoot->getNodeID();
 		ih->rootChange(rootLevel, newRoot->depth);
 		//rootLevel = newRoot->depth;
@@ -289,7 +290,8 @@ namespace Indexes
 			
 			if (node->leaf) {
 				RootEntry* after = (RootEntry*) node->afterAddr();  
-				RootEntry* entry = comp->getItem(0, node, entry);
+				RootEntry* entry = NULL;
+				entry = comp->getItem(0, node, entry);
 				
 				while (entry < after) {
 					//Cleaner::getHandle()->checkChangeNeed(node, entry);
@@ -341,7 +343,8 @@ namespace Indexes
 				return err;
 			} else {
 				// jestesmy w wezle wewnetrznym
-				NodeEntry* entry = comp->getItem(0, node, entry);
+				NodeEntry* entry = NULL;
+			    entry = comp->getItem(0, node, entry);
 				NodeEntry* after = (NodeEntry*)node->afterAddr();
 				nodeAddress_t child = node->firstChild;
 				NodeEntry* prev = NULL, *childEntry = NULL;
@@ -523,7 +526,7 @@ namespace Indexes
 	}
 	
 	template <class I>
-	void BTree::balanceBack(Node* to, Node* from, Node* parent, NodeEntry* fromPtrEntry, I* entryType) {
+	void BTree::balanceBack(Node* to, Node* from, Node* parent, NodeEntry* fromPtrEntry, I* /*entryType*/) {
 		I* lastEntry = NULL;
 		nodeEntry_off_t parentEntrySize = 0;
 		//wyliczyc granice
@@ -594,7 +597,7 @@ namespace Indexes
 	}
 	
 	template <class I>
-	void BTree::balanceForward(Node* from, Node* to, Node* parent, NodeEntry* toPtrEntry, I* entryType) {
+	void BTree::balanceForward(Node* from, Node* to, Node* parent, NodeEntry* toPtrEntry, I* /*entryType*/) {
 		I* lastEntry = NULL;
 		//nodeSize_t bs = balanceSize(to->size(), from);
 		//I* balancePtr = (I*) (from->afterAddr() - bs);
@@ -609,9 +612,9 @@ namespace Indexes
 		
 		NodeEntry* fromParentEntry;
 		long parentEntrySize, bytes2copy = 0;
-		Comparator *comp;
+		Comparator *comp = NULL;
 		char* fromTo;
-		long spaceNeeded = 0, newParentEntrySize;
+		long spaceNeeded = 0, newParentEntrySize = 0;
 		if (!to->leaf) {
 			comp = defaultComparator->emptyClone();
 			comp->getValue(toPtrEntry); //pobrac klucz z ojca
@@ -687,10 +690,10 @@ namespace Indexes
 			if (isBalancePossible(brother, child)) {
 				//cout << "1sza opcja balance" << endl;
 				if (child->leaf) {
-					RootEntry* type;
+					RootEntry* type = NULL;
 					balanceBack(child, brother, cparent->getNode(), next, type);
 				} else {
-					NodeEntry* type;
+					NodeEntry* type = NULL;
 					balanceBack(child, brother, cparent->getNode(), next, type);
 				}
 				if ((err = ih->freeNode(cbrother))) {
@@ -732,10 +735,10 @@ namespace Indexes
 		// mamy zalockowane oba wezly
 		if (isBalancePossible(brother, child)) {
 			if (child->leaf) {
-				RootEntry* type;
+				RootEntry* type = NULL;
 				balanceForward(brother, child, cparent->getNode(), childEntry, type);
 			} else {
-				NodeEntry* type;
+				NodeEntry* type = NULL;
 				balanceForward(brother, child, cparent->getNode(), childEntry, type);
 			}
 			if ((err = ih->freeNode(cbrother))) {
@@ -840,7 +843,8 @@ namespace Indexes
 			
 			if (currentNode->leaf) {
 					RootEntry* after = (RootEntry*) currentNode->afterAddr();  
-					RootEntry* entry = comp->getItem(0, currentNode, entry);
+					RootEntry* entry = NULL;
+					entry = comp->getItem(0, currentNode, entry);
 					
 					while (entry < after) {
 						if (comp->compare(entry) > 0) {
@@ -861,7 +865,8 @@ namespace Indexes
 					err = ih->freeNode(ccurrentNode);
 					return err;
 				} else {
-					NodeEntry* entry = comp->getItem(0, currentNode, entry);
+					NodeEntry* entry  = NULL;
+					entry = comp->getItem(0, currentNode, entry);
 					NodeEntry* after = (NodeEntry*)currentNode->afterAddr();
 					nodeAddress_t child = currentNode->firstChild;
 					

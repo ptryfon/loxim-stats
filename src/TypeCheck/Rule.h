@@ -51,10 +51,10 @@ namespace TypeCheck
 
 		Rule() { ruleType = Rule::BASE;}
 		Rule(int rType) {ruleType = rType;}
-		virtual void setDTable(DTable *dt) {};
+		virtual void setDTable(DTable */*dt*/) {};
 		//both appliesTo() methods to be implemented in subclasses..
-		virtual bool appliesTo(string unArg) {return false;}
-		virtual bool appliesTo(string lArg, string rArg) {return false;}
+		virtual bool appliesTo(string /*unArg*/) {return false;}
+		virtual bool appliesTo(string /*lArg*/, string /*rArg*/) {return false;}
 		virtual int getRuleType() {return ruleType;}
 		virtual void setAction(int actId, string dynStr) {action = actId; dynCtrl = (dynStr == "DYN");}
 		virtual bool isEmpty (string s) {return (s == "");}//TODO: what about NULLs...?
@@ -103,7 +103,7 @@ namespace TypeCheck
 		// constructors for more complicated rules		
 		UnOpRule (int rType, string specArg, string arg, string resStr, int resGen, int actId, int dStr);
 
-		bool appliesTo(string lArg, string rArg) {
+		bool appliesTo(string lArg, string /*rArg*/) {
 			Deb::ug("(!!!) Two-arg UnOpRule::appliesTo() used only for first param.");
 			return appliesTo(lArg);
 		}

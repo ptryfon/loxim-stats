@@ -386,7 +386,7 @@ namespace Protocol {
 	}
 
 	void FileDataStream::prefetch(const sigset_t &, const bool &, const
-			size_t size)
+			size_t /*size*/)
 	{
 	}
 

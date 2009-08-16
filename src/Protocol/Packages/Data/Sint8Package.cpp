@@ -13,7 +13,6 @@ using namespace std;
 namespace Protocol {
 	Sint8Package::Sint8Package(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream):
 
-
 		value(stream.read_int8(mask, cancel, length))
 	{
 	}

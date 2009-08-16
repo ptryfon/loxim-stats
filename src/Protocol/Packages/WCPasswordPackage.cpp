@@ -13,7 +13,6 @@ using namespace std;
 namespace Protocol {
 	WCPasswordPackage::WCPasswordPackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream):
 
-
 		login(stream.read_string(mask, cancel, length)),
 		password(stream.read_string(mask, cancel, length))
 	{

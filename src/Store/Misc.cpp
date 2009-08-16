@@ -25,7 +25,7 @@ namespace Store
 		cout << "Checking memory..\n";
 		char* b = (char*)by;
 		cout << "Checking memory ptr..\n";
-		for(int i=0; i<s; i++) {
+		for(unsigned int i=0; i<s; i++) {
 			if( b[i] == 0) continue;
 		}
 		cout << "Memory OK\n";

@@ -25,7 +25,7 @@ using namespace std;
 		}
 	}
 	
-	int NonloggedDataSerializer::writeBuf(char* buf, int fd, ssize_t toWrite) {
+	int NonloggedDataSerializer::writeBuf(char* buf, int /*fd*/, ssize_t toWrite) {
 		ssize_t count;
 		while (toWrite > 0) {
 			count = write(meta_fd, buf, toWrite);
@@ -40,7 +40,7 @@ using namespace std;
 		return 0;
 	}
 	
-	int NonloggedDataSerializer::readBuf(char* buf, int fd, ssize_t toRead) {
+	int NonloggedDataSerializer::readBuf(char* buf, int /*fd*/, ssize_t toRead) {
 		ssize_t count;
 		while (toRead > 0) {
 			count = read(meta_fd, buf, toRead);

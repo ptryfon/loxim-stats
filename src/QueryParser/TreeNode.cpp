@@ -248,6 +248,10 @@ namespace QParser
 
     /* INTERFACE NODES */
 
+	PrintHandler::~PrintHandler()
+	{
+	}
+
     string PrintHandler::vectorString(const TAttributes &vec)
     {
 		string res;
@@ -450,7 +454,7 @@ namespace QParser
 			TInterfaceWithCrud ic = it->second;
 			InterfaceNode in = ic.first;
 			int crud = ic.second;
-			out += in.simpleString() + "\n\tCrud: " + AccessMap::getCrudString(crud); + "\n";
+			out += in.simpleString() + "\n\tCrud: " + AccessMap::getCrudString(crud) + "\n";
 		}
 		return out;
 	}
@@ -539,9 +543,9 @@ namespace QParser
 	}
 	
 	SchemaNode::SchemaNode(string name, Schemas::TNameToAccess aps) :
-		m_name(name), m_accessPoints(aps), m_isFullyDefined(false) {}
+		m_name(name), m_isFullyDefined(false), m_accessPoints(aps)  {}
 	SchemaNode::SchemaNode(string name, TInterfacesWithCrudMap i) :
-		m_name(name), m_interfaces(i), m_isFullyDefined(true) {}
+		m_name(name), m_isFullyDefined(true), m_interfaces(i) {}
 	TreeNode* SchemaNode::clone()
 	{
 		return new SchemaNode(*this);
@@ -952,7 +956,7 @@ namespace QParser
 		cout << "---------------------------------------------" << endl;
 	}
 
-	int ValueNode::staticEval (StatQResStack *&qres, StatEnvStack *&envs) {
+	int ValueNode::staticEval (StatQResStack *&qres, StatEnvStack *&/*envs*/) {
 		Deb::ug("staticEval:value node ");
 		switch (this->type()) {
 	    	case TreeNode::TNINT: {
@@ -1312,7 +1316,7 @@ namespace QParser
 	}
 
 	DMLNode::DMLNode (dmlInst _inst) : inst(_inst) {/*DataScheme::reloadDScheme(); - done through executor!*/}
-	void TreeNode::qpLocalAction(QueryParser *qp) {/*By default does nothing*/}
+	void TreeNode::qpLocalAction(QueryParser * /*qp*/) {/*By default does nothing*/}
 	void DMLNode::qpLocalAction(QueryParser *qp) {
 		switch (inst) {
 			case DMLNode::reload : break;
@@ -1620,11 +1624,11 @@ IndexSelectNode::IndexSelectNode(IndexBoundaryNode *left, IndexBoundaryNode *rig
 	c = new TwoSideConstraints(left->inclusive, left->value, right->value, right->inclusive);
 }
 
-IndexSelectNode::IndexSelectNode(IndexBoundaryNode *left, bool right) {
+IndexSelectNode::IndexSelectNode(IndexBoundaryNode *left, bool /*right*/) {
 	c = new LeftBoundedConstraints(left->inclusive, left->value);
 }
 
-IndexSelectNode::IndexSelectNode(bool left, IndexBoundaryNode *right) {
+IndexSelectNode::IndexSelectNode(bool /*left*/, IndexBoundaryNode *right) {
 	c = new RightBoundedConstraints(right->value, right->inclusive);
 }
 

@@ -13,7 +13,6 @@ using namespace std;
 namespace Protocol {
 	ASCErrorPackage::ASCErrorPackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream):
 
-
 		error_code(stream.read_uint32(mask, cancel, length)),
 		error_object_id(stream.read_varuint(mask, cancel, length)),
 		description(stream.read_string(mask, cancel, length)),

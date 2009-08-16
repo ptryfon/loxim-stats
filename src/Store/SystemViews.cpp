@@ -227,7 +227,7 @@ namespace Store
 		createObjectPointer("Bag", bagValue, bag);
 	}
 
-	int InformationView::getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object) {
+	int InformationView::getObject(TransactionID* /*tid*/, LogicalID* lid, AccessMode /*mode*/, ObjectPointer*& object) {
 		if (bag && (lid->toInteger() == bag->getLogicalID()->toInteger())) object = bag;
 		else if (databaseName && (lid->toInteger() == databaseName->getLogicalID()->toInteger())) object = databaseName;
 		else if (databaseVersion && (lid->toInteger() == databaseVersion->getLogicalID()->toInteger())) object = databaseVersion;
@@ -237,7 +237,7 @@ namespace Store
 		return 0;
 	}
 
-	void InformationView::refresh(Transaction *tr, ObjectPointer*& object) {
+	void InformationView::refresh(Transaction */*tr*/, ObjectPointer*& object) {
 		object = bag;
 	}
 
@@ -282,7 +282,7 @@ namespace Store
 		createObjectPointer("Bag", bagValue, bag);
 	}
 
-	int AllViewsView::getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object) {
+	int AllViewsView::getObject(TransactionID* /*tid*/, LogicalID* lid, AccessMode /*mode*/, ObjectPointer*& object) {
 		if (bag && (lid->toInteger() == bag->getLogicalID()->toInteger())) object = bag;
 		else {
 			for (unsigned int i=0; i<viewsName->size(); i++) {
@@ -296,7 +296,7 @@ namespace Store
 		return 0;
 	}
 
-	void AllViewsView::refresh(Transaction *tr, ObjectPointer*& object) {
+	void AllViewsView::refresh(Transaction */*tr*/, ObjectPointer*& object) {
 		object = bag;
 	}
 
@@ -320,7 +320,7 @@ namespace Store
 		createObjectPointer("Count", dbCount, count);;
 	}
 
-	int CounterView::getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object) {
+	int CounterView::getObject(TransactionID* /*tid*/, LogicalID* lid, AccessMode /*mode*/, ObjectPointer*& object) {
 		if (count && (lid->toInteger() == count->getLogicalID()->toInteger())) object = count;
 		else {
 			return -1;
@@ -328,7 +328,7 @@ namespace Store
 		return 0;
 	}
 
-	void CounterView::refresh(Transaction *tr, ObjectPointer*& object) {
+	void CounterView::refresh(Transaction */*tr*/, ObjectPointer*& object) {
 		count->getValue()->setInt(c++);
 		object = count;
 	}
@@ -403,7 +403,7 @@ namespace Store
 		bag = createObjectFromSystemStats(ss);
 	}
 
-	int SystemStatsView::getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object) {
+	int SystemStatsView::getObject(TransactionID* /*tid*/, LogicalID* lid, AccessMode /*mode*/, ObjectPointer*& object) {
 		if (bag && (lid->toInteger() == bag->getLogicalID()->toInteger())) {
 			//cout << "    ===> SystemStatsViews::getObject(" << tid->getId() << ", " << lid->toInteger() << ") = BAG" << endl;
 			object = bag;
@@ -422,7 +422,7 @@ namespace Store
 		return 0;
 	}
 
-	void SystemStatsView::refresh(Transaction *tr, ObjectPointer*& object) {
+	void SystemStatsView::refresh(Transaction */*tr*/, ObjectPointer*& object) {
 		if (viewsName) {
 			for (unsigned int i = 0; i < viewsName->size(); i++) {
 				delete (*viewsName)[i];
@@ -457,7 +457,7 @@ namespace Store
 //std::cerr << " + bag LID: " << bag->getLogicalID() << std::endl;
 	}
 
-	int RootsView::getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object)
+	int RootsView::getObject(TransactionID* /*tid*/, LogicalID* lid, AccessMode /*mode*/, ObjectPointer*& object)
 	{
 //std::cerr << " + %Roots getObj lid: " << lid->toInteger() << std::endl;
 		if (bag != NULL && *lid == *bag->getLogicalID()) {

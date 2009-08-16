@@ -109,7 +109,7 @@ int CommitRecord::modifySetsBackDir(CrashRecovery* cr)
     return 0;
   }
 
-int CommitRecord::commit(SetOfTransactionIDS* setOfTIDs, StoreManager* sm)
+int CommitRecord::commit(SetOfTransactionIDS* setOfTIDs, StoreManager* /*sm*/)
   {
     //usuwamy tranzakcje ze zbioru tranzakcji do zatwierdzenia
     setOfTIDs->erase(tid);
@@ -232,6 +232,8 @@ int LogRecord::readLogRecordForward( LogRecord *&result, int fileDes, StoreManag
     case REDO_LOGS_LOG_REC_TYPE:
       result = new RedoLogsRecord();
       break;
+	default:
+	  assert(false);
   }
   //if( ( errCode = dictionary[recordType]->instance( result ) ) ) return errCode;
   if( ( errCode = LogIO::readInt( fileDes, recordId ) ) ) return errCode;
@@ -300,13 +302,13 @@ int LogRecord::writeLogRecord( LogRecord *recordPtr, int fileDes )
 
 /* TransactionRecord class */
 
-int TransactionRecord::read( int fileDes, StoreManager* sm ) { int result = LogIO::readTransactionID( tid, fileDes ); return result;}
+int TransactionRecord::read( int fileDes, StoreManager* /*sm*/ ) { int result = LogIO::readTransactionID( tid, fileDes ); return result;}
 
 int TransactionRecord::write( int fileDes ) { return LogIO::writeTransactionID( tid, fileDes ); }
 
 /* BeginTransactionRecord class */
 
-int BeginTransactionRecord::rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* sm, CrashRecovery* cr )
+int BeginTransactionRecord::rollBack(SetOfTransactionIDS* setOfTIDs, StoreManager* /*sm*/, CrashRecovery* /*cr*/ )
 {
   // Ponieważ się cofamy, to po napotkaniu poczatku tranzakcji 
   // mozemy ja usunac ze spisu transakcji do wycofania.
@@ -318,7 +320,7 @@ int BeginTransactionRecord::rollBack(SetOfTransactionIDS* setOfTIDs, StoreManage
 
 /* CkptRecord class */
 
-int CkptRecord::read( int fileDes, StoreManager* sm ) { return LogIO::readTransactionIDVector( tidVec, fileDes ); }
+int CkptRecord::read( int fileDes, StoreManager* /*sm*/ ) { return LogIO::readTransactionIDVector( tidVec, fileDes ); }
 int CkptRecord::write( int fileDes ) { return LogIO::writeTransactionIDVector( tidVec, fileDes ); }
 
 

@@ -60,7 +60,7 @@ namespace TypeCheck
 		return modifyTreeCoerce(coerceAction, tn, augLeft, augRight);
 	}
 
-	int TypeChecker::performSingleArgAction(int actionId, TreeNode *tn, Signature *coerceSig) {
+	int TypeChecker::performSingleArgAction(int actionId, TreeNode *tn, Signature */*coerceSig*/) {
 
 		switch (actionId) {
 			case DTable::CARD_TO_11 : return modifyTreeCoerce(CoerceNode::element, tn);
@@ -387,12 +387,12 @@ namespace TypeCheck
 		return sEnvs->pushBinders(sig->statNested(NULL));
 	}
 
-	int TypeChecker::closeScope(Signature *sig) {
+	int TypeChecker::closeScope(Signature */*sig*/) {
 		sEnvs->pop();
 		return 0;
 	}
 
-	int TypeChecker::augmentTreeEllipsis(TreeNode *tn, string name, vector<BinderWrap*> *vec, string expandName) {
+	int TypeChecker::augmentTreeEllipsis(TreeNode *tn, string /*name*/, vector<BinderWrap*> */*vec*/, string expandName) {
 		if (Deb::ugOn()) cout << "AUGMENTING(ellipsis), ADDING '." << expandName << "' TO THE QUERY ..." << endl;
 		TreeNode *parent = tn->getParent();
 		if (parent == NULL) {
@@ -411,7 +411,7 @@ namespace TypeCheck
 		return errcode;
 	}
 
-	int TypeChecker::augmentTreeCoerce(TreeNode *tn, Signature *lSig, Signature *rSig, TypeCheckResult &tcRes) {
+	int TypeChecker::augmentTreeCoerce(TreeNode *tn, Signature */*lSig*/, Signature */*rSig*/, TypeCheckResult &tcRes) {
 		int actionsNumber = tcRes.actionsNumber();
 		Deb::ug("typeChecker::augmentTreeCoerce(): performing %d actions.", actionsNumber);
 		for (unsigned int i = actionsNumber; i > 0; i--) {

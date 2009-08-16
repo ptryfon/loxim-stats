@@ -13,7 +13,6 @@ using namespace std;
 namespace Protocol {
 	QSStmtparsedPackage::QSStmtparsedPackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream):
 
-
 		statement_id(stream.read_uint64(mask, cancel, length)),
 		params_cnt(stream.read_uint32(mask, cancel, length))
 	{

@@ -46,24 +46,24 @@ QueriesStats* AllStats::getQueriesStats() {
 	return dynamic_cast<QueriesStats*>(getStatsStats("QUERIES_STATS"));
 }
 
-void AllStats::addDiskPageReads(int sessionId, int transactionId, int count) {
+void AllStats::addDiskPageReads(int sessionId, int /*transactionId*/, int count) {
 	getSessionsStats()->addDiskPageReads(sessionId, count);
 	getStoreStats()->addDiskPageReads(count);
 	getQueriesStats()->addDiskIO(sessionId, count);
 }
 
-void AllStats::addPageReads(int sessionId, int transactionId, int count) {
+void AllStats::addPageReads(int sessionId, int /*transactionId*/, int count) {
 	getSessionsStats()->addPageReads(sessionId, count);
 	getStoreStats()->addPageReads(count);
 }
 
-void AllStats::addDiskPageWrites(int sessionId, int transactionId, int count) {
+void AllStats::addDiskPageWrites(int sessionId, int /*transactionId*/, int count) {
 	getSessionsStats()->addDiskPageWrites(sessionId, count);
 	getStoreStats()->addDiskPageWrites(count);
 	getQueriesStats()->addDiskIO(sessionId, count);
 }
 
-void AllStats::addPageWrites(int sessionId, int transactionId, int count) {
+void AllStats::addPageWrites(int sessionId, int /*transactionId*/, int count) {
 	getSessionsStats()->addPageWrites(sessionId, count);
 	getStoreStats()->addPageWrites(count);
 }

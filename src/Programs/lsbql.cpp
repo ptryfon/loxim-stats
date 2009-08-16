@@ -195,11 +195,8 @@ class Aborter : public SignalReceiver {
 	Aborter(::Client::Client &client) : client(client) {};
 	void signal_handler(int sig)
 	{
-		switch (sig){
-			case SIGINT:
-				client.abort();
-				break;
-		}
+		if (sig == SIGINT)
+			client.abort();
 		
 	}
 	~Aborter()

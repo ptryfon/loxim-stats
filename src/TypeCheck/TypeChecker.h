@@ -50,6 +50,7 @@ namespace TypeCheck
 				case ARG_CASTTO: return "Invalid Cast";
 				case CREATE: return "Create failure";
 				case UNKNOWN: return "Unknown";
+				default: assert(false);
 			}
 			return "Unknown";
 		}
@@ -104,6 +105,8 @@ namespace TypeCheck
 				case CREATE:
 					ret = " error - cannot create " + at[_parm] + " with signature: " + at[_sig] + ".";
 					return ret;
+				default:
+					assert(false);
 			}
 			return "Unspecified error";
 		}

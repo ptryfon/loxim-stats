@@ -72,8 +72,8 @@ namespace Store
 			SystemView() {}
 			virtual ~SystemView() {};
 			virtual void init(SystemViews* views);
-			virtual int getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object) {return -1; } ;
-			virtual void refresh(Transaction* tr, ObjectPointer*& object) {};
+			virtual int getObject(TransactionID* /*tid*/, LogicalID* /*lid*/, AccessMode /*mode*/, ObjectPointer*& /*object*/) {return -1; } ;
+			virtual void refresh(Transaction* /*tr*/, ObjectPointer*& /*object*/) {};
 
 			void createObjectPointer(const char* name, DataValue* value, ObjectPointer*& p);
 	};

@@ -34,8 +34,8 @@ namespace Config {
 		ifstream configFile;
 		char *c1, *c2, *n, *v;
 		char line[256];
-		struct ModuleOptions *mod, *lastmod;
-		struct ConfOpt *opt, *lastopt;
+		struct ModuleOptions *mod = NULL, *lastmod = NULL;
+		struct ConfOpt *opt=NULL, *lastopt = NULL;
 		struct passwd *passwd = getpwuid(geteuid());
 		if (passwd){
 			string file_name = string(passwd->pw_dir) + "/.loxim.conf";

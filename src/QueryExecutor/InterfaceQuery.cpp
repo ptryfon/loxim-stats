@@ -27,7 +27,7 @@ int InterfaceQuery::produceQuery(Schema *interfaceSchema, ErrorConsole *ec, cons
     return 0;
 }
 
-int InterfaceQuery::constructSelection(Schema *interfaceSchema, ErrorConsole *ec, QueryNode *& selectionQuery)
+int InterfaceQuery::constructSelection(Schema *interfaceSchema, ErrorConsole * /*ec*/, QueryNode *& selectionQuery)
 {
     TFields interfaceFields = interfaceSchema->getFields();
     TFields::reverse_iterator it;

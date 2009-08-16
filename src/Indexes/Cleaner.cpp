@@ -38,11 +38,12 @@ namespace Indexes {
 		lid_t index = ih->getId();
 		Node* node = cnode->getNode();
 		if (node->leaf) {
-			lid_t lid;
+			lid_t lid = 0;
 			bool started = false, add = false, del = false;
 		
 			RootEntry* firstToRemove = NULL;
-			RootEntry* entry = comp->getItem(0, node, entry);
+			RootEntry* entry = NULL;
+		   	entry = comp->getItem(0, node, entry);
 			
 			VisibilityResolver* v = IndexManager::getHandle()->resolver.get();
 			

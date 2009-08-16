@@ -57,7 +57,7 @@ namespace Store
 		return 0;
 	};
 
-	int Map::initializePage(unsigned int pageID, char* page)
+	int Map::initializePage(unsigned int /*pageID*/, char* /*page*/)
 	{
 		return 0;
 	}

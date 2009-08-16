@@ -34,7 +34,7 @@ namespace TypeCheck {
 	}
 	
 	//return (ErrTypeChecker | ECannotRestore); - if you cannot restore. 
-	int DTCRestoreAlgorithm::restoreOnBadArg(TreeNode *tn, int tType, int op, TypeCheckResult &tc, Signature *l, Signature *r, RestoreParam *rp){
+	int DTCRestoreAlgorithm::restoreOnBadArg(TreeNode */*tn*/, int tType, int op, TypeCheckResult &tc, Signature *l, Signature *r, RestoreParam */*rp*/){
 		
 		if (l == NULL || r == NULL) return (ErrTypeChecker | ETCInnerFailure);		
 		int errcode = 0;
@@ -52,7 +52,7 @@ namespace TypeCheck {
 		return 0;
 	}
 	
-	int DTCRestoreAlgorithm::restoreOnBadArg(TreeNode *tn, int tType, int op, TypeCheckResult &tc, Signature *sig, RestoreParam *rp) {
+	int DTCRestoreAlgorithm::restoreOnBadArg(TreeNode */*tn*/, int tType, int op, TypeCheckResult &tc, Signature *sig, RestoreParam *rp) {
 		
 		if (sig == NULL) return (ErrTypeChecker | ETCInnerFailure);
 		int errcode = 0;		
@@ -69,7 +69,7 @@ namespace TypeCheck {
 		return 0;
 	}
 	
-	int DTCRestoreAlgorithm::restoreOnMisspelledName(TreeNode *tn, string name, vector<BinderWrap*> *vec) {
+	int DTCRestoreAlgorithm::restoreOnMisspelledName(TreeNode */*tn*/, string name, vector<BinderWrap*> * /*vec*/) {
 		if (Deb::ugOn()) cout << "Would call: RestoreAfterMisspelledName ! for name: " << name << endl;
 		//go through the stack and decide which name is 'the closest' to name. If none is really close, 
 		// return ECannotRestoreBadName. Else - fill the vector in and return 0;
@@ -341,7 +341,7 @@ namespace TypeCheck {
 		provideReturnLinks();
 	}
 	
-	void RDecisionTable::initOtherBinaryRules(int treeType, int op) {
+	void RDecisionTable::initOtherBinaryRules(int treeType, int /*op*/) {
 		switch (treeType) {
 			case TreeNode::TNCASTTO : {
 				/*BASE*/	

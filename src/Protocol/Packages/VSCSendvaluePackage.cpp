@@ -13,7 +13,6 @@ using namespace std;
 namespace Protocol {
 	VSCSendvaluePackage::VSCSendvaluePackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream):
 
-
 		value_id(stream.read_varuint(mask, cancel, length)),
 		flags(stream.read_uint8(mask, cancel, length)),
 		data(DataPackageFactory::deserialize_unknown(mask, cancel, length, stream))

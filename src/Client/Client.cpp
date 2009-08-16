@@ -13,6 +13,7 @@
 #include <Errors/Exceptions.h>
 #include <Util/smartptr.h>
 #include <Util/InfLoopThread.h>
+#include <Util/Misc.h>
 #include <Protocol/Exceptions.h>
 #include <Protocol/Streams/TCPClientStream.h>
 #include <Protocol/Enums/Enums.h>
@@ -118,7 +119,7 @@ namespace Client{
 			pthread_kill(thread, SIGUSR1);
 		}
 
-		void signal_handler(int i)
+		void signal_handler(int /*i*/)
 		{
 			client.shutting_down = true;
 		}
@@ -260,7 +261,7 @@ namespace Client{
 	{
 		{
 			auto_ptr<ByteBuffer> cl_name(new ByteBuffer("lsbql"));
-			auto_ptr<ByteBuffer> cl_ver(new ByteBuffer(PACKAGE_VERSION));
+			auto_ptr<ByteBuffer> cl_ver(new ByteBuffer(STRINGIFY(PACKAGE_VERSION)));
 			auto_ptr<ByteBuffer> cl_hname(new ByteBuffer(get_hostname()));
 			//XXX use locale
 			auto_ptr<ByteBuffer> cl_lang(new ByteBuffer("PL"));

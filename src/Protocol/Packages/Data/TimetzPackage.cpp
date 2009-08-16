@@ -13,7 +13,6 @@ using namespace std;
 namespace Protocol {
 	TimetzPackage::TimetzPackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream):
 
-
 		hour(stream.read_uint8(mask, cancel, length)),
 		minutes(stream.read_uint8(mask, cancel, length)),
 		sec(stream.read_uint8(mask, cancel, length)),

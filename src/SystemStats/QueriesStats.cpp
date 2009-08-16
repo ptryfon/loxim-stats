@@ -108,7 +108,7 @@ string TopQueriesStats::createKey(int id) {
 	return id_key;
 }
 
-bool TopQueriesStats::compare(QueryStats* q1, QueryStats* q2) {
+bool TopQueriesStats::compare(QueryStats* /*q1*/, QueryStats* /*q2*/) {
 	return true;
 }
 

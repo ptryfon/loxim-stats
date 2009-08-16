@@ -45,7 +45,7 @@ namespace Store
 		return StoreManager::theStore->getPhysicalID(tid, this);
 	};
 
-	void DBLogicalID::toByteArray(unsigned char** lid, int* length)
+	void DBLogicalID::toByteArray(unsigned char** /*lid*/, int* /*length*/)
 	{
 	};
 

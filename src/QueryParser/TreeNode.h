@@ -110,7 +110,7 @@ namespace QParser {
 	
 
     // For QExecutor:
-	virtual string getName() {return (string) NULL;}
+	virtual string getName() const {return (string) NULL;}
 	virtual TreeNode* getArg() {return (TreeNode *) NULL;}
 	virtual TreeNode* getLArg() {return (TreeNode *) NULL;}
 	virtual TreeNode* getRArg() {return (TreeNode *) NULL;}
@@ -151,7 +151,7 @@ namespace QParser {
 	virtual void getInfixList(vector<TreeNode*> * /*auxVec*/){
 		
 	}
-    virtual string toString( int level = 0, bool recursive = false, string name = "" ) { return ""; }
+    virtual string toString( int /*level*/ = 0, bool /*recursive*/ = false, string /*name*/ = "" ) { return ""; }
       
 	// adds to boundVec all nodes from treeVec, that are bound in node
 	static void getBoundIn(TreeNode *node, vector<TreeNode*> *treeVec, vector<TreeNode*> *boundVec);
@@ -168,13 +168,13 @@ namespace QParser {
 		return (tp == TNTRANS || tp == TNDML || tp == TNOBJDECL || tp == TNTYPEDEF || tp == TNVALIDATION);
 	}
 	virtual void qpLocalAction(QueryParser *qp);
-	virtual int augmentTreeDeref(bool derefLeft, bool derefRight) {Deb::ug("TreeNode::augmtDeref(2arg)"); return 0;};
+	virtual int augmentTreeDeref(bool /*derefLeft*/, bool /*derefRight*/) {Deb::ug("TreeNode::augmtDeref(2arg)"); return 0;};
 	virtual int augmentTreeDeref() {Deb::ug("TreeNode;:augmtDeref()"); return 0;};
-	virtual int augmentTreeCoerce(int coerceType, bool augLeft, bool augRight) {Deb::ug("augmtCoerce(l,r) at TN");return 0;}
-	virtual int augmentTreeCoerce(int coerceType) {Deb::ug("augmentCoerce(arg) at TN"); return 0;}
+	virtual int augmentTreeCoerce(int /*coerceType*/, bool /*augLeft*/, bool /*augRight*/) {Deb::ug("augmtCoerce(l,r) at TN");return 0;}
+	virtual int augmentTreeCoerce(int /*coerceType*/) {Deb::ug("augmentCoerce(arg) at TN"); return 0;}
 	virtual bool canDerefSon() {return true;}
 	virtual bool canDerefNode() {return true;}
-	virtual void canDerefSons(bool &canDerefL, bool &canDerefR){};
+	virtual void canDerefSons(bool &/*canDerefL*/, bool &/*canDerefR*/){};
 	virtual int markTreeCoerce(int actionId, Signature *coerceSig);
 	virtual bool isCoerced() {return coerceFlag;}
 	virtual int nrOfCoerceActions() {return coerceActions.size();}
@@ -218,7 +218,7 @@ namespace QParser {
 	    virtual TreeNode* clone();
 	    virtual int type();
 	    virtual int putToString();
-      virtual string toString( int level = 0, bool recursive = false, string name = "" ) {
+      virtual string toString( int level = 0, bool /*recursive*/ = false, string name = "" ) {
         return getPrefixForLevel( level, name ) + "[Validation] login='" + login + "', passwd='" + passwd + "'\n";
       }
     };
@@ -240,6 +240,7 @@ namespace QParser {
     class PrintHandler
     {	//Abstract class
 	public:
+		virtual ~PrintHandler();
 	    static string vectorString(const TAttributes &vec);
 	    static string vectorString(const TSupers &vec);
 		static string mapString(const Schemas::TNameToAccess &aps);
@@ -252,14 +253,14 @@ namespace QParser {
     {	//Abstract class
 	public:
 	    virtual int putToString() {return defaultPutToString();}
-	    virtual string toString(int level = 0, bool recursive = false, string name = "") {return getPrefixForLevel(level, name) + simpleString() + "\n";}
+	    virtual string toString(int level = 0, bool /*recursive*/ = false, string name = "") {return getPrefixForLevel(level, name) + simpleString() + "\n";}
     };
     
     class PrintableQueryNode : public QueryNode, public PrintHandler
     {	//Abstract class
 	public:
 	    virtual int putToString() {return defaultPutToString();}
-	    virtual string toString(int level = 0, bool recursive = false, string name = "") {return getPrefixForLevel(level, name) + simpleString() + "\n";}
+	    virtual string toString(int level = 0, bool /*recursive*/ = false, string name = "") {return getPrefixForLevel(level, name) + simpleString() + "\n";}
 	    virtual string deParse() {return simpleString();}
     };
 
@@ -271,7 +272,7 @@ namespace QParser {
 			string m_schemaName;
 			
 		public:
-			SchemaExpImpNode(string schemaName, bool isExport) : m_schemaName(schemaName), m_isExport(isExport) {}
+			SchemaExpImpNode(string schemaName, bool isExport) : m_isExport(isExport), m_schemaName(schemaName) {}
 			string getSchemaName() const {return m_schemaName;}
 			bool getIsExport() const {return m_isExport;}
 			
@@ -667,7 +668,7 @@ namespace QParser {
 	    virtual int type();
 	    virtual int putToString();	    
 
-      virtual string toString( int level = 0, bool recursive = false, string name = "" ) {
+      virtual string toString( int level = 0, bool /*recursive*/ = false, string name = "" ) {
         return getPrefixForLevel( level, name ) + "[CreateUser] user='" + user + "', passwd='" + passwd + "'\n";
       }
     };
@@ -686,7 +687,7 @@ namespace QParser {
 	    virtual TreeNode* clone();
 	    virtual int type();
 	    virtual int putToString();	    
-      virtual string toString( int level = 0, bool recursive = false, string name = "" ) {
+      virtual string toString( int level = 0, bool /*recursive*/ = false, string name = "" ) {
         return getPrefixForLevel( level, name ) + "[RemoveUser] user='" + user + "'\n";
       }
     };
@@ -754,7 +755,7 @@ namespace QParser {
 	}	
 	virtual void serialize(){cout << "'value'";};
 	virtual int staticEval (StatQResStack *&qres, StatEnvStack *&envs);		
-      virtual string toString( int level = 0, bool recursive = false, string name = "" ) {
+      virtual string toString( int level = 0, bool /*recursive*/ = false, string name = "" ) {
         return getPrefixForLevel( level, name ) + "[Value]\n";
       }
       virtual void markNeeded(){
@@ -798,7 +799,7 @@ namespace QParser {
 	virtual int  getStatEnvSecSize(){return statEnvSecSize;};
 	virtual TreeNode* clone();
 	virtual int type() { return TreeNode::TNNAME; }
-	virtual string getName() { return name; }
+	virtual string getName() const { return name; }
 	virtual int putToString() {
 	    cout << "("<< this->getName() <<"["<<bindSect << "," << stackSize << "]";   
 	    cout << this->getCard()<<"depOn:" ;
@@ -840,7 +841,7 @@ namespace QParser {
 	
 	virtual int staticEval (StatQResStack *&qres, StatEnvStack *&envs);	
 	virtual int staticEval2 (StatQResStack *&qres, StatEnvStack *&envs);
-      virtual string toString( int level = 0, bool recursive = false, string n = "" ) {
+      virtual string toString( int level = 0, bool /*recursive*/ = false, string n = "" ) {
         stringstream c;
         string bindSectS, stackSizeS;
         c << bindSect; c >> bindSectS;
@@ -871,7 +872,7 @@ namespace QParser {
 	
 	virtual TreeNode* clone();
 	virtual int type() { return TreeNode::TNPARAM; }
-	virtual string getName() { return name; }
+	virtual string getName() const { return name; }
 	virtual int putToString() {
 	    cout << "("<< this->getName() <<"["<<bindSect << "," << stackSize << "])";    
 	    return 0;
@@ -881,7 +882,7 @@ namespace QParser {
 	
 	virtual ~ParamNode() {}
 	
-      virtual string toString( int level = 0, bool recursive = false, string n = "" ) {
+      virtual string toString( int level = 0, bool /*recursive*/ = false, string n = "" ) {
         stringstream c;
         string bindSectS, stackSizeS;
         c << bindSect; c >> bindSectS;
@@ -906,7 +907,7 @@ namespace QParser {
 	virtual int type() { return TreeNode::TNINT; }
 	int getValue() {return value;}
   	virtual ~IntNode() {}
-      virtual string toString( int level = 0, bool recursive = false, string name = "" ) {
+      virtual string toString( int level = 0, bool /*recursive*/ = false, string name = "" ) {
         stringstream c;
         string valueS;
         c << value; c >> valueS;
@@ -934,7 +935,7 @@ namespace QParser {
 	virtual int type() { return TreeNode::TNREFID; }
 	int getValue() {return value;}
   	virtual ~RefidNode() {}
-      virtual string toString( int level = 0, bool recursive = false, string name = "" ) {
+      virtual string toString( int level = 0, bool /*recursive*/ = false, string name = "" ) {
         stringstream c;
         string valueS;
         c << value; c >> valueS;
@@ -962,7 +963,7 @@ namespace QParser {
 	virtual int type() { return TreeNode::TNSTRING; }
 	string getValue() { return value; }
   	virtual ~StringNode() {}
-      virtual string toString( int level = 0, bool recursive = false, string name = "" ) {
+      virtual string toString( int level = 0, bool /*recursive*/ = false, string name = "" ) {
         return getPrefixForLevel( level, name ) + "[String] value=" + value  + "\n";
       }
       virtual void serialize(){cout << "\"" << this->getValue() <<"\"";};  
@@ -981,7 +982,7 @@ namespace QParser {
 	double getValue() { return value; }        
 
 	virtual ~DoubleNode() {}
-      virtual string toString( int level = 0, bool recursive = false, string name = "" ) {
+      virtual string toString( int level = 0, bool /*recursive*/ = false, string name = "" ) {
         stringstream c;
         string valueS;
         c << value; c >> valueS;
@@ -1016,7 +1017,7 @@ namespace QParser {
 	virtual int staticEval (StatQResStack *&qres, StatEnvStack *&envs);		
 	virtual ~BoolNode() {}
 	virtual void serialize(){cout << this->getValue();};  
-      virtual string toString( int level = 0, bool recursive = false, string name = "" ) {
+      virtual string toString( int level = 0, bool /*recursive*/ = false, string name = "" ) {
         return getPrefixForLevel( level, name ) + "[Bool] value=" + (value ? "true" : "false")  + "\n";
       }
     };      
@@ -1035,7 +1036,7 @@ namespace QParser {
             : arg(_arg), name(_name), group(_group) { arg->setParent(this); this->usedBy = new vector<TreeNode*>; }
 	virtual TreeNode* clone();
 	virtual int type() { return TreeNode::TNAS; }
-	string getName() { return name; }
+	string getName() const { return name; }
 	TreeNode* getArg() { return arg; }
 	virtual void setArg(QueryNode* _arg) { arg = _arg; arg->setParent(this); }    
 	virtual vector<TreeNode*> *getUsedBy(){return this->usedBy;}
@@ -1242,6 +1243,8 @@ namespace QParser {
 			case UnOpNode::nameof:
 				result = " name(" + arg->deParse() + ") ";
 				return result;
+			default:
+				assert(false);
 		}
 		return result;
 	};
@@ -1274,7 +1277,7 @@ namespace QParser {
 			if (queries[i] != NULL) delete queries[i]; }
 		queries.clear();
 	}
-	virtual string toString( int level = 0, bool recursive = false, string _name = "" ) {
+	virtual string toString( int /*level*/ = 0, bool /*recursive*/ = false, string /*_name*/ = "" ) {
         	string result = "";
         	return result;
       	}
@@ -1504,6 +1507,8 @@ namespace QParser {
 				result = " (" + larg->deParse() + "==" + rarg->deParse() + ") "; 
 				return result; 
 			}
+			default:
+				assert(false);
 		}
 		return result;
 	};
@@ -1694,6 +1699,8 @@ namespace QParser {
 				result = " for each" + larg->deParse() + "do" + rarg->deParse() + "od "; 
 				return result; 
 			}
+			default:
+				assert(false);
 		}
 		return result;
 	}
@@ -1712,7 +1719,7 @@ namespace QParser {
 		transactionOp getOp() { return op; }
 		virtual void setOp(transactionOp _op) { op = _op; }
 
-      virtual string toString( int level = 0, bool recursive = false, string name = "" ) {
+      virtual string toString( int level = 0, bool /*recursive*/ = false, string name = "" ) {
         return getPrefixForLevel( level, name ) + "[Transact] op=" + ((op == begin) ? "begin" : ((op == end) ? "end" : "abort")) + "\n";
       }
         virtual int putToString() {
@@ -1739,7 +1746,7 @@ namespace QParser {
 		virtual TreeNode* clone();
 		virtual int type() { return TreeNode::TNCREATE; }
 		virtual bool isClassMember() { return classMember; }
-		string getName() { return name; }
+		string getName() const { return name; }
 		TreeNode* getArg() { return arg; }
 		virtual void setArg(QueryNode* _arg) { arg = _arg; arg->setParent(this); }    
 		virtual int putToString() {
@@ -1846,6 +1853,8 @@ namespace QParser {
 			case CondNode::whilee: { 
 				result = " while" + condition->deParse() + "do" + larg->deParse() + "od "; 
 				return result; }
+			default:
+				assert(false);
 		}
 		return result;
 	};
@@ -1869,7 +1878,7 @@ namespace QParser {
 	virtual string getIp() {return this->ip;}
 	virtual int getPort() {return this->port;}	
 	
-      virtual string toString( int level = 0, bool recursive = false, string name = "" ) {
+      virtual string toString( int level = 0, bool /*recursive*/ = false, string name = "" ) {
         stringstream c;
         string portS;
 
@@ -2142,12 +2151,12 @@ namespace QParser {
 	
 	virtual void addContent(string n, QueryNode* c) {name = n; code = c;}
 	virtual void addParam(string p) { params.push_back(p); paramsNumb++; }
-	virtual string getName() { return name; }
+	virtual string getName() const { return name; }
 	virtual QueryNode* getCode() { return code; }
 	virtual vector<string> getParams() { return params; }
 	virtual unsigned int getParamsNumb() { return paramsNumb; }
       
-      	virtual string toString( int level = 0, bool recursive = false, string _name = "" ) {
+      	virtual string toString( int level = 0, bool /*recursive*/ = false, string _name = "" ) {
         	string result = getPrefixForLevel( level, _name ) + "Procedure name - " + name + "\n";
 		result += getPrefixForLevel( level + 1, _name ) + "ProcBody - " + code->deParse() + "\n";
         	for (unsigned int i = 0; i < paramsNumb; i++) {
@@ -2193,7 +2202,7 @@ namespace QParser {
 	    //delete vec;
 	}
 
-      virtual string toString( int level = 0, bool recursive = false, string _name = "" ) {
+      virtual string toString( int level = 0, bool recursive = false, string /*_name*/ = "" ) {
         stringstream c;
         string partsNumbS;
         string namesS = "[" + name + "]";
@@ -2214,7 +2223,7 @@ namespace QParser {
 	virtual int type() {return TreeNode::TNCALLPROC;};
 	virtual vector<QueryNode*> getQueries() {return this->queries;}
 	virtual QueryNode* getQuery(int i) {return this->queries.at(i);}
-	virtual string getName() {return this->name;}
+	virtual string getName() const {return this->name;}
 	virtual unsigned int howManyParts() {return this->partsNumb;}
 	virtual void setQueries(vector<QueryNode*> q) {queries = q;}
 	virtual void setName(string n) {name = n;}
@@ -2334,10 +2343,10 @@ class ViewNode : public QueryNode
 	virtual vector<QueryNode*> getProcedures() { return this->procedures; }
 	virtual vector<QueryNode*> getSubviews() { return this->subviews; }
 	virtual vector<QueryNode*> getObjects() { return this->objects; }
-	virtual string getName() { return name; }
+	virtual string getName() const { return name; }
 	virtual QueryNode* getVirtualObjects() { return virtual_objects; }
       
-      	virtual string toString( int level = 0, bool recursive = false, string _name = "" ) {
+      	virtual string toString( int level = 0, bool /*recursive*/ = false, string _name = "" ) {
         	string result = getPrefixForLevel( level, _name ) + "View name - " + name + "\n";
         	result = result + virtual_objects->toString( level+1, true, "query" );
 		for (unsigned int i=0; i < procedures.size(); i++) {
@@ -2414,7 +2423,7 @@ public:
 		return sub_query;
 	}
 	
-	virtual string getName() {
+	virtual string getName() const {
 		return name;
 	}
 	
@@ -2434,7 +2443,7 @@ public:
 		return 0;
 	}
 	
-	virtual string toString(int level = 0, bool recursive = false, string _name = "") {
+	virtual string toString(int level = 0, bool /*recursive*/ = false, string _name = "") {
 		string result;
 		if (query != NULL) result = query->toString(level+1, true, "query" ) + "\n";
 		else result = getPrefixForLevel(level, _name) + " no query " + "\n";
@@ -2652,7 +2661,7 @@ public:
     }
     virtual vector<QueryNode*> getProcedures() { return this->procedures; }
     virtual vector<QueryNode*> getStaticProcedures() { return staticProcedures; }
-    virtual string getName() { return name; }
+    virtual string getName() const { return name; }
     virtual string getInvariant() { return invariant; }
     virtual NameListNode* getFields() { return fields; }
     virtual NameListNode* getStaticFields() { return staticFields; }
@@ -2786,6 +2795,7 @@ class DMLNode : public TreeNode
 				case DMLNode::reload : 	cout << "dml reloadScheme"; break;
 				case DMLNode::tcoff : 	cout << "dml typechecker-off"; break;
 				case DMLNode::tcon : 	cout << "dml typechecker-on"; break;
+				default: assert(false);
 			}
     	    return 0;
 		}
@@ -2843,7 +2853,7 @@ class DMLNode : public TreeNode
 		public:
 			virtual TreeNode* clone() = 0;
 			virtual int type() = 0;
-			virtual string getName() {return name;}
+			virtual string getName() const {return name;}
 			virtual SignatureNode *getSigNode() {return signature;}
 			virtual int putToString() = 0;
 			virtual string deParse() = 0;
@@ -2867,7 +2877,7 @@ class DMLNode : public TreeNode
 			ObjectDeclareNode() {};
 			virtual TreeNode* clone();
 			virtual int type() { return TreeNode::TNOBJDECL; }
-			virtual string getName() {return name;}
+			virtual string getName() const {return name;}
 			virtual string getCard() {return card;}
 			virtual SignatureNode *getSigNode() {return signature;}
 			virtual int putToString() {
@@ -2904,7 +2914,7 @@ class DMLNode : public TreeNode
 			virtual void setSubDeclarations(vector<ObjectDeclareNode*> *odns);
 			virtual unsigned int howManyParts() { return subDeclarations->size(); }
 
-			virtual string toString( int level = 0, bool recursive = false, string _name = "" ) {
+			virtual string toString( int /*level*/ = 0, bool /*recursive*/ = false, string /*_name*/ = "" ) {
 				string result = "";
 				return result;
 			}
@@ -3006,6 +3016,7 @@ class DMLNode : public TreeNode
 					case can_del: return "canDelete ";
 					case can_crt: return "createCheck ";
 					case ext_crt: return "canCreateExt ";
+					default: assert(false);
 				}
 				return "_";
 			}

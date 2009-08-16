@@ -337,7 +337,7 @@ namespace QExecutor
 	}
 	
 	// May appear only through TC coerce augments
-	int Signatures::coerceOperate(int cType, QueryResult *arg, QueryResult *&final, TreeNode *tree, Transaction *tr) {
+	int Signatures::coerceOperate(int cType, QueryResult *arg, QueryResult *&final, TreeNode */*tree*/, Transaction *tr) {
 		int errcode = 0;
 
 		switch (cType) {

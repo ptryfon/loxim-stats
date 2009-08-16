@@ -269,7 +269,7 @@ namespace QParser {
 		}
 	}
 
-	int QueryParser::testParse (string query, TreeNode *&qTree) {
+	int QueryParser::testParse (string query, TreeNode *&/*qTree*/) {
 		string zap = "EMP where SAL = (EMP where NAME=\"KUBA\").SAL;";
 
 		if (false && (query == zap)){

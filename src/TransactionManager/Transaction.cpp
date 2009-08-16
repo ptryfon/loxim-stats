@@ -13,7 +13,7 @@ namespace TManager
 {
 
 /*______TransactionID________________________________________*/
-	TransactionID::TransactionID(int sessionId, int id, int* nothing)
+	TransactionID::TransactionID(int /*sessionId*/, int id, int* /*nothing*/)
 	{
 		this->sessionId = 0;
 		this->id = id;
@@ -841,7 +841,7 @@ namespace TManager
 	    debug_printf(err, "Creating new transaction\n");
 		TransactionID* tid;
 		{
-			Mutex::Locker(*mutex);
+			Mutex::Locker l(*mutex);
 			int currentId = transactionId;
 			transactionId++;
 			if (id > -1)

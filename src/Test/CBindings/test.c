@@ -93,8 +93,8 @@ void params()
 	char *list[10];
 	char *cur;
 	int i, n;
-	r = lx_status_codes(buf, sizeof(buf));
-	printf("retval: %d; sizeof: %d\n", r, sizeof(buf));
+	r = lx_status_codes(buf, (int)sizeof(buf));
+	printf("retval: %d; sizeof: %ld\n", r, sizeof(buf));
 
 	n = 0;
 	cur = buf;
@@ -108,7 +108,7 @@ void params()
 		char buf[20];
 		buf[0] = '\0';
 		printf("pos[%d]: %s//\n", i, list[i]);
-		s1 = lx_status(NULL, list[i], buf, sizeof(buf));
+		s1 = lx_status(NULL, list[i], buf, (int)sizeof(buf));
 		s2 = lx_status_int(NULL, list[i], &res);
 		printf("s1: %d s2: %d res: %d buf: %s//\n", s1, s2, res, buf);
 	}

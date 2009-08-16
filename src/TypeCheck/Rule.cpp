@@ -73,7 +73,7 @@ namespace TypeCheck
 		return 0;
 	}
 	
-	int TCRule::getSimpleResult(Signature *lSig, Signature *rSig, TypeCheckResult &retResult) {
+	int TCRule::getSimpleResult(Signature */*lSig*/, Signature */*rSig*/, TypeCheckResult &retResult) {
 		switch (this->getRuleType()) {
 			case Rule::BASE: {
 				retResult.setResultSig(this->result);
@@ -221,7 +221,7 @@ namespace TypeCheck
 		return 0;
 	}
 	
-	int UnOpRule::getSimpleResult(Signature *argSig, TypeCheckResult &retResult) {
+	int UnOpRule::getSimpleResult(Signature */*argSig*/, TypeCheckResult &retResult) {
 		switch (this->getRuleType()) {
 			case Rule::BASE: {
 				retResult.setResultSig(this->result);

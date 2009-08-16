@@ -13,7 +13,6 @@ using namespace std;
 namespace Protocol {
 	LinkPackage::LinkPackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream):
 
-
 		value_id(stream.read_varuint(mask, cancel, length))
 	{
 	}

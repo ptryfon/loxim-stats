@@ -92,7 +92,6 @@ namespace Indexes
 		if (isRootIndexed(op->getName(), it)) {
 			err = removeRoot(tid, op, it);
 		}
-		int err2;
 		indexListSem->unlock();
 
 		return err;
@@ -290,13 +289,13 @@ namespace Indexes
 		indexesMap::iterator mapIt = indexes.find(ih->getRoot()); //na pewno bedzie znaleziony
 		(mapIt->second).erase(ih->getField());
 		if (INDEX_DEBUG_MODE) {
-			printf("rozmiar mapy wewnetrznej po usunieciu: %d\n" ,(mapIt->second).size());
+			printf("rozmiar mapy wewnetrznej po usunieciu: %ld\n" ,(mapIt->second).size());
 		}
 		if ((mapIt->second).empty()) {
 			indexes.erase(mapIt);
 		}
 		if (INDEX_DEBUG_MODE) {
-			printf("rozmiar mapy zewnetrznej po usunieciu: %d\n" ,indexes.size());
+			printf("rozmiar mapy zewnetrznej po usunieciu: %ld\n" ,indexes.size());
 		}
 		indexListSem->unlock();
 		if ((err = ih->drop())) {

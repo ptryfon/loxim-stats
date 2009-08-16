@@ -13,7 +13,6 @@ using namespace std;
 namespace Protocol {
 	BobPackage::BobPackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream):
 
-
 		value(stream.read_string(mask, cancel, length))
 	{
 	}

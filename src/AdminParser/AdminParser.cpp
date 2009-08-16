@@ -14,9 +14,9 @@ namespace AdminParser{
 	class AdminLexer;
 	class AdminTreeNode;
 #include <AdminParser/parser.h>
-	int yylex(YYSTYPE *lvalp, AdminLexer *lexer) 
+	int yylex(YYSTYPE */*lvalp*/, AdminLexer *lexer) 
 	{
-		AdminTreeNode *node;
+		AdminTreeNode *node = NULL;
 		return lexer->lex(node);
 	}
 	void yyerror(AdminLexer*, AdminExecutableTreeNode **, const char *)

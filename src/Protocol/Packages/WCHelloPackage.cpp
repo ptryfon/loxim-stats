@@ -13,7 +13,6 @@ using namespace std;
 namespace Protocol {
 	WCHelloPackage::WCHelloPackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream):
 
-
 		pid(stream.read_int64(mask, cancel, length)),
 		client_name(stream.read_string(mask, cancel, length)),
 		client_version(stream.read_string(mask, cancel, length)),

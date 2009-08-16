@@ -110,7 +110,7 @@ namespace Logs
 #endif
 		return 0;
 	}
-	int LogManager::start(StoreManager *store = NULL) 
+	int LogManager::start(StoreManager */*store*/ = NULL) 
 	/// argument store jest zbedny
 	{
 #ifdef DEBUG_MODE
@@ -123,7 +123,7 @@ namespace Logs
 		return 0;
 	}
 	
-	int LogManager::shutdown(unsigned &id) 
+	int LogManager::shutdown(unsigned &/*id*/) 
 	{
 #ifdef DEBUG_MODE
 		debug_print(*ec,  "LogManager::shutdown");
@@ -166,7 +166,7 @@ namespace Logs
 	int LogManager::beginTransaction(int tid, unsigned int &id)
 	{
 		BeginLogRecord* record = new BeginLogRecord(0, tid);
-		int res = record->write(fd);
+		record->write(fd);
 		
 		transaction_info* ti = new transaction_info();
 		ti->tid = tid;
@@ -198,7 +198,7 @@ namespace Logs
 		if (ti != NULL) /// tmp
 		{
 			EndLogRecord* record = new EndLogRecord(ti->lastLSN, ti->tid);
-			int res = record->write(fd);		
+			record->write(fd);		
 			id = record->getLSN();
 			delete record;
 			
@@ -288,7 +288,7 @@ cout << "undoData newVal: '" << undoData->newVal->toString() << "'\n";//////////
 #endif
 		return 0;
 	}
-	int LogManager::rollbackTransaction(int tid, StoreManager *sm, unsigned int &id)
+	int LogManager::rollbackTransaction(int tid, StoreManager */*sm*/, unsigned int &id)
 	{
 		return rollbackTransaction(tid, id);
 	}
@@ -316,12 +316,12 @@ cout << "undoData newVal: '" << undoData->newVal->toString() << "'\n";//////////
 		return res;
 	}
 	
-	int LogManager::checkpoint(vector<int> *tids, unsigned int &id)
+	int LogManager::checkpoint(vector<int> * /*tids*/, unsigned int &/*id*/)
 	{
 		return 0;
 	}
 	
-	int LogManager::endCheckpoint(unsigned int &id)
+	int LogManager::endCheckpoint(unsigned int &/*id*/)
 	{
 		return 0;
 	}

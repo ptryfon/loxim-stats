@@ -79,7 +79,7 @@ namespace Protocol {
 						&m.get_old_mask());
 			}
 			if (res < 0){
-				if (errno = EINTR && cancel)
+				if (errno == EINTR && cancel)
 					throw OperationCancelled();
 				throw ConnectionError(errno);
 			}
@@ -89,7 +89,7 @@ namespace Protocol {
 			set_non_block(true);
 			res = ::accept(sock, NULL, NULL);
 			if (res < 0){
-				if (errno = EINTR && cancel)
+				if (errno == EINTR && cancel)
 					throw OperationCancelled();
 				if (should_repeat(errno))
 					continue;

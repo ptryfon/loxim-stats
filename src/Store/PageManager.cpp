@@ -27,7 +27,7 @@ namespace Store
 		buffer = store->getBuffer();
 	}
 
-	int PageManager::insertObject(TransactionID* tid, PagePointer *pPtr, Serialized& obj, int* pidoffset, unsigned log_id)
+	int PageManager::insertObject(TransactionID* /*tid*/, PagePointer *pPtr, Serialized& obj, int* pidoffset, unsigned log_id)
 	{
 		ErrorConsole &ec(ErrorConsole::get_instance(EC_STORE));
 		debug_print(ec,  "Store::PageManager::insertObject begin...");

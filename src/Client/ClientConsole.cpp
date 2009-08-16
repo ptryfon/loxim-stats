@@ -201,7 +201,7 @@ namespace Client{
 				if (stmt.length() != 0)
 					stmt += "\n";
 				//strange, but the old client used to do this
-				if (line.compare("/") && (((line.length() > 0) && (line[0] != '-')) || (line.length() > 1) && (line[1] != '-')))
+				if (line.compare("/") && (((line.length() > 0) && (line[0] != '-')) || ((line.length() > 1) && (line[1] != '-'))))
 					stmt += line;
 			} while (line.compare("/"));
 		} else {

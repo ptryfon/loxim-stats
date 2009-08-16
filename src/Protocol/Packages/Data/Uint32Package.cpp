@@ -13,7 +13,6 @@ using namespace std;
 namespace Protocol {
 	Uint32Package::Uint32Package(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream):
 
-
 		value(stream.read_uint32(mask, cancel, length))
 	{
 	}

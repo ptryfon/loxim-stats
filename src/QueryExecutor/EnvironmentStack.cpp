@@ -588,14 +588,14 @@ int QueryResult::nested_and_push_on_envs(QueryExecutor * qe, Transaction *&tr) {
 }
 
 
-int QuerySequenceResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult *&r, vector<DataValue*> &dataVal_vec) {
+int QuerySequenceResult::nested(QueryExecutor * /*qe*/, Transaction *&/*tr*/, QueryResult *&/*r*/, vector<DataValue*> &/*dataVal_vec*/) {
 	debug_print(*ec,  "[QE] nested(): ERROR! QuerySequenceResult shouldn't be nested");
 	debug_print(*ec,  (ErrQExecutor | EOtherResExp));
 	return (ErrQExecutor | EOtherResExp);
 	// nested () function is applied to rows of a QueryResult and so, it shouldn't be applied to sequences and bags
 }
 
-int QueryBagResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult *&r, vector<DataValue*> &dataVal_vec) {
+int QueryBagResult::nested(QueryExecutor * /*qe*/, Transaction *&/*tr*/, QueryResult *&/*r*/, vector<DataValue*> &/*dataVal_vec*/) {
 	debug_print(*ec,  "[QE] nested(): ERROR! QueryBagResult shouldn't be nested");
 	debug_print(*ec,  (ErrQExecutor | EOtherResExp));
 	return (ErrQExecutor | EOtherResExp);
@@ -621,37 +621,37 @@ int QueryStructResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult 
 	return 0;
 }
 
-int QueryStringResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult *&r, vector<DataValue*> &dataVal_vec) {
+int QueryStringResult::nested(QueryExecutor * /*qe*/, Transaction *&/*tr*/, QueryResult *&r, vector<DataValue*> &/*dataVal_vec*/) {
 	debug_print(*ec,  "[QE] nested(): QueryStringResult can't be nested");
 	r = new QueryBagResult();
 	return 0;
 }
 
-int QueryIntResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult *&r, vector<DataValue*> &dataVal_vec) {
+int QueryIntResult::nested(QueryExecutor * /*qe*/, Transaction *&/*tr*/, QueryResult *&r, vector<DataValue*> &/*dataVal_vec*/) {
 	debug_print(*ec,  "[QE] nested(): QueryIntResult can't be nested");
 	r = new QueryBagResult();
 	return 0;
 }
 
-int QueryDoubleResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult *&r, vector<DataValue*> &dataVal_vec) {
+int QueryDoubleResult::nested(QueryExecutor * /*qe*/, Transaction *&/*tr*/, QueryResult *&r, vector<DataValue*> &/*dataVal_vec*/) {
 	debug_print(*ec,  "[QE] nested(): QueryDoubleResult can't be nested");
 	r = new QueryBagResult();
 	return 0;
 }
 
-int QueryBoolResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult *&r, vector<DataValue*> &dataVal_vec) {
+int QueryBoolResult::nested(QueryExecutor * /*qe*/, Transaction *&/*tr*/, QueryResult *&r, vector<DataValue*> &/*dataVal_vec*/) {
 	debug_print(*ec,  "[QE] nested(): QueryBoolResult can't be nested");
 	r = new QueryBagResult();
 	return 0;
 }
 
-int QueryNothingResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult *&r, vector<DataValue*> &dataVal_vec) {
+int QueryNothingResult::nested(QueryExecutor * /*qe*/, Transaction *&/*tr*/, QueryResult *&r, vector<DataValue*> &/*dataVal_vec*/) {
 	debug_print(*ec,  "[QE] nested(): QueryNothingResult can't be nested");
 	r = new QueryBagResult();
 	return 0;
 }
 
-int QueryBinderResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult *&r, vector<DataValue*> &dataVal_vec) {
+int QueryBinderResult::nested(QueryExecutor * /*qe*/, Transaction *&/*tr*/, QueryResult *&r, vector<DataValue*> &/*dataVal_vec*/) {
 	r = new QueryBagResult();
 	if (item != NULL) {
 		QueryBinderResult *tmp_value = new QueryBinderResult(name,item);
@@ -858,7 +858,7 @@ int QueryReferenceResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResu
 	return 0;
 }
 
-int QueryVirtualResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult *&r, vector<DataValue*> &dataVal_vec) {
+int QueryVirtualResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult *&r, vector<DataValue*> &/*dataVal_vec*/) {
 	r = new QueryBagResult();
 	int errcode;
 	debug_printf(*ec, "[QE] nested(): QueryVirtualResult\n");
@@ -931,6 +931,7 @@ int QueryVirtualResult::nested(QueryExecutor * qe, Transaction *&tr, QueryResult
 					r->addResult(next_res);
 					break;
 				}
+				default: assert(false);
 			}
 		}
 	}

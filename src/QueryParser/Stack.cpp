@@ -159,7 +159,7 @@ namespace QParser {
 		ns->copyAttrsOf(this);
 		return ns;
 	}
-	int Signature::compareRecNamedSigCrt(Signature *flatSig, bool needTName, vector<pair<int, int> > &vPairs) {
+	int Signature::compareRecNamedSigCrt(Signature *flatSig, bool needTName, vector<pair<int, int> > &/*vPairs*/) {
 		return compareNamedSigCrt(flatSig, needTName);
 	}
 
@@ -351,7 +351,7 @@ namespace QParser {
 		return new BinderList((StatBinder *) this);
 	};
 
-	BinderWrap* SigColl::statNested(TreeNode *treeNode) {
+	BinderWrap* SigColl::statNested(TreeNode */*treeNode*/) {
 		Deb::ug("stat nested na sigColl start----------------------------------------------------------\n");
 		if (Deb::ugOn()){
 		    cout << "zawartosc sigColl: \n";

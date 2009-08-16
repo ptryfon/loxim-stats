@@ -174,7 +174,7 @@ namespace QExecutor
 		return 0;
 	}
 
-	int ExecutorViews::getSubviews(LogicalID *lid, string vo_name, vector<LogicalID *> &subviews, Transaction *tr) {
+	int ExecutorViews::getSubviews(LogicalID *lid, string /*vo_name*/, vector<LogicalID *> &subviews, Transaction *tr) {
 		int errcode;
 		ObjectPointer *optr;
 		errcode = tr->getObjectPointer (lid, Store::Read, optr, false);

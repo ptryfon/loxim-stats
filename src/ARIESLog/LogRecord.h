@@ -81,6 +81,7 @@ namespace Logs
 			virtual int deserializeSpecific(unsigned char *buffer) = 0;
 			
 		public:
+			virtual ~LogRecord();
 			static unsigned int getIdSeq() { return LogRecord::nextLSN; }
 			static void init(int nextLSN);
 			/**
@@ -121,7 +122,7 @@ namespace Logs
 			CompensationLogRecord();
 			CompensationLogRecord(unsigned int LSN);
 			CompensationLogRecord(unsigned int prevLSN, int tid, LogicalID* lid, unsigned int undoNxtLSN);
-			~CompensationLogRecord();
+			virtual ~CompensationLogRecord();
 			
 			int undo();
 			int redo();
@@ -151,7 +152,7 @@ namespace Logs
 			UpdateLogRecord();
 			UpdateLogRecord(unsigned int LSN);
 			UpdateLogRecord(unsigned int prevLSN, int tid, LogicalID* lid, std::string name, DataValue *oldVal, DataValue *newVal);
-			~UpdateLogRecord();
+			virtual ~UpdateLogRecord();
 			
 			int undo();
 			undo_data* getUndoData();
@@ -171,7 +172,7 @@ namespace Logs
 			BeginLogRecord();
 			BeginLogRecord(unsigned int LSN);
 			BeginLogRecord(unsigned int prevLSN, int tid); /// jesli int tid zmienie na TransactionID tid, to ten pierwszy argument mozna wyrzucic
-			~BeginLogRecord();
+			virtual ~BeginLogRecord();
 			
 			int undo();
 			int redo();
@@ -189,7 +190,7 @@ namespace Logs
 			EndLogRecord();
 			EndLogRecord(unsigned int LSN);
 			EndLogRecord(unsigned int prevLSN, int tid); /// jesli int tid zmienie na TransactionID tid, to ten pierwszy argument mozna wyrzucic
-			~EndLogRecord();
+			virtual ~EndLogRecord();
 			
 			int undo();
 			int redo();

@@ -496,6 +496,8 @@ namespace Store
 				return (this->getPointer() == dv.getPointer());
 			case Store::Vector:
 				return (this->getVector() == dv.getVector());
+			default:
+				assert(false);
 		}
 		return false;
 	};
@@ -574,6 +576,8 @@ namespace Store
 						delete (*obj_iter);
 				} delete value.vector_value;
 				break;
+			default:
+				assert(false);
 		}
 		p_clearPtr();
 	};

@@ -76,7 +76,7 @@ namespace TypeCheck {
 		string param;
 		int option;
 		//May need additional parameters.
-		DTCRestoreParam(string p, int o) : param(p), option(0) {}
+		DTCRestoreParam(string p, int /*o*/) : param(p), option(0) {}
 		virtual string toString(); 
 		virtual ~DTCRestoreParam(){}
 	};

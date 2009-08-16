@@ -428,7 +428,7 @@ int QueryExecutor::executeQuery(TreeNode *tree, QueryResult **result) {
 			QueryResult *tmp_result;
 			if (errcode == 0) errcode = qres->pop(tmp_result);
 
-			int next_errcode;
+			int next_errcode = 0;
 			if (errcode == 0) next_errcode = exViews->deVirtualize(tmp_result, *result);
 
 			int howMany = QueryResult::getCount();
@@ -568,7 +568,6 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 				string iName = im->getInterfaceNameForObject(name, found);
 				if (found)
 				{
-					int type;
 					ImplementationInfo iI = im->getImplementationForInterface(iName, found, true);
 					string impName = iI.getName();
 					string impObjName = iI.getObjectName();
@@ -1379,7 +1378,6 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			RegisterInterfaceNode* ri = (RegisterInterfaceNode *)tree;
 			CreateType ct = ri->getCreateType();
 			InterfaceNode query = ri->getInterfaceQuery();
-		    ObjectPointer *optr;
 			errcode = executeRecQuery(&query);
 			if (errcode) return errcode;
 
@@ -1603,7 +1601,6 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 			RegisterSchemaNode* rs = (RegisterSchemaNode *)tree;
 			SchemaNode query = rs->getSchemaQuery();
 			CreateType ct = rs->getCreateType();
-		    ObjectPointer *optr;
 			errcode = executeRecQuery(&query);
 			if (errcode) return errcode;
 			
@@ -2230,7 +2227,7 @@ int QueryExecutor::executeRecQuery(TreeNode *tree) {
 
 					debug_printf(*ec, "[QE] TNCREATE - checking bind for %s\n", newobject_name.c_str());
 					bool interfaced = false;
-					int implType;
+					int implType = 0;
 					string iName;
 					bool found;
 					SetOfLids classMarks;
@@ -3267,7 +3264,7 @@ int QueryExecutor::derefQuery(QueryResult *arg, QueryResult *&res) {
 				debug_printf(*ec, "[QE] derefQuery - dereferenced names will be filtered out, %d names visible\n", namesVisible.size());			
 				QueryStructResult *structres = (QueryStructResult *)res;
 				QueryStructResult *accepted = new QueryStructResult();
-				for (int it = 0; it != structres->size(); ++it)
+				for (size_t it = 0; it != structres->size(); ++it)
 				{
 					QueryResult *currBinder;
 					errcode = structres->at(it, currBinder);
@@ -4053,6 +4050,8 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 					leftString = ((QueryStringResult *)derefL)->getValue();
 					break;
 				}
+				default: break;
+					//ignore, but not sure if it's the right thing to do
 			}
 			string rightString;
 			switch(derefR->type()) {
@@ -4070,6 +4069,9 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 					rightString = ((QueryStringResult *)derefR)->getValue();
 					break;
 				}
+				default:
+					break;
+					//ignore, but not sure if it's the right thing to do
 			}
 			string final_value = leftString + rightString;
 			final = new QueryStringResult(final_value);
@@ -4336,6 +4338,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 					case TypeCheck::DTable::CD_CAN_ASGN : cout << "insert: ASSIGN CHECK\n";
 					case TypeCheck::DTable::CD_CAN_INS : cout << "insert: INSERT CHECK\n";
 					case TypeCheck::DTable::CD_EXT_INS : cout << "insert: INSERT SHALLOW CD CHECK\n";
+					default: break; //ignore, but i'm not sure it's ok
 				}
 			}
 		}
@@ -4972,6 +4975,7 @@ int QueryExecutor::algOperate(AlgOpNode::algOp op, QueryResult *lArg, QueryResul
 					case TypeCheck::DTable::CD_CAN_ASGN : cout << "ASSIGN CHECK\n";
 					case TypeCheck::DTable::CD_CAN_INS : cout << "INSERT CHECK\n";
 					case TypeCheck::DTable::CD_EXT_INS : cout << "INSERT SHALLOW CD CHECK\n";
+					default: break; //ignore, but i'm not sure it's ok
 				}
 			}
 		}

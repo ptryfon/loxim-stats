@@ -264,7 +264,6 @@ int ClassGraph::classExists(string name, Transaction *tr, bool &exists)
 	int errcode = tr->getClassesLID(name, addedClasses);
 	if(errcode != 0) {
 		delete addedClasses;
-		errcode;
 	}
 	exists = addedClasses->size() != 0;
 	delete addedClasses;

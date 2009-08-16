@@ -204,7 +204,7 @@ bool AuxRmver::removedAux(NameAsNode * _auxNode, vector<NameNode*> *_toRemoveVec
 	return true;
 }
 
-bool AuxRmver::canTryToRemoveAux(NameAsNode * auxNode, vector<NameNode*> *nameVec){
+bool AuxRmver::canTryToRemoveAux(NameAsNode * /*auxNode*/, vector<NameNode*> *nameVec){
 	// jsi_kom cout<< "AuxRmver::canTryToRemoveAux start " << nameVec->size() << endl;
 
 	if (nameVec->size() == 0){

@@ -356,7 +356,7 @@ namespace Indexes {
 	}
 			
 	template <class I>
-	bool Comparator::infinityReached(I* item) {
+	bool Comparator::infinityReached(I* /*item*/) {
 		return false;
 	}
 	
@@ -366,12 +366,12 @@ namespace Indexes {
 	}
 	
 	template <class I>
-	I* Comparator::getItem(int itemNumber, Node* node, I* item) {
+	I* Comparator::getItem(int itemNumber, Node* node, I* /*item*/) {
 		return (I*) getItem(itemNumber, ((char*) (node + 1)), sizeof(I));
 	}
 	
 	template <class I>
-	nodeEntry_off_t Comparator::getSpaceNeeded(I* item) {
+	nodeEntry_off_t Comparator::getSpaceNeeded(I* /*item*/) {
 		return sizeof(I) + getSpaceNeeded();
 	}
 	
@@ -383,9 +383,10 @@ namespace Indexes {
 	}
 
 	template<class I>
-	string Comparator::nodeToString(Node* node, I* item) {
+	string Comparator::nodeToString(Node* node, I* /*item*/) {
 		I* after = (I*) node->afterAddr();
-		I* entry = getItem(0, node, entry);
+		I* entry = NULL;
+	    entry = getItem(0, node, entry);
 		int count = 0;
 		stringstream content, all;
 		all << node->headerToString();
@@ -462,7 +463,7 @@ namespace Indexes {
 	}
 
 	template <class T>
-	nodeEntry_off_t FixedLengthComparator<T>::getKeySize(char* item, unsigned int itemSize) {
+	nodeEntry_off_t FixedLengthComparator<T>::getKeySize(char* /*item*/, unsigned int /*itemSize*/) {
 		//odleglosc do nastepnego od entry - rozmiar entry - rozmiar offsetu
 		return sizeof(T);
 	}
@@ -490,7 +491,7 @@ namespace Indexes {
 	}
 
 	template <class T>
-	void FixedLengthComparator<T>::putKey(char* where, nodeEntry_off_t itemSize) {
+	void FixedLengthComparator<T>::putKey(char* where, nodeEntry_off_t /*itemSize*/) {
 		*((T*)where) = value;
 	}
 	

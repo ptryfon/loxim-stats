@@ -62,8 +62,8 @@ namespace Protocol{
 			case UINT8_PACKAGE: return std::auto_ptr<Package>(new Uint8Package(mask, cancel, length, stream));
 			case VARCHAR_PACKAGE: return std::auto_ptr<Package>(new VarcharPackage(mask, cancel, length, stream));
 			case VOID_PACKAGE: return std::auto_ptr<Package>(new VoidPackage(mask, cancel, length, stream));
+		    default:throw ProtocolLogic();
 		}
-		throw ProtocolLogic();
 	}
 
 	std::auto_ptr<Package> DataPackageFactory::deserialize_unknown(const sigset_t

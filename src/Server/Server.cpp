@@ -109,7 +109,7 @@ namespace Server{
 		pthread_kill(thread, SIGUSR1);
 	}
 
-	void Server::signal_handler(int sig)
+	void Server::signal_handler(int /*sig*/)
 	{
 		shutting_down = 1;
 	}

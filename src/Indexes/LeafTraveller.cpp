@@ -16,6 +16,7 @@ namespace Indexes {
 	LeafTraveller::~LeafTraveller() {
 		if (cleaf) {
 			int err = tree->ih->freeNode(cleaf);
+			err = err; //a dirty hack to supress "unused variable" warning in release mode
 			assert(!err);
 		}
 	}

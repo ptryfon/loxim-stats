@@ -8,6 +8,10 @@ namespace Logs
 {
 /* ------------------------- LogRecord ----------------------- */
 	unsigned LogRecord::nextLSN = 0;
+
+	LogRecord::~LogRecord()
+	{
+	}
 	
 	void LogRecord::init(int nextLSN)
 	{
@@ -126,7 +130,7 @@ namespace Logs
 	{
 		this->LSN = LSN;
 	}
-	CompensationLogRecord::CompensationLogRecord(unsigned int prevLSN, int tid, LogicalID* lid, unsigned int undoNxtLSN)
+	CompensationLogRecord::CompensationLogRecord(unsigned int prevLSN, int /*tid*/, LogicalID* lid, unsigned int undoNxtLSN)
 	{
 		this->prevLSN = prevLSN;
 		this->lid = lid;
@@ -280,7 +284,7 @@ cout << "undo!\n"; ////
 	{
 		this->LSN = LSN;
 	}
-	BeginLogRecord::BeginLogRecord(unsigned int prevLSN, int tid)
+	BeginLogRecord::BeginLogRecord(unsigned int /*prevLSN*/, int tid)
 	{
 		this->prevLSN = 0;
 		this->tid = tid;
@@ -297,7 +301,7 @@ cout << "undo!\n"; ////
 		Serialized s;
 		return s;
 	}
-	int BeginLogRecord::deserializeSpecific(unsigned char *buffer)
+	int BeginLogRecord::deserializeSpecific(unsigned char */*buffer*/)
 	{
 		return 0;
 	}
@@ -336,7 +340,7 @@ cout << "undo!\n"; ////
 		Serialized s;
 		return s;
 	}
-	int EndLogRecord::deserializeSpecific(unsigned char *buffer)
+	int EndLogRecord::deserializeSpecific(unsigned char */*buffer*/)
 	{
 		return 0;
 	}

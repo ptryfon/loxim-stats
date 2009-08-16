@@ -224,7 +224,7 @@ namespace Store
 		}
 	};
 
-	int Buffer::acquirePageRead(PagePointer* pp)
+	int Buffer::acquirePageRead(PagePointer* /*pp*/)
 	{
 		return -1;
 /*		int retval;

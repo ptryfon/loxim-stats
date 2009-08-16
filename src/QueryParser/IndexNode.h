@@ -33,7 +33,6 @@ namespace QParser {
     		//virtual TreeNode* clone() {return new IndexNode();}
     };
     */
-    class Indexes::Comparator;
 
     //data definition language
     class IndexDDLNode : public TreeNode {
@@ -49,7 +48,7 @@ namespace QParser {
     	public:
     		ListIndexNode(){};
     		virtual ~ListIndexNode(){};
-    		virtual int execute(int sessionId,QueryResult **result) {return IndexManager::getHandle()->listIndex(result);};
+    		virtual int execute(int /*sessionId*/,QueryResult **result) {return IndexManager::getHandle()->listIndex(result);};
 
     		virtual TreeNode* clone() {return new ListIndexNode();}
 	    	virtual int putToString() {cout << "list index" << endl; return 0;}

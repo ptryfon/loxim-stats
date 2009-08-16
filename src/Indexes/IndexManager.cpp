@@ -247,7 +247,7 @@ namespace Indexes
 		}
 
 		unsigned int j, k;
-		int compType;
+		int compType = 0;
 		ObjectPointer* optr, *indexOptr;
 		vector<LogicalID*> *nameLids, *fieldLids;
 		string fieldNameValue;
@@ -524,7 +524,6 @@ namespace Indexes
 
 	int IndexManager::listIndex(QueryResult **result)
 	{
-		int err;
 		indexListSem->lock_read();
 		debug_print(*ec,  "listing indexes");
 		string2index::const_iterator it;

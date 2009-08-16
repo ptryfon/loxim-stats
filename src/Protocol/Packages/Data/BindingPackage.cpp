@@ -13,7 +13,6 @@ using namespace std;
 namespace Protocol {
 	BindingPackage::BindingPackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream):
 
-
 		binding_name(stream.read_string(mask, cancel, length)),
 		value(DataPackageFactory::deserialize_unknown(mask, cancel, length, stream))
 	{

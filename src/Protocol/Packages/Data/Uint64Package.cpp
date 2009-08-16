@@ -13,7 +13,6 @@ using namespace std;
 namespace Protocol {
 	Uint64Package::Uint64Package(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream):
 
-
 		value(stream.read_uint64(mask, cancel, length))
 	{
 	}

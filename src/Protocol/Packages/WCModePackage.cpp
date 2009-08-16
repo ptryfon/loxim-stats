@@ -13,7 +13,6 @@ using namespace std;
 namespace Protocol {
 	WCModePackage::WCModePackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream):
 
-
 		new_mode(stream.read_uint64(mask, cancel, length))
 	{
 	}

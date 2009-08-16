@@ -637,10 +637,11 @@ void generate_package_implementations(const vector<pair<string, map<string, Pack
 				impl << "#include <Protocol/Packages/" << first_upper(i->first) << "/" << cls << ".h>" << endl << endl;
 			impl << "using namespace std;" << endl << endl;
 			impl << "namespace Protocol {" << endl;
-			impl << "\t" << cls << "::" << cls << "(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream)";
+			impl << "\t" << cls << "::" << cls;
 			if (j->second.fields.size() > 0 || j->second.extends_package.size())
-				impl << ":" << endl;
-			impl << endl;
+				impl << "(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream):" << endl;
+			else
+				impl << "(const sigset_t &, const bool &, size_t &, DataStream &)" << endl;
 			if (j->second.extends_package.size()){
 				impl << "\t\t" << make_class_name(j->second.extends_package) << "Package(mask, cancel, length, stream)";
 				if (j->second.fields.size())
@@ -862,8 +863,8 @@ void generate_factory(const string &group, const map<string, Package> &packages)
 	{
 		impl << "\t\t\tcase " << make_upper(package->first) << "_PACKAGE: return std::auto_ptr<Package>(new " << make_class_name(package->first) << "Package(mask, cancel, length, stream));" << endl;
 	}
+	impl << "		    default:throw ProtocolLogic();" << endl;
 	impl << "		}" << endl;
-	impl << "		throw ProtocolLogic();" << endl;
 	impl << "	}" << endl;
 	impl << endl;
 	impl << "	std::auto_ptr<Package> " << cls << "::deserialize_unknown(const sigset_t" << endl;

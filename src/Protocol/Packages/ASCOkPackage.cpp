@@ -11,7 +11,7 @@
 using namespace std;
 
 namespace Protocol {
-	ASCOkPackage::ASCOkPackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream)
+	ASCOkPackage::ASCOkPackage(const sigset_t &, const bool &, size_t &, DataStream &)
 
 	{
 	}

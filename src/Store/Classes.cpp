@@ -9,7 +9,7 @@ namespace Store
 	};
 
 
-	int Classes::createEntry(TransactionID* tid, int logicalID, const char* name, int& size_needed, char*& entry_buf) {
+	int Classes::createEntry(TransactionID* /*tid*/, int /*logicalID*/, const char* /*name*/, int& /*size_needed*/, char*& /*entry_buf*/) {
 #ifdef IX_DEBUG
 		debug_printf(*ec, "Not possible to create class with this method.");
 #endif

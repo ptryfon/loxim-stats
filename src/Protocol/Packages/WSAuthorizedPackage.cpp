@@ -11,7 +11,7 @@
 using namespace std;
 
 namespace Protocol {
-	WSAuthorizedPackage::WSAuthorizedPackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream)
+	WSAuthorizedPackage::WSAuthorizedPackage(const sigset_t &, const bool &, size_t &, DataStream &)
 
 	{
 	}

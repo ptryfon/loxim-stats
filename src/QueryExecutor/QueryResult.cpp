@@ -144,7 +144,7 @@ int QuerySequenceResult::getResult(QueryResult *&r){
 }
 
 int QuerySequenceResult::at(unsigned int i, QueryResult *&r){ 
-	if ( i < 0 || i >= seq.size() ) {
+	if ( i >= seq.size() ) {
 		debug_print(*ec,  (ErrQExecutor | EQEmptySet));
 		return (ErrQExecutor | EQEmptySet); 
 	};
@@ -203,7 +203,7 @@ int QueryBagResult::getResult(QueryResult *&r){
 }
 
 int QueryBagResult::at(unsigned int i, QueryResult *&r){ 
-	if ( i < 0 || i >= bag.size() ) {
+	if ( i >= bag.size() ) {
 		debug_print(*ec,  (ErrQExecutor | EQEmptySet));
 		return (ErrQExecutor | EQEmptySet); 
 	};
@@ -255,7 +255,7 @@ int QueryStructResult::getResult(QueryResult *&r){
 }
 
 int QueryStructResult::at(unsigned int i, QueryResult *&r){ 
-	if ( i < 0 || i >= str.size() ) {
+	if ( i >= str.size() ) {
 		debug_print(*ec,  (ErrQExecutor | EQEmptySet));
 		return (ErrQExecutor | EQEmptySet); 
 	};
@@ -821,15 +821,15 @@ int QueryBinderResult::getBoolValue(bool &b) {
 		debug_print(*ec,  (ErrQExecutor | EBoolExpected));
 		return (ErrQExecutor | EBoolExpected);
 }
-int QueryStringResult::getBoolValue(bool &b) { 
+int QueryStringResult::getBoolValue(bool &/*b*/) { 
 	debug_print(*ec,  (ErrQExecutor | EBoolExpected));
 	return (ErrQExecutor | EBoolExpected);
 }
-int QueryIntResult::getBoolValue(bool &b) { 
+int QueryIntResult::getBoolValue(bool &/*b*/) { 
 	debug_print(*ec,  (ErrQExecutor | EBoolExpected));
 	return (ErrQExecutor | EBoolExpected);
 }
-int QueryDoubleResult::getBoolValue(bool &b) { 
+int QueryDoubleResult::getBoolValue(bool &/*b*/) { 
 	debug_print(*ec,  (ErrQExecutor | EBoolExpected));
 	return (ErrQExecutor | EBoolExpected);
 }
@@ -837,16 +837,16 @@ int QueryBoolResult::getBoolValue(bool &b) {
 	b = value;
 	return 0;
 }
-int QueryReferenceResult::getBoolValue(bool &b) { 
+int QueryReferenceResult::getBoolValue(bool &/*b*/) { 
 	debug_print(*ec,  (ErrQExecutor | EBoolExpected));
 	return (ErrQExecutor | EBoolExpected);
 }
-int QueryNothingResult::getBoolValue(bool &b) { 
+int QueryNothingResult::getBoolValue(bool &/*b*/) { 
 	debug_print(*ec,  (ErrQExecutor | EBoolExpected));
 	return (ErrQExecutor | EBoolExpected);
 }
 
-int QueryVirtualResult::getBoolValue(bool &b) { 
+int QueryVirtualResult::getBoolValue(bool &/*b*/) { 
 	debug_print(*ec,  (ErrQExecutor | EBoolExpected));
 	return (ErrQExecutor | EBoolExpected);
 }
@@ -880,19 +880,19 @@ int QueryBinderResult::getReferenceValue(QueryResult *&r) {
 		debug_print(*ec,  (ErrQExecutor | ERefExpected));
 		return (ErrQExecutor | ERefExpected);
 }
-int QueryStringResult::getReferenceValue(QueryResult *&r) { 
+int QueryStringResult::getReferenceValue(QueryResult *&/*r*/) { 
 	debug_print(*ec,  (ErrQExecutor | ERefExpected));
 	return (ErrQExecutor | ERefExpected);
 }
-int QueryIntResult::getReferenceValue(QueryResult *&r) { 
+int QueryIntResult::getReferenceValue(QueryResult *&/*r*/) { 
 	debug_print(*ec,  (ErrQExecutor | ERefExpected));
 	return (ErrQExecutor | ERefExpected);
 }
-int QueryDoubleResult::getReferenceValue(QueryResult *&r) { 
+int QueryDoubleResult::getReferenceValue(QueryResult *&/*r*/) { 
 	debug_print(*ec,  (ErrQExecutor | ERefExpected));
 	return (ErrQExecutor | ERefExpected);
 }
-int QueryBoolResult::getReferenceValue(QueryResult *&r) { 
+int QueryBoolResult::getReferenceValue(QueryResult *&/*r*/) { 
 	debug_print(*ec,  (ErrQExecutor | ERefExpected));
 	return (ErrQExecutor | ERefExpected);
 }
@@ -900,12 +900,12 @@ int QueryReferenceResult::getReferenceValue(QueryResult *&r) {
 	r = new QueryReferenceResult(value);
 	return 0;
 }
-int QueryNothingResult::getReferenceValue(QueryResult *&r) { 
+int QueryNothingResult::getReferenceValue(QueryResult *&/*r*/) { 
 	debug_print(*ec,  (ErrQExecutor | ERefExpected));
 	return (ErrQExecutor | ERefExpected);
 }
 
-int QueryVirtualResult::getReferenceValue(QueryResult *&r) { 
+int QueryVirtualResult::getReferenceValue(QueryResult *&/*r*/) { 
 	debug_print(*ec,  (ErrQExecutor | ERefExpected));
 	return (ErrQExecutor | ERefExpected);
 }

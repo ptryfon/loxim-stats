@@ -56,15 +56,15 @@ namespace Indexes {
 		return rootEntry;
 	}
 	
-	int Comparator::setValue(double value) {
+	int Comparator::setValue(double /*value*/) {
 		return EBadValue | ErrIndexes;
 	}
 	
-	int Comparator::setValue(int value) {
+	int Comparator::setValue(int /*value*/) {
 		return EBadValue | ErrIndexes;
 	}
 	
-	int Comparator::setValue(string value) {
+	int Comparator::setValue(string /*value*/) {
 		return EBadValue | ErrIndexes;
 	}
 	
@@ -85,7 +85,7 @@ namespace Indexes {
 			default:
 			 	assert(false);
 		}
-		
+		return -1;
 	}
 	
 	int Comparator::setValue(QExecutor::QueryResult* tnode) {
@@ -122,10 +122,10 @@ namespace Indexes {
 	
 	string Comparator::nodeToString(Node* node) {
 		if (node->leaf) {
-			RootEntry* e;
+			RootEntry* e = NULL;
 			return nodeToString(node, e);
 		} else {
-			NodeEntry* n;
+			NodeEntry* n = NULL;
 			return nodeToString(node, n);
 		}
 	}
@@ -331,49 +331,55 @@ namespace Indexes {
 	// MinComparator
 	//************************************************
 	
-	char* MinComparator::getItem(int itemNumber, char* item0Address, unsigned int itemSize) {
+	char* MinComparator::getItem(int itemNumber, char* item0Address, unsigned int /*itemSize*/) {
 		assert (itemNumber == 0);
 		return item0Address;
 	}
 	
-	int MinComparator::compare(char* item, unsigned int itemSize, lid_t lidDiff) {
+	int MinComparator::compare(char* /*item*/, unsigned int /*itemSize*/, lid_t /*lidDiff*/) {
 		return -1; // zawartosc tego comparatora zawsze ma byc mniejsza od tego co jest w wezle
 	}
 	
 	nodeEntry_off_t MinComparator::getSpaceNeeded() {
 		assert(false);
+		return 0;
 	}
 	
-	char* MinComparator::getNextItem(char* itemAddress, unsigned int itemSize) {
+	char* MinComparator::getNextItem(char* /*itemAddress*/, unsigned int /*itemSize*/) {
 		assert(false);
+		return NULL;
 	}
 	
 	nodeEntry_off_t MinComparator::maxEntrySize() {
 		return 0;
 	}
 	
-	void MinComparator::putKey(char* where, nodeEntry_off_t itemSize) {
+	void MinComparator::putKey(char* /*where*/, nodeEntry_off_t /*itemSize*/) {
 		assert(false);
 	}
 	
 	Comparator* MinComparator::emptyClone() {
 		assert(false);
+		return NULL;
 	}
 	
-	string MinComparator::keyToString(char* item, unsigned int itemSize) {
+	string MinComparator::keyToString(char* /*item*/, unsigned int /*itemSize*/) {
 		assert(false);
+		return "";
 	}
 	
-	void MinComparator::getValue(char* item, unsigned int itemSize) {
+	void MinComparator::getValue(char* /*item*/, unsigned int /*itemSize*/) {
 		assert(false);
 	}
 	
 	Comparator::comparatorType MinComparator::getType() const {
 		assert(false);
+		return Comparator::comparatorType();
 	}
 	
 	string MinComparator::typeToString() const {
 		assert(false);
+		return "";
 	}
 	
 	

@@ -13,7 +13,6 @@ using namespace std;
 namespace Protocol {
 	Sint64Package::Sint64Package(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream):
 
-
 		value(stream.read_int64(mask, cancel, length))
 	{
 	}

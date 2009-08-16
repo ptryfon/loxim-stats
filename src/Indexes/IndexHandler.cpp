@@ -403,7 +403,7 @@ namespace Indexes {
 		cacheMonitor->unlock();
 	}
 	
-	CachedNode* IndexHandler::localChoose2flush(freeHandlers_t::iterator handlerIt) {
+	CachedNode* IndexHandler::localChoose2flush(freeHandlers_t::iterator /*handlerIt*/) {
 		assert(freeNodes.size() > 0);
 		freeNodes_t::iterator freeIt = freeNodes.begin();
 		set<CachedNode*> &s = freeIt->second;

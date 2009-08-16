@@ -383,7 +383,7 @@ namespace TypeCheck
 		provideReturnLinks();
 	}
 
-	void DecisionTable::initOtherBinaryRules(int treeType, int op) {
+	void DecisionTable::initOtherBinaryRules(int treeType, int /*op*/) {
 		switch (treeType) {
 		case TreeNode::TNCASTTO : {
 			/*BASE*/
@@ -579,7 +579,7 @@ namespace TypeCheck
 		}
 	}
 
-	string UnOpDecisionTable::doAttr(int method, string arg, string param, int option) {
+	string UnOpDecisionTable::doAttr(int method, string arg, string /*param*/, int option) {
 		switch(method) {
 			case UnOpDecisionTable::CD_NAMEAS : return cdNameAs(arg, option);
 			case UnOpDecisionTable::CK_NAMEAS : return ckNameAs(arg, option);
@@ -590,9 +590,9 @@ namespace TypeCheck
 
 	/** ***************		Result and attribute generators.. 	****************/
 // DecisionTables
-	Signature *DecisionTable::leftSig(Signature *lSig, Signature *rSig) {return lSig->clone();}
+	Signature *DecisionTable::leftSig(Signature *lSig, Signature */*rSig*/) {return lSig->clone();}
 
-	Signature *DecisionTable::rightSig(Signature *lSig, Signature *rSig) { return rSig->clone();}
+	Signature *DecisionTable::rightSig(Signature */*lSig*/, Signature *rSig) { return rSig->clone();}
 
 	Signature *DecisionTable::doStruct(Signature *lSig, Signature *rSig) {
 		//RETURN: STRUCT( lSig[card=1..1], rSig[card=1..1] )...
@@ -667,7 +667,7 @@ namespace TypeCheck
 	}
 
 	//Takes left card, replaces left bound with zero, and copies right bound...
-	string DecisionTable::cdCopyLeftWithZero(string lCard, string rCard) {
+	string DecisionTable::cdCopyLeftWithZero(string lCard, string /*rCard*/) {
 		stringstream conv;
 		conv << "0.." << lCard[3];
 		return conv.str();
@@ -694,9 +694,9 @@ namespace TypeCheck
 		return conv.str();
 	}
 
-	string DecisionTable::copyLeftArg(string lArg, string rArg) {return lArg;}
+	string DecisionTable::copyLeftArg(string lArg, string /*rArg*/) {return lArg;}
 
-	string DecisionTable::copyRightArg(string lArg, string rArg) {return rArg;}
+	string DecisionTable::copyRightArg(string /*lArg*/, string rArg) {return rArg;}
 
 //UnOpDecisionTables
 
@@ -730,7 +730,7 @@ namespace TypeCheck
 	Signature *UnOpDecisionTable::copyAndRefSig(Signature *sig) {Signature *s = sig->clone(); s->setRefed(); return s;}
 
 
-	Signature *UnOpDecisionTable::deleteCheck(Signature *sig, TypeCheckResult &retResult) {
+	Signature *UnOpDecisionTable::deleteCheck(Signature *sig, TypeCheckResult &/*retResult*/) {
 		//just set sig's card attribute to what you find in datascheme - we really know sig is a SigRef.
 		if (sig->type() != Signature::SREF) return NULL;
 		DataObjectDef *obj = DataScheme::dScheme(-1)->getObjById(((SigRef *)sig)->getRefNo());

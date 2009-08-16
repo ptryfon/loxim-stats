@@ -227,10 +227,10 @@ void SimpleClient::do_disconnect(bool send)
 	begin = 0;
 }
 
-void SimpleClient::executeParams(const std::string &query,
-	const Protocol::Package *&result, int nparams,
-	const char * const *keys, const char * const *values,
-	const int *lengths)
+void SimpleClient::executeParams(const std::string &/*query*/,
+	const Protocol::Package *&/*result*/, int /*nparams*/,
+	const char * const * /*keys*/, const char * const * /*values*/,
+	const int * /*lengths*/)
 {
 	throw ErrorException(ECliUnknown, "not implemented");
 }
@@ -318,7 +318,7 @@ bool SimpleClient::receive_response(
 }
 
 
-bool SimpleClient::authorize(const std::string &login, const std::string &password)
+bool SimpleClient::authorize(const std::string &login, const std::string &/*password*/)
 {
 	auto_ptr<Protocol::ByteBuffer> cl_name(new Protocol::ByteBuffer("liblx"));
 	auto_ptr<Protocol::ByteBuffer> cl_ver(new Protocol::ByteBuffer(version.c_str()));

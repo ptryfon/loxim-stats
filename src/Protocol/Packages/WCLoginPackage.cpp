@@ -13,7 +13,6 @@ using namespace std;
 namespace Protocol {
 	WCLoginPackage::WCLoginPackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream):
 
-
 		auth_method(stream.read_uint64(mask, cancel, length))
 	{
 	}

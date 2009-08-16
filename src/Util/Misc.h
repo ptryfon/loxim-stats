@@ -5,6 +5,10 @@
 #define likely(x) (x)
 #define unlikely(x) (x)
 
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
+
+
 namespace Util {
 	
 	class NonCopyable {

@@ -54,8 +54,8 @@ namespace Protocol{
 			case W_C_PASSWORD_PACKAGE: return std::auto_ptr<Package>(new WCPasswordPackage(mask, cancel, length, stream));
 			case W_S_AUTHORIZED_PACKAGE: return std::auto_ptr<Package>(new WSAuthorizedPackage(mask, cancel, length, stream));
 			case W_S_HELLO_PACKAGE: return std::auto_ptr<Package>(new WSHelloPackage(mask, cancel, length, stream));
+		    default:throw ProtocolLogic();
 		}
-		throw ProtocolLogic();
 	}
 
 	std::auto_ptr<Package> PackageFactory::deserialize_unknown(const sigset_t

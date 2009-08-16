@@ -27,7 +27,7 @@ namespace Indexes {
 	}
 	
 	IndexSelectNode* OptimizedField::getSelectNode() {
-		IndexSelectNode* result;
+		IndexSelectNode* result = NULL;
 		if (exact) {			
 			result = exact;
 		} else
@@ -81,7 +81,9 @@ namespace Indexes {
 				return true;
 			default:
 				assert(false);
-		}	
+		}
+		//not reached
+		return false;
 	}
 
 }

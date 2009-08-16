@@ -11,7 +11,7 @@
 using namespace std;
 
 namespace Protocol {
-	ASCPingPackage::ASCPingPackage(const sigset_t &mask, const bool &cancel, size_t &length, DataStream &stream)
+	ASCPingPackage::ASCPingPackage(const sigset_t &, const bool &, size_t &, DataStream &)
 
 	{
 	}
