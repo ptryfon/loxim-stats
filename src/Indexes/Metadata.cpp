@@ -289,13 +289,13 @@ namespace Indexes
 		indexesMap::iterator mapIt = indexes.find(ih->getRoot()); //na pewno bedzie znaleziony
 		(mapIt->second).erase(ih->getField());
 		if (INDEX_DEBUG_MODE) {
-			printf("rozmiar mapy wewnetrznej po usunieciu: %ld\n" ,(mapIt->second).size());
+			printf("rozmiar mapy wewnetrznej po usunieciu: %ld\n" ,static_cast<long>((mapIt->second).size()));
 		}
 		if ((mapIt->second).empty()) {
 			indexes.erase(mapIt);
 		}
 		if (INDEX_DEBUG_MODE) {
-			printf("rozmiar mapy zewnetrznej po usunieciu: %ld\n" ,indexes.size());
+			printf("rozmiar mapy zewnetrznej po usunieciu: %ld\n" ,static_cast<long>(indexes.size()));
 		}
 		indexListSem->unlock();
 		if ((err = ih->drop())) {

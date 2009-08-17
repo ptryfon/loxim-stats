@@ -369,7 +369,7 @@ namespace Store
 					if
 					(
 						(strlen(name) == 0 || strcmp(name, entry->name) == 0)
-						&& static_cast<long>(entry->add_t) <= tid->getTimeStamp()
+						&& static_cast<unsigned long>(entry->add_t) <= tid->getTimeStamp()
 						&& entry->del_t == STORE_IXV_NULLVALUE
 						&& (entry->cur_tran == STORE_IXV_NULLVALUE || entry->cur_tran == tid->getId())
 					)

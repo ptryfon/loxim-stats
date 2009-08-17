@@ -94,7 +94,7 @@ void params()
 	char *cur;
 	int i, n;
 	r = lx_status_codes(buf, (int)sizeof(buf));
-	printf("retval: %d; sizeof: %ld\n", r, sizeof(buf));
+	printf("retval: %d; sizeof: %ld\n", r, (long)sizeof(buf));
 
 	n = 0;
 	cur = buf;

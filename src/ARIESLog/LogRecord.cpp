@@ -2,6 +2,9 @@
 #include <ARIESLog/LogRecord.h>
 #include <iostream>
 #include <sstream>
+#include <cstring>
+
+using namespace std;
 
 
 namespace Logs 
@@ -46,17 +49,20 @@ namespace Logs
 	int LogRecord::read(int fd, unsigned int LSN, LogRecord*& record)
 	{
 		int length = 1;
-		int type;
 		if (::lseek(fd, LSN, SEEK_SET) < 0)
 			return EBadLSN | ErrLogs;
 		::read(fd, &length, sizeof(int));
 		unsigned char buffer[length+1]/*, *toRead*/;
 		::read(fd, buffer, length);
 		buffer[length] = '\0';
-		type = *(reinterpret_cast<int*>(buffer));
+		union {
+			int type;
+			char bytes[sizeof(int)];
+		} u;
+		memcpy(u.bytes, buffer, sizeof(int));
 		////toRead = buffer + sizeof(int);
 		
-		switch (type)
+		switch (u.type)
 		{
 			case COMPENSATION_RECORD: 
 			{
