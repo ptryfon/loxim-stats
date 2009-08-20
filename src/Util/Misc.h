@@ -2,8 +2,14 @@
 #define _UTIL_MISC_H
 
 //TODO: make them work properly
+
+#ifdef __GNUC__
+#define likely(x) __builtin_expect(!!(x), 1)
+#define unlikely(x) __builtin_expect(!!(x), 0)
+#else
 #define likely(x) (x)
 #define unlikely(x) (x)
+#endif
 
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
