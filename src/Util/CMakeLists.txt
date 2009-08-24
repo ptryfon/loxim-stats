@@ -13,6 +13,8 @@ set(Util_STAT_SRCS
 	SignalReceiver.h
 	SignalRouter.cpp
 	SignalRouter.h
+	Thread.h
+	Thread.cpp
 	smartptr.h
 	Misc.h)
 

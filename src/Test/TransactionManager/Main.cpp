@@ -76,16 +76,16 @@ void* read(void* v)
 
 void* upgrade(void* v)
 {
-    int stat;
+    bool stat;
     int id = *(int*) v;
     sem->lock_read();
     printf("Upgrader %d inside\n", id); fflush(stdout);
     usleep(3);
     for (int i=0; i<1000; i++) ;
     stat = sem->lock_upgrade(id);
-    printf("Upgrader %d upgrade with result %d\n", id, stat); fflush(stdout);
+    printf("Upgrader %d %supgraded\n", id, stat?"":"not "); fflush(stdout);
     //sem->status();
-    if  (stat == 0)
+    if  (stat)
     {
 	sem->unlock();
 	printf("Upgrader %d out\n", id); fflush(stdout);

@@ -133,10 +133,10 @@ namespace Util{
 
 
 	RWSemaphore::RWSemaphore() :
-		current_mode(None),
-		wait_writers(0),
-		wait_readers(0),
-		inside(0)
+		writers_waiting(0),
+		readers_waiting(0),
+		inside(0),
+		mode(None)
 	{
 	}
 
@@ -147,65 +147,70 @@ namespace Util{
 	{
 		Mutex::Locker l(mutex);
 		
-		if (current_mode == None)
-			current_mode = Read;
-
-		if (current_mode == Read && wait_writers == 0) {
-			/* reader can read - neither writer inside nor waiting */
-			inside++;
+		assert(mode != None || inside == 0); // inside == 0 --> mode == None
+		if (likely(mode == None || (mode == Read && writers_waiting == 0 && readers_waiting == 0))) {
+			//inside == 0 --> (readers_waiting == 0 && writers_waiting == 0)
+			assert((readers_waiting != 0 || writers_waiting != 0) || (inside == 0 || mode == Read));
+			assert(mode == None || mode == Read);
+			mode = Read;
+			assert(inside < static_cast<counters_type>(-1));
+			++inside;
 		} else {
-			/* writer waiting or inside - reader must wait */
-			wait_readers++;
+			assert(mode == Write || writers_waiting != 0);
+			assert(readers_waiting < static_cast<counters_type>(-1));
+			++readers_waiting;
 			l.wait(reader_cond);
-			/* after signal re-aquire mutex */
-			wait_readers--;
-			inside++;
+			assert(mode == Read);
 		}
 	}
 	
 	void RWSemaphore::lock_write()
 	{
 		Mutex::Locker l(mutex);
-
-		if (current_mode == None)
-			current_mode = Write;
-
-		if (inside == 0)
-			inside++;
-		else {
-			wait_writers++;
+		
+		if (likely(mode == None)) {
+			assert(inside == 0);
+			assert(readers_waiting == 0 && writers_waiting == 0);
+			mode = Write;
+			inside = 1;
+		} else {
+			++writers_waiting;
 			l.wait(writer_cond);
-			/* after signal re-aquire mutex */
-			wait_writers--;
-			inside++;
+			assert(inside == 0 && mode == Write);
+			assert(writers_waiting > 0);
+			--writers_waiting;
+			inside = 1;
 		}
 	}
 
 	void RWSemaphore::unlock()
 	{
 		Mutex::Locker l(mutex);
-		
+		assert(inside > 0 && (mode == Read || mode == Write));
 		inside--;
-		if (current_mode == Read && inside == 0) {
-			/* last reader exits */
-			if (wait_writers)
-			{
-				current_mode = Write;
+		if (likely(inside == 0)) {
+			if (readers_waiting != 0) {
+				if (mode == Read) {
+					assert(writers_waiting > 0);
+					mode = Write;
+					writer_cond.signal();
+				} else {
+					assert(mode == Write);
+					mode = Read;
+					inside = readers_waiting;
+					readers_waiting = 0;
+					reader_cond.broadcast();
+				}
+			} else if (writers_waiting > 0) {
+				assert(readers_waiting == 0);
+				mode = Write;
 				writer_cond.signal();
-			} else
-				/* no one is waiting */
-				current_mode = None;
-		} else if (current_mode == Write) {
-			/* quaranteed inside = 0  */
-			if (wait_readers) {			
-				current_mode = Read;
-				/* signals all readers */
-				reader_cond.broadcast();
-			} else if (wait_writers) {
-				current_mode = Write;
-				writer_cond.signal();
-			} else 
-				current_mode = None;
+			} else {
+				assert(readers_waiting == 0 && writers_waiting == 0);
+				mode = None;
+			}
+		} else {
+			assert(mode == Read);
 		}
 	}
 
@@ -278,7 +283,7 @@ namespace Util{
 		assert(id >= 0);
 		Mutex::Locker l(mutex);
 
-		assert(inside == 0);
+		assert(inside != 0);
 		if (inside - wait_upgraders > 1) {
 		    //inside--;	/* not last */
 
@@ -349,7 +354,6 @@ namespace Util{
 			    /* no one is waiting */
 			    current_mode = None;
 		} else if ( current_mode == Upgrade) {
-			assert(inside == 0);
 			if (wait_upgraders) {
 				/* Fix for elsewhere bug */
 				/* should be signal after one-upgrader-waiting optimization */
@@ -378,4 +382,5 @@ namespace Util{
 				current_mode = None;
 		}
 	}
+
 }

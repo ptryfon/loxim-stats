@@ -9,6 +9,8 @@
 
 #include <Util/Misc.h>
 
+#define DONT_DETECT_TAS_IMPL
+#define TAS_IMPL_PTHREADS
 
 #ifndef DONT_DETECT_TAS_IMPL
 #if defined(__GNUC__) && __GNUC__ >= 4 && __GNUC_MINOR__ >= 1
@@ -138,7 +140,7 @@ namespace Util{
 	{
 		volatile SPIN_IMPL locker = SPIN_IMPL_LOCKED;
 		EXCHANGE(lock, locker);
-		return locker == SPIN_IMPL_UNLOCED;
+		return locker == SPIN_IMPL_UNLOCKED;
 	}
 
 #elif defined(TAS_IMPL_PTHREADS)
@@ -157,6 +159,7 @@ namespace Util{
 	static inline void SPIN_IMPL_UNLOCK(SPIN_IMPL *lock)
 	{
 		int err = pthread_mutex_unlock(lock);
+		err = err; //hack for poor assert implementation.
 		assert(err == 0);
 	}
 
@@ -321,22 +324,24 @@ Thanks.
 
 	class RWSemaphore : public Semaphore
 	{
-		private:
-			Mutex mutex;
-			CondVar reader_cond;
-			CondVar writer_cond;
-
-			LockMode current_mode;
-			int wait_writers;
-			int wait_readers;
-
-			int inside;		
 		public:
+			//it has to be unsigned
+			typedef unsigned short counters_type;
 			RWSemaphore();
 
 			virtual void lock_read();
 			virtual void lock_write();
 			virtual void unlock();
+		private:
+			Mutex mutex;
+			CondVar reader_cond;
+			CondVar writer_cond;
+
+			counters_type writers_waiting;
+			counters_type readers_waiting;
+
+			counters_type inside;
+			LockMode mode;
 	};
 
 
@@ -366,6 +371,7 @@ Thanks.
 			virtual void unlock();
 			virtual bool lock_upgrade(int id);
 	};
+	
 
 	template <class T>
 	inline _Locker<T>::_Locker(T &mutex) : mutex(mutex)
@@ -417,6 +423,7 @@ Thanks.
 	inline Mutex::MutexLocker::MutexLocker(Mutex &mutex) : _Locker<Mutex>(mutex)
 	{
 	}
+
 
 
 }

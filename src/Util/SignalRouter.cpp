@@ -81,6 +81,7 @@ namespace Util{
 			if (!r->error)
 				r->error = EIO;
 			r->cond.signal();
+			return NULL;
 		}
 		{
 			//now that we've assured that signals will be properly handled,

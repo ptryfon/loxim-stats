@@ -2,9 +2,10 @@
 #define SIGNAL_RECEIVER_H
 
 #include <pthread.h>
+#include <Util/Misc.h>
 
 namespace Util {
-	class SignalReceiver {
+	class SignalReceiver : private NonValue {
 		protected:
 			//not very pretty
 			pthread_t thread;
