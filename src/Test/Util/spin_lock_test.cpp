@@ -2,6 +2,7 @@
 #include <cassert>
 #include <cstring>
 #include <pthread.h>
+#include <stdlib.h>
 
 #include <Util/Concurrency.h>
 
