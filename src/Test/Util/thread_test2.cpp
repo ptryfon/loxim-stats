@@ -43,7 +43,7 @@ class TestThread : public Thread {
 
 int main()
 {
-	const int threads = 100;
+	const int threads = 60;
 	{
 		vector<shared_ptr<TestThread> > v;
 		for (int i = 0; i < threads; ++i) {
