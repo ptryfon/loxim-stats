@@ -17,3 +17,5 @@ target_link_libraries(thread_test2 Util pthread Errors)
 
 add_test(semaphore_test ${CMAKE_CURRNENT_BINARY_DIR}/semaphore_test)
 target_link_libraries(semaphore_test Util pthread Errors)
+
+

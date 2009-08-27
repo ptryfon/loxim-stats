@@ -320,7 +320,7 @@ Thanks.
 			virtual void unlock()	 = 0;
 	};
 
-
+	class RWUJSemaphore;
 
 	class RWSemaphore : public Semaphore
 	{
@@ -342,34 +342,32 @@ Thanks.
 
 			counters_type inside;
 			LockMode mode;
+			friend class RWUJSemaphore;
 	};
 
 
 	class RWUJSemaphore: public RWSemaphore
 	{
-		private:
-			Mutex mutex;
-			CondVar reader_cond;
-			CondVar writer_cond;
-			CondVar upgrader_cond;
-
-			LockMode current_mode;
-			int wait_writers;
-			int wait_readers;
-			int wait_upgraders;
-			int best_upgrader;	/* an arbitrary id, eg. TransactionID */
-
-			int inside;
-			void _unlock(Mutex::Locker &);
-			void _lock_write(Mutex::Locker &);
 		public:
+			typedef int priority_type;
+			enum const_1 {
+				NO_UPGRADER = static_cast<priority_type>(-1)
+			};
+
 			RWUJSemaphore();
 
 			virtual void lock_read();
 			virtual void lock_write();
 			virtual bool try_lock_write();
 			virtual void unlock();
-			virtual bool lock_upgrade(int id);
+			virtual bool lock_upgrade(priority_type id);
+		private:
+			void _unlock(Mutex::Locker &);
+			
+			CondVar upgrader_cond;
+			bool upgrader_waiting;
+			priority_type best_upgrader;	/* an arbitrary id, eg. TransactionID */
+
 	};
 	
 
