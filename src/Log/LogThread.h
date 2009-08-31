@@ -39,9 +39,11 @@ namespace Logs
 
     public:
     LogThread( int _fileDes );
-    int push( LogRecord *record );
+	//the already_locked is a nasty hack to remove a stupid race - MD
+    int push( LogRecord *record, bool already_locked = false);
+    int flush(bool already_locked = false);
+    int push_and_flush( LogRecord *record);
     void main();
-    int flush();
   };
 
 };

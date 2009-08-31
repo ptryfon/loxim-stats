@@ -41,15 +41,30 @@ LogThread::LogThread( int _fileDes ) : fileDes( _fileDes )
   ::pthread_create( &thread, NULL, &threadMain, this );
 }
 
-int LogThread::push( LogRecord *record )
+int LogThread::push( LogRecord *record, bool already_locked )
 {
-  ::pthread_mutex_lock( &threadFlagMutex );
+  if (!already_locked)
+	  ::pthread_mutex_lock( &threadFlagMutex );
   queue.push( record );
   counter++;
   ::pthread_cond_signal( &threadFlagCV );
-  ::pthread_mutex_unlock( &threadFlagMutex );
+  if (!already_locked)
+	  ::pthread_mutex_unlock( &threadFlagMutex );
 
   return 0;
+}
+
+int LogThread::push_and_flush(LogRecord *lr)
+{
+	::pthread_mutex_lock( &threadFlagMutex);
+	int err = push(lr, true);
+	if (err) {
+		::pthread_mutex_unlock(&threadFlagMutex);
+		return err;
+	}
+	err = flush(true);
+	::pthread_mutex_unlock( &threadFlagMutex);
+	return err;
 }
 
 void LogThread::main() {
@@ -85,17 +100,19 @@ void LogThread::main() {
   }
 }
 
-int LogThread::flush() {
+int LogThread::flush(bool already_locked) {
   int err = 0;
 
-  ::pthread_mutex_lock( &threadFlagMutex );
+  if (!already_locked)
+	  ::pthread_mutex_lock( &threadFlagMutex );
   while( counter > 0 || err ) {
     err = ::pthread_cond_wait( &threadFlagCV2, &threadFlagMutex );
   }
   //sk
   if(fsync(fileDes) < 0) err = errno;
-  
-  ::pthread_mutex_unlock( &threadFlagMutex );
+ 
+  if (!already_locked) 
+	 ::pthread_mutex_unlock( &threadFlagMutex );
 
   return err;
 }

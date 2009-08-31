@@ -203,8 +203,7 @@ int LogManager::checkpoint( vector<int> *tids, unsigned &id )
 {
   LogRecord *record = new CkptRecord( tids );
   record->getId( id );
-  logThread->push( record );
-  flushLog();
+  logThread->push_and_flush( record );
 
   debug_print(*ec,  "LogManager: checkpoint!!");
 
@@ -215,8 +214,7 @@ int LogManager::endCheckpoint( unsigned &id )
 {
   LogRecord *record = new EndCkptRecord();
   record->getId( id );
-  logThread->push( record );
-  flushLog();
+  logThread->push_and_flush( record );
 
   debug_print(*ec,  "LogManager: end checkpoint");
 
@@ -230,10 +228,7 @@ int LogManager::commitTransaction( int tid, unsigned &id )
   
   LogRecord *record = new CommitRecord( tid );
   record->getId( id );
-  logThread->push( record );
-  
-  //sk
-  err = flushLog();
+  logThread->push_and_flush( record );
   
   debug_print(*ec,  "LogManager: commitTransaction");
 
@@ -294,8 +289,7 @@ int LogManager::shutdown( unsigned &id )
 {
   LogRecord *record = new ShutdownRecord();
   record->getId( id );
-  logThread->push( record );
-  flushLog();
+  logThread->push_and_flush( record );
 
   debug_print(*ec,  "LogManager: shutdown");
 
