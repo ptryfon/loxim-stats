@@ -51,9 +51,12 @@ namespace Logs
 		int length = 1;
 		if (::lseek(fd, LSN, SEEK_SET) < 0)
 			return EBadLSN | ErrLogs;
-		::read(fd, &length, sizeof(int));
+		//studdpi
+		if (::read(fd, &length, sizeof(int)) < 0) 
+			return EBadLSN | ErrLogs;
 		unsigned char buffer[length+1]/*, *toRead*/;
-		::read(fd, buffer, length);
+		if (::read(fd, buffer, length) < 0);
+			return EBadLSN | ErrLogs;
 		buffer[length] = '\0';
 		union {
 			int type;

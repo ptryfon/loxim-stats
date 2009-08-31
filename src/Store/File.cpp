@@ -195,8 +195,10 @@ namespace Store
 		timeval begin, end;
 
 		gettimeofday(&begin,NULL);
-		::lseek(file, offset, SEEK_SET);
-		::read(file, buffer, length);
+		if (::lseek(file, offset, SEEK_SET) < 0)
+			return EBadLSN | ErrLogs;
+		if (::read(file, buffer, length) < 0)
+			return EBadLSN | ErrLogs;
 		gettimeofday(&end,NULL);
 
 		double milisec = (end.tv_sec - begin.tv_sec) * 1000 + (end.tv_usec - begin.tv_usec) / 1000;
@@ -218,8 +220,10 @@ namespace Store
 		if ((err = getStream(fileID, &file)) != 0)
 			return err;
 
-		::lseek(file, offset, SEEK_SET);
-		::write(file, buffer, length);
+		if (::lseek(file, offset, SEEK_SET) < 0)
+			return EBadLSN | ErrLogs;
+		if (::write(file, buffer, length) < 0)
+			return EBadLSN | ErrLogs;
 
 		return 0;
 	};
