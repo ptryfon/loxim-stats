@@ -17,7 +17,7 @@
 #				(custom result file and custom output file are  necessary)
 #m - mode, default slash
 
-source "$LOXIM_HOME/Testing/scripts/library.sh"
+source `dirname $0`"/library.sh"
 
 #GLOBAL VARIABLES
 defaultDelay=60

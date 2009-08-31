@@ -2,7 +2,8 @@
 
 
 set (CMAKE_VERBOSE_MAKEFILE 0) 
-
+set (tester ${CMAKE_CURRENT_SOURCE_DIR}/Testing/scripts/tester.sh)
+MESSAGE(STATUS " TESTER:  ${tester}")
 ################################################################################
 
 

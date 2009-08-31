@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #global variables
-
-loximKiller=$LOXIM_HOME"/Testing/scripts/loximKiller.sh"
+LOXIM_HOME=`dirname $0`"/../.."
+loximKiller=$LOXIM_HOME"/loximKiller.sh"
 loximServer=$LOXIM_HOME"/src/Programs/loxim_server"
 lsbql=$LOXIM_HOME"/src/Programs/lsbql"
 fullData=$(date +%Y-%m-%d-%H-%M)
@@ -260,7 +260,7 @@ makeTest() {
 	fi
 	#stupid hack because sometimes there info about help in answer file
 	#here should be inteligent output comparer 
-	if [ lastReturn -lt 3 ]; then
+	if [ $lastReturn -lt 3 ]; then
 		retValue=0
 	fi
 	echo "%%%%%%%%%%%%%%%%%%% TEST FINISHED %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
