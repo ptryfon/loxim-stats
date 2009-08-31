@@ -2,7 +2,7 @@
 
 #global variables
 LOXIM_HOME=`dirname $0`"/../.."
-loximKiller=$LOXIM_HOME"/loximKiller.sh"
+loximKiller=$LOXIM_HOME"/Testing/scripts/loximKiller.sh"
 loximServer=$LOXIM_HOME"/src/Programs/loxim_server"
 lsbql=$LOXIM_HOME"/src/Programs/lsbql"
 fullData=$(date +%Y-%m-%d-%H-%M)
