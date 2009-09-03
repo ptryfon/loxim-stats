@@ -248,6 +248,7 @@ endif ( G_PERF_TOOLS_TESTS_ENABLED )
 
 include (CPack)
 include (CTest)
+include (CheckCSourceCompiles)
 
 enable_testing()
 

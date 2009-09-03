@@ -44,6 +44,7 @@ CHECK_FUNCTION_EXISTS (strerror HAVE_STRERROR)
 CHECK_FUNCTION_EXISTS (strstr HAVE_STRSTR)
 CHECK_FUNCTION_EXISTS (strtol HAVE_STRTOL)
 
+
 if (NOT HAVE_VERBOSITY_COMPILE)
 	MESSAGE (STATUS "WARNING: Not all messages will be compiled, which is probably fine for you
 	(by default only debug messages are not compiled), but if you would like to
@@ -75,8 +76,15 @@ IF (HAVE_VERBOSITY_COMPILE MATCHES "Severe_error")
 	SET (HAVE_VERBOSITY_COMPILE EC_V_SEVERE_ERROR)	
 ENDIF (HAVE_VERBOSITY_COMPILE MATCHES "Severe_error")
 
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
+Check_C_Source_Compiles("int main()
+{
+	int l;
+  __sync_bool_compare_and_swap(&l, 0, 1);
+ return 0;
+}" HAVE_SYNC_BOOL_COMPARE_AND_SWAP_INT) 
+
+CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
 add_subdirectory(AdminParser)
 add_subdirectory(ARIESLog)
