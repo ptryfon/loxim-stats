@@ -2,8 +2,10 @@
 #define INF_LOOP_THREAD_H
 
 #include <pthread.h>
+#include <signal.h>
 #include <cassert>
 #include <memory>
+#include <vector>
 #include <Errors/Exceptions.h>
 #include <Util/Concurrency.h>
 #include <Util/SignalRouter.h>
@@ -13,7 +15,7 @@ namespace Util {
 	template <class T>
 	class InfLoopThread {
 		protected:
-			auto_ptr<T> logic;
+			std::auto_ptr<T> logic;
 			bool killed;
 			Mutex mutex;
 		public:
@@ -22,14 +24,15 @@ namespace Util {
 				logic->handle_signal(i);
 			}
 
-			InfLoopThread(auto_ptr<T> logic, const sigset_t &mask,
-					const vector<int> &signals) :
+			InfLoopThread(std::auto_ptr<T> logic, const sigset_t &mask,
+					const std::vector<int> &signals) :
 				logic(logic), killed(false)
 			{
 				SignalRouter::spawn_and_register(*(this->logic.get()),
 						mask, signals);
 			}
-			InfLoopThread(auto_ptr<T> logic, int sig) :
+
+			InfLoopThread(std::auto_ptr<T> logic, int sig) :
 				logic(logic), killed(false)
 			{
 				SignalRouter::spawn_and_register(*(this->logic.get()),
