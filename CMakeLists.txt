@@ -171,7 +171,7 @@ else (FLEX_EXECUTABLE)
   MESSAGE (FATAL_ERROR "flex NOT found")
 endif(FLEX_EXECUTABLE) 
 
-find_package(Qt4 REQUIRED)
+find_package(Qt4)
 if (Qt4_FOUND)
 	MESSAGE(STATUS "Qt4 found")
 endif(Qt4_FOUND)

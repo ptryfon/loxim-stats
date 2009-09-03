@@ -3,7 +3,7 @@
 #script have tow parameters 
 #1: how many seconds to sleep before killing loxim server and clients
 
-source "$LOXIM_HOME/Testing/scripts/library.sh"
+source `dirname $0`"/library.sh"
 
 let ret=0
 if [ $# -ge 1 ] 
