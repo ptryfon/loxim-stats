@@ -9,11 +9,8 @@
 
 #include <Util/Misc.h>
 
-#define DONT_DETECT_TAS_IMPL
-#define TAS_IMPL_PTHREADS
-
 #ifndef DONT_DETECT_TAS_IMPL
-#if defined(__GNUC__) && __GNUC__ >= 4 && __GNUC_MINOR__ >= 1
+#ifdef SYNC_BOOL_COMPARE_AND_SWAP_INT
 	#define TAS_IMPL_GNU_BUILTIN
 
 #elif  defined(__GNUC__) && (defined(__i386__) || defined(__x86_64__))
