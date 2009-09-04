@@ -9,6 +9,7 @@
 #include <Errors/Exceptions.h>
 #include <Util/Concurrency.h>
 #include <Util/SignalRouter.h>
+#include <Util/SignalReceiver.h>
 
 namespace Util {
 
@@ -25,11 +26,11 @@ namespace Util {
 			}
 
 			InfLoopThread(std::auto_ptr<T> logic, const sigset_t &mask,
-					const std::vector<int> &signals) :
+					const std::vector<int> &sigs) :
 				logic(logic), killed(false)
 			{
 				SignalRouter::spawn_and_register(*(this->logic.get()),
-						mask, signals);
+						mask, sigs);
 			}
 
 			InfLoopThread(std::auto_ptr<T> logic, int sig) :

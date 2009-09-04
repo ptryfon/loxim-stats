@@ -8,7 +8,7 @@ namespace LoximGui {
 	Authenticator::Authenticator(QWidget *parent)
 	{
 		setupUi(this);
-		connect(okButton, SIGNAL(clicked()), this, SLOT(ok_clicked()));
+		connect(ok_button, SIGNAL(clicked()), this, SLOT(ok_clicked()));
 	}
 
 	void Authenticator::ok_clicked()
@@ -18,12 +18,12 @@ namespace LoximGui {
 
 	string Authenticator::get_login()
 	{
-		return loginEdit->text().toStdString();
+		return login_edit->text().toStdString();
 	}
 	
 	string Authenticator::get_password()
 	{
-		return passwdEdit->text().toStdString();
+		return passwd_edit->text().toStdString();
 	}
 
 	void Authenticator::invalid()

@@ -11,8 +11,8 @@ int main(int argc, char *argv[])
 {
 	QApplication app(argc, argv);
 	app.setQuitOnLastWindowClosed(true);
-	auto_ptr<LoximGuiWindow> window(new LoximGuiWindow);
+	LoximGuiWindow window;
 
-	window->show();
+	window.show();
 	return app.exec();
 }

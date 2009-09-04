@@ -6,6 +6,7 @@
 #include <signal.h>
 #include <stdio.h>
 #include <config.h>
+#include <netdb.h>
 #include <readline/readline.h>
 #include <Client/Client.h>
 #include <Client/Authenticator.h>
@@ -151,6 +152,23 @@ namespace Client{
 			&on_exit) :
 		stream(new PackageCodec(auto_ptr<DataStream>(new
 		TCPClientStream(host, port)), MAX_PACKAGE_SIZE)), error(0),
+		shutting_down(false), waiting_for_result(false), on_exit(&on_exit)
+	{
+		init(auth);
+	}
+
+	Client::Client(const string & host, uint16_t port, Authenticator &auth) :
+		stream(new PackageCodec(auto_ptr<DataStream>(new
+		TCPClientStream(Client::get_host_ip(host), port)), MAX_PACKAGE_SIZE)), error(0),
+		shutting_down(false), waiting_for_result(false), on_exit(NULL)
+	{
+		init(auth);
+	}
+
+	Client::Client(const string & host, uint16_t port, Authenticator &auth, OnExit
+			&on_exit) :
+		stream(new PackageCodec(auto_ptr<DataStream>(new
+		TCPClientStream(Client::get_host_ip(host), port)), MAX_PACKAGE_SIZE)), error(0),
 		shutting_down(false), waiting_for_result(false), on_exit(&on_exit)
 	{
 		init(auth);
@@ -350,4 +368,18 @@ namespace Client{
 		shutting_down = true;
 		return;
 	}
+
+	/*in network order */
+	uint32_t Client::get_host_ip(const string& hostname)
+	{
+		struct hostent *hp;
+		hp = gethostbyname(hostname.c_str());
+		if (!hp){
+			throw LoximException(h_errno);
+		}
+		uint32_t res;
+		memcpy(&res, hp->h_addr, 4);
+		return res;
+	}
+
 }

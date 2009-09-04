@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>LoximGui</string>
   </property>
-  <widget class="QWidget" name="centralwidget">
+  <widget class="QWidget" name="central_widget">
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
@@ -37,35 +37,35 @@
      <height>31</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuFile">
+   <widget class="QMenu" name="menu_file">
     <property name="title">
      <string>File</string>
     </property>
-    <addaction name="actionConnect"/>
+    <addaction name="action_connect"/>
     <addaction name="separator"/>
-    <addaction name="actionClose"/>
+    <addaction name="action_close"/>
    </widget>
-   <widget class="QMenu" name="menuHelp">
+   <widget class="QMenu" name="menu_help">
     <property name="title">
      <string>Help</string>
     </property>
-    <addaction name="actionAbout"/>
+    <addaction name="action_about"/>
    </widget>
-   <addaction name="menuFile"/>
-   <addaction name="menuHelp"/>
+   <addaction name="menu_file"/>
+   <addaction name="menu_help"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <action name="actionClose">
+  <action name="action_close">
    <property name="text">
     <string>Exit</string>
    </property>
   </action>
-  <action name="actionAbout">
+  <action name="action_about">
    <property name="text">
     <string>About</string>
    </property>
   </action>
-  <action name="actionConnect">
+  <action name="action_connect">
    <property name="text">
     <string>Connect</string>
    </property>

@@ -49,11 +49,14 @@ namespace Client{
 			void auth_trust(const std::string &user);
 			void auth_pass_MySQL(const std::string &user, const std::string &password);
 			std::string get_hostname();
+			static uint32_t get_host_ip(const string &hostname);
 
 		public:
 			/* in network order */
 			Client(uint32_t address, uint16_t port, Authenticator &auth);
 			Client(uint32_t address, uint16_t port, Authenticator &auth, OnExit &on_exit);
+			Client(const std::string & address, uint16_t port, Authenticator &auth);
+			Client(const std::string & address, uint16_t port, Authenticator &auth, OnExit &on_exit);
 			~Client();
 			//may return null as a result of an abort
 			std::auto_ptr<Protocol::Package> execute_stmt(const string &stmt);
