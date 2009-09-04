@@ -10,4 +10,4 @@ Session.cpp
 Session.h)
 
 add_library(Server STATIC ${Server_STAT_SRCS})
-target_link_libraries(Server Log Lock Config Errors Store ARIESLog Indexes QueryParser TransactionManager SystemStats QueryExecutor AdminParser TypeCheck Server Util ProtocolEnums Protocol ProtocolStreams ProtocolPackagesData ProtocolPackages)
+target_link_libraries(Server Log Lock Config Errors Store ARIESLog Indexes QueryParser TransactionManager SystemStats QueryExecutor AdminParser TypeCheck Server Util ProtocolAllInOne )
