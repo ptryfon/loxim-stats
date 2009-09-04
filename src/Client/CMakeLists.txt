@@ -13,7 +13,7 @@ set(Client_STAT_SRCS
 	SimpleClient.h)
 
 add_library(Client STATIC ${Client_STAT_SRCS})
-target_link_libraries(Client Errors)
+target_link_libraries(Client Errors ProtocolAllInOne)
 set_target_properties(Client PROPERTIES OUTPUT_NAME client)
 set_target_properties(Client PROPERTIES CLEAN_DIRECT_OUTPUT 1)
 
