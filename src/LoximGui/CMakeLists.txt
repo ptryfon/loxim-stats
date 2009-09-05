@@ -30,7 +30,8 @@ SET (LoximGui_MOC_CPP
 QT4_WRAP_CPP (LoximGui_MOC_CPP ${LoximGui_MOC_HDRS})
 
 set (LoximGui_SRCS
-	Main.cpp
+	Application.cpp
+	Application.h
 	${LoximGui_UIS_H})
 
 MESSAGE(STATUS "LoximGui_UIS: ${LoximGui_UIS}")

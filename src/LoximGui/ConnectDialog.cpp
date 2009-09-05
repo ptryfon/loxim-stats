@@ -1,11 +1,14 @@
 #include <string>
 #include <arpa/inet.h>
 #include <QtGui>
-#include <LoximGui/Authenticator.h>
 #include <Client/Client.h>
+#include <Errors/Exceptions.h>
+#include <LoximGui/Authenticator.h>
 #include <LoximGui/ConnectDialog.h>
+#include <LoximGui/Application.h>
 
 using namespace std;
+using namespace Errors;
 
 namespace LoximGui {
 
@@ -24,10 +27,21 @@ namespace LoximGui {
 	{
 		const string hostname =	server_input->text().toStdString();
 		const int port = port_spin->value();
-		Authenticator *auth = new Authenticator(this);
+		Authenticator *auth = new Authenticator(parentWidget());
 		auth->exec();
-		new Client::Client(hostname, htons(port), *auth);
-
+		try {
+			Application::get_instance().connect(hostname, htons(port), *auth, parentWidget());
+		} catch ( LoximException &ex) {
+			QMessageBox::warning(
+				parentWidget(),
+				"Unable to connect",
+				("Connection failed with message:\n" + ex.to_string()).c_str());
+		} catch ( ... ) {
+			QMessageBox::warning(
+				parentWidget(),
+				"Unable to connect",
+				"Connection failed with unknown error");
+		}
 	}
 
 }

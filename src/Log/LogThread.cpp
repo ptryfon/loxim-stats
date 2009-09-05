@@ -92,7 +92,7 @@ void LogThread::main() {
     counter--;
     if( counter <= 0 )
     {
-      ::pthread_cond_signal( &threadFlagCV2 );
+      ::pthread_cond_broadcast( &threadFlagCV2 );
       counter = 0;
     }
     ::pthread_mutex_unlock( &threadFlagMutex );
