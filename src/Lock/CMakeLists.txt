@@ -1,12 +1,10 @@
+SET (LOCKDIR "../Lock")
 
-include_directories(${CMAKE_SOURCE_DIR}/src ${CMAKE_BINARY_DIR}/src ${INCDIR})
+set(Lock_SRCS
+	${LOCKDIR}/Comparator.cpp
+	${LOCKDIR}/Comparator.h
+	${LOCKDIR}/Lock.cpp
+	${LOCKDIR}/Lock.h
+	${LOCKDIR}/SingleLock.cpp
+	${LOCKDIR}/SingleLock.h CACHE INTERNAL "" ) 
 
-set(Lock_STAT_SRCS
-Comparator.cpp
-Comparator.h
-Lock.cpp
-Lock.h
-SingleLock.cpp
-SingleLock.h)
-
-add_library(Lock STATIC ${Lock_STAT_SRCS})

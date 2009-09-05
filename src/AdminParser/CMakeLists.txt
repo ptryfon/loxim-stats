@@ -1,5 +1,4 @@
-
-include_directories(${CMAKE_SOURCE_DIR}/src ${CMAKE_BINARY_DIR}/src ${INCDIR})
+set(ADMIN_PARSER_DIR "../AdminParser" CACHE INTERNAL "" )
 
 find_program(BISON_EXECUTABLE bison
     PATHS 
@@ -30,20 +29,23 @@ add_custom_command(
     )
 add_custom_target(generate_admin_lexer DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/scanner.cc)
 
-set(AdminParser_STAT_SRCS
-AdminExecutableTreeNode.cpp
-AdminExecutableTreeNode.h
-AdminExecutor.cpp
-AdminExecutor.h
-AdminLexer.h
-AdminParser.cpp
-AdminParser.h
-AdminTreeNode.cpp
-AdminTreeNode.h
-ShutdownTreeNode.cpp
-ShutdownTreeNode.h
-scanner.cc)
 
-add_library(AdminParser STATIC ${AdminParser_STAT_SRCS})
 
-add_DEPENDENCIES(AdminParser generate_admin_parser generate_admin_lexer)
+
+set(AdminParser_SRCS
+	${ADMIN_PARSER_DIR}/AdminExecutableTreeNode.cpp
+	${ADMIN_PARSER_DIR}/AdminExecutableTreeNode.h
+	${ADMIN_PARSER_DIR}/AdminExecutor.cpp
+	${ADMIN_PARSER_DIR}/AdminExecutor.h
+	${ADMIN_PARSER_DIR}/AdminLexer.h
+	${ADMIN_PARSER_DIR}/AdminParser.cpp
+	${ADMIN_PARSER_DIR}/AdminParser.h
+	${ADMIN_PARSER_DIR}/AdminTreeNode.cpp
+	${ADMIN_PARSER_DIR}/AdminTreeNode.h
+	${ADMIN_PARSER_DIR}/ShutdownTreeNode.cpp
+	${ADMIN_PARSER_DIR}/ShutdownTreeNode.h
+	#${ADMIN_PARSER_DIR}/scanner.cc 
+	CACHE INTERNAL "" )
+
+#SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_BINARY_DIR}/scanner.cc PROPERTIES GENERATED 1)
+

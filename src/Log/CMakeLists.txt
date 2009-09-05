@@ -1,19 +1,17 @@
+SET(LOGDIR "../Log")
 
-include_directories(${CMAKE_SOURCE_DIR}/src ${CMAKE_BINARY_DIR}/src ${INCDIR})
+set(Log_SRCS
+	${LOGDIR}/Backup.cpp
+	${LOGDIR}/Backup.h
+	${LOGDIR}/CrashRecovery.cpp
+	${LOGDIR}/CrashRecovery.h
+	${LOGDIR}/LogIO.cpp
+	${LOGDIR}/LogIO.h
+	${LOGDIR}/LogRecord.cpp
+	${LOGDIR}/LogRecord.h
+	${LOGDIR}/Logs.cpp
+	${LOGDIR}/LogsGlobals.cpp
+	${LOGDIR}/Logs.h
+	${LOGDIR}/LogThread.cpp
+	${LOGDIR}/LogThread.h CACHE INTERNAL "" )
 
-set(Log_STAT_SRCS
-Backup.cpp
-Backup.h
-CrashRecovery.cpp
-CrashRecovery.h
-LogIO.cpp
-LogIO.h
-LogRecord.cpp
-LogRecord.h
-Logs.cpp
-LogsGlobals.cpp
-Logs.h
-LogThread.cpp
-LogThread.h)
-
-add_library(Log STATIC ${Log_STAT_SRCS})

@@ -1,10 +1,8 @@
+set(ARIESLOGDIR "../ARIESLog")
 
-include_directories(${CMAKE_SOURCE_DIR}/src ${CMAKE_BINARY_DIR}/src ${INCDIR})
+set(ARIESLog_SRCS
+	${ARIESLOGDIR}/LogRecord.cpp
+	${ARIESLOGDIR}/LogRecord.h
+	${ARIESLOGDIR}/Logs.cpp
+	${ARIESLOGDIR}/Logs.h CACHE INTERNAL "")
 
-set(ARIESLog_STAT_SRCS
-LogRecord.cpp
-LogRecord.h
-Logs.cpp
-Logs.h)
-
-add_library(ARIESLog STATIC ${ARIESLog_STAT_SRCS})

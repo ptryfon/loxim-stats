@@ -25,6 +25,7 @@ SET (LoximGui_MOC_CPP
 	LoximGui.cpp
 	Authenticator.cpp
 	ConnectDialog.cpp
+	CACHE INTERNAL "" 
 )
 
 QT4_WRAP_CPP (LoximGui_MOC_CPP ${LoximGui_MOC_HDRS})
@@ -32,7 +33,9 @@ QT4_WRAP_CPP (LoximGui_MOC_CPP ${LoximGui_MOC_HDRS})
 set (LoximGui_SRCS
 	Application.cpp
 	Application.h
-	${LoximGui_UIS_H})
+	${LoximGui_UIS_H}
+	CACHE INTERNAL "" 
+	)
 
 MESSAGE(STATUS "LoximGui_UIS: ${LoximGui_UIS}")
 MESSAGE(STATUS "LoximGui_UIS_H: ${LoximGui_UIS_H}")
@@ -41,11 +44,5 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 qt4_automoc(${LoximGui_SRCS})
 
-#add_library(LoximGui_lib STATIC ${LoximGui_SRCS} ${ProtocolEnums_STAT_SRCS} ${ProtocolPackagesDataSTAT_SRCS} ${ProtocolPackagesSTAT_SRCS} ${Protocol_STAT_SRCS} ${ProtocolStreams_STAT_SRCS})
-
 add_executable(loxim_gui ${LoximGui_SRCS} ${LoximGui_MOC_CPP})
-add_dependencies(loxim_gui LoximGui_lib)
-target_link_libraries(loxim_gui LoximGui_lib ${QT_LIBRARIES})
-
-add_library(LoximGui_lib STATIC ${LoximGui_SRCS}) 
-target_link_libraries(LoximGui_lib Client Errors Util Config ProtocolAllInOne ${READLINE_LIBRARY} pthread)
+target_link_libraries(loxim_gui ${QT_LIBRARIES} lsbqlLib)

@@ -1,20 +1,18 @@
+set(TYPECHECKDIR "../TypeCheck")
 
-include_directories(${CMAKE_SOURCE_DIR}/src ${CMAKE_BINARY_DIR}/src ${INCDIR})
+set(TypeCheck_SRCS
+	${TYPECHECKDIR}/ClassNames.h
+	${TYPECHECKDIR}/DecisionTable.cpp
+	${TYPECHECKDIR}/DecisionTable.h
+	${TYPECHECKDIR}/DMLControl.cpp
+	${TYPECHECKDIR}/DMLControl.h
+	${TYPECHECKDIR}/RestoreAlgorithm.cpp
+	${TYPECHECKDIR}/RestoreAlgorithm.h
+	${TYPECHECKDIR}/Rule.cpp
+	${TYPECHECKDIR}/Rule.h
+	${TYPECHECKDIR}/TCConstants.h
+	${TYPECHECKDIR}/TypeChecker.cpp
+	${TYPECHECKDIR}/TypeChecker.h
+	${TYPECHECKDIR}/TypeCheckResult.cpp
+	${TYPECHECKDIR}/TypeCheckResult.h CACHE INTERNAL "" )
 
-set(TypeCheck_STAT_SRCS
-ClassNames.h
-DecisionTable.cpp
-DecisionTable.h
-DMLControl.cpp
-DMLControl.h
-RestoreAlgorithm.cpp
-RestoreAlgorithm.h
-Rule.cpp
-Rule.h
-TCConstants.h
-TypeChecker.cpp
-TypeChecker.h
-TypeCheckResult.cpp
-TypeCheckResult.h)
-
-add_library(TypeCheck STATIC ${TypeCheck_STAT_SRCS})  

@@ -1,42 +1,39 @@
+set(STOREDIR "../Store")
 
-include_directories(${CMAKE_SOURCE_DIR}/src ${CMAKE_BINARY_DIR}/src ${INCDIR})
+set(Store_SRCS
+	${STOREDIR}/Buffer.cpp
+	${STOREDIR}/Buffer.h
+	${STOREDIR}/Classes.cpp
+	${STOREDIR}/DBDataValue.cpp
+	${STOREDIR}/DBDataValue.h
+	${STOREDIR}/DBLogicalID.cpp
+	${STOREDIR}/DBLogicalID.h
+	${STOREDIR}/DBObjectPointer.cpp
+	${STOREDIR}/DBObjectPointer.h
+	${STOREDIR}/DBPhysicalID.cpp
+	${STOREDIR}/DBPhysicalID.h
+	${STOREDIR}/DBStoreManager.cpp
+	${STOREDIR}/DBStoreManager.h
+	${STOREDIR}/File.cpp
+	${STOREDIR}/File.h
+	${STOREDIR}/Interfaces.cpp
+	${STOREDIR}/Map.cpp
+	${STOREDIR}/Map.h
+	${STOREDIR}/Misc.cpp
+	${STOREDIR}/Misc.h
+	${STOREDIR}/NamedItems.cpp
+	${STOREDIR}/NamedItems.h
+	${STOREDIR}/NamedRoots.cpp
+	${STOREDIR}/NamedRoots.h
+	${STOREDIR}/PageManager.cpp
+	${STOREDIR}/PageManager.h
+	${STOREDIR}/PagePointer.cpp
+	${STOREDIR}/PagePointer.h
+	${STOREDIR}/Store.h
+	${STOREDIR}/StoreSchemas.cpp
+	${STOREDIR}/Struct.h
+	${STOREDIR}/SystemViews.cpp
+	${STOREDIR}/SystemViews.h
+	${STOREDIR}/Views.cpp
+	${STOREDIR}/Views.h CACHE INTERNAL "" )
 
-
-set(Store_STAT_SRCS
-Buffer.cpp
-Buffer.h
-Classes.cpp
-DBDataValue.cpp
-DBDataValue.h
-DBLogicalID.cpp
-DBLogicalID.h
-DBObjectPointer.cpp
-DBObjectPointer.h
-DBPhysicalID.cpp
-DBPhysicalID.h
-DBStoreManager.cpp
-DBStoreManager.h
-File.cpp
-File.h
-Interfaces.cpp
-Map.cpp
-Map.h
-Misc.cpp
-Misc.h
-NamedItems.cpp
-NamedItems.h
-NamedRoots.cpp
-NamedRoots.h
-PageManager.cpp
-PageManager.h
-PagePointer.cpp
-PagePointer.h
-Store.h
-StoreSchemas.cpp
-Struct.h
-SystemViews.cpp
-SystemViews.h
-Views.cpp
-Views.h)
-
-add_library(Store STATIC ${Store_STAT_SRCS})

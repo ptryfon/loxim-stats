@@ -1,45 +1,43 @@
+set(INDEXESDIR "../Indexes") 
 
-include_directories(${CMAKE_SOURCE_DIR}/src ${CMAKE_BINARY_DIR}/src ${INCDIR})
+set(Indexes_SRCS
+	${INDEXESDIR}/BTree.cpp
+	${INDEXESDIR}/BTree.h
+	${INDEXESDIR}/CachedNode.cpp
+	${INDEXESDIR}/CachedNode.h
+	${INDEXESDIR}/Cleaner.cpp
+	${INDEXESDIR}/Cleaner.h
+	${INDEXESDIR}/Comparator.cpp
+	${INDEXESDIR}/Comparator.h
+	${INDEXESDIR}/const.cpp
+	${INDEXESDIR}/const.h
+	${INDEXESDIR}/Constraints.cpp
+	${INDEXESDIR}/Constraints.h
+	${INDEXESDIR}/EntrySieve.cpp
+	${INDEXESDIR}/EntrySieve.h
+	${INDEXESDIR}/IndexHandler.cpp
+	${INDEXESDIR}/IndexHandler.h
+	${INDEXESDIR}/IndexManager.cpp
+	${INDEXESDIR}/IndexManager.h
+	${INDEXESDIR}/LeafTraveller.cpp
+	${INDEXESDIR}/LeafTraveller.h
+	${INDEXESDIR}/Metadata.cpp
+	${INDEXESDIR}/Monitor.cpp
+	${INDEXESDIR}/Monitor.h
+	${INDEXESDIR}/Node.cpp
+	${INDEXESDIR}/Node.h
+	${INDEXESDIR}/NonloggedDataSerializer.cpp
+	${INDEXESDIR}/NonloggedDataSerializer.h
+	${INDEXESDIR}/OptimizedField.cpp
+	${INDEXESDIR}/OptimizedField.h
+	${INDEXESDIR}/QueryOptimizer.cpp
+	${INDEXESDIR}/QueryOptimizer.h
+	${INDEXESDIR}/RootEntry.cpp
+	${INDEXESDIR}/RootEntry.h
+	${INDEXESDIR}/ToStringBuilder.cpp
+	${INDEXESDIR}/ToStringBuilder.h
+	${INDEXESDIR}/TransactionImpact.cpp
+	${INDEXESDIR}/TransactionImpact.h
+	${INDEXESDIR}/VisibilityResolver.cpp
+	${INDEXESDIR}/VisibilityResolver.h CACHE INTERNAL "" )
 
-set(Indexes_STAT_SRCS
-BTree.cpp
-BTree.h
-CachedNode.cpp
-CachedNode.h
-Cleaner.cpp
-Cleaner.h
-Comparator.cpp
-Comparator.h
-const.cpp
-const.h
-Constraints.cpp
-Constraints.h
-EntrySieve.cpp
-EntrySieve.h
-IndexHandler.cpp
-IndexHandler.h
-IndexManager.cpp
-IndexManager.h
-LeafTraveller.cpp
-LeafTraveller.h
-Metadata.cpp
-Monitor.cpp
-Monitor.h
-Node.cpp
-Node.h
-NonloggedDataSerializer.cpp
-NonloggedDataSerializer.h
-OptimizedField.cpp
-OptimizedField.h
-QueryOptimizer.cpp
-QueryOptimizer.h
-RootEntry.cpp
-RootEntry.h
-ToStringBuilder.cpp
-ToStringBuilder.h
-TransactionImpact.cpp
-TransactionImpact.h
-VisibilityResolver.cpp
-VisibilityResolver.h)
-
-add_library(Indexes STATIC ${Indexes_STAT_SRCS})

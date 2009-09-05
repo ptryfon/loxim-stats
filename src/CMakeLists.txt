@@ -4,6 +4,7 @@ include_directories(${CMAKE_SOURCE_DIR}/src ${CMAKE_BINARY_DIR}/src ${INCDIR})
 INCLUDE (CheckIncludeFiles)
 INCLUDE (CheckFunctionExists)
 
+
 set (PACKAGE_VERSION 0.01)
 CHECK_INCLUDE_FILES (malloc.h HAVE_MALLOC_H)
 CHECK_INCLUDE_FILES (dlfcn.h HAVE_DLFCN_H)

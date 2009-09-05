@@ -1,6 +1,3 @@
-
-include_directories(${CMAKE_SOURCE_DIR}/src ${CMAKE_BINARY_DIR}/src ${INCDIR} )
-
 find_program(BISON_EXECUTABLE bison
     PATHS 
     /usr/bin
@@ -30,34 +27,36 @@ add_custom_command(
     )
 add_custom_target(generate_query_lexer DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/scanner.cc)
 
-set(QueryParser_STAT_SRCS
-AuxRmver.cpp
-AuxRmver.h
-ClassNames.h
-DataRead.cpp
-DataRead.h
-DeathRmver.cpp
-DeathRmver.h
-Deb.cpp
-Deb.h
-IndexNode.h
-JoinRpcer.cpp
-JoinRpcer.h
-Optimizer.cpp
-Optimizer.h
-ParserWrapper.cpp
-ParserWrapper.h
-Privilige.cpp
-Privilige.h
-QueryLexer.h
-QueryParser.cpp
-QueryParser.h
-Stack.cpp
-Stack.h
-TreeNode.cpp
-TreeNode.h
-scanner.cc)
+set(QUERYPARSERDIR "../QueryParser")
 
-add_library(QueryParser STATIC ${QueryParser_STAT_SRCS})
+set(QueryParser_SRCS
+	${QUERYPARSERDIR}/AuxRmver.cpp
+	${QUERYPARSERDIR}/AuxRmver.h
+	${QUERYPARSERDIR}/ClassNames.h
+	${QUERYPARSERDIR}/DataRead.cpp
+	${QUERYPARSERDIR}/DataRead.h
+	${QUERYPARSERDIR}/DeathRmver.cpp
+	${QUERYPARSERDIR}/DeathRmver.h
+	${QUERYPARSERDIR}/Deb.cpp
+	${QUERYPARSERDIR}/Deb.h
+	${QUERYPARSERDIR}/IndexNode.h
+	${QUERYPARSERDIR}/JoinRpcer.cpp
+	${QUERYPARSERDIR}/JoinRpcer.h
+	${QUERYPARSERDIR}/Optimizer.cpp
+	${QUERYPARSERDIR}/Optimizer.h
+	${QUERYPARSERDIR}/ParserWrapper.cpp
+	${QUERYPARSERDIR}/ParserWrapper.h
+	${QUERYPARSERDIR}/Privilige.cpp
+	${QUERYPARSERDIR}/Privilige.h
+	${QUERYPARSERDIR}/QueryLexer.h
+	${QUERYPARSERDIR}/QueryParser.cpp
+	${QUERYPARSERDIR}/QueryParser.h
+	${QUERYPARSERDIR}/Stack.cpp
+	${QUERYPARSERDIR}/Stack.h
+	${QUERYPARSERDIR}/TreeNode.cpp
+	${QUERYPARSERDIR}/TreeNode.h
+	#${QUERYPARSERDIR}/scanner.cc 
+	CACHE INTERNAL "" )
 
-add_DEPENDENCIES(QueryParser generate_query_parser generate_query_lexer)
+
+#add_DEPENDENCIES(QueryParser generate_query_parser generate_query_lexer)

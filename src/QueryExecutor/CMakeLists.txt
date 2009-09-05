@@ -1,39 +1,37 @@
+set(QUERYEXECUTORDIR "../QueryExecutor")
 
-include_directories(${CMAKE_SOURCE_DIR}/src ${CMAKE_BINARY_DIR}/src ${INCDIR})
+set(QueryExecutor_SRCS
+	${QUERYEXECUTORDIR}/AccessMap.cpp
+	${QUERYEXECUTORDIR}/AccessMap.h
+	${QUERYEXECUTORDIR}/BindMap.cpp
+	${QUERYEXECUTORDIR}/BindMap.h
+	${QUERYEXECUTORDIR}/BindNames.h
+	${QUERYEXECUTORDIR}/ClassGraph.cpp
+	${QUERYEXECUTORDIR}/ClassGraph.h
+	${QUERYEXECUTORDIR}/CommonOperations.cpp
+	${QUERYEXECUTORDIR}/CommonOperations.h
+	${QUERYEXECUTORDIR}/EnvironmentStack.cpp
+	${QUERYEXECUTORDIR}/EnvironmentStack.h
+	${QUERYEXECUTORDIR}/ExecutorViews.cpp
+	${QUERYEXECUTORDIR}/ExecutorViews.h
+	${QUERYEXECUTORDIR}/HashMacro.h
+	${QUERYEXECUTORDIR}/InterfaceKey.h
+	${QUERYEXECUTORDIR}/InterfaceMaps.cpp
+	${QUERYEXECUTORDIR}/InterfaceMaps.h
+	${QUERYEXECUTORDIR}/InterfaceMatcher.cpp
+	${QUERYEXECUTORDIR}/InterfaceMatcher.h
+	${QUERYEXECUTORDIR}/InterfaceQuery.cpp
+	${QUERYEXECUTORDIR}/InterfaceQuery.h
+	${QUERYEXECUTORDIR}/OuterSchema.cpp
+	${QUERYEXECUTORDIR}/OuterSchema.h
+	${QUERYEXECUTORDIR}/QueryBuilder.cpp
+	${QUERYEXECUTORDIR}/QueryBuilder.h
+	${QUERYEXECUTORDIR}/QueryExecutor.cpp
+	${QUERYEXECUTORDIR}/QueryExecutor.h
+	${QUERYEXECUTORDIR}/QueryResult.cpp
+	${QUERYEXECUTORDIR}/QueryResult.h
+	${QUERYEXECUTORDIR}/ResultStack.cpp
+	${QUERYEXECUTORDIR}/ResultStack.h
+	${QUERYEXECUTORDIR}/Signatures.cpp
+	${QUERYEXECUTORDIR}/Signatures.h CACHE INTERNAL "" ) 
 
-set(QueryExecutor_STAT_SRCS
-AccessMap.cpp
-AccessMap.h
-BindMap.cpp
-BindMap.h
-BindNames.h
-ClassGraph.cpp
-ClassGraph.h
-CommonOperations.cpp
-CommonOperations.h
-EnvironmentStack.cpp
-EnvironmentStack.h
-ExecutorViews.cpp
-ExecutorViews.h
-HashMacro.h
-InterfaceKey.h
-InterfaceMaps.cpp
-InterfaceMaps.h
-InterfaceMatcher.cpp
-InterfaceMatcher.h
-InterfaceQuery.cpp
-InterfaceQuery.h
-OuterSchema.cpp
-OuterSchema.h
-QueryBuilder.cpp
-QueryBuilder.h
-QueryExecutor.cpp
-QueryExecutor.h
-QueryResult.cpp
-QueryResult.h
-ResultStack.cpp
-ResultStack.h
-Signatures.cpp
-Signatures.h) 
-
-add_library(QueryExecutor STATIC ${QueryExecutor_STAT_SRCS})
