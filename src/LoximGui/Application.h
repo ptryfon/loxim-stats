@@ -1,6 +1,7 @@
 #ifndef LOXIM_GUI_APPLICATION_H
 #define LOXIM_GUI_APPLICATION_H
 
+#include <memory>
 #include <QApplication>
 
 namespace Client {

@@ -16,12 +16,3 @@ set(SystemStats_SRCS
 	${SYSTEMSTATSDIR}/TransactionsStats.cpp
 	${SYSTEMSTATSDIR}/TransactionsStats.h CACHE INTERNAL "" )
 
-#add_library(SystemStats STATIC ${SystemStats_STAT_SRCS})
-#set_target_properties(SystemStats PROPERTIES OUTPUT_NAME systemstats)
-#set_target_properties(SystemStats PROPERTIES CLEAN_DIRECT_OUTPUT 1)
-
-#IF (NOT DO_NOT_BUILD_SHARED)
-#	add_library(SystemStats_shared SHARED ${SystemStats_STAT_SRCS})
-#	set_target_properties(SystemStats_shared PROPERTIES OUTPUT_NAME systemstats)
-#	set_target_properties(SystemStats_shared PROPERTIES CLEAN_DIRECT_OUTPUT 1)
-#ENDIF (NOT DO_NOT_BUILD_SHARED)

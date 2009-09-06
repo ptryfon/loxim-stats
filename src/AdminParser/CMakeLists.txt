@@ -44,8 +44,6 @@ set(AdminParser_SRCS
 	${ADMIN_PARSER_DIR}/AdminTreeNode.h
 	${ADMIN_PARSER_DIR}/ShutdownTreeNode.cpp
 	${ADMIN_PARSER_DIR}/ShutdownTreeNode.h
-	#${ADMIN_PARSER_DIR}/scanner.cc 
 	CACHE INTERNAL "" )
 
-#SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_BINARY_DIR}/scanner.cc PROPERTIES GENERATED 1)
 

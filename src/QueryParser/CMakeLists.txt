@@ -55,8 +55,6 @@ set(QueryParser_SRCS
 	${QUERYPARSERDIR}/Stack.h
 	${QUERYPARSERDIR}/TreeNode.cpp
 	${QUERYPARSERDIR}/TreeNode.h
-	#${QUERYPARSERDIR}/scanner.cc 
 	CACHE INTERNAL "" )
 
 
-#add_DEPENDENCIES(QueryParser generate_query_parser generate_query_lexer)
