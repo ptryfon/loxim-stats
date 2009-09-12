@@ -31,6 +31,8 @@ SET (LoximGui_MOC_CPP
 QT4_WRAP_CPP (LoximGui_MOC_CPP ${LoximGui_MOC_HDRS})
 
 set (LoximGui_SRCS
+	ClientDestroyer.h
+	ClientDestroyer.cpp
 	Application.cpp
 	Application.h
 	${LoximGui_UIS_H}

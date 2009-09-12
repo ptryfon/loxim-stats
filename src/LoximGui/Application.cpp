@@ -11,8 +11,7 @@
 using namespace std;
 
 namespace LoximGui {
-
-
+	
 	class ConnectionClosedEvent : public QEvent {
 		public:
 			const int error;
@@ -33,8 +32,12 @@ namespace LoximGui {
 
 			void exit(int error)
 			{
-				ConnectionClosedEvent ev(error, parent);
-				QApplication::sendEvent(&Application::get_instance().dummy, &ev);
+				std::cout << "creating event" << endl;
+				ConnectionClosedEvent *ev = new ConnectionClosedEvent(error, parent);
+				std::cout << "sending event" << endl;
+				QApplication::postEvent(&Application::get_instance().dummy, ev);
+				std::cout << "event dlivered" << endl;
+				delete this;
 			}
 	};
 
@@ -76,11 +79,23 @@ namespace LoximGui {
 		instance = NULL;
 	}
 
+	Application::Application()
+	{
+		destroyer.run();
+	}
 
 	void Application::connect(const std::string &host, int port, Client::Authenticator &auth, QWidget *parent)
 	{
 		ConnectionClosedCallback *cb = new ConnectionClosedCallback(parent);
+		if (client.get())
+			destroy_client(client);
 		client = auto_ptr<Client::Client>(new Client::Client(host, port, auth, *cb));
+	}
+
+
+	void Application::destroy_client(std::auto_ptr<Client::Client> c)
+	{
+		destroyer.submit(c);
 	}
 }
 

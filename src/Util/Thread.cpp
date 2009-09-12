@@ -26,6 +26,10 @@ namespace Util {
 		SignalRouter::spawn_and_register(*this,	mask, signals);
 	}
 
+	void Thread::signal_handler(int)
+	{
+	}
+
 	void Thread::join()
 	{
 		Mutex::Locker l(mutex);

@@ -4,6 +4,7 @@
 #include <pthread.h>
 #include <cassert>
 #include <memory>
+#include <vector>
 #include <Errors/Exceptions.h>
 #include <Util/Concurrency.h>
 #include <Util/Misc.h>
@@ -19,12 +20,12 @@ namespace Util {
 		public:
 			Thread();
 			~Thread();
-			virtual void signal_handler(int i) = 0;
+			virtual void signal_handler(int i);
 			virtual void start() = 0;
 			virtual void init();
 			void run();
 			void run(StartableSignalReceiver &recv, const sigset_t &mask, const
-				vector<int>	&signals);
+					std::vector<int> &sigs);
 			void join();
 
 	};
