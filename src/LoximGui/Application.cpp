@@ -12,6 +12,16 @@ using namespace std;
 
 namespace LoximGui {
 
+
+	class ConnectionClosedEvent : public QEvent {
+		public:
+			const int error;
+			QWidget *parent;
+			ConnectionClosedEvent(int error, QWidget *parent) : QEvent(QEvent::None), error(error), parent(parent)
+			{
+			}
+	};
+
 	class ConnectionClosedCallback : public Client::OnExit{
 		private:
 			QWidget *parent;
@@ -23,20 +33,33 @@ namespace LoximGui {
 
 			void exit(int error)
 			{
-				stringstream ss;
-				ss << "Connection closed with code " << error << "\n";
-				QMessageBox::warning(parent, "Connection closed", ss.str().c_str());
-				cout << "closed" << endl;
-				delete this;
+				ConnectionClosedEvent ev(error, parent);
+				QApplication::sendEvent(&Application::get_instance().dummy, &ev);
 			}
 	};
 
+
+	bool Application::DummyQObject::event(QEvent *e)
+	{
+		ConnectionClosedEvent *c = dynamic_cast<ConnectionClosedEvent *>(e);
+		if (!c) {
+			cout << "ale kupa" << endl;
+		} else {
+			stringstream ss;
+			ss << "Connection closed with code " << c->error << "\n";
+			QMessageBox::warning(c->parent, "Connection closed", ss.str().c_str());
+			cout << "closed" << endl;
+		}
+		delete this;
+		return true;
+	}
+
 	Application *Application::instance = NULL;
 
-	Application &Application::create_instace(int argc, char *argv[])
+	Application &Application::create_instace()
 	{
 		assert(instance == NULL);
-		instance = new Application(argc, argv);
+		instance = new Application;
 		return *instance;
 	}
 
@@ -53,17 +76,6 @@ namespace LoximGui {
 		instance = NULL;
 	}
 
-	Application::Application(int argc, char *argv[]) : QApplication(argc, argv)
-	{
-	}
-
-	int Application::start()
-	{
-		setQuitOnLastWindowClosed(true);
-		LoximGuiWindow window;
-		window.show();
-		return exec();
-	}
 
 	void Application::connect(const std::string &host, int port, Client::Authenticator &auth, QWidget *parent)
 	{
@@ -75,8 +87,12 @@ namespace LoximGui {
 int main(int argc, char *argv[])
 {
 	using namespace LoximGui;
-	Application &app = Application::create_instace(argc, argv);
-	int res = app.start();
+	Application::create_instace();
+	new QApplication(argc, argv);
+	QApplication::quitOnLastWindowClosed();
+	LoximGuiWindow w(NULL);
+	w.show();
+	int res = QApplication::exec();
 	Application::destroy_instance();
 	return res;
 }

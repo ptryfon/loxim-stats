@@ -10,9 +10,13 @@ namespace Client {
 }
 
 namespace LoximGui {
-	class Application : private QApplication {
+	class Application {
 		public:
-			static Application &create_instace(int argc, char *argv[]);
+			class DummyQObject : public QObject {
+				bool event(QEvent *e);
+			};
+
+			static Application &create_instace();
 			static void destroy_instance();
 			static Application &get_instance();
 
@@ -23,11 +27,12 @@ namespace LoximGui {
 				Client::Authenticator &auth,
 				QWidget *widhet
 			);
+			DummyQObject dummy;
 
 		private:
-			Application(int argc, char *argv[]);
 			std::auto_ptr<Client::Client> client;
 			static Application *instance;
+
 	};
 }
 
