@@ -36,7 +36,7 @@ set(LoximServerExternal_SRCS ${Log_SRCS}
 
 add_library(serverLib STATIC loxim_server.cpp ${LoximServerExternal_SRCS})
 SET_SOURCE_FILES_PROPERTIES(${CURRENT_BINARY_DIR}../AdminParser/scanner.cc ${CURRENT_BINARY_DIR}../QueryParser/scanner.cc PROPERTIES GENERATED 1)
-add_DEPENDENCIES(serverLib ala generate_admin_parser generate_admin_lexer generate_query_parser generate_query_lexer)
+add_DEPENDENCIES(serverLib generate_admin_parser generate_admin_lexer generate_query_parser generate_query_lexer)
 
 target_link_libraries(serverLib pthread)
 

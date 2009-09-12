@@ -62,6 +62,7 @@ namespace Server{
 		sigset = sigset_tmpl;
 		auto_ptr<DataStream> stream;
 		try{
+			info_printf(err_cons, "Waiting for connections.");
 			while (!shutting_down){
 				auto_ptr<DataStream> stream = server.accept(sigset, shutting_down);
 				Mutex::Locker l(open_sessions_mutex);
