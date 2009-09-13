@@ -16,7 +16,7 @@
   <widget class="QWidget" name="central_widget">
    <widget class="QTabWidget" name="tab_widget">
     <property name="enabled">
-     <bool>false</bool>
+     <bool>true</bool>
     </property>
     <property name="geometry">
      <rect>
@@ -31,14 +31,14 @@
     </property>
     <widget class="QWidget" name="commands_tab">
      <property name="enabled">
-      <bool>false</bool>
+      <bool>true</bool>
      </property>
      <attribute name="title">
       <string>Commands</string>
      </attribute>
      <widget class="QTextEdit" name="command_edit">
       <property name="enabled">
-       <bool>false</bool>
+       <bool>true</bool>
       </property>
       <property name="geometry">
        <rect>
@@ -49,21 +49,11 @@
        </rect>
       </property>
      </widget>
-     <widget class="QTreeView" name="result_view">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>200</y>
-        <width>411</width>
-        <height>301</height>
-       </rect>
-      </property>
-     </widget>
      <widget class="QPushButton" name="submit_sbql_button">
       <property name="geometry">
        <rect>
-        <x>500</x>
-        <y>40</y>
+        <x>480</x>
+        <y>20</y>
         <width>88</width>
         <height>27</height>
        </rect>
@@ -71,6 +61,47 @@
       <property name="text">
        <string>Submit</string>
       </property>
+     </widget>
+     <widget class="QPushButton" name="clear_sbql">
+      <property name="geometry">
+       <rect>
+        <x>480</x>
+        <y>70</y>
+        <width>88</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Clear</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label">
+      <property name="geometry">
+       <rect>
+        <x>480</x>
+        <y>140</y>
+        <width>141</width>
+        <height>71</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>TextLabel</string>
+      </property>
+     </widget>
+     <widget class="QTreeWidget" name="result_view">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>180</y>
+        <width>401</width>
+        <height>271</height>
+       </rect>
+      </property>
+      <column>
+       <property name="text">
+        <string notr="true">1</string>
+       </property>
+      </column>
      </widget>
     </widget>
     <widget class="QWidget" name="university_tab">

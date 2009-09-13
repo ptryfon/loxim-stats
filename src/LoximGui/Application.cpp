@@ -2,11 +2,14 @@
 #include <sstream>
 #include <iostream>
 
+
 #include <QtGui>
 
 #include <LoximGui/Application.h>
 #include <LoximGui/LoximGui.h>
+
 #include <Client/Client.h>
+
 
 using namespace std;
 
@@ -36,7 +39,7 @@ namespace LoximGui {
 				ConnectionClosedEvent *ev = new ConnectionClosedEvent(error, parent);
 				std::cout << "sending event" << endl;
 				QApplication::postEvent(&Application::get_instance().dummy, ev);
-				std::cout << "event dlivered" << endl;
+				std::cout << "event delivered" << endl;
 				delete this;
 			}
 	};
@@ -97,6 +100,10 @@ namespace LoximGui {
 	void Application::destroy_client(std::auto_ptr<Client::Client> c)
 	{
 		destroyer.submit(c);
+	}
+
+	std::auto_ptr<Protocol::Package> Application::execute_stmt(string s) {
+		return std::auto_ptr<Protocol::Package>(client->execute_stmt(s));
 	}
 }
 

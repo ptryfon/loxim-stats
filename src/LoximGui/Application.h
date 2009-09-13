@@ -5,6 +5,7 @@
 #include <QApplication>
 #include <LoximGui/ClientDestroyer.h>
 #include <LoximGui/Misc.h>
+#include <Protocol/Packages/Package.h>
 
 
 namespace Client {
@@ -34,12 +35,12 @@ namespace LoximGui {
 			void destroy_client(std::auto_ptr<Client::Client>);
 			DummyQObject dummy;
 			SimpleCallback simpleCallback;
-
+			std::auto_ptr<Protocol::Package> execute_stmt(string s);
 
 		private:
-			std::auto_ptr<Client::Client> client;
 			static Application *instance;
 			ClientDestroyer destroyer;
+			std::auto_ptr<Client::Client> client;
 	};
 }
 

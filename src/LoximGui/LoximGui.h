@@ -3,6 +3,8 @@
 
 #include <LoximGui/ui_LoximGui.h>
 #include <LoximGui/Authenticator.h>
+#include <Protocol/Packages/Package.h>
+
 
 namespace LoximGui {
 
@@ -12,16 +14,19 @@ namespace LoximGui {
 
 		public:
 			LoximGuiWindow(QWidget *parent = 0);
+			void ttest();
 
 
 		public slots:
 			void exit_clicked();
 			void show_about();
 			void connect_to_server();
-			void ttest();
+			void sbql_submit();
+			void clear_command_edit();
 
 		private:
 			Authenticator auth;
+			void print_result(const Protocol::Package &package, QTreeWidgetItem *parent);
 				
 	};
 
