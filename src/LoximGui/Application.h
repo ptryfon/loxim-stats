@@ -4,6 +4,8 @@
 #include <memory>
 #include <QApplication>
 #include <LoximGui/ClientDestroyer.h>
+#include <LoximGui/Misc.h>
+
 
 namespace Client {
 	class Authenticator;
@@ -31,12 +33,13 @@ namespace LoximGui {
 			);
 			void destroy_client(std::auto_ptr<Client::Client>);
 			DummyQObject dummy;
+			SimpleCallback simpleCallback;
+
 
 		private:
 			std::auto_ptr<Client::Client> client;
 			static Application *instance;
 			ClientDestroyer destroyer;
-
 	};
 }
 

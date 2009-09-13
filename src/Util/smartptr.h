@@ -8,6 +8,7 @@
  * choose the appropriate namespace dependingly on the gcc version 
  */
 #include <tr1/memory>
+#include <tr1/functional>
 #define _smptr std::tr1
 
 #endif /* SMARTPTR_H */

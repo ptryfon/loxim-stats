@@ -35,6 +35,8 @@ set (LoximGui_SRCS
 	ClientDestroyer.cpp
 	Application.cpp
 	Application.h
+	Misc.h
+	Misc.cpp
 	${LoximGui_UIS_H}
 	CACHE INTERNAL "" 
 	)

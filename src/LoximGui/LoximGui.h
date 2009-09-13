@@ -18,6 +18,7 @@ namespace LoximGui {
 			void exit_clicked();
 			void show_about();
 			void connect_to_server();
+			void ttest();
 
 		private:
 			Authenticator auth;
