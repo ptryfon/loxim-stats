@@ -90,10 +90,10 @@ namespace LoximGui {
 	void Application::connect(const std::string &host, int port, Client::Authenticator &auth, QWidget *parent)
 	{
 		ConnectionClosedCallback *cb = new ConnectionClosedCallback(parent);
-		simpleCallback.fire();	
 		if (client.get())
 			destroy_client(client);
 		client = auto_ptr<Client::Client>(new Client::Client(host, port, auth, *cb));
+		simpleCallback.fire();
 	}
 
 

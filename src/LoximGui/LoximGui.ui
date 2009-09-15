@@ -21,13 +21,13 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>10</y>
+      <y>0</y>
       <width>761</width>
       <height>551</height>
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="commands_tab">
      <property name="enabled">
@@ -75,19 +75,6 @@
        <string>Clear</string>
       </property>
      </widget>
-     <widget class="QLabel" name="label">
-      <property name="geometry">
-       <rect>
-        <x>480</x>
-        <y>140</y>
-        <width>141</width>
-        <height>71</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>TextLabel</string>
-      </property>
-     </widget>
      <widget class="QTreeWidget" name="result_view">
       <property name="geometry">
        <rect>
@@ -108,6 +95,96 @@
      <attribute name="title">
       <string>University</string>
      </attribute>
+     <widget class="QTreeWidget" name="students_view">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>10</y>
+        <width>231</width>
+        <height>192</height>
+       </rect>
+      </property>
+      <column>
+       <property name="text">
+        <string>Students</string>
+       </property>
+      </column>
+     </widget>
+     <widget class="QTreeWidget" name="teachers_view">
+      <property name="geometry">
+       <rect>
+        <x>250</x>
+        <y>10</y>
+        <width>231</width>
+        <height>192</height>
+       </rect>
+      </property>
+      <column>
+       <property name="text">
+        <string>Teachers</string>
+       </property>
+      </column>
+     </widget>
+     <widget class="QTreeWidget" name="administrator_view">
+      <property name="geometry">
+       <rect>
+        <x>490</x>
+        <y>10</y>
+        <width>256</width>
+        <height>192</height>
+       </rect>
+      </property>
+      <column>
+       <property name="text">
+        <string>Administrators</string>
+       </property>
+      </column>
+     </widget>
+     <widget class="QTableWidget" name="people_view">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>220</y>
+        <width>761</width>
+        <height>251</height>
+       </rect>
+      </property>
+      <property name="alternatingRowColors">
+       <bool>true</bool>
+      </property>
+      <property name="sortingEnabled">
+       <bool>true</bool>
+      </property>
+      <property name="rowCount">
+       <number>4</number>
+      </property>
+      <property name="columnCount">
+       <number>6</number>
+      </property>
+      <row/>
+      <row/>
+      <row/>
+      <row/>
+      <column/>
+      <column/>
+      <column/>
+      <column/>
+      <column/>
+      <column/>
+     </widget>
+     <widget class="QPushButton" name="submit_persons_changes">
+      <property name="geometry">
+       <rect>
+        <x>310</x>
+        <y>490</y>
+        <width>111</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Save changes</string>
+      </property>
+     </widget>
     </widget>
    </widget>
   </widget>

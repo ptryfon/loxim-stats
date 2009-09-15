@@ -4,6 +4,7 @@
 #include <LoximGui/ui_LoximGui.h>
 #include <LoximGui/Authenticator.h>
 #include <Protocol/Packages/Package.h>
+#include <LoximGui/Misc.h>
 
 
 namespace LoximGui {
@@ -15,6 +16,8 @@ namespace LoximGui {
 		public:
 			LoximGuiWindow(QWidget *parent = 0);
 			void ttest();
+			void fill_people();
+			void fill_people_table();
 
 
 		public slots:
@@ -23,11 +26,18 @@ namespace LoximGui {
 			void connect_to_server();
 			void sbql_submit();
 			void clear_command_edit();
+			void test_par(QTableWidgetItem* item);
+
 
 		private:
+			void executeHelper(std::string statement);
+			void init_people_table();
 			Authenticator auth;
-			void print_result(const Protocol::Package &package, QTreeWidgetItem *parent);
-				
+			LoximGui::PersonContainter person_container;
+			void print_result(const Protocol::Package &package, QTreeWidgetItem *parent, QTreeWidget *result_view);
+			void sbql_submit(QTreeWidget *result_view, const std::string &stmt);
+			void refresh_university_tab();
+			void university_views_sbql_submit(QTreeWidget *result_view, const std::string &stmt);
 	};
 
 }

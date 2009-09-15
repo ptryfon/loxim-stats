@@ -24,9 +24,16 @@ create or update class Student extends Person {
 		return self
 	}
 
+
 	procedure constructor(currSchol) {
 		self :< currSchol as scholarship
 	}	
+
+    procedure destructor() {
+        delete self.scholarship;
+        return Student excludes self
+    }
+
 }
 /
 
@@ -55,7 +62,7 @@ create or update class Teacher extends UniversityEmployee {
 /
 
 create or update class Administrator extends UniversityEmployee {
-	instance administrator : {rate; hoursWorked}
+	instance administrator : {rate ; hoursWorked}
 	
 	procedure getIncome() {
 		return rate * hoursWorked
@@ -128,21 +135,21 @@ Teacher includes create (
 
 Administrator includes create (
 	"a1" as name,
-	10 as rate.
+	10 as rate,
 	100 as hoursWorked
 ) as administrator
 /
 
 Administrator includes create (
 	"a2" as name,
-	20 as rate.
+	20 as rate,
 	200 as hoursWorked
 ) as administrator
 /
 
 Administrator includes create (
 	"a3" as name,
-	30 as rate.
+	30 as rate,
 	100 as hoursWorked
 ) as administrator
 /
