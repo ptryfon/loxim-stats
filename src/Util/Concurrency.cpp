@@ -17,8 +17,8 @@ namespace Util{
 
 	Mutex::~Mutex()
 	{
-		pthread_mutex_destroy(&mutex);
-		//XXX log it somewhere if it fails
+		int res = pthread_mutex_destroy(&mutex);
+		r_assert(res == 0, "Destroying mutex failed");
 	}
 
 	void Mutex::set_attr(pthread_mutexattr_t &attr) const
