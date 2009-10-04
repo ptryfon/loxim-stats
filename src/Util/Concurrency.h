@@ -85,8 +85,7 @@ namespace Util{
 	static inline void SPIN_IMPL_UNLOCK(SPIN_IMPL *lock)
 	{
 		bool res = __sync_bool_compare_and_swap(lock, SPIN_IMPL_LOCKED, SPIN_IMPL_UNLOCKED);
-		res = res; //hack for poor assert implementation.
-		assert(res);
+		d_assert(res, "Spin lock implementation problem");
 	}
 
 	static inline void SPIN_IMPL_INIT(SPIN_IMPL *lock)
@@ -156,8 +155,7 @@ namespace Util{
 	static inline void SPIN_IMPL_UNLOCK(SPIN_IMPL *lock)
 	{
 		int err = pthread_mutex_unlock(lock);
-		err = err; //hack for poor assert implementation.
-		assert(err == 0);
+		r_assert(err == 0, "Failed to unlock spin lock (pthread implementation)");
 	}
 
 	static inline void SPIN_IMPL_INIT(SPIN_IMPL *lock)
@@ -381,8 +379,7 @@ Thanks.
 		try {
 			mutex.unlock();
 		} catch (...) {
-			assert(false);
-			//do some reporting
+			r_assert(false, "Failed to unlock");
 		}
 	}
 
@@ -399,8 +396,7 @@ Thanks.
 		try {
 			locker.mutex.lock();
 		} catch (...) {
-			assert(false);
-			//do some reporting
+			r_assert(false, "Failed to lock");
 		}
 	}
 

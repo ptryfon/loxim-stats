@@ -75,8 +75,8 @@ namespace Util{
 	
 	CondVar::~CondVar()
 	{
-		pthread_cond_destroy(&cond);
-		//XXX report failures
+		int err = pthread_cond_destroy(&cond);
+		r_assert(err == 0, "Unable to destroy condition variable");
 	}
 
 	void CondVar::signal()
