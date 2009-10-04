@@ -14,6 +14,21 @@
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
 
+#define __assertion_impl(x, y, z) \
+	{if (!(x)) { \
+		std::cerr << z << " assertion failed (" << TOSTRING(x) << ")" << \
+		std::endl << "in function " << __PRETTY_FUNCTION__ << " (" << \
+		__FILE__ << ":" << __LINE__ << "): " << std::endl << "Message: " << \
+		y << std::endl; ::abort(); \
+	} }
+
+#ifndef NDEBUG
+#define d_assert(x, y) __assertion_impl(x, y, "Debug")
+#else
+#define d_assert(x, y) { if (false && (x)); }
+#endif
+
+#define r_assert(x, y) __assertion_impl(x, y, "Release")
 
 namespace Util {
 	
