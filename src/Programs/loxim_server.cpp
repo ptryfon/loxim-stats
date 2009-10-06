@@ -10,7 +10,6 @@
 #include <QueryExecutor/OuterSchema.h>
 #include <QueryExecutor/ClassGraph.h>
 
-extern int h_errno;
 using namespace std;
 
 #define DEFAULT_PORT 2000
@@ -81,6 +80,7 @@ int main(int argc, char **argv)
 	LockManager::init();
 	TransactionManager::init(sm, lm);
 	sm->setTManager(TransactionManager::getHandle());
+	debug_print(con, "this " << "is " << "a test for " << 5);
 	info_print(con, "Starting Store manager...");
 	sm->start();
 	info_print(con, "Starting Log manager...");

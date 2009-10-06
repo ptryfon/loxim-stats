@@ -46,7 +46,8 @@ namespace Errors {
 		"Store: Schemas",
 		"Store: Views",
 		"TransactionManager",
-		"TypeChecker"
+		"TypeChecker",
+		"Util"
 	};
 
 	const string ErrorConsole::verb_debug_name = "DEBUG";
@@ -130,7 +131,7 @@ namespace Errors {
 	}
 
 
-	void ErrorConsole::do_not_use_directly_print(VerbosityLevel l, const string &error_msg)
+	void ErrorConsole::print_string(VerbosityLevel l, const string &error_msg)
 	{
 		const string &instance_name(names[instance]);
 		Mutex::Locker lock(write_lock);
@@ -144,6 +145,7 @@ namespace Errors {
 		}
 	}
 
+	/*
 	void ErrorConsole::do_not_use_directly_print(VerbosityLevel l, int error)
 	{
 		const string &src_mod = err_module_desc(error);
@@ -153,7 +155,7 @@ namespace Errors {
 				<< (error & ~ErrAllModules) << ")";
 		do_not_use_directly_print(l, ss.str());
 	}
-
+*/
 
 
 	void ErrorConsole::do_not_use_directly_printf(VerbosityLevel l, const char *format, ...)
@@ -169,9 +171,10 @@ namespace Errors {
 		
 		//Being a little bit paranoid won't hurt ;)
 		str[BUF_SIZE - 1] = 0;
-		do_not_use_directly_print(l, str);
+		print_string(l, str);
 #undef BUF_SIZE
 	}
+	
 
 
 	ErrorConsole::~ErrorConsole()

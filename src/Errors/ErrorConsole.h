@@ -3,10 +3,10 @@
 
 #include <fstream>
 #include <string>
+#include <sstream>
 #include <map>
 #include <memory>
 #include <config.h>
-#include <Config/SBQLConfig.h>
 #include <Util/Concurrency.h>
 
 #define EC_V_SEVERE_ERROR 1
@@ -16,19 +16,23 @@
 #define EC_V_DEBUG 5
 
 #define debug_printf(ec, ...) { const int error_level = HAVE_VERBOSITY_COMPILE; if (error_level == EC_V_DEBUG) {(ec).do_not_use_directly_printf(::Errors::V_DEBUG, __VA_ARGS__);}}
-#define debug_print(ec, msg) { const int error_level = HAVE_VERBOSITY_COMPILE; if (error_level == EC_V_DEBUG) {(ec).do_not_use_directly_print(::Errors::V_DEBUG, msg);}}
+#define debug_print(ec, msg) { const int error_level = HAVE_VERBOSITY_COMPILE; if (error_level == EC_V_DEBUG) {(ec).do_not_use_directly_stream(::Errors::V_DEBUG) << msg;}}
 
 #define info_printf(ec, ...) { const int error_level = HAVE_VERBOSITY_COMPILE; if (error_level >= EC_V_INFO) {(ec).do_not_use_directly_printf(::Errors::V_INFO, __VA_ARGS__);}}
-#define info_print(ec, msg) { const int error_level = HAVE_VERBOSITY_COMPILE; if (error_level >= EC_V_INFO) {(ec).do_not_use_directly_print(::Errors::V_INFO, msg);}}
+#define info_print(ec, msg) { const int error_level = HAVE_VERBOSITY_COMPILE; if (error_level >= EC_V_INFO) {(ec).do_not_use_directly_stream(::Errors::V_INFO) << msg;}}
 
 #define warning_printf(ec, ...) { const int error_level = HAVE_VERBOSITY_COMPILE; if (error_level >= EC_V_WARNING) {(ec).do_not_use_directly_printf(::Errors::V_WARNING, __VA_ARGS__);}}
-#define warning_print(ec, msg) { const int error_level = HAVE_VERBOSITY_COMPILE; if (error_level >= EC_V_WARNING) {(ec).do_not_use_directly_print(::Errors::V_WARNING, msg);}}
+#define warning_print(ec, msg) { const int error_level = HAVE_VERBOSITY_COMPILE; if (error_level >= EC_V_WARNING) {(ec).do_not_use_directly_stream(::Errors::V_WARNING) << msg;}}
 
 #define error_printf(ec, ...) { const int error_level = HAVE_VERBOSITY_COMPILE; if (error_level >= EC_V_ERROR) {(ec).do_not_use_directly_printf(::Errors::V_ERROR, __VA_ARGS__);}}
-#define error_print(ec, msg) { const int error_level = HAVE_VERBOSITY_COMPILE; if (error_level >= EC_V_ERROR) {(ec).do_not_use_directly_print(::Errors::V_ERROR, msg);}}
+#define error_print(ec, msg) { const int error_level = HAVE_VERBOSITY_COMPILE; if (error_level >= EC_V_ERROR) {(ec).do_not_use_directly_stream(::Errors::V_ERROR) << msg;}}
 
 #define severe_printf(ec, ...) { const int error_level = HAVE_VERBOSITY_COMPILE; if (error_level >= EC_V_SEVERE_ERROR) {(ec).do_not_use_directly_printf(::Errors::V_SEVERE_ERROR, __VA_ARGS__);}}
-#define severe_print(ec, msg) { const int error_level = HAVE_VERBOSITY_COMPILE; if (error_level >= EC_V_SEVERE_ERROR) {(ec).do_not_use_directly_printf(::Errors::V_SEVERE_ERROR, msg);}}
+#define severe_print(ec, msg) { const int error_level = HAVE_VERBOSITY_COMPILE; if (error_level >= EC_V_SEVERE_ERROR) {(ec).do_not_use_directly_stream(::Errors::V_SEVERE_ERROR) << msg;}}
+
+namespace Config {
+	class SBQLConfig;
+}
 
 namespace Errors {
 
@@ -64,18 +68,19 @@ namespace Errors {
 		EC_STORE_SCHEMAS,
 		EC_STORE_VIEWS,
 		EC_TRANSACTION_MANAGER,
-		EC_TYPE_CHECKER
+		EC_TYPE_CHECKER,
+		EC_UTIL
 	};
 
 	static const VerbosityLevel V_DEFAULT = V_WARNING;
 
 	class ErrorConsole {
-		friend class ErrorConsoleAdapter;
 		private:
 			static bool serr;
                         static bool use_log_file;
 			static std::auto_ptr<std::ofstream> console_file;
-        		static std::auto_ptr<Config::SBQLConfig> conf_file;
+			
+			static std::auto_ptr<Config::SBQLConfig> conf_file;
 			static Util::Mutex write_lock;
 			static void init_static();
 			static VerbosityLevel parse_verbosity(const std::string &property);
@@ -92,15 +97,59 @@ namespace Errors {
 			static const Config::SBQLConfig &get_config();
 			
 			ErrorConsole(ConsoleInstance module);
+			void print_string(VerbosityLevel l, const std::string &msg);
 		public:
+
+			class ErrorConsoleStream
+			{
+				friend class ErrorConsole;
+				
+			public:
+				inline ErrorConsoleStream(const ErrorConsoleStream &es);
+				template<typename T>
+				inline ErrorConsoleStream &operator<<(const T&);
+				inline ~ErrorConsoleStream();
+			private:
+				inline ErrorConsoleStream(ErrorConsole &ec, VerbosityLevel level);
+				ErrorConsole &ec;
+				std::stringstream buf;
+				VerbosityLevel level;
+			};
+
 			static ErrorConsole &get_instance(ConsoleInstance module);
 
-			void do_not_use_directly_print(VerbosityLevel l, const std::string &msg);
-			void do_not_use_directly_print(VerbosityLevel l, int error);
 			void do_not_use_directly_printf(VerbosityLevel l, const char *format, ...);
+			inline ErrorConsoleStream do_not_use_directly_stream(VerbosityLevel l);
 			
 			~ErrorConsole();
 	};
+	ErrorConsole::ErrorConsoleStream::ErrorConsoleStream(
+		ErrorConsole &ec, VerbosityLevel level): ec(ec), level(level)
+	{
+	}
+	
+	ErrorConsole::ErrorConsoleStream::ErrorConsoleStream(const ErrorConsoleStream &es):
+	   ec(es.ec), level(es.level)
+	{
+	}
+
+	ErrorConsole::ErrorConsoleStream::~ErrorConsoleStream()
+	{
+		ec.print_string(level, buf.str());
+	}
+
+	template<typename T>
+	ErrorConsole::ErrorConsoleStream &ErrorConsole::ErrorConsoleStream::operator<<(const T &msg)
+	{
+		buf << msg;
+		return *this;
+	}
+
+	ErrorConsole::ErrorConsoleStream ErrorConsole::do_not_use_directly_stream(VerbosityLevel l)
+	{
+		return ErrorConsoleStream(*this, l);
+	}
+
 
 }
 #endif
