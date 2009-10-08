@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<link rel="stylesheet" type="text/css" href="main.css" />
+<meta http-equiv="content-type" content= "text/html; charset=UTF-8"/>
+<title>LoXiM</title>
+</head>
+<body id="content_body">
+<h2>Documentation</h2>
+<h3>Downloading</h3>
+Please refer to <a href="download.html">download section</a>
+<h3>Packages</h3>
+We've prepared several packages for you: RPM, deb and an ebuild. If you use a
+system which doesn't support any of these, you may want to compile LoXiM
+manually. For packages installation instructions refer to your operating
+system's manual.
+<h3>Compilation from source</h3>
+LoXiM was tested on various Unix operating systems on various platforms. It
+should compile anywhere, were g++ with tr1 (versions 4.0.0 and above) and
+readline library is available .
+<p/>
+The process is standard:<br/>
+If you got the sources directly from the repository, run (if you got a tarball, skip this step):
+<pre>
+$ ./bootstrap
+</pre>
+Having boostrapped or having downloaded a tarball, you may proceed to the following steps:
+<pre>
+$ ./configure
+$ make
+# make install
+</pre>
+On NetBSD you should explictly point the additional libraries' directory:
+<pre>
+./configure LDFLAGS="-L/usr/pkg/lib"
+</pre>
+<p/>
+
+<h3>Configuration</h3>
+LoXiM first looks for the configuration file in your home directory (~/.loxim.conf) and if it
+fails, it looks for /etc/loxim.conf.<br/>
+You should supply such a file. Probably, it will be a good start to copy the example from the
+Documentation/ directory in the source tree.
+
+<h3>Running</h3>
+Provided, that you installed it properly and that binaries are on your PATH, just type:<br/>
+<pre>
+loxim_server
+</pre><p/>
+In order to connect to the server, type:<br/>
+<pre>
+lsbql
+</pre>
+login as root with random password and have fun :).<p/>
+
+To shut the server down, type from the client console:
+<pre>
+#shutdown
+</pre>
+
+<h3>Tutorial</h3>
+<a href="http://loxim.wiki.sourceforge.net/introduction+to+sbql" target="_blank">Here</a>
+
+<h3>Additional sources</h3>
+A good source is to look to the Documentation/ directory in the source tree. You can as well
+ask questions on <a href="https://sourceforge.net/mailarchive/forum.php?forum_name=loxim-devel" target="_blank">
+loxim-devel</a> mailing list.
+<p/>
+If you want to find more about SBQL and SBA, follow this link:
+<a href="http://www.sbql.pl" target="_blank">http://www.sbql.pl/</a>
+
+
+</body>
+</html>
