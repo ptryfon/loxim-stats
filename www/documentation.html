@@ -15,10 +15,11 @@ We've prepared several packages for you: RPM, deb and an ebuild. If you use a
 system which doesn't support any of these, you may want to compile LoXiM
 manually. For packages installation instructions refer to your operating
 system's manual.
-<h3>Compilation from source</h3>
+<h3>Manual compilation</h3>
 LoXiM was tested on various Unix operating systems on various platforms. It
 should compile anywhere, were g++ with tr1 (versions 4.0.0 and above) and
-readline library is available .
+readline library is available. In case of newer versions, cmake is required to build.
+<h4>Compilating the release</h4>
 <p/>
 The process is standard:<br/>
 If you got the sources directly from the repository, run (if you got a tarball, skip this step):
@@ -36,6 +37,19 @@ On NetBSD you should explictly point the additional libraries' directory:
 ./configure LDFLAGS="-L/usr/pkg/lib"
 </pre>
 <p/>
+<h4>Compiling sources from the repository</h4>
+<pre>
+$ cmake .
+$ cmake .
+</pre>
+It is listed twice intentionally (because of a minor bug in cmake configuration.
+<pre>
+make
+</pre>
+This should build the project. Should any errors appear, try disabling the
+-Werror flag from CMakeLists.txt (just remove every occurrence).
+
+Installation is currently no supported, but you can use the binaries which are located in src/Programs.
 
 <h3>Configuration</h3>
 LoXiM first looks for the configuration file in your home directory (~/.loxim.conf) and if it
@@ -60,7 +74,7 @@ To shut the server down, type from the client console:
 </pre>
 
 <h3>Tutorial</h3>
-<a href="http://loxim.wiki.sourceforge.net/introduction+to+sbql" target="_blank">Here</a>
+<a href="http://loxim.wiki.sourceforge.net/introduction%20to%20sbql" target="_blank">Here</a>
 
 <h3>Additional sources</h3>
 A good source is to look to the Documentation/ directory in the source tree. You can as well
