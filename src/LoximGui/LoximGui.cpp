@@ -163,8 +163,9 @@ namespace LoximGui {
 	void LoximGuiWindow::sbql_submit() 
 	{
 		sbql_submit(result_view, command_edit->toPlainText().toStdString());
-		cout << "person_container size:" << person_container.size() << endl ;
-		cout << "person_containter 0 name " << person_container.get_string_at(0,"name") << endl;
+		//cout << "person_container size:" << person_container.size() << endl ;
+		cerr << "person_container size:" << person_container.size() << endl ;
+		//cout << "person_containter 0 name " << person_container.get_string_at(0,"name") << endl;
 	}
 
 	void LoximGuiWindow::sbql_submit(QTreeWidget *result_view, const string &stmt) {
