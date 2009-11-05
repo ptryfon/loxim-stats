@@ -1,0 +1,13 @@
+"Optymalizacja zapytañ w obiektowych bazach danych"
+===================================================
+Autor: Szymon Janus
+-------------------
+
+P³ytka ta zawiera tekst pracy magisterskiej i implementacjê bêd±c± integraln±
+czê¶ci± tej pracy.
+
+Tekst pracy znajduje siê w katalogu tekst/. Podkatalog tekst/src/ zawiera
+pliki ¼ród³owe potrzebne do wygenerowania tego tekstu.
+
+Kod ¼ród³owy implementacji znajduje siê w katalogu implementacja/. Szczegó³owe
+informacje nt. uruchomienia znajduj± siê w tekstwej czê¶ci pracy.
