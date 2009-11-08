@@ -27,6 +27,8 @@ namespace LoximGui {
 			void sbql_submit();
 			void clear_command_edit();
 			void test_par(QTableWidgetItem* item);
+			void expand_clicked();
+			void collapse_clicked();
 
 
 		private:
@@ -36,8 +38,11 @@ namespace LoximGui {
 			LoximGui::PersonContainter person_container;
 			void print_result(const Protocol::Package &package, QTreeWidgetItem *parent, QTreeWidget *result_view);
 			void sbql_submit(QTreeWidget *result_view, const std::string &stmt);
+			void collapse(QTreeWidget *result_view);
+			void expand(QTreeWidget *result_view);
 			void refresh_university_tab();
 			void university_views_sbql_submit(QTreeWidget *result_view, const std::string &stmt);
+
 	};
 
 }

@@ -27,7 +27,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="commands_tab">
      <property name="enabled">
@@ -89,6 +89,32 @@
         <string notr="true">1</string>
        </property>
       </column>
+     </widget>
+     <widget class="QPushButton" name="collapse_button">
+      <property name="geometry">
+       <rect>
+        <x>490</x>
+        <y>200</y>
+        <width>88</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Collapse all</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="expand_button">
+      <property name="geometry">
+       <rect>
+        <x>490</x>
+        <y>240</y>
+        <width>88</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Expand all</string>
+      </property>
      </widget>
     </widget>
     <widget class="QWidget" name="university_tab">

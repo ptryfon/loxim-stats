@@ -60,6 +60,8 @@ namespace LoximGui {
 		connect(action_connect, SIGNAL(triggered()), this, SLOT(connect_to_server()));
 		connect(submit_sbql_button, SIGNAL(clicked()), this, SLOT(sbql_submit()));
 		connect(clear_sbql, SIGNAL(clicked()), this, SLOT(clear_command_edit()));
+		connect(collapse_button, SIGNAL(clicked()), this, SLOT(collapse_clicked()));
+		connect(expand_button, SIGNAL(clicked()), this, SLOT(expand_clicked()));
 		//connect(people_view, SIGNAL(itemChanged(QTableWidgetItem *)), this, SLOT(test_par(QTableWidgetItem *)));
 		tab_widget->setDisabled(true);
 		SimpleCallback::TCallback ttest_callback(_smptr::bind(&LoximGuiWindow::ttest, this));
@@ -160,11 +162,32 @@ namespace LoximGui {
 		command_edit->clear();
 	}
 
+	void LoximGuiWindow::expand_clicked() 
+	{
+		expand(result_view);
+	}
+
+	void LoximGuiWindow::collapse_clicked()
+	{
+		collapse(result_view);
+	}
+
+	void LoximGuiWindow::expand(QTreeWidget *result_view)
+	{
+		result_view->expandAll();
+	}
+
+	void LoximGuiWindow::collapse(QTreeWidget *result_view)
+	{
+		result_view->collapseAll();
+	}
+
+
 	void LoximGuiWindow::sbql_submit() 
 	{
 		sbql_submit(result_view, command_edit->toPlainText().toStdString());
 		//cout << "person_container size:" << person_container.size() << endl ;
-		cerr << "person_container size:" << person_container.size() << endl ;
+		//cerr << "person_container size:" << person_container.size() << endl ;
 		//cout << "person_containter 0 name " << person_container.get_string_at(0,"name") << endl;
 	}
 
