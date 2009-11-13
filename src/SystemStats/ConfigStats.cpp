@@ -1,82 +1,47 @@
 #include <SystemStats/ConfigStats.h>
+#include <Config/SBQLConfig.h>
 
 using namespace SystemStatsLib;
 /* =-=-=-=-=-=-=-=-=-=- */
-ConfigOptStats::ConfigOptStats() :
-	SystemStats("OPTION") {
-	setKey("UNKNOWN");
-	setValue("UNKNOWN");
+
+ConfigsStats::ConfigsStats()
+/*
+ * statistics_size MUST be a positive integer. A value of 0 will cause an error
+ * during the next add_statistic
+ */
+{
+	SBQLConfig("statistics").getInt("configStatsAmount", statistic_size);
+
+	assert(statistics_size);
 }
 
-void ConfigOptStats::setKey(string value) {
-	setStringStats("KEY", value);
+void ConfigsStats::add_statistc(const string& key, const string& value)
+{
+	pair<map<string, string>::iterator, bool> p_itb;
+
+	p_itb = configs_statistics.insert(pair<string, string>(key, value));
+
+	if (p_itb.second && configs_statistics.size() > statistic_size)
+	{
+		configs_statistics.erase(latest_statistics.front());
+		latest_statistics.pop_front();
+	}
+
+	latest_statistics.push_back(p_itb.first);
+
+	return;
 }
 
-string ConfigOptStats::getKey() {
-	return getStringStats("KEY");
-}
+void ConfigsStats::remove_statistic(const string& key)
+{
+	map<string, string>::iterator it = configs_statistics.find(key);
 
-void ConfigOptStats::setValue(string value) {
-	setStringStats("VALUE", value);
-}
-
-string ConfigOptStats::getValue() {
-	return getStringStats("VALUE");
-}
-
-ConfigOptStats::~ConfigOptStats() {
-}
-
-/* =-=-=-=-=-=-=-=-=-=- */
-
-ConfigModuleStats::ConfigModuleStats() :
-	SystemStats("MODULE") {
-	setModuleName("UNKNOWN");
-}
-
-void ConfigModuleStats::setModuleName(string value) {
-	setStringStats("MODULE_NAME", value);
-}
-
-string ConfigModuleStats::getModuleName() {
-	return getStringStats("MODULE_NAME");
-}
-
-void ConfigModuleStats::addConfigOptStats(string key, ConfigOptStats* value) {
-	setStatsStats(key, value);
-}
-
-ConfigOptStats* ConfigModuleStats::getConfigOptStats(string key) {
-	return dynamic_cast<ConfigOptStats*>(getStatsStats(key));
-
-}
-
-void ConfigModuleStats::removeConfigOptStats(string key) {
-	removeStats(key);
-}
-
-ConfigModuleStats::~ConfigModuleStats() {
-}
-
-/* =-=-=-=-=-=-=-=-=-=- */
-
-ConfigsStats::ConfigsStats() :
-	SystemStats("CONFIGS") {
-
-}
-
-void ConfigsStats::addConfigModuleStats(string key, ConfigModuleStats* value) {
-	setStatsStats(key, value);
-}
-
-ConfigModuleStats* ConfigsStats::getConfigModuleStats(string key) {
-	return dynamic_cast<ConfigModuleStats*>(getStatsStats(key));
-}
-
-void ConfigsStats::removeConfigModuleStats(string key) {
-	removeStats(key);
-}
-
-ConfigsStats::~ConfigsStats() {
-
+	if (it == configs_statistics.end())
+		throw "Key not found";
+	else
+	{
+		latest_statistics.erase(latest_statistics.find(it));
+		configs_statistics.erase(it);
+		return;
+	}
 }

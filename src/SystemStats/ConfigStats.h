@@ -1,60 +1,49 @@
 /*
  * ConfigStats.h
  *
- *  Created on: 5-lip-08
- *      Author: damianklata
+ *  Created on: 6-Nov-09
+ *      Author: Bartosz Borkowski
  */
 
 #ifndef CONFIGSTATS_H_
 #define CONFIGSTATS_H_
-#include <SystemStats/SystemStats.h>
 
 using namespace std;
 
 namespace SystemStatsLib {
-/*
- * Configs stats is the simples stats that show
- * only configuration file readed from disk.
- */
-	class ConfigOptStats: public SystemStats {
 
-	public:
-		ConfigOptStats();
-
-		void setKey(string value);
-		string getKey();
-
-		void setValue(string value);
-		string getValue();
-
-		~ConfigOptStats();
+	class AbstractConfigsStats {
+		public:
+			virtual ~AbstactConfigsStats() {}
+			virtual void add_statistic(const string& key, const string& value) = 0;
+			virtual void remove_statistic(const string& key) = 0;
 	};
 
-	class ConfigModuleStats: public SystemStats {
-
-	public:
-		ConfigModuleStats();
-
-		void setModuleName(string value);
-		string getModuleName();
-
-		void addConfigOptStats(string key, ConfigOptStats* value);
-		ConfigOptStats* getConfigOptStats(string key);
-		void removeConfigOptStats(string key);
-
-		~ConfigModuleStats();
-	};
-
-	class ConfigsStats: public SystemStats {
-
+	class ConfigsStats : public AbstactConfigStats {
+	/*
+	 * Statistics' keys are kept in a format:
+	 * key: 'module_name'_'option_name'
+	 * value: 'option_value'
+	 * Until the SBQLConfig changes this will have to do
+	 * In an effort to reduce memory usage, only statistics_size latest statistics
+	 * will be stored.
+	 */
 	public:
 		ConfigsStats();
 
-		void addConfigModuleStats(string key, ConfigModuleStats* value);
-		ConfigModuleStats* getConfigModuleStats(string key);
-		void removeConfigModuleStats(string key);
+		void add_statistic(const string& key, const string& value);
+		void remove_statistic(const string& key);
+	private:
+		unsigned statistics_size;
 
-		~ConfigsStats();
+		map<string, string> configs_statistics;
+		list<map<string, string>::iterator> latest_statitics;
+	};
+
+	class EmptyConfigsStats : public AbstactConfigsStats {
+		public:
+			void add_statistic(const string&, const string&) {}
+			void remove_statistic(const string& key) {}
 	};
 }
 

@@ -1,72 +1,76 @@
 /*
  * AllStats.cpp
  *
- *  Created on: 2-lip-08
- *      Author: damianklata
+ *  Created on: 12-Nov-09
+ *      Author: Bartosz Borkowski
  */
 
 #include <SystemStats/AllStats.h>
+#include <Config/SBQLConfig.h>
 
 using namespace SystemStatsLib;
 
-AllStats::AllStats(): SystemStats("ALL_STATS") {
-	setStatsStats("SESSIONS_STATS", new SessionsStats());
-	setStatsStats("STORE_STATS", new StoreStats());
-	setStatsStats("CONFIGS_STATS", new ConfigsStats());
-	setStatsStats("TRANSACTIONS_STATS", new TransactionsStats());
-	setStatsStats("QUERIES_STATS", new QueriesStats());
+StatisticSingleton::StatisticSingleton()
+{
+/* 
+ * I really, really hope that SBQLConfig works this way.
+ * Beacause if not than it's not possible to do it in a
+ * nice way. We open the config to see which statistics
+ * we want active and which we don't want.
+ */
+
+	SBQLConfig config("statistics");
+	bool b;
+
+	config.getBool("sessionStats", b);
+	if (b)
+		active_session_stats = &session_stats;
+	else
+		active_session_stats = &empty_session_stats;
+
+	config.getBool("configsStats", b);
+	if (b)
+		active_configs_stats = &configs_stats;
+	else
+		active_configs_stats = &empty_configs_stats;
+
+	config.getBool("storeStats", b);
+	if (b)
+		active_store_stats = &store_stats;
+	else
+		active_store_stats = &empty_store_stats;
+
+	config.getBool("transactionStats", b);
+	if (b)
+		active_transaction_stats = &transaction_stats;
+	else
+		active_transaction_stats = &empty_transaction_stats;
+
+	config.getBool("queriesStats", b);
+	if (b)
+		active_queries_stats = &queries_stats;
+	else
+		active_queries_stats = &empty_queries_stats;
 }
 
-AllStats* AllStats::allStats = NULL;//new TransactionManager();
-
-AllStats* AllStats::getHandle() {
-	if (allStats == NULL) {
-		allStats = new AllStats();
-	}
-	return allStats;
+void StatisticSingleton::addDiskPageReads(int sessionId, int /*transactionId*/, int count) {
+	active_session_stats->addDiskPageReads(sessionId, count);
+	active_store_stats->addDiskPageReads(count);
+	active_queries_stats->addDiskIO(sessionId, count);
 }
 
-SessionsStats* AllStats::getSessionsStats() {
-	return dynamic_cast<SessionsStats*>(getStatsStats("SESSIONS_STATS"));
+void StatisticSingleton::addPageReads(int sessionId, int /*transactionId*/, int count) {
+	active_session_stats->addPageReads(sessionId, count);
+	active_store_stats->addPageReads(count);
 }
 
-ConfigsStats* AllStats::getConfigsStats() {
-	return dynamic_cast<ConfigsStats*>(getStatsStats("CONFIGS_STATS"));
+void StatisticSingleton::addDiskPageWrites(int sessionId, int /*transactionId*/, int count) {
+	active_session_stats->addDiskPageWrites(sessionId, count);
+	active_store_stats->addDiskPageWrites(count);
+	active_queries_stats->addDiskIO(sessionId, count);
 }
 
-StoreStats* AllStats::getStoreStats() {
-	return dynamic_cast<StoreStats*>(getStatsStats("STORE_STATS"));
-}
-
-TransactionsStats* AllStats::getTransactionsStats() {
-	return dynamic_cast<TransactionsStats*>(getStatsStats("TRANSACTIONS_STATS"));
-}
-
-QueriesStats* AllStats::getQueriesStats() {
-	return dynamic_cast<QueriesStats*>(getStatsStats("QUERIES_STATS"));
-}
-
-void AllStats::addDiskPageReads(int sessionId, int /*transactionId*/, int count) {
-	getSessionsStats()->addDiskPageReads(sessionId, count);
-	getStoreStats()->addDiskPageReads(count);
-	getQueriesStats()->addDiskIO(sessionId, count);
-}
-
-void AllStats::addPageReads(int sessionId, int /*transactionId*/, int count) {
-	getSessionsStats()->addPageReads(sessionId, count);
-	getStoreStats()->addPageReads(count);
-}
-
-void AllStats::addDiskPageWrites(int sessionId, int /*transactionId*/, int count) {
-	getSessionsStats()->addDiskPageWrites(sessionId, count);
-	getStoreStats()->addDiskPageWrites(count);
-	getQueriesStats()->addDiskIO(sessionId, count);
-}
-
-void AllStats::addPageWrites(int sessionId, int /*transactionId*/, int count) {
-	getSessionsStats()->addPageWrites(sessionId, count);
-	getStoreStats()->addPageWrites(count);
-}
-
-AllStats::~AllStats() {
+void StatisticSingleton::addPageWrites(int sessionId, int /*transactionId*/, int count) {
+	active_session_stats->addPageWrites(sessionId, count);
+	active_store_stats->addPageWrites(count);
 }
