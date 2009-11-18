@@ -2,7 +2,7 @@
 #include <TransactionManager/Transaction.h>
 #include <Indexes/IndexManager.h>
 #include <TypeCheck/TypeChecker.h>
-#include <SystemStats/AllStats.h>
+#include <SystemStats/Statistics.h>
 
 using namespace SystemStatsLib;
 /**
@@ -855,7 +855,7 @@ namespace TManager
 	    tr = new Transaction(tid, sem);
 	    int ret = tr->init(storeMgr, logMgr);
 	    if (ret == 0) {
-	    	AllStats::getHandle()->getTransactionsStats()->startTransaction(tid->getId());
+			Statistics::get_statistics().get_transactions_stats().start_transaction(tid->getId());
 	    }
 	    return ret;
 	}
@@ -915,8 +915,7 @@ namespace TManager
 	    	remove_from_list(tr->getId());
 	    	IndexManager::getHandle()->commit(tr->getId()->getId(), id);
 		/* free memory */
-
-	    	AllStats::getHandle()->getTransactionsStats()->commitTransaction(tr->getId()->getId());
+			Statistics::get_statistics().get_transactions_stats().commit_transaction(tr->getId()->getId());
 
 	    	delete tr;
 
@@ -943,7 +942,7 @@ namespace TManager
 
 	    	IndexManager::getHandle()->abort(tr->getId()->getId());
 
-	    	AllStats::getHandle()->getTransactionsStats()->abortTransaction(tr->getId()->getId());
+			Statistics::get_statistics().get_transactions_stats().abort_transaction(tr->getId()->getId());
 		/* free memory */
 	    	delete tr;
 

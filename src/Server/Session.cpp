@@ -8,7 +8,7 @@
 #include <AdminParser/AdminExecutor.h>
 #include <Errors/Errors.h>
 #include <Errors/Exceptions.h>
-#include <SystemStats/AllStats.h>
+#include <SystemStats/Statistics.h>
 #include <SystemStats/SessionStats.h>
 #include <Util/SignalRouter.h>
 #include <Server/Session.h>

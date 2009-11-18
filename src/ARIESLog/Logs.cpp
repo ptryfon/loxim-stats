@@ -1,6 +1,6 @@
 #include <ARIESLog/Logs.h>
 #include <Errors/Errors.h>
-#include <SystemStats/AllStats.h>
+#include <SystemStats/Statistics.h>
 #include <string.h>
 
 namespace Logs 

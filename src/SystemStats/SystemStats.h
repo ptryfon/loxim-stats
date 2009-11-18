@@ -20,8 +20,7 @@ namespace SystemStatsLib{
 	 * that may contains string, int, double or set of values.
 	 */
 	class StatsValue;
-
-
+	
 	/*
 	 * Base class for statistics. This class contains
 	 * map of values. Pair of string key (unique) and

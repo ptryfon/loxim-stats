@@ -348,11 +348,13 @@ namespace Store
 	}
 	;
 
-	ObjectPointer* SystemStatsView::createObjectFromSystemStats(SystemStats* ss) {
-		map<string, StatsValue*> m = ss->getAllStats();
+	ObjectPointer* SystemStatsView::createObjectFromAbstractStats(AbstractStats* as) {
+/*
+		map<string, StatsValue*> m = as->getAllStats();
 		map<string, StatsValue*>::iterator cur = m.begin();
+*/
 		vector<LogicalID*>* val = new vector<LogicalID*>();
-
+/*
 		while (cur != m.end()) {
 			int type = cur->second->getType();
 
@@ -377,8 +379,8 @@ namespace Store
 				dbNameValue->setString(s);
 				createObjectPointer((cur->first).c_str(), dbNameValue, object);
 			} else if (type == 4) {
-				SystemStats* ss2 = (dynamic_cast<StatsStatsValue*>(cur->second))->getValue();
-				object = createObjectFromSystemStats(ss2);
+				AbstractStats* as2 = (dynamic_cast<StatsStatsValue*>(cur->second))->getValue();
+				object = createObjectFromAbstractStats(as2);
 			}
 			if (object) {
 				viewsName->push_back(object);
@@ -386,21 +388,21 @@ namespace Store
 			}
 			cur++;
 		}
-
+*/
 		DataValue* bagValue = new DBDataValue();
 		bagValue->setVector(val);
 		ObjectPointer* res;
-		createObjectPointer(ss->getName().c_str(), bagValue, res);
+		createObjectPointer(as->get_name().c_str(), bagValue, res);
 		return res;
 	}
 
 	void SystemStatsView::init(SystemViews* views) {
 		SystemView::init(views);
 
-		SystemStats* ss = AllStats::getHandle()->getStatsStats(name);
+		AbstractStats as = Statistics::get_statistics().get_abstract_stats(name);
 
 		viewsName = new vector<ObjectPointer*>();
-		bag = createObjectFromSystemStats(ss);
+		bag = createObjectFromAbstractStats(as);
 	}
 
 	int SystemStatsView::getObject(TransactionID* /*tid*/, LogicalID* lid, AccessMode /*mode*/, ObjectPointer*& object) {
@@ -431,11 +433,11 @@ namespace Store
 		}
 		delete bag;
 
-		SystemStats* ss = AllStats::getHandle()->getStatsStats(name);
-		ss->refreshStats();
+		AbstractStats as = Statistics::get_statistics().get_abstract_stats(name);
+		as->refreshStats();
 
 		viewsName = new vector<ObjectPointer*>();
-		bag = createObjectFromSystemStats(ss);
+		bag = createObjectFromAbstractStats(as);
 		object = bag;
 	}
 

@@ -23,9 +23,7 @@ namespace Store
 #include <string.h>
 #include <vector>
 #include <map>
-#include <SystemStats/AllStats.h>
-#include <SystemStats/SystemStats.h>
-
+#include <SystemStats/Statistics.h>
 
 #ifdef DEBUG_MODE
 #include <Errors/ErrorConsole.h>
@@ -131,7 +129,7 @@ namespace Store
 			public:
 				SystemStatsView(string name) {this->name = name;};
 				virtual ~SystemStatsView();
-				ObjectPointer* createObjectFromSystemStats(SystemStats* ss);
+				ObjectPointer* createObjectFromAbstractStats(AbstractStats& as);
 				void init(SystemViews* views);
 				int getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object);
 				void refresh(Transaction* tr, ObjectPointer*& object);

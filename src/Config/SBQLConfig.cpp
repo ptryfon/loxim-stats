@@ -7,7 +7,7 @@
 #include <Errors/Errors.h>
 #include <Config/SBQLConfig.h>
 #include <SystemStats/ConfigStats.h>
-#include <SystemStats/AllStats.h>
+#include <SystemStats/Statistics.h>
 #include <unistd.h>
 #include <pwd.h>
 
@@ -164,22 +164,17 @@ namespace Config {
 		configFile.close();
 
 		/* Add config to stats */
-		ConfigsStats* cs = AllStats::getHandle()->getConfigsStats();
-		ModuleOptions* module = config;
+
+		ConfigStats cs = Statistics::get_statistics().get_configs_stats();
 		while (module != NULL) {
 			ConfOpt* opt = module->options;
-			ConfigModuleStats* cms = new ConfigModuleStats();
-			cms->setModuleName(module->name);
 			while (opt != NULL) {
-				ConfigOptStats* cos = new ConfigOptStats();
-				cos->setKey(opt->name);
-				cos->setValue(opt->value);
-				cms->addConfigOptStats(opt->name, cos);
+				cs.add_statistic(module->name + "_" + opt->name, opt->value);
 				opt = opt->nextOpt;
 			}
-			cs->addConfigModuleStats(module->name, cms);
-			module = module->nextMod;
+			module = module->nexMod;
 		}
+
 		return 0;
 	};
 

@@ -7,7 +7,7 @@
 #include <errno.h>
 #include <string>
 #include <SystemStats/ConfigStats.h>
-#include <SystemStats/AllStats.h>
+#include <SystemStats/Statistics.h>
 #include <Config/SBQLConfig.h>
 #include <Errors/Errors.h>
 #include <Errors/ErrorConsole.h>

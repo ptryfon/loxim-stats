@@ -9,7 +9,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
-#include <SystemStats/AllStats.h>
+#include <SystemStats/Statistics.h>
 #include <time.h>
 #include <sys/time.h>
 

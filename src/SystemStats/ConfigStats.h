@@ -8,12 +8,15 @@
 #ifndef CONFIGSTATS_H_
 #define CONFIGSTATS_H_
 
+#include <SystemStats/AbstractStats.h>
+
 using namespace std;
 
 namespace SystemStatsLib {
 
-	class AbstractConfigsStats {
+	class AbstractConfigsStats : public AbstractStats {
 		public:
+			AbstractConfigsStats : AbstractStats("CONFIGS_STATS") {}
 			virtual ~AbstactConfigsStats() {}
 			virtual void add_statistic(const string& key, const string& value) = 0;
 			virtual void remove_statistic(const string& key) = 0;

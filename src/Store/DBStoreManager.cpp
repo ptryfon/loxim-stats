@@ -4,7 +4,7 @@
 #include <Store/DBDataValue.h>
 #include <Store/SystemViews.h>
 #include <Indexes/IndexManager.h>
-#include <SystemStats/AllStats.h>
+#include <SystemStats/Statistics.h>
 
 using namespace SystemStatsLib;
 
@@ -240,7 +240,7 @@ namespace Store
 #ifdef DEBUG_MODE
 		*ec << "Store::Manager::createObject start...";
 #endif
-	   	AllStats::getHandle()->getTransactionsStats()->incCreateObject();
+		Statistics::get_statistics().get_transactions_stats().increment_create_object();
 
 		LogicalID* lid;
 		if(p_lid == NULL)
@@ -295,7 +295,7 @@ namespace Store
 #ifdef DEBUG_MODE
 		*ec << "Store::Manager::deleteObject start...";
 #endif
-	   	AllStats::getHandle()->getTransactionsStats()->incDeleteObject();
+		Statistics::get_statistics().get_transactions_stats().increment_delete_object();
 
 		unsigned log_id;
 		int itid = tid==NULL ? -1 : tid->getId();
@@ -414,7 +414,7 @@ namespace Store
 #ifdef DEBUG_MODE
 		*ec << "Store::Manager::modifyObject start...";
 #endif
-	   	AllStats::getHandle()->getTransactionsStats()->incModifyObject();
+		Statistics::get_statistics().get_transactions_stats().increment_modify_object();
 
 		string parentRoot;
 		if (object->isRoot()) {

@@ -8,7 +8,7 @@
 #ifndef TRANSACTIONSTATS_H_
 #define TRANSACTIONSTATS_H_
 
-#include <SystemStats/SystemStats.h>
+#include <SystemStats/AbstractStats.h>
 #include <map>
 #include <time.h>
 #include <sys/time.h>
@@ -22,12 +22,13 @@ namespace SystemStatsLib{
  * - amount of active, aborted and commited trasactions
  * - maximum and average transaction time
  */
-class AbstractTransactionStats {
+class AbstractTransactionStats : public AbstractStats {
 	public:
+		AbstractTransactionStats() : AbstractStats("TRANSACTIONS_STATS") {}
 		virtual ~AbstractTransactionStats();
-		virtual void start_transaction() = 0;
-		virtual void commit_transaction() = 0;
-		virtual void abort_transaction() = 0;
+		virtual void start_transaction(unsigned int) = 0;
+		virtual void commit_transaction(unsigned int) = 0;
+		virtual void abort_transaction(unsigned int) = 0;
 
 		virtual unsigned int get_active_transactions() = 0;
 		virtual unsigned int get_commited_transactions() = 0;

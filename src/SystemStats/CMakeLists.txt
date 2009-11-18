@@ -1,8 +1,8 @@
 set(SYSTEMSTATSDIR "../SystemStats")
 
 set(SystemStats_SRCS
-	${SYSTEMSTATSDIR}/AllStats.cpp
-	${SYSTEMSTATSDIR}/AllStats.h
+	${SYSTEMSTATSDIR}/Statistics.cpp
+	${SYSTEMSTATSDIR}/Statistics.h
 	${SYSTEMSTATSDIR}/ConfigStats.cpp
 	${SYSTEMSTATSDIR}/ConfigStats.h
 	${SYSTEMSTATSDIR}/QueriesStats.cpp
@@ -11,8 +11,6 @@ set(SystemStats_SRCS
 	${SYSTEMSTATSDIR}/SessionStats.h
 	${SYSTEMSTATSDIR}/StoreStats.cpp
 	${SYSTEMSTATSDIR}/StoreStats.h
-	${SYSTEMSTATSDIR}/SystemStats.cpp
-	${SYSTEMSTATSDIR}/SystemStats.h
 	${SYSTEMSTATSDIR}/TransactionsStats.cpp
 	${SYSTEMSTATSDIR}/TransactionsStats.h CACHE INTERNAL "" )
 
