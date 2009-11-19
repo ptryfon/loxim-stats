@@ -3,6 +3,8 @@ set(SYSTEMSTATSDIR "../SystemStats")
 set(SystemStats_SRCS
 	${SYSTEMSTATSDIR}/Statistics.cpp
 	${SYSTEMSTATSDIR}/Statistics.h
+	${SYSTEMSTATSDIR}/DiskUsageStats.cpp
+	${SYSTEMSTATSDIR}/DiskUsageStats.h
 	${SYSTEMSTATSDIR}/ConfigStats.cpp
 	${SYSTEMSTATSDIR}/ConfigStats.h
 	${SYSTEMSTATSDIR}/QueriesStats.cpp

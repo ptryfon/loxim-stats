@@ -36,7 +36,7 @@ namespace SystemStatsLib{
 	public:
 		StatisticSingleton();
 
-		AbstractSessionStats& get_session_stats() {return *active_session_stats;}
+		AbstractSessionsStats& get_session_stats() {return *active_session_stats;}
 		AbstractConfigsStats& get_configs_stats() {return *active_configs_stats;}
 		AbstractStoreStats& get_store_stats() {return *active_store_stats;}
 		AbstractTransactionsStats& get_transactions_stats() {return *active_transaction_stats;}
