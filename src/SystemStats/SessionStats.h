@@ -3,6 +3,7 @@
 
 #include <time.h>
 #include <sys/time.h>
+#include <SystemStats/DiskUsageStats.h>
 
 using namespace std;
 
@@ -22,12 +23,11 @@ namespace SystemStatsLib{
  typedef int SessionID;
  
 	class AbstractSessionStats{
-	 	private:
-			AbstractDiskUsageStats diskUsageStats();
 		public:
 			AbstractSessionStats();
 			
-			AbstractDiskUsageStats& getDiskUsageStats() {return diskUsageStats;}
+			virtual AbstractDiskUsageStats& getDiskUsageStats() = 0;
+			virtual const AbstractDiskUsageStats& getDiskUsageStats() const = 0;
 			
 			virtual void setDurationInSeconds(unsigned int seconds) = 0;
 
@@ -52,7 +52,7 @@ namespace SystemStatsLib{
 
 			virtual double getPageWritesHit() const = 0;
 
-			virtual void setUserLogin(string value) = 0
+			virtual void setUserLogin(string value) = 0;
 			virtual string getUserLogin() const = 0;
 
 			virtual void setId(SessionID value) = 0;
@@ -60,18 +60,22 @@ namespace SystemStatsLib{
 
 			virtual void refreshStats() = 0;
 			
-			virtual ~SessionStats();
-	}
+			virtual ~AbstractSessionStats();
+	};
  
 	class SessionStats: public AbstractSessionStats{
 	
 		protected:
+		  	DiskUsageStats diskUsageStats;
 			SessionID id;
 			string userLogin;
 			timeval begin;
 			
 		public:
 			SessionStats();
+			
+			AbstractDiskUsageStats& getDiskUsageStats() {return diskUsageStats;}
+			const AbstractDiskUsageStats& getDiskUsageStats() const {return diskUsageStats;}
 
 			void setDurationInSeconds(unsigned int seconds);
 
@@ -80,21 +84,21 @@ namespace SystemStatsLib{
 
 			/* Statystyki odczytu */
 			void addDiskPageReads(int count) {getDiskUsageStats().addDiskPageReads(count);}
-			int getDiskPageReads() {return getDiskUsageStats().getDiskPageReads();}
+			int getDiskPageReads() const {return getDiskUsageStats().getDiskPageReads();}
 
 			void addPageReads(int count) {getDiskUsageStats().addPageReads(count);}
-			int getPageReads() {return getDiskUsageStats().getPageReads();}
+			int getPageReads() const {return getDiskUsageStats().getPageReads();}
 
-			double getPageReadsHit() { return getDiskUsageStats().getPageReadsHit(); }
+			double getPageReadsHit() const { return getDiskUsageStats().getPageReadsHit(); }
 
 			/* Statystyki zapisu */
-			void addDiskPageWrites(int count) {getDiskUsageStats().addDiskPageWrites();}
-			int getDiskPageWrites() { return getDiskUsageStats().getDiskPageWrites();}
+			void addDiskPageWrites(int count) {getDiskUsageStats().addDiskPageWrites(count);}
+			int getDiskPageWrites() const { return getDiskUsageStats().getDiskPageWrites();}
 
-			void addPageWrites(int count) {getDiskUsageStats().addPageWrites();}
-			int getPageWrites() { return getDiskUsageStats().getPageWrites(); }
+			void addPageWrites(int count) {getDiskUsageStats().addPageWrites(count);}
+			int getPageWrites() const { return getDiskUsageStats().getPageWrites(); }
 
-			double getPageWritesHit() { return getDiskUsageStats().getPageWritesHit();}
+			double getPageWritesHit() const { return getDiskUsageStats().getPageWritesHit();}
 
 			void setUserLogin(string value);
 			string getUserLogin() const;
@@ -107,41 +111,48 @@ namespace SystemStatsLib{
 	};
 	
 	class EmptySessionStats: public AbstractSessionStats {
+	
+		protected:
+	    		EmptyDiskUsageStats diskUsageStats;
+		
 		public:
-			SessionStats();
+			EmptySessionStats();
+			
+			AbstractDiskUsageStats& getDiskUsageStats() {return diskUsageStats;}
+			const AbstractDiskUsageStats& getDiskUsageStats() const {return diskUsageStats;}
 
-			void setDurationInSeconds(unsigned int seconds);
+			void setDurationInSeconds(unsigned int seconds){}
 
 			void setStartTime(string value) {};
 			string getStartTime() const {return "";}
 
 			/* Statystyki odczytu */
 			void addDiskPageReads(int count) {}
-			int getDiskPageReads() {return 0;}
+			int getDiskPageReads() const {return 0;}
 
 			void addPageReads(int count) {}
-			int getPageReads() {return 0;}
+			int getPageReads() const {return 0;}
 
-			double getPageReadsHit() { return 0; }
+			double getPageReadsHit() const { return 0; }
 
 			/* Statystyki zapisu */
-			void addDiskPageWrites(int count) {getDiskUsageStats().addDiskPageWrites();}
-			int getDiskPageWrites() { return 0;}
+			void addDiskPageWrites(int count) {}
+			int getDiskPageWrites() const { return 0;}
 
 			void addPageWrites(int count) {}
-			int getPageWrites() { return 0; }
+			int getPageWrites() const { return 0; }
 
-			double getPageWritesHit() { return 0;}
+			double getPageWritesHit() const { return 0;}
 
 			void setUserLogin(string value) {};
-			string getUserLogin() const {return "";};
+			string getUserLogin() const {return "";}
 
-			void setId(SessionID value) {};
-			SessionID getId() const {return -1};
+			void setId(SessionID value) {}
+			SessionID getId() const {return -1;};
 
 			void refreshStats(){};
-			~SessionStats();
-	}
+			~EmptySessionStats();
+	};
 	
 	/**
 	 * AbstractSessionsStats class
@@ -151,7 +162,7 @@ namespace SystemStatsLib{
 			AbstractSessionsStats() {}
 			
 			virtual void addSessionStats(SessionID key) = 0;
-			virtual SessionStats& getSessionStats(SessionID key) = 0;
+			virtual AbstractSessionStats& getSessionStats(SessionID key) = 0;
 			virtual void removeSessionStats(SessionID key) = 0;
 
 			//To jest chyba do wyrzucenia bo tylko dubluje funkcjonalnosc i tylko powoduje jedno wywolanie funkcji wiecej.
@@ -161,7 +172,7 @@ namespace SystemStatsLib{
 			void addPageWrites(SessionID sessionId, int count) {this->getSessionStats(sessionId).addPageWrites(count);}
 			
 			virtual ~AbstractSessionsStats();
-	}
+	};
 
 	/*
 	 * Sessions statistics contains set of
@@ -183,15 +194,17 @@ namespace SystemStatsLib{
 	};
 	
 	class EmptySessionsStats: public AbstractSessionsStats{
+		private:
+			EmptySessionStats emptySessionStats;
 	  	public:
 			EmptySessionsStats(){}
 
 			void addSessionStats(SessionID key){}
-			SessionStats& getSessionStats(SessionID key) {return SessionStats();}
+			EmptySessionStats& getSessionStats(SessionID key) {return emptySessionStats;}
 			void removeSessionStats(SessionID key) {}
 
-			virtual ~SessionsStats();
-	}
+			virtual ~EmptySessionsStats();
+	};
 }
 
 #endif

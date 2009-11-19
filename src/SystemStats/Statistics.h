@@ -34,7 +34,7 @@ namespace SystemStatsLib {
 	public:
 		StatisticSingleton();
 
-		AbstractSessionsStats& get_session_stats() {return *active_session_stats;}
+		AbstractSessionsStats& get_sessions_stats() {return *active_sessions_stats;}
 		AbstractConfigsStats& get_configs_stats() {return *active_configs_stats;}
 		AbstractStoreStats& get_store_stats() {return *active_store_stats;}
 		AbstractTransactionsStats& get_transactions_stats() {return *active_transaction_stats;}
@@ -54,9 +54,9 @@ namespace SystemStatsLib {
 		StatisticSingleton(const StatisticSingleton&) {}
 		StatisticSingleton& operator =(const StatisticSingleton&) {return *this;}
 
-		AbstractSessionStats *active_session_stats;
-		EmptySessionStats empty_session_stats;
-		SessionStats session_stats;
+		AbstractSessionsStats *active_sessions_stats;
+		EmptySessionsStats empty_sessions_stats;
+		SessionsStats sessions_stats;
 
 		AbstractConfigsStats *active_configs_stats;
 		EmptyConfigsStats empty_configs_stats;

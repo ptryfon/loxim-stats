@@ -22,25 +22,28 @@ namespace SystemStatsLib{
  * - minimum, maximum and average time of page read
  */
 	class AbstractStoreStats{
-		protected:
-			AbstractDiskUsageStats diskUsageStats;
 		public:
-			AbstractDiskuUsageStats& getDiskUsageStats() {return diskUsageStats;}
-			virtual void addDiskPageReads(int count) { this->getDiskUsageStats().addDiskPageReads(count); }
-			virtual void addPageReads(int count) { this->getDiskUsageStats().addPageReads(count); }
-			virtual void addDiskPageWrites(int count) { this->getDiskUsageStats().addDiskPageWrites(count); }
-			virtual void addPageWrites(count) { this->getDiskUsageStats().addPageWrites(count); }
+			virtual AbstractDiskUsageStats& getDiskUsageStats() = 0;
+			void addDiskPageReads(int count) { this->getDiskUsageStats().addDiskPageReads(count); }
+			void addPageReads(int count) { this->getDiskUsageStats().addPageReads(count); }
+			void addDiskPageWrites(int count) { this->getDiskUsageStats().addDiskPageWrites(count); }
+			void addPageWrites(int count) { this->getDiskUsageStats().addPageWrites(count); }
 	};
 	
 	class StoreStats: public AbstractStoreStats{
-		
+		protected:
+			DiskUsageStats diskUsageStats;
 		public:
 			StoreStats():diskUsageStats(DiskUsageStats()){};
+			DiskUsageStats& getDiskUsageStats() {return diskUsageStats;}
 	};
 	
 	class EmptyStoreStats: public AbstractStoreStats{
+		protected:
+			EmptyDiskUsageStats diskUsageStats;
 		public:
 			EmptyStoreStats(): diskUsageStats(EmptyDiskUsageStats()){};
+			EmptyDiskUsageStats& getDiskUsageStats() {return diskUsageStats;}
 	};
 
 }
