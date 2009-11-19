@@ -22,27 +22,27 @@ namespace SystemStatsLib{
  * - amount of active, aborted and commited trasactions
  * - maximum and average transaction time
  */
-class AbstractTransactionStats : public AbstractStats {
+class AbstractTransactionsStats : public AbstractStats {
 	public:
-		AbstractTransactionStats() : AbstractStats("TRANSACTIONS_STATS") {}
-		virtual ~AbstractTransactionStats();
+		AbstractTransactionsStats() : AbstractStats("TRANSACTIONS_STATS") {}
+		virtual ~AbstractTransactionsStats();
 		virtual void start_transaction(unsigned int) = 0;
 		virtual void commit_transaction(unsigned int) = 0;
 		virtual void abort_transaction(unsigned int) = 0;
 
-		virtual unsigned int get_active_transactions() = 0;
-		virtual unsigned int get_commited_transactions() = 0;
-		virtual unsigned int get_aborted_transactions() = 0;
+		virtual unsigned int get_active_transactions() const = 0;
+		virtual unsigned int get_commited_transactions() const = 0;
+		virtual unsigned int get_aborted_transactions() const = 0;
 
-		virtual double get_average_transaction_time() = 0;
-		virtual double get_max_transaction_time() = 0;
+		virtual double get_average_transaction_time() const = 0;
+		virtual double get_max_transaction_time() const = 0;
 
 		virtual void increment_modify_object() = 0;
 		virtual void increment_create_object() = 0;
 		virtual void increment_delete_object() = 0;
 };
 
-	class TransactionsStats : public AbstractTransactionStats {
+	class TransactionsStats : public AbstractTransactionsStats {
 	public:
 		TransactionsStats();
 
@@ -50,12 +50,12 @@ class AbstractTransactionStats : public AbstractStats {
 		void commit_transaction(unsigned int tid);
 		void abort_transaction(unsigned int tid);
 
-		unsigned int get_active_transactions() {return active_transactions;}
-		unsigned int get_commited_transactions() {return commited_transactions;}
-		unsigned int get_aborted_transactions() {return aborted_transactions;}
+		unsigned int get_active_transactions() const {return active_transactions;}
+		unsigned int get_commited_transactions() const {return commited_transactions;}
+		unsigned int get_aborted_transactions() const {return aborted_transactions;}
 
-		double get_average_transaction_time();
-		double get_max_transaction_time() {return max_time;}
+		double get_average_transaction_time() const;
+		double get_max_transaction_time() const {return max_time;}
 
 		void increment_modify_object() {++modify_object;}
 		void increment_create_object() {++create_object;}
@@ -77,19 +77,19 @@ class AbstractTransactionStats : public AbstractStats {
 		unsigned int delete_object;
 };
 
-	class EmptyTransactionStats : public AbstractTransactionStats {
+	class EmptyTransactionsStats : public AbstractTransactionsStats {
 		public:
 
 		void start_transaction(unsigned int) {}
 		void commit_transaction(unsigned int) {}
 		void abort_transaction(unsigned int) {}
 
-		unsigned int get_active_transactions() {return 0;}
-		unsigned int get_commited_transactions() {return 0;}
-		unsigned int get_aborted_transactions() {return 0;}
+		unsigned int get_active_transactions() const {return 0;}
+		unsigned int get_commited_transactions() const {return 0;}
+		unsigned int get_aborted_transactions() const {return 0;}
 
-		double get_average_transaction_time() {return 0.0;}
-		double get_max_transaction_time() {return 0.0;}
+		double get_average_transaction_time() const {return 0.0;}
+		double get_max_transaction_time() const {return 0.0;}
 
 		void increment_modify_object() {}
 		void increment_create_object() {}

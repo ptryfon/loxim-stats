@@ -16,9 +16,7 @@
 #include <SystemStats/TransactionsStats.h>
 #include <SystemStats/AbstractStats.h>
 
-using namespace std;
-
-namespace SystemStatsLib{
+namespace SystemStatsLib {
 /*
  * This is class that collect all statistics that
  * we use in database. We can access to this class
@@ -42,7 +40,7 @@ namespace SystemStatsLib{
 		AbstractTransactionsStats& get_transactions_stats() {return *active_transaction_stats;}
 		AbstractQueriesStats& get_queries_stats() {return *active_queries_stats;}
 		
-		AbstractStats& get_abstract_stats(const string& name);
+		AbstractStats& get_abstract_stats(const std::string& name);
 		
 		/* not really happy about those 4 methods, but apparently this is the only
 		 * way to resolve this without a lot of code
@@ -54,25 +52,25 @@ namespace SystemStatsLib{
 
 	private:
 		StatisticSingleton(const StatisticSingleton&) {}
-		StatisticSingleton& operator =(const StatisticSingleton&) {}
+		StatisticSingleton& operator =(const StatisticSingleton&) {return *this;}
 
 		AbstractSessionStats *active_session_stats;
 		EmptySessionStats empty_session_stats;
 		SessionStats session_stats;
 
-		AbstractConfigsStats *abstract_configs_stats;
+		AbstractConfigsStats *active_configs_stats;
 		EmptyConfigsStats empty_configs_stats;
 		ConfigsStats configs_stats;
 
-		AbstractStoreStats *abstract_store_stats;
+		AbstractStoreStats *active_store_stats;
 		EmptyStoreStats empty_store_stats;
 		StoreStats store_stats;
 
-		AbstractTransactionsStats *abstract_transaction_stats;
-		EmptyTransactionStats empty_transaction_stats;
-		TransactionStats transaction_stats;
+		AbstractTransactionsStats *active_transaction_stats;
+		EmptyTransactionsStats empty_transaction_stats;
+		TransactionsStats transaction_stats;
 
-		AbstractQueriesStats *abstract_queries_stats;
+		AbstractQueriesStats *active_queries_stats;
 		EmptyQueriesStats empty_queries_stats;
 		QueriesStats queries_stats;
 	};
@@ -88,7 +86,7 @@ namespace SystemStatsLib{
 
 		Statistics() {}
 		Statistics(const Statistics&) {}
-		Statistics& operator =(const Statistics&) {}
+		Statistics& operator =(const Statistics&) {return *this;}
 	};
 }
 

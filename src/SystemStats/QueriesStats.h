@@ -14,13 +14,12 @@
 #include <list>
 #include <map>
 
-using namespace std;
-
 namespace SystemStatsLib {
 
 	class QueryStatistic {
 		public:
-			Query(uint64_t session_id, std::string text);
+			QueryStatistic(uint64_t session_id, std::string text);
+			~QueryStatistic();
 			void set_state(unsigned int state);
 			
 			uint64_t session_id;
@@ -31,7 +30,7 @@ namespace SystemStatsLib {
 			timeval begin;
 	};
 	
-	template<class T>class QueryList<T> {
+	template<class T>class QueryList {
 		public:
 			QueryList() : size(1) {}
 			void set_size(unsigned int s) {size = s; return;}
@@ -48,19 +47,19 @@ namespace SystemStatsLib {
 		private:
 			unsigned int size;
 			std::multimap<T, QueryStatistic> queries;
-			std::list<multimap<T, QueryStatistic>::iterator> queries_iterators;
+			std::list<typename std::multimap<T, QueryStatistic>::iterator> queries_iterators;
 	};
 	
 	class AbstractQueriesStats : public AbstractStats {
 		public:
 			AbstractQueriesStats() : AbstractStats("QUERIES_STATS") {}
-			virtual ~AbstactQueriesStats() {}
+			virtual ~AbstractQueriesStats() {}
 			
 			virtual void add_query(const QueryStatistic&) = 0;
 			virtual void begin_execute_query(uint64_t session_id, std::string& stmt) = 0;
 			virtual void end_execute_query(uint64_t session_id) = 0;
-			virtual end_session(uint64_t session_id) = 0;
-			virtual add_disk_io(uint64_t session_id, unsigned int count) = 0;
+			virtual void end_session(uint64_t session_id) = 0;
+			virtual void add_disk_io(uint64_t session_id, unsigned int count) = 0;
 	};
 
 	class EmptyQueriesStats : public AbstractQueriesStats {
@@ -72,7 +71,7 @@ namespace SystemStatsLib {
 			void add_disk_io(uint64_t, unsigned int) {}
 	};
 	
-	class QueriesStats : public AbstactQueriesStats {
+	class QueriesStats : public AbstractQueriesStats {
 		public:
 			QueriesStats();
 			
@@ -87,7 +86,8 @@ namespace SystemStatsLib {
 			unsigned int quieries_amount;
 			QueryList<unsigned int> top_IO_queries;
 			QueryList<double> top_time_queries;
-			map<uint64_t, Query> active_queries;
+			std::map<uint64_t, QueryStatistic> active_queries;
 	};
+}
 
 #endif /* QUERYSTATS_H_ */

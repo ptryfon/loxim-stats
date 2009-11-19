@@ -3,8 +3,7 @@
 
 using namespace SystemStatsLib;
 
-TransactionStats::TransactionStats()
-{
+TransactionsStats::TransactionsStats() {
 	active_transactions = 0;
 	aborted_transactions = 0;
 	commited_transactions = 0;
@@ -17,15 +16,13 @@ TransactionStats::TransactionStats()
 	delete_object = 0;
 }
 
-void TransactionStats::start_transaction(unsigned int tid)
-{
+void TransactionsStats::start_transaction(unsigned int tid) {
 	++active_transactions;
 	transactions_map.insert(pair<unsigned int, time_t>(tid, time(0)));
 	return;
 }
 
-void TransactionStats::evaluate_time(unsigned int tid)
-{
+void TransactionsStats::evaluate_time(unsigned int tid) {
 	double transaction_time;
 	map<unsigned int, time_t>::iterator it;
 
@@ -44,8 +41,7 @@ void TransactionStats::evaluate_time(unsigned int tid)
 	return;
 }
 
-void TransactionStats::commit_transaction(unsigned int tid)
-{
+void TransactionsStats::commit_transaction(unsigned int tid) {
 	try {
 		evaluate_time(tid);
 	}
@@ -56,16 +52,14 @@ void TransactionStats::commit_transaction(unsigned int tid)
 	++commited_transactions;
 }
 
-void TransactionStats::abort_transaction(unsigned int tid)
-{
+void TransactionsStats::abort_transaction(unsigned int tid) {
 	evaluate_time(tid);
 
 	--active_transactions;
 	++aborted_transactions;
 }
 
-double TransactionsStats::get_average_transaction_time()
-{
+double TransactionsStats::get_average_transaction_time() const {
 	if (!aborted_transactions && !commited_transactions)
 		return 0.0;
 	else

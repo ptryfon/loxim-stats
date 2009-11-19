@@ -10,8 +10,7 @@
 
 using namespace SystemStatsLib;
 
-StatisticSingleton::StatisticSingleton()
-{
+StatisticSingleton::StatisticSingleton() {
 /* 
  * I really, really hope that SBQLConfig works this way.
  * Beacause if not than it's not possible to do it in a
@@ -53,8 +52,7 @@ StatisticSingleton::StatisticSingleton()
 		active_queries_stats = &empty_queries_stats;
 }
 
-AbstractStats& StatisticSingleton::get_abstract_stats(const string& name)
-{
+AbstractStats& StatisticSingleton::get_abstract_stats(const string& name) {
 	if (name == "SESSIONS_STATS")
 		return *active_session_stats;
 	else if (name == "STORE_STATS")

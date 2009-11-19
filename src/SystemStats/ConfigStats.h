@@ -10,19 +10,17 @@
 
 #include <SystemStats/AbstractStats.h>
 
-using namespace std;
-
 namespace SystemStatsLib {
 
 	class AbstractConfigsStats : public AbstractStats {
 		public:
-			AbstractConfigsStats : AbstractStats("CONFIGS_STATS") {}
-			virtual ~AbstactConfigsStats() {}
-			virtual void add_statistic(const string& key, const string& value) = 0;
-			virtual void remove_statistic(const string& key) = 0;
+			AbstractConfigsStats() : AbstractStats("CONFIGS_STATS") {}
+			virtual ~AbstractConfigsStats() {}
+			virtual void add_statistic(const std::string& key, const std::string& value) = 0;
+			virtual void remove_statistic(const std::string& key) = 0;
 	};
 
-	class ConfigsStats : public AbstactConfigStats {
+	class ConfigsStats : public AbstractConfigsStats {
 	/*
 	 * Statistics' keys are kept in a format:
 	 * key: 'module_name'_'option_name'
@@ -34,19 +32,19 @@ namespace SystemStatsLib {
 	public:
 		ConfigsStats();
 
-		void add_statistic(const string& key, const string& value);
-		void remove_statistic(const string& key);
+		void add_statistic(const std::string& key, const std::string& value);
+		void remove_statistic(const std::string& key);
 	private:
-		unsigned statistics_size;
+		unsigned int statistics_size;
 
-		map<string, string> configs_statistics;
-		list<map<string, string>::iterator> latest_statitics;
+		std::map<std::string, std::string> configs_statistics;
+		std::list<std::map<std::string, std::string>::iterator> latest_statitics;
 	};
 
-	class EmptyConfigsStats : public AbstactConfigsStats {
+	class EmptyConfigsStats : public AbstractConfigsStats {
 		public:
-			void add_statistic(const string&, const string&) {}
-			void remove_statistic(const string& key) {}
+			void add_statistic(const std::string&, const std::string&) {}
+			void remove_statistic(const std::string& key) {}
 	};
 }
 

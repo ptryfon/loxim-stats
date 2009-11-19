@@ -9,8 +9,7 @@ QueryStatistic::QueryStatistic(unsigned int s_id, const std::string& t) :
 	Statistics::get_statistics().get_queries_stats().add_query(*this);
 }
 
-QueryStatistic::~QueryStatistic()
-{
+QueryStatistic::~QueryStatistic() {
 	Statistics::get_statistics().get_queries_stats().end_execute_query(session_id);
 }
 
@@ -42,8 +41,7 @@ QueriesStats::QueriesStats() : max_query_time(0.0), time_sum(0.0), avrg_time(0.0
 	top_time_queries.set_size(statistics_size);
 }
 
-void QueriesStats::add_query(const QueryStatistic& query)
-{
+void QueriesStats::add_query(const QueryStatistic& query) {
 	map<uint64_t, QueryStatistic>::iterator k;
 	
 	if ((k = active_queries.find(query.session_id)) == active_queries.end())
@@ -59,8 +57,7 @@ void QueriesStats::add_query(const QueryStatistic& query)
 	return;
 }
 
-void QueriesStats::begin_execute_query(uint64_t session_id, std::string& stmt)
-{
+void QueriesStats::begin_execute_query(uint64_t session_id, std::string& stmt) {
 	map<uint64_t, QueryStatistic>::iterator k;
 	
 	if ((k = active_queries.find(session_id)) == active_queries.end())
@@ -76,8 +73,7 @@ void QueriesStats::begin_execute_query(uint64_t session_id, std::string& stmt)
 	return;
 }
 
-void QueriesStats::end_execute_query(uint64_t session_id)
-{
+void QueriesStats::end_execute_query(uint64_t session_id) {
 	map<uint64_t, QueryStatistic>::iterator k;
 	
 	if ((k = active_queries.find(session_id)) != active_queries.end())
@@ -97,8 +93,7 @@ void QueriesStats::end_execute_query(uint64_t session_id)
 	return;
 }
 
-void QueriesStats::end_session(uint64_t session_id)
-{
+void QueriesStats::end_session(uint64_t session_id) {
 	map<uint64_t, QueryStatistic>::iterator k;
 	
 	if ((k = active_queries.find(session_id)) != active_quereis.end())
@@ -107,8 +102,7 @@ void QueriesStats::end_session(uint64_t session_id)
 	return;
 }
 
-void QueriesStats::add_disk_io(uint64_t session_id, unsigned int count)
-{
+void QueriesStats::add_disk_io(uint64_t session_id, unsigned int count) {
 	map<uint64_t, QueryStatistic>::iterator k
 	
 	if ((k = active_queries.find(session_id)) != active_quereis.end())
