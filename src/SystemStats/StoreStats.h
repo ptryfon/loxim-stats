@@ -1,17 +1,16 @@
 /*
  * StoreStats.h
  *
- *  Created on: 25-lip-08
- *      Author: damianklata
+ *  Created on: 12-nov-2009
+ *      Author: paweltryfon
  */
 
 #ifndef STORESTATS_H_
 #define STORESTATS_H_
 
-#include <SystemStats/SystemStats.h>
+#include <SystemStats/DiskUsageStats.h>
 
 using namespace std;
-
 
 namespace SystemStatsLib{
 /*
@@ -22,45 +21,26 @@ namespace SystemStatsLib{
  * - the same for write
  * - minimum, maximum and average time of page read
  */
-	class StoreStats: public SystemStats{
+	class AbstractStoreStats{
 		protected:
-			int diskPageReads;
-			int pageReads;
-			int diskPageWrites;
-			int pageWrites;
-
-			double maxspeed;
-			double minspeed;
-			double allmilisec;
-			double allbytes;
+			AbstractDiskUsageStats diskUsageStats;
 		public:
-			StoreStats();
-
-			/* Statystyki odczytu */
-			void addDiskPageReads(int count);
-			int getDiskPageReads();
-
-			void addPageReads(int count);
-			int getPageReads();
-
-			double getPageReadsHit();
-
-			/* Statystyki zapisu */
-			void addDiskPageWrites(int count);
-			int getDiskPageWrites();
-
-			void addPageWrites(int count);
-			int getPageWrites();
-
-			double getPageWritesHit();
-
-			/* Czasy odczytów danych */
-			void addReadTime(int bytes, double milisec);
-			string getMinReadSpeed();
-			string getMaxReadSpeed();
-			string getAvgReadSpeed();
-
-			~StoreStats();
+			AbstractDiskuUsageStats& getDiskUsageStats() {return diskUsageStats;}
+			virtual void addDiskPageReads(int count) { this->getDiskUsageStats().addDiskPageReads(count); }
+			virtual void addPageReads(int count) { this->getDiskUsageStats().addPageReads(count); }
+			virtual void addDiskPageWrites(int count) { this->getDiskUsageStats().addDiskPageWrites(count); }
+			virtual void addPageWrites(count) { this->getDiskUsageStats().addPageWrites(count); }
+	};
+	
+	class StoreStats: public AbstractStoreStats{
+		
+		public:
+			StoreStats():diskUsageStats(DiskUsageStats()){};
+	};
+	
+	class EmptyStoreStats: public AbstractStoreStats{
+		public:
+			EmptyStoreStats(): diskUsageStats(EmptyDiskUsageStats()){};
 	};
 
 }
