@@ -1,168 +1,93 @@
 /*
  * QueryStats.h
  *
- *  Created on: 29-lip-08
- *      Author: damianklata
+ *  Created on: 19-Nov-09
+ *      Author: Bartosz Borkowski
  */
 
 #ifndef QUERYSTATS_H_
 #define QUERYSTATS_H_
+
 #include <SystemStats/SystemStats.h>
-#include <map>
 #include <time.h>
 #include <sys/time.h>
 #include <list>
+#include <map>
 
 using namespace std;
 
 namespace SystemStatsLib {
-	/*
-	 * How many top queries we want to
-	 * collect
-	 */
-	static const int maxTop = 10;
 
-	/*
-	 * Query stats contains information about query that was
-	 * execute in specified session:
-	 * - last query (text of query)
-	 * - state of sessions: active or
-	 * 		inactive (that means that transaction whas commited or aborted)
-	 * - session id -> session related with this query
-	 * - duration time in miliseconds
-	 * - sum of disk reads and writes (io)
-	 * - weight (optional use in top substatistics) ->
-	 *   this is weight of query in some order. For example
-	 *   in top time stats the query with the highest time
-	 *   of execution will have the lowest weight value.
-	 * - key is use only in top sub stats to recognize
-	 * specified query. In top stats we can have to queries
-	 * from one session and so we cannot identyfy it without
-	 * this value.
-	 *
-	 */
-	class QueryStats: public SystemStats {
-	protected:
-		int diskIO;
-		timeval begin;
-		string key;
-	public:
-		QueryStats();
-		QueryStats(QueryStats* queryStats);
-		~QueryStats();
-
-		void setText(string text);
-		string getText();
-
-		void setState(int state);
-		string getState();
-
-		void setSessionId(int sessionId);
-		int getSessionId();
-
-		void addDiskIO(int count);
-		double getMilisec();
-		int getDiskIO();
-
-		void setWeight(int weight);
-
-		void setKey(string key);
-		string getKey();
+	class QueryStatistic {
+		public:
+			Query(uint64_t session_id, std::string text);
+			void set_state(unsigned int state);
+			
+			uint64_t session_id;
+			unsigned int disk_IO, weight;
+			double milisec;
+			std::string text, state;
+		private:
+			timeval begin;
+	};
+	
+	template<class T>class QueryList<T> {
+		public:
+			QueryList() : size(1) {}
+			void set_size(unsigned int s) {size = s; return;}
+			void add_query(T key, QueryStatistic q)
+			{
+				queries_iterators.push_back(queries.insert(std::pair<T, QueryStatistic>(key, q)));
+				if (queries_iterators.size() == size)
+				{
+					queries.erase(queries_iterators.front());
+					queries_iterators.pop_front();
+				}
+				return;
+			}
+		private:
+			unsigned int size;
+			std::multimap<T, QueryStatistic> queries;
+			std::list<multimap<T, QueryStatistic>::iterator> queries_iterators;
+	};
+	
+	class AbstractQueriesStats : public AbstractStats {
+		public:
+			AbstractQueriesStats() : AbstractStats("QUERIES_STATS") {}
+			virtual ~AbstactQueriesStats() {}
+			
+			virtual void add_query(const QueryStatistic&) = 0;
+			virtual void begin_execute_query(uint64_t session_id, std::string& stmt) = 0;
+			virtual void end_execute_query(uint64_t session_id) = 0;
+			virtual end_session(uint64_t session_id) = 0;
+			virtual add_disk_io(uint64_t session_id, unsigned int count) = 0;
 	};
 
-	/*
-	 * Contains collections of queries statistics
-	 * for active or inactive sessions. One query
-	 * stats for one sessions. If we execute new
-	 * query in session old wild be replaced.
-	 */
-	class SessionsQueriesStats: public SystemStats {
-	public:
-		SessionsQueriesStats();
-		~SessionsQueriesStats();
-
-		void beginExecuteQuery(int sessionId, const char *stmt);
-		void endExecuteQuery(int sessionId);
-		void endSession(int sessionId);
-
-		void addDiskIO(int sessionId, int count);
-
-		string createKey(int sessionId);
-		QueryStats* getQueryStats(string key);
-};
-
-	/*
-	 * Statistics of n queries with the
-	 * highest sth of execution (only commited
-	 * or aborted queries).
-	 */
-class TopQueriesStats: public SystemStats {
-protected:
-int qid;
-list<QueryStats*> top;
-int count;
-public:
-TopQueriesStats(string name);
-virtual ~TopQueriesStats();
-
-string createKey(int id);
-virtual bool compare(QueryStats* q1, QueryStats* q2);
-void addQuery(QueryStats* queryStats);
-};
-
-/*
- * See: TopQueriesStats. Most time consumption queries.
- */
-class TopTimeQueriesStats: public TopQueriesStats {
-public:
-TopTimeQueriesStats();
-~TopTimeQueriesStats();
-
-bool compare(QueryStats* q1, QueryStats* q2);
-};
-
-/*
- * See: TopQueriesStats. Most io consumption queries.
- */
-class TopIOQueriesStats: public TopQueriesStats {
-public:
-TopIOQueriesStats();
-~TopIOQueriesStats();
-
-bool compare(QueryStats* q1, QueryStats* q2);
-};
-
-/*
- *	Queries statistics contains 3 substatistics:
- *  - Last queries related with specified session (Session Queries Stats)
- *  - Top time consumption queries
- *  - Top io consumption queries
- *  Also contains information about:
- *  - amout of execution queries
- *  - maximum and average time of executed queries
- */
-class QueriesStats: public SystemStats {
-protected:
-int numberOfQueries;
-double sumQueryTime;
-double maxQueryTime;
-public:
-QueriesStats();
-
-void beginExecuteQuery(int sessionId, const char *stmt);
-void endExecuteQuery(int sessionId);
-void endSession(int sessionId);
-
-void addDiskIO(int sessionId, int count);
-
-int getNumberOfQueries();
-SessionsQueriesStats* getSessionsQueriesStats();
-TopTimeQueriesStats* getTopTimeQueriesStats();
-TopIOQueriesStats* getTopIOQueriesStats();
-
-~QueriesStats();
-};
-
-}
+	class EmptyQueriesStats : public AbstractQueriesStats {
+		public:
+			void add_query(const QueryStatistic&);
+			void begin_execute_query(uint64_t, std::string&) {}
+			void end_execute_query(uint64_t) {}
+			void end_session(uint64_t) {}
+			void add_disk_io(uint64_t, unsigned int) {}
+	};
+	
+	class QueriesStats : public AbstactQueriesStats {
+		public:
+			QueriesStats();
+			
+			void add_query(const QueryStatistic& query);
+			void begin_execute_query(uint64_t session_id, std::string& stmt);
+			void end_execute_query(uint64_t session_id);
+			void end_session(uint64_t session_id);
+			void add_disk_io(uint64_t session_id, unsigned int count);
+			
+		private:
+			double max_query_time, time_sum, avrg_time;
+			unsigned int quieries_amount;
+			QueryList<unsigned int> top_IO_queries;
+			QueryList<double> top_time_queries;
+			map<uint64_t, Query> active_queries;
+	};
 
 #endif /* QUERYSTATS_H_ */

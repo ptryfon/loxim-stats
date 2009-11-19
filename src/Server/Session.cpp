@@ -82,7 +82,7 @@ namespace Server{
 	Session::~Session()
 	{
 		AllStats::getHandle()->getSessionsStats()->removeSessionStats(sessionid);
-		AllStats::getHandle()->getQueriesStats()->endSession(this->id);
+		Statistics::get_statistics().get_queries_stats().end_session(this->id);
 	}
 
 	void Session::start()
@@ -365,20 +365,17 @@ namespace Server{
 
 	auto_ptr<QueryResult> Session::execute_statement(const string &stmt)
 	{
-		AllStats::getHandle()->getQueriesStats()->beginExecuteQuery(get_id(), stmt.c_str());
+		QueryStatistic(get_id(), stmt);
 
 		if (is_admin_stmt(stmt)){
 			if (!qEx.getAccessMap()->isDba()){
-				AllStats::getHandle()->getQueriesStats()->endExecuteQuery(get_id());
 				throw LoximException(EParse);
 			}
 			debug_printf(err_cons, "Executing administrative statement: %s", stmt.c_str());
 			int error = AdminParser::AdminExecutor::get_instance()->execute(stmt, this);
 			if (error) {
-				AllStats::getHandle()->getQueriesStats()->endExecuteQuery(get_id());
 				throw LoximException(error);
 			} else{
-				AllStats::getHandle()->getQueriesStats()->endExecuteQuery(get_id());
 				return auto_ptr<QueryResult>(new QueryNothingResult());
 			}
 		}else{
@@ -388,7 +385,6 @@ namespace Server{
 			int tcr = qPa.parseIt(id, stmt, tn, tcrs, true, true);
 			if (tcr){
 				debug_print(err_cons, "Didn't parse the query");
-				AllStats::getHandle()->getQueriesStats()->endExecuteQuery(get_id());
 				throw LoximException(EParse);
 			}
 			QueryResult *qres;
@@ -396,12 +392,10 @@ namespace Server{
 			delete tn;
 			if (res){
 				debug_print(err_cons, "Execute failed");
-				AllStats::getHandle()->getQueriesStats()->endExecuteQuery(get_id());
 				throw LoximException(res);
 			}
 			debug_print(err_cons, "Executed");
 			debug_print(err_cons, qres->toString());
-			AllStats::getHandle()->getQueriesStats()->endExecuteQuery(get_id());
 			return auto_ptr<QueryResult>(qres);
 		}
 	}

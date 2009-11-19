@@ -1,5 +1,5 @@
 /*
- * AllStats.cpp
+ * Statistics.cpp
  *
  *  Created on: 12-Nov-09
  *      Author: Bartosz Borkowski
