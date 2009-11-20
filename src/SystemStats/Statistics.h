@@ -37,7 +37,7 @@ namespace SystemStatsLib {
 		AbstractSessionsStats& get_sessions_stats() {return *active_sessions_stats;}
 		AbstractConfigsStats& get_configs_stats() {return *active_configs_stats;}
 		AbstractStoreStats& get_store_stats() {return *active_store_stats;}
-		AbstractTransactionsStats& get_transactions_stats() {return *active_transaction_stats;}
+		AbstractTransactionsStats& get_transactions_stats() {return *active_transactions_stats;}
 		AbstractQueriesStats& get_queries_stats() {return *active_queries_stats;}
 		
 		AbstractStats& get_abstract_stats(const std::string& name);
@@ -66,9 +66,9 @@ namespace SystemStatsLib {
 		EmptyStoreStats empty_store_stats;
 		StoreStats store_stats;
 
-		AbstractTransactionsStats *active_transaction_stats;
-		EmptyTransactionsStats empty_transaction_stats;
-		TransactionsStats transaction_stats;
+		AbstractTransactionsStats *active_transactions_stats;
+		EmptyTransactionsStats empty_transactions_stats;
+		TransactionsStats transactions_stats;
 
 		AbstractQueriesStats *active_queries_stats;
 		EmptyQueriesStats empty_queries_stats;

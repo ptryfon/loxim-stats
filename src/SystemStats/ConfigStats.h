@@ -8,6 +8,9 @@
 #ifndef CONFIGSTATS_H_
 #define CONFIGSTATS_H_
 
+#include <list>
+#include<map>
+
 #include <SystemStats/AbstractStats.h>
 
 namespace SystemStatsLib {
@@ -16,8 +19,8 @@ namespace SystemStatsLib {
 		public:
 			AbstractConfigsStats() : AbstractStats("CONFIGS_STATS") {}
 			virtual ~AbstractConfigsStats() {}
-			virtual void add_statistic(const std::string& key, const std::string& value) = 0;
-			virtual void remove_statistic(const std::string& key) = 0;
+			virtual void add_statistic(const std::string& key, const std::string& value);
+			virtual void remove_statistic(const std::string& key);
 	};
 
 	class ConfigsStats : public AbstractConfigsStats {

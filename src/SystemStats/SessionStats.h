@@ -3,6 +3,7 @@
 
 #include <time.h>
 #include <sys/time.h>
+#include <SystemStats/AbstractStats.h>
 #include <SystemStats/DiskUsageStats.h>
 
 using namespace std;
@@ -22,7 +23,7 @@ namespace SystemStatsLib{
  
  typedef int SessionID;
  
-	class AbstractSessionStats{
+	class AbstractSessionStats : public AbstractStats {
 		public:
 			AbstractSessionStats();
 			
@@ -157,9 +158,9 @@ namespace SystemStatsLib{
 	/**
 	 * AbstractSessionsStats class
 	 */
-	class AbstractSessionsStats{
+	class AbstractSessionsStats : public AbstractStats {
 		public:
-			AbstractSessionsStats() {}
+			AbstractSessionsStats() : AbstractStats("SESSIONS_STATS") {}
 			
 			virtual void addSessionStats(SessionID key) = 0;
 			virtual AbstractSessionStats& getSessionStats(SessionID key) = 0;

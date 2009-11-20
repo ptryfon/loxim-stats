@@ -348,7 +348,7 @@ namespace Store
 	}
 	;
 
-	ObjectPointer* SystemStatsView::createObjectFromAbstractStats(AbstractStats* as) {
+	ObjectPointer* SystemStatsView::createObjectFromAbstractStats(AbstractStats& as) {
 /*
 		map<string, StatsValue*> m = as->getAllStats();
 		map<string, StatsValue*>::iterator cur = m.begin();
@@ -392,7 +392,7 @@ namespace Store
 		DataValue* bagValue = new DBDataValue();
 		bagValue->setVector(val);
 		ObjectPointer* res;
-		createObjectPointer(as->get_name().c_str(), bagValue, res);
+		createObjectPointer(as.get_name().c_str(), bagValue, res);
 		return res;
 	}
 
@@ -434,7 +434,7 @@ namespace Store
 		delete bag;
 
 		AbstractStats as = Statistics::get_statistics().get_abstract_stats(name);
-		as->refreshStats();
+		//as.refreshStats();
 
 		viewsName = new vector<ObjectPointer*>();
 		bag = createObjectFromAbstractStats(as);

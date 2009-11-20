@@ -8,6 +8,7 @@
 #ifndef STORESTATS_H_
 #define STORESTATS_H_
 
+#include <SystemStats/AbstractStats.h>
 #include <SystemStats/DiskUsageStats.h>
 
 using namespace std;
@@ -21,13 +22,16 @@ namespace SystemStatsLib{
  * - the same for write
  * - minimum, maximum and average time of page read
  */
-	class AbstractStoreStats{
+	class AbstractStoreStats : public AbstractStats {
 		public:
+			AbstractStoreStats() : AbstractStats("STORE_STATS") {}
 			virtual AbstractDiskUsageStats& getDiskUsageStats() = 0;
+			virtual ~AbstractStoreStats() {}
 			void addDiskPageReads(int count) { this->getDiskUsageStats().addDiskPageReads(count); }
 			void addPageReads(int count) { this->getDiskUsageStats().addPageReads(count); }
 			void addDiskPageWrites(int count) { this->getDiskUsageStats().addDiskPageWrites(count); }
 			void addPageWrites(int count) { this->getDiskUsageStats().addPageWrites(count); }
+			void addReadTime(int bytes, double milisec) {this->getDiskUsageStats().addReadTime(bytes, milisec);}
 	};
 	
 	class StoreStats: public AbstractStoreStats{

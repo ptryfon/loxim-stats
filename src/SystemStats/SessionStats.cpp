@@ -3,7 +3,7 @@
 
 using namespace SystemStatsLib;
 
-SessionStats::SessionStats(): SystemStats("SESSION"), diskUsageStats(DiskUsageStats()) {
+SessionStats::SessionStats(): AbstractStats("SESSIONS_STATS"), SystemStats("SESSION"), diskUsageStats(DiskUsageStats()) {
 	setUserLogin("UNAUTHORIZED");
 
 	gettimeofday(&begin,NULL);
