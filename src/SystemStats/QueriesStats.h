@@ -13,6 +13,7 @@
 #include <sys/time.h>
 #include <list>
 #include <map>
+#include <stdint.h>
 
 namespace SystemStatsLib {
 
