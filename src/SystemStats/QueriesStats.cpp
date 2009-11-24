@@ -1,10 +1,13 @@
+#include <assert.h>
+
 #include <SystemStats/QueriesStats.h>
+#include <SystemStats/Statistics.h>
 #include <Config/SBQLConfig.h>
 
 using namespace SystemStatsLib;
 
-QueryStatistic::QueryStatistic(unsigned int s_id, const std::string& t) :
-		session_id(s_id), disk_IO(0), weight(0), text(t), milisec(0.0), state() {
+QueryStatistic::QueryStatistic(uint64_t s_id, const std::string& t) :
+		session_id(s_id), disk_IO(0), weight(0), milisec(0.0), text(t), state() {
 	set_state(1);
 	Statistics::get_statistics().get_queries_stats().add_query(*this);
 }
@@ -25,15 +28,14 @@ void QueryStatistic::set_state(unsigned int s) {
 		timeval end;
 		gettimeofday(&end, NULL);
 		
-		milisec = (end.tv_sec - begin.tv_sec) * 1000 + (end.tv_usec + begin.tv_uces) / 1000;
+		milisec = (end.tv_sec - begin.tv_sec) * 1000 + (end.tv_usec + begin.tv_usec) / 1000;
 		state = "INACTIVE";
 	}
 	return;
 }
 
 QueriesStats::QueriesStats() : max_query_time(0.0), time_sum(0.0), avrg_time(0.0), queries_amount(0) {
-	unsigned int statistic_size;	
-	SBQLConfig("statistics").getInt("queryStatsAmount", statistic_size);
+	 unsigned int statistics_size = Config::SBQLConfig("statistics").getIntDefault("queryStatsAmount", 10);
 
 	assert(statistics_size);
 	
@@ -96,16 +98,16 @@ void QueriesStats::end_execute_query(uint64_t session_id) {
 void QueriesStats::end_session(uint64_t session_id) {
 	map<uint64_t, QueryStatistic>::iterator k;
 	
-	if ((k = active_queries.find(session_id)) != active_quereis.end())
+	if ((k = active_queries.find(session_id)) != active_queries.end())
 		active_queries.erase(k);
 	
 	return;
 }
 
 void QueriesStats::add_disk_io(uint64_t session_id, unsigned int count) {
-	map<uint64_t, QueryStatistic>::iterator k
+	map<uint64_t, QueryStatistic>::iterator k;
 	
-	if ((k = active_queries.find(session_id)) != active_quereis.end())
+	if ((k = active_queries.find(session_id)) != active_queries.end())
 		k->second.disk_IO += count;
 	
 	return;

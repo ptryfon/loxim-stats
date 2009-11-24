@@ -8,7 +8,7 @@
 #ifndef QUERYSTATS_H_
 #define QUERYSTATS_H_
 
-#include <SystemStats/SystemStats.h>
+#include <SystemStats/AbstractStats.h>
 #include <time.h>
 #include <sys/time.h>
 #include <list>
@@ -19,7 +19,7 @@ namespace SystemStatsLib {
 
 	class QueryStatistic {
 		public:
-			QueryStatistic(uint64_t session_id, std::string text);
+			QueryStatistic(uint64_t session_id, const std::string &text);
 			~QueryStatistic();
 			void set_state(unsigned int state);
 			
@@ -84,7 +84,7 @@ namespace SystemStatsLib {
 			
 		private:
 			double max_query_time, time_sum, avrg_time;
-			unsigned int quieries_amount;
+			unsigned int queries_amount;
 			QueryList<unsigned int> top_IO_queries;
 			QueryList<double> top_time_queries;
 			std::map<uint64_t, QueryStatistic> active_queries;

@@ -41,7 +41,7 @@ namespace SystemStatsLib {
 		unsigned int statistics_size;
 
 		std::map<std::string, std::string> configs_statistics;
-		std::list<std::map<std::string, std::string>::iterator> latest_statitics;
+		std::list<std::map<std::string, std::string>::iterator> latest_statistics;
 	};
 
 	class EmptyConfigsStats : public AbstractConfigsStats {

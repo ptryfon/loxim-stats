@@ -18,35 +18,29 @@ StatisticSingleton::StatisticSingleton() {
  * we want active and which we don't want.
  */
 
-	//SBQLConfig config("statistics");
-	bool b = true;
+   Config::SBQLConfig config("statistics");
 
-	//config.getBool("sessionStats", b);
-	if (b)
+	if (config.getBoolDefault("sessionStats", true))
 		active_sessions_stats = &sessions_stats;
 	else
 		active_sessions_stats = &empty_sessions_stats;
 
-	//config.getBool("configsStats", b);
-	if (b)
+	if (config.getBoolDefault("configsStats", true))
 		active_configs_stats = &configs_stats;
 	else
 		active_configs_stats = &empty_configs_stats;
 
-	//config.getBool("storeStats", b);
-	if (b)
+	if (config.getBoolDefault("storeStats", true))
 		active_store_stats = &store_stats;
 	else
 		active_store_stats = &empty_store_stats;
 
-	//config.getBool("transactionStats", b);
-	if (b)
+	if (config.getBoolDefault("transactionsStats", true))
 		active_transactions_stats = &transactions_stats;
 	else
 		active_transactions_stats = &empty_transactions_stats;
 
-	//config.getBool("queriesStats", b);
-	if (b)
+	if (config.getBoolDefault("queriesStats", true))
 		active_queries_stats = &queries_stats;
 	else
 		active_queries_stats = &empty_queries_stats;
