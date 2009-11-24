@@ -121,14 +121,14 @@ void DiskUsageStats::addWriteTime(int bytes, double milisec) {
 		writeAllMilisec += milisec;
 
 		if (speed > writeMaxSpeed) {
-			writeMaxSpeed = speed;
+			writeMaxpeed = speed;
 		}
 
 		if (speed < writeMinSpeed) {
 			writeMinSpeed = speed;
 		}
 
-		writeAvgSpeed = (1.0 * allBytes * 1024) / (allMilisec * 1000);
+		writeAvgSpeed = (1.0 * allbytes * 1024) / (allmilisec * 1000);
 	}
 
 }
