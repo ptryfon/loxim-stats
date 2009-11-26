@@ -25,21 +25,22 @@ namespace SystemStatsLib{
 class AbstractTransactionsStats : public AbstractStats {
 	public:
 		AbstractTransactionsStats() : AbstractStats("TRANSACTIONS_STATS") {}
-		virtual ~AbstractTransactionsStats();
-		virtual void start_transaction(unsigned int);
-		virtual void commit_transaction(unsigned int);
-		virtual void abort_transaction(unsigned int);
+		virtual ~AbstractTransactionsStats() {}
 
-		virtual unsigned int get_active_transactions() const;
-		virtual unsigned int get_commited_transactions() const;
-		virtual unsigned int get_aborted_transactions() const;
+		virtual void start_transaction(unsigned int) = 0;
+		virtual void commit_transaction(unsigned int) = 0;
+		virtual void abort_transaction(unsigned int) = 0;
 
-		virtual double get_average_transaction_time() const;
-		virtual double get_max_transaction_time() const;
+		virtual unsigned int get_active_transactions() const = 0;
+		virtual unsigned int get_commited_transactions() const = 0;
+		virtual unsigned int get_aborted_transactions() const = 0;
 
-		virtual void increment_modify_object();
-		virtual void increment_create_object();
-		virtual void increment_delete_object();
+		virtual double get_average_transaction_time() const = 0;
+		virtual double get_max_transaction_time() const = 0;
+
+		virtual void increment_modify_object() = 0;
+		virtual void increment_create_object() = 0;
+		virtual void increment_delete_object() = 0;
 };
 
 	class TransactionsStats : public AbstractTransactionsStats {
@@ -79,6 +80,7 @@ class AbstractTransactionsStats : public AbstractStats {
 
 	class EmptyTransactionsStats : public AbstractTransactionsStats {
 		public:
+			~EmptyTransactionsStats() {}
 
 		void start_transaction(unsigned int) {}
 		void commit_transaction(unsigned int) {}

@@ -165,12 +165,12 @@ namespace Config {
 
 		/* Add config to stats */
 
-		AbstractConfigsStats cs = Statistics::get_statistics().get_configs_stats();
 		ModuleOptions* module = config;
 		while (module != NULL) {
 			ConfOpt* opt = module->options;
 			while (opt != NULL) {
-				cs.add_statistic(string(module->name) + "_" + opt->name, opt->value);
+				Statistics::get_statistics().get_configs_stats().
+					add_statistic(string(module->name) + "_" + opt->name, opt->value);
 				opt = opt->nextOpt;
 			}
 			module = module->nextMod;

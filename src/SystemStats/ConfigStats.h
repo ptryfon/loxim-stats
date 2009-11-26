@@ -19,8 +19,8 @@ namespace SystemStatsLib {
 		public:
 			AbstractConfigsStats() : AbstractStats("CONFIGS_STATS") {}
 			virtual ~AbstractConfigsStats() {}
-			virtual void add_statistic(const std::string& key, const std::string& value);
-			virtual void remove_statistic(const std::string& key);
+			virtual void add_statistic(const std::string& key, const std::string& value) = 0;
+			virtual void remove_statistic(const std::string& key) = 0;
 	};
 
 	class ConfigsStats : public AbstractConfigsStats {
@@ -46,6 +46,8 @@ namespace SystemStatsLib {
 
 	class EmptyConfigsStats : public AbstractConfigsStats {
 		public:
+			~EmptyConfigsStats() {}
+
 			void add_statistic(const std::string&, const std::string&) {}
 			void remove_statistic(const std::string& key) {}
 	};
