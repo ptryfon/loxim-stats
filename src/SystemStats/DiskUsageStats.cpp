@@ -159,3 +159,6 @@ void DiskUsageStats::updatePageWritesHit() {
 
 DiskUsageStats::~DiskUsageStats() {
 }
+
+EmptyDiskUsageStats::~EmptyDiskUsageStats(){}
+AbstractDiskUsageStats::~AbstractDiskUsageStats(){}

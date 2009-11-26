@@ -6,8 +6,6 @@ using namespace SystemStatsLib;
 SessionStats::SessionStats(): AbstractSessionStats(), /*SystemStats("SESSION"),*/ diskUsageStats(DiskUsageStats()) {
 	setUserLogin("UNAUTHORIZED");
 
-	//gettimeofday(&begin,NULL);
-
 	time_t rawtime;
 	time ( &rawtime );
 	setStartTime(rawtime);
@@ -50,6 +48,9 @@ SessionID SessionStats::getId() const {
 	return id;
 }
 
+EmptySessionStats::~EmptySessionStats(){}
+AbstractSessionStats::~AbstractSessionStats(){}
+
 
 SessionStats::~SessionStats() {
 }
@@ -70,5 +71,7 @@ void SessionsStats::removeSessionStats(SessionID key) {
 }
 
 SessionsStats::~SessionsStats() {
-
 }
+
+EmptySessionsStats::~EmptySessionsStats(){}
+AbstractSessionsStats::~AbstractSessionsStats(){}

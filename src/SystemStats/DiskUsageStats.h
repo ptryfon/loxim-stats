@@ -19,7 +19,7 @@ namespace SystemStatsLib{
  */
 	class AbstractDiskUsageStats {
 	  	public:
-			AbstractDiskUsageStats();
+			AbstractDiskUsageStats(){}
 			
 			/* Disk read statistics */
 			virtual void addDiskPageReads(int count) = 0;

@@ -26,7 +26,7 @@ namespace SystemStatsLib{
  
 	class AbstractSessionStats : public AbstractStats {
 		public:
-			AbstractSessionStats();
+			AbstractSessionStats():AbstractStats("SessionStats"){}
 			
 			virtual AbstractDiskUsageStats& getDiskUsageStats() = 0;
 			virtual const AbstractDiskUsageStats& getDiskUsageStats() const = 0;
@@ -119,7 +119,7 @@ namespace SystemStatsLib{
 	    		EmptyDiskUsageStats diskUsageStats;
 		
 		public:
-			EmptySessionStats();
+			EmptySessionStats(){}
 			
 			AbstractDiskUsageStats& getDiskUsageStats() {return diskUsageStats;}
 			const AbstractDiskUsageStats& getDiskUsageStats() const {return diskUsageStats;}
@@ -152,7 +152,7 @@ namespace SystemStatsLib{
 			void setId(SessionID value) {}
 			SessionID getId() const {return -1;};
 
-			void refreshStats(){};
+			void refreshStats(){}
 			~EmptySessionStats();
 	};
 	
