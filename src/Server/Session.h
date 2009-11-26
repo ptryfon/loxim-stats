@@ -159,8 +159,6 @@ namespace Server{
 			std::auto_ptr<UserData> user_data;
 			QParser::QueryParser qPa;
 			Clipboard clipboard;
-			string sessionid;
-			SystemStatsLib::SessionStats stats;
 			char salt[20];
 			Util::Mutex send_mutex;
 			sigset_t mask;	
