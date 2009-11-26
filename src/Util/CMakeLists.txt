@@ -1,6 +1,7 @@
 set(UTILDIR "../Util")
 
 set(Util_SRCS
+	${UTILDIR}/Types.h
 	${UTILDIR}/Backtrace.cpp
 	${UTILDIR}/Backtrace.h
 	${UTILDIR}/Concurrency.cpp

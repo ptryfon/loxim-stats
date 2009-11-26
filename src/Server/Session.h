@@ -16,6 +16,7 @@
 #include <Util/smartptr.h>
 #include <Util/Concurrency.h>
 #include <Util/SignalReceiver.h>
+#include <Util/Types.h>
 
 
 namespace Server{
@@ -149,7 +150,7 @@ namespace Server{
 			Server &server;
 			std::auto_ptr<Protocol::PackageStream> stream;
 			Errors::ErrorConsole &err_cons;
-			uint64_t id;
+			SessionID id;
 			bool shutting_down;
 			int error;
 			QExecutor::QueryExecutor qEx;

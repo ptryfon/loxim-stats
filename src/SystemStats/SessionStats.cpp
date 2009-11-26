@@ -3,10 +3,10 @@
 
 using namespace SystemStatsLib;
 
-SessionStats::SessionStats(): AbstractStats("SESSIONS_STATS"), SystemStats("SESSION"), diskUsageStats(DiskUsageStats()) {
+SessionStats::SessionStats(): AbstractSessionStats(), /*SystemStats("SESSION"),*/ diskUsageStats(DiskUsageStats()) {
 	setUserLogin("UNAUTHORIZED");
 
-	gettimeofday(&begin,NULL);
+	//gettimeofday(&begin,NULL);
 
 	time_t rawtime;
 	time ( &rawtime );
@@ -16,13 +16,13 @@ SessionStats::SessionStats(): AbstractStats("SESSIONS_STATS"), SystemStats("SESS
 }
 
 void SessionStats::refreshStats() {
-	timeval act;
-	gettimeofday(&act,NULL);
+	time_t act;
+	time(&act);
 
-	setDurationInSeconds(act.tv_sec - begin.tv_sec);
+	setDurationInSeconds(difftime(act, startTime));
 }
 
-void SessionStats::setDurationInSeconds(int seconds) {
+void SessionStats::setDurationInSeconds(double seconds) {
 	this->durationInSeconds = seconds;
 }
 
@@ -30,7 +30,7 @@ void SessionStats::setStartTime(time_t value) {
 	this->startTime = value;
 }
 
-time_t SessionStats::getStartTime() {
+time_t SessionStats::getStartTime() const {
 	return startTime;
 }
 
@@ -38,7 +38,7 @@ void SessionStats::setUserLogin(string value) {
 	this->userLogin = value;
 }
 
-string SessionStats::getUserLogin() {
+string SessionStats::getUserLogin() const {
 	return userLogin;
 }
 
@@ -46,7 +46,7 @@ void SessionStats::setId(SessionID value) {
 	this->id = value;
 }
 
-SessionID SessionStats::getId() {
+SessionID SessionStats::getId() const {
 	return id;
 }
 
@@ -65,7 +65,7 @@ SessionStats& SessionsStats::getSessionStats(SessionID key) {
 	return sessionsMap[key];
 }
 
-void SessionsStats::removeSessionStats(const SessionID &key) {
+void SessionsStats::removeSessionStats(SessionID key) {
 	sessionsMap.erase(key);
 }
 

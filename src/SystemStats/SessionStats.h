@@ -3,8 +3,11 @@
 
 #include <time.h>
 #include <sys/time.h>
+#include <map>
+#include <Util/Types.h>
 #include <SystemStats/AbstractStats.h>
 #include <SystemStats/DiskUsageStats.h>
+
 
 using namespace std;
 
@@ -21,8 +24,6 @@ namespace SystemStatsLib{
  * - duration time in seconds
  */
  
- typedef int SessionID;
- 
 	class AbstractSessionStats : public AbstractStats {
 		public:
 			AbstractSessionStats();
@@ -30,10 +31,10 @@ namespace SystemStatsLib{
 			virtual AbstractDiskUsageStats& getDiskUsageStats() = 0;
 			virtual const AbstractDiskUsageStats& getDiskUsageStats() const = 0;
 			
-			virtual void setDurationInSeconds(unsigned int seconds) = 0;
+			virtual void setDurationInSeconds(double seconds) = 0;
 
-			virtual void setStartTime(string value) = 0;
-			virtual string getStartTime() const = 0;
+			virtual void setStartTime(time_t value) = 0;
+			virtual time_t getStartTime() const = 0;
 
 			/* Statystyki odczytu */
 			virtual void addDiskPageReads(int count) = 0;
@@ -70,7 +71,8 @@ namespace SystemStatsLib{
 		  	DiskUsageStats diskUsageStats;
 			SessionID id;
 			string userLogin;
-			timeval begin;
+			time_t startTime;
+			double durationInSeconds;
 			
 		public:
 			SessionStats();
@@ -78,10 +80,10 @@ namespace SystemStatsLib{
 			AbstractDiskUsageStats& getDiskUsageStats() {return diskUsageStats;}
 			const AbstractDiskUsageStats& getDiskUsageStats() const {return diskUsageStats;}
 
-			void setDurationInSeconds(unsigned int seconds);
+			void setDurationInSeconds(double seconds);
 
-			void setStartTime(string value);
-			string getStartTime() const;
+			void setStartTime(time_t value);
+			time_t getStartTime() const;
 
 			/* Statystyki odczytu */
 			void addDiskPageReads(int count) {getDiskUsageStats().addDiskPageReads(count);}
@@ -122,11 +124,10 @@ namespace SystemStatsLib{
 			AbstractDiskUsageStats& getDiskUsageStats() {return diskUsageStats;}
 			const AbstractDiskUsageStats& getDiskUsageStats() const {return diskUsageStats;}
 
-			void setDurationInSeconds(unsigned int seconds){}
+			void setDurationInSeconds(double seconds){}
 
-			void setStartTime(string value) {};
-			string getStartTime() const {return "";}
-
+			void setStartTime(time_t value) {};
+			time_t getStartTime() const {return time(static_cast<time_t *>(0));}
 			/* Statystyki odczytu */
 			void addDiskPageReads(int count) {}
 			int getDiskPageReads() const {return 0;}
@@ -182,8 +183,8 @@ namespace SystemStatsLib{
 	 
 	class SessionsStats: public AbstractSessionsStats{
 
-		map<SessionID, SessionStats> sessionsMap;
-		
+		protected:
+			map<SessionID, SessionStats> sessionsMap;
 		public:
 			SessionsStats();
 
