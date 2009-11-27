@@ -56,16 +56,18 @@ namespace SystemStatsLib {
 			AbstractQueriesStats() : AbstractStats("QUERIES_STATS") {}
 			virtual ~AbstractQueriesStats() {}
 			
-			virtual void add_query(const QueryStatistic&);
-			virtual void begin_execute_query(uint64_t session_id, std::string& stmt);
-			virtual void end_execute_query(uint64_t session_id);
-			virtual void end_session(uint64_t session_id);
-			virtual void add_disk_io(uint64_t session_id, unsigned int count);
+			virtual void add_query(const QueryStatistic&) = 0;
+			virtual void begin_execute_query(uint64_t session_id, std::string& stmt) = 0;
+			virtual void end_execute_query(uint64_t session_id) = 0;
+			virtual void end_session(uint64_t session_id) = 0;
+			virtual void add_disk_io(uint64_t session_id, unsigned int count) = 0;
 	};
 
 	class EmptyQueriesStats : public AbstractQueriesStats {
 		public:
-			void add_query(const QueryStatistic&);
+			~EmptyQueriesStats() {}
+
+			void add_query(const QueryStatistic&) {}
 			void begin_execute_query(uint64_t, std::string&) {}
 			void end_execute_query(uint64_t) {}
 			void end_session(uint64_t) {}

@@ -10,6 +10,8 @@
 
 using namespace SystemStatsLib;
 
+StatisticSingleton Statistics::statistic_singleton;
+
 StatisticSingleton::StatisticSingleton() {
 /* 
  * I really, really hope that SBQLConfig works this way.
