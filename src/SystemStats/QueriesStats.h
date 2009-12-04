@@ -14,13 +14,14 @@
 #include <list>
 #include <map>
 #include <stdint.h>
+#include <Errors/ErrorConsole.h>
+#include <Util/Misc.h>
 
 namespace SystemStatsLib {
 
-	class QueryStatistic {
+	class QueryInformation {
 		public:
-			QueryStatistic(uint64_t session_id, const std::string &text);
-			~QueryStatistic();
+			QueryInformation(uint64_t session_id, const std::string &text);
 			void set_state(unsigned int state);
 			
 			uint64_t session_id;
@@ -31,24 +32,39 @@ namespace SystemStatsLib {
 			timeval begin;
 	};
 	
+	class QueryStatistic : private Util::NonCopyable {
+		public:
+			QueryStatistic(uint64_t session_id, const std::string &text);
+			~QueryStatistic();
+			
+			void set_state(unsigned int state) {return query_information.set_state(state);}
+			const QueryInformation & get_information() const {return query_information;}
+
+		private:
+			QueryInformation query_information;
+	};
+	
 	template<class T>class QueryList {
 		public:
 			QueryList() : size(1) {}
 			void set_size(unsigned int s) {size = s; return;}
-			void add_query(T key, QueryStatistic q)
+			void add_query(T key, const QueryInformation &q)
 			{
-				queries_iterators.push_back(queries.insert(std::pair<T, QueryStatistic>(key, q)));
+				debug_printf(Errors::ErrorConsole::get_instance(Errors::EC_STATS), "inserting\n");
+				queries_iterators.push_back(queries.insert(std::pair<T, QueryInformation>(key, q)));
+				debug_printf(Errors::ErrorConsole::get_instance(Errors::EC_STATS), "inserted\n");
 				if (queries_iterators.size() == size)
 				{
 					queries.erase(queries_iterators.front());
 					queries_iterators.pop_front();
 				}
+				debug_printf(Errors::ErrorConsole::get_instance(Errors::EC_STATS), "if_end\n");
 				return;
 			}
 		private:
 			unsigned int size;
-			std::multimap<T, QueryStatistic> queries;
-			std::list<typename std::multimap<T, QueryStatistic>::iterator> queries_iterators;
+			std::multimap<T, QueryInformation> queries;
+			std::list<typename std::multimap<T, QueryInformation>::iterator> queries_iterators;
 	};
 	
 	class AbstractQueriesStats : public AbstractStats {
@@ -89,7 +105,7 @@ namespace SystemStatsLib {
 			unsigned int queries_amount;
 			QueryList<unsigned int> top_IO_queries;
 			QueryList<double> top_time_queries;
-			std::map<uint64_t, QueryStatistic> active_queries;
+			std::map<uint64_t, QueryInformation> active_queries;
 	};
 }
 

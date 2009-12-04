@@ -6,17 +6,20 @@
 
 using namespace SystemStatsLib;
 
-QueryStatistic::QueryStatistic(uint64_t s_id, const std::string& t) :
+QueryInformation::QueryInformation(uint64_t s_id, const std::string& t) :
 		session_id(s_id), disk_IO(0), weight(0), milisec(0.0), text(t), state() {
 	set_state(1);
+}
+
+QueryStatistic::QueryStatistic(uint64_t session_id, const std::string &text) : query_information(session_id, text) {
 	Statistics::get_statistics().get_queries_stats().add_query(*this);
 }
 
 QueryStatistic::~QueryStatistic() {
-	Statistics::get_statistics().get_queries_stats().end_execute_query(session_id);
+	Statistics::get_statistics().get_queries_stats().end_execute_query(get_information().session_id);
 }
 
-void QueryStatistic::set_state(unsigned int s) {
+void QueryInformation::set_state(unsigned int s) {
 	if (s == 1)
 	{
 		disk_IO = 0;
@@ -44,26 +47,30 @@ QueriesStats::QueriesStats() : max_query_time(0.0), time_sum(0.0), avrg_time(0.0
 }
 
 void QueriesStats::add_query(const QueryStatistic& query) {
-	map<uint64_t, QueryStatistic>::iterator k;
+	map<uint64_t, QueryInformation>::iterator k;
+
+	debug_printf(Errors::ErrorConsole::get_instance(Errors::EC_STATS), "add_begin\n");
 	
-	if ((k = active_queries.find(query.session_id)) == active_queries.end())
-		active_queries.insert(std::pair<uint64_t, QueryStatistic>(query.session_id, query));
+	if ((k = active_queries.find(query.get_information().session_id)) == active_queries.end())
+		active_queries.insert(std::pair<uint64_t, QueryInformation>(query.get_information().session_id, query.get_information()));
 	else
 	{
-		k->second.text = query.text;
+		k->second.text = query.get_information().text;
 		k->second.set_state(1);
 	}
 	
 	++queries_amount;
-	
+
+	debug_printf(Errors::ErrorConsole::get_instance(Errors::EC_STATS), "add_end\n");
 	return;
 }
 
 void QueriesStats::begin_execute_query(uint64_t session_id, std::string& stmt) {
-	map<uint64_t, QueryStatistic>::iterator k;
+	map<uint64_t, QueryInformation>::iterator k;
 	
+	debug_printf(Errors::ErrorConsole::get_instance(Errors::EC_STATS), "begin_begin\n");
 	if ((k = active_queries.find(session_id)) == active_queries.end())
-		active_queries.insert(std::pair<uint64_t, QueryStatistic>(session_id, QueryStatistic(session_id, stmt)));
+		active_queries.insert(std::pair<uint64_t, QueryInformation>(session_id, QueryInformation(session_id, stmt)));
 	else
 	{
 		k->second.text = stmt;
@@ -71,16 +78,18 @@ void QueriesStats::begin_execute_query(uint64_t session_id, std::string& stmt) {
 	}
 	
 	++queries_amount;
-	
+	debug_printf(Errors::ErrorConsole::get_instance(Errors::EC_STATS), "begin_end\n");
 	return;
 }
 
 void QueriesStats::end_execute_query(uint64_t session_id) {
-	map<uint64_t, QueryStatistic>::iterator k;
-	
+	map<uint64_t, QueryInformation>::iterator k;
+	debug_printf(Errors::ErrorConsole::get_instance(Errors::EC_STATS), "end_begin\n");
 	if ((k = active_queries.find(session_id)) != active_queries.end())
 	{
+		debug_printf(Errors::ErrorConsole::get_instance(Errors::EC_STATS), "set_state_begin\n");
 		k->second.set_state(0);
+		debug_printf(Errors::ErrorConsole::get_instance(Errors::EC_STATS), "set_state_end\n");
 		
 		if (max_query_time < k->second.milisec)
 			max_query_time = k->second.milisec;
@@ -88,27 +97,31 @@ void QueriesStats::end_execute_query(uint64_t session_id) {
 		time_sum += k->second.milisec;
 		avrg_time = time_sum / queries_amount;
 		
+		debug_printf(Errors::ErrorConsole::get_instance(Errors::EC_STATS), "add_top\n");
 		top_IO_queries.add_query(k->second.disk_IO, k->second);
+		debug_printf(Errors::ErrorConsole::get_instance(Errors::EC_STATS), "add_time\n");
 		top_time_queries.add_query(k->second.milisec, k->second);
+		debug_printf(Errors::ErrorConsole::get_instance(Errors::EC_STATS), "add_ok\n");
 	}
-	
+	debug_printf(Errors::ErrorConsole::get_instance(Errors::EC_STATS), "end_end\n");
 	return;
 }
 
 void QueriesStats::end_session(uint64_t session_id) {
-	map<uint64_t, QueryStatistic>::iterator k;
-	
+	map<uint64_t, QueryInformation>::iterator k;
+	debug_printf(Errors::ErrorConsole::get_instance(Errors::EC_STATS), "session_end_begin\n");
 	if ((k = active_queries.find(session_id)) != active_queries.end())
 		active_queries.erase(k);
-	
+	debug_printf(Errors::ErrorConsole::get_instance(Errors::EC_STATS), "session_end_end\n");
 	return;
 }
 
 void QueriesStats::add_disk_io(uint64_t session_id, unsigned int count) {
-	map<uint64_t, QueryStatistic>::iterator k;
-	
+	map<uint64_t, QueryInformation>::iterator k;
+	debug_printf(Errors::ErrorConsole::get_instance(Errors::EC_STATS), "disk_io_begin\n");
 	if ((k = active_queries.find(session_id)) != active_queries.end())
 		k->second.disk_IO += count;
+	debug_printf(Errors::ErrorConsole::get_instance(Errors::EC_STATS), "disk_io_end\n");
 	
 	return;
 }
