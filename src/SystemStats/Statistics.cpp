@@ -8,6 +8,8 @@
 #include <SystemStats/Statistics.h>
 #include <Config/SBQLConfig.h>
 
+#include <iostream>
+
 using namespace SystemStatsLib;
 
 StatisticSingleton Statistics::statistic_singleton;

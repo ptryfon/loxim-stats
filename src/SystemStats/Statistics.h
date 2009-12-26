@@ -15,6 +15,7 @@
 #include <SystemStats/QueriesStats.h>
 #include <SystemStats/TransactionsStats.h>
 #include <SystemStats/AbstractStats.h>
+#include <Errors/ErrorConsole.h>
 
 namespace SystemStatsLib {
 /*
@@ -34,11 +35,11 @@ namespace SystemStatsLib {
 	public:
 		StatisticSingleton();
 
-		AbstractSessionsStats& get_sessions_stats() {return *active_sessions_stats;}
-		AbstractConfigsStats& get_configs_stats() {return *active_configs_stats;}
-		AbstractStoreStats& get_store_stats() {return *active_store_stats;}
-		AbstractTransactionsStats& get_transactions_stats() {return *active_transactions_stats;}
-		AbstractQueriesStats& get_queries_stats() {return *active_queries_stats;}
+		AbstractSessionsStats& get_sessions_stats() {debug_printf(Errors::ErrorConsole::get_instance(Errors::EC_STATS), "session_stats\n"); return *active_sessions_stats;}
+		AbstractConfigsStats& get_configs_stats() {debug_printf(Errors::ErrorConsole::get_instance(Errors::EC_STATS), "config_stats\n");return *active_configs_stats;}
+		AbstractStoreStats& get_store_stats() {debug_printf(Errors::ErrorConsole::get_instance(Errors::EC_STATS), "store_stats\n");return *active_store_stats;}
+		AbstractTransactionsStats& get_transactions_stats() {debug_printf(Errors::ErrorConsole::get_instance(Errors::EC_STATS), "transaction_stats\n");return *active_transactions_stats;}
+		AbstractQueriesStats& get_queries_stats() {debug_printf(Errors::ErrorConsole::get_instance(Errors::EC_STATS), "queries_stats\n");return *active_queries_stats;}
 		
 		AbstractStats& get_abstract_stats(const std::string& name);
 		
