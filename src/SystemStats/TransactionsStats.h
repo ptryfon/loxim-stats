@@ -12,6 +12,7 @@
 #include <map>
 #include <time.h>
 #include <sys/time.h>
+#include <Errors/ErrorConsole.h>
 
 using namespace std;
 
@@ -51,12 +52,12 @@ class AbstractTransactionsStats : public AbstractStats {
 		void commit_transaction(unsigned int tid);
 		void abort_transaction(unsigned int tid);
 
-		unsigned int get_active_transactions() const {return active_transactions;}
-		unsigned int get_commited_transactions() const {return commited_transactions;}
-		unsigned int get_aborted_transactions() const {return aborted_transactions;}
+		unsigned int get_active_transactions() const {debug_printf(Errors::ErrorConsole::get_instance(Errors::EC_STATS), "active\n"); return active_transactions;}
+		unsigned int get_commited_transactions() const {debug_printf(Errors::ErrorConsole::get_instance(Errors::EC_STATS), "commited\n"); return commited_transactions;}
+		unsigned int get_aborted_transactions() const {debug_printf(Errors::ErrorConsole::get_instance(Errors::EC_STATS), "aborted\n"); return aborted_transactions;}
 
 		double get_average_transaction_time() const;
-		double get_max_transaction_time() const {return max_time;}
+		double get_max_transaction_time() const {debug_printf(Errors::ErrorConsole::get_instance(Errors::EC_STATS), "maxtime\n"); return max_time;}
 
 		void increment_modify_object() {++modify_object;}
 		void increment_create_object() {++create_object;}

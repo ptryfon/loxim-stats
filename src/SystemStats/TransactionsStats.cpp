@@ -42,6 +42,8 @@ void TransactionsStats::evaluate_time(unsigned int tid) {
 }
 
 void TransactionsStats::commit_transaction(unsigned int tid) {
+	debug_printf(Errors::ErrorConsole::get_instance(Errors::EC_STATS), "commit\n");
+	
 	try {
 		evaluate_time(tid);
 	}
@@ -50,16 +52,25 @@ void TransactionsStats::commit_transaction(unsigned int tid) {
 
 	--active_transactions;
 	++commited_transactions;
+	
+	debug_printf(Errors::ErrorConsole::get_instance(Errors::EC_STATS), "commit ok\n");
 }
 
 void TransactionsStats::abort_transaction(unsigned int tid) {
+	debug_printf(Errors::ErrorConsole::get_instance(Errors::EC_STATS), "abort\n");
+	try {
 	evaluate_time(tid);
+	}
+	catch (...) {
+	}
 
 	--active_transactions;
 	++aborted_transactions;
+	debug_printf(Errors::ErrorConsole::get_instance(Errors::EC_STATS), "abort ok\n");
 }
 
 double TransactionsStats::get_average_transaction_time() const {
+	debug_printf(Errors::ErrorConsole::get_instance(Errors::EC_STATS), "avg time\n");
 	if (!aborted_transactions && !commited_transactions)
 		return 0.0;
 	else
