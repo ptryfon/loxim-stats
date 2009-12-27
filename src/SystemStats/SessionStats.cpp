@@ -2,6 +2,7 @@
 #include <sstream>
 
 using namespace SystemStatsLib;
+using namespace std;
 
 SessionStats::SessionStats(): AbstractSessionStats(), /*SystemStats("SESSION"),*/ diskUsageStats(DiskUsageStats()) {
 	setUserLogin("UNAUTHORIZED");

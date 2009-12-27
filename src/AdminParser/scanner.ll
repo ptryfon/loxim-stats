@@ -20,6 +20,9 @@ ws	[ \t\n]+
 #		{return HASH;}
 ;		{return SEMI;}
 shutdown	{return KW_SHUTDOWN;}
+start		{return KW_START;}
+stop		{return KW_STOP;}
+stats		{return KW_STATS;}
 <<EOF>>		{return ADMIN_EOF;}
 .		{return ERROR;}
 

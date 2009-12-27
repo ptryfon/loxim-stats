@@ -4,6 +4,7 @@
 #include <AdminParser/AdminExecutableTreeNode.h>
 #include <AdminParser/AdminTreeNode.h>
 #include <AdminParser/ShutdownTreeNode.h>
+#include <AdminParser/StatsControlNode.h>
 #include <Errors/Errors.h>
 #include <Errors/Exceptions.h>
 

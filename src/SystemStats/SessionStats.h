@@ -8,10 +8,6 @@
 #include <SystemStats/AbstractStats.h>
 #include <SystemStats/DiskUsageStats.h>
 
-
-using namespace std;
-
-
 namespace SystemStatsLib{
 /*
  * Session stats contains information about:
@@ -54,8 +50,8 @@ namespace SystemStatsLib{
 
 			virtual double getPageWritesHit() const = 0;
 
-			virtual void setUserLogin(string value) = 0;
-			virtual string getUserLogin() const = 0;
+			virtual void setUserLogin(std::string value) = 0;
+			virtual std::string getUserLogin() const = 0;
 
 			virtual void setId(SessionID value) = 0;
 			virtual SessionID getId() const = 0;
@@ -70,7 +66,7 @@ namespace SystemStatsLib{
 		protected:
 		  	DiskUsageStats diskUsageStats;
 			SessionID id;
-			string userLogin;
+			std::string userLogin;
 			time_t startTime;
 			double durationInSeconds;
 			
@@ -103,8 +99,8 @@ namespace SystemStatsLib{
 
 			double getPageWritesHit() const { return getDiskUsageStats().getPageWritesHit();}
 
-			void setUserLogin(string value);
-			string getUserLogin() const;
+			void setUserLogin(std::string value);
+			std::string getUserLogin() const;
 
 			void setId(SessionID value);
 			SessionID getId() const;
@@ -146,8 +142,8 @@ namespace SystemStatsLib{
 
 			double getPageWritesHit() const { return 0;}
 
-			void setUserLogin(string value) {};
-			string getUserLogin() const {return "";}
+			void setUserLogin(std::string value) {};
+			std::string getUserLogin() const {return "";}
 
 			void setId(SessionID value) {}
 			SessionID getId() const {return -1;};
@@ -184,7 +180,7 @@ namespace SystemStatsLib{
 	class SessionsStats: public AbstractSessionsStats{
 
 		protected:
-			map<SessionID, SessionStats> sessionsMap;
+			std::map<SessionID, SessionStats> sessionsMap;
 		public:
 			SessionsStats();
 

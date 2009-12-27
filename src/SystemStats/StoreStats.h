@@ -11,8 +11,6 @@
 #include <SystemStats/AbstractStats.h>
 #include <SystemStats/DiskUsageStats.h>
 
-using namespace std;
-
 namespace SystemStatsLib{
 /*
  * Store stats collect stats related with store module:
