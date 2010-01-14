@@ -1,5 +1,5 @@
 #ifndef FILE_MANAGER_H_
-#define _FILE_MANAGER_H_
+#define FILE_MANAGER_H_
 
 #include <QHash>
 
@@ -32,6 +32,8 @@ class FileManager
 		void change_state(const QString &dir, const QString &file);
 		Qt::CheckState get_state(const QString &dir);
 		Qt::CheckState get_state(const QString &dir, const QString &file);
+
+		QString * get_names();
 
 	private:
 		FileViewer *view;

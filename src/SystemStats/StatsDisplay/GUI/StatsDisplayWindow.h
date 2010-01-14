@@ -5,7 +5,6 @@
 
 #include <SystemStats/StatsDisplay/Logic/FileManager.h>
 #include <SystemStats/StatsDisplay/Logic/GraphManager.h>
-#include <SystemStats/StatsDisplay/GUI/GraphViewer.h>
 
 class QActions;
 class QGridLayout;
@@ -30,7 +29,6 @@ class StatsDisplayWindow : public QMainWindow
 		LogManager log_manager;
 		FileManager file_manager;
 		GraphManager graph_manager;
-		GraphViewer graph_viewer;
 
 		private slots:
 			void open_file();

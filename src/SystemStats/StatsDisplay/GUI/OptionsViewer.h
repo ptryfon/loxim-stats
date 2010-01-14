@@ -3,6 +3,8 @@
 
 #include <QGroupBox>
 
+#include <SystemStats/StatsDisplay/Logic/GraphManager.h>
+
 class QWidget;
 
 class OptionsViewer : public QGroupBox
@@ -10,7 +12,14 @@ class OptionsViewer : public QGroupBox
 	Q_OBJECT
 	
 	public:
-		OptionsViewer(QWidget *parent = 0);
+		OptionsViewer(GraphManager *gm, QWidget *parent = 0);
+
+	private:
+		GraphManager *gm;
+
+	private slots:
+		void new_plot() {return gm->new_plot();}
+		void replot() {return gm->replot();}
 };
 
 #endif

@@ -12,7 +12,8 @@
 #include <SystemStats/StatsDisplay/GUI/OptionsViewer.h>
 
 StatsDisplayWindow::StatsDisplayWindow() : log_manager(new LogViewer),
-	file_manager(new FileViewer, &log_manager)
+	file_manager(new FileViewer, &log_manager),
+	graph_manager(new GraphViewer, &file_manager)
 {
 	QWidget *w = new QWidget;
 	setCentralWidget(w);
@@ -31,9 +32,9 @@ StatsDisplayWindow::StatsDisplayWindow() : log_manager(new LogViewer),
 QGridLayout * StatsDisplayWindow::create_layout()
 {
 	QGridLayout *layout = new QGridLayout;
-	layout->addWidget(&graph_viewer, 0, 0, 4, 3);
+	layout->addWidget(graph_manager.viewer(), 0, 0, 4, 3);
 	layout->addWidget(file_manager.viewer(), 0, 3, 6, 1);
-	layout->addWidget(new OptionsViewer, 4, 0, 1, 3);
+	layout->addWidget(new OptionsViewer(&graph_manager), 4, 0, 1, 3);
 	layout->addWidget(log_manager.viewer(), 5, 0, 1, 3);
 
 	for (int i = 0; i < 4; ++i)
