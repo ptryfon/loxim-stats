@@ -5,6 +5,7 @@
 #include <SystemStats/StatsDisplay/Logic/FileManager.h>
 
 class QProcess;
+class QString;
 
 class GraphManager
 {
@@ -16,6 +17,7 @@ class GraphManager
 
 		void new_plot();
 		void replot();
+		void file_plot(const QString &path);
 
 	private:
 		bool plot_graph();

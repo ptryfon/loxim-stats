@@ -3,6 +3,7 @@
 #include <QGridLayout>
 #include <QMenu>
 #include <QMenuBar>
+#include <QVBoxLayout>
 #include <QWidget>
 
 #include <SystemStats/StatsDisplay/GUI/StatsDisplayWindow.h>
@@ -23,28 +24,22 @@ StatsDisplayWindow::StatsDisplayWindow() : log_manager(new LogViewer),
 	create_actions();
 	create_menu();
 	w->setLayout(create_layout());
-	
+
+	file_view = new FileView(file_manager.viewer(), this);
+
 	setWindowTitle(tr("LoXiM Statistics Display"));
 	setMinimumSize(160, 160);
-	resize(800, 600);
+	resize(800, 300);
+
+	file_view->show();
+	file_view->raise();
 }
 
-QGridLayout * StatsDisplayWindow::create_layout()
+QVBoxLayout * StatsDisplayWindow::create_layout()
 {
-	QGridLayout *layout = new QGridLayout;
-	layout->addWidget(graph_manager.viewer(), 0, 0, 4, 3);
-	layout->addWidget(file_manager.viewer(), 0, 3, 6, 1);
-	layout->addWidget(new OptionsViewer(&graph_manager), 4, 0, 1, 3);
-	layout->addWidget(log_manager.viewer(), 5, 0, 1, 3);
-
-	for (int i = 0; i < 4; ++i)
-	{
-		layout->setColumnMinimumWidth(i, 200);
-		layout->setColumnStretch(i, 1);
-	}
-
-	for (int i = 0; i < 6; ++i)
-		layout->setRowStretch(i, 1);
+	QVBoxLayout *layout = new QVBoxLayout;
+	layout->addWidget(new OptionsViewer(&graph_manager));
+	layout->addWidget(log_manager.viewer());
 
 	return layout;
 }
@@ -62,6 +57,10 @@ void StatsDisplayWindow::create_actions()
 	quit_act = new QAction(tr("&Quit"), this);
 	quit_act->setShortcut(tr("Ctrl+Q"));
 	connect(quit_act, SIGNAL(triggered()), this, SLOT(close()));
+
+	file_window_act = new QAction(tr("&File window"), this);
+	file_window_act->setShortcut(tr("Ctrl+F"));
+	connect(file_window_act, SIGNAL(triggered()), this, SLOT(file_window()));
 
 	help_act = new QAction(tr("&Help"), this);
 	help_act->setShortcut(tr("F1"));
@@ -82,6 +81,9 @@ void StatsDisplayWindow::create_menu()
 	file_menu->addAction(quit_act);
 	
 	options_menu = menuBar()->addMenu(tr("Op&tions"));
+	
+	window_menu = menuBar()->addMenu(tr("&Window"));
+	window_menu->addAction(file_window_act);
 	
 	help_menu = menuBar()->addMenu(tr("&Help"));
 	help_menu->addAction(help_act);
@@ -123,6 +125,14 @@ void StatsDisplayWindow::open_dir()
 
 	file_manager.open_directory(dir);
 
+	return;
+}
+
+void StatsDisplayWindow::file_window()
+{
+	file_view->show();
+	file_view->raise();
+	file_view->activateWindow();
 	return;
 }
 

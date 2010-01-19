@@ -14,10 +14,20 @@
 #include <SystemStats/StatsDisplay/GUI/FileViewer.h>
 #include <SystemStats/StatsDisplay/Logic/FileManager.h>
 
-FileViewer::FileViewer(QWidget *parent) : QGroupBox(parent)
+FileView::FileView(FileViewer *f, QWidget *parent) : QDialog(parent)
 {
-	setTitle("Files");
+	QVBoxLayout *layout = new QVBoxLayout;
+	layout->addWidget(f);
+	setLayout(layout);
 
+	setWindowTitle("File Display");
+
+	setMinimumSize(160, 160);
+	resize(300, 700);
+}
+
+FileViewer::FileViewer(QWidget *parent) : QWidget (parent)
+{
 	QVBoxLayout *layout = new QVBoxLayout;
 	layout->addWidget(tree = new QTreeWidget);
 

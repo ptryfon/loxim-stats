@@ -20,6 +20,7 @@ class OptionsViewer : public QGroupBox
 	private slots:
 		void new_plot() {return gm->new_plot();}
 		void replot() {return gm->replot();}
+		void file_plot();
 };
 
 #endif

@@ -7,8 +7,9 @@
 #include <SystemStats/StatsDisplay/Logic/GraphManager.h>
 
 class QActions;
-class QGridLayout;
+class QVBoxLayout;
 class QMenu;
+class FileView;
 
 class StatsDisplayWindow : public QMainWindow
 {
@@ -18,13 +19,16 @@ class StatsDisplayWindow : public QMainWindow
 		StatsDisplayWindow();
 	
 	private:
-		QGridLayout * create_layout();
+		QVBoxLayout * create_layout();
 		void create_actions();
 		void create_menu();
 
-		QMenu *file_menu, *options_menu, *help_menu;
+		QMenu *file_menu, *options_menu, *window_menu, *help_menu;
 		QAction *open_file_act, *open_dir_act, *quit_act;
+		QAction *file_window_act;
 		QAction *help_act, *about_act;
+
+		FileView *file_view;
 
 		LogManager log_manager;
 		FileManager file_manager;
@@ -33,6 +37,7 @@ class StatsDisplayWindow : public QMainWindow
 		private slots:
 			void open_file();
 			void open_dir();
+			void file_window();
 			void help();
 			void about();
 };

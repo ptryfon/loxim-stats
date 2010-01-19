@@ -1,7 +1,8 @@
 #ifndef FILE_VIEWER_H_
 #define FILE_VIEWER_H_
 
-#include <QGroupBox>
+#include <QDialog>
+#include <QWidget>
 
 class FileManager;
 class QPushButton;
@@ -11,7 +12,7 @@ class QTreeWidget;
 class QTreeWidgetItem;
 class QVBoxLayout;
 
-class FileViewer : public QGroupBox
+class FileViewer : public QWidget
 {
 	Q_OBJECT
 
@@ -41,6 +42,14 @@ class FileViewer : public QGroupBox
 		void remove();
 		void clear();
 		void item_clicked(QTreeWidgetItem *item, int column);
+};
+
+class FileView : public QDialog
+{
+	Q_OBJECT
+
+	public:
+		FileView(FileViewer *f, QWidget *parent = 0);
 };
 
 #endif
