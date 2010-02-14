@@ -44,13 +44,13 @@ cmd:
 opt_semi: 
     | SEMI;
 opt_stats:
-	  KW_ALL;
-	| KW_STORE;
-	| KW_SESSION;
-	| KW_TRANSACTION;
-	| KW_QUERIES;
-	| KW_CONFIG; 
-     
+	 {$$ = KW_ALL;}
+	| KW_ALL { $$ = KW_ALL; }
+	| KW_STORE { $$ = KW_STORE; }
+	| KW_SESSION { $$ = KW_SESSION; }
+	| KW_TRANSACTION { $$ = KW_TRANSACTION; }
+	| KW_QUERIES { $$ = KW_QUERIES; }
+	| KW_CONFIG { $$ = KW_CONFIG; }
 	 
 %%
 

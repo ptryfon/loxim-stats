@@ -22,7 +22,15 @@ ws	[ \t\n]+
 shutdown	{return KW_SHUTDOWN;}
 start		{return KW_START;}
 stop		{return KW_STOP;}
+clear		{return KW_CLEAR;}
 stats		{return KW_STATS;}
+dump		{return KW_DUMP;}
+all		{return KW_ALL;}
+store		{return KW_STORE;}
+session		{return KW_SESSION;}
+transaction	{return KW_TRANSACTION;}
+queries		{return KW_QUERIES;}
+config		{return KW_CONFIG;}
 <<EOF>>		{return ADMIN_EOF;}
 .		{return ERROR;}
 
