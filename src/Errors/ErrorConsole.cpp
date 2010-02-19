@@ -37,6 +37,7 @@ namespace Errors {
 		"QueryExecutor",
 		"QueryParser",
 		"Server",
+		"Stats",
 		"Store",
 		"Store: Classes",
 		"Store: File",

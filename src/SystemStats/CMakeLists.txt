@@ -5,6 +5,7 @@ set(SystemStats_SRCS
 	${SYSTEMSTATSDIR}/Statistics.h
 	${SYSTEMSTATSDIR}/DiskUsageStats.cpp
 	${SYSTEMSTATSDIR}/DiskUsageStats.h
+	${SYSTEMSTATSDIR}/ShareStat.h
 	${SYSTEMSTATSDIR}/ConfigStats.cpp
 	${SYSTEMSTATSDIR}/ConfigStats.h
 	${SYSTEMSTATSDIR}/QueriesStats.cpp
