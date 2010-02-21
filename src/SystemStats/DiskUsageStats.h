@@ -5,8 +5,10 @@
  *      Author: paweltryfon
  */
 
-#ifndef DISKUSAGESTATS_H_
-#define DISKUSAGESTATS_H_
+#ifndef DISKUSAGESTATS_H
+#define DISKUSAGESTATS_H
+
+#include <SystemStats/ShareStat.h>
 
 namespace SystemStatsLib{
 /*
@@ -56,12 +58,12 @@ namespace SystemStatsLib{
 
 	class DiskUsageStats: public AbstractDiskUsageStats{
 		protected:
-			int 	diskPageReads;
-			int 	pageReads;
-			double 	pageReadsHit;
-			int 	diskPageWrites;
-			int 	pageWrites;
-			double 	pageWritesHit;
+			/*int 	diskPageReads;*/
+			/*int 	pageReads;*/
+			/*double 	pageReadsHit;*/
+			/*int 	diskPageWrites;*/
+			/*int 	pageWrites;*/
+			/*double 	pageWritesHit;*/
 
 			double 	readMaxSpeed;
 			double 	readMinSpeed;
@@ -77,26 +79,36 @@ namespace SystemStatsLib{
 			
 			double allBytes;
 			double allMilisec;
+
+			enum AccessType {
+				NO_DISK,
+				DISK,
+				ACCESSTYPE_SIZE
+			};
+
+			ShareStatContainer<AccessType, int> page_reads_stat;
+			ShareStatContainer<AccessType, int> page_writes_stat;
+
 		public:
 			DiskUsageStats();
 
 			/* Disk read statistics */
-			void addDiskPageReads(int count);
-			int getDiskPageReads() const;
+			void addDiskPageReads(int count) { page_reads_stat.add(DISK, count); }
+			int getDiskPageReads() const { return page_reads_stat.get_global(DISK); }
 
-			void addPageReads(int count);
-			int getPageReads() const;
+			void addPageReads(int count) { page_reads_stat.add(NO_DISK, count); }
+			int getPageReads() const { return page_reads_stat.get_global(NO_DISK); }
 
-			double getPageReadsHit() const;
+			double getPageReadsHit() const { return page_reads_stat.get_global_share(NO_DISK); }
 
 			/* Disk write statistics */
-			void addDiskPageWrites(int count);
-			int getDiskPageWrites() const;
+			void addDiskPageWrites(int count) { page_writes_stat.add(DISK, count); }
+			int getDiskPageWrites() const { return page_writes_stat.get_global(DISK); }
 
-			void addPageWrites(int count);
-			int getPageWrites() const;
+			void addPageWrites(int count) { page_writes_stat.add(NO_DISK, count); }
+			int getPageWrites() const {return page_writes_stat.get_global(NO_DISK); }
 
-			double getPageWritesHit() const;
+			double getPageWritesHit() const { return page_writes_stat.get_global_share(NO_DISK); }
 
 			/* Disk read time functions */
 			void addReadTime(int bytes, double milisec);

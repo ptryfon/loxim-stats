@@ -9,7 +9,7 @@ namespace AdminParser{
 			case START_GLOBAL:
 				return execute_global_start(scope);
 			case STOP_GLOBAL:
-				return execute_global_start(scope);
+				return execute_global_stop(scope);
 			case START_DUMP:
 				return execute_dump_start(scope);
 			case STOP_DUMP:
