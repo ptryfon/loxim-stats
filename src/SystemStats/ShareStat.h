@@ -69,7 +69,10 @@ namespace SystemStatsLib {
 		private:
 			ShareStat<Enum, T> global_sharestat;
 	};
-	
+
+	/** 
+	 * ShareStatOnePeriodContainer extends ShareStatContainer class with gathering statistics for some last period of time (locally). 
+	 */ 
 	template <class Enum, class T> class ShareStatOnePeriodContainer: public ShareStatContainer<Enum, T> {
 	
 		public:

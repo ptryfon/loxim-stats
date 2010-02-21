@@ -12,12 +12,6 @@ using namespace SystemStatsLib;
 DiskUsageStats::DiskUsageStats(): page_reads_stat(ACCESSTYPE_SIZE), page_writes_stat(ACCESSTYPE_SIZE) {
 	const double initialMinSpeed = 1000.0;
 	const double initialMaxSpeed = 0.0;
-	//diskPageReads = 0;
-	//pageReads = 0;
-	//pageReadsHit = 1.0;
-	//diskPageWrites = 0;
-	//pageWrites = 0;
-	//pageWritesHit = 1.0;
 
 	readMaxSpeed = initialMinSpeed;
 	readMinSpeed = initialMaxSpeed;
@@ -35,53 +29,6 @@ DiskUsageStats::DiskUsageStats(): page_reads_stat(ACCESSTYPE_SIZE), page_writes_
 	 * - adding standard deviation of speed
 	 */
 }
-
-
-//void DiskUsageStats::addDiskPageReads(int count) {
-	//diskPageReads += count;
-	//pageReads += count;
-	//updatePageReadsHit();
-//}
-
-//int DiskUsageStats::getDiskPageReads() const {
-	//return diskPageReads;
-//}
-
-//void DiskUsageStats::addPageReads(int count) {
-	//pageReads += count;
-	//updatePageReadsHit();
-//}
-
-//int DiskUsageStats::getPageReads() const{
-	//return pageReads;
-//}
-
-//double DiskUsageStats::getPageReadsHit() const {
-	//return pageReadsHit;
-//}
-
-//void DiskUsageStats::addDiskPageWrites(int count) {
-	//diskPageWrites += count;
-	//pageWrites += count;
-	//updatePageWritesHit();
-//}
-
-//int DiskUsageStats::getDiskPageWrites() const {
-	//return diskPageWrites;
-//}
-
-//void DiskUsageStats::addPageWrites(int count) {
-	//pageWrites += count;
-	//updatePageWritesHit();
-//}
-
-//int DiskUsageStats::getPageWrites() const {
-	//return pageWrites;
-//}
-
-//double DiskUsageStats::getPageWritesHit() const {
-	//return pageWritesHit;
-//}
 
 void DiskUsageStats::addReadTime(int bytes, double milisec) {
 	if (milisec > 0 && bytes > 0) {
@@ -144,18 +91,6 @@ double DiskUsageStats::getMaxWriteSpeed() const {
 double DiskUsageStats::getAvgWriteSpeed() const {
 	return writeAvgSpeed;
 }
-
-//void DiskUsageStats::updatePageReadsHit() {
-	//if (pageReads > 0) {
-		//pageReadsHit = (1.0 * (pageReads - diskPageReads)) / pageReads;
-	//}
-//}
-
-//void DiskUsageStats::updatePageWritesHit() {
-	//if (pageWrites > 0) {
-		//pageWritesHit = (1.0 * (pageWrites - diskPageWrites)) / pageWrites;
-	//}
-//}
 
 DiskUsageStats::~DiskUsageStats() {
 }

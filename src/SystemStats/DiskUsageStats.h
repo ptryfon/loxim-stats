@@ -57,14 +57,8 @@ namespace SystemStatsLib{
 	};
 
 	class DiskUsageStats: public AbstractDiskUsageStats{
-		protected:
-			/*int 	diskPageReads;*/
-			/*int 	pageReads;*/
-			/*double 	pageReadsHit;*/
-			/*int 	diskPageWrites;*/
-			/*int 	pageWrites;*/
-			/*double 	pageWritesHit;*/
 
+		protected:
 			double 	readMaxSpeed;
 			double 	readMinSpeed;
 			double 	readAvgSpeed;
