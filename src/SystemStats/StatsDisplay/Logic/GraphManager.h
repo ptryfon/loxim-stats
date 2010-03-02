@@ -1,6 +1,8 @@
 #ifndef GRAPH_MANAGER_H_
 #define GRAPH_MANAGER_H_
 
+#include <QStringList>
+
 #include <SystemStats/StatsDisplay/GUI/GraphViewer.h>
 #include <SystemStats/StatsDisplay/Logic/FileManager.h>
 
@@ -15,13 +17,10 @@ class GraphManager
 
 		GraphViewer *viewer() {return gv;}
 
-		void new_plot();
-		void replot();
-		void file_plot(const QString &path);
+		bool plot_graph(const QStringList &options);
+		void file_plot(const QString &path, const QStringList &options);
 
 	private:
-		bool plot_graph();
-
 		QProcess *plot;
 		GraphViewer *gv;
 		FileManager *fm;

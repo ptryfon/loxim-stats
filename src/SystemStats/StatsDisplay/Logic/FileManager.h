@@ -33,12 +33,13 @@ class FileManager
 		Qt::CheckState get_state(const QString &dir);
 		Qt::CheckState get_state(const QString &dir, const QString &file);
 
-		QString * get_names();
+		const QStringList & get_names();
 
 	private:
 		FileViewer *view;
 		LogManager *log;
 		QHash<QString, DirectoryEntry> entries;
+		QStringList file_names;
 };
 
 #endif

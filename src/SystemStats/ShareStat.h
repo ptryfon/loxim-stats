@@ -53,6 +53,7 @@ namespace SystemStatsLib {
 			{
 				this->global_sharestat = ssc.global_sharestat;
 			}
+			virtual ~ShareStatContainer() {}
 			virtual void reset() 
 			{ 
 				global_sharestat.reset(); 

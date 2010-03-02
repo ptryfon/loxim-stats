@@ -148,10 +148,9 @@ void FileManager::change_state(const QString &dir, const QString &file)
 	return;
 }
 
-QString * FileManager::get_names()
+const QStringList & FileManager::get_names()
 {
-	QString *ret = new QString;
-	uint files = 0;
+	file_names.clear();
 	QHash<QString, DirectoryEntry>::iterator i;
 
 	for (i = entries.begin(); i != entries.end(); ++i)
@@ -164,16 +163,10 @@ QString * FileManager::get_names()
 			do
 			{
 				if (d.entry_state() == Qt::Checked)
-				{
-					if (files)
-						ret->append(", ");
-					ret->append("\'");
-					ret->append(i.key() + "/" + d.entry_file() + "\' ");
-					++files;
-				}
+					file_names << "\'" + i.key() + "/" + d.entry_file() + "\'";
 			} while (d.next_entry());
 		}
 	}
 
-	return ret;
+	return file_names;
 }

@@ -10,8 +10,6 @@ endif (G_PERF_TOOLS_TESTS_ENABLED)
 
 include(${QT_USE_FILE})
 
-SET(QT_USE_QTSVG TRUE)
-
 SET(StatsDisplay_MOC_CPP
 	${STATSDISPLAYGUIDIR}/StatsDisplayWindow.cpp
 	${STATSDISPLAYGUIDIR}/FileViewer.cpp

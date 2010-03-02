@@ -5,7 +5,6 @@
 #include <QPainter>
 #include <QPaintEvent>
 #include <QPushButton>
-#include <QtSvg>
 #include <QString>
 #include <QTabWidget>
 
