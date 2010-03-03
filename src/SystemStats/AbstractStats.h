@@ -15,7 +15,7 @@ namespace SystemStatsLib{
 	class AbstractStats {
 		public:
 			AbstractStats(const std::string& _name) : name(_name) {}
-			const std::string& get_name() {return name;}
+			const std::string& get_name() const {return name;}
 		private:
 			std::string name;
 	};

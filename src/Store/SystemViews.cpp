@@ -1,9 +1,21 @@
 #include <Store/SystemViews.h>
 
+using namespace std;
 using namespace SystemStatsLib;
 
 namespace Store
 {
+	#define INFORMATION_VIEW 					0
+	#define ALL_VIEWS_VIEW 						1
+	#define COUNTER_VIEW								2
+	#define SESSION_STATS_VIEW				3
+	#define STORE_STATS_VIEW					4
+	#define CONFIG_STATS_VIEW					5
+	#define TRANSACTIONS_STATS_VIEW	6
+	#define QUERIES_STATS_VIEW				7
+	#define ROOTS_VIEW									8
+	#define NO_VIEW											9
+
 	SystemViews::SystemViews()
 	{
 #ifdef DEBUG_MODE
@@ -13,36 +25,27 @@ namespace Store
 		usedIdCount = 0;
 		currentId = 0;
 
-		LogicalID* id;
-		int res = createNextId(id);
-		if (res == 0) {
+		LogicalID *id;
+		try {
+			create_next_id(id);
 			DataValue* emptyValue = new DBDataValue("?");
 			emptyObject = new DBObjectPointer(string("EmptyObject"), emptyValue, id);
 			emptyObject->setIsRoot(0);
-		} else {
+		} catch (...) {
 #ifdef DEBUG_MODE
 			*this->ec << "Store::SystemViews::Can't create LID for EmptyObject!";
 #endif
 		}
 
-		/* In this section of code we are registering
-		 * all system views
-		 */
-		registerView("%Information", new InformationView());
-		registerView("%AllViews", new AllViewsView());
-		registerView("%Counter", new CounterView());
-		registerView("%Sessions", new SystemStatsView("SESSIONS_STATS"));
-		registerView("%Store", new SystemStatsView("STORE_STATS"));
-		registerView("%Configs", new SystemStatsView("CONFIGS_STATS"));
-		registerView("%Transactions", new SystemStatsView("TRANSACTIONS_STATS"));
-		registerView("%Queries", new SystemStatsView("QUERIES_STATS"));
-		registerView("%Roots", new RootsView());
-
-		/* Init views */
-		map<string,SystemView*>::iterator iter;
-		for( iter = mapOfViews.begin(); iter != mapOfViews.end(); iter++ ) {
-			iter->second->init(this);
-		}
+		views.push_back(new InformationView(this));
+		views.push_back(new AllViewsView(this));
+		views.push_back(new CounterView(this));
+		views.push_back(new SystemStatsView("SESSION_STATS", this));
+		views.push_back(new SystemStatsView("STORE_STATS", this));
+		views.push_back(new SystemStatsView("CONFIG_STATS", this));
+		views.push_back(new SystemStatsView("TRANSACTIONS_STATS", this));
+		views.push_back(new SystemStatsView("QUERIES_STATS", this));
+		views.push_back(new RootsView(this));
 	}
 
 	SystemViews::~SystemViews()
@@ -53,79 +56,89 @@ namespace Store
 		if (emptyObject) {
 			delete emptyObject;
 		}
+
+		for (unsigned int i = 0; i < views.size(); ++i)
+			delete views[i];
 	}
 
-	vector<int>* SystemViews::getItems(Transaction* tr)
+	vector<int>* SystemViews::get_items(Transaction *tr) const
 	{
 		//cout << "===> SystemViews::getItems(" << tid->getId() << ")" << endl;
-		vector<int>* systemviews = new vector<int>();
+		vector<int>* systemviews = new vector<int>;
 
-		ObjectPointer* object;
-		map<string,SystemView*>::iterator iter;
-		for( iter = mapOfViews.begin(); iter != mapOfViews.end(); iter++ ) {
-			iter->second->refresh(tr, object);
-			if (object) {
-#ifdef DEBUG_MODE
-				*this->ec << "Store::SystemViews::getItems - add view " << (iter->first) << " [" << (object->getLogicalID()->toInteger()) << "]";
-#endif
-				systemviews->push_back(object->getLogicalID()->toInteger());
-			}
+		ObjectPointer *object;
+
+		for (unsigned int i = 0; i < views.size(); ++i) {
+			views[i]->refresh(tr, object);
+			systemviews->push_back(object->getLogicalID()->toInteger());
 		}
 
 		return systemviews;
 	};
 
-	vector<int>* SystemViews::getItems(Transaction* tr, const char* name)
+	vector<int>* SystemViews::get_items(Transaction *tr, string name) const
 	{
 #ifdef DEBUG_MODE
 		*this->ec << "Store::SystemViews::getItems";
 #endif
 
+		unsigned int index = convert_name(name);
+
 		vector<int>* systemviews = new vector<int>();
-		string sname(name);
-		if (mapOfViews.find(sname) != mapOfViews.end()) {
-#ifdef DEBUG_MODE
-			*this->ec << "Store::SystemViews::mapOfViews[" << name << "]";
-#endif
-			ObjectPointer* object;
-			mapOfViews[sname]->refresh(tr, object);
-			if (object) {
-#ifdef DEBUG_MODE
-				*this->ec << "Store::SystemViews::mapOfViews - OBJECT";
-#endif
-				systemviews->push_back(object->getLogicalID()->toInteger());
-			}
+		ObjectPointer *object;
+
+		if (index < views.size()) {
+			views[index]->refresh(tr, object);
+			systemviews->push_back(object->getLogicalID()->toInteger());
 		}
+
 		return systemviews;
 	}
 
-	int SystemViews::getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object)
+	unsigned int SystemViews::convert_name(const string &name) const {
+		if (!name.compare("%Information"))
+			return INFORMATION_VIEW;
+		if (!name.compare("%AllViews"))
+			return ALL_VIEWS_VIEW;
+		if (!name.compare("%COunter"))
+			return COUNTER_VIEW;
+		if (!name.compare("%Sessions"))
+			return SESSION_STATS_VIEW;
+		if (!name.compare("%Store"))
+			return STORE_STATS_VIEW;
+		if (!name.compare("%Configs"))
+			return CONFIG_STATS_VIEW;
+		if (!name.compare("%Transactions"))
+			return TRANSACTIONS_STATS_VIEW;
+		if (!name.compare("%Queries"))
+			return QUERIES_STATS_VIEW;
+		if (!name.compare("Roots"))
+			return ROOTS_VIEW;
+		return NO_VIEW;
+	}
+
+	int SystemViews::get_object(TransactionID *tid, LogicalID *lid,
+		AccessMode mode, ObjectPointer *&object) const
 	{
 		//cout << "===> SystemViews::getObject(" << tid->getId() << ", " << lid->toInteger() << ")" << endl;
-		ObjectPointer* foundObject;
-		map<string, SystemView*>::iterator iter;
-		if (mapOfViews.size() > 0) {
-		for( iter = mapOfViews.begin(); iter != mapOfViews.end(); iter++ ) {
-			//cout << "===> SystemViews::" << (iter->first) << "-" << (iter->second) << endl;
-			if (iter->second) {
-				if (iter->second->getObject(tid, lid, mode, foundObject) == 0) {
-					if (foundObject) {
-						object = foundObject;
-						return 0;
-					}
-				}
+		ObjectPointer *found_object;
+
+		for (unsigned int i = 0; i < views.size(); ++i)
+			if (views[i]->get_object(tid, lid, mode, found_object) == 0) {
+				if (found_object)
+					object = found_object;
+				return 0;
 			}
-		}
-		}
+
 		/* Id Object is still null then put empty object */
 		object = emptyObject;
 		return 0;
 	}
 
-	int SystemViews::createNextId(LogicalID*& id) {
+	void SystemViews::create_next_id(LogicalID *&id) {
 		if (usedIdCount >= 0xFFFFFF) {
 			// All id's used no free available
-			return -2;
+			throw (-2);
 		}
 		unsigned int tabId = currentId >> 5; // divide 32
 		unsigned int tab;
@@ -147,7 +160,7 @@ namespace Store
 						id = new DBLogicalID((unsigned int)(0xFF000000 + (currentId++)));
 						usedIdCount++;
 						tableOfUsedId[tabId] = tab | bitmask;
-						return 0;
+						return;
 					}
 					currentId++;
 					currentBit++;
@@ -162,7 +175,7 @@ namespace Store
 		}
 	}
 
-	void SystemViews::releaseID(LogicalID* id) {
+	void SystemViews::release_id(LogicalID* id) {
 		unsigned int idint = id->toInteger();
 		unsigned int tabId = idint >> 5; // divide 32
 		unsigned int tab = tableOfUsedId[tabId];
@@ -173,48 +186,41 @@ namespace Store
 		usedIdCount--;
 	}
 
-	void SystemViews::registerView(string name, SystemView* view) {
-		mapOfViews[name] = view;
+
+	SystemView::SystemView(SystemViews *views) : systemViews(views), bag(0) {}
+
+	SystemView::~SystemView() {
+		if(bag)
+			delete bag;
 	}
 
-	void SystemView::init(SystemViews* views) {
-		systemViews = views;
-	}
-
-	void SystemView::createObjectPointer(const char* name, DataValue* value, ObjectPointer*& p) {
+	void SystemView::create_object_pointer(const string &name, DataValue *value, ObjectPointer *&p) {
 		LogicalID* id;
-		int res = systemViews->createNextId(id);
 
-		if (res == 0) {
-			p = new DBObjectPointer(string(name), value, id);
+		try {
+			systemViews->create_next_id(id);
+			p = new DBObjectPointer(name, value, id);
 			p->setIsRoot(0);
+		} catch (...) {
 		}
+	}
+
+	void SystemView::refresh(Transaction */*tr*/, ObjectPointer *&object) {
+		object = bag;
 	}
 
 	/*=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 	/* InformationView */
 
-	InformationView::~InformationView() {
-		if (databaseName)
-			delete databaseName;
-		if (databaseVersion)
-			delete databaseVersion;
-		if (bag)
-			delete bag;
-	}
-	;
-
-	void InformationView::init(SystemViews* views) {
-		SystemView::init(views);
-
+	InformationView::InformationView(SystemViews *views) : SystemView(views) {
 		dbNameValue = new DBDataValue();
 		dbNameValue->setString("Loxim");
 
 		dbVerValue = new DBDataValue();
 		dbVerValue->setString("1.0.0.0");
 
-		createObjectPointer("Name", dbNameValue, databaseName);
-		createObjectPointer("Version", dbVerValue, databaseVersion);
+		create_object_pointer("Name", dbNameValue, databaseName);
+		create_object_pointer("Version", dbVerValue, databaseVersion);
 
 		bagValue = new DBDataValue();
 
@@ -224,52 +230,45 @@ namespace Store
 
 		bagValue->setVector(val);
 
-		createObjectPointer("Bag", bagValue, bag);
+		create_object_pointer("Bag", bagValue, this->bag);
 	}
 
-	int InformationView::getObject(TransactionID* /*tid*/, LogicalID* lid, AccessMode /*mode*/, ObjectPointer*& object) {
-		if (bag && (lid->toInteger() == bag->getLogicalID()->toInteger())) object = bag;
-		else if (databaseName && (lid->toInteger() == databaseName->getLogicalID()->toInteger())) object = databaseName;
-		else if (databaseVersion && (lid->toInteger() == databaseVersion->getLogicalID()->toInteger())) object = databaseVersion;
+	InformationView::~InformationView() {
+		if (databaseName)
+			delete databaseName;
+		if (databaseVersion)
+			delete databaseVersion;
+	}
+
+	int InformationView::get_object(TransactionID */*tid*/, LogicalID *lid,
+		AccessMode /*mode*/, ObjectPointer *&object) const {
+
+		if (this->bag && (lid->toInteger() == this->bag->getLogicalID()->toInteger()))
+			object = this->bag;
+		else if (databaseName && (lid->toInteger() == databaseName->getLogicalID()->toInteger()))
+			object = databaseName;
+		else if (databaseVersion && (lid->toInteger() == databaseVersion->getLogicalID()->toInteger()))
+			object = databaseVersion;
 		else {
 			return -1;
 		}
 		return 0;
 	}
 
-	void InformationView::refresh(Transaction */*tr*/, ObjectPointer*& object) {
-		object = bag;
-	}
-
 	/*=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 	/* AllViewsView */
 
-	AllViewsView::~AllViewsView() {
-
-		if (viewsName) {
-			for (unsigned int i = 0; i < viewsName->size(); i++) {
-				delete (*viewsName)[i];
-			}
-			delete viewsName;
-		}
-		if (bag)
-			delete bag;
-	}
-	;
-
-	void AllViewsView::init(SystemViews* views) {
-		SystemView::init(views);
-
+	AllViewsView::AllViewsView(SystemViews *views) : SystemView(views) {
 		vector<LogicalID*>* val = new vector<LogicalID*>();
 
 		viewsName = new vector<ObjectPointer*>();
-		map<string,SystemView*>::iterator iter;
-		for( iter = views->mapOfViews.begin(); iter != views->mapOfViews.end(); iter++ ) {
-			DataValue* dbNameValue = new DBDataValue();
-			dbNameValue->setString(iter->first);
 
-			ObjectPointer* object;
-			createObjectPointer("View", dbNameValue, object);
+		for (unsigned int i = 0; i < views->views.size(); ++i) {
+			DataValue* dbNameValue = new DBDataValue();
+			dbNameValue->setInt(i);
+
+			ObjectPointer *object;
+			create_object_pointer("View", dbNameValue, object);
 
 			if (object) {
 				viewsName->push_back(object);
@@ -279,11 +278,23 @@ namespace Store
 
 		DataValue* bagValue = new DBDataValue();
 		bagValue->setVector(val);
-		createObjectPointer("Bag", bagValue, bag);
+		create_object_pointer("Bag", bagValue, this->bag);
 	}
 
-	int AllViewsView::getObject(TransactionID* /*tid*/, LogicalID* lid, AccessMode /*mode*/, ObjectPointer*& object) {
-		if (bag && (lid->toInteger() == bag->getLogicalID()->toInteger())) object = bag;
+	AllViewsView::~AllViewsView() {
+		if (viewsName) {
+			for (unsigned int i = 0; i < viewsName->size(); i++) {
+				delete (*viewsName)[i];
+			}
+			delete viewsName;
+		}
+	}
+
+	int AllViewsView::get_object(TransactionID */*tid*/, LogicalID *lid,
+		AccessMode /*mode*/, ObjectPointer *&object) const {
+
+		if (this->bag && (lid->toInteger() == this->bag->getLogicalID()->toInteger()))
+			object = this->bag;
 		else {
 			for (unsigned int i=0; i<viewsName->size(); i++) {
 				if ((*viewsName)[i]->getLogicalID()->toInteger() == lid->toInteger()) {
@@ -296,45 +307,45 @@ namespace Store
 		return 0;
 	}
 
-	void AllViewsView::refresh(Transaction */*tr*/, ObjectPointer*& object) {
-		object = bag;
-	}
-
 	/*=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 	/* CounterView */
 
-	CounterView::~CounterView() {
-		if (count)
-			delete count;
-	}
-	;
-
-	void CounterView::init(SystemViews* views) {
-		SystemView::init(views);
-
+	CounterView::CounterView(SystemViews *views) : SystemView(views) {
 		c = 0;
 
 		DataValue* dbCount = new DBDataValue();
 		dbCount->setInt(c);
 
-		createObjectPointer("Count", dbCount, count);;
+		create_object_pointer("Count", dbCount, this->bag);
 	}
 
-	int CounterView::getObject(TransactionID* /*tid*/, LogicalID* lid, AccessMode /*mode*/, ObjectPointer*& object) {
-		if (count && (lid->toInteger() == count->getLogicalID()->toInteger())) object = count;
+	int CounterView::get_object(TransactionID* /*tid*/, LogicalID* lid,
+		AccessMode /*mode*/, ObjectPointer*& object) const {
+
+		if (this->bag && (lid->toInteger() == this->bag->getLogicalID()->toInteger()))
+			object = this->bag;
 		else {
 			return -1;
 		}
 		return 0;
 	}
 
-	void CounterView::refresh(Transaction */*tr*/, ObjectPointer*& object) {
-		count->getValue()->setInt(c++);
-		object = count;
+	void CounterView::refresh(Transaction */*tr*/, ObjectPointer *&object) {
+		this->bag->getValue()->setInt(c++);
+		object = this->bag;
 	}
 
 	/*=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 	/* SystemStatsView */
+
+	SystemStatsView::SystemStatsView(const string &name, SystemViews *views) :
+	SystemView(views), name(name) {
+
+		AbstractStats as = Statistics::get_statistics().get_abstract_stats(name);
+
+		viewsName = new vector<ObjectPointer*>();
+		bag = create_object_from_abstract_stats(as);
+	}
 
 	SystemStatsView::~SystemStatsView() {
 		if (viewsName) {
@@ -343,12 +354,9 @@ namespace Store
 			}
 			delete viewsName;
 		}
-		if (bag)
-			delete bag;
 	}
-	;
 
-	ObjectPointer* SystemStatsView::createObjectFromAbstractStats(AbstractStats& as) {
+	ObjectPointer* SystemStatsView::create_object_from_abstract_stats(const AbstractStats &as) {
 /*
 		map<string, StatsValue*> m = as->getAllStats();
 		map<string, StatsValue*>::iterator cur = m.begin();
@@ -392,23 +400,16 @@ namespace Store
 		DataValue* bagValue = new DBDataValue();
 		bagValue->setVector(val);
 		ObjectPointer* res;
-		createObjectPointer(as.get_name().c_str(), bagValue, res);
+		create_object_pointer(as.get_name().c_str(), bagValue, res);
 		return res;
 	}
 
-	void SystemStatsView::init(SystemViews* views) {
-		SystemView::init(views);
+	int SystemStatsView::get_object(TransactionID */*tid*/, LogicalID *lid,
+	AccessMode /*mode*/, ObjectPointer *&object) const {
 
-		AbstractStats as = Statistics::get_statistics().get_abstract_stats(name);
-
-		viewsName = new vector<ObjectPointer*>();
-		bag = createObjectFromAbstractStats(as);
-	}
-
-	int SystemStatsView::getObject(TransactionID* /*tid*/, LogicalID* lid, AccessMode /*mode*/, ObjectPointer*& object) {
-		if (bag && (lid->toInteger() == bag->getLogicalID()->toInteger())) {
+		if (this->bag && (lid->toInteger() == this->bag->getLogicalID()->toInteger())) {
 			//cout << "    ===> SystemStatsViews::getObject(" << tid->getId() << ", " << lid->toInteger() << ") = BAG" << endl;
-			object = bag;
+			object = this->bag;
 		}
 		else {
 			for (unsigned int i=0; i<viewsName->size(); i++) {
@@ -424,55 +425,51 @@ namespace Store
 		return 0;
 	}
 
-	void SystemStatsView::refresh(Transaction */*tr*/, ObjectPointer*& object) {
+	void SystemStatsView::refresh(Transaction */*tr*/, ObjectPointer *&object) {
 		if (viewsName) {
 			for (unsigned int i = 0; i < viewsName->size(); i++) {
 				delete (*viewsName)[i];
 			}
 			delete viewsName;
 		}
-		delete bag;
+		delete this->bag;
 
 		AbstractStats as = Statistics::get_statistics().get_abstract_stats(name);
-		//as.refreshStats();
 
 		viewsName = new vector<ObjectPointer*>();
-		bag = createObjectFromAbstractStats(as);
-		object = bag;
+		this->bag = create_object_from_abstract_stats(as);
+		object = this->bag;
 	}
 
 	/*=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 	/* RootsView */
 
+	RootsView::RootsView(SystemViews *views) : SystemView(views) {\
+		bagValue = new DBDataValue();
+		vector<LogicalID*>* val = new vector<LogicalID*>();
+		bagValue->setVector(val);
+		create_object_pointer("Bag", bagValue, this->bag);
+//std::cerr << " + bag LID: " << bag->getLogicalID() << std::endl;
+	}
+
 	RootsView::~RootsView() {
 		release();
 	}
 
-	void RootsView::init(SystemViews* views)
-	{
-		SystemView::init(views);
+	int RootsView::get_object(TransactionID */*tid*/, LogicalID *lid,
+		AccessMode /*mode*/, ObjectPointer *&object) const {
 
-		bagValue = new DBDataValue();
-		vector<LogicalID*>* val = new vector<LogicalID*>();
-		bagValue->setVector(val);
-		createObjectPointer("Bag", bagValue, bag);
-//std::cerr << " + bag LID: " << bag->getLogicalID() << std::endl;
-	}
-
-	int RootsView::getObject(TransactionID* /*tid*/, LogicalID* lid, AccessMode /*mode*/, ObjectPointer*& object)
-	{
 //std::cerr << " + %Roots getObj lid: " << lid->toInteger() << std::endl;
-		if (bag != NULL && *lid == *bag->getLogicalID()) {
-			object = bag;
+		if (this->bag != NULL && *lid == *this->bag->getLogicalID()) {
+			object = this->bag;
 			return 0;
 		}
 		vector<ObjectPointer*>::iterator it;
-		for (it = objects.begin(); it != objects.end(); ++it) {
-			if (*lid == *(*it)->getLogicalID()) {
-				object = *it;
+		for (unsigned int i = 0; i < objects.size(); ++i)
+			if (*lid == *(objects[i]->getLogicalID())) {
+				object = objects[i];
 				return 0;
 			}
-		}
 		return -1;
 	}
 
@@ -481,7 +478,7 @@ namespace Store
 //std::cerr << " + %Roots refr" << std::endl;
 		release();
 		fetch(tr);
-		object = bag;
+		object = this->bag;
 	}
 
 	void RootsView::fetch(Transaction *tr)
@@ -506,7 +503,7 @@ namespace Store
 					continue;
 				curValue = new DBDataValue();
 				curValue->setPointer((*it)->getLogicalID());
-				createObjectPointer((*it)->getName().c_str(), curValue, cur);
+				create_object_pointer((*it)->getName().c_str(), curValue, cur);
 //std::cerr << " + cur LID: " << cur->getLogicalID()->toInteger() << std::endl;
 				objects.push_back(cur);
 				bagVector->push_back(cur->getLogicalID());
@@ -515,19 +512,19 @@ namespace Store
 		}
 
 		bagValue->setVector(bagVector);
-		createObjectPointer("Bag", bagValue, bag);
+		create_object_pointer("Bag", bagValue, this->bag);
 //std::cerr << " + bag LID: " << bag->getLogicalID()->toInteger() << std::endl;
 	}
 
 	void RootsView::release()
 	{
-		if (bag == NULL)
+		if (this->bag)
 			return;
 		vector<ObjectPointer*>::iterator it;
 		for (it = objects.begin(); it != objects.end(); ++it)
 			delete *it;
-		delete bag;
-		bag = NULL;
+		delete this->bag;
+		this->bag = NULL;
 		objects.clear();
 	}
 

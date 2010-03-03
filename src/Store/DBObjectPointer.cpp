@@ -34,7 +34,7 @@ namespace Store
 	};
 
 	
-	DBObjectPointer::DBObjectPointer(string p_name, DataValue* dv)
+	DBObjectPointer::DBObjectPointer(const string &p_name, DataValue* dv)
 	{
 #ifdef DBOP_DEBUG
 		cout << "DBObjectPointer::Constructor(string, DV*)\n";
@@ -44,7 +44,7 @@ namespace Store
 		value = dv->clone();
 	};
 
-	DBObjectPointer::DBObjectPointer(string p_name, DataValue* dv, LogicalID* p_lid)
+	DBObjectPointer::DBObjectPointer(const string &p_name, DataValue* dv, LogicalID* p_lid)
 	{
 #ifdef DBOP_DEBUG
 		cout << "DBObjectPointer::Constructor(string, DV*, LID*)\n";

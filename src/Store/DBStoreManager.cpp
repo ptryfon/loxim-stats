@@ -190,7 +190,7 @@ namespace Store
 			if(lid->toInteger() & 0xFF000000) {
 				debug_printf(*ec, "Store::Manager::getObject from systemViews LID = %u\n", lid->toInteger());
 			/* Obiekty widoku systemowego, gdy zapalone są bity 31-24*/
-			return systemviews->getObject( tid, lid, mode, object);
+			return systemviews->get_object( tid, lid, mode, object);
 			}
 
 		physical_id *p_id = NULL;
@@ -972,7 +972,7 @@ int DBStoreManager::getClassesLID(TransactionID* tid, vector<LogicalID*>*& p_cla
 		#endif
 				p_systemviews = new vector<LogicalID*>(0);
 				vector<int>* rvec;
-				rvec = systemviews->getItems(tr, name.c_str());
+				rvec = systemviews->get_items(tr, name);
 
 				vector<int>::iterator obj_iter;
 				for(obj_iter=rvec->begin(); obj_iter!=rvec->end(); obj_iter++)

@@ -29,9 +29,6 @@ namespace Store
 #include <Errors/ErrorConsole.h>
 #endif
 
-using namespace std;
-using namespace SystemStatsLib;
-
 namespace Store
 {
 	class SystemViews
@@ -44,42 +41,42 @@ namespace Store
 		unsigned int usedIdCount;
 		unsigned int currentId;
 
-		ObjectPointer* emptyObject;
+		ObjectPointer *emptyObject;
 	public:
-		map<string, SystemView*> mapOfViews;
+		std::vector<SystemView*> views;
 
 		SystemViews();
 		virtual ~SystemViews();
 
-		vector<int>* getItems(Transaction* tr);
-		vector<int>* getItems(Transaction* tr, const char* name);
+		vector<int>* get_items(Transaction *tr) const;
+		vector<int>* get_items(Transaction *tr, string name) const;
 
-		virtual int getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object);
+		virtual int get_object(TransactionID *tid, LogicalID *lid,
+			AccessMode mode, ObjectPointer *&object) const;
 
-		int createNextId(LogicalID*& id);
-		void releaseID(LogicalID* id);
-
-		void registerView(string name, SystemView* view);
+		unsigned int convert_name(const std::string &name) const;
+		void create_next_id(LogicalID *&id);
+		void release_id(LogicalID *id);
 	};
 
 	class SystemView
 	{
 		protected:
-			SystemViews* systemViews;
+			SystemViews *systemViews;
+			ObjectPointer *bag;
 		public:
-			SystemView() {}
-			virtual ~SystemView() {};
-			virtual void init(SystemViews* views);
-			virtual int getObject(TransactionID* /*tid*/, LogicalID* /*lid*/, AccessMode /*mode*/, ObjectPointer*& /*object*/) {return -1; } ;
-			virtual void refresh(Transaction* /*tr*/, ObjectPointer*& /*object*/) {};
+			SystemView(SystemViews *views);
+			virtual ~SystemView();
+			virtual int get_object(TransactionID */*tid*/, LogicalID */*lid*/,
+				AccessMode /*mode*/, ObjectPointer *&/*object*/) const = 0;
+			virtual void refresh(Transaction */*tr*/, ObjectPointer *&/*object*/);
 
-			void createObjectPointer(const char* name, DataValue* value, ObjectPointer*& p);
+			void create_object_pointer(const std::string &name, DataValue *value, ObjectPointer *&p);
 	};
 
 	class InformationView: public SystemView
 	{
 		private:
-			ObjectPointer* bag;
 			ObjectPointer* databaseName;
 			ObjectPointer* databaseVersion;
 
@@ -87,68 +84,61 @@ namespace Store
 			DataValue* dbVerValue;
 			DataValue* bagValue;
 		public:
-			InformationView() {};
-			virtual ~InformationView();
-			void init(SystemViews* views);
-			int getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object);
-			void refresh(Transaction* tr, ObjectPointer*& object);
+			InformationView(SystemViews *views);
+			~InformationView();
+			int get_object(TransactionID *tid, LogicalID *lid,
+				AccessMode mode, ObjectPointer *&object) const;
 	};
 
 	class AllViewsView: public SystemView
 	{
 		private:
-			ObjectPointer* bag;
-			vector<ObjectPointer*>* viewsName;
+			std::vector<ObjectPointer*>* viewsName;
 		public:
-			AllViewsView() {};
-			virtual ~AllViewsView();
-			void init(SystemViews* views);
-			int getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object);
-			void refresh(Transaction* tr, ObjectPointer*& object);
+			AllViewsView(SystemViews *views);
+			~AllViewsView();
+			int get_object(TransactionID *tid, LogicalID *lid,
+				AccessMode mode, ObjectPointer *&object) const;
 	};
 
 	class CounterView: public SystemView
 	{
 		private:
-			ObjectPointer* count;
 			int c;
 		public:
-			CounterView() {};
-			virtual ~CounterView();
-			void init(SystemViews* views);
-			int getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object);
-			void refresh(Transaction* tr, ObjectPointer*& object);
+			CounterView(SystemViews *views);
+			int get_object(TransactionID *tid, LogicalID *lid,
+				AccessMode mode, ObjectPointer *&object) const;
+			void refresh(Transaction *tr, ObjectPointer *&object);
 	};
 
 	class SystemStatsView: public SystemView
 		{
 			private:
-				ObjectPointer* bag;
-				vector<ObjectPointer*>* viewsName;
-				string name;
+				std::vector<ObjectPointer*>* viewsName;
+				std::string name;
 			public:
-				SystemStatsView(string name) {this->name = name;};
-				virtual ~SystemStatsView();
-				ObjectPointer* createObjectFromAbstractStats(AbstractStats& as);
-				void init(SystemViews* views);
-				int getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object);
-				void refresh(Transaction* tr, ObjectPointer*& object);
+				SystemStatsView(const std::string &name, SystemViews *views);
+				~SystemStatsView();
+				ObjectPointer* create_object_from_abstract_stats(const SystemStatsLib::AbstractStats &as);
+				int get_object(TransactionID *tid, LogicalID *lid,
+					AccessMode mode, ObjectPointer *&object) const;
+				void refresh(Transaction *tr, ObjectPointer *&object);
 		};
 
 	class RootsView: public SystemView {
 	private:
-		ObjectPointer *bag;
 		DataValue *bagValue;
 		std::vector<ObjectPointer*> objects;
 
 		void fetch(Transaction *tr);
 		void release();
 	public:
-		RootsView() {};
-		virtual ~RootsView();
-		void init(SystemViews* views);
-		int getObject(TransactionID* tid, LogicalID* lid, AccessMode mode, ObjectPointer*& object);
-		void refresh(Transaction* tr, ObjectPointer*& object);
+		RootsView(SystemViews *views);
+		~RootsView();
+		int get_object(TransactionID *tid, LogicalID *lid,
+			AccessMode mode, ObjectPointer *&object) const;
+		void refresh(Transaction *tr, ObjectPointer *&object);
 	};
 
 };

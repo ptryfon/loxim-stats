@@ -12,8 +12,8 @@ namespace Store
 	public:
 		DBObjectPointer();
 		DBObjectPointer(LogicalID*);
-		DBObjectPointer(string name, DataValue*);
-		DBObjectPointer(string name, DataValue*, LogicalID*);
+		DBObjectPointer(const string &name, DataValue*);
+		DBObjectPointer(const string &name, DataValue*, LogicalID*);
 		~DBObjectPointer();
 
 		virtual LogicalID* getLogicalID() const;
