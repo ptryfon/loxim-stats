@@ -6,7 +6,7 @@
 using namespace SystemStatsLib;
 using namespace std;
 
-ConfigsStats::ConfigsStats() {
+ConfigStats::ConfigStats() {
 /*
  * statistics_size MUST be a positive integer. A value of 0 will cause an error
  * during the next add_statistic
@@ -18,14 +18,14 @@ ConfigsStats::ConfigsStats() {
 	assert(statistics_size);
 }
 
-void ConfigsStats::add_statistic(const string& key, const string& value) {
+void ConfigStats::add_statistic(const string& key, const string& value) {
 	pair<map<string, string>::iterator, bool> p_itb;
 
-	p_itb = configs_statistics.insert(pair<string, string>(key, value));
+	p_itb = config_statistics.insert(pair<string, string>(key, value));
 
-	if (p_itb.second && configs_statistics.size() > statistics_size)
+	if (p_itb.second && config_statistics.size() > statistics_size)
 	{
-		configs_statistics.erase(latest_statistics.front());
+		config_statistics.erase(latest_statistics.front());
 		latest_statistics.pop_front();
 	}
 
@@ -34,11 +34,11 @@ void ConfigsStats::add_statistic(const string& key, const string& value) {
 	return;
 }
 
-void ConfigsStats::remove_statistic(const string& key) {
-	map<string, string>::iterator it = configs_statistics.find(key);
+void ConfigStats::remove_statistic(const string& key) {
+	map<string, string>::iterator it = config_statistics.find(key);
 
-	if (it == configs_statistics.end())
-		throw "Key not found";
+	if (it == config_statistics.end());
+		//throw "Key not found";
 	else
 	{
 		for (list<map<string, string>::iterator>::iterator i = latest_statistics.begin();
@@ -48,7 +48,14 @@ void ConfigsStats::remove_statistic(const string& key) {
 					latest_statistics.erase(i);
 					break;
 				}
-		configs_statistics.erase(it);
+		config_statistics.erase(it);
 		return;
 	}
+}
+
+AbstractConfigStats & ConfigStats::operator +=(const ConfigStats &rhs) {
+	for(map<string, string>::const_iterator i = rhs.config_statistics.begin();
+		i != rhs.config_statistics.end(); ++i)
+		add_statistic(i->first, i->second);
+	return *this;
 }

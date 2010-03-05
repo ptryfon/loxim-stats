@@ -26,8 +26,8 @@ void TransactionsStats::evaluate_time(unsigned int tid) {
 	double transaction_time;
 	map<unsigned int, time_t>::iterator it;
 
-	if ((it = transactions_map.find(tid)) == transactions_map.end())
-		throw "Transaction ID not found";
+	if ((it = transactions_map.find(tid)) == transactions_map.end());
+		//throw "Transaction ID not found";
 
 	transaction_time = difftime(time(0), it->second);
 
@@ -75,4 +75,20 @@ double TransactionsStats::get_average_transaction_time() const {
 		return 0.0;
 	else
 		return overall_time / (aborted_transactions + commited_transactions);
+}
+
+AbstractTransactionsStats & TransactionsStats::operator +=(const TransactionsStats &rhs) {
+
+	active_transactions += rhs.active_transactions;
+	aborted_transactions += rhs.aborted_transactions;
+	commited_transactions += rhs.commited_transactions;
+
+	modify_object += rhs.modify_object;
+	create_object += rhs.create_object;
+	delete_object += rhs.delete_object;
+
+	max_time = max(max_time, rhs.max_time);
+	overall_time += rhs.overall_time;
+
+	return *this;
 }

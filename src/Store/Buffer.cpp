@@ -84,9 +84,11 @@ namespace Store
 	{
 		int retval;
 		if (tid != NULL) {
-			Statistics::get_statistics().addDiskPageReads(tid->getSessionId(), tid->getId(), 1);
+			Statistics::get_statistics(pthread_self()).
+				addDiskPageReads(tid->getSessionId(), tid->getId(), 1);
 		} else {
-			Statistics::get_statistics().addDiskPageReads(-1, -1, 1);
+			Statistics::get_statistics(pthread_self()).
+				addDiskPageReads(-1, -1, 1);
 		}
 		n_page = new buffer_page;
 		n_page->page = new char[STORE_PAGESIZE];
@@ -192,9 +194,11 @@ namespace Store
 		::pthread_mutex_lock(&dbwriter.mutex);
 
 		if (tid != NULL) {
-			Statistics::get_statistics().addPageReads(tid->getSessionId(), tid->getId(), 1);
+			Statistics::get_statistics(pthread_self()).
+				addPageReads(tid->getSessionId(), tid->getId(), 1);
 		} else {
-			Statistics::get_statistics().addPageReads(-1, -1, 1);
+			Statistics::get_statistics(pthread_self()).
+				addPageReads(-1, -1, 1);
 		}
 		buffer_addr_t buffer_addr = make_pair(pp->getFileID(), pp->getPageID());
 		buffer_hash_t::iterator it = buffer_hash.find(buffer_addr);
@@ -253,9 +257,11 @@ namespace Store
 		::pthread_mutex_lock(&dbwriter.mutex);
 
 		if (tid != NULL) {
-					Statistics::get_statistics().addPageWrites(tid->getSessionId(), tid->getId(), 1);
+					Statistics::get_statistics(pthread_self()).
+						addPageWrites(tid->getSessionId(), tid->getId(), 1);
 				} else {
-					Statistics::get_statistics().addPageWrites(-1, -1, 1);
+					Statistics::get_statistics(pthread_self()).
+						addPageWrites(-1, -1, 1);
 				}
 
 		buffer_addr_t buffer_addr = make_pair(pp->getFileID(), pp->getPageID());
@@ -273,9 +279,11 @@ namespace Store
 
 				n_page->dirty = 1;
 				if (tid != NULL) {
-							Statistics::get_statistics().addDiskPageWrites(tid->getSessionId(), tid->getId(), 1);
+							Statistics::get_statistics(pthread_self()).
+								addDiskPageWrites(tid->getSessionId(), tid->getId(), 1);
 						} else {
-							Statistics::get_statistics().addDiskPageWrites(-1, -1, 1);
+							Statistics::get_statistics(pthread_self()).
+								addDiskPageWrites(-1, -1, 1);
 						}
 				dbwriter.dirty_pages++;
 			}
@@ -301,11 +309,15 @@ namespace Store
 		if (it != buffer_hash.end() && (*it).second.haspage) {
 			n_page = &((*it).second);
 			if (tid != NULL) {
-				Statistics::get_statistics().addPageWrites(tid->getSessionId(), tid->getId(), 1);
-				Statistics::get_statistics().addDiskPageWrites(tid->getSessionId(), tid->getId(), 1);
+				Statistics::get_statistics(pthread_self()).
+					addPageWrites(tid->getSessionId(), tid->getId(), 1);
+				Statistics::get_statistics(pthread_self()).
+					addDiskPageWrites(tid->getSessionId(), tid->getId(), 1);
 			} else {
-				Statistics::get_statistics().addPageWrites(-1, -1, 1);
-				Statistics::get_statistics().addDiskPageWrites(-1, -1, 1);
+				Statistics::get_statistics(pthread_self()).
+					addPageWrites(-1, -1, 1);
+				Statistics::get_statistics(pthread_self()).
+					addDiskPageWrites(-1, -1, 1);
 			}
 			file->writePage((*it).first.first, (*it).first.second, n_page->page);
 			n_page->dirty = 0;

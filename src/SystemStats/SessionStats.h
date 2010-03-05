@@ -19,7 +19,13 @@ namespace SystemStatsLib{
  * - start session time
  * - duration time in seconds
  */
- 
+
+	class AbstractSessionsStats;
+	class SessionsStats;
+	class EmptySessionsStats;
+	/* Forward declarations.
+	 */
+
 	class AbstractSessionStats : public AbstractStats {
 		public:
 			AbstractSessionStats():AbstractStats("SessionStats"){}
@@ -153,7 +159,7 @@ namespace SystemStatsLib{
 	};
 	
 	/**
-	 * AbstractSessionsStats class
+	 * AbstractSessionStats class
 	 */
 	class AbstractSessionsStats : public AbstractStats {
 		public:
@@ -168,7 +174,10 @@ namespace SystemStatsLib{
 			void addPageReads(SessionID sessionId, int count) {this->getSessionStats(sessionId).addPageReads(count);}
 			void addDiskPageWrites(SessionID sessionId, int count) {this->getSessionStats(sessionId).addDiskPageWrites(count);}
 			void addPageWrites(SessionID sessionId, int count) {this->getSessionStats(sessionId).addPageWrites(count);}
-			
+
+			virtual AbstractSessionsStats & operator +=(const SessionsStats &rhs) = 0;
+			AbstractSessionsStats & operator +=(const EmptySessionsStats &) {return *this;}
+
 			virtual ~AbstractSessionsStats();
 	};
 
@@ -176,7 +185,7 @@ namespace SystemStatsLib{
 	 * Sessions statistics contains set of
 	 * session statistics
 	 */
-	 
+
 	class SessionsStats: public AbstractSessionsStats{
 
 		protected:
@@ -188,7 +197,9 @@ namespace SystemStatsLib{
 			SessionStats& getSessionStats(SessionID key);
 			void removeSessionStats(SessionID key);
 
-			virtual ~SessionsStats();
+			AbstractSessionsStats & operator +=(const SessionsStats &) {return *this;} // TODO:change to sth nice
+
+			~SessionsStats();
 	};
 	
 	class EmptySessionsStats: public AbstractSessionsStats{
@@ -201,7 +212,9 @@ namespace SystemStatsLib{
 			EmptySessionStats& getSessionStats(SessionID key) {return emptySessionStats;}
 			void removeSessionStats(SessionID key) {}
 
-			virtual ~EmptySessionsStats();
+			AbstractSessionsStats & operator +=(const SessionsStats &) {return *this;}
+
+			~EmptySessionsStats();
 	};
 }
 

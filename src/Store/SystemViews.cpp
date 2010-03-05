@@ -40,7 +40,7 @@ namespace Store
 		views.push_back(new InformationView(this));
 		views.push_back(new AllViewsView(this));
 		views.push_back(new CounterView(this));
-		views.push_back(new SystemStatsView("SESSION_STATS", this));
+		views.push_back(new SystemStatsView("SESSIONS_STATS", this));
 		views.push_back(new SystemStatsView("STORE_STATS", this));
 		views.push_back(new SystemStatsView("CONFIG_STATS", this));
 		views.push_back(new SystemStatsView("TRANSACTIONS_STATS", this));
@@ -341,7 +341,7 @@ namespace Store
 	SystemStatsView::SystemStatsView(const string &name, SystemViews *views) :
 	SystemView(views), name(name) {
 
-		AbstractStats as = Statistics::get_statistics().get_abstract_stats(name);
+		AbstractStats *as = Statistics::get_unified_statistics(pthread_self(), name);
 
 		viewsName = new vector<ObjectPointer*>();
 		bag = create_object_from_abstract_stats(as);
@@ -356,7 +356,7 @@ namespace Store
 		}
 	}
 
-	ObjectPointer* SystemStatsView::create_object_from_abstract_stats(const AbstractStats &as) {
+	ObjectPointer* SystemStatsView::create_object_from_abstract_stats(AbstractStats *as) {
 /*
 		map<string, StatsValue*> m = as->getAllStats();
 		map<string, StatsValue*>::iterator cur = m.begin();
@@ -400,7 +400,8 @@ namespace Store
 		DataValue* bagValue = new DBDataValue();
 		bagValue->setVector(val);
 		ObjectPointer* res;
-		create_object_pointer(as.get_name().c_str(), bagValue, res);
+		create_object_pointer(as->get_name().c_str(), bagValue, res);
+		//delete as;
 		return res;
 	}
 
@@ -434,7 +435,7 @@ namespace Store
 		}
 		delete this->bag;
 
-		AbstractStats as = Statistics::get_statistics().get_abstract_stats(name);
+		AbstractStats *as = Statistics::get_unified_statistics(pthread_self(), name);
 
 		viewsName = new vector<ObjectPointer*>();
 		this->bag = create_object_from_abstract_stats(as);

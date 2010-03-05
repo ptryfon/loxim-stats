@@ -23,6 +23,13 @@ namespace SystemStatsLib{
  * - amount of active, aborted and commited trasactions
  * - maximum and average transaction time
  */
+
+	class AbstractTransactionsStats;
+	class TransactionsStats;
+	class EmptyTransactionsStats;
+	/* Forward declarations.
+	 */
+
 class AbstractTransactionsStats : public AbstractStats {
 	public:
 		AbstractTransactionsStats() : AbstractStats("TRANSACTIONS_STATS") {}
@@ -42,6 +49,9 @@ class AbstractTransactionsStats : public AbstractStats {
 		virtual void increment_modify_object() = 0;
 		virtual void increment_create_object() = 0;
 		virtual void increment_delete_object() = 0;
+
+		virtual AbstractTransactionsStats & operator +=(const TransactionsStats &rhs) = 0;
+		AbstractTransactionsStats & operator +=(const EmptyTransactionsStats &) {return *this;}
 };
 
 	class TransactionsStats : public AbstractTransactionsStats {
@@ -62,6 +72,8 @@ class AbstractTransactionsStats : public AbstractStats {
 		void increment_modify_object() {++modify_object;}
 		void increment_create_object() {++create_object;}
 		void increment_delete_object() {++delete_object;}
+
+		AbstractTransactionsStats & operator +=(const TransactionsStats &rhs);
 
 	private:
 		void evaluate_time(unsigned int tid);
@@ -97,6 +109,8 @@ class AbstractTransactionsStats : public AbstractStats {
 		void increment_modify_object() {}
 		void increment_create_object() {}
 		void increment_delete_object() {}
+
+		AbstractTransactionsStats & operator +=(const TransactionsStats &) {return *this;}
 };
 }
 

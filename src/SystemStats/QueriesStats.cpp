@@ -12,11 +12,13 @@ QueryInformation::QueryInformation(uint64_t s_id, const std::string& t) :
 }
 
 QueryStatistic::QueryStatistic(uint64_t session_id, const std::string &text) : query_information(session_id, text) {
-	Statistics::get_statistics().get_queries_stats().add_query(*this);
+	Statistics::get_statistics(pthread_self()).
+		get_queries_stats().add_query(*this);
 }
 
 QueryStatistic::~QueryStatistic() {
-	Statistics::get_statistics().get_queries_stats().end_execute_query(get_information().session_id);
+	Statistics::get_statistics(pthread_self()).
+		get_queries_stats().end_execute_query(get_information().session_id);
 }
 
 void QueryInformation::set_state(unsigned int s) {
@@ -124,4 +126,16 @@ void QueriesStats::add_disk_io(uint64_t session_id, unsigned int count) {
 	debug_printf(Errors::ErrorConsole::get_instance(Errors::EC_STATS), "disk_io_end\n");
 	
 	return;
+}
+
+AbstractQueriesStats & QueriesStats::operator +=(const QueriesStats &rhs) {
+
+	max_query_time = max(max_query_time, rhs.max_query_time);
+	time_sum += rhs.time_sum;
+	queries_amount += rhs.queries_amount;
+	avrg_time = time_sum / queries_amount;
+
+	active_queries.insert(rhs.active_queries.begin(), rhs.active_queries.end());
+
+	return *this;
 }

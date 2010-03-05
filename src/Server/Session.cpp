@@ -68,13 +68,16 @@ namespace Server{
 		pthread_sigmask(0, NULL, &mask);
 		sigaddset(&mask, SIGUSR1);
 
-		Statistics::get_statistics().get_sessions_stats().addSessionStats(this->id);
+		Statistics::get_statistics(pthread_self()).
+			get_sessions_stats().addSessionStats(this->id);
 	}
 
 	Session::~Session()
 	{
-		Statistics::get_statistics().get_sessions_stats().removeSessionStats(this->id);
-		Statistics::get_statistics().get_queries_stats().end_session(this->id);
+		Statistics::get_statistics(pthread_self()).
+			get_sessions_stats().removeSessionStats(this->id);
+		Statistics::get_statistics(pthread_self()).
+			get_queries_stats().end_session(this->id);
 	}
 
 	void Session::start()
@@ -313,7 +316,8 @@ namespace Server{
 				correct = (dynamic_cast<QueryBoolResult&>(*qres)).getValue();
 			execute_statement("end");
 			if (correct) {
-				Statistics::get_statistics().get_sessions_stats().getSessionStats(this->id).setUserLogin(login);
+				Statistics::get_statistics(pthread_self()).
+					get_sessions_stats().getSessionStats(this->id).setUserLogin(login);
 			}
 			return correct;
 		} catch (LoximException &ex) {

@@ -202,7 +202,8 @@ namespace Store
 		gettimeofday(&end,NULL);
 
 		double milisec = (end.tv_sec - begin.tv_sec) * 1000 + (end.tv_usec - begin.tv_usec) / 1000;
-		SystemStatsLib::Statistics::get_statistics().get_store_stats().addReadTime(length, milisec);
+		SystemStatsLib::Statistics::get_statistics(pthread_self()).
+			get_store_stats().addReadTime(length, milisec);
 
 		return 0;
 	};

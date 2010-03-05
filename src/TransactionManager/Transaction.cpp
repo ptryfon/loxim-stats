@@ -855,7 +855,8 @@ namespace TManager
 	    tr = new Transaction(tid, sem);
 	    int ret = tr->init(storeMgr, logMgr);
 	    if (ret == 0) {
-			Statistics::get_statistics().get_transactions_stats().start_transaction(tid->getId());
+			Statistics::get_statistics(pthread_self()).
+				get_transactions_stats().start_transaction(tid->getId());
 	    }
 	    return ret;
 	}
@@ -915,7 +916,8 @@ namespace TManager
 	    	remove_from_list(tr->getId());
 	    	IndexManager::getHandle()->commit(tr->getId()->getId(), id);
 		/* free memory */
-			Statistics::get_statistics().get_transactions_stats().commit_transaction(tr->getId()->getId());
+			Statistics::get_statistics(pthread_self()).
+				get_transactions_stats().commit_transaction(tr->getId()->getId());
 
 	    	delete tr;
 
@@ -942,7 +944,8 @@ namespace TManager
 
 	    	IndexManager::getHandle()->abort(tr->getId()->getId());
 
-			Statistics::get_statistics().get_transactions_stats().abort_transaction(tr->getId()->getId());
+			Statistics::get_statistics(pthread_self()).
+				get_transactions_stats().abort_transaction(tr->getId()->getId());
 		/* free memory */
 	    	delete tr;
 
