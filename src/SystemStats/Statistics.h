@@ -42,6 +42,10 @@ namespace SystemStatsLib {
 		AbstractQueriesStats& get_queries_stats() {debug_printf(Errors::ErrorConsole::get_instance(Errors::EC_STATS), "queries_stats\n");return *active_queries_stats;}
 		
 		AbstractStats& get_abstract_stats(const std::string& name);
+
+
+		/** Stats administration methods */
+		
 		
 		/* not really happy about those 4 methods, but apparently this is the only
 		 * way to resolve this without a lot of code
