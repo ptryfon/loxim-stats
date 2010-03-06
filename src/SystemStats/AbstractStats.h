@@ -25,7 +25,7 @@ namespace SystemStatsLib{
 		ret->stats_id = EMPTY_STATS_ID;			\
 		return ret;
 
-	typedef struct StatsOutput {
+	struct StatsOutput {
 		unsigned int stats_id;
 		std::vector<int> int_stats;
 		std::vector<std::string> int_names;

@@ -11,7 +11,6 @@
 #include <pthread.h>
 #include <string>
 
-#include <SystemStats/SystemStats.h>
 #include <SystemStats/SessionStats.h>
 #include <SystemStats/ConfigStats.h>
 #include <SystemStats/StoreStats.h>
