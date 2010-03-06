@@ -92,3 +92,32 @@ AbstractTransactionsStats & TransactionsStats::operator +=(const TransactionsSta
 
 	return *this;
 }
+
+StatsOutput * TransactionsStats::get_stats_output() const {
+	StatsOutput *ret = new StatsOutput;
+	
+	ret->stats_id = TRANSACTIONS_STATS_ID;
+
+	ret->int_stats.push_back(active_transactions);
+	ret->int_names.push_back("active_transactions");
+	ret->int_stats.push_back(aborted_transactions);
+	ret->int_names.push_back("aborted_transactions");
+	ret->int_stats.push_back(commited_transactions);
+	ret->int_names.push_back("commited_transactions");
+	
+	ret->int_stats.push_back(modify_object);
+	ret->int_names.push_back("modify_object");
+	ret->int_stats.push_back(create_object);
+	ret->int_names.push_back("create_object");
+	ret->int_stats.push_back(delete_object);
+	ret->int_names.push_back("delete_object");
+
+	ret->double_stats.push_back(max_time);
+	ret->double_names.push_back("max_time");
+	ret->double_stats.push_back(overall_time);
+	ret->double_names.push_back("overall_time");
+	ret->double_stats.push_back(get_average_transaction_time());
+	ret->double_names.push_back("avrg_transaction_time");
+	
+	return ret;
+}

@@ -99,6 +99,7 @@ namespace SystemStatsLib {
 			void add_disk_io(uint64_t, unsigned int) {}
 
 			AbstractQueriesStats & operator +=(const QueriesStats &) {return *this;}
+			StatsOutput * get_stats_output() const {EMPTY_STATS_OUTPUT}
 	};
 	
 	class QueriesStats : public AbstractQueriesStats {
@@ -112,6 +113,7 @@ namespace SystemStatsLib {
 			void add_disk_io(uint64_t session_id, unsigned int count);
 
 			AbstractQueriesStats & operator +=(const QueriesStats &);
+			StatsOutput * get_stats_output() const;
 		private:
 			double max_query_time, time_sum, avrg_time;
 			unsigned int queries_amount;

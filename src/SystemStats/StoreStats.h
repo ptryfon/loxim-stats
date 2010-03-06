@@ -50,6 +50,7 @@ namespace SystemStatsLib{
 			DiskUsageStats& getDiskUsageStats() {return diskUsageStats;}
 
 			AbstractStoreStats & operator +=(const StoreStats &) {return *this;} //TODO: change to ths nice
+			StatsOutput * get_stats_output() const {EMPTY_STATS_OUTPUT} // TODO: this too
 	};
 	
 	class EmptyStoreStats: public AbstractStoreStats{
@@ -60,6 +61,7 @@ namespace SystemStatsLib{
 			EmptyDiskUsageStats& getDiskUsageStats() {return diskUsageStats;}
 
 			AbstractStoreStats & operator +=(const StoreStats &) {return *this;}
+			StatsOutput * get_stats_output() const {EMPTY_STATS_OUTPUT}
 	};
 
 }

@@ -74,6 +74,7 @@ class AbstractTransactionsStats : public AbstractStats {
 		void increment_delete_object() {++delete_object;}
 
 		AbstractTransactionsStats & operator +=(const TransactionsStats &rhs);
+		StatsOutput * get_stats_output() const;
 
 	private:
 		void evaluate_time(unsigned int tid);
@@ -111,6 +112,7 @@ class AbstractTransactionsStats : public AbstractStats {
 		void increment_delete_object() {}
 
 		AbstractTransactionsStats & operator +=(const TransactionsStats &) {return *this;}
+		StatsOutput * get_stats_output() const {EMPTY_STATS_OUTPUT}
 };
 }
 

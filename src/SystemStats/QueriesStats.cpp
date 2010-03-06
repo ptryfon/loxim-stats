@@ -139,3 +139,20 @@ AbstractQueriesStats & QueriesStats::operator +=(const QueriesStats &rhs) {
 
 	return *this;
 }
+
+StatsOutput * QueriesStats::get_stats_output() const {
+	StatsOutput *ret = new StatsOutput;
+
+	ret->stats_id = QUERIES_STATS_ID;
+
+	ret->int_stats.push_back(queries_amount);
+	ret->int_names.push_back("queries_amount");
+	ret->double_stats.push_back(max_query_time);
+	ret->double_names.push_back("max_query_time");
+	ret->double_stats.push_back(time_sum);
+	ret->double_names.push_back("time_sum");
+	ret->double_stats.push_back(avrg_time);
+	ret->double_names.push_back("avrg_time");
+
+	return ret;
+}

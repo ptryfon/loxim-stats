@@ -59,3 +59,19 @@ AbstractConfigStats & ConfigStats::operator +=(const ConfigStats &rhs) {
 		add_statistic(i->first, i->second);
 	return *this;
 }
+
+StatsOutput * ConfigStats::get_stats_output() const {
+	StatsOutput *ret = new StatsOutput;
+
+	ret->stats_id = CONFIG_STATS_ID;
+	ret->int_stats.push_back(statistics_size);
+	ret->int_names.push_back("statistics_size");
+
+	for (map<string, string>::const_iterator i = config_statistics.begin();
+		i != config_statistics.end(); ++i) {
+		ret->string_names.push_back(i->first);
+		ret->string_stats.push_back(i->second);
+	}
+
+	return ret;
+}

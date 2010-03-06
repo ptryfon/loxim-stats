@@ -47,6 +47,7 @@ namespace SystemStatsLib {
 		void remove_statistic(const std::string& key);
 
 		AbstractConfigStats & operator +=(const ConfigStats &rhs);
+		StatsOutput * get_stats_output() const;
 	private:
 		unsigned int statistics_size;
 
@@ -62,6 +63,7 @@ namespace SystemStatsLib {
 			void remove_statistic(const std::string& key) {}
 
 			AbstractConfigStats & operator +=(const ConfigStats &) {return *this;}
+			StatsOutput * get_stats_output() const {EMPTY_STATS_OUTPUT}
 	};
 }
 
