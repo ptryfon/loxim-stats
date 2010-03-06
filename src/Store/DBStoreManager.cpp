@@ -240,7 +240,8 @@ namespace Store
 #ifdef DEBUG_MODE
 		*ec << "Store::Manager::createObject start...";
 #endif
-		Statistics::get_statistics().get_transactions_stats().increment_create_object();
+		Statistics::get_statistics(pthread_self()).
+			get_transactions_stats().increment_create_object();
 
 		LogicalID* lid;
 		if(p_lid == NULL)
@@ -295,7 +296,8 @@ namespace Store
 #ifdef DEBUG_MODE
 		*ec << "Store::Manager::deleteObject start...";
 #endif
-		Statistics::get_statistics().get_transactions_stats().increment_delete_object();
+		Statistics::get_statistics(pthread_self()).
+			get_transactions_stats().increment_delete_object();
 
 		unsigned log_id;
 		int itid = tid==NULL ? -1 : tid->getId();
@@ -414,7 +416,8 @@ namespace Store
 #ifdef DEBUG_MODE
 		*ec << "Store::Manager::modifyObject start...";
 #endif
-		Statistics::get_statistics().get_transactions_stats().increment_modify_object();
+		Statistics::get_statistics(pthread_self()).
+			get_transactions_stats().increment_modify_object();
 
 		string parentRoot;
 		if (object->isRoot()) {

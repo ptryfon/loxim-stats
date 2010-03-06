@@ -169,7 +169,8 @@ namespace Config {
 		while (module != NULL) {
 			ConfOpt* opt = module->options;
 			while (opt != NULL) {
-				Statistics::get_statistics().get_configs_stats().
+				Statistics::get_statistics(pthread_self()).
+					get_config_stats().
 					add_statistic(string(module->name) + "_" + opt->name, opt->value);
 				opt = opt->nextOpt;
 			}

@@ -20,6 +20,13 @@ namespace SystemStatsLib{
  * - the same for write
  * - minimum, maximum and average time of page read
  */
+
+	class AbstractStoreStats;
+	class StoreStats;
+	class EmptyStoreStats;
+	/* Forward declarations.
+	 */
+
 	class AbstractStoreStats : public AbstractStats {
 		public:
 			AbstractStoreStats() : AbstractStats("STORE_STATS") {}
@@ -30,6 +37,9 @@ namespace SystemStatsLib{
 			void addDiskPageWrites(int count) { this->getDiskUsageStats().addDiskPageWrites(count); }
 			void addPageWrites(int count) { this->getDiskUsageStats().addPageWrites(count); }
 			void addReadTime(int bytes, double milisec) {this->getDiskUsageStats().addReadTime(bytes, milisec);}
+
+			virtual AbstractStoreStats & operator +=(const StoreStats &rhs) = 0;
+			AbstractStoreStats & operator +=(const EmptyStoreStats &) {return *this;}
 	};
 	
 	class StoreStats: public AbstractStoreStats{
@@ -38,6 +48,9 @@ namespace SystemStatsLib{
 		public:
 			StoreStats():diskUsageStats(DiskUsageStats()){};
 			DiskUsageStats& getDiskUsageStats() {return diskUsageStats;}
+
+			AbstractStoreStats & operator +=(const StoreStats &) {return *this;} //TODO: change to ths nice
+			StatsOutput * get_stats_output() const {EMPTY_STATS_OUTPUT} // TODO: this too
 	};
 	
 	class EmptyStoreStats: public AbstractStoreStats{
@@ -46,6 +59,9 @@ namespace SystemStatsLib{
 		public:
 			EmptyStoreStats(): diskUsageStats(EmptyDiskUsageStats()){};
 			EmptyDiskUsageStats& getDiskUsageStats() {return diskUsageStats;}
+
+			AbstractStoreStats & operator +=(const StoreStats &) {return *this;}
+			StatsOutput * get_stats_output() const {EMPTY_STATS_OUTPUT}
 	};
 
 }

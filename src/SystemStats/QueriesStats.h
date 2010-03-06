@@ -19,6 +19,12 @@
 
 namespace SystemStatsLib {
 
+	class AbstractQueriesStats;
+	class QueriesStats;
+	class EmptyQueriesStats;
+	/* Forward declarations.
+	 */
+
 	class QueryInformation {
 		public:
 			QueryInformation(uint64_t session_id, const std::string &text);
@@ -77,6 +83,9 @@ namespace SystemStatsLib {
 			virtual void end_execute_query(uint64_t session_id) = 0;
 			virtual void end_session(uint64_t session_id) = 0;
 			virtual void add_disk_io(uint64_t session_id, unsigned int count) = 0;
+
+			virtual AbstractQueriesStats & operator +=(const QueriesStats &rhs) = 0;
+			AbstractQueriesStats & operator +=(const EmptyQueriesStats &) {return *this;}
 	};
 
 	class EmptyQueriesStats : public AbstractQueriesStats {
@@ -88,18 +97,23 @@ namespace SystemStatsLib {
 			void end_execute_query(uint64_t) {}
 			void end_session(uint64_t) {}
 			void add_disk_io(uint64_t, unsigned int) {}
+
+			AbstractQueriesStats & operator +=(const QueriesStats &) {return *this;}
+			StatsOutput * get_stats_output() const {EMPTY_STATS_OUTPUT}
 	};
 	
 	class QueriesStats : public AbstractQueriesStats {
 		public:
 			QueriesStats();
-			
+
 			void add_query(const QueryStatistic& query);
 			void begin_execute_query(uint64_t session_id, std::string& stmt);
 			void end_execute_query(uint64_t session_id);
 			void end_session(uint64_t session_id);
 			void add_disk_io(uint64_t session_id, unsigned int count);
-			
+
+			AbstractQueriesStats & operator +=(const QueriesStats &);
+			StatsOutput * get_stats_output() const;
 		private:
 			double max_query_time, time_sum, avrg_time;
 			unsigned int queries_amount;

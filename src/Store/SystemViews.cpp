@@ -16,6 +16,18 @@ namespace Store
 	#define ROOTS_VIEW									8
 	#define NO_VIEW											9
 
+	#define FILL_VIEW(values_vec, names_vec, set_fun) {	\
+		ObjectPointer *object;																\
+		DataValue *db_name_value = new DBDataValue();		\
+		db_name_value->set_fun(output->values_vec[i]);			\
+		create_object_pointer(output->names_vec[i],					\
+			db_name_value, object);														\
+		if (object) {																					\
+			viewsName->push_back(object);										\
+			val->push_back(object->getLogicalID());						\
+		}																										\
+	}
+
 	SystemViews::SystemViews()
 	{
 #ifdef DEBUG_MODE
@@ -40,7 +52,7 @@ namespace Store
 		views.push_back(new InformationView(this));
 		views.push_back(new AllViewsView(this));
 		views.push_back(new CounterView(this));
-		views.push_back(new SystemStatsView("SESSION_STATS", this));
+		views.push_back(new SystemStatsView("SESSIONS_STATS", this));
 		views.push_back(new SystemStatsView("STORE_STATS", this));
 		views.push_back(new SystemStatsView("CONFIG_STATS", this));
 		views.push_back(new SystemStatsView("TRANSACTIONS_STATS", this));
@@ -341,7 +353,7 @@ namespace Store
 	SystemStatsView::SystemStatsView(const string &name, SystemViews *views) :
 	SystemView(views), name(name) {
 
-		AbstractStats as = Statistics::get_statistics().get_abstract_stats(name);
+		AbstractStats *as = Statistics::get_unified_statistics(pthread_self(), name);
 
 		viewsName = new vector<ObjectPointer*>();
 		bag = create_object_from_abstract_stats(as);
@@ -356,51 +368,27 @@ namespace Store
 		}
 	}
 
-	ObjectPointer* SystemStatsView::create_object_from_abstract_stats(const AbstractStats &as) {
-/*
-		map<string, StatsValue*> m = as->getAllStats();
-		map<string, StatsValue*>::iterator cur = m.begin();
-*/
-		vector<LogicalID*>* val = new vector<LogicalID*>();
-/*
-		while (cur != m.end()) {
-			int type = cur->second->getType();
+	ObjectPointer* SystemStatsView::create_object_from_abstract_stats(AbstractStats *as) {
 
-			ObjectPointer* object;
-			DataValue* dbNameValue;
-			if (type == 1) {
-				int i = (dynamic_cast<IntStatsValue*>(cur->second))->getValue();
+		vector<LogicalID*> *val = new vector<LogicalID*>();
+		StatsOutput *output = as->get_stats_output();
 
-				dbNameValue = new DBDataValue();
-				dbNameValue->setInt(i);
-				createObjectPointer((cur->first).c_str(), dbNameValue, object);
-			} else if (type == 2) {
-				double d = (dynamic_cast<DoubleStatsValue*>(cur->second))->getValue();
+		for (unsigned int i = 0; i < output->int_stats.size(); ++i)
+			FILL_VIEW(int_stats, int_names, setInt)
 
-				dbNameValue = new DBDataValue();
-				dbNameValue->setDouble(d);
-				createObjectPointer((cur->first).c_str(), dbNameValue, object);
-			} else if (type == 3) {
-				string s = (dynamic_cast<StringStatsValue*>(cur->second))->getValue();
+		for (unsigned int i = 0; i < output->double_stats.size(); ++i)
+			FILL_VIEW(double_stats, double_names, setDouble)
 
-				dbNameValue = new DBDataValue();
-				dbNameValue->setString(s);
-				createObjectPointer((cur->first).c_str(), dbNameValue, object);
-			} else if (type == 4) {
-				AbstractStats* as2 = (dynamic_cast<StatsStatsValue*>(cur->second))->getValue();
-				object = createObjectFromAbstractStats(as2);
-			}
-			if (object) {
-				viewsName->push_back(object);
-				val->push_back(object->getLogicalID());
-			}
-			cur++;
-		}
-*/
+		for (unsigned int i = 0; i < output->string_stats.size(); ++i)
+			FILL_VIEW(string_stats, string_names, setString)
+
+		delete output;
 		DataValue* bagValue = new DBDataValue();
 		bagValue->setVector(val);
 		ObjectPointer* res;
-		create_object_pointer(as.get_name().c_str(), bagValue, res);
+		create_object_pointer(as->get_name().c_str(), bagValue, res);
+		if (as)
+			delete as;
 		return res;
 	}
 
@@ -434,7 +422,7 @@ namespace Store
 		}
 		delete this->bag;
 
-		AbstractStats as = Statistics::get_statistics().get_abstract_stats(name);
+		AbstractStats *as = Statistics::get_unified_statistics(pthread_self(), name);
 
 		viewsName = new vector<ObjectPointer*>();
 		this->bag = create_object_from_abstract_stats(as);

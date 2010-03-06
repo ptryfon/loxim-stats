@@ -120,7 +120,7 @@ namespace Store
 			public:
 				SystemStatsView(const std::string &name, SystemViews *views);
 				~SystemStatsView();
-				ObjectPointer* create_object_from_abstract_stats(const SystemStatsLib::AbstractStats &as);
+				ObjectPointer* create_object_from_abstract_stats(SystemStatsLib::AbstractStats *as);
 				int get_object(TransactionID *tid, LogicalID *lid,
 					AccessMode mode, ObjectPointer *&object) const;
 				void refresh(Transaction *tr, ObjectPointer *&object);
