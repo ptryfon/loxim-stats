@@ -3,10 +3,12 @@
 #include <AdminParser/AdminParser.h>
 #include <AdminParser/AdminExecutableTreeNode.h>
 #include <AdminParser/AdminTreeNode.h>
+#include <AdminParser/AdminTreeValueNode.h>
 #include <AdminParser/ShutdownTreeNode.h>
 #include <AdminParser/StatsControlNode.h>
 #include <Errors/Errors.h>
 #include <Errors/Exceptions.h>
+#include <Errors/ErrorConsole.h>
 
 using namespace std;
 using namespace Errors;

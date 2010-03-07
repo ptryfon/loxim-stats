@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <AdminParser/AdminLexer.h>
+#include <SystemStats/StatsTypes.h>
 
 namespace AdminParser {
 	class AdminLexer;

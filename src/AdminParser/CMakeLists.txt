@@ -42,6 +42,7 @@ set(AdminParser_SRCS
 	${ADMIN_PARSER_DIR}/AdminParser.h
 	${ADMIN_PARSER_DIR}/AdminTreeNode.cpp
 	${ADMIN_PARSER_DIR}/AdminTreeNode.h
+	${ADMIN_PARSER_DIR}/AdminTreeValueNode.h
 	${ADMIN_PARSER_DIR}/ShutdownTreeNode.cpp
 	${ADMIN_PARSER_DIR}/ShutdownTreeNode.h
 	${ADMIN_PARSER_DIR}/StatsControlNode.cpp
