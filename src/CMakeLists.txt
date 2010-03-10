@@ -108,9 +108,9 @@ add_subdirectory(TypeCheck)
 add_subdirectory(Util)
 add_subdirectory(Programs)
 add_subdirectory(Test)
-IF (QT4_FOUND) 
-	add_subdirectory(LoximGui)
-ENDIF (QT4_FOUND) 
+#IF (QT4_FOUND) 
+#	add_subdirectory(LoximGui)
+#ENDIF (QT4_FOUND) 
 
 
 

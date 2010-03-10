@@ -131,3 +131,7 @@ AbstractStats* Statistics::get_unified_statistics(const pthread_t thread_id,
 	else
 		throw ("Unrecognised stats name");
 }
+
+pthread_t Statistics::get_root() {
+	return root;
+}

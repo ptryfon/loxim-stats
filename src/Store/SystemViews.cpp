@@ -353,10 +353,14 @@ namespace Store
 	SystemStatsView::SystemStatsView(const string &name, SystemViews *views) :
 	SystemView(views), name(name) {
 
+		viewsName = new vector<ObjectPointer*>();
+		try {
 		AbstractStats *as = Statistics::get_unified_statistics(pthread_self(), name);
 
-		viewsName = new vector<ObjectPointer*>();
-		bag = create_object_from_abstract_stats(as);
+		this->bag = create_object_from_abstract_stats(as);
+		} catch (uint &) {
+			this->bag = 0;
+		}
 	}
 
 	SystemStatsView::~SystemStatsView() {
@@ -422,11 +426,16 @@ namespace Store
 		}
 		delete this->bag;
 
+		viewsName = new vector<ObjectPointer*>();
+		try {
 		AbstractStats *as = Statistics::get_unified_statistics(pthread_self(), name);
 
-		viewsName = new vector<ObjectPointer*>();
 		this->bag = create_object_from_abstract_stats(as);
 		object = this->bag;
+		} catch (uint &) {
+			this->bag = 0;
+			object = 0;
+		}
 	}
 
 	/*=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
