@@ -119,7 +119,8 @@ namespace SystemStatsLib{
 			void refresh_stats();
 
 			AbstractSessionStats & operator +=(const SessionStats &);
-			StatsOutput * get_stats_output() const {return new StatsOutput;} // TODO: make it nice
+			StatsOutput * get_stats_output() const {EMPTY_STATS_OUTPUT}
+			void get_stats_output(StatsOutput*) const;
 
 			~SessionStats();
 	};
@@ -167,7 +168,7 @@ namespace SystemStatsLib{
 			~EmptySessionStats();
 
 			AbstractSessionStats & operator +=(const SessionStats &) {return *this;}
-			StatsOutput * get_stats_output() const {EMPTY_STATS_OUTPUT} // TODO: this too
+			StatsOutput * get_stats_output() const {EMPTY_STATS_OUTPUT}
 	};
 	
 	/**
@@ -210,7 +211,7 @@ namespace SystemStatsLib{
 			void remove_session_stats(SessionID key);
 
 			AbstractSessionsStats & operator +=(const SessionsStats &);
-			StatsOutput * get_stats_output() const {EMPTY_STATS_OUTPUT} // TODO: this too
+			StatsOutput * get_stats_output() const;
 
 			~SessionsStats();
 	};

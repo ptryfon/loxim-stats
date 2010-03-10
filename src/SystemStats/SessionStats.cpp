@@ -59,6 +59,14 @@ SessionStats::operator +=(const SessionStats &rhs)
 	return *this;
 }
 
+void
+SessionStats::get_stats_output(StatsOutput* result) const
+{
+	ostringstream out;
+	out << id;
+	disk_usage_stats.get_stats_output(result, out.str());
+}
+
 EmptySessionStats::~EmptySessionStats(){}
 AbstractSessionStats::~AbstractSessionStats(){}
 
@@ -93,6 +101,17 @@ SessionsStats::operator +=(const SessionsStats & rhs)
 	}
 	
 	return *this;
+}
+
+StatsOutput*
+SessionsStats::get_stats_output() const
+{
+	StatsOutput* result = new StatsOutput();
+	std::map<SessionID, SessionStats>::const_iterator itr;
+	for (itr = sessionsMap.begin(); itr != sessionsMap.end(); itr++) {
+		itr->second.get_stats_output(result);
+	}
+	return result;
 }
 
 EmptySessionsStats::~EmptySessionsStats(){}

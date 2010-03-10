@@ -5,6 +5,7 @@
  */
 
 #include <SystemStats/StatsDumper.h>
+#include <SystemStats/Statistics.h>
 #include <Errors/ErrorConsole.h>
 
 namespace SystemStatsLib {
@@ -52,6 +53,34 @@ StatsDumper::start()
 	while (dump_scope) 
 	{
 		debug_print(Errors::ErrorConsole::get_instance(Errors::EC_STATS), "StatsDumper is running\n");
+		
+		switch (dump_scope) {
+			case ALL:
+				Statistics::get_statistics(pthread_self()).stop_store_stats();
+				Statistics::get_statistics(pthread_self()).stop_sessions_stats();
+				Statistics::get_statistics(pthread_self()).stop_transactions_stats();
+				Statistics::get_statistics(pthread_self()).stop_queries_stats();
+				Statistics::get_statistics(pthread_self()).stop_config_stats();
+				break;
+			case STORE:
+				Statistics::get_statistics(pthread_self()).stop_store_stats();
+				break;
+			case SESSION:
+				Statistics::get_statistics(pthread_self()).stop_sessions_stats();
+				break;
+			case TRANSACTION:
+				Statistics::get_statistics(pthread_self()).stop_transactions_stats();
+				break;
+			case QUERIES:
+				Statistics::get_statistics(pthread_self()).stop_queries_stats();
+				break;
+			case CONFIG:
+				Statistics::get_statistics(pthread_self()).stop_config_stats();
+				break;
+			default:
+				return;
+		}
+		
 		usleep(1000*dump_interval);
 	}
 }

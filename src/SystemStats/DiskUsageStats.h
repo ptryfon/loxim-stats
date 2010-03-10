@@ -9,6 +9,7 @@
 #define DISKUSAGESTATS_H
 
 #include <Util/smartptr.h>
+#include <SystemStats/AbstractStats.h>
 #include <SystemStats/ShareStat.h>
 #include <SystemStats/StandardStat.h>
 
@@ -122,6 +123,8 @@ namespace SystemStatsLib{
 			double get_avg_write_speed() const;
 			
 			AbstractDiskUsageStats & operator +=(const DiskUsageStats &) {return *this;}
+			StatsOutput* get_stats_output(std::string s) const;
+			void get_stats_output(StatsOutput *, std::string s) const;
 
 			~DiskUsageStats();
 	};

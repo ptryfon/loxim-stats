@@ -62,6 +62,20 @@ double DiskUsageStats::get_avg_write_speed() const {
 	return active_write_speed_stat->get_avg();
 }
 
+StatsOutput * 
+DiskUsageStats::get_stats_output(std::string s) const
+{
+	StatsOutput* result = new StatsOutput();
+	this->get_stats_output(result, s);
+	return result;
+}
+
+void 
+DiskUsageStats::get_stats_output(StatsOutput *, std::string s) const
+{
+		
+}
+
 DiskUsageStats::~DiskUsageStats() {
 }
 
