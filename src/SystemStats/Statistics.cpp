@@ -69,25 +69,25 @@ AbstractStats& StatisticSingleton::get_abstract_stats(const string& name) {
 }
 
 void StatisticSingleton::addDiskPageReads(int sessionId, int /*transactionId*/, int count) {
-	active_sessions_stats->addDiskPageReads(sessionId, count);
-	active_store_stats->addDiskPageReads(count);
-	active_queries_stats->add_disk_io(sessionId, count);
+// 	active_sessions_stats->add_disk_page_reads(sessionId, count);
+// 	active_store_stats->add_disk_page_reads(count);
+// 	active_queries_stats->add_disk_io(sessionId, count);
 }
 
 void StatisticSingleton::addPageReads(int sessionId, int /*transactionId*/, int count) {
-	active_sessions_stats->addPageReads(sessionId, count);
-	active_store_stats->addPageReads(count);
+// 	active_sessions_stats->add_page_reads(sessionId, count);
+// 	active_store_stats->add_page_reads(count);
 }
 
 void StatisticSingleton::addDiskPageWrites(int sessionId, int /*transactionId*/, int count) {
-	active_sessions_stats->addDiskPageWrites(sessionId, count);
-	active_store_stats->addDiskPageWrites(count);
-	active_queries_stats->add_disk_io(sessionId, count);
+// 	active_sessions_stats->add_disk_page_writes(sessionId, count);
+// 	active_store_stats->add_disk_page_writes(count);
+// 	active_queries_stats->add_disk_io(sessionId, count);
 }
 
 void StatisticSingleton::addPageWrites(int sessionId, int /*transactionId*/, int count) {
-	active_sessions_stats->addPageWrites(sessionId, count);
-	active_store_stats->addPageWrites(count);
+// 	active_sessions_stats->add_page_writes(sessionId, count);
+// 	active_store_stats->add_page_writes(count);
 }
 
 StatisticSingleton& Statistics::get_statistics(const pthread_t thread_id) {

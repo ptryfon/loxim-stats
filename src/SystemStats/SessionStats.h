@@ -23,6 +23,8 @@ namespace SystemStatsLib{
 	class AbstractSessionsStats;
 	class SessionsStats;
 	class EmptySessionsStats;
+	class EmptySessionStats;
+	class SessionStats;
 	/* Forward declarations.
 	 */
 
@@ -30,39 +32,42 @@ namespace SystemStatsLib{
 		public:
 			AbstractSessionStats():AbstractStats("SessionStats"){}
 			
-			virtual AbstractDiskUsageStats& getDiskUsageStats() = 0;
-			virtual const AbstractDiskUsageStats& getDiskUsageStats() const = 0;
+			virtual AbstractDiskUsageStats& get_disk_usage_stats() = 0;
+			virtual const AbstractDiskUsageStats& get_disk_usage_stats() const = 0;
 			
-			virtual void setDurationInSeconds(double seconds) = 0;
+			virtual void set_duration_in_seconds(double seconds) = 0;
 
-			virtual void setStartTime(time_t value) = 0;
-			virtual time_t getStartTime() const = 0;
+			virtual void set_start_time(time_t value) = 0;
+			virtual time_t get_start_time() const = 0;
 
 			/* Statystyki odczytu */
-			virtual void addDiskPageReads(int count) = 0;
-			virtual int getDiskPageReads() const = 0;
+			virtual void add_disk_page_reads(int count) = 0;
+			virtual int get_disk_page_reads() const = 0;
 
-			virtual void addPageReads(int count) = 0;
-			virtual int getPageReads() const = 0;
+			virtual void add_page_reads(int count) = 0;
+			virtual int get_page_reads() const = 0;
 
-			virtual double getPageReadsHit() const = 0;
+			virtual double get_page_reads_hit() const = 0;
 
 			/* Statystyki zapisu */
-			virtual void addDiskPageWrites(int count) = 0;
-			virtual int getDiskPageWrites() const = 0;
+			virtual void add_disk_page_writes(int count) = 0;
+			virtual int get_disk_page_writes() const = 0;
 
-			virtual void addPageWrites(int count) = 0;
-			virtual int getPageWrites() const = 0;
+			virtual void add_page_writes(int count) = 0;
+			virtual int get_page_writes() const = 0;
 
-			virtual double getPageWritesHit() const = 0;
+			virtual double get_page_writes_hit() const = 0;
 
-			virtual void setUserLogin(std::string value) = 0;
-			virtual std::string getUserLogin() const = 0;
+			virtual void set_user_login(std::string value) = 0;
+			virtual std::string get_user_login() const = 0;
 
-			virtual void setId(SessionID value) = 0;
-			virtual SessionID getId() const = 0;
+			virtual void set_id(SessionID value) = 0;
+			virtual SessionID get_id() const = 0;
 
-			virtual void refreshStats() = 0;
+			virtual void refresh_stats() = 0;
+			
+			AbstractSessionStats & operator +=(const EmptySessionStats &) {return *this;}
+			AbstractSessionStats & operator +=(const SessionStats &);
 			
 			virtual ~AbstractSessionStats();
 	};
@@ -70,49 +75,50 @@ namespace SystemStatsLib{
 	class SessionStats: public AbstractSessionStats{
 	
 		protected:
-		  	DiskUsageStats diskUsageStats;
+		  	DiskUsageStats disk_usage_stats;
 			SessionID id;
-			std::string userLogin;
-			time_t startTime;
-			double durationInSeconds;
+			std::string user_login;
+			time_t start_time;
+			double duration_in_seconds;
 			
 		public:
 			SessionStats();
 			
-			AbstractDiskUsageStats& getDiskUsageStats() {return diskUsageStats;}
-			const AbstractDiskUsageStats& getDiskUsageStats() const {return diskUsageStats;}
+			AbstractDiskUsageStats& get_disk_usage_stats() {return disk_usage_stats;}
+			const AbstractDiskUsageStats& get_disk_usage_stats() const {return disk_usage_stats;}
 
-			void setDurationInSeconds(double seconds);
+			void set_duration_in_seconds(double seconds);
 
-			void setStartTime(time_t value);
-			time_t getStartTime() const;
+			void set_start_time(time_t value);
+			time_t get_start_time() const;
 
 			/* Statystyki odczytu */
-			void addDiskPageReads(int count) {getDiskUsageStats().addDiskPageReads(count);}
-			int getDiskPageReads() const {return getDiskUsageStats().getDiskPageReads();}
+			void add_disk_page_reads(int count) {get_disk_usage_stats().add_disk_page_reads(count);}
+			int get_disk_page_reads() const {return get_disk_usage_stats().get_disk_page_reads();}
 
-			void addPageReads(int count) {getDiskUsageStats().addPageReads(count);}
-			int getPageReads() const {return getDiskUsageStats().getPageReads();}
+			void add_page_reads(int count) {get_disk_usage_stats().add_page_reads(count);}
+			int get_page_reads() const {return get_disk_usage_stats().get_page_reads();}
 
-			double getPageReadsHit() const { return getDiskUsageStats().getPageReadsHit(); }
+			double get_page_reads_hit() const { return get_disk_usage_stats().get_page_reads_hit(); }
 
 			/* Statystyki zapisu */
-			void addDiskPageWrites(int count) {getDiskUsageStats().addDiskPageWrites(count);}
-			int getDiskPageWrites() const { return getDiskUsageStats().getDiskPageWrites();}
+			void add_disk_page_writes(int count) {get_disk_usage_stats().add_disk_page_writes(count);}
+			int get_disk_page_writes() const { return get_disk_usage_stats().get_disk_page_writes();}
 
-			void addPageWrites(int count) {getDiskUsageStats().addPageWrites(count);}
-			int getPageWrites() const { return getDiskUsageStats().getPageWrites(); }
+			void add_page_writes(int count) {get_disk_usage_stats().add_page_writes(count);}
+			int get_page_writes() const { return get_disk_usage_stats().get_page_writes(); }
 
-			double getPageWritesHit() const { return getDiskUsageStats().getPageWritesHit();}
+			double get_page_writes_hit() const { return get_disk_usage_stats().get_page_writes_hit();}
 
-			void setUserLogin(std::string value);
-			std::string getUserLogin() const;
+			void set_user_login(std::string value);
+			std::string get_user_login() const;
 
-			void setId(SessionID value);
-			SessionID getId() const;
+			void set_id(SessionID value);
+			SessionID get_id() const;
 
-			void refreshStats();
+			void refresh_stats();
 
+			AbstractSessionStats & operator +=(const SessionStats &);
 			StatsOutput * get_stats_output() const {return new StatsOutput;} // TODO: make it nice
 
 			~SessionStats();
@@ -121,45 +127,46 @@ namespace SystemStatsLib{
 	class EmptySessionStats: public AbstractSessionStats {
 	
 		protected:
-	    		EmptyDiskUsageStats diskUsageStats;
+	    		EmptyDiskUsageStats disk_usage_stats;
 		
 		public:
 			EmptySessionStats(){}
 			
-			AbstractDiskUsageStats& getDiskUsageStats() {return diskUsageStats;}
-			const AbstractDiskUsageStats& getDiskUsageStats() const {return diskUsageStats;}
+			AbstractDiskUsageStats& get_disk_usage_stats() {return disk_usage_stats;}
+			const AbstractDiskUsageStats& get_disk_usage_stats() const {return disk_usage_stats;}
 
-			void setDurationInSeconds(double seconds){}
+			void set_duration_in_seconds(double seconds){}
 
-			void setStartTime(time_t value) {};
-			time_t getStartTime() const {return time(static_cast<time_t *>(0));}
+			void set_start_time(time_t value) {};
+			time_t get_start_time() const {return time(static_cast<time_t *>(0));}
 			/* Statystyki odczytu */
-			void addDiskPageReads(int count) {}
-			int getDiskPageReads() const {return 0;}
+			void add_disk_page_reads(int count) {}
+			int get_disk_page_reads() const {return 0;}
 
-			void addPageReads(int count) {}
-			int getPageReads() const {return 0;}
+			void add_page_reads(int count) {}
+			int get_page_reads() const {return 0;}
 
-			double getPageReadsHit() const { return 0; }
+			double get_page_reads_hit() const { return 0; }
 
 			/* Statystyki zapisu */
-			void addDiskPageWrites(int count) {}
-			int getDiskPageWrites() const { return 0;}
+			void add_disk_page_writes(int count) {}
+			int get_disk_page_writes() const { return 0;}
 
-			void addPageWrites(int count) {}
-			int getPageWrites() const { return 0; }
+			void add_page_writes(int count) {}
+			int get_page_writes() const { return 0; }
 
-			double getPageWritesHit() const { return 0;}
+			double get_page_writes_hit() const { return 0;}
 
-			void setUserLogin(std::string value) {};
-			std::string getUserLogin() const {return "";}
+			void set_user_login(std::string value) {};
+			std::string get_user_login() const {return "";}
 
-			void setId(SessionID value) {}
-			SessionID getId() const {return -1;};
+			void set_id(SessionID value) {}
+			SessionID get_id() const {return -1;};
 
-			void refreshStats(){}
+			void refresh_stats(){}
 			~EmptySessionStats();
 
+			AbstractSessionStats & operator +=(const SessionStats &) {return *this;}
 			StatsOutput * get_stats_output() const {EMPTY_STATS_OUTPUT} // TODO: this too
 	};
 	
@@ -170,15 +177,15 @@ namespace SystemStatsLib{
 		public:
 			AbstractSessionsStats() : AbstractStats("SESSIONS_STATS") {}
 			
-			virtual void addSessionStats(SessionID key) = 0;
-			virtual AbstractSessionStats& getSessionStats(SessionID key) = 0;
-			virtual void removeSessionStats(SessionID key) = 0;
+			virtual void add_session_stats(SessionID key) = 0;
+			virtual AbstractSessionStats& get_session_stats(SessionID key) = 0;
+			virtual void remove_session_stats(SessionID key) = 0;
 
 			//To jest chyba do wyrzucenia bo tylko dubluje funkcjonalnosc i tylko powoduje jedno wywolanie funkcji wiecej.
-			void addDiskPageReads(SessionID sessionId, int count) {this->getSessionStats(sessionId).addDiskPageReads(count);}
-			void addPageReads(SessionID sessionId, int count) {this->getSessionStats(sessionId).addPageReads(count);}
-			void addDiskPageWrites(SessionID sessionId, int count) {this->getSessionStats(sessionId).addDiskPageWrites(count);}
-			void addPageWrites(SessionID sessionId, int count) {this->getSessionStats(sessionId).addPageWrites(count);}
+			void add_disk_page_reads(SessionID session_id, int count) {this->get_session_stats(session_id).add_disk_page_reads(count);}
+			void add_page_reads(SessionID session_id, int count) {this->get_session_stats(session_id).add_page_reads(count);}
+			void add_disk_page_writes(SessionID session_id, int count) {this->get_session_stats(session_id).add_disk_page_writes(count);}
+			void add_page_writes(SessionID session_id, int count) {this->get_session_stats(session_id).add_page_writes(count);}
 
 			virtual AbstractSessionsStats & operator +=(const SessionsStats &rhs) = 0;
 			AbstractSessionsStats & operator +=(const EmptySessionsStats &) {return *this;}
@@ -198,11 +205,11 @@ namespace SystemStatsLib{
 		public:
 			SessionsStats();
 
-			void addSessionStats(SessionID key);
-			SessionStats& getSessionStats(SessionID key);
-			void removeSessionStats(SessionID key);
+			void add_session_stats(SessionID key);
+			SessionStats& get_session_stats(SessionID key);
+			void remove_session_stats(SessionID key);
 
-			AbstractSessionsStats & operator +=(const SessionsStats &) {return *this;} // TODO:change to sth nice
+			AbstractSessionsStats & operator +=(const SessionsStats &);
 			StatsOutput * get_stats_output() const {EMPTY_STATS_OUTPUT} // TODO: this too
 
 			~SessionsStats();
@@ -214,9 +221,9 @@ namespace SystemStatsLib{
 	  	public:
 			EmptySessionsStats(){}
 
-			void addSessionStats(SessionID key){}
-			EmptySessionStats& getSessionStats(SessionID key) {return emptySessionStats;}
-			void removeSessionStats(SessionID key) {}
+			void add_session_stats(SessionID key){}
+			EmptySessionStats& get_session_stats(SessionID key) {return emptySessionStats;}
+			void remove_session_stats(SessionID key) {}
 
 			AbstractSessionsStats & operator +=(const SessionsStats &) {return *this;}
 			StatsOutput * get_stats_output() const {EMPTY_STATS_OUTPUT}

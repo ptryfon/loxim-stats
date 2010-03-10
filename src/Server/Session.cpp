@@ -69,13 +69,13 @@ namespace Server{
 		sigaddset(&mask, SIGUSR1);
 
 		Statistics::get_statistics(pthread_self()).
-			get_sessions_stats().addSessionStats(this->id);
+			get_sessions_stats().add_session_stats(this->id);
 	}
 
 	Session::~Session()
 	{
 		Statistics::get_statistics(pthread_self()).
-			get_sessions_stats().removeSessionStats(this->id);
+			get_sessions_stats().remove_session_stats(this->id);
 		Statistics::get_statistics(pthread_self()).
 			get_queries_stats().end_session(this->id);
 	}
@@ -317,7 +317,7 @@ namespace Server{
 			execute_statement("end");
 			if (correct) {
 				Statistics::get_statistics(pthread_self()).
-					get_sessions_stats().getSessionStats(this->id).setUserLogin(login);
+					get_sessions_stats().get_session_stats(this->id).set_user_login(login);
 			}
 			return correct;
 		} catch (LoximException &ex) {

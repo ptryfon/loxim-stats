@@ -38,7 +38,6 @@ namespace SystemStatsLib {
 	public:
 		StatisticSingleton();
 
-		/** Stats administration methods */
 		
 		AbstractSessionsStats & get_sessions_stats() {
 			debug_printf(Errors::ErrorConsole::get_instance(Errors::EC_STATS), "get_session_stats\n");
@@ -79,6 +78,20 @@ namespace SystemStatsLib {
 			return queries_stats;
 		}
 
+		/** Stats administration methods */
+		
+		void start_sessions_stats() { active_sessions_stats = &sessions_stats; }
+		void stop_sessions_stats() { active_sessions_stats = &empty_sessions_stats; }
+		void start_config_stats() { active_config_stats = &config_stats; }
+		void stop_config_stats() { active_config_stats = &empty_config_stats; }
+		void start_store_stats() { active_store_stats = &store_stats; }
+		void stop_store_stats() { active_store_stats = &empty_store_stats; }
+		void start_transactions_stats() { active_transactions_stats = &transactions_stats; }
+		void stop_transactions_stats() { active_transactions_stats = &empty_transactions_stats; }
+		void start_queries_stats() { active_queries_stats = &queries_stats; }
+		void stop_queries_stats() { active_queries_stats =  &empty_queries_stats; }
+
+		
 		/* not really happy about those 4 methods, but apparently this is the only
 		 * way to resolve this without a lot of code
 		 */

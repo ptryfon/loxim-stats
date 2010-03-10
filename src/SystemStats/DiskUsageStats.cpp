@@ -6,90 +6,60 @@
  */
 
  #include <SystemStats/DiskUsageStats.h>
+ #include <Errors/ErrorConsole.h>
  
 using namespace SystemStatsLib;
 
-DiskUsageStats::DiskUsageStats(): page_reads_stat(ACCESSTYPE_SIZE), page_writes_stat(ACCESSTYPE_SIZE) {
-	const double initialMinSpeed = 1000.0;
-	const double initialMaxSpeed = 0.0;
-
-	readMaxSpeed = initialMinSpeed;
-	readMinSpeed = initialMaxSpeed;
-	readAvgSpeed = 0.0;
-	readAllMilisec = 0;
-	readAllBytes = 0;
-
-	writeMaxSpeed = initialMaxSpeed;
-	writeMinSpeed = initialMinSpeed;
-	writeAvgSpeed = 0.0;
-	writeAllMilisec = 0;
-	writeAllBytes = 0;
-	
-	/* Possibilities of futher development:
-	 * - adding standard deviation of speed
-	 */
+DiskUsageStats::DiskUsageStats(): 
+		go_page_reads_stat(ACCESSTYPE_SIZE), 
+		op_page_reads_stat(ACCESSTYPE_SIZE), 
+		go_page_writes_stat(ACCESSTYPE_SIZE), 
+		op_page_writes_stat(ACCESSTYPE_SIZE)
+{
+	active_read_speed_stat = &go_read_speed_stat;
+	active_write_speed_stat = &go_write_speed_stat;
+	active_page_writes_stat = &go_page_writes_stat;
+	active_page_reads_stat = &go_page_reads_stat;
 }
 
-void DiskUsageStats::addReadTime(int bytes, double milisec) {
+void DiskUsageStats::add_read_time(int bytes, double milisec) {
+  	debug_print(Errors::ErrorConsole::get_instance(Errors::EC_STATS), "DiskUsageStats::add_read_time\n");
 	if (milisec > 0 && bytes > 0) {
 		double speed = (1.0 * bytes * 1024) / (milisec * 1000);
-		readAllBytes += bytes;
-		readAllMilisec += milisec;
+		active_read_speed_stat->add(speed);
+	}
+}
 
-		if (speed > readMaxSpeed) {
-			readMaxSpeed = speed;
-		}
+double DiskUsageStats::get_min_read_speed() const {
+	return active_read_speed_stat->get_min();
+}
 
-		if (speed < readMinSpeed) {
-			readMinSpeed = speed;
-		}
+double DiskUsageStats::get_max_read_speed() const {
+	return active_read_speed_stat->get_max();
+}
 
-		readAvgSpeed = (1.0 * allBytes * 1024) / (allMilisec * 1000);
+double DiskUsageStats::get_avg_read_speed() const {
+	return active_read_speed_stat->get_avg();
+}
+
+void DiskUsageStats::add_write_time(int bytes, double milisec) {
+	if (milisec > 0 && bytes > 0) {
+		double speed = (1.0 * bytes * 1024) / (milisec * 1000);
+		active_write_speed_stat->add(speed);
 	}
 
 }
 
-double DiskUsageStats::getMinReadSpeed() const {
-	return readMinSpeed;
+double DiskUsageStats::get_min_write_speed() const {
+	return active_write_speed_stat->get_min();
 }
 
-double DiskUsageStats::getMaxReadSpeed() const {
-	return readMaxSpeed;
+double DiskUsageStats::get_max_write_speed() const {
+	return active_write_speed_stat->get_max();
 }
 
-double DiskUsageStats::getAvgReadSpeed() const {
-	return readAvgSpeed;
-}
-
-void DiskUsageStats::addWriteTime(int bytes, double milisec) {
-	if (milisec > 0 && bytes > 0) {
-		double speed = (1.0 * bytes * 1024) / (milisec * 1000);
-		writeAllBytes += bytes;
-		writeAllMilisec += milisec;
-
-		if (speed > writeMaxSpeed) {
-			writeMaxSpeed = speed;
-		}
-
-		if (speed < writeMinSpeed) {
-			writeMinSpeed = speed;
-		}
-
-		writeAvgSpeed = (1.0 * allBytes * 1024) / (allMilisec * 1000);
-	}
-
-}
-
-double DiskUsageStats::getMinWriteSpeed() const {
-	return writeMinSpeed;
-}
-
-double DiskUsageStats::getMaxWriteSpeed() const {
-	return writeMaxSpeed;
-}
-
-double DiskUsageStats::getAvgWriteSpeed() const {
-	return writeAvgSpeed;
+double DiskUsageStats::get_avg_write_speed() const {
+	return active_write_speed_stat->get_avg();
 }
 
 DiskUsageStats::~DiskUsageStats() {

@@ -30,13 +30,13 @@ namespace SystemStatsLib{
 	class AbstractStoreStats : public AbstractStats {
 		public:
 			AbstractStoreStats() : AbstractStats("STORE_STATS") {}
-			virtual AbstractDiskUsageStats& getDiskUsageStats() = 0;
+			virtual AbstractDiskUsageStats& get_disk_usage_stats() = 0;
 			virtual ~AbstractStoreStats() {}
-			void addDiskPageReads(int count) { this->getDiskUsageStats().addDiskPageReads(count); }
-			void addPageReads(int count) { this->getDiskUsageStats().addPageReads(count); }
-			void addDiskPageWrites(int count) { this->getDiskUsageStats().addDiskPageWrites(count); }
-			void addPageWrites(int count) { this->getDiskUsageStats().addPageWrites(count); }
-			void addReadTime(int bytes, double milisec) {this->getDiskUsageStats().addReadTime(bytes, milisec);}
+			void add_disk_page_reads(int count) { this->get_disk_usage_stats().add_disk_page_reads(count); }
+			void add_page_reads(int count) { this->get_disk_usage_stats().add_page_reads(count); }
+			void add_disk_page_writes(int count) { this->get_disk_usage_stats().add_disk_page_writes(count); }
+			void add_page_writes(int count) { this->get_disk_usage_stats().add_page_writes(count); }
+			void add_read_time(int bytes, double milisec) {this->get_disk_usage_stats().add_read_time(bytes, milisec);}
 
 			virtual AbstractStoreStats & operator +=(const StoreStats &rhs) = 0;
 			AbstractStoreStats & operator +=(const EmptyStoreStats &) {return *this;}
@@ -44,10 +44,10 @@ namespace SystemStatsLib{
 	
 	class StoreStats: public AbstractStoreStats{
 		protected:
-			DiskUsageStats diskUsageStats;
+			DiskUsageStats disk_usage_stats;
 		public:
-			StoreStats():diskUsageStats(DiskUsageStats()){};
-			DiskUsageStats& getDiskUsageStats() {return diskUsageStats;}
+			StoreStats():disk_usage_stats(){};
+			DiskUsageStats& get_disk_usage_stats() {return disk_usage_stats;}
 
 			AbstractStoreStats & operator +=(const StoreStats &) {return *this;} //TODO: change to ths nice
 			StatsOutput * get_stats_output() const {EMPTY_STATS_OUTPUT} // TODO: this too
@@ -55,10 +55,10 @@ namespace SystemStatsLib{
 	
 	class EmptyStoreStats: public AbstractStoreStats{
 		protected:
-			EmptyDiskUsageStats diskUsageStats;
+			EmptyDiskUsageStats disk_usage_stats;
 		public:
-			EmptyStoreStats(): diskUsageStats(EmptyDiskUsageStats()){};
-			EmptyDiskUsageStats& getDiskUsageStats() {return diskUsageStats;}
+			EmptyStoreStats(): disk_usage_stats(EmptyDiskUsageStats()){};
+			EmptyDiskUsageStats& get_disk_usage_stats() {return disk_usage_stats;}
 
 			AbstractStoreStats & operator +=(const StoreStats &) {return *this;}
 			StatsOutput * get_stats_output() const {EMPTY_STATS_OUTPUT}

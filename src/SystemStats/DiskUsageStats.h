@@ -8,7 +8,9 @@
 #ifndef DISKUSAGESTATS_H
 #define DISKUSAGESTATS_H
 
+#include <Util/smartptr.h>
 #include <SystemStats/ShareStat.h>
+#include <SystemStats/StandardStat.h>
 
 namespace SystemStatsLib{
 /*
@@ -19,39 +21,45 @@ namespace SystemStatsLib{
  * - minimum, maximum and average time of page read
  * - the same for write
  */
+	class DiskUsageStats;
+	class EmptyDiskUsageStats;
+
 	class AbstractDiskUsageStats {
 	  	public:
 			AbstractDiskUsageStats(){}
 			
 			/* Disk read statistics */
-			virtual void addDiskPageReads(int count) = 0;
-			virtual int getDiskPageReads() const = 0;
+			virtual void add_disk_page_reads(int count) = 0;
+			virtual int get_disk_page_reads() const = 0;
 
-			virtual void addPageReads(int count) = 0;
-			virtual int getPageReads() const = 0;
+			virtual void add_page_reads(int count) = 0;
+			virtual int get_page_reads() const = 0;
 
-			virtual double getPageReadsHit() const = 0;
+			virtual double get_page_reads_hit() const = 0;
 
 			/* Disk write statistics */
-			virtual void addDiskPageWrites(int count) = 0;
-			virtual int getDiskPageWrites() const = 0;
+			virtual void add_disk_page_writes(int count) = 0;
+			virtual int get_disk_page_writes() const = 0;
 
-			virtual void addPageWrites(int count) = 0;
-			virtual int getPageWrites() const = 0;
+			virtual void add_page_writes(int count) = 0;
+			virtual int get_page_writes() const = 0;
 
-			virtual double getPageWritesHit() const = 0;
+			virtual double get_page_writes_hit() const = 0;
 
 			/* Disk read time functions */
-			virtual void addReadTime(int bytes, double milisec) = 0;
-			virtual double getMinReadSpeed() const = 0;
-			virtual double getMaxReadSpeed() const = 0;
-			virtual double getAvgReadSpeed() const = 0;
+			virtual void add_read_time(int bytes, double milisec) = 0;
+			virtual double get_min_read_speed() const = 0;
+			virtual double get_max_read_speed() const = 0;
+			virtual double get_avg_read_speed() const = 0;
 			
 			/* Disk write time functions */
-			virtual void addWriteTime(int bytes, double milisec) = 0;
-			virtual double getMinWriteSpeed() const = 0;
-			virtual double getMaxWriteSpeed() const = 0;
-			virtual double getAvgWriteSpeed() const = 0;
+			virtual void add_write_time(int bytes, double milisec) = 0;
+			virtual double get_min_write_speed() const = 0;
+			virtual double get_max_write_speed() const = 0;
+			virtual double get_avg_write_speed() const = 0;
+			
+			virtual AbstractDiskUsageStats & operator +=(const DiskUsageStats &rhs) = 0;
+			AbstractDiskUsageStats & operator +=(const EmptyDiskUsageStats &) {return *this;}
 
 			virtual ~AbstractDiskUsageStats();
 	};
@@ -59,20 +67,6 @@ namespace SystemStatsLib{
 	class DiskUsageStats: public AbstractDiskUsageStats{
 
 		protected:
-			double 	readMaxSpeed;
-			double 	readMinSpeed;
-			double 	readAvgSpeed;
-			double 	readAllMilisec;
-			double 	readAllBytes;
-			
-			double 	writeMaxSpeed;
-			double 	writeMinSpeed;
-			double 	writeAvgSpeed;
-			double 	writeAllMilisec;
-			double 	writeAllBytes;
-			
-			double allBytes;
-			double allMilisec;
 
 			enum AccessType {
 				NO_DISK,
@@ -80,47 +74,56 @@ namespace SystemStatsLib{
 				ACCESSTYPE_SIZE
 			};
 
-			ShareStatContainer<AccessType, int> page_reads_stat;
-			ShareStatContainer<AccessType, int> page_writes_stat;
-
+			StandardStatContainer<double>* active_read_speed_stat;
+			StandardStatContainer<double>* active_write_speed_stat;
+			StandardStatContainer<double> go_read_speed_stat;
+			StandardStatContainer<double> go_write_speed_stat;
+			StandardStatOnePeriodContainer<double> op_read_speed_stat;
+			StandardStatOnePeriodContainer<double> op_write_speed_stat;
+			
+			ShareStatContainer<AccessType, int> go_page_reads_stat;
+			ShareStatOnePeriodContainer<AccessType, int> op_page_reads_stat;
+			ShareStatContainer<AccessType, int> go_page_writes_stat;
+			ShareStatOnePeriodContainer<AccessType, int> op_page_writes_stat;
+			ShareStatContainer<AccessType, int>* active_page_reads_stat;
+			ShareStatContainer<AccessType, int>* active_page_writes_stat;
+			
 		public:
 			DiskUsageStats();
 
 			/* Disk read statistics */
-			void addDiskPageReads(int count) { page_reads_stat.add(DISK, count); }
-			int getDiskPageReads() const { return page_reads_stat.get_global(DISK); }
+			void add_disk_page_reads(int count) { active_page_reads_stat->add(DISK, count); }
+			int get_disk_page_reads() const { return active_page_reads_stat->get_global(DISK); }
 
-			void addPageReads(int count) { page_reads_stat.add(NO_DISK, count); }
-			int getPageReads() const { return page_reads_stat.get_global(NO_DISK); }
+			void add_page_reads(int count) { active_page_reads_stat->add(NO_DISK, count); }
+			int get_page_reads() const { return active_page_reads_stat->get_global(NO_DISK); }
 
-			double getPageReadsHit() const { return page_reads_stat.get_global_share(NO_DISK); }
+			double get_page_reads_hit() const { return active_page_reads_stat->get_global_share(NO_DISK); }
 
 			/* Disk write statistics */
-			void addDiskPageWrites(int count) { page_writes_stat.add(DISK, count); }
-			int getDiskPageWrites() const { return page_writes_stat.get_global(DISK); }
+			void add_disk_page_writes(int count) { active_page_writes_stat->add(DISK, count); }
+			int get_disk_page_writes() const { return active_page_writes_stat->get_global(DISK); }
 
-			void addPageWrites(int count) { page_writes_stat.add(NO_DISK, count); }
-			int getPageWrites() const {return page_writes_stat.get_global(NO_DISK); }
+			void add_page_writes(int count) { active_page_writes_stat->add(NO_DISK, count); }
+			int get_page_writes() const {return active_page_writes_stat->get_global(NO_DISK); }
 
-			double getPageWritesHit() const { return page_writes_stat.get_global_share(NO_DISK); }
+			double get_page_writes_hit() const { return active_page_writes_stat->get_global_share(NO_DISK); }
 
 			/* Disk read time functions */
-			void addReadTime(int bytes, double milisec);
-			double getMinReadSpeed() const;
-			double getMaxReadSpeed() const;
-			double getAvgReadSpeed() const;
+			void add_read_time(int bytes, double milisec);
+			double get_min_read_speed() const;
+			double get_max_read_speed() const;
+			double get_avg_read_speed() const;
 			
 			/* Disk write time functions */
-			void addWriteTime(int bytes, double milisec);
-			double getMinWriteSpeed() const;
-			double getMaxWriteSpeed() const;
-			double getAvgWriteSpeed() const;
+			void add_write_time(int bytes, double milisec);
+			double get_min_write_speed() const;
+			double get_max_write_speed() const;
+			double get_avg_write_speed() const;
+			
+			AbstractDiskUsageStats & operator +=(const DiskUsageStats &) {return *this;}
 
 			~DiskUsageStats();
-			
-		protected:
-			void updatePageReadsHit();
-			void updatePageWritesHit();
 	};
 	
 	class EmptyDiskUsageStats: public AbstractDiskUsageStats {
@@ -128,34 +131,36 @@ namespace SystemStatsLib{
 	 		EmptyDiskUsageStats() {}
 
 			/* Disk read statistics */
-			void addDiskPageReads(int count) {}
-			int getDiskPageReads() const {return 0;}
+			void add_disk_page_reads(int count) {}
+			int get_disk_page_reads() const {return 0;}
 
-			void addPageReads(int count) {}
-			int getPageReads() const  {return 0;}
+			void add_page_reads(int count) {}
+			int get_page_reads() const  {return 0;}
 
-			double getPageReadsHit() const {return 0;}
+			double get_page_reads_hit() const {return 0;}
 
 			/* Disk write statistics */
-			void addDiskPageWrites(int count) {}
-			int getDiskPageWrites() const {return 0;}
+			void add_disk_page_writes(int count) {}
+			int get_disk_page_writes() const {return 0;}
 
-			void addPageWrites(int count) {}
-			int getPageWrites() const {return 0;}
+			void add_page_writes(int count) {}
+			int get_page_writes() const {return 0;}
 
-			double getPageWritesHit() const {return 0;}
+			double get_page_writes_hit() const {return 0;}
 
 			/* Disk read time functions */
-			void addReadTime(int bytes, double milisec) {}
-			double getMinReadSpeed() const  {return 0;}
-			double getMaxReadSpeed() const  {return 0;}
-			double getAvgReadSpeed() const  {return 0;}
+			void add_read_time(int bytes, double milisec) {}
+			double get_min_read_speed() const  {return 0;}
+			double get_max_read_speed() const  {return 0;}
+			double get_avg_read_speed() const  {return 0;}
 			
 			/* Disk write time functions */
-			void addWriteTime(int bytes, double milisec) {}
-			double getMinWriteSpeed() const {return 0;}
-			double getMaxWriteSpeed() const {return 0;}
-			double getAvgWriteSpeed() const {return 0;}
+			void add_write_time(int bytes, double milisec) {}
+			double get_min_write_speed() const {return 0;}
+			double get_max_write_speed() const {return 0;}
+			double get_avg_write_speed() const {return 0;}
+			
+			AbstractDiskUsageStats & operator +=(const DiskUsageStats &) {return *this;}
 
 			~EmptyDiskUsageStats();
 	};

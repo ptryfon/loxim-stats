@@ -35,12 +35,7 @@
 
 cmd:  
 	  HASH KW_SHUTDOWN opt_semi ADMIN_EOF { *result = new ShutdownTreeNode(); YYACCEPT; }
-	| HASH KW_START opt_stats KW_STATS { *result = new StatsControlNode(START_GLOBAL, $3); YYACCEPT; }
-	| HASH KW_STOP opt_stats KW_STATS { *result = new StatsControlNode(STOP_GLOBAL, $3); YYACCEPT; }
-	| HASH KW_START opt_stats KW_STATS KW_DUMP { *result = new StatsControlNode(START_DUMP, $3); YYACCEPT; }
-	| HASH KW_STOP opt_stats KW_STATS KW_DUMP { *result = new StatsControlNode(STOP_DUMP, $3); YYACCEPT; }
-	| HASH KW_CLEAR opt_stats KW_STATS { *result = new StatsControlNode(CLEAR_GLOBAL, $3); YYACCEPT; }
-    | error { YYABORT; }; 
+   | error { YYABORT; }; 
 opt_semi: 
     | SEMI;
 opt_stats:
