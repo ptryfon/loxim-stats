@@ -5,7 +5,7 @@
 
 #define	YY_DECL							\
 	int ::AdminParser::AdminLexer::lex(				\
-	AdminTreeNode* yylval		\
+	YYSTYPE* yylval		\
     )
 #endif
 
@@ -18,11 +18,12 @@
 #endif
 
 #include <AdminParser/AdminParser.h>
+#include <SystemStats/StatsTypes.h>
 
 namespace AdminParser {
 
 	class AdminTreeNode;
-
+	#include <AdminParser/parser.h>
 	class AdminLexer : public AdminFlexLexer
 	{
 		public:
@@ -31,7 +32,7 @@ namespace AdminParser {
 
 			virtual ~AdminLexer();
 
-			virtual int lex(AdminTreeNode* yylval);
+			virtual int lex(YYSTYPE* yylval);
 
 	};
 

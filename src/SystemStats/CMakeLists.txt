@@ -17,6 +17,3 @@ set(SystemStats_SRCS
 	${SYSTEMSTATSDIR}/TransactionsStats.cpp
 	${SYSTEMSTATSDIR}/TransactionsStats.h CACHE INTERNAL "" )
 
-IF (QT4_FOUND) 
-   add_subdirectory(StatsDisplay)
-ENDIF (QT4_FOUND) 
