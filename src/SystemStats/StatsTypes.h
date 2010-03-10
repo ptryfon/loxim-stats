@@ -4,6 +4,7 @@
 namespace SystemStatsLib {
 
 enum StatsScope {
+	NOTHING = 0,
 	STORE = 1,
 	SESSION = 2,
 	TRANSACTION = 4,

@@ -10,6 +10,8 @@ set(SystemStats_SRCS
 	${SYSTEMSTATSDIR}/ConfigStats.h
 	${SYSTEMSTATSDIR}/QueriesStats.cpp
 	${SYSTEMSTATSDIR}/QueriesStats.h
+	${SYSTEMSTATSDIR}/StatsDumper.cpp
+	${SYSTEMSTATSDIR}/StatsDumper.h
 	${SYSTEMSTATSDIR}/SessionStats.cpp
 	${SYSTEMSTATSDIR}/SessionStats.h
 	${SYSTEMSTATSDIR}/StoreStats.cpp

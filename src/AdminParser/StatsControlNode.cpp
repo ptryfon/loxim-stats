@@ -2,6 +2,7 @@
 #include <Server/Session.h>
 #include <Errors/ErrorConsole.h>
 #include <SystemStats/Statistics.h>
+#include <SystemStats/StatsDumper.h>
 
 using namespace SystemStatsLib;
 namespace AdminParser{
@@ -93,13 +94,14 @@ namespace AdminParser{
 	int StatsControlNode::execute_dump_start()
 	{
 		debug_print(Errors::ErrorConsole::get_instance(Errors::EC_STATS), "Global stats dump start executed\n");
-
+		StatsDumper::get_instance()->start_dumping(scope);
 		return 0;
 	}
 	
 	int StatsControlNode::execute_dump_stop()
 	{
-debug_print(Errors::ErrorConsole::get_instance(Errors::EC_STATS), "Global stats dump stop executed\n");
+		debug_print(Errors::ErrorConsole::get_instance(Errors::EC_STATS), "Global stats dump stop executed\n");
+		StatsDumper::get_instance()->stop_dumping(scope);
 		return 0;
 	}
 	
@@ -112,7 +114,7 @@ debug_print(Errors::ErrorConsole::get_instance(Errors::EC_STATS), "Global stats 
 	int StatsControlNode::execute_set_dump_interval()
 	{
 		debug_print(Errors::ErrorConsole::get_instance(Errors::EC_STATS), "Set dump interval " << number << " executed\n");
-
+		StatsDumper::get_instance()->set_dump_interval(number);
 		return 0;
 	}
 }
