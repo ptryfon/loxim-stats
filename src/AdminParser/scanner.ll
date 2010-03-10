@@ -19,6 +19,7 @@ ws	[ \t\n]+
 
 #		{return HASH;}
 ;		{return SEMI;}
+[0-9]+		{yylval->number = atoi(yytext); return NUMBER;}
 shutdown	{return KW_SHUTDOWN;}
 start		{return KW_START;}
 stop		{return KW_STOP;}
