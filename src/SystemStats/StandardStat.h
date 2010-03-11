@@ -62,11 +62,11 @@ namespace SystemStatsLib {
 
 			T get_min() const { return val_min; }
 			T get_max() const { return val_max; }
-			double get_avg() const { return (1.0 * sum)/n; } 
+			double get_avg() const { return (n != 0 ? (1.0 * sum)/n : 0); } 
 			double get_stddev() const
 			{ 
 				double avg = get_avg();
-				return (1.0 * sum)/n - avg * avg;
+				return (n != 0 ? (1.0 * sum)/n - avg * avg : 0);
 			}
 			double get_avg_in_time() const 
 			{ 

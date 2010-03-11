@@ -36,7 +36,7 @@ namespace SystemStatsLib {
 			T get(const Enum e) const { return counters[e]; }
 			double get_share(const Enum e) const
 			{
-				return 100*static_cast<double>(counters[e])/sum;
+				return sum != 0 ? 100*static_cast<double>(counters[e])/sum : 0;
 			}
 	};
 
