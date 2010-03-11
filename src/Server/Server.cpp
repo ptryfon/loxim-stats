@@ -8,6 +8,7 @@
 #include <Protocol/Streams/PackageCodec.h>
 #include <Server/Server.h>
 #include <Server/Session.h>
+#include <SystemStats/StatsDumper.h>
 #include <Util/SignalRouter.h>
 #include <Util/Concurrency.h>
 
@@ -107,6 +108,8 @@ namespace Server{
 	void Server::shutdown()
 	{
 		info_print(err_cons, "Server shutdown called");
+		SystemStatsLib::StatsDumper::get_instance()->kill();
+		SystemStatsLib::StatsDumper::get_instance()->join();
 		pthread_kill(thread, SIGUSR1);
 	}
 

@@ -23,10 +23,11 @@ namespace SystemStatsLib {
 			virtual void start();
 			static StatsDumper* get_instance();
 			void set_dump_interval(const unsigned int i) { dump_interval = i; }
+			void kill() { stop = true; }
 			
 		private:
 			static StatsDumper* p_instance;
-			Util::Mutex dumper_wait_mutex;
+			bool stop;
 			unsigned int dump_interval; /* Dump interval in miliseconds */
 			StatsScope dump_scope;
 			time_t start_time;

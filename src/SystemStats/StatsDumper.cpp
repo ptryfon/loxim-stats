@@ -38,6 +38,8 @@ namespace {
 int
 loxim_make_dir(std::string dir)
 {
+	debug_print(Errors::ErrorConsole::get_instance(Errors::EC_STATS), 
+				"Creating dir " << dir << "\n");
 	mode_t dir_mode = 0777;
 	if (mkdir(dir.c_str(), dir_mode) != 0 && errno != EEXIST) {
 		error_print(Errors::ErrorConsole::get_instance(Errors::EC_STATS), 
@@ -53,7 +55,7 @@ void
 StatsDumper::start_dumping(StatsScope _scope)
 {
 	const string loxim_default_dump_dir("/tmp/loxim_dump_dir/");
-	if (_scope != CONFIG && _scope != QUERIES)
+	if (_scope == CONFIG ||_scope == QUERIES)
 		return;
 		
 	Config::SBQLConfig config("statistics");
@@ -72,17 +74,17 @@ StatsDumper::start_dumping(StatsScope _scope)
 		if (loxim_make_dir(dump_dir) != 0)
 			return;
 		if ((_scope & STORE) != 0) {
-			store_dump_dir = dump_dir + "store";
+			store_dump_dir = dump_dir + "store/";
 			if (loxim_make_dir(store_dump_dir) != 0)
 				return;
 		}
 		if ((_scope & SESSION) != 0) {
-			sessions_dump_dir = dump_dir + "sessions";
+			sessions_dump_dir = dump_dir + "sessions/";
 			if (loxim_make_dir(sessions_dump_dir) != 0)
 				return;
 		}
 		if ((_scope & TRANSACTION) != 0) {
-			transactions_dump_dir = dump_dir + "transactions";
+			transactions_dump_dir = dump_dir + "transactions/";
 			if (loxim_make_dir(transactions_dump_dir) != 0)
 				return;
 		}
@@ -104,7 +106,7 @@ void
 StatsDumper::start()
 {
 	debug_print(Errors::ErrorConsole::get_instance(Errors::EC_STATS), "StatsDumper::start was called\n");
-	while (dump_scope) 
+	while (dump_scope && !stop) 
 	{
 		debug_print(Errors::ErrorConsole::get_instance(Errors::EC_STATS), "StatsDumper is running\n");
 		
@@ -148,7 +150,7 @@ StatsDumper::dump(std::string dir, StatsOutput* output, time_t timestamp)
 		filename = dir + *names_iter;
 		file.open(filename.c_str(), fstream::out | fstream::app);
 		if (file.is_open())
-			file << timestamp << *int_iter;
+			file << timestamp << " " << *int_iter << "\n";
 		file.close();
 	}
 	std::vector<double>::const_iterator double_iter;
@@ -158,7 +160,7 @@ StatsDumper::dump(std::string dir, StatsOutput* output, time_t timestamp)
 		filename = dir + *names_iter;
 		file.open(filename.c_str(), fstream::out | fstream::app);
 		if (file.is_open())
-			file << timestamp << *double_iter;
+			file << timestamp << " " << *double_iter << "\n";
 		file.close();
 	}
 	std::vector<string>::const_iterator string_iter;
@@ -168,7 +170,7 @@ StatsDumper::dump(std::string dir, StatsOutput* output, time_t timestamp)
 		filename = dir + *names_iter;
 		file.open(filename.c_str(), fstream::out | fstream::app);
 		if (file.is_open())
-			file << timestamp << *string_iter;
+			file << timestamp << " " << *string_iter << "\n";
 		file.close();
 	}
 }
