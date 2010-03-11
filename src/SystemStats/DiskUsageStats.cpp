@@ -71,9 +71,24 @@ DiskUsageStats::get_stats_output(std::string s) const
 }
 
 void 
-DiskUsageStats::get_stats_output(StatsOutput *, std::string s) const
+DiskUsageStats::get_stats_output(StatsOutput * result, std::string s) const
 {
-		
+	result->int_names.push_back(s + "_disk_page_reads");
+	result->int_stats.push_back(get_disk_page_reads());
+	result->int_names.push_back(s + "_page_reads");
+	result->int_stats.push_back(get_page_reads());
+	result->double_names.push_back(s + "_page_reads_hit");
+	result->double_stats.push_back(get_page_reads_hit());
+	result->int_names.push_back(s + "_disk_page_writes");
+	result->int_stats.push_back(get_disk_page_writes());
+	result->int_names.push_back(s + "_page_writes");
+	result->int_stats.push_back(get_page_writes());
+	result->double_names.push_back(s + "_page_writes_hit");
+	result->double_stats.push_back(get_page_writes_hit());
+	result->double_names.push_back(s + "_avg_read_speed");
+	result->double_stats.push_back(get_avg_read_speed());
+	result->double_names.push_back(s + "_avg_write_speed");
+	result->double_stats.push_back(get_avg_write_speed());
 }
 
 DiskUsageStats::~DiskUsageStats() {

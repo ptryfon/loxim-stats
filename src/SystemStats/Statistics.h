@@ -134,6 +134,7 @@ namespace SystemStatsLib {
 		static AbstractStats* get_unified_statistics(const pthread_t thread_id,
 			const std::string &name); /* throws int exception for every thread that is not root */
 		static pthread_t get_root();
+		static AbstractStats* get_unified_statistics(StatsScope scope);
 	private:
 		static std::map<pthread_t, StatisticSingleton*> statistic_singletons;
 		static pthread_t root;
