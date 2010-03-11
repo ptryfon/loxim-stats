@@ -137,19 +137,19 @@ Statistics::get_unified_statistics(StatsScope scope)
 {
 	switch (scope) {
 		case STORE:
-			return Statistics::get_unified_statistics(pthread_t get_root(), "STORE_STATS");
+			return Statistics::get_unified_statistics(get_root(), "STORE_STATS");
 			break;
 		case SESSION:
-			return Statistics::get_unified_statistics(pthread_t get_root(), "SESSIONS_STATS");
+			return Statistics::get_unified_statistics(get_root(), "SESSIONS_STATS");
 			break;
 		case TRANSACTION:
-			return Statistics::get_unified_statistics(pthread_t get_root(), "TRANSACTIONS_STATS");
+			return Statistics::get_unified_statistics(get_root(), "TRANSACTIONS_STATS");
 			break;
 		case QUERIES:
-			return Statistics::get_unified_statistics(pthread_t get_root(), "QUERIES_STATS");
+			return Statistics::get_unified_statistics(get_root(), "QUERIES_STATS");
 			break;
 		case CONFIG:
-			return Statistics::get_unified_statistics(pthread_t get_root(), "CONFIG_STATS");
+			return Statistics::get_unified_statistics(get_root(), "CONFIG_STATS");
 			break;
 		default:
 			return NULL;

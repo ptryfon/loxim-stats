@@ -17,6 +17,7 @@
 #include <SystemStats/QueriesStats.h>
 #include <SystemStats/TransactionsStats.h>
 #include <SystemStats/AbstractStats.h>
+#include <SystemStats/StatsTypes.h>
 #include <Errors/ErrorConsole.h>
 
 namespace SystemStatsLib {
@@ -134,7 +135,7 @@ namespace SystemStatsLib {
 		static AbstractStats* get_unified_statistics(const pthread_t thread_id,
 			const std::string &name); /* throws int exception for every thread that is not root */
 		static pthread_t get_root();
-		static AbstractStats* get_unified_statistics(StatsScope scope);
+		static AbstractStats* get_unified_statistics(const StatsScope scope);
 	private:
 		static std::map<pthread_t, StatisticSingleton*> statistic_singletons;
 		static pthread_t root;

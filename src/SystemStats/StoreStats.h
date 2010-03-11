@@ -54,7 +54,12 @@ namespace SystemStatsLib{
 				disk_usage_stats += rhs.disk_usage_stats;
 				return *this;
 			}
-			StatsOutput * get_stats_output() const {return disk_usage_stats.get_stats_output("store");} 
+			StatsOutput * get_stats_output() const 
+			{
+				StatsOutput* retval = disk_usage_stats.get_stats_output("store");
+				retval->stats_id = STORE_STATS_ID;
+				return retval;
+			} 
 	};
 	
 	class EmptyStoreStats: public AbstractStoreStats{

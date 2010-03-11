@@ -107,6 +107,7 @@ StatsOutput*
 SessionsStats::get_stats_output() const
 {
 	StatsOutput* result = new StatsOutput();
+	result->stats_id = SESSION_STATS_ID;
 	std::map<SessionID, SessionStats>::const_iterator itr;
 	for (itr = sessionsMap.begin(); itr != sessionsMap.end(); itr++) {
 		itr->second.get_stats_output(result);

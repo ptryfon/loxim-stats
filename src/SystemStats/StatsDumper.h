@@ -11,6 +11,8 @@
 #include <Util/Thread.h>
 #include <Util/Concurrency.h>
 #include <SystemStats/StatsTypes.h>
+#include <SystemStats/AbstractStats.h>
+#include <time.h>
 
 namespace SystemStatsLib {
 	
@@ -27,10 +29,16 @@ namespace SystemStatsLib {
 			Util::Mutex dumper_wait_mutex;
 			unsigned int dump_interval; /* Dump interval in miliseconds */
 			StatsScope dump_scope;
+			time_t start_time;
+			std::string dump_dir;
+			std::string store_dump_dir;
+			std::string sessions_dump_dir;
+			std::string transactions_dump_dir;
 			
 			StatsDumper();
 			StatsDumper(const StatsDumper&) {}
 			StatsDumper& operator =(const StatsDumper&) {return *this;}
+			void dump(std::string dir, StatsOutput* output, time_t time_stamp);
 	};
 }
  
